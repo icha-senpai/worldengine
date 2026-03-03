@@ -22,41 +22,43 @@ class EntityController extends Controller
     {
         $query = Entity::query()
             ->select([
-                'id', 'name', 'entity_type', 'status',
-                'completion_score', 'visibility',
-                'power_tier_ceiling', 'published_at',
+                'id', 'name', 'public_title', 'entity_type', 'status',
+                'source_universes', 'summary', 'completion_score',
+                'visibility', 'power_tier_ceiling', 'published_at',
             ])
             ->orderBy('name');
 
-        // Type filter
         if ($request->filled('type')) {
             $query->ofType($request->type);
         }
 
-        // Status filter
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Universe filter
         if ($request->filled('universe')) {
             $query->fromUniverse($request->universe);
         }
 
-        // Full text search
-        if ($request->filled('search')) {
-            $query->search($request->search);
+        // Search uses 'q' to match the Vue filter form
+        if ($request->filled('q')) {
+            $query->search($request->q);
         }
 
-        // Incomplete only
         if ($request->boolean('incomplete')) {
             $query->incomplete();
         }
 
         return $this->page('Entities/Index', [
-            'entities'   => $query->paginate(40)->withQueryString(),
-            'filters'    => $request->only(['type', 'status', 'universe', 'search', 'incomplete']),
-            'entityTypes'=> EntityType::ALL,
+            'entities'    => $query->paginate(40)->withQueryString(),
+            'filters'     => $request->only(['type', 'status', 'universe', 'q', 'incomplete']),
+            // Grouped by category for optgroup rendering in Vue
+            'entityTypes' => EntityType::CATEGORIES,
+            'statuses'    => [
+                'concept', 'active', 'archived',
+                'deceased', 'destroyed', 'dormant', 'unknown',
+            ],
+            'universes'   => \App\Domain\Identity\ValueObjects\SourceUniverse::ALL ?? [],
         ]);
     }
 
@@ -91,24 +93,8 @@ class EntityController extends Controller
     // GET /entities/{entity}
     public function show(Entity $entity): Response
     {
-        // Load all relationships needed for the entity card
-        $entity->load([
-            'aliases'                  => fn($q) => $q->active()->orderBy('alias_type'),
-            'notes'                    => fn($q) => $q->ordered(),
-            'questions'                => fn($q) => $q->byPriority()->unresolved(),
-            'media'                    => fn($q) => $q->primary()->ordered(),
-            'versions'                 => fn($q) => $q->current()->orWhere('is_version_zero', true),
-            'stateSnapshots'           => fn($q) => $q->major()->chronological()->take(5),
-            'allRelationships.fromEntity:id,name,entity_type',
-            'allRelationships.toEntity:id,name,entity_type',
-            'factionMemberships.faction:id,name',
-            'activeGroupRelationships:id,name,relationship_type,current_tension_charge',
-        ]);
-
         return $this->page('Entities/Show', [
-            'entity'         => $entity,
-            'completionBreakdown' => app(\App\Domain\Identity\Services\CompletionScoreCalculator::class)
-                ->breakdown($entity),
+            'entity' => $entity,
         ]);
     }
 

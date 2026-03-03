@@ -180,18 +180,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Production
     // -----------------------------------------------------------------------
 
-    Route::resource('meta',         MetaController::class);
-    Route::resource('pipeline',     PipelineItemController::class);
+    // Force param name to {meta} — without this Laravel inflects it to {metum}
+    Route::resource('meta', MetaController::class)
+        ->parameters(['meta' => 'meta']);
+
+    // param name {pipeline} throughout — matches controller method signatures
+    Route::resource('pipeline', PipelineItemController::class)
+        ->parameters(['pipeline' => 'pipeline']);
+
     Route::resource('session-logs', SessionLogController::class);
 
     Route::prefix('meta/{meta}')->name('meta.')->group(function () {
-        Route::post('advance',             [MetaController::class, 'advance'])->name('advance');
+        // Marks action_status = resolved, sets resolved_at
+        Route::post('resolve',             [MetaController::class, 'resolve'])->name('resolve');
+        // Links this note to a newer one via superseded_by_meta_id
+        Route::post('supersede',           [MetaController::class, 'supersede'])->name('supersede');
         Route::post('entities/{entity}',   [MetaController::class, 'linkEntity'])->name('entities.link');
         Route::delete('entities/{entity}', [MetaController::class, 'unlinkEntity'])->name('entities.unlink');
     });
 
-    Route::prefix('pipeline/{pipelineItem}')->name('pipeline.')->group(function () {
-        Route::post('resolve', [PipelineItemController::class, 'resolve'])->name('resolve');
+    Route::prefix('pipeline/{pipeline}')->name('pipeline.')->group(function () {
+        // Moves pipeline_stage forward one step
+        Route::post('advance', [PipelineItemController::class, 'advance'])->name('advance');
     });
 
     // -----------------------------------------------------------------------
