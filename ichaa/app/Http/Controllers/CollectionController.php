@@ -1,0 +1,122 @@
+<?php
+
+namespace App\Http\Controllers\Organization;
+
+use Illuminate\Http\Request;
+use Inertia\Response;
+
+use App\Http\Controllers\Controller;
+use App\Domain\Identity\Models\Entity;
+use App\Domain\Organization\Models\Collection;
+use App\Domain\Organization\Services\CollectionService;
+
+class CollectionController extends Controller
+{
+    public function __construct(
+        private readonly CollectionService $service,
+    ) {}
+
+    public function index(Request $request): Response
+    {
+        $query = Collection::topLevel()->withCount('entities')->ordered();
+
+        if ($request->filled('type')) {
+            $query->ofType($request->type);
+        }
+
+        return $this->page('Collections/Index', [
+            'collections' => $query->get(),
+            'filters'     => $request->only(['type']),
+            'types'       => Collection::TYPES,
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return $this->page('Collections/Create', [
+            'types' => Collection::TYPES,
+            'modes' => Collection::MODES,
+        ]);
+    }
+
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name'                   => ['required', 'string', 'max:255'],
+            'collection_type'        => ['required', 'string', 'in:' . implode(',', Collection::TYPES)],
+            'collection_mode'        => ['required', 'string', 'in:' . implode(',', Collection::MODES)],
+            'rules'                  => ['nullable', 'array'],
+            'parent_collection_id'   => ['nullable', 'integer', 'exists:collections,id'],
+            'visibility'             => ['nullable', 'string'],
+            'content_classification' => ['nullable', 'string'],
+        ]);
+
+        $collection = $this->service->create($validated);
+
+        return $this->to('collections.show', [$collection], "Collection '{$collection->name}' created.");
+    }
+
+    public function show(Collection $collection): Response
+    {
+        $collection->load([
+            'entities:id,name,entity_type,completion_score',
+            'childCollections:id,name,collection_type',
+        ]);
+
+        return $this->page('Collections/Show', [
+            'collection' => $collection,
+        ]);
+    }
+
+    public function edit(Collection $collection): Response
+    {
+        return $this->page('Collections/Edit', [
+            'collection' => $collection,
+            'types'      => Collection::TYPES,
+            'modes'      => Collection::MODES,
+        ]);
+    }
+
+    public function update(Request $request, Collection $collection): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name'             => ['sometimes', 'string', 'max:255'],
+            'collection_type'  => ['sometimes', 'string'],
+            'collection_mode'  => ['sometimes', 'string'],
+            'rules'            => ['nullable', 'array'],
+            'completion_state' => ['nullable', 'string'],
+        ]);
+
+        $this->service->update($collection, $validated);
+
+        return $this->to('collections.show', [$collection], 'Collection updated.');
+    }
+
+    public function destroy(Collection $collection): \Illuminate\Http\RedirectResponse
+    {
+        $collection->delete();
+
+        return $this->to('collections.index', [], 'Collection deleted.');
+    }
+
+    public function addEntity(Request $request, Collection $collection, Entity $entity): \Illuminate\Http\RedirectResponse
+    {
+        $this->service->addEntity($collection, $entity, $request->only(['role_in_collection', 'sort_order']));
+
+        return $this->back('Entity added to collection.');
+    }
+
+    public function removeEntity(Collection $collection, Entity $entity): \Illuminate\Http\RedirectResponse
+    {
+        $this->service->removeEntity($collection, $entity);
+
+        return $this->back('Entity removed from collection.');
+    }
+
+    public function sync(Collection $collection): \Illuminate\Http\RedirectResponse
+    {
+        $count = $this->service->syncSmartMembers($collection);
+
+        return $this->back("{$count} entities synced.");
+    }
+}

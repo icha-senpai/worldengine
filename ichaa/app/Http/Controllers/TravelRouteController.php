@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Http\Controllers\World;
+
+use Illuminate\Http\Request;
+use Inertia\Response;
+
+use App\Http\Controllers\Controller;
+use App\Domain\Identity\Models\Entity;
+use App\Domain\World\Models\TravelRoute;
+use App\Domain\World\Services\WorldService;
+
+class TravelRouteController extends Controller
+{
+    public function __construct(
+        private readonly WorldService $service,
+    ) {}
+
+    public function index(): Response
+    {
+        return $this->page('World/TravelRoutes/Index', [
+            'routes' => TravelRoute::active()
+                ->with(['origin:id,name', 'destination:id,name'])
+                ->get(),
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return $this->page('World/TravelRoutes/Create', [
+            'routeTypes' => TravelRoute::ROUTE_TYPES,
+        ]);
+    }
+
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'origin_location_entity_id'      => ['required', 'integer', 'exists:entities,id'],
+            'destination_location_entity_id' => ['required', 'integer', 'exists:entities,id'],
+            'route_type'                     => ['required', 'string', 'in:' . implode(',', TravelRoute::ROUTE_TYPES)],
+            'bidirectional'                  => ['boolean'],
+            'standard_duration'              => ['nullable', 'string'],
+            'method_variants'                => ['nullable', 'array'],
+        ]);
+
+        $origin      = Entity::findOrFail($validated['origin_location_entity_id']);
+        $destination = Entity::findOrFail($validated['destination_location_entity_id']);
+
+        if ($request->boolean('bidirectional')) {
+            $this->service->createBidirectionalRoute($origin, $destination, $validated['route_type'], $validated);
+        } else {
+            $this->service->createRoute($origin, $destination, $validated['route_type'], $validated);
+        }
+
+        return $this->back('Route created.');
+    }
+
+    public function show(TravelRoute $travelRoute): Response
+    {
+        return $this->page('World/TravelRoutes/Show', [
+            'route' => $travelRoute->load(['origin:id,name', 'destination:id,name', 'controlledBy:id,name']),
+        ]);
+    }
+
+    public function edit(TravelRoute $travelRoute): Response
+    {
+        return $this->page('World/TravelRoutes/Edit', [
+            'route' => $travelRoute,
+        ]);
+    }
+
+    public function update(Request $request, TravelRoute $travelRoute): \Illuminate\Http\RedirectResponse
+    {
+        $travelRoute->update($request->validate([
+            'standard_duration' => ['nullable', 'string'],
+            'method_variants'   => ['nullable', 'array'],
+            'hazards'           => ['nullable', 'array'],
+            'is_active'         => ['boolean'],
+        ]));
+
+        return $this->back('Route updated.');
+    }
+
+    public function destroy(TravelRoute $travelRoute): \Illuminate\Http\RedirectResponse
+    {
+        $travelRoute->delete();
+
+        return $this->back('Route deleted.');
+    }
+}
