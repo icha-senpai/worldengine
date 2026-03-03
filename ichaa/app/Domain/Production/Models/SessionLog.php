@@ -11,63 +11,46 @@ class SessionLog extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'session_logs';
+    // Actual table name — no trailing 's'
+    protected $table = 'session_log';
 
     protected $fillable = [
+        'title',
         'session_date',
-        'session_title',
-        'session_type',
-        'summary',
+        'external_tool',
+        'focus_entity_ids',
+        'focus_group_relationship_ids',
+        'focus_collection_ids',
+        'focus_description',
         'decisions_made',
-        'questions_raised',
-        'entities_created_ids',
-        'entities_modified_ids',
-        'relationships_created_ids',
-        'documents_created_ids',
-        'word_count_added',
-        'mood_rating',
-        'energy_level',
-        'session_notes',
-        'next_session_goals',
-        'duration_minutes',
+        'changes_applied',
+        'open_threads',
+        'follow_up_question_ids',
+        'session_significance',
+        'notes',
     ];
 
     protected $casts = [
-        'summary'                    => 'array', // Tiptap JSON
-        'decisions_made'             => 'array', // Tiptap JSON
-        'questions_raised'           => 'array', // Tiptap JSON
-        'session_notes'              => 'array', // Tiptap JSON
-        'next_session_goals'         => 'array', // Tiptap JSON
-        'entities_created_ids'       => 'array',
-        'entities_modified_ids'      => 'array',
-        'relationships_created_ids'  => 'array',
-        'documents_created_ids'      => 'array',
-        'session_date'               => 'date',
-        'deleted_at'                 => 'datetime',
+        'focus_entity_ids'             => 'array',
+        'focus_group_relationship_ids' => 'array',
+        'focus_collection_ids'         => 'array',
+        'follow_up_question_ids'       => 'array',
+        'decisions_made'               => 'array',
+        'changes_applied'              => 'array',
+        'open_threads'                 => 'array',
+        'notes'                        => 'array',
+        'session_date'                 => 'date',
+        'deleted_at'                   => 'datetime',
     ];
 
-    const SESSION_TYPES = [
-        'world_building',
-        'character_development',
-        'plot_planning',
-        'drafting',
-        'revision',
-        'research',
-        'brainstorming',
-        'mixed',
-    ];
-
-    const MOOD_RATINGS = [1, 2, 3, 4, 5];
-
-    const ENERGY_LEVELS = [
-        'low',
-        'medium',
-        'high',
+    const SIGNIFICANCE_LEVELS = [
+        'minor',
+        'moderate',
+        'major',
     ];
 
     // --- RELATIONSHIPS ---
 
-    // Questions raised during this session that became entity questions
     public function entityQuestions(): HasMany
     {
         return $this->hasMany(
@@ -76,18 +59,7 @@ class SessionLog extends Model
         );
     }
 
-    // Pipeline items created or linked to this session
-    public function pipelineItems(): HasMany
-    {
-        return $this->hasMany(PipelineItem::class, 'source_session_log_id');
-    }
-
     // --- SCOPES ---
-
-    public function scopeOfType(Builder $query, string $type): Builder
-    {
-        return $query->where('session_type', $type);
-    }
 
     public function scopeRecent(Builder $query, int $days = 30): Builder
     {
@@ -100,6 +72,11 @@ class SessionLog extends Model
             ->whereMonth('session_date', now()->month);
     }
 
+    public function scopeOfSignificance(Builder $query, string $level): Builder
+    {
+        return $query->where('session_significance', $level);
+    }
+
     public function scopeChronological(Builder $query): Builder
     {
         return $query->orderBy('session_date');
@@ -110,42 +87,21 @@ class SessionLog extends Model
         return $query->orderByDesc('session_date');
     }
 
-    public function scopeProductiveSessions(Builder $query): Builder
-    {
-        return $query->where('word_count_added', '>', 0);
-    }
-
     // --- COMPUTED ---
 
-    public function entityCreatedCount(): int
+    public function isMajor(): bool
     {
-        return count($this->entities_created_ids ?? []);
+        return $this->session_significance === 'major';
     }
 
-    public function entityModifiedCount(): int
+    public function focusEntityCount(): int
     {
-        return count($this->entities_modified_ids ?? []);
+        return count($this->focus_entity_ids ?? []);
     }
 
-    public function wasProductive(): bool
+    public function hasOpenThreads(): bool
     {
-        return ($this->word_count_added ?? 0) > 0
-            || $this->entityCreatedCount() > 0;
-    }
-
-    public function addCreatedEntity(int $entityId): void
-    {
-        $ids   = $this->entities_created_ids ?? [];
-        $ids[] = $entityId;
-
-        $this->update(['entities_created_ids' => array_unique($ids)]);
-    }
-
-    public function addModifiedEntity(int $entityId): void
-    {
-        $ids   = $this->entities_modified_ids ?? [];
-        $ids[] = $entityId;
-
-        $this->update(['entities_modified_ids' => array_unique($ids)]);
+        $threads = $this->open_threads ?? [];
+        return !empty($threads);
     }
 }

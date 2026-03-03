@@ -18,7 +18,7 @@ class CollectionController extends Controller
 
     public function index(Request $request): Response
     {
-        $query = Collection::topLevel()->withCount('entities')->ordered();
+        $query = Collection::topLevel()->withCount('entities')->orderBy('name');
 
         if ($request->filled('type')) {
             $query->ofType($request->type);

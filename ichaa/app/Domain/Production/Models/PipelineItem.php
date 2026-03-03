@@ -13,110 +13,130 @@ class PipelineItem extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'pipeline_items';
+    // Actual table name in the database
+    protected $table = 'writing_pipeline';
 
     protected $fillable = [
-        'meta_id',
-        'entity_id',
-        'item_type',
         'title',
-        'description',
-        'status',
-        'priority',
-        'blocking_question',
-        'resolution_notes',
-        'source_session_log_id',
-        'resolved_at',
-        'due_era',
+        'pipeline_type',
+        'parent_pipeline_item_id',
         'sort_order',
+        'pipeline_stage',
+        'content',
+        'word_count',
+        'reading_time_minutes',
+        'revision_history',
+        'timeline_entry_id',
+        'timeline_position',
+        'pov_character_entity_id',
+        'location_entity_id',
+        'emotional_beat',
+        'narrative_purpose',
+        'scene_content_warnings',
+        'sensory_palette_meta_id',
+        'speaker_entity_id',
+        'speakers_entity_ids',
+        'add_to_voice_samples',
+        'tracked_entity_id',
+        'arc_stage',
+        'arc_notes',
+        'inspiration_source_universe',
+        'inspiration_source_element',
+        'influenced_entity_ids',
+        'how_used',
+        'how_changed',
+        'deviation_level',
+        'why_it_fits',
+        'notes',
         'visibility',
         'content_classification',
     ];
 
     protected $casts = [
-        'description'      => 'array', // Tiptap JSON
-        'resolution_notes' => 'array', // Tiptap JSON
-        'resolved_at'      => 'datetime',
-        'sort_order'       => 'integer',
-        'deleted_at'       => 'datetime',
+        'content'                 => 'array',
+        'revision_history'        => 'array',
+        'scene_content_warnings'  => 'array',
+        'speakers_entity_ids'     => 'array',
+        'influenced_entity_ids'   => 'array',
+        'notes'                   => 'array',
+        'add_to_voice_samples'    => 'boolean',
+        'sort_order'              => 'integer',
+        'word_count'              => 'integer',
+        'reading_time_minutes'    => 'integer',
+        'timeline_position'       => 'integer',
+        'deleted_at'              => 'datetime',
     ];
 
-    const ITEM_TYPES = [
-        'research_needed',
-        'decision_pending',
-        'scene_to_write',
-        'continuity_check',
-        'character_question',
-        'plot_hole',
-        'revision_note',
-        'world_building_gap',
-        'consistency_issue',
-        'structural_note',
+    const PIPELINE_TYPES = [
+        'scene',
+        'chapter',
+        'arc',
+        'interlude',
+        'prologue',
+        'epilogue',
+        'outline',
+        'note',
+        'inspiration',
+        'character_study',
     ];
 
-    const STATUSES = [
-        'backlog',
-        'in_progress',
-        'blocked',
-        'done',
-        'dropped',
-    ];
-
-    const PRIORITIES = [
-        'low',
-        'medium',
-        'high',
-        'critical',
+    const PIPELINE_STAGES = [
+        'concept',
+        'outlined',
+        'drafted',
+        'revised',
+        'complete',
+        'cut',
     ];
 
     // --- RELATIONSHIPS ---
 
-    public function meta(): BelongsTo
+    public function parent(): BelongsTo
     {
-        return $this->belongsTo(Meta::class, 'meta_id');
+        return $this->belongsTo(PipelineItem::class, 'parent_pipeline_item_id');
     }
 
-    // The entity this pipeline item concerns — optional
-    public function entity(): BelongsTo
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->belongsTo(Entity::class, 'entity_id');
+        return $this->hasMany(PipelineItem::class, 'parent_pipeline_item_id')
+            ->orderBy('sort_order');
     }
 
-    public function sourceSession(): BelongsTo
+    public function povCharacter(): BelongsTo
     {
-        return $this->belongsTo(SessionLog::class, 'source_session_log_id');
+        return $this->belongsTo(Entity::class, 'pov_character_entity_id');
+    }
+
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Entity::class, 'location_entity_id');
+    }
+
+    public function trackedEntity(): BelongsTo
+    {
+        return $this->belongsTo(Entity::class, 'tracked_entity_id');
+    }
+
+    public function sensoryPalette(): BelongsTo
+    {
+        return $this->belongsTo(Meta::class, 'sensory_palette_meta_id');
     }
 
     // --- SCOPES ---
 
-    public function scopeForMeta(Builder $query, int $metaId): Builder
-    {
-        return $query->where('meta_id', $metaId);
-    }
-
-    public function scopeForEntity(Builder $query, int $entityId): Builder
-    {
-        return $query->where('entity_id', $entityId);
-    }
-
-    public function scopePending(Builder $query): Builder
-    {
-        return $query->whereNotIn('status', ['done', 'dropped']);
-    }
-
-    public function scopeBlocked(Builder $query): Builder
-    {
-        return $query->where('status', 'blocked');
-    }
-
-    public function scopeCritical(Builder $query): Builder
-    {
-        return $query->where('priority', 'critical');
-    }
-
     public function scopeOfType(Builder $query, string $type): Builder
     {
-        return $query->where('item_type', $type);
+        return $query->where('pipeline_type', $type);
+    }
+
+    public function scopeAtStage(Builder $query, string $stage): Builder
+    {
+        return $query->where('pipeline_stage', $stage);
+    }
+
+    public function scopeTopLevel(Builder $query): Builder
+    {
+        return $query->whereNull('parent_pipeline_item_id');
     }
 
     public function scopeOrdered(Builder $query): Builder
@@ -124,48 +144,38 @@ class PipelineItem extends Model
         return $query->orderBy('sort_order');
     }
 
-    public function scopeForDashboard(Builder $query): Builder
+    public function scopeWithWords(Builder $query): Builder
     {
-        return $query->whereIn('priority', ['high', 'critical'])
-            ->whereNotIn('status', ['done', 'dropped'])
-            ->orderByRaw("
-                CASE priority
-                    WHEN 'critical' THEN 1
-                    WHEN 'high'     THEN 2
-                    ELSE 3
-                END
-            ")
-            ->orderBy('sort_order');
+        return $query->where('word_count', '>', 0);
+    }
+
+    public function scopeForEntity(Builder $query, int $entityId): Builder
+    {
+        return $query->where('tracked_entity_id', $entityId)
+            ->orWhere('pov_character_entity_id', $entityId);
     }
 
     // --- COMPUTED ---
 
-    public function isPending(): bool
+    public function isComplete(): bool
     {
-        return !in_array($this->status, ['done', 'dropped'], true);
+        return $this->pipeline_stage === 'complete';
     }
 
-    public function isBlocked(): bool
+    public function isCut(): bool
     {
-        return $this->status === 'blocked';
+        return $this->pipeline_stage === 'cut';
     }
 
-    public function isDone(): bool
+    public function readingTimeFormatted(): string
     {
-        return $this->status === 'done';
-    }
+        if (!$this->reading_time_minutes) {
+            return '—';
+        }
 
-    public function isCritical(): bool
-    {
-        return $this->priority === 'critical';
-    }
+        $h = intdiv($this->reading_time_minutes, 60);
+        $m = $this->reading_time_minutes % 60;
 
-    public function resolve(array $resolutionNotes = []): void
-    {
-        $this->update([
-            'status'           => 'done',
-            'resolution_notes' => $resolutionNotes ?: $this->resolution_notes,
-            'resolved_at'      => now(),
-        ]);
+        return $h > 0 ? "{$h}h {$m}m" : "{$m}m";
     }
 }

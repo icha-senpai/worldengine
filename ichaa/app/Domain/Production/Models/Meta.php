@@ -5,6 +5,7 @@ namespace App\Domain\Production\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -19,70 +20,81 @@ class Meta extends Model
 
     protected $fillable = [
         'title',
-        'meta_type',
-        'status',
-        'synopsis',
-        'full_outline',
-        'themes',
-        'author_notes',
-        'target_word_count',
-        'current_word_count',
-        'draft_version',
-        'target_completion_era',
-        'started_at',
-        'completed_at',
-        'sort_order',
+        'category',
+        'meta_note_type',
+        'content',
+        'sense_sight',
+        'sense_sound',
+        'sense_smell',
+        'sense_taste',
+        'sense_touch',
+        'sense_magical',
+        'emotional_register',
+        'symbol_name',
+        'symbol_origin_entity_id',
+        'symbol_usage_context',
+        'symbol_associated_entity_ids',
+        'symbol_media_reference_id',
+        'symbol_scope',
+        'priority',
+        'action_status',
+        'resolved_at',
+        'resolution_notes',
+        'superseded_by_meta_id',
+        'superseded_at',
+        'supersession_reason',
         'visibility',
         'content_classification',
     ];
 
     protected $casts = [
-        'synopsis'      => 'array', // Tiptap JSON
-        'full_outline'  => 'array', // Tiptap JSON
-        'themes'        => 'array', // Tiptap JSON
-        'author_notes'  => 'array', // Tiptap JSON
-        'started_at'    => 'datetime',
-        'completed_at'  => 'datetime',
-        'sort_order'    => 'integer',
-        'deleted_at'    => 'datetime',
+        'content'                      => 'array',
+        'resolution_notes'             => 'array',
+        'symbol_associated_entity_ids' => 'array',
+        'resolved_at'                  => 'datetime',
+        'superseded_at'                => 'datetime',
+        'deleted_at'                   => 'datetime',
     ];
 
-    const META_TYPES = [
-        'novel',
-        'novella',
-        'short_story',
-        'arc',
-        'chapter',
-        'scene',
-        'anthology',
-        'screenplay',
-        'outline_only',
+    const CATEGORIES = [
+        'themes_and_motifs',
+        'tensions_and_contradictions',
+        'design_notes_and_author_intent',
+        'secrets_and_hidden_truth',
+        'moral_dilemmas',
+        'sensory_palettes',
+        'symbols_and_iconography',
     ];
 
-    const STATUSES = [
-        'planned',
-        'outlining',
-        'drafting',
-        'revising',
-        'complete',
-        'abandoned',
-        'on_hold',
+    const NOTE_TYPES = [
+        'passive',
+        'active_task',
+        'decision',
+        'question',
+        'reminder',
+    ];
+
+    const PRIORITIES = [
+        'low',
+        'medium',
+        'high',
+        'blocking',
+    ];
+
+    const ACTION_STATUSES = [
+        'pending',
+        'in_progress',
+        'resolved',
+        'deferred',
+    ];
+
+    const SYMBOL_SCOPES = [
+        'in_world',
+        'meta',
+        'both',
     ];
 
     // --- RELATIONSHIPS ---
-
-    public function pipelineItems(): HasMany
-    {
-        return $this->hasMany(PipelineItem::class, 'meta_id')
-            ->orderBy('sort_order');
-    }
-
-    public function pendingItems(): HasMany
-    {
-        return $this->hasMany(PipelineItem::class, 'meta_id')
-            ->whereNotIn('status', ['done', 'dropped'])
-            ->orderBy('sort_order');
-    }
 
     public function entities(): BelongsToMany
     {
@@ -91,9 +103,8 @@ class Meta extends Model
             'meta_entities',
             'meta_id',
             'entity_id'
-        )->withPivot(['role_in_meta', 'appearance_notes', 'sort_order'])
-         ->withTimestamps()
-         ->orderByPivot('sort_order');
+        )->withPivot(['connection_notes'])
+         ->withTimestamps();
     }
 
     public function groupRelationships(): BelongsToMany
@@ -107,31 +118,57 @@ class Meta extends Model
          ->withTimestamps();
     }
 
+    public function supersededBy(): BelongsTo
+    {
+        return $this->belongsTo(Meta::class, 'superseded_by_meta_id');
+    }
+
+    public function supersedes(): HasMany
+    {
+        return $this->hasMany(Meta::class, 'superseded_by_meta_id');
+    }
+
     // --- SCOPES ---
 
-    public function scopeOfType(Builder $query, string $type): Builder
+    public function scopeOfCategory(Builder $query, string $category): Builder
     {
-        return $query->where('meta_type', $type);
+        return $query->where('category', $category);
     }
 
-    public function scopeActive(Builder $query): Builder
+    public function scopeOfNoteType(Builder $query, string $type): Builder
     {
-        return $query->whereIn('status', ['outlining', 'drafting', 'revising']);
+        return $query->where('meta_note_type', $type);
     }
 
-    public function scopeComplete(Builder $query): Builder
+    public function scopeActiveTasks(Builder $query): Builder
     {
-        return $query->where('status', 'complete');
+        return $query->where('meta_note_type', 'active_task')
+            ->whereNot('action_status', 'resolved');
     }
 
-    public function scopePlanned(Builder $query): Builder
+    public function scopeUnresolved(Builder $query): Builder
     {
-        return $query->where('status', 'planned');
+        return $query->whereNull('resolved_at');
     }
 
-    public function scopeOrdered(Builder $query): Builder
+    public function scopeResolved(Builder $query): Builder
     {
-        return $query->orderBy('sort_order');
+        return $query->whereNotNull('resolved_at');
+    }
+
+    public function scopeCurrent(Builder $query): Builder
+    {
+        return $query->whereNull('superseded_by_meta_id');
+    }
+
+    public function scopeSuperseded(Builder $query): Builder
+    {
+        return $query->whereNotNull('superseded_by_meta_id');
+    }
+
+    public function scopeBlocking(Builder $query): Builder
+    {
+        return $query->where('priority', 'blocking');
     }
 
     public function scopeSearch(Builder $query, string $term): Builder
@@ -144,27 +181,28 @@ class Meta extends Model
 
     // --- COMPUTED ---
 
-    public function isActive(): bool
+    public function isResolved(): bool
     {
-        return in_array($this->status, ['outlining', 'drafting', 'revising'], true);
+        return $this->resolved_at !== null;
     }
 
-    public function isComplete(): bool
+    public function isSuperseded(): bool
     {
-        return $this->status === 'complete';
+        return $this->superseded_by_meta_id !== null;
     }
 
-    public function wordCountProgress(): ?float
+    public function isActiveTask(): bool
     {
-        if (!$this->target_word_count || !$this->current_word_count) {
-            return null;
-        }
-
-        return round(($this->current_word_count / $this->target_word_count) * 100, 1);
+        return $this->meta_note_type === 'active_task' && !$this->isResolved();
     }
 
-    public function hasPendingItems(): bool
+    public function isSensoryPalette(): bool
     {
-        return $this->pendingItems()->exists();
+        return $this->category === 'sensory_palettes';
+    }
+
+    public function isSymbol(): bool
+    {
+        return $this->category === 'symbols_and_iconography';
     }
 }

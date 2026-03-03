@@ -2,159 +2,201 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use Inertia\Response;
-
-use App\Domain\Identity\Models\Entity;
-use App\Domain\Intelligence\Services\IntelligenceService;
-use App\Domain\Production\Services\ProductionService;
-use App\Domain\World\Models\PowerInteraction;
-use App\Domain\Identity\Models\EntityQuestion;
 
 class DashboardController extends Controller
 {
-    public function __construct(
-        private readonly IntelligenceService $intelligence,
-        private readonly ProductionService   $production,
-    ) {}
-
     public function index(): Response
     {
         return $this->page('Dashboard', [
-
-            // --- WRITING SUMMARY ---
-            // Active meta projects with their pending pipeline items
-            'activeMeta' => $this->production->getActiveSummary()
-                ->map(fn($meta) => [
-                    'id'               => $meta->id,
-                    'title'            => $meta->title,
-                    'meta_type'        => $meta->meta_type,
-                    'status'           => $meta->status,
-                    'word_count'       => $meta->current_word_count,
-                    'target_words'     => $meta->target_word_count,
-                    'progress_percent' => $meta->wordCountProgress(),
-                    'pending_items'    => $meta->pendingItems->map(fn($item) => [
-                        'id'       => $item->id,
-                        'title'    => $item->title,
-                        'type'     => $item->item_type,
-                        'priority' => $item->priority,
-                        'status'   => $item->status,
-                    ]),
-                ]),
-
-            // Recent session stats
-            'sessionStats' => $this->production->getSessionStats(30),
-
-            // --- WARNING PANELS ---
-
-            // Latent tension — knows something true, hasn't acted
-            'latentTension' => $this->intelligence->getLatentTensionMap()
-                ->take(20)
-                ->map(fn($state) => [
-                    'id'             => $state->id,
-                    'knower'         => [
-                        'id'   => $state->knower?->id,
-                        'name' => $state->knower?->name,
-                    ],
-                    'knowledge_type' => $state->knowledge_type,
-                    'subject_type'   => $state->subjectType(),
-                    'subject_name'   => $this->resolveSubjectName($state),
-                    'accuracy'       => $state->accuracy,
-                    'belief_state'   => $state->current_belief_state,
-                ]),
-
-            // Exposure risk — high/critical secrets sorted by structural pressure
-            'exposureRisk' => $this->intelligence->getExposureRiskAudit()
-                ->take(15)
-                ->map(fn($secret) => [
-                    'id'             => $secret->id,
-                    'title'          => $secret->title,
-                    'secret_type'    => $secret->secret_type,
-                    'exposure_risk'  => $secret->exposure_risk,
-                    'status'         => $secret->status,
-                    'holder_count'   => $secret->holderCount(),
-                    'known_by_count' => $secret->knownByCount(),
-                    'exposure_ratio' => $secret->exposureRatio(),
-                    'is_leaking'     => $secret->isLeaking(),
-                ]),
-
-            // Immune list tension — perception gaps closest to collapse
-            'immuneTension' => $this->intelligence->getImmuneListTensionMeter()
-                ->take(10)
-                ->map(fn($state) => [
-                    'id'               => $state->id,
-                    'subject_type'     => $state->subject_type,
-                    'subject_id'       => $state->subject_id,
-                    'divergence_level' => $state->divergence_level,
-                    'revelation_risk'  => $state->revelation_risk,
-                    'maintenance_effort'=> $state->maintenance_effort,
-                    'immune_count'     => $state->immuneCount(),
-                    'maintainer_count' => $state->maintainerCount(),
-                    'tension_ratio'    => $state->immuneTensionRatio(),
-                ]),
-
-            // Blocking questions — entity questions flagged as blocking
-            'blockingQuestions' => EntityQuestion::blocking()
-                ->unresolved()
-                ->byPriority()
-                ->with('entity:id,name,entity_type')
-                ->take(15)
-                ->get()
-                ->map(fn($q) => [
-                    'id'       => $q->id,
-                    'question' => $q->question,
-                    'priority' => $q->priority,
-                    'entity'   => [
-                        'id'          => $q->entity->id,
-                        'name'        => $q->entity->name,
-                        'entity_type' => $q->entity->entity_type,
-                    ],
-                ]),
-
-            // Unresolved power interactions
-            'unresolvedInteractions' => PowerInteraction::unresolved()
-                ->with(['systemA:id,name', 'systemB:id,name'])
-                ->take(10)
-                ->get()
-                ->map(fn($i) => [
-                    'id'            => $i->id,
-                    'name'          => $i->interaction_name,
-                    'system_a'      => $i->systemA?->name,
-                    'system_b'      => $i->systemB?->name,
-                    'danger_rating' => $i->danger_rating,
-                    'knowledge_state'=> $i->knowledge_state,
-                ]),
-
-            // Incomplete entities
-            'incompleteEntities' => Entity::incomplete()
-                ->withBlockingQuestions()
-                ->select(['id', 'name', 'entity_type', 'completion_score', 'status'])
-                ->orderByDesc('completion_score') // Closest to complete first
-                ->take(10)
-                ->get()
-                ->map(fn($e) => [
-                    'id'               => $e->id,
-                    'name'             => $e->name,
-                    'entity_type'      => $e->entity_type,
-                    'completion_score' => $e->completion_score,
-                    'status'           => $e->status,
-                ]),
-
+            'recentPipeline'    => $this->recentPipeline(),
+            'sessionStats'      => $this->sessionStats(),
+            'latentTension'     => $this->latentTension(),
+            'exposureRisk'      => $this->exposureRisk(),
+            'perceptionGaps'    => $this->perceptionGaps(),
+            'blockingQuestions' => $this->blockingQuestions(),
         ]);
     }
 
-    // Resolve a human-readable name for a knowledge state's subject
-    // regardless of which subject type it is
-    private function resolveSubjectName($state): ?string
+    // Recent writing pipeline items — last 10 modified, not deleted
+    private function recentPipeline(): array
     {
-        return match($state->subjectType()) {
-            'entity'             => $state->subjectEntity?->name,
-            'secret'             => $state->subjectSecret?->title,
-            'relationship'       => $state->subjectRelationship
-                ? ($state->subjectRelationship->fromEntity?->name . ' → ' . $state->subjectRelationship->toEntity?->name)
-                : null,
-            'group_relationship' => $state->subjectGroupRelationship?->name,
-            'event'              => $state->subjectEvent?->eventEntity?->name,
-            default              => null,
-        };
+        return DB::table('writing_pipeline')
+            ->whereNull('deleted_at')
+            ->orderByDesc('updated_at')
+            ->limit(10)
+            ->get(['id', 'title', 'pipeline_type', 'pipeline_stage', 'word_count', 'updated_at'])
+            ->toArray();
+    }
+
+    // Session log stats — last 30 days
+    private function sessionStats(): array
+    {
+        $cutoff = now()->subDays(30)->toDateString();
+
+        $rows = DB::table('session_log')
+            ->whereNull('deleted_at')
+            ->where('session_date', '>=', $cutoff)
+            ->get(['session_significance', 'external_tool']);
+
+        return [
+            'session_count'   => $rows->count(),
+            'major_count'     => $rows->where('session_significance', 'major')->count(),
+            'tools_used'      => $rows->pluck('external_tool')->unique()->filter()->values()->toArray(),
+        ];
+    }
+
+    // Knowledge states: is_current=true, acted_on=false, accuracy=true/confirmed
+    // These are things someone knows for certain and hasn't acted on — latent tension
+    private function latentTension(): array
+    {
+        return DB::table('knowledge_states as ks')
+            ->join('entities as knower', 'knower.id', '=', 'ks.knower_entity_id')
+            ->whereNull('ks.deleted_at')
+            ->where('ks.is_current', true)
+            ->where('ks.acted_on', false)
+            ->whereIn('ks.accuracy', ['confirmed', 'true', 'accurate'])
+            ->orderByDesc('ks.updated_at')
+            ->limit(20)
+            ->get([
+                'ks.id',
+                'ks.knowledge_type',
+                'ks.current_belief_state',
+                'ks.subject_entity_id',
+                'ks.subject_secret_id',
+                'knower.id as knower_id',
+                'knower.name as knower_name',
+            ])
+            ->map(function ($row) {
+                // Resolve subject name inline for entity subjects
+                $subjectName = null;
+                if ($row->subject_entity_id) {
+                    $subjectName = DB::table('entities')
+                        ->where('id', $row->subject_entity_id)
+                        ->value('name');
+                } elseif ($row->subject_secret_id) {
+                    $subjectName = DB::table('secrets')
+                        ->where('id', $row->subject_secret_id)
+                        ->value('title');
+                }
+
+                return [
+                    'id'                  => $row->id,
+                    'knowledge_type'      => $row->knowledge_type,
+                    'current_belief_state'=> $row->current_belief_state,
+                    'subject_name'        => $subjectName,
+                    'knower'              => ['id' => $row->knower_id, 'name' => $row->knower_name],
+                ];
+            })
+            ->toArray();
+    }
+
+    // Secrets: active, high exposure_risk, sorted by how many people know vs hold
+    // holder_entity_ids and known_by_entity_ids are jsonb arrays
+    private function exposureRisk(): array
+    {
+        return DB::table('secrets')
+            ->whereNull('deleted_at')
+            ->where('status', 'active')
+            ->whereIn('exposure_risk', ['high', 'critical', 'inevitable'])
+            ->orderByDesc('updated_at')
+            ->limit(15)
+            ->get([
+                'id',
+                'title',
+                'secret_type',
+                'exposure_risk',
+                'status',
+                'holder_entity_ids',
+                'known_by_entity_ids',
+            ])
+            ->map(function ($row) {
+                $holders = json_decode($row->holder_entity_ids ?? '[]', true);
+                $knownBy = json_decode($row->known_by_entity_ids ?? '[]', true);
+
+                return [
+                    'id'            => $row->id,
+                    'title'         => $row->title,
+                    'secret_type'   => $row->secret_type,
+                    'exposure_risk' => $row->exposure_risk,
+                    'holder_count'  => count($holders),
+                    'known_by_count'=> count($knownBy),
+                    // Leaking = more people know it than are supposed to hold it
+                    'is_leaking'    => count($knownBy) > count($holders),
+                ];
+            })
+            ->toArray();
+    }
+
+    // Perception states: is_current=true, not yet revealed
+    // immune_entity_ids and maintained_by_entity_ids are jsonb arrays
+    private function perceptionGaps(): array
+    {
+        return DB::table('perception_states')
+            ->whereNull('deleted_at')
+            ->where('is_current', true)
+            ->whereNull('revealed_at_era')
+            ->whereIn('revelation_risk', ['high', 'inevitable', 'imminent'])
+            ->orderByDesc('updated_at')
+            ->limit(10)
+            ->get([
+                'id',
+                'subject_type',
+                'subject_id',
+                'divergence_level',
+                'revelation_risk',
+                'maintenance_effort',
+                'immune_entity_ids',
+                'maintained_by_entity_ids',
+            ])
+            ->map(function ($row) {
+                $immune      = json_decode($row->immune_entity_ids ?? '[]', true);
+                $maintainers = json_decode($row->maintained_by_entity_ids ?? '[]', true);
+
+                return [
+                    'id'               => $row->id,
+                    'subject_type'     => $row->subject_type,
+                    'subject_id'       => $row->subject_id,
+                    'divergence_level' => $row->divergence_level,
+                    'revelation_risk'  => $row->revelation_risk,
+                    'maintenance_effort'=> $row->maintenance_effort,
+                    'immune_count'     => count($immune),
+                    'maintainer_count' => count($maintainers),
+                    // High ratio = many immune relative to maintainers = fragile
+                    'tension_ratio'    => count($maintainers) > 0
+                        ? round(count($immune) / count($maintainers), 1)
+                        : count($immune),
+                ];
+            })
+            ->toArray();
+    }
+
+    // Entity questions that are unresolved and high/critical priority
+    private function blockingQuestions(): array
+    {
+        return DB::table('entity_questions as eq')
+            ->join('entities as e', 'e.id', '=', 'eq.entity_id')
+            ->whereNull('eq.deleted_at')
+            ->where('eq.status', 'unresolved')
+            ->whereIn('eq.priority', ['critical', 'high'])
+            ->whereNull('eq.resolved_at')
+            ->orderByRaw("case eq.priority when 'critical' then 0 when 'high' then 1 else 2 end")
+            ->orderByDesc('eq.updated_at')
+            ->limit(15)
+            ->get([
+                'eq.id',
+                'eq.question',
+                'eq.priority',
+                'e.id as entity_id',
+                'e.name as entity_name',
+            ])
+            ->map(fn($row) => [
+                'id'       => $row->id,
+                'question' => $row->question,
+                'priority' => $row->priority,
+                'entity'   => ['id' => $row->entity_id, 'name' => $row->entity_name],
+            ])
+            ->toArray();
     }
 }
