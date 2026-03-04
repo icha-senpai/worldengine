@@ -66,7 +66,8 @@ class EntityController extends Controller
     public function create(): Response
     {
         return $this->page('Entities/Create', [
-            'entityTypes' => EntityType::ALL,
+            // Grouped by category — Vue renders optgroups from this structure
+            'entityTypes' => EntityType::CATEGORIES,
         ]);
     }
 
@@ -74,16 +75,19 @@ class EntityController extends Controller
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
-            'name'                 => ['required', 'string', 'max:255'],
-            'entity_type'          => ['required', 'string', 'in:' . implode(',', EntityType::ALL)],
-            'alternate_name'       => ['nullable', 'string', 'max:255'],
-            'brief_description'    => ['nullable', 'string'],
-            'source_universes'     => ['nullable', 'array'],
-            'source_universes.*'   => ['string'],
-            'origin_type'          => ['nullable', 'string'],
-            'visibility'           => ['nullable', 'string'],
-            'content_classification'=> ['nullable', 'string'],
+            'name'                   => ['required', 'string', 'max:255'],
+            'entity_type'            => ['required', 'string', 'in:' . implode(',', EntityType::ALL)],
+            'summary'                => ['nullable', 'string'],
+            'source_universes'       => ['nullable', 'array'],
+            'source_universes.*'     => ['string'],
+            'origin_type'            => ['nullable', 'string'],
+            'canon_deviation'        => ['nullable', 'string'],
+            'visibility'             => ['nullable', 'string'],
+            'content_classification' => ['nullable', 'string'],
         ]);
+
+        // Strip empty strings so database column defaults apply
+        $validated = array_filter($validated, fn($v) => !($v === '' || $v === null) || is_array($v) || is_bool($v));
 
         $entity = $this->entityService->create($validated);
 
@@ -93,6 +97,12 @@ class EntityController extends Controller
     // GET /entities/{entity}
     public function show(Entity $entity): Response
     {
+        $entity->load([
+            'aliases',
+            'notes'     => fn($q) => $q->orderBy('sort_order')->orderBy('created_at'),
+            'questions' => fn($q) => $q->orderByRaw("CASE priority WHEN 'blocking' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END")->orderBy('created_at'),
+        ]);
+
         return $this->page('Entities/Show', [
             'entity' => $entity,
         ]);
@@ -102,8 +112,8 @@ class EntityController extends Controller
     public function edit(Entity $entity): Response
     {
         return $this->page('Entities/Edit', [
-            'entity'      => $entity->load(['aliases', 'notes']),
-            'entityTypes' => EntityType::ALL,
+            'entity'      => $entity,
+            'entityTypes' => EntityType::CATEGORIES,
         ]);
     }
 
@@ -111,24 +121,30 @@ class EntityController extends Controller
     public function update(Request $request, Entity $entity): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
-            'name'                  => ['sometimes', 'string', 'max:255'],
-            'alternate_name'        => ['nullable', 'string', 'max:255'],
-            'brief_description'     => ['nullable', 'string'],
-            'summary'               => ['nullable', 'array'],   // Tiptap JSON
-            'true_nature'           => ['nullable', 'string'],
-            'entity_type'           => ['sometimes', 'string', 'in:' . implode(',', EntityType::ALL)],
-            'status'                => ['nullable', 'string'],
-            'power_tier_ceiling'    => ['nullable', 'string'],
-            'power_tier_operating'  => ['nullable', 'string'],
-            'power_tier_influence'  => ['nullable', 'string'],
-            'source_universes'      => ['nullable', 'array'],
-            'source_universes.*'    => ['string'],
-            'origin_type'           => ['nullable', 'string'],
-            'space_type'            => ['nullable', 'string'],
-            'control_state'         => ['nullable', 'string'],
-            'visibility'            => ['nullable', 'string'],
-            'content_classification'=> ['nullable', 'string'],
+            'name'                   => ['sometimes', 'string', 'max:255'],
+            'public_title'           => ['nullable', 'string', 'max:255'],
+            'entity_type'            => ['sometimes', 'string', 'in:' . implode(',', EntityType::ALL)],
+            'entity_sub_type'        => ['nullable', 'string', 'max:255'],
+            'summary'                => ['nullable', 'string'],
+            'public_summary'         => ['nullable', 'string'],
+            'status'                 => ['nullable', 'string'],
+            'type_status'            => ['nullable', 'string', 'max:255'],
+            'power_tier_ceiling'     => ['nullable', 'string'],
+            'power_tier_operating'   => ['nullable', 'string'],
+            'power_tier_influence'   => ['nullable', 'string'],
+            'source_universes'       => ['nullable', 'array'],
+            'source_universes.*'     => ['string'],
+            'origin_type'            => ['nullable', 'string'],
+            'canon_deviation'        => ['nullable', 'string'],
+            'origin_notes'           => ['nullable', 'string'],
+            'control_state'          => ['nullable', 'string'],
+            'persona_divergence'     => ['nullable', 'string'],
+            'visibility'             => ['nullable', 'string'],
+            'content_classification' => ['nullable', 'string'],
         ]);
+
+        // Strip empty strings — treat as null so existing values aren't overwritten with ""
+        $validated = array_filter($validated, fn($v) => !($v === '' || $v === null) || is_array($v) || is_bool($v));
 
         $this->entityService->update($entity, $validated);
 

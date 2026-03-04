@@ -21,7 +21,7 @@ class EntityNote extends Model
     ];
 
     protected $casts = [
-        'content'    => 'array', // Tiptap JSON
+        'content'    => 'string',
         'sort_order' => 'integer',
         'deleted_at' => 'datetime',
     ];

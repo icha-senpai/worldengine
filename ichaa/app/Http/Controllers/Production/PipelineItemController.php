@@ -14,6 +14,7 @@ class PipelineItemController extends Controller
     {
         $query = PipelineItem::topLevel()
             ->with(['povCharacter:id,name', 'location:id,name'])
+            ->withCount('children')
             ->ordered();
 
         if ($request->filled('type')) {
@@ -100,14 +101,14 @@ class PipelineItemController extends Controller
             'title'                   => ['sometimes', 'string'],
             'pipeline_type'           => ['sometimes', 'string'],
             'pipeline_stage'          => ['nullable', 'string'],
-            'content'                 => ['nullable', 'array'],
+            'content'                 => ['nullable', 'string'],
             'word_count'              => ['nullable', 'integer'],
             'reading_time_minutes'    => ['nullable', 'integer'],
             'emotional_beat'          => ['nullable', 'string'],
             'narrative_purpose'       => ['nullable', 'string'],
             'arc_stage'               => ['nullable', 'string'],
             'arc_notes'               => ['nullable', 'string'],
-            'notes'                   => ['nullable', 'array'],
+            'notes'                   => ['nullable', 'string'],
             'pov_character_entity_id' => ['nullable', 'integer'],
             'location_entity_id'      => ['nullable', 'integer'],
             'add_to_voice_samples'    => ['boolean'],

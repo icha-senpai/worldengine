@@ -53,12 +53,12 @@ class PipelineItem extends Model
     ];
 
     protected $casts = [
-        'content'                 => 'array',
+        'content'                 => 'string',
         'revision_history'        => 'array',
         'scene_content_warnings'  => 'array',
         'speakers_entity_ids'     => 'array',
         'influenced_entity_ids'   => 'array',
-        'notes'                   => 'array',
+        'notes'                   => 'string',
         'add_to_voice_samples'    => 'boolean',
         'sort_order'              => 'integer',
         'word_count'              => 'integer',

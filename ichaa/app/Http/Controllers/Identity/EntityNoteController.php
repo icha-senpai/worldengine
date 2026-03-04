@@ -14,7 +14,7 @@ class EntityNoteController extends Controller
     {
         $validated = $request->validate([
             'note_label' => ['nullable', 'string', 'max:255'],
-            'content'    => ['required', 'array'],  // Tiptap JSON
+            'content'    => ['required', 'string'],
             'sort_order' => ['nullable', 'integer'],
         ]);
 
@@ -28,7 +28,7 @@ class EntityNoteController extends Controller
     {
         $validated = $request->validate([
             'note_label' => ['nullable', 'string', 'max:255'],
-            'content'    => ['sometimes', 'array'],
+            'content'    => ['sometimes', 'string'],
             'sort_order' => ['nullable', 'integer'],
         ]);
 

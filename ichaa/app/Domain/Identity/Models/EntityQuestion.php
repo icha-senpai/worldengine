@@ -30,8 +30,8 @@ class EntityQuestion extends Model
     ];
 
     protected $casts = [
-        'context'                       => 'array', // Tiptap JSON
-        'resolution'                    => 'array', // Tiptap JSON
+        'context'                       => 'string',
+        'resolution'                    => 'string',
         'linked_entity_ids'             => 'array',
         'linked_group_relationship_ids' => 'array',
         'resolved_at'                   => 'datetime',

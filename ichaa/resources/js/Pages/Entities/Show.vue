@@ -70,11 +70,11 @@
                     {{ entity.completion_score }}%
                 </span>
                 <div class="flex items-center gap-2 ml-2">
-                    <CompletionFlag v-if="entity.has_attributes"       label="attr"   />
-                    <CompletionFlag v-if="entity.has_relationships"    label="rel"    />
-                    <CompletionFlag v-if="entity.has_timeline_entries" label="time"   />
-                    <CompletionFlag v-if="entity.has_aliases"          label="alias"  />
-                    <CompletionFlag v-if="entity.has_media"            label="media"  />
+                    <span v-if="entity.has_attributes"       class="completion-flag">attr</span>
+                    <span v-if="entity.has_relationships"    class="completion-flag">rel</span>
+                    <span v-if="entity.has_timeline_entries" class="completion-flag">time</span>
+                    <span v-if="entity.has_aliases"          class="completion-flag">alias</span>
+                    <span v-if="entity.has_media"            class="completion-flag">media</span>
                 </div>
             </div>
 
@@ -97,14 +97,15 @@
                 <div class="panel">
                     <h3 class="panel-label">Classification</h3>
                     <div class="space-y-2">
-                        <FieldRow label="Type">{{ formatLabel(entity.entity_type) }}</FieldRow>
-                        <FieldRow v-if="entity.entity_sub_type" label="Subtype">{{ formatLabel(entity.entity_sub_type) }}</FieldRow>
-                        <FieldRow label="Status">
+                        <div class="flex items-start gap-2"><span class="field-label">Type</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.entity_type) }}</span></div>
+                        <div v-if="entity.entity_sub_type" class="flex items-start gap-2"><span class="field-label">Subtype</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.entity_sub_type) }}</span></div>
+                        <div class="flex items-start gap-2">
+                            <span class="field-label">Status</span>
                             <span class="status-badge status-badge--sm" :class="statusBadgeClass(entity.status)">
                                 {{ formatLabel(entity.status) }}
                             </span>
-                        </FieldRow>
-                        <FieldRow v-if="entity.type_status" label="Type Status">{{ formatLabel(entity.type_status) }}</FieldRow>
+                        </div>
+                        <div v-if="entity.type_status" class="flex items-start gap-2"><span class="field-label">Type Status</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.type_status) }}</span></div>
                     </div>
                 </div>
 
@@ -112,11 +113,9 @@
                 <div class="panel">
                     <h3 class="panel-label">Access</h3>
                     <div class="space-y-2">
-                        <FieldRow label="Visibility">{{ formatLabel(entity.visibility) }}</FieldRow>
-                        <FieldRow label="Classification">{{ formatLabel(entity.content_classification) }}</FieldRow>
-                        <FieldRow v-if="entity.published_at" label="Published">
-                            {{ formatDate(entity.published_at) }}
-                        </FieldRow>
+                        <div class="flex items-start gap-2"><span class="field-label">Visibility</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.visibility) }}</span></div>
+                        <div class="flex items-start gap-2"><span class="field-label">Classification</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.content_classification) }}</span></div>
+                        <div v-if="entity.published_at" class="flex items-start gap-2"><span class="field-label">Published</span><span class="text-muted-2 text-xs">{{ formatDate(entity.published_at) }}</span></div>
                     </div>
                 </div>
 
@@ -124,9 +123,9 @@
                 <div class="panel">
                     <h3 class="panel-label">Origin</h3>
                     <div class="space-y-2">
-                        <FieldRow label="Origin Type">{{ formatLabel(entity.origin_type) }}</FieldRow>
-                        <FieldRow v-if="entity.canon_deviation" label="Canon Deviation">{{ formatLabel(entity.canon_deviation) }}</FieldRow>
-                        <FieldRow v-if="entity.origin_notes" label="Notes">{{ entity.origin_notes }}</FieldRow>
+                        <div class="flex items-start gap-2"><span class="field-label">Origin Type</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.origin_type) }}</span></div>
+                        <div v-if="entity.canon_deviation" class="flex items-start gap-2"><span class="field-label">Canon Deviation</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.canon_deviation) }}</span></div>
+                        <div v-if="entity.origin_notes" class="flex items-start gap-2"><span class="field-label">Notes</span><span class="text-muted-2 text-xs">{{ entity.origin_notes }}</span></div>
                     </div>
                 </div>
 
@@ -168,9 +167,10 @@
                 <div v-if="entity.control_state" class="panel">
                     <h3 class="panel-label">Control</h3>
                     <div class="space-y-2">
-                        <FieldRow label="Control State">
+                        <div class="flex items-start gap-2">
+                            <span class="field-label">Control State</span>
                             <span class="text-warn text-xs font-mono">{{ formatLabel(entity.control_state) }}</span>
-                        </FieldRow>
+                        </div>
                     </div>
                 </div>
 
@@ -183,21 +183,221 @@
             </div>
         </div>
 
-        <!-- FUTURE TABS: rendered empty for now, will be built out -->
-        <div v-if="activeTab === 'relationships'" class="panel">
-            <p class="text-muted-3 text-xs font-mono text-center py-8">Relationships panel — coming next.</p>
+        <!-- TAB: ALIASES -->
+        <div v-if="activeTab === 'aliases'" class="space-y-4">
+
+            <!-- Add alias form -->
+            <div class="panel">
+                <h3 class="panel-label">Add Alias</h3>
+                <form @submit.prevent="submitAlias" class="space-y-3">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div class="field-group">
+                            <label class="field-label">Alias <span class="text-danger">*</span></label>
+                            <input v-model="aliasForm.alias" type="text" placeholder="The alias text" class="input w-full" />
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Type <span class="text-danger">*</span></label>
+                            <select v-model="aliasForm.alias_type" class="input w-full">
+                                <option value="">Select type...</option>
+                                <option value="nickname">Nickname</option>
+                                <option value="title">Title</option>
+                                <option value="codename">Codename</option>
+                                <option value="epithet">Epithet</option>
+                                <option value="birth_name">Birth Name</option>
+                                <option value="alias">Alias</option>
+                                <option value="honorific">Honorific</option>
+                                <option value="posthumous">Posthumous</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Context <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
+                        <input v-model="aliasForm.context" type="text" placeholder="When/where this alias is used" class="input w-full" />
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div class="field-group">
+                            <label class="field-label">Era Start <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
+                            <input v-model="aliasForm.era_start" type="text" placeholder="e.g. Year of the Dragon" class="input w-full" />
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Era End <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
+                            <input v-model="aliasForm.era_end" type="text" placeholder="Leave blank if still active" class="input w-full" />
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" v-model="aliasForm.is_active" class="checkbox" />
+                            <span class="text-muted-2 text-xs font-mono">Currently active</span>
+                        </label>
+                        <button type="submit" class="btn-primary" :disabled="aliasForm.processing || !aliasForm.alias || !aliasForm.alias_type">
+                            Add Alias
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Alias list -->
+            <div v-if="entity.aliases && entity.aliases.length" class="space-y-2">
+                <div v-for="a in entity.aliases" :key="a.id" class="alias-row">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-primary text-sm">{{ a.alias }}</span>
+                                <span class="alias-type-chip">{{ formatLabel(a.alias_type) }}</span>
+                                <span v-if="!a.is_active" class="text-muted-3 text-[10px] font-mono">(inactive)</span>
+                            </div>
+                            <p v-if="a.context" class="text-muted-3 text-xs mt-0.5">{{ a.context }}</p>
+                            <p v-if="a.era_start || a.era_end" class="text-muted-3 text-[10px] font-mono mt-0.5">
+                                {{ a.era_start || '?' }} → {{ a.era_end || 'present' }}
+                            </p>
+                        </div>
+                        <button
+                            @click="deleteAlias(a.id)"
+                            class="btn-danger-sm flex-shrink-0"
+                        >Delete</button>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="empty-state">No aliases recorded.</div>
+
         </div>
 
-        <div v-if="activeTab === 'notes'" class="panel">
-            <p class="text-muted-3 text-xs font-mono text-center py-8">Notes panel — coming next.</p>
+        <!-- TAB: NOTES -->
+        <div v-if="activeTab === 'notes'" class="space-y-4">
+
+            <!-- Add note form -->
+            <div class="panel">
+                <h3 class="panel-label">Add Note</h3>
+                <form @submit.prevent="submitNote" class="space-y-3">
+                    <div class="field-group">
+                        <label class="field-label">Label <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
+                        <input v-model="noteForm.note_label" type="text" placeholder="e.g. Backstory, Motivation, Arc notes..." class="input w-full" />
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Content <span class="text-danger">*</span></label>
+                        <textarea v-model="noteForm.content" rows="4" placeholder="Note content..." class="input w-full resize-none" />
+                    </div>
+                    <button type="submit" class="btn-primary" :disabled="noteForm.processing || !noteForm.content">
+                        Add Note
+                    </button>
+                </form>
+            </div>
+
+            <!-- Note list -->
+            <div v-if="entity.notes && entity.notes.length" class="space-y-3">
+                <div v-for="n in entity.notes" :key="n.id" class="note-card">
+                    <div class="flex items-start justify-between gap-3 mb-2">
+                        <span v-if="n.note_label" class="note-label">{{ n.note_label }}</span>
+                        <span v-else class="note-label note-label--empty">unlabeled</span>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="text-muted-3 text-[10px] font-mono">{{ formatDate(n.created_at) }}</span>
+                            <button @click="deleteNote(n.id)" class="btn-danger-sm">Delete</button>
+                        </div>
+                    </div>
+                    <p class="text-muted-2 text-xs leading-relaxed whitespace-pre-wrap">{{ n.content }}</p>
+                </div>
+            </div>
+            <div v-else class="empty-state">No notes recorded.</div>
+
         </div>
 
-        <div v-if="activeTab === 'questions'" class="panel">
-            <p class="text-muted-3 text-xs font-mono text-center py-8">Questions panel — coming next.</p>
+        <!-- TAB: QUESTIONS -->
+        <div v-if="activeTab === 'questions'" class="space-y-4">
+
+            <!-- Add question form -->
+            <div class="panel">
+                <h3 class="panel-label">Add Question</h3>
+                <form @submit.prevent="submitQuestion" class="space-y-3">
+                    <div class="field-group">
+                        <label class="field-label">Question <span class="text-danger">*</span></label>
+                        <input v-model="questionForm.question" type="text" placeholder="What needs to be resolved?" class="input w-full" />
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Context <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
+                        <textarea v-model="questionForm.context" rows="2" placeholder="Why does this matter? What does it affect?" class="input w-full resize-none" />
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div class="field-group">
+                            <label class="field-label">Priority</label>
+                            <div class="flex gap-1.5 flex-wrap">
+                                <button
+                                    v-for="p in priorityOptions"
+                                    :key="p.value"
+                                    type="button"
+                                    @click="questionForm.priority = p.value"
+                                    class="pill-btn"
+                                    :class="{ 'pill-btn--selected': questionForm.priority === p.value, ['pill-btn--' + p.value]: true }"
+                                >{{ p.label }}</button>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Status</label>
+                            <div class="flex gap-1.5 flex-wrap">
+                                <button
+                                    v-for="s in questionStatusOptions"
+                                    :key="s.value"
+                                    type="button"
+                                    @click="questionForm.status = s.value"
+                                    class="pill-btn"
+                                    :class="{ 'pill-btn--selected': questionForm.status === s.value }"
+                                >{{ s.label }}</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary" :disabled="questionForm.processing || !questionForm.question">
+                        Add Question
+                    </button>
+                </form>
+            </div>
+
+            <!-- Question list — blocking first, then by priority -->
+            <div v-if="entity.questions && entity.questions.length" class="space-y-2">
+                <div
+                    v-for="q in entity.questions"
+                    :key="q.id"
+                    class="question-card"
+                    :class="{ 'question-card--blocking': q.priority === 'blocking', 'question-card--resolved': q.status === 'resolved' }"
+                >
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="priority-chip" :class="'priority--' + q.priority">{{ q.priority }}</span>
+                                <span class="status-q-chip" :class="'qstatus--' + q.status">{{ formatLabel(q.status) }}</span>
+                            </div>
+                            <p class="text-primary text-sm leading-snug">{{ q.question }}</p>
+                            <p v-if="q.context" class="text-muted-3 text-xs mt-1 whitespace-pre-wrap">{{ q.context }}</p>
+                            <p v-if="q.resolution" class="text-muted-2 text-xs mt-2 italic whitespace-pre-wrap">
+                                ↳ {{ q.resolution }}
+                            </p>
+                        </div>
+                        <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+                            <button
+                                v-if="q.status !== 'resolved'"
+                                @click="resolveQuestion(q.id)"
+                                class="btn-resolve"
+                            >Resolve</button>
+                            <button @click="deleteQuestion(q.id)" class="btn-danger-sm">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="empty-state">No questions recorded.</div>
+
         </div>
 
-        <div v-if="activeTab === 'intelligence'" class="panel">
-            <p class="text-muted-3 text-xs font-mono text-center py-8">Intelligence panel — coming next.</p>
+        <!-- TAB: INTELLIGENCE -->
+        <div v-if="activeTab === 'intelligence'" class="space-y-4">
+            <div class="panel">
+                <h3 class="panel-label">Intelligence</h3>
+                <p class="text-muted-3 text-xs font-mono">
+                    Knowledge states and secrets involving this entity are managed from the
+                    <Link :href="route('knowledge-states.index')" class="text-cyan hover:underline">Knowledge States</Link>
+                    and
+                    <Link :href="route('secrets.index')" class="text-cyan hover:underline">Secrets</Link>
+                    domains. This tab will display a read-only summary once those pages are built.
+                </p>
+            </div>
         </div>
 
     </AuthenticatedLayout>
@@ -205,25 +405,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { Link, useForm, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-
-// --- Small inline components ---
-
-const CompletionFlag = {
-    props: ['label'],
-    template: `<span class="completion-flag">{{ label }}</span>`,
-}
-
-const FieldRow = {
-    props: ['label'],
-    template: `
-        <div class="flex items-start gap-2">
-            <span class="field-label">{{ label }}</span>
-            <span class="text-muted-2 text-xs leading-relaxed"><slot /></span>
-        </div>
-    `,
-}
 
 // --- Props ---
 
@@ -234,14 +417,92 @@ const props = defineProps({
 // --- Tabs ---
 
 const tabs = [
-    { id: 'identity',      label: 'Identity'       },
-    { id: 'relationships', label: 'Relationships'   },
-    { id: 'notes',         label: 'Notes'           },
-    { id: 'questions',     label: 'Questions'       },
-    { id: 'intelligence',  label: 'Intelligence'    },
+    { id: 'identity',     label: 'Identity'     },
+    { id: 'aliases',      label: 'Aliases'      },
+    { id: 'notes',        label: 'Notes'        },
+    { id: 'questions',    label: 'Questions'    },
+    { id: 'intelligence', label: 'Intelligence' },
 ]
 
 const activeTab = ref('identity')
+
+// --- Alias form ---
+
+const aliasForm = useForm({
+    alias:      '',
+    alias_type: '',
+    context:    '',
+    era_start:  '',
+    era_end:    '',
+    is_active:  true,
+})
+
+const submitAlias = () => {
+    aliasForm.post(route('entities.aliases.store', props.entity.id), {
+        onSuccess: () => aliasForm.reset(),
+    })
+}
+
+const deleteAlias = (aliasId) => {
+    router.delete(route('entities.aliases.destroy', [props.entity.id, aliasId]))
+}
+
+// --- Note form ---
+
+const noteForm = useForm({
+    note_label: '',
+    content:    '',
+})
+
+const submitNote = () => {
+    noteForm.post(route('entities.notes.store', props.entity.id), {
+        onSuccess: () => noteForm.reset(),
+    })
+}
+
+const deleteNote = (noteId) => {
+    router.delete(route('entities.notes.destroy', [props.entity.id, noteId]))
+}
+
+// --- Question form ---
+
+const questionForm = useForm({
+    question: '',
+    context:  '',
+    priority: 'medium',
+    status:   'open',
+})
+
+const submitQuestion = () => {
+    questionForm.post(route('entities.questions.store', props.entity.id), {
+        onSuccess: () => questionForm.reset(),
+    })
+}
+
+const resolveQuestion = (questionId) => {
+    router.put(route('entities.questions.update', [props.entity.id, questionId]), {
+        status: 'resolved',
+    })
+}
+
+const deleteQuestion = (questionId) => {
+    router.delete(route('entities.questions.destroy', [props.entity.id, questionId]))
+}
+
+// --- Static options ---
+
+const priorityOptions = [
+    { value: 'blocking', label: 'Blocking' },
+    { value: 'high',     label: 'High'     },
+    { value: 'medium',   label: 'Medium'   },
+    { value: 'low',      label: 'Low'      },
+]
+
+const questionStatusOptions = [
+    { value: 'open',     label: 'Open'     },
+    { value: 'deferred', label: 'Deferred' },
+    { value: 'resolved', label: 'Resolved' },
+]
 
 // --- Computed ---
 
@@ -463,8 +724,139 @@ const completionBarClass = (score) => {
 
 /* --- Utility colors --- */
 .text-warn { color: #fcd34d; }
+.text-cyan  { color: var(--accent-cyan); }
+.text-danger { color: var(--accent-pink); }
 .bg-success { background: #6ee7b7; }
 .bg-focus   { background: var(--accent-cyan); }
 .bg-warn    { background: #fcd34d; }
 .bg-danger  { background: var(--accent-pink); }
+
+/* --- Forms in panels --- */
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.input {
+    height: 32px;
+    padding: 0 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.15s;
+}
+.input:focus { border-color: var(--accent-cyan); }
+textarea.input { height: auto; padding: 8px 10px; }
+select.input option { background: var(--bg-surface); }
+.checkbox { accent-color: var(--accent-cyan); width: 14px; height: 14px; }
+
+/* --- Pill buttons (question priority/status) --- */
+.pill-btn {
+    padding: 3px 10px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-family: ui-monospace, monospace;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted-3);
+    background: transparent;
+    transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.pill-btn:hover { border-color: var(--border-color-2); color: var(--text-muted-2); }
+.pill-btn--selected { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0,245,255,0.08); }
+.pill-btn--blocking.pill-btn--selected { border-color: var(--accent-pink); color: var(--accent-pink); background: rgba(255,0,128,0.08); }
+
+/* --- Action buttons --- */
+.btn-primary {
+    display: inline-flex; align-items: center;
+    height: 30px; padding: 0 14px;
+    background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.3);
+    border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace;
+    color: var(--accent-cyan); transition: background 0.15s, border-color 0.15s;
+}
+.btn-primary:hover:not(:disabled) { background: rgba(0,245,255,0.15); border-color: rgba(0,245,255,0.5); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-resolve {
+    display: inline-flex; align-items: center;
+    height: 24px; padding: 0 10px;
+    background: rgba(110,231,183,0.08); border: 1px solid rgba(110,231,183,0.3);
+    border-radius: 3px; font-size: 10px; font-family: ui-monospace, monospace;
+    color: #6ee7b7; transition: background 0.15s;
+}
+.btn-resolve:hover { background: rgba(110,231,183,0.15); }
+.btn-danger-sm {
+    display: inline-flex; align-items: center;
+    height: 24px; padding: 0 10px;
+    background: transparent; border: 1px solid var(--border-color);
+    border-radius: 3px; font-size: 10px; font-family: ui-monospace, monospace;
+    color: var(--text-muted-3); transition: border-color 0.12s, color 0.12s;
+}
+.btn-danger-sm:hover { border-color: var(--accent-pink); color: var(--accent-pink); }
+
+/* --- Empty state --- */
+.empty-state {
+    padding: 32px 16px; text-align: center;
+    font-size: 11px; font-family: ui-monospace, monospace;
+    color: var(--text-muted-3); letter-spacing: 0.08em;
+    border: 1px dashed var(--border-color); border-radius: 6px;
+}
+
+/* --- Alias row --- */
+.alias-row {
+    padding: 12px 14px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+}
+.alias-type-chip {
+    padding: 1px 6px; border-radius: 2px;
+    font-size: 9px; font-family: ui-monospace, monospace;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-muted-3); border: 1px solid var(--border-color);
+}
+
+/* --- Note card --- */
+.note-card {
+    padding: 12px 14px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+}
+.note-label {
+    font-size: 10px; font-family: ui-monospace, monospace;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent-cyan);
+}
+.note-label--empty {
+    color: var(--text-muted-3);
+    font-style: italic;
+}
+
+/* --- Question card --- */
+.question-card {
+    padding: 12px 14px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    transition: border-color 0.15s;
+}
+.question-card--blocking { border-color: rgba(255,0,128,0.25); }
+.question-card--resolved { opacity: 0.5; }
+.priority-chip {
+    padding: 1px 6px; border-radius: 2px;
+    font-size: 9px; font-family: ui-monospace, monospace;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    border: 1px solid;
+}
+.priority--blocking { color: var(--accent-pink); border-color: rgba(255,0,128,0.3); background: rgba(255,0,128,0.08); }
+.priority--high     { color: #fcd34d; border-color: rgba(252,211,77,0.3); background: rgba(252,211,77,0.06); }
+.priority--medium   { color: var(--text-muted-2); border-color: var(--border-color); background: transparent; }
+.priority--low      { color: var(--text-muted-3); border-color: var(--border-color); background: transparent; }
+.status-q-chip {
+    padding: 1px 6px; border-radius: 2px;
+    font-size: 9px; font-family: ui-monospace, monospace;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    border: 1px solid;
+}
+.qstatus--open     { color: var(--accent-cyan); border-color: rgba(0,245,255,0.2); background: rgba(0,245,255,0.06); }
+.qstatus--deferred { color: var(--text-muted-3); border-color: var(--border-color); background: transparent; }
+.qstatus--resolved { color: #6ee7b7; border-color: rgba(110,231,183,0.2); background: rgba(110,231,183,0.06); }
 </style>

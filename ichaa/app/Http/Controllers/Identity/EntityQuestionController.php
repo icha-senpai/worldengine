@@ -14,8 +14,8 @@ class EntityQuestionController extends Controller
     {
         $validated = $request->validate([
             'question'                    => ['required', 'string'],
-            'context'                     => ['nullable', 'string'],
-            'status'                      => ['nullable', 'string'],
+            'context'  => ['nullable', 'string'],
+            'status'   => ['nullable', 'string'],
             'priority'                    => ['nullable', 'string'],
             'linked_entity_ids'           => ['nullable', 'array'],
             'linked_group_relationship_ids'=> ['nullable', 'array'],
