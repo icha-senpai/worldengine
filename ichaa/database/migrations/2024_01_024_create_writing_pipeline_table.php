@@ -16,14 +16,14 @@ return new class extends Migration
             $table->string('title');
 
             $table->string('pipeline_type');
-            // plot_thread, story_arc, chapter, scene,
-            // dialogue_sample, character_arc_tracker_entry,
-            // source_inspiration_log_entry
+            // scene, chapter, arc, interlude,
+            // prologue, epilogue, outline,
+            // note, inspiration, character_study
 
             // --- HIERARCHY ---
             // Preferred but not enforced
             // Arcs contain chapters, chapters contain scenes
-            // plot_threads can span multiple arcs
+            // Outlines/notes can sit at any level as support material
             // A scene without a parent is still valid
 
             $table->unsignedBigInteger('parent_pipeline_item_id')->nullable();
@@ -34,8 +34,8 @@ return new class extends Migration
             // --- STAGE ---
 
             $table->string('pipeline_stage')->default('concept');
-            // concept, outline, rough_draft, developing_draft,
-            // polished_draft, final, archived_draft
+            // concept, outlined, drafted,
+            // revised, complete, cut
 
             // --- CONTENT ---
 
@@ -93,11 +93,12 @@ return new class extends Migration
             // Links to a sensory palette meta record
             // Attaches the atmosphere and sensory profile for this scene
 
-            // --- DIALOGUE SAMPLE SPECIFIC ---
-            // Only populated for pipeline_type: dialogue_sample
+            // --- SPEAKER / VOICE REFERENCE FIELDS ---
+            // Populated when a pipeline item is being used as
+            // dialogue or voice reference material
 
             $table->unsignedBigInteger('speaker_entity_id')->nullable();
-            // Primary speaker for standalone dialogue samples
+            // Primary speaker for the referenced passage
 
             $table->jsonb('speakers_entity_ids')->nullable();
             // All speakers if multiple — array of entity IDs
@@ -107,8 +108,8 @@ return new class extends Migration
             // voice_samples JSONB array on their entity record
             // Processed at application layer on save
 
-            // --- CHARACTER ARC TRACKER SPECIFIC ---
-            // Only populated for pipeline_type: character_arc_tracker_entry
+            // --- CHARACTER STUDY / ARC FIELDS ---
+            // Commonly populated for pipeline_type: character_study
 
             $table->unsignedBigInteger('tracked_entity_id')->nullable();
             // The character whose arc this tracks
@@ -121,8 +122,8 @@ return new class extends Migration
             // What specifically is happening in this character's arc
             // at this point
 
-            // --- SOURCE INSPIRATION LOG SPECIFIC ---
-            // Only populated for pipeline_type: source_inspiration_log_entry
+            // --- INSPIRATION FIELDS ---
+            // Commonly populated for pipeline_type: inspiration
 
             $table->string('inspiration_source_universe')->nullable();
             // Which universe this inspiration comes from
@@ -396,25 +397,27 @@ return new class extends Migration
 | PIPELINE TYPE ENUM
 |--------------------------------------------------------------------------
 |
-|   plot_thread                — overarching thread that spans arcs
-|   story_arc                  — major narrative arc
+|   arc                        — major narrative arc
 |   chapter                    — chapter within an arc
 |   scene                      — individual scene within a chapter
-|   dialogue_sample            — standalone dialogue for voice reference
-|   character_arc_tracker_entry — tracks one character's arc progression
-|   source_inspiration_log_entry — documents what was borrowed and changed
+|   interlude                  — side sequence or perspective break
+|   prologue                   — opening sequence before the main body
+|   epilogue                   — closing sequence after the main body
+|   outline                    — structural planning artifact
+|   note                       — loose development note or fragment
+|   inspiration                — borrowed/reference material log
+|   character_study            — tracks one character's arc or voice
 |
 |--------------------------------------------------------------------------
 | PIPELINE STAGE ENUM
 |--------------------------------------------------------------------------
 |
 |   concept          — idea captured, not yet developed
-|   outline          — structure sketched, no prose
-|   rough_draft      — first pass prose, may be rough
-|   developing_draft — actively being refined
-|   polished_draft   — near final, minor refinements remaining
-|   final            — done
-|   archived_draft   — old version kept for reference
+|   outlined         — structure sketched, no prose or light prose
+|   drafted          — first substantial pass exists
+|   revised          — actively refined after drafting
+|   complete         — done
+|   cut              — intentionally removed from the active pipeline
 |
 |--------------------------------------------------------------------------
 | EMOTIONAL BEAT ENUM (scene specific)
@@ -429,7 +432,7 @@ return new class extends Migration
 |   aftermath        — processing what just happened
 |
 |--------------------------------------------------------------------------
-| ARC STAGE ENUM (character_arc_tracker_entry specific)
+| ARC STAGE ENUM (character_study specific)
 |--------------------------------------------------------------------------
 |
 |   inciting_event    — what sets the arc in motion
@@ -443,7 +446,7 @@ return new class extends Migration
 | VOICE SAMPLES AND DIALOGUE
 |--------------------------------------------------------------------------
 |
-| Dialogue samples serve two functions simultaneously:
+| Voice-reference pipeline items serve two functions simultaneously:
 |
 |   1. As standalone pipeline items — reference for voice and tone
 |      "How Seraphine speaks to Harry v69 when giving instructions"

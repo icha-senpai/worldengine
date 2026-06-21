@@ -30,7 +30,7 @@ class SessionLogController extends Controller
         $validated = $request->validate([
             'title'                        => ['required', 'string', 'max:255'],
             'session_date'                 => ['nullable', 'date'],
-            'external_tool'                => ['nullable', 'string', 'max:255'],
+            'external_tool'                => ['required', 'string', 'in:' . implode(',', SessionLog::EXTERNAL_TOOLS)],
             'focus_entity_ids'             => ['nullable', 'array'],
             'focus_group_relationship_ids' => ['nullable', 'array'],
             'focus_collection_ids'         => ['nullable', 'array'],
@@ -71,12 +71,12 @@ class SessionLogController extends Controller
         $sessionLog->update($request->validate([
             'title'               => ['sometimes', 'string'],
             'session_date'        => ['nullable', 'date'],
-            'external_tool'       => ['nullable', 'string'],
+            'external_tool'       => ['sometimes', 'string', 'in:' . implode(',', SessionLog::EXTERNAL_TOOLS)],
             'focus_description'   => ['nullable', 'string'],
             'decisions_made'      => ['nullable', 'array'],
             'changes_applied'     => ['nullable', 'array'],
             'open_threads'        => ['nullable', 'array'],
-            'session_significance'=> ['nullable', 'string'],
+            'session_significance'=> ['nullable', 'string', 'in:' . implode(',', SessionLog::SIGNIFICANCE_LEVELS)],
             'notes'               => ['nullable', 'array'],
         ]));
 

@@ -66,8 +66,8 @@ class KnowledgeStateController extends Controller
             'knowledge_type'                => ['required', 'string', 'in:' . implode(',', KnowledgeState::KNOWLEDGE_TYPES)],
             'knowledge_content'             => ['nullable', 'array'],
             'accuracy'                      => ['required', 'string', 'in:' . implode(',', KnowledgeState::ACCURACY_LEVELS)],
-            'current_belief_state'          => ['nullable', 'string', 'in:' . implode(',', KnowledgeState::BELIEF_STATES)],
-            'acquired_through'              => ['nullable', 'string'],
+            'current_belief_state'          => ['required', 'string', 'in:' . implode(',', KnowledgeState::BELIEF_STATES)],
+            'acquired_through'              => ['required', 'string', 'in:' . implode(',', KnowledgeState::ACQUISITION_METHODS)],
             'acquired_from_entity_id'       => ['nullable', 'integer', 'exists:entities,id'],
             'acquired_at_era'               => ['nullable', 'string'],
         ]);
@@ -106,7 +106,7 @@ class KnowledgeStateController extends Controller
         $knowledgeState->update($request->validate([
             'knowledge_content'    => ['nullable', 'array'],
             'accuracy'             => ['sometimes', 'string'],
-            'current_belief_state' => ['nullable', 'string'],
+            'current_belief_state' => ['sometimes', 'string', 'in:' . implode(',', KnowledgeState::BELIEF_STATES)],
         ]));
 
         return $this->back('Knowledge state updated.');

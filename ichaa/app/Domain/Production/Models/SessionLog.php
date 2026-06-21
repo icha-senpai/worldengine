@@ -43,10 +43,21 @@ class SessionLog extends Model
         'deleted_at'                   => 'datetime',
     ];
 
+    const EXTERNAL_TOOLS = [
+        'notion',
+        'chatgpt',
+        'qwen',
+        'claude',
+        'handwritten',
+        'voice_memo',
+        'other',
+    ];
+
     const SIGNIFICANCE_LEVELS = [
         'minor',
         'moderate',
         'major',
+        'foundational',
     ];
 
     // --- RELATIONSHIPS ---
