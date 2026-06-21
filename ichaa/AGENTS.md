@@ -205,3 +205,74 @@ Vue components must have a single root element.
 - IMPORTANT: Activate `inertia-vue-development` when working with Inertia Vue client-side patterns.
 
 </laravel-boost-guidelines>
+
+## Dataverse App Context
+
+- This is Dataverse, a worldbuilding and AU management app for a large crossover fiction setting.
+- The project is in active development. Treat the app as a live product, not an archived prototype.
+- If documentation drifts from the codebase, prefer the live code in `composer.json`, `package.json`, `routes/`, `app/`, and `resources/js/`.
+- The current stack in code is Laravel 13, Inertia v3, Vue 3, Tailwind 4, PostgreSQL, Breeze, Sanctum, Ziggy, PHPUnit, Vitest, and Playwright.
+
+## App Shape
+
+- The backend is organized by domain under `app/Domain/`:
+  `Identity`, `Connections`, `Organization`, `Lore`, `Temporal`, `World`, `Intelligence`, `Production`, `System`.
+- HTTP controllers mirror that domain split under `app/Http/Controllers/`.
+- The frontend page structure mirrors the product areas under `resources/js/Pages/`, with notable sections including:
+  `Entities`, `Relationships`, `GroupRelationships`, `Collections`, `Glossary`, `Lore`, `Temporal`, `Intelligence`, `Production`, `World`, `Search`, `Profile`, and `Auth`.
+- Most CRUD surfaces are scaffold-backed. Before introducing a one-off page pattern, check the shared scaffold and sibling pages first.
+
+## Architecture Notes
+
+- Follow the app's lightweight DDD style:
+  domain-organized models/controllers, explicit service-layer logic, named scopes, and direct Eloquent usage.
+- Do not introduce repository layers or aggregate-root ceremony unless the user explicitly wants an architectural shift.
+- Favor explicit model relationships, casts, route parameters, and controller actions over framework magic.
+- The app is modeling dense narrative/reference data. Keep changes readable and schema-aware rather than overly abstract.
+
+## Routing and Behavior Gotchas
+
+- All application routes in `routes/web.php` are behind both `auth` and `verified`, except Breeze auth routes from `routes/auth.php`.
+- The dashboard lives at `/`, search at `/search`, and trash at `/trash`.
+- Production route parameters have known inflection traps:
+  `meta` must stay mapped to `{meta}` and `pipeline` must stay mapped to `{pipeline}`.
+- Timeline placement is a real feature surface:
+  `timelines/{timeline}/events/{event}` places events and `timelines/{timeline}/events/{entry}` removes them.
+- There is a restore flow for soft-deleted records via the trash UI. Prefer restore/archive/delete patterns that match existing behavior instead of inventing parallel lifecycle rules.
+
+## Data and Schema Notes
+
+- PostgreSQL is the real target. Do not quietly swap behavior toward SQLite assumptions when writing tests or data logic.
+- Several major tables use generated `search_vector` columns. If a source column type needs to change, account for generated-column dependencies first.
+- Some lightweight relations are stored as `jsonb` ID arrays instead of pivots. Check the table and existing query pattern before normalizing or refactoring.
+- `power_interactions` depends on application-layer ordering of the entity pair to avoid inverse duplicates. Preserve that behavior in validation and service logic.
+
+## Frontend Notes
+
+- This is an Inertia/Vue app, not a Blade-first app. Page work should usually land in `resources/js/Pages` and related shared Vue components/layouts.
+- Reuse shared layouts, form controls, buttons, dropdowns, and scaffold pieces before adding local styling or duplicated controls.
+- Keep the current visual language and density model unless the user asks for redesign work.
+- Dense read pages, metadata chips, pills, and side panels are common in this app. Watch for text overflow, wrapping, and mobile collapse when adjusting UI.
+- Inline object components inside `<script setup>` have already bitten this codebase. Prefer real `.vue` components or direct template markup.
+
+## Content and Domain Modeling
+
+- Entities are the core record type and cover many real-world/story concepts through a single typed model, not separate per-type tables.
+- A lot of the app's value is cross-domain linking: entities to notes, relationships, timeline events, pipeline items, secrets, collections, and world data.
+- Be cautious with field defaults and enum-like string values. Schema-sensitive drift has already happened in timeline and relationship-adjacent areas.
+- Plain text is the current content model for notes and pipeline text. Do not assume a rich text editor contract exists unless the code already proves it.
+
+## Testing Reality
+
+- Backend tests run with `php artisan test`.
+- Frontend unit tests run with `npm test`.
+- Browser smoke tests run with `npm run test:e2e`.
+- The Playwright suite builds first and uses a seeded verified `e2e@example.com` user.
+- Prefer the smallest relevant test run while iterating, but every real behavior change should leave test coverage or a test update behind.
+
+## Working Defaults For This Repo
+
+- Check sibling files before introducing a new page pattern, service style, or controller shape.
+- When working in a specific domain, inspect both the backend domain/service side and the matching Inertia pages before deciding where logic belongs.
+- For UI work, preserve breakpoints and avoid solving sizing problems with global hacks when a shared Vue-owned fix is the real seam.
+- If the README and the app disagree on version numbers, treat the dependency manifests as source of truth and update docs only when the user asks.
