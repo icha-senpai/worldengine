@@ -5,6 +5,7 @@
         back-label="Canon References"
         :back-href="route('canon-references.index')"
         :edit-href="route('canon-references.edit', reference.id)"
+        :destroy-href="route('canon-references.destroy', reference.id)"
         :badge="reference.level || 'reference'"
         :sections="sections"
     />

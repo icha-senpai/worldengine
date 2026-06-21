@@ -23,7 +23,7 @@ const props = defineProps({
 
 const form = useForm({
     name: props.timeline.name ?? '',
-    brief_description: props.timeline.brief_description ?? '',
+    summary: props.timeline.summary ?? '',
 })
 
 const sections = computed(() => [
@@ -31,7 +31,7 @@ const sections = computed(() => [
         title: 'Timeline',
         fields: [
             { key: 'name', label: 'Name', required: true },
-            { key: 'brief_description', label: 'Brief Description', type: 'textarea', rows: 4 },
+            { key: 'summary', label: 'Summary', type: 'textarea', rows: 4 },
         ],
     },
 ])

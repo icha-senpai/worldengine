@@ -32,8 +32,8 @@ const form = useForm({
     collection_mode: '',
     rules: null,
     parent_collection_id: '',
-    visibility: '',
-    content_classification: '',
+    visibility: 'private',
+    content_classification: 'restricted',
 })
 
 const sections = computed(() => [

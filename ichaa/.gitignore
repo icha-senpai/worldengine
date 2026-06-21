@@ -5,8 +5,11 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/playwright-report
+/test-results
 /vendor
 .env
+.env.testing
 .env.backup
 .env.production
 .phpactor.json

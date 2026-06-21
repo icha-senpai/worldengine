@@ -30,15 +30,15 @@ const form = useForm({
     from_entity_id: '',
     to_entity_id: '',
     relationship_type: '',
-    direction: '',
+    direction: 'one_way',
     perspective_a: null,
     perspective_b: null,
     current_tension_charge: '',
     is_active: true,
     perceived_type: '',
     true_type: '',
-    visibility: '',
-    content_classification: '',
+    visibility: 'private',
+    content_classification: 'restricted',
 })
 
 const sections = computed(() => [

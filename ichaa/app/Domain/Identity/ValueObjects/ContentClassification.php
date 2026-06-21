@@ -6,9 +6,9 @@ use InvalidArgumentException;
 
 final class ContentClassification
 {
-    const PUBLIC      = 'public';
-    const RESTRICTED  = 'restricted';
-    const SECRET      = 'secret';
+    const PUBLIC = 'public';
+    const RESTRICTED = 'restricted';
+    const SECRET = 'secret';
     const AUTHOR_ONLY = 'author_only';
 
     const ALL = [
@@ -18,12 +18,11 @@ final class ContentClassification
         self::AUTHOR_ONLY,
     ];
 
-    // Numeric weights for comparison
-    // Higher = more sensitive
+    // Numeric weights for comparison. Higher means more sensitive.
     const WEIGHTS = [
-        self::PUBLIC      => 1,
-        self::RESTRICTED  => 2,
-        self::SECRET      => 3,
+        self::PUBLIC => 1,
+        self::RESTRICTED => 2,
+        self::SECRET => 3,
         self::AUTHOR_ONLY => 4,
     ];
 
@@ -31,9 +30,9 @@ final class ContentClassification
 
     private function __construct(string $value)
     {
-        if (!in_array($value, self::ALL, true)) {
+        if (! in_array($value, self::ALL, true)) {
             throw new InvalidArgumentException(
-                "Invalid content classification: '{$value}'. Must be one of: " . implode(', ', self::ALL)
+                "Invalid content classification: '{$value}'. Must be one of: ".implode(', ', self::ALL)
             );
         }
 
@@ -47,7 +46,7 @@ final class ContentClassification
 
     public static function tryFrom(string $value): ?self
     {
-        if (!in_array($value, self::ALL, true)) {
+        if (! in_array($value, self::ALL, true)) {
             return null;
         }
 

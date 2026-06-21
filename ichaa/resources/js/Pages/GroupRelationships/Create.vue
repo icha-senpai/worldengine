@@ -26,8 +26,8 @@ const form = useForm({
     relationship_type: '',
     current_tension_charge: '',
     is_active: true,
-    visibility: '',
-    content_classification: '',
+    visibility: 'private',
+    content_classification: 'restricted',
 })
 
 const sections = computed(() => [

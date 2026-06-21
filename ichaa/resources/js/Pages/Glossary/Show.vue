@@ -5,6 +5,7 @@
         back-label="Glossary"
         :back-href="route('glossary.index')"
         :edit-href="route('glossary.edit', term.id)"
+        :destroy-href="route('glossary.destroy', term.id)"
         badge="term"
         :sections="sections"
     />

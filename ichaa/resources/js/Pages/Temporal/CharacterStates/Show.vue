@@ -5,6 +5,7 @@
         back-label="Character States"
         :back-href="route('character-states.index')"
         :edit-href="route('character-states.edit', state.id)"
+        :destroy-href="route('character-states.destroy', state.id)"
         :badge="state.current_stability_level || 'snapshot'"
         :sections="sections"
     />

@@ -4,6 +4,7 @@
         back-label="Power Interactions"
         :back-href="route('power-interactions.index')"
         :edit-href="route('power-interactions.edit', interaction.id)"
+        :destroy-href="route('power-interactions.destroy', interaction.id)"
         :badge="formatLabel(interaction.knowledge_state)"
         :sections="sections"
     />

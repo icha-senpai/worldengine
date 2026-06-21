@@ -19,8 +19,8 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const form = useForm({
     name: '',
-    brief_description: '',
-    visibility: '',
+    summary: '',
+    visibility: 'private',
 })
 
 const sections = computed(() => [
@@ -28,7 +28,7 @@ const sections = computed(() => [
         title: 'Timeline',
         fields: [
             { key: 'name', label: 'Name', required: true },
-            { key: 'brief_description', label: 'Brief Description', type: 'textarea', rows: 4 },
+            { key: 'summary', label: 'Summary', type: 'textarea', rows: 4 },
             { key: 'visibility', label: 'Visibility' },
         ],
     },

@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Organization;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Organization\Models\Collection;
 use App\Domain\Organization\Services\CollectionService;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class CollectionController extends Controller
 {
@@ -26,8 +26,8 @@ class CollectionController extends Controller
 
         return $this->page('Collections/Index', [
             'collections' => $query->get(),
-            'filters'     => $request->only(['type']),
-            'types'       => Collection::TYPES,
+            'filters' => $request->only(['type']),
+            'types' => Collection::TYPES,
         ]);
     }
 
@@ -38,20 +38,20 @@ class CollectionController extends Controller
                 ->select('id', 'name', 'collection_type')
                 ->orderBy('name')
                 ->get(),
-            'types'       => Collection::TYPES,
-            'modes'       => Collection::MODES,
+            'types' => Collection::TYPES,
+            'modes' => Collection::MODES,
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'                   => ['required', 'string', 'max:255'],
-            'collection_type'        => ['required', 'string', 'in:' . implode(',', Collection::TYPES)],
-            'collection_mode'        => ['required', 'string', 'in:' . implode(',', Collection::MODES)],
-            'rules'                  => ['nullable', 'array'],
-            'parent_collection_id'   => ['nullable', 'integer', 'exists:collections,id'],
-            'visibility'             => ['nullable', 'string'],
+            'name' => ['required', 'string', 'max:255'],
+            'collection_type' => ['required', 'string', 'in:'.implode(',', Collection::TYPES)],
+            'collection_mode' => ['required', 'string', 'in:'.implode(',', Collection::MODES)],
+            'rules' => ['nullable', 'array'],
+            'parent_collection_id' => ['nullable', 'integer', 'exists:collections,id'],
+            'visibility' => ['nullable', 'string'],
             'content_classification' => ['nullable', 'string'],
         ]);
 
@@ -64,7 +64,7 @@ class CollectionController extends Controller
     {
         $collection->load([
             'entities:id,name,entity_type,completion_score',
-            'childCollections:id,name,collection_type',
+            'childCollections:id,parent_collection_id,name,collection_type',
         ]);
 
         return $this->page('Collections/Show', [
@@ -76,18 +76,18 @@ class CollectionController extends Controller
     {
         return $this->page('Collections/Edit', [
             'collection' => $collection,
-            'types'      => Collection::TYPES,
-            'modes'      => Collection::MODES,
+            'types' => Collection::TYPES,
+            'modes' => Collection::MODES,
         ]);
     }
 
-    public function update(Request $request, Collection $collection): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, Collection $collection): RedirectResponse
     {
         $validated = $request->validate([
-            'name'             => ['sometimes', 'string', 'max:255'],
-            'collection_type'  => ['sometimes', 'string'],
-            'collection_mode'  => ['sometimes', 'string'],
-            'rules'            => ['nullable', 'array'],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'collection_type' => ['sometimes', 'string'],
+            'collection_mode' => ['sometimes', 'string'],
+            'rules' => ['nullable', 'array'],
             'completion_state' => ['nullable', 'string'],
         ]);
 
@@ -96,28 +96,28 @@ class CollectionController extends Controller
         return $this->to('collections.show', [$collection], 'Collection updated.');
     }
 
-    public function destroy(Collection $collection): \Illuminate\Http\RedirectResponse
+    public function destroy(Collection $collection): RedirectResponse
     {
         $collection->delete();
 
         return $this->to('collections.index', [], 'Collection deleted.');
     }
 
-    public function addEntity(Request $request, Collection $collection, Entity $entity): \Illuminate\Http\RedirectResponse
+    public function addEntity(Request $request, Collection $collection, Entity $entity): RedirectResponse
     {
         $this->service->addEntity($collection, $entity, $request->only(['role_in_collection', 'sort_order']));
 
         return $this->back('Entity added to collection.');
     }
 
-    public function removeEntity(Collection $collection, Entity $entity): \Illuminate\Http\RedirectResponse
+    public function removeEntity(Collection $collection, Entity $entity): RedirectResponse
     {
         $this->service->removeEntity($collection, $entity);
 
         return $this->back('Entity removed from collection.');
     }
 
-    public function sync(Collection $collection): \Illuminate\Http\RedirectResponse
+    public function sync(Collection $collection): RedirectResponse
     {
         $count = $this->service->syncSmartMembers($collection);
 

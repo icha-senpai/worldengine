@@ -4,6 +4,7 @@
         back-label="Meta"
         :back-href="route('meta.index')"
         :edit-href="route('meta.edit', note.id)"
+        :destroy-href="route('meta.destroy', note.id)"
         :badge="formatLabel(note.category)"
         :sections="sections"
     />

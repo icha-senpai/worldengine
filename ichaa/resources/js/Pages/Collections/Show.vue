@@ -4,6 +4,7 @@
         back-label="Collections"
         :back-href="route('collections.index')"
         :edit-href="route('collections.edit', collection.id)"
+        :destroy-href="route('collections.destroy', collection.id)"
         :badge="formatLabel(collection.collection_type)"
         :subtitle="collection.rules ? 'Rules and members are attached below.' : ''"
         :sections="sections"

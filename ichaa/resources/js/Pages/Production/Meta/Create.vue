@@ -48,8 +48,8 @@ const form = useForm({
     symbol_scope: '',
     priority: '',
     action_status: '',
-    visibility: '',
-    content_classification: '',
+    visibility: 'private',
+    content_classification: 'restricted',
 })
 
 const sections = computed(() => [

@@ -58,7 +58,7 @@ function handleImageError() {
                         <Link
                             v-if="$page.props.auth.user"
                             :href="route('dashboard')"
-                            class="rounded-md px-3 py-2 text-primary ring-1 ring-transparent transition hover:text-primary/80 focus:outline-none focus-visible:ring-focus"
+                            class="rounded-md px-4 py-2.5 text-base text-primary ring-1 ring-transparent transition hover:text-primary/80 focus:outline-none focus-visible:ring-focus"
                         >
                             Dashboard
                         </Link>
@@ -66,7 +66,7 @@ function handleImageError() {
                         <template v-else>
                             <Link
                                 :href="route('login')"
-                                class="rounded-md px-3 py-2 text-primary ring-1 ring-transparent transition hover:text-primary/80 focus:outline-none focus-visible:ring-focus"
+                                class="rounded-md px-4 py-2.5 text-base text-primary ring-1 ring-transparent transition hover:text-primary/80 focus:outline-none focus-visible:ring-focus"
                             >
                                 Log in
                             </Link>
@@ -74,7 +74,7 @@ function handleImageError() {
                             <Link
                                 v-if="canRegister"
                                 :href="route('register')"
-                                class="rounded-md px-3 py-2 text-primary ring-1 ring-transparent transition hover:text-primary/80 focus:outline-none focus-visible:ring-focus"
+                                class="rounded-md px-4 py-2.5 text-base text-primary ring-1 ring-transparent transition hover:text-primary/80 focus:outline-none focus-visible:ring-focus"
                             >
                                 Register
                             </Link>
@@ -87,7 +87,7 @@ function handleImageError() {
                         <a
                             href="https://laravel.com/docs"
                             id="docs-card"
-                            class="flex flex-col items-start gap-6 overflow-hidden rounded-lg bg-surface p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-border/30 transition duration-300 hover:text-primary/80 hover:ring-border/60 focus:outline-none focus-visible:ring-focus md:row-span-3 lg:p-10 lg:pb-10"
+                            class="flex flex-col items-start gap-6 overflow-hidden rounded-lg bg-surface p-8 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-border/30 transition duration-300 hover:text-primary/80 hover:ring-border/60 focus:outline-none focus-visible:ring-focus md:row-span-3 lg:p-12 lg:pb-12"
                         >
                             <div
                                 id="screenshot-container"
@@ -138,12 +138,12 @@ function handleImageError() {
 
                                     <div class="pt-3 sm:pt-5 lg:pt-0">
                                         <h2
-                                            class="text-xl font-semibold text-primary"
+                                            class="text-2xl font-semibold text-primary"
                                         >
                                             Documentation
                                         </h2>
 
-                                        <p class="mt-4 text-sm/relaxed">
+                                        <p class="mt-4 text-base/relaxed">
                                             Laravel has wonderful documentation
                                             covering every aspect of the
                                             framework. Whether you are a
@@ -173,7 +173,7 @@ function handleImageError() {
 
                         <a
                             href="https://laracasts.com"
-                            class="flex items-start gap-4 rounded-lg bg-surface p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-border/30 transition duration-300 hover:text-primary/80 hover:ring-border/60 focus:outline-none focus-visible:ring-focus lg:pb-10"
+                            class="flex items-start gap-4 rounded-lg bg-surface p-8 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-border/30 transition duration-300 hover:text-primary/80 hover:ring-border/60 focus:outline-none focus-visible:ring-focus lg:pb-12"
                         >
                             <div
                                 class="flex size-12 shrink-0 items-center justify-center rounded-full bg-danger/10 sm:size-16"
@@ -194,12 +194,12 @@ function handleImageError() {
 
                             <div class="pt-3 sm:pt-5">
                                 <h2
-                                    class="text-xl font-semibold text-primary"
+                                    class="text-2xl font-semibold text-primary"
                                 >
                                     Laracasts
                                 </h2>
 
-                                <p class="mt-4 text-sm/relaxed">
+                                <p class="mt-4 text-base/relaxed">
                                     Laracasts offers thousands of video
                                     tutorials on Laravel, PHP, and JavaScript
                                     development. Check them out, see for
@@ -225,7 +225,7 @@ function handleImageError() {
 
                         <a
                             href="https://laravel-news.com"
-                            class="flex items-start gap-4 rounded-lg bg-surface p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-border/30 transition duration-300 hover:text-primary/80 hover:ring-border/60 focus:outline-none focus-visible:ring-focus lg:pb-10"
+                            class="flex items-start gap-4 rounded-lg bg-surface p-8 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-border/30 transition duration-300 hover:text-primary/80 hover:ring-border/60 focus:outline-none focus-visible:ring-focus lg:pb-12"
                         >
                             <div
                                 class="flex size-12 shrink-0 items-center justify-center rounded-full bg-danger/10 sm:size-16"
@@ -252,12 +252,12 @@ function handleImageError() {
 
                             <div class="pt-3 sm:pt-5">
                                 <h2
-                                    class="text-xl font-semibold text-primary"
+                                    class="text-2xl font-semibold text-primary"
                                 >
                                     Laravel News
                                 </h2>
 
-                                <p class="mt-4 text-sm/relaxed">
+                                <p class="mt-4 text-base/relaxed">
                                     Laravel News is a community driven portal
                                     and newsletter aggregating all of the latest
                                     and most important news in the Laravel
@@ -282,15 +282,15 @@ function handleImageError() {
                         </a>
 
                         <div
-                            class="rounded-lg bg-surface p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-border/30 lg:pb-10"
+                            class="rounded-lg bg-surface p-8 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-border/30 lg:pb-12"
                         >
                                 <h2
-                                    class="text-xl font-semibold text-primary"
+                                    class="text-2xl font-semibold text-primary"
                                 >
                                     Vibrant Ecosystem
                                 </h2>
 
-                                <p class="mt-4 text-sm/relaxed">
+                                <p class="mt-4 text-base/relaxed">
                                     Laravel's robust library of first-party
                                     tools and libraries, such as
                                     <a
@@ -357,7 +357,7 @@ function handleImageError() {
                 </main>
 
                 <footer
-                    class="py-16 text-center text-sm text-muted"
+                    class="py-16 text-center text-base text-muted"
                 >
                     Laravel v{{ laravelVersion }} (PHP v{{ phpVersion }})
                 </footer>

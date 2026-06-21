@@ -3,11 +3,11 @@
 
         <template #header>
             <div class="flex items-center gap-3">
-                <Link :href="route('pipeline.index')" class="text-muted-3 text-xs font-mono hover:text-muted-2 transition-colors">
+                <Link :href="route('pipeline.index')" class="text-muted-3 text-sm font-mono hover:text-muted-2 transition-colors">
                     Pipeline
                 </Link>
-                <span class="text-muted-3 text-xs font-mono">/</span>
-                <span class="text-primary text-sm font-light">New Item</span>
+                <span class="text-muted-3 text-sm font-mono">/</span>
+                <span class="text-primary text-base font-light">New Item</span>
             </div>
         </template>
 
@@ -15,9 +15,9 @@
 
             <!-- ERRORS -->
             <div v-if="Object.keys(form.errors).length" class="p-3 bg-surface-2 border border-danger rounded-md">
-                <p class="text-danger text-xs font-mono mb-1">Fix the following:</p>
-                <ul class="space-y-0.5">
-                    <li v-for="(msg, field) in form.errors" :key="field" class="text-danger text-xs font-mono">
+                <p class="text-danger text-sm font-mono mb-2">Fix the following:</p>
+                <ul class="space-y-1">
+                    <li v-for="(msg, field) in form.errors" :key="field" class="text-danger text-sm font-mono">
                         · {{ msg }}
                     </li>
                 </ul>
@@ -201,7 +201,7 @@
             </template>
 
             <div v-else class="p-6 text-center border border-dashed border-border rounded-md">
-                <p class="text-muted-3 text-xs font-mono uppercase tracking-widest">Select a type to continue</p>
+                <p class="text-muted-3 text-sm font-mono uppercase tracking-widest">Select a type to continue</p>
             </div>
 
         </form>
@@ -261,66 +261,66 @@ const arcStages = [
 </script>
 
 <style scoped>
-.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-group { display: flex; flex-direction: column; gap: 8px; }
 .field-label {
-    font-size: 10px; font-family: ui-monospace, monospace;
+    font-size: 11px; font-family: ui-monospace, monospace;
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted-3);
 }
-.field-error { font-size: 11px; font-family: ui-monospace, monospace; color: var(--accent-pink); }
+.field-error { font-size: 12px; font-family: ui-monospace, monospace; color: var(--accent-pink); }
 .input {
-    height: 32px; padding: 0 10px;
+    height: 40px; padding: 0 12px;
     background: var(--bg-surface-2); border: 1px solid var(--border-color);
-    border-radius: 4px; font-size: 12px; color: var(--text-primary);
+    border-radius: 6px; font-size: 14px; color: var(--text-primary);
     outline: none; transition: border-color 0.15s;
 }
 .input:focus { border-color: var(--accent-cyan); }
 .input--error { border-color: var(--accent-pink); }
-textarea.input { height: auto; padding: 8px 10px; }
+textarea.input { height: auto; padding: 10px 12px; }
 .panel {
     background: var(--bg-surface-2); border: 1px solid var(--border-color);
-    border-radius: 6px; padding: 14px 16px;
+    border-radius: 8px; padding: 18px 20px;
 }
 .panel-label {
-    font-size: 9px; font-family: ui-monospace, monospace;
+    font-size: 11px; font-family: ui-monospace, monospace;
     letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--text-muted-3); margin-bottom: 12px;
 }
 .type-btn {
-    padding: 5px 12px; border-radius: 3px;
-    font-size: 10px; font-family: ui-monospace, monospace;
+    padding: 8px 14px; border-radius: 4px;
+    font-size: 11px; font-family: ui-monospace, monospace;
     border: 1px solid var(--border-color); color: var(--text-muted-3);
     background: var(--bg-surface-2); transition: border-color 0.12s, color 0.12s, background 0.12s;
 }
 .type-btn:hover { border-color: var(--border-color-2); color: var(--text-muted-2); }
 .type-btn--selected { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0,245,255,0.08); }
 .stage-btn {
-    padding: 4px 10px; border-radius: 2px;
-    font-size: 10px; font-family: ui-monospace, monospace;
+    padding: 6px 12px; border-radius: 3px;
+    font-size: 11px; font-family: ui-monospace, monospace;
     border: 1px solid var(--border-color); color: var(--text-muted-3);
     background: transparent; transition: border-color 0.12s, color 0.12s;
 }
 .stage-btn:hover { border-color: var(--border-color-2); color: var(--text-muted-2); }
 .stage-btn--selected { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0,245,255,0.08); }
 .pill-btn {
-    padding: 4px 10px; border-radius: 2px;
-    font-size: 10px; font-family: ui-monospace, monospace;
+    padding: 6px 12px; border-radius: 3px;
+    font-size: 11px; font-family: ui-monospace, monospace;
     border: 1px solid var(--border-color); color: var(--text-muted-3);
     background: transparent; transition: border-color 0.12s, color 0.12s, background 0.12s;
 }
 .pill-btn:hover { border-color: var(--border-color-2); color: var(--text-muted-2); }
 .pill-btn--selected { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0,245,255,0.08); }
 .btn-primary {
-    display: inline-flex; align-items: center; height: 32px; padding: 0 16px;
+    display: inline-flex; align-items: center; height: 40px; padding: 0 18px;
     background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.3);
-    border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace;
+    border-radius: 6px; font-size: 12px; font-family: ui-monospace, monospace;
     color: var(--accent-cyan); transition: background 0.15s;
 }
 .btn-primary:hover:not(:disabled) { background: rgba(0,245,255,0.15); }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-ghost {
-    display: inline-flex; align-items: center; height: 32px; padding: 0 12px;
-    border: 1px solid var(--border-color); border-radius: 4px;
-    font-size: 11px; font-family: ui-monospace, monospace;
+    display: inline-flex; align-items: center; height: 40px; padding: 0 16px;
+    border: 1px solid var(--border-color); border-radius: 6px;
+    font-size: 12px; font-family: ui-monospace, monospace;
     color: var(--text-muted-2); transition: border-color 0.15s, color 0.15s;
 }
 .btn-ghost:hover { border-color: var(--border-color-2); color: var(--text-primary); }

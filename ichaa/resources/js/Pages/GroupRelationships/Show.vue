@@ -4,6 +4,7 @@
         back-label="Group Relationships"
         :back-href="route('group-relationships.index')"
         :edit-href="route('group-relationships.edit', group.id)"
+        :destroy-href="route('group-relationships.destroy', group.id)"
         :badge="group.relationship_type || 'group'"
         :sections="sections"
     />

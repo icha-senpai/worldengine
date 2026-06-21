@@ -33,7 +33,7 @@ const submit = () => {
     <GuestLayout>
         <Head title="Log in" />
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-success">
+        <div v-if="status" class="mb-5 text-base font-medium text-success">
             {{ status }}
         </div>
 
@@ -72,7 +72,7 @@ const submit = () => {
             <div class="mt-4 block">
                 <label class="flex items-center">
                     <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-muted"
+                    <span class="ms-3 text-base text-muted"
                         >Remember me</span
                     >
                 </label>
@@ -82,7 +82,7 @@ const submit = () => {
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="rounded-md text-sm text-muted underline hover:text-primary focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2"
+                    class="rounded-md text-base text-muted underline hover:text-primary focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2"
                 >
                     Forgot your password?
                 </Link>

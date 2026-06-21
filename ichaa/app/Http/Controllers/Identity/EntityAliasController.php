@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Identity;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityAlias;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class EntityAliasController extends Controller
 {
-    public function create(Entity $entity): \Illuminate\Http\RedirectResponse
+    public function create(Entity $entity): RedirectResponse
     {
         return $this->to('entities.show', [
             'entity' => $entity,
@@ -18,7 +19,7 @@ class EntityAliasController extends Controller
         ]);
     }
 
-    public function edit(Entity $entity, EntityAlias $alias): \Illuminate\Http\RedirectResponse
+    public function edit(Entity $entity, EntityAlias $alias): RedirectResponse
     {
         abort_unless((int) $alias->entity_id === (int) $entity->id, 404);
 
@@ -30,19 +31,21 @@ class EntityAliasController extends Controller
     }
 
     // POST /entities/{entity}/aliases
-    public function store(Request $request, Entity $entity): \Illuminate\Http\RedirectResponse
+    public function store(Request $request, Entity $entity): RedirectResponse
     {
         $validated = $request->validate([
-            'alias'                  => ['required', 'string', 'max:255'],
-            'alias_type'             => ['required', 'string'],
-            'context'                => ['nullable', 'string'],
-            'era_start'              => ['nullable', 'string'],
-            'era_end'                => ['nullable', 'string'],
-            'is_active'              => ['boolean'],
-            'known_by_entity_ids'    => ['nullable', 'array'],
-            'visibility'             => ['nullable', 'string'],
+            'alias' => ['required', 'string', 'max:255'],
+            'alias_type' => ['required', 'string'],
+            'context' => ['nullable', 'string'],
+            'era_start' => ['nullable', 'string'],
+            'era_end' => ['nullable', 'string'],
+            'is_active' => ['boolean'],
+            'known_by_entity_ids' => ['nullable', 'array'],
+            'visibility' => ['nullable', 'string'],
             'content_classification' => ['nullable', 'string'],
         ]);
+
+        $validated = array_filter($validated, fn ($v) => ! ($v === '' || $v === null) || is_array($v) || is_bool($v));
 
         $entity->aliases()->create($validated);
 
@@ -50,17 +53,17 @@ class EntityAliasController extends Controller
     }
 
     // PUT /entities/{entity}/aliases/{alias}
-    public function update(Request $request, Entity $entity, EntityAlias $alias): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, Entity $entity, EntityAlias $alias): RedirectResponse
     {
         abort_unless((int) $alias->entity_id === (int) $entity->id, 404);
 
         $validated = $request->validate([
-            'alias'               => ['sometimes', 'string', 'max:255'],
-            'alias_type'          => ['sometimes', 'string'],
-            'context'             => ['nullable', 'string'],
-            'era_start'           => ['nullable', 'string'],
-            'era_end'             => ['nullable', 'string'],
-            'is_active'           => ['boolean'],
+            'alias' => ['sometimes', 'string', 'max:255'],
+            'alias_type' => ['sometimes', 'string'],
+            'context' => ['nullable', 'string'],
+            'era_start' => ['nullable', 'string'],
+            'era_end' => ['nullable', 'string'],
+            'is_active' => ['boolean'],
             'known_by_entity_ids' => ['nullable', 'array'],
         ]);
 
@@ -70,7 +73,7 @@ class EntityAliasController extends Controller
     }
 
     // DELETE /entities/{entity}/aliases/{alias}
-    public function destroy(Entity $entity, EntityAlias $alias): \Illuminate\Http\RedirectResponse
+    public function destroy(Entity $entity, EntityAlias $alias): RedirectResponse
     {
         abort_unless((int) $alias->entity_id === (int) $entity->id, 404);
 

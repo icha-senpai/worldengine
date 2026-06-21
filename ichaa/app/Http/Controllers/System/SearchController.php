@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\System;
 
+use App\Domain\Identity\Models\Entity;
+use App\Domain\Intelligence\Models\Secret;
+use App\Domain\Lore\Models\Document;
+use App\Domain\Organization\Models\Glossary;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Response;
-
-use App\Http\Controllers\Controller;
-use App\Domain\Identity\Models\Entity;
-use App\Domain\Lore\Models\Document;
-use App\Domain\Intelligence\Models\Secret;
-use App\Domain\Organization\Models\Glossary;
 
 class SearchController extends Controller
 {
@@ -20,13 +19,13 @@ class SearchController extends Controller
         if (empty($term)) {
             return $this->page('Search/Index', [
                 'results' => [],
-                'term'    => '',
+                'term' => '',
             ]);
         }
 
         $results = [
-            'entities'  => Entity::search($term)
-                ->select(['id', 'name', 'entity_type', 'status', 'brief_description'])
+            'entities' => Entity::search($term)
+                ->select(['id', 'name', 'entity_type', 'status', 'summary'])
                 ->take(10)
                 ->get(),
 
@@ -35,12 +34,12 @@ class SearchController extends Controller
                 ->take(5)
                 ->get(),
 
-            'secrets'   => Secret::search($term)
+            'secrets' => Secret::search($term)
                 ->select(['id', 'title', 'secret_type', 'exposure_risk'])
                 ->take(5)
                 ->get(),
 
-            'glossary'  => Glossary::search($term)
+            'glossary' => Glossary::search($term)
                 ->select(['id', 'term', 'usage_context'])
                 ->take(5)
                 ->get(),
@@ -48,7 +47,7 @@ class SearchController extends Controller
 
         return $this->page('Search/Index', [
             'results' => $results,
-            'term'    => $term,
+            'term' => $term,
         ]);
     }
 }

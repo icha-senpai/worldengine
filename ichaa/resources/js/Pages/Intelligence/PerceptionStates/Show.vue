@@ -5,6 +5,7 @@
         back-label="Perception States"
         :back-href="route('perception-states.index')"
         :edit-href="route('perception-states.edit', state.id)"
+        :destroy-href="route('perception-states.destroy', state.id)"
         :badge="state.divergence_level || 'gap'"
         :sections="sections"
     />

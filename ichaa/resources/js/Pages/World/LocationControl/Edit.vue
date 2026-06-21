@@ -6,6 +6,7 @@
         :cancel-href="route('location-control.index')"
         submit-label="Save Control Record"
         processing-label="Saving..."
+        :destroy-href="route('location-control.destroy', record.id)"
         :form="form"
         :sections="sections"
         :on-submit="submit"

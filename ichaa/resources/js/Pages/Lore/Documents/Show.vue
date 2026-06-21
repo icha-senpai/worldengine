@@ -4,6 +4,7 @@
         back-label="Documents"
         :back-href="route('documents.index')"
         :edit-href="route('documents.edit', document.id)"
+        :destroy-href="route('documents.destroy', document.id)"
         :badge="formatLabel(document.document_type)"
         :sections="sections"
     />

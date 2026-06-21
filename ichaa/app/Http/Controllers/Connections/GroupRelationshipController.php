@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Connections;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
-use App\Domain\Identity\Models\Entity;
 use App\Domain\Connections\Models\GroupRelationship;
 use App\Domain\Connections\Models\GroupRelationshipEntity;
-use App\Domain\Connections\Models\FactionMembership;
 use App\Domain\Connections\Services\RelationshipService;
 use App\Domain\Connections\ValueObjects\TensionCharge;
+use App\Domain\Identity\Models\Entity;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class GroupRelationshipController extends Controller
 {
@@ -32,7 +31,7 @@ class GroupRelationshipController extends Controller
         }
 
         return $this->page('GroupRelationships/Index', [
-            'groups'  => $query->paginate(40)->withQueryString(),
+            'groups' => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['volatile', 'masked']),
         ]);
     }
@@ -44,16 +43,18 @@ class GroupRelationshipController extends Controller
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'                   => ['required', 'string', 'max:255'],
-            'relationship_type'      => ['required', 'string'],
-            'current_tension_charge' => ['nullable', 'string', 'in:' . implode(',', TensionCharge::ALL)],
-            'is_active'              => ['boolean'],
-            'visibility'             => ['nullable', 'string'],
+            'name' => ['required', 'string', 'max:255'],
+            'relationship_type' => ['required', 'string'],
+            'current_tension_charge' => ['nullable', 'string', 'in:'.implode(',', TensionCharge::ALL)],
+            'is_active' => ['boolean'],
+            'visibility' => ['nullable', 'string'],
             'content_classification' => ['nullable', 'string'],
         ]);
+
+        $validated = array_filter($validated, fn ($v) => ! ($v === '' || $v === null) || is_array($v) || is_bool($v));
 
         $group = $this->service->createGroup($validated);
 
@@ -75,19 +76,19 @@ class GroupRelationshipController extends Controller
     public function edit(GroupRelationship $groupRelationship): Response
     {
         return $this->page('GroupRelationships/Edit', [
-            'group'          => $groupRelationship,
+            'group' => $groupRelationship,
             'tensionCharges' => TensionCharge::ALL,
         ]);
     }
 
-    public function update(Request $request, GroupRelationship $groupRelationship): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, GroupRelationship $groupRelationship): RedirectResponse
     {
         $validated = $request->validate([
-            'name'                   => ['sometimes', 'string', 'max:255'],
-            'relationship_type'      => ['sometimes', 'string'],
-            'current_tension_charge' => ['nullable', 'string', 'in:' . implode(',', TensionCharge::ALL)],
-            'charge_change_reason'   => ['nullable', 'string'],
-            'is_active'              => ['boolean'],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'relationship_type' => ['sometimes', 'string'],
+            'current_tension_charge' => ['nullable', 'string', 'in:'.implode(',', TensionCharge::ALL)],
+            'charge_change_reason' => ['nullable', 'string'],
+            'is_active' => ['boolean'],
         ]);
 
         if (
@@ -107,7 +108,7 @@ class GroupRelationshipController extends Controller
         return $this->to('group-relationships.show', [$groupRelationship], 'Group updated.');
     }
 
-    public function destroy(GroupRelationship $groupRelationship): \Illuminate\Http\RedirectResponse
+    public function destroy(GroupRelationship $groupRelationship): RedirectResponse
     {
         $groupRelationship->delete();
 
@@ -115,12 +116,12 @@ class GroupRelationshipController extends Controller
     }
 
     // POST /group-relationships/{groupRelationship}/members
-    public function addMember(Request $request, GroupRelationship $groupRelationship): \Illuminate\Http\RedirectResponse
+    public function addMember(Request $request, GroupRelationship $groupRelationship): RedirectResponse
     {
         $validated = $request->validate([
-            'entity_id'           => ['required', 'integer', 'exists:entities,id'],
-            'role_in_group'       => ['nullable', 'string'],
-            'joined_era'          => ['nullable', 'string'],
+            'entity_id' => ['required', 'integer', 'exists:entities,id'],
+            'role_in_group' => ['nullable', 'string'],
+            'joined_era' => ['nullable', 'string'],
             'participation_notes' => ['nullable', 'array'],
         ]);
 
@@ -132,12 +133,12 @@ class GroupRelationshipController extends Controller
     }
 
     // DELETE /group-relationships/{groupRelationship}/members/{entry}
-    public function removeMember(Request $request, GroupRelationship $groupRelationship, GroupRelationshipEntity $entry): \Illuminate\Http\RedirectResponse
+    public function removeMember(Request $request, GroupRelationship $groupRelationship, GroupRelationshipEntity $entry): RedirectResponse
     {
         abort_unless((int) $entry->group_relationship_id === (int) $groupRelationship->id, 404);
 
         $validated = $request->validate([
-            'left_era'        => ['nullable', 'string'],
+            'left_era' => ['nullable', 'string'],
             'departure_notes' => ['nullable', 'array'],
         ]);
 

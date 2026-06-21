@@ -2,16 +2,16 @@
 
 namespace App\Domain\Connections\Services;
 
-use Illuminate\Support\Facades\DB;
-
-use App\Domain\Identity\Models\Entity;
-use App\Domain\Identity\Listeners\FlipEntityCompletionFlags;
-
-use App\Domain\Connections\Models\Relationship;
+use App\Domain\Connections\Models\FactionMembership;
 use App\Domain\Connections\Models\GroupRelationship;
 use App\Domain\Connections\Models\GroupRelationshipEntity;
-use App\Domain\Connections\Models\FactionMembership;
+use App\Domain\Connections\Models\Relationship;
 use App\Domain\Connections\ValueObjects\TensionCharge;
+use App\Domain\Identity\Listeners\FlipEntityCompletionFlags;
+use App\Domain\Identity\Models\Entity;
+use App\Domain\Identity\ValueObjects\ContentClassification;
+use App\Domain\Identity\ValueObjects\VisibilityLevel;
+use Illuminate\Support\Facades\DB;
 
 class RelationshipService
 {
@@ -26,9 +26,14 @@ class RelationshipService
         return DB::transaction(function () use ($from, $to, $data) {
             $relationship = Relationship::create(array_merge($data, [
                 'from_entity_id' => $from->id,
-                'to_entity_id'   => $to->id,
+                'to_entity_id' => $to->id,
+                'direction' => filled($data['direction'] ?? null) ? $data['direction'] : 'one_way',
                 'current_tension_charge' => $data['current_tension_charge'] ?? TensionCharge::NEUTRAL,
-                'is_active'      => true,
+                'visibility' => filled($data['visibility'] ?? null) ? $data['visibility'] : VisibilityLevel::PRIVATE,
+                'content_classification' => filled($data['content_classification'] ?? null)
+                    ? $data['content_classification']
+                    : ContentClassification::RESTRICTED,
+                'is_active' => true,
             ]));
 
             // Flip has_relationships on both entities
@@ -59,14 +64,14 @@ class RelationshipService
 
         $history[] = [
             'previous_charge' => $relationship->current_tension_charge,
-            'new_charge'      => $newCharge,
-            'reason'          => $reason,
-            'recorded_at'     => now()->toISOString(),
+            'new_charge' => $newCharge,
+            'reason' => $reason,
+            'recorded_at' => now()->toISOString(),
         ];
 
         $relationship->update([
             'current_tension_charge' => $newCharge,
-            'charge_history'         => $history,
+            'charge_history' => $history,
         ]);
 
         return $relationship->fresh();
@@ -82,7 +87,7 @@ class RelationshipService
     public function delete(Relationship $relationship): void
     {
         $fromEntity = $relationship->fromEntity;
-        $toEntity   = $relationship->toEntity;
+        $toEntity = $relationship->toEntity;
 
         $relationship->delete();
 
@@ -97,7 +102,11 @@ class RelationshipService
         return DB::transaction(function () use ($data, $memberData) {
             $group = GroupRelationship::create(array_merge($data, [
                 'current_tension_charge' => $data['current_tension_charge'] ?? TensionCharge::NEUTRAL,
-                'is_active'              => true,
+                'visibility' => filled($data['visibility'] ?? null) ? $data['visibility'] : VisibilityLevel::PRIVATE,
+                'content_classification' => filled($data['content_classification'] ?? null)
+                    ? $data['content_classification']
+                    : ContentClassification::RESTRICTED,
+                'is_active' => true,
             ]));
 
             // Attach initial members if provided
@@ -116,11 +125,11 @@ class RelationshipService
     ): GroupRelationshipEntity {
         return GroupRelationshipEntity::create([
             'group_relationship_id' => $group->id,
-            'entity_id'             => $entity->id,
-            'role_in_group'         => $data['role_in_group'] ?? null,
-            'participation_notes'   => $data['participation_notes'] ?? null,
-            'is_active_member'      => true,
-            'joined_era'            => $data['joined_era'] ?? null,
+            'entity_id' => $entity->id,
+            'role_in_group' => $data['role_in_group'] ?? null,
+            'participation_notes' => $data['participation_notes'] ?? null,
+            'is_active_member' => true,
+            'joined_era' => $data['joined_era'] ?? null,
         ]);
     }
 
@@ -130,8 +139,8 @@ class RelationshipService
     ): GroupRelationshipEntity {
         $membership->update([
             'is_active_member' => false,
-            'left_era'         => $data['left_era'] ?? null,
-            'departure_notes'  => $data['departure_notes'] ?? null,
+            'left_era' => $data['left_era'] ?? null,
+            'departure_notes' => $data['departure_notes'] ?? null,
         ]);
 
         return $membership->fresh();
@@ -144,17 +153,17 @@ class RelationshipService
     ): GroupRelationship {
         TensionCharge::from($newCharge);
 
-        $history   = $group->charge_history ?? [];
+        $history = $group->charge_history ?? [];
         $history[] = [
             'previous_charge' => $group->current_tension_charge,
-            'new_charge'      => $newCharge,
-            'reason'          => $reason,
-            'recorded_at'     => now()->toISOString(),
+            'new_charge' => $newCharge,
+            'reason' => $reason,
+            'recorded_at' => now()->toISOString(),
         ];
 
         $group->update([
             'current_tension_charge' => $newCharge,
-            'charge_history'         => $history,
+            'charge_history' => $history,
         ]);
 
         return $group->fresh();
@@ -169,7 +178,7 @@ class RelationshipService
     ): FactionMembership {
         return FactionMembership::create(array_merge($data, [
             'faction_entity_id' => $faction->id,
-            'member_entity_id'  => $member->id,
+            'member_entity_id' => $member->id,
             'membership_status' => $data['membership_status'] ?? 'active',
         ]));
     }
@@ -187,8 +196,8 @@ class RelationshipService
     ): FactionMembership {
         $membership->update([
             'membership_status' => 'former',
-            'left_era'          => $data['left_era'] ?? null,
-            'departure_reason'  => $data['departure_reason'] ?? null,
+            'left_era' => $data['left_era'] ?? null,
+            'departure_reason' => $data['departure_reason'] ?? null,
         ]);
 
         return $membership->fresh();

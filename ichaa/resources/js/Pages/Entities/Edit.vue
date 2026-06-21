@@ -3,15 +3,15 @@
 
         <template #header>
             <div class="flex items-center gap-3">
-                <Link :href="route('entities.index')" class="text-muted-3 text-xs font-mono hover:text-muted-2 transition-colors">
+                <Link :href="route('entities.index')" class="text-muted-3 text-sm font-mono hover:text-muted-2 transition-colors">
                     Entities
                 </Link>
-                <span class="text-muted-3 text-xs font-mono">/</span>
-                <Link :href="route('entities.show', entity.id)" class="text-muted-3 text-xs font-mono hover:text-muted-2 transition-colors truncate max-w-48">
+                <span class="text-muted-3 text-sm font-mono">/</span>
+                <Link :href="route('entities.show', entity.id)" class="text-muted-3 text-sm font-mono hover:text-muted-2 transition-colors truncate max-w-48">
                     {{ entity.name }}
                 </Link>
-                <span class="text-muted-3 text-xs font-mono">/</span>
-                <span class="text-primary text-sm font-light">Edit</span>
+                <span class="text-muted-3 text-sm font-mono">/</span>
+                <span class="text-primary text-base font-light">Edit</span>
             </div>
         </template>
 
@@ -19,9 +19,9 @@
 
             <!-- ERRORS -->
             <div v-if="Object.keys(form.errors).length" class="p-3 bg-surface-2 border border-danger rounded-md">
-                <p class="text-danger text-xs font-mono mb-1">Fix the following:</p>
-                <ul class="space-y-0.5">
-                    <li v-for="(msg, field) in form.errors" :key="field" class="text-danger text-xs font-mono">
+                <p class="text-danger text-sm font-mono mb-2">Fix the following:</p>
+                <ul class="space-y-1">
+                    <li v-for="(msg, field) in form.errors" :key="field" class="text-danger text-sm font-mono">
                         · {{ msg }}
                     </li>
                 </ul>
@@ -303,7 +303,7 @@
                 <Link :href="route('entities.show', entity.id)" class="btn-ghost">
                     Cancel
                 </Link>
-                <span v-if="form.isDirty" class="text-muted-3 text-xs font-mono">Unsaved changes</span>
+                <span v-if="form.isDirty" class="text-muted-3 text-sm font-mono">Unsaved changes</span>
             </div>
 
         </form>
@@ -430,53 +430,53 @@ const formatLabel = (str) => str
 .field-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 .field-label {
-    font-size: 10px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--text-muted-3);
 }
 .field-error {
-    font-size: 11px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--accent-pink);
 }
 .category-label {
-    font-size: 9px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-muted-3);
     opacity: 0.6;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 .input {
-    height: 32px;
-    padding: 0 10px;
+    height: 40px;
+    padding: 0 12px;
     background: var(--bg-surface-2);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 12px;
+    border-radius: 6px;
+    font-size: 14px;
     color: var(--text-primary);
     outline: none;
     transition: border-color 0.15s;
 }
 .input:focus { border-color: var(--accent-cyan); }
 .input--error { border-color: var(--accent-pink); }
-textarea.input { height: auto; padding: 8px 10px; }
+textarea.input { height: auto; padding: 10px 12px; }
 select.input option { background: var(--bg-surface); }
 .panel {
     background: var(--bg-surface-2);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 14px 16px;
+    border-radius: 8px;
+    padding: 18px 20px;
 }
 .panel-label {
-    font-size: 9px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -484,9 +484,9 @@ select.input option { background: var(--bg-surface); }
     margin-bottom: 12px;
 }
 .type-btn {
-    padding: 5px 8px;
-    border-radius: 3px;
-    font-size: 10px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     border: 1px solid var(--border-color);
     color: var(--text-muted-3);
@@ -504,9 +504,9 @@ select.input option { background: var(--bg-surface); }
     background: rgba(0, 245, 255, 0.08);
 }
 .pill-btn {
-    padding: 4px 12px;
-    border-radius: 2px;
-    font-size: 10px;
+    padding: 6px 14px;
+    border-radius: 3px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     border: 1px solid var(--border-color);
     color: var(--text-muted-3);
@@ -520,9 +520,9 @@ select.input option { background: var(--bg-surface); }
     background: rgba(0, 245, 255, 0.08);
 }
 .universe-tag {
-    padding: 2px 8px;
-    border-radius: 2px;
-    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     color: var(--text-muted-2);
     border: 1px solid var(--border-color-2);
@@ -533,12 +533,12 @@ select.input option { background: var(--bg-surface); }
 .btn-primary {
     display: inline-flex;
     align-items: center;
-    height: 32px;
-    padding: 0 16px;
+    height: 40px;
+    padding: 0 18px;
     background: rgba(0, 245, 255, 0.1);
     border: 1px solid rgba(0, 245, 255, 0.3);
-    border-radius: 4px;
-    font-size: 11px;
+    border-radius: 6px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--accent-cyan);
     transition: background 0.15s, border-color 0.15s;
@@ -551,11 +551,11 @@ select.input option { background: var(--bg-surface); }
 .btn-ghost {
     display: inline-flex;
     align-items: center;
-    height: 32px;
-    padding: 0 12px;
+    height: 40px;
+    padding: 0 16px;
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 11px;
+    border-radius: 6px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--text-muted-2);
     transition: border-color 0.15s, color 0.15s;

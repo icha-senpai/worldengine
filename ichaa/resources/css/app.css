@@ -70,7 +70,6 @@
     --color-mint-600: #00D68F;
 }
 :root {
-  --ui-scale: 1.22;
   --bg-canvas: #070B12;
   --bg-canvas-2: #05080E;
   --bg-surface: #0B1220;
@@ -98,17 +97,6 @@
   --overlay-3: rgb(0 0 0 / 0.85);
 
   --tw-ring-offset-color: var(--bg-surface);
-}
-
-html {
-  font-size: calc(100% * var(--ui-scale));
-}
-
-@supports (zoom: 1) {
-  html {
-    font-size: 100%;
-    zoom: var(--ui-scale);
-  }
 }
 
 @layer base {

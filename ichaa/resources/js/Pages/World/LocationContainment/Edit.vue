@@ -6,6 +6,7 @@
         :cancel-href="route('location-containment.index')"
         submit-label="Save Containment"
         processing-label="Saving..."
+        :destroy-href="route('location-containment.destroy', containment.id)"
         :form="form"
         :sections="sections"
         :on-submit="submit"

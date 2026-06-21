@@ -6,6 +6,7 @@
         :cancel-href="backHref"
         submit-label="Save Membership"
         processing-label="Saving..."
+        :destroy-href="route('faction-memberships.destroy', membership.id)"
         :form="form"
         :sections="sections"
         :on-submit="submit"

@@ -3,7 +3,7 @@
         <template #header>
             <div>
                 <h1 class="text-primary text-2xl font-light tracking-wide">Search</h1>
-                <p class="text-muted-3 text-xs font-mono mt-0.5">Cross-domain lookup for entities, documents, secrets, and glossary terms.</p>
+                <p class="text-muted-3 text-sm font-mono mt-1">Cross-domain lookup for entities, documents, secrets, and glossary terms.</p>
             </div>
         </template>
 
@@ -16,7 +16,7 @@
         </form>
 
         <div v-if="!term" class="empty-state">
-            <p class="text-muted-3 text-xs font-mono uppercase tracking-widest">Enter a term to start searching</p>
+            <p class="text-muted-3 text-sm font-mono uppercase tracking-widest">Enter a term to start searching</p>
         </div>
 
         <div v-else class="grid gap-4 md:grid-cols-2">
@@ -25,15 +25,15 @@
 
                 <ul v-if="group.items.length" class="space-y-2">
                     <li v-for="item in group.items" :key="item.label" class="result-row">
-                        <Link v-if="item.href" :href="item.href" class="text-primary hover:text-cyan transition-colors">
+                        <Link v-if="item.href" :href="item.href" class="result-link text-primary hover:text-cyan transition-colors">
                             {{ item.label }}
                         </Link>
-                        <span v-else class="text-primary">{{ item.label }}</span>
-                        <p v-if="item.meta" class="text-muted-3 text-xs mt-1">{{ item.meta }}</p>
+                        <span v-else class="result-link text-primary">{{ item.label }}</span>
+                        <p v-if="item.meta" class="prose-wrap text-muted-3 text-sm mt-1.5">{{ item.meta }}</p>
                     </li>
                 </ul>
 
-                <p v-else class="text-muted-3 text-xs font-mono">No matches.</p>
+                <p v-else class="text-muted-3 text-sm font-mono">No matches.</p>
             </section>
         </div>
     </AuthenticatedLayout>
@@ -98,13 +98,13 @@ const groups = computed(() => [
 .panel {
     background: var(--bg-surface-2);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 14px 16px;
+    border-radius: 8px;
+    padding: 18px 20px;
 }
 
 .panel-label,
 .field-label {
-    font-size: 9px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -112,12 +112,12 @@ const groups = computed(() => [
 }
 
 .input {
-    height: 32px;
-    padding: 0 10px;
+    height: 40px;
+    padding: 0 12px;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 12px;
+    border-radius: 6px;
+    font-size: 14px;
     color: var(--text-primary);
     outline: none;
 }
@@ -129,18 +129,30 @@ const groups = computed(() => [
 .btn-primary {
     display: inline-flex;
     align-items: center;
-    height: 32px;
-    padding: 0 16px;
+    height: 40px;
+    padding: 0 18px;
     background: rgba(0, 245, 255, 0.1);
     border: 1px solid rgba(0, 245, 255, 0.3);
-    border-radius: 4px;
-    font-size: 11px;
+    border-radius: 6px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--accent-cyan);
 }
 
+.result-link,
+.prose-wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.result-link {
+    display: block;
+    line-height: 1.4;
+}
+
 .result-row {
-    padding: 10px 0;
+    padding: 14px 0;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -153,7 +165,7 @@ const groups = computed(() => [
     padding: 48px 16px;
     text-align: center;
     border: 1px dashed var(--border-color);
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 .text-cyan {

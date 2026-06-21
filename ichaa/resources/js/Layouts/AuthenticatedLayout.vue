@@ -3,10 +3,148 @@
 
         <!-- TOP NAV -->
         <header class="sticky top-0 z-50 bg-surface border-b border-border flex-shrink-0">
-            <div class="flex items-center h-11 px-4">
+            <div class="md:hidden px-4 py-3">
+                <div class="flex items-center gap-3">
+                    <a :href="route('dashboard')" class="flex items-baseline flex-shrink-0 font-mono text-base tracking-widest uppercase">
+                        <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
+                    </a>
+
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[11px] font-mono uppercase tracking-[0.16em] text-muted-3">Current</p>
+                        <p class="truncate text-sm font-mono text-primary">{{ activeDomain.label }}</p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <Link
+                            :href="route('search')"
+                            class="mobile-icon-btn"
+                            aria-label="Search"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </Link>
+
+                        <Link
+                            :href="route('trash.index')"
+                            class="mobile-icon-btn"
+                            :class="{ 'mobile-icon-btn--danger': currentPath === '/trash' }"
+                            aria-label="Trash"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M3 4h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M5 6.5v4.5M8 6.5v4.5M11 6.5v4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M4 4l.6 8.1A1 1 0 005.6 13h4.8a1 1 0 001-.9L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </Link>
+
+                        <button
+                            type="button"
+                            class="mobile-icon-btn"
+                            :aria-expanded="mobileNavOpen ? 'true' : 'false'"
+                            aria-label="Toggle navigation"
+                            @click="mobileNavOpen = !mobileNavOpen"
+                        >
+                            <svg v-if="!mobileNavOpen" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <Transition name="flash">
+                    <div
+                        v-if="$page.props.flash?.success"
+                        class="mt-3 text-sm font-mono text-success border border-success/25 bg-success/10 rounded-md px-3 py-2"
+                    >
+                        {{ $page.props.flash.success }}
+                    </div>
+                </Transition>
+            </div>
+
+            <div v-if="mobileNavOpen" class="md:hidden border-t border-border bg-surface-2/70 px-4 py-4 space-y-4">
+                <div>
+                    <p class="mobile-section-label">Domains</p>
+                    <nav class="grid gap-2" aria-label="Primary mobile">
+                        <div
+                            v-for="domain in domains"
+                            :key="domain.key"
+                            class="mobile-domain-group"
+                        >
+                            <Link
+                                v-if="!domain.children?.length"
+                                :href="domain.href"
+                                class="mobile-domain-nav-item"
+                                :class="{ 'active': isDomainActive(domain.key) }"
+                                @click="mobileNavOpen = false"
+                            >
+                                <span class="opacity-60 flex items-center" v-html="domain.icon" />
+                                <span>{{ domain.label }}</span>
+                            </Link>
+
+                            <template v-else>
+                                <button
+                                    type="button"
+                                    class="mobile-domain-toggle"
+                                    :class="{ 'active': isDomainActive(domain.key) }"
+                                    :aria-expanded="isMobileDomainExpanded(domain) ? 'true' : 'false'"
+                                    @click="toggleMobileDomain(domain)"
+                                >
+                                    <span class="flex items-center gap-3 min-w-0">
+                                        <span class="opacity-60 flex items-center flex-shrink-0" v-html="domain.icon" />
+                                        <span class="truncate">{{ domain.label }}</span>
+                                    </span>
+
+                                    <svg
+                                        class="mobile-domain-chevron"
+                                        :class="{ 'open': isMobileDomainExpanded(domain) }"
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 16 16"
+                                        fill="none"
+                                    >
+                                        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+
+                                <div v-if="isMobileDomainExpanded(domain)" class="mobile-domain-children">
+                                    <Link
+                                        v-for="item in domain.children"
+                                        :key="item.key"
+                                        :href="item.href"
+                                        class="mobile-domain-child-link"
+                                        :class="{ 'active': isNavItemActive(item) }"
+                                        @click="mobileNavOpen = false"
+                                    >
+                                        {{ item.label }}
+                                    </Link>
+                                </div>
+                            </template>
+                        </div>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="mobile-section-label">Account</p>
+                    <div class="rounded-md border border-border bg-surface px-3 py-3">
+                        <p class="text-sm font-mono text-primary">{{ $page.props.auth.user.name }}</p>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <Link :href="route('profile.edit')" class="mobile-subnav-item" @click="mobileNavOpen = false">Profile</Link>
+                            <Link :href="route('logout')" method="post" as="button" class="mobile-subnav-item" @click="mobileNavOpen = false">Log Out</Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hidden md:flex items-center h-14 px-5">
 
                 <!-- Wordmark -->
-                <a :href="route('dashboard')" class="flex items-baseline mr-7 flex-shrink-0 font-mono text-sm tracking-widest uppercase">
+                <a :href="route('dashboard')" class="flex items-baseline mr-8 flex-shrink-0 font-mono text-base tracking-widest uppercase">
                     <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
                 </a>
 
@@ -28,23 +166,39 @@
                 <div class="flex items-center gap-3 ml-4 flex-shrink-0">
 
                     <!-- Search -->
-                    <a
+                    <Link
                         :href="route('search')"
-                        class="flex items-center gap-2 px-2.5 py-1 bg-surface-2 border border-border rounded text-muted-2 text-xs font-mono hover:border-border-2 hover:text-primary transition-colors"
+                        class="flex items-center gap-2.5 px-3 py-1.5 bg-surface-2 border border-border rounded-md text-muted-2 text-sm font-mono hover:border-border-2 hover:text-primary transition-colors"
                     >
-                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                             <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
                             <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                         </svg>
                         <span>Search</span>
-                        <kbd class="px-1 py-px bg-surface border border-border rounded text-[10px]">/</kbd>
-                    </a>
+                        <kbd class="px-1.5 py-px bg-surface border border-border rounded text-xs">/</kbd>
+                    </Link>
+
+                    <Link
+                        :href="route('trash.index')"
+                        class="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border rounded-md text-sm font-mono transition-colors"
+                        :class="currentPath === '/trash'
+                            ? 'border-[rgba(255,0,128,0.35)] text-[var(--accent-pink)] bg-[rgba(255,0,128,0.08)]'
+                            : 'border-border text-muted-2 hover:border-border-2 hover:text-primary'"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 4h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M5 6.5v4.5M8 6.5v4.5M11 6.5v4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M4 4l.6 8.1A1 1 0 005.6 13h4.8a1 1 0 001-.9L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>Trash</span>
+                    </Link>
 
                     <!-- Flash -->
                     <Transition name="flash">
                         <div
                             v-if="$page.props.flash?.success"
-                            class="text-xs font-mono text-success border border-success/25 bg-success/10 rounded px-2.5 py-1"
+                            class="text-sm font-mono text-success border border-success/25 bg-success/10 rounded-md px-3 py-1.5"
                         >
                             {{ $page.props.flash.success }}
                         </div>
@@ -55,10 +209,10 @@
                         <template #trigger>
                             <button
                                 type="button"
-                                class="flex items-center gap-1.5 px-2.5 py-1 bg-surface-2 border border-border rounded text-muted-2 text-xs font-mono hover:border-border-2 hover:text-primary transition-colors"
+                                class="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-border rounded-md text-muted-2 text-sm font-mono hover:border-border-2 hover:text-primary transition-colors"
                             >
                                 <span>{{ $page.props.auth.user.name }}</span>
-                                <svg class="w-3 h-3 opacity-50" viewBox="0 0 20 20" fill="currentColor">
+                                <svg class="w-3.5 h-3.5 opacity-50" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </button>
@@ -74,7 +228,7 @@
 
             <div
                 v-if="activeSubnavItems.length"
-                class="flex items-center gap-1 px-4 h-9 border-t border-border bg-surface-2/70 overflow-x-auto scrollbar-none"
+                class="hidden md:flex items-center gap-1.5 px-5 h-11 border-t border-border bg-surface-2/70 overflow-x-auto scrollbar-none"
             >
                 <Link
                     v-for="item in activeSubnavItems"
@@ -100,7 +254,7 @@
 
             <!-- MAIN -->
             <main
-                class="flex-1 min-w-0 p-7"
+                class="flex-1 min-w-0 p-4 md:p-8"
                 :class="{ 'max-w-6xl mx-auto w-full': !$slots.sidebar }"
             >
                 <div v-if="$slots.header" class="mb-6 pb-5 border-b border-border">
@@ -114,12 +268,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import Dropdown from '@/Components/Dropdown.vue'
 import DropdownLink from '@/Components/DropdownLink.vue'
 
 const page = usePage()
+const mobileNavOpen = ref(false)
+const mobileExpandedDomainKey = ref(null)
 
 const domains = [
     {
@@ -243,22 +399,193 @@ const activeDomain = computed(() =>
 
 const activeSubnavItems = computed(() => activeDomain.value?.children ?? [])
 
-const headerOffset = computed(() => (activeSubnavItems.value.length ? '80px' : '44px'))
+const headerOffset = computed(() => (activeSubnavItems.value.length ? '100px' : '56px'))
 
 const isDomainActive = (key) => activeDomain.value?.key === key
+const isMobileDomainExpanded = (domain) => mobileExpandedDomainKey.value === domain.key
+
+const toggleMobileDomain = (domain) => {
+    mobileExpandedDomainKey.value = mobileExpandedDomainKey.value === domain.key ? null : domain.key
+}
+
+watch(
+    () => activeDomain.value?.key,
+    (key) => {
+        mobileExpandedDomainKey.value = key ?? null
+    },
+    { immediate: true },
+)
+
+watch(
+    () => page.url,
+    () => {
+        mobileNavOpen.value = false
+        mobileExpandedDomainKey.value = activeDomain.value?.key ?? null
+    },
+)
 </script>
 
 <style>
 .scrollbar-none { scrollbar-width: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
+.mobile-domain-group {
+    display: grid;
+    gap: 6px;
+}
+
+.mobile-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-surface-2);
+    color: var(--text-muted-2);
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.mobile-icon-btn:hover {
+    border-color: var(--border-color-2);
+    color: var(--text-primary);
+}
+.mobile-icon-btn--danger {
+    color: var(--accent-pink);
+    border-color: rgba(255, 0, 128, 0.22);
+    background: rgba(255, 0, 128, 0.06);
+}
+
+.mobile-section-label {
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-family: ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted-3);
+}
+
+.mobile-domain-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: ui-monospace, monospace;
+    color: var(--text-muted-2);
+    background: var(--bg-surface);
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.mobile-domain-nav-item:hover {
+    border-color: var(--border-color-2);
+    color: var(--text-primary);
+}
+.mobile-domain-nav-item.active {
+    color: var(--text-primary);
+    border-color: rgba(0, 245, 255, 0.22);
+    background: rgba(0, 245, 255, 0.08);
+}
+
+.mobile-domain-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 40px;
+    width: 100%;
+    padding: 0 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: ui-monospace, monospace;
+    color: var(--text-muted-2);
+    background: var(--bg-surface);
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.mobile-domain-toggle:hover {
+    border-color: var(--border-color-2);
+    color: var(--text-primary);
+}
+.mobile-domain-toggle.active {
+    color: var(--text-primary);
+    border-color: rgba(0, 245, 255, 0.22);
+    background: rgba(0, 245, 255, 0.08);
+}
+
+.mobile-domain-chevron {
+    flex-shrink: 0;
+    color: var(--text-muted-3);
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+.mobile-domain-chevron.open {
+    transform: rotate(180deg);
+    color: var(--accent-cyan);
+}
+
+.mobile-domain-children {
+    display: grid;
+    gap: 6px;
+    padding-left: 10px;
+}
+
+.mobile-domain-child-link {
+    display: flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    font-size: 12px;
+    font-family: ui-monospace, monospace;
+    color: var(--text-muted-3);
+    background: var(--bg-surface);
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.mobile-domain-child-link:hover {
+    border-color: var(--border-color-2);
+    color: var(--text-primary);
+}
+.mobile-domain-child-link.active {
+    color: var(--accent-cyan);
+    border-color: rgba(0, 245, 255, 0.22);
+    background: rgba(0, 245, 255, 0.08);
+}
+
+.mobile-subnav-item {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    font-size: 11px;
+    font-family: ui-monospace, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted-3);
+    background: var(--bg-surface);
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.mobile-subnav-item:hover {
+    border-color: var(--border-color-2);
+    color: var(--text-primary);
+}
+.mobile-subnav-item.active {
+    color: var(--accent-cyan);
+    border-color: rgba(0, 245, 255, 0.22);
+    background: rgba(0, 245, 255, 0.08);
+}
+
 .domain-nav-item {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     height: 100%;
-    padding: 0 10px;
-    font-size: 11px;
+    padding: 0 12px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -281,10 +608,10 @@ const isDomainActive = (key) => activeDomain.value?.key === key
 .subdomain-nav-item {
     display: inline-flex;
     align-items: center;
-    height: 26px;
-    padding: 0 10px;
+    height: 32px;
+    padding: 0 12px;
     border-radius: 4px;
-    font-size: 10px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -305,7 +632,7 @@ const isDomainActive = (key) => activeDomain.value?.key === key
 
 .sidebar-section {
     padding: 0 16px 5px;
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -318,9 +645,9 @@ const isDomainActive = (key) => activeDomain.value?.key === key
 .sidebar-link {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 16px;
-    font-size: 12px;
+    gap: 9px;
+    padding: 8px 16px;
+    font-size: 13px;
     font-family: ui-monospace, monospace;
     color: var(--text-muted-3);
     border-left: 2px solid transparent;

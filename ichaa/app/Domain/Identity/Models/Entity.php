@@ -2,38 +2,37 @@
 
 namespace App\Domain\Identity\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Builder;
-
+use App\Domain\Connections\Models\FactionMembership;
+use App\Domain\Connections\Models\GroupRelationship;
+use App\Domain\Connections\Models\Relationship;
+use App\Domain\Identity\Events\EntityCreated;
+use App\Domain\Identity\Events\EntityPublished;
+use App\Domain\Identity\Events\EntityStatusChanged;
+use App\Domain\Identity\Events\PowerTierChanged;
+use App\Domain\Identity\Events\TrueNatureChanged;
+use App\Domain\Identity\ValueObjects\ContentClassification;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Identity\ValueObjects\PowerTier;
 use App\Domain\Identity\ValueObjects\SourceUniverse;
 use App\Domain\Identity\ValueObjects\VisibilityLevel;
-use App\Domain\Identity\ValueObjects\ContentClassification;
-
-use App\Domain\Identity\Events\EntityCreated;
-use App\Domain\Identity\Events\EntityStatusChanged;
-use App\Domain\Identity\Events\PowerTierChanged;
-use App\Domain\Identity\Events\TrueNatureChanged;
-use App\Domain\Identity\Events\EntityPublished;
-
-use App\Domain\Connections\Models\Relationship;
-use App\Domain\Connections\Models\GroupRelationship;
-use App\Domain\Connections\Models\FactionMembership;
-use App\Domain\Temporal\Models\CharacterStateTracker;
-use App\Domain\Temporal\Models\Timeline;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\PerceptionState;
 use App\Domain\Production\Models\WritingPipeline;
+use App\Domain\Temporal\Models\CharacterStateTracker;
+use App\Domain\Temporal\Models\Timeline;
+use Database\Factories\EntityFactory;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 class Entity extends Model
 {
-    use SoftDeletes, HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'entities';
 
@@ -104,34 +103,34 @@ class Entity extends Model
 
     protected $casts = [
         // JSONB arrays and objects
-        'source_universes'       => 'array',
-        'public_persona'         => 'array',
-        'true_nature'            => 'array',
-        'known_by'               => 'array',
-        'coordinates'            => 'array',
-        'entry_conditions'       => 'array',
-        'existence_conditions'   => 'array',
-        'manifestation_points'   => 'array',
-        'position_history'       => 'array',
-        'attributes'             => 'array',
+        'source_universes' => 'array',
+        'public_persona' => 'array',
+        'true_nature' => 'array',
+        'known_by' => 'array',
+        'coordinates' => 'array',
+        'entry_conditions' => 'array',
+        'existence_conditions' => 'array',
+        'manifestation_points' => 'array',
+        'position_history' => 'array',
+        'attributes' => 'array',
 
         // Booleans
-        'has_attributes'         => 'boolean',
-        'has_relationships'      => 'boolean',
-        'has_timeline_entries'   => 'boolean',
-        'has_documents'          => 'boolean',
-        'has_state_snapshots'    => 'boolean',
-        'has_aliases'            => 'boolean',
-        'has_media'              => 'boolean',
+        'has_attributes' => 'boolean',
+        'has_relationships' => 'boolean',
+        'has_timeline_entries' => 'boolean',
+        'has_documents' => 'boolean',
+        'has_state_snapshots' => 'boolean',
+        'has_aliases' => 'boolean',
+        'has_media' => 'boolean',
 
         // Integers
-        'completion_score'             => 'integer',
-        'iteration_number'             => 'integer',
-        'previous_iterations_count'    => 'integer',
+        'completion_score' => 'integer',
+        'iteration_number' => 'integer',
+        'previous_iterations_count' => 'integer',
 
         // Timestamps
         'published_at' => 'datetime',
-        'deleted_at'   => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     // --- DOMAIN EVENT DISPATCH ---
@@ -142,6 +141,11 @@ class Entity extends Model
     protected $dispatchesEvents = [
         'created' => EntityCreated::class,
     ];
+
+    protected static function newFactory(): EntityFactory
+    {
+        return EntityFactory::new();
+    }
 
     protected static function booted(): void
     {
@@ -223,7 +227,7 @@ class Entity extends Model
 
     public function hasUnrealizedPotential(): bool
     {
-        if (!$this->power_tier_ceiling || !$this->power_tier_operating) {
+        if (! $this->power_tier_ceiling || ! $this->power_tier_operating) {
             return false;
         }
 
@@ -346,7 +350,7 @@ class Entity extends Model
     }
 
     // All relationships regardless of direction
-    public function allRelationships(): \Illuminate\Support\Collection
+    public function allRelationships(): Collection
     {
         return $this->relationshipsFrom->merge($this->relationshipsTo);
     }
@@ -377,7 +381,7 @@ class Entity extends Model
             'entity_id',
             'group_relationship_id'
         )->withPivot(['role_in_group', 'is_active_member', 'joined_era', 'left_era', 'participation_notes'])
-         ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function activeGroupRelationships(): BelongsToMany
@@ -432,7 +436,7 @@ class Entity extends Model
             'entity_id',
             'pipeline_item_id'
         )->withPivot(['involvement_type', 'notes'])
-         ->withTimestamps();
+            ->withTimestamps();
     }
 
     // --- QUERY SCOPES ---
@@ -515,9 +519,9 @@ class Entity extends Model
     public function scopeAtOrAboveCeilingTier(Builder $query, string $tier): Builder
     {
         $weight = PowerTier::CEILING_WEIGHTS[$tier] ?? 0;
-        $tiers  = array_keys(array_filter(
+        $tiers = array_keys(array_filter(
             PowerTier::CEILING_WEIGHTS,
-            fn(int $w) => $w >= $weight
+            fn (int $w) => $w >= $weight
         ));
 
         return $query->whereIn('power_tier_ceiling', $tiers);

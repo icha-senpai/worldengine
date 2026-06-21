@@ -7,10 +7,10 @@
                 <!-- Left: name + breadcrumb -->
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 mb-1">
-                        <Link :href="route('entities.index')" class="text-muted-3 text-xs font-mono hover:text-muted-2 transition-colors">
+                        <Link :href="route('entities.index')" class="text-muted-3 text-sm font-mono hover:text-muted-2 transition-colors">
                             Entities
                         </Link>
-                        <span class="text-muted-3 text-xs font-mono">/</span>
+                        <span class="text-muted-3 text-sm font-mono">/</span>
                         <span class="type-chip" :class="typeBadgeClass(entity.entity_type)">
                             {{ formatLabel(entity.entity_type) }}
                         </span>
@@ -28,6 +28,9 @@
                     <span class="status-badge" :class="statusBadgeClass(entity.status)">
                         {{ formatLabel(entity.status) }}
                     </span>
+                    <button type="button" class="btn-danger" @click="destroyEntity">
+                        Move to Trash
+                    </button>
                     <Link :href="route('entities.edit', entity.id)" class="btn-ghost">
                         Edit
                     </Link>
@@ -56,7 +59,7 @@
 
             <!-- Completion bar -->
             <div class="flex items-center gap-3 p-3 bg-surface-2 border border-border rounded-md">
-                <span class="text-muted-3 text-[10px] font-mono uppercase tracking-widest whitespace-nowrap">
+                <span class="text-muted-3 text-xs font-mono uppercase tracking-widest whitespace-nowrap">
                     Completion
                 </span>
                 <div class="flex-1 h-1.5 bg-surface rounded-full overflow-hidden">
@@ -66,7 +69,7 @@
                         :style="{ width: entity.completion_score + '%' }"
                     />
                 </div>
-                <span class="text-muted-2 text-xs font-mono w-8 text-right">
+                <span class="text-muted-2 text-sm font-mono w-9 text-right">
                     {{ entity.completion_score }}%
                 </span>
                 <div class="flex items-center gap-2 ml-2">
@@ -84,28 +87,28 @@
                 <!-- Summary -->
                 <div v-if="entity.summary" class="col-span-2 panel">
                     <h3 class="panel-label">Summary</h3>
-                    <p class="text-muted-2 text-sm leading-relaxed whitespace-pre-wrap">{{ entity.summary }}</p>
+                    <p class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ entity.summary }}</p>
                 </div>
 
                 <!-- Public summary -->
                 <div v-if="entity.public_summary" class="col-span-2 panel">
                     <h3 class="panel-label">Public Summary <span class="text-muted-3 normal-case font-normal">(visible persona)</span></h3>
-                    <p class="text-muted-2 text-sm leading-relaxed whitespace-pre-wrap">{{ entity.public_summary }}</p>
+                    <p class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ entity.public_summary }}</p>
                 </div>
 
                 <!-- Classification -->
                 <div class="panel">
                     <h3 class="panel-label">Classification</h3>
                     <div class="space-y-2">
-                        <div class="flex items-start gap-2"><span class="field-label">Type</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.entity_type) }}</span></div>
-                        <div v-if="entity.entity_sub_type" class="flex items-start gap-2"><span class="field-label">Subtype</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.entity_sub_type) }}</span></div>
+                        <div class="flex items-start gap-2"><span class="field-label">Type</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.entity_type) }}</span></div>
+                        <div v-if="entity.entity_sub_type" class="flex items-start gap-2"><span class="field-label">Subtype</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.entity_sub_type) }}</span></div>
                         <div class="flex items-start gap-2">
                             <span class="field-label">Status</span>
                             <span class="status-badge status-badge--sm" :class="statusBadgeClass(entity.status)">
                                 {{ formatLabel(entity.status) }}
                             </span>
                         </div>
-                        <div v-if="entity.type_status" class="flex items-start gap-2"><span class="field-label">Type Status</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.type_status) }}</span></div>
+                        <div v-if="entity.type_status" class="flex items-start gap-2"><span class="field-label">Type Status</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.type_status) }}</span></div>
                     </div>
                 </div>
 
@@ -113,9 +116,9 @@
                 <div class="panel">
                     <h3 class="panel-label">Access</h3>
                     <div class="space-y-2">
-                        <div class="flex items-start gap-2"><span class="field-label">Visibility</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.visibility) }}</span></div>
-                        <div class="flex items-start gap-2"><span class="field-label">Classification</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.content_classification) }}</span></div>
-                        <div v-if="entity.published_at" class="flex items-start gap-2"><span class="field-label">Published</span><span class="text-muted-2 text-xs">{{ formatDate(entity.published_at) }}</span></div>
+                        <div class="flex items-start gap-2"><span class="field-label">Visibility</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.visibility) }}</span></div>
+                        <div class="flex items-start gap-2"><span class="field-label">Classification</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.content_classification) }}</span></div>
+                        <div v-if="entity.published_at" class="flex items-start gap-2"><span class="field-label">Published</span><span class="text-muted-2 text-sm">{{ formatDate(entity.published_at) }}</span></div>
                     </div>
                 </div>
 
@@ -123,9 +126,9 @@
                 <div class="panel">
                     <h3 class="panel-label">Origin</h3>
                     <div class="space-y-2">
-                        <div class="flex items-start gap-2"><span class="field-label">Origin Type</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.origin_type) }}</span></div>
-                        <div v-if="entity.canon_deviation" class="flex items-start gap-2"><span class="field-label">Canon Deviation</span><span class="text-muted-2 text-xs">{{ formatLabel(entity.canon_deviation) }}</span></div>
-                        <div v-if="entity.origin_notes" class="flex items-start gap-2"><span class="field-label">Notes</span><span class="text-muted-2 text-xs">{{ entity.origin_notes }}</span></div>
+                        <div class="flex items-start gap-2"><span class="field-label">Origin Type</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.origin_type) }}</span></div>
+                        <div v-if="entity.canon_deviation" class="flex items-start gap-2"><span class="field-label">Canon Deviation</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.canon_deviation) }}</span></div>
+                        <div v-if="entity.origin_notes" class="flex items-start gap-2"><span class="field-label">Notes</span><span class="text-muted-2 text-sm">{{ entity.origin_notes }}</span></div>
                     </div>
                 </div>
 
@@ -141,7 +144,7 @@
                             {{ u }}
                         </span>
                     </div>
-                    <p v-else class="text-muted-3 text-xs font-mono">Native / Original</p>
+                    <p v-else class="text-muted-3 text-sm font-mono">Native / Original</p>
                 </div>
 
                 <!-- Power Tiers — only if any are set -->
@@ -169,7 +172,7 @@
                     <div class="space-y-2">
                         <div class="flex items-start gap-2">
                             <span class="field-label">Control State</span>
-                            <span class="text-warn text-xs font-mono">{{ formatLabel(entity.control_state) }}</span>
+                            <span class="text-warn text-sm font-mono">{{ formatLabel(entity.control_state) }}</span>
                         </div>
                     </div>
                 </div>
@@ -177,7 +180,7 @@
                 <!-- Persona divergence — only if relevant -->
                 <div v-if="entity.persona_divergence" class="panel">
                     <h3 class="panel-label">Persona Divergence</h3>
-                    <p class="text-muted-2 text-xs font-mono">{{ formatLabel(entity.persona_divergence) }}</p>
+                    <p class="text-muted-2 text-sm font-mono">{{ formatLabel(entity.persona_divergence) }}</p>
                 </div>
 
             </div>
@@ -238,7 +241,7 @@
                     <div class="flex items-center gap-4">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" v-model="aliasForm.is_active" class="checkbox" />
-                            <span class="text-muted-2 text-xs font-mono">Currently active</span>
+                            <span class="text-muted-2 text-sm font-mono">Currently active</span>
                         </label>
                         <button type="submit" class="btn-primary" :disabled="aliasForm.processing || !aliasForm.alias || !aliasForm.alias_type">
                             {{ isEditingAlias ? 'Save Alias' : 'Add Alias' }}
@@ -255,10 +258,10 @@
                             <div class="flex items-center gap-2">
                                 <span class="text-primary text-sm">{{ a.alias }}</span>
                                 <span class="alias-type-chip">{{ formatLabel(a.alias_type) }}</span>
-                                <span v-if="!a.is_active" class="text-muted-3 text-[10px] font-mono">(inactive)</span>
+                                <span v-if="!a.is_active" class="text-muted-3 text-xs font-mono">(inactive)</span>
                             </div>
-                            <p v-if="a.context" class="text-muted-3 text-xs mt-0.5">{{ a.context }}</p>
-                            <p v-if="a.era_start || a.era_end" class="text-muted-3 text-[10px] font-mono mt-0.5">
+                            <p v-if="a.context" class="text-muted-3 text-sm mt-1">{{ a.context }}</p>
+                            <p v-if="a.era_start || a.era_end" class="text-muted-3 text-xs font-mono mt-1">
                                 {{ a.era_start || '?' }} → {{ a.era_end || 'present' }}
                             </p>
                         </div>
@@ -324,12 +327,12 @@
                         <span v-if="n.note_label" class="note-label">{{ n.note_label }}</span>
                         <span v-else class="note-label note-label--empty">unlabeled</span>
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <span class="text-muted-3 text-[10px] font-mono">{{ formatDate(n.created_at) }}</span>
+                            <span class="text-muted-3 text-xs font-mono">{{ formatDate(n.created_at) }}</span>
                             <button type="button" @click="beginNoteEdit(n)" class="btn-ghost btn-ghost--sm">Edit</button>
                             <button @click="deleteNote(n.id)" class="btn-danger-sm">Delete</button>
                         </div>
                     </div>
-                    <p class="text-muted-2 text-xs leading-relaxed whitespace-pre-wrap">{{ n.content }}</p>
+                    <p class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ n.content }}</p>
                 </div>
             </div>
             <div v-else class="empty-state">No notes recorded.</div>
@@ -414,8 +417,8 @@
                                 <span class="status-q-chip" :class="'qstatus--' + q.status">{{ formatLabel(q.status) }}</span>
                             </div>
                             <p class="text-primary text-sm leading-snug">{{ q.question }}</p>
-                            <p v-if="q.context" class="text-muted-3 text-xs mt-1 whitespace-pre-wrap">{{ q.context }}</p>
-                            <p v-if="q.resolution" class="text-muted-2 text-xs mt-2 italic whitespace-pre-wrap">
+                            <p v-if="q.context" class="prose-wrap text-muted-3 text-sm mt-1">{{ q.context }}</p>
+                            <p v-if="q.resolution" class="prose-wrap text-muted-2 text-sm mt-2 italic">
                                 ↳ {{ q.resolution }}
                             </p>
                         </div>
@@ -439,7 +442,7 @@
         <div v-if="activeTab === 'intelligence'" class="space-y-4">
             <div class="panel">
                 <h3 class="panel-label">Intelligence</h3>
-                <p class="text-muted-3 text-xs font-mono">
+                <p class="text-muted-3 text-sm font-mono">
                     Knowledge states and secrets involving this entity are managed from the
                     <Link :href="route('knowledge-states.index')" class="text-cyan hover:underline">Knowledge States</Link>
                     and
@@ -640,6 +643,14 @@ const deleteQuestion = (questionId) => {
     router.delete(route('entities.questions.destroy', [props.entity.id, questionId]))
 }
 
+const destroyEntity = () => {
+    if (!confirm(`Move "${props.entity.name}" to trash?`)) {
+        return
+    }
+
+    router.delete(route('entities.destroy', props.entity.id))
+}
+
 // --- Static options ---
 
 const priorityOptions = [
@@ -774,8 +785,8 @@ const completionBarClass = (score) => {
 <style scoped>
 /* --- Tabs --- */
 .tab-btn {
-    padding: 8px 16px;
-    font-size: 11px;
+    padding: 10px 18px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.06em;
     color: var(--text-muted-3);
@@ -793,11 +804,11 @@ const completionBarClass = (score) => {
 .panel {
     background: var(--bg-surface-2);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 14px 16px;
+    border-radius: 8px;
+    padding: 18px 20px;
 }
 .panel-label {
-    font-size: 9px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -805,24 +816,30 @@ const completionBarClass = (score) => {
     margin-bottom: 8px;
 }
 .field-label {
-    font-size: 9px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-muted-3);
     white-space: nowrap;
-    min-width: 90px;
+    min-width: 100px;
     flex-shrink: 0;
-    padding-top: 1px;
+    padding-top: 3px;
+}
+
+.prose-wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 /* --- Type chip (header) --- */
 .type-chip {
     display: inline-flex;
     align-items: center;
-    padding: 1px 7px;
-    border-radius: 2px;
-    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -841,15 +858,15 @@ const completionBarClass = (score) => {
 .status-badge {
     display: inline-flex;
     align-items: center;
-    padding: 3px 10px;
-    border-radius: 3px;
-    font-size: 10px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     border: 1px solid;
 }
-.status-badge--sm { padding: 1px 7px; font-size: 9px; }
+.status-badge--sm { padding: 2px 8px; font-size: 10px; }
 .status--active   { color: #6ee7b7; border-color: rgba(110,231,183,0.3); background: rgba(110,231,183,0.08); }
 .status--concept  { color: var(--text-muted-3); border-color: var(--border-color); background: transparent; }
 .status--archived { color: #64748b; border-color: rgba(100,116,139,0.3); background: rgba(100,116,139,0.06); }
@@ -859,9 +876,9 @@ const completionBarClass = (score) => {
 
 /* --- Universe chips --- */
 .universe-chip {
-    padding: 2px 8px;
-    border-radius: 2px;
-    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     color: var(--text-muted-2);
     border: 1px solid var(--border-color-2);
@@ -879,7 +896,7 @@ const completionBarClass = (score) => {
     border-radius: 4px;
 }
 .tier-label {
-    font-size: 9px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -893,9 +910,9 @@ const completionBarClass = (score) => {
 
 /* --- Completion flags --- */
 .completion-flag {
-    padding: 1px 5px;
-    border-radius: 2px;
-    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     color: var(--accent-cyan);
     border: 1px solid rgba(0, 245, 255, 0.2);
@@ -906,11 +923,11 @@ const completionBarClass = (score) => {
 .btn-ghost {
     display: inline-flex;
     align-items: center;
-    height: 28px;
-    padding: 0 12px;
+    height: 36px;
+    padding: 0 16px;
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 11px;
+    border-radius: 6px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--text-muted-2);
     transition: border-color 0.15s, color 0.15s;
@@ -919,10 +936,27 @@ const completionBarClass = (score) => {
     border-color: var(--border-color-2);
     color: var(--text-primary);
 }
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 0, 128, 0.22);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: ui-monospace, monospace;
+    color: var(--accent-pink);
+    background: rgba(255, 0, 128, 0.05);
+    transition: background 0.15s, border-color 0.15s;
+}
+.btn-danger:hover {
+    background: rgba(255, 0, 128, 0.1);
+    border-color: rgba(255, 0, 128, 0.4);
+}
 .btn-ghost--sm {
-    height: 24px;
-    padding: 0 10px;
-    font-size: 10px;
+    height: 30px;
+    padding: 0 12px;
+    font-size: 11px;
 }
 
 /* --- Utility colors --- */
@@ -935,28 +969,28 @@ const completionBarClass = (score) => {
 .bg-danger  { background: var(--accent-pink); }
 
 /* --- Forms in panels --- */
-.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-group { display: flex; flex-direction: column; gap: 8px; }
 .input {
-    height: 32px;
-    padding: 0 10px;
+    height: 40px;
+    padding: 0 12px;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 12px;
+    border-radius: 6px;
+    font-size: 14px;
     color: var(--text-primary);
     outline: none;
     transition: border-color 0.15s;
 }
 .input:focus { border-color: var(--accent-cyan); }
-textarea.input { height: auto; padding: 8px 10px; }
+textarea.input { height: auto; padding: 10px 12px; }
 select.input option { background: var(--bg-surface); }
-.checkbox { accent-color: var(--accent-cyan); width: 14px; height: 14px; }
+.checkbox { accent-color: var(--accent-cyan); width: 16px; height: 16px; }
 
 /* --- Pill buttons (question priority/status) --- */
 .pill-btn {
-    padding: 3px 10px;
-    border-radius: 2px;
-    font-size: 10px;
+    padding: 5px 12px;
+    border-radius: 3px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     border: 1px solid var(--border-color);
     color: var(--text-muted-3);
@@ -970,26 +1004,26 @@ select.input option { background: var(--bg-surface); }
 /* --- Action buttons --- */
 .btn-primary {
     display: inline-flex; align-items: center;
-    height: 30px; padding: 0 14px;
+    height: 38px; padding: 0 18px;
     background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.3);
-    border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace;
+    border-radius: 6px; font-size: 12px; font-family: ui-monospace, monospace;
     color: var(--accent-cyan); transition: background 0.15s, border-color 0.15s;
 }
 .btn-primary:hover:not(:disabled) { background: rgba(0,245,255,0.15); border-color: rgba(0,245,255,0.5); }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-resolve {
     display: inline-flex; align-items: center;
-    height: 24px; padding: 0 10px;
+    height: 30px; padding: 0 12px;
     background: rgba(110,231,183,0.08); border: 1px solid rgba(110,231,183,0.3);
-    border-radius: 3px; font-size: 10px; font-family: ui-monospace, monospace;
+    border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace;
     color: #6ee7b7; transition: background 0.15s;
 }
 .btn-resolve:hover { background: rgba(110,231,183,0.15); }
 .btn-danger-sm {
     display: inline-flex; align-items: center;
-    height: 24px; padding: 0 10px;
+    height: 30px; padding: 0 12px;
     background: transparent; border: 1px solid var(--border-color);
-    border-radius: 3px; font-size: 10px; font-family: ui-monospace, monospace;
+    border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace;
     color: var(--text-muted-3); transition: border-color 0.12s, color 0.12s;
 }
 .btn-danger-sm:hover { border-color: var(--accent-pink); color: var(--accent-pink); }
@@ -997,34 +1031,34 @@ select.input option { background: var(--bg-surface); }
 /* --- Empty state --- */
 .empty-state {
     padding: 32px 16px; text-align: center;
-    font-size: 11px; font-family: ui-monospace, monospace;
+    font-size: 12px; font-family: ui-monospace, monospace;
     color: var(--text-muted-3); letter-spacing: 0.08em;
     border: 1px dashed var(--border-color); border-radius: 6px;
 }
 
 /* --- Alias row --- */
 .alias-row {
-    padding: 12px 14px;
+    padding: 16px 18px;
     background: var(--bg-surface-2);
     border: 1px solid var(--border-color);
-    border-radius: 5px;
+    border-radius: 8px;
 }
 .alias-type-chip {
-    padding: 1px 6px; border-radius: 2px;
-    font-size: 9px; font-family: ui-monospace, monospace;
+    padding: 2px 8px; border-radius: 3px;
+    font-size: 11px; font-family: ui-monospace, monospace;
     letter-spacing: 0.06em; text-transform: uppercase;
     color: var(--text-muted-3); border: 1px solid var(--border-color);
 }
 
 /* --- Note card --- */
 .note-card {
-    padding: 12px 14px;
+    padding: 16px 18px;
     background: var(--bg-surface-2);
     border: 1px solid var(--border-color);
-    border-radius: 5px;
+    border-radius: 8px;
 }
 .note-label {
-    font-size: 10px; font-family: ui-monospace, monospace;
+    font-size: 11px; font-family: ui-monospace, monospace;
     letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--accent-cyan);
 }
@@ -1035,17 +1069,17 @@ select.input option { background: var(--bg-surface); }
 
 /* --- Question card --- */
 .question-card {
-    padding: 12px 14px;
+    padding: 16px 18px;
     background: var(--bg-surface-2);
     border: 1px solid var(--border-color);
-    border-radius: 5px;
+    border-radius: 8px;
     transition: border-color 0.15s;
 }
 .question-card--blocking { border-color: rgba(255,0,128,0.25); }
 .question-card--resolved { opacity: 0.5; }
 .priority-chip {
-    padding: 1px 6px; border-radius: 2px;
-    font-size: 9px; font-family: ui-monospace, monospace;
+    padding: 2px 8px; border-radius: 3px;
+    font-size: 11px; font-family: ui-monospace, monospace;
     letter-spacing: 0.06em; text-transform: uppercase;
     border: 1px solid;
 }
@@ -1054,8 +1088,8 @@ select.input option { background: var(--bg-surface); }
 .priority--medium   { color: var(--text-muted-2); border-color: var(--border-color); background: transparent; }
 .priority--low      { color: var(--text-muted-3); border-color: var(--border-color); background: transparent; }
 .status-q-chip {
-    padding: 1px 6px; border-radius: 2px;
-    font-size: 9px; font-family: ui-monospace, monospace;
+    padding: 2px 8px; border-radius: 3px;
+    font-size: 11px; font-family: ui-monospace, monospace;
     letter-spacing: 0.06em; text-transform: uppercase;
     border: 1px solid;
 }

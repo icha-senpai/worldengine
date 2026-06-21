@@ -4,6 +4,7 @@
         back-label="Knowledge States"
         :back-href="route('knowledge-states.index')"
         :edit-href="route('knowledge-states.edit', state.id)"
+        :destroy-href="route('knowledge-states.destroy', state.id)"
         :badge="formatLabel(state.knowledge_type)"
         :sections="sections"
     />

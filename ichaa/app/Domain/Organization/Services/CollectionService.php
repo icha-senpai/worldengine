@@ -2,13 +2,15 @@
 
 namespace App\Domain\Organization\Services;
 
-use Illuminate\Support\Facades\DB;
-
 use App\Domain\Identity\Models\Entity;
-use App\Domain\Organization\Models\Collection;
-use App\Domain\Organization\Models\CollectionEntity;
-use App\Domain\Organization\Models\CollectionDocument;
+use App\Domain\Identity\ValueObjects\ContentClassification;
+use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Domain\Lore\Models\Document;
+use App\Domain\Organization\Models\Collection;
+use App\Domain\Organization\Models\CollectionDocument;
+use App\Domain\Organization\Models\CollectionEntity;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class CollectionService
 {
@@ -16,10 +18,17 @@ class CollectionService
 
     public function create(array $data): Collection
     {
+        $data['visibility'] = filled($data['visibility'] ?? null)
+            ? $data['visibility']
+            : VisibilityLevel::PRIVATE;
+        $data['content_classification'] = filled($data['content_classification'] ?? null)
+            ? $data['content_classification']
+            : ContentClassification::RESTRICTED;
+
         $collection = Collection::create($data);
 
         // If smart or hybrid, run initial population
-        if ($collection->isSmart() && !empty($collection->rules)) {
+        if ($collection->isSmart() && ! empty($collection->rules)) {
             $this->syncSmartMembers($collection);
         }
 
@@ -65,7 +74,7 @@ class CollectionService
             ->where('entity_id', $entity->id)
             ->first();
 
-        if (!$entry) {
+        if (! $entry) {
             return;
         }
 
@@ -80,7 +89,7 @@ class CollectionService
 
     public function excludeEntity(Collection $collection, int $entityId): void
     {
-        $excluded   = $collection->excluded_entity_ids ?? [];
+        $excluded = $collection->excluded_entity_ids ?? [];
         $excluded[] = $entityId;
 
         $collection->update(['excluded_entity_ids' => array_unique($excluded)]);
@@ -129,20 +138,21 @@ class CollectionService
         }
 
         // Apply exclusions
-        if (!empty($collection->excluded_entity_ids)) {
+        if (! empty($collection->excluded_entity_ids)) {
             $query->whereNotIn('id', $collection->excluded_entity_ids);
         }
 
         $matchingIds = $query->pluck('id');
-        $synced      = 0;
+        $synced = 0;
 
         DB::transaction(function () use ($collection, $matchingIds, &$synced) {
             foreach ($matchingIds as $entityId) {
                 CollectionEntity::updateOrCreate(
                     ['collection_id' => $collection->id, 'entity_id' => $entityId],
                     [
-                        'added_by_rule'          => true,
-                        'matched_rule_snapshot'  => $collection->rules,
+                        'added_manually' => false,
+                        'added_by_rule' => true,
+                        'matched_rule_snapshot' => $collection->rules,
                     ]
                 );
                 $synced++;
@@ -174,28 +184,28 @@ class CollectionService
     // Example: { "field": "source_universes", "operator": "contains", "value": "Harry Potter" }
     // Example: { "field": "power_tier_ceiling", "operator": "in", "value": ["cosmic", "multiversal"] }
 
-    private function applyRule(\Illuminate\Database\Eloquent\Builder $query, array $rule): \Illuminate\Database\Eloquent\Builder
+    private function applyRule(Builder $query, array $rule): Builder
     {
-        $field    = $rule['field']    ?? null;
+        $field = $rule['field'] ?? null;
         $operator = $rule['operator'] ?? null;
-        $value    = $rule['value']    ?? null;
+        $value = $rule['value'] ?? null;
 
-        if (!$field || !$operator) {
+        if (! $field || ! $operator) {
             return $query;
         }
 
-        return match($operator) {
-            'equals'          => $query->where($field, $value),
-            'not_equals'      => $query->where($field, '!=', $value),
-            'in'              => $query->whereIn($field, (array) $value),
-            'not_in'          => $query->whereNotIn($field, (array) $value),
-            'contains'        => $query->whereJsonContains($field, $value),
-            'not_contains'    => $query->whereJsonDoesntContain($field, $value),
-            'is_null'         => $query->whereNull($field),
-            'is_not_null'     => $query->whereNotNull($field),
-            'greater_than'    => $query->where($field, '>', $value),
-            'less_than'       => $query->where($field, '<', $value),
-            default           => $query, // Unknown operator — skip silently
+        return match ($operator) {
+            'equals' => $query->where($field, $value),
+            'not_equals' => $query->where($field, '!=', $value),
+            'in' => $query->whereIn($field, (array) $value),
+            'not_in' => $query->whereNotIn($field, (array) $value),
+            'contains' => $query->whereJsonContains($field, $value),
+            'not_contains' => $query->whereJsonDoesntContain($field, $value),
+            'is_null' => $query->whereNull($field),
+            'is_not_null' => $query->whereNotNull($field),
+            'greater_than' => $query->where($field, '>', $value),
+            'less_than' => $query->where($field, '<', $value),
+            default => $query, // Unknown operator — skip silently
         };
     }
 }

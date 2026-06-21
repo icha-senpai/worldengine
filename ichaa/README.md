@@ -1,16 +1,16 @@
 # Dataverse — Worldbuilding AU Management Tool
 
-> **Status: Archived / Back-burnered**
+> **Status: Active development**
 >
-> This project was shelved in favor of Notion + Notion AI, which handles the actual workflow better — native AI access to all structured data without custom API wiring. The architecture and schema work here is solid and worth revisiting if the use case changes. The database design is the real artifact.
+> Dataverse is back in active development. The Laravel + Vue + PostgreSQL app is the live worldbuilding workspace again, with backend, frontend, and browser test coverage expanding alongside feature work.
 
 ---
 
-## What This Was
+## What This Is
 
-A custom Laravel 12 / Vue 3 / PostgreSQL application for managing a 20+ universe crossover fiction AU. Designed to replace a sprawling Notion setup with a structured, queryable backend — with the eventual goal of wiring an AI chat interface to the data for contextual creative work.
+A custom Laravel 12 / Vue 3 / PostgreSQL application for managing a 20+ universe crossover fiction AU. It is built to replace sprawling notes with a structured, queryable backend that can support creative workflows, cross-domain search, and eventually AI-assisted exploration on top of clean domain data.
 
-**Why it got shelved:** Notion AI already does this natively. The custom app would have taken months to reach feature parity with what Notion provides out of the box. The schema design was the valuable output, not the application itself.
+The schema design is still one of the strongest parts of the project, but the application itself is no longer just a parked artifact. The current focus is shipping the actual authoring and reference-management experience on top of that foundation.
 
 ---
 
@@ -43,14 +43,22 @@ Nine explicit domains, each with its own `app/Domain/` and `app/Http/Controllers
 
 ---
 
-## What Was Built
+## Current App Surface
 
-### Fully functional (pages + controller + model)
-- **Entities** — Index, Create, Show, Edit. Show page has Identity, Aliases, Notes, Questions, and Intelligence tabs all working.
-- **Writing Pipeline** — Index, Create, Show, Edit. Type-aware fields for scenes, arcs, character studies. Stage advancement. Hierarchical parent/child structure.
+The app now has live page stacks across the main domains, including Identity, Connections, Organization, Lore, Temporal, Intelligence, Production, Search, Profile, and World.
 
-### Controllers complete, no pages yet
-All other domains have controllers and models but no Vue pages. The routes file is complete. The gap is ~70 Vue pages that weren't worth building given the pivot to Notion.
+### Active UI areas
+
+- **Identity** — entities, aliases, notes, questions, versions, publishing/archive lifecycle.
+- **Connections** — relationships, group relationships, faction memberships.
+- **Organization** — collections and glossary management.
+- **Lore** — documents, canon references, crossover entry points.
+- **Temporal** — timelines, concurrency groups, character states.
+- **Intelligence** — secrets, knowledge states, perception states.
+- **Production** — pipeline, meta, session logs.
+- **World** — power interactions, travel routes, containment, location control.
+
+Most create/edit/show/index pages are scaffold-backed, which keeps cross-domain behavior consistent and makes contract drift easier to catch in tests.
 
 ---
 
@@ -131,7 +139,7 @@ Full-text search via PostgreSQL's `tsvector` generated columns with weighted fie
 
 ---
 
-## Running Locally (if you come back to this)
+## Running Locally
 
 ```bash
 # Install dependencies
@@ -157,6 +165,28 @@ Requires PHP 8.4, Node 20+, PostgreSQL 15+.
 
 ---
 
-## Related
+## Testing
 
-**Horizon** — the other active project. Custom operations and organization management platform for Star Citizen communities. Same stack (Laravel 12 + Vue 3 + Inertia), same DDD approach, actively maintained. The RBAC and media library decisions documented above were originally made for Horizon and carried over here.
+Backend and frontend now have separate test entry points:
+
+```bash
+# Laravel / PHPUnit
+php artisan test
+
+# Vue / Vitest
+npm test
+
+# Browser smoke tests
+npm run test:e2e
+```
+
+### Notes
+
+- The backend suite is designed around PostgreSQL-backed behavior in this app, not SQLite shortcuts.
+- If you split local and test databases, keep a dedicated `.env.testing` that points at a separate Postgres database before running `php artisan test`.
+- The frontend suite covers shared scaffold helpers, scaffold form contracts, search behavior, and a targeted set of dense read pages.
+- The Playwright smoke suite seeds a verified `e2e@example.com` user automatically and serves the app on `http://127.0.0.1:8011`.
+- On a fresh machine you may need to install the Playwright browser once before the smoke suite can run:
+  `node ./node_modules/playwright/cli.js install chromium`
+- The current roadmap for expanding backend, frontend, and browser coverage lives in [TESTING_PLAN.md](TESTING_PLAN.md).
+- The current coverage state, including what is intentionally still light, lives in [TEST_COVERAGE_MAP.md](TEST_COVERAGE_MAP.md).

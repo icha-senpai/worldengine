@@ -2,19 +2,19 @@
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-3">
-                <Link :href="backHref" class="text-muted-3 text-xs font-mono hover:text-muted-2 transition-colors">
+                <Link :href="backHref" class="text-muted-3 text-sm font-mono hover:text-muted-2 transition-colors">
                     {{ backLabel }}
                 </Link>
-                <span class="text-muted-3 text-xs font-mono">/</span>
-                <span class="text-primary text-sm font-light">{{ title }}</span>
+                <span class="text-muted-3 text-sm font-mono">/</span>
+                <span class="text-primary text-base font-light">{{ title }}</span>
             </div>
         </template>
 
-        <form @submit.prevent="submitHandler" class="max-w-3xl space-y-5">
+        <form @submit.prevent="submitHandler" class="max-w-3xl space-y-6">
             <div v-if="Object.keys(form.errors).length" class="error-box">
-                <p class="text-danger text-xs font-mono mb-1">Fix the following:</p>
-                <ul class="space-y-0.5">
-                    <li v-for="(msg, field) in form.errors" :key="field" class="text-danger text-xs font-mono">
+                <p class="text-danger text-sm font-mono mb-2">Fix the following:</p>
+                <ul class="space-y-1">
+                    <li v-for="(msg, field) in form.errors" :key="field" class="text-danger text-sm font-mono">
                         · {{ msg }}
                     </li>
                 </ul>
@@ -123,6 +123,9 @@
                     <span v-else>{{ submitLabel }}</span>
                 </button>
                 <Link :href="cancelHref" class="btn-ghost">Cancel</Link>
+                <button v-if="destroyHref" type="button" class="btn-danger" @click="destroyRecord">
+                    {{ destroyLabel }}
+                </button>
             </div>
         </form>
     </AuthenticatedLayout>
@@ -130,7 +133,7 @@
 
 <script setup>
 import { computed, reactive } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { formatLabel, prettyJson } from '@/Components/scaffold/formatters'
 
@@ -141,6 +144,9 @@ const props = defineProps({
     cancelHref: { type: String, required: true },
     submitLabel: { type: String, required: true },
     processingLabel: { type: String, default: 'Saving...' },
+    destroyHref: { type: String, default: '' },
+    destroyLabel: { type: String, default: 'Move to Trash' },
+    destroyConfirm: { type: String, default: 'Move this item to trash?' },
     form: { type: Object, required: true },
     sections: { type: Array, required: true },
     onSubmit: { type: Function, required: true },
@@ -413,18 +419,26 @@ const submitHandler = () => {
 
     props.onSubmit()
 }
+
+const destroyRecord = () => {
+    if (!props.destroyHref || !confirm(props.destroyConfirm)) {
+        return
+    }
+
+    router.delete(props.destroyHref)
+}
 </script>
 
 <style scoped>
 .panel {
     background: var(--bg-surface-2);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 14px 16px;
+    border-radius: 8px;
+    padding: 18px 20px;
 }
 
 .panel-label {
-    font-size: 9px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -435,11 +449,11 @@ const submitHandler = () => {
 .field-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .field-label {
-    font-size: 10px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -447,23 +461,23 @@ const submitHandler = () => {
 }
 
 .field-help {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text-muted-3);
 }
 
 .field-error {
-    font-size: 11px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--accent-pink);
 }
 
 .input {
-    height: 32px;
-    padding: 0 10px;
+    height: 40px;
+    padding: 0 12px;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 12px;
+    border-radius: 6px;
+    font-size: 14px;
     color: var(--text-primary);
     outline: none;
     transition: border-color 0.15s;
@@ -475,32 +489,32 @@ const submitHandler = () => {
 
 textarea.input {
     height: auto;
-    padding: 8px 10px;
+    padding: 10px 12px;
 }
 
 .checkbox {
     accent-color: var(--accent-cyan);
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
 }
 
 .multiselect-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     max-height: 220px;
     overflow-y: auto;
-    padding: 10px;
+    padding: 12px;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 .multiselect-option {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    font-size: 12px;
+    gap: 12px;
+    font-size: 14px;
     color: var(--text-primary);
 }
 
@@ -511,12 +525,12 @@ textarea.input {
 .btn-primary {
     display: inline-flex;
     align-items: center;
-    height: 32px;
-    padding: 0 16px;
+    height: 40px;
+    padding: 0 18px;
     background: rgba(0, 245, 255, 0.1);
     border: 1px solid rgba(0, 245, 255, 0.3);
-    border-radius: 4px;
-    font-size: 11px;
+    border-radius: 6px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--accent-cyan);
     transition: background 0.15s, border-color 0.15s;
@@ -535,11 +549,11 @@ textarea.input {
 .btn-ghost {
     display: inline-flex;
     align-items: center;
-    height: 32px;
-    padding: 0 12px;
+    height: 40px;
+    padding: 0 16px;
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 11px;
+    border-radius: 6px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--text-muted-2);
     transition: border-color 0.15s, color 0.15s;
@@ -550,11 +564,30 @@ textarea.input {
     color: var(--text-primary);
 }
 
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 0, 128, 0.22);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: ui-monospace, monospace;
+    color: var(--accent-pink);
+    background: rgba(255, 0, 128, 0.05);
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-danger:hover {
+    background: rgba(255, 0, 128, 0.1);
+    border-color: rgba(255, 0, 128, 0.4);
+}
+
 .error-box {
-    padding: 12px;
+    padding: 16px;
     background: var(--bg-surface-2);
     border: 1px solid var(--accent-pink);
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 .text-danger {

@@ -4,6 +4,7 @@
         back-label="Relationships"
         :back-href="route('relationships.index')"
         :edit-href="route('relationships.edit', relationship.id)"
+        :destroy-href="route('relationships.destroy', relationship.id)"
         :badge="formatLabel(relationship.relationship_type)"
         :sections="sections"
     />

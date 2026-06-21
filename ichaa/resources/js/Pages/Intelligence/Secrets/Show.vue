@@ -4,6 +4,7 @@
         back-label="Secrets"
         :back-href="route('secrets.index')"
         :edit-href="route('secrets.edit', secret.id)"
+        :destroy-href="route('secrets.destroy', secret.id)"
         :badge="secret.secret_type || 'secret'"
         :sections="sections"
     />

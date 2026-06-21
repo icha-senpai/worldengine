@@ -5,6 +5,7 @@
         back-label="Session Logs"
         :back-href="route('session-logs.index')"
         :edit-href="route('session-logs.edit', session.id)"
+        :destroy-href="route('session-logs.destroy', session.id)"
         :badge="session.external_tool || 'session'"
         :sections="sections"
     />

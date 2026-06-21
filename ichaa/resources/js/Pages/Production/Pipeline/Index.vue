@@ -2,10 +2,10 @@
     <AuthenticatedLayout>
 
         <template #header>
-            <div class="flex items-start justify-between gap-4">
-                <div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div class="min-w-0">
                     <h1 class="text-primary text-2xl font-light tracking-wide">Writing Pipeline</h1>
-                    <p class="text-muted-3 text-xs font-mono mt-0.5">
+                    <p class="text-muted-3 text-sm font-mono mt-1">
                         {{ items.total }} item{{ items.total !== 1 ? 's' : '' }}
                         <span v-if="hasFilters"> · filtered</span>
                     </p>
@@ -34,7 +34,7 @@
                 >{{ formatLabel(t) }}</button>
             </div>
 
-            <span class="text-border text-xs font-mono">|</span>
+            <span class="hidden text-border text-sm font-mono sm:inline">|</span>
 
             <div class="flex gap-1.5 flex-wrap">
                 <button
@@ -65,7 +65,7 @@
                 :href="route('pipeline.show', item.id)"
                 class="pipeline-row"
             >
-                <div class="flex items-start justify-between gap-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 
                     <!-- Left: title + meta -->
                     <div class="min-w-0 flex-1">
@@ -77,8 +77,8 @@
                                 {{ formatLabel(item.pipeline_stage) }}
                             </span>
                         </div>
-                        <p class="text-primary text-sm font-light leading-snug">{{ item.title }}</p>
-                        <div class="flex items-center gap-3 mt-1.5">
+                        <p class="prose-wrap text-primary text-base font-light leading-snug">{{ item.title }}</p>
+                        <div class="flex flex-wrap items-center gap-3 mt-1.5">
                             <span v-if="item.pov_character" class="meta-tag">
                                 POV: {{ item.pov_character.name }}
                             </span>
@@ -95,7 +95,7 @@
                     </div>
 
                     <!-- Right: children count if any -->
-                    <div v-if="item.children_count > 0" class="flex-shrink-0 text-right">
+                    <div v-if="item.children_count > 0" class="flex-shrink-0 text-left sm:text-right">
                         <span class="children-badge">{{ item.children_count }}</span>
                     </div>
 
@@ -104,15 +104,15 @@
         </div>
 
         <div v-else class="empty-state">
-            <p class="text-muted-3 text-xs font-mono uppercase tracking-widest mb-2">No pipeline items found</p>
-            <Link :href="route('pipeline.create')" class="text-cyan text-xs font-mono hover:underline">
+            <p class="text-muted-3 text-sm font-mono uppercase tracking-widest mb-2">No pipeline items found</p>
+            <Link :href="route('pipeline.create')" class="text-cyan text-sm font-mono hover:underline">
                 Create your first item →
             </Link>
         </div>
 
         <!-- PAGINATION -->
-        <div v-if="items.last_page > 1" class="flex items-center justify-between mt-6 pt-4 border-t border-border">
-            <span class="text-muted-3 text-xs font-mono">
+        <div v-if="items.last_page > 1" class="mt-6 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <span class="text-muted-3 text-sm font-mono">
                 Page {{ items.current_page }} of {{ items.last_page }}
             </span>
             <div class="flex gap-2">
@@ -167,9 +167,9 @@ const formatLabel = (str) => str
 <style scoped>
 /* --- Filter buttons --- */
 .filter-btn {
-    padding: 3px 10px;
-    border-radius: 2px;
-    font-size: 10px;
+    padding: 5px 12px;
+    border-radius: 3px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.04em;
     border: 1px solid var(--border-color);
@@ -181,9 +181,9 @@ const formatLabel = (str) => str
 .filter-btn:hover { border-color: var(--border-color-2); color: var(--text-muted-2); }
 .filter-btn--active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0,245,255,0.08); }
 .clear-btn {
-    padding: 3px 10px;
-    border-radius: 2px;
-    font-size: 10px;
+    padding: 5px 12px;
+    border-radius: 3px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     border: 1px solid var(--border-color);
     color: var(--text-muted-3);
@@ -195,10 +195,10 @@ const formatLabel = (str) => str
 /* --- Pipeline row --- */
 .pipeline-row {
     display: block;
-    padding: 12px 14px;
+    padding: 16px 18px;
     background: var(--bg-surface-2);
     border: 1px solid var(--border-color);
-    border-radius: 5px;
+    border-radius: 8px;
     transition: border-color 0.15s, background 0.15s;
 }
 .pipeline-row:hover {
@@ -206,11 +206,17 @@ const formatLabel = (str) => str
     background: var(--bg-surface);
 }
 
+.prose-wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
 /* --- Type chips --- */
 .type-chip {
-    padding: 1px 6px;
-    border-radius: 2px;
-    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -229,9 +235,9 @@ const formatLabel = (str) => str
 
 /* --- Stage chips --- */
 .stage-chip {
-    padding: 1px 6px;
-    border-radius: 2px;
-    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
     font-family: ui-monospace, monospace;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -246,7 +252,7 @@ const formatLabel = (str) => str
 
 /* --- Meta tags --- */
 .meta-tag {
-    font-size: 10px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--text-muted-3);
 }
@@ -256,10 +262,10 @@ const formatLabel = (str) => str
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 3px;
-    font-size: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    font-size: 12px;
     font-family: ui-monospace, monospace;
     color: var(--text-muted-3);
     border: 1px solid var(--border-color);
@@ -269,17 +275,17 @@ const formatLabel = (str) => str
 /* --- Buttons --- */
 .btn-primary {
     display: inline-flex; align-items: center;
-    height: 30px; padding: 0 14px;
+    height: 40px; padding: 0 18px;
     background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.3);
-    border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace;
+    border-radius: 6px; font-size: 12px; font-family: ui-monospace, monospace;
     color: var(--accent-cyan); transition: background 0.15s;
 }
 .btn-primary:hover { background: rgba(0,245,255,0.15); }
 .btn-ghost {
     display: inline-flex; align-items: center;
-    height: 28px; padding: 0 12px;
-    border: 1px solid var(--border-color); border-radius: 4px;
-    font-size: 11px; font-family: ui-monospace, monospace;
+    height: 36px; padding: 0 16px;
+    border: 1px solid var(--border-color); border-radius: 6px;
+    font-size: 12px; font-family: ui-monospace, monospace;
     color: var(--text-muted-2); transition: border-color 0.15s, color 0.15s;
 }
 .btn-ghost:hover { border-color: var(--border-color-2); color: var(--text-primary); }
@@ -287,7 +293,7 @@ const formatLabel = (str) => str
 /* --- Empty state --- */
 .empty-state {
     padding: 48px 16px; text-align: center;
-    border: 1px dashed var(--border-color); border-radius: 6px;
+    border: 1px dashed var(--border-color); border-radius: 8px;
 }
 
 /* --- Utility --- */

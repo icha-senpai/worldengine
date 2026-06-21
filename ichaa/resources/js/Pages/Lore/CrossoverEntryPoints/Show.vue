@@ -4,6 +4,7 @@
         back-label="Crossover Entry Points"
         :back-href="route('crossover-entry-points.index')"
         :edit-href="route('crossover-entry-points.edit', entryPoint.id)"
+        :destroy-href="route('crossover-entry-points.destroy', entryPoint.id)"
         :badge="entryPoint.status || 'entry'"
         :sections="sections"
     />

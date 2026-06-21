@@ -4,6 +4,7 @@
         back-label="Travel Routes"
         :back-href="route('travel-routes.index')"
         :edit-href="route('travel-routes.edit', routeRecord.id)"
+        :destroy-href="route('travel-routes.destroy', routeRecord.id)"
         :badge="routeRecord.route_type || 'route'"
         :sections="sections"
     />
@@ -15,29 +16,27 @@ import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
-    route: { type: Object, required: true },
+    routeRecord: { type: Object, required: true },
 })
-
-const routeRecord = computed(() => props.route)
 
 const sections = computed(() => [
     {
         title: 'Route',
         entries: [
-            sectionEntry('Origin', routeRecord.value.origin?.name, routeRecord.value.origin ? { href: route('entities.show', routeRecord.value.origin.id) } : {}),
-            sectionEntry('Destination', routeRecord.value.destination?.name, routeRecord.value.destination ? { href: route('entities.show', routeRecord.value.destination.id) } : {}),
-            sectionEntry('Controlled By', routeRecord.value.controlled_by?.name, routeRecord.value.controlled_by ? { href: route('entities.show', routeRecord.value.controlled_by.id) } : {}),
-            sectionEntry('Route Type', routeRecord.value.route_type),
-            sectionEntry('Standard Duration', routeRecord.value.standard_duration),
-            sectionEntry('Bidirectional', routeRecord.value.bidirectional),
-            sectionEntry('Is Active', routeRecord.value.is_active),
+            sectionEntry('Origin', props.routeRecord.origin?.name, props.routeRecord.origin ? { href: route('entities.show', props.routeRecord.origin.id) } : {}),
+            sectionEntry('Destination', props.routeRecord.destination?.name, props.routeRecord.destination ? { href: route('entities.show', props.routeRecord.destination.id) } : {}),
+            sectionEntry('Controlled By', props.routeRecord.controlled_by?.name, props.routeRecord.controlled_by ? { href: route('entities.show', props.routeRecord.controlled_by.id) } : {}),
+            sectionEntry('Route Type', props.routeRecord.route_type),
+            sectionEntry('Standard Duration', props.routeRecord.standard_duration),
+            sectionEntry('Bidirectional', props.routeRecord.bidirectional),
+            sectionEntry('Is Active', props.routeRecord.is_active),
         ],
     },
     {
         title: 'Details',
         entries: [
-            sectionEntry('Method Variants', routeRecord.value.method_variants, { kind: 'json' }),
-            sectionEntry('Hazards', routeRecord.value.hazards, { kind: 'json' }),
+            sectionEntry('Method Variants', props.routeRecord.method_variants, { kind: 'json' }),
+            sectionEntry('Hazards', props.routeRecord.hazards, { kind: 'json' }),
         ],
         fullWidth: true,
     },

@@ -5,6 +5,7 @@
         back-label="Concurrency Groups"
         :back-href="route('concurrency-groups.index')"
         :edit-href="route('concurrency-groups.edit', group.id)"
+        :destroy-href="route('concurrency-groups.destroy', group.id)"
         :badge="group.narrative_significance || 'group'"
         :sections="sections"
     />

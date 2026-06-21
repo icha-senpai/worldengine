@@ -18,16 +18,14 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
-    route: { type: Object, required: true },
+    routeRecord: { type: Object, required: true },
 })
 
-const routeRecord = computed(() => props.route)
-
 const form = useForm({
-    standard_duration: routeRecord.value.standard_duration ?? '',
-    method_variants: routeRecord.value.method_variants ?? null,
-    hazards: routeRecord.value.hazards ?? null,
-    is_active: routeRecord.value.is_active ?? false,
+    standard_duration: props.routeRecord.standard_duration ?? '',
+    method_variants: props.routeRecord.method_variants ?? null,
+    hazards: props.routeRecord.hazards ?? null,
+    is_active: props.routeRecord.is_active ?? false,
 })
 
 const sections = computed(() => [
@@ -56,5 +54,5 @@ const sections = computed(() => [
     },
 ])
 
-const submit = () => form.put(route('travel-routes.update', routeRecord.value.id))
+const submit = () => form.put(route('travel-routes.update', props.routeRecord.id))
 </script>

@@ -3,19 +3,28 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test": "node ./node_modules/vitest/vitest.mjs run",
+        "test:watch": "node ./node_modules/vitest/vitest.mjs",
+        "test:e2e": "npm run build && node ./node_modules/playwright/cli.js test",
+        "test:e2e:headed": "npm run build && node ./node_modules/playwright/cli.js test --headed"
     },
     "devDependencies": {
-        "@inertiajs/vue3": "^2.0.0",
+        "@inertiajs/vue3": "^3.4.0",
+        "@playwright/test": "^1.54.2",
         "@tailwindcss/forms": "^0.5.10",
-        "@tailwindcss/typography": "^0.5.16",
-        "@tailwindcss/vite": "^4.0.0",
-        "@vitejs/plugin-vue": "^5.0.0",
-        "axios": "^1.7.4",
-        "concurrently": "^9.0.1",
-        "laravel-vite-plugin": "^1.2.0",
-        "tailwindcss": "^4.0.0",
-        "vite": "^6.0.11",
-        "vue": "^3.4.0"
+        "@tailwindcss/typography": "^0.5.20",
+        "@tailwindcss/vite": "^4.3.1",
+        "@testing-library/vue": "^8.1.0",
+        "@vitejs/plugin-vue": "^6.0.7",
+        "@vue/test-utils": "^2.4.11",
+        "axios": "^1.18.0",
+        "concurrently": "^10.0.3",
+        "jsdom": "^29.1.1",
+        "laravel-vite-plugin": "^3.1.0",
+        "tailwindcss": "^4.3.1",
+        "vite": "^8.0.16",
+        "vitest": "^4.1.9",
+        "vue": "^3.5.38"
     }
 }

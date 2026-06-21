@@ -18,7 +18,8 @@ class FlipEntityCompletionFlags
 
     public function flipRelationships(Entity $entity): void
     {
-        $this->flip($entity, 'has_relationships', 'relationships');
+        $has = $entity->relationshipsFrom()->exists() || $entity->relationshipsTo()->exists();
+        $this->update($entity, ['has_relationships' => $has]);
     }
 
     public function flipTimelineEntries(Entity $entity): void
@@ -50,7 +51,7 @@ class FlipEntityCompletionFlags
 
     public function flipAttributes(Entity $entity): void
     {
-        $has = !empty($entity->attributes);
+        $has = ! empty($entity->attributes);
         $this->update($entity, ['has_attributes' => $has]);
     }
 
@@ -67,13 +68,13 @@ class FlipEntityCompletionFlags
         ]);
 
         $this->update($entity, [
-            'has_aliases'          => $entity->aliases_count > 0,
-            'has_media'            => $entity->media_count > 0,
-            'has_state_snapshots'  => $entity->state_snapshots_count > 0,
+            'has_aliases' => $entity->aliases_count > 0,
+            'has_media' => $entity->media_count > 0,
+            'has_state_snapshots' => $entity->state_snapshots_count > 0,
             'has_timeline_entries' => $entity->timeline_entries_count > 0,
-            'has_relationships'    => ($entity->relationships_from_count + $entity->relationships_to_count) > 0,
-            'has_attributes'       => !empty($entity->attributes),
-            'has_documents'        => $entity->loadCount('documentEntities')->document_entities_count > 0,
+            'has_relationships' => ($entity->relationships_from_count + $entity->relationships_to_count) > 0,
+            'has_attributes' => ! empty($entity->attributes),
+            'has_documents' => $entity->loadCount('documentEntities')->document_entities_count > 0,
         ]);
     }
 

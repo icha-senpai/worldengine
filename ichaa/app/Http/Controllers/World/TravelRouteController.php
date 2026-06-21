@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\World;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\World\Models\TravelRoute;
 use App\Domain\World\Services\WorldService;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class TravelRouteController extends Controller
 {
@@ -34,22 +34,22 @@ class TravelRouteController extends Controller
                 ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
                 ->orderBy('name')
                 ->get(),
-            'routeTypes'       => TravelRoute::ROUTE_TYPES,
+            'routeTypes' => TravelRoute::ROUTE_TYPES,
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'origin_location_entity_id'      => ['required', 'integer', 'exists:entities,id'],
+            'origin_location_entity_id' => ['required', 'integer', 'exists:entities,id'],
             'destination_location_entity_id' => ['required', 'integer', 'exists:entities,id'],
-            'route_type'                     => ['required', 'string', 'in:' . implode(',', TravelRoute::ROUTE_TYPES)],
-            'bidirectional'                  => ['boolean'],
-            'standard_duration'              => ['nullable', 'string'],
-            'method_variants'                => ['nullable', 'array'],
+            'route_type' => ['required', 'string', 'in:'.implode(',', TravelRoute::ROUTE_TYPES)],
+            'bidirectional' => ['boolean'],
+            'standard_duration' => ['nullable', 'string'],
+            'method_variants' => ['nullable', 'array'],
         ]);
 
-        $origin      = Entity::findOrFail($validated['origin_location_entity_id']);
+        $origin = Entity::findOrFail($validated['origin_location_entity_id']);
         $destination = Entity::findOrFail($validated['destination_location_entity_id']);
 
         if ($request->boolean('bidirectional')) {
@@ -64,30 +64,30 @@ class TravelRouteController extends Controller
     public function show(TravelRoute $travelRoute): Response
     {
         return $this->page('World/TravelRoutes/Show', [
-            'route' => $travelRoute->load(['origin:id,name', 'destination:id,name', 'controlledBy:id,name']),
+            'routeRecord' => $travelRoute->load(['origin:id,name', 'destination:id,name', 'controlledBy:id,name']),
         ]);
     }
 
     public function edit(TravelRoute $travelRoute): Response
     {
         return $this->page('World/TravelRoutes/Edit', [
-            'route' => $travelRoute,
+            'routeRecord' => $travelRoute,
         ]);
     }
 
-    public function update(Request $request, TravelRoute $travelRoute): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, TravelRoute $travelRoute): RedirectResponse
     {
         $travelRoute->update($request->validate([
             'standard_duration' => ['nullable', 'string'],
-            'method_variants'   => ['nullable', 'array'],
-            'hazards'           => ['nullable', 'array'],
-            'is_active'         => ['boolean'],
+            'method_variants' => ['nullable', 'array'],
+            'hazards' => ['nullable', 'array'],
+            'is_active' => ['boolean'],
         ]));
 
         return $this->back('Route updated.');
     }
 
-    public function destroy(TravelRoute $travelRoute): \Illuminate\Http\RedirectResponse
+    public function destroy(TravelRoute $travelRoute): RedirectResponse
     {
         $travelRoute->delete();
 
