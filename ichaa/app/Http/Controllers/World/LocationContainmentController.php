@@ -7,6 +7,7 @@ use Inertia\Response;
 
 use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
+use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\World\Models\LocationContainment;
 use App\Domain\World\Services\WorldService;
 
@@ -28,7 +29,22 @@ class LocationContainmentController extends Controller
     public function create(): Response
     {
         return $this->page('World/LocationContainment/Create', [
+            'locationEntities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
+                ->orderBy('name')
+                ->get(),
             'containmentTypes' => LocationContainment::CONTAINMENT_TYPES,
+        ]);
+    }
+
+    public function edit(LocationContainment $locationContainment): Response
+    {
+        return $this->page('World/LocationContainment/Edit', [
+            'containment' => $locationContainment->load([
+                'childLocation:id,name',
+                'parentLocation:id,name',
+            ]),
         ]);
     }
 

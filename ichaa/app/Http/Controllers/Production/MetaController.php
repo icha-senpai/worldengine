@@ -42,6 +42,10 @@ class MetaController extends Controller
     public function create(): Response
     {
         return $this->page('Production/Meta/Create', [
+            'entities'      => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
             'categories'    => Meta::CATEGORIES,
             'noteTypes'     => Meta::NOTE_TYPES,
             'priorities'    => Meta::PRIORITIES,
@@ -92,6 +96,10 @@ class MetaController extends Controller
     public function edit(Meta $meta): Response
     {
         return $this->page('Production/Meta/Edit', [
+            'entities'      => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
             'note'          => $meta,
             'categories'    => Meta::CATEGORIES,
             'noteTypes'     => Meta::NOTE_TYPES,

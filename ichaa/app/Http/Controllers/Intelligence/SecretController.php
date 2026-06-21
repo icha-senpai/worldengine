@@ -37,6 +37,10 @@ class SecretController extends Controller
     public function create(): Response
     {
         return $this->page('Intelligence/Secrets/Create', [
+            'entities'      => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
             'secretTypes'   => Secret::SECRET_TYPES,
             'exposureRisks' => Secret::EXPOSURE_RISKS,
         ]);
@@ -62,8 +66,23 @@ class SecretController extends Controller
 
     public function show(Secret $secret): Response
     {
+        $entityIds = array_values(array_unique(array_merge(
+            $secret->subject_entity_ids ?? [],
+            $secret->holder_entity_ids ?? [],
+            $secret->known_by_entity_ids ?? [],
+        )));
+
+        $entities = Entity::query()
+            ->select('id', 'name', 'entity_type')
+            ->whereIn('id', $entityIds)
+            ->get()
+            ->keyBy('id');
+
         return $this->page('Intelligence/Secrets/Show', [
-            'secret' => $secret,
+            'secret'          => $secret,
+            'subjectEntities' => $this->entityListItems($secret->subject_entity_ids ?? [], $entities),
+            'holderEntities'  => $this->entityListItems($secret->holder_entity_ids ?? [], $entities),
+            'knownByEntities' => $this->entityListItems($secret->known_by_entity_ids ?? [], $entities),
         ]);
     }
 
@@ -113,5 +132,28 @@ class SecretController extends Controller
         $this->service->addToKnownBy($secret, $entity->id);
 
         return $this->back("{$entity->name} added to known-by.");
+    }
+
+    private function entityListItems(array $ids, \Illuminate\Support\Collection $entities): array
+    {
+        return collect($ids)
+            ->map(function ($id) use ($entities) {
+                $entity = $entities->get($id);
+
+                if (!$entity) {
+                    return [
+                        'label' => "Unknown entity #{$id}",
+                    ];
+                }
+
+                $type = $entity->entity_type ? " ({$entity->entity_type})" : '';
+
+                return [
+                    'label' => "{$entity->name}{$type}",
+                    'href'  => route('entities.show', [$entity]),
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

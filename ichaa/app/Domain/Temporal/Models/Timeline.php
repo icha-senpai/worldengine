@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 
 use App\Domain\Identity\Models\Entity;
@@ -27,10 +26,13 @@ class Timeline extends Model
         'event_entity_id',
 
         // Dating
+        'entry_label',
         'au_date',
-        'au_date_end',
         'source_date',
-        'source_date_system',
+        'source_date_universe',
+        'primordial_era',
+        'time_density',
+        'au_date_end',
         'timeline_position',
         'temporal_certainty',
         'dating_notes',
@@ -45,12 +47,15 @@ class Timeline extends Model
         // Causality
         'caused_by_event_ids',
         'caused_event_ids',
+        'causality_type',
+        'causality_notes',
 
         // Narrative
         'public_narrative',
         'true_narrative',
         'narrative_divergence',
         'truth_known_by',
+        'truth_revealed_at_era',
         'event_significance',
 
         // Display
@@ -63,20 +68,21 @@ class Timeline extends Model
         'caused_event_ids'    => 'array',
         'public_narrative'    => 'array', // Tiptap JSON
         'true_narrative'      => 'array', // Tiptap JSON
-        'narrative_divergence'=> 'array', // Tiptap JSON
+        'narrative_divergence'=> 'string',
         'dating_notes'        => 'array', // Tiptap JSON
         'truth_known_by'      => 'array',
         'is_atemporal'        => 'boolean',
-        'timeline_position'   => 'decimal:6',
+        'primordial_era'      => 'boolean',
+        'timeline_position'   => 'integer',
         'deleted_at'          => 'datetime',
     ];
 
     const TEMPORAL_CERTAINTY_LEVELS = [
-        'exact',
-        'approximate',
+        'documented',
         'estimated',
-        'disputed',
-        'unknown',
+        'legendary',
+        'primordial',
+        'atemporal',
     ];
 
     const EVENT_SIGNIFICANCE_LEVELS = [
@@ -86,6 +92,25 @@ class Timeline extends Model
         'major',
         'pivotal',
         'world_altering',
+    ];
+
+    const TIME_DENSITY_LEVELS = [
+        'sparse',
+        'moderate',
+        'dense',
+    ];
+
+    const CAUSALITY_TYPES = [
+        'direct',
+        'contributory',
+        'catalytic',
+        'coincidental',
+    ];
+
+    const NARRATIVE_DIVERGENCE_LEVELS = [
+        'none',
+        'partial',
+        'complete',
     ];
 
     // --- RELATIONSHIPS ---

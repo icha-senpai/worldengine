@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Response;
 
 use App\Http\Controllers\Controller;
+use App\Domain\Identity\Models\Entity;
 use App\Domain\Lore\Models\SourceCanonReference;
 
 class SourceCanonReferenceController extends Controller
@@ -27,6 +28,11 @@ class SourceCanonReferenceController extends Controller
     public function create(): Response
     {
         return $this->page('Lore/CanonReferences/Create', [
+            'parentReferences'   => SourceCanonReference::query()
+                ->select('id', 'title', 'level', 'universe')
+                ->orderBy('universe')
+                ->orderBy('title')
+                ->get(),
             'levels'             => SourceCanonReference::LEVELS,
             'categoryTypes'      => SourceCanonReference::CATEGORY_TYPES,
             'elementTypes'       => SourceCanonReference::ELEMENT_TYPES,
@@ -63,6 +69,10 @@ class SourceCanonReferenceController extends Controller
     public function edit(SourceCanonReference $canonReference): Response
     {
         return $this->page('Lore/CanonReferences/Edit', [
+            'entities'         => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
             'reference'       => $canonReference,
             'researchStatuses'=> SourceCanonReference::RESEARCH_STATUSES,
         ]);

@@ -7,7 +7,11 @@ use Inertia\Response;
 
 use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
+use App\Domain\Connections\Models\GroupRelationship;
+use App\Domain\Connections\Models\Relationship;
 use App\Domain\Intelligence\Models\KnowledgeState;
+use App\Domain\Intelligence\Models\Secret;
+use App\Domain\Temporal\Models\Timeline;
 use App\Domain\Intelligence\Services\IntelligenceService;
 
 class KnowledgeStateController extends Controller
@@ -47,6 +51,26 @@ class KnowledgeStateController extends Controller
     public function create(): Response
     {
         return $this->page('Intelligence/KnowledgeStates/Create', [
+            'entities'           => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'secrets'            => Secret::query()
+                ->select('id', 'title', 'secret_type')
+                ->orderBy('title')
+                ->get(),
+            'relationships'      => Relationship::query()
+                ->with(['fromEntity:id,name', 'toEntity:id,name'])
+                ->orderByDesc('id')
+                ->get(['id', 'from_entity_id', 'to_entity_id', 'relationship_type']),
+            'groupRelationships' => GroupRelationship::query()
+                ->select('id', 'name', 'relationship_type')
+                ->orderBy('name')
+                ->get(),
+            'eventEntries'       => Timeline::query()
+                ->with(['eventEntity:id,name,entity_type', 'timeline:id,name'])
+                ->orderByDesc('id')
+                ->get(['id', 'timeline_id', 'event_entity_id', 'entry_label', 'au_date']),
             'knowledgeTypes'     => KnowledgeState::KNOWLEDGE_TYPES,
             'accuracyLevels'     => KnowledgeState::ACCURACY_LEVELS,
             'beliefStates'       => KnowledgeState::BELIEF_STATES,

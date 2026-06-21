@@ -21,7 +21,7 @@ class TimelineEntity extends Model
     ];
 
     protected $casts = [
-        'position'          => 'decimal:6',
+        'position'          => 'integer',
         'perspective_notes' => 'array', // Tiptap JSON
     ];
 

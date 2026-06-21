@@ -398,6 +398,11 @@ class Entity extends Model
         return $this->hasMany(Timeline::class, 'event_entity_id');
     }
 
+    public function timelineEvents(): HasMany
+    {
+        return $this->hasMany(Timeline::class, 'timeline_id');
+    }
+
     // Intelligence domain
     public function knowledgeStates(): HasMany
     {

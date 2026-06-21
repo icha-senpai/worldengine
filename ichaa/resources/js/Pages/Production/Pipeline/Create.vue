@@ -70,6 +70,20 @@
                     </div>
                 </div>
 
+                <div class="field-group">
+                    <label class="field-label">Parent Item</label>
+                    <select v-model="form.parent_pipeline_item_id" class="input w-full">
+                        <option :value="null">Top-level item</option>
+                        <option
+                            v-for="option in parentItemOptions"
+                            :key="option.value"
+                            :value="option.value"
+                        >
+                            {{ option.label }}
+                        </option>
+                    </select>
+                </div>
+
                 <!-- SCENE FIELDS — only for scene type -->
                 <div v-if="form.pipeline_type === 'scene'" class="panel">
                     <h3 class="panel-label">Scene Details</h3>
@@ -77,12 +91,22 @@
 
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                             <div class="field-group">
-                                <label class="field-label">POV Character <span class="text-muted-3 normal-case font-normal">(entity name)</span></label>
-                                <input v-model="form.pov_character_entity_id" type="number" placeholder="Entity ID" class="input w-full" />
+                                <label class="field-label">POV Character</label>
+                                <select v-model="form.pov_character_entity_id" class="input w-full">
+                                    <option :value="null">Select a POV character...</option>
+                                    <option v-for="option in characterOptions" :key="option.value" :value="option.value">
+                                        {{ option.label }}
+                                    </option>
+                                </select>
                             </div>
                             <div class="field-group">
-                                <label class="field-label">Location <span class="text-muted-3 normal-case font-normal">(entity name)</span></label>
-                                <input v-model="form.location_entity_id" type="number" placeholder="Entity ID" class="input w-full" />
+                                <label class="field-label">Location</label>
+                                <select v-model="form.location_entity_id" class="input w-full">
+                                    <option :value="null">Select a location...</option>
+                                    <option v-for="option in locationOptions" :key="option.value" :value="option.value">
+                                        {{ option.label }}
+                                    </option>
+                                </select>
                             </div>
                         </div>
 
@@ -118,10 +142,15 @@
                     <h3 class="panel-label">Arc Tracker</h3>
                     <div class="space-y-4">
 
-                        <div class="field-group">
-                            <label class="field-label">Tracked Entity <span class="text-muted-3 normal-case font-normal">(entity ID)</span></label>
-                            <input v-model="form.tracked_entity_id" type="number" placeholder="Entity ID" class="input w-full" />
-                        </div>
+                    <div class="field-group">
+                        <label class="field-label">Tracked Entity</label>
+                        <select v-model="form.tracked_entity_id" class="input w-full">
+                            <option :value="null">Select an entity to track...</option>
+                            <option v-for="option in entityOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                            </option>
+                        </select>
+                    </div>
 
                         <div class="field-group">
                             <label class="field-label">Arc Stage</label>
@@ -181,13 +210,24 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Link, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { formatLabel, toEntityOptions, toPipelineItemOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
-    pipelineTypes:  { type: Array, default: () => [] },
-    pipelineStages: { type: Array, default: () => [] },
+    parentItems:       { type: Array, default: () => [] },
+    characterEntities: { type: Array, default: () => [] },
+    locationEntities:  { type: Array, default: () => [] },
+    entities:          { type: Array, default: () => [] },
+    pipelineTypes:     { type: Array, default: () => [] },
+    pipelineStages:    { type: Array, default: () => [] },
 })
+
+const parentItemOptions = computed(() => toPipelineItemOptions(props.parentItems))
+const characterOptions = computed(() => toEntityOptions(props.characterEntities))
+const locationOptions = computed(() => toEntityOptions(props.locationEntities))
+const entityOptions = computed(() => toEntityOptions(props.entities))
 
 const form = useForm({
     title:                   '',
@@ -218,9 +258,6 @@ const arcStages = [
     'transformation', 'integration', 'aftermath',
 ]
 
-const formatLabel = (str) => str
-    ? str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-    : '—'
 </script>
 
 <style scoped>

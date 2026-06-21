@@ -210,29 +210,29 @@ class TemporalService
 
     // --- PRIVATE ---
 
-    // Assigns a decimal position based on existing entries
+    // Assigns an integer position based on existing entries
     // Appends to end of timeline by default
-    // Inserting between events uses midpoint calculation
-    private function calculatePosition(int $timelineEntityId, ?string $auDate): float
+    // Leaves gaps so later inserts can still fit between entries
+    private function calculatePosition(int $timelineEntityId, ?string $auDate): int
     {
         $lastEntry = Timeline::onTimeline($timelineEntityId)
             ->where('is_atemporal', false)
             ->orderByDesc('timeline_position')
             ->first();
 
-        // Nothing on timeline yet — start at 1.0
+        // Nothing on timeline yet — start at 10
         if (!$lastEntry) {
-            return 1.0;
+            return 10;
         }
 
-        // Append after last entry
-        return round($lastEntry->timeline_position + 1.0, 6);
+        // Append after last entry with spacing for future inserts
+        return (int) $lastEntry->timeline_position + 10;
     }
 
-    // Insert between two existing positions using midpoint
+    // Insert between two existing positions using integer midpoint
     // Call this explicitly when you need to insert between events
-    public function calculateMidpoint(float $before, float $after): float
+    public function calculateMidpoint(int $before, int $after): int
     {
-        return round(($before + $after) / 2, 6);
+        return intdiv($before + $after, 2);
     }
 }

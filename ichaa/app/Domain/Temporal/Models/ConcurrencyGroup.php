@@ -18,8 +18,6 @@ class ConcurrencyGroup extends Model
         'au_date',
         'description',
         'narrative_significance',
-        'visibility',
-        'content_classification',
     ];
 
     protected $casts = [

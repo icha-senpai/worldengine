@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Response;
 
 use App\Http\Controllers\Controller;
+use App\Domain\Identity\Models\Entity;
 use App\Domain\Lore\Models\Document;
 
 class DocumentController extends Controller
@@ -28,7 +29,12 @@ class DocumentController extends Controller
     public function create(): Response
     {
         return $this->page('Lore/Documents/Create', [
+            'entities'            => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
             'documentTypes'     => Document::DOCUMENT_TYPES,
+            'documentStatuses'  => Document::DOCUMENT_STATUSES,
             'authenticityStates'=> Document::AUTHENTICITY_STATES,
         ]);
     }
@@ -64,8 +70,13 @@ class DocumentController extends Controller
     public function edit(Document $document): Response
     {
         return $this->page('Lore/Documents/Edit', [
+            'entities'            => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
             'document'          => $document,
             'documentTypes'     => Document::DOCUMENT_TYPES,
+            'documentStatuses'  => Document::DOCUMENT_STATUSES,
             'authenticityStates'=> Document::AUTHENTICITY_STATES,
         ]);
     }

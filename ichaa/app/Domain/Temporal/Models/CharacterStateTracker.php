@@ -21,9 +21,11 @@ class CharacterStateTracker extends Model
         'timeline_id',
         'era_entity_id',
         'au_date',
+        'source_date',
         'timeline_position',
         'snapshot_label',
         'snapshot_significance',
+        'significance_reason',
 
         // Psychological state — plain text for direct search indexing
         'current_trauma_profile',
@@ -37,6 +39,7 @@ class CharacterStateTracker extends Model
         'current_fear',
         'shadow_self',
         'relational_patterns',
+        'current_relational_state',
         'performed_self',
         'true_self',
         'mask_integrity',
@@ -53,11 +56,13 @@ class CharacterStateTracker extends Model
         'restricted_abilities',
         'lost_abilities',
         'current_artifacts_and_hallows',
+        'power_state_notes',
 
         // Relational state
         'key_relationships_summary',
         'active_group_relationship_ids',
 
+        'notes',
         'visibility',
         'content_classification',
     ];
@@ -71,9 +76,10 @@ class CharacterStateTracker extends Model
         'current_artifacts_and_hallows'=> 'array',
         'key_relationships_summary'    => 'array',
         'active_group_relationship_ids'=> 'array',
+        'notes'                        => 'array',
 
-        // Decimal for positional ordering
-        'timeline_position'            => 'decimal:6',
+        // Integer for positional ordering
+        'timeline_position'            => 'integer',
 
         'deleted_at'                   => 'datetime',
 

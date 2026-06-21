@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Inertia\Response;
 
 use App\Http\Controllers\Controller;
+use App\Domain\Connections\Models\GroupRelationship;
+use App\Domain\Identity\Models\Entity;
+use App\Domain\Organization\Models\Collection;
 use App\Domain\Production\Models\SessionLog;
 
 class SessionLogController extends Controller
@@ -21,6 +24,18 @@ class SessionLogController extends Controller
     public function create(): Response
     {
         return $this->page('Production/Sessions/Create', [
+            'entities'           => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'groupRelationships' => GroupRelationship::query()
+                ->select('id', 'name', 'relationship_type')
+                ->orderBy('name')
+                ->get(),
+            'collections'        => Collection::query()
+                ->select('id', 'name', 'collection_type')
+                ->orderBy('name')
+                ->get(),
             'significanceLevels' => SessionLog::SIGNIFICANCE_LEVELS,
         ]);
     }

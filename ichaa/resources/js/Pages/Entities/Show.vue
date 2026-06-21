@@ -188,7 +188,17 @@
 
             <!-- Add alias form -->
             <div class="panel">
-                <h3 class="panel-label">Add Alias</h3>
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <h3 class="panel-label !mb-0">{{ isEditingAlias ? 'Edit Alias' : 'Add Alias' }}</h3>
+                    <button
+                        v-if="isEditingAlias"
+                        type="button"
+                        @click="cancelAliasEdit"
+                        class="btn-ghost btn-ghost--sm"
+                    >
+                        Cancel
+                    </button>
+                </div>
                 <form @submit.prevent="submitAlias" class="space-y-3">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                         <div class="field-group">
@@ -231,7 +241,7 @@
                             <span class="text-muted-2 text-xs font-mono">Currently active</span>
                         </label>
                         <button type="submit" class="btn-primary" :disabled="aliasForm.processing || !aliasForm.alias || !aliasForm.alias_type">
-                            Add Alias
+                            {{ isEditingAlias ? 'Save Alias' : 'Add Alias' }}
                         </button>
                     </div>
                 </form>
@@ -252,10 +262,19 @@
                                 {{ a.era_start || '?' }} → {{ a.era_end || 'present' }}
                             </p>
                         </div>
-                        <button
-                            @click="deleteAlias(a.id)"
-                            class="btn-danger-sm flex-shrink-0"
-                        >Delete</button>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <button
+                                type="button"
+                                @click="beginAliasEdit(a)"
+                                class="btn-ghost btn-ghost--sm"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                @click="deleteAlias(a.id)"
+                                class="btn-danger-sm"
+                            >Delete</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -268,7 +287,17 @@
 
             <!-- Add note form -->
             <div class="panel">
-                <h3 class="panel-label">Add Note</h3>
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <h3 class="panel-label !mb-0">{{ isEditingNote ? 'Edit Note' : 'Add Note' }}</h3>
+                    <button
+                        v-if="isEditingNote"
+                        type="button"
+                        @click="cancelNoteEdit"
+                        class="btn-ghost btn-ghost--sm"
+                    >
+                        Cancel
+                    </button>
+                </div>
                 <form @submit.prevent="submitNote" class="space-y-3">
                     <div class="field-group">
                         <label class="field-label">Label <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
@@ -278,8 +307,12 @@
                         <label class="field-label">Content <span class="text-danger">*</span></label>
                         <textarea v-model="noteForm.content" rows="4" placeholder="Note content..." class="input w-full resize-none" />
                     </div>
+                    <div class="field-group">
+                        <label class="field-label">Sort Order <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
+                        <input v-model="noteForm.sort_order" type="number" placeholder="Display order" class="input w-full" />
+                    </div>
                     <button type="submit" class="btn-primary" :disabled="noteForm.processing || !noteForm.content">
-                        Add Note
+                        {{ isEditingNote ? 'Save Note' : 'Add Note' }}
                     </button>
                 </form>
             </div>
@@ -292,6 +325,7 @@
                         <span v-else class="note-label note-label--empty">unlabeled</span>
                         <div class="flex items-center gap-2 flex-shrink-0">
                             <span class="text-muted-3 text-[10px] font-mono">{{ formatDate(n.created_at) }}</span>
+                            <button type="button" @click="beginNoteEdit(n)" class="btn-ghost btn-ghost--sm">Edit</button>
                             <button @click="deleteNote(n.id)" class="btn-danger-sm">Delete</button>
                         </div>
                     </div>
@@ -307,7 +341,17 @@
 
             <!-- Add question form -->
             <div class="panel">
-                <h3 class="panel-label">Add Question</h3>
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <h3 class="panel-label !mb-0">{{ isEditingQuestion ? 'Edit Question' : 'Add Question' }}</h3>
+                    <button
+                        v-if="isEditingQuestion"
+                        type="button"
+                        @click="cancelQuestionEdit"
+                        class="btn-ghost btn-ghost--sm"
+                    >
+                        Cancel
+                    </button>
+                </div>
                 <form @submit.prevent="submitQuestion" class="space-y-3">
                     <div class="field-group">
                         <label class="field-label">Question <span class="text-danger">*</span></label>
@@ -345,8 +389,12 @@
                             </div>
                         </div>
                     </div>
+                    <div v-if="isEditingQuestion || questionForm.status === 'resolved'" class="field-group">
+                        <label class="field-label">Resolution <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
+                        <textarea v-model="questionForm.resolution" rows="3" placeholder="How was this resolved?" class="input w-full resize-none" />
+                    </div>
                     <button type="submit" class="btn-primary" :disabled="questionForm.processing || !questionForm.question">
-                        Add Question
+                        {{ isEditingQuestion ? 'Save Question' : 'Add Question' }}
                     </button>
                 </form>
             </div>
@@ -372,6 +420,7 @@
                             </p>
                         </div>
                         <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+                            <button type="button" @click="beginQuestionEdit(q)" class="btn-ghost btn-ghost--sm">Edit</button>
                             <button
                                 v-if="q.status !== 'resolved'"
                                 @click="resolveQuestion(q.id)"
@@ -404,8 +453,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { Link, useForm, router } from '@inertiajs/vue3'
+import { ref, computed, watch } from 'vue'
+import { Link, useForm, router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 
 // --- Props ---
@@ -413,6 +462,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 const props = defineProps({
     entity: { type: Object, required: true },
 })
+
+const page = usePage()
 
 // --- Tabs ---
 
@@ -426,6 +477,18 @@ const tabs = [
 
 const activeTab = ref('identity')
 
+const editingAliasId = ref(null)
+const editingNoteId = ref(null)
+const editingQuestionId = ref(null)
+
+const validTabs = tabs.map((tab) => tab.id)
+
+const urlParams = computed(() => {
+    const [, queryString = ''] = page.url.split('?')
+
+    return new URLSearchParams(queryString)
+})
+
 // --- Alias form ---
 
 const aliasForm = useForm({
@@ -437,9 +500,39 @@ const aliasForm = useForm({
     is_active:  true,
 })
 
+const isEditingAlias = computed(() => editingAliasId.value !== null)
+
+const resetAliasForm = () => {
+    aliasForm.reset()
+    aliasForm.is_active = true
+}
+
+const beginAliasEdit = (alias) => {
+    editingAliasId.value = alias.id
+    aliasForm.alias = alias.alias ?? ''
+    aliasForm.alias_type = alias.alias_type ?? ''
+    aliasForm.context = alias.context ?? ''
+    aliasForm.era_start = alias.era_start ?? ''
+    aliasForm.era_end = alias.era_end ?? ''
+    aliasForm.is_active = alias.is_active ?? false
+}
+
+const cancelAliasEdit = () => {
+    editingAliasId.value = null
+    aliasForm.clearErrors()
+    resetAliasForm()
+}
+
 const submitAlias = () => {
+    if (isEditingAlias.value) {
+        aliasForm.put(route('entities.aliases.update', [props.entity.id, editingAliasId.value]), {
+            onSuccess: () => cancelAliasEdit(),
+        })
+        return
+    }
+
     aliasForm.post(route('entities.aliases.store', props.entity.id), {
-        onSuccess: () => aliasForm.reset(),
+        onSuccess: () => resetAliasForm(),
     })
 }
 
@@ -452,11 +545,38 @@ const deleteAlias = (aliasId) => {
 const noteForm = useForm({
     note_label: '',
     content:    '',
+    sort_order: '',
 })
 
+const isEditingNote = computed(() => editingNoteId.value !== null)
+
+const resetNoteForm = () => {
+    noteForm.reset()
+}
+
+const beginNoteEdit = (note) => {
+    editingNoteId.value = note.id
+    noteForm.note_label = note.note_label ?? ''
+    noteForm.content = note.content ?? ''
+    noteForm.sort_order = note.sort_order ?? ''
+}
+
+const cancelNoteEdit = () => {
+    editingNoteId.value = null
+    noteForm.clearErrors()
+    resetNoteForm()
+}
+
 const submitNote = () => {
+    if (isEditingNote.value) {
+        noteForm.put(route('entities.notes.update', [props.entity.id, editingNoteId.value]), {
+            onSuccess: () => cancelNoteEdit(),
+        })
+        return
+    }
+
     noteForm.post(route('entities.notes.store', props.entity.id), {
-        onSuccess: () => noteForm.reset(),
+        onSuccess: () => resetNoteForm(),
     })
 }
 
@@ -467,15 +587,46 @@ const deleteNote = (noteId) => {
 // --- Question form ---
 
 const questionForm = useForm({
-    question: '',
-    context:  '',
-    priority: 'medium',
-    status:   'open',
+    question:   '',
+    context:    '',
+    priority:   'medium',
+    status:     'open',
+    resolution: '',
 })
 
+const isEditingQuestion = computed(() => editingQuestionId.value !== null)
+
+const resetQuestionForm = () => {
+    questionForm.reset()
+    questionForm.priority = 'medium'
+    questionForm.status = 'open'
+}
+
+const beginQuestionEdit = (question) => {
+    editingQuestionId.value = question.id
+    questionForm.question = question.question ?? ''
+    questionForm.context = question.context ?? ''
+    questionForm.priority = question.priority ?? 'medium'
+    questionForm.status = question.status ?? 'open'
+    questionForm.resolution = question.resolution ?? ''
+}
+
+const cancelQuestionEdit = () => {
+    editingQuestionId.value = null
+    questionForm.clearErrors()
+    resetQuestionForm()
+}
+
 const submitQuestion = () => {
+    if (isEditingQuestion.value) {
+        questionForm.put(route('entities.questions.update', [props.entity.id, editingQuestionId.value]), {
+            onSuccess: () => cancelQuestionEdit(),
+        })
+        return
+    }
+
     questionForm.post(route('entities.questions.store', props.entity.id), {
-        onSuccess: () => questionForm.reset(),
+        onSuccess: () => resetQuestionForm(),
     })
 }
 
@@ -503,6 +654,53 @@ const questionStatusOptions = [
     { value: 'deferred', label: 'Deferred' },
     { value: 'resolved', label: 'Resolved' },
 ]
+
+const applyRouteState = () => {
+    const requestedTab = urlParams.value.get('tab')
+    const nextTab = validTabs.includes(requestedTab) ? requestedTab : 'identity'
+
+    activeTab.value = nextTab
+
+    const editAliasId = Number(urlParams.value.get('edit_alias'))
+    const editNoteId = Number(urlParams.value.get('edit_note'))
+    const editQuestionId = Number(urlParams.value.get('edit_question'))
+
+    if (Number.isInteger(editAliasId) && editAliasId > 0) {
+        const alias = props.entity.aliases?.find((record) => record.id === editAliasId)
+
+        if (alias) {
+            beginAliasEdit(alias)
+        }
+    } else if (editingAliasId.value !== null) {
+        cancelAliasEdit()
+    }
+
+    if (Number.isInteger(editNoteId) && editNoteId > 0) {
+        const note = props.entity.notes?.find((record) => record.id === editNoteId)
+
+        if (note) {
+            beginNoteEdit(note)
+        }
+    } else if (editingNoteId.value !== null) {
+        cancelNoteEdit()
+    }
+
+    if (Number.isInteger(editQuestionId) && editQuestionId > 0) {
+        const question = props.entity.questions?.find((record) => record.id === editQuestionId)
+
+        if (question) {
+            beginQuestionEdit(question)
+        }
+    } else if (editingQuestionId.value !== null) {
+        cancelQuestionEdit()
+    }
+}
+
+watch(
+    () => page.url,
+    () => applyRouteState(),
+    { immediate: true },
+)
 
 // --- Computed ---
 
@@ -720,6 +918,11 @@ const completionBarClass = (score) => {
 .btn-ghost:hover {
     border-color: var(--border-color-2);
     color: var(--text-primary);
+}
+.btn-ghost--sm {
+    height: 24px;
+    padding: 0 10px;
+    font-size: 10px;
 }
 
 /* --- Utility colors --- */

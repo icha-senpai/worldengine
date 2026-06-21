@@ -134,6 +134,8 @@ class GroupRelationshipController extends Controller
     // DELETE /group-relationships/{groupRelationship}/members/{entry}
     public function removeMember(Request $request, GroupRelationship $groupRelationship, GroupRelationshipEntity $entry): \Illuminate\Http\RedirectResponse
     {
+        abort_unless((int) $entry->group_relationship_id === (int) $groupRelationship->id, 404);
+
         $validated = $request->validate([
             'left_era'        => ['nullable', 'string'],
             'departure_notes' => ['nullable', 'array'],

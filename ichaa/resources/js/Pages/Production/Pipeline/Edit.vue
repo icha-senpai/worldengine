@@ -97,12 +97,22 @@
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                         <div class="field-group">
-                            <label class="field-label">POV Character <span class="text-muted-3 normal-case font-normal">(entity ID)</span></label>
-                            <input v-model.number="form.pov_character_entity_id" type="number" placeholder="Entity ID" class="input w-full" />
+                            <label class="field-label">POV Character</label>
+                            <select v-model="form.pov_character_entity_id" class="input w-full">
+                                <option :value="null">Select a POV character...</option>
+                                <option v-for="option in characterOptions" :key="option.value" :value="option.value">
+                                    {{ option.label }}
+                                </option>
+                            </select>
                         </div>
                         <div class="field-group">
-                            <label class="field-label">Location <span class="text-muted-3 normal-case font-normal">(entity ID)</span></label>
-                            <input v-model.number="form.location_entity_id" type="number" placeholder="Entity ID" class="input w-full" />
+                            <label class="field-label">Location</label>
+                            <select v-model="form.location_entity_id" class="input w-full">
+                                <option :value="null">Select a location...</option>
+                                <option v-for="option in locationOptions" :key="option.value" :value="option.value">
+                                    {{ option.label }}
+                                </option>
+                            </select>
                         </div>
                     </div>
 
@@ -134,8 +144,13 @@
                 <div class="space-y-4">
 
                     <div class="field-group">
-                        <label class="field-label">Tracked Entity <span class="text-muted-3 normal-case font-normal">(entity ID)</span></label>
-                        <input v-model.number="form.tracked_entity_id" type="number" placeholder="Entity ID" class="input w-full" />
+                        <label class="field-label">Tracked Entity</label>
+                        <select v-model="form.tracked_entity_id" class="input w-full">
+                            <option :value="null">Select an entity to track...</option>
+                            <option v-for="option in entityOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                            </option>
+                        </select>
                     </div>
 
                     <div class="field-group">
@@ -186,14 +201,23 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Link, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { formatLabel, toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
-    item:           { type: Object, required: true },
-    pipelineTypes:  { type: Array, default: () => [] },
-    pipelineStages: { type: Array, default: () => [] },
+    item:              { type: Object, required: true },
+    characterEntities: { type: Array, default: () => [] },
+    locationEntities:  { type: Array, default: () => [] },
+    entities:          { type: Array, default: () => [] },
+    pipelineTypes:     { type: Array, default: () => [] },
+    pipelineStages:    { type: Array, default: () => [] },
 })
+
+const characterOptions = computed(() => toEntityOptions(props.characterEntities))
+const locationOptions = computed(() => toEntityOptions(props.locationEntities))
+const entityOptions = computed(() => toEntityOptions(props.entities))
 
 const form = useForm({
     title:                   props.item.title            ?? '',
@@ -226,9 +250,6 @@ const arcStages = [
     'transformation', 'integration', 'aftermath',
 ]
 
-const formatLabel = (str) => str
-    ? str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-    : '—'
 </script>
 
 <style scoped>

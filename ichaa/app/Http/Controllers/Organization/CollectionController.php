@@ -34,8 +34,12 @@ class CollectionController extends Controller
     public function create(): Response
     {
         return $this->page('Collections/Create', [
-            'types' => Collection::TYPES,
-            'modes' => Collection::MODES,
+            'collections' => Collection::query()
+                ->select('id', 'name', 'collection_type')
+                ->orderBy('name')
+                ->get(),
+            'types'       => Collection::TYPES,
+            'modes'       => Collection::MODES,
         ]);
     }
 

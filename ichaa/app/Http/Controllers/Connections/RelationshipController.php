@@ -50,6 +50,10 @@ class RelationshipController extends Controller
     public function create(): Response
     {
         return $this->page('Relationships/Create', [
+            'entities'          => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
             'relationshipTypes' => RelationshipType::ALL,
             'tensionCharges'    => TensionCharge::ALL,
         ]);

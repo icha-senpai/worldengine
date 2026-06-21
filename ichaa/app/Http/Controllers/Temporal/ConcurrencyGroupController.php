@@ -29,6 +29,17 @@ class ConcurrencyGroupController extends Controller
         ]);
     }
 
+    public function show(ConcurrencyGroup $concurrencyGroup): Response
+    {
+        return $this->page('Temporal/ConcurrencyGroups/Show', [
+            'group' => $concurrencyGroup->load([
+                'timelineEntries.timeline:id,name',
+                'timelineEntries.eventEntity:id,name,entity_type',
+                'timelineEntries.era:id,name',
+            ]),
+        ]);
+    }
+
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
@@ -57,7 +68,7 @@ class ConcurrencyGroupController extends Controller
             'name'                   => ['sometimes', 'string'],
             'au_date'                => ['nullable', 'string'],
             'description'            => ['nullable', 'array'],
-            'narrative_significance' => ['nullable', 'string'],
+            'narrative_significance' => ['nullable', 'string', 'in:' . implode(',', ConcurrencyGroup::SIGNIFICANCE_LEVELS)],
         ]));
 
         return $this->back('Concurrency group updated.');

@@ -9,6 +9,26 @@ use App\Domain\Identity\Models\EntityQuestion;
 
 class EntityQuestionController extends Controller
 {
+    public function create(Entity $entity): \Illuminate\Http\RedirectResponse
+    {
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'questions',
+            'compose' => 1,
+        ]);
+    }
+
+    public function edit(Entity $entity, EntityQuestion $question): \Illuminate\Http\RedirectResponse
+    {
+        abort_unless((int) $question->entity_id === (int) $entity->id, 404);
+
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'questions',
+            'edit_question' => $question->id,
+        ]);
+    }
+
     // POST /entities/{entity}/questions
     public function store(Request $request, Entity $entity): \Illuminate\Http\RedirectResponse
     {
@@ -22,6 +42,9 @@ class EntityQuestionController extends Controller
             'sort_order'                  => ['nullable', 'integer'],
         ]);
 
+        $validated['sort_order'] = $validated['sort_order']
+            ?? (($entity->questions()->max('sort_order') ?? -1) + 1);
+
         $entity->questions()->create($validated);
 
         return $this->back('Question added.');
@@ -30,6 +53,8 @@ class EntityQuestionController extends Controller
     // PUT /entities/{entity}/questions/{question}
     public function update(Request $request, Entity $entity, EntityQuestion $question): \Illuminate\Http\RedirectResponse
     {
+        abort_unless((int) $question->entity_id === (int) $entity->id, 404);
+
         $validated = $request->validate([
             'question'   => ['sometimes', 'string'],
             'context'    => ['nullable', 'string'],
@@ -51,6 +76,8 @@ class EntityQuestionController extends Controller
     // DELETE /entities/{entity}/questions/{question}
     public function destroy(Entity $entity, EntityQuestion $question): \Illuminate\Http\RedirectResponse
     {
+        abort_unless((int) $question->entity_id === (int) $entity->id, 404);
+
         $question->delete();
 
         return $this->back('Question removed.');

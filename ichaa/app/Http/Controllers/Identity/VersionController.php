@@ -32,6 +32,8 @@ class VersionController extends Controller
     // GET /entities/{entity}/versions/{version}
     public function show(Entity $entity, VersionAndCanonState $version): Response
     {
+        abort_unless((int) $version->entity_id === (int) $entity->id, 404);
+
         return $this->page('Entities/Versions/Show', [
             'entity'  => $entity->only(['id', 'name', 'entity_type']),
             'version' => $version,

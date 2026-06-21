@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Inertia\Response;
 
 use App\Http\Controllers\Controller;
+use App\Domain\Identity\Models\Entity;
+use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Production\Models\PipelineItem;
 
 class PipelineItemController extends Controller
@@ -36,6 +38,26 @@ class PipelineItemController extends Controller
     public function create(): Response
     {
         return $this->page('Production/Pipeline/Create', [
+            'parentItems'     => PipelineItem::query()
+                ->select('id', 'title', 'pipeline_type')
+                ->ordered()
+                ->get(),
+            'characterEntities'=> Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', array_merge(EntityType::CATEGORIES['people'], EntityType::POWERED_TYPES))
+                ->orderBy('name')
+                ->get()
+                ->unique('id')
+                ->values(),
+            'locationEntities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
+                ->orderBy('name')
+                ->get(),
+            'entities'         => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
             'pipelineTypes'  => PipelineItem::PIPELINE_TYPES,
             'pipelineStages' => PipelineItem::PIPELINE_STAGES,
         ]);
@@ -89,6 +111,22 @@ class PipelineItemController extends Controller
     public function edit(PipelineItem $pipeline): Response
     {
         return $this->page('Production/Pipeline/Edit', [
+            'characterEntities'=> Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', array_merge(EntityType::CATEGORIES['people'], EntityType::POWERED_TYPES))
+                ->orderBy('name')
+                ->get()
+                ->unique('id')
+                ->values(),
+            'locationEntities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
+                ->orderBy('name')
+                ->get(),
+            'entities'         => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
             'item'           => $pipeline,
             'pipelineTypes'  => PipelineItem::PIPELINE_TYPES,
             'pipelineStages' => PipelineItem::PIPELINE_STAGES,

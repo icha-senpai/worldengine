@@ -34,6 +34,10 @@ class PowerInteractionController extends Controller
     public function create(): Response
     {
         return $this->page('World/PowerInteractions/Create', [
+            'entities'            => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
             'effectTypes'         => PowerInteraction::EFFECT_TYPES,
             'scaleTypes'          => PowerInteraction::SCALE_TYPES,
             'dangerRatings'       => PowerInteraction::DANGER_RATINGS,
