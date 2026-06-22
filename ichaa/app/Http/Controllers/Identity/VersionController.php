@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\VersionAndCanonState;
 use App\Domain\Identity\Services\EntityService;
+use App\Support\Validation\DataverseRules;
 
 class VersionController extends Controller
 {
@@ -44,13 +45,7 @@ class VersionController extends Controller
     // Creates a manual canon state snapshot
     public function store(Request $request, Entity $entity): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'version_label' => ['nullable', 'string', 'max:255'],
-            'what_changed'  => ['nullable', 'string'],
-            'why_changed'   => ['nullable', 'string'],
-            'valid_from_era'=> ['nullable', 'string'],
-            'is_version_zero'=> ['boolean'],
-        ]);
+        $validated = $request->validate(DataverseRules::webAction('entity-save-version'));
 
         if ($request->boolean('is_version_zero')) {
             $this->entityService->saveVersionZero($entity, $validated);

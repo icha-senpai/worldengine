@@ -15,6 +15,7 @@ use App\Domain\Lore\Models\Document;
 use App\Domain\Intelligence\Models\PerceptionState;
 use App\Domain\Temporal\Models\Timeline;
 use App\Domain\Intelligence\Services\IntelligenceService;
+use App\Support\Validation\DataverseRules;
 
 class PerceptionStateController extends Controller
 {
@@ -83,17 +84,7 @@ class PerceptionStateController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'subject_type'             => ['required', 'string', 'in:' . implode(',', PerceptionState::SUBJECT_TYPES)],
-            'subject_id'               => ['required', 'integer'],
-            'true_state'               => ['required', 'array'],
-            'perceived_state'          => ['required', 'array'],
-            'divergence_level'         => ['required', 'string'],
-            'maintained_by_entity_ids' => ['nullable', 'array'],
-            'maintenance_method'       => ['nullable', 'string'],
-            'maintenance_effort'       => ['nullable', 'string'],
-            'revelation_risk'          => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('perception-states', 'store'));
 
         $state = $this->service->createPerceptionGap($validated);
 
@@ -142,13 +133,7 @@ class PerceptionStateController extends Controller
 
     public function update(Request $request, PerceptionState $perceptionState): \Illuminate\Http\RedirectResponse
     {
-        $perceptionState->update($request->validate([
-            'true_state'         => ['nullable', 'array'],
-            'perceived_state'    => ['nullable', 'array'],
-            'divergence_level'   => ['nullable', 'string'],
-            'maintenance_effort' => ['nullable', 'string'],
-            'revelation_risk'    => ['nullable', 'string'],
-        ]));
+        $perceptionState->update($request->validate(DataverseRules::web('perception-states', 'update')));
 
         return $this->to('perception-states.show', [$perceptionState], 'Perception state updated.');
     }
@@ -169,9 +154,7 @@ class PerceptionStateController extends Controller
 
     public function collapse(Request $request, PerceptionState $perceptionState): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'era' => ['required', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::webAction('perception-collapse'));
 
         $this->service->collapsePerceptionGap($perceptionState, $validated['era']);
 

@@ -8,12 +8,13 @@ use Inertia\Response;
 use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Lore\Models\Document;
+use App\Support\Validation\DataverseRules;
 
 class DocumentController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = Document::extant()->orderBy('title');
+        $query = Document::query()->orderBy('title');
 
         if ($request->filled('type')) {
             $query->ofType($request->type);
@@ -41,17 +42,7 @@ class DocumentController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'title'                     => ['required', 'string', 'max:255'],
-            'document_type'             => ['required', 'string', 'in:' . implode(',', Document::DOCUMENT_TYPES)],
-            'document_authenticity'     => ['nullable', 'string'],
-            'document_status'           => ['nullable', 'string'],
-            'official_narrative'        => ['nullable', 'array'],
-            'true_content'              => ['nullable', 'array'],
-            'official_author_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
-            'true_author_entity_id'     => ['nullable', 'integer', 'exists:entities,id'],
-            'era_created'               => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('documents', 'store'));
 
         $document = Document::create($validated);
 
@@ -83,15 +74,7 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document): \Illuminate\Http\RedirectResponse
     {
-        $document->update($request->validate([
-            'title'                   => ['sometimes', 'string'],
-            'document_authenticity'   => ['nullable', 'string'],
-            'document_status'         => ['nullable', 'string'],
-            'official_narrative'      => ['nullable', 'array'],
-            'true_content'            => ['nullable', 'array'],
-            'true_author_entity_id'   => ['nullable', 'integer'],
-            'suppressed_by_entity_id' => ['nullable', 'integer'],
-        ]));
+        $document->update($request->validate(DataverseRules::web('documents', 'update')));
 
         return $this->to('documents.show', [$document], 'Document updated.');
     }

@@ -44,7 +44,7 @@
                 <div class="bg-surface-2 border border-border rounded-md">
                     <div class="flex items-center justify-between px-4 py-3 border-b border-border">
                         <span class="text-xs font-ui uppercase tracking-widest text-muted-2">Recent Writing</span>
-                        <a href="/writing-pipeline" class="text-xs font-ui uppercase tracking-wider text-muted-3 hover:text-muted transition-colors">All →</a>
+                        <a :href="route('pipeline.index')" class="text-xs font-ui uppercase tracking-wider text-muted-3 hover:text-muted transition-colors">All →</a>
                     </div>
 
                     <div v-if="recentPipeline.length === 0" class="px-4 py-8 text-center text-muted-3 text-sm font-ui">
@@ -53,7 +53,7 @@
 
                     <div v-for="item in recentPipeline" :key="item.id" class="flex flex-col gap-3 px-4 py-2.5 border-b border-border last:border-b-0 sm:flex-row sm:items-center">
                         <div class="flex-1 min-w-0">
-                            <a :href="`/writing-pipeline/${item.id}`" class="prose-wrap block text-primary text-base font-light hover:text-focus transition-colors">
+                            <a :href="route('pipeline.show', item.id)" class="prose-wrap block text-primary text-base font-light hover:text-focus transition-colors">
                                 {{ item.title }}
                             </a>
                             <div class="flex flex-wrap items-center gap-2 mt-0.5">

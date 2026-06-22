@@ -40,14 +40,31 @@ describe('Search page', () => {
             term: 'Seraphine',
             results: {
                 entities: [
-                    { id: 1, name: 'Seraphine', entity_type: 'character', status: 'active' },
+                    {
+                        id: 1,
+                        name: 'Seraphine',
+                        entity_type: 'character',
+                        status: 'active',
+                        notion_note_excerpt: 'Operates through the Grey Line under a false devotional shell.',
+                    },
                 ],
                 documents: [],
                 secrets: [
-                    { id: 2, title: 'Puppet Cycle', secret_type: 'plan', exposure_risk: 'critical' },
+                    {
+                        id: 2,
+                        title: 'Puppet Cycle',
+                        secret_type: 'plan',
+                        exposure_risk: 'critical',
+                        notion_note_excerpt: 'Notion draft ties the plan to Morbraith fallback rituals.',
+                    },
                 ],
                 glossary: [
-                    { id: 3, term: 'Grey Line', usage_context: 'Temporal observation branch' },
+                    {
+                        id: 3,
+                        term: 'Grey Line',
+                        usage_context: 'Temporal observation branch',
+                        notion_note_excerpt: 'Used in Notion notes as shorthand for off-record observer cells.',
+                    },
                 ],
             },
         })
@@ -55,6 +72,8 @@ describe('Search page', () => {
         expect(wrapper.text()).toContain('Entities')
         expect(wrapper.text()).toContain('Seraphine')
         expect(wrapper.text()).toContain('Character · Active')
+        expect(wrapper.text()).toContain('Notion note')
+        expect(wrapper.text()).toContain('false devotional shell')
         expect(wrapper.text()).toContain('Puppet Cycle')
         expect(wrapper.text()).toContain('Plan · Critical')
         expect(wrapper.text()).toContain('Grey Line')

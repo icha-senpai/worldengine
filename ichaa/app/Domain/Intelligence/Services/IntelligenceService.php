@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 
 use App\Domain\Identity\Models\Entity;
+use App\Domain\Identity\ValueObjects\ContentClassification;
+use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\Secret;
 use App\Domain\Intelligence\Models\PerceptionState;
@@ -59,7 +61,17 @@ class IntelligenceService
 
     public function createSecret(array $data): Secret
     {
-        return Secret::create($data);
+        return Secret::create(array_merge([
+            'subject_entity_ids' => [],
+            'holder_entity_ids' => [],
+            'known_by_entity_ids' => [],
+            'exposure_risk' => 'medium',
+            'status' => 'active',
+            'related_knowledge_state_ids' => [],
+            'related_perception_state_ids' => [],
+            'visibility' => VisibilityLevel::PRIVATE,
+            'content_classification' => ContentClassification::RESTRICTED,
+        ], $data));
     }
 
     public function updateSecret(Secret $secret, array $data): Secret

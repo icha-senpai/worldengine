@@ -8,6 +8,7 @@ use Inertia\Response;
 use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Lore\Models\SourceCanonReference;
+use App\Support\Validation\DataverseRules;
 
 class SourceCanonReferenceController extends Controller
 {
@@ -43,14 +44,7 @@ class SourceCanonReferenceController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'universe'            => ['required', 'string'],
-            'level'               => ['required', 'string', 'in:' . implode(',', SourceCanonReference::LEVELS)],
-            'title'               => ['required', 'string', 'max:255'],
-            'parent_reference_id' => ['nullable', 'integer', 'exists:source_canon_reference,id'],
-            'universe_priority'   => ['nullable', 'string'],
-            'research_status'     => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('canon-references', 'store'));
 
         $ref = SourceCanonReference::create($validated);
 
@@ -80,14 +74,9 @@ class SourceCanonReferenceController extends Controller
 
     public function update(Request $request, SourceCanonReference $canonReference): \Illuminate\Http\RedirectResponse
     {
-        $canonReference->update($request->validate([
-            'title'               => ['sometimes', 'string'],
-            'content'             => ['nullable', 'array'],
-            'research_status'     => ['nullable', 'string'],
-            'research_confidence' => ['nullable', 'string'],
-            'canon_disputed'      => ['boolean'],
-            'au_entity_id'        => ['nullable', 'integer'],
-        ]));
+        $canonReference->update($request->validate(
+            DataverseRules::web('canon-references', 'update')
+        ));
 
         return $this->back('Canon reference updated.');
     }

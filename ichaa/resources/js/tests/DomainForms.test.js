@@ -22,6 +22,7 @@ import ConcurrencyGroupCreate from '@/Pages/Temporal/ConcurrencyGroups/Create.vu
 import ConcurrencyGroupEdit from '@/Pages/Temporal/ConcurrencyGroups/Edit.vue'
 import TimelineCreate from '@/Pages/Temporal/Timelines/Create.vue'
 import TimelineEdit from '@/Pages/Temporal/Timelines/Edit.vue'
+import TimelineEventEdit from '@/Pages/Temporal/Timelines/Events/Edit.vue'
 import SecretCreate from '@/Pages/Intelligence/Secrets/Create.vue'
 import SecretEdit from '@/Pages/Intelligence/Secrets/Edit.vue'
 import KnowledgeStateCreate from '@/Pages/Intelligence/KnowledgeStates/Create.vue'
@@ -536,6 +537,44 @@ describe('domain scaffold forms', () => {
         await scaffold.props('onSubmit')()
 
         expect(form.put).toHaveBeenCalledWith({ name: 'timelines.update', params: 48 })
+    })
+
+    it('builds the timeline event edit form and targets the nested update route', async () => {
+        const { form, scaffold } = mountPage(TimelineEventEdit, {
+            timeline: {
+                id: 48,
+                name: 'Grey Line',
+            },
+            entry: {
+                id: 91,
+                entry_label: 'Archive Fire',
+                au_date: 'Year 2000',
+                source_date: '1998',
+                timeline_position: 25,
+                concurrency_group_id: 7,
+                event_significance: 'major',
+                is_atemporal: true,
+                event_entity: { id: 12, name: 'Archive Fire Event' },
+            },
+            concurrencyGroups: [
+                { id: 7, name: 'Night of Falling', au_date: 'Year 0' },
+            ],
+            eventSignificanceLevels: ['minor', 'major'],
+        })
+
+        const groupField = findField(scaffold.props('sections'), 'concurrency_group_id')
+        expect(groupField.options).toEqual([
+            { value: 7, label: 'Night of Falling · Year 0' },
+        ])
+        expect(form.entry_label).toBe('Archive Fire')
+        expect(form.is_atemporal).toBe(true)
+
+        await scaffold.props('onSubmit')()
+
+        expect(form.put).toHaveBeenCalledWith({
+            name: 'timelines.events.update',
+            params: { timeline: 48, entry: 91 },
+        })
     })
 
     it('builds the secret create form with entity multiselect options and store route', async () => {

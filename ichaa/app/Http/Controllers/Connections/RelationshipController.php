@@ -8,6 +8,7 @@ use App\Domain\Connections\ValueObjects\RelationshipType;
 use App\Domain\Connections\ValueObjects\TensionCharge;
 use App\Domain\Identity\Models\Entity;
 use App\Http\Controllers\Controller;
+use App\Support\Validation\DataverseRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -61,20 +62,7 @@ class RelationshipController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'from_entity_id' => ['required', 'integer', 'exists:entities,id'],
-            'to_entity_id' => ['required', 'integer', 'exists:entities,id', 'different:from_entity_id'],
-            'relationship_type' => ['required', 'string', 'in:'.implode(',', RelationshipType::ALL)],
-            'direction' => ['nullable', 'string'],
-            'perspective_a' => ['nullable', 'array'],
-            'perspective_b' => ['nullable', 'array'],
-            'current_tension_charge' => ['nullable', 'string', 'in:'.implode(',', TensionCharge::ALL)],
-            'is_active' => ['boolean'],
-            'perceived_type' => ['nullable', 'string'],
-            'true_type' => ['nullable', 'string'],
-            'visibility' => ['nullable', 'string'],
-            'content_classification' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('relationships', 'store'));
 
         $from = Entity::findOrFail($validated['from_entity_id']);
         $to = Entity::findOrFail($validated['to_entity_id']);
@@ -111,17 +99,7 @@ class RelationshipController extends Controller
 
     public function update(Request $request, Relationship $relationship): RedirectResponse
     {
-        $validated = $request->validate([
-            'relationship_type' => ['sometimes', 'string'],
-            'direction' => ['nullable', 'string'],
-            'perspective_a' => ['nullable', 'array'],
-            'perspective_b' => ['nullable', 'array'],
-            'current_tension_charge' => ['nullable', 'string', 'in:'.implode(',', TensionCharge::ALL)],
-            'charge_change_reason' => ['nullable', 'string'],
-            'is_active' => ['boolean'],
-            'perceived_type' => ['nullable', 'string'],
-            'true_type' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('relationships', 'update'));
 
         // If tension charge changed, use service method to append history
         if (

@@ -9,6 +9,7 @@ use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Connections\Models\FactionMembership;
 use App\Domain\Connections\Services\RelationshipService;
+use App\Support\Validation\DataverseRules;
 
 class FactionMembershipController extends Controller
 {
@@ -35,7 +36,7 @@ class FactionMembershipController extends Controller
 
     public function edit(FactionMembership $factionMembership): Response
     {
-        return $this->page('FactionMemberships/Edit', [
+        return $this->pageWithNotionNote('FactionMemberships/Edit', $factionMembership, 'faction_memberships', [
             'entities'   => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->orderBy('name')
@@ -52,17 +53,7 @@ class FactionMembershipController extends Controller
     // POST /faction-memberships
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'faction_entity_id'      => ['required', 'integer', 'exists:entities,id'],
-            'member_entity_id'       => ['required', 'integer', 'exists:entities,id'],
-            'rank_or_role'           => ['nullable', 'string'],
-            'membership_status'      => ['nullable', 'string'],
-            'joined_era'             => ['nullable', 'string'],
-            'true_loyalty_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
-            'is_undercover'          => ['boolean'],
-            'public_membership_known'=> ['boolean'],
-            'recruited_by_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('faction-memberships', 'store'));
 
         $faction = Entity::findOrFail($validated['faction_entity_id']);
         $member  = Entity::findOrFail($validated['member_entity_id']);
@@ -75,13 +66,7 @@ class FactionMembershipController extends Controller
     // PUT /faction-memberships/{factionMembership}
     public function update(Request $request, FactionMembership $factionMembership): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'rank_or_role'           => ['nullable', 'string'],
-            'membership_status'      => ['nullable', 'string'],
-            'true_loyalty_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
-            'is_undercover'          => ['boolean'],
-            'public_membership_known'=> ['boolean'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('faction-memberships', 'update'));
 
         $this->service->updateFactionMembership($factionMembership, $validated);
 

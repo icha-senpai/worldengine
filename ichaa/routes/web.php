@@ -128,6 +128,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('timelines/{timeline}')->name('timelines.')->group(function () {
         Route::post('events/{event}', [TimelineController::class, 'placeEvent'])->name('events.place');
+        Route::get('events/{entry}/edit', [TimelineController::class, 'editEvent'])->name('events.edit');
+        Route::put('events/{entry}', [TimelineController::class, 'updateEvent'])->name('events.update');
         Route::delete('events/{entry}', [TimelineController::class, 'removeEvent'])->name('events.remove');
     });
 

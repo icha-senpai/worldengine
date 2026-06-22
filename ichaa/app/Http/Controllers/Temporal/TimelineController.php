@@ -8,8 +8,10 @@ use App\Domain\Temporal\Models\ConcurrencyGroup;
 use App\Domain\Temporal\Models\Timeline;
 use App\Domain\Temporal\Services\TemporalService;
 use App\Http\Controllers\Controller;
+use App\Support\Validation\DataverseRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Response;
 
 class TimelineController extends Controller
@@ -38,11 +40,7 @@ class TimelineController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'summary' => ['nullable', 'string'],
-            'visibility' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('timelines', 'store'));
 
         // Match the entity create path so blank UI values fall back to entity defaults.
         $validated = array_filter($validated, fn ($v) => ! ($v === '' || $v === null) || is_array($v) || is_bool($v));
@@ -98,10 +96,7 @@ class TimelineController extends Controller
     {
         $this->assertTimelineEntity($timeline);
 
-        $timeline->update($request->validate([
-            'name' => ['sometimes', 'string'],
-            'summary' => ['nullable', 'string'],
-        ]));
+        $timeline->update($request->validate(DataverseRules::web('timelines', 'update')));
 
         return $this->back('Timeline updated.');
     }
@@ -119,40 +114,58 @@ class TimelineController extends Controller
     {
         $this->assertTimelineEntity($timeline);
 
-        $validated = $request->validate([
-            'entry_label' => ['nullable', 'string', 'max:255'],
-            'au_date' => ['nullable', 'string'],
-            'source_date' => ['nullable', 'string'],
-            'source_date_universe' => ['nullable', 'string'],
-            'timeline_position' => ['nullable', 'integer'],
-            'primordial_era' => ['boolean'],
-            'era_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
-            'concurrency_group_id' => ['nullable', 'integer', 'exists:concurrency_groups,id'],
-            'time_density' => ['nullable', 'string', 'in:'.implode(',', Timeline::TIME_DENSITY_LEVELS)],
-            'causality_type' => ['nullable', 'string', 'in:'.implode(',', Timeline::CAUSALITY_TYPES)],
-            'causality_notes' => ['nullable', 'string'],
-            'event_significance' => ['nullable', 'string', 'in:'.implode(',', Timeline::EVENT_SIGNIFICANCE_LEVELS)],
-            'is_atemporal' => ['boolean'],
-            'public_narrative' => ['nullable', 'array'],
-            'true_narrative' => ['nullable', 'array'],
-            'narrative_divergence' => ['nullable', 'string', 'in:'.implode(',', Timeline::NARRATIVE_DIVERGENCE_LEVELS)],
-            'truth_revealed_at_era' => ['nullable', 'string'],
-            'temporal_certainty' => ['nullable', 'string', 'in:'.implode(',', Timeline::TEMPORAL_CERTAINTY_LEVELS)],
-        ]);
+        $validated = $request->validate($this->timelineEntryRules());
 
         // Keep placement resilient when optional UI fields are left blank and the
         // underlying schema is narrower than the full domain model contract.
-        $validated = array_filter($validated, fn ($value) => ! ($value === '' || $value === null) || is_array($value) || is_bool($value));
+        $validated = $this->filterTimelinePersistableData($validated);
 
         $this->service->placeEvent($timeline, $event, $validated);
 
         return $this->back('Event placed on timeline.');
     }
 
+    public function editEvent(Entity $timeline, Timeline $entry): Response
+    {
+        $this->assertTimelineEntity($timeline);
+        $this->assertTimelineEventBelongsToTimeline($timeline, $entry);
+
+        $entry->load([
+            'eventEntity:id,name,entity_type',
+            'concurrencyGroup:id,name,au_date',
+        ]);
+
+        $concurrencyGroups = ConcurrencyGroup::query()
+            ->orderBy('au_date')
+            ->orderBy('name')
+            ->get(['id', 'name', 'au_date', 'narrative_significance']);
+
+        return $this->page('Temporal/Timelines/Events/Edit', [
+            'timeline' => $timeline,
+            'entry' => $entry,
+            'concurrencyGroups' => $concurrencyGroups,
+            'eventSignificanceLevels' => Timeline::EVENT_SIGNIFICANCE_LEVELS,
+        ]);
+    }
+
+    public function updateEvent(Request $request, Entity $timeline, Timeline $entry): RedirectResponse
+    {
+        $this->assertTimelineEntity($timeline);
+        $this->assertTimelineEventBelongsToTimeline($timeline, $entry);
+
+        $validated = $this->filterTimelinePersistableData(
+            $request->validate($this->timelineEntryRules())
+        );
+
+        $this->service->updateTimelineEntry($entry, $validated);
+
+        return $this->to('timelines.show', [$timeline], 'Timeline event updated.');
+    }
+
     public function removeEvent(Entity $timeline, Timeline $entry): RedirectResponse
     {
         $this->assertTimelineEntity($timeline);
-        abort_unless((int) $entry->timeline_id === (int) $timeline->id, 404);
+        $this->assertTimelineEventBelongsToTimeline($timeline, $entry);
 
         $this->service->removeFromTimeline($entry);
 
@@ -162,5 +175,27 @@ class TimelineController extends Controller
     private function assertTimelineEntity(Entity $timeline): void
     {
         abort_unless($timeline->entity_type === 'timeline', 404);
+    }
+
+    private function assertTimelineEventBelongsToTimeline(Entity $timeline, Timeline $entry): void
+    {
+        abort_unless((int) $entry->timeline_id === (int) $timeline->id, 404);
+    }
+
+    private function timelineEntryRules(): array
+    {
+        return DataverseRules::webAction('timeline-update-event');
+    }
+
+    private function filterTimelinePersistableData(array $validated): array
+    {
+        $filtered = array_filter(
+            $validated,
+            fn ($value) => ! ($value === '' || $value === null) || is_array($value) || is_bool($value)
+        );
+
+        $supportedColumns = array_flip(Schema::getColumnListing('timeline'));
+
+        return array_intersect_key($filtered, $supportedColumns);
     }
 }

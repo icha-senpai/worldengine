@@ -29,6 +29,7 @@ use App\Domain\Production\Models\SessionLog;
 use App\Domain\System\Models\NotionSyncMapping;
 use App\Domain\Temporal\Models\CharacterStateTracker;
 use App\Domain\Temporal\Models\ConcurrencyGroup;
+use App\Domain\Temporal\Models\Timeline;
 use App\Domain\Temporal\Services\TemporalService;
 use App\Domain\World\Models\LocationContainment;
 use App\Domain\World\Models\LocationControlHistory;
@@ -1377,7 +1378,7 @@ class NotionDataverseSyncService
                             $noteChanged = $this->syncNotionNote($resource, $page, $existing, $stats);
                         }
 
-                        $this->writeBack($pageId, (string) $existing->getKey());
+                        $this->writeBack($page, (string) $existing->getKey());
                         $this->touchMapping($mapping, $databaseId, $existing::class, (int) $existing->getKey(), $page, $hash);
                     }
 
@@ -1396,7 +1397,7 @@ class NotionDataverseSyncService
                     : ($createRecord ? $createRecord($data, $page, $index) : $this->createModelFromData($existing, $data));
 
                 $this->storeMapping($resource, $pageId, $databaseId, $model::class, (int) $model->getKey(), $page, $hash);
-                $this->writeBack($pageId, (string) $model->getKey());
+                $this->writeBack($page, (string) $model->getKey());
                 $this->syncNotionNote($resource, $page, $model, $stats);
 
                 $stats[$existing ? 'updated' : 'created']++;
@@ -1461,9 +1462,47 @@ class NotionDataverseSyncService
             'relationship' => $this->relatedModelIdFrom($page, ['Subject Relationship', 'Subject'], self::RESOURCE_RELATIONSHIPS, Relationship::class, $fallbackId),
             'group_relationship' => $this->relatedModelIdFrom($page, ['Subject Group Relationship', 'Subject'], self::RESOURCE_GROUP_RELATIONSHIPS, GroupRelationship::class, $fallbackId),
             'document' => $this->relatedModelIdFrom($page, ['Subject Document', 'Subject'], self::RESOURCE_DOCUMENTS, Document::class, $fallbackId),
+            'event' => $this->resolvePerceptionEventSubjectId($page, $fallbackId),
             'faction', 'location' => $this->relatedModelIdFrom($page, ['Subject Entity', 'Subject'], NotionIdentitySyncService::RESOURCE_ENTITIES, Entity::class, $fallbackId),
             default => $fallbackId,
         };
+    }
+
+    private function resolvePerceptionEventSubjectId(array $page, ?int $fallbackId): ?int
+    {
+        $eventEntityId = $this->relatedModelIdFrom(
+            $page,
+            ['Subject Entity', 'Subject'],
+            NotionIdentitySyncService::RESOURCE_ENTITIES,
+            Entity::class,
+        );
+
+        if (! $eventEntityId) {
+            return $fallbackId;
+        }
+
+        $timelineEntityId = $this->relatedModelIdFrom(
+            $page,
+            ['Timeline'],
+            self::RESOURCE_TIMELINES,
+            Entity::class,
+        );
+
+        $matches = Timeline::query()
+            ->where('event_entity_id', $eventEntityId)
+            ->when($timelineEntityId, fn ($query) => $query->where('timeline_id', $timelineEntityId))
+            ->orderBy('id')
+            ->pluck('id');
+
+        if ($matches->isEmpty()) {
+            return $fallbackId;
+        }
+
+        if ($fallbackId && $matches->contains($fallbackId)) {
+            return $fallbackId;
+        }
+
+        return $matches->count() === 1 ? $matches->first() : null;
     }
 
     private function resolveModel(string $resource, ?NotionSyncMapping $mapping, array $page, string $modelClass): ?Model
@@ -1613,7 +1652,8 @@ class NotionDataverseSyncService
     {
         foreach ($properties as $property) {
             if ($this->hasProperty($page, $property)) {
-                $start = data_get($page, "properties.{$property}.date.start");
+                $resolvedProperty = $this->mapper->propertyKey($page, $property);
+                $start = $resolvedProperty ? data_get($page, "properties.{$resolvedProperty}.date.start") : null;
 
                 return filled($start) ? (string) $start : null;
             }
@@ -1637,7 +1677,9 @@ class NotionDataverseSyncService
     {
         foreach ($properties as $property) {
             if ($this->hasProperty($page, $property)) {
-                return data_get($page, "properties.{$property}.number");
+                $resolvedProperty = $this->mapper->propertyKey($page, $property);
+
+                return $resolvedProperty ? data_get($page, "properties.{$resolvedProperty}.number") : null;
             }
         }
 
@@ -1802,13 +1844,18 @@ class NotionDataverseSyncService
         return $this->mapper->normalizeKey($this->mapper->select($page, 'Sync State'));
     }
 
-    private function writeBack(string $pageId, string $localId): void
+    private function writeBack(array $page, string $localId): void
     {
         try {
+            $pageId = $this->mapper->pageId($page);
+            $siteRecordIdProperty = $this->mapper->propertyKey($page, 'Site Record ID') ?? 'Site Record ID';
+            $syncStateProperty = $this->mapper->propertyKey($page, 'Sync State') ?? 'Sync State';
+            $lastSyncedProperty = $this->mapper->propertyKey($page, 'Last Synced') ?? 'Last Synced';
+
             $this->client->updatePageProperties($pageId, [
-                'Site Record ID' => $this->client->richTextProperty($localId),
-                'Sync State' => $this->client->selectProperty('synced'),
-                'Last Synced' => $this->client->dateProperty(now()),
+                $siteRecordIdProperty => $this->client->richTextProperty($localId),
+                $syncStateProperty => $this->client->selectProperty('synced'),
+                $lastSyncedProperty => $this->client->dateProperty(now()),
             ]);
         } catch (Throwable) {
             // Local sync should still succeed even when write-back is blocked.
@@ -1922,7 +1969,7 @@ class NotionDataverseSyncService
 
     private function hasProperty(array $page, string $property): bool
     {
-        return array_key_exists($property, $page['properties'] ?? []);
+        return $this->mapper->hasProperty($page, $property);
     }
 
     private function resourceLabel(string $resource): string

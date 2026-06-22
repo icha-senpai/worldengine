@@ -112,7 +112,7 @@ class NotionIdentitySyncService
                         $noteChanged = $this->syncNotionNote(self::RESOURCE_ENTITIES, $page, $entity, $stats);
                     }
 
-                    $this->writeBack($pageId, (string) $entity->id);
+                    $this->writeBack($page, (string) $entity->id);
                     $this->touchMapping($mapping, $databaseId, $entity::class, $entity->id, $page, $hash);
                 }
 
@@ -132,7 +132,7 @@ class NotionIdentitySyncService
                     : $this->entityService->create($data);
 
                 $this->storeMapping(self::RESOURCE_ENTITIES, $pageId, $databaseId, $entity::class, $entity->id, $page, $hash);
-                $this->writeBack($pageId, (string) $entity->id);
+                $this->writeBack($page, (string) $entity->id);
                 $this->syncNotionNote(self::RESOURCE_ENTITIES, $page, $entity, $stats);
 
                 $stats[$mapping ? 'updated' : 'created']++;
@@ -200,7 +200,7 @@ class NotionIdentitySyncService
                         $noteChanged = $this->syncNotionNote(self::RESOURCE_ENTITY_ALIASES, $page, $alias, $stats);
                     }
 
-                    $this->writeBack($pageId, (string) $alias->id);
+                    $this->writeBack($page, (string) $alias->id);
                     $this->touchMapping($mapping, $databaseId, $alias::class, $alias->id, $page, $hash);
                 }
 
@@ -219,7 +219,7 @@ class NotionIdentitySyncService
                 : EntityAlias::create($data);
 
             $this->storeMapping(self::RESOURCE_ENTITY_ALIASES, $pageId, $databaseId, $alias::class, $alias->id, $page, $hash);
-            $this->writeBack($pageId, (string) $alias->id);
+            $this->writeBack($page, (string) $alias->id);
             $this->syncNotionNote(self::RESOURCE_ENTITY_ALIASES, $page, $alias, $stats);
 
             $touchedEntityIds[$entity->id] = $entity->id;
@@ -285,7 +285,7 @@ class NotionIdentitySyncService
                         $noteChanged = $this->syncNotionNote(self::RESOURCE_ENTITY_NOTES, $page, $note, $stats);
                     }
 
-                    $this->writeBack($pageId, (string) $note->id);
+                    $this->writeBack($page, (string) $note->id);
                     $this->touchMapping($mapping, $databaseId, $note::class, $note->id, $page, $hash);
                 }
 
@@ -304,7 +304,7 @@ class NotionIdentitySyncService
                 : EntityNote::create($data);
 
             $this->storeMapping(self::RESOURCE_ENTITY_NOTES, $pageId, $databaseId, $note::class, $note->id, $page, $hash);
-            $this->writeBack($pageId, (string) $note->id);
+            $this->writeBack($page, (string) $note->id);
             $this->syncNotionNote(self::RESOURCE_ENTITY_NOTES, $page, $note, $stats);
 
             $stats[$mapping ? 'updated' : 'created']++;
@@ -384,7 +384,7 @@ class NotionIdentitySyncService
                         $noteChanged = $this->syncNotionNote(self::RESOURCE_ENTITY_QUESTIONS, $page, $question, $stats);
                     }
 
-                    $this->writeBack($pageId, (string) $question->id);
+                    $this->writeBack($page, (string) $question->id);
                     $this->touchMapping($mapping, $databaseId, $question::class, $question->id, $page, $hash);
                 }
 
@@ -403,7 +403,7 @@ class NotionIdentitySyncService
                 : EntityQuestion::create($data);
 
             $this->storeMapping(self::RESOURCE_ENTITY_QUESTIONS, $pageId, $databaseId, $question::class, $question->id, $page, $hash);
-            $this->writeBack($pageId, (string) $question->id);
+            $this->writeBack($page, (string) $question->id);
             $this->syncNotionNote(self::RESOURCE_ENTITY_QUESTIONS, $page, $question, $stats);
 
             $stats[$mapping ? 'updated' : 'created']++;
@@ -554,13 +554,18 @@ class NotionIdentitySyncService
         return $this->mapper->normalizeKey($this->mapper->select($page, 'Sync State'));
     }
 
-    private function writeBack(string $pageId, string $localId): void
+    private function writeBack(array $page, string $localId): void
     {
         try {
+            $pageId = $this->mapper->pageId($page);
+            $siteRecordIdProperty = $this->mapper->propertyKey($page, 'Site Record ID') ?? 'Site Record ID';
+            $syncStateProperty = $this->mapper->propertyKey($page, 'Sync State') ?? 'Sync State';
+            $lastSyncedProperty = $this->mapper->propertyKey($page, 'Last Synced') ?? 'Last Synced';
+
             $this->client->updatePageProperties($pageId, [
-                'Site Record ID' => $this->client->richTextProperty($localId),
-                'Sync State' => $this->client->selectProperty('synced'),
-                'Last Synced' => $this->client->dateProperty(now()),
+                $siteRecordIdProperty => $this->client->richTextProperty($localId),
+                $syncStateProperty => $this->client->selectProperty('synced'),
+                $lastSyncedProperty => $this->client->dateProperty(now()),
             ]);
         } catch (Throwable) {
             // Local sync should still succeed if the integration can read but

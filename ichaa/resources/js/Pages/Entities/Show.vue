@@ -265,6 +265,7 @@
                             <p v-if="a.era_start || a.era_end" class="text-muted-3 text-xs font-ui mt-1">
                                 {{ a.era_start || '?' }} → {{ a.era_end || 'present' }}
                             </p>
+                            <NotionNotePanel :note="a.notion_note" class="mt-3" />
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
                             <AppButton
@@ -338,6 +339,7 @@
                         </div>
                     </div>
                     <p class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ n.content }}</p>
+                    <NotionNotePanel :note="n.notion_note" class="mt-3" />
                 </div>
             </div>
             <div v-else class="empty-state">No notes recorded.</div>
@@ -428,6 +430,7 @@
                             <p v-if="q.resolution" class="prose-wrap text-muted-2 text-sm mt-2 italic">
                                 ↳ {{ q.resolution }}
                             </p>
+                            <NotionNotePanel :note="q.notion_note" class="mt-3" />
                         </div>
                         <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
                             <AppButton type="button" variant="ghost" size="sm" @click="beginQuestionEdit(q)">Edit</AppButton>

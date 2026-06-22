@@ -7,6 +7,7 @@ use Inertia\Response;
 
 use App\Http\Controllers\Controller;
 use App\Domain\Organization\Models\Glossary;
+use App\Support\Validation\DataverseRules;
 
 class GlossaryController extends Controller
 {
@@ -35,14 +36,7 @@ class GlossaryController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'term'           => ['required', 'string', 'max:255'],
-            'usage_context'  => ['required', 'string'],
-            'definition'     => ['required', 'array'],
-            'origin_universe'=> ['nullable', 'string'],
-            'era_introduced' => ['nullable', 'string'],
-            'term_status'    => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('glossary', 'store'));
 
         $term = Glossary::create($validated);
 
@@ -61,12 +55,7 @@ class GlossaryController extends Controller
 
     public function update(Request $request, Glossary $glossary): \Illuminate\Http\RedirectResponse
     {
-        $glossary->update($request->validate([
-            'term'          => ['sometimes', 'string'],
-            'usage_context' => ['sometimes', 'string'],
-            'definition'    => ['nullable', 'array'],
-            'term_status'   => ['nullable', 'string'],
-        ]));
+        $glossary->update($request->validate(DataverseRules::web('glossary', 'update')));
 
         return $this->to('glossary.show', [$glossary], 'Term updated.');
     }

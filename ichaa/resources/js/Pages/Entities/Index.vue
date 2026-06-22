@@ -38,9 +38,8 @@
             <SelectInput v-model="filterForm.type" class="w-full sm:w-auto" @change="applyFilters">
                 <option value="">All types</option>
                 <template v-for="(types, category) in entityTypes" :key="category">
-                    <optgroup :label="formatLabel(category)">
-                        <option v-for="t in types" :key="t" :value="t">{{ formatLabel(t) }}</option>
-                    </optgroup>
+                    <option :value="typeCategoryValue(category)">{{ formatLabel(category) }}</option>
+                    <option v-for="t in types" :key="t" :value="t">{{ typeOptionLabel(t) }}</option>
                 </template>
             </SelectInput>
 
@@ -93,7 +92,7 @@
                 v-for="entity in entities.data"
                 :key="entity.id"
                 :href="route('entities.show', entity.id)"
-                class="flex flex-col gap-3 px-4 py-4 border-b border-border last:border-b-0 hover:bg-surface transition-colors group md:grid md:grid-cols-entity-list md:items-center md:gap-0 md:py-3"
+                class="grid-cols-entity-list flex flex-col gap-3 px-4 py-4 border-b border-border last:border-b-0 hover:bg-surface transition-colors group md:grid md:items-start md:gap-x-0 md:gap-y-2"
             >
                 <!-- Name + summary -->
                 <div class="min-w-0 md:pr-4">
@@ -105,9 +104,6 @@
                             · {{ entity.public_title }}
                         </span>
                     </div>
-                    <p v-if="entity.summary" class="prose-wrap text-muted-3 text-sm leading-snug mt-1">
-                        {{ entity.summary }}
-                    </p>
                 </div>
 
                 <!-- Type -->
@@ -122,8 +118,8 @@
                 <div class="flex items-center justify-between gap-3 md:block">
                     <span class="mobile-label md:hidden">Status</span>
                     <div class="flex items-center md:block">
-                    <span class="status-dot" :class="statusDotClass(entity.status)" />
-                    <span class="text-muted-2 text-sm font-ui">{{ formatLabel(entity.status) }}</span>
+                        <span class="status-dot" :class="statusDotClass(entity.status)" />
+                        <span class="text-muted-2 text-sm font-ui">{{ formatLabel(entity.status) }}</span>
                     </div>
                 </div>
 
@@ -136,21 +132,25 @@
                 </div>
 
                 <!-- Completion score -->
-                <div class="flex items-center justify-between gap-3 md:justify-end">
+                <div class="flex items-center justify-between gap-3 md:justify-end md:self-start">
                     <span class="mobile-label md:hidden">Complete</span>
                     <div class="flex items-center gap-2">
-                    <div class="w-16 h-1 bg-surface rounded-full overflow-hidden">
-                        <div
-                            class="h-full rounded-full transition-all"
-                            :class="completionBarClass(entity.completion_score)"
-                            :style="{ width: entity.completion_score + '%' }"
-                        />
-                    </div>
-                    <span class="text-muted-3 text-xs font-ui w-8 text-right">
-                        {{ entity.completion_score }}%
-                    </span>
+                        <div class="w-16 h-1 bg-surface rounded-full overflow-hidden">
+                            <div
+                                class="h-full rounded-full transition-all"
+                                :class="completionBarClass(entity.completion_score)"
+                                :style="{ width: entity.completion_score + '%' }"
+                            />
+                        </div>
+                        <span class="text-muted-3 text-xs font-ui w-8 text-right">
+                            {{ entity.completion_score }}%
+                        </span>
                     </div>
                 </div>
+
+                <p v-if="entity.summary" class="prose-wrap text-muted-3 text-sm leading-snug md:col-span-5">
+                    {{ entity.summary }}
+                </p>
             </Link>
         </div>
 
@@ -181,7 +181,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
@@ -192,7 +192,7 @@ import TextInput from '@/Components/TextInput.vue'
 const props = defineProps({
     entities:    { type: Object, required: true },
     filters:     { type: Object, default: () => ({}) },
-    entityTypes: { type: Array,  default: () => [] },
+    entityTypes: { type: Object, default: () => ({}) },
     statuses:    { type: Array,  default: () => [] },
     universes:   { type: Array,  default: () => [] },
 })
@@ -208,22 +208,76 @@ const hasActiveFilters = computed(() =>
     Object.values(filterForm.value).some(v => v !== '')
 )
 
+let searchDebounce = null
+let suppressSearchWatch = false
+
 const applyFilters = () => {
+    if (searchDebounce) {
+        clearTimeout(searchDebounce)
+        searchDebounce = null
+    }
+
     const params = {}
     Object.entries(filterForm.value).forEach(([k, v]) => {
         if (v !== '') params[k] = v
     })
-    router.get(route('entities.index'), params, { preserveState: true, replace: true })
+
+    router.get(route('entities.index'), params, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+        onFinish: () => {
+            suppressSearchWatch = false
+        },
+    })
 }
 
 const clearFilters = () => {
+    suppressSearchWatch = true
+
+    if (searchDebounce) {
+        clearTimeout(searchDebounce)
+        searchDebounce = null
+    }
+
     filterForm.value = { q: '', type: '', status: '', universe: '' }
-    router.get(route('entities.index'))
+    router.get(route('entities.index'), {}, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+        onFinish: () => {
+            suppressSearchWatch = false
+        },
+    })
 }
+
+watch(() => filterForm.value.q, () => {
+    if (suppressSearchWatch) {
+        return
+    }
+
+    if (searchDebounce) {
+        clearTimeout(searchDebounce)
+    }
+
+    searchDebounce = setTimeout(() => {
+        applyFilters()
+    }, 250)
+})
+
+onBeforeUnmount(() => {
+    if (searchDebounce) {
+        clearTimeout(searchDebounce)
+    }
+})
 
 const formatLabel = (str) => str
     ? str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     : '—'
+
+const typeCategoryValue = (category) => `category:${category}`
+
+const typeOptionLabel = (type) => `- ${formatLabel(type)}`
 
 const formatUniverses = (universes) => {
     if (!universes || universes.length === 0) return 'Native'

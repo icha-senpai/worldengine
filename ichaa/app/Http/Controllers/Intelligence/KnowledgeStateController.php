@@ -13,6 +13,7 @@ use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\Secret;
 use App\Domain\Temporal\Models\Timeline;
 use App\Domain\Intelligence\Services\IntelligenceService;
+use App\Support\Validation\DataverseRules;
 
 class KnowledgeStateController extends Controller
 {
@@ -80,21 +81,7 @@ class KnowledgeStateController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'knower_entity_id'              => ['required', 'integer', 'exists:entities,id'],
-            'subject_entity_id'             => ['nullable', 'integer', 'exists:entities,id'],
-            'subject_secret_id'             => ['nullable', 'integer', 'exists:secrets,id'],
-            'subject_relationship_id'       => ['nullable', 'integer'],
-            'subject_group_relationship_id' => ['nullable', 'integer'],
-            'subject_event_id'              => ['nullable', 'integer'],
-            'knowledge_type'                => ['required', 'string', 'in:' . implode(',', KnowledgeState::KNOWLEDGE_TYPES)],
-            'knowledge_content'             => ['nullable', 'array'],
-            'accuracy'                      => ['required', 'string', 'in:' . implode(',', KnowledgeState::ACCURACY_LEVELS)],
-            'current_belief_state'          => ['required', 'string', 'in:' . implode(',', KnowledgeState::BELIEF_STATES)],
-            'acquired_through'              => ['required', 'string', 'in:' . implode(',', KnowledgeState::ACQUISITION_METHODS)],
-            'acquired_from_entity_id'       => ['nullable', 'integer', 'exists:entities,id'],
-            'acquired_at_era'               => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('knowledge-states', 'store'));
 
         $knower = Entity::findOrFail($validated['knower_entity_id']);
         $state  = $this->service->recordKnowledge($knower, $validated);
@@ -127,11 +114,7 @@ class KnowledgeStateController extends Controller
 
     public function update(Request $request, KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
     {
-        $knowledgeState->update($request->validate([
-            'knowledge_content'    => ['nullable', 'array'],
-            'accuracy'             => ['sometimes', 'string'],
-            'current_belief_state' => ['sometimes', 'string', 'in:' . implode(',', KnowledgeState::BELIEF_STATES)],
-        ]));
+        $knowledgeState->update($request->validate(DataverseRules::web('knowledge-states', 'update')));
 
         return $this->back('Knowledge state updated.');
     }
@@ -145,7 +128,9 @@ class KnowledgeStateController extends Controller
 
     public function markActedOn(Request $request, KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
     {
-        $this->service->markActedOn($knowledgeState, $request->input('action_notes'));
+        $validated = $request->validate(DataverseRules::webAction('knowledge-state-act-on'));
+
+        $this->service->markActedOn($knowledgeState, $validated['action_notes'] ?? null);
 
         return $this->back('Marked as acted on.');
     }

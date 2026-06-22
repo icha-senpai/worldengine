@@ -395,6 +395,14 @@ describe('read pages', () => {
         expect(wrapper.text()).toContain('The Fracture')
         expect(wrapper.text()).toContain('The Library Watches')
         expect(wrapper.text()).toContain('Archive Fire (#44 · Event)')
+        expect(wrapper.get('[data-test="edit-entry-31"]').attributes('data-href')).toBe(JSON.stringify({
+            name: 'timelines.events.edit',
+            params: { timeline: 21, entry: 31 },
+        }))
+        expect(wrapper.get('[data-test="edit-entry-32"]').attributes('data-href')).toBe(JSON.stringify({
+            name: 'timelines.events.edit',
+            params: { timeline: 21, entry: 32 },
+        }))
 
         await wrapper.find('#event_entity_id').setValue('44')
         await wrapper.find('#entry_label').setValue('Archive Fire on Grey Line')

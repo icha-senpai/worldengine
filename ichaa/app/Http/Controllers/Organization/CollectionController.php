@@ -6,6 +6,7 @@ use App\Domain\Identity\Models\Entity;
 use App\Domain\Organization\Models\Collection;
 use App\Domain\Organization\Services\CollectionService;
 use App\Http\Controllers\Controller;
+use App\Support\Validation\DataverseRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -45,15 +46,7 @@ class CollectionController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'collection_type' => ['required', 'string', 'in:'.implode(',', Collection::TYPES)],
-            'collection_mode' => ['required', 'string', 'in:'.implode(',', Collection::MODES)],
-            'rules' => ['nullable', 'array'],
-            'parent_collection_id' => ['nullable', 'integer', 'exists:collections,id'],
-            'visibility' => ['nullable', 'string'],
-            'content_classification' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('collections', 'store'));
 
         $collection = $this->service->create($validated);
 
@@ -83,13 +76,7 @@ class CollectionController extends Controller
 
     public function update(Request $request, Collection $collection): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'max:255'],
-            'collection_type' => ['sometimes', 'string'],
-            'collection_mode' => ['sometimes', 'string'],
-            'rules' => ['nullable', 'array'],
-            'completion_state' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('collections', 'update'));
 
         $this->service->update($collection, $validated);
 

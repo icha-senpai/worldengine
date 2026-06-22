@@ -123,6 +123,86 @@ class NotionDataverseConnectionsSyncCommandTest extends TestCase
         });
     }
 
+    public function test_connections_sync_accepts_required_suffix_on_notion_property_names(): void
+    {
+        config()->set('notion.api_token', 'test-token');
+        config()->set('notion.dataverse.resources.relationships', 'relationships-db');
+
+        $fromEntity = Entity::factory()->create(['name' => 'Nora Flint']);
+        $toEntity = Entity::factory()->create(['name' => 'Iris March']);
+
+        $fromPageId = 'aaaa1111-1111-1111-1111-111111111111';
+        $toPageId = 'bbbb2222-2222-2222-2222-222222222222';
+        $relationshipPageId = 'cccc3333-3333-3333-3333-333333333333';
+
+        NotionSyncMapping::create([
+            'sync_resource' => 'entities',
+            'notion_page_id' => $fromPageId,
+            'notion_parent_database_id' => 'entities-db',
+            'local_model_type' => Entity::class,
+            'local_model_id' => $fromEntity->id,
+            'last_synced_at' => now(),
+        ]);
+
+        NotionSyncMapping::create([
+            'sync_resource' => 'entities',
+            'notion_page_id' => $toPageId,
+            'notion_parent_database_id' => 'entities-db',
+            'local_model_type' => Entity::class,
+            'local_model_id' => $toEntity->id,
+            'last_synced_at' => now(),
+        ]);
+
+        Http::fake([
+            'https://api.notion.com/v1/databases/relationships-db/query' => Http::response([
+                'results' => [[
+                    'id' => $relationshipPageId,
+                    'last_edited_time' => '2026-06-22T00:00:00.000Z',
+                    'properties' => [
+                        'From Entity (Required)' => ['type' => 'relation', 'relation' => [['id' => $fromPageId]]],
+                        'To Entity (Required)' => ['type' => 'relation', 'relation' => [['id' => $toPageId]]],
+                        'Relationship Type' => $this->selectProperty('familial'),
+                        'Sync State (Required)' => $this->selectProperty('ready'),
+                        'Site Record ID (Required)' => $this->richTextProperty(null),
+                        'Last Synced (Required)' => ['type' => 'date', 'date' => null],
+                    ],
+                ]],
+                'has_more' => false,
+                'next_cursor' => null,
+            ]),
+            "https://api.notion.com/v1/blocks/{$relationshipPageId}/children*" => Http::response([
+                'results' => [],
+                'has_more' => false,
+                'next_cursor' => null,
+            ]),
+            'https://api.notion.com/v1/pages/*' => Http::response([
+                'object' => 'page',
+                'id' => 'patched-page',
+            ]),
+        ]);
+
+        $stats = app(NotionDataverseSyncService::class)->sync('relationships');
+
+        $this->assertSame([], $stats['warnings']);
+
+        $relationship = Relationship::first();
+
+        $this->assertNotNull($relationship);
+        $this->assertSame($fromEntity->id, $relationship->from_entity_id);
+        $this->assertSame($toEntity->id, $relationship->to_entity_id);
+        $this->assertSame('familial', $relationship->relationship_type);
+
+        Http::assertSent(function (Request $request) use ($relationshipPageId, $relationship) {
+            if ($request->method() !== 'PATCH' || ! str_ends_with($request->url(), "/pages/{$relationshipPageId}")) {
+                return false;
+            }
+
+            return data_get($request->data(), 'properties.Site Record ID (Required).rich_text.0.text.content') === (string) $relationship->id
+                && data_get($request->data(), 'properties.Sync State (Required).select.name') === 'synced'
+                && data_get($request->data(), 'properties.Last Synced (Required).date.start') !== null;
+        });
+    }
+
     private function richTextProperty(?string $value): array
     {
         return [

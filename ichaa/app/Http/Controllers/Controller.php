@@ -54,6 +54,11 @@ abstract class Controller extends BaseController
     {
         $note = NotionNote::query()->forModel($model, $resource)->first();
 
+        return $this->formatNotionNote($note);
+    }
+
+    protected function formatNotionNote(?NotionNote $note): ?array
+    {
         if (! $note || blank($note->content)) {
             return null;
         }

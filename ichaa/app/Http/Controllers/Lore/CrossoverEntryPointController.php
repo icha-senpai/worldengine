@@ -7,6 +7,7 @@ use Inertia\Response;
 
 use App\Http\Controllers\Controller;
 use App\Domain\Lore\Models\CrossoverEntryPoint;
+use App\Support\Validation\DataverseRules;
 
 class CrossoverEntryPointController extends Controller
 {
@@ -26,11 +27,7 @@ class CrossoverEntryPointController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'source_universe' => ['required', 'string'],
-            'entry_mechanism' => ['nullable', 'array'],
-            'status'          => ['nullable', 'string', 'in:' . implode(',', CrossoverEntryPoint::STATUSES)],
-        ]);
+        $validated = $request->validate(DataverseRules::web('crossover-entry-points', 'store'));
 
         $ep = CrossoverEntryPoint::create($validated);
 
@@ -54,15 +51,9 @@ class CrossoverEntryPointController extends Controller
 
     public function update(Request $request, CrossoverEntryPoint $crossoverEntryPoint): \Illuminate\Http\RedirectResponse
     {
-        $crossoverEntryPoint->update($request->validate([
-            'entry_mechanism'                => ['nullable', 'array'],
-            'power_transition_rules'         => ['nullable', 'array'],
-            'physical_transition_rules'      => ['nullable', 'array'],
-            'memory_and_identity_rules'      => ['nullable', 'array'],
-            'psychological_transition_rules' => ['nullable', 'array'],
-            'return_rules'                   => ['nullable', 'array'],
-            'status'                         => ['nullable', 'string'],
-        ]));
+        $crossoverEntryPoint->update($request->validate(
+            DataverseRules::web('crossover-entry-points', 'update')
+        ));
 
         return $this->back('Entry point updated.');
     }

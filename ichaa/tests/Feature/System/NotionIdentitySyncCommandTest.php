@@ -183,13 +183,68 @@ class NotionIdentitySyncCommandTest extends TestCase
         $this->assertTrue($entity->fresh()->has_aliases);
 
         Http::assertSentCount(12);
-        Http::assertSent(function (Request $request) use ($entityPageId) {
+        Http::assertSent(function (Request $request) use ($entityPageId, $entity) {
             if ($request->method() !== 'PATCH' || ! str_ends_with($request->url(), "/pages/{$entityPageId}")) {
                 return false;
             }
 
-            return data_get($request->data(), 'properties.Site Record ID.rich_text.0.text.content') === '1'
+            return data_get($request->data(), 'properties.Site Record ID.rich_text.0.text.content') === (string) $entity->id
                 && data_get($request->data(), 'properties.Sync State.select.name') === 'synced';
+        });
+    }
+
+    public function test_identity_sync_accepts_required_suffix_on_notion_property_names(): void
+    {
+        config()->set('notion.api_token', 'test-token');
+        config()->set('notion.dataverse.resources.entities', 'entities-db');
+
+        $entityPageId = 'aaaaaaaa-1111-1111-1111-111111111111';
+
+        Http::fake([
+            'https://api.notion.com/v1/databases/entities-db/query' => Http::response([
+                'results' => [[
+                    'id' => $entityPageId,
+                    'last_edited_time' => '2026-06-22T00:00:00.000Z',
+                    'properties' => [
+                        'Entity Name (Required)' => $this->titleProperty('Lyra Ashdown'),
+                        'Entity Type (Required)' => $this->selectProperty('character'),
+                        'Origin Type (Required)' => $this->selectProperty('native'),
+                        'Summary' => $this->richTextProperty('A test entity imported through renamed Notion fields.'),
+                        'Sync State (Required)' => ['type' => 'select', 'select' => ['name' => 'ready']],
+                        'Site Record ID (Required)' => $this->richTextProperty(null),
+                        'Last Synced (Required)' => ['type' => 'date', 'date' => null],
+                    ],
+                ]],
+                'has_more' => false,
+                'next_cursor' => null,
+            ]),
+            "https://api.notion.com/v1/blocks/{$entityPageId}/children*" => Http::response([
+                'results' => [],
+                'has_more' => false,
+                'next_cursor' => null,
+            ]),
+            'https://api.notion.com/v1/pages/*' => Http::response([
+                'object' => 'page',
+                'id' => 'patched-page',
+            ]),
+        ]);
+
+        $this->artisan('notion:sync-dataverse entities')
+            ->assertExitCode(0);
+
+        $entity = Entity::where('name', 'Lyra Ashdown')->first();
+
+        $this->assertNotNull($entity);
+        $this->assertSame('character', $entity->entity_type);
+
+        Http::assertSent(function (Request $request) use ($entityPageId, $entity) {
+            if ($request->method() !== 'PATCH' || ! str_ends_with($request->url(), "/pages/{$entityPageId}")) {
+                return false;
+            }
+
+            return data_get($request->data(), 'properties.Site Record ID (Required).rich_text.0.text.content') === (string) $entity->id
+                && data_get($request->data(), 'properties.Sync State (Required).select.name') === 'synced'
+                && data_get($request->data(), 'properties.Last Synced (Required).date.start') !== null;
         });
     }
 

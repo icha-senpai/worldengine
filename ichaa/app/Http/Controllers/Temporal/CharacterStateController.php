@@ -10,6 +10,7 @@ use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Temporal\Models\CharacterStateTracker;
 use App\Domain\Temporal\Services\TemporalService;
+use App\Support\Validation\DataverseRules;
 
 class CharacterStateController extends Controller
 {
@@ -61,29 +62,7 @@ class CharacterStateController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'entity_id'                     => ['required', 'integer', 'exists:entities,id'],
-            'timeline_id'                   => ['nullable', 'integer', 'exists:entities,id'],
-            'era_entity_id'                 => ['nullable', 'integer', 'exists:entities,id'],
-            'au_date'                       => ['nullable', 'string'],
-            'source_date'                   => ['nullable', 'string'],
-            'snapshot_label'                => ['nullable', 'string', 'max:255'],
-            'snapshot_significance'         => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS)],
-            'significance_reason'           => ['nullable', 'string'],
-            'current_stability_level'       => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::STABILITY_LEVELS)],
-            'mask_integrity'                => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::MASK_INTEGRITY_LEVELS)],
-            'current_trauma_profile'        => ['nullable', 'string'],
-            'active_psychological_patterns' => ['nullable', 'string'],
-            'core_wound'                    => ['nullable', 'string'],
-            'current_desire'                => ['nullable', 'string'],
-            'current_fear'                  => ['nullable', 'string'],
-            'shadow_self'                   => ['nullable', 'string'],
-            'true_self'                     => ['nullable', 'string'],
-            'performed_self'                => ['nullable', 'string'],
-            'current_power_tier_operating'  => ['nullable', 'string'],
-            'current_power_tier_influence'  => ['nullable', 'string'],
-            'timeline_position'             => ['nullable', 'integer'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('character-states', 'store'));
 
         $entity = Entity::findOrFail($validated['entity_id']);
         $state  = $this->service->createStateSnapshot($entity, $validated);
@@ -116,23 +95,9 @@ class CharacterStateController extends Controller
 
     public function update(Request $request, CharacterStateTracker $characterState): \Illuminate\Http\RedirectResponse
     {
-        $this->service->updateStateSnapshot($characterState, $request->validate([
-            'au_date'                       => ['nullable', 'string'],
-            'source_date'                   => ['nullable', 'string'],
-            'snapshot_label'                => ['nullable', 'string'],
-            'snapshot_significance'         => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS)],
-            'significance_reason'           => ['nullable', 'string'],
-            'current_stability_level'       => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::STABILITY_LEVELS)],
-            'mask_integrity'                => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::MASK_INTEGRITY_LEVELS)],
-            'current_trauma_profile'        => ['nullable', 'string'],
-            'active_psychological_patterns' => ['nullable', 'string'],
-            'core_wound'                    => ['nullable', 'string'],
-            'current_desire'                => ['nullable', 'string'],
-            'current_fear'                  => ['nullable', 'string'],
-            'current_power_tier_operating'  => ['nullable', 'string'],
-            'current_power_tier_influence'  => ['nullable', 'string'],
-            'timeline_position'             => ['nullable', 'integer'],
-        ]));
+        $this->service->updateStateSnapshot($characterState, $request->validate(
+            DataverseRules::web('character-states', 'update')
+        ));
 
         return $this->back('State snapshot updated.');
     }

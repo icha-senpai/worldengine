@@ -10,6 +10,7 @@ use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\World\Models\LocationControlHistory;
 use App\Domain\World\Services\WorldService;
+use App\Support\Validation\DataverseRules;
 
 class LocationControlController extends Controller
 {
@@ -45,7 +46,7 @@ class LocationControlController extends Controller
 
     public function edit(LocationControlHistory $locationControl): Response
     {
-        return $this->page('World/LocationControl/Edit', [
+        return $this->pageWithNotionNote('World/LocationControl/Edit', $locationControl, 'location_control', [
             'record' => $locationControl->load([
                 'location:id,name',
                 'controllingEntity:id,name',
@@ -57,12 +58,7 @@ class LocationControlController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'location_entity_id'    => ['required', 'integer', 'exists:entities,id'],
-            'controlling_entity_id' => ['required', 'integer', 'exists:entities,id'],
-            'control_type'          => ['required', 'string', 'in:' . implode(',', LocationControlHistory::CONTROL_TYPES)],
-            'control_start_era'     => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('location-control-records', 'store'));
 
         $location   = Entity::findOrFail($validated['location_entity_id']);
         $controller = Entity::findOrFail($validated['controlling_entity_id']);
@@ -74,11 +70,9 @@ class LocationControlController extends Controller
 
     public function update(Request $request, LocationControlHistory $locationControl): \Illuminate\Http\RedirectResponse
     {
-        $locationControl->update($request->validate([
-            'resistance_level'  => ['nullable', 'string'],
-            'control_end_era'   => ['nullable', 'string'],
-            'how_control_ended' => ['nullable', 'array'],
-        ]));
+        $locationControl->update($request->validate(
+            DataverseRules::web('location-control-records', 'update')
+        ));
 
         return $this->back('Control record updated.');
     }

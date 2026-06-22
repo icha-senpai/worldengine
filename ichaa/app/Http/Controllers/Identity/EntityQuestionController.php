@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityQuestion;
+use App\Support\Validation\DataverseRules;
 
 class EntityQuestionController extends Controller
 {
@@ -32,15 +33,11 @@ class EntityQuestionController extends Controller
     // POST /entities/{entity}/questions
     public function store(Request $request, Entity $entity): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'question'                    => ['required', 'string'],
-            'context'  => ['nullable', 'string'],
-            'status'   => ['nullable', 'string'],
-            'priority'                    => ['nullable', 'string'],
-            'linked_entity_ids'           => ['nullable', 'array'],
-            'linked_group_relationship_ids'=> ['nullable', 'array'],
-            'sort_order'                  => ['nullable', 'integer'],
-        ]);
+        $validated = $request->validate(
+            collect(DataverseRules::web('entity-questions', 'store'))
+                ->except('entity_id')
+                ->all()
+        );
 
         $validated['sort_order'] = $validated['sort_order']
             ?? (($entity->questions()->max('sort_order') ?? -1) + 1);
@@ -55,13 +52,7 @@ class EntityQuestionController extends Controller
     {
         abort_unless((int) $question->entity_id === (int) $entity->id, 404);
 
-        $validated = $request->validate([
-            'question'   => ['sometimes', 'string'],
-            'context'    => ['nullable', 'string'],
-            'status'     => ['nullable', 'string'],
-            'priority'   => ['nullable', 'string'],
-            'resolution' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('entity-questions', 'update'));
 
         // If being marked resolved, set resolved_at
         if (isset($validated['status']) && $validated['status'] === 'resolved') {

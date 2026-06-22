@@ -9,6 +9,7 @@ use App\Domain\Temporal\Models\ConcurrencyGroup;
 use App\Domain\Temporal\Models\Timeline;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -89,6 +90,70 @@ class TimelineWorkflowTest extends TestCase
 
         $this->assertFalse($firstEvent->fresh()->has_timeline_entries);
         $this->assertTrue($secondEvent->fresh()->has_timeline_entries);
+    }
+
+    public function test_timeline_entries_can_be_edited_after_placement(): void
+    {
+        $user = $this->verifiedUser();
+        $timeline = Entity::factory()->create([
+            'name' => 'Grey Line',
+            'entity_type' => EntityType::TIMELINE,
+        ]);
+        $event = Entity::factory()->create([
+            'name' => 'Archive Fire',
+            'entity_type' => EntityType::EVENT,
+        ]);
+        $group = ConcurrencyGroup::create([
+            'name' => 'Night of Falling',
+            'au_date' => 'Year 0',
+            'narrative_significance' => 'pivotal',
+        ]);
+
+        $entry = Timeline::create([
+            'timeline_id' => $timeline->id,
+            'event_entity_id' => $event->id,
+            'entry_label' => 'Archive Fire',
+            'timeline_position' => 10,
+            'is_atemporal' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('timelines.events.edit', ['timeline' => $timeline, 'entry' => $entry]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Temporal/Timelines/Events/Edit')
+                ->where('timeline.id', $timeline->id)
+                ->where('entry.id', $entry->id)
+                ->where('entry.event_entity.id', $event->id)
+                ->has('concurrencyGroups', 1)
+                ->where('eventSignificanceLevels', Timeline::EVENT_SIGNIFICANCE_LEVELS)
+            );
+
+        $this->actingAs($user)
+            ->from(route('timelines.events.edit', ['timeline' => $timeline, 'entry' => $entry]))
+            ->put(route('timelines.events.update', ['timeline' => $timeline, 'entry' => $entry]), [
+                'entry_label' => 'Archive Fire Revised',
+                'au_date' => 'Year 2000',
+                'source_date' => '1998',
+                'timeline_position' => 25,
+                'concurrency_group_id' => $group->id,
+                'event_significance' => 'major',
+                'is_atemporal' => true,
+            ])
+            ->assertRedirect(route('timelines.show', $timeline))
+            ->assertSessionHas('success');
+
+        $entry->refresh();
+
+        $this->assertSame('Archive Fire Revised', $entry->entry_label);
+        $this->assertSame('Year 2000', $entry->au_date);
+        $this->assertSame('1998', $entry->source_date);
+        $this->assertSame(25, $entry->timeline_position);
+        $this->assertSame($group->id, $entry->concurrency_group_id);
+        if (Schema::hasColumn('timeline', 'event_significance')) {
+            $this->assertSame('major', $entry->event_significance);
+        }
+        $this->assertTrue($entry->is_atemporal);
     }
 
     public function test_timeline_show_includes_direct_event_placement_data(): void

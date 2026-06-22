@@ -8,6 +8,7 @@ use Inertia\Response;
 use App\Http\Controllers\Controller;
 use App\Domain\Temporal\Models\ConcurrencyGroup;
 use App\Domain\Temporal\Services\TemporalService;
+use App\Support\Validation\DataverseRules;
 
 class ConcurrencyGroupController extends Controller
 {
@@ -42,12 +43,7 @@ class ConcurrencyGroupController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'name'                   => ['required', 'string', 'max:255'],
-            'au_date'                => ['nullable', 'string'],
-            'description'            => ['nullable', 'array'],
-            'narrative_significance' => ['nullable', 'string', 'in:' . implode(',', ConcurrencyGroup::SIGNIFICANCE_LEVELS)],
-        ]);
+        $validated = $request->validate(DataverseRules::web('concurrency-groups', 'store'));
 
         $group = $this->service->createConcurrencyGroup($validated);
 
@@ -64,12 +60,9 @@ class ConcurrencyGroupController extends Controller
 
     public function update(Request $request, ConcurrencyGroup $concurrencyGroup): \Illuminate\Http\RedirectResponse
     {
-        $concurrencyGroup->update($request->validate([
-            'name'                   => ['sometimes', 'string'],
-            'au_date'                => ['nullable', 'string'],
-            'description'            => ['nullable', 'array'],
-            'narrative_significance' => ['nullable', 'string', 'in:' . implode(',', ConcurrencyGroup::SIGNIFICANCE_LEVELS)],
-        ]));
+        $concurrencyGroup->update($request->validate(
+            DataverseRules::web('concurrency-groups', 'update')
+        ));
 
         return $this->back('Concurrency group updated.');
     }

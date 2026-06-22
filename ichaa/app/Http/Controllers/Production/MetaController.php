@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Production;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Production\Models\Meta;
 use App\Http\Controllers\Controller;
+use App\Support\Validation\DataverseRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -56,28 +57,7 @@ class MetaController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'string', 'in:'.implode(',', Meta::CATEGORIES)],
-            'meta_note_type' => ['required', 'string', 'in:'.implode(',', Meta::NOTE_TYPES)],
-            'content' => ['nullable', 'array'],
-            'sense_sight' => ['nullable', 'string'],
-            'sense_sound' => ['nullable', 'string'],
-            'sense_smell' => ['nullable', 'string'],
-            'sense_taste' => ['nullable', 'string'],
-            'sense_touch' => ['nullable', 'string'],
-            'sense_magical' => ['nullable', 'string'],
-            'emotional_register' => ['nullable', 'string'],
-            'symbol_name' => ['nullable', 'string', 'max:255'],
-            'symbol_origin_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
-            'symbol_usage_context' => ['nullable', 'string'],
-            'symbol_associated_entity_ids' => ['nullable', 'array'],
-            'symbol_scope' => ['nullable', 'string', 'in:'.implode(',', Meta::SYMBOL_SCOPES)],
-            'priority' => ['nullable', 'string', 'in:'.implode(',', Meta::PRIORITIES)],
-            'action_status' => ['nullable', 'string', 'in:'.implode(',', Meta::ACTION_STATUSES)],
-            'visibility' => ['nullable', 'string'],
-            'content_classification' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('meta', 'store'));
 
         $validated = array_filter($validated, fn ($v) => ! ($v === '' || $v === null) || is_array($v) || is_bool($v));
 
@@ -113,23 +93,7 @@ class MetaController extends Controller
 
     public function update(Request $request, Meta $meta): RedirectResponse
     {
-        $meta->update($request->validate([
-            'title' => ['sometimes', 'string', 'max:255'],
-            'category' => ['sometimes', 'string'],
-            'meta_note_type' => ['sometimes', 'string'],
-            'content' => ['nullable', 'array'],
-            'priority' => ['nullable', 'string'],
-            'action_status' => ['nullable', 'string'],
-            'resolution_notes' => ['nullable', 'array'],
-            'resolved_at' => ['nullable', 'date'],
-            'sense_sight' => ['nullable', 'string'],
-            'sense_sound' => ['nullable', 'string'],
-            'sense_smell' => ['nullable', 'string'],
-            'sense_taste' => ['nullable', 'string'],
-            'sense_touch' => ['nullable', 'string'],
-            'sense_magical' => ['nullable', 'string'],
-            'emotional_register' => ['nullable', 'string'],
-        ]));
+        $meta->update($request->validate(DataverseRules::web('meta', 'update')));
 
         return $this->to('meta.show', [$meta], 'Note updated.');
     }
@@ -154,10 +118,7 @@ class MetaController extends Controller
 
     public function supersede(Request $request, Meta $meta): RedirectResponse
     {
-        $validated = $request->validate([
-            'superseded_by_meta_id' => ['required', 'integer', 'exists:meta,id'],
-            'supersession_reason' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::webAction('meta-supersede'));
 
         $meta->update(array_merge($validated, [
             'superseded_at' => now(),

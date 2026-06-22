@@ -100,6 +100,8 @@
                 </div>
             </div>
 
+            <NotionNotePanel :note="notionNote" />
+
             <div class="flex items-center gap-3 pt-2">
                 <AppButton type="submit" variant="primary" :disabled="form.processing || hasJsonErrors">
                     <span v-if="form.processing">{{ processingLabel }}</span>
@@ -116,9 +118,10 @@
 
 <script setup>
 import { computed, reactive } from 'vue'
-import { Link, router } from '@inertiajs/vue3'
+import { Link, router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { formatLabel, prettyJson } from '@/Components/scaffold/formatters'
+import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import Checkbox from '@/Components/Checkbox.vue'
 import FormErrorSummary from '@/Components/ui/FormErrorSummary.vue'
@@ -141,6 +144,9 @@ const props = defineProps({
     sections: { type: Array, required: true },
     onSubmit: { type: Function, required: true },
 })
+
+const page = usePage()
+const notionNote = computed(() => page.props?.notionNote ?? null)
 
 const normalizedSections = computed(() =>
     props.sections.map((section) => ({

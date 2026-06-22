@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Intelligence\Models\Secret;
 use App\Domain\Intelligence\Services\IntelligenceService;
+use App\Support\Validation\DataverseRules;
 
 class SecretController extends Controller
 {
@@ -48,16 +49,7 @@ class SecretController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'title'               => ['required', 'string', 'max:255'],
-            'secret_content'      => ['required', 'array'],
-            'secret_type'         => ['required', 'string', 'in:' . implode(',', Secret::SECRET_TYPES)],
-            'subject_entity_ids'  => ['nullable', 'array'],
-            'holder_entity_ids'   => ['nullable', 'array'],
-            'known_by_entity_ids' => ['nullable', 'array'],
-            'exposure_risk'       => ['nullable', 'string', 'in:' . implode(',', Secret::EXPOSURE_RISKS)],
-            'status'              => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('secrets', 'store'));
 
         $secret = $this->service->createSecret($validated);
 
@@ -97,13 +89,7 @@ class SecretController extends Controller
 
     public function update(Request $request, Secret $secret): \Illuminate\Http\RedirectResponse
     {
-        $this->service->updateSecret($secret, $request->validate([
-            'title'              => ['sometimes', 'string'],
-            'secret_content'     => ['nullable', 'array'],
-            'exposure_risk'      => ['nullable', 'string'],
-            'revelation_trigger' => ['nullable', 'string'],
-            'status'             => ['nullable', 'string'],
-        ]));
+        $this->service->updateSecret($secret, $request->validate(DataverseRules::web('secrets', 'update')));
 
         return $this->to('secrets.show', [$secret], 'Secret updated.');
     }
@@ -117,10 +103,7 @@ class SecretController extends Controller
 
     public function expose(Request $request, Secret $secret): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'era'            => ['required', 'string'],
-            'exposure_level' => ['nullable', 'string', 'in:partially_exposed,fully_exposed'],
-        ]);
+        $validated = $request->validate(DataverseRules::webAction('secret-expose'));
 
         $this->service->exposeSecret($secret, $validated['era'], $validated['exposure_level'] ?? 'partially_exposed');
 

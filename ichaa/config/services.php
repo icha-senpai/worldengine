@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'dataverse_mcp' => [
+        'token' => env('DATAVERSE_MCP_TOKEN'),
+        'api_base' => env('DATAVERSE_MCP_API_BASE', '/api/v1'),
+        'source' => env('DATAVERSE_MCP_SOURCE', 'mcp'),
+    ],
+
 ];

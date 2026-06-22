@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityNote;
+use App\Support\Validation\DataverseRules;
 
 class EntityNoteController extends Controller
 {
@@ -32,11 +33,11 @@ class EntityNoteController extends Controller
     // POST /entities/{entity}/notes
     public function store(Request $request, Entity $entity): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'note_label' => ['nullable', 'string', 'max:255'],
-            'content'    => ['required', 'string'],
-            'sort_order' => ['nullable', 'integer'],
-        ]);
+        $validated = $request->validate(
+            collect(DataverseRules::web('entity-notes', 'store'))
+                ->except('entity_id')
+                ->all()
+        );
 
         $validated['sort_order'] = $validated['sort_order']
             ?? (($entity->notes()->max('sort_order') ?? -1) + 1);
@@ -51,11 +52,7 @@ class EntityNoteController extends Controller
     {
         abort_unless((int) $note->entity_id === (int) $entity->id, 404);
 
-        $validated = $request->validate([
-            'note_label' => ['nullable', 'string', 'max:255'],
-            'content'    => ['sometimes', 'string'],
-            'sort_order' => ['nullable', 'integer'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('entity-notes', 'update'));
 
         if (($validated['sort_order'] ?? null) === null) {
             unset($validated['sort_order']);

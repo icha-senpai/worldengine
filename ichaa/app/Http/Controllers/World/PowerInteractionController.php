@@ -10,6 +10,7 @@ use App\Domain\Identity\Models\Entity;
 use App\Domain\World\Models\PowerInteraction;
 use App\Domain\World\Models\PowerInteractionInstance;
 use App\Domain\World\Services\WorldService;
+use App\Support\Validation\DataverseRules;
 
 class PowerInteractionController extends Controller
 {
@@ -48,20 +49,7 @@ class PowerInteractionController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'system_a_entity_id'  => ['required', 'integer', 'exists:entities,id'],
-            'system_b_entity_id'  => ['required', 'integer', 'exists:entities,id', 'different:system_a_entity_id'],
-            'interaction_name'    => ['required', 'string', 'max:255'],
-            'description'         => ['nullable', 'array'],
-            'directionality'      => ['nullable', 'string'],
-            'effects'             => ['nullable', 'array'],
-            'interaction_scale'   => ['nullable', 'string'],
-            'knowledge_state'     => ['nullable', 'string'],
-            'danger_rating'       => ['nullable', 'string'],
-            'proximity_required'  => ['boolean'],
-            'source_universe_a'   => ['nullable', 'string'],
-            'source_universe_b'   => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('power-interactions', 'store'));
 
         $interaction = $this->service->createPowerInteraction($validated);
 
@@ -92,14 +80,9 @@ class PowerInteractionController extends Controller
 
     public function update(Request $request, PowerInteraction $powerInteraction): \Illuminate\Http\RedirectResponse
     {
-        $this->service->updatePowerInteraction($powerInteraction, $request->validate([
-            'interaction_name' => ['sometimes', 'string'],
-            'description'      => ['nullable', 'array'],
-            'effects'          => ['nullable', 'array'],
-            'knowledge_state'  => ['nullable', 'string'],
-            'danger_rating'    => ['nullable', 'string'],
-            'unresolved_flag'  => ['boolean'],
-        ]));
+        $this->service->updatePowerInteraction($powerInteraction, $request->validate(
+            DataverseRules::web('power-interactions', 'update')
+        ));
 
         return $this->back('Interaction updated.');
     }
@@ -113,23 +96,16 @@ class PowerInteractionController extends Controller
 
     public function resolve(Request $request, PowerInteraction $powerInteraction): \Illuminate\Http\RedirectResponse
     {
-        $this->service->resolveInteraction($powerInteraction, $request->validate([
-            'resolution_notes' => ['nullable', 'array'],
-            'knowledge_state'  => ['nullable', 'string'],
-        ]));
+        $this->service->resolveInteraction($powerInteraction, $request->validate(
+            DataverseRules::webAction('power-interaction-resolve')
+        ));
 
         return $this->back('Interaction resolved.');
     }
 
     public function recordInstance(Request $request, PowerInteraction $powerInteraction): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'event_entity_id'     => ['required', 'integer', 'exists:entities,id'],
-            'involved_entity_ids' => ['nullable', 'array'],
-            'outcome_match'       => ['required', 'string', 'in:' . implode(',', PowerInteractionInstance::OUTCOME_MATCHES)],
-            'outcome_notes'       => ['nullable', 'array'],
-            'observed_at_era'     => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::webAction('power-interaction-instance'));
 
         $event = Entity::findOrFail($validated['event_entity_id']);
         $this->service->recordInstance($powerInteraction, $event, $validated);

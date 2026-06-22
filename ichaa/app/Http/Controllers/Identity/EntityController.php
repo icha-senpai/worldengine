@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Identity;
 
+use App\Domain\Identity\Models\EntityAlias;
+use App\Domain\Identity\Models\EntityNote;
+use App\Domain\Identity\Models\EntityQuestion;
 use Illuminate\Http\Request;
 use Inertia\Response;
 
@@ -9,6 +12,8 @@ use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Services\EntityService;
 use App\Domain\Identity\ValueObjects\EntityType;
+use App\Domain\System\Models\NotionNote;
+use App\Support\Validation\DataverseRules;
 
 class EntityController extends Controller
 {
@@ -29,7 +34,18 @@ class EntityController extends Controller
             ->orderBy('name');
 
         if ($request->filled('type')) {
-            $query->ofType($request->type);
+            $typeFilter = (string) $request->type;
+
+            if (str_starts_with($typeFilter, 'category:')) {
+                $category = substr($typeFilter, strlen('category:'));
+                $types = EntityType::CATEGORIES[$category] ?? null;
+
+                if ($types) {
+                    $query->whereIn('entity_type', $types);
+                }
+            } else {
+                $query->ofType($typeFilter);
+            }
         }
 
         if ($request->filled('status')) {
@@ -74,17 +90,7 @@ class EntityController extends Controller
     // POST /entities
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'name'                   => ['required', 'string', 'max:255'],
-            'entity_type'            => ['required', 'string', 'in:' . implode(',', EntityType::ALL)],
-            'summary'                => ['nullable', 'string'],
-            'source_universes'       => ['nullable', 'array'],
-            'source_universes.*'     => ['string'],
-            'origin_type'            => ['nullable', 'string'],
-            'canon_deviation'        => ['nullable', 'string'],
-            'visibility'             => ['nullable', 'string'],
-            'content_classification' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('entities', 'store'));
 
         // Strip empty strings so database column defaults apply
         $validated = array_filter($validated, fn($v) => !($v === '' || $v === null) || is_array($v) || is_bool($v));
@@ -102,6 +108,7 @@ class EntityController extends Controller
             'notes'     => fn($q) => $q->orderBy('sort_order')->orderBy('created_at'),
             'questions' => fn($q) => $q->orderByRaw("CASE priority WHEN 'blocking' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END")->orderBy('created_at'),
         ]);
+        $this->attachEmbeddedNotionNotes($entity);
 
         return $this->pageWithNotionNote('Entities/Show', $entity, 'entities', [
             'entity' => $entity,
@@ -120,28 +127,7 @@ class EntityController extends Controller
     // PUT /entities/{entity}
     public function update(Request $request, Entity $entity): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'name'                   => ['sometimes', 'string', 'max:255'],
-            'public_title'           => ['nullable', 'string', 'max:255'],
-            'entity_type'            => ['sometimes', 'string', 'in:' . implode(',', EntityType::ALL)],
-            'entity_sub_type'        => ['nullable', 'string', 'max:255'],
-            'summary'                => ['nullable', 'string'],
-            'public_summary'         => ['nullable', 'string'],
-            'status'                 => ['nullable', 'string'],
-            'type_status'            => ['nullable', 'string', 'max:255'],
-            'power_tier_ceiling'     => ['nullable', 'string'],
-            'power_tier_operating'   => ['nullable', 'string'],
-            'power_tier_influence'   => ['nullable', 'string'],
-            'source_universes'       => ['nullable', 'array'],
-            'source_universes.*'     => ['string'],
-            'origin_type'            => ['nullable', 'string'],
-            'canon_deviation'        => ['nullable', 'string'],
-            'origin_notes'           => ['nullable', 'string'],
-            'control_state'          => ['nullable', 'string'],
-            'persona_divergence'     => ['nullable', 'string'],
-            'visibility'             => ['nullable', 'string'],
-            'content_classification' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('entities', 'update'));
 
         // Strip empty strings — treat as null so existing values aren't overwritten with ""
         $validated = array_filter($validated, fn($v) => !($v === '' || $v === null) || is_array($v) || is_bool($v));
@@ -189,5 +175,46 @@ class EntityController extends Controller
         $this->entityService->archive($entity);
 
         return $this->back("'{$entity->name}' archived.");
+    }
+
+    private function attachEmbeddedNotionNotes(Entity $entity): void
+    {
+        $entity->setRelation('aliases', $this->attachNotionNotesToRecords(
+            $entity->aliases,
+            EntityAlias::class,
+            'entity_aliases',
+        ));
+
+        $entity->setRelation('notes', $this->attachNotionNotesToRecords(
+            $entity->notes,
+            EntityNote::class,
+            'entity_notes',
+        ));
+
+        $entity->setRelation('questions', $this->attachNotionNotesToRecords(
+            $entity->questions,
+            EntityQuestion::class,
+            'entity_questions',
+        ));
+    }
+
+    private function attachNotionNotesToRecords($records, string $modelClass, string $resource)
+    {
+        if ($records->isEmpty()) {
+            return $records;
+        }
+
+        $noteMap = NotionNote::query()
+            ->where('noteable_type', $modelClass)
+            ->where('sync_resource', $resource)
+            ->whereIn('noteable_id', $records->pluck('id'))
+            ->get()
+            ->keyBy('noteable_id');
+
+        return $records->map(function ($record) use ($noteMap) {
+            $record->setAttribute('notion_note', $this->formatNotionNote($noteMap->get($record->getKey())));
+
+            return $record;
+        })->values();
     }
 }

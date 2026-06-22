@@ -103,9 +103,19 @@ class ProductionService
         return $item->fresh();
     }
 
-    public function resolvePipelineItem(PipelineItem $item, ?array $resolutionNotes = null): PipelineItem
+    public function resolvePipelineItem(PipelineItem $item, array|string|null $resolutionNotes = null): PipelineItem
     {
-        $item->resolve($resolutionNotes ?? []);
+        $updates = [
+            'pipeline_stage' => 'complete',
+        ];
+
+        if ($resolutionNotes !== null) {
+            $updates['notes'] = is_array($resolutionNotes)
+                ? json_encode($resolutionNotes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                : $resolutionNotes;
+        }
+
+        $item->update($updates);
 
         return $item->fresh();
     }

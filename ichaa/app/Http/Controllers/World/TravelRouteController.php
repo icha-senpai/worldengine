@@ -7,6 +7,7 @@ use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\World\Models\TravelRoute;
 use App\Domain\World\Services\WorldService;
 use App\Http\Controllers\Controller;
+use App\Support\Validation\DataverseRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -40,14 +41,7 @@ class TravelRouteController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'origin_location_entity_id' => ['required', 'integer', 'exists:entities,id'],
-            'destination_location_entity_id' => ['required', 'integer', 'exists:entities,id'],
-            'route_type' => ['required', 'string', 'in:'.implode(',', TravelRoute::ROUTE_TYPES)],
-            'bidirectional' => ['boolean'],
-            'standard_duration' => ['nullable', 'string'],
-            'method_variants' => ['nullable', 'array'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('travel-routes', 'store'));
 
         $origin = Entity::findOrFail($validated['origin_location_entity_id']);
         $destination = Entity::findOrFail($validated['destination_location_entity_id']);
@@ -77,12 +71,7 @@ class TravelRouteController extends Controller
 
     public function update(Request $request, TravelRoute $travelRoute): RedirectResponse
     {
-        $travelRoute->update($request->validate([
-            'standard_duration' => ['nullable', 'string'],
-            'method_variants' => ['nullable', 'array'],
-            'hazards' => ['nullable', 'array'],
-            'is_active' => ['boolean'],
-        ]));
+        $travelRoute->update($request->validate(DataverseRules::web('travel-routes', 'update')));
 
         return $this->back('Route updated.');
     }

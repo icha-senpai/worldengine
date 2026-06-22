@@ -10,6 +10,7 @@ use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\World\Models\LocationContainment;
 use App\Domain\World\Services\WorldService;
+use App\Support\Validation\DataverseRules;
 
 class LocationContainmentController extends Controller
 {
@@ -40,7 +41,7 @@ class LocationContainmentController extends Controller
 
     public function edit(LocationContainment $locationContainment): Response
     {
-        return $this->page('World/LocationContainment/Edit', [
+        return $this->pageWithNotionNote('World/LocationContainment/Edit', $locationContainment, 'location_containment', [
             'containment' => $locationContainment->load([
                 'childLocation:id,name',
                 'parentLocation:id,name',
@@ -50,12 +51,7 @@ class LocationContainmentController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'child_location_entity_id'  => ['required', 'integer', 'exists:entities,id'],
-            'parent_location_entity_id' => ['required', 'integer', 'exists:entities,id'],
-            'containment_type'          => ['required', 'string', 'in:' . implode(',', LocationContainment::CONTAINMENT_TYPES)],
-            'era_start'                 => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('location-containment', 'store'));
 
         $child  = Entity::findOrFail($validated['child_location_entity_id']);
         $parent = Entity::findOrFail($validated['parent_location_entity_id']);
@@ -67,10 +63,9 @@ class LocationContainmentController extends Controller
 
     public function update(Request $request, LocationContainment $locationContainment): \Illuminate\Http\RedirectResponse
     {
-        $locationContainment->update($request->validate([
-            'era_end'   => ['nullable', 'string'],
-            'is_active' => ['boolean'],
-        ]));
+        $locationContainment->update($request->validate(
+            DataverseRules::web('location-containment', 'update')
+        ));
 
         return $this->back('Containment updated.');
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Identity;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityAlias;
 use App\Http\Controllers\Controller;
+use App\Support\Validation\DataverseRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -33,17 +34,11 @@ class EntityAliasController extends Controller
     // POST /entities/{entity}/aliases
     public function store(Request $request, Entity $entity): RedirectResponse
     {
-        $validated = $request->validate([
-            'alias' => ['required', 'string', 'max:255'],
-            'alias_type' => ['required', 'string'],
-            'context' => ['nullable', 'string'],
-            'era_start' => ['nullable', 'string'],
-            'era_end' => ['nullable', 'string'],
-            'is_active' => ['boolean'],
-            'known_by_entity_ids' => ['nullable', 'array'],
-            'visibility' => ['nullable', 'string'],
-            'content_classification' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(
+            collect(DataverseRules::web('entity-aliases', 'store'))
+                ->except('entity_id')
+                ->all()
+        );
 
         $validated = array_filter($validated, fn ($v) => ! ($v === '' || $v === null) || is_array($v) || is_bool($v));
 
@@ -57,15 +52,7 @@ class EntityAliasController extends Controller
     {
         abort_unless((int) $alias->entity_id === (int) $entity->id, 404);
 
-        $validated = $request->validate([
-            'alias' => ['sometimes', 'string', 'max:255'],
-            'alias_type' => ['sometimes', 'string'],
-            'context' => ['nullable', 'string'],
-            'era_start' => ['nullable', 'string'],
-            'era_end' => ['nullable', 'string'],
-            'is_active' => ['boolean'],
-            'known_by_entity_ids' => ['nullable', 'array'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('entity-aliases', 'update'));
 
         $alias->update($validated);
 

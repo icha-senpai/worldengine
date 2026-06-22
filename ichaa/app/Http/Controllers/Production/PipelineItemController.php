@@ -6,6 +6,7 @@ use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Production\Models\PipelineItem;
 use App\Http\Controllers\Controller;
+use App\Support\Validation\DataverseRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -65,21 +66,7 @@ class PipelineItemController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'pipeline_type' => ['required', 'string', 'in:'.implode(',', PipelineItem::PIPELINE_TYPES)],
-            'pipeline_stage' => ['nullable', 'string', 'in:'.implode(',', PipelineItem::PIPELINE_STAGES)],
-            'parent_pipeline_item_id' => ['nullable', 'integer', 'exists:writing_pipeline,id'],
-            'pov_character_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
-            'location_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
-            'tracked_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
-            'emotional_beat' => ['nullable', 'string', 'max:255'],
-            'narrative_purpose' => ['nullable', 'string'],
-            'arc_stage' => ['nullable', 'string', 'max:255'],
-            'arc_notes' => ['nullable', 'string'],
-            'visibility' => ['nullable', 'string'],
-            'content_classification' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('pipeline-items', 'store'));
 
         $validated = array_filter($validated, fn ($v) => ! ($v === '' || $v === null) || is_array($v) || is_bool($v));
 
@@ -137,22 +124,7 @@ class PipelineItemController extends Controller
 
     public function update(Request $request, PipelineItem $pipeline): RedirectResponse
     {
-        $pipeline->update($request->validate([
-            'title' => ['sometimes', 'string'],
-            'pipeline_type' => ['sometimes', 'string'],
-            'pipeline_stage' => ['nullable', 'string'],
-            'content' => ['nullable', 'string'],
-            'word_count' => ['nullable', 'integer'],
-            'reading_time_minutes' => ['nullable', 'integer'],
-            'emotional_beat' => ['nullable', 'string'],
-            'narrative_purpose' => ['nullable', 'string'],
-            'arc_stage' => ['nullable', 'string'],
-            'arc_notes' => ['nullable', 'string'],
-            'notes' => ['nullable', 'string'],
-            'pov_character_entity_id' => ['nullable', 'integer'],
-            'location_entity_id' => ['nullable', 'integer'],
-            'add_to_voice_samples' => ['boolean'],
-        ]));
+        $pipeline->update($request->validate(DataverseRules::web('pipeline-items', 'update')));
 
         return $this->to('pipeline.show', [$pipeline], 'Updated.');
     }

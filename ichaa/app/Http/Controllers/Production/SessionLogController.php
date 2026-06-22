@@ -10,6 +10,7 @@ use App\Domain\Connections\Models\GroupRelationship;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Organization\Models\Collection;
 use App\Domain\Production\Models\SessionLog;
+use App\Support\Validation\DataverseRules;
 
 class SessionLogController extends Controller
 {
@@ -42,20 +43,7 @@ class SessionLogController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'title'                        => ['required', 'string', 'max:255'],
-            'session_date'                 => ['nullable', 'date'],
-            'external_tool'                => ['required', 'string', 'in:' . implode(',', SessionLog::EXTERNAL_TOOLS)],
-            'focus_entity_ids'             => ['nullable', 'array'],
-            'focus_group_relationship_ids' => ['nullable', 'array'],
-            'focus_collection_ids'         => ['nullable', 'array'],
-            'focus_description'            => ['nullable', 'string', 'max:255'],
-            'decisions_made'               => ['nullable', 'array'],
-            'changes_applied'              => ['nullable', 'array'],
-            'open_threads'                 => ['nullable', 'array'],
-            'session_significance'         => ['nullable', 'string', 'in:' . implode(',', SessionLog::SIGNIFICANCE_LEVELS)],
-            'notes'                        => ['nullable', 'array'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('session-logs', 'store'));
 
         $validated['session_date'] = $validated['session_date'] ?? now()->toDateString();
 
@@ -83,17 +71,9 @@ class SessionLogController extends Controller
 
     public function update(Request $request, SessionLog $sessionLog): \Illuminate\Http\RedirectResponse
     {
-        $sessionLog->update($request->validate([
-            'title'               => ['sometimes', 'string'],
-            'session_date'        => ['nullable', 'date'],
-            'external_tool'       => ['sometimes', 'string', 'in:' . implode(',', SessionLog::EXTERNAL_TOOLS)],
-            'focus_description'   => ['nullable', 'string'],
-            'decisions_made'      => ['nullable', 'array'],
-            'changes_applied'     => ['nullable', 'array'],
-            'open_threads'        => ['nullable', 'array'],
-            'session_significance'=> ['nullable', 'string', 'in:' . implode(',', SessionLog::SIGNIFICANCE_LEVELS)],
-            'notes'               => ['nullable', 'array'],
-        ]));
+        $sessionLog->update($request->validate(
+            DataverseRules::web('session-logs', 'update')
+        ));
 
         return $this->back('Session updated.');
     }

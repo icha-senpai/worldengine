@@ -8,6 +8,7 @@ use App\Domain\Connections\Services\RelationshipService;
 use App\Domain\Connections\ValueObjects\TensionCharge;
 use App\Domain\Identity\Models\Entity;
 use App\Http\Controllers\Controller;
+use App\Support\Validation\DataverseRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -45,14 +46,7 @@ class GroupRelationshipController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'relationship_type' => ['required', 'string'],
-            'current_tension_charge' => ['nullable', 'string', 'in:'.implode(',', TensionCharge::ALL)],
-            'is_active' => ['boolean'],
-            'visibility' => ['nullable', 'string'],
-            'content_classification' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('group-relationships', 'store'));
 
         $validated = array_filter($validated, fn ($v) => ! ($v === '' || $v === null) || is_array($v) || is_bool($v));
 
@@ -83,13 +77,7 @@ class GroupRelationshipController extends Controller
 
     public function update(Request $request, GroupRelationship $groupRelationship): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'max:255'],
-            'relationship_type' => ['sometimes', 'string'],
-            'current_tension_charge' => ['nullable', 'string', 'in:'.implode(',', TensionCharge::ALL)],
-            'charge_change_reason' => ['nullable', 'string'],
-            'is_active' => ['boolean'],
-        ]);
+        $validated = $request->validate(DataverseRules::web('group-relationships', 'update'));
 
         if (
             isset($validated['current_tension_charge']) &&
@@ -118,12 +106,7 @@ class GroupRelationshipController extends Controller
     // POST /group-relationships/{groupRelationship}/members
     public function addMember(Request $request, GroupRelationship $groupRelationship): RedirectResponse
     {
-        $validated = $request->validate([
-            'entity_id' => ['required', 'integer', 'exists:entities,id'],
-            'role_in_group' => ['nullable', 'string'],
-            'joined_era' => ['nullable', 'string'],
-            'participation_notes' => ['nullable', 'array'],
-        ]);
+        $validated = $request->validate(DataverseRules::webAction('group-relationship-add-member'));
 
         $entity = Entity::findOrFail($validated['entity_id']);
 
@@ -137,10 +120,7 @@ class GroupRelationshipController extends Controller
     {
         abort_unless((int) $entry->group_relationship_id === (int) $groupRelationship->id, 404);
 
-        $validated = $request->validate([
-            'left_era' => ['nullable', 'string'],
-            'departure_notes' => ['nullable', 'array'],
-        ]);
+        $validated = $request->validate(DataverseRules::webAction('group-relationship-remove-member'));
 
         $this->service->removeMemberFromGroup($entry, $validated);
 

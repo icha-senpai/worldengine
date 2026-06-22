@@ -216,15 +216,25 @@
                             </div>
                         </div>
 
-                        <AppButton
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            :data-test="`remove-entry-${entry.id}`"
-                            @click="removeEntry(entry)"
-                        >
-                            Remove
-                        </AppButton>
+                        <div class="flex items-center gap-2">
+                            <AppButton
+                                :href="route('timelines.events.edit', { timeline: timeline.id, entry: entry.id })"
+                                variant="ghost"
+                                size="sm"
+                                :data-test="`edit-entry-${entry.id}`"
+                            >
+                                Edit
+                            </AppButton>
+                            <AppButton
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                :data-test="`remove-entry-${entry.id}`"
+                                @click="removeEntry(entry)"
+                            >
+                                Remove
+                            </AppButton>
+                        </div>
                     </li>
                 </ul>
 
@@ -257,15 +267,25 @@
                             </div>
                         </div>
 
-                        <AppButton
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            :data-test="`remove-entry-${entry.id}`"
-                            @click="removeEntry(entry)"
-                        >
-                            Remove
-                        </AppButton>
+                        <div class="flex items-center gap-2">
+                            <AppButton
+                                :href="route('timelines.events.edit', { timeline: timeline.id, entry: entry.id })"
+                                variant="ghost"
+                                size="sm"
+                                :data-test="`edit-entry-${entry.id}`"
+                            >
+                                Edit
+                            </AppButton>
+                            <AppButton
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                :data-test="`remove-entry-${entry.id}`"
+                                @click="removeEntry(entry)"
+                            >
+                                Remove
+                            </AppButton>
+                        </div>
                     </li>
                 </ul>
 

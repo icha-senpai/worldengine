@@ -15,19 +15,19 @@ class LoreWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_documents_index_filters_by_type_and_only_returns_extant_records(): void
+    public function test_documents_index_filters_by_type_and_returns_all_matching_statuses(): void
     {
         $user = $this->verifiedUser();
-        $matching = Document::create([
+        $extant = Document::create([
             'title' => 'Mirror Treaty',
             'document_type' => 'treaty',
             'document_status' => 'extant',
         ]);
 
-        Document::create([
+        $classified = Document::create([
             'title' => 'Lost Treaty',
             'document_type' => 'treaty',
-            'document_status' => 'lost',
+            'document_status' => 'classified',
         ]);
 
         Document::create([
@@ -45,8 +45,9 @@ class LoreWorkflowTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Lore/Documents/Index')
                 ->where('filters.type', 'treaty')
-                ->has('documents.data', 1)
-                ->where('documents.data.0.id', $matching->id)
+                ->has('documents.data', 2)
+                ->where('documents.data.0.id', $classified->id)
+                ->where('documents.data.1.id', $extant->id)
             );
     }
 

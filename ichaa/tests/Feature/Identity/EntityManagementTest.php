@@ -38,6 +38,37 @@ class EntityManagementTest extends TestCase
             );
     }
 
+    public function test_type_category_filters_include_all_child_entity_types(): void
+    {
+        $user = $this->verifiedUser();
+        $character = Entity::factory()->create([
+            'name' => 'Alpha Echo',
+            'entity_type' => EntityType::CHARACTER,
+        ]);
+        $historicalFigure = Entity::factory()->create([
+            'name' => 'Archivist Prime',
+            'entity_type' => EntityType::HISTORICAL_FIGURE,
+        ]);
+        Entity::factory()->create([
+            'name' => 'Faction Prime',
+            'entity_type' => EntityType::FACTION,
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->get(route('entities.index', ['type' => 'category:people']));
+
+        $response
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Entities/Index')
+                ->where('filters.type', 'category:people')
+                ->has('entities.data', 2)
+                ->where('entities.data.0.id', $character->id)
+                ->where('entities.data.1.id', $historicalFigure->id)
+            );
+    }
+
     public function test_entities_can_be_created_with_defaults_and_initial_version_history(): void
     {
         $user = $this->verifiedUser();
