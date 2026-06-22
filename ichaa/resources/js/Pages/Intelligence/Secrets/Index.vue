@@ -3,6 +3,7 @@
         title="Secrets"
         :count="countRecords(secrets)"
         count-label="secrets"
+        sync-resource="secrets"
         :create-href="route('secrets.create')"
         create-label="New Secret"
         :items="items"

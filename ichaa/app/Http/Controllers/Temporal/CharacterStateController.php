@@ -99,7 +99,7 @@ class CharacterStateController extends Controller
             'stateRelationships.relationship',
         ]);
 
-        return $this->page('Temporal/CharacterStates/Show', [
+        return $this->pageWithNotionNote('Temporal/CharacterStates/Show', $characterState, 'character_states', [
             'state' => $characterState,
         ]);
     }

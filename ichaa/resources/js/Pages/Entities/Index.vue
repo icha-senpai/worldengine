@@ -5,11 +5,14 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex flex-wrap items-baseline gap-3">
                     <h1 class="text-primary text-2xl font-light tracking-wide">Entities</h1>
-                    <span class="text-muted-3 text-sm font-mono">{{ entities.total }} total</span>
+                    <span class="text-muted-3 text-sm font-ui">{{ entities.total }} total</span>
                 </div>
-                <Link :href="route('entities.create')" class="btn-primary">
-                    + New Entity
-                </Link>
+                <div class="flex flex-wrap items-center gap-2">
+                    <NotionSyncButton resource="entities" label="Sync from Notion" />
+                    <AppButton :href="route('entities.create')" variant="primary">
+                        + New Entity
+                    </AppButton>
+                </div>
             </div>
         </template>
 
@@ -22,45 +25,46 @@
                     <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
                     <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
-                <input
+                <TextInput
                     v-model="filterForm.q"
                     type="text"
                     placeholder="Search entities..."
-                    class="input pl-8 w-full"
+                    class="pl-8 w-full"
                     @keydown.enter="applyFilters"
                 />
             </div>
 
             <!-- Type filter — grouped by category -->
-            <select v-model="filterForm.type" class="input w-full sm:w-auto" @change="applyFilters">
+            <SelectInput v-model="filterForm.type" class="w-full sm:w-auto" @change="applyFilters">
                 <option value="">All types</option>
                 <template v-for="(types, category) in entityTypes" :key="category">
                     <optgroup :label="formatLabel(category)">
                         <option v-for="t in types" :key="t" :value="t">{{ formatLabel(t) }}</option>
                     </optgroup>
                 </template>
-            </select>
+            </SelectInput>
 
             <!-- Status filter -->
-            <select v-model="filterForm.status" class="input w-full sm:w-auto" @change="applyFilters">
+            <SelectInput v-model="filterForm.status" class="w-full sm:w-auto" @change="applyFilters">
                 <option value="">All statuses</option>
                 <option v-for="s in statuses" :key="s" :value="s">{{ formatLabel(s) }}</option>
-            </select>
+            </SelectInput>
 
             <!-- Universe filter -->
-            <select v-model="filterForm.universe" class="input w-full sm:w-auto" @change="applyFilters">
+            <SelectInput v-model="filterForm.universe" class="w-full sm:w-auto" @change="applyFilters">
                 <option value="">All universes</option>
                 <option v-for="u in universes" :key="u" :value="u">{{ u }}</option>
-            </select>
+            </SelectInput>
 
             <!-- Active filters indicator -->
-            <button
+            <AppButton
                 v-if="hasActiveFilters"
+                type="button"
                 @click="clearFilters"
-                class="text-sm font-mono text-muted-3 hover:text-focus transition-colors px-3 py-1.5 border border-border rounded-md"
+                variant="select-danger"
             >
                 Clear filters ×
-            </button>
+            </AppButton>
 
         </div>
 
@@ -78,8 +82,8 @@
 
             <!-- Empty state -->
             <div v-if="entities.data.length === 0" class="px-4 py-16 text-center">
-                <p class="text-muted-3 text-sm font-mono uppercase tracking-widest">No entities found</p>
-                <Link :href="route('entities.create')" class="mt-3 inline-block text-focus text-sm font-mono hover:underline">
+                <p class="text-muted-3 text-sm font-ui uppercase tracking-widest">No entities found</p>
+                <Link :href="route('entities.create')" class="mt-3 inline-block text-focus text-sm font-ui hover:underline">
                     Create the first one →
                 </Link>
             </div>
@@ -97,7 +101,7 @@
                         <span class="text-primary text-base font-light group-hover:text-focus transition-colors prose-wrap">
                             {{ entity.name }}
                         </span>
-                        <span v-if="entity.public_title" class="text-muted-3 text-xs font-mono prose-wrap hidden lg:block">
+                        <span v-if="entity.public_title" class="text-muted-3 text-xs font-ui prose-wrap hidden lg:block">
                             · {{ entity.public_title }}
                         </span>
                     </div>
@@ -119,14 +123,14 @@
                     <span class="mobile-label md:hidden">Status</span>
                     <div class="flex items-center md:block">
                     <span class="status-dot" :class="statusDotClass(entity.status)" />
-                    <span class="text-muted-2 text-sm font-mono">{{ formatLabel(entity.status) }}</span>
+                    <span class="text-muted-2 text-sm font-ui">{{ formatLabel(entity.status) }}</span>
                     </div>
                 </div>
 
                 <!-- Universe -->
                 <div class="flex items-center justify-between gap-3 md:block">
                     <span class="mobile-label md:hidden">Universe</span>
-                    <div class="prose-wrap text-muted-3 text-sm font-mono">
+                    <div class="prose-wrap text-muted-3 text-sm font-ui">
                         {{ formatUniverses(entity.source_universes) }}
                     </div>
                 </div>
@@ -142,7 +146,7 @@
                             :style="{ width: entity.completion_score + '%' }"
                         />
                     </div>
-                    <span class="text-muted-3 text-xs font-mono w-8 text-right">
+                    <span class="text-muted-3 text-xs font-ui w-8 text-right">
                         {{ entity.completion_score }}%
                     </span>
                     </div>
@@ -152,21 +156,21 @@
 
         <!-- PAGINATION -->
         <div v-if="entities.last_page > 1" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <span class="text-muted-3 text-sm font-mono">
+            <span class="text-muted-3 text-sm font-ui">
                 Page {{ entities.current_page }} of {{ entities.last_page }}
             </span>
             <div class="flex items-center gap-1">
                 <Link
                     v-if="entities.prev_page_url"
                     :href="entities.prev_page_url"
-                    class="px-3 py-2 text-sm font-mono border border-border rounded-md text-muted-2 hover:border-border-2 hover:text-primary transition-colors"
+                    class="px-3 py-2 text-sm font-ui border border-border rounded-md text-muted-2 hover:border-border-2 hover:text-primary transition-colors"
                 >
                     ← Prev
                 </Link>
                 <Link
                     v-if="entities.next_page_url"
                     :href="entities.next_page_url"
-                    class="px-3 py-2 text-sm font-mono border border-border rounded-md text-muted-2 hover:border-border-2 hover:text-primary transition-colors"
+                    class="px-3 py-2 text-sm font-ui border border-border rounded-md text-muted-2 hover:border-border-2 hover:text-primary transition-colors"
                 >
                     Next →
                 </Link>
@@ -180,6 +184,10 @@
 import { ref, computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import AppButton from '@/Components/ui/AppButton.vue'
+import NotionSyncButton from '@/Components/NotionSyncButton.vue'
+import SelectInput from '@/Components/SelectInput.vue'
+import TextInput from '@/Components/TextInput.vue'
 
 const props = defineProps({
     entities:    { type: Object, required: true },
@@ -254,100 +262,3 @@ const completionBarClass = (score) => {
 }
 </script>
 
-<style scoped>
-.grid-cols-entity-list {
-    grid-template-columns: 2fr 1fr 1fr 1fr 100px;
-}
-
-.prose-wrap {
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-.col-label {
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-}
-
-.mobile-label {
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-}
-
-.input {
-    height: 40px;
-    padding: 0 12px;
-    background: var(--bg-surface-2);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 14px;
-    font-family: ui-monospace, monospace;
-    color: var(--text-primary);
-    outline: none;
-    transition: border-color 0.15s;
-}
-.input:focus { border-color: var(--accent-cyan); }
-.input option { background: var(--bg-surface); }
-
-.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    height: 40px;
-    padding: 0 18px;
-    background: rgb(0 245 255 / 0.1);
-    border: 1px solid rgb(0 245 255 / 0.3);
-    border-radius: 6px;
-    font-size: 12px;
-    font-family: ui-monospace, monospace;
-    color: var(--accent-cyan);
-    transition: background 0.15s, border-color 0.15s;
-}
-.btn-primary:hover {
-    background: rgb(0 245 255 / 0.15);
-    border-color: rgb(0 245 255 / 0.5);
-}
-
-/* Type badges */
-.type-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted-3);
-}
-.type--character  { color: #7dd3fc; border-color: rgba(125,211,252,0.25); background: rgba(125,211,252,0.07); }
-.type--faction    { color: #c4b5fd; border-color: rgba(196,181,253,0.25); background: rgba(196,181,253,0.07); }
-.type--location   { color: #6ee7b7; border-color: rgba(110,231,183,0.25); background: rgba(110,231,183,0.07); }
-.type--event      { color: #fcd34d; border-color: rgba(252,211,77,0.25);  background: rgba(252,211,77,0.07);  }
-.type--object     { color: #fdba74; border-color: rgba(253,186,116,0.25); background: rgba(253,186,116,0.07); }
-.type--ci         { color: #f9a8d4; border-color: rgba(249,168,212,0.25); background: rgba(249,168,212,0.07); }
-.type--power      { color: var(--accent-cyan); border-color: rgba(0,245,255,0.25); background: rgba(0,245,255,0.07); }
-.type--default    { color: var(--text-muted-3); }
-
-/* Status dots */
-.status-dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    margin-right: 8px;
-    flex-shrink: 0;
-}
-.dot--active   { background: #6ee7b7; }
-.dot--concept  { background: var(--text-muted-3); }
-.dot--archived { background: #475569; }
-.dot--deceased { background: var(--accent-pink); }
-.dot--default  { background: var(--border-color-2); }
-</style>

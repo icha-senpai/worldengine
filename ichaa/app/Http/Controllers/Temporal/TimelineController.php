@@ -75,7 +75,7 @@ class TimelineController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'au_date', 'narrative_significance']);
 
-        return $this->page('Temporal/Timelines/Show', [
+        return $this->pageWithNotionNote('Temporal/Timelines/Show', $timeline, 'timelines', [
             'timeline' => $timeline,
             'atemporal' => $events['atemporal'],
             'events' => $events['chronological'],

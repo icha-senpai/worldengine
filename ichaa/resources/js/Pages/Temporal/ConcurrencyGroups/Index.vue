@@ -3,6 +3,7 @@
         title="Concurrency Groups"
         :count="groups.length"
         count-label="groups"
+        sync-resource="concurrency_groups"
         :create-href="route('concurrency-groups.create')"
         create-label="New Group"
         :items="items"

@@ -105,7 +105,7 @@ class PipelineItemController extends Controller
             'parent:id,title',
         ]);
 
-        return $this->page('Production/Pipeline/Show', [
+        return $this->pageWithNotionNote('Production/Pipeline/Show', $pipeline, 'pipeline_items', [
             'item' => $pipeline,
         ]);
     }

@@ -3,6 +3,7 @@
         title="Group Relationships"
         :count="countRecords(groups)"
         count-label="groups"
+        sync-resource="group_relationships"
         :create-href="route('group-relationships.create')"
         create-label="New Group"
         :items="items"

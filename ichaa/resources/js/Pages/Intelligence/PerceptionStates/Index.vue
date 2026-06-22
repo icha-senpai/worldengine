@@ -3,6 +3,7 @@
         title="Perception States"
         :count="countRecords(states)"
         count-label="states"
+        sync-resource="perception_states"
         :create-href="route('perception-states.create')"
         create-label="New Perception State"
         :items="items"

@@ -1,26 +1,54 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, useAttrs } from 'vue';
 
-const model = defineModel({
-    type: String,
-    required: true,
+defineOptions({
+    inheritAttrs: false,
 });
 
+const [model, modifiers] = defineModel();
+
 const input = ref(null);
+const attrs = useAttrs();
 
 onMounted(() => {
-    if (input.value.hasAttribute('autofocus')) {
+    if (input.value?.hasAttribute('autofocus')) {
         input.value.focus();
     }
 });
 
 defineExpose({ focus: () => input.value.focus() });
+
+const normalizeValue = (value) => {
+    let normalized = value;
+
+    if (modifiers.trim) {
+        normalized = normalized.trim();
+    }
+
+    if (modifiers.number) {
+        if (normalized === '') {
+            return '';
+        }
+
+        const parsed = Number(normalized);
+
+        return Number.isNaN(parsed) ? normalized : parsed;
+    }
+
+    return normalized;
+};
+
+const updateValue = (event) => {
+    model.value = normalizeValue(event.target.value);
+};
 </script>
 
 <template>
     <input
-        class="rounded-lg border-border bg-surface px-4 py-3 text-base text-primary shadow-sm focus:border-focus focus:ring-focus"
-        v-model="model"
         ref="input"
+        class="input"
+        :value="model ?? ''"
+        v-bind="attrs"
+        @input="updateValue"
     />
 </template>

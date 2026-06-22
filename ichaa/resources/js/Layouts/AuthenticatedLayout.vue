@@ -5,13 +5,13 @@
         <header class="sticky top-0 z-50 bg-surface border-b border-border flex-shrink-0">
             <div class="md:hidden px-4 py-3">
                 <div class="flex items-center gap-3">
-                    <a :href="route('dashboard')" class="flex items-baseline flex-shrink-0 font-mono text-base tracking-widest uppercase">
+                    <a :href="route('dashboard')" class="flex items-baseline flex-shrink-0 font-ui text-base tracking-widest uppercase">
                         <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
                     </a>
 
                     <div class="min-w-0 flex-1">
-                        <p class="text-[11px] font-mono uppercase tracking-[0.16em] text-muted-3">Current</p>
-                        <p class="truncate text-sm font-mono text-primary">{{ activeDomain.label }}</p>
+                        <p class="text-[11px] font-ui uppercase tracking-[0.16em] text-muted-3">Current</p>
+                        <p class="truncate text-sm font-ui text-primary">{{ activeDomain.label }}</p>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -60,9 +60,18 @@
                 <Transition name="flash">
                     <div
                         v-if="$page.props.flash?.success"
-                        class="mt-3 text-sm font-mono text-success border border-success/25 bg-success/10 rounded-md px-3 py-2"
+                        class="mt-3 text-sm font-ui text-success border border-success/25 bg-success/10 rounded-md px-3 py-2"
                     >
                         {{ $page.props.flash.success }}
+                    </div>
+                </Transition>
+
+                <Transition name="flash">
+                    <div
+                        v-if="$page.props.flash?.error"
+                        class="mt-3 text-sm font-ui text-[var(--accent-pink)] border border-[rgba(255,0,128,0.28)] bg-[rgba(255,0,128,0.08)] rounded-md px-3 py-2"
+                    >
+                        {{ $page.props.flash.error }}
                     </div>
                 </Transition>
             </div>
@@ -130,9 +139,16 @@
                 </div>
 
                 <div>
+                    <p class="mobile-section-label">Workspace</p>
+                    <div class="rounded-md border border-border bg-surface px-3 py-3">
+                        <NotionSyncButton resource="all" label="Sync All" class="w-full" />
+                    </div>
+                </div>
+
+                <div>
                     <p class="mobile-section-label">Account</p>
                     <div class="rounded-md border border-border bg-surface px-3 py-3">
-                        <p class="text-sm font-mono text-primary">{{ $page.props.auth.user.name }}</p>
+                        <p class="text-sm font-ui text-primary">{{ $page.props.auth.user.name }}</p>
                         <div class="mt-3 flex flex-wrap gap-2">
                             <Link :href="route('profile.edit')" class="mobile-subnav-item" @click="mobileNavOpen = false">Profile</Link>
                             <Link :href="route('logout')" method="post" as="button" class="mobile-subnav-item" @click="mobileNavOpen = false">Log Out</Link>
@@ -144,7 +160,7 @@
             <div class="hidden md:flex items-center h-14 px-5">
 
                 <!-- Wordmark -->
-                <a :href="route('dashboard')" class="flex items-baseline mr-8 flex-shrink-0 font-mono text-base tracking-widest uppercase">
+                <a :href="route('dashboard')" class="flex items-baseline mr-8 flex-shrink-0 font-ui text-base tracking-widest uppercase">
                     <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
                 </a>
 
@@ -168,7 +184,7 @@
                     <!-- Search -->
                     <Link
                         :href="route('search')"
-                        class="flex items-center gap-2.5 px-3 py-1.5 bg-surface-2 border border-border rounded-md text-muted-2 text-sm font-mono hover:border-border-2 hover:text-primary transition-colors"
+                        class="flex items-center gap-2.5 px-3 py-1.5 bg-surface-2 border border-border rounded-md text-muted-2 text-sm font-ui hover:border-border-2 hover:text-primary transition-colors"
                     >
                         <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                             <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
@@ -180,7 +196,7 @@
 
                     <Link
                         :href="route('trash.index')"
-                        class="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border rounded-md text-sm font-mono transition-colors"
+                        class="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border rounded-md text-sm font-ui transition-colors"
                         :class="currentPath === '/trash'
                             ? 'border-[rgba(255,0,128,0.35)] text-[var(--accent-pink)] bg-[rgba(255,0,128,0.08)]'
                             : 'border-border text-muted-2 hover:border-border-2 hover:text-primary'"
@@ -194,13 +210,24 @@
                         <span>Trash</span>
                     </Link>
 
+                    <NotionSyncButton resource="all" label="Sync All" compact />
+
                     <!-- Flash -->
                     <Transition name="flash">
                         <div
                             v-if="$page.props.flash?.success"
-                            class="text-sm font-mono text-success border border-success/25 bg-success/10 rounded-md px-3 py-1.5"
+                            class="text-sm font-ui text-success border border-success/25 bg-success/10 rounded-md px-3 py-1.5"
                         >
                             {{ $page.props.flash.success }}
+                        </div>
+                    </Transition>
+
+                    <Transition name="flash">
+                        <div
+                            v-if="$page.props.flash?.error"
+                            class="text-sm font-ui text-[var(--accent-pink)] border border-[rgba(255,0,128,0.28)] bg-[rgba(255,0,128,0.08)] rounded-md px-3 py-1.5"
+                        >
+                            {{ $page.props.flash.error }}
                         </div>
                     </Transition>
 
@@ -209,7 +236,7 @@
                         <template #trigger>
                             <button
                                 type="button"
-                                class="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-border rounded-md text-muted-2 text-sm font-mono hover:border-border-2 hover:text-primary transition-colors"
+                                class="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-border rounded-md text-muted-2 text-sm font-ui hover:border-border-2 hover:text-primary transition-colors"
                             >
                                 <span>{{ $page.props.auth.user.name }}</span>
                                 <svg class="w-3.5 h-3.5 opacity-50" viewBox="0 0 20 20" fill="currentColor">
@@ -272,6 +299,7 @@ import { computed, ref, watch } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import Dropdown from '@/Components/Dropdown.vue'
 import DropdownLink from '@/Components/DropdownLink.vue'
+import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 
 const page = usePage()
 const mobileNavOpen = ref(false)
@@ -424,251 +452,3 @@ watch(
     },
 )
 </script>
-
-<style>
-.scrollbar-none { scrollbar-width: none; }
-.scrollbar-none::-webkit-scrollbar { display: none; }
-
-.mobile-domain-group {
-    display: grid;
-    gap: 6px;
-}
-
-.mobile-icon-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background: var(--bg-surface-2);
-    color: var(--text-muted-2);
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.mobile-icon-btn:hover {
-    border-color: var(--border-color-2);
-    color: var(--text-primary);
-}
-.mobile-icon-btn--danger {
-    color: var(--accent-pink);
-    border-color: rgba(255, 0, 128, 0.22);
-    background: rgba(255, 0, 128, 0.06);
-}
-
-.mobile-section-label {
-    margin-bottom: 8px;
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-}
-
-.mobile-domain-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 40px;
-    padding: 0 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 13px;
-    font-family: ui-monospace, monospace;
-    color: var(--text-muted-2);
-    background: var(--bg-surface);
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.mobile-domain-nav-item:hover {
-    border-color: var(--border-color-2);
-    color: var(--text-primary);
-}
-.mobile-domain-nav-item.active {
-    color: var(--text-primary);
-    border-color: rgba(0, 245, 255, 0.22);
-    background: rgba(0, 245, 255, 0.08);
-}
-
-.mobile-domain-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    min-height: 40px;
-    width: 100%;
-    padding: 0 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 13px;
-    font-family: ui-monospace, monospace;
-    color: var(--text-muted-2);
-    background: var(--bg-surface);
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.mobile-domain-toggle:hover {
-    border-color: var(--border-color-2);
-    color: var(--text-primary);
-}
-.mobile-domain-toggle.active {
-    color: var(--text-primary);
-    border-color: rgba(0, 245, 255, 0.22);
-    background: rgba(0, 245, 255, 0.08);
-}
-
-.mobile-domain-chevron {
-    flex-shrink: 0;
-    color: var(--text-muted-3);
-    transition: transform 0.15s ease, color 0.15s ease;
-}
-.mobile-domain-chevron.open {
-    transform: rotate(180deg);
-    color: var(--accent-cyan);
-}
-
-.mobile-domain-children {
-    display: grid;
-    gap: 6px;
-    padding-left: 10px;
-}
-
-.mobile-domain-child-link {
-    display: flex;
-    align-items: center;
-    min-height: 38px;
-    padding: 0 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    font-size: 12px;
-    font-family: ui-monospace, monospace;
-    color: var(--text-muted-3);
-    background: var(--bg-surface);
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.mobile-domain-child-link:hover {
-    border-color: var(--border-color-2);
-    color: var(--text-primary);
-}
-.mobile-domain-child-link.active {
-    color: var(--accent-cyan);
-    border-color: rgba(0, 245, 255, 0.22);
-    background: rgba(0, 245, 255, 0.08);
-}
-
-.mobile-subnav-item {
-    display: inline-flex;
-    align-items: center;
-    min-height: 34px;
-    padding: 0 12px;
-    border-radius: 999px;
-    border: 1px solid var(--border-color);
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-    background: var(--bg-surface);
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.mobile-subnav-item:hover {
-    border-color: var(--border-color-2);
-    color: var(--text-primary);
-}
-.mobile-subnav-item.active {
-    color: var(--accent-cyan);
-    border-color: rgba(0, 245, 255, 0.22);
-    background: rgba(0, 245, 255, 0.08);
-}
-
-.domain-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    height: 100%;
-    padding: 0 12px;
-    font-size: 12px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-    border-bottom: 2px solid transparent;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: color 0.15s, border-color 0.15s;
-}
-.domain-nav-item:hover { color: var(--text-muted); }
-.domain-nav-item.active {
-    color: var(--text-primary);
-    border-bottom-color: var(--accent-cyan);
-}
-.domain-nav-item.active span:first-child {
-    opacity: 1 !important;
-    color: var(--accent-cyan);
-}
-
-.subdomain-nav-item {
-    display: inline-flex;
-    align-items: center;
-    height: 32px;
-    padding: 0 12px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-    white-space: nowrap;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
-    border: 1px solid transparent;
-}
-.subdomain-nav-item:hover {
-    color: var(--text-muted);
-    background: rgb(0 245 255 / 0.04);
-}
-.subdomain-nav-item.active {
-    color: var(--accent-cyan);
-    border-color: rgb(0 245 255 / 0.2);
-    background: rgb(0 245 255 / 0.08);
-}
-
-.sidebar-section {
-    padding: 0 16px 5px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-    margin-top: 16px;
-    opacity: 0.5;
-}
-.sidebar-section:first-child { margin-top: 0; }
-
-.sidebar-link {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-family: ui-monospace, monospace;
-    color: var(--text-muted-3);
-    border-left: 2px solid transparent;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
-}
-.sidebar-link:hover {
-    color: var(--text-muted);
-    background: rgb(0 245 255 / 0.03);
-}
-.sidebar-link.active {
-    color: var(--text-primary);
-    border-left-color: var(--accent-cyan);
-    background: rgb(0 245 255 / 0.05);
-}
-
-.flash-enter-active, .flash-leave-active { transition: opacity 0.2s, transform 0.2s; }
-.flash-enter-from { opacity: 0; transform: translateY(-4px); }
-.flash-leave-to  { opacity: 0; }
-
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--border-color-2); }
-</style>

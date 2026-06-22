@@ -86,7 +86,7 @@ describe('read pages', () => {
         routerPostMock.mockReset()
         useFormMock.mockReset()
         usePageMock.mockReset()
-        usePageMock.mockReturnValue({ url: '/entities/1?tab=aliases' })
+        usePageMock.mockReturnValue({ url: '/entities/1?tab=aliases', props: {} })
         useFormMock.mockImplementation((initial) => {
             const form = {
                 ...initial,
@@ -108,6 +108,16 @@ describe('read pages', () => {
     })
 
     it('renders the entity show page with route-selected alias content', () => {
+        usePageMock.mockReturnValue({
+            url: '/entities/1?tab=aliases',
+            props: {
+                notionNote: {
+                    label: 'Notion Notes',
+                    content: 'This is mirrored from the Notion page body.',
+                },
+            },
+        })
+
         const wrapper = mountPage(EntityShow, {
             entity: {
                 id: 1,
@@ -144,6 +154,8 @@ describe('read pages', () => {
         expect(wrapper.text()).toContain('Silent Heir')
         expect(wrapper.text()).toContain('Court usage')
         expect(wrapper.text()).toContain('Add Alias')
+        expect(wrapper.text()).toContain('Notion Notes')
+        expect(wrapper.text()).toContain('This is mirrored from the Notion page body.')
     })
 
     it('builds the relationship show sections with participant and state-link data', () => {
@@ -683,8 +695,8 @@ describe('read pages', () => {
         expect(wrapper.text()).toContain('Advance')
         expect(wrapper.text()).toContain('Needs sharper final line.')
 
-        await wrapper.find('button.btn-advance').trigger('click')
-        await wrapper.find('button.btn-danger').trigger('click')
+        await clickButtonByText(wrapper, 'button', 'Advance →')
+        await clickButtonByText(wrapper, 'button', 'Move to Trash')
 
         expect(routerPostMock).toHaveBeenCalledWith({ name: 'pipeline.advance', params: 99 })
         expect(routerDeleteMock).toHaveBeenCalledWith({ name: 'pipeline.destroy', params: 99 })
@@ -736,4 +748,12 @@ function findEntry(sections, label, sectionTitle = null) {
     return sectionPool
         .flatMap((section) => section.entries)
         .find((entry) => entry.label === label)
+}
+
+async function clickButtonByText(wrapper, selector, text) {
+    const button = wrapper.findAll(selector).find((candidate) => candidate.text() === text)
+
+    expect(button).toBeTruthy()
+
+    await button.trigger('click')
 }

@@ -95,7 +95,7 @@ class RelationshipController extends Controller
             'stateRelationships.characterState',
         ]);
 
-        return $this->page('Relationships/Show', [
+        return $this->pageWithNotionNote('Relationships/Show', $relationship, 'relationships', [
             'relationship' => $relationship,
         ]);
     }

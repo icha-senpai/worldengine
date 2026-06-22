@@ -3,6 +3,7 @@
         title="Relationships"
         :count="countRecords(relationships)"
         count-label="relationships"
+        sync-resource="relationships"
         :create-href="route('relationships.create')"
         create-label="New Relationship"
         :items="items"

@@ -3,6 +3,7 @@
         title="Crossover Entry Points"
         :count="entryPoints.length"
         count-label="entry points"
+        sync-resource="crossover_entry_points"
         :create-href="route('crossover-entry-points.create')"
         create-label="New Entry Point"
         :items="items"

@@ -111,7 +111,7 @@ class KnowledgeStateController extends Controller
             'acquiredFrom:id,name',
         ]);
 
-        return $this->page('Intelligence/KnowledgeStates/Show', [
+        return $this->pageWithNotionNote('Intelligence/KnowledgeStates/Show', $knowledgeState, 'knowledge_states', [
             'state' => $knowledgeState,
         ]);
     }

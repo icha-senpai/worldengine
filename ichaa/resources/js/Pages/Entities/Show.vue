@@ -7,10 +7,10 @@
                 <!-- Left: name + breadcrumb -->
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 mb-1">
-                        <Link :href="route('entities.index')" class="text-muted-3 text-sm font-mono hover:text-muted-2 transition-colors">
+                        <Link :href="route('entities.index')" class="text-muted-3 text-sm font-ui hover:text-muted-2 transition-colors">
                             Entities
                         </Link>
-                        <span class="text-muted-3 text-sm font-mono">/</span>
+                        <span class="text-muted-3 text-sm font-ui">/</span>
                         <span class="type-chip" :class="typeBadgeClass(entity.entity_type)">
                             {{ formatLabel(entity.entity_type) }}
                         </span>
@@ -18,7 +18,7 @@
                     <h1 class="text-primary text-2xl font-light tracking-wide leading-tight">
                         {{ entity.name }}
                     </h1>
-                    <p v-if="entity.public_title" class="text-muted-3 text-sm font-mono mt-0.5 italic">
+                    <p v-if="entity.public_title" class="text-muted-3 text-sm font-ui mt-0.5 italic">
                         "{{ entity.public_title }}"
                     </p>
                 </div>
@@ -28,12 +28,12 @@
                     <span class="status-badge" :class="statusBadgeClass(entity.status)">
                         {{ formatLabel(entity.status) }}
                     </span>
-                    <button type="button" class="btn-danger" @click="destroyEntity">
+                    <AppButton type="button" variant="danger" @click="destroyEntity">
                         Move to Trash
-                    </button>
-                    <Link :href="route('entities.edit', entity.id)" class="btn-ghost">
+                    </AppButton>
+                    <AppButton :href="route('entities.edit', entity.id)" variant="ghost">
                         Edit
-                    </Link>
+                    </AppButton>
                 </div>
 
             </div>
@@ -59,7 +59,7 @@
 
             <!-- Completion bar -->
             <div class="flex items-center gap-3 p-3 bg-surface-2 border border-border rounded-md">
-                <span class="text-muted-3 text-xs font-mono uppercase tracking-widest whitespace-nowrap">
+                <span class="text-muted-3 text-xs font-ui uppercase tracking-widest whitespace-nowrap">
                     Completion
                 </span>
                 <div class="flex-1 h-1.5 bg-surface rounded-full overflow-hidden">
@@ -69,15 +69,15 @@
                         :style="{ width: entity.completion_score + '%' }"
                     />
                 </div>
-                <span class="text-muted-2 text-sm font-mono w-9 text-right">
+                <span class="text-muted-2 text-sm font-ui w-9 text-right">
                     {{ entity.completion_score }}%
                 </span>
                 <div class="flex items-center gap-2 ml-2">
-                    <span v-if="entity.has_attributes"       class="completion-flag">attr</span>
-                    <span v-if="entity.has_relationships"    class="completion-flag">rel</span>
-                    <span v-if="entity.has_timeline_entries" class="completion-flag">time</span>
-                    <span v-if="entity.has_aliases"          class="completion-flag">alias</span>
-                    <span v-if="entity.has_media"            class="completion-flag">media</span>
+                    <span v-if="entity.has_attributes"       class="accent-tag">attr</span>
+                    <span v-if="entity.has_relationships"    class="accent-tag">rel</span>
+                    <span v-if="entity.has_timeline_entries" class="accent-tag">time</span>
+                    <span v-if="entity.has_aliases"          class="accent-tag">alias</span>
+                    <span v-if="entity.has_media"            class="accent-tag">media</span>
                 </div>
             </div>
 
@@ -100,15 +100,15 @@
                 <div class="panel">
                     <h3 class="panel-label">Classification</h3>
                     <div class="space-y-2">
-                        <div class="flex items-start gap-2"><span class="field-label">Type</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.entity_type) }}</span></div>
-                        <div v-if="entity.entity_sub_type" class="flex items-start gap-2"><span class="field-label">Subtype</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.entity_sub_type) }}</span></div>
+                        <div class="flex items-start gap-2"><span class="field-label field-label--fixed">Type</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.entity_type) }}</span></div>
+                        <div v-if="entity.entity_sub_type" class="flex items-start gap-2"><span class="field-label field-label--fixed">Subtype</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.entity_sub_type) }}</span></div>
                         <div class="flex items-start gap-2">
-                            <span class="field-label">Status</span>
+                            <span class="field-label field-label--fixed">Status</span>
                             <span class="status-badge status-badge--sm" :class="statusBadgeClass(entity.status)">
                                 {{ formatLabel(entity.status) }}
                             </span>
                         </div>
-                        <div v-if="entity.type_status" class="flex items-start gap-2"><span class="field-label">Type Status</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.type_status) }}</span></div>
+                        <div v-if="entity.type_status" class="flex items-start gap-2"><span class="field-label field-label--fixed">Type Status</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.type_status) }}</span></div>
                     </div>
                 </div>
 
@@ -116,9 +116,9 @@
                 <div class="panel">
                     <h3 class="panel-label">Access</h3>
                     <div class="space-y-2">
-                        <div class="flex items-start gap-2"><span class="field-label">Visibility</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.visibility) }}</span></div>
-                        <div class="flex items-start gap-2"><span class="field-label">Classification</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.content_classification) }}</span></div>
-                        <div v-if="entity.published_at" class="flex items-start gap-2"><span class="field-label">Published</span><span class="text-muted-2 text-sm">{{ formatDate(entity.published_at) }}</span></div>
+                        <div class="flex items-start gap-2"><span class="field-label field-label--fixed">Visibility</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.visibility) }}</span></div>
+                        <div class="flex items-start gap-2"><span class="field-label field-label--fixed">Classification</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.content_classification) }}</span></div>
+                        <div v-if="entity.published_at" class="flex items-start gap-2"><span class="field-label field-label--fixed">Published</span><span class="text-muted-2 text-sm">{{ formatDate(entity.published_at) }}</span></div>
                     </div>
                 </div>
 
@@ -126,9 +126,9 @@
                 <div class="panel">
                     <h3 class="panel-label">Origin</h3>
                     <div class="space-y-2">
-                        <div class="flex items-start gap-2"><span class="field-label">Origin Type</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.origin_type) }}</span></div>
-                        <div v-if="entity.canon_deviation" class="flex items-start gap-2"><span class="field-label">Canon Deviation</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.canon_deviation) }}</span></div>
-                        <div v-if="entity.origin_notes" class="flex items-start gap-2"><span class="field-label">Notes</span><span class="text-muted-2 text-sm">{{ entity.origin_notes }}</span></div>
+                        <div class="flex items-start gap-2"><span class="field-label field-label--fixed">Origin Type</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.origin_type) }}</span></div>
+                        <div v-if="entity.canon_deviation" class="flex items-start gap-2"><span class="field-label field-label--fixed">Canon Deviation</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.canon_deviation) }}</span></div>
+                        <div v-if="entity.origin_notes" class="flex items-start gap-2"><span class="field-label field-label--fixed">Notes</span><span class="text-muted-2 text-sm">{{ entity.origin_notes }}</span></div>
                     </div>
                 </div>
 
@@ -144,24 +144,24 @@
                             {{ u }}
                         </span>
                     </div>
-                    <p v-else class="text-muted-3 text-sm font-mono">Native / Original</p>
+                    <p v-else class="text-muted-3 text-sm font-ui">Native / Original</p>
                 </div>
 
                 <!-- Power Tiers — only if any are set -->
                 <div v-if="hasPowerTiers" class="col-span-2 panel">
                     <h3 class="panel-label">Power Tiers</h3>
                     <div class="grid grid-cols-3 gap-4 mt-2">
-                        <div v-if="entity.power_tier_ceiling" class="tier-block">
-                            <span class="tier-label">Ceiling</span>
-                            <span class="tier-value">{{ formatLabel(entity.power_tier_ceiling) }}</span>
+                        <div v-if="entity.power_tier_ceiling" class="info-box">
+                            <span class="info-box-label">Ceiling</span>
+                            <span class="info-box-value">{{ formatLabel(entity.power_tier_ceiling) }}</span>
                         </div>
-                        <div v-if="entity.power_tier_operating" class="tier-block">
-                            <span class="tier-label">Operating</span>
-                            <span class="tier-value">{{ formatLabel(entity.power_tier_operating) }}</span>
+                        <div v-if="entity.power_tier_operating" class="info-box">
+                            <span class="info-box-label">Operating</span>
+                            <span class="info-box-value">{{ formatLabel(entity.power_tier_operating) }}</span>
                         </div>
-                        <div v-if="entity.power_tier_influence" class="tier-block">
-                            <span class="tier-label">Influence</span>
-                            <span class="tier-value">{{ formatLabel(entity.power_tier_influence) }}</span>
+                        <div v-if="entity.power_tier_influence" class="info-box">
+                            <span class="info-box-label">Influence</span>
+                            <span class="info-box-value">{{ formatLabel(entity.power_tier_influence) }}</span>
                         </div>
                     </div>
                 </div>
@@ -171,8 +171,8 @@
                     <h3 class="panel-label">Control</h3>
                     <div class="space-y-2">
                         <div class="flex items-start gap-2">
-                            <span class="field-label">Control State</span>
-                            <span class="text-warn text-sm font-mono">{{ formatLabel(entity.control_state) }}</span>
+                            <span class="field-label field-label--fixed">Control State</span>
+                            <span class="text-warn text-sm font-ui">{{ formatLabel(entity.control_state) }}</span>
                         </div>
                     </div>
                 </div>
@@ -180,7 +180,7 @@
                 <!-- Persona divergence — only if relevant -->
                 <div v-if="entity.persona_divergence" class="panel">
                     <h3 class="panel-label">Persona Divergence</h3>
-                    <p class="text-muted-2 text-sm font-mono">{{ formatLabel(entity.persona_divergence) }}</p>
+                    <p class="text-muted-2 text-sm font-ui">{{ formatLabel(entity.persona_divergence) }}</p>
                 </div>
 
             </div>
@@ -193,24 +193,25 @@
             <div class="panel">
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <h3 class="panel-label !mb-0">{{ isEditingAlias ? 'Edit Alias' : 'Add Alias' }}</h3>
-                    <button
+                    <AppButton
                         v-if="isEditingAlias"
                         type="button"
                         @click="cancelAliasEdit"
-                        class="btn-ghost btn-ghost--sm"
+                        variant="ghost"
+                        size="sm"
                     >
                         Cancel
-                    </button>
+                    </AppButton>
                 </div>
                 <form @submit.prevent="submitAlias" class="space-y-3">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-grid-2-tight">
                         <div class="field-group">
                             <label class="field-label">Alias <span class="text-danger">*</span></label>
-                            <input v-model="aliasForm.alias" type="text" placeholder="The alias text" class="input w-full" />
+                            <TextInput v-model="aliasForm.alias" type="text" placeholder="The alias text" class="w-full" />
                         </div>
                         <div class="field-group">
                             <label class="field-label">Type <span class="text-danger">*</span></label>
-                            <select v-model="aliasForm.alias_type" class="input w-full">
+                            <SelectInput v-model="aliasForm.alias_type" class="w-full">
                                 <option value="">Select type...</option>
                                 <option value="nickname">Nickname</option>
                                 <option value="title">Title</option>
@@ -221,62 +222,65 @@
                                 <option value="honorific">Honorific</option>
                                 <option value="posthumous">Posthumous</option>
                                 <option value="other">Other</option>
-                            </select>
+                            </SelectInput>
                         </div>
                     </div>
                     <div class="field-group">
                         <label class="field-label">Context <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                        <input v-model="aliasForm.context" type="text" placeholder="When/where this alias is used" class="input w-full" />
+                        <TextInput v-model="aliasForm.context" type="text" placeholder="When/where this alias is used" class="w-full" />
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-grid-2-tight">
                         <div class="field-group">
                             <label class="field-label">Era Start <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                            <input v-model="aliasForm.era_start" type="text" placeholder="e.g. Year of the Dragon" class="input w-full" />
+                            <TextInput v-model="aliasForm.era_start" type="text" placeholder="e.g. Year of the Dragon" class="w-full" />
                         </div>
                         <div class="field-group">
                             <label class="field-label">Era End <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                            <input v-model="aliasForm.era_end" type="text" placeholder="Leave blank if still active" class="input w-full" />
+                            <TextInput v-model="aliasForm.era_end" type="text" placeholder="Leave blank if still active" class="w-full" />
                         </div>
                     </div>
                     <div class="flex items-center gap-4">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" v-model="aliasForm.is_active" class="checkbox" />
-                            <span class="text-muted-2 text-sm font-mono">Currently active</span>
+                            <Checkbox v-model:checked="aliasForm.is_active" />
+                            <span class="text-muted-2 text-sm font-ui">Currently active</span>
                         </label>
-                        <button type="submit" class="btn-primary" :disabled="aliasForm.processing || !aliasForm.alias || !aliasForm.alias_type">
+                        <AppButton type="submit" variant="primary" :disabled="aliasForm.processing || !aliasForm.alias || !aliasForm.alias_type">
                             {{ isEditingAlias ? 'Save Alias' : 'Add Alias' }}
-                        </button>
+                        </AppButton>
                     </div>
                 </form>
             </div>
 
             <!-- Alias list -->
             <div v-if="entity.aliases && entity.aliases.length" class="space-y-2">
-                <div v-for="a in entity.aliases" :key="a.id" class="alias-row">
+                <div v-for="a in entity.aliases" :key="a.id" class="record-card">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
                                 <span class="text-primary text-sm">{{ a.alias }}</span>
                                 <span class="alias-type-chip">{{ formatLabel(a.alias_type) }}</span>
-                                <span v-if="!a.is_active" class="text-muted-3 text-xs font-mono">(inactive)</span>
+                                <span v-if="!a.is_active" class="text-muted-3 text-xs font-ui">(inactive)</span>
                             </div>
                             <p v-if="a.context" class="text-muted-3 text-sm mt-1">{{ a.context }}</p>
-                            <p v-if="a.era_start || a.era_end" class="text-muted-3 text-xs font-mono mt-1">
+                            <p v-if="a.era_start || a.era_end" class="text-muted-3 text-xs font-ui mt-1">
                                 {{ a.era_start || '?' }} → {{ a.era_end || 'present' }}
                             </p>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <button
+                            <AppButton
                                 type="button"
                                 @click="beginAliasEdit(a)"
-                                class="btn-ghost btn-ghost--sm"
+                                variant="ghost"
+                                size="sm"
                             >
                                 Edit
-                            </button>
-                            <button
+                            </AppButton>
+                            <AppButton
+                                type="button"
                                 @click="deleteAlias(a.id)"
-                                class="btn-danger-sm"
-                            >Delete</button>
+                                variant="danger"
+                                size="sm"
+                            >Delete</AppButton>
                         </div>
                     </div>
                 </div>
@@ -292,44 +296,45 @@
             <div class="panel">
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <h3 class="panel-label !mb-0">{{ isEditingNote ? 'Edit Note' : 'Add Note' }}</h3>
-                    <button
+                    <AppButton
                         v-if="isEditingNote"
                         type="button"
                         @click="cancelNoteEdit"
-                        class="btn-ghost btn-ghost--sm"
+                        variant="ghost"
+                        size="sm"
                     >
                         Cancel
-                    </button>
+                    </AppButton>
                 </div>
                 <form @submit.prevent="submitNote" class="space-y-3">
                     <div class="field-group">
                         <label class="field-label">Label <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                        <input v-model="noteForm.note_label" type="text" placeholder="e.g. Backstory, Motivation, Arc notes..." class="input w-full" />
+                        <TextInput v-model="noteForm.note_label" type="text" placeholder="e.g. Backstory, Motivation, Arc notes..." class="w-full" />
                     </div>
                     <div class="field-group">
                         <label class="field-label">Content <span class="text-danger">*</span></label>
-                        <textarea v-model="noteForm.content" rows="4" placeholder="Note content..." class="input w-full resize-none" />
+                        <TextareaInput v-model="noteForm.content" rows="4" placeholder="Note content..." class="input w-full resize-none" />
                     </div>
                     <div class="field-group">
                         <label class="field-label">Sort Order <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                        <input v-model="noteForm.sort_order" type="number" placeholder="Display order" class="input w-full" />
+                        <TextInput v-model.number="noteForm.sort_order" type="number" placeholder="Display order" class="w-full" />
                     </div>
-                    <button type="submit" class="btn-primary" :disabled="noteForm.processing || !noteForm.content">
+                    <AppButton type="submit" variant="primary" :disabled="noteForm.processing || !noteForm.content">
                         {{ isEditingNote ? 'Save Note' : 'Add Note' }}
-                    </button>
+                    </AppButton>
                 </form>
             </div>
 
             <!-- Note list -->
             <div v-if="entity.notes && entity.notes.length" class="space-y-3">
-                <div v-for="n in entity.notes" :key="n.id" class="note-card">
+                <div v-for="n in entity.notes" :key="n.id" class="record-card">
                     <div class="flex items-start justify-between gap-3 mb-2">
                         <span v-if="n.note_label" class="note-label">{{ n.note_label }}</span>
                         <span v-else class="note-label note-label--empty">unlabeled</span>
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <span class="text-muted-3 text-xs font-mono">{{ formatDate(n.created_at) }}</span>
-                            <button type="button" @click="beginNoteEdit(n)" class="btn-ghost btn-ghost--sm">Edit</button>
-                            <button @click="deleteNote(n.id)" class="btn-danger-sm">Delete</button>
+                            <span class="text-muted-3 text-xs font-ui">{{ formatDate(n.created_at) }}</span>
+                            <AppButton type="button" variant="ghost" size="sm" @click="beginNoteEdit(n)">Edit</AppButton>
+                            <AppButton type="button" variant="danger" size="sm" @click="deleteNote(n.id)">Delete</AppButton>
                         </div>
                     </div>
                     <p class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ n.content }}</p>
@@ -346,59 +351,61 @@
             <div class="panel">
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <h3 class="panel-label !mb-0">{{ isEditingQuestion ? 'Edit Question' : 'Add Question' }}</h3>
-                    <button
+                    <AppButton
                         v-if="isEditingQuestion"
                         type="button"
                         @click="cancelQuestionEdit"
-                        class="btn-ghost btn-ghost--sm"
+                        variant="ghost"
+                        size="sm"
                     >
                         Cancel
-                    </button>
+                    </AppButton>
                 </div>
                 <form @submit.prevent="submitQuestion" class="space-y-3">
                     <div class="field-group">
                         <label class="field-label">Question <span class="text-danger">*</span></label>
-                        <input v-model="questionForm.question" type="text" placeholder="What needs to be resolved?" class="input w-full" />
+                        <TextInput v-model="questionForm.question" type="text" placeholder="What needs to be resolved?" class="w-full" />
                     </div>
                     <div class="field-group">
                         <label class="field-label">Context <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                        <textarea v-model="questionForm.context" rows="2" placeholder="Why does this matter? What does it affect?" class="input w-full resize-none" />
+                        <TextareaInput v-model="questionForm.context" rows="2" placeholder="Why does this matter? What does it affect?" class="input w-full resize-none" />
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-grid-2-tight">
                         <div class="field-group">
                             <label class="field-label">Priority</label>
                             <div class="flex gap-1.5 flex-wrap">
-                                <button
+                                <AppButton
                                     v-for="p in priorityOptions"
                                     :key="p.value"
                                     type="button"
                                     @click="questionForm.priority = p.value"
-                                    class="pill-btn"
-                                    :class="{ 'pill-btn--selected': questionForm.priority === p.value, ['pill-btn--' + p.value]: true }"
-                                >{{ p.label }}</button>
+                                    variant="select"
+                                    :selected="questionForm.priority === p.value"
+                                    :selected-tone="p.value === 'blocking' ? 'danger' : 'accent'"
+                                >{{ p.label }}</AppButton>
                             </div>
                         </div>
                         <div class="field-group">
                             <label class="field-label">Status</label>
                             <div class="flex gap-1.5 flex-wrap">
-                                <button
+                                <AppButton
                                     v-for="s in questionStatusOptions"
                                     :key="s.value"
                                     type="button"
                                     @click="questionForm.status = s.value"
-                                    class="pill-btn"
-                                    :class="{ 'pill-btn--selected': questionForm.status === s.value }"
-                                >{{ s.label }}</button>
+                                    variant="select"
+                                    :selected="questionForm.status === s.value"
+                                >{{ s.label }}</AppButton>
                             </div>
                         </div>
                     </div>
                     <div v-if="isEditingQuestion || questionForm.status === 'resolved'" class="field-group">
                         <label class="field-label">Resolution <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                        <textarea v-model="questionForm.resolution" rows="3" placeholder="How was this resolved?" class="input w-full resize-none" />
+                        <TextareaInput v-model="questionForm.resolution" rows="3" placeholder="How was this resolved?" class="input w-full resize-none" />
                     </div>
-                    <button type="submit" class="btn-primary" :disabled="questionForm.processing || !questionForm.question">
+                    <AppButton type="submit" variant="primary" :disabled="questionForm.processing || !questionForm.question">
                         {{ isEditingQuestion ? 'Save Question' : 'Add Question' }}
-                    </button>
+                    </AppButton>
                 </form>
             </div>
 
@@ -407,8 +414,8 @@
                 <div
                     v-for="q in entity.questions"
                     :key="q.id"
-                    class="question-card"
-                    :class="{ 'question-card--blocking': q.priority === 'blocking', 'question-card--resolved': q.status === 'resolved' }"
+                    class="record-card"
+                    :class="{ 'is-blocking': q.priority === 'blocking', 'is-dimmed': q.status === 'resolved' }"
                 >
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0 flex-1">
@@ -423,13 +430,15 @@
                             </p>
                         </div>
                         <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
-                            <button type="button" @click="beginQuestionEdit(q)" class="btn-ghost btn-ghost--sm">Edit</button>
-                            <button
+                            <AppButton type="button" variant="ghost" size="sm" @click="beginQuestionEdit(q)">Edit</AppButton>
+                            <AppButton
                                 v-if="q.status !== 'resolved'"
+                                type="button"
                                 @click="resolveQuestion(q.id)"
-                                class="btn-resolve"
-                            >Resolve</button>
-                            <button @click="deleteQuestion(q.id)" class="btn-danger-sm">Delete</button>
+                                variant="success"
+                                size="sm"
+                            >Resolve</AppButton>
+                            <AppButton type="button" variant="danger" size="sm" @click="deleteQuestion(q.id)">Delete</AppButton>
                         </div>
                     </div>
                 </div>
@@ -442,7 +451,7 @@
         <div v-if="activeTab === 'intelligence'" class="space-y-4">
             <div class="panel">
                 <h3 class="panel-label">Intelligence</h3>
-                <p class="text-muted-3 text-sm font-mono">
+                <p class="text-muted-3 text-sm font-ui">
                     Knowledge states and secrets involving this entity are managed from the
                     <Link :href="route('knowledge-states.index')" class="text-cyan hover:underline">Knowledge States</Link>
                     and
@@ -452,6 +461,8 @@
             </div>
         </div>
 
+        <NotionNotePanel :note="notionNote" />
+
     </AuthenticatedLayout>
 </template>
 
@@ -459,6 +470,12 @@
 import { ref, computed, watch } from 'vue'
 import { Link, useForm, router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import Checkbox from '@/Components/Checkbox.vue'
+import NotionNotePanel from '@/Components/NotionNotePanel.vue'
+import AppButton from '@/Components/ui/AppButton.vue'
+import SelectInput from '@/Components/SelectInput.vue'
+import TextareaInput from '@/Components/TextareaInput.vue'
+import TextInput from '@/Components/TextInput.vue'
 
 // --- Props ---
 
@@ -467,6 +484,7 @@ const props = defineProps({
 })
 
 const page = usePage()
+const notionNote = computed(() => page.props?.notionNote ?? null)
 
 // --- Tabs ---
 
@@ -782,318 +800,3 @@ const completionBarClass = (score) => {
 }
 </script>
 
-<style scoped>
-/* --- Tabs --- */
-.tab-btn {
-    padding: 10px 18px;
-    font-size: 12px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.06em;
-    color: var(--text-muted-3);
-    border-bottom: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
-    white-space: nowrap;
-}
-.tab-btn:hover { color: var(--text-muted-2); }
-.tab-btn--active {
-    color: var(--accent-cyan);
-    border-bottom-color: var(--accent-cyan);
-}
-
-/* --- Panels --- */
-.panel {
-    background: var(--bg-surface-2);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 18px 20px;
-}
-.panel-label {
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-    margin-bottom: 8px;
-}
-.field-label {
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-    white-space: nowrap;
-    min-width: 100px;
-    flex-shrink: 0;
-    padding-top: 3px;
-}
-
-.prose-wrap {
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-/* --- Type chip (header) --- */
-.type-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    border: 1px solid;
-}
-.type--character  { color: #7dd3fc; border-color: rgba(125,211,252,0.3); background: rgba(125,211,252,0.08); }
-.type--faction    { color: #c4b5fd; border-color: rgba(196,181,253,0.3); background: rgba(196,181,253,0.08); }
-.type--location   { color: #6ee7b7; border-color: rgba(110,231,183,0.3); background: rgba(110,231,183,0.08); }
-.type--event      { color: #fcd34d; border-color: rgba(252,211,77,0.3);  background: rgba(252,211,77,0.08);  }
-.type--object     { color: #fdba74; border-color: rgba(253,186,116,0.3); background: rgba(253,186,116,0.08); }
-.type--ci         { color: #f9a8d4; border-color: rgba(249,168,212,0.3); background: rgba(249,168,212,0.08); }
-.type--power      { color: var(--accent-cyan); border-color: rgba(0,245,255,0.3); background: rgba(0,245,255,0.08); }
-.type--default    { color: var(--text-muted-3); border-color: var(--border-color); }
-
-/* --- Status badge --- */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    border: 1px solid;
-}
-.status-badge--sm { padding: 2px 8px; font-size: 10px; }
-.status--active   { color: #6ee7b7; border-color: rgba(110,231,183,0.3); background: rgba(110,231,183,0.08); }
-.status--concept  { color: var(--text-muted-3); border-color: var(--border-color); background: transparent; }
-.status--archived { color: #64748b; border-color: rgba(100,116,139,0.3); background: rgba(100,116,139,0.06); }
-.status--deceased { color: var(--accent-pink); border-color: rgba(255,0,128,0.3); background: rgba(255,0,128,0.06); }
-.status--dormant  { color: #fcd34d; border-color: rgba(252,211,77,0.3); background: rgba(252,211,77,0.06); }
-.status--default  { color: var(--text-muted-3); border-color: var(--border-color); }
-
-/* --- Universe chips --- */
-.universe-chip {
-    padding: 4px 10px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    color: var(--text-muted-2);
-    border: 1px solid var(--border-color-2);
-    background: var(--bg-surface);
-}
-
-/* --- Power tier block --- */
-.tier-block {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 10px 12px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-}
-.tier-label {
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-}
-.tier-value {
-    font-size: 13px;
-    color: var(--text-primary);
-    font-weight: 300;
-}
-
-/* --- Completion flags --- */
-.completion-flag {
-    padding: 2px 7px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    color: var(--accent-cyan);
-    border: 1px solid rgba(0, 245, 255, 0.2);
-    background: rgba(0, 245, 255, 0.06);
-}
-
-/* --- Buttons --- */
-.btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    height: 36px;
-    padding: 0 16px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 12px;
-    font-family: ui-monospace, monospace;
-    color: var(--text-muted-2);
-    transition: border-color 0.15s, color 0.15s;
-}
-.btn-ghost:hover {
-    border-color: var(--border-color-2);
-    color: var(--text-primary);
-}
-.btn-danger {
-    display: inline-flex;
-    align-items: center;
-    height: 36px;
-    padding: 0 16px;
-    border: 1px solid rgba(255, 0, 128, 0.22);
-    border-radius: 6px;
-    font-size: 12px;
-    font-family: ui-monospace, monospace;
-    color: var(--accent-pink);
-    background: rgba(255, 0, 128, 0.05);
-    transition: background 0.15s, border-color 0.15s;
-}
-.btn-danger:hover {
-    background: rgba(255, 0, 128, 0.1);
-    border-color: rgba(255, 0, 128, 0.4);
-}
-.btn-ghost--sm {
-    height: 30px;
-    padding: 0 12px;
-    font-size: 11px;
-}
-
-/* --- Utility colors --- */
-.text-warn { color: #fcd34d; }
-.text-cyan  { color: var(--accent-cyan); }
-.text-danger { color: var(--accent-pink); }
-.bg-success { background: #6ee7b7; }
-.bg-focus   { background: var(--accent-cyan); }
-.bg-warn    { background: #fcd34d; }
-.bg-danger  { background: var(--accent-pink); }
-
-/* --- Forms in panels --- */
-.field-group { display: flex; flex-direction: column; gap: 8px; }
-.input {
-    height: 40px;
-    padding: 0 12px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 14px;
-    color: var(--text-primary);
-    outline: none;
-    transition: border-color 0.15s;
-}
-.input:focus { border-color: var(--accent-cyan); }
-textarea.input { height: auto; padding: 10px 12px; }
-select.input option { background: var(--bg-surface); }
-.checkbox { accent-color: var(--accent-cyan); width: 16px; height: 16px; }
-
-/* --- Pill buttons (question priority/status) --- */
-.pill-btn {
-    padding: 5px 12px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted-3);
-    background: transparent;
-    transition: border-color 0.12s, color 0.12s, background 0.12s;
-}
-.pill-btn:hover { border-color: var(--border-color-2); color: var(--text-muted-2); }
-.pill-btn--selected { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0,245,255,0.08); }
-.pill-btn--blocking.pill-btn--selected { border-color: var(--accent-pink); color: var(--accent-pink); background: rgba(255,0,128,0.08); }
-
-/* --- Action buttons --- */
-.btn-primary {
-    display: inline-flex; align-items: center;
-    height: 38px; padding: 0 18px;
-    background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.3);
-    border-radius: 6px; font-size: 12px; font-family: ui-monospace, monospace;
-    color: var(--accent-cyan); transition: background 0.15s, border-color 0.15s;
-}
-.btn-primary:hover:not(:disabled) { background: rgba(0,245,255,0.15); border-color: rgba(0,245,255,0.5); }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-resolve {
-    display: inline-flex; align-items: center;
-    height: 30px; padding: 0 12px;
-    background: rgba(110,231,183,0.08); border: 1px solid rgba(110,231,183,0.3);
-    border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace;
-    color: #6ee7b7; transition: background 0.15s;
-}
-.btn-resolve:hover { background: rgba(110,231,183,0.15); }
-.btn-danger-sm {
-    display: inline-flex; align-items: center;
-    height: 30px; padding: 0 12px;
-    background: transparent; border: 1px solid var(--border-color);
-    border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace;
-    color: var(--text-muted-3); transition: border-color 0.12s, color 0.12s;
-}
-.btn-danger-sm:hover { border-color: var(--accent-pink); color: var(--accent-pink); }
-
-/* --- Empty state --- */
-.empty-state {
-    padding: 32px 16px; text-align: center;
-    font-size: 12px; font-family: ui-monospace, monospace;
-    color: var(--text-muted-3); letter-spacing: 0.08em;
-    border: 1px dashed var(--border-color); border-radius: 6px;
-}
-
-/* --- Alias row --- */
-.alias-row {
-    padding: 16px 18px;
-    background: var(--bg-surface-2);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-}
-.alias-type-chip {
-    padding: 2px 8px; border-radius: 3px;
-    font-size: 11px; font-family: ui-monospace, monospace;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    color: var(--text-muted-3); border: 1px solid var(--border-color);
-}
-
-/* --- Note card --- */
-.note-card {
-    padding: 16px 18px;
-    background: var(--bg-surface-2);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-}
-.note-label {
-    font-size: 11px; font-family: ui-monospace, monospace;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--accent-cyan);
-}
-.note-label--empty {
-    color: var(--text-muted-3);
-    font-style: italic;
-}
-
-/* --- Question card --- */
-.question-card {
-    padding: 16px 18px;
-    background: var(--bg-surface-2);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    transition: border-color 0.15s;
-}
-.question-card--blocking { border-color: rgba(255,0,128,0.25); }
-.question-card--resolved { opacity: 0.5; }
-.priority-chip {
-    padding: 2px 8px; border-radius: 3px;
-    font-size: 11px; font-family: ui-monospace, monospace;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    border: 1px solid;
-}
-.priority--blocking { color: var(--accent-pink); border-color: rgba(255,0,128,0.3); background: rgba(255,0,128,0.08); }
-.priority--high     { color: #fcd34d; border-color: rgba(252,211,77,0.3); background: rgba(252,211,77,0.06); }
-.priority--medium   { color: var(--text-muted-2); border-color: var(--border-color); background: transparent; }
-.priority--low      { color: var(--text-muted-3); border-color: var(--border-color); background: transparent; }
-.status-q-chip {
-    padding: 2px 8px; border-radius: 3px;
-    font-size: 11px; font-family: ui-monospace, monospace;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    border: 1px solid;
-}
-.qstatus--open     { color: var(--accent-cyan); border-color: rgba(0,245,255,0.2); background: rgba(0,245,255,0.06); }
-.qstatus--deferred { color: var(--text-muted-3); border-color: var(--border-color); background: transparent; }
-.qstatus--resolved { color: #6ee7b7; border-color: rgba(110,231,183,0.2); background: rgba(110,231,183,0.06); }
-</style>

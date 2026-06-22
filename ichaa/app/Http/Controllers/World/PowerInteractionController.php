@@ -76,7 +76,7 @@ class PowerInteractionController extends Controller
             'instances.eventEntity:id,name',
         ]);
 
-        return $this->page('World/PowerInteractions/Show', [
+        return $this->pageWithNotionNote('World/PowerInteractions/Show', $powerInteraction, 'power_interactions', [
             'interaction' => $powerInteraction,
         ]);
     }

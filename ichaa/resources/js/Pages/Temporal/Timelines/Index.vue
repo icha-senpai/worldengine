@@ -3,6 +3,7 @@
         title="Timelines"
         :count="countRecords(timelines)"
         count-label="timelines"
+        sync-resource="timelines"
         :create-href="route('timelines.create')"
         create-label="New Timeline"
         :items="items"

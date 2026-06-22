@@ -109,7 +109,7 @@ class PerceptionStateController extends Controller
             ->get()
             ->keyBy('id');
 
-        return $this->page('Intelligence/PerceptionStates/Show', [
+        return $this->pageWithNotionNote('Intelligence/PerceptionStates/Show', $perceptionState, 'perception_states', [
             'state'               => $perceptionState,
             'subjectDisplay'      => $this->resolveSubjectDisplay($perceptionState),
             'maintainedByEntities'=> collect($maintainerIds)

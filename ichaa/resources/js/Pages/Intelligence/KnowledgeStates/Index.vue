@@ -3,6 +3,7 @@
         title="Knowledge States"
         :count="countRecords(states)"
         count-label="states"
+        sync-resource="knowledge_states"
         :create-href="route('knowledge-states.create')"
         create-label="New Knowledge State"
         :items="items"

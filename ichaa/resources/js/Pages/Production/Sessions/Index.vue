@@ -3,6 +3,7 @@
         title="Session Logs"
         :count="countRecords(sessions)"
         count-label="sessions"
+        sync-resource="session_logs"
         :create-href="route('session-logs.create')"
         create-label="New Session"
         :items="items"

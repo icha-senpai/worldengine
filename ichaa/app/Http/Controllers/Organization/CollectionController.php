@@ -67,7 +67,7 @@ class CollectionController extends Controller
             'childCollections:id,parent_collection_id,name,collection_type',
         ]);
 
-        return $this->page('Collections/Show', [
+        return $this->pageWithNotionNote('Collections/Show', $collection, 'collections', [
             'collection' => $collection,
         ]);
     }

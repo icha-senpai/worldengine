@@ -3,6 +3,7 @@
         title="Glossary"
         :count="countRecords(terms)"
         count-label="terms"
+        sync-resource="glossary"
         :create-href="route('glossary.create')"
         create-label="New Term"
         :items="items"

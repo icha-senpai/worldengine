@@ -90,7 +90,7 @@ class MetaController extends Controller
     {
         $meta->load(['entities:id,name,entity_type', 'supersededBy:id,title']);
 
-        return $this->page('Production/Meta/Show', [
+        return $this->pageWithNotionNote('Production/Meta/Show', $meta, 'meta', [
             'note' => $meta,
         ]);
     }

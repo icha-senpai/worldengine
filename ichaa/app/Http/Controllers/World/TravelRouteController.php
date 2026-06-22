@@ -63,7 +63,7 @@ class TravelRouteController extends Controller
 
     public function show(TravelRoute $travelRoute): Response
     {
-        return $this->page('World/TravelRoutes/Show', [
+        return $this->pageWithNotionNote('World/TravelRoutes/Show', $travelRoute, 'travel_routes', [
             'routeRecord' => $travelRoute->load(['origin:id,name', 'destination:id,name', 'controlledBy:id,name']),
         ]);
     }

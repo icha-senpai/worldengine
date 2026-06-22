@@ -3,6 +3,7 @@
         title="Canon References"
         :count="references.length"
         count-label="references"
+        sync-resource="canon_references"
         :create-href="route('canon-references.create')"
         create-label="New Reference"
         :items="items"

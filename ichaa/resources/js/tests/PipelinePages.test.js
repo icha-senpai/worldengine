@@ -66,7 +66,7 @@ describe('pipeline custom pages', () => {
         expect(wrapper.text()).toContain('Select a type to continue')
         expect(form.pipeline_stage).toBe('concept')
 
-        await clickButtonByText(wrapper, 'button.type-btn', 'Scene')
+        await clickButtonByText(wrapper, 'button', 'Scene')
 
         expect(form.pipeline_type).toBe('scene')
         expect(wrapper.text()).toContain('Scene Details')
@@ -74,18 +74,18 @@ describe('pipeline custom pages', () => {
         expect(wrapper.text()).toContain('Seraphine (#4 · Character)')
         expect(wrapper.text()).toContain('Mirror Library (#8 · Location)')
 
-        await clickButtonByText(wrapper, 'button.stage-btn', 'Outlined')
+        await clickButtonByText(wrapper, 'button', 'Outlined')
         expect(form.pipeline_stage).toBe('outlined')
 
-        await clickButtonByText(wrapper, 'button.pill-btn', 'Confrontation')
+        await clickButtonByText(wrapper, 'button', 'Confrontation')
         expect(form.emotional_beat).toBe('confrontation')
 
-        await clickButtonByText(wrapper, 'button.pill-btn', 'Confrontation')
+        await clickButtonByText(wrapper, 'button', 'Confrontation')
         expect(form.emotional_beat).toBe('')
 
         await wrapper.get('input[placeholder="Item title"]').setValue('Library breach')
 
-        expect(wrapper.get('button.btn-primary').attributes('disabled')).toBeUndefined()
+        expect(getButtonByText(wrapper, 'button', 'Create Item').attributes('disabled')).toBeUndefined()
 
         await wrapper.get('form').trigger('submit.prevent')
 
@@ -99,16 +99,16 @@ describe('pipeline custom pages', () => {
             pipelineStages: ['concept'],
         })
 
-        await clickButtonByText(wrapper, 'button.type-btn', 'Character Study')
+        await clickButtonByText(wrapper, 'button', 'Character Study')
 
         expect(form.pipeline_type).toBe('character_study')
         expect(wrapper.text()).toContain('Arc Tracker')
         expect(wrapper.text()).toContain('Johnny (#11 · Character)')
 
-        await clickButtonByText(wrapper, 'button.pill-btn', 'Transformation')
+        await clickButtonByText(wrapper, 'button', 'Transformation')
         expect(form.arc_stage).toBe('transformation')
 
-        await clickButtonByText(wrapper, 'button.pill-btn', 'Transformation')
+        await clickButtonByText(wrapper, 'button', 'Transformation')
         expect(form.arc_stage).toBe('')
 
         await wrapper.get('input[placeholder="Item title"]').setValue('Johnny fracture arc')
@@ -144,10 +144,10 @@ describe('pipeline custom pages', () => {
         expect(wrapper.text()).toContain('Arc Tracker')
         expect(wrapper.text()).toContain('Author Notes')
 
-        await clickButtonByText(wrapper, 'button.stage-btn', 'Revised')
+        await clickButtonByText(wrapper, 'button', 'Revised')
         expect(form.pipeline_stage).toBe('revised')
 
-        await clickButtonByText(wrapper, 'button.pill-btn', 'Transformation')
+        await clickButtonByText(wrapper, 'button', 'Transformation')
         expect(form.arc_stage).toBe('transformation')
 
         await wrapper.get('form').trigger('submit.prevent')
@@ -191,7 +191,7 @@ describe('pipeline custom pages', () => {
         expect(wrapper.text()).toContain('@ Mirror Library')
         expect(wrapper.text()).toContain('1,400w')
 
-        await clickButtonByText(wrapper, 'button.filter-btn', 'Character Study')
+        await clickButtonByText(wrapper, 'button', 'Character Study')
 
         expect(routerGetMock).toHaveBeenCalledWith(
             { name: 'pipeline.index', params: undefined },
@@ -199,7 +199,7 @@ describe('pipeline custom pages', () => {
             { preserveState: true, replace: true },
         )
 
-        await clickButtonByText(wrapper, 'button.clear-btn', 'Clear')
+        await clickButtonByText(wrapper, 'button', 'Clear')
 
         expect(routerGetMock).toHaveBeenLastCalledWith(
             { name: 'pipeline.index', params: undefined },
@@ -243,8 +243,8 @@ describe('pipeline custom pages', () => {
         expect(wrapper.text()).toContain('Sub-Items (1)')
         expect(wrapper.text()).toContain('Check the emotional pacing.')
 
-        await wrapper.get('button.btn-advance').trigger('click')
-        await wrapper.get('button.btn-danger').trigger('click')
+        await clickButtonByText(wrapper, 'button', 'Advance →')
+        await clickButtonByText(wrapper, 'button', 'Move to Trash')
 
         expect(routerPostMock).toHaveBeenCalledWith({ name: 'pipeline.advance', params: 44 })
         expect(routerDeleteMock).toHaveBeenCalledWith({ name: 'pipeline.destroy', params: 44 })
@@ -279,9 +279,13 @@ function mountPage(component, props = {}) {
 }
 
 async function clickButtonByText(wrapper, selector, text) {
-    const button = wrapper.findAll(selector).find((candidate) => candidate.text() === text)
+    const button = getButtonByText(wrapper, selector, text)
 
     expect(button).toBeTruthy()
 
     await button.trigger('click')
+}
+
+function getButtonByText(wrapper, selector, text) {
+    return wrapper.findAll(selector).find((candidate) => candidate.text() === text)
 }

@@ -3,6 +3,7 @@
         title="Location Containment"
         :count="containments.length"
         count-label="containments"
+        sync-resource="location_containment"
         :create-href="route('location-containment.create')"
         create-label="New Containment"
         :items="items"

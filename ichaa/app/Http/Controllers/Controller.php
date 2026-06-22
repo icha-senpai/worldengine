@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\System\Models\NotionNote;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
@@ -18,6 +20,13 @@ abstract class Controller extends BaseController
     protected function page(string $component, array $props = []): InertiaResponse
     {
         return Inertia::render($component, $props);
+    }
+
+    protected function pageWithNotionNote(string $component, Model $model, string $resource, array $props = []): InertiaResponse
+    {
+        return $this->page($component, array_merge([
+            'notionNote' => $this->notionNoteFor($model, $resource),
+        ], $props));
     }
 
     // Redirect back with a flash message.
@@ -39,5 +48,20 @@ abstract class Controller extends BaseController
         }
 
         return redirect()->route($route, $params);
+    }
+
+    protected function notionNoteFor(Model $model, string $resource): ?array
+    {
+        $note = NotionNote::query()->forModel($model, $resource)->first();
+
+        if (! $note || blank($note->content)) {
+            return null;
+        }
+
+        return [
+            'label' => 'Notion Notes',
+            'content' => $note->content,
+            'lastSyncedAt' => optional($note->last_synced_at)?->toIso8601String(),
+        ];
     }
 }

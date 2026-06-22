@@ -39,7 +39,7 @@ class CrossoverEntryPointController extends Controller
 
     public function show(CrossoverEntryPoint $crossoverEntryPoint): Response
     {
-        return $this->page('Lore/CrossoverEntryPoints/Show', [
+        return $this->pageWithNotionNote('Lore/CrossoverEntryPoints/Show', $crossoverEntryPoint, 'crossover_entry_points', [
             'entryPoint' => $crossoverEntryPoint->load('firstDocumentedCrossingEvent:id,name'),
         ]);
     }

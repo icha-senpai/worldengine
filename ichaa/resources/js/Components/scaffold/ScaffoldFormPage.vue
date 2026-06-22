@@ -1,24 +1,11 @@
 <template>
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center gap-3">
-                <Link :href="backHref" class="text-muted-3 text-sm font-mono hover:text-muted-2 transition-colors">
-                    {{ backLabel }}
-                </Link>
-                <span class="text-muted-3 text-sm font-mono">/</span>
-                <span class="text-primary text-base font-light">{{ title }}</span>
-            </div>
+            <PageHeaderTrail :items="headerItems" />
         </template>
 
         <form @submit.prevent="submitHandler" class="max-w-3xl space-y-6">
-            <div v-if="Object.keys(form.errors).length" class="error-box">
-                <p class="text-danger text-sm font-mono mb-2">Fix the following:</p>
-                <ul class="space-y-1">
-                    <li v-for="(msg, field) in form.errors" :key="field" class="text-danger text-sm font-mono">
-                        · {{ msg }}
-                    </li>
-                </ul>
-            </div>
+            <FormErrorSummary :errors="form.errors" />
 
             <div
                 v-for="section in normalizedSections"
@@ -38,7 +25,7 @@
                             <span v-if="field.required" class="text-danger">*</span>
                         </label>
 
-                        <textarea
+                        <TextareaInput
                             v-if="field.type === 'textarea'"
                             v-model="form[field.key]"
                             :rows="field.rows ?? 3"
@@ -46,7 +33,7 @@
                             class="input w-full resize-none"
                         />
 
-                        <textarea
+                        <TextareaInput
                             v-else-if="field.type === 'json'"
                             v-model="jsonBuffers[field.key]"
                             :rows="field.rows ?? 5"
@@ -54,10 +41,10 @@
                             class="input w-full resize-none"
                         />
 
-                        <select
+                        <SelectInput
                             v-else-if="field.type === 'select'"
                             v-model="form[field.key]"
-                            class="input w-full"
+                            class="w-full"
                         >
                             <option value="">{{ field.placeholder ?? 'Select an option...' }}</option>
                             <option
@@ -67,7 +54,7 @@
                             >
                                 {{ option.label }}
                             </option>
-                        </select>
+                        </SelectInput>
 
                         <div
                             v-else-if="field.type === 'multiselect'"
@@ -78,12 +65,10 @@
                                 :key="`${field.key}-${option.value}`"
                                 class="multiselect-option"
                             >
-                                <input
-                                    v-model="form[field.key]"
-                                    type="checkbox"
+                                <Checkbox
+                                    v-model:checked="form[field.key]"
                                     :value="option.value"
-                                    class="checkbox"
-                                >
+                                />
                                 <span class="multiselect-label">{{ option.label }}</span>
                             </label>
 
@@ -92,19 +77,17 @@
                             </p>
                         </div>
 
-                        <input
+                        <Checkbox
                             v-else-if="field.type === 'checkbox'"
-                            v-model="form[field.key]"
-                            type="checkbox"
-                            class="checkbox"
+                            v-model:checked="form[field.key]"
                         />
 
-                        <input
+                        <TextInput
                             v-else
                             v-model="form[field.key]"
                             :type="field.type ?? 'text'"
                             :placeholder="field.placeholder ?? ''"
-                            class="input w-full"
+                            class="w-full"
                         />
 
                         <p v-if="field.help" class="field-help">{{ field.help }}</p>
@@ -118,14 +101,14 @@
             </div>
 
             <div class="flex items-center gap-3 pt-2">
-                <button type="submit" class="btn-primary" :disabled="form.processing || hasJsonErrors">
+                <AppButton type="submit" variant="primary" :disabled="form.processing || hasJsonErrors">
                     <span v-if="form.processing">{{ processingLabel }}</span>
                     <span v-else>{{ submitLabel }}</span>
-                </button>
-                <Link :href="cancelHref" class="btn-ghost">Cancel</Link>
-                <button v-if="destroyHref" type="button" class="btn-danger" @click="destroyRecord">
+                </AppButton>
+                <AppButton :href="cancelHref" variant="ghost">Cancel</AppButton>
+                <AppButton v-if="destroyHref" type="button" variant="danger" @click="destroyRecord">
                     {{ destroyLabel }}
-                </button>
+                </AppButton>
             </div>
         </form>
     </AuthenticatedLayout>
@@ -136,6 +119,13 @@ import { computed, reactive } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { formatLabel, prettyJson } from '@/Components/scaffold/formatters'
+import AppButton from '@/Components/ui/AppButton.vue'
+import Checkbox from '@/Components/Checkbox.vue'
+import FormErrorSummary from '@/Components/ui/FormErrorSummary.vue'
+import PageHeaderTrail from '@/Components/ui/PageHeaderTrail.vue'
+import SelectInput from '@/Components/SelectInput.vue'
+import TextareaInput from '@/Components/TextareaInput.vue'
+import TextInput from '@/Components/TextInput.vue'
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -158,6 +148,11 @@ const normalizedSections = computed(() =>
         fields: section.fields ?? [],
     })),
 )
+
+const headerItems = computed(() => [
+    { label: props.backLabel, href: props.backHref },
+    { label: props.title },
+])
 
 const jsonBuffers = reactive({})
 const jsonErrors = reactive({})
@@ -428,169 +423,3 @@ const destroyRecord = () => {
     router.delete(props.destroyHref)
 }
 </script>
-
-<style scoped>
-.panel {
-    background: var(--bg-surface-2);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 18px 20px;
-}
-
-.panel-label {
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-    margin-bottom: 12px;
-}
-
-.field-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.field-label {
-    font-size: 11px;
-    font-family: ui-monospace, monospace;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-muted-3);
-}
-
-.field-help {
-    font-size: 12px;
-    color: var(--text-muted-3);
-}
-
-.field-error {
-    font-size: 12px;
-    font-family: ui-monospace, monospace;
-    color: var(--accent-pink);
-}
-
-.input {
-    height: 40px;
-    padding: 0 12px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 14px;
-    color: var(--text-primary);
-    outline: none;
-    transition: border-color 0.15s;
-}
-
-.input:focus {
-    border-color: var(--accent-cyan);
-}
-
-textarea.input {
-    height: auto;
-    padding: 10px 12px;
-}
-
-.checkbox {
-    accent-color: var(--accent-cyan);
-    width: 18px;
-    height: 18px;
-}
-
-.multiselect-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-height: 220px;
-    overflow-y: auto;
-    padding: 12px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-}
-
-.multiselect-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    font-size: 14px;
-    color: var(--text-primary);
-}
-
-.multiselect-label {
-    line-height: 1.35;
-}
-
-.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    height: 40px;
-    padding: 0 18px;
-    background: rgba(0, 245, 255, 0.1);
-    border: 1px solid rgba(0, 245, 255, 0.3);
-    border-radius: 6px;
-    font-size: 12px;
-    font-family: ui-monospace, monospace;
-    color: var(--accent-cyan);
-    transition: background 0.15s, border-color 0.15s;
-}
-
-.btn-primary:hover:not(:disabled) {
-    background: rgba(0, 245, 255, 0.15);
-    border-color: rgba(0, 245, 255, 0.5);
-}
-
-.btn-primary:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
-.btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    height: 40px;
-    padding: 0 16px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 12px;
-    font-family: ui-monospace, monospace;
-    color: var(--text-muted-2);
-    transition: border-color 0.15s, color 0.15s;
-}
-
-.btn-ghost:hover {
-    border-color: var(--border-color-2);
-    color: var(--text-primary);
-}
-
-.btn-danger {
-    display: inline-flex;
-    align-items: center;
-    height: 40px;
-    padding: 0 16px;
-    border: 1px solid rgba(255, 0, 128, 0.22);
-    border-radius: 6px;
-    font-size: 12px;
-    font-family: ui-monospace, monospace;
-    color: var(--accent-pink);
-    background: rgba(255, 0, 128, 0.05);
-    transition: background 0.15s, border-color 0.15s;
-}
-
-.btn-danger:hover {
-    background: rgba(255, 0, 128, 0.1);
-    border-color: rgba(255, 0, 128, 0.4);
-}
-
-.error-box {
-    padding: 16px;
-    background: var(--bg-surface-2);
-    border: 1px solid var(--accent-pink);
-    border-radius: 8px;
-}
-
-.text-danger {
-    color: var(--accent-pink);
-}
-</style>

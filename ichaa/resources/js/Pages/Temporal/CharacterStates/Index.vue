@@ -3,6 +3,7 @@
         title="Character States"
         :count="countRecords(states)"
         count-label="snapshots"
+        sync-resource="character_states"
         :create-href="route('character-states.create')"
         create-label="New Snapshot"
         :items="items"

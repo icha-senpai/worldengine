@@ -62,7 +62,7 @@ class DocumentController extends Controller
     {
         $document->load(['officialAuthor:id,name', 'trueAuthor:id,name', 'owner:id,name']);
 
-        return $this->page('Lore/Documents/Show', [
+        return $this->pageWithNotionNote('Lore/Documents/Show', $document, 'documents', [
             'document' => $document,
         ]);
     }

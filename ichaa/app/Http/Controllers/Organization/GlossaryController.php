@@ -51,7 +51,7 @@ class GlossaryController extends Controller
 
     public function show(Glossary $glossary): Response
     {
-        return $this->page('Glossary/Show', ['term' => $glossary]);
+        return $this->pageWithNotionNote('Glossary/Show', $glossary, 'glossary', ['term' => $glossary]);
     }
 
     public function edit(Glossary $glossary): Response

@@ -31,7 +31,7 @@ class ConcurrencyGroupController extends Controller
 
     public function show(ConcurrencyGroup $concurrencyGroup): Response
     {
-        return $this->page('Temporal/ConcurrencyGroups/Show', [
+        return $this->pageWithNotionNote('Temporal/ConcurrencyGroups/Show', $concurrencyGroup, 'concurrency_groups', [
             'group' => $concurrencyGroup->load([
                 'timelineEntries.timeline:id,name',
                 'timelineEntries.eventEntity:id,name,entity_type',

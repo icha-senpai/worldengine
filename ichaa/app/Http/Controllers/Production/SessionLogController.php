@@ -68,7 +68,7 @@ class SessionLogController extends Controller
     {
         $sessionLog->load(['entityQuestions.entity:id,name']);
 
-        return $this->page('Production/Sessions/Show', [
+        return $this->pageWithNotionNote('Production/Sessions/Show', $sessionLog, 'session_logs', [
             'session' => $sessionLog,
         ]);
     }

@@ -3,6 +3,7 @@
         title="Power Interactions"
         :count="countRecords(interactions)"
         count-label="interactions"
+        sync-resource="power_interactions"
         :create-href="route('power-interactions.create')"
         create-label="New Interaction"
         :items="items"

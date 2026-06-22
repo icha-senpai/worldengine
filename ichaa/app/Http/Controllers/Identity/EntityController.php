@@ -103,7 +103,7 @@ class EntityController extends Controller
             'questions' => fn($q) => $q->orderByRaw("CASE priority WHEN 'blocking' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END")->orderBy('created_at'),
         ]);
 
-        return $this->page('Entities/Show', [
+        return $this->pageWithNotionNote('Entities/Show', $entity, 'entities', [
             'entity' => $entity,
         ]);
     }

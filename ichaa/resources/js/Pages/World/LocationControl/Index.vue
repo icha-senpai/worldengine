@@ -3,6 +3,7 @@
         title="Location Control"
         :count="records.length"
         count-label="control records"
+        sync-resource="location_control"
         :create-href="route('location-control.create')"
         create-label="New Control Record"
         :items="items"

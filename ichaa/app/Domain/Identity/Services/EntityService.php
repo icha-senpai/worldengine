@@ -37,8 +37,8 @@ class EntityService
 
         return DB::transaction(function () use ($data) {
             // Apply defaults from settings if not provided
-            $data['visibility']              ??= config('horizon.defaults.visibility', VisibilityLevel::PRIVATE);
-            $data['content_classification']  ??= config('horizon.defaults.content_classification', ContentClassification::RESTRICTED);
+            $data['visibility']              ??= VisibilityLevel::PRIVATE;
+            $data['content_classification']  ??= ContentClassification::RESTRICTED;
             $data['status']                  ??= 'concept';
 
             $entity = Entity::create($data);

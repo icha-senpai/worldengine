@@ -3,6 +3,7 @@
         title="Documents"
         :count="countRecords(documents)"
         count-label="documents"
+        sync-resource="documents"
         :create-href="route('documents.create')"
         create-label="New Document"
         :items="items"

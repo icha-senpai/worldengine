@@ -3,6 +3,7 @@
         title="Meta Notes"
         :count="countRecords(notes)"
         count-label="notes"
+        sync-resource="meta"
         :create-href="route('meta.create')"
         create-label="New Meta Note"
         :items="items"

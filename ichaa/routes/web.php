@@ -29,6 +29,7 @@ use App\Http\Controllers\Production\PipelineItemController;
 // World
 use App\Http\Controllers\Production\SessionLogController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\System\NotionSyncController;
 use App\Http\Controllers\System\SearchController;
 use App\Http\Controllers\System\TrashController;
 // Intelligence
@@ -199,6 +200,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // -----------------------------------------------------------------------
 
     Route::get('search', [SearchController::class, 'index'])->name('search');
+    Route::post('notion/sync/{resource}', [NotionSyncController::class, 'store'])->name('notion.sync');
     Route::get('trash', [TrashController::class, 'index'])->name('trash.index');
     Route::post('trash/{type}/{record}/restore', [TrashController::class, 'restore'])->name('trash.restore');
 

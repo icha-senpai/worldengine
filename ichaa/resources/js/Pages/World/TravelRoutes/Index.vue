@@ -3,6 +3,7 @@
         title="Travel Routes"
         :count="routes.length"
         count-label="routes"
+        sync-resource="travel_routes"
         :create-href="route('travel-routes.create')"
         create-label="New Route"
         :items="items"

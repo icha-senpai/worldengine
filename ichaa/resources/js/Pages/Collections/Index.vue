@@ -3,6 +3,7 @@
         title="Collections"
         :count="countRecords(collections)"
         count-label="collections"
+        sync-resource="collections"
         :create-href="route('collections.create')"
         create-label="New Collection"
         :items="items"
