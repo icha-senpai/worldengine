@@ -1,8 +1,7 @@
 <template>
     <Transition
         name="drawer-slide"
-        appear
-        :duration="{ enter: 280, leave: 280 }"
+        :duration="{ enter: 240, leave: 220 }"
         @after-leave="finishClose"
     >
         <div v-if="isOpen" class="drawer-shell">
@@ -40,7 +39,9 @@
                 </div>
 
                 <div class="drawer-panel__body">
-                    <slot />
+                    <div class="form-shell">
+                        <slot />
+                    </div>
                 </div>
 
                 <div v-if="$slots.footer" class="drawer-panel__footer">

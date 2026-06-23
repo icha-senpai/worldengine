@@ -88,14 +88,14 @@
             <!-- Empty state -->
             <div v-if="entities.data.length === 0" class="px-4 py-16 text-center">
                 <p class="text-muted-3 text-sm font-ui uppercase tracking-widest">No entities found</p>
-                <Link
+                <DrawerLink
                     :href="route('entities.create')"
                     :preserve-scroll="true"
                     :preserve-state="true"
                     class="mt-3 inline-block text-focus text-sm font-ui hover:underline"
                 >
                     Create the first one →
-                </Link>
+                </DrawerLink>
             </div>
 
             <!-- Entity rows -->
@@ -190,11 +190,21 @@
 
     </AuthenticatedLayout>
 
-    <CreateEntity
-        v-if="createDrawer"
-        embedded
-        :entity-types="createDrawer.entityTypes"
-    />
+    <DrawerRouteShell
+        v-if="showCreateDrawer"
+        :open="showCreateDrawer"
+        :ready="Boolean(createDrawer)"
+        title="New Entity"
+        :close-href="route('entities.index')"
+        back-label="Entities"
+        :back-href="route('entities.index')"
+    >
+        <CreateEntity
+            v-if="createDrawer"
+            embedded
+            :entity-types="createDrawer.entityTypes"
+        />
+    </DrawerRouteShell>
     </div>
 </template>
 
@@ -203,11 +213,14 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
+import DrawerLink from '@/Components/ui/DrawerLink.vue'
 import CreateEntity from '@/Pages/Entities/Create.vue'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
 import { richDocumentToPlainText } from '@/Components/scaffold/formatters'
+import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 const props = defineProps({
     entities:    { type: Object, required: true },
@@ -227,6 +240,10 @@ const filterForm = ref({
 
 const hasActiveFilters = computed(() =>
     Object.values(filterForm.value).some(v => v !== '')
+)
+
+const showCreateDrawer = computed(() =>
+    Boolean(props.createDrawer) || matchesPendingDrawerHref(route('entities.create'))
 )
 
 let searchDebounce = null

@@ -8,6 +8,8 @@
             :create-href="route('documents.create')"
             :create-preserve-scroll="true"
             :create-preserve-state="true"
+            :create-drawer-open="Boolean(createDrawer)"
+            :create-close-href="route('documents.index')"
             create-label="New Document"
             :items="items"
             empty-title="No documents found"
@@ -15,14 +17,15 @@
             :empty-cta-preserve-scroll="true"
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first document ->"
-            
-        />
-
-        <CreateDocument
-            v-if="createDrawer"
-            embedded
-            v-bind="createDrawer"
-        />
+        >
+        <template #create-drawer>
+            <CreateDocument
+                v-if="createDrawer"
+                embedded
+                v-bind="createDrawer"
+            />
+        </template>
+        </ScaffoldIndexPage>
     </div>
 </template>
 

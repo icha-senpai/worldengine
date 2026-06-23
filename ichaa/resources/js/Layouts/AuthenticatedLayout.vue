@@ -69,7 +69,7 @@
                 <Transition name="flash">
                     <div
                         v-if="$page.props.flash?.error"
-                        class="mt-3 text-sm font-ui text-[var(--accent-pink)] border border-[rgba(255,0,128,0.28)] bg-[rgba(255,0,128,0.08)] rounded-md px-3 py-2"
+                        class="mt-3 text-sm font-ui text-[var(--accent-pink)] border border-[rgb(var(--accent-pink-rgb)_/_0.28)] bg-[rgb(var(--accent-pink-rgb)_/_0.08)] rounded-md px-3 py-2"
                     >
                         {{ $page.props.flash.error }}
                     </div>
@@ -157,10 +157,10 @@
                 </div>
             </div>
 
-            <div class="hidden md:flex items-center h-14 px-5">
+            <div class="hidden md:flex items-center h-16 px-5 lg:px-6">
 
                 <!-- Wordmark -->
-                <a :href="route('dashboard')" class="flex items-baseline mr-8 flex-shrink-0 font-ui text-base tracking-widest uppercase">
+                <a :href="route('dashboard')" class="flex items-baseline mr-8 flex-shrink-0 font-ui text-base tracking-[0.22em] uppercase">
                     <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
                 </a>
 
@@ -179,83 +179,88 @@
                 </nav>
 
                 <!-- Right cluster -->
-                <div class="flex items-center gap-3 ml-4 flex-shrink-0">
+                <div class="shell-toolbar ml-4 flex-shrink-0">
 
-                    <!-- Search -->
-                    <Link
-                        :href="route('search')"
-                        class="flex items-center gap-2.5 px-3 py-1.5 bg-surface-2 border border-border rounded-md text-muted-2 text-sm font-ui hover:border-border-2 hover:text-primary transition-colors"
-                    >
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                            <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
-                        <span>Search</span>
-                        <kbd class="px-1.5 py-px bg-surface border border-border rounded text-xs">/</kbd>
-                    </Link>
-
-                    <Link
-                        :href="route('trash.index')"
-                        class="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border rounded-md text-sm font-ui transition-colors"
-                        :class="currentPath === '/trash'
-                            ? 'border-[rgba(255,0,128,0.35)] text-[var(--accent-pink)] bg-[rgba(255,0,128,0.08)]'
-                            : 'border-border text-muted-2 hover:border-border-2 hover:text-primary'"
-                    >
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                            <path d="M3 4h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M5 6.5v4.5M8 6.5v4.5M11 6.5v4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M4 4l.6 8.1A1 1 0 005.6 13h4.8a1 1 0 001-.9L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
-                        <span>Trash</span>
-                    </Link>
-
-                    <NotionSyncButton resource="all" label="Sync All" compact />
-
-                    <!-- Flash -->
-                    <Transition name="flash">
-                        <div
-                            v-if="$page.props.flash?.success"
-                            class="text-sm font-ui text-success border border-success/25 bg-success/10 rounded-md px-3 py-1.5"
+                    <div class="shell-toolbar__group">
+                        <Link
+                            :href="route('search')"
+                            class="shell-control"
                         >
-                            {{ $page.props.flash.success }}
-                        </div>
-                    </Transition>
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                                <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span>Search</span>
+                            <kbd>/</kbd>
+                        </Link>
 
-                    <Transition name="flash">
-                        <div
-                            v-if="$page.props.flash?.error"
-                            class="text-sm font-ui text-[var(--accent-pink)] border border-[rgba(255,0,128,0.28)] bg-[rgba(255,0,128,0.08)] rounded-md px-3 py-1.5"
+                        <Link
+                            :href="route('trash.index')"
+                            class="shell-control"
+                            :class="currentPath === '/trash'
+                                ? '!border-[rgb(var(--accent-pink-rgb)_/_0.35)] !text-[var(--accent-pink)] !bg-[rgb(var(--accent-pink-rgb)_/_0.08)]'
+                                : ''"
                         >
-                            {{ $page.props.flash.error }}
-                        </div>
-                    </Transition>
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                                <path d="M3 4h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M5 6.5v4.5M8 6.5v4.5M11 6.5v4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M4 4l.6 8.1A1 1 0 005.6 13h4.8a1 1 0 001-.9L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span>Trash</span>
+                        </Link>
+                    </div>
 
-                    <!-- User dropdown -->
-                    <Dropdown align="right" width="44">
-                        <template #trigger>
-                            <button
-                                type="button"
-                                class="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-border rounded-md text-muted-2 text-sm font-ui hover:border-border-2 hover:text-primary transition-colors"
+                    <div class="shell-toolbar__group">
+                        <NotionSyncButton resource="all" label="Sync All" compact />
+                    </div>
+
+                    <div v-if="$page.props.flash?.success || $page.props.flash?.error" class="shell-toolbar__group">
+                        <Transition name="flash">
+                            <div
+                                v-if="$page.props.flash?.success"
+                                class="text-sm font-ui text-success border border-success/25 bg-success/10 rounded-md px-3 py-1.5"
                             >
-                                <span>{{ $page.props.auth.user.name }}</span>
-                                <svg class="w-3.5 h-3.5 opacity-50" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </template>
-                        <template #content>
-                            <DropdownLink :href="route('profile.edit')">Profile</DropdownLink>
-                            <DropdownLink :href="route('logout')" method="post" as="button">Log Out</DropdownLink>
-                        </template>
-                    </Dropdown>
+                                {{ $page.props.flash.success }}
+                            </div>
+                        </Transition>
+
+                        <Transition name="flash">
+                            <div
+                                v-if="$page.props.flash?.error"
+                                class="text-sm font-ui text-[var(--accent-pink)] border border-[rgb(var(--accent-pink-rgb)_/_0.28)] bg-[rgb(var(--accent-pink-rgb)_/_0.08)] rounded-md px-3 py-1.5"
+                            >
+                                {{ $page.props.flash.error }}
+                            </div>
+                        </Transition>
+                    </div>
+
+                    <div class="shell-toolbar__group">
+                        <Dropdown align="right" width="44">
+                            <template #trigger>
+                                <button
+                                    type="button"
+                                    class="shell-control"
+                                >
+                                    <span>{{ $page.props.auth.user.name }}</span>
+                                    <svg class="w-3.5 h-3.5 opacity-50" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </template>
+                            <template #content>
+                                <DropdownLink :href="route('profile.edit')">Profile</DropdownLink>
+                                <DropdownLink :href="route('logout')" method="post" as="button">Log Out</DropdownLink>
+                            </template>
+                        </Dropdown>
+                    </div>
 
                 </div>
             </div>
 
             <div
                 v-if="activeSubnavItems.length"
-                class="hidden md:flex items-center gap-1.5 px-5 h-11 border-t border-border bg-surface-2/70 overflow-x-auto scrollbar-none"
+                class="hidden md:flex items-center gap-1.5 px-5 lg:px-6 h-12 border-t border-border bg-surface-2/70 overflow-x-auto scrollbar-none"
             >
                 <Link
                     v-for="item in activeSubnavItems"
@@ -281,10 +286,10 @@
 
             <!-- MAIN -->
             <main
-                class="flex-1 min-w-0 p-4 md:p-8"
+                class="flex-1 min-w-0 p-4 md:p-7 xl:p-8"
                 :class="{ 'max-w-6xl mx-auto w-full': !$slots.sidebar }"
             >
-                <div v-if="$slots.header" class="mb-6 pb-5 border-b border-border">
+                <div v-if="$slots.header" class="mb-7 pb-6 border-b border-border">
                     <slot name="header" />
                 </div>
                 <slot />

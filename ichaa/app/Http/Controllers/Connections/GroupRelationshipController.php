@@ -146,6 +146,10 @@ class GroupRelationshipController extends Controller
 
         return $this->pageWithNotionNote('GroupRelationships/Show', $groupRelationship, 'group_relationships', array_merge([
             'group' => $groupRelationship,
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
         ], $props));
     }
 }

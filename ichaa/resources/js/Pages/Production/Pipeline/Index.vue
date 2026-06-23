@@ -115,14 +115,15 @@
 
         <div v-else class="empty-state-panel">
             <p class="text-muted-3 text-sm font-ui uppercase tracking-widest mb-2">No pipeline items found</p>
-            <Link
+            <DrawerLink
                 :href="route('pipeline.create')"
                 :preserve-scroll="true"
                 :preserve-state="true"
+                title="New Pipeline Item"
                 class="text-cyan text-sm font-ui hover:underline"
             >
                 Create your first item →
-            </Link>
+            </DrawerLink>
         </div>
 
         <!-- PAGINATION -->
@@ -146,11 +147,21 @@
 
     </AuthenticatedLayout>
 
-    <CreatePipelineItem
-        v-if="createDrawer"
-        embedded
-        v-bind="createDrawer"
-    />
+    <DrawerRouteShell
+        v-if="showCreateDrawer"
+        :open="showCreateDrawer"
+        :ready="Boolean(createDrawer)"
+        title="New Pipeline Item"
+        :close-href="route('pipeline.index')"
+        back-label="Writing Pipeline"
+        :back-href="route('pipeline.index')"
+    >
+        <CreatePipelineItem
+            v-if="createDrawer"
+            embedded
+            v-bind="createDrawer"
+        />
+    </DrawerRouteShell>
     </div>
 </template>
 
@@ -159,8 +170,11 @@ import { computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
+import DrawerLink from '@/Components/ui/DrawerLink.vue'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 import CreatePipelineItem from '@/Pages/Production/Pipeline/Create.vue'
+import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 const props = defineProps({
     items:          { type: Object, required: true },
@@ -172,6 +186,10 @@ const props = defineProps({
 
 const hasFilters = computed(() =>
     Object.values(props.filters).some(v => v !== '' && v !== null && v !== undefined)
+)
+
+const showCreateDrawer = computed(() =>
+    Boolean(props.createDrawer) || matchesPendingDrawerHref(route('pipeline.create'))
 )
 
 const setFilter = (key, value) => {

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, useAttrs } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3'
+import { beginDrawerNavigation, isDrawerRouteHref } from '@/lib/drawerNavigation'
 
 defineOptions({
     inheritAttrs: false,
@@ -35,17 +36,26 @@ const props = defineProps({
 const attrs = useAttrs()
 
 const isLink = computed(() => Boolean(props.href))
+const isInternalLink = computed(() => {
+    if (!props.href || typeof window === 'undefined') {
+        return false
+    }
 
-const componentTag = computed(() => (isLink.value ? Link : 'button'))
+    try {
+        return new URL(props.href, window.location.origin).origin === window.location.origin
+    } catch {
+        return false
+    }
+})
+
+const componentTag = computed(() => (isLink.value ? 'a' : 'button'))
 
 const componentAttrs = computed(() => ({
     ...attrs,
     ...(isLink.value
         ? {
             href: props.href,
-            method: props.method || undefined,
-            preserveScroll: props.preserveScroll || undefined,
-            preserveState: props.preserveState || undefined,
+            'aria-disabled': props.disabled || undefined,
         }
         : {
             type: props.type,
@@ -63,6 +73,50 @@ const buttonClasses = computed(() => [
         [`app-btn--selected-${props.selectedTone}`]: props.selected,
     },
 ])
+
+const shouldStartDrawerNavigation = computed(() => isLink.value && isDrawerRouteHref(props.href))
+
+function handleClick(event) {
+    if (!isLink.value || props.disabled) {
+        return
+    }
+
+    if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+    ) {
+        return
+    }
+
+    if (!isInternalLink.value) {
+        return
+    }
+
+    event.preventDefault()
+
+    const visit = () => {
+        router.visit(props.href, {
+            method: props.method || 'get',
+            preserveScroll: props.preserveScroll,
+            preserveState: props.preserveState,
+        })
+    }
+
+    if (!shouldStartDrawerNavigation.value) {
+        visit()
+        return
+    }
+
+    beginDrawerNavigation({
+        href: props.href,
+    })
+
+    window.requestAnimationFrame(visit)
+}
 </script>
 
 <template>
@@ -70,6 +124,7 @@ const buttonClasses = computed(() => [
         :is="componentTag"
         v-bind="componentAttrs"
         :class="buttonClasses"
+        @click="handleClick"
     >
         <slot />
     </component>

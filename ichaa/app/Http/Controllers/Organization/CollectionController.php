@@ -125,11 +125,16 @@ class CollectionController extends Controller
     {
         $collection->load([
             'entities:id,name,entity_type,completion_score',
+            'entityEntries.entity:id,name,entity_type,completion_score',
             'childCollections:id,parent_collection_id,name,collection_type',
         ]);
 
         return $this->pageWithNotionNote('Collections/Show', $collection, 'collections', array_merge([
             'collection' => $collection,
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
         ], $props));
     }
 }

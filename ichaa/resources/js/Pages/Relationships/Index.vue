@@ -8,6 +8,8 @@
             :create-href="route('relationships.create')"
             :create-preserve-scroll="true"
             :create-preserve-state="true"
+            :create-drawer-open="Boolean(createDrawer)"
+            :create-close-href="route('relationships.index')"
             create-label="New Relationship"
             :items="items"
             empty-title="No relationships found"
@@ -15,14 +17,15 @@
             :empty-cta-preserve-scroll="true"
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first relationship ->"
-            
-        />
-
-        <CreateRelationship
-            v-if="createDrawer"
-            embedded
-            v-bind="createDrawer"
-        />
+        >
+        <template #create-drawer>
+            <CreateRelationship
+                v-if="createDrawer"
+                embedded
+                v-bind="createDrawer"
+            />
+        </template>
+        </ScaffoldIndexPage>
     </div>
 </template>
 

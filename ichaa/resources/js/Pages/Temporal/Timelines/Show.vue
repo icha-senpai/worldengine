@@ -310,21 +310,41 @@
 
         <NotionNotePanel :note="notionNote" />
 
-        <EditTimeline
-            v-if="editDrawer"
-            embedded
-            :timeline="timeline"
-            v-bind="editDrawer"
-        />
+        <DrawerRouteShell
+            v-if="showEditDrawer"
+            :open="showEditDrawer"
+            :ready="Boolean(editDrawer)"
+            title="Edit Timeline"
+            :close-href="route('timelines.show', timeline.id)"
+            back-label="Timelines"
+            :back-href="route('timelines.index')"
+        >
+            <EditTimeline
+                v-if="editDrawer"
+                embedded
+                :timeline="timeline"
+                v-bind="editDrawer"
+            />
+        </DrawerRouteShell>
 
-        <EditTimelineEvent
-            v-if="eventEditDrawer"
-            embedded
-            :timeline="timeline"
-            :entry="eventEditDrawer.entry"
-            :concurrency-groups="eventEditDrawer.concurrencyGroups"
-            :event-significance-levels="eventEditDrawer.eventSignificanceLevels"
-        />
+        <DrawerRouteShell
+            v-if="showEventEditDrawer"
+            :open="showEventEditDrawer"
+            :ready="Boolean(eventEditDrawer)"
+            title="Edit Timeline Event"
+            :close-href="route('timelines.show', timeline.id)"
+            back-label="Timeline"
+            :back-href="route('timelines.show', timeline.id)"
+        >
+            <EditTimelineEvent
+                v-if="eventEditDrawer"
+                embedded
+                :timeline="timeline"
+                :entry="eventEditDrawer.entry"
+                :concurrency-groups="eventEditDrawer.concurrencyGroups"
+                :event-significance-levels="eventEditDrawer.eventSignificanceLevels"
+            />
+        </DrawerRouteShell>
     </AuthenticatedLayout>
 </template>
 
@@ -335,11 +355,14 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Checkbox from '@/Components/Checkbox.vue'
 import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import EditTimeline from '@/Pages/Temporal/Timelines/Edit.vue'
 import EditTimelineEvent from '@/Pages/Temporal/Timelines/Events/Edit.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { formatLabel, isRichDocument, toEntityOptions } from '@/Components/scaffold/formatters'
+import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 const props = defineProps({
     timeline: { type: Object, required: true },
@@ -358,6 +381,14 @@ const RichDocumentValue = defineAsyncComponent(() => import('@/Components/scaffo
 
 const chronologicalEntries = computed(() => props.events ?? [])
 const atemporalEntries = computed(() => props.atemporal ?? [])
+const showEditDrawer = computed(() =>
+    Boolean(props.editDrawer) || matchesPendingDrawerHref(route('timelines.edit', props.timeline.id))
+)
+const showEventEditDrawer = computed(() =>
+    Boolean(props.eventEditDrawer)
+    || chronologicalEntries.value.some((entry) => matchesPendingDrawerHref(route('timelines.events.edit', { timeline: props.timeline.id, entry: entry.id })))
+    || atemporalEntries.value.some((entry) => matchesPendingDrawerHref(route('timelines.events.edit', { timeline: props.timeline.id, entry: entry.id })))
+)
 const availableEventOptions = computed(() => toEntityOptions(props.availableEvents))
 const concurrencyGroupOptions = computed(() =>
     (props.concurrencyGroups ?? []).map((group) => ({
@@ -412,11 +443,27 @@ const removeEntry = (entry) => {
     )
 }
 
-const destroyTimeline = () => {
-    if (!confirm(`Move "${props.timeline.name}" to trash?`)) {
+const destroyTimeline = async () => {
+    const confirmed = await confirmDialog({
+        title: 'Move to Trash',
+        message: `Move "${props.timeline.name}" to trash?`,
+        confirmLabel: 'Move to Trash',
+        cancelLabel: 'Cancel',
+        confirmVariant: 'danger',
+    })
+
+    if (!confirmed) {
         return
     }
 
-    router.delete(route('timelines.destroy', props.timeline.id))
+    router.delete(route('timelines.destroy', props.timeline.id), {
+        onError: (errors) => {
+            void showErrorDialog({
+                title: 'Could not move timeline to trash',
+                message: 'The request did not complete.',
+                details: errors,
+            })
+        },
+    })
 }
 </script>

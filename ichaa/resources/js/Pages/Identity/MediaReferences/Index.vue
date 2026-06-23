@@ -7,6 +7,8 @@
             :create-href="route('media-references.create')"
             :create-preserve-scroll="true"
             :create-preserve-state="true"
+            :create-drawer-open="Boolean(createDrawer)"
+            :create-close-href="route('media-references.index')"
             create-label="New Media"
             :items="items"
             empty-title="No media references found"
@@ -14,14 +16,15 @@
             :empty-cta-preserve-scroll="true"
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first media reference ->"
-            
-        />
-
-        <CreateMediaReference
-            v-if="createDrawer"
-            embedded
-            v-bind="createDrawer"
-        />
+        >
+        <template #create-drawer>
+            <CreateMediaReference
+                v-if="createDrawer"
+                embedded
+                v-bind="createDrawer"
+            />
+        </template>
+        </ScaffoldIndexPage>
     </div>
 </template>
 

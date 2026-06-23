@@ -248,9 +248,10 @@ class PerceptionStateController extends Controller
     private function showPage(PerceptionState $perceptionState, array $props = []): Response
     {
         $maintainerIds = $perceptionState->maintained_by_entity_ids ?? [];
+        $immuneIds = $perceptionState->immune_entity_ids ?? [];
         $maintainers = Entity::query()
             ->select('id', 'name', 'entity_type')
-            ->whereIn('id', $maintainerIds)
+            ->whereIn('id', array_values(array_unique(array_merge($maintainerIds, $immuneIds))))
             ->get()
             ->keyBy('id');
 
@@ -272,6 +273,25 @@ class PerceptionStateController extends Controller
                 })
                 ->values()
                 ->all(),
+            'immuneEntities' => collect($immuneIds)
+                ->map(function ($id) use ($maintainers) {
+                    $entity = $maintainers->get($id);
+
+                    if (! $entity) {
+                        return ['label' => "Unknown entity #{$id}"];
+                    }
+
+                    return [
+                        'label' => "{$entity->name}" . ($entity->entity_type ? " ({$entity->entity_type})" : ''),
+                        'href'  => route('entities.show', [$entity]),
+                    ];
+                })
+                ->values()
+                ->all(),
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
         ], $props));
     }
 }

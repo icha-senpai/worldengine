@@ -1,33 +1,39 @@
 <template>
     <component :is="layoutComponent">
         <template v-if="showLayoutHeader" #header>
-            <PageHeaderTrail :items="headerItems" />
+            <div class="page-hero">
+                <div class="page-hero__copy">
+                    <PageHeaderTrail :items="headerItems" />
+                    <h1 class="page-hero__title page-hero__title--md mt-3">{{ title }}</h1>
+                </div>
+            </div>
         </template>
 
-        <form v-if="isDrawerPresentation" @submit.prevent="submitHandler">
+        <form v-if="isDrawerPresentation && !embedded" @submit.prevent="submitHandler">
             <AppDrawer
                 :title="title"
                 :trail-items="headerItems"
                 :close-href="cancelHref"
                 @close="closeDrawer"
             >
-                <div class="space-y-6">
+                <div class="form-shell">
                     <FormErrorSummary :errors="form.errors" />
 
                     <div
                         v-for="section in normalizedSections"
                         :key="section.title"
-                        class="panel"
+                        class="panel form-section"
                     >
                         <h3 v-if="section.title" class="panel-label">{{ section.title }}</h3>
 
-                        <div class="space-y-4">
+                        <div class="form-section__body">
                             <div
                                 v-for="field in section.fields"
                                 :key="field.key"
                                 class="field-group"
+                                :class="{ 'field-group--checkbox': isCheckboxField(field) }"
                             >
-                                <label class="field-label" :for="fieldInputId(field)">
+                                <label v-if="!isCheckboxField(field)" class="field-label" :for="fieldInputId(field)">
                                     {{ displayLabel(field) }}
                                     <span v-if="field.required" class="text-danger">*</span>
                                 </label>
@@ -103,19 +109,37 @@
                                     </p>
                                 </div>
 
-                                <Checkbox
+                                <label
                                     v-else-if="resolvedFieldType(field) === 'checkbox'"
-                                    :id="fieldInputId(field)"
-                                    v-model:checked="form[field.key]"
-                                    :aria-label="displayLabel(field)"
-                                    :aria-describedby="fieldHelpId(field)"
-                                />
+                                    class="checkbox-card"
+                                    :for="fieldInputId(field)"
+                                >
+                                    <Checkbox
+                                        :id="fieldInputId(field)"
+                                        v-model:checked="form[field.key]"
+                                        :aria-label="displayLabel(field)"
+                                        :aria-describedby="fieldHelpId(field)"
+                                    />
+                                    <span class="checkbox-card__copy">
+                                        <span class="checkbox-card__label">
+                                            {{ displayLabel(field) }}
+                                            <span v-if="field.required" class="text-danger">*</span>
+                                        </span>
+                                        <span
+                                            v-if="field.help"
+                                            :id="fieldHelpId(field)"
+                                            class="checkbox-card__help"
+                                        >
+                                            {{ field.help }}
+                                        </span>
+                                    </span>
+                                </label>
 
                                 <input
                                     v-else-if="resolvedFieldType(field) === 'file'"
                                     :id="fieldInputId(field)"
                                     type="file"
-                                    class="input w-full file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-2 file:font-ui file:text-sm file:text-primary"
+                                    class="input w-full"
                                     :accept="field.accept ?? null"
                                     :aria-describedby="fieldHelpId(field)"
                                     @change="handleFileInput(field, $event)"
@@ -132,7 +156,7 @@
                                     class="w-full"
                                 />
 
-                                <p v-if="field.help" :id="fieldHelpId(field)" class="field-help">{{ field.help }}</p>
+                                <p v-if="!isCheckboxField(field) && field.help" :id="fieldHelpId(field)" class="field-help">{{ field.help }}</p>
                                 <p v-else-if="resolvedFieldType(field) === 'file' && selectedFiles[field.key]" :id="fieldHelpId(field)" class="field-help">
                                     Selected: {{ selectedFiles[field.key] }}
                                 </p>
@@ -161,23 +185,29 @@
             </AppDrawer>
         </form>
 
-        <form v-else @submit.prevent="submitHandler" class="max-w-3xl space-y-6">
+        <form
+            v-else
+            @submit.prevent="submitHandler"
+            class="form-shell"
+            :class="{ 'max-w-3xl': !isDrawerPresentation }"
+        >
             <FormErrorSummary :errors="form.errors" />
 
             <div
                 v-for="section in normalizedSections"
                 :key="section.title"
-                class="panel"
+                class="panel form-section"
             >
                 <h3 v-if="section.title" class="panel-label">{{ section.title }}</h3>
 
-                <div class="space-y-4">
+                <div class="form-section__body">
                     <div
                         v-for="field in section.fields"
                         :key="field.key"
                         class="field-group"
+                        :class="{ 'field-group--checkbox': isCheckboxField(field) }"
                     >
-                        <label class="field-label" :for="fieldInputId(field)">
+                        <label v-if="!isCheckboxField(field)" class="field-label" :for="fieldInputId(field)">
                             {{ displayLabel(field) }}
                             <span v-if="field.required" class="text-danger">*</span>
                         </label>
@@ -253,19 +283,37 @@
                             </p>
                         </div>
 
-                        <Checkbox
+                        <label
                             v-else-if="resolvedFieldType(field) === 'checkbox'"
-                            :id="fieldInputId(field)"
-                            v-model:checked="form[field.key]"
-                            :aria-label="displayLabel(field)"
-                            :aria-describedby="fieldHelpId(field)"
-                        />
+                            class="checkbox-card"
+                            :for="fieldInputId(field)"
+                        >
+                            <Checkbox
+                                :id="fieldInputId(field)"
+                                v-model:checked="form[field.key]"
+                                :aria-label="displayLabel(field)"
+                                :aria-describedby="fieldHelpId(field)"
+                            />
+                            <span class="checkbox-card__copy">
+                                <span class="checkbox-card__label">
+                                    {{ displayLabel(field) }}
+                                    <span v-if="field.required" class="text-danger">*</span>
+                                </span>
+                                <span
+                                    v-if="field.help"
+                                    :id="fieldHelpId(field)"
+                                    class="checkbox-card__help"
+                                >
+                                    {{ field.help }}
+                                </span>
+                            </span>
+                        </label>
 
                         <input
                             v-else-if="resolvedFieldType(field) === 'file'"
                             :id="fieldInputId(field)"
                             type="file"
-                            class="input w-full file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-2 file:font-ui file:text-sm file:text-primary"
+                            class="input w-full"
                             :accept="field.accept ?? null"
                             :aria-describedby="fieldHelpId(field)"
                             @change="handleFileInput(field, $event)"
@@ -282,7 +330,7 @@
                             class="w-full"
                         />
 
-                        <p v-if="field.help" :id="fieldHelpId(field)" class="field-help">{{ field.help }}</p>
+                        <p v-if="!isCheckboxField(field) && field.help" :id="fieldHelpId(field)" class="field-help">{{ field.help }}</p>
                         <p v-else-if="resolvedFieldType(field) === 'file' && selectedFiles[field.key]" :id="fieldHelpId(field)" class="field-help">
                             Selected: {{ selectedFiles[field.key] }}
                         </p>
@@ -297,7 +345,7 @@
 
             <NotionNotePanel v-if="showNotionNote" :note="notionNote" />
 
-            <div class="flex items-center gap-3 pt-2">
+            <div class="form-actions">
                 <AppButton type="submit" variant="primary" :disabled="form.processing || hasJsonErrors">
                     <span v-if="form.processing">{{ processingLabel }}</span>
                     <span v-else>{{ submitLabel }}</span>
@@ -325,6 +373,7 @@ import PageHeaderTrail from '@/Components/ui/PageHeaderTrail.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextareaInput from '@/Components/TextareaInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { normalizeRichDocument, prepareRichDocumentForSubmit } from '@/lib/tiptap/documents'
 
 const props = defineProps({
@@ -454,6 +503,7 @@ const resolvedFieldType = (field) => {
 }
 
 const displayLabel = (field) => String(field.label ?? '').replace(/\s+JSON$/i, '')
+const isCheckboxField = (field) => resolvedFieldType(field) === 'checkbox'
 
 const fieldInputId = (field) => `field-${field.key}`
 const fieldHelpId = (field) => `field-${field.key}-help`
@@ -682,11 +732,31 @@ const closeDrawer = () => {
         : undefined)
 }
 
-const destroyRecord = () => {
-    if (!props.destroyHref || !confirm(props.destroyConfirm)) {
+const destroyRecord = async () => {
+    if (!props.destroyHref) {
         return
     }
 
-    router.delete(props.destroyHref)
+    const confirmed = await confirmDialog({
+        title: props.destroyLabel,
+        message: props.destroyConfirm,
+        confirmLabel: props.destroyLabel,
+        cancelLabel: 'Cancel',
+        confirmVariant: 'danger',
+    })
+
+    if (!confirmed) {
+        return
+    }
+
+    router.delete(props.destroyHref, {
+        onError: (errors) => {
+            void showErrorDialog({
+                title: `Could not ${props.destroyLabel.toLowerCase()}`,
+                message: 'The request did not complete.',
+                details: errors,
+            })
+        },
+    })
 }
 </script>

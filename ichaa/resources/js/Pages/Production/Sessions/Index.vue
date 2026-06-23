@@ -8,6 +8,8 @@
             :create-href="route('session-logs.create')"
             :create-preserve-scroll="true"
             :create-preserve-state="true"
+            :create-drawer-open="Boolean(createDrawer)"
+            :create-close-href="route('session-logs.index')"
             create-label="New Session"
             :items="items"
             empty-title="No sessions logged yet"
@@ -15,14 +17,15 @@
             :empty-cta-preserve-scroll="true"
             :empty-cta-preserve-state="true"
             empty-cta-label="Log the first session ->"
-            
-        />
-
-        <CreateSession
-            v-if="createDrawer"
-            embedded
-            v-bind="createDrawer"
-        />
+        >
+        <template #create-drawer>
+            <CreateSession
+                v-if="createDrawer"
+                embedded
+                v-bind="createDrawer"
+            />
+        </template>
+        </ScaffoldIndexPage>
     </div>
 </template>
 

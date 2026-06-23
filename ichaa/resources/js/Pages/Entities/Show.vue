@@ -472,6 +472,196 @@
 
         </div>
 
+        <!-- TAB: MEMBERSHIPS -->
+        <div v-if="activeTab === 'memberships'" class="space-y-4">
+            <div v-if="isFactionEntity" class="panel space-y-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h3 class="panel-label !mb-0">Faction Roster</h3>
+                        <p class="text-muted-3 text-sm font-ui mt-1">
+                            Current and former members tied to {{ entity.name }}.
+                        </p>
+                    </div>
+                    <AppButton
+                        :href="route('faction-memberships.create', { faction_entity_id: entity.id, return_context: 'faction', return_entity_id: entity.id, tab: 'memberships' })"
+                        :preserve-scroll="true"
+                        :preserve-state="true"
+                        variant="primary"
+                    >
+                        Add Member
+                    </AppButton>
+                </div>
+
+                <div v-if="factionRoster.length" class="space-y-3">
+                    <div v-for="membership in factionRoster" :key="membership.id" class="record-card">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="min-w-0 flex-1 space-y-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <Link
+                                        v-if="membership.member"
+                                        :href="route('entities.show', membership.member.id)"
+                                        class="text-primary text-sm hover:text-cyan transition-colors"
+                                    >
+                                        {{ membership.member.name }}
+                                    </Link>
+                                    <span v-else class="text-primary text-sm">Unknown member</span>
+                                    <span class="alias-type-chip">{{ formatLabel(membership.membership_status || 'unknown') }}</span>
+                                    <span v-if="membership.rank_or_role" class="accent-tag">{{ membership.rank_or_role }}</span>
+                                    <span v-if="membership.is_undercover" class="accent-tag">undercover</span>
+                                    <span v-if="!membership.public_membership_known" class="accent-tag">hidden</span>
+                                    <span v-if="membership.true_loyalty_entity_id && membership.true_loyalty_entity_id !== entity.id" class="accent-tag">split loyalty</span>
+                                </div>
+
+                                <p v-if="membership.member?.public_title" class="text-muted-3 text-sm italic">
+                                    "{{ membership.member.public_title }}"
+                                </p>
+
+                                <div class="grid gap-2 md:grid-cols-2">
+                                    <div v-if="membership.joined_era" class="text-muted-2 text-sm">
+                                        <span class="field-label field-label--fixed">Joined</span>
+                                        <span>{{ membership.joined_era }}</span>
+                                    </div>
+                                    <div v-if="membership.left_era" class="text-muted-2 text-sm">
+                                        <span class="field-label field-label--fixed">Left</span>
+                                        <span>{{ membership.left_era }}</span>
+                                    </div>
+                                    <div v-if="membership.recruited_by?.name" class="text-muted-2 text-sm">
+                                        <span class="field-label field-label--fixed">Recruited By</span>
+                                        <span>{{ membership.recruited_by.name }}</span>
+                                    </div>
+                                    <div v-if="membership.true_loyalty?.name" class="text-muted-2 text-sm md:col-span-2">
+                                        <span class="field-label field-label--fixed">True Loyalty</span>
+                                        <span>{{ membership.true_loyalty.name }}</span>
+                                    </div>
+                                </div>
+
+                                <div v-if="membership.departure_reason || membership.notes" class="space-y-2">
+                                    <div v-if="membership.departure_reason" class="rounded-md border border-border bg-surface-2 p-3">
+                                        <span class="field-label">Departure Reason</span>
+                                        <RichDocumentValue
+                                            v-if="isRichDocument(membership.departure_reason)"
+                                            :content="membership.departure_reason"
+                                        />
+                                    </div>
+                                    <div v-if="membership.notes" class="rounded-md border border-border bg-surface-2 p-3">
+                                        <span class="field-label">Notes</span>
+                                        <RichDocumentValue
+                                            v-if="isRichDocument(membership.notes)"
+                                            :content="membership.notes"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <AppButton
+                                    :href="route('faction-memberships.edit', { faction_membership: membership.id, return_context: 'faction', return_entity_id: entity.id, tab: 'memberships' })"
+                                    :preserve-scroll="true"
+                                    :preserve-state="true"
+                                    variant="ghost"
+                                    size="sm"
+                                >
+                                    Edit
+                                </AppButton>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="empty-state">No members recorded yet.</div>
+            </div>
+
+            <div class="panel space-y-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h3 class="panel-label !mb-0">Affiliations</h3>
+                        <p class="text-muted-3 text-sm font-ui mt-1">
+                            Factions, organizations, and movements this entity belongs to.
+                        </p>
+                    </div>
+                    <AppButton
+                        :href="route('faction-memberships.create', { member_entity_id: entity.id, return_context: 'member', return_entity_id: entity.id, tab: 'memberships' })"
+                        :preserve-scroll="true"
+                        :preserve-state="true"
+                        variant="primary"
+                    >
+                        Add Affiliation
+                    </AppButton>
+                </div>
+
+                <div v-if="memberMemberships.length" class="space-y-3">
+                    <div v-for="membership in memberMemberships" :key="membership.id" class="record-card">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="min-w-0 flex-1 space-y-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <Link
+                                        v-if="membership.faction"
+                                        :href="route('entities.show', membership.faction.id)"
+                                        class="text-primary text-sm hover:text-cyan transition-colors"
+                                    >
+                                        {{ membership.faction.name }}
+                                    </Link>
+                                    <span v-else class="text-primary text-sm">Unknown faction</span>
+                                    <span class="alias-type-chip">{{ formatLabel(membership.membership_status || 'unknown') }}</span>
+                                    <span v-if="membership.rank_or_role" class="accent-tag">{{ membership.rank_or_role }}</span>
+                                    <span v-if="membership.is_undercover" class="accent-tag">undercover</span>
+                                    <span v-if="!membership.public_membership_known" class="accent-tag">hidden</span>
+                                </div>
+
+                                <div class="grid gap-2 md:grid-cols-2">
+                                    <div v-if="membership.joined_era" class="text-muted-2 text-sm">
+                                        <span class="field-label field-label--fixed">Joined</span>
+                                        <span>{{ membership.joined_era }}</span>
+                                    </div>
+                                    <div v-if="membership.left_era" class="text-muted-2 text-sm">
+                                        <span class="field-label field-label--fixed">Left</span>
+                                        <span>{{ membership.left_era }}</span>
+                                    </div>
+                                    <div v-if="membership.recruited_by?.name" class="text-muted-2 text-sm">
+                                        <span class="field-label field-label--fixed">Recruited By</span>
+                                        <span>{{ membership.recruited_by.name }}</span>
+                                    </div>
+                                    <div v-if="membership.true_loyalty?.name" class="text-muted-2 text-sm md:col-span-2">
+                                        <span class="field-label field-label--fixed">True Loyalty</span>
+                                        <span>{{ membership.true_loyalty.name }}</span>
+                                    </div>
+                                </div>
+
+                                <div v-if="membership.departure_reason || membership.notes" class="space-y-2">
+                                    <div v-if="membership.departure_reason" class="rounded-md border border-border bg-surface-2 p-3">
+                                        <span class="field-label">Departure Reason</span>
+                                        <RichDocumentValue
+                                            v-if="isRichDocument(membership.departure_reason)"
+                                            :content="membership.departure_reason"
+                                        />
+                                    </div>
+                                    <div v-if="membership.notes" class="rounded-md border border-border bg-surface-2 p-3">
+                                        <span class="field-label">Notes</span>
+                                        <RichDocumentValue
+                                            v-if="isRichDocument(membership.notes)"
+                                            :content="membership.notes"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="membership.faction?.id" class="flex items-center gap-2 flex-shrink-0">
+                                <AppButton
+                                    :href="route('faction-memberships.edit', { faction_membership: membership.id, return_context: 'member', return_entity_id: entity.id, tab: 'memberships' })"
+                                    :preserve-scroll="true"
+                                    :preserve-state="true"
+                                    variant="ghost"
+                                    size="sm"
+                                >
+                                    Edit
+                                </AppButton>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="empty-state">No affiliations recorded yet.</div>
+            </div>
+        </div>
+
         <!-- TAB: INTELLIGENCE -->
         <div v-if="activeTab === 'intelligence'" class="space-y-4">
             <div class="panel">
@@ -488,25 +678,55 @@
 
         <NotionNotePanel :note="notionNote" />
 
-        <EditEntity
-            v-if="editDrawer"
-            embedded
-            :entity="entity"
-            :entity-types="editDrawer.entityTypes"
-        />
+        <DrawerRouteShell
+            v-if="showEditDrawer"
+            :open="showEditDrawer"
+            :ready="Boolean(editDrawer)"
+            title="Edit Entity"
+            :close-href="route('entities.show', entity.id)"
+            back-label="Entities"
+            :back-href="route('entities.index')"
+        >
+            <EditEntity
+                v-if="editDrawer"
+                embedded
+                :entity="entity"
+                :entity-types="editDrawer.entityTypes"
+            />
+        </DrawerRouteShell>
 
-        <EditFactionMembership
-            v-if="factionMembershipEditDrawer"
-            embedded
-            :membership="factionMembershipEditDrawer.membership"
-            :entities="factionMembershipEditDrawer.entities"
-        />
+        <DrawerRouteShell
+            v-if="showFactionMembershipEditDrawer"
+            :open="showFactionMembershipEditDrawer"
+            :ready="Boolean(factionMembershipEditDrawer)"
+            title="Edit Faction Membership"
+            :close-href="membershipsCloseHref"
+            back-label="Entity"
+            :back-href="route('entities.show', entity.id)"
+        >
+            <EditFactionMembership
+                v-if="factionMembershipEditDrawer"
+                embedded
+                :membership="factionMembershipEditDrawer.membership"
+                :entities="factionMembershipEditDrawer.entities"
+            />
+        </DrawerRouteShell>
 
-        <CreateFactionMembership
-            v-if="factionMembershipCreateDrawer"
-            embedded
-            v-bind="factionMembershipCreateDrawer"
-        />
+        <DrawerRouteShell
+            v-if="showFactionMembershipCreateDrawer"
+            :open="showFactionMembershipCreateDrawer"
+            :ready="Boolean(factionMembershipCreateDrawer)"
+            title="New Faction Membership"
+            :close-href="membershipsCloseHref"
+            back-label="Entity"
+            :back-href="route('entities.show', entity.id)"
+        >
+            <CreateFactionMembership
+                v-if="factionMembershipCreateDrawer"
+                embedded
+                v-bind="factionMembershipCreateDrawer"
+            />
+        </DrawerRouteShell>
 
     </AuthenticatedLayout>
 </template>
@@ -518,13 +738,16 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Checkbox from '@/Components/Checkbox.vue'
 import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import CreateFactionMembership from '@/Pages/FactionMemberships/Create.vue'
 import EditEntity from '@/Pages/Entities/Edit.vue'
 import EditFactionMembership from '@/Pages/FactionMemberships/Edit.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextareaInput from '@/Components/TextareaInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { isRichDocument } from '@/Components/scaffold/formatters'
+import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 // --- Props ---
 
@@ -533,21 +756,72 @@ const props = defineProps({
     editDrawer: { type: Object, default: null },
     factionMembershipEditDrawer: { type: Object, default: null },
     factionMembershipCreateDrawer: { type: Object, default: null },
+    factionRoster: { type: Array, default: () => [] },
+    memberMemberships: { type: Array, default: () => [] },
+    isFactionEntity: { type: Boolean, default: false },
 })
 
 const page = usePage()
 const notionNote = computed(() => page.props?.notionNote ?? null)
 const RichDocumentValue = defineAsyncComponent(() => import('@/Components/scaffold/RichDocumentValue.vue'))
+const showEditDrawer = computed(() =>
+    Boolean(props.editDrawer) || matchesPendingDrawerHref(route('entities.edit', props.entity.id))
+)
+const membershipsCloseHref = computed(() =>
+    route('entities.show', { entity: props.entity.id, tab: 'memberships' })
+)
+const factionMembershipEditRoutes = computed(() => [
+    ...props.factionRoster.map((membership) => route('faction-memberships.edit', {
+        faction_membership: membership.id,
+        return_context: 'faction',
+        return_entity_id: props.entity.id,
+        tab: 'memberships',
+    })),
+    ...props.memberMemberships.map((membership) => route('faction-memberships.edit', {
+        faction_membership: membership.id,
+        return_context: 'member',
+        return_entity_id: props.entity.id,
+        tab: 'memberships',
+    })),
+])
+const factionMembershipCreateRoutes = computed(() => [
+    route('faction-memberships.create', {
+        faction_entity_id: props.entity.id,
+        return_context: 'faction',
+        return_entity_id: props.entity.id,
+        tab: 'memberships',
+    }),
+    route('faction-memberships.create', {
+        member_entity_id: props.entity.id,
+        return_context: 'member',
+        return_entity_id: props.entity.id,
+        tab: 'memberships',
+    }),
+])
+const showFactionMembershipEditDrawer = computed(() =>
+    Boolean(props.factionMembershipEditDrawer)
+    || factionMembershipEditRoutes.value.some((href) => matchesPendingDrawerHref(href))
+)
+const showFactionMembershipCreateDrawer = computed(() =>
+    Boolean(props.factionMembershipCreateDrawer)
+    || factionMembershipCreateRoutes.value.some((href) => matchesPendingDrawerHref(href))
+)
 
 // --- Tabs ---
 
-const tabs = [
-    { id: 'identity',     label: 'Identity'     },
-    { id: 'aliases',      label: 'Aliases'      },
-    { id: 'notes',        label: 'Notes'        },
-    { id: 'questions',    label: 'Questions'    },
-    { id: 'intelligence', label: 'Intelligence' },
-]
+const tabs = computed(() => {
+    const baseTabs = [
+        { id: 'identity',     label: 'Identity'     },
+        { id: 'aliases',      label: 'Aliases'      },
+        { id: 'notes',        label: 'Notes'        },
+        { id: 'questions',    label: 'Questions'    },
+        { id: 'memberships',  label: 'Memberships'  },
+    ]
+
+    baseTabs.push({ id: 'intelligence', label: 'Intelligence' })
+
+    return baseTabs
+})
 
 const activeTab = ref('identity')
 
@@ -555,7 +829,7 @@ const editingAliasId = ref(null)
 const editingNoteId = ref(null)
 const editingQuestionId = ref(null)
 
-const validTabs = tabs.map((tab) => tab.id)
+const validTabs = computed(() => tabs.value.map((tab) => tab.id))
 
 const urlParams = computed(() => {
     const [, queryString = ''] = page.url.split('?')
@@ -714,12 +988,28 @@ const deleteQuestion = (questionId) => {
     router.delete(route('entities.questions.destroy', [props.entity.id, questionId]))
 }
 
-const destroyEntity = () => {
-    if (!confirm(`Move "${props.entity.name}" to trash?`)) {
+const destroyEntity = async () => {
+    const confirmed = await confirmDialog({
+        title: 'Move to Trash',
+        message: `Move "${props.entity.name}" to trash?`,
+        confirmLabel: 'Move to Trash',
+        cancelLabel: 'Cancel',
+        confirmVariant: 'danger',
+    })
+
+    if (!confirmed) {
         return
     }
 
-    router.delete(route('entities.destroy', props.entity.id))
+    router.delete(route('entities.destroy', props.entity.id), {
+        onError: (errors) => {
+            void showErrorDialog({
+                title: 'Could not move entity to trash',
+                message: 'The request did not complete.',
+                details: errors,
+            })
+        },
+    })
 }
 
 // --- Static options ---
@@ -739,7 +1029,7 @@ const questionStatusOptions = [
 
 const applyRouteState = () => {
     const requestedTab = urlParams.value.get('tab')
-    const nextTab = validTabs.includes(requestedTab) ? requestedTab : 'identity'
+    const nextTab = validTabs.value.includes(requestedTab) ? requestedTab : 'identity'
 
     activeTab.value = nextTab
 

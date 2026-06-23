@@ -1,14 +1,14 @@
 <template>
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <h1 class="text-primary text-3xl font-light tracking-wide">{{ title }}</h1>
-                    <p class="text-muted-3 text-sm font-ui mt-1">
-                        {{ count }} {{ countLabel }}
-                    </p>
+            <div class="page-hero">
+                <div class="page-hero__copy">
+                    <div class="page-hero__eyebrow">
+                        <span>{{ count }} {{ countLabel }}</span>
+                    </div>
+                    <h1 class="page-hero__title page-hero__title--lg">{{ title }}</h1>
                 </div>
-                <div v-if="syncResource || createHref" class="flex flex-wrap items-center justify-end gap-2">
+                <div v-if="syncResource || createHref" class="page-hero__actions">
                     <NotionSyncButton
                         v-if="syncResource"
                         :resource="syncResource"
@@ -27,9 +27,9 @@
             </div>
         </template>
 
-        <div v-if="items.length" class="space-y-3">
+        <div v-if="items.length" class="surface-list">
             <component
-                :is="item.href ? Link : 'div'"
+                :is="item.href ? DrawerLink : 'div'"
                 v-for="item in items"
                 :key="item.id ?? item.title"
                 v-bind="item.href ? {
@@ -39,10 +39,10 @@
                 } : {}"
                 class="record-card record-card--interactive"
             >
-                <div class="flex items-start justify-between gap-4">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-2 flex-wrap mb-1">
-                            <span class="prose-wrap text-primary text-base font-light leading-snug">{{ item.title }}</span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="prose-wrap text-primary text-lg font-light leading-snug">{{ item.title }}</span>
                             <span
                                 v-for="badge in item.badges ?? []"
                                 :key="badge.label + badge.value"
@@ -52,11 +52,11 @@
                             </span>
                         </div>
 
-                        <p v-if="item.subtitle" class="prose-wrap text-muted-3 text-sm leading-relaxed mb-3">
+                        <p v-if="item.subtitle" class="prose-wrap mt-2 text-muted-2 text-sm leading-relaxed">
                             {{ item.subtitle }}
                         </p>
 
-                        <div v-if="item.meta?.length" class="flex flex-wrap gap-3">
+                        <div v-if="item.meta?.length" class="mt-4 flex flex-wrap gap-2.5">
                             <span
                                 v-for="meta in item.meta"
                                 :key="meta.label + meta.value"
@@ -67,7 +67,7 @@
                         </div>
                     </div>
 
-                    <div v-if="item.stats?.length" class="flex flex-col items-end gap-1 flex-shrink-0">
+                    <div v-if="item.stats?.length" class="flex flex-wrap items-center gap-2 lg:max-w-[16rem] lg:flex-col lg:items-end lg:justify-start">
                         <span
                             v-for="stat in item.stats"
                             :key="stat.label + stat.value"
@@ -81,27 +81,45 @@
         </div>
 
         <div v-else class="empty-state-panel">
-            <p class="text-muted-3 text-sm font-ui uppercase tracking-widest mb-3">{{ emptyTitle }}</p>
-            <Link
+            <p class="empty-title mb-2">{{ emptyTitle }}</p>
+            <DrawerLink
                 v-if="emptyCtaHref"
                 :href="emptyCtaHref"
                 :preserve-scroll="emptyCtaPreserveScroll"
                 :preserve-state="emptyCtaPreserveState"
-                class="text-cyan text-sm font-ui hover:underline"
+                class="text-cyan text-sm font-ui uppercase tracking-[0.12em] hover:underline"
             >
                 {{ emptyCtaLabel }}
-            </Link>
+            </DrawerLink>
         </div>
+
+        <DrawerRouteShell
+            v-if="showCreateDrawer"
+            :open="showCreateDrawer"
+            :ready="createDrawerOpen"
+            :title="resolvedCreateDrawerTitle"
+            :route-href="createHref"
+            :close-href="createCloseHref"
+            :back-label="title"
+            :back-href="createCloseHref"
+            :close-preserve-scroll="createPreserveScroll"
+            :close-preserve-state="createPreserveState"
+        >
+            <slot name="create-drawer" />
+        </DrawerRouteShell>
     </AuthenticatedLayout>
 </template>
 
 <script setup>
-import { Link } from '@inertiajs/vue3'
+import { computed } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
+import DrawerLink from '@/Components/ui/DrawerLink.vue'
+import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
-defineProps({
+const props = defineProps({
     title: { type: String, required: true },
     count: { type: Number, default: 0 },
     countLabel: { type: String, default: 'records' },
@@ -111,6 +129,9 @@ defineProps({
     createLabel: { type: String, default: 'Create' },
     createPreserveScroll: { type: Boolean, default: false },
     createPreserveState: { type: Boolean, default: false },
+    createDrawerOpen: { type: Boolean, default: false },
+    createDrawerTitle: { type: String, default: '' },
+    createCloseHref: { type: String, default: '' },
     items: { type: Array, default: () => [] },
     emptyTitle: { type: String, default: 'No records found' },
     emptyCtaHref: { type: String, default: '' },
@@ -118,4 +139,11 @@ defineProps({
     emptyCtaPreserveScroll: { type: Boolean, default: false },
     emptyCtaPreserveState: { type: Boolean, default: false },
 })
+
+const showCreateDrawer = computed(() =>
+    Boolean(props.createHref && props.createCloseHref)
+    && (props.createDrawerOpen || matchesPendingDrawerHref(props.createHref))
+)
+
+const resolvedCreateDrawerTitle = computed(() => props.createDrawerTitle || props.createLabel)
 </script>

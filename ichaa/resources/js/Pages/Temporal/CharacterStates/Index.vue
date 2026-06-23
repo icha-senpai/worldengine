@@ -8,6 +8,8 @@
             :create-href="route('character-states.create')"
             :create-preserve-scroll="true"
             :create-preserve-state="true"
+            :create-drawer-open="Boolean(createDrawer)"
+            :create-close-href="route('character-states.index')"
             create-label="New Snapshot"
             :items="items"
             empty-title="No character states found"
@@ -15,14 +17,15 @@
             :empty-cta-preserve-scroll="true"
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first snapshot ->"
-            
-        />
-
-        <CreateCharacterState
-            v-if="createDrawer"
-            embedded
-            v-bind="createDrawer"
-        />
+        >
+        <template #create-drawer>
+            <CreateCharacterState
+                v-if="createDrawer"
+                embedded
+                v-bind="createDrawer"
+            />
+        </template>
+        </ScaffoldIndexPage>
     </div>
 </template>
 

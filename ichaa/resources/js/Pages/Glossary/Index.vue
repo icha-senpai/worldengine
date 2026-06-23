@@ -8,6 +8,8 @@
             :create-href="route('glossary.create')"
             :create-preserve-scroll="true"
             :create-preserve-state="true"
+            :create-drawer-open="Boolean(createDrawer)"
+            :create-close-href="route('glossary.index')"
             create-label="New Term"
             :items="items"
             empty-title="No glossary terms found"
@@ -15,14 +17,15 @@
             :empty-cta-preserve-scroll="true"
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first term ->"
-            
-        />
-
-        <CreateGlossary
-            v-if="createDrawer"
-            embedded
-            v-bind="createDrawer"
-        />
+        >
+        <template #create-drawer>
+            <CreateGlossary
+                v-if="createDrawer"
+                embedded
+                v-bind="createDrawer"
+            />
+        </template>
+        </ScaffoldIndexPage>
     </div>
 </template>
 

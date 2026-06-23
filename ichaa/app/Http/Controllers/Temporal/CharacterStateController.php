@@ -32,7 +32,9 @@ class CharacterStateController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate(DataverseRules::web('character-states', 'store'));
+        $validated = $this->normalizePayload(
+            $request->validate(DataverseRules::web('character-states', 'store'))
+        );
 
         $entity = Entity::findOrFail($validated['entity_id']);
         $state  = $this->service->createStateSnapshot($entity, $validated);
@@ -58,8 +60,8 @@ class CharacterStateController extends Controller
 
     public function update(Request $request, CharacterStateTracker $characterState): \Illuminate\Http\RedirectResponse
     {
-        $this->service->updateStateSnapshot($characterState, $request->validate(
-            DataverseRules::web('character-states', 'update')
+        $this->service->updateStateSnapshot($characterState, $this->normalizePayload(
+            $request->validate(DataverseRules::web('character-states', 'update'))
         ));
 
         return $this->to('character-states.show', [$characterState], 'State snapshot updated.');
@@ -129,5 +131,18 @@ class CharacterStateController extends Controller
         return $this->pageWithNotionNote('Temporal/CharacterStates/Show', $characterState, 'character_states', array_merge([
             'state' => $characterState,
         ], $props));
+    }
+
+    private function normalizePayload(array $payload): array
+    {
+        if (($payload['timeline_position'] ?? null) === null || $payload['timeline_position'] === '') {
+            $payload['timeline_position'] = 0;
+        }
+
+        if (($payload['snapshot_significance'] ?? null) === null || $payload['snapshot_significance'] === '') {
+            $payload['snapshot_significance'] = 'moderate';
+        }
+
+        return $payload;
     }
 }

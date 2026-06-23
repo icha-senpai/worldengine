@@ -153,6 +153,15 @@ class MetaController extends Controller
 
         return $this->pageWithNotionNote('Production/Meta/Show', $meta, 'meta', array_merge([
             'note' => $meta,
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'supersedeOptions' => Meta::query()
+                ->select('id', 'title')
+                ->whereKeyNot($meta->id)
+                ->orderByDesc('id')
+                ->get(),
         ], $props));
     }
 

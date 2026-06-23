@@ -124,7 +124,9 @@ test.describe('additional domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/concurrency-groups\/\d+\/edit$/)
 
         page.once('dialog', (dialog) => dialog.accept())
-        await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await page.getByRole('dialog', { name: 'Edit Concurrency Group' })
+            .getByRole('button', { name: 'Move to Trash' })
+            .click()
 
         await expect(page).toHaveURL(/\/concurrency-groups$/)
         await expect(page.getByText(updatedName)).toHaveCount(0)

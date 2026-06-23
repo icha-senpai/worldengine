@@ -166,7 +166,17 @@
             </div>
         </div>
 
-        <EditMediaReference v-if="editMediaProps" embedded v-bind="editMediaProps" />
+        <DrawerRouteShell
+            v-if="showEditDrawer"
+            :open="showEditDrawer"
+            :ready="Boolean(editMediaProps)"
+            title="Edit Media Reference"
+            :close-href="route('media-references.show', media.id)"
+            back-label="Media Library"
+            :back-href="route('media-references.index')"
+        >
+            <EditMediaReference v-if="editMediaProps" embedded v-bind="editMediaProps" />
+        </DrawerRouteShell>
     </AuthenticatedLayout>
 </template>
 
@@ -175,8 +185,11 @@ import { computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import EditMediaReference from '@/Pages/Identity/MediaReferences/Edit.vue'
 import { formatLabel } from '@/Components/scaffold/formatters'
+import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
+import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 const props = defineProps({
     media: { type: Object, required: true },
@@ -194,6 +207,10 @@ const editMediaProps = computed(() => {
     }
 })
 
+const showEditDrawer = computed(() =>
+    Boolean(editMediaProps.value) || matchesPendingDrawerHref(route('media-references.edit', props.media.id))
+)
+
 const dimensionLabel = computed(() => {
     if (!props.media.width_px || !props.media.height_px) {
         return '—'
@@ -210,11 +227,27 @@ const fileSizeLabel = computed(() => {
     return `${props.media.file_size_bytes.toLocaleString()} bytes`
 })
 
-const destroyRecord = () => {
-    if (!confirm('Move this item to trash?')) {
+const destroyRecord = async () => {
+    const confirmed = await confirmDialog({
+        title: 'Move to Trash',
+        message: 'Move this item to trash?',
+        confirmLabel: 'Move to Trash',
+        cancelLabel: 'Cancel',
+        confirmVariant: 'danger',
+    })
+
+    if (!confirmed) {
         return
     }
 
-    router.delete(route('media-references.destroy', props.media.id))
+    router.delete(route('media-references.destroy', props.media.id), {
+        onError: (errors) => {
+            void showErrorDialog({
+                title: 'Could not move media to trash',
+                message: 'The request did not complete.',
+                details: errors,
+            })
+        },
+    })
 }
 </script>

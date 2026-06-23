@@ -368,8 +368,11 @@ class DataverseRules
                     'rank_or_role' => ['nullable', 'string'],
                     'membership_status' => ['nullable', 'string'],
                     'joined_era' => ['nullable', 'string'],
+                    'left_era' => ['nullable', 'string'],
+                    'departure_reason' => ['nullable', 'array'],
                     'is_undercover' => ['nullable', 'boolean'],
                     'public_membership_known' => ['nullable', 'boolean'],
+                    'notes' => ['nullable', 'array'],
                 ],
                 'relationships' => [
                     'faction_entity_id' => ['required', 'integer', 'exists:entities,id'],
@@ -381,11 +384,16 @@ class DataverseRules
                 'attributes' => [
                     'rank_or_role' => ['nullable', 'string'],
                     'membership_status' => ['nullable', 'string'],
+                    'joined_era' => ['nullable', 'string'],
+                    'left_era' => ['nullable', 'string'],
+                    'departure_reason' => ['nullable', 'array'],
                     'is_undercover' => ['nullable', 'boolean'],
                     'public_membership_known' => ['nullable', 'boolean'],
+                    'notes' => ['nullable', 'array'],
                 ],
                 'relationships' => [
                     'true_loyalty_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
+                    'recruited_by_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
                 ],
             ],
             'collections' => $operation === 'store' ? [

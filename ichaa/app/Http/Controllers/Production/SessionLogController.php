@@ -28,7 +28,9 @@ class SessionLogController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate(DataverseRules::web('session-logs', 'store'));
+        $validated = $this->normalizePayload(
+            $request->validate(DataverseRules::web('session-logs', 'store'))
+        );
 
         $validated['session_date'] = $validated['session_date'] ?? now()->toDateString();
 
@@ -53,8 +55,8 @@ class SessionLogController extends Controller
 
     public function update(Request $request, SessionLog $sessionLog): \Illuminate\Http\RedirectResponse
     {
-        $sessionLog->update($request->validate(
-            DataverseRules::web('session-logs', 'update')
+        $sessionLog->update($this->normalizePayload(
+            $request->validate(DataverseRules::web('session-logs', 'update'))
         ));
 
         return $this->to('session-logs.show', [$sessionLog], 'Session updated.');
@@ -118,5 +120,14 @@ class SessionLogController extends Controller
         return $this->pageWithNotionNote('Production/Sessions/Show', $sessionLog, 'session_logs', array_merge([
             'session' => $sessionLog,
         ], $props));
+    }
+
+    private function normalizePayload(array $payload): array
+    {
+        if (($payload['session_significance'] ?? null) === null || $payload['session_significance'] === '') {
+            $payload['session_significance'] = 'minor';
+        }
+
+        return $payload;
     }
 }

@@ -8,7 +8,7 @@
         :cancel-href="backHref"
         submit-label="Save Membership"
         processing-label="Saving..."
-        :destroy-href="route('faction-memberships.destroy', membership.id)"
+        :destroy-href="route('faction-memberships.destroy', { faction_membership: membership.id, return_context: props.returnContext || undefined, return_entity_id: resolvedReturnEntityId })"
         :form="form"
         :sections="sections"
         :on-submit="submit"
@@ -25,24 +25,40 @@ const props = defineProps({
     embedded: { type: Boolean, default: false },
     membership: { type: Object, required: true },
     entities: { type: Array, default: () => [] },
+    returnContext: { type: String, default: '' },
+    returnEntityId: { type: Number, default: null },
+    returnEntityName: { type: String, default: '' },
 })
 
 const entityOptions = computed(() => toEntityOptions(props.entities))
+const membershipStatusOptions = [
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+    { value: 'former', label: 'Former' },
+]
+const resolvedReturnEntityId = computed(() => props.returnEntityId ?? props.membership.faction?.id ?? null)
 
 const backHref = computed(() =>
-    props.membership.faction?.id
-        ? route('entities.show', props.membership.faction.id)
+    resolvedReturnEntityId.value
+        ? route('entities.show', { entity: resolvedReturnEntityId.value, tab: 'memberships' })
         : route('entities.index')
 )
 
-const backLabel = computed(() => props.membership.faction?.name || 'Entities')
+const backLabel = computed(() => props.returnEntityName || props.membership.faction?.name || 'Entities')
 
 const form = useForm({
+    return_context: props.returnContext ?? '',
+    return_entity_id: resolvedReturnEntityId.value ?? '',
     rank_or_role: props.membership.rank_or_role ?? '',
-    membership_status: props.membership.membership_status ?? '',
+    membership_status: props.membership.membership_status ?? 'active',
+    joined_era: props.membership.joined_era ?? '',
+    left_era: props.membership.left_era ?? '',
+    departure_reason: props.membership.departure_reason ?? null,
+    recruited_by_entity_id: props.membership.recruited_by_entity_id ?? '',
     true_loyalty_entity_id: props.membership.true_loyalty_entity_id ?? '',
     is_undercover: props.membership.is_undercover ?? false,
     public_membership_known: props.membership.public_membership_known ?? true,
+    notes: props.membership.notes ?? null,
 })
 
 const sections = computed(() => [
@@ -50,7 +66,26 @@ const sections = computed(() => [
         title: 'Membership',
         fields: [
             { key: 'rank_or_role', label: 'Rank or Role' },
-            { key: 'membership_status', label: 'Membership Status' },
+            {
+                key: 'membership_status',
+                label: 'Membership Status',
+                type: 'select',
+                options: membershipStatusOptions,
+            },
+            { key: 'joined_era', label: 'Joined Era' },
+            { key: 'left_era', label: 'Left Era' },
+        ],
+    },
+    {
+        title: 'Recruitment and Secrecy',
+        fields: [
+            {
+                key: 'recruited_by_entity_id',
+                label: 'Recruited By',
+                type: 'select',
+                options: entityOptions.value,
+                placeholder: 'Optional recruiter...',
+            },
             {
                 key: 'true_loyalty_entity_id',
                 label: 'True Loyalty',
@@ -62,7 +97,32 @@ const sections = computed(() => [
             { key: 'public_membership_known', label: 'Public Membership Known', type: 'checkbox' },
         ],
     },
+    {
+        title: 'Departure and Notes',
+        fields: [
+            {
+                key: 'departure_reason',
+                label: 'Departure Reason',
+                type: 'json',
+                jsonMode: 'document',
+                rows: 4,
+                placeholder: 'Why the membership ended, fractured, or changed.',
+            },
+            {
+                key: 'notes',
+                label: 'Membership Notes',
+                type: 'json',
+                jsonMode: 'document',
+                rows: 5,
+                placeholder: 'Operational notes, leverage, political context, or trust issues.',
+            },
+        ],
+    },
 ])
 
-const submit = () => form.put(route('faction-memberships.update', props.membership.id))
+const submit = () => form.put(route('faction-memberships.update', {
+    faction_membership: props.membership.id,
+    return_context: props.returnContext || undefined,
+    return_entity_id: resolvedReturnEntityId.value ?? undefined,
+}))
 </script>

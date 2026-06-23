@@ -212,7 +212,10 @@ describe('domain scaffold forms', () => {
             entities: [{ id: 6, name: 'Hidden Chorus', entity_type: 'faction' }],
         })
 
-        expect(scaffold.props('backHref')).toEqual({ name: 'entities.show', params: 4 })
+        expect(scaffold.props('backHref')).toEqual({
+            name: 'entities.show',
+            params: { entity: 4, tab: 'memberships' },
+        })
         expect(scaffold.props('backLabel')).toBe('Aster Court')
         expect(form.true_loyalty_entity_id).toBe(6)
 

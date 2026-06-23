@@ -179,9 +179,13 @@
                         </span>
                     </div>
                 </Link>
-                <Link :href="route('pipeline.create', { parent: item.id })" class="add-child-btn">
+                <DrawerLink
+                    :href="route('pipeline.create', { parent: item.id })"
+                    title="New Pipeline Sub-Item"
+                    class="add-child-btn"
+                >
                     + Add sub-item
-                </Link>
+                </DrawerLink>
             </div>
 
             <!-- ACCESS -->
@@ -201,18 +205,38 @@
 
             <NotionNotePanel :note="notionNote" />
 
-            <EditPipelineItem
-                v-if="editDrawer"
-                embedded
-                :item="item"
-                v-bind="editDrawer"
-            />
+            <DrawerRouteShell
+                v-if="showEditDrawer"
+                :open="showEditDrawer"
+                :ready="Boolean(editDrawer)"
+                title="Edit Pipeline Item"
+                :close-href="route('pipeline.show', item.id)"
+                back-label="Writing Pipeline"
+                :back-href="route('pipeline.index')"
+            >
+                <EditPipelineItem
+                    v-if="editDrawer"
+                    embedded
+                    :item="item"
+                    v-bind="editDrawer"
+                />
+            </DrawerRouteShell>
 
-            <CreatePipelineItem
-                v-if="createDrawer"
-                embedded
-                v-bind="createDrawer"
-            />
+            <DrawerRouteShell
+                v-if="showCreateDrawer"
+                :open="showCreateDrawer"
+                :ready="Boolean(createDrawer)"
+                title="New Pipeline Sub-Item"
+                :close-href="route('pipeline.show', item.id)"
+                back-label="Pipeline Item"
+                :back-href="route('pipeline.show', item.id)"
+            >
+                <CreatePipelineItem
+                    v-if="createDrawer"
+                    embedded
+                    v-bind="createDrawer"
+                />
+            </DrawerRouteShell>
 
             <!-- DANGER ZONE -->
             <div class="flex items-center justify-end pt-2 border-t border-border">
@@ -230,9 +254,13 @@ import { Link, router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
+import DrawerLink from '@/Components/ui/DrawerLink.vue'
 import CreatePipelineItem from '@/Pages/Production/Pipeline/Create.vue'
 import EditPipelineItem from '@/Pages/Production/Pipeline/Edit.vue'
+import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { isRichDocument } from '@/Components/scaffold/formatters'
+import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 const props = defineProps({
     item: { type: Object, required: true },
@@ -243,6 +271,12 @@ const props = defineProps({
 const page = usePage()
 const notionNote = computed(() => page.props?.notionNote ?? null)
 const RichDocumentValue = defineAsyncComponent(() => import('@/Components/scaffold/RichDocumentValue.vue'))
+const showEditDrawer = computed(() =>
+    Boolean(props.editDrawer) || matchesPendingDrawerHref(route('pipeline.edit', props.item.id))
+)
+const showCreateDrawer = computed(() =>
+    Boolean(props.createDrawer) || matchesPendingDrawerHref(route('pipeline.create', { parent: props.item.id }))
+)
 
 const stageProgression = {
     concept:  'outlined',
@@ -267,9 +301,28 @@ const advance = () => {
     router.post(route('pipeline.advance', props.item.id))
 }
 
-const destroy = () => {
-    if (!confirm(`Move "${props.item.title}" to trash?`)) return
-    router.delete(route('pipeline.destroy', props.item.id))
+const destroy = async () => {
+    const confirmed = await confirmDialog({
+        title: 'Move to Trash',
+        message: `Move "${props.item.title}" to trash?`,
+        confirmLabel: 'Move to Trash',
+        cancelLabel: 'Cancel',
+        confirmVariant: 'danger',
+    })
+
+    if (!confirmed) {
+        return
+    }
+
+    router.delete(route('pipeline.destroy', props.item.id), {
+        onError: (errors) => {
+            void showErrorDialog({
+                title: 'Could not move pipeline item to trash',
+                message: 'The request did not complete.',
+                details: errors,
+            })
+        },
+    })
 }
 
 const formatLabel = (str) => str

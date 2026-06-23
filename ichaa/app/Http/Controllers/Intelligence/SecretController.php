@@ -159,6 +159,10 @@ class SecretController extends Controller
             'subjectEntities' => $this->entityListItems($secret->subject_entity_ids ?? [], $entities),
             'holderEntities' => $this->entityListItems($secret->holder_entity_ids ?? [], $entities),
             'knownByEntities' => $this->entityListItems($secret->known_by_entity_ids ?? [], $entities),
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
         ], $props));
     }
 }

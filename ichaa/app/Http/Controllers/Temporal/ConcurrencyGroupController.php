@@ -35,7 +35,9 @@ class ConcurrencyGroupController extends Controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate(DataverseRules::web('concurrency-groups', 'store'));
+        $validated = $this->normalizePayload(
+            $request->validate(DataverseRules::web('concurrency-groups', 'store'))
+        );
 
         $group = $this->service->createConcurrencyGroup($validated);
 
@@ -53,8 +55,8 @@ class ConcurrencyGroupController extends Controller
 
     public function update(Request $request, ConcurrencyGroup $concurrencyGroup): \Illuminate\Http\RedirectResponse
     {
-        $concurrencyGroup->update($request->validate(
-            DataverseRules::web('concurrency-groups', 'update')
+        $concurrencyGroup->update($this->normalizePayload(
+            $request->validate(DataverseRules::web('concurrency-groups', 'update'))
         ));
 
         return $this->to('concurrency-groups.show', [$concurrencyGroup], 'Concurrency group updated.');
@@ -94,5 +96,14 @@ class ConcurrencyGroupController extends Controller
                 'timelineEntries.era:id,name',
             ]),
         ], $props));
+    }
+
+    private function normalizePayload(array $payload): array
+    {
+        if (($payload['narrative_significance'] ?? null) === null || $payload['narrative_significance'] === '') {
+            $payload['narrative_significance'] = 'moderate';
+        }
+
+        return $payload;
     }
 }

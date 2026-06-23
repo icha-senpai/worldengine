@@ -128,6 +128,12 @@ class PowerInteractionController extends Controller
 
         return $this->pageWithNotionNote('World/PowerInteractions/Show', $powerInteraction, 'power_interactions', array_merge([
             'interaction' => $powerInteraction,
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'knowledgeStates' => PowerInteraction::KNOWLEDGE_STATES,
+            'instanceOutcomeMatches' => PowerInteractionInstance::OUTCOME_MATCHES,
         ], $props));
     }
 }

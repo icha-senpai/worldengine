@@ -68,6 +68,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 
 const props = defineProps({
     items: { type: Array, default: () => [] },
@@ -98,8 +99,16 @@ const clearFilters = () => {
     submit()
 }
 
-const restoreItem = (item) => {
-    if (!confirm(`Restore "${item.title}" from trash?`)) {
+const restoreItem = async (item) => {
+    const confirmed = await confirmDialog({
+        title: 'Restore Record',
+        message: `Restore "${item.title}" from trash?`,
+        confirmLabel: 'Restore',
+        cancelLabel: 'Cancel',
+        confirmVariant: 'primary',
+    })
+
+    if (!confirmed) {
         return
     }
 
@@ -108,6 +117,13 @@ const restoreItem = (item) => {
         record: item.id,
     }), {}, {
         preserveScroll: true,
+        onError: (errors) => {
+            void showErrorDialog({
+                title: 'Could not restore record',
+                message: 'The request did not complete.',
+                details: errors,
+            })
+        },
     })
 }
 
