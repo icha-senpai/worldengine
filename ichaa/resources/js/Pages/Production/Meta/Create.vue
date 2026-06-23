@@ -1,9 +1,11 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Meta Note"
-        :back-href="route('meta.index')"
+        :back-href="backHref"
         back-label="Meta"
-        :cancel-href="route('meta.index')"
+        :cancel-href="backHref"
         submit-label="Create Meta Note"
         processing-label="Creating..."
         :form="form"
@@ -19,6 +21,7 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     entities: { type: Array, default: () => [] },
     categories: { type: Array, default: () => [] },
     noteTypes: { type: Array, default: () => [] },
@@ -28,6 +31,7 @@ const props = defineProps({
 })
 
 const entityOptions = computed(() => toEntityOptions(props.entities))
+const backHref = computed(() => route('meta.index'))
 
 const form = useForm({
     title: '',
@@ -68,7 +72,14 @@ const sections = computed(() => [
     {
         title: 'Content',
         fields: [
-            { key: 'content', label: 'Content JSON', type: 'json', rows: 8 },
+            {
+                key: 'content',
+                label: 'Content',
+                type: 'json',
+                rows: 8,
+                placeholder: 'Write the core note...',
+                help: 'Rich text with the full editor suite.',
+            },
         ],
     },
     {

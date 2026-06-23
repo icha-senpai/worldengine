@@ -1,10 +1,167 @@
 <template>
-    <AuthenticatedLayout>
-        <template #header>
+    <component :is="layoutComponent">
+        <template v-if="showLayoutHeader" #header>
             <PageHeaderTrail :items="headerItems" />
         </template>
 
-        <form @submit.prevent="submitHandler" class="max-w-3xl space-y-6">
+        <form v-if="isDrawerPresentation" @submit.prevent="submitHandler">
+            <AppDrawer
+                :title="title"
+                :trail-items="headerItems"
+                :close-href="cancelHref"
+                @close="closeDrawer"
+            >
+                <div class="space-y-6">
+                    <FormErrorSummary :errors="form.errors" />
+
+                    <div
+                        v-for="section in normalizedSections"
+                        :key="section.title"
+                        class="panel"
+                    >
+                        <h3 v-if="section.title" class="panel-label">{{ section.title }}</h3>
+
+                        <div class="space-y-4">
+                            <div
+                                v-for="field in section.fields"
+                                :key="field.key"
+                                class="field-group"
+                            >
+                                <label class="field-label" :for="fieldInputId(field)">
+                                    {{ displayLabel(field) }}
+                                    <span v-if="field.required" class="text-danger">*</span>
+                                </label>
+
+                                <TextareaInput
+                                    v-if="resolvedFieldType(field) === 'textarea'"
+                                    :id="fieldInputId(field)"
+                                    v-model="form[field.key]"
+                                    :rows="field.rows ?? 3"
+                                    :placeholder="field.placeholder ?? ''"
+                                    :aria-describedby="fieldHelpId(field)"
+                                    class="input w-full resize-none"
+                                />
+
+                                <RichTextEditor
+                                    v-else-if="resolvedFieldType(field) === 'json' && isDocumentField(field)"
+                                    :input-id="fieldInputId(field)"
+                                    :aria-label="displayLabel(field)"
+                                    :described-by="fieldHelpId(field)"
+                                    v-model="documentBuffers[field.key]"
+                                    :placeholder="field.placeholder ?? jsonPlaceholder(field)"
+                                />
+
+                                <TextareaInput
+                                    v-else-if="resolvedFieldType(field) === 'json'"
+                                    :id="fieldInputId(field)"
+                                    v-model="jsonBuffers[field.key]"
+                                    :rows="field.rows ?? 5"
+                                    :placeholder="field.placeholder ?? jsonPlaceholder(field)"
+                                    :aria-describedby="fieldHelpId(field)"
+                                    class="input w-full resize-none"
+                                />
+
+                                <SelectInput
+                                    v-else-if="resolvedFieldType(field) === 'select'"
+                                    :id="fieldInputId(field)"
+                                    v-model="form[field.key]"
+                                    :aria-label="displayLabel(field)"
+                                    :aria-describedby="fieldHelpId(field)"
+                                    class="w-full"
+                                >
+                                    <option value="">{{ field.placeholder ?? 'Select an option...' }}</option>
+                                    <option
+                                        v-for="option in normalizeOptions(field.options)"
+                                        :key="option.value"
+                                        :value="option.value"
+                                    >
+                                        {{ option.label }}
+                                    </option>
+                                </SelectInput>
+
+                                <div
+                                    v-else-if="resolvedFieldType(field) === 'multiselect'"
+                                    class="multiselect-list"
+                                    role="group"
+                                    :aria-label="displayLabel(field)"
+                                    :aria-describedby="fieldHelpId(field)"
+                                >
+                                    <label
+                                        v-for="option in normalizeOptions(field.options)"
+                                        :key="`${field.key}-${option.value}`"
+                                        class="multiselect-option"
+                                    >
+                                        <Checkbox
+                                            v-model:checked="form[field.key]"
+                                            :value="option.value"
+                                        />
+                                        <span class="multiselect-label">{{ option.label }}</span>
+                                    </label>
+
+                                    <p v-if="!normalizeOptions(field.options).length" class="field-help">
+                                        {{ field.emptyMessage ?? 'No options available yet.' }}
+                                    </p>
+                                </div>
+
+                                <Checkbox
+                                    v-else-if="resolvedFieldType(field) === 'checkbox'"
+                                    :id="fieldInputId(field)"
+                                    v-model:checked="form[field.key]"
+                                    :aria-label="displayLabel(field)"
+                                    :aria-describedby="fieldHelpId(field)"
+                                />
+
+                                <input
+                                    v-else-if="resolvedFieldType(field) === 'file'"
+                                    :id="fieldInputId(field)"
+                                    type="file"
+                                    class="input w-full file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-2 file:font-ui file:text-sm file:text-primary"
+                                    :accept="field.accept ?? null"
+                                    :aria-describedby="fieldHelpId(field)"
+                                    @change="handleFileInput(field, $event)"
+                                >
+
+                                <TextInput
+                                    v-else
+                                    :id="fieldInputId(field)"
+                                    v-model="form[field.key]"
+                                    :type="resolvedFieldType(field)"
+                                    :placeholder="field.placeholder ?? ''"
+                                    :aria-label="displayLabel(field)"
+                                    :aria-describedby="fieldHelpId(field)"
+                                    class="w-full"
+                                />
+
+                                <p v-if="field.help" :id="fieldHelpId(field)" class="field-help">{{ field.help }}</p>
+                                <p v-else-if="resolvedFieldType(field) === 'file' && selectedFiles[field.key]" :id="fieldHelpId(field)" class="field-help">
+                                    Selected: {{ selectedFiles[field.key] }}
+                                </p>
+                                <p v-else-if="resolvedFieldType(field) === 'json'" :id="fieldHelpId(field)" class="field-help">
+                                    {{ jsonHelp(field) }}
+                                </p>
+                                <p v-if="jsonErrors[field.key]" :id="fieldErrorId(field)" class="field-error">{{ jsonErrors[field.key] }}</p>
+                                <p v-else-if="form.errors[field.key]" :id="fieldErrorId(field)" class="field-error">{{ form.errors[field.key] }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <NotionNotePanel v-if="showNotionNote" :note="notionNote" />
+                </div>
+
+                <template #footer>
+                    <AppButton type="submit" variant="primary" :disabled="form.processing || hasJsonErrors">
+                        <span v-if="form.processing">{{ processingLabel }}</span>
+                        <span v-else>{{ submitLabel }}</span>
+                    </AppButton>
+                    <AppButton :href="cancelHref" variant="ghost">Cancel</AppButton>
+                    <AppButton v-if="destroyHref" type="button" variant="danger" @click="destroyRecord">
+                        {{ destroyLabel }}
+                    </AppButton>
+                </template>
+            </AppDrawer>
+        </form>
+
+        <form v-else @submit.prevent="submitHandler" class="max-w-3xl space-y-6">
             <FormErrorSummary :errors="form.errors" />
 
             <div
@@ -20,30 +177,46 @@
                         :key="field.key"
                         class="field-group"
                     >
-                        <label class="field-label">
-                            {{ field.label }}
+                        <label class="field-label" :for="fieldInputId(field)">
+                            {{ displayLabel(field) }}
                             <span v-if="field.required" class="text-danger">*</span>
                         </label>
 
                         <TextareaInput
-                            v-if="field.type === 'textarea'"
+                            v-if="resolvedFieldType(field) === 'textarea'"
+                            :id="fieldInputId(field)"
                             v-model="form[field.key]"
                             :rows="field.rows ?? 3"
                             :placeholder="field.placeholder ?? ''"
+                            :aria-describedby="fieldHelpId(field)"
                             class="input w-full resize-none"
                         />
 
+                        <RichTextEditor
+                            v-else-if="resolvedFieldType(field) === 'json' && isDocumentField(field)"
+                            :input-id="fieldInputId(field)"
+                            :aria-label="displayLabel(field)"
+                            :described-by="fieldHelpId(field)"
+                            v-model="documentBuffers[field.key]"
+                            :placeholder="field.placeholder ?? jsonPlaceholder(field)"
+                        />
+
                         <TextareaInput
-                            v-else-if="field.type === 'json'"
+                            v-else-if="resolvedFieldType(field) === 'json'"
+                            :id="fieldInputId(field)"
                             v-model="jsonBuffers[field.key]"
                             :rows="field.rows ?? 5"
                             :placeholder="field.placeholder ?? jsonPlaceholder(field)"
+                            :aria-describedby="fieldHelpId(field)"
                             class="input w-full resize-none"
                         />
 
                         <SelectInput
-                            v-else-if="field.type === 'select'"
+                            v-else-if="resolvedFieldType(field) === 'select'"
+                            :id="fieldInputId(field)"
                             v-model="form[field.key]"
+                            :aria-label="displayLabel(field)"
+                            :aria-describedby="fieldHelpId(field)"
                             class="w-full"
                         >
                             <option value="">{{ field.placeholder ?? 'Select an option...' }}</option>
@@ -57,8 +230,11 @@
                         </SelectInput>
 
                         <div
-                            v-else-if="field.type === 'multiselect'"
+                            v-else-if="resolvedFieldType(field) === 'multiselect'"
                             class="multiselect-list"
+                            role="group"
+                            :aria-label="displayLabel(field)"
+                            :aria-describedby="fieldHelpId(field)"
                         >
                             <label
                                 v-for="option in normalizeOptions(field.options)"
@@ -78,29 +254,48 @@
                         </div>
 
                         <Checkbox
-                            v-else-if="field.type === 'checkbox'"
+                            v-else-if="resolvedFieldType(field) === 'checkbox'"
+                            :id="fieldInputId(field)"
                             v-model:checked="form[field.key]"
+                            :aria-label="displayLabel(field)"
+                            :aria-describedby="fieldHelpId(field)"
                         />
+
+                        <input
+                            v-else-if="resolvedFieldType(field) === 'file'"
+                            :id="fieldInputId(field)"
+                            type="file"
+                            class="input w-full file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-2 file:font-ui file:text-sm file:text-primary"
+                            :accept="field.accept ?? null"
+                            :aria-describedby="fieldHelpId(field)"
+                            @change="handleFileInput(field, $event)"
+                        >
 
                         <TextInput
                             v-else
+                            :id="fieldInputId(field)"
                             v-model="form[field.key]"
-                            :type="field.type ?? 'text'"
+                            :type="resolvedFieldType(field)"
                             :placeholder="field.placeholder ?? ''"
+                            :aria-label="displayLabel(field)"
+                            :aria-describedby="fieldHelpId(field)"
                             class="w-full"
                         />
 
-                        <p v-if="field.help" class="field-help">{{ field.help }}</p>
-                        <p v-if="field.type === 'json'" class="field-help">
+                        <p v-if="field.help" :id="fieldHelpId(field)" class="field-help">{{ field.help }}</p>
+                        <p v-else-if="resolvedFieldType(field) === 'file' && selectedFiles[field.key]" :id="fieldHelpId(field)" class="field-help">
+                            Selected: {{ selectedFiles[field.key] }}
+                        </p>
+                        <p v-else-if="resolvedFieldType(field) === 'json'" :id="fieldHelpId(field)" class="field-help">
                             {{ jsonHelp(field) }}
                         </p>
-                        <p v-if="jsonErrors[field.key]" class="field-error">{{ jsonErrors[field.key] }}</p>
-                        <p v-else-if="form.errors[field.key]" class="field-error">{{ form.errors[field.key] }}</p>
+                        <p v-if="jsonErrors[field.key]" :id="fieldErrorId(field)" class="field-error">{{ jsonErrors[field.key] }}</p>
+                        <p v-else-if="form.errors[field.key]" :id="fieldErrorId(field)" class="field-error">{{ form.errors[field.key] }}</p>
                     </div>
                 </div>
             </div>
 
-            <NotionNotePanel :note="notionNote" />
+            <NotionNotePanel v-if="showNotionNote" :note="notionNote" />
 
             <div class="flex items-center gap-3 pt-2">
                 <AppButton type="submit" variant="primary" :disabled="form.processing || hasJsonErrors">
@@ -113,22 +308,24 @@
                 </AppButton>
             </div>
         </form>
-    </AuthenticatedLayout>
+    </component>
 </template>
 
 <script setup>
-import { computed, reactive } from 'vue'
-import { Link, router, usePage } from '@inertiajs/vue3'
+import { computed, defineAsyncComponent, nextTick, reactive } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { formatLabel, prettyJson } from '@/Components/scaffold/formatters'
 import NotionNotePanel from '@/Components/NotionNotePanel.vue'
-import AppButton from '@/Components/ui/AppButton.vue'
 import Checkbox from '@/Components/Checkbox.vue'
+import AppDrawer from '@/Components/ui/AppDrawer.vue'
+import AppButton from '@/Components/ui/AppButton.vue'
 import FormErrorSummary from '@/Components/ui/FormErrorSummary.vue'
 import PageHeaderTrail from '@/Components/ui/PageHeaderTrail.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextareaInput from '@/Components/TextareaInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import { normalizeRichDocument, prepareRichDocumentForSubmit } from '@/lib/tiptap/documents'
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -143,10 +340,21 @@ const props = defineProps({
     form: { type: Object, required: true },
     sections: { type: Array, required: true },
     onSubmit: { type: Function, required: true },
+    embedded: { type: Boolean, default: false },
+    presentation: {
+        type: String,
+        default: 'page',
+        validator: (value) => ['page', 'drawer'].includes(value),
+    },
 })
 
 const page = usePage()
 const notionNote = computed(() => page.props?.notionNote ?? null)
+const RichTextEditor = defineAsyncComponent(() => import('@/Components/scaffold/RichTextEditor.vue'))
+const isDrawerPresentation = computed(() => props.presentation === 'drawer')
+const layoutComponent = computed(() => (props.embedded ? 'div' : AuthenticatedLayout))
+const showLayoutHeader = computed(() => !props.embedded && !isDrawerPresentation.value)
+const showNotionNote = computed(() => !props.embedded)
 
 const normalizedSections = computed(() =>
     props.sections.map((section) => ({
@@ -161,13 +369,23 @@ const headerItems = computed(() => [
 ])
 
 const jsonBuffers = reactive({})
+const documentBuffers = reactive({})
 const jsonErrors = reactive({})
+const selectedFiles = reactive({})
 
 for (const section of normalizedSections.value) {
     for (const field of section.fields) {
         if (field.type === 'json') {
-            jsonBuffers[field.key] = prettyJson(props.form[field.key])
+            if (isDocumentField(field)) {
+                documentBuffers[field.key] = normalizeRichDocument(props.form[field.key])
+            } else {
+                jsonBuffers[field.key] = prettyJson(props.form[field.key])
+            }
             jsonErrors[field.key] = ''
+        }
+
+        if (field.type === 'file') {
+            selectedFiles[field.key] = ''
         }
 
         if (field.type === 'multiselect' && !Array.isArray(props.form[field.key])) {
@@ -186,7 +404,14 @@ const normalizeOptions = (options = []) => options.map((option) =>
         : { value: option, label: formatLabel(option) }
 )
 
-const jsonMode = (field) => {
+const handleFileInput = (field, event) => {
+    const file = event.target.files?.[0] ?? null
+
+    props.form[field.key] = file
+    selectedFiles[field.key] = file?.name ?? ''
+}
+
+function jsonMode(field) {
     if (field.jsonMode) {
         return field.jsonMode
     }
@@ -212,17 +437,27 @@ const jsonMode = (field) => {
     return 'document'
 }
 
-const tiptapDocumentFromText = (value) => ({
-    type: 'doc',
-    content: value
-        .split(/\r?\n{2,}/)
-        .map((paragraph) => paragraph.trim())
-        .filter(Boolean)
-        .map((paragraph) => ({
-            type: 'paragraph',
-            content: [{ type: 'text', text: paragraph }],
-        })),
-})
+function isDocumentField(field) {
+    return jsonMode(field) === 'document'
+}
+
+const resolvedFieldType = (field) => {
+    if (field.type) {
+        return field.type
+    }
+
+    if (Array.isArray(field.options) && field.options.length) {
+        return 'select'
+    }
+
+    return 'text'
+}
+
+const displayLabel = (field) => String(field.label ?? '').replace(/\s+JSON$/i, '')
+
+const fieldInputId = (field) => `field-${field.key}`
+const fieldHelpId = (field) => `field-${field.key}-help`
+const fieldErrorId = (field) => `field-${field.key}-error`
 
 const parseListValue = (value) =>
     value
@@ -347,7 +582,7 @@ const jsonPlaceholder = (field) => {
         case 'list':
             return 'One item per line'
         default:
-            return 'Type normally or paste JSON'
+            return 'Start writing...'
     }
 }
 
@@ -362,11 +597,17 @@ const jsonHelp = (field) => {
         case 'list':
             return 'Type one item per line, or paste raw JSON.'
         default:
-            return 'Type normally and it will be wrapped into JSON on save, or paste raw JSON.'
+            return 'Rich text field with formatting, colors, links, images, and table tools.'
     }
 }
 
 const normalizeJsonField = (field) => {
+    if (isDocumentField(field)) {
+        props.form[field.key] = prepareRichDocumentForSubmit(documentBuffers[field.key], field.emptyValue ?? null)
+        jsonErrors[field.key] = ''
+        return true
+    }
+
     const value = jsonBuffers[field.key]
 
     if (!value.trim()) {
@@ -398,18 +639,28 @@ const normalizeJsonField = (field) => {
                 jsonErrors[field.key] = ''
                 return true
             default:
-                props.form[field.key] = tiptapDocumentFromText(value)
+                props.form[field.key] = prepareRichDocumentForSubmit(value, field.emptyValue ?? null)
                 jsonErrors[field.key] = ''
                 return true
         }
     }
 }
 
-const submitHandler = () => {
+const submitHandler = async () => {
+    await nextTick()
+
     for (const section of normalizedSections.value) {
         for (const field of section.fields ?? []) {
             if (field.type === 'json' && !normalizeJsonField(field)) {
                 return
+            }
+
+            if (
+                resolvedFieldType(field) === 'select' &&
+                !field.required &&
+                props.form[field.key] === ''
+            ) {
+                props.form[field.key] = null
             }
         }
     }
@@ -419,6 +670,16 @@ const submitHandler = () => {
     }
 
     props.onSubmit()
+}
+
+const closeDrawer = () => {
+    router.visit(props.cancelHref, props.embedded
+        ? {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+        }
+        : undefined)
 }
 
 const destroyRecord = () => {

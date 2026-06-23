@@ -1,26 +1,41 @@
 <template>
-    <ScaffoldIndexPage
-        title="Knowledge States"
-        :count="countRecords(states)"
-        count-label="states"
-        sync-resource="knowledge_states"
-        :create-href="route('knowledge-states.create')"
-        create-label="New Knowledge State"
-        :items="items"
-        empty-title="No knowledge states found"
-        :empty-cta-href="route('knowledge-states.create')"
-        empty-cta-label="Create the first knowledge state ->"
-    />
+    <div>
+        <ScaffoldIndexPage
+            title="Knowledge States"
+            :count="countRecords(states)"
+            count-label="states"
+            sync-resource="knowledge_states"
+            :create-href="route('knowledge-states.create')"
+            :create-preserve-scroll="true"
+            :create-preserve-state="true"
+            create-label="New Knowledge State"
+            :items="items"
+            empty-title="No knowledge states found"
+            :empty-cta-href="route('knowledge-states.create')"
+            :empty-cta-preserve-scroll="true"
+            :empty-cta-preserve-state="true"
+            empty-cta-label="Create the first knowledge state ->"
+            
+        />
+
+        <CreateKnowledgeState
+            v-if="createDrawer"
+            embedded
+            v-bind="createDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
+import CreateKnowledgeState from '@/Pages/Intelligence/KnowledgeStates/Create.vue'
 import { asArray, badge, buildMeta, countRecords, formatLabel } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     states: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
+    createDrawer: { type: Object, default: null },
 })
 
 const items = computed(() =>

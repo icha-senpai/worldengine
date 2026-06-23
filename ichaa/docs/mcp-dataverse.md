@@ -31,6 +31,8 @@ php artisan mcp:start dataverse
 - Search: `search_dataverse`
 - Read/list: `list_dataverse_records`, `get_dataverse_record`, `list_dataverse_trash`
 - CRUD: `create_dataverse_record`, `update_dataverse_record`, `delete_dataverse_record`, `restore_dataverse_record`
+- Media upload: `upload_dataverse_media`
+- Media replace: `replace_dataverse_media_file`
 - Custom verbs: `run_dataverse_action`
 - History: `inspect_dataverse_revision`, `restore_dataverse_revision`
 - Notion sync: `sync_dataverse_notion`
@@ -40,6 +42,8 @@ php artisan mcp:start dataverse
 - Non-create mutations should send the latest `base_revision_id`.
 - The MCP tools proxy into the canonical `/api/v1` JSON API instead of bypassing domain rules.
 - Use `dataverse://catalog` first when you need the exact resource slug or custom action name.
+- `upload_dataverse_media` accepts plain base64 file content or a full data URL and creates a managed `media-references` upload record.
+- `replace_dataverse_media_file` replaces the stored file for an existing media record and requires the current `base_revision_id`.
 - The web MCP endpoint accepts both existing Sanctum service tokens and Passport OAuth bearer tokens.
 
 ## Remote OAuth Connect

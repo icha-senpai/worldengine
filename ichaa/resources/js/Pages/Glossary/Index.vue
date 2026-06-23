@@ -1,26 +1,41 @@
 <template>
-    <ScaffoldIndexPage
-        title="Glossary"
-        :count="countRecords(terms)"
-        count-label="terms"
-        sync-resource="glossary"
-        :create-href="route('glossary.create')"
-        create-label="New Term"
-        :items="items"
-        empty-title="No glossary terms found"
-        :empty-cta-href="route('glossary.create')"
-        empty-cta-label="Create the first term ->"
-    />
+    <div>
+        <ScaffoldIndexPage
+            title="Glossary"
+            :count="countRecords(terms)"
+            count-label="terms"
+            sync-resource="glossary"
+            :create-href="route('glossary.create')"
+            :create-preserve-scroll="true"
+            :create-preserve-state="true"
+            create-label="New Term"
+            :items="items"
+            empty-title="No glossary terms found"
+            :empty-cta-href="route('glossary.create')"
+            :empty-cta-preserve-scroll="true"
+            :empty-cta-preserve-state="true"
+            empty-cta-label="Create the first term ->"
+            
+        />
+
+        <CreateGlossary
+            v-if="createDrawer"
+            embedded
+            v-bind="createDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
+import CreateGlossary from '@/Pages/Glossary/Create.vue'
 import { asArray, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     terms: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
+    createDrawer: { type: Object, default: null },
 })
 
 const items = computed(() =>

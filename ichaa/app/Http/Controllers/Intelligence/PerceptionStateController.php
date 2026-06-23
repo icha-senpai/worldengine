@@ -25,60 +25,13 @@ class PerceptionStateController extends Controller
 
     public function index(Request $request): Response
     {
-        $query = PerceptionState::current()->latest();
-
-        if ($request->boolean('high_risk')) {
-            $query->highRisk();
-        }
-
-        if ($request->boolean('critical_maintenance')) {
-            $query->criticalMaintenance();
-        }
-
-        return $this->page('Intelligence/PerceptionStates/Index', [
-            'states'  => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['high_risk', 'critical_maintenance']),
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Intelligence/PerceptionStates/Create', [
-            'entities'           => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'factionEntities'    => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->whereIn('entity_type', EntityType::FACTION_TYPES)
-                ->orderBy('name')
-                ->get(),
-            'locationEntities'   => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
-                ->orderBy('name')
-                ->get(),
-            'relationships'      => Relationship::query()
-                ->with(['fromEntity:id,name', 'toEntity:id,name'])
-                ->orderByDesc('id')
-                ->get(['id', 'from_entity_id', 'to_entity_id', 'relationship_type']),
-            'groupRelationships' => GroupRelationship::query()
-                ->select('id', 'name', 'relationship_type')
-                ->orderBy('name')
-                ->get(),
-            'eventEntries'       => Timeline::query()
-                ->with(['eventEntity:id,name,entity_type', 'timeline:id,name'])
-                ->orderByDesc('id')
-                ->get(['id', 'timeline_id', 'event_entity_id', 'entry_label', 'au_date']),
-            'documents'          => Document::query()
-                ->select('id', 'title', 'document_type')
-                ->orderBy('title')
-                ->get(),
-            'subjectTypes'       => PerceptionState::SUBJECT_TYPES,
-            'divergenceLevels'   => PerceptionState::DIVERGENCE_LEVELS,
-            'maintenanceMethods' => PerceptionState::MAINTENANCE_METHODS,
-            'maintenanceEfforts' => PerceptionState::MAINTENANCE_EFFORTS,
-            'revelationRisks'    => PerceptionState::REVELATION_RISKS,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -93,41 +46,17 @@ class PerceptionStateController extends Controller
 
     public function show(PerceptionState $perceptionState): Response
     {
-        $maintainerIds = $perceptionState->maintained_by_entity_ids ?? [];
-        $maintainers = Entity::query()
-            ->select('id', 'name', 'entity_type')
-            ->whereIn('id', $maintainerIds)
-            ->get()
-            ->keyBy('id');
-
-        return $this->pageWithNotionNote('Intelligence/PerceptionStates/Show', $perceptionState, 'perception_states', [
-            'state'               => $perceptionState,
-            'subjectDisplay'      => $this->resolveSubjectDisplay($perceptionState),
-            'maintainedByEntities'=> collect($maintainerIds)
-                ->map(function ($id) use ($maintainers) {
-                    $entity = $maintainers->get($id);
-
-                    if (!$entity) {
-                        return ['label' => "Unknown entity #{$id}"];
-                    }
-
-                    return [
-                        'label' => "{$entity->name}" . ($entity->entity_type ? " ({$entity->entity_type})" : ''),
-                        'href'  => route('entities.show', [$entity]),
-                    ];
-                })
-                ->values()
-                ->all(),
-        ]);
+        return $this->showPage($perceptionState);
     }
 
     public function edit(PerceptionState $perceptionState): Response
     {
-        return $this->page('Intelligence/PerceptionStates/Edit', [
-            'state'              => $perceptionState,
-            'maintenanceMethods' => PerceptionState::MAINTENANCE_METHODS,
-            'maintenanceEfforts' => PerceptionState::MAINTENANCE_EFFORTS,
-            'revelationRisks'    => PerceptionState::REVELATION_RISKS,
+        return $this->showPage($perceptionState, [
+            'editDrawer' => [
+                'maintenanceMethods' => PerceptionState::MAINTENANCE_METHODS,
+                'maintenanceEfforts' => PerceptionState::MAINTENANCE_EFFORTS,
+                'revelationRisks' => PerceptionState::REVELATION_RISKS,
+            ],
         ]);
     }
 
@@ -251,5 +180,98 @@ class PerceptionStateController extends Controller
             'label' => "{$document->title}" . ($document->document_type ? " ({$document->document_type})" : ''),
             'href'  => route('documents.show', [$document]),
         ];
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = PerceptionState::current()->latest();
+
+        if ($request->boolean('high_risk')) {
+            $query->highRisk();
+        }
+
+        if ($request->boolean('critical_maintenance')) {
+            $query->criticalMaintenance();
+        }
+
+                return $this->page('Intelligence/PerceptionStates/Index', array_merge([
+            'states'  => $query->paginate(40)->withQueryString(),
+            'filters' => $request->only(['high_risk', 'critical_maintenance']),
+        ], $props));
+    
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'entities'           => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'factionEntities'    => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', EntityType::FACTION_TYPES)
+                ->orderBy('name')
+                ->get(),
+            'locationEntities'   => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
+                ->orderBy('name')
+                ->get(),
+            'relationships'      => Relationship::query()
+                ->with(['fromEntity:id,name', 'toEntity:id,name'])
+                ->orderByDesc('id')
+                ->get(['id', 'from_entity_id', 'to_entity_id', 'relationship_type']),
+            'groupRelationships' => GroupRelationship::query()
+                ->select('id', 'name', 'relationship_type')
+                ->orderBy('name')
+                ->get(),
+            'eventEntries'       => Timeline::query()
+                ->with(['eventEntity:id,name,entity_type', 'timeline:id,name'])
+                ->orderByDesc('id')
+                ->get(['id', 'timeline_id', 'event_entity_id', 'entry_label', 'au_date']),
+            'documents'          => Document::query()
+                ->select('id', 'title', 'document_type')
+                ->orderBy('title')
+                ->get(),
+            'subjectTypes'       => PerceptionState::SUBJECT_TYPES,
+            'divergenceLevels'   => PerceptionState::DIVERGENCE_LEVELS,
+            'maintenanceMethods' => PerceptionState::MAINTENANCE_METHODS,
+            'maintenanceEfforts' => PerceptionState::MAINTENANCE_EFFORTS,
+            'revelationRisks'    => PerceptionState::REVELATION_RISKS,
+        
+        ];
+    }
+
+    private function showPage(PerceptionState $perceptionState, array $props = []): Response
+    {
+        $maintainerIds = $perceptionState->maintained_by_entity_ids ?? [];
+        $maintainers = Entity::query()
+            ->select('id', 'name', 'entity_type')
+            ->whereIn('id', $maintainerIds)
+            ->get()
+            ->keyBy('id');
+
+        return $this->pageWithNotionNote('Intelligence/PerceptionStates/Show', $perceptionState, 'perception_states', array_merge([
+            'state' => $perceptionState,
+            'subjectDisplay' => $this->resolveSubjectDisplay($perceptionState),
+            'maintainedByEntities' => collect($maintainerIds)
+                ->map(function ($id) use ($maintainers) {
+                    $entity = $maintainers->get($id);
+
+                    if (!$entity) {
+                        return ['label' => "Unknown entity #{$id}"];
+                    }
+
+                    return [
+                        'label' => "{$entity->name}" . ($entity->entity_type ? " ({$entity->entity_type})" : ''),
+                        'href'  => route('entities.show', [$entity]),
+                    ];
+                })
+                ->values()
+                ->all(),
+        ], $props));
     }
 }

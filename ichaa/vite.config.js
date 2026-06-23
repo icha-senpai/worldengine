@@ -7,7 +7,10 @@ export default defineConfig({
     plugins: [
         tailwindcss(),
         laravel({
-            input: 'resources/js/app.js',
+            input: [
+                'resources/css/app.css',
+                'resources/js/app.js',
+            ],
             refresh: true,
         }),
         vue({

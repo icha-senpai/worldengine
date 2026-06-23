@@ -20,39 +20,27 @@ class LocationControlController extends Controller
 
     public function index(): Response
     {
-        return $this->page('World/LocationControl/Index', [
-            'records' => LocationControlHistory::current()
-                ->with(['location:id,name', 'controllingEntity:id,name'])
-                ->get(),
-        ]);
+        return $this->indexPage();
     }
 
     public function create(): Response
     {
-        return $this->page('World/LocationControl/Create', [
-            'locationEntities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
-                ->orderBy('name')
-                ->get(),
-            'entities'         => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'controlTypes'     => LocationControlHistory::CONTROL_TYPES,
-            'resistanceLevels' => LocationControlHistory::RESISTANCE_LEVELS,
+        return $this->indexPage([
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
     public function edit(LocationControlHistory $locationControl): Response
     {
-        return $this->pageWithNotionNote('World/LocationControl/Edit', $locationControl, 'location_control', [
-            'record' => $locationControl->load([
-                'location:id,name',
-                'controllingEntity:id,name',
-                'resistanceEntity:id,name',
-            ]),
-            'resistanceLevels' => LocationControlHistory::RESISTANCE_LEVELS,
+        return $this->indexPage([
+            'editDrawer' => [
+                'record' => $locationControl->load([
+                    'location:id,name',
+                    'controllingEntity:id,name',
+                    'resistanceEntity:id,name',
+                ]),
+                'resistanceLevels' => LocationControlHistory::RESISTANCE_LEVELS,
+            ],
         ]);
     }
 
@@ -65,7 +53,7 @@ class LocationControlController extends Controller
 
         $this->service->recordControlChange($location, $controller, $validated['control_type'], $validated);
 
-        return $this->back('Control change recorded.');
+        return $this->to('location-control.index', [], 'Control change recorded.');
     }
 
     public function update(Request $request, LocationControlHistory $locationControl): \Illuminate\Http\RedirectResponse
@@ -74,13 +62,39 @@ class LocationControlController extends Controller
             DataverseRules::web('location-control-records', 'update')
         ));
 
-        return $this->back('Control record updated.');
+        return $this->to('location-control.index', [], 'Control record updated.');
     }
 
     public function destroy(LocationControlHistory $locationControl): \Illuminate\Http\RedirectResponse
     {
         $locationControl->delete();
 
-        return $this->back('Control record deleted.');
+        return $this->to('location-control.index', [], 'Control record deleted.');
+    }
+
+    private function indexPage(array $props = []): Response
+    {
+        return $this->page('World/LocationControl/Index', array_merge([
+            'records' => LocationControlHistory::current()
+                ->with(['location:id,name', 'controllingEntity:id,name'])
+                ->get(),
+        ], $props));
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'locationEntities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
+                ->orderBy('name')
+                ->get(),
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'controlTypes' => LocationControlHistory::CONTROL_TYPES,
+            'resistanceLevels' => LocationControlHistory::RESISTANCE_LEVELS,
+        ];
     }
 }

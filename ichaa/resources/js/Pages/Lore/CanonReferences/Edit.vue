@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Canon Reference"
         :back-href="route('canon-references.show', reference.id)"
         back-label="Reference"
@@ -19,6 +21,7 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     reference: { type: Object, required: true },
     entities: { type: Array, default: () => [] },
     researchStatuses: { type: Array, default: () => [] },

@@ -1,22 +1,35 @@
 <template>
-    <ScaffoldShowPage
-        :title="group.name"
-        back-label="Group Relationships"
-        :back-href="route('group-relationships.index')"
-        :edit-href="route('group-relationships.edit', group.id)"
-        :destroy-href="route('group-relationships.destroy', group.id)"
-        :badge="group.relationship_type || 'group'"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="group.name"
+            back-label="Group Relationships"
+            :back-href="route('group-relationships.index')"
+            :edit-href="route('group-relationships.edit', group.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('group-relationships.destroy', group.id)"
+            :badge="group.relationship_type || 'group'"
+            :sections="sections"
+        />
+
+        <EditGroupRelationship
+            v-if="editDrawer"
+            embedded
+            :group="group"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditGroupRelationship from '@/Pages/GroupRelationships/Edit.vue'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     group: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [

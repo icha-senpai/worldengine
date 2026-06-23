@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Document"
         :back-href="route('documents.index')"
         back-label="Documents"
@@ -19,6 +21,7 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     entities: { type: Array, default: () => [] },
     documentTypes: { type: Array, default: () => [] },
     documentStatuses: { type: Array, default: () => [] },

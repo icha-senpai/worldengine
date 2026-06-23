@@ -1,22 +1,35 @@
 <template>
-    <ScaffoldShowPage
-        :title="entryPoint.source_universe"
-        back-label="Crossover Entry Points"
-        :back-href="route('crossover-entry-points.index')"
-        :edit-href="route('crossover-entry-points.edit', entryPoint.id)"
-        :destroy-href="route('crossover-entry-points.destroy', entryPoint.id)"
-        :badge="entryPoint.status || 'entry'"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="entryPoint.source_universe"
+            back-label="Crossover Entry Points"
+            :back-href="route('crossover-entry-points.index')"
+            :edit-href="route('crossover-entry-points.edit', entryPoint.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('crossover-entry-points.destroy', entryPoint.id)"
+            :badge="entryPoint.status || 'entry'"
+            :sections="sections"
+        />
+
+        <EditCrossoverEntryPoint
+            v-if="editDrawer"
+            embedded
+            :entry-point="entryPoint"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditCrossoverEntryPoint from '@/Pages/Lore/CrossoverEntryPoints/Edit.vue'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     entryPoint: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [

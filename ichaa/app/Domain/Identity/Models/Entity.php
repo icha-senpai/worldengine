@@ -2,6 +2,7 @@
 
 namespace App\Domain\Identity\Models;
 
+use App\Casts\RichDocumentCast;
 use App\Domain\Connections\Models\FactionMembership;
 use App\Domain\Connections\Models\GroupRelationship;
 use App\Domain\Connections\Models\Relationship;
@@ -17,6 +18,7 @@ use App\Domain\Identity\ValueObjects\SourceUniverse;
 use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\PerceptionState;
+use App\Domain\Lore\Models\DocumentEntity;
 use App\Domain\Production\Models\WritingPipeline;
 use App\Domain\Temporal\Models\CharacterStateTracker;
 use App\Domain\Temporal\Models\Timeline;
@@ -103,7 +105,10 @@ class Entity extends Model
 
     protected $casts = [
         // JSONB arrays and objects
+        'summary' => RichDocumentCast::class,
+        'public_summary' => RichDocumentCast::class,
         'source_universes' => 'array',
+        'origin_notes' => RichDocumentCast::class,
         'public_persona' => 'array',
         'true_nature' => 'array',
         'known_by' => 'array',
@@ -293,6 +298,11 @@ class Entity extends Model
     public function media(): HasMany
     {
         return $this->hasMany(MediaReference::class, 'entity_id');
+    }
+
+    public function documentEntities(): HasMany
+    {
+        return $this->hasMany(DocumentEntity::class, 'entity_id');
     }
 
     public function primaryMedia(): HasMany

@@ -19,6 +19,35 @@ class FactionMembershipController extends Controller
 
     public function create(Request $request): Response
     {
+        if ($request->integer('faction_entity_id')) {
+            $faction = Entity::query()->find($request->integer('faction_entity_id'));
+
+            if ($faction) {
+                $faction->load([
+                    'aliases',
+                    'notes' => fn ($q) => $q->orderBy('sort_order')->orderBy('created_at'),
+                    'questions' => fn ($q) => $q->orderByRaw("CASE priority WHEN 'blocking' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END")->orderBy('created_at'),
+                ]);
+
+                return $this->page('Entities/Show', [
+                    'entity' => $faction,
+                    'factionMembershipCreateDrawer' => [
+                        'factionEntities' => Entity::query()
+                            ->select('id', 'name', 'entity_type')
+                            ->whereIn('entity_type', EntityType::FACTION_TYPES)
+                            ->orderBy('name')
+                            ->get(),
+                        'entities' => Entity::query()
+                            ->select('id', 'name', 'entity_type')
+                            ->orderBy('name')
+                            ->get(),
+                        'initialFactionEntityId' => $request->integer('faction_entity_id') ?: null,
+                        'initialMemberEntityId' => $request->integer('member_entity_id') ?: null,
+                    ],
+                ]);
+            }
+        }
+
         return $this->page('FactionMemberships/Create', [
             'factionEntities'       => Entity::query()
                 ->select('id', 'name', 'entity_type')
@@ -36,17 +65,30 @@ class FactionMembershipController extends Controller
 
     public function edit(FactionMembership $factionMembership): Response
     {
-        return $this->pageWithNotionNote('FactionMemberships/Edit', $factionMembership, 'faction_memberships', [
-            'entities'   => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'membership' => $factionMembership->load([
-                'faction:id,name',
-                'member:id,name',
-                'trueLoyalty:id,name',
-                'recruitedBy:id,name',
-            ]),
+        $membership = $factionMembership->load([
+            'faction:id,name,entity_type,status,public_title,summary,public_summary,completion_score,visibility,content_classification,entity_sub_type,type_status,source_universes,origin_type,canon_deviation,origin_notes,power_tier_ceiling,power_tier_operating,power_tier_influence,persona_divergence,control_state,has_attributes,has_relationships,has_timeline_entries,has_aliases,has_media',
+            'member:id,name',
+            'trueLoyalty:id,name',
+            'recruitedBy:id,name',
+        ]);
+
+        $faction = $membership->faction?->load([
+            'aliases',
+            'notes' => fn ($q) => $q->orderBy('sort_order')->orderBy('created_at'),
+            'questions' => fn ($q) => $q->orderByRaw("CASE priority WHEN 'blocking' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END")->orderBy('created_at'),
+        ]);
+
+        abort_unless($faction, 404);
+
+        return $this->page('Entities/Show', [
+            'entity' => $faction,
+            'factionMembershipEditDrawer' => [
+                'entities' => Entity::query()
+                    ->select('id', 'name', 'entity_type')
+                    ->orderBy('name')
+                    ->get(),
+                'membership' => $membership,
+            ],
         ]);
     }
 

@@ -144,7 +144,7 @@ class NotionPropertyMapper
             ->map(static fn (array $chunk) => $chunk['plain_text'] ?? '')
             ->implode('');
 
-        return filled($text) ? trim($text) : null;
+        return trim($text) !== '' ? $text : null;
     }
 
     private function normalizePropertyLabel(string $value): string

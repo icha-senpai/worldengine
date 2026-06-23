@@ -145,7 +145,9 @@ test.describe('smoke flows', () => {
 
         await page.goto('/trash')
 
-        const trashRow = page.locator('.trash-row').filter({ hasText: entityName })
+        const trashRow = page.locator('.record-card').filter({
+            has: page.getByRole('heading', { name: entityName }),
+        })
 
         await expect(trashRow).toBeVisible()
         page.once('dialog', (dialog) => dialog.accept())
@@ -165,8 +167,8 @@ test.describe('smoke flows', () => {
         await login(page)
 
         await page.goto('/pipeline/create')
-        await page.getByPlaceholder('Item title').fill(title)
-        await page.getByRole('button', { name: 'Scene' }).click()
+        await page.getByLabel(/^Title$/).fill(title)
+        await page.getByLabel(/^Type$/).selectOption('scene')
         await page.getByRole('button', { name: 'Create Item' }).click()
 
         await expect(page).toHaveURL(/\/pipeline\/\d+$/)
@@ -177,9 +179,9 @@ test.describe('smoke flows', () => {
 
 async function createEntity(page, name, typeLabel = 'Character') {
     await page.goto('/entities/create')
-    await page.getByPlaceholder('Entity name').fill(name)
-    await page.getByRole('button', { name: typeLabel }).click()
-    await page.getByRole('button', { name: 'Public' }).click()
+    await page.getByLabel(/^Name$/).fill(name)
+    await page.getByLabel(/^Type$/).selectOption(entityTypeOptionValue(typeLabel))
+    await page.getByLabel(/^Visibility$/).selectOption('public_knowledge')
     await page.getByRole('button', { name: 'Create Entity' }).click()
 
     await expect(page).toHaveURL(/\/entities\/\d+$/)
@@ -191,7 +193,7 @@ async function createEntity(page, name, typeLabel = 'Character') {
 
 async function createTimeline(page, name) {
     await page.goto('/timelines/create')
-    await page.locator('input').first().fill(name)
+    await page.getByLabel(/^Name$/).fill(name)
     await page.getByRole('button', { name: 'Create Timeline' }).click()
 
     await expect(page).toHaveURL(/\/timelines\/\d+$/)
@@ -200,12 +202,25 @@ async function createTimeline(page, name) {
 
 async function createConcurrencyGroup(page, name) {
     await page.goto('/concurrency-groups/create')
-    await page.locator('input').nth(0).fill(name)
-    await page.locator('input').nth(1).fill('Year 0')
-    await page.locator('select').first().selectOption('pivotal')
+    await page.getByLabel(/^Name$/).fill(name)
+    await page.getByLabel(/^AU Date$/).fill('Year 0')
+    await page.getByLabel(/^Narrative Significance$/).selectOption('pivotal')
     await page.getByRole('button', { name: 'Create Group' }).click()
 
-    await expect(page).toHaveURL(/\/concurrency-groups\/create$/)
-    await page.goto('/concurrency-groups')
-    await expect(page.getByRole('link', { name })).toBeVisible()
+    await expect(page).toHaveURL(/\/concurrency-groups\/\d+$/)
+    await expect(page.getByRole('heading', { name })).toBeVisible()
+}
+
+function entityTypeOptionValue(typeLabel) {
+    const normalized = typeLabel.trim().toLowerCase()
+
+    const map = {
+        character: 'character',
+        event: 'event',
+        concept: 'concept',
+        location: 'location',
+        faction: 'faction',
+    }
+
+    return map[normalized] ?? normalized.replace(/\s+/g, '_')
 }

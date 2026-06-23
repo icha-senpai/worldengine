@@ -20,6 +20,62 @@ class CharacterStateController extends Controller
 
     public function index(Request $request): Response
     {
+        return $this->indexPage($request);
+    }
+
+    public function create(): Response
+    {
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
+        ]);
+    }
+
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate(DataverseRules::web('character-states', 'store'));
+
+        $entity = Entity::findOrFail($validated['entity_id']);
+        $state  = $this->service->createStateSnapshot($entity, $validated);
+
+        return $this->to('character-states.show', [$state], 'State snapshot created.');
+    }
+
+    public function show(CharacterStateTracker $characterState): Response
+    {
+        return $this->showPage($characterState);
+    }
+
+    public function edit(CharacterStateTracker $characterState): Response
+    {
+        return $this->showPage($characterState, [
+            'editDrawer' => [
+                'stabilityLevels' => CharacterStateTracker::STABILITY_LEVELS,
+                'maskIntegrityLevels' => CharacterStateTracker::MASK_INTEGRITY_LEVELS,
+                'significanceLevels' => CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS,
+            ],
+        ]);
+    }
+
+    public function update(Request $request, CharacterStateTracker $characterState): \Illuminate\Http\RedirectResponse
+    {
+        $this->service->updateStateSnapshot($characterState, $request->validate(
+            DataverseRules::web('character-states', 'update')
+        ));
+
+        return $this->to('character-states.show', [$characterState], 'State snapshot updated.');
+    }
+
+    public function destroy(CharacterStateTracker $characterState): \Illuminate\Http\RedirectResponse
+    {
+        $this->service->deleteStateSnapshot($characterState);
+
+        return $this->to('character-states.index', [], 'Snapshot deleted.');
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
         $query = CharacterStateTracker::with('entity:id,name,entity_type')->chronological();
 
         if ($request->filled('entity')) {
@@ -30,15 +86,16 @@ class CharacterStateController extends Controller
             $query->breaking();
         }
 
-        return $this->page('Temporal/CharacterStates/Index', [
+                return $this->page('Temporal/CharacterStates/Index', array_merge([
             'states'  => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['entity', 'breaking']),
-        ]);
+        ], $props));
+    
     }
 
-    public function create(): Response
+    private function createFormProps(): array
     {
-        return $this->page('Temporal/CharacterStates/Create', [
+        return [
             'entities'           => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->whereIn('entity_type', EntityType::POWERED_TYPES)
@@ -57,20 +114,11 @@ class CharacterStateController extends Controller
             'stabilityLevels'    => CharacterStateTracker::STABILITY_LEVELS,
             'maskIntegrityLevels'=> CharacterStateTracker::MASK_INTEGRITY_LEVELS,
             'significanceLevels' => CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS,
-        ]);
+        
+        ];
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
-    {
-        $validated = $request->validate(DataverseRules::web('character-states', 'store'));
-
-        $entity = Entity::findOrFail($validated['entity_id']);
-        $state  = $this->service->createStateSnapshot($entity, $validated);
-
-        return $this->to('character-states.show', [$state], 'State snapshot created.');
-    }
-
-    public function show(CharacterStateTracker $characterState): Response
+    private function showPage(CharacterStateTracker $characterState, array $props = []): Response
     {
         $characterState->load([
             'entity:id,name,entity_type',
@@ -78,34 +126,8 @@ class CharacterStateController extends Controller
             'stateRelationships.relationship',
         ]);
 
-        return $this->pageWithNotionNote('Temporal/CharacterStates/Show', $characterState, 'character_states', [
+        return $this->pageWithNotionNote('Temporal/CharacterStates/Show', $characterState, 'character_states', array_merge([
             'state' => $characterState,
-        ]);
-    }
-
-    public function edit(CharacterStateTracker $characterState): Response
-    {
-        return $this->page('Temporal/CharacterStates/Edit', [
-            'state'              => $characterState,
-            'stabilityLevels'    => CharacterStateTracker::STABILITY_LEVELS,
-            'maskIntegrityLevels'=> CharacterStateTracker::MASK_INTEGRITY_LEVELS,
-            'significanceLevels' => CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS,
-        ]);
-    }
-
-    public function update(Request $request, CharacterStateTracker $characterState): \Illuminate\Http\RedirectResponse
-    {
-        $this->service->updateStateSnapshot($characterState, $request->validate(
-            DataverseRules::web('character-states', 'update')
-        ));
-
-        return $this->back('State snapshot updated.');
-    }
-
-    public function destroy(CharacterStateTracker $characterState): \Illuminate\Http\RedirectResponse
-    {
-        $this->service->deleteStateSnapshot($characterState);
-
-        return $this->to('character-states.index', [], 'Snapshot deleted.');
+        ], $props));
     }
 }

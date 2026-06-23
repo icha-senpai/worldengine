@@ -9,12 +9,14 @@ use App\Mcp\Tools\GetDataverseRecordTool;
 use App\Mcp\Tools\InspectDataverseRevisionTool;
 use App\Mcp\Tools\ListDataverseRecordsTool;
 use App\Mcp\Tools\ListDataverseTrashTool;
+use App\Mcp\Tools\ReplaceDataverseMediaFileTool;
 use App\Mcp\Tools\RestoreDataverseRecordTool;
 use App\Mcp\Tools\RestoreDataverseRevisionTool;
 use App\Mcp\Tools\RunDataverseActionTool;
 use App\Mcp\Tools\SearchDataverseTool;
 use App\Mcp\Tools\SyncDataverseNotionTool;
 use App\Mcp\Tools\UpdateDataverseRecordTool;
+use App\Mcp\Tools\UploadDataverseMediaTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -36,6 +38,8 @@ class DataverseServer extends Server
         ListDataverseRecordsTool::class,
         GetDataverseRecordTool::class,
         CreateDataverseRecordTool::class,
+        UploadDataverseMediaTool::class,
+        ReplaceDataverseMediaFileTool::class,
         UpdateDataverseRecordTool::class,
         DeleteDataverseRecordTool::class,
         RestoreDataverseRecordTool::class,

@@ -18,6 +18,8 @@ class WorldService
 
     public function createPowerInteraction(array $data): PowerInteraction
     {
+        $data = $this->normalizePowerInteractionData($data, true);
+
         // Enforce unordered pair convention
         // Lower entity ID is always system_a
         if (
@@ -40,7 +42,13 @@ class WorldService
 
     public function updatePowerInteraction(PowerInteraction $interaction, array $data): PowerInteraction
     {
+        $data = $this->normalizePowerInteractionData($data);
+
         $interaction->update($data);
+
+        if (array_key_exists('unresolved_flag', $data)) {
+            return $interaction->fresh();
+        }
 
         // Re-evaluate unresolved flag after update
         $shouldBeUnresolved = $interaction->fresh()->shouldBeUnresolved();
@@ -163,6 +171,8 @@ class WorldService
         string $routeType,
         array $data = []
     ): TravelRoute {
+        $data = $this->normalizeTravelRouteData($data, true);
+
         return TravelRoute::create(array_merge($data, [
             'origin_location_entity_id'      => $origin->id,
             'destination_location_entity_id' => $destination->id,
@@ -186,6 +196,13 @@ class WorldService
         });
     }
 
+    public function updateRoute(TravelRoute $route, array $data): TravelRoute
+    {
+        $route->update($this->normalizeTravelRouteData($data));
+
+        return $route->fresh();
+    }
+
     // --- GALACTIC REGION GRADUATION ---
     // When a location in a galactic region becomes narratively significant
     // enough to warrant a full entity record, graduate it
@@ -197,5 +214,39 @@ class WorldService
         $region->addGraduatedLocation($newLocationEntity->id);
 
         return $region->fresh();
+    }
+
+    private function normalizePowerInteractionData(array $data, bool $creating = false): array
+    {
+        if (array_key_exists('effects', $data) && $data['effects'] === null) {
+            $data['effects'] = [];
+        }
+
+        if ($creating && ! array_key_exists('effects', $data)) {
+            $data['effects'] = [];
+        }
+
+        return $data;
+    }
+
+    private function normalizeTravelRouteData(array $data, bool $creating = false): array
+    {
+        if (array_key_exists('method_variants', $data) && $data['method_variants'] === null) {
+            $data['method_variants'] = [];
+        }
+
+        if (array_key_exists('hazards', $data) && $data['hazards'] === null) {
+            $data['hazards'] = [];
+        }
+
+        if ($creating && ! array_key_exists('method_variants', $data)) {
+            $data['method_variants'] = [];
+        }
+
+        if ($creating && ! array_key_exists('hazards', $data)) {
+            $data['hazards'] = [];
+        }
+
+        return $data;
     }
 }

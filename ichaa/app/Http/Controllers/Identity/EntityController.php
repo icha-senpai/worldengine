@@ -25,65 +25,14 @@ class EntityController extends Controller
     // Index page — filterable list of all entities
     public function index(Request $request): Response
     {
-        $query = Entity::query()
-            ->select([
-                'id', 'name', 'public_title', 'entity_type', 'status',
-                'source_universes', 'summary', 'completion_score',
-                'visibility', 'power_tier_ceiling', 'published_at',
-            ])
-            ->orderBy('name');
-
-        if ($request->filled('type')) {
-            $typeFilter = (string) $request->type;
-
-            if (str_starts_with($typeFilter, 'category:')) {
-                $category = substr($typeFilter, strlen('category:'));
-                $types = EntityType::CATEGORIES[$category] ?? null;
-
-                if ($types) {
-                    $query->whereIn('entity_type', $types);
-                }
-            } else {
-                $query->ofType($typeFilter);
-            }
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('universe')) {
-            $query->fromUniverse($request->universe);
-        }
-
-        // Search uses 'q' to match the Vue filter form
-        if ($request->filled('q')) {
-            $query->search($request->q);
-        }
-
-        if ($request->boolean('incomplete')) {
-            $query->incomplete();
-        }
-
-        return $this->page('Entities/Index', [
-            'entities'    => $query->paginate(40)->withQueryString(),
-            'filters'     => $request->only(['type', 'status', 'universe', 'q', 'incomplete']),
-            // Grouped by category for optgroup rendering in Vue
-            'entityTypes' => EntityType::CATEGORIES,
-            'statuses'    => [
-                'concept', 'active', 'archived',
-                'deceased', 'destroyed', 'dormant', 'unknown',
-            ],
-            'universes'   => \App\Domain\Identity\ValueObjects\SourceUniverse::ALL ?? [],
-        ]);
+        return $this->indexPage($request);
     }
 
     // GET /entities/create
     public function create(): Response
     {
-        return $this->page('Entities/Create', [
-            // Grouped by category — Vue renders optgroups from this structure
-            'entityTypes' => EntityType::CATEGORIES,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -103,24 +52,16 @@ class EntityController extends Controller
     // GET /entities/{entity}
     public function show(Entity $entity): Response
     {
-        $entity->load([
-            'aliases',
-            'notes'     => fn($q) => $q->orderBy('sort_order')->orderBy('created_at'),
-            'questions' => fn($q) => $q->orderByRaw("CASE priority WHEN 'blocking' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END")->orderBy('created_at'),
-        ]);
-        $this->attachEmbeddedNotionNotes($entity);
-
-        return $this->pageWithNotionNote('Entities/Show', $entity, 'entities', [
-            'entity' => $entity,
-        ]);
+        return $this->showPage($entity);
     }
 
     // GET /entities/{entity}/edit
     public function edit(Entity $entity): Response
     {
-        return $this->page('Entities/Edit', [
-            'entity'      => $entity,
-            'entityTypes' => EntityType::CATEGORIES,
+        return $this->showPage($entity, [
+            'editDrawer' => [
+                'entityTypes' => EntityType::CATEGORIES,
+            ],
         ]);
     }
 
@@ -216,5 +157,79 @@ class EntityController extends Controller
 
             return $record;
         })->values();
+    }
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = Entity::query()
+            ->select([
+                'id', 'name', 'public_title', 'entity_type', 'status',
+                'source_universes', 'summary', 'completion_score',
+                'visibility', 'power_tier_ceiling', 'published_at',
+            ])
+            ->orderBy('name');
+
+        if ($request->filled('type')) {
+            $typeFilter = (string) $request->type;
+
+            if (str_starts_with($typeFilter, 'category:')) {
+                $category = substr($typeFilter, strlen('category:'));
+                $types = EntityType::CATEGORIES[$category] ?? null;
+
+                if ($types) {
+                    $query->whereIn('entity_type', $types);
+                }
+            } else {
+                $query->ofType($typeFilter);
+            }
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('universe')) {
+            $query->fromUniverse($request->universe);
+        }
+
+        if ($request->filled('q')) {
+            $query->search($request->q);
+        }
+
+        if ($request->boolean('incomplete')) {
+            $query->incomplete();
+        }
+
+        return $this->page('Entities/Index', array_merge([
+            'entities' => $query->paginate(40)->withQueryString(),
+            'filters' => $request->only(['type', 'status', 'universe', 'q', 'incomplete']),
+            'entityTypes' => EntityType::CATEGORIES,
+            'statuses' => [
+                'concept', 'active', 'archived',
+                'deceased', 'destroyed', 'dormant', 'unknown',
+            ],
+            'universes' => \App\Domain\Identity\ValueObjects\SourceUniverse::ALL ?? [],
+        ], $props));
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'entityTypes' => EntityType::CATEGORIES,
+        ];
+    }
+
+    private function showPage(Entity $entity, array $props = []): Response
+    {
+        $entity->load([
+            'aliases',
+            'notes' => fn ($q) => $q->orderBy('sort_order')->orderBy('created_at'),
+            'questions' => fn ($q) => $q->orderByRaw("CASE priority WHEN 'blocking' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END")->orderBy('created_at'),
+        ]);
+        $this->attachEmbeddedNotionNotes($entity);
+
+        return $this->pageWithNotionNote('Entities/Show', $entity, 'entities', array_merge([
+            'entity' => $entity,
+        ], $props));
     }
 }

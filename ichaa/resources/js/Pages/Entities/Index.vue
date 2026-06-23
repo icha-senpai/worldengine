@@ -1,4 +1,5 @@
 <template>
+    <div>
     <AuthenticatedLayout>
 
         <template #header>
@@ -9,7 +10,12 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <NotionSyncButton resource="entities" label="Sync from Notion" />
-                    <AppButton :href="route('entities.create')" variant="primary">
+                    <AppButton
+                        :href="route('entities.create')"
+                        :preserve-scroll="true"
+                        :preserve-state="true"
+                        variant="primary"
+                    >
                         + New Entity
                     </AppButton>
                 </div>
@@ -82,7 +88,12 @@
             <!-- Empty state -->
             <div v-if="entities.data.length === 0" class="px-4 py-16 text-center">
                 <p class="text-muted-3 text-sm font-ui uppercase tracking-widest">No entities found</p>
-                <Link :href="route('entities.create')" class="mt-3 inline-block text-focus text-sm font-ui hover:underline">
+                <Link
+                    :href="route('entities.create')"
+                    :preserve-scroll="true"
+                    :preserve-state="true"
+                    class="mt-3 inline-block text-focus text-sm font-ui hover:underline"
+                >
                     Create the first one →
                 </Link>
             </div>
@@ -149,7 +160,7 @@
                 </div>
 
                 <p v-if="entity.summary" class="prose-wrap text-muted-3 text-sm leading-snug md:col-span-5">
-                    {{ entity.summary }}
+                    {{ richDocumentToPlainText(entity.summary) }}
                 </p>
             </Link>
         </div>
@@ -178,6 +189,13 @@
         </div>
 
     </AuthenticatedLayout>
+
+    <CreateEntity
+        v-if="createDrawer"
+        embedded
+        :entity-types="createDrawer.entityTypes"
+    />
+    </div>
 </template>
 
 <script setup>
@@ -185,9 +203,11 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import CreateEntity from '@/Pages/Entities/Create.vue'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import { richDocumentToPlainText } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
     entities:    { type: Object, required: true },
@@ -195,6 +215,7 @@ const props = defineProps({
     entityTypes: { type: Object, default: () => ({}) },
     statuses:    { type: Array,  default: () => [] },
     universes:   { type: Array,  default: () => [] },
+    createDrawer:{ type: Object, default: null },
 })
 
 const filterForm = ref({

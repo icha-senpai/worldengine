@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Group Relationship"
         :back-href="route('group-relationships.index')"
         back-label="Group Relationships"
@@ -18,6 +20,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     tensionCharges: { type: Array, default: () => [] },
 })
 

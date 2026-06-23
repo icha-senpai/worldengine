@@ -13,16 +13,27 @@
                     <h1 class="text-primary text-2xl font-light tracking-wide leading-tight">
                         {{ timeline.name }}
                     </h1>
-                    <p v-if="timeline.summary" class="prose-wrap text-muted-3 text-base mt-2">
-                        {{ timeline.summary }}
-                    </p>
+                    <div v-if="timeline.summary" class="mt-2">
+                        <RichDocumentValue
+                            v-if="isRichDocument(timeline.summary)"
+                            :content="timeline.summary"
+                        />
+                        <p v-else class="prose-wrap text-muted-3 text-base">
+                            {{ timeline.summary }}
+                        </p>
+                    </div>
                 </div>
 
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <AppButton type="button" variant="danger" @click="destroyTimeline">
                         Move to Trash
                     </AppButton>
-                    <AppButton :href="route('timelines.edit', timeline.id)" variant="ghost">
+                    <AppButton
+                        :href="route('timelines.edit', timeline.id)"
+                        :preserve-scroll="true"
+                        :preserve-state="true"
+                        variant="ghost"
+                    >
                         Edit
                     </AppButton>
                 </div>
@@ -219,6 +230,8 @@
                         <div class="flex items-center gap-2">
                             <AppButton
                                 :href="route('timelines.events.edit', { timeline: timeline.id, entry: entry.id })"
+                                :preserve-scroll="true"
+                                :preserve-state="true"
                                 variant="ghost"
                                 size="sm"
                                 :data-test="`edit-entry-${entry.id}`"
@@ -270,6 +283,8 @@
                         <div class="flex items-center gap-2">
                             <AppButton
                                 :href="route('timelines.events.edit', { timeline: timeline.id, entry: entry.id })"
+                                :preserve-scroll="true"
+                                :preserve-state="true"
                                 variant="ghost"
                                 size="sm"
                                 :data-test="`edit-entry-${entry.id}`"
@@ -294,19 +309,37 @@
         </div>
 
         <NotionNotePanel :note="notionNote" />
+
+        <EditTimeline
+            v-if="editDrawer"
+            embedded
+            :timeline="timeline"
+            v-bind="editDrawer"
+        />
+
+        <EditTimelineEvent
+            v-if="eventEditDrawer"
+            embedded
+            :timeline="timeline"
+            :entry="eventEditDrawer.entry"
+            :concurrency-groups="eventEditDrawer.concurrencyGroups"
+            :event-significance-levels="eventEditDrawer.eventSignificanceLevels"
+        />
     </AuthenticatedLayout>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import { Link, router, useForm, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Checkbox from '@/Components/Checkbox.vue'
 import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import EditTimeline from '@/Pages/Temporal/Timelines/Edit.vue'
+import EditTimelineEvent from '@/Pages/Temporal/Timelines/Events/Edit.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
-import { formatLabel, toEntityOptions } from '@/Components/scaffold/formatters'
+import { formatLabel, isRichDocument, toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
     timeline: { type: Object, required: true },
@@ -315,10 +348,13 @@ const props = defineProps({
     availableEvents: { type: Array, default: () => [] },
     concurrencyGroups: { type: Array, default: () => [] },
     eventSignificanceLevels: { type: Array, default: () => [] },
+    editDrawer: { type: Object, default: null },
+    eventEditDrawer: { type: Object, default: null },
 })
 
 const page = usePage()
 const notionNote = computed(() => page.props?.notionNote ?? null)
+const RichDocumentValue = defineAsyncComponent(() => import('@/Components/scaffold/RichDocumentValue.vue'))
 
 const chronologicalEntries = computed(() => props.events ?? [])
 const atemporalEntries = computed(() => props.atemporal ?? [])

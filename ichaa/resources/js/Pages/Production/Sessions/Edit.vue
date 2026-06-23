@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Session Log"
         :back-href="route('session-logs.show', session.id)"
         back-label="Session"
@@ -18,6 +20,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     session: { type: Object, required: true },
     significanceLevels: { type: Array, default: () => [] },
 })

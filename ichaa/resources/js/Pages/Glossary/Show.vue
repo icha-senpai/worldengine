@@ -1,23 +1,36 @@
 <template>
-    <ScaffoldShowPage
-        :title="term.term"
-        :subtitle="term.usage_context"
-        back-label="Glossary"
-        :back-href="route('glossary.index')"
-        :edit-href="route('glossary.edit', term.id)"
-        :destroy-href="route('glossary.destroy', term.id)"
-        badge="term"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="term.term"
+            :subtitle="term.usage_context"
+            back-label="Glossary"
+            :back-href="route('glossary.index')"
+            :edit-href="route('glossary.edit', term.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('glossary.destroy', term.id)"
+            badge="term"
+            :sections="sections"
+        />
+
+        <EditGlossaryTerm
+            v-if="editDrawer"
+            embedded
+            :term="term"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditGlossaryTerm from '@/Pages/Glossary/Edit.vue'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     term: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [

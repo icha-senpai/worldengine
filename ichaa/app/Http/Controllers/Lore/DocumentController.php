@@ -14,29 +14,13 @@ class DocumentController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = Document::query()->orderBy('title');
-
-        if ($request->filled('type')) {
-            $query->ofType($request->type);
-        }
-
-        return $this->page('Lore/Documents/Index', [
-            'documents'     => $query->paginate(40)->withQueryString(),
-            'filters'       => $request->only(['type']),
-            'documentTypes' => Document::DOCUMENT_TYPES,
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Lore/Documents/Create', [
-            'entities'            => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'documentTypes'     => Document::DOCUMENT_TYPES,
-            'documentStatuses'  => Document::DOCUMENT_STATUSES,
-            'authenticityStates'=> Document::AUTHENTICITY_STATES,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -51,24 +35,21 @@ class DocumentController extends Controller
 
     public function show(Document $document): Response
     {
-        $document->load(['officialAuthor:id,name', 'trueAuthor:id,name', 'owner:id,name']);
-
-        return $this->pageWithNotionNote('Lore/Documents/Show', $document, 'documents', [
-            'document' => $document,
-        ]);
+        return $this->showPage($document);
     }
 
     public function edit(Document $document): Response
     {
-        return $this->page('Lore/Documents/Edit', [
-            'entities'            => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'document'          => $document,
-            'documentTypes'     => Document::DOCUMENT_TYPES,
-            'documentStatuses'  => Document::DOCUMENT_STATUSES,
-            'authenticityStates'=> Document::AUTHENTICITY_STATES,
+        return $this->showPage($document, [
+            'editDrawer' => [
+                'entities' => Entity::query()
+                    ->select('id', 'name', 'entity_type')
+                    ->orderBy('name')
+                    ->get(),
+                'documentTypes' => Document::DOCUMENT_TYPES,
+                'documentStatuses' => Document::DOCUMENT_STATUSES,
+                'authenticityStates' => Document::AUTHENTICITY_STATES,
+            ],
         ]);
     }
 
@@ -84,5 +65,46 @@ class DocumentController extends Controller
         $document->delete();
 
         return $this->to('documents.index', [], 'Document deleted.');
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = Document::query()->orderBy('title');
+
+        if ($request->filled('type')) {
+            $query->ofType($request->type);
+        }
+
+                return $this->page('Lore/Documents/Index', array_merge([
+            'documents'     => $query->paginate(40)->withQueryString(),
+            'filters'       => $request->only(['type']),
+            'documentTypes' => Document::DOCUMENT_TYPES,
+        ], $props));
+    
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'entities'            => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'documentTypes'     => Document::DOCUMENT_TYPES,
+            'documentStatuses'  => Document::DOCUMENT_STATUSES,
+            'authenticityStates'=> Document::AUTHENTICITY_STATES,
+        
+        ];
+    }
+
+    private function showPage(Document $document, array $props = []): Response
+    {
+        $document->load(['officialAuthor:id,name', 'trueAuthor:id,name', 'owner:id,name']);
+
+        return $this->pageWithNotionNote('Lore/Documents/Show', $document, 'documents', array_merge([
+            'document' => $document,
+        ], $props));
     }
 }

@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Timeline"
         :back-href="route('timelines.index')"
         back-label="Timelines"
@@ -17,9 +19,13 @@ import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
+const props = defineProps({
+    embedded: { type: Boolean, default: false },
+})
+
 const form = useForm({
     name: '',
-    summary: '',
+    summary: null,
     visibility: 'private',
 })
 
@@ -28,7 +34,7 @@ const sections = computed(() => [
         title: 'Timeline',
         fields: [
             { key: 'name', label: 'Name', required: true },
-            { key: 'summary', label: 'Summary', type: 'textarea', rows: 4 },
+            { key: 'summary', label: 'Summary', type: 'json', rows: 4 },
             { key: 'visibility', label: 'Visibility' },
         ],
     },

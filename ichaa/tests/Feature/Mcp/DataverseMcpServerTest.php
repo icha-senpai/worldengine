@@ -111,7 +111,8 @@ class DataverseMcpServerTest extends TestCase
             'reason' => 'Update through MCP',
         ])->assertOk()->assertStructuredContent(function ($json) {
             $json->where('status', 200)
-                ->where('body.data.attributes.summary', 'Updated through the MCP server.')
+                ->where('body.data.attributes.summary.type', 'doc')
+                ->where('body.data.attributes.summary.content.0.content.0.text', 'Updated through the MCP server.')
                 ->etc();
         });
 

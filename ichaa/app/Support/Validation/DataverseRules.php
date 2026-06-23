@@ -7,6 +7,7 @@ use App\Domain\Connections\ValueObjects\TensionCharge;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityAlias;
 use App\Domain\Identity\Models\EntityQuestion;
+use App\Domain\Identity\Models\MediaReference;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\PerceptionState;
@@ -28,6 +29,7 @@ use App\Domain\World\Models\PowerInteraction;
 use App\Domain\World\Models\PowerInteractionInstance;
 use App\Domain\World\Models\TravelRoute;
 use App\Support\Api\ApiResourceRegistry;
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 
 class DataverseRules
@@ -61,6 +63,51 @@ class DataverseRules
         return self::prefix(self::actionDefinition($action));
     }
 
+    public static function apiMediaUpload(): array
+    {
+        $rules = array_merge(
+            self::api('media-references', 'store'),
+            self::metaRules(false),
+            [
+                'data.file' => ['required', 'array'],
+                'data.file.name' => ['required', 'string', 'max:255'],
+                'data.file.mime_type' => ['nullable', 'string', 'max:255'],
+                'data.file.content_base64' => ['required', 'string'],
+            ],
+        );
+
+        $uploadableMediaTypes = array_values(array_filter(
+            MediaReference::MEDIA_TYPES,
+            static fn (string $type) => $type !== 'link',
+        ));
+
+        $rules['data.attributes.media_type'] = ['required', 'string', 'in:' . implode(',', $uploadableMediaTypes)];
+        $rules['data.attributes.file_path'] = ['prohibited'];
+        $rules['data.attributes.url'] = ['prohibited'];
+        $rules['data.attributes.file_name'] = ['prohibited'];
+        $rules['data.attributes.file_extension'] = ['prohibited'];
+        $rules['data.attributes.file_size_bytes'] = ['prohibited'];
+        $rules['data.attributes.mime_type'] = ['prohibited'];
+        $rules['data.attributes.width_px'] = ['prohibited'];
+        $rules['data.attributes.height_px'] = ['prohibited'];
+
+        return $rules;
+    }
+
+    public static function apiMediaReplace(): array
+    {
+        return array_merge(
+            self::metaRules(true),
+            [
+                'data' => ['required', 'array'],
+                'data.file' => ['required', 'array'],
+                'data.file.name' => ['required', 'string', 'max:255'],
+                'data.file.mime_type' => ['nullable', 'string', 'max:255'],
+                'data.file.content_base64' => ['required', 'string'],
+            ],
+        );
+    }
+
     public static function webAction(string $action): array
     {
         return self::flatten(self::actionDefinition($action));
@@ -79,6 +126,18 @@ class DataverseRules
         ];
     }
 
+    private static function richDocumentRule(bool $required = false): array
+    {
+        return [
+            $required ? 'required' : 'nullable',
+            static function (string $attribute, mixed $value, Closure $fail): void {
+                if ($value !== null && ! is_array($value) && ! is_string($value)) {
+                    $fail("The {$attribute} field must be a rich document payload or plain text.");
+                }
+            },
+        ];
+    }
+
     private static function definition(string $resource, string $operation): array
     {
         $explicit = match ($resource) {
@@ -88,15 +147,15 @@ class DataverseRules
                     'entity_type' => $resource === 'timelines'
                         ? ['nullable', 'string']
                         : ['required', 'string', 'in:' . implode(',', EntityType::ALL)],
-                    'summary' => ['nullable', 'string'],
+                    'summary' => self::richDocumentRule(),
                     'public_title' => ['nullable', 'string', 'max:255'],
-                    'public_summary' => ['nullable', 'string'],
+                    'public_summary' => self::richDocumentRule(),
                     'entity_sub_type' => ['nullable', 'string', 'max:255'],
                     'source_universes' => ['nullable', 'array'],
                     'source_universes.*' => ['string'],
                     'origin_type' => ['nullable', 'string'],
                     'canon_deviation' => ['nullable', 'string'],
-                    'origin_notes' => ['nullable', 'string'],
+                    'origin_notes' => self::richDocumentRule(),
                     'visibility' => ['nullable', 'string'],
                     'content_classification' => ['nullable', 'string'],
                 ],
@@ -108,8 +167,8 @@ class DataverseRules
                         ? ['nullable', 'string']
                         : ['sometimes', 'string', 'in:' . implode(',', EntityType::ALL)],
                     'entity_sub_type' => ['nullable', 'string', 'max:255'],
-                    'summary' => ['nullable', 'string'],
-                    'public_summary' => ['nullable', 'string'],
+                    'summary' => self::richDocumentRule(),
+                    'public_summary' => self::richDocumentRule(),
                     'status' => ['nullable', 'string'],
                     'type_status' => ['nullable', 'string', 'max:255'],
                     'power_tier_ceiling' => ['nullable', 'string'],
@@ -119,7 +178,7 @@ class DataverseRules
                     'source_universes.*' => ['string'],
                     'origin_type' => ['nullable', 'string'],
                     'canon_deviation' => ['nullable', 'string'],
-                    'origin_notes' => ['nullable', 'string'],
+                    'origin_notes' => self::richDocumentRule(),
                     'control_state' => ['nullable', 'string'],
                     'persona_divergence' => ['nullable', 'string'],
                     'visibility' => ['nullable', 'string'],
@@ -197,6 +256,63 @@ class DataverseRules
                     'linked_group_relationship_ids' => ['nullable', 'array'],
                     'linked_group_relationship_ids.*' => ['integer', 'exists:group_relationships,id'],
                     'sort_order' => ['nullable', 'integer'],
+                ],
+            ],
+            'media-references' => $operation === 'store' ? [
+                'attributes' => [
+                    'title' => ['required', 'string', 'max:255'],
+                    'description' => ['nullable', 'string'],
+                    'media_type' => ['required', 'string', 'in:' . implode(',', MediaReference::MEDIA_TYPES)],
+                    'purpose' => ['required', 'string', 'in:' . implode(',', MediaReference::PURPOSES)],
+                    'file_path' => ['nullable', 'string'],
+                    'url' => ['nullable', 'url'],
+                    'file_name' => ['nullable', 'string', 'max:255'],
+                    'file_extension' => ['nullable', 'string', 'max:50'],
+                    'file_size_bytes' => ['nullable', 'integer', 'min:0'],
+                    'mime_type' => ['nullable', 'string', 'max:255'],
+                    'width_px' => ['nullable', 'integer', 'min:0'],
+                    'height_px' => ['nullable', 'integer', 'min:0'],
+                    'sort_order' => ['nullable', 'integer'],
+                    'is_primary' => ['nullable', 'boolean'],
+                    'visibility' => ['nullable', 'string'],
+                    'content_classification' => ['nullable', 'string'],
+                ],
+                'relationships' => [
+                    'entity_id' => ['nullable', 'integer', 'exists:entities,id'],
+                    'group_relationship_id' => ['nullable', 'integer', 'exists:group_relationships,id'],
+                    'collection_id' => ['nullable', 'integer', 'exists:collections,id'],
+                    'meta_id' => ['nullable', 'integer', 'exists:meta,id'],
+                    'timeline_entry_id' => ['nullable', 'integer', 'exists:timeline,id'],
+                    'concurrency_group_id' => ['nullable', 'integer', 'exists:concurrency_groups,id'],
+                    'source_canon_reference_id' => ['nullable', 'integer', 'exists:source_canon_reference,id'],
+                ],
+            ] : [
+                'attributes' => [
+                    'title' => ['sometimes', 'string', 'max:255'],
+                    'description' => ['nullable', 'string'],
+                    'media_type' => ['sometimes', 'string', 'in:' . implode(',', MediaReference::MEDIA_TYPES)],
+                    'purpose' => ['sometimes', 'string', 'in:' . implode(',', MediaReference::PURPOSES)],
+                    'file_path' => ['nullable', 'string'],
+                    'url' => ['nullable', 'url'],
+                    'file_name' => ['nullable', 'string', 'max:255'],
+                    'file_extension' => ['nullable', 'string', 'max:50'],
+                    'file_size_bytes' => ['nullable', 'integer', 'min:0'],
+                    'mime_type' => ['nullable', 'string', 'max:255'],
+                    'width_px' => ['nullable', 'integer', 'min:0'],
+                    'height_px' => ['nullable', 'integer', 'min:0'],
+                    'sort_order' => ['nullable', 'integer'],
+                    'is_primary' => ['nullable', 'boolean'],
+                    'visibility' => ['nullable', 'string'],
+                    'content_classification' => ['nullable', 'string'],
+                ],
+                'relationships' => [
+                    'entity_id' => ['nullable', 'integer', 'exists:entities,id'],
+                    'group_relationship_id' => ['nullable', 'integer', 'exists:group_relationships,id'],
+                    'collection_id' => ['nullable', 'integer', 'exists:collections,id'],
+                    'meta_id' => ['nullable', 'integer', 'exists:meta,id'],
+                    'timeline_entry_id' => ['nullable', 'integer', 'exists:timeline,id'],
+                    'concurrency_group_id' => ['nullable', 'integer', 'exists:concurrency_groups,id'],
+                    'source_canon_reference_id' => ['nullable', 'integer', 'exists:source_canon_reference,id'],
                 ],
             ],
             'relationships' => $operation === 'store' ? [
@@ -605,9 +721,11 @@ class DataverseRules
                     'pipeline_type' => ['required', 'string', 'in:' . implode(',', PipelineItem::PIPELINE_TYPES)],
                     'pipeline_stage' => ['nullable', 'string', 'in:' . implode(',', PipelineItem::PIPELINE_STAGES)],
                     'emotional_beat' => ['nullable', 'string', 'max:255'],
-                    'narrative_purpose' => ['nullable', 'string'],
+                    'content' => self::richDocumentRule(),
+                    'narrative_purpose' => self::richDocumentRule(),
                     'arc_stage' => ['nullable', 'string', 'max:255'],
-                    'arc_notes' => ['nullable', 'string'],
+                    'arc_notes' => self::richDocumentRule(),
+                    'notes' => self::richDocumentRule(),
                     'visibility' => ['nullable', 'string'],
                     'content_classification' => ['nullable', 'string'],
                 ],
@@ -624,14 +742,14 @@ class DataverseRules
                     'title' => ['sometimes', 'string'],
                     'pipeline_type' => ['sometimes', 'string', 'in:' . implode(',', PipelineItem::PIPELINE_TYPES)],
                     'pipeline_stage' => ['nullable', 'string', 'in:' . implode(',', PipelineItem::PIPELINE_STAGES)],
-                    'content' => ['nullable', 'string'],
+                    'content' => self::richDocumentRule(),
                     'word_count' => ['nullable', 'integer'],
                     'reading_time_minutes' => ['nullable', 'integer'],
                     'emotional_beat' => ['nullable', 'string'],
-                    'narrative_purpose' => ['nullable', 'string'],
+                    'narrative_purpose' => self::richDocumentRule(),
                     'arc_stage' => ['nullable', 'string'],
-                    'arc_notes' => ['nullable', 'string'],
-                    'notes' => ['nullable', 'string'],
+                    'arc_notes' => self::richDocumentRule(),
+                    'notes' => self::richDocumentRule(),
                     'add_to_voice_samples' => ['nullable', 'boolean'],
                 ],
                 'relationships' => [
@@ -763,6 +881,8 @@ class DataverseRules
                     'snapshot_label' => ['nullable', 'string', 'max:255'],
                     'snapshot_significance' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS)],
                     'significance_reason' => ['nullable', 'string'],
+                    'current_trauma_profile' => self::richDocumentRule(),
+                    'active_psychological_patterns' => self::richDocumentRule(),
                     'current_stability_level' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::STABILITY_LEVELS)],
                     'mask_integrity' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::MASK_INTEGRITY_LEVELS)],
                     'timeline_position' => ['nullable', 'integer'],
@@ -781,6 +901,8 @@ class DataverseRules
                     'snapshot_label' => ['nullable', 'string', 'max:255'],
                     'snapshot_significance' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS)],
                     'significance_reason' => ['nullable', 'string'],
+                    'current_trauma_profile' => self::richDocumentRule(),
+                    'active_psychological_patterns' => self::richDocumentRule(),
                     'current_stability_level' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::STABILITY_LEVELS)],
                     'mask_integrity' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::MASK_INTEGRITY_LEVELS)],
                     'timeline_position' => ['nullable', 'integer'],

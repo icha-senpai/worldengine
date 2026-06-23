@@ -1,6 +1,8 @@
 import {
     formatEntityOptionLabel,
     formatLabel,
+    hasRichDocumentContent,
+    isRichDocument,
     prettyJson,
     summarizeValue,
     toRelationshipOptions,
@@ -20,6 +22,21 @@ describe('scaffold formatters', () => {
     it('pretty prints structured values without touching plain strings', () => {
         expect(prettyJson({ notes: ['alpha', 'beta'] })).toContain('"notes"')
         expect(prettyJson('already formatted')).toBe('already formatted')
+    })
+
+    it('detects rich text documents and ignores empty shells', () => {
+        expect(isRichDocument({ type: 'doc', content: [] })).toBe(true)
+        expect(hasRichDocumentContent({ type: 'doc', content: [] })).toBe(false)
+        expect(hasRichDocumentContent({
+            type: 'doc',
+            content: [
+                {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Rendered text' }],
+                },
+            ],
+        })).toBe(true)
+        expect(isRichDocument([{ type: 'paragraph' }])).toBe(false)
     })
 
     it('builds relationship labels from both snake_case and camelCase payloads', () => {

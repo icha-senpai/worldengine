@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Perception State"
         :back-href="route('perception-states.show', state.id)"
         back-label="Perception State"
@@ -18,6 +20,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     state: { type: Object, required: true },
     maintenanceMethods: { type: Array, default: () => [] },
     maintenanceEfforts: { type: Array, default: () => [] },

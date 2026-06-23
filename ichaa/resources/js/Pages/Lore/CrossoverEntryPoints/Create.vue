@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Crossover Entry Point"
         :back-href="route('crossover-entry-points.index')"
         back-label="Crossover Entry Points"
@@ -18,6 +20,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     statuses: { type: Array, default: () => [] },
 })
 

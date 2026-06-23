@@ -1,26 +1,41 @@
 <template>
-    <ScaffoldIndexPage
-        title="Power Interactions"
-        :count="countRecords(interactions)"
-        count-label="interactions"
-        sync-resource="power_interactions"
-        :create-href="route('power-interactions.create')"
-        create-label="New Interaction"
-        :items="items"
-        empty-title="No power interactions found"
-        :empty-cta-href="route('power-interactions.create')"
-        empty-cta-label="Create the first interaction ->"
-    />
+    <div>
+        <ScaffoldIndexPage
+            title="Power Interactions"
+            :count="countRecords(interactions)"
+            count-label="interactions"
+            sync-resource="power_interactions"
+            :create-href="route('power-interactions.create')"
+            :create-preserve-scroll="true"
+            :create-preserve-state="true"
+            create-label="New Interaction"
+            :items="items"
+            empty-title="No power interactions found"
+            :empty-cta-href="route('power-interactions.create')"
+            :empty-cta-preserve-scroll="true"
+            :empty-cta-preserve-state="true"
+            empty-cta-label="Create the first interaction ->"
+            
+        />
+
+        <CreatePowerInteraction
+            v-if="createDrawer"
+            embedded
+            v-bind="createDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
+import CreatePowerInteraction from '@/Pages/World/PowerInteractions/Create.vue'
 import { asArray, badge, buildMeta, countRecords, formatLabel } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     interactions: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
+    createDrawer: { type: Object, default: null },
 })
 
 const items = computed(() =>

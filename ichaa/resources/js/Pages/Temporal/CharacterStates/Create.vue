@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Character Snapshot"
         :back-href="route('character-states.index')"
         back-label="Character States"
@@ -19,6 +21,7 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     entities: { type: Array, default: () => [] },
     timelineEntities: { type: Array, default: () => [] },
     eraEntities: { type: Array, default: () => [] },
@@ -42,8 +45,8 @@ const form = useForm({
     significance_reason: '',
     current_stability_level: '',
     mask_integrity: '',
-    current_trauma_profile: '',
-    active_psychological_patterns: '',
+    current_trauma_profile: null,
+    active_psychological_patterns: null,
     core_wound: '',
     current_desire: '',
     current_fear: '',
@@ -94,8 +97,8 @@ const sections = computed(() => [
     {
         title: 'Psychology',
         fields: [
-            { key: 'current_trauma_profile', label: 'Trauma Profile', type: 'textarea', rows: 3 },
-            { key: 'active_psychological_patterns', label: 'Psychological Patterns', type: 'textarea', rows: 3 },
+            { key: 'current_trauma_profile', label: 'Trauma Profile', type: 'json', rows: 4 },
+            { key: 'active_psychological_patterns', label: 'Psychological Patterns', type: 'json', rows: 4 },
             { key: 'core_wound', label: 'Core Wound' },
             { key: 'current_desire', label: 'Current Desire' },
             { key: 'current_fear', label: 'Current Fear' },

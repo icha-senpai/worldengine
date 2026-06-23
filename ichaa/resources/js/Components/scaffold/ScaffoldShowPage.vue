@@ -22,7 +22,13 @@
                     <AppButton v-if="destroyHref" type="button" variant="danger" @click="destroyRecord">
                         {{ destroyLabel }}
                     </AppButton>
-                    <AppButton v-if="editHref" :href="editHref" variant="ghost">
+                    <AppButton
+                        v-if="editHref"
+                        :href="editHref"
+                        :preserve-scroll="editPreserveScroll"
+                        :preserve-state="editPreserveState"
+                        variant="ghost"
+                    >
                         {{ editLabel }}
                     </AppButton>
                 </div>
@@ -59,7 +65,11 @@
                             </template>
 
                             <template v-else-if="entry.kind === 'json'">
-                                <pre class="json-block">{{ prettyJson(entry.value) || '—' }}</pre>
+                                <RichDocumentValue
+                                    v-if="isRichDocument(entry.value)"
+                                    :content="entry.value"
+                                />
+                                <pre v-else class="json-block">{{ prettyJson(entry.value) || '—' }}</pre>
                             </template>
 
                             <template v-else-if="entry.href">
@@ -91,7 +101,8 @@ import { Link, router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
-import { prettyJson, summarizeValue } from '@/Components/scaffold/formatters'
+import RichDocumentValue from '@/Components/scaffold/RichDocumentValue.vue'
+import { isRichDocument, prettyJson, summarizeValue } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -100,6 +111,8 @@ const props = defineProps({
     backLabel: { type: String, required: true },
     editHref: { type: String, default: '' },
     editLabel: { type: String, default: 'Edit' },
+    editPreserveScroll: { type: Boolean, default: false },
+    editPreserveState: { type: Boolean, default: false },
     destroyHref: { type: String, default: '' },
     destroyLabel: { type: String, default: 'Move to Trash' },
     destroyConfirm: { type: String, default: 'Move this item to trash?' },

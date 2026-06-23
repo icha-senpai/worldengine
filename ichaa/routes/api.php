@@ -63,6 +63,8 @@ Route::prefix('v1')
 
         Route::post('pipeline-items/{record}/advance', [ActionController::class, 'advancePipelineItem']);
         Route::post('pipeline-items/{record}/resolve', [ActionController::class, 'resolvePipelineItem']);
+        Route::post('media-references/upload', [ActionController::class, 'uploadMediaReference']);
+        Route::post('media-references/{record}/replace-file', [ActionController::class, 'replaceMediaReferenceFile']);
 
         Route::get('{resource}', [ResourceController::class, 'index'])->where('resource', $resourcePattern);
         Route::post('{resource}', [ResourceController::class, 'store'])->where('resource', $resourcePattern);

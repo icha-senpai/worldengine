@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Faction Membership"
         :back-href="route('entities.index')"
         back-label="Entities"
@@ -19,6 +21,7 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     factionEntities: { type: Array, default: () => [] },
     entities: { type: Array, default: () => [] },
     initialFactionEntityId: { type: Number, default: null },

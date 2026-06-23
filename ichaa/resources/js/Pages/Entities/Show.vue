@@ -31,7 +31,12 @@
                     <AppButton type="button" variant="danger" @click="destroyEntity">
                         Move to Trash
                     </AppButton>
-                    <AppButton :href="route('entities.edit', entity.id)" variant="ghost">
+                    <AppButton
+                        :href="route('entities.edit', entity.id)"
+                        :preserve-scroll="true"
+                        :preserve-state="true"
+                        variant="ghost"
+                    >
                         Edit
                     </AppButton>
                 </div>
@@ -87,13 +92,21 @@
                 <!-- Summary -->
                 <div v-if="entity.summary" class="col-span-2 panel">
                     <h3 class="panel-label">Summary</h3>
-                    <p class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ entity.summary }}</p>
+                    <RichDocumentValue
+                        v-if="isRichDocument(entity.summary)"
+                        :content="entity.summary"
+                    />
+                    <p v-else class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ entity.summary }}</p>
                 </div>
 
                 <!-- Public summary -->
                 <div v-if="entity.public_summary" class="col-span-2 panel">
                     <h3 class="panel-label">Public Summary <span class="text-muted-3 normal-case font-normal">(visible persona)</span></h3>
-                    <p class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ entity.public_summary }}</p>
+                    <RichDocumentValue
+                        v-if="isRichDocument(entity.public_summary)"
+                        :content="entity.public_summary"
+                    />
+                    <p v-else class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ entity.public_summary }}</p>
                 </div>
 
                 <!-- Classification -->
@@ -128,7 +141,16 @@
                     <div class="space-y-2">
                         <div class="flex items-start gap-2"><span class="field-label field-label--fixed">Origin Type</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.origin_type) }}</span></div>
                         <div v-if="entity.canon_deviation" class="flex items-start gap-2"><span class="field-label field-label--fixed">Canon Deviation</span><span class="text-muted-2 text-sm">{{ formatLabel(entity.canon_deviation) }}</span></div>
-                        <div v-if="entity.origin_notes" class="flex items-start gap-2"><span class="field-label field-label--fixed">Notes</span><span class="text-muted-2 text-sm">{{ entity.origin_notes }}</span></div>
+                        <div v-if="entity.origin_notes" class="flex items-start gap-2">
+                            <span class="field-label field-label--fixed">Notes</span>
+                            <div class="min-w-0 flex-1">
+                                <RichDocumentValue
+                                    v-if="isRichDocument(entity.origin_notes)"
+                                    :content="entity.origin_notes"
+                                />
+                                <span v-else class="text-muted-2 text-sm">{{ entity.origin_notes }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -466,28 +488,56 @@
 
         <NotionNotePanel :note="notionNote" />
 
+        <EditEntity
+            v-if="editDrawer"
+            embedded
+            :entity="entity"
+            :entity-types="editDrawer.entityTypes"
+        />
+
+        <EditFactionMembership
+            v-if="factionMembershipEditDrawer"
+            embedded
+            :membership="factionMembershipEditDrawer.membership"
+            :entities="factionMembershipEditDrawer.entities"
+        />
+
+        <CreateFactionMembership
+            v-if="factionMembershipCreateDrawer"
+            embedded
+            v-bind="factionMembershipCreateDrawer"
+        />
+
     </AuthenticatedLayout>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, defineAsyncComponent } from 'vue'
 import { Link, useForm, router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Checkbox from '@/Components/Checkbox.vue'
 import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import CreateFactionMembership from '@/Pages/FactionMemberships/Create.vue'
+import EditEntity from '@/Pages/Entities/Edit.vue'
+import EditFactionMembership from '@/Pages/FactionMemberships/Edit.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextareaInput from '@/Components/TextareaInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import { isRichDocument } from '@/Components/scaffold/formatters'
 
 // --- Props ---
 
 const props = defineProps({
     entity: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
+    factionMembershipEditDrawer: { type: Object, default: null },
+    factionMembershipCreateDrawer: { type: Object, default: null },
 })
 
 const page = usePage()
 const notionNote = computed(() => page.props?.notionNote ?? null)
+const RichDocumentValue = defineAsyncComponent(() => import('@/Components/scaffold/RichDocumentValue.vue'))
 
 // --- Tabs ---
 

@@ -16,29 +16,21 @@ class ConcurrencyGroupController extends Controller
         private readonly TemporalService $service,
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return $this->page('Temporal/ConcurrencyGroups/Index', [
-            'groups' => ConcurrencyGroup::withCount('timelineEntries')->orderBy('au_date')->get(),
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Temporal/ConcurrencyGroups/Create', [
-            'significanceLevels' => ConcurrencyGroup::SIGNIFICANCE_LEVELS,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
     public function show(ConcurrencyGroup $concurrencyGroup): Response
     {
-        return $this->pageWithNotionNote('Temporal/ConcurrencyGroups/Show', $concurrencyGroup, 'concurrency_groups', [
-            'group' => $concurrencyGroup->load([
-                'timelineEntries.timeline:id,name',
-                'timelineEntries.eventEntity:id,name,entity_type',
-                'timelineEntries.era:id,name',
-            ]),
-        ]);
+        return $this->showPage($concurrencyGroup);
     }
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
@@ -47,14 +39,15 @@ class ConcurrencyGroupController extends Controller
 
         $group = $this->service->createConcurrencyGroup($validated);
 
-        return $this->back("Concurrency group '{$group->name}' created.");
+        return $this->to('concurrency-groups.show', [$group], "Concurrency group '{$group->name}' created.");
     }
 
     public function edit(ConcurrencyGroup $concurrencyGroup): Response
     {
-        return $this->page('Temporal/ConcurrencyGroups/Edit', [
-            'group'              => $concurrencyGroup,
-            'significanceLevels' => ConcurrencyGroup::SIGNIFICANCE_LEVELS,
+        return $this->showPage($concurrencyGroup, [
+            'editDrawer' => [
+                'significanceLevels' => ConcurrencyGroup::SIGNIFICANCE_LEVELS,
+            ],
         ]);
     }
 
@@ -64,13 +57,42 @@ class ConcurrencyGroupController extends Controller
             DataverseRules::web('concurrency-groups', 'update')
         ));
 
-        return $this->back('Concurrency group updated.');
+        return $this->to('concurrency-groups.show', [$concurrencyGroup], 'Concurrency group updated.');
     }
 
     public function destroy(ConcurrencyGroup $concurrencyGroup): \Illuminate\Http\RedirectResponse
     {
         $concurrencyGroup->delete();
 
-        return $this->back('Concurrency group deleted.');
+        return $this->to('concurrency-groups.index', [], 'Concurrency group deleted.');
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+                return $this->page('Temporal/ConcurrencyGroups/Index', array_merge([
+            'groups' => ConcurrencyGroup::withCount('timelineEntries')->orderBy('au_date')->get(),
+        ], $props));
+    
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'significanceLevels' => ConcurrencyGroup::SIGNIFICANCE_LEVELS,
+        
+        ];
+    }
+
+    private function showPage(ConcurrencyGroup $concurrencyGroup, array $props = []): Response
+    {
+        return $this->pageWithNotionNote('Temporal/ConcurrencyGroups/Show', $concurrencyGroup, 'concurrency_groups', array_merge([
+            'group' => $concurrencyGroup->load([
+                'timelineEntries.timeline:id,name',
+                'timelineEntries.eventEntity:id,name,entity_type',
+                'timelineEntries.era:id,name',
+            ]),
+        ], $props));
     }
 }

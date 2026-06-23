@@ -51,13 +51,13 @@ class NotionNoteSyncService
             return false;
         }
 
-        $content = trim($this->renderBlocks(
+        $content = $this->renderBlocks(
             $this->client->retrieveBlockChildren($pageId)
-        ));
+        );
 
         $note = NotionNote::query()->forPage($pageId)->first();
 
-        if (blank($content)) {
+        if (! $this->hasMeaningfulText($content)) {
             if (! $note) {
                 return false;
             }
@@ -120,43 +120,43 @@ class NotionNoteSyncService
 
             if (($block['has_children'] ?? false) === true) {
                 $children = $this->client->retrieveBlockChildren((string) ($block['id'] ?? ''));
-                $childText = trim($this->renderBlocks($children, $depth + 1));
+                $childText = $this->renderBlocks($children, $depth + 1);
 
-                if ($childText !== '') {
+                if ($this->hasMeaningfulText($childText)) {
                     $lines[] = $childText;
                 }
             }
         }
 
-        return preg_replace("/\n{3,}/", "\n\n", trim(implode("\n", $lines))) ?? '';
+        return preg_replace("/\n{3,}/", "\n\n", implode("\n", $lines)) ?? '';
     }
 
     private function renderBlockLine(array $block, string $type, int $depth, int $index): ?string
     {
-        $text = trim($this->renderRichText($block[$type]['rich_text'] ?? []));
+        $text = $this->renderRichText($block[$type]['rich_text'] ?? []);
         $indent = str_repeat('  ', $depth);
 
         return match ($type) {
-            'heading_1' => $text !== '' ? "{$indent}# {$text}" : null,
-            'heading_2' => $text !== '' ? "{$indent}## {$text}" : null,
-            'heading_3' => $text !== '' ? "{$indent}### {$text}" : null,
-            'bulleted_list_item' => $text !== '' ? "{$indent}- {$text}" : null,
-            'numbered_list_item' => $text !== '' ? "{$indent}".($index + 1).". {$text}" : null,
-            'to_do' => $text !== '' ? "{$indent}[".(($block[$type]['checked'] ?? false) ? 'x' : ' ')."] {$text}" : null,
-            'quote' => $text !== '' ? "{$indent}> {$text}" : null,
-            'callout' => $text !== '' ? "{$indent}Note: {$text}" : null,
-            'code' => $text !== '' ? "{$indent}```\n{$text}\n```" : null,
+            'heading_1' => $this->hasMeaningfulText($text) ? "{$indent}# {$text}" : null,
+            'heading_2' => $this->hasMeaningfulText($text) ? "{$indent}## {$text}" : null,
+            'heading_3' => $this->hasMeaningfulText($text) ? "{$indent}### {$text}" : null,
+            'bulleted_list_item' => $this->hasMeaningfulText($text) ? "{$indent}- {$text}" : null,
+            'numbered_list_item' => $this->hasMeaningfulText($text) ? "{$indent}".($index + 1).". {$text}" : null,
+            'to_do' => $this->hasMeaningfulText($text) ? "{$indent}[".(($block[$type]['checked'] ?? false) ? 'x' : ' ')."] {$text}" : null,
+            'quote' => $this->hasMeaningfulText($text) ? "{$indent}> {$text}" : null,
+            'callout' => $this->hasMeaningfulText($text) ? "{$indent}Note: {$text}" : null,
+            'code' => $this->hasMeaningfulText($text) ? "{$indent}```\n{$text}\n```" : null,
             'divider' => "{$indent}---",
-            'paragraph', 'toggle' => $text !== '' ? "{$indent}{$text}" : null,
+            'paragraph', 'toggle' => $this->hasMeaningfulText($text) ? "{$indent}{$text}" : null,
             default => $this->fallbackLine($block, $type, $indent),
         };
     }
 
     private function fallbackLine(array $block, string $type, string $indent): ?string
     {
-        $caption = trim($this->renderRichText(data_get($block, "{$type}.caption", [])));
+        $caption = $this->renderRichText(data_get($block, "{$type}.caption", []));
 
-        if ($caption !== '') {
+        if ($this->hasMeaningfulText($caption)) {
             return "{$indent}[{$this->labelFor($type)}] {$caption}";
         }
 
@@ -214,6 +214,11 @@ class NotionNoteSyncService
     private function labelFor(string $type): string
     {
         return ucfirst(str_replace('_', ' ', $type));
+    }
+
+    private function hasMeaningfulText(string $value): bool
+    {
+        return trim($value) !== '';
     }
 
     private function versionedContentHash(string $content): string

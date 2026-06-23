@@ -23,6 +23,68 @@ class KnowledgeStateController extends Controller
 
     public function index(Request $request): Response
     {
+        return $this->indexPage($request);
+    }
+
+    public function create(): Response
+    {
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
+        ]);
+    }
+
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate(DataverseRules::web('knowledge-states', 'store'));
+
+        $knower = Entity::findOrFail($validated['knower_entity_id']);
+        $state  = $this->service->recordKnowledge($knower, $validated);
+
+        return $this->to('knowledge-states.show', [$state], 'Knowledge state recorded.');
+    }
+
+    public function show(KnowledgeState $knowledgeState): Response
+    {
+        return $this->showPage($knowledgeState);
+    }
+
+    public function edit(KnowledgeState $knowledgeState): Response
+    {
+        return $this->showPage($knowledgeState, [
+            'editDrawer' => [
+                'beliefStates' => KnowledgeState::BELIEF_STATES,
+                'accuracyLevels' => KnowledgeState::ACCURACY_LEVELS,
+            ],
+        ]);
+    }
+
+    public function update(Request $request, KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
+    {
+        $knowledgeState->update($request->validate(DataverseRules::web('knowledge-states', 'update')));
+
+        return $this->to('knowledge-states.show', [$knowledgeState], 'Knowledge state updated.');
+    }
+
+    public function destroy(KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
+    {
+        $knowledgeState->delete();
+
+        return $this->to('knowledge-states.index', [], 'Knowledge state deleted.');
+    }
+
+    public function markActedOn(Request $request, KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate(DataverseRules::webAction('knowledge-state-act-on'));
+
+        $this->service->markActedOn($knowledgeState, $validated['action_notes'] ?? null);
+
+        return $this->back('Marked as acted on.');
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
         $query = KnowledgeState::current()
             ->with(['knower:id,name', 'subjectEntity:id,name'])
             ->latest();
@@ -43,15 +105,16 @@ class KnowledgeStateController extends Controller
             $query->compartmentalizing();
         }
 
-        return $this->page('Intelligence/KnowledgeStates/Index', [
+                return $this->page('Intelligence/KnowledgeStates/Index', array_merge([
             'states'  => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['knower', 'about', 'latent', 'compartmentalizing']),
-        ]);
+        ], $props));
+    
     }
 
-    public function create(): Response
+    private function createFormProps(): array
     {
-        return $this->page('Intelligence/KnowledgeStates/Create', [
+        return [
             'entities'           => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->orderBy('name')
@@ -76,20 +139,11 @@ class KnowledgeStateController extends Controller
             'accuracyLevels'     => KnowledgeState::ACCURACY_LEVELS,
             'beliefStates'       => KnowledgeState::BELIEF_STATES,
             'acquisitionMethods' => KnowledgeState::ACQUISITION_METHODS,
-        ]);
+        
+        ];
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
-    {
-        $validated = $request->validate(DataverseRules::web('knowledge-states', 'store'));
-
-        $knower = Entity::findOrFail($validated['knower_entity_id']);
-        $state  = $this->service->recordKnowledge($knower, $validated);
-
-        return $this->to('knowledge-states.show', [$state], 'Knowledge state recorded.');
-    }
-
-    public function show(KnowledgeState $knowledgeState): Response
+    private function showPage(KnowledgeState $knowledgeState, array $props = []): Response
     {
         $knowledgeState->load([
             'knower:id,name,entity_type',
@@ -98,40 +152,8 @@ class KnowledgeStateController extends Controller
             'acquiredFrom:id,name',
         ]);
 
-        return $this->pageWithNotionNote('Intelligence/KnowledgeStates/Show', $knowledgeState, 'knowledge_states', [
+        return $this->pageWithNotionNote('Intelligence/KnowledgeStates/Show', $knowledgeState, 'knowledge_states', array_merge([
             'state' => $knowledgeState,
-        ]);
-    }
-
-    public function edit(KnowledgeState $knowledgeState): Response
-    {
-        return $this->page('Intelligence/KnowledgeStates/Edit', [
-            'state'          => $knowledgeState,
-            'beliefStates'   => KnowledgeState::BELIEF_STATES,
-            'accuracyLevels' => KnowledgeState::ACCURACY_LEVELS,
-        ]);
-    }
-
-    public function update(Request $request, KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
-    {
-        $knowledgeState->update($request->validate(DataverseRules::web('knowledge-states', 'update')));
-
-        return $this->back('Knowledge state updated.');
-    }
-
-    public function destroy(KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
-    {
-        $knowledgeState->delete();
-
-        return $this->to('knowledge-states.index', [], 'Knowledge state deleted.');
-    }
-
-    public function markActedOn(Request $request, KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
-    {
-        $validated = $request->validate(DataverseRules::webAction('knowledge-state-act-on'));
-
-        $this->service->markActedOn($knowledgeState, $validated['action_notes'] ?? null);
-
-        return $this->back('Marked as acted on.');
+        ], $props));
     }
 }

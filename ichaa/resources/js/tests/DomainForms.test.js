@@ -514,7 +514,7 @@ describe('domain scaffold forms', () => {
 
         const summaryField = findField(scaffold.props('sections'), 'summary')
         expect(summaryField.label).toBe('Summary')
-        expect(form.summary).toBe('')
+        expect(form.summary).toBeNull()
         expect(form.visibility).toBe('private')
 
         await scaffold.props('onSubmit')()

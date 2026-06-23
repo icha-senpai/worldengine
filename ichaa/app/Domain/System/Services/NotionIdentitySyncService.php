@@ -437,7 +437,7 @@ class NotionIdentitySyncService
         return [
             'name' => $this->mapper->title($page, 'Entity Name'),
             'entity_type' => $this->mapper->normalizeKey($this->mapper->selectOrRichText($page, 'Entity Type')),
-            'summary' => $this->mapper->richText($page, 'Summary'),
+            'summary' => $this->documentFrom($page, ['Summary'], $existingEntity?->summary),
             'source_universes' => $sourceUniverses !== [] ? $sourceUniverses : $legacySourceUniverses,
             'origin_type' => $originType,
             'visibility' => $visibility ?? ($published ? VisibilityLevel::PUBLIC_KNOWLEDGE : VisibilityLevel::PRIVATE),

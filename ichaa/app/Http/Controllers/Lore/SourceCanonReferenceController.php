@@ -14,31 +14,13 @@ class SourceCanonReferenceController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = SourceCanonReference::universeLevel()->byPriority();
-
-        if ($request->filled('universe')) {
-            $query->forUniverse($request->universe);
-        }
-
-        return $this->page('Lore/CanonReferences/Index', [
-            'references' => $query->with('childReferences')->get(),
-            'filters'    => $request->only(['universe']),
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Lore/CanonReferences/Create', [
-            'parentReferences'   => SourceCanonReference::query()
-                ->select('id', 'title', 'level', 'universe')
-                ->orderBy('universe')
-                ->orderBy('title')
-                ->get(),
-            'levels'             => SourceCanonReference::LEVELS,
-            'categoryTypes'      => SourceCanonReference::CATEGORY_TYPES,
-            'elementTypes'       => SourceCanonReference::ELEMENT_TYPES,
-            'researchStatuses'   => SourceCanonReference::RESEARCH_STATUSES,
-            'universePriorities' => SourceCanonReference::UNIVERSE_PRIORITIES,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -53,22 +35,19 @@ class SourceCanonReferenceController extends Controller
 
     public function show(SourceCanonReference $canonReference): Response
     {
-        $canonReference->load(['childReferences.childReferences', 'auEntity:id,name', 'linkedEntities:id,name']);
-
-        return $this->pageWithNotionNote('Lore/CanonReferences/Show', $canonReference, 'canon_references', [
-            'reference' => $canonReference,
-        ]);
+        return $this->showPage($canonReference);
     }
 
     public function edit(SourceCanonReference $canonReference): Response
     {
-        return $this->page('Lore/CanonReferences/Edit', [
-            'entities'         => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'reference'       => $canonReference,
-            'researchStatuses'=> SourceCanonReference::RESEARCH_STATUSES,
+        return $this->showPage($canonReference, [
+            'editDrawer' => [
+                'entities' => Entity::query()
+                    ->select('id', 'name', 'entity_type')
+                    ->orderBy('name')
+                    ->get(),
+                'researchStatuses' => SourceCanonReference::RESEARCH_STATUSES,
+            ],
         ]);
     }
 
@@ -78,7 +57,7 @@ class SourceCanonReferenceController extends Controller
             DataverseRules::web('canon-references', 'update')
         ));
 
-        return $this->back('Canon reference updated.');
+        return $this->to('canon-references.show', [$canonReference], 'Canon reference updated.');
     }
 
     public function destroy(SourceCanonReference $canonReference): \Illuminate\Http\RedirectResponse
@@ -86,5 +65,48 @@ class SourceCanonReferenceController extends Controller
         $canonReference->delete();
 
         return $this->to('canon-references.index', [], 'Reference deleted.');
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = SourceCanonReference::universeLevel()->byPriority();
+
+        if ($request->filled('universe')) {
+            $query->forUniverse($request->universe);
+        }
+
+                return $this->page('Lore/CanonReferences/Index', array_merge([
+            'references' => $query->with('childReferences')->get(),
+            'filters'    => $request->only(['universe']),
+        ], $props));
+    
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'parentReferences'   => SourceCanonReference::query()
+                ->select('id', 'title', 'level', 'universe')
+                ->orderBy('universe')
+                ->orderBy('title')
+                ->get(),
+            'levels'             => SourceCanonReference::LEVELS,
+            'categoryTypes'      => SourceCanonReference::CATEGORY_TYPES,
+            'elementTypes'       => SourceCanonReference::ELEMENT_TYPES,
+            'researchStatuses'   => SourceCanonReference::RESEARCH_STATUSES,
+            'universePriorities' => SourceCanonReference::UNIVERSE_PRIORITIES,
+        
+        ];
+    }
+
+    private function showPage(SourceCanonReference $canonReference, array $props = []): Response
+    {
+        $canonReference->load(['childReferences.childReferences', 'auEntity:id,name', 'linkedEntities:id,name']);
+
+        return $this->pageWithNotionNote('Lore/CanonReferences/Show', $canonReference, 'canon_references', array_merge([
+            'reference' => $canonReference,
+        ], $props));
     }
 }

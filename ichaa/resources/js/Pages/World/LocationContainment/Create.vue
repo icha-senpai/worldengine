@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Location Containment"
         :back-href="route('location-containment.index')"
         back-label="Location Containment"
@@ -19,6 +21,7 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     locationEntities: { type: Array, default: () => [] },
     containmentTypes: { type: Array, default: () => [] },
 })

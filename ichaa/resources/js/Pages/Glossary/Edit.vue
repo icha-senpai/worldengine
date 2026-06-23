@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Glossary Term"
         :back-href="route('glossary.show', term.id)"
         back-label="Term"
@@ -18,7 +20,10 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     term: { type: Object, required: true },
+    usageContexts: { type: Array, default: () => [] },
+    termStatuses: { type: Array, default: () => [] },
 })
 
 const form = useForm({
@@ -33,14 +38,14 @@ const sections = computed(() => [
         title: 'Term',
         fields: [
             { key: 'term', label: 'Term', required: true },
-            { key: 'usage_context', label: 'Usage Context', required: true },
-            { key: 'term_status', label: 'Term Status' },
+            { key: 'usage_context', label: 'Usage Context', type: 'select', required: true, options: props.usageContexts },
+            { key: 'term_status', label: 'Term Status', type: 'select', options: props.termStatuses },
         ],
     },
     {
         title: 'Definition',
         fields: [
-            { key: 'definition', label: 'Definition JSON', type: 'json', rows: 8 },
+            { key: 'definition', label: 'Definition', type: 'json', rows: 8 },
         ],
     },
 ])

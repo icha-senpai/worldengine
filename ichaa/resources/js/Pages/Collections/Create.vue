@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Collection"
         :back-href="route('collections.index')"
         back-label="Collections"
@@ -19,9 +21,11 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { toCollectionOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     collections: { type: Array, default: () => [] },
     types: { type: Array, default: () => [] },
     modes: { type: Array, default: () => [] },
+    completionStates: { type: Array, default: () => [] },
 })
 
 const collectionOptions = computed(() => toCollectionOptions(props.collections))
@@ -30,6 +34,7 @@ const form = useForm({
     name: '',
     collection_type: '',
     collection_mode: '',
+    completion_state: 'not_started',
     rules: null,
     parent_collection_id: '',
     visibility: 'private',
@@ -43,6 +48,7 @@ const sections = computed(() => [
             { key: 'name', label: 'Name', required: true, placeholder: 'Collection name' },
             { key: 'collection_type', label: 'Collection Type', type: 'select', required: true, options: props.types },
             { key: 'collection_mode', label: 'Collection Mode', type: 'select', required: true, options: props.modes },
+            { key: 'completion_state', label: 'Completion State', type: 'select', options: props.completionStates },
             {
                 key: 'parent_collection_id',
                 label: 'Parent Collection',

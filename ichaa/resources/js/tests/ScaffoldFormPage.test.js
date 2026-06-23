@@ -27,6 +27,12 @@ const mountPage = ({ formOverrides = {}, sections, onSubmit } = {}) => {
                 Link: {
                     template: '<a><slot /></a>',
                 },
+                RichTextEditor: {
+                    name: 'RichTextEditor',
+                    props: ['modelValue'],
+                    emits: ['update:modelValue'],
+                    template: '<button data-test="rich-editor" @click="$emit(\'update:modelValue\', { type: \'doc\', content: [{ type: \'paragraph\', content: [{ type: \'text\', text: \'Updated from editor\' }] }] })">Editor</button>',
+                },
                 AuthenticatedLayout: {
                     template: '<div><slot name="header" /><slot /></div>',
                 },
@@ -64,7 +70,7 @@ describe('ScaffoldFormPage', () => {
         expect(form.related_entity_ids).toEqual([1, 2, 3])
     })
 
-    it('wraps plain text json fields into a TipTap-like document payload', async () => {
+    it('submits document json fields from the rich text editor payload', async () => {
         const { form, wrapper, submitHandler } = mountPage({
             formOverrides: {
                 lore_notes: null,
@@ -83,7 +89,7 @@ describe('ScaffoldFormPage', () => {
             ],
         })
 
-        await wrapper.find('textarea').setValue('First paragraph\n\nSecond paragraph')
+        await wrapper.find('[data-test="rich-editor"]').trigger('click')
         await wrapper.find('form').trigger('submit.prevent')
 
         expect(submitHandler).toHaveBeenCalledOnce()
@@ -92,13 +98,41 @@ describe('ScaffoldFormPage', () => {
             content: [
                 {
                     type: 'paragraph',
-                    content: [{ type: 'text', text: 'First paragraph' }],
-                },
-                {
-                    type: 'paragraph',
-                    content: [{ type: 'text', text: 'Second paragraph' }],
+                    content: [{ type: 'text', text: 'Updated from editor' }],
                 },
             ],
         })
+    })
+
+    it('captures selected files for file fields', async () => {
+        const { form, wrapper } = mountPage({
+            formOverrides: {
+                upload_file: null,
+            },
+            sections: [
+                {
+                    title: 'Upload',
+                    fields: [
+                        {
+                            key: 'upload_file',
+                            label: 'Upload File',
+                            type: 'file',
+                        },
+                    ],
+                },
+            ],
+        })
+
+        const file = new File(['image-bytes'], 'test-image.png', { type: 'image/png' })
+        const input = wrapper.find('input[type="file"]')
+
+        Object.defineProperty(input.element, 'files', {
+            value: [file],
+        })
+
+        await input.trigger('change')
+
+        expect(form.upload_file).toBe(file)
+        expect(wrapper.text()).toContain('Selected: test-image.png')
     })
 })

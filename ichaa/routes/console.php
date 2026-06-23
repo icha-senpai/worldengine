@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\System\Services\DemoLoreSeeder;
 use App\Domain\System\Services\NotionDataverseSyncService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -49,3 +50,25 @@ Artisan::command('notion:sync-dataverse {resource=all} {--include-drafts} {--dry
 
     return Command::SUCCESS;
 })->purpose('Sync Dataverse records from the paired Notion workspace.');
+
+Artisan::command('dataverse:seed-demo-lore', function () {
+    try {
+        $stats = app(DemoLoreSeeder::class)->seed();
+    } catch (Throwable $e) {
+        $this->error($e->getMessage());
+
+        return Command::FAILURE;
+    }
+
+    foreach ($stats['resources'] as $resource => $resourceStats) {
+        $parts = collect($resourceStats)
+            ->map(fn ($count, $label) => "{$count} {$label}")
+            ->implode(', ');
+
+        $this->line("{$resource}: {$parts}");
+    }
+
+    $this->info('Demo lore seed finished.');
+
+    return Command::SUCCESS;
+})->purpose('Seed rich Harry Potter, Stormlight, and original crossover content into Dataverse.');

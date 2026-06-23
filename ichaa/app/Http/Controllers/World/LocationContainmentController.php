@@ -20,32 +20,25 @@ class LocationContainmentController extends Controller
 
     public function index(): Response
     {
-        return $this->page('World/LocationContainment/Index', [
-            'containments' => LocationContainment::active()
-                ->with(['childLocation:id,name', 'parentLocation:id,name'])
-                ->get(),
-        ]);
+        return $this->indexPage();
     }
 
     public function create(): Response
     {
-        return $this->page('World/LocationContainment/Create', [
-            'locationEntities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
-                ->orderBy('name')
-                ->get(),
-            'containmentTypes' => LocationContainment::CONTAINMENT_TYPES,
+        return $this->indexPage([
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
     public function edit(LocationContainment $locationContainment): Response
     {
-        return $this->pageWithNotionNote('World/LocationContainment/Edit', $locationContainment, 'location_containment', [
-            'containment' => $locationContainment->load([
-                'childLocation:id,name',
-                'parentLocation:id,name',
-            ]),
+        return $this->indexPage([
+            'editDrawer' => [
+                'containment' => $locationContainment->load([
+                    'childLocation:id,name',
+                    'parentLocation:id,name',
+                ]),
+            ],
         ]);
     }
 
@@ -58,7 +51,7 @@ class LocationContainmentController extends Controller
 
         $this->service->contain($child, $parent, $validated['containment_type'], $validated);
 
-        return $this->back('Location containment created.');
+        return $this->to('location-containment.index', [], 'Location containment created.');
     }
 
     public function update(Request $request, LocationContainment $locationContainment): \Illuminate\Http\RedirectResponse
@@ -67,13 +60,34 @@ class LocationContainmentController extends Controller
             DataverseRules::web('location-containment', 'update')
         ));
 
-        return $this->back('Containment updated.');
+        return $this->to('location-containment.index', [], 'Containment updated.');
     }
 
     public function destroy(LocationContainment $locationContainment): \Illuminate\Http\RedirectResponse
     {
         $locationContainment->delete();
 
-        return $this->back('Containment deleted.');
+        return $this->to('location-containment.index', [], 'Containment deleted.');
+    }
+
+    private function indexPage(array $props = []): Response
+    {
+        return $this->page('World/LocationContainment/Index', array_merge([
+            'containments' => LocationContainment::active()
+                ->with(['childLocation:id,name', 'parentLocation:id,name'])
+                ->get(),
+        ], $props));
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'locationEntities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
+                ->orderBy('name')
+                ->get(),
+            'containmentTypes' => LocationContainment::CONTAINMENT_TYPES,
+        ];
     }
 }

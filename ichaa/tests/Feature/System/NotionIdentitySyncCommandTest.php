@@ -248,6 +248,60 @@ class NotionIdentitySyncCommandTest extends TestCase
         });
     }
 
+    public function test_identity_sync_preserves_edge_whitespace_in_notion_note_bodies(): void
+    {
+        config()->set('notion.api_token', 'test-token');
+        config()->set('notion.dataverse.resources.entities', 'entities-db');
+
+        $entityPageId = '99999999-1111-1111-1111-111111111111';
+
+        Http::fake([
+            'https://api.notion.com/v1/databases/entities-db/query' => Http::response([
+                'results' => [[
+                    'id' => $entityPageId,
+                    'last_edited_time' => '2026-06-22T00:00:00.000Z',
+                    'properties' => [
+                        'Entity Name' => $this->titleProperty('Whitespace Witness'),
+                        'Entity Type' => $this->selectProperty('character'),
+                        'Origin Type' => $this->selectProperty('native'),
+                        'Summary' => $this->richTextProperty('Used to verify note whitespace preservation.'),
+                        'Sync State' => ['type' => 'select', 'select' => ['name' => 'ready']],
+                        'Site Record ID' => $this->richTextProperty(null),
+                    ],
+                ]],
+                'has_more' => false,
+                'next_cursor' => null,
+            ]),
+            "https://api.notion.com/v1/blocks/{$entityPageId}/children*" => Http::response([
+                'results' => [
+                    $this->paragraphBlockFragments([
+                        $this->textFragment(' Leading'),
+                        $this->textFragment(' edge ', ['bold' => true]),
+                        $this->textFragment('trailing '),
+                    ]),
+                ],
+                'has_more' => false,
+                'next_cursor' => null,
+            ]),
+            'https://api.notion.com/v1/pages/*' => Http::response([
+                'object' => 'page',
+                'id' => 'patched-page',
+            ]),
+        ]);
+
+        $this->artisan('notion:sync-dataverse entities')
+            ->assertExitCode(0);
+
+        $entity = Entity::where('name', 'Whitespace Witness')->firstOrFail();
+
+        $this->assertDatabaseHas('notion_notes', [
+            'noteable_type' => Entity::class,
+            'noteable_id' => $entity->id,
+            'sync_resource' => 'entities',
+            'content' => ' Leading** edge **trailing ',
+        ]);
+    }
+
     private function titleProperty(?string $value): array
     {
         return [

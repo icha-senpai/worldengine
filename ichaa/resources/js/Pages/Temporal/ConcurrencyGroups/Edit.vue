@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Concurrency Group"
         :back-href="route('concurrency-groups.index')"
         back-label="Concurrency Groups"
@@ -18,6 +20,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     group: { type: Object, required: true },
     significanceLevels: { type: Array, default: () => [] },
 })

@@ -24,6 +24,7 @@ class CollectionService
         $data['content_classification'] = filled($data['content_classification'] ?? null)
             ? $data['content_classification']
             : ContentClassification::RESTRICTED;
+        $data['completion_state'] = $this->normalizeCompletionState($data['completion_state'] ?? null);
 
         $collection = Collection::create($data);
 
@@ -37,6 +38,10 @@ class CollectionService
 
     public function update(Collection $collection, array $data): Collection
     {
+        if (array_key_exists('completion_state', $data)) {
+            $data['completion_state'] = $this->normalizeCompletionState($data['completion_state']);
+        }
+
         $collection->update($data);
 
         // If rules changed, re-sync smart members
@@ -207,5 +212,12 @@ class CollectionService
             'less_than' => $query->where($field, '<', $value),
             default => $query, // Unknown operator — skip silently
         };
+    }
+
+    private function normalizeCompletionState(?string $state): string
+    {
+        return in_array($state, Collection::COMPLETION_STATES, true)
+            ? $state
+            : 'not_started';
     }
 }

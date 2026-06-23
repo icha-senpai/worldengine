@@ -1,23 +1,36 @@
 <template>
-    <ScaffoldShowPage
-        :title="reference.title"
-        :subtitle="reference.universe"
-        back-label="Canon References"
-        :back-href="route('canon-references.index')"
-        :edit-href="route('canon-references.edit', reference.id)"
-        :destroy-href="route('canon-references.destroy', reference.id)"
-        :badge="reference.level || 'reference'"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="reference.title"
+            :subtitle="reference.universe"
+            back-label="Canon References"
+            :back-href="route('canon-references.index')"
+            :edit-href="route('canon-references.edit', reference.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('canon-references.destroy', reference.id)"
+            :badge="reference.level || 'reference'"
+            :sections="sections"
+        />
+
+        <EditCanonReference
+            v-if="editDrawer"
+            embedded
+            :reference="reference"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditCanonReference from '@/Pages/Lore/CanonReferences/Edit.vue'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     reference: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [

@@ -11,6 +11,7 @@ use App\Http\Controllers\Identity\EntityAliasController;
 use App\Http\Controllers\Identity\EntityController;
 use App\Http\Controllers\Identity\EntityNoteController;
 use App\Http\Controllers\Identity\EntityQuestionController;
+use App\Http\Controllers\Identity\MediaReferenceController;
 // Connections
 use App\Http\Controllers\Identity\VersionController;
 use App\Http\Controllers\Intelligence\KnowledgeStateController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\Production\PipelineItemController;
 use App\Http\Controllers\Production\SessionLogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\System\NotionSyncController;
+use App\Http\Controllers\System\MediaLibraryController;
 use App\Http\Controllers\System\SearchController;
 use App\Http\Controllers\System\TrashController;
 // Intelligence
@@ -69,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // -----------------------------------------------------------------------
 
     Route::resource('entities', EntityController::class);
+    Route::resource('media-references', MediaReferenceController::class);
 
     Route::prefix('entities/{entity}')->name('entities.')->group(function () {
 
@@ -202,6 +205,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // -----------------------------------------------------------------------
 
     Route::get('search', [SearchController::class, 'index'])->name('search');
+    Route::get('media-library/items', [MediaLibraryController::class, 'index'])->name('media-library.index');
+    Route::get('media-library/{mediaReference}/asset', [MediaLibraryController::class, 'asset'])->name('media-library.asset');
     Route::post('notion/sync/{resource}', [NotionSyncController::class, 'store'])->name('notion.sync');
     Route::get('trash', [TrashController::class, 'index'])->name('trash.index');
     Route::post('trash/{type}/{record}/restore', [TrashController::class, 'restore'])->name('trash.restore');

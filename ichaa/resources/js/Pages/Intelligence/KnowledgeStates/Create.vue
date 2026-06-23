@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Knowledge State"
         :back-href="route('knowledge-states.index')"
         back-label="Knowledge States"
@@ -25,6 +27,7 @@ import {
 } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     entities: { type: Array, default: () => [] },
     secrets: { type: Array, default: () => [] },
     relationships: { type: Array, default: () => [] },

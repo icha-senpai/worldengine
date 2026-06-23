@@ -21,21 +21,16 @@ class TimelineController extends Controller
         private readonly EntityService $entityService,
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $timelines = Entity::ofType('timeline')
-            ->withCount('timelineEvents as entry_count')
-            ->orderBy('name')
-            ->get(['id', 'name', 'status']);
-
-        return $this->page('Temporal/Timelines/Index', [
-            'timelines' => $timelines,
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Temporal/Timelines/Create');
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -56,39 +51,15 @@ class TimelineController extends Controller
     public function show(Entity $timeline): Response
     {
         $this->assertTimelineEntity($timeline);
-
-        $events = $this->service->getTimelineEvents($timeline->id);
-        $placedEventIds = Timeline::onTimeline($timeline->id)->pluck('event_entity_id');
-
-        $availableEvents = Entity::events()
-            ->when(
-                $placedEventIds->isNotEmpty(),
-                fn ($query) => $query->whereNotIn('id', $placedEventIds)
-            )
-            ->orderBy('name')
-            ->get(['id', 'name', 'entity_type']);
-
-        $concurrencyGroups = ConcurrencyGroup::query()
-            ->orderBy('au_date')
-            ->orderBy('name')
-            ->get(['id', 'name', 'au_date', 'narrative_significance']);
-
-        return $this->pageWithNotionNote('Temporal/Timelines/Show', $timeline, 'timelines', [
-            'timeline' => $timeline,
-            'atemporal' => $events['atemporal'],
-            'events' => $events['chronological'],
-            'availableEvents' => $availableEvents,
-            'concurrencyGroups' => $concurrencyGroups,
-            'eventSignificanceLevels' => Timeline::EVENT_SIGNIFICANCE_LEVELS,
-        ]);
+        return $this->showPage($timeline);
     }
 
     public function edit(Entity $timeline): Response
     {
         $this->assertTimelineEntity($timeline);
 
-        return $this->page('Temporal/Timelines/Edit', [
-            'timeline' => $timeline,
+        return $this->showPage($timeline, [
+            'editDrawer' => [],
         ]);
     }
 
@@ -98,7 +69,7 @@ class TimelineController extends Controller
 
         $timeline->update($request->validate(DataverseRules::web('timelines', 'update')));
 
-        return $this->back('Timeline updated.');
+        return $this->to('timelines.show', [$timeline], 'Timeline updated.');
     }
 
     public function destroy(Entity $timeline): RedirectResponse
@@ -140,11 +111,12 @@ class TimelineController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'au_date', 'narrative_significance']);
 
-        return $this->page('Temporal/Timelines/Events/Edit', [
-            'timeline' => $timeline,
-            'entry' => $entry,
-            'concurrencyGroups' => $concurrencyGroups,
-            'eventSignificanceLevels' => Timeline::EVENT_SIGNIFICANCE_LEVELS,
+        return $this->showPage($timeline, [
+            'eventEditDrawer' => [
+                'entry' => $entry,
+                'concurrencyGroups' => $concurrencyGroups,
+                'eventSignificanceLevels' => Timeline::EVENT_SIGNIFICANCE_LEVELS,
+            ],
         ]);
     }
 
@@ -197,5 +169,53 @@ class TimelineController extends Controller
         $supportedColumns = array_flip(Schema::getColumnListing('timeline'));
 
         return array_intersect_key($filtered, $supportedColumns);
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $timelines = Entity::ofType('timeline')
+            ->withCount('timelineEvents as entry_count')
+            ->orderBy('name')
+            ->get(['id', 'name', 'status']);
+
+                return $this->page('Temporal/Timelines/Index', array_merge([
+            'timelines' => $timelines,
+        ], $props));
+    
+    }
+
+    private function createFormProps(): array
+    {
+        return [];
+    }
+
+    private function showPage(Entity $timeline, array $props = []): Response
+    {
+        $events = $this->service->getTimelineEvents($timeline->id);
+        $placedEventIds = Timeline::onTimeline($timeline->id)->pluck('event_entity_id');
+
+        $availableEvents = Entity::events()
+            ->when(
+                $placedEventIds->isNotEmpty(),
+                fn ($query) => $query->whereNotIn('id', $placedEventIds)
+            )
+            ->orderBy('name')
+            ->get(['id', 'name', 'entity_type']);
+
+        $concurrencyGroups = ConcurrencyGroup::query()
+            ->orderBy('au_date')
+            ->orderBy('name')
+            ->get(['id', 'name', 'au_date', 'narrative_significance']);
+
+        return $this->pageWithNotionNote('Temporal/Timelines/Show', $timeline, 'timelines', array_merge([
+            'timeline' => $timeline,
+            'atemporal' => $events['atemporal'],
+            'events' => $events['chronological'],
+            'availableEvents' => $availableEvents,
+            'concurrencyGroups' => $concurrencyGroups,
+            'eventSignificanceLevels' => Timeline::EVENT_SIGNIFICANCE_LEVELS,
+        ], $props));
     }
 }

@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Perception State"
         :back-href="route('perception-states.index')"
         back-label="Perception States"
@@ -25,6 +27,7 @@ import {
 } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     entities: { type: Array, default: () => [] },
     factionEntities: { type: Array, default: () => [] },
     locationEntities: { type: Array, default: () => [] },

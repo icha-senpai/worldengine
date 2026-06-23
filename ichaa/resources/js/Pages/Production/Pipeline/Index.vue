@@ -1,4 +1,5 @@
 <template>
+    <div>
     <AuthenticatedLayout>
 
         <template #header>
@@ -12,7 +13,12 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <NotionSyncButton resource="pipeline_items" label="Sync from Notion" />
-                    <AppButton :href="route('pipeline.create')" variant="primary">
+                    <AppButton
+                        :href="route('pipeline.create')"
+                        :preserve-scroll="true"
+                        :preserve-state="true"
+                        variant="primary"
+                    >
                         New Item
                     </AppButton>
                 </div>
@@ -109,7 +115,12 @@
 
         <div v-else class="empty-state-panel">
             <p class="text-muted-3 text-sm font-ui uppercase tracking-widest mb-2">No pipeline items found</p>
-            <Link :href="route('pipeline.create')" class="text-cyan text-sm font-ui hover:underline">
+            <Link
+                :href="route('pipeline.create')"
+                :preserve-scroll="true"
+                :preserve-state="true"
+                class="text-cyan text-sm font-ui hover:underline"
+            >
                 Create your first item →
             </Link>
         </div>
@@ -134,6 +145,13 @@
         </div>
 
     </AuthenticatedLayout>
+
+    <CreatePipelineItem
+        v-if="createDrawer"
+        embedded
+        v-bind="createDrawer"
+    />
+    </div>
 </template>
 
 <script setup>
@@ -142,12 +160,14 @@ import { Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
+import CreatePipelineItem from '@/Pages/Production/Pipeline/Create.vue'
 
 const props = defineProps({
     items:          { type: Object, required: true },
     filters:        { type: Object, default: () => ({}) },
     pipelineTypes:  { type: Array, default: () => [] },
     pipelineStages: { type: Array, default: () => [] },
+    createDrawer:   { type: Object, default: null },
 })
 
 const hasFilters = computed(() =>

@@ -18,24 +18,15 @@ class TravelRouteController extends Controller
         private readonly WorldService $service,
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return $this->page('World/TravelRoutes/Index', [
-            'routes' => TravelRoute::active()
-                ->with(['origin:id,name', 'destination:id,name'])
-                ->get(),
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('World/TravelRoutes/Create', [
-            'locationEntities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
-                ->orderBy('name')
-                ->get(),
-            'routeTypes' => TravelRoute::ROUTE_TYPES,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -48,38 +39,69 @@ class TravelRouteController extends Controller
 
         if ($request->boolean('bidirectional')) {
             $this->service->createBidirectionalRoute($origin, $destination, $validated['route_type'], $validated);
-        } else {
-            $this->service->createRoute($origin, $destination, $validated['route_type'], $validated);
+
+            return $this->to('travel-routes.index', [], 'Routes created.');
         }
 
-        return $this->back('Route created.');
+        $route = $this->service->createRoute($origin, $destination, $validated['route_type'], $validated);
+
+        return $this->to('travel-routes.show', [$route], 'Route created.');
     }
 
     public function show(TravelRoute $travelRoute): Response
     {
-        return $this->pageWithNotionNote('World/TravelRoutes/Show', $travelRoute, 'travel_routes', [
-            'routeRecord' => $travelRoute->load(['origin:id,name', 'destination:id,name', 'controlledBy:id,name']),
-        ]);
+        return $this->showPage($travelRoute);
     }
 
     public function edit(TravelRoute $travelRoute): Response
     {
-        return $this->page('World/TravelRoutes/Edit', [
-            'routeRecord' => $travelRoute,
+        return $this->showPage($travelRoute, [
+            'editDrawer' => [],
         ]);
     }
 
     public function update(Request $request, TravelRoute $travelRoute): RedirectResponse
     {
-        $travelRoute->update($request->validate(DataverseRules::web('travel-routes', 'update')));
+        $travelRoute = $this->service->updateRoute(
+            $travelRoute,
+            $request->validate(DataverseRules::web('travel-routes', 'update'))
+        );
 
-        return $this->back('Route updated.');
+        return $this->to('travel-routes.show', [$travelRoute], 'Route updated.');
     }
 
     public function destroy(TravelRoute $travelRoute): RedirectResponse
     {
         $travelRoute->delete();
 
-        return $this->back('Route deleted.');
+        return $this->to('travel-routes.index', [], 'Route deleted.');
+    }
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        return $this->page('World/TravelRoutes/Index', array_merge([
+            'routes' => TravelRoute::active()
+                ->with(['origin:id,name', 'destination:id,name'])
+                ->get(),
+        ], $props));
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'locationEntities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
+                ->orderBy('name')
+                ->get(),
+            'routeTypes' => TravelRoute::ROUTE_TYPES,
+        ];
+    }
+
+    private function showPage(TravelRoute $travelRoute, array $props = []): Response
+    {
+        return $this->pageWithNotionNote('World/TravelRoutes/Show', $travelRoute, 'travel_routes', array_merge([
+            'routeRecord' => $travelRoute->load(['origin:id,name', 'destination:id,name', 'controlledBy:id,name']),
+        ], $props));
     }
 }

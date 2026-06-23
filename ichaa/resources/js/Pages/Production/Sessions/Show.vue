@@ -1,23 +1,36 @@
 <template>
-    <ScaffoldShowPage
-        :title="session.title"
-        :subtitle="session.session_date"
-        back-label="Session Logs"
-        :back-href="route('session-logs.index')"
-        :edit-href="route('session-logs.edit', session.id)"
-        :destroy-href="route('session-logs.destroy', session.id)"
-        :badge="session.external_tool || 'session'"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="session.title"
+            :subtitle="session.session_date"
+            back-label="Session Logs"
+            :back-href="route('session-logs.index')"
+            :edit-href="route('session-logs.edit', session.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('session-logs.destroy', session.id)"
+            :badge="session.external_tool || 'session'"
+            :sections="sections"
+        />
+
+        <EditSessionLog
+            v-if="editDrawer"
+            embedded
+            :session="session"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditSessionLog from '@/Pages/Production/Sessions/Edit.vue'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     session: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [

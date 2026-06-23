@@ -1,22 +1,35 @@
 <template>
-    <ScaffoldShowPage
-        :title="title"
-        back-label="Relationships"
-        :back-href="route('relationships.index')"
-        :edit-href="route('relationships.edit', relationship.id)"
-        :destroy-href="route('relationships.destroy', relationship.id)"
-        :badge="formatLabel(relationship.relationship_type)"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="title"
+            back-label="Relationships"
+            :back-href="route('relationships.index')"
+            :edit-href="route('relationships.edit', relationship.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('relationships.destroy', relationship.id)"
+            :badge="formatLabel(relationship.relationship_type)"
+            :sections="sections"
+        />
+
+        <EditRelationship
+            v-if="editDrawer"
+            embedded
+            :relationship="relationship"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditRelationship from '@/Pages/Relationships/Edit.vue'
 import { formatLabel, sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     relationship: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const title = computed(() =>

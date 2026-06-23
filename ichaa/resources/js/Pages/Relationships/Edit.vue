@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Relationship"
         :back-href="route('relationships.show', relationship.id)"
         back-label="Relationship"
@@ -18,6 +20,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     relationship: { type: Object, required: true },
     relationshipTypes: { type: Array, default: () => [] },
     tensionCharges: { type: Array, default: () => [] },

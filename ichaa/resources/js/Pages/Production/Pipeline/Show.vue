@@ -34,7 +34,14 @@
                     >
                         Advance →
                     </AppButton>
-                    <AppButton :href="route('pipeline.edit', item.id)" variant="ghost">Edit</AppButton>
+                    <AppButton
+                        :href="route('pipeline.edit', item.id)"
+                        :preserve-scroll="true"
+                        :preserve-state="true"
+                        variant="ghost"
+                    >
+                        Edit
+                    </AppButton>
                 </div>
 
             </div>
@@ -61,7 +68,11 @@
             <!-- CONTENT (prose/notes body) -->
             <div v-if="item.content" class="panel">
                 <h3 class="panel-label">Content</h3>
-                <div class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.content }}</div>
+                <RichDocumentValue
+                    v-if="isRichDocument(item.content)"
+                    :content="item.content"
+                />
+                <div v-else class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.content }}</div>
             </div>
 
             <!-- SCENE DETAILS -->
@@ -97,7 +108,11 @@
 
                 <div v-if="item.narrative_purpose" class="panel">
                     <h3 class="panel-label">Narrative Purpose</h3>
-                    <p class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.narrative_purpose }}</p>
+                    <RichDocumentValue
+                        v-if="isRichDocument(item.narrative_purpose)"
+                        :content="item.narrative_purpose"
+                    />
+                    <p v-else class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.narrative_purpose }}</p>
                 </div>
 
             </div>
@@ -118,7 +133,13 @@
                     </div>
                     <div v-if="item.arc_notes" class="flex items-start gap-2">
                         <span class="field-label field-label--fixed">Notes</span>
-                        <span class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.arc_notes }}</span>
+                        <div class="min-w-0 flex-1">
+                            <RichDocumentValue
+                                v-if="isRichDocument(item.arc_notes)"
+                                :content="item.arc_notes"
+                            />
+                            <span v-else class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.arc_notes }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -126,7 +147,11 @@
             <!-- AUTHOR NOTES -->
             <div v-if="item.notes" class="panel">
                 <h3 class="panel-label">Author Notes</h3>
-                <p class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.notes }}</p>
+                <RichDocumentValue
+                    v-if="isRichDocument(item.notes)"
+                    :content="item.notes"
+                />
+                <p v-else class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.notes }}</p>
             </div>
 
             <!-- CHILDREN (sub-items: scenes under a chapter, etc.) -->
@@ -176,6 +201,19 @@
 
             <NotionNotePanel :note="notionNote" />
 
+            <EditPipelineItem
+                v-if="editDrawer"
+                embedded
+                :item="item"
+                v-bind="editDrawer"
+            />
+
+            <CreatePipelineItem
+                v-if="createDrawer"
+                embedded
+                v-bind="createDrawer"
+            />
+
             <!-- DANGER ZONE -->
             <div class="flex items-center justify-end pt-2 border-t border-border">
                 <AppButton type="button" variant="danger" @click="destroy">Move to Trash</AppButton>
@@ -187,18 +225,24 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import CreatePipelineItem from '@/Pages/Production/Pipeline/Create.vue'
+import EditPipelineItem from '@/Pages/Production/Pipeline/Edit.vue'
+import { isRichDocument } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
     item: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
+    createDrawer: { type: Object, default: null },
 })
 
 const page = usePage()
 const notionNote = computed(() => page.props?.notionNote ?? null)
+const RichDocumentValue = defineAsyncComponent(() => import('@/Components/scaffold/RichDocumentValue.vue'))
 
 const stageProgression = {
     concept:  'outlined',

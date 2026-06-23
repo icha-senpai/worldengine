@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Collection"
         :back-href="route('collections.show', collection.id)"
         back-label="Collection"
@@ -18,17 +20,22 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     collection: { type: Object, required: true },
     types: { type: Array, default: () => [] },
     modes: { type: Array, default: () => [] },
+    completionStates: { type: Array, default: () => [] },
 })
+
+const normalizeCompletionState = (value) =>
+    props.completionStates.includes(value) ? value : 'not_started'
 
 const form = useForm({
     name: props.collection.name ?? '',
     collection_type: props.collection.collection_type ?? '',
     collection_mode: props.collection.collection_mode ?? '',
     rules: props.collection.rules ?? null,
-    completion_state: props.collection.completion_state ?? '',
+    completion_state: normalizeCompletionState(props.collection.completion_state),
 })
 
 const sections = computed(() => [
@@ -38,7 +45,7 @@ const sections = computed(() => [
             { key: 'name', label: 'Name', required: true },
             { key: 'collection_type', label: 'Collection Type', type: 'select', options: props.types },
             { key: 'collection_mode', label: 'Collection Mode', type: 'select', options: props.modes },
-            { key: 'completion_state', label: 'Completion State', placeholder: 'draft, complete, archived...' },
+            { key: 'completion_state', label: 'Completion State', type: 'select', options: props.completionStates },
         ],
     },
     {

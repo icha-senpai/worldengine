@@ -1,26 +1,41 @@
 <template>
-    <ScaffoldIndexPage
-        title="Session Logs"
-        :count="countRecords(sessions)"
-        count-label="sessions"
-        sync-resource="session_logs"
-        :create-href="route('session-logs.create')"
-        create-label="New Session"
-        :items="items"
-        empty-title="No sessions logged yet"
-        :empty-cta-href="route('session-logs.create')"
-        empty-cta-label="Log the first session ->"
-    />
+    <div>
+        <ScaffoldIndexPage
+            title="Session Logs"
+            :count="countRecords(sessions)"
+            count-label="sessions"
+            sync-resource="session_logs"
+            :create-href="route('session-logs.create')"
+            :create-preserve-scroll="true"
+            :create-preserve-state="true"
+            create-label="New Session"
+            :items="items"
+            empty-title="No sessions logged yet"
+            :empty-cta-href="route('session-logs.create')"
+            :empty-cta-preserve-scroll="true"
+            :empty-cta-preserve-state="true"
+            empty-cta-label="Log the first session ->"
+            
+        />
+
+        <CreateSession
+            v-if="createDrawer"
+            embedded
+            v-bind="createDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
+import CreateSession from '@/Pages/Production/Sessions/Create.vue'
 import { asArray, badge, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     sessions: { type: Object, required: true },
     stats: { type: Object, default: () => ({}) },
+    createDrawer: { type: Object, default: null },
 })
 
 const items = computed(() =>

@@ -1,21 +1,35 @@
 <template>
-    <ScaffoldIndexPage
-        title="Relationships"
-        :count="countRecords(relationships)"
-        count-label="relationships"
-        sync-resource="relationships"
-        :create-href="route('relationships.create')"
-        create-label="New Relationship"
-        :items="items"
-        empty-title="No relationships found"
-        :empty-cta-href="route('relationships.create')"
-        empty-cta-label="Create the first relationship ->"
-    />
+    <div>
+        <ScaffoldIndexPage
+            title="Relationships"
+            :count="countRecords(relationships)"
+            count-label="relationships"
+            sync-resource="relationships"
+            :create-href="route('relationships.create')"
+            :create-preserve-scroll="true"
+            :create-preserve-state="true"
+            create-label="New Relationship"
+            :items="items"
+            empty-title="No relationships found"
+            :empty-cta-href="route('relationships.create')"
+            :empty-cta-preserve-scroll="true"
+            :empty-cta-preserve-state="true"
+            empty-cta-label="Create the first relationship ->"
+            
+        />
+
+        <CreateRelationship
+            v-if="createDrawer"
+            embedded
+            v-bind="createDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
+import CreateRelationship from '@/Pages/Relationships/Create.vue'
 import { asArray, badge, buildMeta, countRecords, formatLabel } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
@@ -23,6 +37,7 @@ const props = defineProps({
     filters: { type: Object, default: () => ({}) },
     relationshipTypes: { type: Array, default: () => [] },
     tensionCharges: { type: Array, default: () => [] },
+    createDrawer: { type: Object, default: null },
 })
 
 const items = computed(() =>

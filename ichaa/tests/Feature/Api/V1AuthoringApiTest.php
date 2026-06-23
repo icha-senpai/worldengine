@@ -7,6 +7,7 @@ use App\Domain\Connections\ValueObjects\RelationshipType;
 use App\Domain\Connections\ValueObjects\TensionCharge;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityAlias;
+use App\Domain\Identity\Models\MediaReference;
 use App\Domain\Intelligence\Models\Secret;
 use App\Domain\Lore\Models\Document;
 use App\Domain\Production\Models\Meta;
@@ -20,6 +21,7 @@ use App\Domain\Temporal\Models\Timeline;
 use App\Support\Api\ApiResourceRegistry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Tests\TestCase;
 
@@ -111,7 +113,8 @@ class V1AuthoringApiTest extends TestCase
         ]);
 
         $update->assertOk()
-            ->assertJsonPath('data.attributes.summary', 'Updated summary.')
+            ->assertJsonPath('data.attributes.summary.type', 'doc')
+            ->assertJsonPath('data.attributes.summary.content.0.content.0.text', 'Updated summary.')
             ->assertJsonPath('data.meta.current_revision_id', Revision::query()->forResource('entities', $entityId)->max('id'));
 
         $this->withToken($token)->patchJson("/api/v1/entities/{$entityId}", [
@@ -252,6 +255,45 @@ class V1AuthoringApiTest extends TestCase
         ]);
     }
 
+    public function test_api_write_preserves_whitespace_inside_rich_text_json_nodes(): void
+    {
+        $token = $this->assistantToken(['read:*', 'write:*']);
+
+        $richText = [
+            'type' => 'doc',
+            'content' => [[
+                'type' => 'paragraph',
+                'content' => [
+                    ['type' => 'text', 'text' => 'Normal '],
+                    ['type' => 'text', 'marks' => [['type' => 'bold']], 'text' => 'bold'],
+                    ['type' => 'text', 'text' => ' and '],
+                    ['type' => 'text', 'marks' => [['type' => 'italic']], 'text' => 'italic'],
+                    ['type' => 'text', 'text' => '.'],
+                ],
+            ]],
+        ];
+
+        $response = $this->withToken($token)->postJson('/api/v1/secrets', [
+            'data' => [
+                'attributes' => [
+                    'title' => 'Whitespace Secret',
+                    'secret_type' => 'plan',
+                    'secret_content' => $richText,
+                ],
+            ],
+            'meta' => [
+                'source' => 'phpunit',
+                'reason' => 'preserve rich text whitespace',
+            ],
+        ])->assertCreated();
+
+        $secret = Secret::findOrFail((int) $response->json('data.id'));
+
+        $this->assertEquals($richText, $secret->secret_content);
+        $this->assertSame('Normal ', data_get($secret->secret_content, 'content.0.content.0.text'));
+        $this->assertSame(' and ', data_get($secret->secret_content, 'content.0.content.2.text'));
+    }
+
     public function test_revision_compare_and_restore_endpoints_work_for_entities(): void
     {
         $token = $this->assistantToken(['read:*', 'write:*', 'history:*', 'restore:*']);
@@ -296,8 +338,10 @@ class V1AuthoringApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.left.id', $createRevisionId)
             ->assertJsonPath('data.right.id', $updateRevisionId)
-            ->assertJsonPath('data.comparison.before.summary', 'Before revision compare.')
-            ->assertJsonPath('data.comparison.after.summary', 'After revision compare.');
+            ->assertJsonPath('data.comparison.before.summary.type', 'doc')
+            ->assertJsonPath('data.comparison.before.summary.content.0.content.0.text', 'Before revision compare.')
+            ->assertJsonPath('data.comparison.after.summary.type', 'doc')
+            ->assertJsonPath('data.comparison.after.summary.content.0.content.0.text', 'After revision compare.');
 
         $this->withToken($token)->postJson("/api/v1/revisions/{$createRevisionId}/restore", [
             'meta' => [
@@ -306,7 +350,8 @@ class V1AuthoringApiTest extends TestCase
                 'reason' => 'restore older revision',
             ],
         ])->assertOk()
-            ->assertJsonPath('data.attributes.summary', 'Before revision compare.');
+            ->assertJsonPath('data.attributes.summary.type', 'doc')
+            ->assertJsonPath('data.attributes.summary.content.0.content.0.text', 'Before revision compare.');
 
         $this->assertDatabaseHas('revisions', [
             'resource_type' => 'entities',
@@ -568,6 +613,138 @@ class V1AuthoringApiTest extends TestCase
             ->assertJsonFragment([
                 'match_context' => 'Grey ritual lattice hidden behind devotional language.',
             ]);
+    }
+
+    public function test_media_upload_endpoint_creates_managed_media_for_assistant_tokens(): void
+    {
+        Storage::fake('public');
+
+        $entity = Entity::query()->create([
+            'name' => 'Grey Archive',
+            'entity_type' => 'location',
+        ]);
+
+        $response = $this->withToken($this->assistantToken(['read:*', 'write:*', 'history:*']))
+            ->postJson('/api/v1/media-references/upload', [
+                'data' => [
+                    'attributes' => [
+                        'title' => 'Grey Archive Diagram',
+                        'description' => 'Uploaded through the MCP-ready API.',
+                        'media_type' => 'image',
+                        'purpose' => 'reference',
+                        'visibility' => 'private',
+                        'content_classification' => 'restricted',
+                    ],
+                    'relationships' => [
+                        'entity_id' => $entity->id,
+                    ],
+                    'file' => [
+                        'name' => 'grey-archive-dot.png',
+                        'mime_type' => 'image/png',
+                        'content_base64' => 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9l9o8AAAAASUVORK5CYII=',
+                    ],
+                ],
+                'meta' => [
+                    'source' => 'phpunit',
+                    'reason' => 'create managed media upload',
+                ],
+            ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.type', 'media-references')
+            ->assertJsonPath('data.attributes.title', 'Grey Archive Diagram')
+            ->assertJsonPath('data.attributes.url', null)
+            ->assertJsonPath('data.attributes.file_name', 'grey-archive-dot.png')
+            ->assertJsonPath('data.attributes.mime_type', 'image/png');
+
+        $mediaId = (int) $response->json('data.id');
+        $media = MediaReference::query()->findOrFail($mediaId);
+
+        $this->assertTrue($media->isManagedUpload());
+        $this->assertSame(1, $media->width_px);
+        $this->assertSame(1, $media->height_px);
+        Storage::disk('public')->assertExists('media-library/'.basename((string) $media->file_path));
+
+        $this->assertDatabaseHas('revisions', [
+            'resource_type' => 'media-references',
+            'resource_id' => (string) $mediaId,
+            'action' => 'create',
+        ]);
+    }
+
+    public function test_media_replace_endpoint_swaps_existing_managed_upload_bytes(): void
+    {
+        Storage::fake('public');
+
+        $entity = Entity::query()->create([
+            'name' => 'Grey Archive',
+            'entity_type' => 'location',
+        ]);
+
+        Storage::disk('public')->put(
+            'media-library/original-grey-dot.png',
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9l9o8AAAAASUVORK5CYII=', true),
+        );
+
+        $media = MediaReference::query()->create([
+            'entity_id' => $entity->id,
+            'title' => 'Grey Archive Diagram',
+            'description' => 'Original upload.',
+            'media_type' => 'image',
+            'purpose' => 'reference',
+            'file_path' => Storage::disk('public')->path('media-library/original-grey-dot.png'),
+            'file_name' => 'original-grey-dot.png',
+            'file_extension' => 'png',
+            'file_size_bytes' => Storage::disk('public')->size('media-library/original-grey-dot.png'),
+            'mime_type' => 'image/png',
+            'width_px' => 1,
+            'height_px' => 1,
+            'visibility' => 'private',
+            'content_classification' => 'restricted',
+        ]);
+
+        $previousPath = $media->file_path;
+        $baseRevisionId = Revision::query()->create([
+            'resource_type' => 'media-references',
+            'resource_id' => (string) $media->id,
+            'action' => 'create',
+            'after_payload' => $media->attributesToArray(),
+            'source' => 'phpunit',
+        ])->id;
+
+        $response = $this->withToken($this->assistantToken(['read:*', 'write:*', 'history:*']))
+            ->postJson("/api/v1/media-references/{$media->id}/replace-file", [
+                'data' => [
+                    'file' => [
+                        'name' => 'replaced-grey-dot.png',
+                        'mime_type' => 'image/png',
+                        'content_base64' => 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAQAAADZc7J/AAAADElEQVR42mNk+M8AAAICAQCSfQKJAAAAAElFTkSuQmCC',
+                    ],
+                ],
+                'meta' => [
+                    'base_revision_id' => $baseRevisionId,
+                    'source' => 'phpunit',
+                    'reason' => 'replace managed media upload',
+                ],
+            ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.type', 'media-references')
+            ->assertJsonPath('data.attributes.file_name', 'replaced-grey-dot.png')
+            ->assertJsonPath('data.attributes.mime_type', 'image/png');
+
+        $media->refresh();
+
+        $this->assertTrue($media->isManagedUpload());
+        $this->assertNotSame($previousPath, $media->file_path);
+        Storage::disk('public')->assertMissing('media-library/original-grey-dot.png');
+        Storage::disk('public')->assertExists('media-library/'.basename((string) $media->file_path));
+
+        $this->assertDatabaseHas('revisions', [
+            'resource_type' => 'media-references',
+            'resource_id' => (string) $media->id,
+            'action' => 'replace_file',
+        ]);
     }
 
     public function test_resource_registry_contains_the_full_expected_v1_surface(): void

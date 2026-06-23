@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Travel Route"
         :back-href="route('travel-routes.show', routeRecord.id)"
         back-label="Travel Route"
@@ -18,13 +20,14 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     routeRecord: { type: Object, required: true },
 })
 
 const form = useForm({
     standard_duration: props.routeRecord.standard_duration ?? '',
-    method_variants: props.routeRecord.method_variants ?? null,
-    hazards: props.routeRecord.hazards ?? null,
+    method_variants: props.routeRecord.method_variants ?? [],
+    hazards: props.routeRecord.hazards ?? [],
     is_active: props.routeRecord.is_active ?? false,
 })
 
@@ -36,19 +39,21 @@ const sections = computed(() => [
             { key: 'is_active', label: 'Is Active', type: 'checkbox' },
             {
                 key: 'method_variants',
-                label: 'Method Variants JSON',
+                label: 'Method Variants',
                 type: 'json',
                 jsonMode: 'object-list',
                 jsonObjectFields: ['method_name', 'required_ability_or_artifact', 'duration', 'conditions', 'notes'],
                 rows: 6,
+                emptyValue: [],
             },
             {
                 key: 'hazards',
-                label: 'Hazards JSON',
+                label: 'Hazards',
                 type: 'json',
                 jsonMode: 'object-list',
                 jsonObjectFields: ['hazard_type', 'description', 'era_active', 'severity'],
                 rows: 6,
+                emptyValue: [],
             },
         ],
     },

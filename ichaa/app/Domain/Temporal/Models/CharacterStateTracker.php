@@ -2,6 +2,7 @@
 
 namespace App\Domain\Temporal\Models;
 
+use App\Casts\RichDocumentCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -70,6 +71,8 @@ class CharacterStateTracker extends Model
     protected $casts = [
         // JSONB fields
         'significant_physical_changes' => 'array',
+        'current_trauma_profile'       => RichDocumentCast::class,
+        'active_psychological_patterns'=> RichDocumentCast::class,
         'available_abilities'          => 'array',
         'restricted_abilities'         => 'array',
         'lost_abilities'               => 'array',

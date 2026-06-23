@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Location Control Record"
         :back-href="route('location-control.index')"
         back-label="Location Control"
@@ -19,6 +21,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     record: { type: Object, required: true },
     resistanceLevels: { type: Array, default: () => [] },
 })

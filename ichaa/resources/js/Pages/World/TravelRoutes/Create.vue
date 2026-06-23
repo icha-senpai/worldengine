@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Travel Route"
         :back-href="route('travel-routes.index')"
         back-label="Travel Routes"
@@ -19,6 +21,7 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     locationEntities: { type: Array, default: () => [] },
     routeTypes: { type: Array, default: () => [] },
 })
@@ -31,7 +34,7 @@ const form = useForm({
     route_type: '',
     bidirectional: false,
     standard_duration: '',
-    method_variants: null,
+    method_variants: [],
 })
 
 const sections = computed(() => [
@@ -59,11 +62,12 @@ const sections = computed(() => [
             { key: 'standard_duration', label: 'Standard Duration' },
             {
                 key: 'method_variants',
-                label: 'Method Variants JSON',
+                label: 'Method Variants',
                 type: 'json',
                 jsonMode: 'object-list',
                 jsonObjectFields: ['method_name', 'required_ability_or_artifact', 'duration', 'conditions', 'notes'],
                 rows: 6,
+                emptyValue: [],
             },
         ],
     },

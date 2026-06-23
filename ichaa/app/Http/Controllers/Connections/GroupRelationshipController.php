@@ -21,26 +21,13 @@ class GroupRelationshipController extends Controller
 
     public function index(Request $request): Response
     {
-        $query = GroupRelationship::withCount('activeMembers')->latest();
-
-        if ($request->boolean('volatile')) {
-            $query->volatile();
-        }
-
-        if ($request->boolean('masked')) {
-            $query->masked();
-        }
-
-        return $this->page('GroupRelationships/Index', [
-            'groups' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['volatile', 'masked']),
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('GroupRelationships/Create', [
-            'tensionCharges' => TensionCharge::ALL,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -57,21 +44,15 @@ class GroupRelationshipController extends Controller
 
     public function show(GroupRelationship $groupRelationship): Response
     {
-        $groupRelationship->load([
-            'activeMembers:id,name,entity_type',
-            'memberEntries.entity:id,name,entity_type',
-        ]);
-
-        return $this->pageWithNotionNote('GroupRelationships/Show', $groupRelationship, 'group_relationships', [
-            'group' => $groupRelationship,
-        ]);
+        return $this->showPage($groupRelationship);
     }
 
     public function edit(GroupRelationship $groupRelationship): Response
     {
-        return $this->page('GroupRelationships/Edit', [
-            'group' => $groupRelationship,
-            'tensionCharges' => TensionCharge::ALL,
+        return $this->showPage($groupRelationship, [
+            'editDrawer' => [
+                'tensionCharges' => TensionCharge::ALL,
+            ],
         ]);
     }
 
@@ -125,5 +106,46 @@ class GroupRelationshipController extends Controller
         $this->service->removeMemberFromGroup($entry, $validated);
 
         return $this->back('Member removed.');
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = GroupRelationship::withCount('activeMembers')->latest();
+
+        if ($request->boolean('volatile')) {
+            $query->volatile();
+        }
+
+        if ($request->boolean('masked')) {
+            $query->masked();
+        }
+
+                return $this->page('GroupRelationships/Index', array_merge([
+            'groups' => $query->paginate(40)->withQueryString(),
+            'filters' => $request->only(['volatile', 'masked']),
+        ], $props));
+    
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'tensionCharges' => TensionCharge::ALL,
+        
+        ];
+    }
+
+    private function showPage(GroupRelationship $groupRelationship, array $props = []): Response
+    {
+        $groupRelationship->load([
+            'activeMembers:id,name,entity_type',
+            'memberEntries.entity:id,name,entity_type',
+        ]);
+
+        return $this->pageWithNotionNote('GroupRelationships/Show', $groupRelationship, 'group_relationships', array_merge([
+            'group' => $groupRelationship,
+        ], $props));
     }
 }

@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Session Log"
         :back-href="route('session-logs.index')"
         back-label="Session Logs"
@@ -23,6 +25,7 @@ import {
 } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     entities: { type: Array, default: () => [] },
     groupRelationships: { type: Array, default: () => [] },
     collections: { type: Array, default: () => [] },

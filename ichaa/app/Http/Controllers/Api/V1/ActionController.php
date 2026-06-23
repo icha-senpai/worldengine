@@ -8,8 +8,10 @@ use App\Domain\Connections\Models\GroupRelationshipEntity;
 use App\Domain\Connections\Models\Relationship;
 use App\Domain\Connections\Services\RelationshipService;
 use App\Domain\Identity\Models\Entity;
+use App\Domain\Identity\Models\MediaReference;
 use App\Domain\Identity\Models\VersionAndCanonState;
 use App\Domain\Identity\Services\EntityService;
+use App\Domain\Identity\Services\MediaReferenceUploadService;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\PerceptionState;
 use App\Domain\Intelligence\Models\Secret;
@@ -25,10 +27,13 @@ use App\Domain\Temporal\Services\TemporalService;
 use App\Domain\World\Models\PowerInteraction;
 use App\Domain\World\Models\PowerInteractionInstance;
 use App\Domain\World\Services\WorldService;
+use App\Support\Api\ApiMutationService;
 use App\Support\Api\ApiPayload;
 use App\Support\Api\ApiResourceRegistry;
+use App\Support\Validation\DataverseRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ActionController extends ApiController
 {
@@ -40,8 +45,103 @@ class ActionController extends ApiController
         private readonly IntelligenceService $intelligenceService,
         private readonly WorldService $worldService,
         private readonly ProductionService $productionService,
+        private readonly ApiMutationService $mutations,
+        private readonly MediaReferenceUploadService $mediaUploads,
         private readonly RevisionService $revisions,
     ) {}
+
+    public function uploadMediaReference(Request $request): JsonResponse
+    {
+        $this->authorizeToken($request, 'write', 'media-references');
+
+        $validator = Validator::make($request->all(), DataverseRules::apiMediaUpload());
+        $validator->after(function ($validator) use ($request) {
+            $relationshipValues = collect(MediaReference::ATTACHMENT_FIELDS)
+                ->map(fn (string $field) => data_get($request->input('data', []), "relationships.{$field}"))
+                ->filter(fn ($value) => $value !== null && $value !== '')
+                ->values();
+
+            if ($relationshipValues->count() !== 1) {
+                $validator->errors()->add(
+                    'data.relationships',
+                    'Provide exactly one attachment relationship for the media reference.',
+                );
+            }
+        });
+        $validator->validate();
+
+        if ($this->shouldValidateOnly($request)) {
+            return response()->json([
+                'data' => [
+                    'type' => 'media-references',
+                    'id' => null,
+                    'attributes' => data_get($request->input('data', []), 'attributes', []),
+                    'relationships' => data_get($request->input('data', []), 'relationships', []),
+                    'file' => [
+                        'name' => data_get($request->input('data', []), 'file.name'),
+                        'mime_type' => data_get($request->input('data', []), 'file.mime_type'),
+                    ],
+                ],
+                'included' => [],
+                'meta' => $this->responseMeta($request, [
+                    'validated' => true,
+                    'validate_only' => true,
+                    'current_revision_id' => 0,
+                ]),
+            ]);
+        }
+
+        $payload = array_merge(
+            ApiPayload::fromRequest($request),
+            $this->mediaUploads->payloadFromBase64(
+                (string) $request->input('data.file.name'),
+                (string) $request->input('data.file.content_base64'),
+                $request->input('data.file.mime_type'),
+            ),
+        );
+
+        $record = $this->mutations->create('media-references', $payload);
+        $this->revisions->record('media-references', $record, 'create', null, $record->fresh()->attributesToArray(), $request);
+
+        return $this->jsonRecord('media-references', $record, $request, 201);
+    }
+
+    public function replaceMediaReferenceFile(Request $request, string $record): JsonResponse
+    {
+        $this->authorizeToken($request, 'write', 'media-references');
+
+        $validator = Validator::make($request->all(), DataverseRules::apiMediaReplace());
+        $validator->validate();
+
+        $media = ApiResourceRegistry::resolveRecord('media-references', $record, true);
+
+        if ($response = $this->validateOnlyResponse($request, 'media-references', $media)) {
+            return $response;
+        }
+
+        $this->assertRevision($request, 'media-references', $media);
+
+        $before = $media->attributesToArray();
+        $previousManagedPath = $media->isManagedUpload() ? $media->file_path : null;
+
+        $updated = $this->mutations->update(
+            'media-references',
+            $media,
+            $this->mediaUploads->payloadFromBase64(
+                (string) $request->input('data.file.name'),
+                (string) $request->input('data.file.content_base64'),
+                $request->input('data.file.mime_type'),
+            ),
+        );
+
+        if ($previousManagedPath && $previousManagedPath !== $updated->file_path) {
+            $this->mediaUploads->deleteManagedUpload($updated, $previousManagedPath);
+        }
+
+        $this->revisions->record('media-references', $updated, 'replace_file', $before, $updated->fresh()->attributesToArray(), $request);
+
+        return $this->jsonRecord('media-references', $updated, $request);
+    }
 
     public function publishEntity(Request $request, string $record): JsonResponse
     {

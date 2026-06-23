@@ -2,14 +2,52 @@
 
 namespace App\Domain\Identity\Models;
 
+use App\Domain\Connections\Models\GroupRelationship;
+use App\Domain\Lore\Models\SourceCanonReference;
+use App\Domain\Organization\Models\Collection;
+use App\Domain\Production\Models\Meta;
+use App\Domain\Temporal\Models\ConcurrencyGroup;
+use App\Domain\Temporal\Models\Timeline;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class MediaReference extends Model
 {
     use SoftDeletes;
+
+    public const MEDIA_TYPES = [
+        'image',
+        'video',
+        'audio',
+        'document',
+        'link',
+    ];
+
+    public const PURPOSES = [
+        'reference',
+        'inspiration',
+        'portrait',
+        'map',
+        'mood',
+        'symbol',
+        'era_visual',
+        'galactic_map',
+        'power_system_diagram',
+        'other',
+    ];
+
+    public const ATTACHMENT_FIELDS = [
+        'entity' => 'entity_id',
+        'group_relationship' => 'group_relationship_id',
+        'collection' => 'collection_id',
+        'meta' => 'meta_id',
+        'timeline_entry' => 'timeline_entry_id',
+        'concurrency_group' => 'concurrency_group_id',
+        'source_canon_reference' => 'source_canon_reference_id',
+    ];
 
     protected $table = 'media_references';
 
@@ -34,12 +72,12 @@ class MediaReference extends Model
         'url',
         'file_name',
         'file_extension',
-        'file_size',
+        'file_size_bytes',
         'mime_type',
 
         // Image dimensions
-        'width',
-        'height',
+        'width_px',
+        'height_px',
 
         // Display
         'sort_order',
@@ -50,9 +88,9 @@ class MediaReference extends Model
 
     protected $casts = [
         'is_primary'  => 'boolean',
-        'file_size'   => 'integer',
-        'width'       => 'integer',
-        'height'      => 'integer',
+        'file_size_bytes' => 'integer',
+        'width_px' => 'integer',
+        'height_px' => 'integer',
         'sort_order'  => 'integer',
         'deleted_at'  => 'datetime',
     ];
@@ -62,6 +100,36 @@ class MediaReference extends Model
     public function entity(): BelongsTo
     {
         return $this->belongsTo(Entity::class, 'entity_id');
+    }
+
+    public function groupRelationship(): BelongsTo
+    {
+        return $this->belongsTo(GroupRelationship::class, 'group_relationship_id');
+    }
+
+    public function collection(): BelongsTo
+    {
+        return $this->belongsTo(Collection::class, 'collection_id');
+    }
+
+    public function meta(): BelongsTo
+    {
+        return $this->belongsTo(Meta::class, 'meta_id');
+    }
+
+    public function timelineEntry(): BelongsTo
+    {
+        return $this->belongsTo(Timeline::class, 'timeline_entry_id');
+    }
+
+    public function concurrencyGroup(): BelongsTo
+    {
+        return $this->belongsTo(ConcurrencyGroup::class, 'concurrency_group_id');
+    }
+
+    public function sourceCanonReference(): BelongsTo
+    {
+        return $this->belongsTo(SourceCanonReference::class, 'source_canon_reference_id');
     }
 
     // --- SCOPES ---
@@ -106,6 +174,29 @@ class MediaReference extends Model
     public function isImage(): bool
     {
         return $this->media_type === 'image';
+    }
+
+    public function isManagedUpload(): bool
+    {
+        if (! is_string($this->file_path) || $this->file_path === '') {
+            return false;
+        }
+
+        $root = Storage::disk('public')->path('media-library');
+        $normalizedPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $this->file_path);
+        $normalizedRoot = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $root);
+
+        return str_starts_with($normalizedPath, $normalizedRoot);
+    }
+
+    public function widthPx(): ?int
+    {
+        return $this->width_px;
+    }
+
+    public function heightPx(): ?int
+    {
+        return $this->height_px;
     }
 
     // Which record this media is attached to

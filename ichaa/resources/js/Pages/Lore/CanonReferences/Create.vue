@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Canon Reference"
         :back-href="route('canon-references.index')"
         back-label="Canon References"
@@ -19,6 +21,7 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { formatLabel } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     parentReferences: { type: Array, default: () => [] },
     levels: { type: Array, default: () => [] },
     categoryTypes: { type: Array, default: () => [] },

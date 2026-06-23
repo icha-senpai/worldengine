@@ -1,18 +1,30 @@
 <template>
-    <ScaffoldShowPage
-        :title="secret.title"
-        back-label="Secrets"
-        :back-href="route('secrets.index')"
-        :edit-href="route('secrets.edit', secret.id)"
-        :destroy-href="route('secrets.destroy', secret.id)"
-        :badge="secret.secret_type || 'secret'"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="secret.title"
+            back-label="Secrets"
+            :back-href="route('secrets.index')"
+            :edit-href="route('secrets.edit', secret.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('secrets.destroy', secret.id)"
+            :badge="secret.secret_type || 'secret'"
+            :sections="sections"
+        />
+
+        <EditSecret
+            v-if="editDrawer"
+            embedded
+            :secret="secret"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditSecret from '@/Pages/Intelligence/Secrets/Edit.vue'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
@@ -20,6 +32,7 @@ const props = defineProps({
     subjectEntities: { type: Array, default: () => [] },
     holderEntities: { type: Array, default: () => [] },
     knownByEntities: { type: Array, default: () => [] },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [

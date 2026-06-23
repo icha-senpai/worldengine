@@ -5,6 +5,65 @@ export const formatLabel = (value) => value
 export const isPlainObject = (value) =>
     value !== null && typeof value === 'object' && !Array.isArray(value)
 
+export const isRichDocument = (value) =>
+    isPlainObject(value) && value.type === 'doc' && Array.isArray(value.content)
+
+const selfContainedRichNodes = new Set([
+    'hardBreak',
+    'horizontalRule',
+    'image',
+])
+
+const nodeHasMeaningfulContent = (node) => {
+    if (!isPlainObject(node)) {
+        return false
+    }
+
+    if (typeof node.text === 'string' && node.text.trim() !== '') {
+        return true
+    }
+
+    if (selfContainedRichNodes.has(node.type)) {
+        return true
+    }
+
+    return Array.isArray(node.content) && node.content.some(nodeHasMeaningfulContent)
+}
+
+export const hasRichDocumentContent = (value) =>
+    isRichDocument(value) && value.content.some(nodeHasMeaningfulContent)
+
+const richDocumentNodeText = (node) => {
+    if (!isPlainObject(node)) {
+        return ''
+    }
+
+    if (typeof node.text === 'string') {
+        return node.text
+    }
+
+    if (node.type === 'hardBreak') {
+        return '\n'
+    }
+
+    if (!Array.isArray(node.content)) {
+        return ''
+    }
+
+    return node.content.map(richDocumentNodeText).join('')
+}
+
+export const richDocumentToPlainText = (value) => {
+    if (!isRichDocument(value)) {
+        return ''
+    }
+
+    return value.content
+        .map((node) => richDocumentNodeText(node).trim())
+        .filter(Boolean)
+        .join('\n\n')
+}
+
 export const summarizeValue = (value) => {
     if (value === null || value === undefined || value === '') {
         return '—'
@@ -21,6 +80,10 @@ export const summarizeValue = (value) => {
     }
 
     if (isPlainObject(value)) {
+        if (isRichDocument(value)) {
+            return richDocumentToPlainText(value) || '—'
+        }
+
         if ('name' in value && value.name) {
             return value.name
         }
@@ -114,6 +177,24 @@ export const toCollectionOptions = (collections = []) =>
     collections.map((collection) => ({
         value: collection.id,
         label: `${collection.name || `Collection #${collection.id}`} (#${collection.id}${collection.collection_type ? ` · ${formatLabel(collection.collection_type)}` : ''})`,
+    }))
+
+export const toMetaOptions = (items = []) =>
+    items.map((item) => ({
+        value: item.id,
+        label: `${item.title || `Meta #${item.id}`} (#${item.id}${item.category ? ` · ${formatLabel(item.category)}` : ''})`,
+    }))
+
+export const toConcurrencyGroupOptions = (groups = []) =>
+    groups.map((group) => ({
+        value: group.id,
+        label: `${group.name || `Concurrency Group #${group.id}`} (#${group.id}${group.au_date ? ` · ${group.au_date}` : ''})`,
+    }))
+
+export const toCanonReferenceOptions = (references = []) =>
+    references.map((reference) => ({
+        value: reference.id,
+        label: `${reference.title || `Canon Reference #${reference.id}`} (#${reference.id}${reference.universe ? ` · ${reference.universe}` : ''})`,
     }))
 
 export const toPipelineItemOptions = (items = []) =>

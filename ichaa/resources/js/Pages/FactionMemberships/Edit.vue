@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Faction Membership"
         :back-href="backHref"
         :back-label="backLabel"
@@ -20,6 +22,7 @@ import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     membership: { type: Object, required: true },
     entities: { type: Array, default: () => [] },
 })

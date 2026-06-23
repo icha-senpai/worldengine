@@ -14,30 +14,15 @@ use App\Support\Validation\DataverseRules;
 
 class SessionLogController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return $this->page('Production/Sessions/Index', [
-            'sessions' => SessionLog::latestFirst()->paginate(30),
-            'stats'    => $this->stats(),
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Production/Sessions/Create', [
-            'entities'           => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'groupRelationships' => GroupRelationship::query()
-                ->select('id', 'name', 'relationship_type')
-                ->orderBy('name')
-                ->get(),
-            'collections'        => Collection::query()
-                ->select('id', 'name', 'collection_type')
-                ->orderBy('name')
-                ->get(),
-            'significanceLevels' => SessionLog::SIGNIFICANCE_LEVELS,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -54,18 +39,15 @@ class SessionLogController extends Controller
 
     public function show(SessionLog $sessionLog): Response
     {
-        $sessionLog->load(['entityQuestions.entity:id,name']);
-
-        return $this->pageWithNotionNote('Production/Sessions/Show', $sessionLog, 'session_logs', [
-            'session' => $sessionLog,
-        ]);
+        return $this->showPage($sessionLog);
     }
 
     public function edit(SessionLog $sessionLog): Response
     {
-        return $this->page('Production/Sessions/Edit', [
-            'session'            => $sessionLog,
-            'significanceLevels' => SessionLog::SIGNIFICANCE_LEVELS,
+        return $this->showPage($sessionLog, [
+            'editDrawer' => [
+                'significanceLevels' => SessionLog::SIGNIFICANCE_LEVELS,
+            ],
         ]);
     }
 
@@ -75,7 +57,7 @@ class SessionLogController extends Controller
             DataverseRules::web('session-logs', 'update')
         ));
 
-        return $this->back('Session updated.');
+        return $this->to('session-logs.show', [$sessionLog], 'Session updated.');
     }
 
     public function destroy(SessionLog $sessionLog): \Illuminate\Http\RedirectResponse
@@ -96,5 +78,45 @@ class SessionLogController extends Controller
             'session_count' => $sessions->count(),
             'major_count'   => $sessions->where('session_significance', 'major')->count(),
         ];
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+                return $this->page('Production/Sessions/Index', array_merge([
+            'sessions' => SessionLog::latestFirst()->paginate(30),
+            'stats'    => $this->stats(),
+        ], $props));
+    
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'entities'           => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'groupRelationships' => GroupRelationship::query()
+                ->select('id', 'name', 'relationship_type')
+                ->orderBy('name')
+                ->get(),
+            'collections'        => Collection::query()
+                ->select('id', 'name', 'collection_type')
+                ->orderBy('name')
+                ->get(),
+            'significanceLevels' => SessionLog::SIGNIFICANCE_LEVELS,
+        
+        ];
+    }
+
+    private function showPage(SessionLog $sessionLog, array $props = []): Response
+    {
+        $sessionLog->load(['entityQuestions.entity:id,name']);
+
+        return $this->pageWithNotionNote('Production/Sessions/Show', $sessionLog, 'session_logs', array_merge([
+            'session' => $sessionLog,
+        ], $props));
     }
 }

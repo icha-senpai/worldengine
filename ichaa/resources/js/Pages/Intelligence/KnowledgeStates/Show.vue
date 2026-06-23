@@ -1,22 +1,35 @@
 <template>
-    <ScaffoldShowPage
-        :title="state.knower?.name ? `${state.knower.name} Knowledge` : `Knowledge State #${state.id}`"
-        back-label="Knowledge States"
-        :back-href="route('knowledge-states.index')"
-        :edit-href="route('knowledge-states.edit', state.id)"
-        :destroy-href="route('knowledge-states.destroy', state.id)"
-        :badge="formatLabel(state.knowledge_type)"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="state.knower?.name ? `${state.knower.name} Knowledge` : `Knowledge State #${state.id}`"
+            back-label="Knowledge States"
+            :back-href="route('knowledge-states.index')"
+            :edit-href="route('knowledge-states.edit', state.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('knowledge-states.destroy', state.id)"
+            :badge="formatLabel(state.knowledge_type)"
+            :sections="sections"
+        />
+
+        <EditKnowledgeState
+            v-if="editDrawer"
+            embedded
+            :state="state"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditKnowledgeState from '@/Pages/Intelligence/KnowledgeStates/Edit.vue'
 import { formatLabel, sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     state: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [

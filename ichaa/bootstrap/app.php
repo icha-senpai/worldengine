@@ -23,6 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust tunnel / reverse-proxy headers so generated asset and route URLs
         // use the public ngrok host instead of the local upstream host.
         $middleware->trustProxies(at: '*');
+        $middleware->trimStrings([
+            '*.text',
+            static fn (Request $request): bool => $request->is('api/v1/*')
+                && in_array($request->method(), ['POST', 'PATCH', 'PUT', 'DELETE'], true),
+        ]);
 
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,

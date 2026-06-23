@@ -1,26 +1,41 @@
 <template>
-    <ScaffoldIndexPage
-        title="Character States"
-        :count="countRecords(states)"
-        count-label="snapshots"
-        sync-resource="character_states"
-        :create-href="route('character-states.create')"
-        create-label="New Snapshot"
-        :items="items"
-        empty-title="No character states found"
-        :empty-cta-href="route('character-states.create')"
-        empty-cta-label="Create the first snapshot ->"
-    />
+    <div>
+        <ScaffoldIndexPage
+            title="Character States"
+            :count="countRecords(states)"
+            count-label="snapshots"
+            sync-resource="character_states"
+            :create-href="route('character-states.create')"
+            :create-preserve-scroll="true"
+            :create-preserve-state="true"
+            create-label="New Snapshot"
+            :items="items"
+            empty-title="No character states found"
+            :empty-cta-href="route('character-states.create')"
+            :empty-cta-preserve-scroll="true"
+            :empty-cta-preserve-state="true"
+            empty-cta-label="Create the first snapshot ->"
+            
+        />
+
+        <CreateCharacterState
+            v-if="createDrawer"
+            embedded
+            v-bind="createDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
+import CreateCharacterState from '@/Pages/Temporal/CharacterStates/Create.vue'
 import { asArray, badge, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     states: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
+    createDrawer: { type: Object, default: null },
 })
 
 const items = computed(() =>

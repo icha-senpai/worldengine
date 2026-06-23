@@ -658,6 +658,8 @@ describe('read pages', () => {
             {
                 id: 81,
                 href: { name: 'location-control.edit', params: 81 },
+                preserveScroll: true,
+                preserveState: true,
                 title: 'Aster Province -> New Accord',
                 badges: [{ label: 'Type', value: 'occupied' }],
                 meta: [

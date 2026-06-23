@@ -19,28 +19,13 @@ class CollectionController extends Controller
 
     public function index(Request $request): Response
     {
-        $query = Collection::topLevel()->withCount('entities')->orderBy('name');
-
-        if ($request->filled('type')) {
-            $query->ofType($request->type);
-        }
-
-        return $this->page('Collections/Index', [
-            'collections' => $query->get(),
-            'filters' => $request->only(['type']),
-            'types' => Collection::TYPES,
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Collections/Create', [
-            'collections' => Collection::query()
-                ->select('id', 'name', 'collection_type')
-                ->orderBy('name')
-                ->get(),
-            'types' => Collection::TYPES,
-            'modes' => Collection::MODES,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -55,22 +40,17 @@ class CollectionController extends Controller
 
     public function show(Collection $collection): Response
     {
-        $collection->load([
-            'entities:id,name,entity_type,completion_score',
-            'childCollections:id,parent_collection_id,name,collection_type',
-        ]);
-
-        return $this->pageWithNotionNote('Collections/Show', $collection, 'collections', [
-            'collection' => $collection,
-        ]);
+        return $this->showPage($collection);
     }
 
     public function edit(Collection $collection): Response
     {
-        return $this->page('Collections/Edit', [
-            'collection' => $collection,
-            'types' => Collection::TYPES,
-            'modes' => Collection::MODES,
+        return $this->showPage($collection, [
+            'editDrawer' => [
+                'types' => Collection::TYPES,
+                'modes' => Collection::MODES,
+                'completionStates' => Collection::COMPLETION_STATES,
+            ],
         ]);
     }
 
@@ -109,5 +89,47 @@ class CollectionController extends Controller
         $count = $this->service->syncSmartMembers($collection);
 
         return $this->back("{$count} entities synced.");
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = Collection::topLevel()->withCount('entities')->orderBy('name');
+
+        if ($request->filled('type')) {
+            $query->ofType($request->type);
+        }
+
+        return $this->page('Collections/Index', array_merge([
+            'collections' => $query->get(),
+            'filters' => $request->only(['type']),
+            'types' => Collection::TYPES,
+        ], $props));
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'collections' => Collection::query()
+                ->select('id', 'name', 'collection_type')
+                ->orderBy('name')
+                ->get(),
+            'types' => Collection::TYPES,
+            'modes' => Collection::MODES,
+            'completionStates' => Collection::COMPLETION_STATES,
+        ];
+    }
+
+    private function showPage(Collection $collection, array $props = []): Response
+    {
+        $collection->load([
+            'entities:id,name,entity_type,completion_score',
+            'childCollections:id,parent_collection_id,name,collection_type',
+        ]);
+
+        return $this->pageWithNotionNote('Collections/Show', $collection, 'collections', array_merge([
+            'collection' => $collection,
+        ], $props));
     }
 }

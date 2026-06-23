@@ -254,6 +254,8 @@ class DataverseMcpCatalog
                 'Mutating tools should send base_revision_id for every non-create write.',
                 'The API returns canonical envelopes with data, included, and meta.',
                 'Use the catalog resource first when you need the exact action or resource slug.',
+                'Use upload_dataverse_media when you need to create a media-reference from actual file bytes rather than a URL or local path.',
+                'Use replace_dataverse_media_file when you need to swap the stored bytes for an existing media-reference.',
             ],
         ];
     }

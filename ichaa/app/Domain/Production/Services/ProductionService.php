@@ -110,9 +110,7 @@ class ProductionService
         ];
 
         if ($resolutionNotes !== null) {
-            $updates['notes'] = is_array($resolutionNotes)
-                ? json_encode($resolutionNotes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-                : $resolutionNotes;
+            $updates['notes'] = $resolutionNotes;
         }
 
         $item->update($updates);

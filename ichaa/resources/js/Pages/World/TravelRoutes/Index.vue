@@ -1,25 +1,40 @@
 <template>
-    <ScaffoldIndexPage
-        title="Travel Routes"
-        :count="routes.length"
-        count-label="routes"
-        sync-resource="travel_routes"
-        :create-href="route('travel-routes.create')"
-        create-label="New Route"
-        :items="items"
-        empty-title="No travel routes found"
-        :empty-cta-href="route('travel-routes.create')"
-        empty-cta-label="Create the first route ->"
-    />
+    <div>
+        <ScaffoldIndexPage
+            title="Travel Routes"
+            :count="routes.length"
+            count-label="routes"
+            sync-resource="travel_routes"
+            :create-href="route('travel-routes.create')"
+            :create-preserve-scroll="true"
+            :create-preserve-state="true"
+            create-label="New Route"
+            :items="items"
+            empty-title="No travel routes found"
+            :empty-cta-href="route('travel-routes.create')"
+            :empty-cta-preserve-scroll="true"
+            :empty-cta-preserve-state="true"
+            empty-cta-label="Create the first route ->"
+            
+        />
+
+        <CreateTravelRoute
+            v-if="createDrawer"
+            embedded
+            v-bind="createDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
+import CreateTravelRoute from '@/Pages/World/TravelRoutes/Create.vue'
 import { badge, buildMeta } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     routes: { type: Array, default: () => [] },
+    createDrawer: { type: Object, default: null },
 })
 
 const items = computed(() =>

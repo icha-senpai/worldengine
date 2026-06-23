@@ -14,44 +14,13 @@ class MetaController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = Meta::current()->latest();
-
-        if ($request->filled('category')) {
-            $query->ofCategory($request->category);
-        }
-
-        if ($request->filled('type')) {
-            $query->ofNoteType($request->type);
-        }
-
-        if ($request->boolean('unresolved')) {
-            $query->unresolved();
-        }
-
-        if ($request->boolean('blocking')) {
-            $query->blocking();
-        }
-
-        return $this->page('Production/Meta/Index', [
-            'notes' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['category', 'type', 'unresolved', 'blocking']),
-            'categories' => Meta::CATEGORIES,
-            'noteTypes' => Meta::NOTE_TYPES,
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Production/Meta/Create', [
-            'entities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'categories' => Meta::CATEGORIES,
-            'noteTypes' => Meta::NOTE_TYPES,
-            'priorities' => Meta::PRIORITIES,
-            'actionStatuses' => Meta::ACTION_STATUSES,
-            'symbolScopes' => Meta::SYMBOL_SCOPES,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->metaFormProps(),
         ]);
     }
 
@@ -68,26 +37,13 @@ class MetaController extends Controller
 
     public function show(Meta $meta): Response
     {
-        $meta->load(['entities:id,name,entity_type', 'supersededBy:id,title']);
-
-        return $this->pageWithNotionNote('Production/Meta/Show', $meta, 'meta', [
-            'note' => $meta,
-        ]);
+        return $this->showPage($meta);
     }
 
     public function edit(Meta $meta): Response
     {
-        return $this->page('Production/Meta/Edit', [
-            'entities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'note' => $meta,
-            'categories' => Meta::CATEGORIES,
-            'noteTypes' => Meta::NOTE_TYPES,
-            'priorities' => Meta::PRIORITIES,
-            'actionStatuses' => Meta::ACTION_STATUSES,
-            'symbolScopes' => Meta::SYMBOL_SCOPES,
+        return $this->showPage($meta, [
+            'editDrawer' => $this->metaFormProps(),
         ]);
     }
 
@@ -139,5 +95,79 @@ class MetaController extends Controller
         $meta->entities()->detach($entity->id);
 
         return $this->back("{$entity->name} unlinked.");
+    }
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = Meta::current()->latest();
+
+        if ($request->filled('category')) {
+            $query->ofCategory($request->category);
+        }
+
+        if ($request->filled('type')) {
+            $query->ofNoteType($request->type);
+        }
+
+        if ($request->boolean('unresolved')) {
+            $query->unresolved();
+        }
+
+        if ($request->boolean('blocking')) {
+            $query->blocking();
+        }
+
+        return $this->page('Production/Meta/Index', array_merge([
+            'notes' => $query->paginate(40)->withQueryString(),
+            'filters' => $request->only(['category', 'type', 'unresolved', 'blocking']),
+            'categories' => Meta::CATEGORIES,
+            'noteTypes' => Meta::NOTE_TYPES,
+        ], $props));
+    }
+
+    private function showPage(Meta $meta, array $props = []): Response
+    {
+        $meta->load(['entities:id,name,entity_type', 'supersededBy:id,title']);
+
+        $symbolEntityIds = collect($meta->symbol_associated_entity_ids ?? []);
+
+        if ($meta->symbol_origin_entity_id) {
+            $symbolEntityIds->prepend($meta->symbol_origin_entity_id);
+        }
+
+        $symbolEntities = Entity::query()
+            ->select('id', 'name', 'entity_type')
+            ->whereIn('id', $symbolEntityIds->filter()->unique()->values())
+            ->get()
+            ->keyBy('id');
+
+        $meta->setRelation('symbolOriginEntity', $symbolEntities->get($meta->symbol_origin_entity_id));
+        $meta->setRelation(
+            'symbolAssociatedEntities',
+            $symbolEntityIds
+                ->slice($meta->symbol_origin_entity_id ? 1 : 0)
+                ->map(fn ($id) => $symbolEntities->get($id))
+                ->filter()
+                ->values()
+        );
+
+        return $this->pageWithNotionNote('Production/Meta/Show', $meta, 'meta', array_merge([
+            'note' => $meta,
+        ], $props));
+    }
+
+    private function metaFormProps(): array
+    {
+        return [
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'categories' => Meta::CATEGORIES,
+            'noteTypes' => Meta::NOTE_TYPES,
+            'priorities' => Meta::PRIORITIES,
+            'actionStatuses' => Meta::ACTION_STATUSES,
+            'symbolScopes' => Meta::SYMBOL_SCOPES,
+        ];
     }
 }

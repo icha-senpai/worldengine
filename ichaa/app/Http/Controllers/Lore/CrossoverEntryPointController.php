@@ -11,17 +11,15 @@ use App\Support\Validation\DataverseRules;
 
 class CrossoverEntryPointController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return $this->page('Lore/CrossoverEntryPoints/Index', [
-            'entryPoints' => CrossoverEntryPoint::orderBy('source_universe')->get(),
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Lore/CrossoverEntryPoints/Create', [
-            'statuses' => CrossoverEntryPoint::STATUSES,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -36,16 +34,15 @@ class CrossoverEntryPointController extends Controller
 
     public function show(CrossoverEntryPoint $crossoverEntryPoint): Response
     {
-        return $this->pageWithNotionNote('Lore/CrossoverEntryPoints/Show', $crossoverEntryPoint, 'crossover_entry_points', [
-            'entryPoint' => $crossoverEntryPoint->load('firstDocumentedCrossingEvent:id,name'),
-        ]);
+        return $this->showPage($crossoverEntryPoint);
     }
 
     public function edit(CrossoverEntryPoint $crossoverEntryPoint): Response
     {
-        return $this->page('Lore/CrossoverEntryPoints/Edit', [
-            'entryPoint' => $crossoverEntryPoint,
-            'statuses'   => CrossoverEntryPoint::STATUSES,
+        return $this->showPage($crossoverEntryPoint, [
+            'editDrawer' => [
+                'statuses' => CrossoverEntryPoint::STATUSES,
+            ],
         ]);
     }
 
@@ -55,7 +52,7 @@ class CrossoverEntryPointController extends Controller
             DataverseRules::web('crossover-entry-points', 'update')
         ));
 
-        return $this->back('Entry point updated.');
+        return $this->to('crossover-entry-points.show', [$crossoverEntryPoint], 'Entry point updated.');
     }
 
     public function destroy(CrossoverEntryPoint $crossoverEntryPoint): \Illuminate\Http\RedirectResponse
@@ -63,5 +60,30 @@ class CrossoverEntryPointController extends Controller
         $crossoverEntryPoint->delete();
 
         return $this->to('crossover-entry-points.index', [], 'Entry point deleted.');
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+                return $this->page('Lore/CrossoverEntryPoints/Index', array_merge([
+            'entryPoints' => CrossoverEntryPoint::orderBy('source_universe')->get(),
+        ], $props));
+    
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'statuses' => CrossoverEntryPoint::STATUSES,
+        
+        ];
+    }
+
+    private function showPage(CrossoverEntryPoint $crossoverEntryPoint, array $props = []): Response
+    {
+        return $this->pageWithNotionNote('Lore/CrossoverEntryPoints/Show', $crossoverEntryPoint, 'crossover_entry_points', array_merge([
+            'entryPoint' => $crossoverEntryPoint->load('firstDocumentedCrossingEvent:id,name'),
+        ], $props));
     }
 }

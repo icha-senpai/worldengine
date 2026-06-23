@@ -1,22 +1,35 @@
 <template>
-    <ScaffoldShowPage
-        :title="interaction.interaction_name"
-        back-label="Power Interactions"
-        :back-href="route('power-interactions.index')"
-        :edit-href="route('power-interactions.edit', interaction.id)"
-        :destroy-href="route('power-interactions.destroy', interaction.id)"
-        :badge="formatLabel(interaction.knowledge_state)"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="interaction.interaction_name"
+            back-label="Power Interactions"
+            :back-href="route('power-interactions.index')"
+            :edit-href="route('power-interactions.edit', interaction.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('power-interactions.destroy', interaction.id)"
+            :badge="formatLabel(interaction.knowledge_state)"
+            :sections="sections"
+        />
+
+        <EditPowerInteraction
+            v-if="editDrawer"
+            embedded
+            :interaction="interaction"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditPowerInteraction from '@/Pages/World/PowerInteractions/Edit.vue'
 import { formatLabel, sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     interaction: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [

@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Character Snapshot"
         :back-href="route('character-states.show', state.id)"
         back-label="Snapshot"
@@ -18,6 +20,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     state: { type: Object, required: true },
     stabilityLevels: { type: Array, default: () => [] },
     maskIntegrityLevels: { type: Array, default: () => [] },
@@ -32,8 +35,8 @@ const form = useForm({
     significance_reason: props.state.significance_reason ?? '',
     current_stability_level: props.state.current_stability_level ?? '',
     mask_integrity: props.state.mask_integrity ?? '',
-    current_trauma_profile: props.state.current_trauma_profile ?? '',
-    active_psychological_patterns: props.state.active_psychological_patterns ?? '',
+    current_trauma_profile: props.state.current_trauma_profile ?? null,
+    active_psychological_patterns: props.state.active_psychological_patterns ?? null,
     core_wound: props.state.core_wound ?? '',
     current_desire: props.state.current_desire ?? '',
     current_fear: props.state.current_fear ?? '',
@@ -59,8 +62,8 @@ const sections = computed(() => [
     {
         title: 'Psychology',
         fields: [
-            { key: 'current_trauma_profile', label: 'Trauma Profile', type: 'textarea', rows: 3 },
-            { key: 'active_psychological_patterns', label: 'Psychological Patterns', type: 'textarea', rows: 3 },
+            { key: 'current_trauma_profile', label: 'Trauma Profile', type: 'json', rows: 4 },
+            { key: 'active_psychological_patterns', label: 'Psychological Patterns', type: 'json', rows: 4 },
             { key: 'core_wound', label: 'Core Wound' },
             { key: 'current_desire', label: 'Current Desire' },
             { key: 'current_fear', label: 'Current Fear' },

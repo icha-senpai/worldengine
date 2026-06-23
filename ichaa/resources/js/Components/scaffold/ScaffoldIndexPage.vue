@@ -14,7 +14,13 @@
                         :resource="syncResource"
                         :label="syncLabel"
                     />
-                    <AppButton v-if="createHref" :href="createHref" variant="primary">
+                    <AppButton
+                        v-if="createHref"
+                        :href="createHref"
+                        :preserve-scroll="createPreserveScroll"
+                        :preserve-state="createPreserveState"
+                        variant="primary"
+                    >
                         {{ createLabel }}
                     </AppButton>
                 </div>
@@ -26,7 +32,11 @@
                 :is="item.href ? Link : 'div'"
                 v-for="item in items"
                 :key="item.id ?? item.title"
-                v-bind="item.href ? { href: item.href } : {}"
+                v-bind="item.href ? {
+                    href: item.href,
+                    preserveScroll: item.preserveScroll ?? false,
+                    preserveState: item.preserveState ?? false,
+                } : {}"
                 class="record-card record-card--interactive"
             >
                 <div class="flex items-start justify-between gap-4">
@@ -72,7 +82,13 @@
 
         <div v-else class="empty-state-panel">
             <p class="text-muted-3 text-sm font-ui uppercase tracking-widest mb-3">{{ emptyTitle }}</p>
-            <Link v-if="emptyCtaHref" :href="emptyCtaHref" class="text-cyan text-sm font-ui hover:underline">
+            <Link
+                v-if="emptyCtaHref"
+                :href="emptyCtaHref"
+                :preserve-scroll="emptyCtaPreserveScroll"
+                :preserve-state="emptyCtaPreserveState"
+                class="text-cyan text-sm font-ui hover:underline"
+            >
                 {{ emptyCtaLabel }}
             </Link>
         </div>
@@ -93,9 +109,13 @@ defineProps({
     syncLabel: { type: String, default: 'Sync from Notion' },
     createHref: { type: String, default: '' },
     createLabel: { type: String, default: 'Create' },
+    createPreserveScroll: { type: Boolean, default: false },
+    createPreserveState: { type: Boolean, default: false },
     items: { type: Array, default: () => [] },
     emptyTitle: { type: String, default: 'No records found' },
     emptyCtaHref: { type: String, default: '' },
     emptyCtaLabel: { type: String, default: 'Create one ->' },
+    emptyCtaPreserveScroll: { type: Boolean, default: false },
+    emptyCtaPreserveState: { type: Boolean, default: false },
 })
 </script>

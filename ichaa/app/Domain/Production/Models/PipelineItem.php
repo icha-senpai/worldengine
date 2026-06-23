@@ -2,6 +2,7 @@
 
 namespace App\Domain\Production\Models;
 
+use App\Casts\RichDocumentCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,12 +54,14 @@ class PipelineItem extends Model
     ];
 
     protected $casts = [
-        'content'                 => 'string',
+        'content'                 => RichDocumentCast::class,
         'revision_history'        => 'array',
+        'narrative_purpose'       => RichDocumentCast::class,
         'scene_content_warnings'  => 'array',
         'speakers_entity_ids'     => 'array',
         'influenced_entity_ids'   => 'array',
-        'notes'                   => 'string',
+        'arc_notes'               => RichDocumentCast::class,
+        'notes'                   => RichDocumentCast::class,
         'add_to_voice_samples'    => 'boolean',
         'sort_order'              => 'integer',
         'word_count'              => 'integer',

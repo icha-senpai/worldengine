@@ -1,23 +1,36 @@
 <template>
-    <ScaffoldShowPage
-        :title="group.name"
-        :subtitle="group.au_date || ''"
-        back-label="Concurrency Groups"
-        :back-href="route('concurrency-groups.index')"
-        :edit-href="route('concurrency-groups.edit', group.id)"
-        :destroy-href="route('concurrency-groups.destroy', group.id)"
-        :badge="group.narrative_significance || 'group'"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="group.name"
+            :subtitle="group.au_date || ''"
+            back-label="Concurrency Groups"
+            :back-href="route('concurrency-groups.index')"
+            :edit-href="route('concurrency-groups.edit', group.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('concurrency-groups.destroy', group.id)"
+            :badge="group.narrative_significance || 'group'"
+            :sections="sections"
+        />
+
+        <EditConcurrencyGroup
+            v-if="editDrawer"
+            embedded
+            :group="group"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditConcurrencyGroup from '@/Pages/Temporal/ConcurrencyGroups/Edit.vue'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     group: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [

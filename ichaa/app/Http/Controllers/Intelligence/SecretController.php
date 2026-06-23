@@ -19,31 +19,13 @@ class SecretController extends Controller
 
     public function index(Request $request): Response
     {
-        $query = Secret::active()->latest();
-
-        if ($request->boolean('high_risk')) {
-            $query->highRisk();
-        }
-
-        if ($request->boolean('leaking')) {
-            $query->leaking();
-        }
-
-        return $this->page('Intelligence/Secrets/Index', [
-            'secrets' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['high_risk', 'leaking']),
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Intelligence/Secrets/Create', [
-            'entities'      => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'secretTypes'   => Secret::SECRET_TYPES,
-            'exposureRisks' => Secret::EXPOSURE_RISKS,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -58,32 +40,16 @@ class SecretController extends Controller
 
     public function show(Secret $secret): Response
     {
-        $entityIds = array_values(array_unique(array_merge(
-            $secret->subject_entity_ids ?? [],
-            $secret->holder_entity_ids ?? [],
-            $secret->known_by_entity_ids ?? [],
-        )));
-
-        $entities = Entity::query()
-            ->select('id', 'name', 'entity_type')
-            ->whereIn('id', $entityIds)
-            ->get()
-            ->keyBy('id');
-
-        return $this->pageWithNotionNote('Intelligence/Secrets/Show', $secret, 'secrets', [
-            'secret'          => $secret,
-            'subjectEntities' => $this->entityListItems($secret->subject_entity_ids ?? [], $entities),
-            'holderEntities'  => $this->entityListItems($secret->holder_entity_ids ?? [], $entities),
-            'knownByEntities' => $this->entityListItems($secret->known_by_entity_ids ?? [], $entities),
-        ]);
+        return $this->showPage($secret);
     }
 
     public function edit(Secret $secret): Response
     {
-        return $this->page('Intelligence/Secrets/Edit', [
-            'secret'        => $secret,
-            'secretTypes'   => Secret::SECRET_TYPES,
-            'exposureRisks' => Secret::EXPOSURE_RISKS,
+        return $this->showPage($secret, [
+            'editDrawer' => [
+                'secretTypes' => Secret::SECRET_TYPES,
+                'exposureRisks' => Secret::EXPOSURE_RISKS,
+            ],
         ]);
     }
 
@@ -138,5 +104,61 @@ class SecretController extends Controller
             })
             ->values()
             ->all();
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = Secret::active()->latest();
+
+        if ($request->boolean('high_risk')) {
+            $query->highRisk();
+        }
+
+        if ($request->boolean('leaking')) {
+            $query->leaking();
+        }
+
+                return $this->page('Intelligence/Secrets/Index', array_merge([
+            'secrets' => $query->paginate(40)->withQueryString(),
+            'filters' => $request->only(['high_risk', 'leaking']),
+        ], $props));
+    
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'entities'      => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'secretTypes'   => Secret::SECRET_TYPES,
+            'exposureRisks' => Secret::EXPOSURE_RISKS,
+        
+        ];
+    }
+
+    private function showPage(Secret $secret, array $props = []): Response
+    {
+        $entityIds = array_values(array_unique(array_merge(
+            $secret->subject_entity_ids ?? [],
+            $secret->holder_entity_ids ?? [],
+            $secret->known_by_entity_ids ?? [],
+        )));
+
+        $entities = Entity::query()
+            ->select('id', 'name', 'entity_type')
+            ->whereIn('id', $entityIds)
+            ->get()
+            ->keyBy('id');
+
+        return $this->pageWithNotionNote('Intelligence/Secrets/Show', $secret, 'secrets', array_merge([
+            'secret' => $secret,
+            'subjectEntities' => $this->entityListItems($secret->subject_entity_ids ?? [], $entities),
+            'holderEntities' => $this->entityListItems($secret->holder_entity_ids ?? [], $entities),
+            'knownByEntities' => $this->entityListItems($secret->known_by_entity_ids ?? [], $entities),
+        ], $props));
     }
 }

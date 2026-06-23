@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="New Power Interaction"
         :back-href="route('power-interactions.index')"
         back-label="Power Interactions"
@@ -18,6 +20,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     entities: { type: Array, default: () => [] },
     effectTypes: { type: Array, default: () => [] },
     scaleTypes: { type: Array, default: () => [] },
@@ -92,6 +95,7 @@ const sections = computed(() => [
                 type: 'json',
                 jsonMode: 'object-list',
                 jsonObjectFields: ['effect_type', 'affected_aspect', 'magnitude', 'notes'],
+                emptyValue: [],
                 rows: 8,
                 help: props.effectTypes.length ? `Common effect types: ${props.effectTypes.join(', ')}` : '',
             },

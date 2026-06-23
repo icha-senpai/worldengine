@@ -1,21 +1,34 @@
 <template>
-    <ScaffoldIndexPage
-        title="Meta Notes"
-        :count="countRecords(notes)"
-        count-label="notes"
-        sync-resource="meta"
-        :create-href="route('meta.create')"
-        create-label="New Meta Note"
-        :items="items"
-        empty-title="No meta notes found"
-        :empty-cta-href="route('meta.create')"
-        empty-cta-label="Create the first meta note ->"
-    />
+    <div>
+        <ScaffoldIndexPage
+            title="Meta Notes"
+            :count="countRecords(notes)"
+            count-label="notes"
+            sync-resource="meta"
+            :create-href="route('meta.create')"
+            :create-preserve-scroll="true"
+            :create-preserve-state="true"
+            create-label="New Meta Note"
+            :items="items"
+            empty-title="No meta notes found"
+            :empty-cta-href="route('meta.create')"
+            :empty-cta-preserve-scroll="true"
+            :empty-cta-preserve-state="true"
+            empty-cta-label="Create the first meta note ->"
+        />
+
+        <CreateMeta
+            v-if="createDrawer"
+            embedded
+            v-bind="createDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
+import CreateMeta from '@/Pages/Production/Meta/Create.vue'
 import { asArray, badge, buildMeta, countRecords, formatLabel } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
@@ -23,6 +36,7 @@ const props = defineProps({
     filters: { type: Object, default: () => ({}) },
     categories: { type: Array, default: () => [] },
     noteTypes: { type: Array, default: () => [] },
+    createDrawer: { type: Object, default: null },
 })
 
 const items = computed(() =>

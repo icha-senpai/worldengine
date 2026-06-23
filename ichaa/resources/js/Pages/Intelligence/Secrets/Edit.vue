@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Secret"
         :back-href="route('secrets.show', secret.id)"
         back-label="Secret"
@@ -18,6 +20,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     secret: { type: Object, required: true },
     secretTypes: { type: Array, default: () => [] },
     exposureRisks: { type: Array, default: () => [] },

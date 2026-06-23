@@ -15,52 +15,30 @@ class PipelineItemController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = PipelineItem::topLevel()
-            ->with(['povCharacter:id,name', 'location:id,name'])
-            ->withCount('children')
-            ->ordered();
-
-        if ($request->filled('type')) {
-            $query->ofType($request->type);
-        }
-
-        if ($request->filled('stage')) {
-            $query->atStage($request->stage);
-        }
-
-        return $this->page('Production/Pipeline/Index', [
-            'items' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['type', 'stage']),
-            'pipelineTypes' => PipelineItem::PIPELINE_TYPES,
-            'pipelineStages' => PipelineItem::PIPELINE_STAGES,
-        ]);
+        return $this->indexPage($request);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return $this->page('Production/Pipeline/Create', [
-            'parentItems' => PipelineItem::query()
-                ->select('id', 'title', 'pipeline_type')
-                ->ordered()
-                ->get(),
-            'characterEntities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->whereIn('entity_type', array_merge(EntityType::CATEGORIES['people'], EntityType::POWERED_TYPES))
-                ->orderBy('name')
-                ->get()
-                ->unique('id')
-                ->values(),
-            'locationEntities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
-                ->orderBy('name')
-                ->get(),
-            'entities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'pipelineTypes' => PipelineItem::PIPELINE_TYPES,
-            'pipelineStages' => PipelineItem::PIPELINE_STAGES,
+        $parent = $request->integer('parent')
+            ? PipelineItem::query()->find($request->integer('parent'))
+            : null;
+
+        $drawerProps = array_merge($this->createFormProps(), [
+            'initialParentItemId' => $parent?->id,
+            'closeHref' => $parent
+                ? route('pipeline.show', $parent)
+                : route('pipeline.index'),
+        ]);
+
+        if ($parent) {
+            return $this->showPage($parent, [
+                'createDrawer' => $drawerProps,
+            ]);
+        }
+
+        return $this->indexPage($request, [
+            'createDrawer' => $drawerProps,
         ]);
     }
 
@@ -83,42 +61,32 @@ class PipelineItemController extends Controller
 
     public function show(PipelineItem $pipeline): Response
     {
-        $pipeline->load([
-            'children.povCharacter:id,name',
-            'povCharacter:id,name',
-            'location:id,name',
-            'trackedEntity:id,name',
-            'sensoryPalette:id,title',
-            'parent:id,title',
-        ]);
-
-        return $this->pageWithNotionNote('Production/Pipeline/Show', $pipeline, 'pipeline_items', [
-            'item' => $pipeline,
-        ]);
+        return $this->showPage($pipeline);
     }
 
     public function edit(PipelineItem $pipeline): Response
     {
-        return $this->page('Production/Pipeline/Edit', [
-            'characterEntities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->whereIn('entity_type', array_merge(EntityType::CATEGORIES['people'], EntityType::POWERED_TYPES))
-                ->orderBy('name')
-                ->get()
-                ->unique('id')
-                ->values(),
-            'locationEntities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
-                ->orderBy('name')
-                ->get(),
-            'entities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'item' => $pipeline,
-            'pipelineTypes' => PipelineItem::PIPELINE_TYPES,
-            'pipelineStages' => PipelineItem::PIPELINE_STAGES,
+        return $this->showPage($pipeline, [
+            'editDrawer' => [
+                'characterEntities' => Entity::query()
+                    ->select('id', 'name', 'entity_type')
+                    ->whereIn('entity_type', array_merge(EntityType::CATEGORIES['people'], EntityType::POWERED_TYPES))
+                    ->orderBy('name')
+                    ->get()
+                    ->unique('id')
+                    ->values(),
+                'locationEntities' => Entity::query()
+                    ->select('id', 'name', 'entity_type')
+                    ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
+                    ->orderBy('name')
+                    ->get(),
+                'entities' => Entity::query()
+                    ->select('id', 'name', 'entity_type')
+                    ->orderBy('name')
+                    ->get(),
+                'pipelineTypes' => PipelineItem::PIPELINE_TYPES,
+                'pipelineStages' => PipelineItem::PIPELINE_STAGES,
+            ],
         ]);
     }
 
@@ -152,5 +120,72 @@ class PipelineItemController extends Controller
         }
 
         return $this->back("Stage advanced to '{$pipeline->fresh()->pipeline_stage}'.");
+    }
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = PipelineItem::topLevel()
+            ->with(['povCharacter:id,name', 'location:id,name'])
+            ->withCount('children')
+            ->ordered();
+
+        if ($request->filled('type')) {
+            $query->ofType($request->type);
+        }
+
+        if ($request->filled('stage')) {
+            $query->atStage($request->stage);
+        }
+
+        return $this->page('Production/Pipeline/Index', array_merge([
+            'items' => $query->paginate(40)->withQueryString(),
+            'filters' => $request->only(['type', 'stage']),
+            'pipelineTypes' => PipelineItem::PIPELINE_TYPES,
+            'pipelineStages' => PipelineItem::PIPELINE_STAGES,
+        ], $props));
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'parentItems' => PipelineItem::query()
+                ->select('id', 'title', 'pipeline_type')
+                ->ordered()
+                ->get(),
+            'characterEntities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', array_merge(EntityType::CATEGORIES['people'], EntityType::POWERED_TYPES))
+                ->orderBy('name')
+                ->get()
+                ->unique('id')
+                ->values(),
+            'locationEntities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
+                ->orderBy('name')
+                ->get(),
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'pipelineTypes' => PipelineItem::PIPELINE_TYPES,
+            'pipelineStages' => PipelineItem::PIPELINE_STAGES,
+        ];
+    }
+
+    private function showPage(PipelineItem $pipeline, array $props = []): Response
+    {
+        $pipeline->load([
+            'children.povCharacter:id,name',
+            'povCharacter:id,name',
+            'location:id,name',
+            'trackedEntity:id,name',
+            'sensoryPalette:id,title',
+            'parent:id,title',
+        ]);
+
+        return $this->pageWithNotionNote('Production/Pipeline/Show', $pipeline, 'pipeline_items', array_merge([
+            'item' => $pipeline,
+        ], $props));
     }
 }

@@ -21,42 +21,13 @@ class RelationshipController extends Controller
 
     public function index(Request $request): Response
     {
-        $query = Relationship::with(['fromEntity:id,name,entity_type', 'toEntity:id,name,entity_type'])
-            ->latest();
-
-        if ($request->filled('type')) {
-            $query->ofType($request->type);
-        }
-
-        if ($request->filled('charge')) {
-            $query->where('current_tension_charge', $request->charge);
-        }
-
-        if ($request->boolean('volatile')) {
-            $query->volatile();
-        }
-
-        if ($request->boolean('masked')) {
-            $query->masked();
-        }
-
-        return $this->page('Relationships/Index', [
-            'relationships' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['type', 'charge', 'volatile', 'masked']),
-            'relationshipTypes' => RelationshipType::ALL,
-            'tensionCharges' => TensionCharge::ALL,
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('Relationships/Create', [
-            'entities' => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'relationshipTypes' => RelationshipType::ALL,
-            'tensionCharges' => TensionCharge::ALL,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -77,23 +48,16 @@ class RelationshipController extends Controller
 
     public function show(Relationship $relationship): Response
     {
-        $relationship->load([
-            'fromEntity:id,name,entity_type',
-            'toEntity:id,name,entity_type',
-            'stateRelationships.characterState',
-        ]);
-
-        return $this->pageWithNotionNote('Relationships/Show', $relationship, 'relationships', [
-            'relationship' => $relationship,
-        ]);
+        return $this->showPage($relationship);
     }
 
     public function edit(Relationship $relationship): Response
     {
-        return $this->page('Relationships/Edit', [
-            'relationship' => $relationship->load(['fromEntity:id,name', 'toEntity:id,name']),
-            'relationshipTypes' => RelationshipType::ALL,
-            'tensionCharges' => TensionCharge::ALL,
+        return $this->showPage($relationship, [
+            'editDrawer' => [
+                'relationshipTypes' => RelationshipType::ALL,
+                'tensionCharges' => TensionCharge::ALL,
+            ],
         ]);
     }
 
@@ -124,5 +88,63 @@ class RelationshipController extends Controller
         $this->service->delete($relationship);
 
         return $this->to('relationships.index', [], 'Relationship deleted.');
+    }
+
+
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = Relationship::with(['fromEntity:id,name,entity_type', 'toEntity:id,name,entity_type'])
+            ->latest();
+
+        if ($request->filled('type')) {
+            $query->ofType($request->type);
+        }
+
+        if ($request->filled('charge')) {
+            $query->where('current_tension_charge', $request->charge);
+        }
+
+        if ($request->boolean('volatile')) {
+            $query->volatile();
+        }
+
+        if ($request->boolean('masked')) {
+            $query->masked();
+        }
+
+                return $this->page('Relationships/Index', array_merge([
+            'relationships' => $query->paginate(40)->withQueryString(),
+            'filters' => $request->only(['type', 'charge', 'volatile', 'masked']),
+            'relationshipTypes' => RelationshipType::ALL,
+            'tensionCharges' => TensionCharge::ALL,
+        ], $props));
+    
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'relationshipTypes' => RelationshipType::ALL,
+            'tensionCharges' => TensionCharge::ALL,
+        
+        ];
+    }
+
+    private function showPage(Relationship $relationship, array $props = []): Response
+    {
+        $relationship->load([
+            'fromEntity:id,name,entity_type',
+            'toEntity:id,name,entity_type',
+            'stateRelationships.characterState',
+        ]);
+
+        return $this->pageWithNotionNote('Relationships/Show', $relationship, 'relationships', array_merge([
+            'relationship' => $relationship,
+        ], $props));
     }
 }

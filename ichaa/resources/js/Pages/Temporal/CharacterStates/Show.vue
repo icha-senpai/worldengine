@@ -1,23 +1,36 @@
 <template>
-    <ScaffoldShowPage
-        :title="state.snapshot_label || state.entity?.name || `Snapshot #${state.id}`"
-        :subtitle="state.entity?.name"
-        back-label="Character States"
-        :back-href="route('character-states.index')"
-        :edit-href="route('character-states.edit', state.id)"
-        :destroy-href="route('character-states.destroy', state.id)"
-        :badge="state.current_stability_level || 'snapshot'"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="state.snapshot_label || state.entity?.name || `Snapshot #${state.id}`"
+            :subtitle="state.entity?.name"
+            back-label="Character States"
+            :back-href="route('character-states.index')"
+            :edit-href="route('character-states.edit', state.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('character-states.destroy', state.id)"
+            :badge="state.current_stability_level || 'snapshot'"
+            :sections="sections"
+        />
+
+        <EditCharacterState
+            v-if="editDrawer"
+            embedded
+            :state="state"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditCharacterState from '@/Pages/Temporal/CharacterStates/Edit.vue'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     state: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [
@@ -37,8 +50,8 @@ const sections = computed(() => [
     {
         title: 'Psychology',
         entries: [
-            sectionEntry('Trauma Profile', props.state.current_trauma_profile),
-            sectionEntry('Psychological Patterns', props.state.active_psychological_patterns),
+            sectionEntry('Trauma Profile', props.state.current_trauma_profile, { kind: 'json' }),
+            sectionEntry('Psychological Patterns', props.state.active_psychological_patterns, { kind: 'json' }),
             sectionEntry('Core Wound', props.state.core_wound),
             sectionEntry('Current Desire', props.state.current_desire),
             sectionEntry('Current Fear', props.state.current_fear),

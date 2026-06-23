@@ -1,5 +1,7 @@
 <template>
     <ScaffoldFormPage
+        presentation="drawer"
+        :embedded="props.embedded"
         title="Edit Timeline Event"
         :back-href="route('timelines.show', timeline.id)"
         :back-label="timeline.name ?? 'Timeline'"
@@ -18,6 +20,7 @@ import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 
 const props = defineProps({
+    embedded: { type: Boolean, default: false },
     timeline: { type: Object, required: true },
     entry: { type: Object, required: true },
     concurrencyGroups: { type: Array, default: () => [] },

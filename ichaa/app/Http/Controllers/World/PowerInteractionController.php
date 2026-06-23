@@ -20,30 +20,13 @@ class PowerInteractionController extends Controller
 
     public function index(Request $request): Response
     {
-        $query = PowerInteraction::with(['systemA:id,name', 'systemB:id,name'])->latest();
-
-        if ($request->boolean('unresolved')) {
-            $query->unresolved();
-        }
-
-        return $this->page('World/PowerInteractions/Index', [
-            'interactions' => $query->paginate(40)->withQueryString(),
-            'filters'      => $request->only(['unresolved']),
-        ]);
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->page('World/PowerInteractions/Create', [
-            'entities'            => Entity::query()
-                ->select('id', 'name', 'entity_type')
-                ->orderBy('name')
-                ->get(),
-            'effectTypes'         => PowerInteraction::EFFECT_TYPES,
-            'scaleTypes'          => PowerInteraction::SCALE_TYPES,
-            'dangerRatings'       => PowerInteraction::DANGER_RATINGS,
-            'knowledgeStates'     => PowerInteraction::KNOWLEDGE_STATES,
-            'directionalityTypes' => PowerInteraction::DIRECTIONALITY_TYPES,
+        return $this->indexPage(request(), [
+            'createDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -58,23 +41,16 @@ class PowerInteractionController extends Controller
 
     public function show(PowerInteraction $powerInteraction): Response
     {
-        $powerInteraction->load([
-            'systemA:id,name,entity_type',
-            'systemB:id,name,entity_type',
-            'instances.eventEntity:id,name',
-        ]);
-
-        return $this->pageWithNotionNote('World/PowerInteractions/Show', $powerInteraction, 'power_interactions', [
-            'interaction' => $powerInteraction,
-        ]);
+        return $this->showPage($powerInteraction);
     }
 
     public function edit(PowerInteraction $powerInteraction): Response
     {
-        return $this->page('World/PowerInteractions/Edit', [
-            'interaction'     => $powerInteraction,
-            'dangerRatings'   => PowerInteraction::DANGER_RATINGS,
-            'knowledgeStates' => PowerInteraction::KNOWLEDGE_STATES,
+        return $this->showPage($powerInteraction, [
+            'editDrawer' => [
+                'dangerRatings' => PowerInteraction::DANGER_RATINGS,
+                'knowledgeStates' => PowerInteraction::KNOWLEDGE_STATES,
+            ],
         ]);
     }
 
@@ -84,7 +60,7 @@ class PowerInteractionController extends Controller
             DataverseRules::web('power-interactions', 'update')
         ));
 
-        return $this->back('Interaction updated.');
+        return $this->to('power-interactions.show', [$powerInteraction], 'Interaction updated.');
     }
 
     public function destroy(PowerInteraction $powerInteraction): \Illuminate\Http\RedirectResponse
@@ -111,5 +87,47 @@ class PowerInteractionController extends Controller
         $this->service->recordInstance($powerInteraction, $event, $validated);
 
         return $this->back('Instance recorded.');
+    }
+
+    private function indexPage(Request $request, array $props = []): Response
+    {
+        $query = PowerInteraction::with(['systemA:id,name', 'systemB:id,name'])->latest();
+
+        if ($request->boolean('unresolved')) {
+            $query->unresolved();
+        }
+
+        return $this->page('World/PowerInteractions/Index', array_merge([
+            'interactions' => $query->paginate(40)->withQueryString(),
+            'filters' => $request->only(['unresolved']),
+        ], $props));
+    }
+
+    private function createFormProps(): array
+    {
+        return [
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
+            'effectTypes' => PowerInteraction::EFFECT_TYPES,
+            'scaleTypes' => PowerInteraction::SCALE_TYPES,
+            'dangerRatings' => PowerInteraction::DANGER_RATINGS,
+            'knowledgeStates' => PowerInteraction::KNOWLEDGE_STATES,
+            'directionalityTypes' => PowerInteraction::DIRECTIONALITY_TYPES,
+        ];
+    }
+
+    private function showPage(PowerInteraction $powerInteraction, array $props = []): Response
+    {
+        $powerInteraction->load([
+            'systemA:id,name,entity_type',
+            'systemB:id,name,entity_type',
+            'instances.eventEntity:id,name',
+        ]);
+
+        return $this->pageWithNotionNote('World/PowerInteractions/Show', $powerInteraction, 'power_interactions', array_merge([
+            'interaction' => $powerInteraction,
+        ], $props));
     }
 }

@@ -1,26 +1,41 @@
 <template>
-    <ScaffoldIndexPage
-        title="Secrets"
-        :count="countRecords(secrets)"
-        count-label="secrets"
-        sync-resource="secrets"
-        :create-href="route('secrets.create')"
-        create-label="New Secret"
-        :items="items"
-        empty-title="No secrets found"
-        :empty-cta-href="route('secrets.create')"
-        empty-cta-label="Create the first secret ->"
-    />
+    <div>
+        <ScaffoldIndexPage
+            title="Secrets"
+            :count="countRecords(secrets)"
+            count-label="secrets"
+            sync-resource="secrets"
+            :create-href="route('secrets.create')"
+            :create-preserve-scroll="true"
+            :create-preserve-state="true"
+            create-label="New Secret"
+            :items="items"
+            empty-title="No secrets found"
+            :empty-cta-href="route('secrets.create')"
+            :empty-cta-preserve-scroll="true"
+            :empty-cta-preserve-state="true"
+            empty-cta-label="Create the first secret ->"
+            
+        />
+
+        <CreateSecret
+            v-if="createDrawer"
+            embedded
+            v-bind="createDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
+import CreateSecret from '@/Pages/Intelligence/Secrets/Create.vue'
 import { asArray, badge, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     secrets: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
+    createDrawer: { type: Object, default: null },
 })
 
 const items = computed(() =>

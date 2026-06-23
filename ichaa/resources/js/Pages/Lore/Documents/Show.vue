@@ -1,22 +1,35 @@
 <template>
-    <ScaffoldShowPage
-        :title="document.title"
-        back-label="Documents"
-        :back-href="route('documents.index')"
-        :edit-href="route('documents.edit', document.id)"
-        :destroy-href="route('documents.destroy', document.id)"
-        :badge="formatLabel(document.document_type)"
-        :sections="sections"
-    />
+    <div>
+        <ScaffoldShowPage
+            :title="document.title"
+            back-label="Documents"
+            :back-href="route('documents.index')"
+            :edit-href="route('documents.edit', document.id)"
+            :edit-preserve-scroll="true"
+            :edit-preserve-state="true"
+            :destroy-href="route('documents.destroy', document.id)"
+            :badge="formatLabel(document.document_type)"
+            :sections="sections"
+        />
+
+        <EditDocument
+            v-if="editDrawer"
+            embedded
+            :document="document"
+            v-bind="editDrawer"
+        />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
+import EditDocument from '@/Pages/Lore/Documents/Edit.vue'
 import { formatLabel, sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     document: { type: Object, required: true },
+    editDrawer: { type: Object, default: null },
 })
 
 const sections = computed(() => [
