@@ -475,3 +475,23 @@ Vue components must have a single root element.
 * After modifying PHP files, run the existing formatter/test commands required by this repo.
 * After modifying tests, run the smallest relevant test command first.
 * When a requested change would violate these repo rules, stop and explain the conflict before proceeding.
+
+## Browser and Playwright Verification
+
+For authenticated Dataverse UI testing, prefer the repository Playwright setup over the Codex in-app browser.
+
+- Use the repo's existing Playwright tests and seeded verified test user.
+- Do not rely on the Codex in-app browser for authenticated app pages.
+- If UI verification requires login, use the established Playwright login flow or seeded `e2e@example.com` user.
+- Prefer focused Playwright runs for the touched feature instead of the full browser suite while iterating.
+- When a browser/UI issue occurs, inspect Playwright output, screenshots, traces, console errors, and network failures before changing code.
+- Do not create a new browser testing strategy if the existing Playwright setup can cover the behavior.
+- Do not hard-code personal credentials, real user credentials, session cookies, or production login data into tests.
+
+## Playwright Commands
+
+- Browser smoke tests run with `npm run test:e2e`.
+- The Playwright suite builds first and uses a seeded verified `e2e@example.com` user.
+- For UI debugging, prefer the smallest focused Playwright test or grep/filter supported by the repo.
+- If the app server, Vite server, database, or seed state is missing, stop and report the missing prerequisite instead of inventing a workaround.
+
