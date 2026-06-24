@@ -2,10 +2,10 @@
     <div class="min-h-screen flex flex-col bg-canvas">
 
         <!-- TOP NAV -->
-        <header class="sticky top-0 z-50 bg-surface border-b border-border flex-shrink-0">
+        <header class="sticky top-0 z-50 shrink-0 bg-surface border-b border-border">
             <div class="md:hidden px-4 py-3">
                 <div class="flex items-center gap-3">
-                    <a :href="route('dashboard')" class="flex items-baseline flex-shrink-0 font-ui text-base tracking-widest uppercase">
+                    <a :href="route('dashboard')" class="flex items-baseline shrink-0 font-ui text-base tracking-widest uppercase">
                         <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
                     </a>
 
@@ -69,7 +69,7 @@
                 <Transition name="flash">
                     <div
                         v-if="$page.props.flash?.error"
-                        class="mt-3 text-sm font-ui text-[var(--accent-pink)] border border-[rgb(var(--accent-pink-rgb)_/_0.28)] bg-[rgb(var(--accent-pink-rgb)_/_0.08)] rounded-md px-3 py-2"
+                        class="mt-3 text-sm font-ui text-(--accent-pink) border border-[rgb(var(--accent-pink-rgb)/0.28)] bg-[rgb(var(--accent-pink-rgb)/0.08)] rounded-md px-3 py-2"
                     >
                         {{ $page.props.flash.error }}
                     </div>
@@ -105,7 +105,7 @@
                                     @click="toggleMobileDomain(domain)"
                                 >
                                     <span class="flex items-center gap-3 min-w-0">
-                                        <span class="opacity-60 flex items-center flex-shrink-0" v-html="domain.icon" />
+                                        <span class="opacity-60 flex items-center shrink-0" v-html="domain.icon" />
                                         <span class="truncate">{{ domain.label }}</span>
                                     </span>
 
@@ -160,7 +160,7 @@
             <div class="hidden md:flex items-center h-16 px-5 lg:px-6">
 
                 <!-- Wordmark -->
-                <a :href="route('dashboard')" class="flex items-baseline mr-8 flex-shrink-0 font-ui text-base tracking-[0.22em] uppercase">
+                <a :href="route('dashboard')" class="mr-8 flex shrink-0 items-baseline font-ui text-base uppercase tracking-[0.22em]">
                     <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
                 </a>
 
@@ -179,7 +179,7 @@
                 </nav>
 
                 <!-- Right cluster -->
-                <div class="shell-toolbar ml-4 flex-shrink-0">
+                <div class="shell-toolbar ml-4 shrink-0">
 
                     <div class="shell-toolbar__group">
                         <Link
@@ -198,7 +198,7 @@
                             :href="route('trash.index')"
                             class="shell-control"
                             :class="currentPath === '/trash'
-                                ? '!border-[rgb(var(--accent-pink-rgb)_/_0.35)] !text-[var(--accent-pink)] !bg-[rgb(var(--accent-pink-rgb)_/_0.08)]'
+                                ? 'border-[rgb(var(--accent-pink-rgb)/0.35)]! text-(--accent-pink)! bg-[rgb(var(--accent-pink-rgb)/0.08)]!'
                                 : ''"
                         >
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -228,7 +228,7 @@
                         <Transition name="flash">
                             <div
                                 v-if="$page.props.flash?.error"
-                                class="text-sm font-ui text-[var(--accent-pink)] border border-[rgb(var(--accent-pink-rgb)_/_0.28)] bg-[rgb(var(--accent-pink-rgb)_/_0.08)] rounded-md px-3 py-1.5"
+                                class="text-sm font-ui text-(--accent-pink) border border-[rgb(var(--accent-pink-rgb)/0.28)] bg-[rgb(var(--accent-pink-rgb)/0.08)] rounded-md px-3 py-1.5"
                             >
                                 {{ $page.props.flash.error }}
                             </div>
@@ -278,7 +278,7 @@
         <div class="flex flex-1 min-h-0">
 
             <!-- SIDEBAR — optional, provided by each page via slot -->
-            <aside v-if="$slots.sidebar" class="w-48 flex-shrink-0 bg-surface border-r border-border">
+            <aside v-if="$slots.sidebar" class="w-48 shrink-0 bg-surface border-r border-border">
                 <div class="sticky py-4" :style="{ top: headerOffset }">
                     <slot name="sidebar" />
                 </div>

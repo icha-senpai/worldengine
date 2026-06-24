@@ -105,7 +105,7 @@
                     </div>
 
                     <!-- Right: children count if any -->
-                    <div v-if="item.children_count > 0" class="flex-shrink-0 text-left sm:text-right">
+                    <div v-if="item.children_count > 0" class="shrink-0 text-left sm:text-right">
                         <span class="count-badge">{{ item.children_count }}</span>
                     </div>
 

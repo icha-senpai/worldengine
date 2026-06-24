@@ -16,7 +16,7 @@
             <div class="mt-4 grid gap-4 md:grid-cols-2">
                 <section class="panel space-y-4">
                     <div>
-                        <h3 class="panel-label !mb-0">Workflow</h3>
+                        <h3 class="panel-label mb-0!">Workflow</h3>
                         <p class="text-muted-3 text-sm font-ui mt-1">
                             Resolve or supersede this note without leaving the show page.
                         </p>
@@ -78,7 +78,7 @@
 
                 <section class="panel space-y-4">
                     <div>
-                        <h3 class="panel-label !mb-0">Entity Links</h3>
+                        <h3 class="panel-label mb-0!">Entity Links</h3>
                         <p class="text-muted-3 text-sm font-ui mt-1">
                             Attach this note to the entities it should follow around the site.
                         </p>

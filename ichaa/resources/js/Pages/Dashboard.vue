@@ -67,7 +67,7 @@
                                 <span class="text-muted-3 text-xs font-ui">{{ item.pipeline_stage }}</span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
+                        <div class="flex shrink-0 items-center gap-2 self-start sm:self-auto">
                             <span v-if="item.word_count" class="text-muted-3 text-xs font-ui">
                                 {{ item.word_count.toLocaleString() }}w
                             </span>

@@ -24,7 +24,7 @@
                 </div>
 
                 <!-- Right: actions -->
-                <div class="flex items-center gap-2 flex-shrink-0 pt-1">
+                <div class="flex shrink-0 items-center gap-2 pt-1">
                     <span class="status-badge" :class="statusBadgeClass(entity.status)">
                         {{ formatLabel(entity.status) }}
                     </span>
@@ -214,7 +214,7 @@
             <!-- Add alias form -->
             <div class="panel">
                 <div class="flex items-center justify-between gap-3 mb-3">
-                    <h3 class="panel-label !mb-0">{{ isEditingAlias ? 'Edit Alias' : 'Add Alias' }}</h3>
+                    <h3 class="panel-label mb-0!">{{ isEditingAlias ? 'Edit Alias' : 'Add Alias' }}</h3>
                     <AppButton
                         v-if="isEditingAlias"
                         type="button"
@@ -289,7 +289,7 @@
                             </p>
                             <NotionNotePanel :note="a.notion_note" class="mt-3" />
                         </div>
-                        <div class="flex items-center gap-2 flex-shrink-0">
+                        <div class="flex shrink-0 items-center gap-2">
                             <AppButton
                                 type="button"
                                 @click="beginAliasEdit(a)"
@@ -318,7 +318,7 @@
             <!-- Add note form -->
             <div class="panel">
                 <div class="flex items-center justify-between gap-3 mb-3">
-                    <h3 class="panel-label !mb-0">{{ isEditingNote ? 'Edit Note' : 'Add Note' }}</h3>
+                    <h3 class="panel-label mb-0!">{{ isEditingNote ? 'Edit Note' : 'Add Note' }}</h3>
                     <AppButton
                         v-if="isEditingNote"
                         type="button"
@@ -354,7 +354,7 @@
                     <div class="flex items-start justify-between gap-3 mb-2">
                         <span v-if="n.note_label" class="note-label">{{ n.note_label }}</span>
                         <span v-else class="note-label note-label--empty">unlabeled</span>
-                        <div class="flex items-center gap-2 flex-shrink-0">
+                        <div class="flex shrink-0 items-center gap-2">
                             <span class="text-muted-3 text-xs font-ui">{{ formatDate(n.created_at) }}</span>
                             <AppButton type="button" variant="ghost" size="sm" @click="beginNoteEdit(n)">Edit</AppButton>
                             <AppButton type="button" variant="danger" size="sm" @click="deleteNote(n.id)">Delete</AppButton>
@@ -374,7 +374,7 @@
             <!-- Add question form -->
             <div class="panel">
                 <div class="flex items-center justify-between gap-3 mb-3">
-                    <h3 class="panel-label !mb-0">{{ isEditingQuestion ? 'Edit Question' : 'Add Question' }}</h3>
+                    <h3 class="panel-label mb-0!">{{ isEditingQuestion ? 'Edit Question' : 'Add Question' }}</h3>
                     <AppButton
                         v-if="isEditingQuestion"
                         type="button"
@@ -454,7 +454,7 @@
                             </p>
                             <NotionNotePanel :note="q.notion_note" class="mt-3" />
                         </div>
-                        <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        <div class="flex shrink-0 flex-col items-end gap-1.5">
                             <AppButton type="button" variant="ghost" size="sm" @click="beginQuestionEdit(q)">Edit</AppButton>
                             <AppButton
                                 v-if="q.status !== 'resolved'"
@@ -477,7 +477,7 @@
             <div v-if="isFactionEntity" class="panel space-y-4">
                 <div class="flex items-center justify-between gap-3">
                     <div>
-                        <h3 class="panel-label !mb-0">Faction Roster</h3>
+                        <h3 class="panel-label mb-0!">Faction Roster</h3>
                         <p class="text-muted-3 text-sm font-ui mt-1">
                             Current and former members tied to {{ entity.name }}.
                         </p>
@@ -553,7 +553,7 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-2 flex-shrink-0">
+                            <div class="flex shrink-0 items-center gap-2">
                                 <AppButton
                                     :href="route('faction-memberships.edit', { faction_membership: membership.id, return_context: 'faction', return_entity_id: entity.id, tab: 'memberships' })"
                                     :preserve-scroll="true"
@@ -573,7 +573,7 @@
             <div class="panel space-y-4">
                 <div class="flex items-center justify-between gap-3">
                     <div>
-                        <h3 class="panel-label !mb-0">Affiliations</h3>
+                        <h3 class="panel-label mb-0!">Affiliations</h3>
                         <p class="text-muted-3 text-sm font-ui mt-1">
                             Factions, organizations, and movements this entity belongs to.
                         </p>
@@ -644,7 +644,7 @@
                                 </div>
                             </div>
 
-                            <div v-if="membership.faction?.id" class="flex items-center gap-2 flex-shrink-0">
+                            <div v-if="membership.faction?.id" class="flex shrink-0 items-center gap-2">
                                 <AppButton
                                     :href="route('faction-memberships.edit', { faction_membership: membership.id, return_context: 'member', return_entity_id: entity.id, tab: 'memberships' })"
                                     :preserve-scroll="true"

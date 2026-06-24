@@ -67,7 +67,7 @@
             <section class="panel">
                 <div class="panel-heading">
                     <div>
-                        <h3 class="panel-label !mb-1">Place Event</h3>
+                        <h3 class="panel-label mb-1!">Place Event</h3>
                         <p class="panel-copy">Add an event entity directly onto this timeline without leaving the page.</p>
                     </div>
                 </div>

@@ -23,7 +23,7 @@
                     </h1>
                 </div>
 
-                <div class="flex items-center gap-2 flex-shrink-0 pt-1">
+                <div class="flex shrink-0 items-center gap-2 pt-1">
                     <span class="stage-badge" :class="'stage--' + item.pipeline_stage">
                         {{ formatLabel(item.pipeline_stage) }}
                     </span>

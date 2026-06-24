@@ -16,7 +16,7 @@
             <div class="mt-4">
                 <section class="panel space-y-4">
                     <div>
-                        <h3 class="panel-label !mb-0">Act On Knowledge</h3>
+                        <h3 class="panel-label mb-0!">Act On Knowledge</h3>
                         <p class="text-muted-3 text-sm font-ui mt-1">
                             Mark this state as acted on once the knowledge starts changing behavior or outcomes.
                         </p>

@@ -16,7 +16,7 @@
             <div class="mt-4 grid gap-4 md:grid-cols-2">
                 <section class="panel space-y-4">
                     <div>
-                        <h3 class="panel-label !mb-0">Resolve Interaction</h3>
+                        <h3 class="panel-label mb-0!">Resolve Interaction</h3>
                         <p class="text-muted-3 text-sm font-ui mt-1">
                             Close the unresolved flag once the rule is understood again.
                         </p>
@@ -60,7 +60,7 @@
 
                 <section class="panel space-y-4">
                     <div>
-                        <h3 class="panel-label !mb-0">Record Instance</h3>
+                        <h3 class="panel-label mb-0!">Record Instance</h3>
                         <p class="text-muted-3 text-sm font-ui mt-1">
                             Capture observed examples of this interaction out in the world.
                         </p>

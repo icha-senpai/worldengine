@@ -1,7 +1,7 @@
 <template>
     <section v-if="note?.content" class="panel notion-note-panel">
         <div class="flex items-center justify-between gap-3 mb-3">
-            <h3 class="panel-label !mb-0">{{ note.label || 'Notion Notes' }}</h3>
+            <h3 class="panel-label mb-0!">{{ note.label || 'Notion Notes' }}</h3>
             <span v-if="note.lastSyncedAt" class="notion-note-meta">
                 synced {{ formatTimestamp(note.lastSyncedAt) }}
             </span>

@@ -33,7 +33,7 @@
                 <h3 class="panel-label">Preview</h3>
 
                 <div v-if="media.preview_url && media.media_type === 'image'" class="space-y-4">
-                    <img :src="media.preview_url" :alt="media.title" class="w-full rounded-md border border-border bg-surface object-contain max-h-[36rem]">
+                    <img :src="media.preview_url" :alt="media.title" class="max-h-144 w-full rounded-md border border-border bg-surface object-contain">
                     <a :href="media.preview_url" target="_blank" rel="noopener noreferrer" class="text-cyan text-sm font-ui hover:underline">
                         Open full asset
                     </a>

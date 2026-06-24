@@ -18,7 +18,7 @@
                 <section class="panel">
                     <div class="flex items-center justify-between gap-3">
                         <div>
-                            <h3 class="panel-label !mb-0">Manage Members</h3>
+                            <h3 class="panel-label mb-0!">Manage Members</h3>
                             <p class="text-muted-3 text-sm font-ui mt-1">
                                 Add entities directly to this collection and remove them without leaving the page.
                             </p>
