@@ -63,7 +63,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 ## Tools
 
-- Laravel Boost is an MCP server with tools designed specifically for this application. Prefer Boost tools over manual alternatives like shell commands or file reads.
+- Laravel Boost is an MCP server with tools designed specifically for this application. Prefer Boost tools when they are available and a good fit for the task, and fall back to shell commands or direct file reads when they are not.
 - Use `database-query` to run read-only queries against the database instead of writing raw SQL in tinker.
 - Use `database-schema` to inspect table structure before writing migrations or models.
 - Use `get-absolute-url` to resolve the correct scheme, domain, and port for project URLs. Always use this before sharing a URL with the user.
@@ -177,13 +177,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 # Laravel Pint Code Formatter
 
 - If you have modified any PHP files, you must run `vendor/bin/pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
-- Do not run `vendor/bin/pint --test --format agent`, simply run `vendor/bin/pint --format agent` to fix any formatting issues.
+- Do not run `vendor/bin/pint --test --format agent`. Use `vendor/bin/pint --dirty --format agent` unless the user explicitly asks for a broader formatting pass.
 
 === phpunit/core rules ===
 
 # PHPUnit
 
-- This application uses PHPUnit for testing. All tests must be written as PHPUnit classes. Use `php artisan make:test --phpunit {name}` to create a new test.
+- This application uses PHPUnit for PHP backend testing. All PHP tests must be written as PHPUnit classes. Use `php artisan make:test --phpunit {name}` to create a new test.
 - If you see a test using "Pest", convert it to PHPUnit.
 - Every time a test has been updated, run that singular test.
 - When the tests relating to your feature are passing, ask the user if they would like to also run the entire test suite to make sure everything is still passing.
@@ -221,6 +221,10 @@ Vue components must have a single root element.
 - The frontend page structure mirrors the product areas under `resources/js/Pages/`, with notable sections including:
   `Entities`, `Relationships`, `GroupRelationships`, `Collections`, `Glossary`, `Lore`, `Temporal`, `Intelligence`, `Production`, `World`, `Search`, `Profile`, and `Auth`.
 - Most CRUD surfaces are scaffold-backed. Before introducing a one-off page pattern, check the shared scaffold and sibling pages first.
+- For scaffold-backed forms, field behavior metadata must be explicit instead of inferred from field names.
+- Every scaffold field with `type: 'json'` must declare `jsonMode`.
+- Any scaffold field using `jsonMode: 'object-list'` must also declare `jsonObjectFields`, and should declare `emptyValue` when an empty submit must become `[]` instead of `null`.
+- If a scaffold field's empty-state semantics matter, declare `emptyValue` explicitly rather than relying on the scaffold default.
 
 ## Architecture Notes
 
@@ -229,6 +233,51 @@ Vue components must have a single root element.
 - Do not introduce repository layers or aggregate-root ceremony unless the user explicitly wants an architectural shift.
 - Favor explicit model relationships, casts, route parameters, and controller actions over framework magic.
 - The app is modeling dense narrative/reference data. Keep changes readable and schema-aware rather than overly abstract.
+
+## Code Organization, PSR, and Maintainability Rules
+
+* Follow PSR-4 autoloading expectations: namespaces must match directory structure, and class names must match their file names.
+* Follow PSR-12-style PHP formatting and Laravel conventions. Use Laravel Pint as the formatter source of truth for PHP files.
+* Prefer boring, stable, readable code over clever abstractions.
+* Correctness, reliability, and maintainability are more important than cleverness, terseness, or novelty.
+* Do not introduce “magic” behavior when explicit code would be easier to understand and safer to maintain.
+* Avoid spaghetti code. Keep responsibilities separated by domain, layer, and purpose.
+* Avoid fat controllers. Controllers should coordinate requests, validation, authorization, services/actions, and responses, not contain large business workflows.
+* Avoid god classes, god services, god components, god composables, and oversized utility files.
+* If a file is growing large because it owns multiple responsibilities, suggest a responsibility-based split before adding more complexity.
+* Split by real responsibility, not by aesthetics. Do not create tiny abstraction confetti just to make files smaller.
+* Prefer domain services, actions, model methods, named scopes, Form Requests, resources, policies, and Vue components where the existing codebase already uses those patterns.
+* Keep business rules close to the write path. Permission checks, ownership checks, validation, ordering rules, and mutation guards should live near the code that changes data.
+* Keep Vue components focused. If a component becomes difficult to scan, extract real reusable components or composables rather than piling more logic into one file.
+* Keep shared helpers narrow and purposeful. Do not turn helper files into dumping grounds.
+* Prefer explicit names over short names. Code should explain its intent before comments are needed.
+* Comments should explain why something exists, not narrate obvious code.
+
+## Laravel Structure Rules
+
+* Controllers should stay thin.
+* Request validation belongs in Form Requests when validation is non-trivial or reused.
+* Authorization belongs in policies, gates, middleware, or existing authorization patterns.
+* Data presentation for APIs should use Resources when the touched surface already uses them.
+* Reusable query logic should prefer named scopes or dedicated query/service methods over repeated inline query chains.
+* Complex writes should use services/actions that match the existing bounded context.
+* Database writes that must succeed or fail together should use `DB::transaction()`.
+* Do not hide database mutations inside accessors, computed attributes, view helpers, or frontend-driven assumptions.
+* Do not place business rules in Vue components when the rule affects backend correctness, permissions, ownership, money, inventory, lore integrity, timeline placement, or persisted state.
+* Do not place large workflow logic directly in routes.
+* Do not use route closures for new complex behavior unless the surrounding area already uses that pattern and the change is intentionally small.
+
+## Stability Over Cleverness
+
+* Prefer the smallest correct change that fits the existing architecture.
+* Do not rewrite working code just because a cleaner pattern exists.
+* Do not introduce a new abstraction unless it removes real duplication, clarifies ownership, or reduces actual risk.
+* Do not optimize prematurely.
+* Do not trade readability for fewer lines.
+* Do not trade explicitness for cleverness.
+* When in doubt, choose the boring Laravel/Vue solution that future maintainers can understand quickly.
+* If a better architecture is possible but outside the requested scope, suggest it separately instead of implementing it silently.
+
 
 ## Routing and Behavior Gotchas
 
@@ -260,7 +309,7 @@ Vue components must have a single root element.
 - Entities are the core record type and cover many real-world/story concepts through a single typed model, not separate per-type tables.
 - A lot of the app's value is cross-domain linking: entities to notes, relationships, timeline events, pipeline items, secrets, collections, and world data.
 - Be cautious with field defaults and enum-like string values. Schema-sensitive drift has already happened in timeline and relationship-adjacent areas.
-- Plain text is the current content model for notes and pipeline text. Do not assume a rich text editor contract exists unless the code already proves it.
+- Content models are surface-specific in this app. Several notes, lore, and pipeline fields already use structured rich-text/JSON payloads, so verify the touched surface in code before assuming either plain text or a universal editor contract.
 
 ## Testing Reality
 
@@ -276,3 +325,53 @@ Vue components must have a single root element.
 - When working in a specific domain, inspect both the backend domain/service side and the matching Inertia pages before deciding where logic belongs.
 - For UI work, preserve breakpoints and avoid solving sizing problems with global hacks when a shared Vue-owned fix is the real seam.
 - If the README and the app disagree on version numbers, treat the dependency manifests as source of truth and update docs only when the user asks.
+
+## Change Scope Rules
+
+* Do not invent new features, scope, routes, screens, models, services, or data relationships unless explicitly requested.
+* Do not restructure the project, rename files, move directories, or modify build/tooling config unless explicitly requested.
+* Do not add new dependencies without approval.
+* Do not refactor unrelated code while completing a requested fix or feature.
+* Make changes surgically and locally.
+* Small coordinated changes across related files are allowed only when directly required by the requested behavior.
+* Preserve existing public method signatures, route names, component props, and response shapes unless the requested change requires otherwise.
+* When multiple valid approaches exist, surface the tradeoffs instead of silently choosing a large architectural direction.
+
+## Inertia, Vue, and API Boundaries
+
+* This is an Inertia/Vue application. Vue is the view layer and Laravel owns routing, data access, validation, and backend behavior.
+* Inertia routes may return `Inertia::render()` and pass props directly to pages.
+* API routes must return JSON only and must not return Inertia or Blade responses.
+* Do not mix API response conventions into first-party Inertia page controllers.
+* Do not leak view-layer assumptions into API response payloads.
+* Use Laravel Form Requests when adding or significantly touching validated write endpoints.
+* Use Eloquent API Resources when the touched API surface already uses them, or when intentionally normalizing a touched API payload.
+
+## AI Refactoring Safety Rails
+
+* Never delete code unless explicitly instructed.
+* Do not remove tests, migrations, routes, models, or components as “cleanup” unless explicitly requested.
+* If old code appears unused, confirm by inspecting routes, references, tests, and sibling patterns before changing it.
+* Controllers should stay thin. Business logic belongs in the existing domain, service, action, or application-layer pattern used by the bounded context being touched.
+* Avoid broad refactors across multiple domains without approval.
+* Keep functions simple unless real complexity is required.
+* Do not introduce abstractions before a real second seam appears.
+* Avoid speculative interfaces, repository layers, or “DDD for show” patterns that do not remove real duplication or risk.
+
+## Backend Structure Guidance
+
+* Follow the existing pattern of the bounded context being touched.
+* If a context already uses services, actions, presenters, named scopes, or direct Eloquent queries, extend that local pattern instead of inventing a competing one.
+* Route closures, controllers, and existing service classes may still exist in older areas. Improve them surgically instead of using a requested fix as an excuse for broad architectural cleanup.
+* Presentation boundaries in Vue components must not dictate backend structure.
+* Keep invariants close to the write path. Permission checks, ownership rules, ordering rules, validation, and mutation guards should live near the code that changes state.
+* Preserve existing `DB::transaction()` boundaries around write operations. Do not move transaction boundaries casually during refactors.
+
+## Output Expectations For Code Changes
+
+* Show only the changed sections unless the full file is explicitly requested.
+* Explain reasoning only where it prevents mistakes or clarifies a tradeoff.
+* Prefer real code over pseudo-code.
+* After modifying PHP files, run the existing formatter/test commands required by this repo.
+* After modifying tests, run the smallest relevant test command first.
+* When a requested change would violate these repo rules, stop and explain the conflict before proceeding.

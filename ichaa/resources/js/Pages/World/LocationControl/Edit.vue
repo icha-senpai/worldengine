@@ -44,7 +44,7 @@ const sections = computed(() => [
                 help: `${props.record.location?.name ?? 'Unknown'} -> ${props.record.controlling_entity?.name ?? 'Unknown'} (${props.record.control_type ?? 'control'})`,
             },
             { key: 'control_end_era', label: 'Control End Era' },
-            { key: 'how_control_ended', label: 'How Control Ended JSON', type: 'json', rows: 6 },
+            { key: 'how_control_ended', label: 'How Control Ended JSON', type: 'json', jsonMode: 'document', rows: 6 },
         ],
     },
 ])

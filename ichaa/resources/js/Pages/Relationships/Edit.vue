@@ -54,8 +54,8 @@ const sections = computed(() => [
     {
         title: 'Perspectives',
         fields: [
-            { key: 'perspective_a', label: 'Perspective A JSON', type: 'json', rows: 6 },
-            { key: 'perspective_b', label: 'Perspective B JSON', type: 'json', rows: 6 },
+            { key: 'perspective_a', label: 'Perspective A JSON', type: 'json', jsonMode: 'document', rows: 6 },
+            { key: 'perspective_b', label: 'Perspective B JSON', type: 'json', jsonMode: 'document', rows: 6 },
         ],
     },
 ])

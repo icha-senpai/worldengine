@@ -40,7 +40,7 @@ const sections = computed(() => [
             { key: 'name', label: 'Name', required: true },
             { key: 'au_date', label: 'AU Date' },
             { key: 'narrative_significance', label: 'Narrative Significance', type: 'select', options: props.significanceLevels },
-            { key: 'description', label: 'Description JSON', type: 'json', rows: 8 },
+            { key: 'description', label: 'Description JSON', type: 'json', jsonMode: 'document', rows: 8 },
         ],
     },
 ])

@@ -79,6 +79,26 @@ export function showErrorDialog(options = {}) {
     })
 }
 
+export function promptDialog(options = {}) {
+    return enqueueDialog({
+        kind: 'prompt',
+        eyebrow: options.eyebrow ?? 'Enter Value',
+        title: options.title ?? 'Provide a value',
+        message: options.message ?? '',
+        details: extractDetails(options.details),
+        confirmLabel: options.confirmLabel ?? 'Save',
+        cancelLabel: options.cancelLabel ?? 'Cancel',
+        confirmVariant: options.confirmVariant ?? 'primary',
+        closeable: options.closeable ?? true,
+        inputLabel: options.inputLabel ?? '',
+        inputPlaceholder: options.inputPlaceholder ?? '',
+        inputType: options.inputType ?? 'text',
+        initialValue: String(options.initialValue ?? ''),
+        allowEmpty: options.allowEmpty ?? false,
+        trimInput: options.trimInput ?? true,
+    })
+}
+
 export function resolveCurrentDialog(result) {
     const dialog = state.queue.shift()
 

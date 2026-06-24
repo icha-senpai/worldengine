@@ -38,6 +38,7 @@
                         :href="route('pipeline.edit', item.id)"
                         :preserve-scroll="true"
                         :preserve-state="true"
+                        opens-drawer
                         variant="ghost"
                     >
                         Edit
@@ -181,6 +182,7 @@
                 </Link>
                 <DrawerLink
                     :href="route('pipeline.create', { parent: item.id })"
+                    opens-drawer
                     title="New Pipeline Sub-Item"
                     class="add-child-btn"
                 >
@@ -259,7 +261,7 @@ import DrawerLink from '@/Components/ui/DrawerLink.vue'
 import CreatePipelineItem from '@/Pages/Production/Pipeline/Create.vue'
 import EditPipelineItem from '@/Pages/Production/Pipeline/Edit.vue'
 import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
-import { isRichDocument } from '@/Components/scaffold/formatters'
+import { formatLabel, isRichDocument } from '@/Components/scaffold/formatters'
 import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 const props = defineProps({
@@ -325,8 +327,5 @@ const destroy = async () => {
     })
 }
 
-const formatLabel = (str) => str
-    ? str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-    : '—'
 </script>
 

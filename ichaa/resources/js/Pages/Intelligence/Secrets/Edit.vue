@@ -47,7 +47,7 @@ const sections = computed(() => [
     {
         title: 'Content',
         fields: [
-            { key: 'secret_content', label: 'Secret Content JSON', type: 'json', rows: 8 },
+            { key: 'secret_content', label: 'Secret Content JSON', type: 'json', jsonMode: 'document', rows: 8 },
         ],
     },
 ])

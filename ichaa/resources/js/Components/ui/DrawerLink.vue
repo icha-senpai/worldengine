@@ -1,7 +1,7 @@
 <script setup>
 import { computed, useAttrs } from 'vue'
 import { router } from '@inertiajs/vue3'
-import { beginDrawerNavigation, isDrawerRouteHref } from '@/lib/drawerNavigation'
+import { beginDrawerNavigation } from '@/lib/drawerNavigation'
 
 defineOptions({
     inheritAttrs: false,
@@ -11,12 +11,13 @@ const props = defineProps({
     href: { type: String, required: true },
     preserveScroll: { type: Boolean, default: false },
     preserveState: { type: Boolean, default: false },
+    opensDrawer: { type: Boolean, default: false },
     title: { type: String, default: '' },
 })
 
 const attrs = useAttrs()
 
-const shouldStartDrawerNavigation = computed(() => isDrawerRouteHref(props.href))
+const shouldStartDrawerNavigation = computed(() => props.opensDrawer)
 const isInternalLink = computed(() => {
     if (!props.href || typeof window === 'undefined') {
         return false

@@ -2,12 +2,6 @@ import { reactive, readonly } from 'vue'
 
 export const PENDING_DRAWER_REVEAL_MS = 90
 
-const DRAWER_ROUTE_PATTERNS = [
-    /\/create(?:\/)?(?:\?.*)?$/,
-    /\/edit(?:\/)?(?:\?.*)?$/,
-    /\/events\/\d+\/edit(?:\/)?(?:\?.*)?$/,
-]
-
 const state = reactive({
     pendingHref: '',
     pendingVisible: false,
@@ -37,14 +31,6 @@ export function normalizeDrawerHref(href) {
     } catch {
         return ''
     }
-}
-
-export function isDrawerRouteHref(href) {
-    const target = normalizeDrawerHref(href)
-
-    return target
-        ? DRAWER_ROUTE_PATTERNS.some((pattern) => pattern.test(target))
-        : false
 }
 
 export function beginDrawerNavigation({ href = '' } = {}) {

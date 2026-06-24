@@ -19,15 +19,19 @@ import PowerInteractionShow from '@/Pages/World/PowerInteractions/Show.vue'
 import TravelRouteShow from '@/Pages/World/TravelRoutes/Show.vue'
 
 const {
+    confirmDialogMock,
     formInstances,
     routerDeleteMock,
     routerPostMock,
+    showErrorDialogMock,
     useFormMock,
     usePageMock,
 } = vi.hoisted(() => ({
+    confirmDialogMock: vi.fn(),
     formInstances: [],
     routerDeleteMock: vi.fn(),
     routerPostMock: vi.fn(),
+    showErrorDialogMock: vi.fn(),
     useFormMock: vi.fn(),
     usePageMock: vi.fn(),
 }))
@@ -50,6 +54,11 @@ vi.mock('@inertiajs/vue3', async () => {
         usePage: usePageMock,
     }
 })
+
+vi.mock('@/lib/appDialog', () => ({
+    confirmDialog: confirmDialogMock,
+    showErrorDialog: showErrorDialogMock,
+}))
 
 const ScaffoldShowPageStub = defineComponent({
     name: 'ScaffoldShowPage',
@@ -79,11 +88,68 @@ const ScaffoldIndexPageStub = defineComponent({
     template: '<div data-test="index-page">{{ title }}</div>',
 })
 
+const AppButtonStub = defineComponent({
+    name: 'AppButton',
+    inheritAttrs: false,
+    props: {
+        href: { type: [String, Object], default: '' },
+        type: { type: String, default: 'button' },
+        disabled: { type: Boolean, default: false },
+        opensDrawer: { type: Boolean, default: false },
+    },
+    emits: ['click'],
+    methods: {
+        stringify(value) {
+            return JSON.stringify(value)
+        },
+    },
+    template: `
+        <a
+            v-if="href"
+            v-bind="$attrs"
+            :data-href="stringify(href)"
+            :data-opens-drawer="opensDrawer ? 'true' : undefined"
+            @click="$emit('click', $event)"
+        ><slot /></a>
+        <button
+            v-else
+            v-bind="$attrs"
+            :type="type"
+            :disabled="disabled"
+            @click="$emit('click', $event)"
+        ><slot /></button>
+    `,
+})
+
+const DrawerLinkStub = defineComponent({
+    name: 'DrawerLink',
+    inheritAttrs: false,
+    props: {
+        href: { type: [String, Object], required: true },
+        opensDrawer: { type: Boolean, default: false },
+    },
+    methods: {
+        stringify(value) {
+            return JSON.stringify(value)
+        },
+    },
+    template: `
+        <a
+            v-bind="$attrs"
+            :data-href="stringify(href)"
+            :data-opens-drawer="opensDrawer ? 'true' : undefined"
+        ><slot /></a>
+    `,
+})
+
 describe('read pages', () => {
     beforeEach(() => {
+        confirmDialogMock.mockReset()
+        confirmDialogMock.mockResolvedValue(true)
         formInstances.length = 0
         routerDeleteMock.mockReset()
         routerPostMock.mockReset()
+        showErrorDialogMock.mockReset()
         useFormMock.mockReset()
         usePageMock.mockReset()
         usePageMock.mockReturnValue({ url: '/entities/1?tab=aliases', props: {} })
@@ -187,7 +253,7 @@ describe('read pages', () => {
         ])
     })
 
-    it('builds the collection show sections with members, rules, and child collections', () => {
+    it('builds the collection show sections with rules and child collections', () => {
         const scaffold = mountScaffoldPage(CollectionShow, {
             collection: {
                 id: 13,
@@ -212,12 +278,6 @@ describe('read pages', () => {
         expect(findEntry(scaffold.props('sections'), 'Mode', 'Overview').value).toBe('Smart')
         expect(findEntry(scaffold.props('sections'), 'Rules', 'Rules').value).toEqual([
             { field: 'entity_type', operator: 'equals', value: 'character' },
-        ])
-        expect(findEntry(scaffold.props('sections'), 'Members', 'Entities').value).toEqual([
-            {
-                label: 'Seraphine (Character)',
-                href: { name: 'entities.show', params: 4 },
-            },
         ])
         expect(findEntry(scaffold.props('sections'), 'Child Collections', 'Children').value).toEqual([
             {
@@ -660,6 +720,7 @@ describe('read pages', () => {
                 href: { name: 'location-control.edit', params: 81 },
                 preserveScroll: true,
                 preserveState: true,
+                opensDrawer: true,
                 title: 'Aster Province -> New Accord',
                 badges: [{ label: 'Type', value: 'occupied' }],
                 meta: [
@@ -707,9 +768,13 @@ describe('read pages', () => {
 
         await clickButtonByText(wrapper, 'button', 'Advance →')
         await clickButtonByText(wrapper, 'button', 'Move to Trash')
+        await Promise.resolve()
 
         expect(routerPostMock).toHaveBeenCalledWith({ name: 'pipeline.advance', params: 99 })
-        expect(routerDeleteMock).toHaveBeenCalledWith({ name: 'pipeline.destroy', params: 99 })
+        expect(routerDeleteMock).toHaveBeenCalledWith(
+            { name: 'pipeline.destroy', params: 99 },
+            { onError: expect.any(Function) },
+        )
     })
 })
 
@@ -742,6 +807,8 @@ function mountPage(component, props, extraStubs = {}) {
                 AuthenticatedLayout: {
                     template: '<div><slot name="header" /><slot /></div>',
                 },
+                AppButton: AppButtonStub,
+                DrawerLink: DrawerLinkStub,
                 ScaffoldShowPage: ScaffoldShowPageStub,
                 ScaffoldIndexPage: ScaffoldIndexPageStub,
                 ...extraStubs,

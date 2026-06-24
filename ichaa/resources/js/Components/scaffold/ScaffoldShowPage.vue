@@ -27,6 +27,7 @@
                         :href="editHref"
                         :preserve-scroll="editPreserveScroll"
                         :preserve-state="editPreserveState"
+                        :opens-drawer="Boolean(editHref)"
                         variant="ghost"
                     >
                         {{ editLabel }}

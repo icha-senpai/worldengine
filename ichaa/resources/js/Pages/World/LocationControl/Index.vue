@@ -67,6 +67,7 @@ const items = computed(() =>
         href: route('location-control.edit', record.id),
         preserveScroll: true,
         preserveState: true,
+        opensDrawer: true,
         title: `${record.location?.name ?? 'Unknown'} -> ${record.controlling_entity?.name ?? 'Unknown'}`,
         badges: [badge('Type', record.control_type)],
         meta: buildMeta([

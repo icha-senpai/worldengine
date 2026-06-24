@@ -1,7 +1,7 @@
 <script setup>
 import { computed, useAttrs } from 'vue'
 import { router } from '@inertiajs/vue3'
-import { beginDrawerNavigation, isDrawerRouteHref } from '@/lib/drawerNavigation'
+import { beginDrawerNavigation } from '@/lib/drawerNavigation'
 
 defineOptions({
     inheritAttrs: false,
@@ -30,6 +30,7 @@ const props = defineProps({
     disabled: { type: Boolean, default: false },
     preserveScroll: { type: Boolean, default: false },
     preserveState: { type: Boolean, default: false },
+    opensDrawer: { type: Boolean, default: false },
     block: { type: Boolean, default: false },
 })
 
@@ -74,7 +75,7 @@ const buttonClasses = computed(() => [
     },
 ])
 
-const shouldStartDrawerNavigation = computed(() => isLink.value && isDrawerRouteHref(props.href))
+const shouldStartDrawerNavigation = computed(() => isLink.value && props.opensDrawer)
 
 function handleClick(event) {
     if (!isLink.value || props.disabled) {

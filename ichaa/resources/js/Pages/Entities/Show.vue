@@ -35,6 +35,7 @@
                         :href="route('entities.edit', entity.id)"
                         :preserve-scroll="true"
                         :preserve-state="true"
+                        opens-drawer
                         variant="ghost"
                     >
                         Edit
@@ -486,6 +487,7 @@
                         :href="route('faction-memberships.create', { faction_entity_id: entity.id, return_context: 'faction', return_entity_id: entity.id, tab: 'memberships' })"
                         :preserve-scroll="true"
                         :preserve-state="true"
+                        opens-drawer
                         variant="primary"
                     >
                         Add Member
@@ -558,6 +560,7 @@
                                     :href="route('faction-memberships.edit', { faction_membership: membership.id, return_context: 'faction', return_entity_id: entity.id, tab: 'memberships' })"
                                     :preserve-scroll="true"
                                     :preserve-state="true"
+                                    opens-drawer
                                     variant="ghost"
                                     size="sm"
                                 >
@@ -582,6 +585,7 @@
                         :href="route('faction-memberships.create', { member_entity_id: entity.id, return_context: 'member', return_entity_id: entity.id, tab: 'memberships' })"
                         :preserve-scroll="true"
                         :preserve-state="true"
+                        opens-drawer
                         variant="primary"
                     >
                         Add Affiliation
@@ -649,6 +653,7 @@
                                     :href="route('faction-memberships.edit', { faction_membership: membership.id, return_context: 'member', return_entity_id: entity.id, tab: 'memberships' })"
                                     :preserve-scroll="true"
                                     :preserve-state="true"
+                                    opens-drawer
                                     variant="ghost"
                                     size="sm"
                                 >
@@ -746,7 +751,7 @@ import SelectInput from '@/Components/SelectInput.vue'
 import TextareaInput from '@/Components/TextareaInput.vue'
 import TextInput from '@/Components/TextInput.vue'
 import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
-import { isRichDocument } from '@/Components/scaffold/formatters'
+import { formatLabel, isRichDocument } from '@/Components/scaffold/formatters'
 import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 // --- Props ---
@@ -1083,10 +1088,6 @@ const hasPowerTiers = computed(() =>
 )
 
 // --- Formatters ---
-
-const formatLabel = (str) => str
-    ? str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-    : '—'
 
 const formatDate = (dt) => {
     if (!dt) return '—'

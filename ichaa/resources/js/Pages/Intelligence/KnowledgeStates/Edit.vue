@@ -38,7 +38,7 @@ const sections = computed(() => [
         fields: [
             { key: 'accuracy', label: 'Accuracy', type: 'select', options: props.accuracyLevels },
             { key: 'current_belief_state', label: 'Belief State', type: 'select', options: props.beliefStates },
-            { key: 'knowledge_content', label: 'Knowledge Content JSON', type: 'json', rows: 8 },
+            { key: 'knowledge_content', label: 'Knowledge Content JSON', type: 'json', jsonMode: 'document', rows: 8 },
         ],
     },
 ])

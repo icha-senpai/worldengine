@@ -42,8 +42,8 @@ const sections = computed(() => [
             { key: 'divergence_level', label: 'Divergence Level' },
             { key: 'maintenance_effort', label: 'Maintenance Effort', type: 'select', options: props.maintenanceEfforts },
             { key: 'revelation_risk', label: 'Revelation Risk', type: 'select', options: props.revelationRisks },
-            { key: 'true_state', label: 'True State JSON', type: 'json', rows: 8 },
-            { key: 'perceived_state', label: 'Perceived State JSON', type: 'json', rows: 8 },
+            { key: 'true_state', label: 'True State JSON', type: 'json', jsonMode: 'document', rows: 8 },
+            { key: 'perceived_state', label: 'Perceived State JSON', type: 'json', jsonMode: 'document', rows: 8 },
         ],
     },
 ])

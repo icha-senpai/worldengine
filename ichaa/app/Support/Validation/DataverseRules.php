@@ -4,9 +4,6 @@ namespace App\Support\Validation;
 
 use App\Domain\Connections\ValueObjects\RelationshipType;
 use App\Domain\Connections\ValueObjects\TensionCharge;
-use App\Domain\Identity\Models\Entity;
-use App\Domain\Identity\Models\EntityAlias;
-use App\Domain\Identity\Models\EntityQuestion;
 use App\Domain\Identity\Models\MediaReference;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Intelligence\Models\KnowledgeState;
@@ -81,7 +78,7 @@ class DataverseRules
             static fn (string $type) => $type !== 'link',
         ));
 
-        $rules['data.attributes.media_type'] = ['required', 'string', 'in:' . implode(',', $uploadableMediaTypes)];
+        $rules['data.attributes.media_type'] = ['required', 'string', 'in:'.implode(',', $uploadableMediaTypes)];
         $rules['data.attributes.file_path'] = ['prohibited'];
         $rules['data.attributes.url'] = ['prohibited'];
         $rules['data.attributes.file_name'] = ['prohibited'];
@@ -146,7 +143,7 @@ class DataverseRules
                     'name' => ['required', 'string', 'max:255'],
                     'entity_type' => $resource === 'timelines'
                         ? ['nullable', 'string']
-                        : ['required', 'string', 'in:' . implode(',', EntityType::ALL)],
+                        : ['required', 'string', 'in:'.implode(',', EntityType::ALL)],
                     'summary' => self::richDocumentRule(),
                     'public_title' => ['nullable', 'string', 'max:255'],
                     'public_summary' => self::richDocumentRule(),
@@ -165,7 +162,7 @@ class DataverseRules
                     'public_title' => ['nullable', 'string', 'max:255'],
                     'entity_type' => $resource === 'timelines'
                         ? ['nullable', 'string']
-                        : ['sometimes', 'string', 'in:' . implode(',', EntityType::ALL)],
+                        : ['sometimes', 'string', 'in:'.implode(',', EntityType::ALL)],
                     'entity_sub_type' => ['nullable', 'string', 'max:255'],
                     'summary' => self::richDocumentRule(),
                     'public_summary' => self::richDocumentRule(),
@@ -262,8 +259,8 @@ class DataverseRules
                 'attributes' => [
                     'title' => ['required', 'string', 'max:255'],
                     'description' => ['nullable', 'string'],
-                    'media_type' => ['required', 'string', 'in:' . implode(',', MediaReference::MEDIA_TYPES)],
-                    'purpose' => ['required', 'string', 'in:' . implode(',', MediaReference::PURPOSES)],
+                    'media_type' => ['required', 'string', 'in:'.implode(',', MediaReference::MEDIA_TYPES)],
+                    'purpose' => ['required', 'string', 'in:'.implode(',', MediaReference::PURPOSES)],
                     'file_path' => ['nullable', 'string'],
                     'url' => ['nullable', 'url'],
                     'file_name' => ['nullable', 'string', 'max:255'],
@@ -290,8 +287,8 @@ class DataverseRules
                 'attributes' => [
                     'title' => ['sometimes', 'string', 'max:255'],
                     'description' => ['nullable', 'string'],
-                    'media_type' => ['sometimes', 'string', 'in:' . implode(',', MediaReference::MEDIA_TYPES)],
-                    'purpose' => ['sometimes', 'string', 'in:' . implode(',', MediaReference::PURPOSES)],
+                    'media_type' => ['sometimes', 'string', 'in:'.implode(',', MediaReference::MEDIA_TYPES)],
+                    'purpose' => ['sometimes', 'string', 'in:'.implode(',', MediaReference::PURPOSES)],
                     'file_path' => ['nullable', 'string'],
                     'url' => ['nullable', 'url'],
                     'file_name' => ['nullable', 'string', 'max:255'],
@@ -317,11 +314,11 @@ class DataverseRules
             ],
             'relationships' => $operation === 'store' ? [
                 'attributes' => [
-                    'relationship_type' => ['required', 'string', 'in:' . implode(',', RelationshipType::ALL)],
+                    'relationship_type' => ['required', 'string', 'in:'.implode(',', RelationshipType::ALL)],
                     'direction' => ['nullable', 'string'],
                     'perspective_a' => ['nullable', 'array'],
                     'perspective_b' => ['nullable', 'array'],
-                    'current_tension_charge' => ['nullable', 'string', 'in:' . implode(',', TensionCharge::ALL)],
+                    'current_tension_charge' => ['nullable', 'string', 'in:'.implode(',', TensionCharge::ALL)],
                     'is_active' => ['nullable', 'boolean'],
                     'perceived_type' => ['nullable', 'string'],
                     'true_type' => ['nullable', 'string'],
@@ -334,11 +331,11 @@ class DataverseRules
                 ],
             ] : [
                 'attributes' => [
-                    'relationship_type' => ['sometimes', 'string', 'in:' . implode(',', RelationshipType::ALL)],
+                    'relationship_type' => ['sometimes', 'string', 'in:'.implode(',', RelationshipType::ALL)],
                     'direction' => ['nullable', 'string'],
                     'perspective_a' => ['nullable', 'array'],
                     'perspective_b' => ['nullable', 'array'],
-                    'current_tension_charge' => ['nullable', 'string', 'in:' . implode(',', TensionCharge::ALL)],
+                    'current_tension_charge' => ['nullable', 'string', 'in:'.implode(',', TensionCharge::ALL)],
                     'charge_change_reason' => ['nullable', 'string'],
                     'is_active' => ['nullable', 'boolean'],
                     'perceived_type' => ['nullable', 'string'],
@@ -349,7 +346,7 @@ class DataverseRules
                 'attributes' => [
                     'name' => ['required', 'string', 'max:255'],
                     'relationship_type' => ['required', 'string'],
-                    'current_tension_charge' => ['nullable', 'string', 'in:' . implode(',', TensionCharge::ALL)],
+                    'current_tension_charge' => ['nullable', 'string', 'in:'.implode(',', TensionCharge::ALL)],
                     'is_active' => ['nullable', 'boolean'],
                     'visibility' => ['nullable', 'string'],
                     'content_classification' => ['nullable', 'string'],
@@ -358,7 +355,7 @@ class DataverseRules
                 'attributes' => [
                     'name' => ['sometimes', 'string', 'max:255'],
                     'relationship_type' => ['sometimes', 'string'],
-                    'current_tension_charge' => ['nullable', 'string', 'in:' . implode(',', TensionCharge::ALL)],
+                    'current_tension_charge' => ['nullable', 'string', 'in:'.implode(',', TensionCharge::ALL)],
                     'charge_change_reason' => ['nullable', 'string'],
                     'is_active' => ['nullable', 'boolean'],
                 ],
@@ -399,8 +396,8 @@ class DataverseRules
             'collections' => $operation === 'store' ? [
                 'attributes' => [
                     'name' => ['required', 'string', 'max:255'],
-                    'collection_type' => ['required', 'string', 'in:' . implode(',', Collection::TYPES)],
-                    'collection_mode' => ['required', 'string', 'in:' . implode(',', Collection::MODES)],
+                    'collection_type' => ['required', 'string', 'in:'.implode(',', Collection::TYPES)],
+                    'collection_mode' => ['required', 'string', 'in:'.implode(',', Collection::MODES)],
                     'rules' => ['nullable', 'array'],
                     'visibility' => ['nullable', 'string'],
                     'content_classification' => ['nullable', 'string'],
@@ -411,10 +408,10 @@ class DataverseRules
             ] : [
                 'attributes' => [
                     'name' => ['sometimes', 'string', 'max:255'],
-                    'collection_type' => ['sometimes', 'string', 'in:' . implode(',', Collection::TYPES)],
-                    'collection_mode' => ['sometimes', 'string', 'in:' . implode(',', Collection::MODES)],
+                    'collection_type' => ['sometimes', 'string', 'in:'.implode(',', Collection::TYPES)],
+                    'collection_mode' => ['sometimes', 'string', 'in:'.implode(',', Collection::MODES)],
                     'rules' => ['nullable', 'array'],
-                    'completion_state' => ['nullable', 'string', 'in:' . implode(',', Collection::COMPLETION_STATES)],
+                    'completion_state' => ['nullable', 'string', 'in:'.implode(',', Collection::COMPLETION_STATES)],
                 ],
                 'relationships' => [
                     'parent_collection_id' => ['nullable', 'integer', 'exists:collections,id'],
@@ -423,9 +420,9 @@ class DataverseRules
             'documents' => $operation === 'store' ? [
                 'attributes' => [
                     'title' => ['required', 'string', 'max:255'],
-                    'document_type' => ['required', 'string', 'in:' . implode(',', Document::DOCUMENT_TYPES)],
-                    'document_authenticity' => ['nullable', 'string', 'in:' . implode(',', Document::AUTHENTICITY_STATES)],
-                    'document_status' => ['nullable', 'string', 'in:' . implode(',', Document::DOCUMENT_STATUSES)],
+                    'document_type' => ['required', 'string', 'in:'.implode(',', Document::DOCUMENT_TYPES)],
+                    'document_authenticity' => ['nullable', 'string', 'in:'.implode(',', Document::AUTHENTICITY_STATES)],
+                    'document_status' => ['nullable', 'string', 'in:'.implode(',', Document::DOCUMENT_STATUSES)],
                     'official_narrative' => ['nullable', 'array'],
                     'true_content' => ['nullable', 'array'],
                     'era_created' => ['nullable', 'string'],
@@ -437,8 +434,8 @@ class DataverseRules
             ] : [
                 'attributes' => [
                     'title' => ['sometimes', 'string', 'max:255'],
-                    'document_authenticity' => ['nullable', 'string', 'in:' . implode(',', Document::AUTHENTICITY_STATES)],
-                    'document_status' => ['nullable', 'string', 'in:' . implode(',', Document::DOCUMENT_STATUSES)],
+                    'document_authenticity' => ['nullable', 'string', 'in:'.implode(',', Document::AUTHENTICITY_STATES)],
+                    'document_status' => ['nullable', 'string', 'in:'.implode(',', Document::DOCUMENT_STATUSES)],
                     'official_narrative' => ['nullable', 'array'],
                     'true_content' => ['nullable', 'array'],
                 ],
@@ -450,14 +447,14 @@ class DataverseRules
             'canon-references' => $operation === 'store' ? [
                 'attributes' => [
                     'universe' => ['required', 'string'],
-                    'level' => ['required', 'string', 'in:' . implode(',', SourceCanonReference::LEVELS)],
+                    'level' => ['required', 'string', 'in:'.implode(',', SourceCanonReference::LEVELS)],
                     'title' => ['required', 'string', 'max:255'],
                     'content' => ['nullable', 'array'],
-                    'universe_priority' => ['nullable', 'string', 'in:' . implode(',', SourceCanonReference::UNIVERSE_PRIORITIES)],
-                    'research_status' => ['nullable', 'string', 'in:' . implode(',', SourceCanonReference::RESEARCH_STATUSES)],
-                    'research_confidence' => ['nullable', 'string', 'in:' . implode(',', SourceCanonReference::RESEARCH_CONFIDENCES)],
-                    'category_type' => ['nullable', 'string', 'in:' . implode(',', SourceCanonReference::CATEGORY_TYPES)],
-                    'element_type' => ['nullable', 'string', 'in:' . implode(',', SourceCanonReference::ELEMENT_TYPES)],
+                    'universe_priority' => ['nullable', 'string', 'in:'.implode(',', SourceCanonReference::UNIVERSE_PRIORITIES)],
+                    'research_status' => ['nullable', 'string', 'in:'.implode(',', SourceCanonReference::RESEARCH_STATUSES)],
+                    'research_confidence' => ['nullable', 'string', 'in:'.implode(',', SourceCanonReference::RESEARCH_CONFIDENCES)],
+                    'category_type' => ['nullable', 'string', 'in:'.implode(',', SourceCanonReference::CATEGORY_TYPES)],
+                    'element_type' => ['nullable', 'string', 'in:'.implode(',', SourceCanonReference::ELEMENT_TYPES)],
                     'canon_disputed' => ['nullable', 'boolean'],
                 ],
                 'relationships' => [
@@ -468,14 +465,14 @@ class DataverseRules
             ] : [
                 'attributes' => [
                     'universe' => ['sometimes', 'string'],
-                    'level' => ['sometimes', 'string', 'in:' . implode(',', SourceCanonReference::LEVELS)],
+                    'level' => ['sometimes', 'string', 'in:'.implode(',', SourceCanonReference::LEVELS)],
                     'title' => ['sometimes', 'string', 'max:255'],
                     'content' => ['nullable', 'array'],
-                    'universe_priority' => ['nullable', 'string', 'in:' . implode(',', SourceCanonReference::UNIVERSE_PRIORITIES)],
-                    'research_status' => ['nullable', 'string', 'in:' . implode(',', SourceCanonReference::RESEARCH_STATUSES)],
-                    'research_confidence' => ['nullable', 'string', 'in:' . implode(',', SourceCanonReference::RESEARCH_CONFIDENCES)],
-                    'category_type' => ['nullable', 'string', 'in:' . implode(',', SourceCanonReference::CATEGORY_TYPES)],
-                    'element_type' => ['nullable', 'string', 'in:' . implode(',', SourceCanonReference::ELEMENT_TYPES)],
+                    'universe_priority' => ['nullable', 'string', 'in:'.implode(',', SourceCanonReference::UNIVERSE_PRIORITIES)],
+                    'research_status' => ['nullable', 'string', 'in:'.implode(',', SourceCanonReference::RESEARCH_STATUSES)],
+                    'research_confidence' => ['nullable', 'string', 'in:'.implode(',', SourceCanonReference::RESEARCH_CONFIDENCES)],
+                    'category_type' => ['nullable', 'string', 'in:'.implode(',', SourceCanonReference::CATEGORY_TYPES)],
+                    'element_type' => ['nullable', 'string', 'in:'.implode(',', SourceCanonReference::ELEMENT_TYPES)],
                     'canon_disputed' => ['nullable', 'boolean'],
                 ],
                 'relationships' => [
@@ -488,7 +485,7 @@ class DataverseRules
                 'attributes' => [
                     'source_universe' => ['required', 'string'],
                     'entry_mechanism' => ['nullable', 'array'],
-                    'status' => ['nullable', 'string', 'in:' . implode(',', CrossoverEntryPoint::STATUSES)],
+                    'status' => ['nullable', 'string', 'in:'.implode(',', CrossoverEntryPoint::STATUSES)],
                 ],
             ] : [
                 'attributes' => [
@@ -499,40 +496,40 @@ class DataverseRules
                     'memory_and_identity_rules' => ['nullable', 'array'],
                     'psychological_transition_rules' => ['nullable', 'array'],
                     'return_rules' => ['nullable', 'array'],
-                    'status' => ['nullable', 'string', 'in:' . implode(',', CrossoverEntryPoint::STATUSES)],
+                    'status' => ['nullable', 'string', 'in:'.implode(',', CrossoverEntryPoint::STATUSES)],
                 ],
             ],
             'secrets' => $operation === 'store' ? [
                 'attributes' => [
                     'title' => ['required', 'string', 'max:255'],
                     'secret_content' => ['required', 'array'],
-                    'secret_type' => ['required', 'string', 'in:' . implode(',', Secret::SECRET_TYPES)],
+                    'secret_type' => ['required', 'string', 'in:'.implode(',', Secret::SECRET_TYPES)],
                     'subject_entity_ids' => ['nullable', 'array'],
                     'subject_entity_ids.*' => ['integer', 'exists:entities,id'],
                     'holder_entity_ids' => ['nullable', 'array'],
                     'holder_entity_ids.*' => ['integer', 'exists:entities,id'],
                     'known_by_entity_ids' => ['nullable', 'array'],
                     'known_by_entity_ids.*' => ['integer', 'exists:entities,id'],
-                    'exposure_risk' => ['nullable', 'string', 'in:' . implode(',', Secret::EXPOSURE_RISKS)],
-                    'status' => ['nullable', 'string', 'in:' . implode(',', Secret::STATUSES)],
+                    'exposure_risk' => ['nullable', 'string', 'in:'.implode(',', Secret::EXPOSURE_RISKS)],
+                    'status' => ['nullable', 'string', 'in:'.implode(',', Secret::STATUSES)],
                 ],
             ] : [
                 'attributes' => [
                     'title' => ['sometimes', 'string'],
                     'secret_content' => ['nullable', 'array'],
-                    'secret_type' => ['sometimes', 'string', 'in:' . implode(',', Secret::SECRET_TYPES)],
-                    'exposure_risk' => ['nullable', 'string', 'in:' . implode(',', Secret::EXPOSURE_RISKS)],
+                    'secret_type' => ['sometimes', 'string', 'in:'.implode(',', Secret::SECRET_TYPES)],
+                    'exposure_risk' => ['nullable', 'string', 'in:'.implode(',', Secret::EXPOSURE_RISKS)],
                     'revelation_trigger' => ['nullable', 'string'],
-                    'status' => ['nullable', 'string', 'in:' . implode(',', Secret::STATUSES)],
+                    'status' => ['nullable', 'string', 'in:'.implode(',', Secret::STATUSES)],
                 ],
             ],
             'knowledge-states' => $operation === 'store' ? [
                 'attributes' => [
-                    'knowledge_type' => ['required', 'string', 'in:' . implode(',', KnowledgeState::KNOWLEDGE_TYPES)],
+                    'knowledge_type' => ['required', 'string', 'in:'.implode(',', KnowledgeState::KNOWLEDGE_TYPES)],
                     'knowledge_content' => ['nullable', 'array'],
-                    'accuracy' => ['required', 'string', 'in:' . implode(',', KnowledgeState::ACCURACY_LEVELS)],
-                    'current_belief_state' => ['required', 'string', 'in:' . implode(',', KnowledgeState::BELIEF_STATES)],
-                    'acquired_through' => ['required', 'string', 'in:' . implode(',', KnowledgeState::ACQUISITION_METHODS)],
+                    'accuracy' => ['required', 'string', 'in:'.implode(',', KnowledgeState::ACCURACY_LEVELS)],
+                    'current_belief_state' => ['required', 'string', 'in:'.implode(',', KnowledgeState::BELIEF_STATES)],
+                    'acquired_through' => ['required', 'string', 'in:'.implode(',', KnowledgeState::ACQUISITION_METHODS)],
                     'acquired_at_era' => ['nullable', 'string'],
                 ],
                 'relationships' => [
@@ -547,41 +544,41 @@ class DataverseRules
             ] : [
                 'attributes' => [
                     'knowledge_content' => ['nullable', 'array'],
-                    'accuracy' => ['sometimes', 'string', 'in:' . implode(',', KnowledgeState::ACCURACY_LEVELS)],
-                    'current_belief_state' => ['sometimes', 'string', 'in:' . implode(',', KnowledgeState::BELIEF_STATES)],
+                    'accuracy' => ['sometimes', 'string', 'in:'.implode(',', KnowledgeState::ACCURACY_LEVELS)],
+                    'current_belief_state' => ['sometimes', 'string', 'in:'.implode(',', KnowledgeState::BELIEF_STATES)],
                 ],
             ],
             'perception-states' => $operation === 'store' ? [
                 'attributes' => [
-                    'subject_type' => ['required', 'string', 'in:' . implode(',', PerceptionState::SUBJECT_TYPES)],
+                    'subject_type' => ['required', 'string', 'in:'.implode(',', PerceptionState::SUBJECT_TYPES)],
                     'subject_id' => ['required', 'integer'],
                     'true_state' => ['required', 'array'],
                     'perceived_state' => ['required', 'array'],
-                    'divergence_level' => ['required', 'string', 'in:' . implode(',', PerceptionState::DIVERGENCE_LEVELS)],
+                    'divergence_level' => ['required', 'string', 'in:'.implode(',', PerceptionState::DIVERGENCE_LEVELS)],
                     'maintained_by_entity_ids' => ['nullable', 'array'],
                     'maintained_by_entity_ids.*' => ['integer', 'exists:entities,id'],
-                    'maintenance_method' => ['nullable', 'string', 'in:' . implode(',', PerceptionState::MAINTENANCE_METHODS)],
-                    'maintenance_effort' => ['nullable', 'string', 'in:' . implode(',', PerceptionState::MAINTENANCE_EFFORTS)],
-                    'revelation_risk' => ['nullable', 'string', 'in:' . implode(',', PerceptionState::REVELATION_RISKS)],
+                    'maintenance_method' => ['nullable', 'string', 'in:'.implode(',', PerceptionState::MAINTENANCE_METHODS)],
+                    'maintenance_effort' => ['nullable', 'string', 'in:'.implode(',', PerceptionState::MAINTENANCE_EFFORTS)],
+                    'revelation_risk' => ['nullable', 'string', 'in:'.implode(',', PerceptionState::REVELATION_RISKS)],
                 ],
             ] : [
                 'attributes' => [
                     'true_state' => ['nullable', 'array'],
                     'perceived_state' => ['nullable', 'array'],
-                    'divergence_level' => ['nullable', 'string', 'in:' . implode(',', PerceptionState::DIVERGENCE_LEVELS)],
-                    'maintenance_effort' => ['nullable', 'string', 'in:' . implode(',', PerceptionState::MAINTENANCE_EFFORTS)],
-                    'revelation_risk' => ['nullable', 'string', 'in:' . implode(',', PerceptionState::REVELATION_RISKS)],
+                    'divergence_level' => ['nullable', 'string', 'in:'.implode(',', PerceptionState::DIVERGENCE_LEVELS)],
+                    'maintenance_effort' => ['nullable', 'string', 'in:'.implode(',', PerceptionState::MAINTENANCE_EFFORTS)],
+                    'revelation_risk' => ['nullable', 'string', 'in:'.implode(',', PerceptionState::REVELATION_RISKS)],
                 ],
             ],
             'power-interactions' => $operation === 'store' ? [
                 'attributes' => [
                     'interaction_name' => ['required', 'string', 'max:255'],
                     'description' => ['nullable', 'array'],
-                    'directionality' => ['nullable', 'string', 'in:' . implode(',', PowerInteraction::DIRECTIONALITY_TYPES)],
+                    'directionality' => ['nullable', 'string', 'in:'.implode(',', PowerInteraction::DIRECTIONALITY_TYPES)],
                     'effects' => ['nullable', 'array'],
-                    'interaction_scale' => ['nullable', 'string', 'in:' . implode(',', PowerInteraction::SCALE_TYPES)],
-                    'knowledge_state' => ['nullable', 'string', 'in:' . implode(',', PowerInteraction::KNOWLEDGE_STATES)],
-                    'danger_rating' => ['nullable', 'string', 'in:' . implode(',', PowerInteraction::DANGER_RATINGS)],
+                    'interaction_scale' => ['nullable', 'string', 'in:'.implode(',', PowerInteraction::SCALE_TYPES)],
+                    'knowledge_state' => ['nullable', 'string', 'in:'.implode(',', PowerInteraction::KNOWLEDGE_STATES)],
+                    'danger_rating' => ['nullable', 'string', 'in:'.implode(',', PowerInteraction::DANGER_RATINGS)],
                     'proximity_required' => ['nullable', 'boolean'],
                     'source_universe_a' => ['nullable', 'string'],
                     'source_universe_b' => ['nullable', 'string'],
@@ -595,14 +592,14 @@ class DataverseRules
                     'interaction_name' => ['sometimes', 'string', 'max:255'],
                     'description' => ['nullable', 'array'],
                     'effects' => ['nullable', 'array'],
-                    'knowledge_state' => ['nullable', 'string', 'in:' . implode(',', PowerInteraction::KNOWLEDGE_STATES)],
-                    'danger_rating' => ['nullable', 'string', 'in:' . implode(',', PowerInteraction::DANGER_RATINGS)],
+                    'knowledge_state' => ['nullable', 'string', 'in:'.implode(',', PowerInteraction::KNOWLEDGE_STATES)],
+                    'danger_rating' => ['nullable', 'string', 'in:'.implode(',', PowerInteraction::DANGER_RATINGS)],
                     'unresolved_flag' => ['nullable', 'boolean'],
                 ],
             ],
             'travel-routes' => $operation === 'store' ? [
                 'attributes' => [
-                    'route_type' => ['required', 'string', 'in:' . implode(',', TravelRoute::ROUTE_TYPES)],
+                    'route_type' => ['required', 'string', 'in:'.implode(',', TravelRoute::ROUTE_TYPES)],
                     'standard_duration' => ['nullable', 'string'],
                     'method_variants' => ['nullable', 'array'],
                     'bidirectional' => ['nullable', 'boolean'],
@@ -621,7 +618,7 @@ class DataverseRules
             ],
             'location-containment' => $operation === 'store' ? [
                 'attributes' => [
-                    'containment_type' => ['required', 'string', 'in:' . implode(',', LocationContainment::CONTAINMENT_TYPES)],
+                    'containment_type' => ['required', 'string', 'in:'.implode(',', LocationContainment::CONTAINMENT_TYPES)],
                     'era_start' => ['nullable', 'string'],
                     'era_end' => ['nullable', 'string'],
                     'is_active' => ['nullable', 'boolean'],
@@ -633,7 +630,7 @@ class DataverseRules
                 ],
             ] : [
                 'attributes' => [
-                    'containment_type' => ['sometimes', 'string', 'in:' . implode(',', LocationContainment::CONTAINMENT_TYPES)],
+                    'containment_type' => ['sometimes', 'string', 'in:'.implode(',', LocationContainment::CONTAINMENT_TYPES)],
                     'era_start' => ['nullable', 'string'],
                     'era_end' => ['nullable', 'string'],
                     'is_active' => ['nullable', 'boolean'],
@@ -646,12 +643,12 @@ class DataverseRules
             ],
             'location-control-records' => $operation === 'store' ? [
                 'attributes' => [
-                    'control_type' => ['required', 'string', 'in:' . implode(',', LocationControlHistory::CONTROL_TYPES)],
+                    'control_type' => ['required', 'string', 'in:'.implode(',', LocationControlHistory::CONTROL_TYPES)],
                     'control_start_era' => ['nullable', 'string'],
                     'control_end_era' => ['nullable', 'string'],
                     'how_control_was_established' => ['nullable', 'array'],
                     'how_control_ended' => ['nullable', 'array'],
-                    'resistance_level' => ['nullable', 'string', 'in:' . implode(',', LocationControlHistory::RESISTANCE_LEVELS)],
+                    'resistance_level' => ['nullable', 'string', 'in:'.implode(',', LocationControlHistory::RESISTANCE_LEVELS)],
                     'notes' => ['nullable', 'array'],
                     'visibility' => ['nullable', 'string'],
                     'content_classification' => ['nullable', 'string'],
@@ -663,12 +660,12 @@ class DataverseRules
                 ],
             ] : [
                 'attributes' => [
-                    'control_type' => ['sometimes', 'string', 'in:' . implode(',', LocationControlHistory::CONTROL_TYPES)],
+                    'control_type' => ['sometimes', 'string', 'in:'.implode(',', LocationControlHistory::CONTROL_TYPES)],
                     'control_start_era' => ['nullable', 'string'],
                     'control_end_era' => ['nullable', 'string'],
                     'how_control_was_established' => ['nullable', 'array'],
                     'how_control_ended' => ['nullable', 'array'],
-                    'resistance_level' => ['nullable', 'string', 'in:' . implode(',', LocationControlHistory::RESISTANCE_LEVELS)],
+                    'resistance_level' => ['nullable', 'string', 'in:'.implode(',', LocationControlHistory::RESISTANCE_LEVELS)],
                     'notes' => ['nullable', 'array'],
                     'is_current' => ['nullable', 'boolean'],
                 ],
@@ -681,8 +678,8 @@ class DataverseRules
             'meta' => $operation === 'store' ? [
                 'attributes' => [
                     'title' => ['required', 'string', 'max:255'],
-                    'category' => ['required', 'string', 'in:' . implode(',', Meta::CATEGORIES)],
-                    'meta_note_type' => ['required', 'string', 'in:' . implode(',', Meta::NOTE_TYPES)],
+                    'category' => ['required', 'string', 'in:'.implode(',', Meta::CATEGORIES)],
+                    'meta_note_type' => ['required', 'string', 'in:'.implode(',', Meta::NOTE_TYPES)],
                     'content' => ['nullable', 'array'],
                     'sense_sight' => ['nullable', 'string'],
                     'sense_sound' => ['nullable', 'string'],
@@ -695,9 +692,9 @@ class DataverseRules
                     'symbol_usage_context' => ['nullable', 'string'],
                     'symbol_associated_entity_ids' => ['nullable', 'array'],
                     'symbol_associated_entity_ids.*' => ['integer', 'exists:entities,id'],
-                    'symbol_scope' => ['nullable', 'string', 'in:' . implode(',', Meta::SYMBOL_SCOPES)],
-                    'priority' => ['nullable', 'string', 'in:' . implode(',', Meta::PRIORITIES)],
-                    'action_status' => ['nullable', 'string', 'in:' . implode(',', Meta::ACTION_STATUSES)],
+                    'symbol_scope' => ['nullable', 'string', 'in:'.implode(',', Meta::SYMBOL_SCOPES)],
+                    'priority' => ['nullable', 'string', 'in:'.implode(',', Meta::PRIORITIES)],
+                    'action_status' => ['nullable', 'string', 'in:'.implode(',', Meta::ACTION_STATUSES)],
                     'visibility' => ['nullable', 'string'],
                     'content_classification' => ['nullable', 'string'],
                 ],
@@ -707,11 +704,11 @@ class DataverseRules
             ] : [
                 'attributes' => [
                     'title' => ['sometimes', 'string', 'max:255'],
-                    'category' => ['sometimes', 'string', 'in:' . implode(',', Meta::CATEGORIES)],
-                    'meta_note_type' => ['sometimes', 'string', 'in:' . implode(',', Meta::NOTE_TYPES)],
+                    'category' => ['sometimes', 'string', 'in:'.implode(',', Meta::CATEGORIES)],
+                    'meta_note_type' => ['sometimes', 'string', 'in:'.implode(',', Meta::NOTE_TYPES)],
                     'content' => ['nullable', 'array'],
-                    'priority' => ['nullable', 'string', 'in:' . implode(',', Meta::PRIORITIES)],
-                    'action_status' => ['nullable', 'string', 'in:' . implode(',', Meta::ACTION_STATUSES)],
+                    'priority' => ['nullable', 'string', 'in:'.implode(',', Meta::PRIORITIES)],
+                    'action_status' => ['nullable', 'string', 'in:'.implode(',', Meta::ACTION_STATUSES)],
                     'resolution_notes' => ['nullable', 'array'],
                     'resolved_at' => ['nullable', 'date'],
                     'sense_sight' => ['nullable', 'string'],
@@ -721,13 +718,23 @@ class DataverseRules
                     'sense_touch' => ['nullable', 'string'],
                     'sense_magical' => ['nullable', 'string'],
                     'emotional_register' => ['nullable', 'string'],
+                    'symbol_name' => ['nullable', 'string', 'max:255'],
+                    'symbol_usage_context' => ['nullable', 'string'],
+                    'symbol_associated_entity_ids' => ['nullable', 'array'],
+                    'symbol_associated_entity_ids.*' => ['integer', 'exists:entities,id'],
+                    'symbol_scope' => ['nullable', 'string', 'in:'.implode(',', Meta::SYMBOL_SCOPES)],
+                    'visibility' => ['nullable', 'string'],
+                    'content_classification' => ['nullable', 'string'],
+                ],
+                'relationships' => [
+                    'symbol_origin_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
                 ],
             ],
             'pipeline-items' => $operation === 'store' ? [
                 'attributes' => [
                     'title' => ['required', 'string', 'max:255'],
-                    'pipeline_type' => ['required', 'string', 'in:' . implode(',', PipelineItem::PIPELINE_TYPES)],
-                    'pipeline_stage' => ['nullable', 'string', 'in:' . implode(',', PipelineItem::PIPELINE_STAGES)],
+                    'pipeline_type' => ['required', 'string', 'in:'.implode(',', PipelineItem::PIPELINE_TYPES)],
+                    'pipeline_stage' => ['nullable', 'string', 'in:'.implode(',', PipelineItem::PIPELINE_STAGES)],
                     'emotional_beat' => ['nullable', 'string', 'max:255'],
                     'content' => self::richDocumentRule(),
                     'narrative_purpose' => self::richDocumentRule(),
@@ -748,8 +755,8 @@ class DataverseRules
             ] : [
                 'attributes' => [
                     'title' => ['sometimes', 'string'],
-                    'pipeline_type' => ['sometimes', 'string', 'in:' . implode(',', PipelineItem::PIPELINE_TYPES)],
-                    'pipeline_stage' => ['nullable', 'string', 'in:' . implode(',', PipelineItem::PIPELINE_STAGES)],
+                    'pipeline_type' => ['sometimes', 'string', 'in:'.implode(',', PipelineItem::PIPELINE_TYPES)],
+                    'pipeline_stage' => ['nullable', 'string', 'in:'.implode(',', PipelineItem::PIPELINE_STAGES)],
                     'content' => self::richDocumentRule(),
                     'word_count' => ['nullable', 'integer'],
                     'reading_time_minutes' => ['nullable', 'integer'],
@@ -763,16 +770,17 @@ class DataverseRules
                 'relationships' => [
                     'pov_character_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
                     'location_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
+                    'tracked_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
                 ],
             ],
             'glossary' => $operation === 'store' ? [
                 'attributes' => [
                     'term' => ['required', 'string', 'max:255'],
-                    'usage_context' => ['required', 'string', 'in:' . implode(',', Glossary::USAGE_CONTEXTS)],
+                    'usage_context' => ['required', 'string', 'in:'.implode(',', Glossary::USAGE_CONTEXTS)],
                     'definition' => ['required', 'array'],
                     'origin_universe' => ['nullable', 'string'],
                     'era_introduced' => ['nullable', 'string'],
-                    'term_status' => ['nullable', 'string', 'in:' . implode(',', Glossary::TERM_STATUSES)],
+                    'term_status' => ['nullable', 'string', 'in:'.implode(',', Glossary::TERM_STATUSES)],
                     'related_term_ids' => ['nullable', 'array'],
                     'related_term_ids.*' => ['integer'],
                 ],
@@ -783,10 +791,10 @@ class DataverseRules
             ] : [
                 'attributes' => [
                     'term' => ['sometimes', 'string', 'max:255'],
-                    'usage_context' => ['sometimes', 'string', 'in:' . implode(',', Glossary::USAGE_CONTEXTS)],
+                    'usage_context' => ['sometimes', 'string', 'in:'.implode(',', Glossary::USAGE_CONTEXTS)],
                     'definition' => ['nullable', 'array'],
                     'extended_notes' => ['nullable', 'array'],
-                    'term_status' => ['nullable', 'string', 'in:' . implode(',', Glossary::TERM_STATUSES)],
+                    'term_status' => ['nullable', 'string', 'in:'.implode(',', Glossary::TERM_STATUSES)],
                     'suppression_notes' => ['nullable', 'array'],
                     'related_term_ids' => ['nullable', 'array'],
                     'related_term_ids.*' => ['integer'],
@@ -800,7 +808,7 @@ class DataverseRules
                 'attributes' => [
                     'title' => ['required', 'string', 'max:255'],
                     'session_date' => ['nullable', 'date'],
-                    'external_tool' => ['required', 'string', 'in:' . implode(',', SessionLog::EXTERNAL_TOOLS)],
+                    'external_tool' => ['required', 'string', 'in:'.implode(',', SessionLog::EXTERNAL_TOOLS)],
                     'focus_entity_ids' => ['nullable', 'array'],
                     'focus_entity_ids.*' => ['integer', 'exists:entities,id'],
                     'focus_group_relationship_ids' => ['nullable', 'array'],
@@ -811,14 +819,14 @@ class DataverseRules
                     'decisions_made' => ['nullable', 'array'],
                     'changes_applied' => ['nullable', 'array'],
                     'open_threads' => ['nullable', 'array'],
-                    'session_significance' => ['nullable', 'string', 'in:' . implode(',', SessionLog::SIGNIFICANCE_LEVELS)],
+                    'session_significance' => ['nullable', 'string', 'in:'.implode(',', SessionLog::SIGNIFICANCE_LEVELS)],
                     'notes' => ['nullable', 'array'],
                 ],
             ] : [
                 'attributes' => [
                     'title' => ['sometimes', 'string'],
                     'session_date' => ['nullable', 'date'],
-                    'external_tool' => ['sometimes', 'string', 'in:' . implode(',', SessionLog::EXTERNAL_TOOLS)],
+                    'external_tool' => ['sometimes', 'string', 'in:'.implode(',', SessionLog::EXTERNAL_TOOLS)],
                     'focus_entity_ids' => ['nullable', 'array'],
                     'focus_entity_ids.*' => ['integer', 'exists:entities,id'],
                     'focus_group_relationship_ids' => ['nullable', 'array'],
@@ -829,7 +837,7 @@ class DataverseRules
                     'decisions_made' => ['nullable', 'array'],
                     'changes_applied' => ['nullable', 'array'],
                     'open_threads' => ['nullable', 'array'],
-                    'session_significance' => ['nullable', 'string', 'in:' . implode(',', SessionLog::SIGNIFICANCE_LEVELS)],
+                    'session_significance' => ['nullable', 'string', 'in:'.implode(',', SessionLog::SIGNIFICANCE_LEVELS)],
                     'notes' => ['nullable', 'array'],
                 ],
             ],
@@ -864,16 +872,16 @@ class DataverseRules
                     'source_date_universe' => ['nullable', 'string'],
                     'timeline_position' => ['nullable', 'integer'],
                     'primordial_era' => ['nullable', 'boolean'],
-                    'time_density' => ['nullable', 'string', 'in:' . implode(',', Timeline::TIME_DENSITY_LEVELS)],
-                    'causality_type' => ['nullable', 'string', 'in:' . implode(',', Timeline::CAUSALITY_TYPES)],
+                    'time_density' => ['nullable', 'string', 'in:'.implode(',', Timeline::TIME_DENSITY_LEVELS)],
+                    'causality_type' => ['nullable', 'string', 'in:'.implode(',', Timeline::CAUSALITY_TYPES)],
                     'causality_notes' => ['nullable', 'string'],
-                    'event_significance' => ['nullable', 'string', 'in:' . implode(',', Timeline::EVENT_SIGNIFICANCE_LEVELS)],
+                    'event_significance' => ['nullable', 'string', 'in:'.implode(',', Timeline::EVENT_SIGNIFICANCE_LEVELS)],
                     'is_atemporal' => ['nullable', 'boolean'],
                     'public_narrative' => ['nullable', 'array'],
                     'true_narrative' => ['nullable', 'array'],
-                    'narrative_divergence' => ['nullable', 'string', 'in:' . implode(',', Timeline::NARRATIVE_DIVERGENCE_LEVELS)],
+                    'narrative_divergence' => ['nullable', 'string', 'in:'.implode(',', Timeline::NARRATIVE_DIVERGENCE_LEVELS)],
                     'truth_revealed_at_era' => ['nullable', 'string'],
-                    'temporal_certainty' => ['nullable', 'string', 'in:' . implode(',', Timeline::TEMPORAL_CERTAINTY_LEVELS)],
+                    'temporal_certainty' => ['nullable', 'string', 'in:'.implode(',', Timeline::TEMPORAL_CERTAINTY_LEVELS)],
                 ],
                 'relationships' => [
                     'timeline_id' => ['nullable', 'integer', 'exists:entities,id'],
@@ -887,12 +895,12 @@ class DataverseRules
                     'au_date' => ['nullable', 'string'],
                     'source_date' => ['nullable', 'string'],
                     'snapshot_label' => ['nullable', 'string', 'max:255'],
-                    'snapshot_significance' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS)],
+                    'snapshot_significance' => ['nullable', 'string', 'in:'.implode(',', CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS)],
                     'significance_reason' => ['nullable', 'string'],
                     'current_trauma_profile' => self::richDocumentRule(),
                     'active_psychological_patterns' => self::richDocumentRule(),
-                    'current_stability_level' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::STABILITY_LEVELS)],
-                    'mask_integrity' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::MASK_INTEGRITY_LEVELS)],
+                    'current_stability_level' => ['nullable', 'string', 'in:'.implode(',', CharacterStateTracker::STABILITY_LEVELS)],
+                    'mask_integrity' => ['nullable', 'string', 'in:'.implode(',', CharacterStateTracker::MASK_INTEGRITY_LEVELS)],
                     'timeline_position' => ['nullable', 'integer'],
                     'key_relationships_summary' => ['nullable', 'array'],
                     'active_group_relationship_ids' => ['nullable', 'array'],
@@ -907,12 +915,12 @@ class DataverseRules
                     'au_date' => ['nullable', 'string'],
                     'source_date' => ['nullable', 'string'],
                     'snapshot_label' => ['nullable', 'string', 'max:255'],
-                    'snapshot_significance' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS)],
+                    'snapshot_significance' => ['nullable', 'string', 'in:'.implode(',', CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS)],
                     'significance_reason' => ['nullable', 'string'],
                     'current_trauma_profile' => self::richDocumentRule(),
                     'active_psychological_patterns' => self::richDocumentRule(),
-                    'current_stability_level' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::STABILITY_LEVELS)],
-                    'mask_integrity' => ['nullable', 'string', 'in:' . implode(',', CharacterStateTracker::MASK_INTEGRITY_LEVELS)],
+                    'current_stability_level' => ['nullable', 'string', 'in:'.implode(',', CharacterStateTracker::STABILITY_LEVELS)],
+                    'mask_integrity' => ['nullable', 'string', 'in:'.implode(',', CharacterStateTracker::MASK_INTEGRITY_LEVELS)],
                     'timeline_position' => ['nullable', 'integer'],
                     'key_relationships_summary' => ['nullable', 'array'],
                     'active_group_relationship_ids' => ['nullable', 'array'],
@@ -927,14 +935,14 @@ class DataverseRules
                     'name' => ['required', 'string', 'max:255'],
                     'au_date' => ['nullable', 'string'],
                     'description' => ['nullable', 'array'],
-                    'narrative_significance' => ['nullable', 'string', 'in:' . implode(',', ConcurrencyGroup::SIGNIFICANCE_LEVELS)],
+                    'narrative_significance' => ['nullable', 'string', 'in:'.implode(',', ConcurrencyGroup::SIGNIFICANCE_LEVELS)],
                 ],
             ] : [
                 'attributes' => [
                     'name' => ['sometimes', 'string'],
                     'au_date' => ['nullable', 'string'],
                     'description' => ['nullable', 'array'],
-                    'narrative_significance' => ['nullable', 'string', 'in:' . implode(',', ConcurrencyGroup::SIGNIFICANCE_LEVELS)],
+                    'narrative_significance' => ['nullable', 'string', 'in:'.implode(',', ConcurrencyGroup::SIGNIFICANCE_LEVELS)],
                 ],
             ],
             default => null,
@@ -961,7 +969,7 @@ class DataverseRules
             ],
             'relationship-tension-charge', 'group-relationship-tension-charge' => [
                 'attributes' => [
-                    'new_charge' => ['required', 'string', 'in:' . implode(',', TensionCharge::ALL)],
+                    'new_charge' => ['required', 'string', 'in:'.implode(',', TensionCharge::ALL)],
                     'reason' => ['nullable', 'string'],
                 ],
             ],
@@ -998,14 +1006,14 @@ class DataverseRules
             'power-interaction-resolve' => [
                 'attributes' => [
                     'resolution_notes' => ['nullable', 'array'],
-                    'knowledge_state' => ['nullable', 'string', 'in:' . implode(',', PowerInteraction::KNOWLEDGE_STATES)],
+                    'knowledge_state' => ['nullable', 'string', 'in:'.implode(',', PowerInteraction::KNOWLEDGE_STATES)],
                 ],
             ],
             'power-interaction-instance' => [
                 'attributes' => [
                     'involved_entity_ids' => ['nullable', 'array'],
                     'involved_entity_ids.*' => ['integer', 'exists:entities,id'],
-                    'outcome_match' => ['required', 'string', 'in:' . implode(',', PowerInteractionInstance::OUTCOME_MATCHES)],
+                    'outcome_match' => ['required', 'string', 'in:'.implode(',', PowerInteractionInstance::OUTCOME_MATCHES)],
                     'outcome_notes' => ['nullable', 'array'],
                     'observed_at_era' => ['nullable', 'string'],
                 ],
@@ -1060,7 +1068,7 @@ class DataverseRules
     {
         $modelClass = ApiResourceRegistry::modelClass($resource);
         /** @var Model $model */
-        $model = new $modelClass();
+        $model = new $modelClass;
         $casts = $model->getCasts();
         $attributes = [];
 

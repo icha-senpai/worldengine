@@ -72,8 +72,8 @@ const sections = computed(() => [
     {
         title: 'Narratives',
         fields: [
-            { key: 'official_narrative', label: 'Official Narrative JSON', type: 'json', rows: 8 },
-            { key: 'true_content', label: 'True Content JSON', type: 'json', rows: 8 },
+            { key: 'official_narrative', label: 'Official Narrative JSON', type: 'json', jsonMode: 'document', rows: 8 },
+            { key: 'true_content', label: 'True Content JSON', type: 'json', jsonMode: 'document', rows: 8 },
         ],
     },
 ])

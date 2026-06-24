@@ -34,7 +34,7 @@ const sections = computed(() => [
         title: 'Timeline',
         fields: [
             { key: 'name', label: 'Name', required: true },
-            { key: 'summary', label: 'Summary', type: 'json', rows: 4 },
+            { key: 'summary', label: 'Summary', type: 'json', jsonMode: 'document', rows: 4 },
             { key: 'visibility', label: 'Visibility' },
         ],
     },

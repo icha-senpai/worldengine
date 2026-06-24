@@ -41,6 +41,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { formatLabel } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
     item: { type: Object, required: true },
@@ -83,7 +84,4 @@ const dimensionLabel = computed(() => {
     return `${width}×${height}`
 })
 
-const formatLabel = (value) => value
-    ? value.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase())
-    : '—'
 </script>

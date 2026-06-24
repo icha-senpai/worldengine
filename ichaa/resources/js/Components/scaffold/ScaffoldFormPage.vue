@@ -461,29 +461,7 @@ const handleFileInput = (field, event) => {
 }
 
 function jsonMode(field) {
-    if (field.jsonMode) {
-        return field.jsonMode
-    }
-
-    const key = String(field.key ?? '').toLowerCase()
-    const label = String(field.label ?? '').toLowerCase()
-
-    if (key.endsWith('_ids') || label.includes(' ids')) {
-        return 'ids'
-    }
-
-    if (
-        key.includes('effects') ||
-        key.includes('hazards') ||
-        key.includes('variants') ||
-        key.includes('changes') ||
-        key.includes('decisions') ||
-        key.includes('threads')
-    ) {
-        return 'list'
-    }
-
-    return 'document'
+    return field.jsonMode ?? 'document'
 }
 
 function isDocumentField(field) {
@@ -631,6 +609,8 @@ const jsonPlaceholder = (field) => {
             return '1, 2, 3'
         case 'list':
             return 'One item per line'
+        case 'raw':
+            return '{\n  "key": "value"\n}'
         default:
             return 'Start writing...'
     }
@@ -646,6 +626,8 @@ const jsonHelp = (field) => {
             return 'Type IDs normally with commas or new lines, or paste raw JSON.'
         case 'list':
             return 'Type one item per line, or paste raw JSON.'
+        case 'raw':
+            return 'Paste valid JSON.'
         default:
             return 'Rich text field with formatting, colors, links, images, and table tools.'
     }
@@ -688,10 +670,12 @@ const normalizeJsonField = (field) => {
                 props.form[field.key] = parseListValue(value)
                 jsonErrors[field.key] = ''
                 return true
+            case 'raw':
+                jsonErrors[field.key] = 'Enter valid JSON.'
+                return false
             default:
-                props.form[field.key] = prepareRichDocumentForSubmit(value, field.emptyValue ?? null)
-                jsonErrors[field.key] = ''
-                return true
+                jsonErrors[field.key] = 'Unsupported JSON field mode.'
+                return false
         }
     }
 }

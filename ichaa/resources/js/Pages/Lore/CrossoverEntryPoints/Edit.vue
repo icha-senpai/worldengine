@@ -26,6 +26,7 @@ const props = defineProps({
 })
 
 const form = useForm({
+    source_universe: props.entryPoint.source_universe ?? '',
     entry_mechanism: props.entryPoint.entry_mechanism ?? null,
     power_transition_rules: props.entryPoint.power_transition_rules ?? null,
     physical_transition_rules: props.entryPoint.physical_transition_rules ?? null,
@@ -39,13 +40,14 @@ const sections = computed(() => [
     {
         title: 'Entry Point',
         fields: [
+            { key: 'source_universe', label: 'Source Universe', required: true },
             { key: 'status', label: 'Status', type: 'select', options: props.statuses },
-            { key: 'entry_mechanism', label: 'Entry Mechanism JSON', type: 'json', rows: 6 },
-            { key: 'power_transition_rules', label: 'Power Transition Rules JSON', type: 'json', rows: 6 },
-            { key: 'physical_transition_rules', label: 'Physical Transition Rules JSON', type: 'json', rows: 6 },
-            { key: 'memory_and_identity_rules', label: 'Memory and Identity Rules JSON', type: 'json', rows: 6 },
-            { key: 'psychological_transition_rules', label: 'Psychological Transition Rules JSON', type: 'json', rows: 6 },
-            { key: 'return_rules', label: 'Return Rules JSON', type: 'json', rows: 6 },
+            { key: 'entry_mechanism', label: 'Entry Mechanism JSON', type: 'json', jsonMode: 'document', rows: 6 },
+            { key: 'power_transition_rules', label: 'Power Transition Rules JSON', type: 'json', jsonMode: 'document', rows: 6 },
+            { key: 'physical_transition_rules', label: 'Physical Transition Rules JSON', type: 'json', jsonMode: 'document', rows: 6 },
+            { key: 'memory_and_identity_rules', label: 'Memory and Identity Rules JSON', type: 'json', jsonMode: 'document', rows: 6 },
+            { key: 'psychological_transition_rules', label: 'Psychological Transition Rules JSON', type: 'json', jsonMode: 'document', rows: 6 },
+            { key: 'return_rules', label: 'Return Rules JSON', type: 'json', jsonMode: 'document', rows: 6 },
         ],
     },
 ])

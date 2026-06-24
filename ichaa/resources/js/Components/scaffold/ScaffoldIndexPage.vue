@@ -19,6 +19,7 @@
                         :href="createHref"
                         :preserve-scroll="createPreserveScroll"
                         :preserve-state="createPreserveState"
+                        :opens-drawer="Boolean(createHref && createCloseHref)"
                         variant="primary"
                     >
                         {{ createLabel }}
@@ -36,6 +37,7 @@
                     href: item.href,
                     preserveScroll: item.preserveScroll ?? false,
                     preserveState: item.preserveState ?? false,
+                    opensDrawer: item.opensDrawer ?? false,
                 } : {}"
                 class="record-card record-card--interactive"
             >
@@ -87,6 +89,7 @@
                 :href="emptyCtaHref"
                 :preserve-scroll="emptyCtaPreserveScroll"
                 :preserve-state="emptyCtaPreserveState"
+                :opens-drawer="Boolean(emptyCtaHref && emptyCtaHref === createHref && createCloseHref)"
                 class="text-cyan text-sm font-ui uppercase tracking-[0.12em] hover:underline"
             >
                 {{ emptyCtaLabel }}

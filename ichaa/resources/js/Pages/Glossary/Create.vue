@@ -49,7 +49,7 @@ const sections = computed(() => [
     {
         title: 'Definition',
         fields: [
-            { key: 'definition', label: 'Definition', type: 'json', rows: 8, required: true },
+            { key: 'definition', label: 'Definition', type: 'json', jsonMode: 'document', rows: 8, required: true },
         ],
     },
 ])

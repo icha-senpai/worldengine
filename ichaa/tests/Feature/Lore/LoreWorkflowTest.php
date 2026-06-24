@@ -164,6 +164,9 @@ class LoreWorkflowTest extends TestCase
                 'parent_reference_id' => $matching->id,
                 'universe_priority' => 'significant',
                 'research_status' => 'developing',
+                'research_confidence' => 'rough',
+                'category_type' => 'history',
+                'content' => ['type' => 'doc', 'content' => []],
             ]);
 
         $reference = SourceCanonReference::where('title', 'WoT Politics')->first();
@@ -177,10 +180,16 @@ class LoreWorkflowTest extends TestCase
         $this->actingAs($user)
             ->from(route('canon-references.show', $reference))
             ->put(route('canon-references.update', $reference), [
+                'universe' => 'Wheel of Time - Prime',
+                'level' => 'element',
                 'title' => 'WoT Politics Revised',
+                'parent_reference_id' => null,
+                'universe_priority' => 'primary',
                 'content' => ['type' => 'doc', 'content' => []],
                 'research_status' => 'solid',
                 'research_confidence' => 'verified',
+                'category_type' => 'political_structure',
+                'element_type' => 'concept',
                 'canon_disputed' => true,
                 'au_entity_id' => $auEntity->id,
             ])
@@ -189,7 +198,10 @@ class LoreWorkflowTest extends TestCase
 
         $reference->refresh();
 
+        $this->assertSame('Wheel of Time - Prime', $reference->universe);
+        $this->assertSame('element', $reference->level);
         $this->assertSame('WoT Politics Revised', $reference->title);
+        $this->assertSame('primary', $reference->universe_priority);
         $this->assertTrue($reference->canon_disputed);
         $this->assertSame($auEntity->id, $reference->au_entity_id);
     }
@@ -218,6 +230,7 @@ class LoreWorkflowTest extends TestCase
         $this->actingAs($user)
             ->from(route('crossover-entry-points.show', $entryPoint))
             ->put(route('crossover-entry-points.update', $entryPoint), [
+                'source_universe' => 'Stormlight Archive',
                 'entry_mechanism' => ['type' => 'doc', 'content' => [['type' => 'paragraph']]],
                 'power_transition_rules' => ['type' => 'doc', 'content' => []],
                 'return_rules' => ['type' => 'doc', 'content' => []],
@@ -228,6 +241,7 @@ class LoreWorkflowTest extends TestCase
 
         $entryPoint->refresh();
 
+        $this->assertSame('Stormlight Archive', $entryPoint->source_universe);
         $this->assertSame('documented', $entryPoint->status);
         $this->assertTrue($entryPoint->hasReturnPath());
 

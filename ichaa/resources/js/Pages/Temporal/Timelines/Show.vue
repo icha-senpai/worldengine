@@ -32,6 +32,7 @@
                         :href="route('timelines.edit', timeline.id)"
                         :preserve-scroll="true"
                         :preserve-state="true"
+                        opens-drawer
                         variant="ghost"
                     >
                         Edit
@@ -232,6 +233,7 @@
                                 :href="route('timelines.events.edit', { timeline: timeline.id, entry: entry.id })"
                                 :preserve-scroll="true"
                                 :preserve-state="true"
+                                opens-drawer
                                 variant="ghost"
                                 size="sm"
                                 :data-test="`edit-entry-${entry.id}`"
@@ -285,6 +287,7 @@
                                 :href="route('timelines.events.edit', { timeline: timeline.id, entry: entry.id })"
                                 :preserve-scroll="true"
                                 :preserve-state="true"
+                                opens-drawer
                                 variant="ghost"
                                 size="sm"
                                 :data-test="`edit-entry-${entry.id}`"

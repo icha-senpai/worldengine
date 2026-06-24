@@ -2,6 +2,10 @@ import { mount } from '@vue/test-utils'
 import Dashboard from '@/Pages/Dashboard.vue'
 
 describe('Dashboard page', () => {
+    beforeEach(() => {
+        global.route = vi.fn((name, params) => ({ name, params }))
+    })
+
     it('renders overview cards and the key dashboard panels', () => {
         const wrapper = mountPage({
             recentPipeline: [
@@ -95,6 +99,11 @@ function mountPage(props = {}) {
             ...props,
         },
         global: {
+            config: {
+                globalProperties: {
+                    route: global.route,
+                },
+            },
             stubs: {
                 AuthenticatedLayout: {
                     template: '<div><slot name="header" /><slot /></div>',

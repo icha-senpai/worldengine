@@ -18,7 +18,8 @@
 import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
-import { formatLabel } from '@/Components/scaffold/formatters'
+import { formatLabel, toEntityOptions } from '@/Components/scaffold/formatters'
+import { buildCanonReferenceSections } from '@/Pages/Lore/CanonReferences/form'
 
 const props = defineProps({
     embedded: { type: Boolean, default: false },
@@ -27,7 +28,9 @@ const props = defineProps({
     categoryTypes: { type: Array, default: () => [] },
     elementTypes: { type: Array, default: () => [] },
     researchStatuses: { type: Array, default: () => [] },
+    researchConfidences: { type: Array, default: () => [] },
     universePriorities: { type: Array, default: () => [] },
+    entities: { type: Array, default: () => [] },
 })
 
 const parentReferenceOptions = computed(() =>
@@ -36,35 +39,35 @@ const parentReferenceOptions = computed(() =>
         label: `${reference.title} (#${reference.id}${reference.level ? ` · ${formatLabel(reference.level)}` : ''}${reference.universe ? ` · ${reference.universe}` : ''})`,
     }))
 )
+const entityOptions = computed(() => toEntityOptions(props.entities))
 
 const form = useForm({
     universe: '',
     level: '',
     title: '',
+    content: null,
     parent_reference_id: '',
     universe_priority: '',
     research_status: '',
+    research_confidence: '',
+    category_type: '',
+    element_type: '',
+    canon_disputed: false,
+    au_entity_id: '',
 })
 
-const sections = computed(() => [
-    {
-        title: 'Reference',
-        fields: [
-            { key: 'universe', label: 'Universe', required: true },
-            { key: 'level', label: 'Level', type: 'select', required: true, options: props.levels },
-            { key: 'title', label: 'Title', required: true },
-            {
-                key: 'parent_reference_id',
-                label: 'Parent Reference',
-                type: 'select',
-                options: parentReferenceOptions.value,
-                placeholder: 'Optional parent canon reference...',
-            },
-            { key: 'universe_priority', label: 'Universe Priority', type: 'select', options: props.universePriorities },
-            { key: 'research_status', label: 'Research Status', type: 'select', options: props.researchStatuses },
-        ],
-    },
-])
+const sections = computed(() =>
+    buildCanonReferenceSections({
+        levels: props.levels,
+        universePriorities: props.universePriorities,
+        researchStatuses: props.researchStatuses,
+        researchConfidences: props.researchConfidences,
+        categoryTypes: props.categoryTypes,
+        elementTypes: props.elementTypes,
+        parentReferenceOptions: parentReferenceOptions.value,
+        entityOptions: entityOptions.value,
+    })
+)
 
 const submit = () => form.post(route('canon-references.store'))
 </script>

@@ -78,8 +78,8 @@ const sections = computed(() => [
             { key: 'true_type', label: 'True Type' },
             { key: 'visibility', label: 'Visibility' },
             { key: 'content_classification', label: 'Content Classification' },
-            { key: 'perspective_a', label: 'Perspective A JSON', type: 'json', rows: 6 },
-            { key: 'perspective_b', label: 'Perspective B JSON', type: 'json', rows: 6 },
+            { key: 'perspective_a', label: 'Perspective A JSON', type: 'json', jsonMode: 'document', rows: 6 },
+            { key: 'perspective_b', label: 'Perspective B JSON', type: 'json', jsonMode: 'document', rows: 6 },
         ],
     },
 ])

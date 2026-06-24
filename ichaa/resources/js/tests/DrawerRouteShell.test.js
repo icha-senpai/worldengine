@@ -1,9 +1,11 @@
 import { nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
+import DrawerLink from '@/Components/ui/DrawerLink.vue'
 import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import {
     beginDrawerNavigation,
     finishDrawerNavigation,
+    matchesPendingDrawerHref,
     PENDING_DRAWER_REVEAL_MS,
 } from '@/lib/drawerNavigation'
 
@@ -41,6 +43,16 @@ const mountShell = (props = {}) => mount(DrawerRouteShell, {
                 template: '<div class="app-drawer-stub"><slot /></div>',
             },
         },
+    },
+})
+
+const mountDrawerLink = (props = {}) => mount(DrawerLink, {
+    props: {
+        href: '/entities/create',
+        ...props,
+    },
+    slots: {
+        default: 'Create Entity',
     },
 })
 
@@ -87,5 +99,25 @@ describe('DrawerRouteShell', () => {
 
         expect(wrapper.find('.drawer-loading').exists()).toBe(false)
         expect(wrapper.find('[data-test="drawer-content"]').exists()).toBe(true)
+    })
+
+    it('only starts pending drawer navigation when the link explicitly opens a drawer', async () => {
+        const passiveLink = mountDrawerLink()
+
+        await passiveLink.trigger('click')
+        await vi.advanceTimersByTimeAsync(PENDING_DRAWER_REVEAL_MS)
+
+        expect(matchesPendingDrawerHref('/entities/create')).toBe(false)
+
+        finishDrawerNavigation()
+
+        const drawerLink = mountDrawerLink({
+            opensDrawer: true,
+        })
+
+        await drawerLink.trigger('click')
+        await vi.advanceTimersByTimeAsync(PENDING_DRAWER_REVEAL_MS)
+
+        expect(matchesPendingDrawerHref('/entities/create')).toBe(true)
     })
 })

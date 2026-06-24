@@ -67,6 +67,7 @@ const items = computed(() =>
         href: route('location-containment.edit', containment.id),
         preserveScroll: true,
         preserveState: true,
+        opensDrawer: true,
         title: `${containment.child_location?.name ?? 'Unknown'} -> ${containment.parent_location?.name ?? 'Unknown'}`,
         badges: [badge('Type', containment.containment_type)],
         meta: buildMeta([

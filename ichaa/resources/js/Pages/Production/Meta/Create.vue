@@ -76,6 +76,7 @@ const sections = computed(() => [
                 key: 'content',
                 label: 'Content',
                 type: 'json',
+                jsonMode: 'document',
                 rows: 8,
                 placeholder: 'Write the core note...',
                 help: 'Rich text with the full editor suite.',

@@ -17,6 +17,7 @@
                         :href="route('pipeline.create')"
                         :preserve-scroll="true"
                         :preserve-state="true"
+                        opens-drawer
                         variant="primary"
                     >
                         New Item
@@ -119,6 +120,7 @@
                 :href="route('pipeline.create')"
                 :preserve-scroll="true"
                 :preserve-state="true"
+                opens-drawer
                 title="New Pipeline Item"
                 class="text-cyan text-sm font-ui hover:underline"
             >
@@ -174,6 +176,7 @@ import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import DrawerLink from '@/Components/ui/DrawerLink.vue'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 import CreatePipelineItem from '@/Pages/Production/Pipeline/Create.vue'
+import { formatLabel } from '@/Components/scaffold/formatters'
 import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 const props = defineProps({
@@ -203,8 +206,5 @@ const clearFilters = () => {
     router.get(route('pipeline.index'), {}, { replace: true })
 }
 
-const formatLabel = (str) => str
-    ? str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-    : '—'
 </script>
 

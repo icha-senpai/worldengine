@@ -57,6 +57,7 @@ describe('ScaffoldFormPage', () => {
                             key: 'related_entity_ids',
                             label: 'Related Entity IDs',
                             type: 'json',
+                            jsonMode: 'ids',
                         },
                     ],
                 },
@@ -68,6 +69,34 @@ describe('ScaffoldFormPage', () => {
 
         expect(submitHandler).toHaveBeenCalledOnce()
         expect(form.related_entity_ids).toEqual([1, 2, 3])
+    })
+
+    it('blocks submit when explicit raw json is invalid', async () => {
+        const { form, wrapper, submitHandler } = mountPage({
+            formOverrides: {
+                metadata: null,
+            },
+            sections: [
+                {
+                    title: 'Meta',
+                    fields: [
+                        {
+                            key: 'metadata',
+                            label: 'Metadata JSON',
+                            type: 'json',
+                            jsonMode: 'raw',
+                        },
+                    ],
+                },
+            ],
+        })
+
+        await wrapper.find('textarea').setValue('{invalid json')
+        await wrapper.find('form').trigger('submit.prevent')
+
+        expect(submitHandler).not.toHaveBeenCalled()
+        expect(form.metadata).toBe(null)
+        expect(wrapper.text()).toContain('Enter valid JSON.')
     })
 
     it('submits document json fields from the rich text editor payload', async () => {

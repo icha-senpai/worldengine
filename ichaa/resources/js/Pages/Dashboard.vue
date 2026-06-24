@@ -125,7 +125,7 @@
                             <a :href="`/entities/${state.knower.id}`" class="text-primary text-base font-light hover:text-focus transition-colors">
                                 {{ state.knower.name }}
                             </a>
-                            <span class="tag tag--warn">{{ state.knowledge_type.replace(/_/g, ' ') }}</span>
+                            <span class="tag tag--warn">{{ formatLabel(state.knowledge_type) }}</span>
                         </div>
                         <div v-if="state.subject_name" class="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-3 font-ui">
                             <span class="italic">re:</span>
@@ -206,6 +206,7 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { formatLabel } from '@/Components/scaffold/formatters'
 
 defineProps({
     recentPipeline:     { type: Array,  default: () => [] },

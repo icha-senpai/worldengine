@@ -5,7 +5,8 @@ import PipelineCreate from '@/Pages/Production/Pipeline/Create.vue'
 import PipelineEdit from '@/Pages/Production/Pipeline/Edit.vue'
 import PipelineShow from '@/Pages/Production/Pipeline/Show.vue'
 
-const { formInstances, routerDeleteMock, routerGetMock, routerPostMock, useFormMock } = vi.hoisted(() => ({
+const { confirmDialogMock, formInstances, routerDeleteMock, routerGetMock, routerPostMock, useFormMock } = vi.hoisted(() => ({
+    confirmDialogMock: vi.fn(),
     formInstances: [],
     routerDeleteMock: vi.fn(),
     routerGetMock: vi.fn(),
@@ -27,6 +28,11 @@ vi.mock('@inertiajs/vue3', async () => {
     }
 })
 
+vi.mock('@/lib/appDialog', () => ({
+    confirmDialog: confirmDialogMock,
+    showErrorDialog: vi.fn(),
+}))
+
 describe('pipeline custom pages', () => {
     beforeEach(() => {
         formInstances.length = 0
@@ -34,6 +40,8 @@ describe('pipeline custom pages', () => {
         routerGetMock.mockReset()
         routerPostMock.mockReset()
         useFormMock.mockReset()
+        confirmDialogMock.mockReset()
+        confirmDialogMock.mockResolvedValue(true)
         useFormMock.mockImplementation((initial) => {
             const form = reactive({
                 ...initial,
@@ -50,7 +58,6 @@ describe('pipeline custom pages', () => {
         })
 
         global.route = vi.fn((name, params) => ({ name, params }))
-        global.confirm = vi.fn(() => true)
     })
 
     it('renders the pipeline create scene branch with real options and submits to store', async () => {
@@ -63,10 +70,9 @@ describe('pipeline custom pages', () => {
             pipelineStages: ['concept', 'outlined'],
         })
 
-        expect(wrapper.text()).toContain('Select a type to continue')
         expect(form.pipeline_stage).toBe('concept')
 
-        await clickButtonByText(wrapper, 'button', 'Scene')
+        await wrapper.get('#field-pipeline_type').setValue('scene')
 
         expect(form.pipeline_type).toBe('scene')
         expect(wrapper.text()).toContain('Scene Details')
@@ -74,14 +80,11 @@ describe('pipeline custom pages', () => {
         expect(wrapper.text()).toContain('Seraphine (#4 · Character)')
         expect(wrapper.text()).toContain('Mirror Library (#8 · Location)')
 
-        await clickButtonByText(wrapper, 'button', 'Outlined')
+        await wrapper.get('#field-pipeline_stage').setValue('outlined')
         expect(form.pipeline_stage).toBe('outlined')
 
-        await clickButtonByText(wrapper, 'button', 'Confrontation')
+        await wrapper.get('#field-emotional_beat').setValue('confrontation')
         expect(form.emotional_beat).toBe('confrontation')
-
-        await clickButtonByText(wrapper, 'button', 'Confrontation')
-        expect(form.emotional_beat).toBe('')
 
         await wrapper.get('input[placeholder="Item title"]').setValue('Library breach')
 
@@ -99,17 +102,14 @@ describe('pipeline custom pages', () => {
             pipelineStages: ['concept'],
         })
 
-        await clickButtonByText(wrapper, 'button', 'Character Study')
+        await wrapper.get('#field-pipeline_type').setValue('character_study')
 
         expect(form.pipeline_type).toBe('character_study')
         expect(wrapper.text()).toContain('Arc Tracker')
         expect(wrapper.text()).toContain('Johnny (#11 · Character)')
 
-        await clickButtonByText(wrapper, 'button', 'Transformation')
+        await wrapper.get('#field-arc_stage').setValue('transformation')
         expect(form.arc_stage).toBe('transformation')
-
-        await clickButtonByText(wrapper, 'button', 'Transformation')
-        expect(form.arc_stage).toBe('')
 
         await wrapper.get('input[placeholder="Item title"]').setValue('Johnny fracture arc')
         await wrapper.get('form').trigger('submit.prevent')
@@ -144,10 +144,10 @@ describe('pipeline custom pages', () => {
         expect(wrapper.text()).toContain('Arc Tracker')
         expect(wrapper.text()).toContain('Author Notes')
 
-        await clickButtonByText(wrapper, 'button', 'Revised')
+        await wrapper.get('#field-pipeline_stage').setValue('revised')
         expect(form.pipeline_stage).toBe('revised')
 
-        await clickButtonByText(wrapper, 'button', 'Transformation')
+        await wrapper.get('#field-arc_stage').setValue('transformation')
         expect(form.arc_stage).toBe('transformation')
 
         await wrapper.get('form').trigger('submit.prevent')
@@ -245,9 +245,15 @@ describe('pipeline custom pages', () => {
 
         await clickButtonByText(wrapper, 'button', 'Advance →')
         await clickButtonByText(wrapper, 'button', 'Move to Trash')
+        await Promise.resolve()
 
         expect(routerPostMock).toHaveBeenCalledWith({ name: 'pipeline.advance', params: 44 })
-        expect(routerDeleteMock).toHaveBeenCalledWith({ name: 'pipeline.destroy', params: 44 })
+        expect(routerDeleteMock).toHaveBeenCalledWith(
+            { name: 'pipeline.destroy', params: 44 },
+            expect.objectContaining({
+                onError: expect.any(Function),
+            }),
+        )
     })
 })
 

@@ -97,8 +97,8 @@ const sections = computed(() => [
     {
         title: 'Psychology',
         fields: [
-            { key: 'current_trauma_profile', label: 'Trauma Profile', type: 'json', rows: 4 },
-            { key: 'active_psychological_patterns', label: 'Psychological Patterns', type: 'json', rows: 4 },
+            { key: 'current_trauma_profile', label: 'Trauma Profile', type: 'json', jsonMode: 'document', rows: 4 },
+            { key: 'active_psychological_patterns', label: 'Psychological Patterns', type: 'json', jsonMode: 'document', rows: 4 },
             { key: 'core_wound', label: 'Core Wound' },
             { key: 'current_desire', label: 'Current Desire' },
             { key: 'current_fear', label: 'Current Fear' },

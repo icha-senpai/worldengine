@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Modal from '@/Components/Modal.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
+import TextInput from '@/Components/TextInput.vue'
 import {
     currentDialog,
     dismissCurrentDialog,
@@ -11,12 +12,36 @@ import {
 const dialog = computed(() => currentDialog.value)
 const show = computed(() => Boolean(dialog.value))
 const isConfirm = computed(() => dialog.value?.kind === 'confirm')
+const isPrompt = computed(() => dialog.value?.kind === 'prompt')
+const promptValue = ref('')
+const canConfirm = computed(() => {
+    if (!isPrompt.value) {
+        return true
+    }
+
+    if (dialog.value?.allowEmpty) {
+        return true
+    }
+
+    return promptValue.value.trim() !== ''
+})
+
+watch(dialog, (value) => {
+    promptValue.value = value?.kind === 'prompt'
+        ? String(value.initialValue ?? '')
+        : ''
+}, { immediate: true })
 
 function closeDialog() {
     dismissCurrentDialog()
 }
 
 function confirmAction() {
+    if (isPrompt.value) {
+        resolveCurrentDialog(dialog.value?.trimInput === false ? promptValue.value : promptValue.value.trim())
+        return
+    }
+
     resolveCurrentDialog(isConfirm.value ? true : undefined)
 }
 </script>
@@ -44,11 +69,25 @@ function confirmAction() {
                 </div>
             </div>
 
+            <div v-if="isPrompt" class="space-y-2">
+                <label v-if="dialog.inputLabel" class="field-label" for="app-dialog-prompt">
+                    {{ dialog.inputLabel }}
+                </label>
+                <TextInput
+                    id="app-dialog-prompt"
+                    v-model="promptValue"
+                    :type="dialog.inputType || 'text'"
+                    :placeholder="dialog.inputPlaceholder || ''"
+                    class="w-full"
+                    @keydown.enter.prevent="canConfirm && confirmAction()"
+                />
+            </div>
+
             <pre v-if="dialog.details" class="app-dialog__details">{{ dialog.details }}</pre>
 
             <div class="app-dialog__footer">
                 <AppButton
-                    v-if="isConfirm"
+                    v-if="isConfirm || isPrompt"
                     variant="ghost"
                     @click="closeDialog"
                 >
@@ -57,6 +96,7 @@ function confirmAction() {
 
                 <AppButton
                     :variant="dialog.confirmVariant || (isConfirm ? 'danger' : 'primary')"
+                    :disabled="!canConfirm"
                     @click="confirmAction"
                 >
                     {{ dialog.confirmLabel || (isConfirm ? 'Confirm' : 'Close') }}

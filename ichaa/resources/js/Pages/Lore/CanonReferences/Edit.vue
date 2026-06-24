@@ -18,50 +18,59 @@
 import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
-import { toEntityOptions } from '@/Components/scaffold/formatters'
+import { formatLabel, toEntityOptions } from '@/Components/scaffold/formatters'
+import { buildCanonReferenceSections } from '@/Pages/Lore/CanonReferences/form'
 
 const props = defineProps({
     embedded: { type: Boolean, default: false },
     reference: { type: Object, required: true },
+    parentReferences: { type: Array, default: () => [] },
+    levels: { type: Array, default: () => [] },
+    categoryTypes: { type: Array, default: () => [] },
+    elementTypes: { type: Array, default: () => [] },
     entities: { type: Array, default: () => [] },
     researchStatuses: { type: Array, default: () => [] },
+    researchConfidences: { type: Array, default: () => [] },
+    universePriorities: { type: Array, default: () => [] },
 })
 
 const entityOptions = computed(() => toEntityOptions(props.entities))
+const parentReferenceOptions = computed(() =>
+    props.parentReferences
+        .filter((reference) => reference.id !== props.reference.id)
+        .map((reference) => ({
+            value: reference.id,
+            label: `${reference.title} (#${reference.id}${reference.level ? ` · ${formatLabel(reference.level)}` : ''}${reference.universe ? ` · ${reference.universe}` : ''})`,
+        }))
+)
 
 const form = useForm({
+    universe: props.reference.universe ?? '',
+    level: props.reference.level ?? '',
     title: props.reference.title ?? '',
+    parent_reference_id: props.reference.parent_reference_id ?? '',
+    universe_priority: props.reference.universe_priority ?? '',
     content: props.reference.content ?? null,
     research_status: props.reference.research_status ?? '',
     research_confidence: props.reference.research_confidence ?? '',
+    category_type: props.reference.category_type ?? '',
+    element_type: props.reference.element_type ?? '',
     canon_disputed: props.reference.canon_disputed ?? false,
     au_entity_id: props.reference.au_entity_id ?? '',
 })
 
-const sections = computed(() => [
-    {
-        title: 'Reference',
-        fields: [
-            { key: 'title', label: 'Title', required: true },
-            { key: 'research_status', label: 'Research Status', type: 'select', options: props.researchStatuses },
-            { key: 'research_confidence', label: 'Research Confidence' },
-            { key: 'canon_disputed', label: 'Canon Disputed', type: 'checkbox' },
-            {
-                key: 'au_entity_id',
-                label: 'AU Entity',
-                type: 'select',
-                options: entityOptions.value,
-                placeholder: 'Optional AU counterpart...',
-            },
-        ],
-    },
-    {
-        title: 'Content',
-        fields: [
-            { key: 'content', label: 'Content JSON', type: 'json', rows: 8 },
-        ],
-    },
-])
+const sections = computed(() =>
+    buildCanonReferenceSections({
+        levels: props.levels,
+        universePriorities: props.universePriorities,
+        researchStatuses: props.researchStatuses,
+        researchConfidences: props.researchConfidences,
+        categoryTypes: props.categoryTypes,
+        elementTypes: props.elementTypes,
+        parentReferenceOptions: parentReferenceOptions.value,
+        entityOptions: entityOptions.value,
+    })
+)
 
 const submit = () => form.put(route('canon-references.update', props.reference.id))
 </script>

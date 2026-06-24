@@ -276,6 +276,40 @@ describe('useRichTextEditorControls', () => {
         expect(controls.characterCount.value).toBe(128)
         expect(controls.wordCount.value).toBe(24)
     })
+
+    it('uses the shared prompt flow for inserting links', async () => {
+        const { editor, calls } = createEditorDouble()
+        const promptForValue = vi.fn().mockResolvedValue('https://example.com/story')
+        const controls = useRichTextEditorControls(editor, ref(null), { promptForValue })
+
+        await controls.setLink()
+
+        expect(promptForValue).toHaveBeenCalledWith(expect.objectContaining({
+            title: 'Insert Link',
+            inputLabel: 'Link URL',
+        }))
+        expect(calls).toContainEqual(['extendMarkRange', 'link'])
+        expect(calls).toContainEqual(['setLink', {
+            href: 'https://example.com/story',
+            target: '_blank',
+            rel: 'noopener noreferrer',
+        }])
+    })
+
+    it('removes links when the prompt returns an empty value', async () => {
+        const { editor, calls } = createEditorDouble({
+            attributes: {
+                link: { href: 'https://example.com/current' },
+            },
+        })
+        const controls = useRichTextEditorControls(editor, ref(null), {
+            promptForValue: vi.fn().mockResolvedValue(''),
+        })
+
+        await controls.setLink()
+
+        expect(calls).toContainEqual(['unsetLink'])
+    })
 })
 
 describe('EditorColorPanel', () => {

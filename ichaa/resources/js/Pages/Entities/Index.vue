@@ -14,6 +14,7 @@
                         :href="route('entities.create')"
                         :preserve-scroll="true"
                         :preserve-state="true"
+                        opens-drawer
                         variant="primary"
                     >
                         + New Entity
@@ -92,6 +93,7 @@
                     :href="route('entities.create')"
                     :preserve-scroll="true"
                     :preserve-state="true"
+                    opens-drawer
                     class="mt-3 inline-block text-focus text-sm font-ui hover:underline"
                 >
                     Create the first one →
@@ -219,7 +221,7 @@ import CreateEntity from '@/Pages/Entities/Create.vue'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
-import { richDocumentToPlainText } from '@/Components/scaffold/formatters'
+import { formatLabel, richDocumentToPlainText } from '@/Components/scaffold/formatters'
 import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 const props = defineProps({
@@ -308,10 +310,6 @@ onBeforeUnmount(() => {
         clearTimeout(searchDebounce)
     }
 })
-
-const formatLabel = (str) => str
-    ? str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-    : '—'
 
 const typeCategoryValue = (category) => `category:${category}`
 

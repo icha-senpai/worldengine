@@ -97,6 +97,7 @@ import Modal from '@/Components/Modal.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
 import MediaLibraryGrid from '@/Components/scaffold/MediaLibraryGrid.vue'
+import { formatLabel } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
     show: { type: Boolean, default: false },
@@ -261,7 +262,4 @@ const loadItems = async () => {
     }
 }
 
-const formatLabel = (value) => value
-    ? value.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase())
-    : '—'
 </script>

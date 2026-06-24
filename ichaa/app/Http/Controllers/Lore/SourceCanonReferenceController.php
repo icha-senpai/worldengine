@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Lore;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Lore\Models\SourceCanonReference;
+use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class SourceCanonReferenceController extends Controller
 {
@@ -20,11 +20,11 @@ class SourceCanonReferenceController extends Controller
     public function create(): Response
     {
         return $this->indexPage(request(), [
-            'createDrawer' => $this->createFormProps(),
+            'createDrawer' => $this->formProps(),
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('canon-references', 'store'));
 
@@ -41,17 +41,11 @@ class SourceCanonReferenceController extends Controller
     public function edit(SourceCanonReference $canonReference): Response
     {
         return $this->showPage($canonReference, [
-            'editDrawer' => [
-                'entities' => Entity::query()
-                    ->select('id', 'name', 'entity_type')
-                    ->orderBy('name')
-                    ->get(),
-                'researchStatuses' => SourceCanonReference::RESEARCH_STATUSES,
-            ],
+            'editDrawer' => $this->formProps(),
         ]);
     }
 
-    public function update(Request $request, SourceCanonReference $canonReference): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, SourceCanonReference $canonReference): RedirectResponse
     {
         $canonReference->update($request->validate(
             DataverseRules::web('canon-references', 'update')
@@ -60,14 +54,12 @@ class SourceCanonReferenceController extends Controller
         return $this->to('canon-references.show', [$canonReference], 'Canon reference updated.');
     }
 
-    public function destroy(SourceCanonReference $canonReference): \Illuminate\Http\RedirectResponse
+    public function destroy(SourceCanonReference $canonReference): RedirectResponse
     {
         $canonReference->delete();
 
         return $this->to('canon-references.index', [], 'Reference deleted.');
     }
-
-
 
     private function indexPage(Request $request, array $props = []): Response
     {
@@ -77,27 +69,31 @@ class SourceCanonReferenceController extends Controller
             $query->forUniverse($request->universe);
         }
 
-                return $this->page('Lore/CanonReferences/Index', array_merge([
+        return $this->page('Lore/CanonReferences/Index', array_merge([
             'references' => $query->with('childReferences')->get(),
-            'filters'    => $request->only(['universe']),
+            'filters' => $request->only(['universe']),
         ], $props));
-    
+
     }
 
-    private function createFormProps(): array
+    private function formProps(): array
     {
         return [
-            'parentReferences'   => SourceCanonReference::query()
+            'parentReferences' => SourceCanonReference::query()
                 ->select('id', 'title', 'level', 'universe')
                 ->orderBy('universe')
                 ->orderBy('title')
                 ->get(),
-            'levels'             => SourceCanonReference::LEVELS,
-            'categoryTypes'      => SourceCanonReference::CATEGORY_TYPES,
-            'elementTypes'       => SourceCanonReference::ELEMENT_TYPES,
-            'researchStatuses'   => SourceCanonReference::RESEARCH_STATUSES,
+            'levels' => SourceCanonReference::LEVELS,
+            'categoryTypes' => SourceCanonReference::CATEGORY_TYPES,
+            'elementTypes' => SourceCanonReference::ELEMENT_TYPES,
+            'researchStatuses' => SourceCanonReference::RESEARCH_STATUSES,
+            'researchConfidences' => SourceCanonReference::RESEARCH_CONFIDENCES,
             'universePriorities' => SourceCanonReference::UNIVERSE_PRIORITIES,
-        
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
         ];
     }
 

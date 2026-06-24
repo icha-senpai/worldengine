@@ -67,6 +67,31 @@ class ProductionWorkflowTest extends TestCase
         }
     }
 
+    public function test_pipeline_items_can_update_the_tracked_entity_from_the_edit_payload(): void
+    {
+        $user = $this->verifiedUser();
+        $trackedEntity = Entity::factory()->create(['name' => 'Johnny']);
+        $item = PipelineItem::create([
+            'title' => 'Johnny fracture arc',
+            'pipeline_type' => 'character_study',
+            'pipeline_stage' => 'drafted',
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->put(route('pipeline.update', $item), [
+                'tracked_entity_id' => $trackedEntity->id,
+                'arc_stage' => 'transformation',
+            ])
+            ->assertRedirect(route('pipeline.show', $item))
+            ->assertSessionHas('success');
+
+        $item->refresh();
+
+        $this->assertSame($trackedEntity->id, $item->tracked_entity_id);
+        $this->assertSame('transformation', $item->arc_stage);
+    }
+
     public function test_meta_notes_can_be_resolved_and_linked_to_entities(): void
     {
         $user = $this->verifiedUser();
@@ -133,6 +158,41 @@ class ProductionWorkflowTest extends TestCase
         $this->assertNotNull($note);
         $this->assertSame('private', $note->visibility);
         $this->assertSame('restricted', $note->content_classification);
+    }
+
+    public function test_meta_notes_can_update_symbol_fields_and_access_values(): void
+    {
+        $user = $this->verifiedUser();
+        $originEntity = Entity::factory()->create(['name' => 'Lantern']);
+        $linkedEntity = Entity::factory()->create(['name' => 'Mirror Hall']);
+        $note = Meta::create([
+            'title' => 'Track the lantern motif',
+            'category' => Meta::CATEGORIES[0],
+            'meta_note_type' => 'active_task',
+        ]);
+
+        $this->actingAs($user)
+            ->put(route('meta.update', $note), [
+                'symbol_name' => 'Lantern',
+                'symbol_origin_entity_id' => $originEntity->id,
+                'symbol_usage_context' => 'Signals safety and false comfort.',
+                'symbol_associated_entity_ids' => [$linkedEntity->id],
+                'symbol_scope' => 'both',
+                'visibility' => 'author_only',
+                'content_classification' => 'sensitive',
+            ])
+            ->assertRedirect(route('meta.show', $note))
+            ->assertSessionHas('success');
+
+        $note->refresh();
+
+        $this->assertSame('Lantern', $note->symbol_name);
+        $this->assertSame($originEntity->id, $note->symbol_origin_entity_id);
+        $this->assertSame('Signals safety and false comfort.', $note->symbol_usage_context);
+        $this->assertSame([$linkedEntity->id], $note->symbol_associated_entity_ids);
+        $this->assertSame('both', $note->symbol_scope);
+        $this->assertSame('author_only', $note->visibility);
+        $this->assertSame('sensitive', $note->content_classification);
     }
 
     private function verifiedUser(): User

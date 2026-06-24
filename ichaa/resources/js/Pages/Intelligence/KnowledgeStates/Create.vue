@@ -126,7 +126,7 @@ const sections = computed(() => [
             { key: 'current_belief_state', label: 'Belief State', type: 'select', required: true, options: props.beliefStates },
             { key: 'acquired_through', label: 'Acquired Through', type: 'select', required: true, options: props.acquisitionMethods },
             { key: 'acquired_at_era', label: 'Acquired At Era' },
-            { key: 'knowledge_content', label: 'Knowledge Content JSON', type: 'json', rows: 8 },
+            { key: 'knowledge_content', label: 'Knowledge Content JSON', type: 'json', jsonMode: 'document', rows: 8 },
         ],
     },
 ])

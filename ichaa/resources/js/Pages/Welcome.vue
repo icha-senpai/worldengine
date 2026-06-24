@@ -1,5 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 defineProps({
     canLogin: {
@@ -18,11 +19,10 @@ defineProps({
     },
 });
 
+const docsPreviewFailed = ref(false);
+
 function handleImageError() {
-    document.getElementById('screenshot-container')?.classList.add('!hidden');
-    document.getElementById('docs-card')?.classList.add('!row-span-1');
-    document.getElementById('docs-card-content')?.classList.add('!flex-row');
-    document.getElementById('background')?.classList.add('!hidden');
+    docsPreviewFailed.value = true;
 }
 </script>
 
@@ -30,7 +30,7 @@ function handleImageError() {
     <Head title="Welcome" />
     <div class="bg-canvas text-muted">
         <img
-            id="background"
+            v-if="!docsPreviewFailed"
             class="absolute -left-20 top-0 max-w-[877px]"
             src="https://laravel.com/assets/img/welcome/background.svg"
         />
@@ -86,11 +86,11 @@ function handleImageError() {
                     <div class="grid gap-6 lg:grid-cols-2 lg:gap-8">
                         <a
                             href="https://laravel.com/docs"
-                            id="docs-card"
                             class="flex flex-col items-start gap-6 overflow-hidden rounded-lg bg-surface p-8 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-border/30 transition duration-300 hover:text-primary/80 hover:ring-border/60 focus:outline-none focus-visible:ring-focus md:row-span-3 lg:p-12 lg:pb-12"
+                            :class="{ '!row-span-1': docsPreviewFailed }"
                         >
                             <div
-                                id="screenshot-container"
+                                v-if="!docsPreviewFailed"
                                 class="relative flex w-full flex-1 items-stretch"
                             >
                                 <img
@@ -113,8 +113,8 @@ function handleImageError() {
                                 class="relative flex items-center gap-6 lg:items-end"
                             >
                                 <div
-                                    id="docs-card-content"
                                     class="flex items-start gap-6 lg:flex-col"
+                                    :class="{ '!flex-row': docsPreviewFailed }"
                                 >
                                     <div
                                         class="flex size-12 shrink-0 items-center justify-center rounded-full bg-danger/10 sm:size-16"

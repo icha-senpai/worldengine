@@ -48,7 +48,7 @@ const sections = computed(() => [
     {
         title: 'Model',
         fields: [
-            { key: 'description', label: 'Description JSON', type: 'json', rows: 8 },
+            { key: 'description', label: 'Description JSON', type: 'json', jsonMode: 'document', rows: 8 },
             {
                 key: 'effects',
                 label: 'Effects JSON',

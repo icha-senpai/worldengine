@@ -195,7 +195,13 @@ describe('domain scaffold forms', () => {
 
         await scaffold.props('onSubmit')()
 
-        expect(form.post).toHaveBeenCalledWith({ name: 'faction-memberships.store', params: undefined })
+        expect(form.post).toHaveBeenCalledWith({
+            name: 'faction-memberships.store',
+            params: {
+                return_context: undefined,
+                return_entity_id: 4,
+            },
+        })
     })
 
     it('builds the faction membership edit form with faction back-link context', async () => {
@@ -221,7 +227,14 @@ describe('domain scaffold forms', () => {
 
         await scaffold.props('onSubmit')()
 
-        expect(form.put).toHaveBeenCalledWith({ name: 'faction-memberships.update', params: 12 })
+        expect(form.put).toHaveBeenCalledWith({
+            name: 'faction-memberships.update',
+            params: {
+                faction_membership: 12,
+                return_context: undefined,
+                return_entity_id: 4,
+            },
+        })
     })
 
     it('builds the collection create form with parent collection options and store route', async () => {
@@ -256,6 +269,7 @@ describe('domain scaffold forms', () => {
             },
             types: ['character_roster'],
             modes: ['smart'],
+            completionStates: ['in_progress', 'complete'],
         })
 
         expect(form.rules).toEqual(rules)
@@ -345,13 +359,22 @@ describe('domain scaffold forms', () => {
             categoryTypes: ['history'],
             elementTypes: ['character'],
             researchStatuses: ['developing'],
+            researchConfidences: ['rough', 'verified'],
             universePriorities: ['primary'],
+            entities: [{ id: 9, name: 'Pattern Echo', entity_type: 'concept' }],
         })
 
         const parentField = findField(scaffold.props('sections'), 'parent_reference_id')
+        const confidenceField = findField(scaffold.props('sections'), 'research_confidence')
+        const auField = findField(scaffold.props('sections'), 'au_entity_id')
         expect(parentField.options).toEqual([
             { value: 11, label: 'Harry Potter Universe (#11 · Universe · Harry Potter)' },
         ])
+        expect(confidenceField.options).toEqual(['rough', 'verified'])
+        expect(auField.options).toEqual([
+            { value: 9, label: 'Pattern Echo (#9 · Concept)' },
+        ])
+        expect(form.content).toBeNull()
 
         await scaffold.props('onSubmit')()
 
@@ -362,17 +385,30 @@ describe('domain scaffold forms', () => {
         const { form, scaffold } = mountPage(CanonReferenceEdit, {
             reference: {
                 id: 19,
+                universe: 'Wheel of Time',
+                level: 'category',
                 title: 'WoT Politics',
+                parent_reference_id: 11,
+                universe_priority: 'significant',
                 content: { type: 'doc', content: [] },
                 research_status: 'solid',
                 research_confidence: 'verified',
+                category_type: 'history',
                 canon_disputed: true,
                 au_entity_id: 6,
             },
+            parentReferences: [{ id: 11, title: 'Wheel of Time Universe', level: 'universe', universe: 'Wheel of Time' }],
+            levels: ['universe', 'category'],
+            categoryTypes: ['history'],
+            elementTypes: ['character'],
             entities: [{ id: 6, name: 'Pattern Echo', entity_type: 'concept' }],
             researchStatuses: ['solid'],
+            researchConfidences: ['verified'],
+            universePriorities: ['significant'],
         })
 
+        expect(form.universe).toBe('Wheel of Time')
+        expect(form.level).toBe('category')
         expect(form.canon_disputed).toBe(true)
         expect(form.au_entity_id).toBe(6)
 
@@ -398,6 +434,7 @@ describe('domain scaffold forms', () => {
         const { form, scaffold } = mountPage(CrossoverEntryPointEdit, {
             entryPoint: {
                 id: 27,
+                source_universe: 'Cosmere',
                 entry_mechanism: { type: 'doc', content: [] },
                 power_transition_rules: { type: 'doc', content: [] },
                 return_rules: { type: 'doc', content: [] },
@@ -406,6 +443,7 @@ describe('domain scaffold forms', () => {
             statuses: ['documented'],
         })
 
+        expect(form.source_universe).toBe('Cosmere')
         expect(form.status).toBe('documented')
         expect(form.return_rules).toEqual({ type: 'doc', content: [] })
 

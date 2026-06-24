@@ -36,7 +36,7 @@ const sections = computed(() => [
         fields: [
             { key: 'source_universe', label: 'Source Universe', required: true },
             { key: 'status', label: 'Status', type: 'select', options: props.statuses },
-            { key: 'entry_mechanism', label: 'Entry Mechanism JSON', type: 'json', rows: 8 },
+            { key: 'entry_mechanism', label: 'Entry Mechanism JSON', type: 'json', jsonMode: 'document', rows: 8 },
         ],
     },
 ])

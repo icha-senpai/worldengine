@@ -121,8 +121,8 @@ const sections = computed(() => [
     {
         title: 'States',
         fields: [
-            { key: 'true_state', label: 'True State JSON', type: 'json', rows: 8, required: true },
-            { key: 'perceived_state', label: 'Perceived State JSON', type: 'json', rows: 8, required: true },
+            { key: 'true_state', label: 'True State JSON', type: 'json', jsonMode: 'document', rows: 8, required: true },
+            { key: 'perceived_state', label: 'Perceived State JSON', type: 'json', jsonMode: 'document', rows: 8, required: true },
             {
                 key: 'maintained_by_entity_ids',
                 label: 'Maintained By Entities',

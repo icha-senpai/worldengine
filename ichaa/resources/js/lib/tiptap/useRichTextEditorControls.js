@@ -7,6 +7,7 @@ import {
     richTextImageAlignmentOptions,
     richTextImageWidths,
 } from '@/lib/tiptap/editorConfig'
+import { promptDialog } from '@/lib/appDialog'
 
 export function useRichTextEditorControls(editor, imageUploadInput, options = {}) {
     const showAdvanced = ref(false)
@@ -181,6 +182,14 @@ export function useRichTextEditorControls(editor, imageUploadInput, options = {}
         callback(chain).run()
     }
 
+    const requestPromptValue = async (promptOptions) => {
+        if (typeof options.promptForValue === 'function') {
+            return options.promptForValue(promptOptions)
+        }
+
+        return promptDialog(promptOptions)
+    }
+
     function isActive(nameOrAttributes, attributes = undefined) {
         const instance = editor.value
 
@@ -261,7 +270,7 @@ export function useRichTextEditorControls(editor, imageUploadInput, options = {}
     const toggleSubscript = () => runChain((chain) => chain.toggleSubscript())
     const toggleSuperscript = () => runChain((chain) => chain.toggleSuperscript())
 
-    const setLink = () => {
+    const setLink = async () => {
         const instance = editor.value
 
         if (!instance) {
@@ -271,9 +280,18 @@ export function useRichTextEditorControls(editor, imageUploadInput, options = {}
         rememberSelection()
 
         const currentHref = instance.getAttributes('link').href ?? ''
-        const href = window.prompt('Link URL', currentHref)
+        const href = await requestPromptValue({
+            title: currentHref ? 'Edit Link' : 'Insert Link',
+            message: 'Leave the field blank to remove the current link.',
+            confirmLabel: currentHref ? 'Save Link' : 'Insert Link',
+            inputLabel: 'Link URL',
+            inputPlaceholder: 'https://example.com',
+            inputType: 'url',
+            initialValue: currentHref,
+            allowEmpty: true,
+        })
 
-        if (href === null) {
+        if (href === null || href === undefined) {
             return
         }
 
@@ -292,8 +310,14 @@ export function useRichTextEditorControls(editor, imageUploadInput, options = {}
         )
     }
 
-    const insertImageUrl = () => {
-        const src = window.prompt('Image URL')
+    const insertImageUrl = async () => {
+        const src = await requestPromptValue({
+            title: 'Insert Image URL',
+            confirmLabel: 'Insert Image',
+            inputLabel: 'Image URL',
+            inputPlaceholder: 'https://example.com/image.jpg',
+            inputType: 'url',
+        })
 
         if (!src || !src.trim()) {
             return
@@ -302,13 +326,20 @@ export function useRichTextEditorControls(editor, imageUploadInput, options = {}
         runChain((chain) => chain.setImage({ src: src.trim(), alt: '', title: '', align: 'left', width: '50%' }))
     }
 
-    const chooseMedia = () => {
+    const chooseMedia = async () => {
         if (typeof options.onChooseMedia === 'function') {
             options.onChooseMedia()
             return
         }
 
-        const src = window.prompt('Paste an existing media URL or asset path')
+        const src = await requestPromptValue({
+            title: 'Insert Media',
+            confirmLabel: 'Insert Media',
+            inputLabel: 'Media URL or Asset Path',
+            inputPlaceholder: '/storage/media/example.jpg',
+            initialValue: '',
+            allowEmpty: false,
+        })
 
         if (!src || !src.trim()) {
             return

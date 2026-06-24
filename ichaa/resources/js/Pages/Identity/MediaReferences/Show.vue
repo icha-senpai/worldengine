@@ -20,6 +20,7 @@
                         :href="route('media-references.edit', media.id)"
                         :preserve-scroll="true"
                         :preserve-state="true"
+                        opens-drawer
                         variant="ghost"
                     >
                         Edit
