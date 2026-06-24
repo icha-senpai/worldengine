@@ -19,7 +19,7 @@ use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\PerceptionState;
 use App\Domain\Lore\Models\DocumentEntity;
-use App\Domain\Production\Models\WritingPipeline;
+use App\Domain\Production\Models\PipelineItem;
 use App\Domain\Temporal\Models\CharacterStateTracker;
 use App\Domain\Temporal\Models\Timeline;
 use Database\Factories\EntityFactory;
@@ -441,7 +441,7 @@ class Entity extends Model
     public function pipelineItems(): BelongsToMany
     {
         return $this->belongsToMany(
-            WritingPipeline::class,
+            PipelineItem::class,
             'pipeline_entities',
             'entity_id',
             'pipeline_item_id'

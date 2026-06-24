@@ -10,6 +10,8 @@ use App\Support\Api\ApiMutationService;
 use App\Support\Api\ApiRecordPresenter;
 use App\Support\Api\ApiResourceRegistry;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -70,6 +72,7 @@ class SystemController extends ApiController
                 continue;
             }
 
+            /** @var EloquentCollection<int, Model> $matches */
             $matches = $query->limit(5)->get();
 
             foreach ($matches as $match) {
@@ -111,7 +114,10 @@ class SystemController extends ApiController
 
             $query = ApiResourceRegistry::query($resource)->onlyTrashed();
 
-            foreach ($query->limit(50)->get() as $record) {
+            /** @var EloquentCollection<int, Model> $records */
+            $records = $query->limit(50)->get();
+
+            foreach ($records as $record) {
                 $items[] = $this->presenter->present($resource, $record);
 
                 foreach ($this->presenter->included($resource, $record, $this->requestedIncludes($request)) as $relation => $value) {

@@ -651,6 +651,19 @@ class NotionIdentitySyncService
         return hash('sha256', json_encode($data, JSON_THROW_ON_ERROR));
     }
 
+    private function documentFrom(array $page, array $properties, ?array $fallback = null, bool $emptyIfBlank = false): ?array
+    {
+        foreach ($properties as $property) {
+            if (! $this->hasProperty($page, $property)) {
+                continue;
+            }
+
+            return $this->toRichTextDocument($this->mapper->richText($page, $property), $emptyIfBlank);
+        }
+
+        return $fallback;
+    }
+
     private function syncNotionNote(string $resource, array $page, Model $model, array &$stats): bool
     {
         try {
@@ -660,6 +673,29 @@ class NotionIdentitySyncService
 
             return false;
         }
+    }
+
+    private function toRichTextDocument(?string $value, bool $emptyIfBlank = false): ?array
+    {
+        if (blank($value)) {
+            return $emptyIfBlank ? ['type' => 'doc', 'content' => []] : null;
+        }
+
+        return [
+            'type' => 'doc',
+            'content' => [[
+                'type' => 'paragraph',
+                'content' => [[
+                    'type' => 'text',
+                    'text' => $value,
+                ]],
+            ]],
+        ];
+    }
+
+    private function hasProperty(array $page, string $property): bool
+    {
+        return $this->mapper->hasProperty($page, $property);
     }
 
     private function resourceLabel(string $resource): string

@@ -75,6 +75,7 @@ class CollectionService
 
     public function removeEntity(Collection $collection, Entity $entity): void
     {
+        /** @var CollectionEntity|null $entry */
         $entry = CollectionEntity::where('collection_id', $collection->id)
             ->where('entity_id', $entity->id)
             ->first();

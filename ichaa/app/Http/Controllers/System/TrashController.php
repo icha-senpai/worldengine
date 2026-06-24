@@ -29,6 +29,7 @@ use App\Domain\World\Models\PowerInteraction;
 use App\Domain\World\Models\TravelRoute;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection as SupportCollection;
@@ -79,7 +80,11 @@ class TrashController extends Controller
         $definitions = $this->definitions();
         abort_unless(array_key_exists($type, $definitions), 404);
 
-        $model = $definitions[$type]['query']()->whereKey($record)->firstOrFail();
+        $recordModel = $this->recordForDefinition($definitions[$type], $record);
+        /** @var mixed $model */
+        $model = $recordModel;
+
+        abort_unless(\is_object($model) && \method_exists($model, 'restore'), 404);
         $model->restore();
 
         return $this->back('Item restored from trash.');
@@ -357,7 +362,7 @@ class TrashController extends Controller
     {
         return $definition['query']()
             ->get()
-            ->map(fn ($record) => [
+            ->map(fn (Model $record) => [
                 'id' => $record->getKey(),
                 'type' => $type,
                 'resource_label' => $definition['label'],
@@ -365,6 +370,19 @@ class TrashController extends Controller
                 'subtitle' => trim((string) $definition['subtitle']($record)),
                 'deleted_at' => $record->deleted_at?->toIso8601String(),
             ]);
+    }
+
+    /**
+     * @param  array{
+     *     query: callable(): Builder
+     * } $definition
+     */
+    private function recordForDefinition(array $definition, string $record): Model
+    {
+        /** @var Model $model */
+        $model = $definition['query']()->whereKey($record)->firstOrFail();
+
+        return $model;
     }
 
     private function matchesSearch(array $item, string $query): bool

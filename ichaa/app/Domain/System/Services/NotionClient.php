@@ -2,9 +2,9 @@
 
 namespace App\Domain\System\Services;
 
+use Carbon\CarbonInterface;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Support\CarbonInterface;
 use RuntimeException;
 
 class NotionClient
@@ -114,7 +114,8 @@ class NotionClient
             throw new RuntimeException('NOTION_API_TOKEN is not configured.');
         }
 
-        return $this->http
+        /** @var PendingRequest $request */
+        $request = $this->http
             ->baseUrl(rtrim((string) config('notion.base_url'), '/'))
             ->acceptJson()
             ->asJson()
@@ -122,5 +123,7 @@ class NotionClient
             ->withHeaders([
                 'Notion-Version' => (string) config('notion.version'),
             ]);
+
+        return $request;
     }
 }
