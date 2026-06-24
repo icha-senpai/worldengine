@@ -96,6 +96,7 @@ A change is not trivial if it touches:
 * Build tooling, package versions, deployment config, or test setup.
 
 If a “small” change reveals hidden coupling, treat it as non-trivial and use the full Agent World Model.
+If global and repo instructions conflict, project-specific AGENTS.md rules win for code, architecture, tooling, tests, and repository behavior.
 
 <laravel-boost-guidelines>
 === foundation rules ===
