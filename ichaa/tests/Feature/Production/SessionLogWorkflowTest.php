@@ -133,6 +133,50 @@ class SessionLogWorkflowTest extends TestCase
         $this->assertSoftDeleted('session_log', ['id' => $session->id]);
     }
 
+    public function test_session_log_edit_route_includes_focus_form_options_and_existing_ids(): void
+    {
+        $user = $this->verifiedUser();
+        $entity = Entity::factory()->create(['name' => 'Seraphine', 'entity_type' => 'character']);
+        $groupRelationship = GroupRelationship::create([
+            'name' => 'Night Council',
+            'relationship_type' => 'alliance',
+            'current_tension_charge' => 'neutral',
+            'is_active' => true,
+        ]);
+        $collection = Collection::create([
+            'name' => 'Current Arc',
+            'collection_type' => 'custom',
+            'collection_mode' => 'manual',
+        ]);
+        $session = SessionLog::create([
+            'title' => 'Thread untangling',
+            'session_date' => now()->toDateString(),
+            'external_tool' => 'claude',
+            'focus_entity_ids' => [$entity->id],
+            'focus_group_relationship_ids' => [$groupRelationship->id],
+            'focus_collection_ids' => [$collection->id],
+            'focus_description' => 'Updated focus note.',
+            'session_significance' => 'major',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('session-logs.edit', $session))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Production/Sessions/Show')
+                ->where('session.focus_entity_ids', [$entity->id])
+                ->where('session.focus_group_relationship_ids', [$groupRelationship->id])
+                ->where('session.focus_collection_ids', [$collection->id])
+                ->has('editDrawer.entities', 1)
+                ->has('editDrawer.groupRelationships', 1)
+                ->has('editDrawer.collections', 1)
+                ->where('editDrawer.entities.0.id', $entity->id)
+                ->where('editDrawer.groupRelationships.0.id', $groupRelationship->id)
+                ->where('editDrawer.collections.0.id', $collection->id)
+                ->where('editDrawer.significanceLevels', SessionLog::SIGNIFICANCE_LEVELS)
+            );
+    }
+
     private function verifiedUser(): User
     {
         return User::factory()->create([

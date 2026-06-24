@@ -3,6 +3,9 @@ import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 
+const pathIncludes = (id, segment) =>
+    id.includes(segment) || id.includes(segment.replaceAll('/', '\\'));
+
 export default defineConfig({
     plugins: [
         tailwindcss(),
@@ -22,4 +25,27 @@ export default defineConfig({
             },
         }),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (
+                        pathIncludes(id, '/node_modules/@tiptap/pm/') ||
+                        pathIncludes(id, '/node_modules/prosemirror-') ||
+                        pathIncludes(id, '/node_modules/orderedmap/') ||
+                        pathIncludes(id, '/node_modules/rope-sequence/')
+                    ) {
+                        return 'prosemirror';
+                    }
+
+                    if (
+                        pathIncludes(id, '/node_modules/@tiptap/') ||
+                        pathIncludes(id, '/node_modules/lowlight/')
+                    ) {
+                        return 'tiptap';
+                    }
+                },
+            },
+        },
+    },
 });

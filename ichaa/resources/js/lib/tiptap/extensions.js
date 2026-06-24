@@ -22,7 +22,11 @@ import { SwapEnterBehavior } from '@/lib/tiptap/swapEnterBehavior'
 const lowlight = createLowlight()
 
 export const richTextRenderExtensions = [
-    StarterKit,
+    StarterKit.configure({
+        codeBlock: false,
+        link: false,
+        underline: false,
+    }),
     Underline,
     TextStyle,
     FontFamily,

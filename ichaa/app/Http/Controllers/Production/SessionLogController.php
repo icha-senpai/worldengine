@@ -47,9 +47,7 @@ class SessionLogController extends Controller
     public function edit(SessionLog $sessionLog): Response
     {
         return $this->showPage($sessionLog, [
-            'editDrawer' => [
-                'significanceLevels' => SessionLog::SIGNIFICANCE_LEVELS,
-            ],
+            'editDrawer' => $this->editFormProps(),
         ]);
     }
 
@@ -111,6 +109,11 @@ class SessionLogController extends Controller
             'significanceLevels' => SessionLog::SIGNIFICANCE_LEVELS,
         
         ];
+    }
+
+    private function editFormProps(): array
+    {
+        return $this->createFormProps();
     }
 
     private function showPage(SessionLog $sessionLog, array $props = []): Response

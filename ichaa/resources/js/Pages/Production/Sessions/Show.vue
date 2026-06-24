@@ -8,17 +8,21 @@
             :edit-href="route('session-logs.edit', session.id)"
             :edit-preserve-scroll="true"
             :edit-preserve-state="true"
+            :edit-drawer-open="Boolean(editDrawer)"
+            :edit-close-href="route('session-logs.show', session.id)"
             :destroy-href="route('session-logs.destroy', session.id)"
             :badge="session.external_tool || 'session'"
             :sections="sections"
-        />
-
-        <EditSessionLog
-            v-if="editDrawer"
-            embedded
-            :session="session"
-            v-bind="editDrawer"
-        />
+        >
+            <template #edit-drawer>
+                <EditSessionLog
+                    v-if="editDrawer"
+                    embedded
+                    :session="session"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 

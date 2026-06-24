@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Mcp;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
@@ -103,5 +104,33 @@ class DataverseMcpOAuthTest extends TestCase
             'code_challenge_method' => 'S256',
         ]))
             ->assertRedirect(route('login'));
+    }
+
+    public function test_passport_authorize_route_renders_the_local_mcp_authorize_view_for_authenticated_users(): void
+    {
+        $clientId = $this->postJson('/oauth/register', [
+            'client_name' => 'Notion AI',
+            'redirect_uris' => [
+                'https://www.notion.so/callback/example',
+            ],
+        ])->json('client_id');
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/oauth/authorize?'.http_build_query([
+            'response_type' => 'code',
+            'client_id' => $clientId,
+            'redirect_uri' => 'https://www.notion.so/callback/example',
+            'scope' => 'mcp:use',
+            'state' => 'test-state',
+            'code_challenge' => str_repeat('a', 43),
+            'code_challenge_method' => 'S256',
+        ]))
+            ->assertOk()
+            ->assertSee('Authorize Notion AI', false)
+            ->assertSee('Signed in as', false)
+            ->assertSee($user->email, false)
+            ->assertSee('Authorize connection', false)
+            ->assertSee('Deny access', false);
     }
 }

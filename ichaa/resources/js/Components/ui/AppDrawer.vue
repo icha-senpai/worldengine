@@ -1,7 +1,8 @@
 <template>
     <Transition
         name="drawer-slide"
-        :duration="{ enter: 240, leave: 220 }"
+        :appear="animateOnMount"
+        :duration="{ enter: 300, leave: 220 }"
         @after-leave="finishClose"
     >
         <div v-if="isOpen" class="drawer-shell">
@@ -60,6 +61,7 @@ import PageHeaderTrail from '@/Components/ui/PageHeaderTrail.vue'
 const props = defineProps({
     title: { type: String, required: true },
     trailItems: { type: Array, default: () => [] },
+    animateOnMount: { type: Boolean, default: true },
     closeHref: { type: String, default: '' },
     closeLabel: { type: String, default: 'Close' },
     dismissLabel: { type: String, default: 'Dismiss drawer' },

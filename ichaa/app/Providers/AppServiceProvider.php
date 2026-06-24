@@ -23,6 +23,6 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
-        Passport::authorizationView('mcp::authorize');
+        Passport::authorizationView('mcp.authorize');
     }
 }

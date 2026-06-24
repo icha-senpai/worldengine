@@ -967,6 +967,9 @@ describe('domain scaffold forms', () => {
                 title: 'Thread untangling',
                 session_date: '2026-06-20',
                 external_tool: 'claude',
+                focus_entity_ids: [31],
+                focus_group_relationship_ids: [32],
+                focus_collection_ids: [33],
                 focus_description: 'Updated focus note.',
                 decisions_made: { type: 'doc', content: [] },
                 changes_applied: { type: 'doc', content: [] },
@@ -974,12 +977,31 @@ describe('domain scaffold forms', () => {
                 session_significance: 'major',
                 notes: { type: 'doc', content: [] },
             },
+            entities: [{ id: 31, name: 'Seraphine', entity_type: 'character' }],
+            groupRelationships: [{ id: 32, name: 'Night Council', relationship_type: 'alliance' }],
+            collections: [{ id: 33, name: 'Current Arc', collection_type: 'custom' }],
             significanceLevels: ['major'],
         })
 
+        const entityField = findField(scaffold.props('sections'), 'focus_entity_ids')
+        const groupField = findField(scaffold.props('sections'), 'focus_group_relationship_ids')
+        const collectionField = findField(scaffold.props('sections'), 'focus_collection_ids')
+
         expect(form.title).toBe('Thread untangling')
         expect(form.external_tool).toBe('claude')
+        expect(form.focus_entity_ids).toEqual([31])
+        expect(form.focus_group_relationship_ids).toEqual([32])
+        expect(form.focus_collection_ids).toEqual([33])
         expect(form.session_significance).toBe('major')
+        expect(entityField.options).toEqual([
+            { value: 31, label: 'Seraphine (#31 · Character)' },
+        ])
+        expect(groupField.options).toEqual([
+            { value: 32, label: 'Night Council (#32 · Alliance)' },
+        ])
+        expect(collectionField.options).toEqual([
+            { value: 33, label: 'Current Arc (#33 · Custom)' },
+        ])
 
         await scaffold.props('onSubmit')()
 

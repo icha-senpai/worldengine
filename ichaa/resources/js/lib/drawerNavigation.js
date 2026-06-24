@@ -1,5 +1,7 @@
 import { reactive, readonly } from 'vue'
 
+export const PENDING_DRAWER_REVEAL_MS = 90
+
 const DRAWER_ROUTE_PATTERNS = [
     /\/create(?:\/)?(?:\?.*)?$/,
     /\/edit(?:\/)?(?:\?.*)?$/,
@@ -8,10 +10,20 @@ const DRAWER_ROUTE_PATTERNS = [
 
 const state = reactive({
     pendingHref: '',
+    pendingVisible: false,
 })
+
+let revealTimer = null
 
 export function useDrawerNavigationState() {
     return readonly(state)
+}
+
+function clearRevealTimer() {
+    if (revealTimer !== null) {
+        window.clearTimeout(revealTimer)
+        revealTimer = null
+    }
 }
 
 export function normalizeDrawerHref(href) {
@@ -36,18 +48,36 @@ export function isDrawerRouteHref(href) {
 }
 
 export function beginDrawerNavigation({ href = '' } = {}) {
+    clearRevealTimer()
+
     state.pendingHref = normalizeDrawerHref(href)
+    state.pendingVisible = false
+
+    if (!state.pendingHref) {
+        return
+    }
+
+    const pendingHref = state.pendingHref
+
+    revealTimer = window.setTimeout(() => {
+        if (state.pendingHref === pendingHref) {
+            state.pendingVisible = true
+        }
+    }, PENDING_DRAWER_REVEAL_MS)
 }
 
 export function matchesPendingDrawerHref(href) {
     const target = normalizeDrawerHref(href)
 
-    return Boolean(target) && state.pendingHref === target
+    return Boolean(target) && state.pendingVisible && state.pendingHref === target
 }
 
 export function finishDrawerNavigation(href = '') {
+    clearRevealTimer()
+
     if (!href) {
         state.pendingHref = ''
+        state.pendingVisible = false
         return
     }
 
@@ -55,5 +85,6 @@ export function finishDrawerNavigation(href = '') {
 
     if (target && state.pendingHref === target) {
         state.pendingHref = ''
+        state.pendingVisible = false
     }
 }

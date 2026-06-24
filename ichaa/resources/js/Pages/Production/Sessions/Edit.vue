@@ -18,12 +18,24 @@
 import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
+import {
+    toCollectionOptions,
+    toEntityOptions,
+    toGroupRelationshipOptions,
+} from '@/Components/scaffold/formatters'
 
 const props = defineProps({
     embedded: { type: Boolean, default: false },
     session: { type: Object, required: true },
+    entities: { type: Array, default: () => [] },
+    groupRelationships: { type: Array, default: () => [] },
+    collections: { type: Array, default: () => [] },
     significanceLevels: { type: Array, default: () => [] },
 })
+
+const entityOptions = computed(() => toEntityOptions(props.entities))
+const groupRelationshipOptions = computed(() => toGroupRelationshipOptions(props.groupRelationships))
+const collectionOptions = computed(() => toCollectionOptions(props.collections))
 
 const externalTools = [
     'notion',
@@ -39,6 +51,9 @@ const form = useForm({
     title: props.session.title ?? '',
     session_date: props.session.session_date ?? '',
     external_tool: props.session.external_tool ?? '',
+    focus_entity_ids: props.session.focus_entity_ids ?? [],
+    focus_group_relationship_ids: props.session.focus_group_relationship_ids ?? [],
+    focus_collection_ids: props.session.focus_collection_ids ?? [],
     focus_description: props.session.focus_description ?? '',
     decisions_made: props.session.decisions_made ?? null,
     changes_applied: props.session.changes_applied ?? null,
@@ -56,6 +71,32 @@ const sections = computed(() => [
             { key: 'external_tool', label: 'External Tool', type: 'select', options: externalTools },
             { key: 'session_significance', label: 'Session Significance', type: 'select', options: props.significanceLevels },
             { key: 'focus_description', label: 'Focus Description' },
+        ],
+    },
+    {
+        title: 'Focus',
+        fields: [
+            {
+                key: 'focus_entity_ids',
+                label: 'Focus Entities',
+                type: 'multiselect',
+                options: entityOptions.value,
+                emptyMessage: 'Create some entities first if you want to tag this session to them.',
+            },
+            {
+                key: 'focus_group_relationship_ids',
+                label: 'Focus Group Relationships',
+                type: 'multiselect',
+                options: groupRelationshipOptions.value,
+                emptyMessage: 'No group relationships exist yet.',
+            },
+            {
+                key: 'focus_collection_ids',
+                label: 'Focus Collections',
+                type: 'multiselect',
+                options: collectionOptions.value,
+                emptyMessage: 'No collections exist yet.',
+            },
         ],
     },
     {
