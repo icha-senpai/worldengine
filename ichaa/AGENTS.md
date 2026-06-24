@@ -1,3 +1,102 @@
+## Agent World Model
+
+Before making changes, build a small working model of the affected area instead of editing from isolated snippets.
+
+For every non-trivial change, identify:
+
+1. **User intent**
+
+   * What behavior, bug, screen, model, or workflow is actually being changed?
+   * What is explicitly requested versus merely tempting cleanup?
+
+2. **Affected surface**
+
+   * Which route, controller, model, migration/schema, service/action, Vue page, component, request class, policy, resource, and test area may be involved?
+   * Check sibling files before creating a new pattern.
+
+3. **Current invariants**
+
+   * What must remain true after the change?
+   * Preserve auth/verified route behavior, named routes, route parameters, generated columns, JSONB relation patterns, timeline placement behavior, soft-delete/restore flows, and existing response shapes.
+
+4. **Change prediction**
+
+   * Before editing, predict the likely blast radius.
+   * If a change touches persistence, predict schema impact, model casts/relationships, validation, authorization, factories, seeders, and tests.
+   * If a change touches UI, predict prop shape impact, component reuse, mobile behavior, overflow/wrapping, and shared layout impact.
+   * If a change touches API behavior, predict response shape impact, consumers, resources, validation, and error handling.
+
+5. **Action choice**
+
+   * Prefer the smallest correct change that fits the existing architecture.
+   * Prefer stable, boring, explicit Laravel/Vue code over cleverness.
+   * Do not introduce abstractions unless they remove real duplication, clarify ownership, or reduce actual risk.
+   * Do not refactor unrelated code while completing a requested change.
+
+6. **Verification**
+
+   * Use Laravel Boost documentation lookup before framework-specific changes.
+   * Use schema/route inspection before changing persistence or routing behavior.
+   * Run the smallest relevant test command first.
+   * If tests fail, update the working model before making another edit. Do not patch randomly.
+
+7. **Surprise handling**
+
+   * If the codebase contradicts this file, trust the live code and dependency manifests first.
+   * If the intended change would violate existing architecture, stop and explain the conflict.
+   * If multiple safe approaches exist, surface the tradeoffs instead of silently choosing a large direction.
+
+## Complexity and Responsibility Model
+
+Use file size, responsibility count, and change risk as warning signals.
+
+* Controllers coordinate requests and responses. They must not become workflow engines.
+* Services/actions should own clear responsibilities. They must not become god objects.
+* Vue pages/components should render and coordinate UI state. They must not become backend rule engines.
+* Helpers must stay narrow. They must not become dumping grounds.
+* If a file is growing because it owns multiple responsibilities, suggest a responsibility-based split before adding more logic.
+* Split by real responsibility, not by aesthetics.
+* Avoid abstraction confetti. Small files are not automatically better if the system becomes harder to trace.
+* Keep important rules close to the write path: ownership, permissions, ordering, validation, mutation guards, lore integrity, entity relationships, generated search vectors, JSONB link fields, soft-delete/restore behavior, and timeline placement.
+* Correctness and traceability beat cleverness.
+
+## Trivial Change Fast Path
+
+For truly trivial changes, do not perform a full architecture review.
+
+A change is trivial only when it is limited to one small, obvious surface and does not affect behavior, persistence, routing, authorization, validation, API response shapes, shared components, generated files, build tooling, or tests.
+
+Examples of trivial changes:
+
+* Fixing a typo in visible text.
+* Adjusting a label, heading, placeholder, or help message.
+* Changing a small local Tailwind class on a single component.
+* Renaming a local variable for clarity without changing logic.
+* Removing dead whitespace or formatting that Pint/Prettier would normalize.
+* Updating a comment or PHPDoc block without changing behavior.
+
+For trivial changes:
+
+1. Confirm the change is truly local.
+2. Inspect the touched file enough to avoid breaking nearby patterns.
+3. Make the smallest possible edit.
+4. Do not refactor surrounding code.
+5. Do not create new files, abstractions, components, services, routes, migrations, or tests unless the change stops being trivial.
+6. Run formatting when required by the touched file type.
+7. If no test is useful because the change is copy-only or visual-only, say so briefly in the final response.
+
+A change is not trivial if it touches:
+
+* Database schema or persisted data.
+* Model relationships, casts, accessors, mutators, scopes, or observers.
+* Controllers, services, actions, policies, Form Requests, Resources, or routes.
+* Auth, permissions, ownership, validation, soft deletes, restore behavior, timeline placement, generated search vectors, or JSONB link fields.
+* Shared Vue components, layouts, scaffold behavior, composables, stores, or global CSS.
+* API or Inertia prop shapes.
+* Build tooling, package versions, deployment config, or test setup.
+
+If a “small” change reveals hidden coupling, treat it as non-trivial and use the full Agent World Model.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
@@ -263,7 +362,7 @@ Vue components must have a single root element.
 * Complex writes should use services/actions that match the existing bounded context.
 * Database writes that must succeed or fail together should use `DB::transaction()`.
 * Do not hide database mutations inside accessors, computed attributes, view helpers, or frontend-driven assumptions.
-* Do not place business rules in Vue components when the rule affects backend correctness, permissions, ownership, money, inventory, lore integrity, timeline placement, or persisted state.
+* Do not place business rules in Vue components when the rule affects backend correctness, permissions, ownership, lore integrity, timeline placement, entity relationships, generated search vectors, JSONB link fields, soft-delete/restore behavior, and persisted state.
 * Do not place large workflow logic directly in routes.
 * Do not use route closures for new complex behavior unless the surrounding area already uses that pattern and the change is intentionally small.
 
