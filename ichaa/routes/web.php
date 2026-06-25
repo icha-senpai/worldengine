@@ -148,9 +148,9 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified', EnsureAdmin::class])
     // -----------------------------------------------------------------------
 
     Route::resource('power-interactions', PowerInteractionController::class);
-    Route::resource('location-containment', LocationContainmentController::class)->except(['show']);
+    Route::resource('location-containment', LocationContainmentController::class);
     Route::resource('travel-routes', TravelRouteController::class);
-    Route::resource('location-control', LocationControlController::class)->except(['show']);
+    Route::resource('location-control', LocationControlController::class);
 
     Route::prefix('power-interactions/{powerInteraction}')->name('power-interactions.')->group(function () {
         Route::post('resolve', [PowerInteractionController::class, 'resolve'])->name('resolve');

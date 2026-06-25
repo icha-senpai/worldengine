@@ -101,6 +101,7 @@ class ApiMutationService
             'collections' => $this->collectionService->update($record, $payload),
             'secrets' => $this->intelligenceService->updateSecret($record, $payload),
             'power-interactions' => $this->worldService->updatePowerInteraction($record, $payload),
+            'location-control-records' => $this->worldService->updateControlHistory($record, $payload),
             'timeline-entries' => $this->temporalService->updateTimelineEntry($record, $payload),
             'character-states' => $this->temporalService->updateStateSnapshot($record, $payload),
             'meta' => $this->productionService->updateMeta($record, $payload),

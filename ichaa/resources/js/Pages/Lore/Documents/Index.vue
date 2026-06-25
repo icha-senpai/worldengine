@@ -50,15 +50,22 @@ const props = defineProps({
     documents: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
     documentTypes: { type: Array, default: () => [] },
+    documentStatuses: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('documents.index', {
+    q: props.filters.q ?? '',
     type: props.filters.type ?? '',
+    status: props.filters.status ?? '',
+    visibility: props.filters.visibility ?? '',
 })
 
 const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search documents...' },
     { key: 'type', type: 'select', placeholder: 'All document types', options: props.documentTypes },
+    { key: 'status', type: 'select', placeholder: 'All statuses', options: props.documentStatuses },
+    { key: 'visibility', placeholder: 'All visibility' },
 ])
 
 const items = computed(() =>

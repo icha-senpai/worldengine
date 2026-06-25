@@ -78,13 +78,23 @@ class CharacterStateController extends Controller
             $query->forEntity($request->integer('entity'));
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('snapshot_label', 'like', "%{$term}%")
+                    ->orWhere('au_date', 'like', "%{$term}%")
+                    ->orWhere('source_date', 'like', "%{$term}%")
+                    ->orWhereHas('entity', fn ($entity) => $entity->where('name', 'like', "%{$term}%"));
+            });
+        }
+
         if ($request->boolean('breaking')) {
             $query->breaking();
         }
 
         return $this->page('Temporal/CharacterStates/Index', array_merge([
             'states' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['entity', 'breaking']),
+            'filters' => $request->only(['q', 'entity', 'breaking']),
             'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->whereIn('entity_type', EntityType::POWERED_TYPES)

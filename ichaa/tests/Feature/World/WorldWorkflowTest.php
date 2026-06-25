@@ -137,24 +137,31 @@ class WorldWorkflowTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->get(route('location-containment.index'))
+            ->get(route('location-containment.index', ['containment_type' => 'dimensional']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('World/LocationContainment/Index')
+                ->where('filters.containment_type', 'dimensional')
                 ->has('containments', 1)
                 ->where('containments.0.id', $matching->id)
             );
 
         $this->actingAs($user)
+            ->get(route('location-containment.show', $matching))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('World/LocationContainment/Show')
+                ->where('containment.id', $matching->id)
+            );
+
+        $storeResponse = $this->actingAs($user)
             ->from(route('location-containment.index'))
             ->post(route('location-containment.store'), [
                 'child_location_entity_id' => $otherChild->id,
                 'parent_location_entity_id' => $parent->id,
                 'containment_type' => 'physical',
                 'era_start' => 'Cycle 1',
-            ])
-            ->assertRedirect(route('location-containment.index'))
-            ->assertSessionHas('success');
+            ]);
 
         $created = LocationContainment::where([
             'child_location_entity_id' => $otherChild->id,
@@ -162,15 +169,18 @@ class WorldWorkflowTest extends TestCase
         ])->first();
 
         $this->assertNotNull($created);
+        $storeResponse
+            ->assertRedirect(route('location-containment.show', $created))
+            ->assertSessionHas('success');
         $this->assertTrue($created->is_active);
 
         $this->actingAs($user)
-            ->from(route('location-containment.index'))
+            ->from(route('location-containment.show', $created))
             ->put(route('location-containment.update', $created), [
                 'era_end' => 'Cycle 2',
                 'is_active' => false,
             ])
-            ->assertRedirect(route('location-containment.index'))
+            ->assertRedirect(route('location-containment.show', $created))
             ->assertSessionHas('success');
 
         $created->refresh();
@@ -214,6 +224,23 @@ class WorldWorkflowTest extends TestCase
         $this->assertSame($destination->id, $routes[1]->origin_location_entity_id);
         $this->assertSame($origin->id, $routes[1]->destination_location_entity_id);
 
+        $routes[0]->update(['visibility' => 'secret']);
+        $routes[1]->update(['visibility' => 'public_knowledge']);
+
+        $this->actingAs($user)
+            ->get(route('travel-routes.index', [
+                'route_type' => 'planar',
+                'visibility' => 'secret',
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('World/TravelRoutes/Index')
+                ->where('filters.route_type', 'planar')
+                ->where('filters.visibility', 'secret')
+                ->has('routes', 1)
+                ->where('routes.0.id', $routes[0]->id)
+            );
+
         $forward = $routes->first();
 
         $this->actingAs($user)
@@ -247,6 +274,14 @@ class WorldWorkflowTest extends TestCase
         $location = $this->spatialEntity('Aster Province');
         $firstController = Entity::factory()->create(['name' => 'Old Crown']);
         $secondController = Entity::factory()->create(['name' => 'New Accord']);
+        $firstResistance = Entity::factory()->create([
+            'name' => 'Grey Line Accord',
+            'entity_type' => EntityType::FACTION,
+        ]);
+        $secondResistance = Entity::factory()->create([
+            'name' => 'Seraphine',
+            'entity_type' => EntityType::CHARACTER,
+        ]);
 
         $previous = LocationControlHistory::create([
             'location_entity_id' => $location->id,
@@ -256,47 +291,68 @@ class WorldWorkflowTest extends TestCase
             'is_current' => true,
         ]);
 
-        $this->actingAs($user)
+        $storeResponse = $this->actingAs($user)
             ->from(route('location-control.index'))
             ->post(route('location-control.store'), [
                 'location_entity_id' => $location->id,
                 'controlling_entity_id' => $secondController->id,
                 'control_type' => 'occupied',
                 'control_start_era' => 'Cycle 2',
-            ])
-            ->assertRedirect(route('location-control.index'))
-            ->assertSessionHas('success');
+                'resistance_entity_ids' => [$firstResistance->id],
+            ]);
 
         $current = LocationControlHistory::where('controlling_entity_id', $secondController->id)->first();
 
         $this->assertNotNull($current);
+        $storeResponse
+            ->assertRedirect(route('location-control.show', $current))
+            ->assertSessionHas('success');
         $this->assertFalse($previous->fresh()->is_current);
         $this->assertSame('Cycle 2', $previous->fresh()->control_end_era);
         $this->assertTrue($current->is_current);
+        $this->assertSame([$firstResistance->id], $current->resistanceEntities()->pluck('entities.id')->all());
 
         $this->actingAs($user)
-            ->get(route('location-control.index'))
+            ->get(route('location-control.index', [
+                'control_type' => 'occupied',
+                'resistance_level' => 'none',
+            ]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('World/LocationControl/Index')
+                ->where('filters.control_type', 'occupied')
+                ->where('filters.resistance_level', 'none')
                 ->has('records', 1)
                 ->where('records.0.id', $current->id)
             );
 
         $this->actingAs($user)
-            ->from(route('location-control.index'))
+            ->get(route('location-control.show', $current))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('World/LocationControl/Show')
+                ->where('record.id', $current->id)
+            );
+
+        $this->actingAs($user)
+            ->from(route('location-control.show', $current))
             ->put(route('location-control.update', $current), [
                 'resistance_level' => 'active_conflict',
+                'resistance_entity_ids' => [$firstResistance->id, $secondResistance->id],
                 'control_end_era' => 'Cycle 3',
                 'how_control_ended' => ['type' => 'doc', 'content' => []],
             ])
-            ->assertRedirect(route('location-control.index'))
+            ->assertRedirect(route('location-control.show', $current))
             ->assertSessionHas('success');
 
         $current->refresh();
 
         $this->assertSame('active_conflict', $current->resistance_level);
         $this->assertSame('Cycle 3', $current->control_end_era);
+        $this->assertEqualsCanonicalizing(
+            [$firstResistance->id, $secondResistance->id],
+            $current->resistanceEntities()->pluck('entities.id')->all(),
+        );
 
         $this->actingAs($user)
             ->from(route('location-control.index'))

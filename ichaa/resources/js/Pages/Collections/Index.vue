@@ -54,11 +54,15 @@ const props = defineProps({
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('collections.index', {
+    q: props.filters.q ?? '',
     type: props.filters.type ?? '',
+    visibility: props.filters.visibility ?? '',
 })
 
 const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search collections...' },
     { key: 'type', type: 'select', placeholder: 'All collection types', options: props.types },
+    { key: 'visibility', placeholder: 'All visibility' },
 ])
 
 const items = computed(() =>

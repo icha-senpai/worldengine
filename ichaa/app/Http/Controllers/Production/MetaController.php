@@ -111,6 +111,15 @@ class MetaController extends Controller
             $query->ofNoteType($request->type);
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('title', 'like', "%{$term}%")
+                    ->orWhere('category', 'like', "%{$term}%")
+                    ->orWhere('meta_note_type', 'like', "%{$term}%");
+            });
+        }
+
         if ($request->boolean('unresolved')) {
             $query->unresolved();
         }
@@ -121,7 +130,7 @@ class MetaController extends Controller
 
         return $this->page('Production/Meta/Index', array_merge([
             'notes' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['category', 'type', 'unresolved', 'blocking']),
+            'filters' => $request->only(['q', 'category', 'type', 'unresolved', 'blocking']),
             'categories' => Meta::CATEGORIES,
             'noteTypes' => Meta::NOTE_TYPES,
         ], $props));

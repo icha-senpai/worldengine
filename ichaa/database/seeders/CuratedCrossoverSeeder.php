@@ -2668,10 +2668,17 @@ class CuratedCrossoverSeeder extends Seeder
             $control->restore();
         }
 
-        $control->fill(array_merge(['control_type' => $data['control_type']], $data));
-        $control->save();
+        $payload = array_merge([
+            'location_entity_id' => $location->id,
+            'controlling_entity_id' => $controller->id,
+            'control_type' => $data['control_type'],
+        ], $data);
 
-        return $control->fresh();
+        if ($control->exists) {
+            return $this->worldService->updateControlHistory($control, $payload);
+        }
+
+        return $this->worldService->recordControlChange($location, $controller, $data['control_type'], $payload);
     }
 
     private function upsertTravelRoute(Entity $origin, Entity $destination, array $data): TravelRoute

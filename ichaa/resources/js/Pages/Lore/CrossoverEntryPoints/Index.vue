@@ -18,6 +18,15 @@
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first entry point ->"
         >
+        <template #toolbar>
+            <ScaffoldFilterBar
+                :fields="filterFields"
+                :form="filterForm"
+                :has-active-filters="hasActiveFilters"
+                :on-apply="applyFilters"
+                :on-clear="clearFilters"
+            />
+        </template>
         <template #create-drawer>
             <CreateCrossoverEntryPoint
                 v-if="createDrawer"
@@ -31,14 +40,30 @@
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreateCrossoverEntryPoint from '@/Pages/Lore/CrossoverEntryPoints/Create.vue'
 import { buildMeta } from '@/Pages/scaffold/pageBuilders'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     entryPoints: { type: Array, default: () => [] },
+    filters: { type: Object, default: () => ({}) },
+    statuses: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
 })
+
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('crossover-entry-points.index', {
+    q: props.filters.q ?? '',
+    status: props.filters.status ?? '',
+    visibility: props.filters.visibility ?? '',
+})
+
+const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search universes...' },
+    { key: 'status', type: 'select', placeholder: 'All statuses', options: props.statuses },
+    { key: 'visibility', placeholder: 'All visibility' },
+])
 
 const items = computed(() =>
     props.entryPoints.map((entryPoint) => ({
@@ -47,6 +72,7 @@ const items = computed(() =>
         title: entryPoint.source_universe,
         meta: buildMeta([
             { label: 'Status', value: entryPoint.status },
+            { label: 'Visibility', value: entryPoint.visibility },
         ]),
     }))
 )

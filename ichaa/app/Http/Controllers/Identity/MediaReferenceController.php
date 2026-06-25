@@ -390,6 +390,10 @@ class MediaReferenceController extends Controller
             $query->whereNotNull(MediaReference::ATTACHMENT_FIELDS[$request->attachment_type]);
         }
 
+        if ($request->filled('visibility')) {
+            $query->where('visibility', $request->string('visibility')->toString());
+        }
+
         if ($request->filled('search')) {
             $term = trim((string) $request->search);
             $query->where(function ($inner) use ($term) {
@@ -403,7 +407,7 @@ class MediaReferenceController extends Controller
 
                 return $this->page('Identity/MediaReferences/Index', array_merge([
             'media' => $query->paginate(30)->withQueryString(),
-            'filters' => $request->only(['search', 'media_type', 'purpose', 'attachment_type']),
+            'filters' => $request->only(['search', 'media_type', 'purpose', 'attachment_type', 'visibility']),
             'mediaTypes' => MediaReference::MEDIA_TYPES,
             'purposes' => MediaReference::PURPOSES,
             'attachmentTypes' => self::ATTACHMENT_TYPES,

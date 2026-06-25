@@ -4,7 +4,6 @@ namespace Tests\Feature\Identity;
 
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\MediaReference;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +15,7 @@ class MediaReferenceControllerTest extends TestCase
 
     public function test_users_can_create_external_media_references(): void
     {
-        $user = User::factory()->create();
+        $user = $this->createVerifiedAdminUser();
         $entity = Entity::factory()->create(['name' => 'Mirror Library']);
 
         $response = $this->actingAs($user)->post(route('media-references.store'), [
@@ -54,7 +53,7 @@ class MediaReferenceControllerTest extends TestCase
 
     public function test_users_can_update_local_media_references(): void
     {
-        $user = User::factory()->create();
+        $user = $this->createVerifiedAdminUser();
         $entity = Entity::factory()->create();
         $media = MediaReference::query()->create([
             'entity_id' => $entity->id,
@@ -106,7 +105,7 @@ class MediaReferenceControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = $this->createVerifiedAdminUser();
         $entity = Entity::factory()->create(['name' => 'Archive Vault']);
         $file = UploadedFile::fake()->image('archive-vault.png', 1200, 800);
 

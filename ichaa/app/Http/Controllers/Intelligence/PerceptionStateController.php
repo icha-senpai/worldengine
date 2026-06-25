@@ -185,13 +185,24 @@ class PerceptionStateController extends Controller
             $query->highRisk();
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('subject_type', 'like', "%{$term}%")
+                    ->orWhere('maintenance_method', 'like', "%{$term}%")
+                    ->orWhere('maintenance_effort', 'like', "%{$term}%")
+                    ->orWhere('divergence_level', 'like', "%{$term}%")
+                    ->orWhere('revelation_risk', 'like', "%{$term}%");
+            });
+        }
+
         if ($request->boolean('critical_maintenance')) {
             $query->criticalMaintenance();
         }
 
         return $this->page('Intelligence/PerceptionStates/Index', array_merge([
             'states' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['high_risk', 'critical_maintenance']),
+            'filters' => $request->only(['q', 'high_risk', 'critical_maintenance']),
         ], $props));
 
     }

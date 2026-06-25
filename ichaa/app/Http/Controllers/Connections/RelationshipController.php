@@ -100,6 +100,16 @@ class RelationshipController extends Controller
             $query->where('current_tension_charge', $request->charge);
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->whereHas('fromEntity', fn ($from) => $from->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('toEntity', fn ($to) => $to->where('name', 'like', "%{$term}%"))
+                    ->orWhere('relationship_type', 'like', "%{$term}%")
+                    ->orWhere('direction', 'like', "%{$term}%");
+            });
+        }
+
         if ($request->boolean('volatile')) {
             $query->volatile();
         }
@@ -110,7 +120,7 @@ class RelationshipController extends Controller
 
         return $this->page('Relationships/Index', array_merge([
             'relationships' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['type', 'charge', 'volatile', 'masked']),
+            'filters' => $request->only(['q', 'type', 'charge', 'volatile', 'masked']),
             'relationshipTypes' => RelationshipType::ALL,
             'tensionCharges' => TensionCharge::ALL,
         ], $props));

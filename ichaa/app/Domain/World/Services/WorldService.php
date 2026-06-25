@@ -154,12 +154,26 @@ class WorldService
                     'how_control_ended' => $data['previous_control_ended_how'] ?? null,
                 ]);
 
-            return LocationControlHistory::create(array_merge($data, [
+            $record = LocationControlHistory::create(array_merge($this->controlPayload($data), [
                 'location_entity_id'   => $location->id,
                 'controlling_entity_id'=> $controller->id,
                 'control_type'         => $controlType,
                 'is_current'           => true,
             ]));
+
+            $this->syncResistanceEntities($record, $data);
+
+            return $record->fresh();
+        });
+    }
+
+    public function updateControlHistory(LocationControlHistory $record, array $data): LocationControlHistory
+    {
+        return DB::transaction(function () use ($record, $data) {
+            $record->update($this->controlPayload($data));
+            $this->syncResistanceEntities($record, $data);
+
+            return $record->fresh();
         });
     }
 
@@ -248,5 +262,45 @@ class WorldService
         }
 
         return $data;
+    }
+
+    private function controlPayload(array $data): array
+    {
+        unset($data['resistance_entity_ids'], $data['resistance_entity_id']);
+
+        return $data;
+    }
+
+    private function syncResistanceEntities(LocationControlHistory $record, array $data): void
+    {
+        $resistanceEntityIds = $this->resolveResistanceEntityIds($data);
+
+        if ($resistanceEntityIds === null) {
+            return;
+        }
+
+        $record->resistanceEntities()->sync($resistanceEntityIds);
+    }
+
+    private function resolveResistanceEntityIds(array $data): ?array
+    {
+        if (array_key_exists('resistance_entity_ids', $data)) {
+            return collect($data['resistance_entity_ids'] ?? [])
+                ->filter(static fn ($value) => $value !== null && $value !== '')
+                ->map(static fn ($value) => (int) $value)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        if (array_key_exists('resistance_entity_id', $data)) {
+            if ($data['resistance_entity_id'] === null || $data['resistance_entity_id'] === '') {
+                return [];
+            }
+
+            return [(int) $data['resistance_entity_id']];
+        }
+
+        return null;
     }
 }

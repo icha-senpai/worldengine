@@ -74,9 +74,18 @@ class GlossaryController extends Controller
             $query->where('usage_context', $request->context);
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('term', 'like', "%{$term}%")
+                    ->orWhere('origin_universe', 'like', "%{$term}%")
+                    ->orWhere('usage_context', 'like', "%{$term}%");
+            });
+        }
+
                 return $this->page('Glossary/Index', array_merge([
             'terms'   => $query->paginate(60)->withQueryString(),
-            'filters' => $request->only(['universe', 'context']),
+            'filters' => $request->only(['q', 'universe', 'context']),
             'usageContexts' => Glossary::USAGE_CONTEXTS,
             'originUniverses' => SourceUniverse::ALL,
         ], $props));

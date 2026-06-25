@@ -69,9 +69,25 @@ class SourceCanonReferenceController extends Controller
             $query->forUniverse($request->universe);
         }
 
+        if ($request->filled('research_status')) {
+            $query->where('research_status', $request->string('research_status')->toString());
+        }
+
+        if ($request->filled('visibility')) {
+            $query->where('visibility', $request->string('visibility')->toString());
+        }
+
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('title', 'like', "%{$term}%")
+                    ->orWhere('universe', 'like', "%{$term}%");
+            });
+        }
+
         return $this->page('Lore/CanonReferences/Index', array_merge([
             'references' => $query->with('childReferences')->get(),
-            'filters' => $request->only(['universe']),
+            'filters' => $request->only(['universe', 'research_status', 'visibility', 'q']),
             'universes' => SourceCanonReference::query()
                 ->select('universe')
                 ->distinct()
@@ -79,6 +95,7 @@ class SourceCanonReferenceController extends Controller
                 ->pluck('universe')
                 ->filter()
                 ->values(),
+            'researchStatuses' => SourceCanonReference::RESEARCH_STATUSES,
         ], $props));
 
     }

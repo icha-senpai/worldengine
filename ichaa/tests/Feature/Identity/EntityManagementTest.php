@@ -71,6 +71,42 @@ class EntityManagementTest extends TestCase
             );
     }
 
+    public function test_entities_index_can_filter_by_visibility_and_incomplete_state(): void
+    {
+        $user = $this->verifiedUser();
+        $matching = Entity::factory()->create([
+            'name' => 'Hidden Draft',
+            'visibility' => VisibilityLevel::SECRET,
+            'completion_score' => 45,
+        ]);
+        Entity::factory()->create([
+            'name' => 'Hidden Complete',
+            'visibility' => VisibilityLevel::SECRET,
+            'completion_score' => 100,
+        ]);
+        Entity::factory()->create([
+            'name' => 'Public Draft',
+            'visibility' => VisibilityLevel::PUBLIC_KNOWLEDGE,
+            'completion_score' => 40,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('entities.index', [
+                'q' => 'Hidden Draft',
+                'visibility' => VisibilityLevel::SECRET,
+                'incomplete' => 1,
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Entities/Index')
+                ->where('filters.q', 'Hidden Draft')
+                ->where('filters.visibility', VisibilityLevel::SECRET)
+                ->where('filters.incomplete', '1')
+                ->has('entities.data', 1)
+                ->where('entities.data.0.id', $matching->id)
+            );
+    }
+
     public function test_entities_can_be_created_with_defaults_and_initial_version_history(): void
     {
         $user = $this->verifiedUser();
@@ -125,6 +161,29 @@ class EntityManagementTest extends TestCase
         $this->assertSame('recorded', $entity->status);
         $this->assertSame(VisibilityLevel::SECRET, $entity->visibility);
         $this->assertSame(ContentClassification::SECRET, $entity->content_classification);
+    }
+
+    public function test_entities_index_search_matches_partial_words(): void
+    {
+        $user = $this->verifiedUser();
+        $matching = Entity::factory()->create([
+            'name' => 'Archive Witness',
+            'entity_type' => EntityType::CHARACTER,
+        ]);
+        Entity::factory()->create([
+            'name' => 'Vault Sentinel',
+            'entity_type' => EntityType::CHARACTER,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('entities.index', ['q' => 'arch']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Entities/Index')
+                ->where('filters.q', 'arch')
+                ->has('entities.data', 1)
+                ->where('entities.data.0.id', $matching->id)
+            );
     }
 
     public function test_incomplete_entities_cannot_be_published(): void

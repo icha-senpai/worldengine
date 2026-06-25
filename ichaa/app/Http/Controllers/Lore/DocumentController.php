@@ -67,10 +67,23 @@ class DocumentController extends Controller
             $query->ofType($request->type);
         }
 
+        if ($request->filled('status')) {
+            $query->where('document_status', $request->string('status')->toString());
+        }
+
+        if ($request->filled('visibility')) {
+            $query->where('visibility', $request->string('visibility')->toString());
+        }
+
+        if ($request->filled('q')) {
+            $query->where('title', 'like', '%'.trim((string) $request->q).'%');
+        }
+
         return $this->page('Lore/Documents/Index', array_merge([
             'documents' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['type']),
+            'filters' => $request->only(['type', 'status', 'visibility', 'q']),
             'documentTypes' => Document::DOCUMENT_TYPES,
+            'documentStatuses' => Document::DOCUMENT_STATUSES,
         ], $props));
 
     }

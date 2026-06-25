@@ -716,7 +716,8 @@ class DataverseRules
                 'relationships' => [
                     'location_entity_id' => ['required', 'integer', 'exists:entities,id'],
                     'controlling_entity_id' => ['required', 'integer', 'exists:entities,id'],
-                    'resistance_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
+                    'resistance_entity_ids' => ['nullable', 'array'],
+                    'resistance_entity_ids.*' => ['integer', 'exists:entities,id'],
                 ],
             ] : [
                 'attributes' => [
@@ -732,7 +733,8 @@ class DataverseRules
                 'relationships' => [
                     'location_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
                     'controlling_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
-                    'resistance_entity_id' => ['nullable', 'integer', 'exists:entities,id'],
+                    'resistance_entity_ids' => ['nullable', 'array'],
+                    'resistance_entity_ids.*' => ['integer', 'exists:entities,id'],
                 ],
             ],
             'meta' => $operation === 'store' ? [

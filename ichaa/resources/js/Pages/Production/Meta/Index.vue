@@ -55,6 +55,7 @@ const props = defineProps({
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('meta.index', {
+    q: props.filters.q ?? '',
     category: props.filters.category ?? '',
     type: props.filters.type ?? '',
     unresolved: Boolean(props.filters.unresolved),
@@ -62,6 +63,7 @@ const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFil
 })
 
 const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search notes...' },
     { key: 'category', type: 'select', placeholder: 'All categories', options: props.categories },
     { key: 'type', type: 'select', placeholder: 'All note types', options: props.noteTypes },
     { key: 'unresolved', type: 'checkbox', label: 'Unresolved only' },

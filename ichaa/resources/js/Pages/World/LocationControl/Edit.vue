@@ -26,12 +26,16 @@ const props = defineProps({
     record: { type: Object, required: true },
     locationEntities: { type: Array, default: () => [] },
     entities: { type: Array, default: () => [] },
+    resistanceEntities: { type: Array, default: () => [] },
     controlTypes: { type: Array, default: () => [] },
     resistanceLevels: { type: Array, default: () => [] },
+    visibilityLevels: { type: Array, default: () => [] },
+    contentClassifications: { type: Array, default: () => [] },
 })
 
 const locationOptions = computed(() => toEntityOptions(props.locationEntities))
 const entityOptions = computed(() => toEntityOptions(props.entities))
+const resistanceOptions = computed(() => toEntityOptions(props.resistanceEntities))
 
 const form = useForm({
     location_entity_id: props.record.location_entity_id ?? '',
@@ -39,8 +43,14 @@ const form = useForm({
     control_type: props.record.control_type ?? '',
     control_start_era: props.record.control_start_era ?? '',
     resistance_level: props.record.resistance_level ?? '',
+    resistance_entity_ids: (props.record.resistance_entities ?? []).map((entity) => entity.id),
     control_end_era: props.record.control_end_era ?? '',
+    is_current: props.record.is_current ?? true,
+    how_control_was_established: props.record.how_control_was_established ?? null,
     how_control_ended: props.record.how_control_ended ?? null,
+    notes: props.record.notes ?? null,
+    visibility: props.record.visibility ?? 'private',
+    content_classification: props.record.content_classification ?? 'restricted',
 })
 
 const sections = computed(() => [
@@ -72,8 +82,30 @@ const sections = computed(() => [
                 options: props.resistanceLevels,
                 help: `${props.record.location?.name ?? 'Unknown'} -> ${props.record.controlling_entity?.name ?? 'Unknown'} (${props.record.control_type ?? 'control'})`,
             },
+            {
+                key: 'resistance_entity_ids',
+                label: 'Resistance Entities',
+                type: 'multiselect',
+                options: resistanceOptions.value,
+                emptyMessage: 'No resistance actors available yet.',
+            },
             { key: 'control_end_era', label: 'Control End Era' },
+            { key: 'is_current', label: 'Current', type: 'checkbox' },
+        ],
+    },
+    {
+        title: 'Access',
+        fields: [
+            { key: 'visibility', label: 'Visibility', type: 'select', options: props.visibilityLevels },
+            { key: 'content_classification', label: 'Content Classification', type: 'select', options: props.contentClassifications },
+        ],
+    },
+    {
+        title: 'Narrative',
+        fields: [
+            { key: 'how_control_was_established', label: 'How Control Was Established JSON', type: 'json', jsonMode: 'document', rows: 6 },
             { key: 'how_control_ended', label: 'How Control Ended JSON', type: 'json', jsonMode: 'document', rows: 6 },
+            { key: 'notes', label: 'Notes JSON', type: 'json', jsonMode: 'document', rows: 6 },
         ],
     },
 ])

@@ -57,11 +57,13 @@ const props = defineProps({
 const entityOptions = computed(() => toEntityOptions(props.entities))
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('character-states.index', {
+    q: props.filters.q ?? '',
     entity: props.filters.entity ? String(props.filters.entity) : '',
     breaking: Boolean(props.filters.breaking),
 })
 
 const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search snapshots...' },
     { key: 'entity', type: 'select', placeholder: 'All entities', options: entityOptions.value },
     { key: 'breaking', type: 'checkbox', label: 'Breaking only' },
 ])

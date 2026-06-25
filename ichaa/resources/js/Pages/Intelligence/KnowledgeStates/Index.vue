@@ -57,6 +57,7 @@ const props = defineProps({
 const entityOptions = computed(() => toEntityOptions(props.entities))
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('knowledge-states.index', {
+    q: props.filters.q ?? '',
     knower: props.filters.knower ? String(props.filters.knower) : '',
     about: props.filters.about ? String(props.filters.about) : '',
     latent: Boolean(props.filters.latent),
@@ -64,6 +65,7 @@ const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFil
 })
 
 const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search knowledge states...' },
     { key: 'knower', type: 'select', placeholder: 'All knowers', options: entityOptions.value },
     { key: 'about', type: 'select', placeholder: 'All subjects', options: entityOptions.value },
     { key: 'latent', type: 'checkbox', label: 'Latent only' },

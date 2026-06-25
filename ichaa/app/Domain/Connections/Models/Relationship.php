@@ -13,6 +13,7 @@ use App\Domain\Connections\ValueObjects\RelationshipType;
 use App\Domain\Connections\ValueObjects\TensionCharge;
 use App\Domain\Temporal\Models\StateRelationship;
 use App\Domain\Intelligence\Models\KnowledgeState;
+use App\Support\Database\PostgresPrefixSearch;
 
 class Relationship extends Model
 {
@@ -135,10 +136,7 @@ class Relationship extends Model
 
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->whereRaw(
-            "search_vector @@ plainto_tsquery('english', ?)",
-            [$term]
-        );
+        return PostgresPrefixSearch::apply($query, $term);
     }
 
     // --- COMPUTED ---

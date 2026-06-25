@@ -18,21 +18,26 @@ class LocationContainmentController extends Controller
         private readonly WorldService $service,
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return $this->indexPage();
+        return $this->indexPage($request);
     }
 
     public function create(): Response
     {
-        return $this->indexPage([
+        return $this->indexPage(request(), [
             'createDrawer' => $this->createFormProps(),
         ]);
     }
 
+    public function show(LocationContainment $locationContainment): Response
+    {
+        return $this->showPage($locationContainment);
+    }
+
     public function edit(LocationContainment $locationContainment): Response
     {
-        return $this->indexPage([
+        return $this->showPage($locationContainment, [
             'editDrawer' => array_merge($this->createFormProps(), [
                 'containment' => $locationContainment->load([
                     'childLocation:id,name',
@@ -49,9 +54,9 @@ class LocationContainmentController extends Controller
         $child = Entity::findOrFail($validated['child_location_entity_id']);
         $parent = Entity::findOrFail($validated['parent_location_entity_id']);
 
-        $this->service->contain($child, $parent, $validated['containment_type'], $validated);
+        $containment = $this->service->contain($child, $parent, $validated['containment_type'], $validated);
 
-        return $this->to('location-containment.index', [], 'Location containment created.');
+        return $this->to('location-containment.show', [$containment], 'Location containment created.');
     }
 
     public function update(Request $request, LocationContainment $locationContainment): RedirectResponse
@@ -60,7 +65,7 @@ class LocationContainmentController extends Controller
             DataverseRules::web('location-containment', 'update')
         ));
 
-        return $this->to('location-containment.index', [], 'Containment updated.');
+        return $this->to('location-containment.show', [$locationContainment], 'Containment updated.');
     }
 
     public function destroy(LocationContainment $locationContainment): RedirectResponse
@@ -70,12 +75,39 @@ class LocationContainmentController extends Controller
         return $this->to('location-containment.index', [], 'Containment deleted.');
     }
 
-    private function indexPage(array $props = []): Response
+    private function indexPage(Request $request, array $props = []): Response
     {
+        $query = LocationContainment::active()
+            ->with(['childLocation:id,name', 'parentLocation:id,name']);
+
+        if ($request->filled('containment_type')) {
+            $query->ofType($request->string('containment_type')->toString());
+        }
+
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->whereHas('childLocation', fn ($child) => $child->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('parentLocation', fn ($parent) => $parent->where('name', 'like', "%{$term}%"))
+                    ->orWhere('era_start', 'like', "%{$term}%")
+                    ->orWhere('era_end', 'like', "%{$term}%");
+            });
+        }
+
         return $this->page('World/LocationContainment/Index', array_merge([
-            'containments' => LocationContainment::active()
-                ->with(['childLocation:id,name', 'parentLocation:id,name'])
-                ->get(),
+            'containments' => $query->get(),
+            'filters' => $request->only(['q', 'containment_type']),
+            'containmentTypes' => LocationContainment::CONTAINMENT_TYPES,
+        ], $props));
+    }
+
+    private function showPage(LocationContainment $locationContainment, array $props = []): Response
+    {
+        return $this->pageWithNotionNote('World/LocationContainment/Show', $locationContainment, 'location_containment', array_merge([
+            'containment' => $locationContainment->load([
+                'childLocation:id,name',
+                'parentLocation:id,name',
+            ]),
         ], $props));
     }
 

@@ -84,11 +84,31 @@ class SessionLogController extends Controller
 
     private function indexPage(Request $request, array $props = []): Response
     {
-                return $this->page('Production/Sessions/Index', array_merge([
-            'sessions' => SessionLog::latestFirst()->paginate(30),
+        $query = SessionLog::query()->latestFirst();
+
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('title', 'like', "%{$term}%")
+                    ->orWhere('focus_description', 'like', "%{$term}%");
+            });
+        }
+
+        if ($request->filled('external_tool')) {
+            $query->where('external_tool', $request->string('external_tool')->toString());
+        }
+
+        if ($request->filled('significance')) {
+            $query->where('session_significance', $request->string('significance')->toString());
+        }
+
+        return $this->page('Production/Sessions/Index', array_merge([
+            'sessions' => $query->paginate(30)->withQueryString(),
             'stats'    => $this->stats(),
+            'filters' => $request->only(['q', 'external_tool', 'significance']),
+            'externalTools' => SessionLog::EXTERNAL_TOOLS,
+            'significanceLevels' => SessionLog::SIGNIFICANCE_LEVELS,
         ], $props));
-    
     }
 
     private function createFormProps(): array

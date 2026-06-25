@@ -17,6 +17,45 @@ class TimelineWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_timelines_index_filters_by_query_status_and_visibility(): void
+    {
+        $user = $this->verifiedUser();
+        $matching = Entity::factory()->create([
+            'name' => 'Grey Line Main',
+            'entity_type' => EntityType::TIMELINE,
+            'status' => 'active',
+            'visibility' => VisibilityLevel::SECRET,
+        ]);
+        Entity::factory()->create([
+            'name' => 'Grey Line Public',
+            'entity_type' => EntityType::TIMELINE,
+            'status' => 'active',
+            'visibility' => VisibilityLevel::PUBLIC_KNOWLEDGE,
+        ]);
+        Entity::factory()->create([
+            'name' => 'Archive Branch',
+            'entity_type' => EntityType::TIMELINE,
+            'status' => 'concept',
+            'visibility' => VisibilityLevel::SECRET,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('timelines.index', [
+                'q' => 'Grey',
+                'status' => 'active',
+                'visibility' => VisibilityLevel::SECRET,
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Temporal/Timelines/Index')
+                ->where('filters.q', 'Grey')
+                ->where('filters.status', 'active')
+                ->where('filters.visibility', VisibilityLevel::SECRET)
+                ->has('timelines', 1)
+                ->where('timelines.0.id', $matching->id)
+            );
+    }
+
     public function test_timelines_can_be_created_using_the_summary_field(): void
     {
         $response = $this

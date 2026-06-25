@@ -92,6 +92,7 @@ const props = defineProps({
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('entities.versions.index', {
+    q: props.filters.q ?? '',
     state: props.filters.state ?? '',
     trigger: props.filters.trigger ?? '',
     type: props.filters.type ?? '',
@@ -102,6 +103,7 @@ const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFil
 })
 
 const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search versions...' },
     { key: 'state', type: 'select', placeholder: 'All states', options: props.versionStates },
     { key: 'trigger', type: 'select', placeholder: 'All triggers', options: props.triggerTypes },
     { key: 'type', type: 'select', placeholder: 'All version types', options: props.versionTypes },

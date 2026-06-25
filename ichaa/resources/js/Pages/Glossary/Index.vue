@@ -55,11 +55,13 @@ const props = defineProps({
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('glossary.index', {
+    q: props.filters.q ?? '',
     universe: props.filters.universe ?? '',
     context: props.filters.context ?? '',
 })
 
 const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search glossary...' },
     { key: 'universe', type: 'select', placeholder: 'All universes', options: props.originUniverses },
     { key: 'context', type: 'select', placeholder: 'All contexts', options: props.usageContexts },
 ])

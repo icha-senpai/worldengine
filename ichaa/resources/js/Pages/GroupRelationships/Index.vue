@@ -53,11 +53,13 @@ const props = defineProps({
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('group-relationships.index', {
+    q: props.filters.q ?? '',
     volatile: Boolean(props.filters.volatile),
     masked: Boolean(props.filters.masked),
 })
 
 const filterFields = [
+    { key: 'q', type: 'text', placeholder: 'Search groups...' },
     { key: 'volatile', type: 'checkbox', label: 'Volatile only' },
     { key: 'masked', type: 'checkbox', label: 'Masked only' },
 ]

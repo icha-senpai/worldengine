@@ -97,9 +97,18 @@ class CollectionController extends Controller
             $query->ofType($request->type);
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where('name', 'like', "%{$term}%");
+        }
+
+        if ($request->filled('visibility')) {
+            $query->where('visibility', $request->visibility);
+        }
+
         return $this->page('Collections/Index', array_merge([
             'collections' => $query->get(),
-            'filters' => $request->only(['type']),
+            'filters' => $request->only(['q', 'type', 'visibility']),
             'types' => Collection::TYPES,
         ], $props));
     }

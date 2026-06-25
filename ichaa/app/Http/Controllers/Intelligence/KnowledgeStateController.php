@@ -92,6 +92,17 @@ class KnowledgeStateController extends Controller
             $query->aboutEntity($request->integer('about'));
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('knowledge_type', 'like', "%{$term}%")
+                    ->orWhere('current_belief_state', 'like', "%{$term}%")
+                    ->orWhere('acquired_at_era', 'like', "%{$term}%")
+                    ->orWhereHas('knower', fn ($knower) => $knower->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('subjectEntity', fn ($subject) => $subject->where('name', 'like', "%{$term}%"));
+            });
+        }
+
         if ($request->boolean('latent')) {
             $query->latentTension();
         }
@@ -102,7 +113,7 @@ class KnowledgeStateController extends Controller
 
         return $this->page('Intelligence/KnowledgeStates/Index', array_merge([
             'states' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['knower', 'about', 'latent', 'compartmentalizing']),
+            'filters' => $request->only(['q', 'knower', 'about', 'latent', 'compartmentalizing']),
             'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->orderBy('name')

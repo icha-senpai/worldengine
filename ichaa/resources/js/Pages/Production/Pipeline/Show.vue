@@ -1,65 +1,32 @@
 <template>
-    <AuthenticatedLayout>
-
-        <template #header>
-            <div class="page-hero">
-
-                <div class="page-hero__copy min-w-0">
-                    <div class="page-hero__eyebrow">
-                        <Link :href="route('pipeline.index')" class="text-muted-3 text-sm font-ui hover:text-muted-2 transition-colors">
-                            Pipeline
-                        </Link>
-                        <span>/</span>
-                        <span v-if="item.parent" class="text-muted-3 text-sm font-ui hover:text-muted-2 transition-colors">
-                            <Link :href="route('pipeline.show', item.parent.id)">{{ item.parent.title }}</Link>
-                        </span>
-                        <span v-if="item.parent">/</span>
-                        <span class="type-chip" :class="'type--' + item.pipeline_type">
-                            {{ formatLabel(item.pipeline_type) }}
-                        </span>
-                    </div>
-                    <h1 class="page-hero__title page-hero__title--md">
-                        {{ item.title }}
-                    </h1>
-                    <p v-if="pipelineSubtitle" class="page-hero__subtitle prose-wrap">
-                        {{ pipelineSubtitle }}
-                    </p>
-                    <div v-if="pipelineHeroMeta.length" class="page-hero__meta">
-                        <div
-                            v-for="meta in pipelineHeroMeta"
-                            :key="meta.label"
-                            class="page-hero__meta-item"
-                        >
-                            <span class="page-hero__meta-label">{{ meta.label }}</span>
-                            <span class="page-hero__meta-value">{{ meta.value }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="page-hero__actions">
-                    <AppButton
-                        v-if="canAdvance"
-                        @click="advance"
-                        variant="success"
-                    >
-                        Advance →
-                    </AppButton>
-                    <AppButton
-                        :href="route('pipeline.edit', item.id)"
-                        :preserve-scroll="true"
-                        :preserve-state="true"
-                        opens-drawer
-                        variant="ghost"
-                    >
-                        Edit
-                    </AppButton>
-                </div>
-
-            </div>
+    <ScaffoldShowPage
+        :title="item.title"
+        :subtitle="pipelineSubtitle"
+        back-label="Writing Pipeline"
+        :back-href="route('pipeline.index')"
+        :edit-href="route('pipeline.edit', item.id)"
+        :edit-preserve-scroll="true"
+        :edit-preserve-state="true"
+        :edit-drawer-open="Boolean(editDrawer)"
+        :edit-close-href="route('pipeline.show', item.id)"
+        :destroy-href="route('pipeline.destroy', item.id)"
+        :destroy-confirm="destroyConfirm"
+        :badge="formatLabel(item.pipeline_type)"
+        :hero-meta="pipelineHeroMeta"
+        :sections="sections"
+    >
+        <template #hero-actions>
+            <AppButton
+                v-if="canAdvance"
+                type="button"
+                variant="success"
+                @click="advance"
+            >
+                Advance ->
+            </AppButton>
         </template>
 
-        <div class="detail-shell">
-
+        <div class="detail-shell mt-4">
             <div v-if="showMetricStrip" class="dashboard-metric-strip">
                 <div class="dashboard-metric">
                     <span class="dashboard-metric__label">Stage</span>
@@ -79,7 +46,6 @@
                 </div>
             </div>
 
-            <!-- CONTENT (prose/notes body) -->
             <div v-if="item.content" class="panel">
                 <div class="panel-heading">
                     <div>
@@ -94,9 +60,7 @@
                 <div v-else class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.content }}</div>
             </div>
 
-            <!-- SCENE DETAILS -->
             <div v-if="item.pipeline_type === 'scene'" class="grid gap-4 md:grid-cols-2">
-
                 <div class="panel">
                     <div class="panel-heading">
                         <div>
@@ -143,10 +107,8 @@
                     />
                     <p v-else class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.narrative_purpose }}</p>
                 </div>
-
             </div>
 
-            <!-- CHARACTER STUDY / ARC TRACKER -->
             <div v-if="item.pipeline_type === 'character_study' && (item.tracked_entity || item.arc_stage || item.arc_notes)" class="panel">
                 <div class="panel-heading">
                     <div>
@@ -178,7 +140,6 @@
                 </div>
             </div>
 
-            <!-- AUTHOR NOTES -->
             <div v-if="item.notes" class="panel">
                 <div class="panel-heading">
                     <div>
@@ -193,7 +154,6 @@
                 <p v-else class="prose-block text-muted-2 text-sm leading-relaxed">{{ item.notes }}</p>
             </div>
 
-            <!-- CHILDREN (sub-items: scenes under a chapter, etc.) -->
             <div v-if="item.children && item.children.length" class="panel space-y-4">
                 <div class="panel-heading">
                     <div>
@@ -235,84 +195,46 @@
                     + Add sub-item
                 </DrawerLink>
             </div>
-
-            <!-- ACCESS -->
-            <div class="panel">
-                <div class="panel-heading">
-                    <div>
-                        <h3 class="panel-label mb-1!">Access</h3>
-                        <p class="panel-copy">Visibility and classification settings controlling who should treat this item as readable or sensitive.</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-start gap-2">
-                        <span class="field-label field-label--fixed">Visibility</span>
-                        <span class="text-muted-2 text-sm">{{ formatLabel(item.visibility) }}</span>
-                    </div>
-                    <div class="flex items-start gap-2">
-                        <span class="field-label field-label--fixed">Classification</span>
-                        <span class="text-muted-2 text-sm">{{ formatLabel(item.content_classification) }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <NotionNotePanel :note="notionNote" />
-
-            <DrawerRouteShell
-                v-if="showEditDrawer"
-                :open="showEditDrawer"
-                :ready="Boolean(editDrawer)"
-                title="Edit Pipeline Item"
-                :close-href="route('pipeline.show', item.id)"
-                back-label="Writing Pipeline"
-                :back-href="route('pipeline.index')"
-            >
-                <EditPipelineItem
-                    v-if="editDrawer"
-                    embedded
-                    :item="item"
-                    v-bind="editDrawer"
-                />
-            </DrawerRouteShell>
-
-            <DrawerRouteShell
-                v-if="showCreateDrawer"
-                :open="showCreateDrawer"
-                :ready="Boolean(createDrawer)"
-                title="New Pipeline Sub-Item"
-                :close-href="route('pipeline.show', item.id)"
-                back-label="Pipeline Item"
-                :back-href="route('pipeline.show', item.id)"
-            >
-                <CreatePipelineItem
-                    v-if="createDrawer"
-                    embedded
-                    v-bind="createDrawer"
-                />
-            </DrawerRouteShell>
-
-            <!-- DANGER ZONE -->
-            <div class="flex items-center justify-end pt-2 border-t border-border">
-                <AppButton type="button" variant="danger" @click="destroy">Move to Trash</AppButton>
-            </div>
-
         </div>
 
-    </AuthenticatedLayout>
+        <template #edit-drawer>
+            <EditPipelineItem
+                v-if="editDrawer"
+                embedded
+                :item="item"
+                v-bind="editDrawer"
+            />
+        </template>
+
+        <DrawerRouteShell
+            v-if="showCreateDrawer"
+            :open="showCreateDrawer"
+            :ready="Boolean(createDrawer)"
+            title="New Pipeline Sub-Item"
+            :close-href="route('pipeline.show', item.id)"
+            back-label="Pipeline Item"
+            :back-href="route('pipeline.show', item.id)"
+        >
+            <CreatePipelineItem
+                v-if="createDrawer"
+                embedded
+                v-bind="createDrawer"
+            />
+        </DrawerRouteShell>
+    </ScaffoldShowPage>
 </template>
 
 <script setup>
 import { computed, defineAsyncComponent } from 'vue'
-import { Link, router, usePage } from '@inertiajs/vue3'
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import NotionNotePanel from '@/Components/NotionNotePanel.vue'
+import { Link, router } from '@inertiajs/vue3'
 import AppButton from '@/Components/ui/AppButton.vue'
-import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
-import DrawerLink from '@/Components/ui/DrawerLink.vue'
 import CreatePipelineItem from '@/Pages/Production/Pipeline/Create.vue'
+import DrawerLink from '@/Components/ui/DrawerLink.vue'
+import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import EditPipelineItem from '@/Pages/Production/Pipeline/Edit.vue'
-import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
+import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
 import { formatLabel, isRichDocument } from '@/Components/scaffold/formatters'
+import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 const props = defineProps({
@@ -321,26 +243,17 @@ const props = defineProps({
     createDrawer: { type: Object, default: null },
 })
 
-const page = usePage()
-const notionNote = computed(() => page.props?.notionNote ?? null)
 const RichDocumentValue = defineAsyncComponent(() => import('@/Components/scaffold/RichDocumentValue.vue'))
-const showEditDrawer = computed(() =>
-    Boolean(props.editDrawer) || matchesPendingDrawerHref(route('pipeline.edit', props.item.id))
-)
 const showCreateDrawer = computed(() =>
     Boolean(props.createDrawer) || matchesPendingDrawerHref(route('pipeline.create', { parent: props.item.id }))
 )
-
 const stageProgression = {
-    concept:  'outlined',
+    concept: 'outlined',
     outlined: 'drafted',
-    drafted:  'revised',
-    revised:  'complete',
+    drafted: 'revised',
+    revised: 'complete',
 }
-
-const canAdvance = computed(() =>
-    props.item.pipeline_stage in stageProgression
-)
+const canAdvance = computed(() => props.item.pipeline_stage in stageProgression)
 const pipelineSubtitle = computed(() => {
     if (props.item.parent?.title) {
         return `Nested under ${props.item.parent.title}, this ${formatLabel(props.item.pipeline_type).toLowerCase()} tracks its own writing stage and attached notes.`
@@ -354,45 +267,56 @@ const pipelineHeroMeta = computed(() => [
     { label: 'Words', value: props.item.word_count ? props.item.word_count.toLocaleString() : '—' },
     { label: 'Reading', value: readingTime.value },
 ])
+const sections = computed(() => [
+    {
+        title: 'Overview',
+        description: 'Current workflow state and the main narrative anchors tied to this pipeline item.',
+        entries: [
+            sectionEntry('Type', formatLabel(props.item.pipeline_type)),
+            sectionEntry('Stage', formatLabel(props.item.pipeline_stage || 'concept')),
+            sectionEntry('Parent', props.item.parent?.title || '—', {
+                href: props.item.parent?.id ? route('pipeline.show', props.item.parent.id) : '',
+            }),
+            sectionEntry('POV Character', props.item.pov_character?.name || '—', {
+                href: props.item.pov_character?.id ? route('entities.show', props.item.pov_character.id) : '',
+            }),
+            sectionEntry('Location', props.item.location?.name || '—', {
+                href: props.item.location?.id ? route('entities.show', props.item.location.id) : '',
+            }),
+            sectionEntry('Tracked Entity', props.item.tracked_entity?.name || '—', {
+                href: props.item.tracked_entity?.id ? route('entities.show', props.item.tracked_entity.id) : '',
+            }),
+            sectionEntry('Emotional Beat', props.item.emotional_beat ? formatLabel(props.item.emotional_beat) : '—'),
+            sectionEntry('Arc Stage', props.item.arc_stage ? formatLabel(props.item.arc_stage) : '—'),
+        ],
+    },
+    {
+        title: 'Access',
+        description: 'Visibility and classification settings controlling who should treat this item as readable or sensitive.',
+        entries: [
+            sectionEntry('Visibility', formatLabel(props.item.visibility)),
+            sectionEntry('Classification', formatLabel(props.item.content_classification)),
+        ],
+    },
+])
+const destroyConfirm = computed(() => `Move "${props.item.title}" to trash?`)
 const showMetricStrip = computed(() =>
     Boolean(props.item.pipeline_stage || props.item.word_count || props.item.reading_time_minutes || props.item.children?.length)
 )
-
 const readingTime = computed(() => {
-    const m = props.item.reading_time_minutes
-    if (!m) return '—'
-    const h = Math.floor(m / 60)
-    const rem = m % 60
-    return h > 0 ? `${h}h ${rem}m` : `${rem}m`
+    const minutes = props.item.reading_time_minutes
+
+    if (!minutes) {
+        return '—'
+    }
+
+    const hours = Math.floor(minutes / 60)
+    const remainder = minutes % 60
+
+    return hours > 0 ? `${hours}h ${remainder}m` : `${remainder}m`
 })
 
 const advance = () => {
     router.post(route('pipeline.advance', props.item.id))
 }
-
-const destroy = async () => {
-    const confirmed = await confirmDialog({
-        title: 'Move to Trash',
-        message: `Move "${props.item.title}" to trash?`,
-        confirmLabel: 'Move to Trash',
-        cancelLabel: 'Cancel',
-        confirmVariant: 'danger',
-    })
-
-    if (!confirmed) {
-        return
-    }
-
-    router.delete(route('pipeline.destroy', props.item.id), {
-        onError: (errors) => {
-            void showErrorDialog({
-                title: 'Could not move pipeline item to trash',
-                message: 'The request did not complete.',
-                details: errors,
-            })
-        },
-    })
-}
-
 </script>
-

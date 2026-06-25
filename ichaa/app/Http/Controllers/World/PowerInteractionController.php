@@ -94,9 +94,20 @@ class PowerInteractionController extends Controller
             $query->unresolved();
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('interaction_name', 'like', "%{$term}%")
+                    ->orWhereHas('systemA', fn ($system) => $system->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('systemB', fn ($system) => $system->where('name', 'like', "%{$term}%"))
+                    ->orWhere('knowledge_state', 'like', "%{$term}%")
+                    ->orWhere('danger_rating', 'like', "%{$term}%");
+            });
+        }
+
         return $this->page('World/PowerInteractions/Index', array_merge([
             'interactions' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['unresolved']),
+            'filters' => $request->only(['q', 'unresolved']),
         ], $props));
     }
 

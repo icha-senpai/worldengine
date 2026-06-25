@@ -1,57 +1,27 @@
 <template>
-    <AuthenticatedLayout>
-
-        <template #header>
-            <div class="page-hero">
-
-                <!-- Left: name + breadcrumb -->
-                <div class="page-hero__copy min-w-0">
-                    <div class="page-hero__eyebrow">
-                        <Link :href="route('entities.index')" class="text-muted-3 text-sm font-ui hover:text-muted-2 transition-colors">
-                            Entities
-                        </Link>
-                        <span>/</span>
-                        <span class="type-chip" :class="typeBadgeClass(entity.entity_type)">
-                            {{ formatLabel(entity.entity_type) }}
-                        </span>
-                    </div>
-                    <h1 class="page-hero__title page-hero__title--md">
-                        {{ entity.name }}
-                    </h1>
-                    <p v-if="entity.public_title" class="page-hero__subtitle italic">
-                        "{{ entity.public_title }}"
-                    </p>
-                    <div v-if="entityHeroMeta.length" class="page-hero__meta">
-                        <div v-for="meta in entityHeroMeta" :key="meta.label" class="page-hero__meta-item">
-                            <span class="page-hero__meta-label">{{ meta.label }}</span>
-                            <span class="page-hero__meta-value">{{ meta.value }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right: actions -->
-                <div class="page-hero__actions">
-                    <AppButton
-                        :href="route('entities.versions.index', entity.id)"
-                        variant="ghost"
-                    >
-                        Versions
-                    </AppButton>
-                    <AppButton type="button" variant="danger" @click="destroyEntity">
-                        Move to Trash
-                    </AppButton>
-                    <AppButton
-                        :href="route('entities.edit', entity.id)"
-                        :preserve-scroll="true"
-                        :preserve-state="true"
-                        opens-drawer
-                        variant="ghost"
-                    >
-                        Edit
-                    </AppButton>
-                </div>
-
-            </div>
+    <ScaffoldShowPage
+        :title="entity.name"
+        :subtitle="entitySubtitle"
+        back-label="Entities"
+        :back-href="route('entities.index')"
+        :edit-href="route('entities.edit', entity.id)"
+        :edit-preserve-scroll="true"
+        :edit-preserve-state="true"
+        :edit-drawer-open="Boolean(editDrawer)"
+        :edit-close-href="route('entities.show', entity.id)"
+        :destroy-href="route('entities.destroy', entity.id)"
+        :destroy-confirm="entityDestroyConfirm"
+        :badge="formatLabel(entity.entity_type)"
+        :hero-meta="entityHeroMeta"
+        :sections="[]"
+    >
+        <template #hero-actions>
+            <AppButton
+                :href="route('entities.versions.index', entity.id)"
+                variant="ghost"
+            >
+                Versions
+            </AppButton>
         </template>
 
         <!-- TABS -->
@@ -97,10 +67,10 @@
             </div>
 
             <!-- Core fields grid -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
                 <!-- Summary -->
-                <div v-if="entity.summary" class="col-span-2 panel">
+                <div v-if="entity.summary" class="panel lg:col-span-2">
                     <h3 class="panel-label">Summary</h3>
                     <RichDocumentValue
                         v-if="isRichDocument(entity.summary)"
@@ -110,7 +80,7 @@
                 </div>
 
                 <!-- Public summary -->
-                <div v-if="entity.public_summary" class="col-span-2 panel">
+                <div v-if="entity.public_summary" class="panel lg:col-span-2">
                     <h3 class="panel-label">Public Summary <span class="text-muted-3 normal-case font-normal">(visible persona)</span></h3>
                     <RichDocumentValue
                         v-if="isRichDocument(entity.public_summary)"
@@ -180,9 +150,9 @@
                 </div>
 
                 <!-- Power Tiers — only if any are set -->
-                <div v-if="hasPowerTiers" class="col-span-2 panel">
+                <div v-if="hasPowerTiers" class="panel lg:col-span-2">
                     <h3 class="panel-label">Power Tiers</h3>
-                    <div class="grid grid-cols-3 gap-4 mt-2">
+                    <div class="grid grid-cols-1 gap-4 mt-2 md:grid-cols-3">
                         <div v-if="entity.power_tier_ceiling" class="info-box">
                             <span class="info-box-label">Ceiling</span>
                             <span class="info-box-value">{{ formatLabel(entity.power_tier_ceiling) }}</span>
@@ -642,25 +612,6 @@
             </div>
         </div>
 
-        <NotionNotePanel :note="notionNote" />
-
-        <DrawerRouteShell
-            v-if="showEditDrawer"
-            :open="showEditDrawer"
-            :ready="Boolean(editDrawer)"
-            title="Edit Entity"
-            :close-href="route('entities.show', entity.id)"
-            back-label="Entities"
-            :back-href="route('entities.index')"
-        >
-            <EditEntity
-                v-if="editDrawer"
-                embedded
-                :entity="entity"
-                :entity-types="editDrawer.entityTypes"
-            />
-        </DrawerRouteShell>
-
         <DrawerRouteShell
             v-if="showFactionMembershipEditDrawer"
             :open="showFactionMembershipEditDrawer"
@@ -798,13 +749,20 @@
             />
         </DrawerRouteShell>
 
-    </AuthenticatedLayout>
+        <template #edit-drawer>
+            <EditEntity
+                v-if="editDrawer"
+                embedded
+                :entity="entity"
+                :entity-types="editDrawer.entityTypes"
+            />
+        </template>
+    </ScaffoldShowPage>
 </template>
 
 <script setup>
 import { ref, computed, watch, defineAsyncComponent } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
@@ -817,7 +775,7 @@ import EditEntity from '@/Pages/Entities/Edit.vue'
 import EditFactionMembership from '@/Pages/FactionMemberships/Edit.vue'
 import EditNote from '@/Pages/Entities/Notes/Edit.vue'
 import EditQuestion from '@/Pages/Entities/Questions/Edit.vue'
-import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
+import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
 import { formatLabel, isRichDocument } from '@/Components/scaffold/formatters'
 import { formatEntityAliasType } from '@/Pages/Entities/aliasTypes'
 import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
@@ -843,11 +801,7 @@ const props = defineProps({
 })
 
 const page = usePage()
-const notionNote = computed(() => page.props?.notionNote ?? null)
 const RichDocumentValue = defineAsyncComponent(() => import('@/Components/scaffold/RichDocumentValue.vue'))
-const showEditDrawer = computed(() =>
-    Boolean(props.editDrawer) || matchesPendingDrawerHref(route('entities.edit', props.entity.id))
-)
 const aliasesCloseHref = computed(() =>
     route('entities.show', { entity: props.entity.id, tab: 'aliases' })
 )
@@ -992,30 +946,6 @@ const resolveQuestion = (questionId) => {
     })
 }
 
-const destroyEntity = async () => {
-    const confirmed = await confirmDialog({
-        title: 'Move to Trash',
-        message: `Move "${props.entity.name}" to trash?`,
-        confirmLabel: 'Move to Trash',
-        cancelLabel: 'Cancel',
-        confirmVariant: 'danger',
-    })
-
-    if (!confirmed) {
-        return
-    }
-
-    router.delete(route('entities.destroy', props.entity.id), {
-        onError: (errors) => {
-            void showErrorDialog({
-                title: 'Could not move entity to trash',
-                message: 'The request did not complete.',
-                details: errors,
-            })
-        },
-    })
-}
-
 const applyRouteState = () => {
     const requestedTab = urlParams.value.get('tab')
     const nextTab = validTabs.value.includes(requestedTab) ? requestedTab : 'identity'
@@ -1047,6 +977,10 @@ const entityHeroMeta = computed(() => [
             : 'Draft',
     },
 ])
+const entitySubtitle = computed(() =>
+    props.entity.public_title ? `"${props.entity.public_title}"` : ''
+)
+const entityDestroyConfirm = computed(() => `Move "${props.entity.name}" to trash?`)
 
 // --- Formatters ---
 

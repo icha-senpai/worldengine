@@ -79,10 +79,31 @@ class TravelRouteController extends Controller
 
     private function indexPage(Request $request, array $props = []): Response
     {
+        $query = TravelRoute::active()
+            ->with(['origin:id,name', 'destination:id,name']);
+
+        if ($request->filled('route_type')) {
+            $query->ofType($request->string('route_type')->toString());
+        }
+
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->whereHas('origin', fn ($origin) => $origin->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('destination', fn ($destination) => $destination->where('name', 'like', "%{$term}%"))
+                    ->orWhere('standard_duration', 'like', "%{$term}%")
+                    ->orWhere('route_type', 'like', "%{$term}%");
+            });
+        }
+
+        if ($request->filled('visibility')) {
+            $query->where('visibility', $request->string('visibility')->toString());
+        }
+
         return $this->page('World/TravelRoutes/Index', array_merge([
-            'routes' => TravelRoute::active()
-                ->with(['origin:id,name', 'destination:id,name'])
-                ->get(),
+            'routes' => $query->get(),
+            'filters' => $request->only(['q', 'route_type', 'visibility']),
+            'routeTypes' => TravelRoute::ROUTE_TYPES,
         ], $props));
     }
 

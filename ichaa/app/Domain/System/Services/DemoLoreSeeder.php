@@ -2456,7 +2456,7 @@ class DemoLoreSeeder
                 $record->restore();
             }
 
-            $record->update(array_merge([
+            $record = $this->worldService->updateControlHistory($record, array_merge([
                 'location_entity_id' => $location->id,
                 'controlling_entity_id' => $controller->id,
                 'control_type' => $controlType,
@@ -2464,7 +2464,7 @@ class DemoLoreSeeder
             ], $attributes));
             $this->touch('location-control-records', 'updated');
 
-            return $record->fresh();
+            return $record;
         }
 
         $record = $this->worldService->recordControlChange($location, $controller, $controlType, $attributes);

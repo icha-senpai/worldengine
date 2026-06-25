@@ -28,6 +28,19 @@ class VersionController extends Controller
                 'terminatedBy:id,name',
                 'supersededBy:id,version_label,version_number',
             ])
+            ->when(
+                $request->filled('q'),
+                function ($query) use ($request) {
+                    $term = trim((string) $request->q);
+
+                    $query->where(function ($inner) use ($term) {
+                        $inner->where('version_label', 'like', "%{$term}%")
+                            ->orWhere('valid_from_era', 'like', "%{$term}%")
+                            ->orWhere('trigger_type', 'like', "%{$term}%")
+                            ->orWhereHas('sourceEntity', fn ($source) => $source->where('name', 'like', "%{$term}%"));
+                    });
+                }
+            )
             ->when($request->filled('state'), fn ($query) => $query->where('version_state', $request->string('state')->value()))
             ->when($request->filled('trigger'), fn ($query) => $query->where('trigger_type', $request->string('trigger')->value()))
             ->when($request->filled('type'), fn ($query) => $query->where('version_type', $request->string('type')->value()))
@@ -74,7 +87,7 @@ class VersionController extends Controller
                 ['current_version_number' => $currentVersion?->version_number ?? 1],
             ),
             'versions' => $versions,
-            'filters' => $request->only(['state', 'trigger', 'type', 'current', 'version_zero']),
+            'filters' => $request->only(['q', 'state', 'trigger', 'type', 'current', 'version_zero']),
             'summary' => [
                 'current' => $currentVersion,
                 'versionZero' => $versionZero,

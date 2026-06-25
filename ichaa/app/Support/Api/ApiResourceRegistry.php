@@ -184,7 +184,7 @@ class ApiResourceRegistry
             'power-interactions' => self::base(PowerInteraction::class, ['systemA', 'systemB', 'instances'], ['interaction_name', 'description'], 'power_interactions'),
             'power-interaction-instances' => self::base(PowerInteractionInstance::class, ['powerInteraction', 'eventEntity'], ['outcome_notes']),
             'location-containment' => self::base(LocationContainment::class, ['childLocation', 'parentLocation'], ['containment_type', 'era_start'], 'location_containment'),
-            'location-control-records' => self::base(LocationControlHistory::class, ['location', 'controllingEntity', 'resistanceEntity'], ['control_type', 'control_start_era'], 'location_control'),
+            'location-control-records' => self::base(LocationControlHistory::class, ['location', 'controllingEntity', 'resistanceEntities'], ['control_type', 'control_start_era'], 'location_control'),
             'travel-routes' => self::base(TravelRoute::class, ['originLocation', 'destinationLocation'], ['route_type', 'notes'], 'travel_routes'),
             'galactic-regions' => self::base(GalacticRegion::class, [], ['name', 'summary']),
 

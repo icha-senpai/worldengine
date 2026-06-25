@@ -5,6 +5,7 @@ namespace App\Domain\World\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 
 use App\Domain\Identity\Models\Entity;
@@ -25,7 +26,6 @@ class LocationControlHistory extends Model
         'how_control_was_established',
         'how_control_ended',
         'resistance_level',
-        'resistance_entity_id',
         'notes',
         'visibility',
         'content_classification',
@@ -68,9 +68,14 @@ class LocationControlHistory extends Model
         return $this->belongsTo(Entity::class, 'controlling_entity_id');
     }
 
-    public function resistanceEntity(): BelongsTo
+    public function resistanceEntities(): BelongsToMany
     {
-        return $this->belongsTo(Entity::class, 'resistance_entity_id');
+        return $this->belongsToMany(
+            Entity::class,
+            'location_control_resistance_entities',
+            'location_control_history_id',
+            'entity_id',
+        );
     }
 
     // --- SCOPES ---

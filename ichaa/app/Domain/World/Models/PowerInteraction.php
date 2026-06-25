@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 
 use App\Domain\Identity\Models\Entity;
+use App\Support\Database\PostgresPrefixSearch;
 
 class PowerInteraction extends Model
 {
@@ -215,10 +216,7 @@ class PowerInteraction extends Model
 
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->whereRaw(
-            "search_vector @@ plainto_tsquery('english', ?)",
-            [$term]
-        );
+        return PostgresPrefixSearch::apply($query, $term);
     }
 
     // --- COMPUTED ---

@@ -164,4 +164,27 @@ describe('ScaffoldFormPage', () => {
         expect(form.upload_file).toBe(file)
         expect(wrapper.text()).toContain('Selected: test-image.png')
     })
+
+    it('treats visibility fields as select inputs with shared visibility options', () => {
+        const { form, wrapper } = mountPage({
+            formOverrides: {
+                visibility: 'private',
+            },
+            sections: [
+                {
+                    title: 'Access',
+                    fields: [
+                        { key: 'visibility', label: 'Visibility' },
+                    ],
+                },
+            ],
+        })
+
+        const select = wrapper.find('select')
+
+        expect(select.exists()).toBe(true)
+        expect(form.visibility).toBe('private')
+        expect(select.text()).toContain('Private')
+        expect(select.text()).toContain('Public Knowledge')
+    })
 })

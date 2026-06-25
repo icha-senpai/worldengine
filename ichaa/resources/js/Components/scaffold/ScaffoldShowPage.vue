@@ -16,9 +16,9 @@
                     <p v-if="subtitle" class="page-hero__subtitle prose-wrap">
                         {{ subtitle }}
                     </p>
-                    <div v-if="heroMeta.length" class="page-hero__meta">
+                    <div v-if="resolvedHeroMeta.length" class="page-hero__meta">
                         <div
-                            v-for="item in heroMeta"
+                            v-for="item in resolvedHeroMeta"
                             :key="`${item.label}-${item.value}`"
                             class="page-hero__meta-item"
                         >
@@ -29,6 +29,7 @@
                 </div>
 
                 <div class="page-hero__actions">
+                    <slot name="hero-actions" />
                     <AppButton v-if="destroyHref" type="button" variant="danger" @click="destroyRecord">
                         {{ destroyLabel }}
                     </AppButton>
@@ -46,7 +47,7 @@
             </div>
         </template>
 
-        <div class="show-grid">
+        <div v-if="normalizedSections.length" class="show-grid">
             <section
                 v-for="section in normalizedSections"
                 :key="section.title"
@@ -179,6 +180,7 @@ const props = defineProps({
     destroyLabel: { type: String, default: 'Move to Trash' },
     destroyConfirm: { type: String, default: 'Move this item to trash?' },
     badge: { type: String, default: '' },
+    heroMeta: { type: Array, default: () => [] },
     sections: { type: Array, default: () => [] },
 })
 
@@ -195,21 +197,23 @@ const showEditDrawer = computed(() =>
     Boolean(props.editHref) && (props.editDrawerOpen || matchesPendingDrawerHref(props.editHref))
 )
 const resolvedEditDrawerTitle = computed(() => props.editDrawerTitle || `Edit ${props.title}`)
-const heroMeta = computed(() =>
-    normalizedSections.value
-        .flatMap((section) => section.entries)
-        .filter((entry) =>
-            entry.kind !== 'json'
-            && entry.kind !== 'list'
-            && !entry.href
-            && !isEmptyValue(entry.value)
-            && summarizeValue(entry.value).length <= 40,
-        )
-        .slice(0, 4)
-        .map((entry) => ({
-            label: entry.label,
-            value: summarizeValue(entry.value),
-        })),
+const resolvedHeroMeta = computed(() =>
+    props.heroMeta.length
+        ? props.heroMeta
+        : normalizedSections.value
+            .flatMap((section) => section.entries)
+            .filter((entry) =>
+                entry.kind !== 'json'
+                && entry.kind !== 'list'
+                && !entry.href
+                && !isEmptyValue(entry.value)
+                && summarizeValue(entry.value).length <= 40,
+            )
+            .slice(0, 4)
+            .map((entry) => ({
+                label: entry.label,
+                value: summarizeValue(entry.value),
+            })),
 )
 
 const isEmptyValue = (value) => value === null || value === undefined || value === ''

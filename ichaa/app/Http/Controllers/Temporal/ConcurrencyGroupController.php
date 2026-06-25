@@ -73,10 +73,27 @@ class ConcurrencyGroupController extends Controller
 
     private function indexPage(Request $request, array $props = []): Response
     {
-                return $this->page('Temporal/ConcurrencyGroups/Index', array_merge([
-            'groups' => ConcurrencyGroup::withCount('timelineEntries')->orderBy('au_date')->get(),
+        $query = ConcurrencyGroup::query()
+            ->withCount('timelineEntries')
+            ->orderBy('au_date');
+
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('name', 'like', "%{$term}%")
+                    ->orWhere('au_date', 'like', "%{$term}%");
+            });
+        }
+
+        if ($request->filled('significance')) {
+            $query->where('narrative_significance', $request->string('significance')->toString());
+        }
+
+        return $this->page('Temporal/ConcurrencyGroups/Index', array_merge([
+            'groups' => $query->get(),
+            'filters' => $request->only(['q', 'significance']),
+            'significanceLevels' => ConcurrencyGroup::SIGNIFICANCE_LEVELS,
         ], $props));
-    
     }
 
     private function createFormProps(): array

@@ -57,6 +57,31 @@ class SearchTest extends TestCase
             );
     }
 
+    public function test_search_matches_partial_words_from_prefix_queries(): void
+    {
+        $user = $this->verifiedUser();
+        $matching = Entity::factory()->create([
+            'name' => 'Archive Keeper',
+            'entity_type' => EntityType::CHARACTER,
+            'summary' => 'Protects the oldest records in the stacks.',
+        ]);
+        Entity::factory()->create([
+            'name' => 'Vault Runner',
+            'entity_type' => EntityType::CHARACTER,
+            'summary' => 'Moves fast and keeps quiet.',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('search', ['q' => 'arch']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Search/Index')
+                ->where('term', 'arch')
+                ->has('results.entities', 1)
+                ->where('results.entities.0.id', $matching->id)
+            );
+    }
+
     private function verifiedUser(): User
     {
         return $this->createVerifiedAdminUser();

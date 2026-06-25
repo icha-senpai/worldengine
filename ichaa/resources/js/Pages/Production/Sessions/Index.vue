@@ -18,6 +18,15 @@
             :empty-cta-preserve-state="true"
             empty-cta-label="Log the first session ->"
         >
+        <template #toolbar>
+            <ScaffoldFilterBar
+                :fields="filterFields"
+                :form="filterForm"
+                :has-active-filters="hasActiveFilters"
+                :on-apply="applyFilters"
+                :on-clear="clearFilters"
+            />
+        </template>
         <template #create-drawer>
             <CreateSession
                 v-if="createDrawer"
@@ -31,15 +40,32 @@
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreateSession from '@/Pages/Production/Sessions/Create.vue'
 import { asArray, badge, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     sessions: { type: Object, required: true },
     stats: { type: Object, default: () => ({}) },
+    filters: { type: Object, default: () => ({}) },
+    externalTools: { type: Array, default: () => [] },
+    significanceLevels: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
 })
+
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('session-logs.index', {
+    q: props.filters.q ?? '',
+    external_tool: props.filters.external_tool ?? '',
+    significance: props.filters.significance ?? '',
+})
+
+const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search sessions...' },
+    { key: 'external_tool', type: 'select', placeholder: 'All tools', options: props.externalTools },
+    { key: 'significance', type: 'select', placeholder: 'All significance', options: props.significanceLevels },
+])
 
 const items = computed(() =>
     asArray(props.sessions).map((session) => ({

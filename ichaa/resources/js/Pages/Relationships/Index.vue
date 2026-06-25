@@ -55,6 +55,7 @@ const props = defineProps({
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('relationships.index', {
+    q: props.filters.q ?? '',
     type: props.filters.type ?? '',
     charge: props.filters.charge ?? '',
     volatile: Boolean(props.filters.volatile),
@@ -62,6 +63,7 @@ const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFil
 })
 
 const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search relationships...' },
     { key: 'type', type: 'select', placeholder: 'All types', options: props.relationshipTypes },
     { key: 'charge', type: 'select', placeholder: 'All charges', options: props.tensionCharges },
     { key: 'volatile', type: 'checkbox', label: 'Volatile only' },

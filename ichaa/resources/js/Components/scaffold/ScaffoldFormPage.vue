@@ -77,7 +77,7 @@
                                 >
                                     <option value="">{{ field.placeholder ?? 'Select an option...' }}</option>
                                     <option
-                                        v-for="option in normalizeOptions(field.options)"
+                                        v-for="option in normalizeOptions(fallbackOptions(field))"
                                         :key="option.value"
                                         :value="option.value"
                                     >
@@ -104,7 +104,7 @@
                                         <span class="multiselect-label">{{ option.label }}</span>
                                     </label>
 
-                                    <p v-if="!normalizeOptions(field.options).length" class="field-help">
+                                    <p v-if="!normalizeOptions(fallbackOptions(field)).length" class="field-help">
                                         {{ field.emptyMessage ?? 'No options available yet.' }}
                                     </p>
                                 </div>
@@ -261,7 +261,7 @@
                         >
                             <option value="">{{ field.placeholder ?? 'Select an option...' }}</option>
                             <option
-                                v-for="option in normalizeOptions(field.options)"
+                                v-for="option in normalizeOptions(fallbackOptions(field))"
                                 :key="option.value"
                                 :value="option.value"
                             >
@@ -288,7 +288,7 @@
                                 <span class="multiselect-label">{{ option.label }}</span>
                             </label>
 
-                            <p v-if="!normalizeOptions(field.options).length" class="field-help">
+                            <p v-if="!normalizeOptions(fallbackOptions(field)).length" class="field-help">
                                 {{ field.emptyMessage ?? 'No options available yet.' }}
                             </p>
                         </div>
@@ -396,6 +396,7 @@ import TextInput from '@/Components/TextInput.vue'
 import AppStructuredDateTimeInput from '@/Components/ui/AppStructuredDateTimeInput.vue'
 import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { normalizeRichDocument, prepareRichDocumentForSubmit } from '@/lib/tiptap/documents'
+import { visibilityLevelOptions } from '@/Pages/Entities/entityFieldOptions'
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -468,6 +469,14 @@ const hasJsonErrors = computed(() =>
     Object.values(jsonErrors).some((message) => Boolean(message))
 )
 
+const fallbackOptions = (field) => {
+    if (field.key === 'visibility') {
+        return visibilityLevelOptions
+    }
+
+    return field.options ?? []
+}
+
 const normalizeOptions = (options = []) => options.map((option) =>
     typeof option === 'object'
         ? option
@@ -492,6 +501,10 @@ function isDocumentField(field) {
 const resolvedFieldType = (field) => {
     if (field.type) {
         return field.type
+    }
+
+    if (field.key === 'visibility') {
+        return 'select'
     }
 
     if (Array.isArray(field.options) && field.options.length) {

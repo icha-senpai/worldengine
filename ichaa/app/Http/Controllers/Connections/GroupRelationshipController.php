@@ -114,13 +114,21 @@ class GroupRelationshipController extends Controller
             $query->volatile();
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('name', 'like', "%{$term}%")
+                    ->orWhere('relationship_type', 'like', "%{$term}%");
+            });
+        }
+
         if ($request->boolean('masked')) {
             $query->masked();
         }
 
         return $this->page('GroupRelationships/Index', array_merge([
             'groups' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['volatile', 'masked']),
+            'filters' => $request->only(['q', 'volatile', 'masked']),
         ], $props));
 
     }

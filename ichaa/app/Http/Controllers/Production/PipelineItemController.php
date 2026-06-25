@@ -137,9 +137,14 @@ class PipelineItemController extends Controller
             $query->atStage($request->stage);
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where('title', 'like', "%{$term}%");
+        }
+
         return $this->page('Production/Pipeline/Index', array_merge([
             'items' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['type', 'stage']),
+            'filters' => $request->only(['q', 'type', 'stage']),
             'pipelineTypes' => PipelineItem::PIPELINE_TYPES,
             'pipelineStages' => PipelineItem::PIPELINE_STAGES,
         ], $props));

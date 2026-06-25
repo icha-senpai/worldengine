@@ -53,11 +53,13 @@ const props = defineProps({
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('secrets.index', {
+    q: props.filters.q ?? '',
     high_risk: Boolean(props.filters.high_risk),
     leaking: Boolean(props.filters.leaking),
 })
 
 const filterFields = [
+    { key: 'q', type: 'text', placeholder: 'Search secrets...' },
     { key: 'high_risk', type: 'checkbox', label: 'High risk only' },
     { key: 'leaking', type: 'checkbox', label: 'Leaking only' },
 ]

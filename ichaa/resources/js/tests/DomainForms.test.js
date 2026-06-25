@@ -1020,15 +1020,26 @@ describe('domain scaffold forms', () => {
         const { form, scaffold } = mountPage(LocationControlCreate, {
             locationEntities: [{ id: 21, name: 'Aster Province', entity_type: 'location' }],
             entities: [{ id: 22, name: 'New Accord', entity_type: 'faction' }],
+            resistanceEntities: [
+                { id: 23, name: 'Grey Line Accord', entity_type: 'faction' },
+                { id: 24, name: 'Seraphine', entity_type: 'character' },
+            ],
             controlTypes: ['occupied', 'sovereign'],
             resistanceLevels: ['minor', 'active_conflict'],
         })
 
         const controllerField = findField(scaffold.props('sections'), 'controlling_entity_id')
+        const resistanceField = findField(scaffold.props('sections'), 'resistance_entity_ids')
         expect(controllerField.options).toEqual([
             { value: 22, label: 'New Accord (#22 · Faction)' },
         ])
+        expect(resistanceField.type).toBe('multiselect')
+        expect(resistanceField.options).toEqual([
+            { value: 23, label: 'Grey Line Accord (#23 · Faction)' },
+            { value: 24, label: 'Seraphine (#24 · Character)' },
+        ])
         expect(form.control_start_era).toBe('')
+        expect(form.resistance_entity_ids).toEqual([])
 
         await scaffold.props('onSubmit')()
 
@@ -1040,18 +1051,29 @@ describe('domain scaffold forms', () => {
             record: {
                 id: 83,
                 resistance_level: 'active_conflict',
+                resistance_entities: [
+                    { id: 23, name: 'Grey Line Accord', entity_type: 'faction' },
+                    { id: 24, name: 'Seraphine', entity_type: 'character' },
+                ],
                 control_end_era: 'Cycle 3',
                 how_control_ended: { type: 'doc', content: [] },
                 control_type: 'occupied',
                 location: { name: 'Aster Province' },
                 controlling_entity: { name: 'New Accord' },
             },
+            resistanceEntities: [
+                { id: 23, name: 'Grey Line Accord', entity_type: 'faction' },
+                { id: 24, name: 'Seraphine', entity_type: 'character' },
+            ],
             resistanceLevels: ['active_conflict'],
         })
 
         const resistanceField = findField(scaffold.props('sections'), 'resistance_level')
+        const resistanceEntitiesField = findField(scaffold.props('sections'), 'resistance_entity_ids')
         expect(resistanceField.help).toBe('Aster Province -> New Accord (occupied)')
+        expect(resistanceEntitiesField.type).toBe('multiselect')
         expect(form.control_end_era).toBe('Cycle 3')
+        expect(form.resistance_entity_ids).toEqual([23, 24])
 
         await scaffold.props('onSubmit')()
 

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 
 use App\Domain\Identity\Models\Entity;
+use App\Support\Database\PostgresPrefixSearch;
 
 class Document extends Model
 {
@@ -183,10 +184,7 @@ class Document extends Model
 
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->whereRaw(
-            "search_vector @@ plainto_tsquery('english', ?)",
-            [$term]
-        );
+        return PostgresPrefixSearch::apply($query, $term);
     }
 
     // --- COMPUTED ---

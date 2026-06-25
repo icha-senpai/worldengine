@@ -53,10 +53,12 @@ const props = defineProps({
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('power-interactions.index', {
+    q: props.filters.q ?? '',
     unresolved: Boolean(props.filters.unresolved),
 })
 
 const filterFields = [
+    { key: 'q', type: 'text', placeholder: 'Search interactions...' },
     { key: 'unresolved', type: 'checkbox', label: 'Unresolved only' },
 ]
 

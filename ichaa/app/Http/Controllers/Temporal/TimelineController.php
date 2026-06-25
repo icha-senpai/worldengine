@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Temporal;
 
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Services\EntityService;
+use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Domain\Temporal\Models\ConcurrencyGroup;
 use App\Domain\Temporal\Models\Timeline;
 use App\Domain\Temporal\Services\TemporalService;
@@ -176,14 +177,28 @@ class TimelineController extends Controller
     private function indexPage(Request $request, array $props = []): Response
     {
         $timelines = Entity::ofType('timeline')
+            ->when(
+                $request->filled('q'),
+                fn ($query) => $query->where('name', 'like', '%'.trim((string) $request->q).'%')
+            )
+            ->when(
+                $request->filled('status'),
+                fn ($query) => $query->where('status', $request->string('status')->toString())
+            )
+            ->when(
+                $request->filled('visibility'),
+                fn ($query) => $query->where('visibility', $request->string('visibility')->toString())
+            )
             ->withCount('timelineEvents as entry_count')
             ->orderBy('name')
-            ->get(['id', 'name', 'status']);
+            ->get(['id', 'name', 'status', 'visibility']);
 
-                return $this->page('Temporal/Timelines/Index', array_merge([
+        return $this->page('Temporal/Timelines/Index', array_merge([
             'timelines' => $timelines,
+            'filters' => $request->only(['q', 'status', 'visibility']),
+            'statuses' => Entity::STATUSES,
+            'visibilityLevels' => VisibilityLevel::ALL,
         ], $props));
-    
     }
 
     private function createFormProps(): array

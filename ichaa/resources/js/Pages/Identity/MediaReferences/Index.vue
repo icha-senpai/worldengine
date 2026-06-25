@@ -59,6 +59,7 @@ const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFil
     media_type: props.filters.media_type ?? '',
     purpose: props.filters.purpose ?? '',
     attachment_type: props.filters.attachment_type ?? '',
+    visibility: props.filters.visibility ?? '',
 })
 
 const filterFields = computed(() => [
@@ -66,6 +67,7 @@ const filterFields = computed(() => [
     { key: 'media_type', type: 'select', placeholder: 'All media types', options: props.mediaTypes },
     { key: 'purpose', type: 'select', placeholder: 'All purposes', options: props.purposes },
     { key: 'attachment_type', type: 'select', placeholder: 'All attachments', options: props.attachmentTypes },
+    { key: 'visibility', placeholder: 'All visibility' },
 ])
 
 const items = computed(() =>

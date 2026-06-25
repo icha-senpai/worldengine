@@ -22,6 +22,7 @@ use App\Domain\Lore\Models\DocumentEntity;
 use App\Domain\Production\Models\PipelineItem;
 use App\Domain\Temporal\Models\CharacterStateTracker;
 use App\Domain\Temporal\Models\Timeline;
+use App\Support\Database\PostgresPrefixSearch;
 use Database\Factories\EntityFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -573,12 +574,6 @@ class Entity extends Model
     // Search scope — uses PostgreSQL full text search vector
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->whereRaw(
-            "search_vector @@ plainto_tsquery('english', ?)",
-            [$term]
-        )->orderByRaw(
-            "ts_rank(search_vector, plainto_tsquery('english', ?)) DESC",
-            [$term]
-        );
+        return PostgresPrefixSearch::apply($query, $term);
     }
 }

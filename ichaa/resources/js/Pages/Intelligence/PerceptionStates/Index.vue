@@ -53,11 +53,13 @@ const props = defineProps({
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('perception-states.index', {
+    q: props.filters.q ?? '',
     high_risk: Boolean(props.filters.high_risk),
     critical_maintenance: Boolean(props.filters.critical_maintenance),
 })
 
 const filterFields = [
+    { key: 'q', type: 'text', placeholder: 'Search perception states...' },
     { key: 'high_risk', type: 'checkbox', label: 'High risk only' },
     { key: 'critical_maintenance', type: 'checkbox', label: 'Critical maintenance only' },
 ]

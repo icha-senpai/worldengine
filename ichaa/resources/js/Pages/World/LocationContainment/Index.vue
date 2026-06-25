@@ -14,6 +14,15 @@
             :empty-cta-href="route('location-containment.create')"
             empty-cta-label="Create the first containment ->"
         >
+            <template #toolbar>
+                <ScaffoldFilterBar
+                    :fields="filterFields"
+                    :form="filterForm"
+                    :has-active-filters="hasActiveFilters"
+                    :on-apply="applyFilters"
+                    :on-clear="clearFilters"
+                />
+            </template>
             <template #create-drawer>
                 <CreateLocationContainment
                     v-if="createDrawer"
@@ -22,52 +31,38 @@
                 />
             </template>
         </ScaffoldIndexPage>
-
-        <DrawerRouteShell
-            v-if="showEditDrawer"
-            :open="showEditDrawer"
-            :ready="Boolean(editDrawer)"
-            title="Edit Location Containment"
-            :close-href="route('location-containment.index')"
-            back-label="Location Containment"
-            :back-href="route('location-containment.index')"
-        >
-            <EditLocationContainment
-                v-if="editDrawer"
-                embedded
-                v-bind="editDrawer"
-            />
-        </DrawerRouteShell>
     </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
-import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import CreateLocationContainment from '@/Pages/World/LocationContainment/Create.vue'
-import EditLocationContainment from '@/Pages/World/LocationContainment/Edit.vue'
 import { badge, buildMeta } from '@/Pages/scaffold/pageBuilders'
-import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     containments: { type: Array, default: () => [] },
-    editDrawer: { type: Object, default: null },
+    filters: { type: Object, default: () => ({}) },
+    containmentTypes: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
 })
 
-const showEditDrawer = computed(() =>
-    Boolean(props.editDrawer)
-    || props.containments.some((containment) => matchesPendingDrawerHref(route('location-containment.edit', containment.id)))
-)
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('location-containment.index', {
+    q: props.filters.q ?? '',
+    containment_type: props.filters.containment_type ?? '',
+})
+
+const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search containment...' },
+    { key: 'containment_type', type: 'select', placeholder: 'All containment types', options: props.containmentTypes },
+])
 
 const items = computed(() =>
     props.containments.map((containment) => ({
         id: containment.id,
-        href: route('location-containment.edit', containment.id),
-        preserveScroll: true,
-        preserveState: true,
-        opensDrawer: true,
+        href: route('location-containment.show', containment.id),
         title: `${containment.child_location?.name ?? 'Unknown'} -> ${containment.parent_location?.name ?? 'Unknown'}`,
         badges: [badge('Type', containment.containment_type)],
         meta: buildMeta([

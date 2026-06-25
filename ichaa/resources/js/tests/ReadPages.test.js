@@ -887,10 +887,7 @@ describe('read pages', () => {
         expect(scaffold.props('items')).toEqual([
             {
                 id: 81,
-                href: { name: 'location-control.edit', params: 81 },
-                preserveScroll: true,
-                preserveState: true,
-                opensDrawer: true,
+                href: { name: 'location-control.show', params: 81 },
                 title: 'Aster Province -> New Accord',
                 badges: [{ label: 'Type', value: 'occupied' }],
                 meta: [

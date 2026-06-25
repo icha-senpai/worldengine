@@ -38,16 +38,23 @@ class LoreWorkflowTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->get(route('documents.index', ['type' => 'treaty']));
+            ->get(route('documents.index', [
+                'q' => 'Treaty',
+                'type' => 'treaty',
+                'status' => 'classified',
+                'visibility' => 'private',
+            ]));
 
         $response
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Lore/Documents/Index')
+                ->where('filters.q', 'Treaty')
                 ->where('filters.type', 'treaty')
-                ->has('documents.data', 2)
+                ->where('filters.status', 'classified')
+                ->where('filters.visibility', 'private')
+                ->has('documents.data', 1)
                 ->where('documents.data.0.id', $classified->id)
-                ->where('documents.data.1.id', $extant->id)
             );
     }
 
@@ -147,10 +154,18 @@ class LoreWorkflowTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->get(route('canon-references.index', ['universe' => 'Harry Potter']))
+            ->get(route('canon-references.index', [
+                'q' => 'Harry',
+                'universe' => 'Harry Potter',
+                'research_status' => 'solid',
+                'visibility' => 'private',
+            ]))
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Lore/CanonReferences/Index')
+                ->where('filters.q', 'Harry')
                 ->where('filters.universe', 'Harry Potter')
+                ->where('filters.research_status', 'solid')
+                ->where('filters.visibility', 'private')
                 ->has('references', 1)
                 ->where('references.0.id', $matching->id)
             );

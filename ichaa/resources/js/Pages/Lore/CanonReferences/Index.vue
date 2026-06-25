@@ -50,15 +50,22 @@ const props = defineProps({
     references: { type: Array, default: () => [] },
     filters: { type: Object, default: () => ({}) },
     universes: { type: Array, default: () => [] },
+    researchStatuses: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('canon-references.index', {
     universe: props.filters.universe ?? '',
+    research_status: props.filters.research_status ?? '',
+    visibility: props.filters.visibility ?? '',
+    q: props.filters.q ?? '',
 })
 
 const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search references...' },
     { key: 'universe', type: 'select', placeholder: 'All universes', options: props.universes },
+    { key: 'research_status', type: 'select', placeholder: 'All research states', options: props.researchStatuses },
+    { key: 'visibility', placeholder: 'All visibility' },
 ])
 
 const items = computed(() =>

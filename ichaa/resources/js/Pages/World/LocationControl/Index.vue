@@ -14,6 +14,15 @@
             :empty-cta-href="route('location-control.create')"
             empty-cta-label="Create the first control record ->"
         >
+            <template #toolbar>
+                <ScaffoldFilterBar
+                    :fields="filterFields"
+                    :form="filterForm"
+                    :has-active-filters="hasActiveFilters"
+                    :on-apply="applyFilters"
+                    :on-clear="clearFilters"
+                />
+            </template>
             <template #create-drawer>
                 <CreateLocationControl
                     v-if="createDrawer"
@@ -22,52 +31,41 @@
                 />
             </template>
         </ScaffoldIndexPage>
-
-        <DrawerRouteShell
-            v-if="showEditDrawer"
-            :open="showEditDrawer"
-            :ready="Boolean(editDrawer)"
-            title="Edit Location Control"
-            :close-href="route('location-control.index')"
-            back-label="Location Control"
-            :back-href="route('location-control.index')"
-        >
-            <EditLocationControl
-                v-if="editDrawer"
-                embedded
-                v-bind="editDrawer"
-            />
-        </DrawerRouteShell>
     </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
-import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import CreateLocationControl from '@/Pages/World/LocationControl/Create.vue'
-import EditLocationControl from '@/Pages/World/LocationControl/Edit.vue'
 import { badge, buildMeta } from '@/Pages/scaffold/pageBuilders'
-import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     records: { type: Array, default: () => [] },
-    editDrawer: { type: Object, default: null },
+    filters: { type: Object, default: () => ({}) },
+    controlTypes: { type: Array, default: () => [] },
+    resistanceLevels: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
 })
 
-const showEditDrawer = computed(() =>
-    Boolean(props.editDrawer)
-    || props.records.some((record) => matchesPendingDrawerHref(route('location-control.edit', record.id)))
-)
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('location-control.index', {
+    q: props.filters.q ?? '',
+    control_type: props.filters.control_type ?? '',
+    resistance_level: props.filters.resistance_level ?? '',
+})
+
+const filterFields = computed(() => [
+    { key: 'q', type: 'text', placeholder: 'Search control records...' },
+    { key: 'control_type', type: 'select', placeholder: 'All control types', options: props.controlTypes },
+    { key: 'resistance_level', type: 'select', placeholder: 'All resistance levels', options: props.resistanceLevels },
+])
 
 const items = computed(() =>
     props.records.map((record) => ({
         id: record.id,
-        href: route('location-control.edit', record.id),
-        preserveScroll: true,
-        preserveState: true,
-        opensDrawer: true,
+        href: route('location-control.show', record.id),
         title: `${record.location?.name ?? 'Unknown'} -> ${record.controlling_entity?.name ?? 'Unknown'}`,
         badges: [badge('Type', record.control_type)],
         meta: buildMeta([

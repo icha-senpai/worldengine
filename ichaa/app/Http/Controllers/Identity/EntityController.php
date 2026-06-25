@@ -10,6 +10,7 @@ use App\Http\Controllers\Concerns\RendersEntityShowPage;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Services\EntityService;
 use App\Domain\Identity\ValueObjects\EntityType;
+use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Support\Validation\DataverseRules;
 
 class EntityController extends Controller
@@ -150,6 +151,10 @@ class EntityController extends Controller
             $query->fromUniverse($request->universe);
         }
 
+        if ($request->filled('visibility')) {
+            $query->where('visibility', $request->visibility);
+        }
+
         if ($request->filled('q')) {
             $query->search($request->q);
         }
@@ -160,10 +165,11 @@ class EntityController extends Controller
 
         return $this->page('Entities/Index', array_merge([
             'entities' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['type', 'status', 'universe', 'q', 'incomplete']),
+            'filters' => $request->only(['type', 'status', 'universe', 'visibility', 'q', 'incomplete']),
             'entityTypes' => EntityType::CATEGORIES,
             'statuses' => Entity::STATUSES,
             'universes' => \App\Domain\Identity\ValueObjects\SourceUniverse::ALL ?? [],
+            'visibilityLevels' => VisibilityLevel::ALL,
         ], $props));
     }
 

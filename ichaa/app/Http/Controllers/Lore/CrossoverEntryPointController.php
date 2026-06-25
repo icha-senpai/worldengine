@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Lore;
 
+use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use Illuminate\Http\Request;
 use Inertia\Response;
 
@@ -66,10 +67,26 @@ class CrossoverEntryPointController extends Controller
 
     private function indexPage(Request $request, array $props = []): Response
     {
-                return $this->page('Lore/CrossoverEntryPoints/Index', array_merge([
-            'entryPoints' => CrossoverEntryPoint::orderBy('source_universe')->get(),
+        $query = CrossoverEntryPoint::query()->orderBy('source_universe');
+
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where('source_universe', 'like', "%{$term}%");
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status')->toString());
+        }
+
+        if ($request->filled('visibility')) {
+            $query->where('visibility', $request->string('visibility')->toString());
+        }
+
+        return $this->page('Lore/CrossoverEntryPoints/Index', array_merge([
+            'entryPoints' => $query->get(),
+            'filters' => $request->only(['q', 'status', 'visibility']),
+            'statuses' => CrossoverEntryPoint::STATUSES,
         ], $props));
-    
     }
 
     private function createFormProps(): array

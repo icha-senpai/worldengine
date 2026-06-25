@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 
 use App\Domain\Identity\Models\Entity;
+use App\Support\Database\PostgresPrefixSearch;
 
 class CharacterStateTracker extends Model
 {
@@ -181,10 +182,7 @@ class CharacterStateTracker extends Model
     // Full text search across psychological plain text fields
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->whereRaw(
-            "search_vector @@ plainto_tsquery('english', ?)",
-            [$term]
-        );
+        return PostgresPrefixSearch::apply($query, $term);
     }
 
     // --- COMPUTED ---

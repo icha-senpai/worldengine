@@ -989,7 +989,7 @@ class NotionDataverseSyncService
                         $this->normalizedSelectFrom($page, ['Resistance Level'], $control?->resistance_level),
                         LocationControlHistory::RESISTANCE_LEVELS,
                     ),
-                    'resistance_entity_id' => $this->relatedModelIdFrom($page, ['Resistance Entity'], NotionIdentitySyncService::RESOURCE_ENTITIES, Entity::class, $control?->resistance_entity_id),
+                    'resistance_entity_ids' => $this->relatedModelIdsFrom($page, ['Resistance Entities', 'Resistance Entity'], NotionIdentitySyncService::RESOURCE_ENTITIES, Entity::class, $control?->resistanceEntities?->modelKeys() ?? []),
                     'notes' => $this->documentFrom($page, ['Notes'], $control?->notes),
                     'visibility' => $this->visibilityFrom($page, $control?->visibility),
                     'content_classification' => $this->contentClassificationFrom($page, $control?->content_classification),

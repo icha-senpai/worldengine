@@ -58,6 +58,51 @@ class SessionLogWorkflowTest extends TestCase
             );
     }
 
+    public function test_session_logs_index_filters_by_query_tool_and_significance(): void
+    {
+        $user = $this->verifiedUser();
+
+        $matching = SessionLog::create([
+            'title' => 'Needle Threading',
+            'session_date' => now()->toDateString(),
+            'external_tool' => 'chatgpt',
+            'session_significance' => 'major',
+            'focus_description' => 'Untangling a very specific timeline thread.',
+        ]);
+
+        SessionLog::create([
+            'title' => 'Broad Notes',
+            'session_date' => now()->toDateString(),
+            'external_tool' => 'claude',
+            'session_significance' => 'major',
+            'focus_description' => 'Still important, wrong tool.',
+        ]);
+
+        SessionLog::create([
+            'title' => 'Needle Draft',
+            'session_date' => now()->toDateString(),
+            'external_tool' => 'chatgpt',
+            'session_significance' => 'minor',
+            'focus_description' => 'Right tool, wrong significance.',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('session-logs.index', [
+                'q' => 'Needle',
+                'external_tool' => 'chatgpt',
+                'significance' => 'major',
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Production/Sessions/Index')
+                ->where('filters.q', 'Needle')
+                ->where('filters.external_tool', 'chatgpt')
+                ->where('filters.significance', 'major')
+                ->where('sessions.data.0.id', $matching->id)
+                ->has('sessions.data', 1)
+            );
+    }
+
     public function test_session_logs_can_be_created_updated_and_deleted(): void
     {
         $user = $this->verifiedUser();

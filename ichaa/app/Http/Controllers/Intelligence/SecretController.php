@@ -112,13 +112,22 @@ class SecretController extends Controller
             $query->highRisk();
         }
 
+        if ($request->filled('q')) {
+            $term = trim((string) $request->q);
+            $query->where(function ($inner) use ($term) {
+                $inner->where('title', 'like', "%{$term}%")
+                    ->orWhere('secret_type', 'like', "%{$term}%")
+                    ->orWhere('status', 'like', "%{$term}%");
+            });
+        }
+
         if ($request->boolean('leaking')) {
             $query->leaking();
         }
 
         return $this->page('Intelligence/Secrets/Index', array_merge([
             'secrets' => $query->paginate(40)->withQueryString(),
-            'filters' => $request->only(['high_risk', 'leaking']),
+            'filters' => $request->only(['q', 'high_risk', 'leaking']),
         ], $props));
 
     }
