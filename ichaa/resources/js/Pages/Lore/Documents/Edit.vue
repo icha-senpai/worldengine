@@ -33,12 +33,15 @@ const entityOptions = computed(() => toEntityOptions(props.entities))
 
 const form = useForm({
     title: props.document.title ?? '',
+    document_type: props.document.document_type ?? '',
     document_authenticity: props.document.document_authenticity ?? '',
     document_status: props.document.document_status ?? '',
     official_narrative: props.document.official_narrative ?? null,
     true_content: props.document.true_content ?? null,
+    official_author_entity_id: props.document.official_author_entity_id ?? '',
     true_author_entity_id: props.document.true_author_entity_id ?? '',
     suppressed_by_entity_id: props.document.suppressed_by_entity_id ?? '',
+    era_created: props.document.era_created ?? '',
 })
 
 const sections = computed(() => [
@@ -46,13 +49,22 @@ const sections = computed(() => [
         title: 'Identity',
         fields: [
             { key: 'title', label: 'Title', required: true },
+            { key: 'document_type', label: 'Document Type', type: 'select', options: props.documentTypes },
             { key: 'document_authenticity', label: 'Authenticity', type: 'select', options: props.authenticityStates },
             { key: 'document_status', label: 'Document Status', type: 'select', options: props.documentStatuses },
+            { key: 'era_created', label: 'Era Created', placeholder: 'Optional era label' },
         ],
     },
     {
-        title: 'Links',
+        title: 'Authorship',
         fields: [
+            {
+                key: 'official_author_entity_id',
+                label: 'Official Author',
+                type: 'select',
+                options: entityOptions.value,
+                placeholder: 'Optional credited author...',
+            },
             {
                 key: 'true_author_entity_id',
                 label: 'True Author',

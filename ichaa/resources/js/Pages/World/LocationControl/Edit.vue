@@ -19,14 +19,25 @@
 import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
+import { toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
     embedded: { type: Boolean, default: false },
     record: { type: Object, required: true },
+    locationEntities: { type: Array, default: () => [] },
+    entities: { type: Array, default: () => [] },
+    controlTypes: { type: Array, default: () => [] },
     resistanceLevels: { type: Array, default: () => [] },
 })
 
+const locationOptions = computed(() => toEntityOptions(props.locationEntities))
+const entityOptions = computed(() => toEntityOptions(props.entities))
+
 const form = useForm({
+    location_entity_id: props.record.location_entity_id ?? '',
+    controlling_entity_id: props.record.controlling_entity_id ?? '',
+    control_type: props.record.control_type ?? '',
+    control_start_era: props.record.control_start_era ?? '',
     resistance_level: props.record.resistance_level ?? '',
     control_end_era: props.record.control_end_era ?? '',
     how_control_ended: props.record.how_control_ended ?? null,
@@ -34,8 +45,26 @@ const form = useForm({
 
 const sections = computed(() => [
     {
-        title: 'Update',
+        title: 'Control',
         fields: [
+            {
+                key: 'location_entity_id',
+                label: 'Location',
+                type: 'select',
+                required: true,
+                options: locationOptions.value,
+                placeholder: 'Select the controlled location...',
+            },
+            {
+                key: 'controlling_entity_id',
+                label: 'Controlling Entity',
+                type: 'select',
+                required: true,
+                options: entityOptions.value,
+                placeholder: 'Select whoever currently controls it...',
+            },
+            { key: 'control_type', label: 'Control Type', type: 'select', required: true, options: props.controlTypes },
+            { key: 'control_start_era', label: 'Control Start Era' },
             {
                 key: 'resistance_level',
                 label: 'Resistance Level',

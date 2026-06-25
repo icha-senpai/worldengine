@@ -33,7 +33,8 @@ class TimelineWorkflowTest extends TestCase
 
         $this->assertNotNull($timeline);
         $this->assertSame(EntityType::TIMELINE, $timeline->entity_type);
-        $this->assertSame('Tracks the primary crossover chronology.', $timeline->summary);
+        $this->assertIsArray($timeline->summary);
+        $this->assertSame('Tracks the primary crossover chronology.', $timeline->summary['content'][0]['content'][0]['text'] ?? null);
         $this->assertSame(VisibilityLevel::PRIVATE, $timeline->visibility);
         $this->assertSame('restricted', $timeline->content_classification);
     }
@@ -121,12 +122,12 @@ class TimelineWorkflowTest extends TestCase
             ->get(route('timelines.events.edit', ['timeline' => $timeline, 'entry' => $entry]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Temporal/Timelines/Events/Edit')
+                ->component('Temporal/Timelines/Show')
                 ->where('timeline.id', $timeline->id)
-                ->where('entry.id', $entry->id)
-                ->where('entry.event_entity.id', $event->id)
-                ->has('concurrencyGroups', 1)
-                ->where('eventSignificanceLevels', Timeline::EVENT_SIGNIFICANCE_LEVELS)
+                ->where('eventEditDrawer.entry.id', $entry->id)
+                ->where('eventEditDrawer.entry.event_entity.id', $event->id)
+                ->has('eventEditDrawer.concurrencyGroups', 1)
+                ->where('eventEditDrawer.eventSignificanceLevels', Timeline::EVENT_SIGNIFICANCE_LEVELS)
             );
 
         $this->actingAs($user)
@@ -202,8 +203,6 @@ class TimelineWorkflowTest extends TestCase
 
     private function verifiedUser(): User
     {
-        return User::factory()->create([
-            'email_verified_at' => now(),
-        ]);
+        return $this->createVerifiedAdminUser();
     }
 }

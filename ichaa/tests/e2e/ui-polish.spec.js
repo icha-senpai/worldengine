@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { login } from './support/auth'
+import { appPath, login } from './support/auth'
 
 test.describe('ui polish surfaces', () => {
     test('shared surfaces render cleanly across dashboard, list, show, and drawer flows', async ({ page }, testInfo) => {
@@ -8,6 +8,10 @@ test.describe('ui polish surfaces', () => {
         await login(page)
 
         await page.goto('/')
+        await expect(page.getByRole('heading', { name: 'Public Gateway' })).toBeVisible()
+        await attachScreenshot(page, testInfo, 'public-gateway')
+
+        await page.goto(appPath())
         await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible()
         await attachScreenshot(page, testInfo, 'dashboard-overview')
 

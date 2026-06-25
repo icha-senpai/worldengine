@@ -7,17 +7,21 @@
             :edit-href="route('documents.edit', document.id)"
             :edit-preserve-scroll="true"
             :edit-preserve-state="true"
+            :edit-drawer-open="Boolean(editDrawer)"
+            :edit-close-href="route('documents.show', document.id)"
             :destroy-href="route('documents.destroy', document.id)"
             :badge="formatLabel(document.document_type)"
             :sections="sections"
-        />
-
-        <EditDocument
-            v-if="editDrawer"
-            embedded
-            :document="document"
-            v-bind="editDrawer"
-        />
+        >
+            <template #edit-drawer>
+                <EditDocument
+                    v-if="editDrawer"
+                    embedded
+                    :document="document"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 

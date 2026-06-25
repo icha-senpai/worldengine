@@ -7,17 +7,21 @@
             :edit-href="route('relationships.edit', relationship.id)"
             :edit-preserve-scroll="true"
             :edit-preserve-state="true"
+            :edit-drawer-open="Boolean(editDrawer)"
+            :edit-close-href="route('relationships.show', relationship.id)"
             :destroy-href="route('relationships.destroy', relationship.id)"
             :badge="formatLabel(relationship.relationship_type)"
             :sections="sections"
-        />
-
-        <EditRelationship
-            v-if="editDrawer"
-            embedded
-            :relationship="relationship"
-            v-bind="editDrawer"
-        />
+        >
+            <template #edit-drawer>
+                <EditRelationship
+                    v-if="editDrawer"
+                    embedded
+                    :relationship="relationship"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 

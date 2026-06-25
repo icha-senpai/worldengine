@@ -18,15 +18,21 @@
 import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
+import { toEntityOptions } from '@/Components/scaffold/formatters'
 
 const props = defineProps({
     embedded: { type: Boolean, default: false },
     relationship: { type: Object, required: true },
+    entities: { type: Array, default: () => [] },
     relationshipTypes: { type: Array, default: () => [] },
     tensionCharges: { type: Array, default: () => [] },
 })
 
+const entityOptions = computed(() => toEntityOptions(props.entities))
+
 const form = useForm({
+    from_entity_id: props.relationship.from_entity_id ?? '',
+    to_entity_id: props.relationship.to_entity_id ?? '',
     relationship_type: props.relationship.relationship_type ?? '',
     direction: props.relationship.direction ?? '',
     perspective_a: props.relationship.perspective_a ?? null,
@@ -36,9 +42,33 @@ const form = useForm({
     is_active: props.relationship.is_active ?? false,
     perceived_type: props.relationship.perceived_type ?? '',
     true_type: props.relationship.true_type ?? '',
+    visibility: props.relationship.visibility ?? 'private',
+    content_classification: props.relationship.content_classification ?? 'restricted',
 })
 
 const sections = computed(() => [
+    {
+        title: 'Participants',
+        fields: [
+            {
+                key: 'from_entity_id',
+                label: 'From Entity',
+                type: 'select',
+                required: true,
+                options: entityOptions.value,
+                placeholder: 'Select the first entity...',
+            },
+            {
+                key: 'to_entity_id',
+                label: 'To Entity',
+                type: 'select',
+                required: true,
+                options: entityOptions.value,
+                placeholder: 'Select the second entity...',
+                help: 'This must be different from the From entity.',
+            },
+        ],
+    },
     {
         title: 'Relationship State',
         fields: [
@@ -49,6 +79,8 @@ const sections = computed(() => [
             { key: 'is_active', label: 'Is Active', type: 'checkbox' },
             { key: 'perceived_type', label: 'Perceived Type' },
             { key: 'true_type', label: 'True Type' },
+            { key: 'visibility', label: 'Visibility' },
+            { key: 'content_classification', label: 'Content Classification' },
         ],
     },
     {

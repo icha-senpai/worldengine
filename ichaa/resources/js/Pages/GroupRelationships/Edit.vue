@@ -31,6 +31,8 @@ const form = useForm({
     current_tension_charge: props.group.current_tension_charge ?? '',
     charge_change_reason: '',
     is_active: props.group.is_active ?? false,
+    visibility: props.group.visibility ?? 'private',
+    content_classification: props.group.content_classification ?? 'restricted',
 })
 
 const sections = computed(() => [
@@ -42,6 +44,8 @@ const sections = computed(() => [
             { key: 'current_tension_charge', label: 'Tension Charge', type: 'select', options: props.tensionCharges },
             { key: 'charge_change_reason', label: 'Charge Change Reason', type: 'textarea', rows: 3 },
             { key: 'is_active', label: 'Is Active', type: 'checkbox' },
+            { key: 'visibility', label: 'Visibility' },
+            { key: 'content_classification', label: 'Content Classification' },
         ],
     },
 ])

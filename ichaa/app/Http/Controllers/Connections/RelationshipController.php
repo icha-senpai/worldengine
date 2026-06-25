@@ -54,10 +54,7 @@ class RelationshipController extends Controller
     public function edit(Relationship $relationship): Response
     {
         return $this->showPage($relationship, [
-            'editDrawer' => [
-                'relationshipTypes' => RelationshipType::ALL,
-                'tensionCharges' => TensionCharge::ALL,
-            ],
+            'editDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -90,8 +87,6 @@ class RelationshipController extends Controller
         return $this->to('relationships.index', [], 'Relationship deleted.');
     }
 
-
-
     private function indexPage(Request $request, array $props = []): Response
     {
         $query = Relationship::with(['fromEntity:id,name,entity_type', 'toEntity:id,name,entity_type'])
@@ -113,13 +108,13 @@ class RelationshipController extends Controller
             $query->masked();
         }
 
-                return $this->page('Relationships/Index', array_merge([
+        return $this->page('Relationships/Index', array_merge([
             'relationships' => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['type', 'charge', 'volatile', 'masked']),
             'relationshipTypes' => RelationshipType::ALL,
             'tensionCharges' => TensionCharge::ALL,
         ], $props));
-    
+
     }
 
     private function createFormProps(): array
@@ -131,7 +126,7 @@ class RelationshipController extends Controller
                 ->get(),
             'relationshipTypes' => RelationshipType::ALL,
             'tensionCharges' => TensionCharge::ALL,
-        
+
         ];
     }
 

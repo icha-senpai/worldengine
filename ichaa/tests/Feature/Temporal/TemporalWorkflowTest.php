@@ -198,7 +198,7 @@ class TemporalWorkflowTest extends TestCase
         $group = ConcurrencyGroup::first();
 
         $storeResponse
-            ->assertRedirect(route('concurrency-groups.index'))
+            ->assertRedirect(route('concurrency-groups.show', $group))
             ->assertSessionHas('success');
 
         $this->assertNotNull($group);
@@ -225,7 +225,7 @@ class TemporalWorkflowTest extends TestCase
         $this->actingAs($user)
             ->from(route('concurrency-groups.show', $group))
             ->delete(route('concurrency-groups.destroy', $group))
-            ->assertRedirect(route('concurrency-groups.show', $group))
+            ->assertRedirect(route('concurrency-groups.index'))
             ->assertSessionHas('success');
 
         $this->assertSoftDeleted('concurrency_groups', ['id' => $group->id]);
@@ -233,8 +233,6 @@ class TemporalWorkflowTest extends TestCase
 
     private function verifiedUser(): User
     {
-        return User::factory()->create([
-            'email_verified_at' => now(),
-        ]);
+        return $this->createVerifiedAdminUser();
     }
 }

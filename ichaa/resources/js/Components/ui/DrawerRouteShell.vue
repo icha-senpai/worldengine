@@ -7,7 +7,7 @@
         :close-href="closeHref"
         @close="closeDrawer"
     >
-        <Transition name="drawer-content-fade">
+        <Transition name="drawer-content-fade" mode="out-in">
             <div v-if="showContent" key="content" class="drawer-content-shell">
                 <slot />
             </div>

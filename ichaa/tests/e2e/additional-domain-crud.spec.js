@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { login } from './support/auth'
+import { confirmAppDialog } from './support/dialogs'
 
 test.describe('additional domain CRUD flows', () => {
     test('user can create, edit, and trash a group relationship', async ({ page }) => {
@@ -25,8 +26,8 @@ test.describe('additional domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/group-relationships\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedName })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/group-relationships$/)
         await expect(page.getByText(updatedName)).toHaveCount(0)
@@ -55,8 +56,8 @@ test.describe('additional domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/timelines\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedName })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/timelines$/)
         await expect(page.getByText(updatedName)).toHaveCount(0)
@@ -90,8 +91,8 @@ test.describe('additional domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/character-states\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedLabel })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/character-states$/)
         await expect(page.getByText(updatedLabel)).toHaveCount(0)
@@ -123,10 +124,10 @@ test.describe('additional domain CRUD flows', () => {
         await page.getByRole('link', { name: 'Edit' }).click()
         await expect(page).toHaveURL(/\/concurrency-groups\/\d+\/edit$/)
 
-        page.once('dialog', (dialog) => dialog.accept())
-        await page.getByRole('dialog', { name: 'Edit Concurrency Group' })
+        await page.getByRole('dialog', { name: /Edit .*Concurrency/i })
             .getByRole('button', { name: 'Move to Trash' })
             .click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/concurrency-groups$/)
         await expect(page.getByText(updatedName)).toHaveCount(0)
@@ -163,8 +164,8 @@ test.describe('additional domain CRUD flows', () => {
         await page.getByRole('link', { name: title }).click()
         await expect(page).toHaveURL(/\/location-containment\/\d+\/edit$/)
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/location-containment$/)
         await expect(page.getByText(title)).toHaveCount(0)
@@ -201,8 +202,8 @@ test.describe('additional domain CRUD flows', () => {
         await page.getByRole('link', { name: title }).click()
         await expect(page).toHaveURL(/\/location-control\/\d+\/edit$/)
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/location-control$/)
         await expect(page.getByText(title)).toHaveCount(0)
@@ -235,8 +236,8 @@ test.describe('additional domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/perception-states\/\d+$/)
         await expect(page.getByText(`${entityName} (character)`).first()).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/perception-states$/)
         await expect(page.getByText(entityName)).toHaveCount(0)
@@ -268,8 +269,8 @@ test.describe('additional domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/session-logs\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedTitle })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/session-logs$/)
         await expect(page.getByText(updatedTitle)).toHaveCount(0)
@@ -304,8 +305,8 @@ test.describe('additional domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/media-references\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedTitle })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/media-references$/)
         await expect(page.getByText(updatedTitle)).toHaveCount(0)

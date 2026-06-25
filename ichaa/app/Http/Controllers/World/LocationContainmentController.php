@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\World;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\World\Models\LocationContainment;
 use App\Domain\World\Services\WorldService;
+use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class LocationContainmentController extends Controller
 {
@@ -33,20 +33,20 @@ class LocationContainmentController extends Controller
     public function edit(LocationContainment $locationContainment): Response
     {
         return $this->indexPage([
-            'editDrawer' => [
+            'editDrawer' => array_merge($this->createFormProps(), [
                 'containment' => $locationContainment->load([
                     'childLocation:id,name',
                     'parentLocation:id,name',
                 ]),
-            ],
+            ]),
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('location-containment', 'store'));
 
-        $child  = Entity::findOrFail($validated['child_location_entity_id']);
+        $child = Entity::findOrFail($validated['child_location_entity_id']);
         $parent = Entity::findOrFail($validated['parent_location_entity_id']);
 
         $this->service->contain($child, $parent, $validated['containment_type'], $validated);
@@ -54,7 +54,7 @@ class LocationContainmentController extends Controller
         return $this->to('location-containment.index', [], 'Location containment created.');
     }
 
-    public function update(Request $request, LocationContainment $locationContainment): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, LocationContainment $locationContainment): RedirectResponse
     {
         $locationContainment->update($request->validate(
             DataverseRules::web('location-containment', 'update')
@@ -63,7 +63,7 @@ class LocationContainmentController extends Controller
         return $this->to('location-containment.index', [], 'Containment updated.');
     }
 
-    public function destroy(LocationContainment $locationContainment): \Illuminate\Http\RedirectResponse
+    public function destroy(LocationContainment $locationContainment): RedirectResponse
     {
         $locationContainment->delete();
 

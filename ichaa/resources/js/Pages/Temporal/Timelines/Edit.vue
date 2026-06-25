@@ -27,6 +27,7 @@ const props = defineProps({
 const form = useForm({
     name: props.timeline.name ?? '',
     summary: props.timeline.summary ?? null,
+    visibility: props.timeline.visibility ?? 'private',
 })
 
 const sections = computed(() => [
@@ -35,6 +36,7 @@ const sections = computed(() => [
         fields: [
             { key: 'name', label: 'Name', required: true },
             { key: 'summary', label: 'Summary', type: 'json', jsonMode: 'document', rows: 4 },
+            { key: 'visibility', label: 'Visibility' },
         ],
     },
 ])

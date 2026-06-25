@@ -8,17 +8,21 @@
             :edit-href="route('glossary.edit', term.id)"
             :edit-preserve-scroll="true"
             :edit-preserve-state="true"
+            :edit-drawer-open="Boolean(editDrawer)"
+            :edit-close-href="route('glossary.show', term.id)"
             :destroy-href="route('glossary.destroy', term.id)"
             badge="term"
             :sections="sections"
-        />
-
-        <EditGlossaryTerm
-            v-if="editDrawer"
-            embedded
-            :term="term"
-            v-bind="editDrawer"
-        />
+        >
+            <template #edit-drawer>
+                <EditGlossaryTerm
+                    v-if="editDrawer"
+                    embedded
+                    :term="term"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 

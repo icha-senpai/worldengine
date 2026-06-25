@@ -62,8 +62,6 @@ class TrashTest extends TestCase
 
     private function verifiedUser(): User
     {
-        return User::factory()->create([
-            'email_verified_at' => now(),
-        ]);
+        return $this->createVerifiedAdminUser();
     }
 }

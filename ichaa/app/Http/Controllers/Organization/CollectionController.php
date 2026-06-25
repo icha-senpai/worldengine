@@ -46,11 +46,7 @@ class CollectionController extends Controller
     public function edit(Collection $collection): Response
     {
         return $this->showPage($collection, [
-            'editDrawer' => [
-                'types' => Collection::TYPES,
-                'modes' => Collection::MODES,
-                'completionStates' => Collection::COMPLETION_STATES,
-            ],
+            'editDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -90,8 +86,6 @@ class CollectionController extends Controller
 
         return $this->back("{$count} entities synced.");
     }
-
-
 
     private function indexPage(Request $request, array $props = []): Response
     {

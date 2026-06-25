@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Intelligence;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Intelligence\Models\Secret;
 use App\Domain\Intelligence\Services\IntelligenceService;
+use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Inertia\Response;
 
 class SecretController extends Controller
 {
@@ -29,7 +30,7 @@ class SecretController extends Controller
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('secrets', 'store'));
 
@@ -46,28 +47,25 @@ class SecretController extends Controller
     public function edit(Secret $secret): Response
     {
         return $this->showPage($secret, [
-            'editDrawer' => [
-                'secretTypes' => Secret::SECRET_TYPES,
-                'exposureRisks' => Secret::EXPOSURE_RISKS,
-            ],
+            'editDrawer' => $this->createFormProps(),
         ]);
     }
 
-    public function update(Request $request, Secret $secret): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, Secret $secret): RedirectResponse
     {
         $this->service->updateSecret($secret, $request->validate(DataverseRules::web('secrets', 'update')));
 
         return $this->to('secrets.show', [$secret], 'Secret updated.');
     }
 
-    public function destroy(Secret $secret): \Illuminate\Http\RedirectResponse
+    public function destroy(Secret $secret): RedirectResponse
     {
         $secret->delete();
 
         return $this->to('secrets.index', [], 'Secret deleted.');
     }
 
-    public function expose(Request $request, Secret $secret): \Illuminate\Http\RedirectResponse
+    public function expose(Request $request, Secret $secret): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::webAction('secret-expose'));
 
@@ -76,20 +74,20 @@ class SecretController extends Controller
         return $this->back('Secret exposure recorded.');
     }
 
-    public function addKnownBy(Secret $secret, Entity $entity): \Illuminate\Http\RedirectResponse
+    public function addKnownBy(Secret $secret, Entity $entity): RedirectResponse
     {
         $this->service->addToKnownBy($secret, $entity->id);
 
         return $this->back("{$entity->name} added to known-by.");
     }
 
-    private function entityListItems(array $ids, \Illuminate\Support\Collection $entities): array
+    private function entityListItems(array $ids, Collection $entities): array
     {
         return collect($ids)
             ->map(function ($id) use ($entities) {
                 $entity = $entities->get($id);
 
-                if (!$entity) {
+                if (! $entity) {
                     return [
                         'label' => "Unknown entity #{$id}",
                     ];
@@ -99,14 +97,12 @@ class SecretController extends Controller
 
                 return [
                     'label' => "{$entity->name}{$type}",
-                    'href'  => route('entities.show', [$entity]),
+                    'href' => route('entities.show', [$entity]),
                 ];
             })
             ->values()
             ->all();
     }
-
-
 
     private function indexPage(Request $request, array $props = []): Response
     {
@@ -120,23 +116,23 @@ class SecretController extends Controller
             $query->leaking();
         }
 
-                return $this->page('Intelligence/Secrets/Index', array_merge([
+        return $this->page('Intelligence/Secrets/Index', array_merge([
             'secrets' => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['high_risk', 'leaking']),
         ], $props));
-    
+
     }
 
     private function createFormProps(): array
     {
         return [
-            'entities'      => Entity::query()
+            'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->orderBy('name')
                 ->get(),
-            'secretTypes'   => Secret::SECRET_TYPES,
+            'secretTypes' => Secret::SECRET_TYPES,
             'exposureRisks' => Secret::EXPOSURE_RISKS,
-        
+
         ];
     }
 

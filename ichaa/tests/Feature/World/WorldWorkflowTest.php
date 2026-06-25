@@ -235,7 +235,7 @@ class WorldWorkflowTest extends TestCase
         $this->actingAs($user)
             ->from(route('travel-routes.show', $forward))
             ->delete(route('travel-routes.destroy', $forward))
-            ->assertRedirect(route('travel-routes.show', $forward))
+            ->assertRedirect(route('travel-routes.index'))
             ->assertSessionHas('success');
 
         $this->assertSoftDeleted('travel_routes', ['id' => $forward->id]);
@@ -317,8 +317,6 @@ class WorldWorkflowTest extends TestCase
 
     private function verifiedUser(): User
     {
-        return User::factory()->create([
-            'email_verified_at' => now(),
-        ]);
+        return $this->createVerifiedAdminUser();
     }
 }

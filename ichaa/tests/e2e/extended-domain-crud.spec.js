@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { login } from './support/auth'
+import { confirmAppDialog } from './support/dialogs'
 
 test.describe('extended domain CRUD flows', () => {
     test('user can create, edit, and trash a glossary term', async ({ page }) => {
@@ -26,8 +27,8 @@ test.describe('extended domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/glossary\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedTerm })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/glossary$/)
         await expect(page.getByText(updatedTerm)).toHaveCount(0)
@@ -60,8 +61,8 @@ test.describe('extended domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/canon-references\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedTitle })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/canon-references$/)
         await expect(page.getByText(updatedTitle)).toHaveCount(0)
@@ -91,8 +92,8 @@ test.describe('extended domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/crossover-entry-points\/\d+$/)
         await expect(page.getByText(updatedText)).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/crossover-entry-points$/)
         await expect(page.getByText(sourceUniverse)).toHaveCount(0)
@@ -128,8 +129,8 @@ test.describe('extended domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/knowledge-states\/\d+$/)
         await expect(page.getByText(updatedContent)).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/knowledge-states$/)
         await expect(page.getByText(knowerName)).toHaveCount(0)
@@ -165,8 +166,8 @@ test.describe('extended domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/travel-routes\/\d+$/)
         await expect(page.getByText(updatedDuration)).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/travel-routes$/)
         await expect(page.getByText(originName)).toHaveCount(0)

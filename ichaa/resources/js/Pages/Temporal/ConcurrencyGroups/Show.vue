@@ -8,17 +8,21 @@
             :edit-href="route('concurrency-groups.edit', group.id)"
             :edit-preserve-scroll="true"
             :edit-preserve-state="true"
+            :edit-drawer-open="Boolean(editDrawer)"
+            :edit-close-href="route('concurrency-groups.show', group.id)"
             :destroy-href="route('concurrency-groups.destroy', group.id)"
             :badge="group.narrative_significance || 'group'"
             :sections="sections"
-        />
-
-        <EditConcurrencyGroup
-            v-if="editDrawer"
-            embedded
-            :group="group"
-            v-bind="editDrawer"
-        />
+        >
+            <template #edit-drawer>
+                <EditConcurrencyGroup
+                    v-if="editDrawer"
+                    embedded
+                    :group="group"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 

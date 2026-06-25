@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Lore;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Lore\Models\Document;
+use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class DocumentController extends Controller
 {
@@ -24,7 +24,7 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('documents', 'store'));
 
@@ -41,33 +41,23 @@ class DocumentController extends Controller
     public function edit(Document $document): Response
     {
         return $this->showPage($document, [
-            'editDrawer' => [
-                'entities' => Entity::query()
-                    ->select('id', 'name', 'entity_type')
-                    ->orderBy('name')
-                    ->get(),
-                'documentTypes' => Document::DOCUMENT_TYPES,
-                'documentStatuses' => Document::DOCUMENT_STATUSES,
-                'authenticityStates' => Document::AUTHENTICITY_STATES,
-            ],
+            'editDrawer' => $this->createFormProps(),
         ]);
     }
 
-    public function update(Request $request, Document $document): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, Document $document): RedirectResponse
     {
         $document->update($request->validate(DataverseRules::web('documents', 'update')));
 
         return $this->to('documents.show', [$document], 'Document updated.');
     }
 
-    public function destroy(Document $document): \Illuminate\Http\RedirectResponse
+    public function destroy(Document $document): RedirectResponse
     {
         $document->delete();
 
         return $this->to('documents.index', [], 'Document deleted.');
     }
-
-
 
     private function indexPage(Request $request, array $props = []): Response
     {
@@ -77,25 +67,25 @@ class DocumentController extends Controller
             $query->ofType($request->type);
         }
 
-                return $this->page('Lore/Documents/Index', array_merge([
-            'documents'     => $query->paginate(40)->withQueryString(),
-            'filters'       => $request->only(['type']),
+        return $this->page('Lore/Documents/Index', array_merge([
+            'documents' => $query->paginate(40)->withQueryString(),
+            'filters' => $request->only(['type']),
             'documentTypes' => Document::DOCUMENT_TYPES,
         ], $props));
-    
+
     }
 
     private function createFormProps(): array
     {
         return [
-            'entities'            => Entity::query()
+            'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->orderBy('name')
                 ->get(),
-            'documentTypes'     => Document::DOCUMENT_TYPES,
-            'documentStatuses'  => Document::DOCUMENT_STATUSES,
-            'authenticityStates'=> Document::AUTHENTICITY_STATES,
-        
+            'documentTypes' => Document::DOCUMENT_TYPES,
+            'documentStatuses' => Document::DOCUMENT_STATUSES,
+            'authenticityStates' => Document::AUTHENTICITY_STATES,
+
         ];
     }
 

@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { login } from './support/auth'
 
 test.describe('drawer motion capture', () => {
@@ -24,7 +24,8 @@ async function captureCreateDrawer(page, dir) {
     await fs.mkdir(dir, { recursive: true })
 
     await page.goto('/entities')
-    await page.waitForLoadState('networkidle')
+    await expect(page).toHaveURL(/\/entities$/)
+    await expect(page.getByRole('heading', { name: 'Entities' })).toBeVisible()
     await page.screenshot({ path: path.join(dir, '00-before-open.png'), fullPage: true })
 
     const openClick = page.getByRole('link', { name: /New Entity|Create the first one/i }).first().click({ noWaitAfter: true })
@@ -46,7 +47,8 @@ async function captureEditDrawer(page, dir) {
     await page.getByLabel(/^Type$/).selectOption('character')
     await page.getByLabel(/^Visibility$/).selectOption('public_knowledge')
     await page.getByRole('button', { name: 'Create Entity' }).click()
-    await page.waitForLoadState('networkidle')
+    await expect(page).toHaveURL(/\/entities\/\d+$/)
+    await expect(page.getByRole('heading', { name: entityName })).toBeVisible()
     await page.screenshot({ path: path.join(dir, '00-before-open.png'), fullPage: true })
 
     const openClick = page.getByRole('link', { name: 'Edit' }).click({ noWaitAfter: true })

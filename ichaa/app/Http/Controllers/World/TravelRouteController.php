@@ -56,7 +56,7 @@ class TravelRouteController extends Controller
     public function edit(TravelRoute $travelRoute): Response
     {
         return $this->showPage($travelRoute, [
-            'editDrawer' => [],
+            'editDrawer' => $this->createFormProps(),
         ]);
     }
 

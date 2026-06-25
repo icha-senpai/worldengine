@@ -24,12 +24,15 @@ const props = defineProps({
     term: { type: Object, required: true },
     usageContexts: { type: Array, default: () => [] },
     termStatuses: { type: Array, default: () => [] },
+    originUniverses: { type: Array, default: () => [] },
 })
 
 const form = useForm({
     term: props.term.term ?? '',
     usage_context: props.term.usage_context ?? '',
     definition: props.term.definition ?? null,
+    origin_universe: props.term.origin_universe ?? '',
+    era_introduced: props.term.era_introduced ?? '',
     term_status: props.term.term_status ?? '',
 })
 
@@ -39,6 +42,8 @@ const sections = computed(() => [
         fields: [
             { key: 'term', label: 'Term', required: true },
             { key: 'usage_context', label: 'Usage Context', type: 'select', required: true, options: props.usageContexts },
+            { key: 'origin_universe', label: 'Origin Universe', type: 'select', options: props.originUniverses },
+            { key: 'era_introduced', label: 'Era Introduced' },
             { key: 'term_status', label: 'Term Status', type: 'select', options: props.termStatuses },
         ],
     },

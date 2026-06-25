@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { login } from './support/auth'
+import { confirmAppDialog } from './support/dialogs'
 
 test.describe('representative domain CRUD flows', () => {
     test('user can create, edit, and trash a collection', async ({ page }) => {
@@ -26,8 +27,8 @@ test.describe('representative domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/collections\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedName })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/collections$/)
         await expect(page.getByText(updatedName)).toHaveCount(0)
@@ -58,8 +59,8 @@ test.describe('representative domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/documents\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedTitle })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/documents$/)
         await expect(page.getByText(updatedTitle)).toHaveCount(0)
@@ -92,8 +93,8 @@ test.describe('representative domain CRUD flows', () => {
         await expect(page.getByRole('heading', { name: updatedTitle })).toBeVisible()
         await expect(page.getByText('In Progress')).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/meta$/)
         await expect(page.getByText(updatedTitle)).toHaveCount(0)
@@ -126,8 +127,8 @@ test.describe('representative domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/secrets\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedTitle })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/secrets$/)
         await expect(page.getByText(updatedTitle)).toHaveCount(0)
@@ -167,8 +168,8 @@ test.describe('representative domain CRUD flows', () => {
         await expect(page).toHaveURL(/\/power-interactions\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedName })).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/power-interactions$/)
         await expect(page.getByText(updatedName)).toHaveCount(0)

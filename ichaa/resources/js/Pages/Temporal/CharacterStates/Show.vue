@@ -8,17 +8,21 @@
             :edit-href="route('character-states.edit', state.id)"
             :edit-preserve-scroll="true"
             :edit-preserve-state="true"
+            :edit-drawer-open="Boolean(editDrawer)"
+            :edit-close-href="route('character-states.show', state.id)"
             :destroy-href="route('character-states.destroy', state.id)"
             :badge="state.current_stability_level || 'snapshot'"
             :sections="sections"
-        />
-
-        <EditCharacterState
-            v-if="editDrawer"
-            embedded
-            :state="state"
-            v-bind="editDrawer"
-        />
+        >
+            <template #edit-drawer>
+                <EditCharacterState
+                    v-if="editDrawer"
+                    embedded
+                    :state="state"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 

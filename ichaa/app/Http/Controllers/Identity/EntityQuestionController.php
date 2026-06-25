@@ -3,30 +3,32 @@
 namespace App\Http\Controllers\Identity;
 
 use Illuminate\Http\Request;
+use Inertia\Response;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\RendersEntityShowPage;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityQuestion;
 use App\Support\Validation\DataverseRules;
 
 class EntityQuestionController extends Controller
 {
-    public function create(Entity $entity): \Illuminate\Http\RedirectResponse
+    use RendersEntityShowPage;
+
+    public function create(Entity $entity): Response
     {
-        return $this->to('entities.show', [
-            'entity' => $entity,
-            'tab' => 'questions',
-            'compose' => 1,
+        return $this->showEntityPage($entity, [
+            'questionCreateDrawer' => true,
         ]);
     }
 
-    public function edit(Entity $entity, EntityQuestion $question): \Illuminate\Http\RedirectResponse
+    public function edit(Entity $entity, EntityQuestion $question): Response
     {
         abort_unless((int) $question->entity_id === (int) $entity->id, 404);
 
-        return $this->to('entities.show', [
-            'entity' => $entity,
-            'tab' => 'questions',
-            'edit_question' => $question->id,
+        return $this->showEntityPage($entity, [
+            'questionEditDrawer' => [
+                'question' => $question,
+            ],
         ]);
     }
 
@@ -44,7 +46,10 @@ class EntityQuestionController extends Controller
 
         $entity->questions()->create($validated);
 
-        return $this->back('Question added.');
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'questions',
+        ], 'Question added.');
     }
 
     // PUT /entities/{entity}/questions/{question}
@@ -61,7 +66,10 @@ class EntityQuestionController extends Controller
 
         $question->update($validated);
 
-        return $this->back('Question updated.');
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'questions',
+        ], 'Question updated.');
     }
 
     // DELETE /entities/{entity}/questions/{question}
@@ -71,6 +79,9 @@ class EntityQuestionController extends Controller
 
         $question->delete();
 
-        return $this->back('Question removed.');
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'questions',
+        ], 'Question removed.');
     }
 }

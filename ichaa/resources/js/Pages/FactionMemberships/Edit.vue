@@ -24,12 +24,14 @@ import { toEntityOptions } from '@/Components/scaffold/formatters'
 const props = defineProps({
     embedded: { type: Boolean, default: false },
     membership: { type: Object, required: true },
+    factionEntities: { type: Array, default: () => [] },
     entities: { type: Array, default: () => [] },
     returnContext: { type: String, default: '' },
     returnEntityId: { type: Number, default: null },
     returnEntityName: { type: String, default: '' },
 })
 
+const factionOptions = computed(() => toEntityOptions(props.factionEntities))
 const entityOptions = computed(() => toEntityOptions(props.entities))
 const membershipStatusOptions = [
     { value: 'active', label: 'Active' },
@@ -47,6 +49,8 @@ const backHref = computed(() =>
 const backLabel = computed(() => props.returnEntityName || props.membership.faction?.name || 'Entities')
 
 const form = useForm({
+    faction_entity_id: props.membership.faction_entity_id ?? '',
+    member_entity_id: props.membership.member_entity_id ?? '',
     return_context: props.returnContext ?? '',
     return_entity_id: resolvedReturnEntityId.value ?? '',
     rank_or_role: props.membership.rank_or_role ?? '',
@@ -65,6 +69,22 @@ const sections = computed(() => [
     {
         title: 'Membership',
         fields: [
+            {
+                key: 'faction_entity_id',
+                label: 'Faction',
+                type: 'select',
+                required: true,
+                options: factionOptions.value,
+                placeholder: 'Select a faction, organization, government, or movement...',
+            },
+            {
+                key: 'member_entity_id',
+                label: 'Member',
+                type: 'select',
+                required: true,
+                options: entityOptions.value,
+                placeholder: 'Select the member entity...',
+            },
             { key: 'rank_or_role', label: 'Rank or Role' },
             {
                 key: 'membership_status',

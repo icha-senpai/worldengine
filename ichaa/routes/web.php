@@ -30,8 +30,8 @@ use App\Http\Controllers\Production\PipelineItemController;
 // World
 use App\Http\Controllers\Production\SessionLogController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\System\NotionSyncController;
 use App\Http\Controllers\System\MediaLibraryController;
+use App\Http\Controllers\System\NotionSyncController;
 use App\Http\Controllers\System\SearchController;
 use App\Http\Controllers\System\TrashController;
 // Intelligence
@@ -44,7 +44,9 @@ use App\Http\Controllers\World\LocationControlController;
 use App\Http\Controllers\World\PowerInteractionController;
 // System
 use App\Http\Controllers\World\TravelRouteController;
+use App\Http\Middleware\EnsureAdmin;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 // ---------------------------------------------------------------------------
 // Breeze — auth pages (unauthenticated)
@@ -52,11 +54,16 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
 
+Route::get('/', fn () => Inertia::render('Welcome', [
+    'canLogin' => Route::has('login'),
+    'canRegister' => Route::has('register'),
+]))->name('home');
+
 // ---------------------------------------------------------------------------
 // All app routes require auth
 // ---------------------------------------------------------------------------
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::prefix('datacrypt')->middleware(['auth', 'verified', EnsureAdmin::class])->group(function () {
 
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');

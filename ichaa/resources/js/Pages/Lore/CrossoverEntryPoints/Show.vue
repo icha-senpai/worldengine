@@ -7,17 +7,21 @@
             :edit-href="route('crossover-entry-points.edit', entryPoint.id)"
             :edit-preserve-scroll="true"
             :edit-preserve-state="true"
+            :edit-drawer-open="Boolean(editDrawer)"
+            :edit-close-href="route('crossover-entry-points.show', entryPoint.id)"
             :destroy-href="route('crossover-entry-points.destroy', entryPoint.id)"
             :badge="entryPoint.status || 'entry'"
             :sections="sections"
-        />
-
-        <EditCrossoverEntryPoint
-            v-if="editDrawer"
-            embedded
-            :entry-point="entryPoint"
-            v-bind="editDrawer"
-        />
+        >
+            <template #edit-drawer>
+                <EditCrossoverEntryPoint
+                    v-if="editDrawer"
+                    embedded
+                    :entry-point="entryPoint"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 

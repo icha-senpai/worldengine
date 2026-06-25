@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { login } from './support/auth'
+import { confirmAppDialog } from './support/dialogs'
 
 test.describe('smoke flows', () => {
     test('user can create a smart collection and see matching members', async ({ page }) => {
@@ -138,8 +139,8 @@ test.describe('smoke flows', () => {
         await login(page)
 
         await createEntity(page, entityName)
-        page.once('dialog', (dialog) => dialog.accept())
         await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/entities$/)
 
@@ -150,8 +151,8 @@ test.describe('smoke flows', () => {
         })
 
         await expect(trashRow).toBeVisible()
-        page.once('dialog', (dialog) => dialog.accept())
         await trashRow.getByRole('button', { name: 'Restore' }).click()
+        await confirmAppDialog(page, 'Restore')
 
         await expect(trashRow).toHaveCount(0)
 

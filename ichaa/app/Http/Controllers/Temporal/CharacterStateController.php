@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Temporal;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Temporal\Models\CharacterStateTracker;
 use App\Domain\Temporal\Services\TemporalService;
+use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class CharacterStateController extends Controller
 {
@@ -30,14 +30,14 @@ class CharacterStateController extends Controller
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $this->normalizePayload(
             $request->validate(DataverseRules::web('character-states', 'store'))
         );
 
         $entity = Entity::findOrFail($validated['entity_id']);
-        $state  = $this->service->createStateSnapshot($entity, $validated);
+        $state = $this->service->createStateSnapshot($entity, $validated);
 
         return $this->to('character-states.show', [$state], 'State snapshot created.');
     }
@@ -50,15 +50,11 @@ class CharacterStateController extends Controller
     public function edit(CharacterStateTracker $characterState): Response
     {
         return $this->showPage($characterState, [
-            'editDrawer' => [
-                'stabilityLevels' => CharacterStateTracker::STABILITY_LEVELS,
-                'maskIntegrityLevels' => CharacterStateTracker::MASK_INTEGRITY_LEVELS,
-                'significanceLevels' => CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS,
-            ],
+            'editDrawer' => $this->createFormProps(),
         ]);
     }
 
-    public function update(Request $request, CharacterStateTracker $characterState): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, CharacterStateTracker $characterState): RedirectResponse
     {
         $this->service->updateStateSnapshot($characterState, $this->normalizePayload(
             $request->validate(DataverseRules::web('character-states', 'update'))
@@ -67,14 +63,12 @@ class CharacterStateController extends Controller
         return $this->to('character-states.show', [$characterState], 'State snapshot updated.');
     }
 
-    public function destroy(CharacterStateTracker $characterState): \Illuminate\Http\RedirectResponse
+    public function destroy(CharacterStateTracker $characterState): RedirectResponse
     {
         $this->service->deleteStateSnapshot($characterState);
 
         return $this->to('character-states.index', [], 'Snapshot deleted.');
     }
-
-
 
     private function indexPage(Request $request, array $props = []): Response
     {
@@ -88,35 +82,35 @@ class CharacterStateController extends Controller
             $query->breaking();
         }
 
-                return $this->page('Temporal/CharacterStates/Index', array_merge([
-            'states'  => $query->paginate(40)->withQueryString(),
+        return $this->page('Temporal/CharacterStates/Index', array_merge([
+            'states' => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['entity', 'breaking']),
         ], $props));
-    
+
     }
 
     private function createFormProps(): array
     {
         return [
-            'entities'           => Entity::query()
+            'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->whereIn('entity_type', EntityType::POWERED_TYPES)
                 ->orderBy('name')
                 ->get(),
-            'timelineEntities'   => Entity::query()
+            'timelineEntities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->where('entity_type', EntityType::TIMELINE)
                 ->orderBy('name')
                 ->get(),
-            'eraEntities'        => Entity::query()
+            'eraEntities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->whereIn('entity_type', [EntityType::ERA, EntityType::CYCLE])
                 ->orderBy('name')
                 ->get(),
-            'stabilityLevels'    => CharacterStateTracker::STABILITY_LEVELS,
-            'maskIntegrityLevels'=> CharacterStateTracker::MASK_INTEGRITY_LEVELS,
+            'stabilityLevels' => CharacterStateTracker::STABILITY_LEVELS,
+            'maskIntegrityLevels' => CharacterStateTracker::MASK_INTEGRITY_LEVELS,
             'significanceLevels' => CharacterStateTracker::SNAPSHOT_SIGNIFICANCE_LEVELS,
-        
+
         ];
     }
 

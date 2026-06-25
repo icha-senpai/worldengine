@@ -8,17 +8,21 @@
             :edit-href="route('canon-references.edit', reference.id)"
             :edit-preserve-scroll="true"
             :edit-preserve-state="true"
+            :edit-drawer-open="Boolean(editDrawer)"
+            :edit-close-href="route('canon-references.show', reference.id)"
             :destroy-href="route('canon-references.destroy', reference.id)"
             :badge="reference.level || 'reference'"
             :sections="sections"
-        />
-
-        <EditCanonReference
-            v-if="editDrawer"
-            embedded
-            :reference="reference"
-            v-bind="editDrawer"
-        />
+        >
+            <template #edit-drawer>
+                <EditCanonReference
+                    v-if="editDrawer"
+                    embedded
+                    :reference="reference"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 

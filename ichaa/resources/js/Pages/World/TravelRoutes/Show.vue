@@ -7,17 +7,21 @@
             :edit-href="route('travel-routes.edit', routeRecord.id)"
             :edit-preserve-scroll="true"
             :edit-preserve-state="true"
+            :edit-drawer-open="Boolean(editDrawer)"
+            :edit-close-href="route('travel-routes.show', routeRecord.id)"
             :destroy-href="route('travel-routes.destroy', routeRecord.id)"
             :badge="routeRecord.route_type || 'route'"
             :sections="sections"
-        />
-
-        <EditTravelRoute
-            v-if="editDrawer"
-            embedded
-            :route-record="routeRecord"
-            v-bind="editDrawer"
-        />
+        >
+            <template #edit-drawer>
+                <EditTravelRoute
+                    v-if="editDrawer"
+                    embedded
+                    :route-record="routeRecord"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 

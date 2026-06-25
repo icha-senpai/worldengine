@@ -3,30 +3,32 @@
 namespace App\Http\Controllers\Identity;
 
 use Illuminate\Http\Request;
+use Inertia\Response;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\RendersEntityShowPage;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityNote;
 use App\Support\Validation\DataverseRules;
 
 class EntityNoteController extends Controller
 {
-    public function create(Entity $entity): \Illuminate\Http\RedirectResponse
+    use RendersEntityShowPage;
+
+    public function create(Entity $entity): Response
     {
-        return $this->to('entities.show', [
-            'entity' => $entity,
-            'tab' => 'notes',
-            'compose' => 1,
+        return $this->showEntityPage($entity, [
+            'noteCreateDrawer' => true,
         ]);
     }
 
-    public function edit(Entity $entity, EntityNote $note): \Illuminate\Http\RedirectResponse
+    public function edit(Entity $entity, EntityNote $note): Response
     {
         abort_unless((int) $note->entity_id === (int) $entity->id, 404);
 
-        return $this->to('entities.show', [
-            'entity' => $entity,
-            'tab' => 'notes',
-            'edit_note' => $note->id,
+        return $this->showEntityPage($entity, [
+            'noteEditDrawer' => [
+                'note' => $note,
+            ],
         ]);
     }
 
@@ -44,7 +46,10 @@ class EntityNoteController extends Controller
 
         $entity->notes()->create($validated);
 
-        return $this->back('Note added.');
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'notes',
+        ], 'Note added.');
     }
 
     // PUT /entities/{entity}/notes/{note}
@@ -60,7 +65,10 @@ class EntityNoteController extends Controller
 
         $note->update($validated);
 
-        return $this->back('Note updated.');
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'notes',
+        ], 'Note updated.');
     }
 
     // DELETE /entities/{entity}/notes/{note}
@@ -70,6 +78,9 @@ class EntityNoteController extends Controller
 
         $note->delete();
 
-        return $this->back('Note deleted.');
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'notes',
+        ], 'Note deleted.');
     }
 }

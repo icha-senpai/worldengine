@@ -211,71 +211,26 @@
 
         <!-- TAB: ALIASES -->
         <div v-if="activeTab === 'aliases'" class="space-y-4">
-
-            <!-- Add alias form -->
-            <div class="panel">
-                <div class="flex items-center justify-between gap-3 mb-3">
-                    <h3 class="panel-label mb-0!">{{ isEditingAlias ? 'Edit Alias' : 'Add Alias' }}</h3>
+            <div class="panel space-y-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h3 class="panel-label mb-0!">Aliases</h3>
+                        <p class="text-muted-3 text-sm font-ui mt-1">
+                            Alternate names, titles, codenames, and identity layers tied to {{ entity.name }}.
+                        </p>
+                    </div>
                     <AppButton
-                        v-if="isEditingAlias"
-                        type="button"
-                        @click="cancelAliasEdit"
-                        variant="ghost"
-                        size="sm"
+                        :href="route('entities.aliases.create', { entity: entity.id, tab: 'aliases' })"
+                        :preserve-scroll="true"
+                        :preserve-state="true"
+                        opens-drawer
+                        variant="primary"
                     >
-                        Cancel
+                        Add Alias
                     </AppButton>
                 </div>
-                <form @submit.prevent="submitAlias" class="space-y-3">
-                    <div class="form-grid-2-tight">
-                        <div class="field-group">
-                            <label class="field-label">Alias <span class="text-danger">*</span></label>
-                            <TextInput v-model="aliasForm.alias" type="text" placeholder="The alias text" class="w-full" />
-                        </div>
-                        <div class="field-group">
-                            <label class="field-label">Type <span class="text-danger">*</span></label>
-                            <SelectInput v-model="aliasForm.alias_type" class="w-full">
-                                <option value="">Select type...</option>
-                                <option value="nickname">Nickname</option>
-                                <option value="title">Title</option>
-                                <option value="codename">Codename</option>
-                                <option value="epithet">Epithet</option>
-                                <option value="birth_name">Birth Name</option>
-                                <option value="alias">Alias</option>
-                                <option value="honorific">Honorific</option>
-                                <option value="posthumous">Posthumous</option>
-                                <option value="other">Other</option>
-                            </SelectInput>
-                        </div>
-                    </div>
-                    <div class="field-group">
-                        <label class="field-label">Context <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                        <TextInput v-model="aliasForm.context" type="text" placeholder="When/where this alias is used" class="w-full" />
-                    </div>
-                    <div class="form-grid-2-tight">
-                        <div class="field-group">
-                            <label class="field-label">Era Start <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                            <TextInput v-model="aliasForm.era_start" type="text" placeholder="e.g. Year of the Dragon" class="w-full" />
-                        </div>
-                        <div class="field-group">
-                            <label class="field-label">Era End <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                            <TextInput v-model="aliasForm.era_end" type="text" placeholder="Leave blank if still active" class="w-full" />
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <Checkbox v-model:checked="aliasForm.is_active" />
-                            <span class="text-muted-2 text-sm font-ui">Currently active</span>
-                        </label>
-                        <AppButton type="submit" variant="primary" :disabled="aliasForm.processing || !aliasForm.alias || !aliasForm.alias_type">
-                            {{ isEditingAlias ? 'Save Alias' : 'Add Alias' }}
-                        </AppButton>
-                    </div>
-                </form>
-            </div>
 
-            <!-- Alias list -->
-            <div v-if="entity.aliases && entity.aliases.length" class="space-y-2">
+                <div v-if="entity.aliases && entity.aliases.length" class="space-y-3">
                 <div v-for="a in entity.aliases" :key="a.id" class="record-card">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
@@ -292,150 +247,95 @@
                         </div>
                         <div class="flex shrink-0 items-center gap-2">
                             <AppButton
-                                type="button"
-                                @click="beginAliasEdit(a)"
+                                :href="route('entities.aliases.edit', { entity: entity.id, alias: a.id, tab: 'aliases' })"
+                                :preserve-scroll="true"
+                                :preserve-state="true"
+                                opens-drawer
                                 variant="ghost"
                                 size="sm"
                             >
                                 Edit
                             </AppButton>
-                            <AppButton
-                                type="button"
-                                @click="deleteAlias(a.id)"
-                                variant="danger"
-                                size="sm"
-                            >Delete</AppButton>
                         </div>
                     </div>
                 </div>
+                </div>
+                <div v-else class="empty-state">No aliases recorded.</div>
             </div>
-            <div v-else class="empty-state">No aliases recorded.</div>
 
         </div>
 
         <!-- TAB: NOTES -->
         <div v-if="activeTab === 'notes'" class="space-y-4">
-
-            <!-- Add note form -->
-            <div class="panel">
-                <div class="flex items-center justify-between gap-3 mb-3">
-                    <h3 class="panel-label mb-0!">{{ isEditingNote ? 'Edit Note' : 'Add Note' }}</h3>
+            <div class="panel space-y-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h3 class="panel-label mb-0!">Notes</h3>
+                        <p class="text-muted-3 text-sm font-ui mt-1">
+                            Private author notes, reminders, and structural guidance for {{ entity.name }}.
+                        </p>
+                    </div>
                     <AppButton
-                        v-if="isEditingNote"
-                        type="button"
-                        @click="cancelNoteEdit"
-                        variant="ghost"
-                        size="sm"
+                        :href="route('entities.notes.create', { entity: entity.id, tab: 'notes' })"
+                        :preserve-scroll="true"
+                        :preserve-state="true"
+                        opens-drawer
+                        variant="primary"
                     >
-                        Cancel
+                        Add Note
                     </AppButton>
                 </div>
-                <form @submit.prevent="submitNote" class="space-y-3">
-                    <div class="field-group">
-                        <label class="field-label">Label <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                        <TextInput v-model="noteForm.note_label" type="text" placeholder="e.g. Backstory, Motivation, Arc notes..." class="w-full" />
-                    </div>
-                    <div class="field-group">
-                        <label class="field-label">Content <span class="text-danger">*</span></label>
-                        <TextareaInput v-model="noteForm.content" rows="4" placeholder="Note content..." class="input w-full resize-none" />
-                    </div>
-                    <div class="field-group">
-                        <label class="field-label">Sort Order <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                        <TextInput v-model.number="noteForm.sort_order" type="number" placeholder="Display order" class="w-full" />
-                    </div>
-                    <AppButton type="submit" variant="primary" :disabled="noteForm.processing || !noteForm.content">
-                        {{ isEditingNote ? 'Save Note' : 'Add Note' }}
-                    </AppButton>
-                </form>
-            </div>
 
-            <!-- Note list -->
-            <div v-if="entity.notes && entity.notes.length" class="space-y-3">
+                <div v-if="entity.notes && entity.notes.length" class="space-y-3">
                 <div v-for="n in entity.notes" :key="n.id" class="record-card">
                     <div class="flex items-start justify-between gap-3 mb-2">
                         <span v-if="n.note_label" class="note-label">{{ n.note_label }}</span>
                         <span v-else class="note-label note-label--empty">unlabeled</span>
                         <div class="flex shrink-0 items-center gap-2">
                             <span class="text-muted-3 text-xs font-ui">{{ formatDate(n.created_at) }}</span>
-                            <AppButton type="button" variant="ghost" size="sm" @click="beginNoteEdit(n)">Edit</AppButton>
-                            <AppButton type="button" variant="danger" size="sm" @click="deleteNote(n.id)">Delete</AppButton>
+                            <AppButton
+                                :href="route('entities.notes.edit', { entity: entity.id, note: n.id, tab: 'notes' })"
+                                :preserve-scroll="true"
+                                :preserve-state="true"
+                                opens-drawer
+                                variant="ghost"
+                                size="sm"
+                            >
+                                Edit
+                            </AppButton>
                         </div>
                     </div>
                     <p class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ n.content }}</p>
                     <NotionNotePanel :note="n.notion_note" class="mt-3" />
                 </div>
+                </div>
+                <div v-else class="empty-state">No notes recorded.</div>
             </div>
-            <div v-else class="empty-state">No notes recorded.</div>
 
         </div>
 
         <!-- TAB: QUESTIONS -->
         <div v-if="activeTab === 'questions'" class="space-y-4">
-
-            <!-- Add question form -->
-            <div class="panel">
-                <div class="flex items-center justify-between gap-3 mb-3">
-                    <h3 class="panel-label mb-0!">{{ isEditingQuestion ? 'Edit Question' : 'Add Question' }}</h3>
+            <div class="panel space-y-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h3 class="panel-label mb-0!">Questions</h3>
+                        <p class="text-muted-3 text-sm font-ui mt-1">
+                            Open issues, unresolved lore, and blockers still attached to {{ entity.name }}.
+                        </p>
+                    </div>
                     <AppButton
-                        v-if="isEditingQuestion"
-                        type="button"
-                        @click="cancelQuestionEdit"
-                        variant="ghost"
-                        size="sm"
+                        :href="route('entities.questions.create', { entity: entity.id, tab: 'questions' })"
+                        :preserve-scroll="true"
+                        :preserve-state="true"
+                        opens-drawer
+                        variant="primary"
                     >
-                        Cancel
+                        Add Question
                     </AppButton>
                 </div>
-                <form @submit.prevent="submitQuestion" class="space-y-3">
-                    <div class="field-group">
-                        <label class="field-label">Question <span class="text-danger">*</span></label>
-                        <TextInput v-model="questionForm.question" type="text" placeholder="What needs to be resolved?" class="w-full" />
-                    </div>
-                    <div class="field-group">
-                        <label class="field-label">Context <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                        <TextareaInput v-model="questionForm.context" rows="2" placeholder="Why does this matter? What does it affect?" class="input w-full resize-none" />
-                    </div>
-                    <div class="form-grid-2-tight">
-                        <div class="field-group">
-                            <label class="field-label">Priority</label>
-                            <div class="flex gap-1.5 flex-wrap">
-                                <AppButton
-                                    v-for="p in priorityOptions"
-                                    :key="p.value"
-                                    type="button"
-                                    @click="questionForm.priority = p.value"
-                                    variant="select"
-                                    :selected="questionForm.priority === p.value"
-                                    :selected-tone="p.value === 'blocking' ? 'danger' : 'accent'"
-                                >{{ p.label }}</AppButton>
-                            </div>
-                        </div>
-                        <div class="field-group">
-                            <label class="field-label">Status</label>
-                            <div class="flex gap-1.5 flex-wrap">
-                                <AppButton
-                                    v-for="s in questionStatusOptions"
-                                    :key="s.value"
-                                    type="button"
-                                    @click="questionForm.status = s.value"
-                                    variant="select"
-                                    :selected="questionForm.status === s.value"
-                                >{{ s.label }}</AppButton>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-if="isEditingQuestion || questionForm.status === 'resolved'" class="field-group">
-                        <label class="field-label">Resolution <span class="text-muted-3 normal-case font-normal">(optional)</span></label>
-                        <TextareaInput v-model="questionForm.resolution" rows="3" placeholder="How was this resolved?" class="input w-full resize-none" />
-                    </div>
-                    <AppButton type="submit" variant="primary" :disabled="questionForm.processing || !questionForm.question">
-                        {{ isEditingQuestion ? 'Save Question' : 'Add Question' }}
-                    </AppButton>
-                </form>
-            </div>
 
-            <!-- Question list — blocking first, then by priority -->
-            <div v-if="entity.questions && entity.questions.length" class="space-y-2">
+                <div v-if="entity.questions && entity.questions.length" class="space-y-3">
                 <div
                     v-for="q in entity.questions"
                     :key="q.id"
@@ -456,7 +356,16 @@
                             <NotionNotePanel :note="q.notion_note" class="mt-3" />
                         </div>
                         <div class="flex shrink-0 flex-col items-end gap-1.5">
-                            <AppButton type="button" variant="ghost" size="sm" @click="beginQuestionEdit(q)">Edit</AppButton>
+                            <AppButton
+                                :href="route('entities.questions.edit', { entity: entity.id, question: q.id, tab: 'questions' })"
+                                :preserve-scroll="true"
+                                :preserve-state="true"
+                                opens-drawer
+                                variant="ghost"
+                                size="sm"
+                            >
+                                Edit
+                            </AppButton>
                             <AppButton
                                 v-if="q.status !== 'resolved'"
                                 type="button"
@@ -464,12 +373,12 @@
                                 variant="success"
                                 size="sm"
                             >Resolve</AppButton>
-                            <AppButton type="button" variant="danger" size="sm" @click="deleteQuestion(q.id)">Delete</AppButton>
                         </div>
                     </div>
                 </div>
+                </div>
+                <div v-else class="empty-state">No questions recorded.</div>
             </div>
-            <div v-else class="empty-state">No questions recorded.</div>
 
         </div>
 
@@ -712,8 +621,7 @@
             <EditFactionMembership
                 v-if="factionMembershipEditDrawer"
                 embedded
-                :membership="factionMembershipEditDrawer.membership"
-                :entities="factionMembershipEditDrawer.entities"
+                v-bind="factionMembershipEditDrawer"
             />
         </DrawerRouteShell>
 
@@ -733,23 +641,124 @@
             />
         </DrawerRouteShell>
 
+        <DrawerRouteShell
+            v-if="showAliasEditDrawer"
+            :open="showAliasEditDrawer"
+            :ready="Boolean(aliasEditDrawer)"
+            title="Edit Alias"
+            :close-href="aliasesCloseHref"
+            back-label="Entity"
+            :back-href="route('entities.show', entity.id)"
+        >
+            <EditAlias
+                v-if="aliasEditDrawer"
+                embedded
+                :entity="entity"
+                :alias="aliasEditDrawer.alias"
+            />
+        </DrawerRouteShell>
+
+        <DrawerRouteShell
+            v-if="showAliasCreateDrawer"
+            :open="showAliasCreateDrawer"
+            :ready="Boolean(aliasCreateDrawer)"
+            title="New Alias"
+            :close-href="aliasesCloseHref"
+            back-label="Entity"
+            :back-href="route('entities.show', entity.id)"
+        >
+            <CreateAlias
+                v-if="aliasCreateDrawer"
+                embedded
+                :entity="entity"
+            />
+        </DrawerRouteShell>
+
+        <DrawerRouteShell
+            v-if="showNoteEditDrawer"
+            :open="showNoteEditDrawer"
+            :ready="Boolean(noteEditDrawer)"
+            title="Edit Note"
+            :close-href="notesCloseHref"
+            back-label="Entity"
+            :back-href="route('entities.show', entity.id)"
+        >
+            <EditNote
+                v-if="noteEditDrawer"
+                embedded
+                :entity="entity"
+                :note="noteEditDrawer.note"
+            />
+        </DrawerRouteShell>
+
+        <DrawerRouteShell
+            v-if="showNoteCreateDrawer"
+            :open="showNoteCreateDrawer"
+            :ready="Boolean(noteCreateDrawer)"
+            title="New Note"
+            :close-href="notesCloseHref"
+            back-label="Entity"
+            :back-href="route('entities.show', entity.id)"
+        >
+            <CreateNote
+                v-if="noteCreateDrawer"
+                embedded
+                :entity="entity"
+            />
+        </DrawerRouteShell>
+
+        <DrawerRouteShell
+            v-if="showQuestionEditDrawer"
+            :open="showQuestionEditDrawer"
+            :ready="Boolean(questionEditDrawer)"
+            title="Edit Question"
+            :close-href="questionsCloseHref"
+            back-label="Entity"
+            :back-href="route('entities.show', entity.id)"
+        >
+            <EditQuestion
+                v-if="questionEditDrawer"
+                embedded
+                :entity="entity"
+                :question="questionEditDrawer.question"
+            />
+        </DrawerRouteShell>
+
+        <DrawerRouteShell
+            v-if="showQuestionCreateDrawer"
+            :open="showQuestionCreateDrawer"
+            :ready="Boolean(questionCreateDrawer)"
+            title="New Question"
+            :close-href="questionsCloseHref"
+            back-label="Entity"
+            :back-href="route('entities.show', entity.id)"
+        >
+            <CreateQuestion
+                v-if="questionCreateDrawer"
+                embedded
+                :entity="entity"
+            />
+        </DrawerRouteShell>
+
     </AuthenticatedLayout>
 </template>
 
 <script setup>
 import { ref, computed, watch, defineAsyncComponent } from 'vue'
-import { Link, useForm, router, usePage } from '@inertiajs/vue3'
+import { Link, router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import Checkbox from '@/Components/Checkbox.vue'
 import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
+import CreateAlias from '@/Pages/Entities/Aliases/Create.vue'
+import EditAlias from '@/Pages/Entities/Aliases/Edit.vue'
 import CreateFactionMembership from '@/Pages/FactionMemberships/Create.vue'
+import CreateNote from '@/Pages/Entities/Notes/Create.vue'
+import CreateQuestion from '@/Pages/Entities/Questions/Create.vue'
 import EditEntity from '@/Pages/Entities/Edit.vue'
 import EditFactionMembership from '@/Pages/FactionMemberships/Edit.vue'
-import SelectInput from '@/Components/SelectInput.vue'
-import TextareaInput from '@/Components/TextareaInput.vue'
-import TextInput from '@/Components/TextInput.vue'
+import EditNote from '@/Pages/Entities/Notes/Edit.vue'
+import EditQuestion from '@/Pages/Entities/Questions/Edit.vue'
 import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { formatLabel, isRichDocument } from '@/Components/scaffold/formatters'
 import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
@@ -759,11 +768,17 @@ import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 const props = defineProps({
     entity: { type: Object, required: true },
     editDrawer: { type: Object, default: null },
+    aliasCreateDrawer: { type: [Boolean, Object], default: null },
+    aliasEditDrawer: { type: Object, default: null },
     factionMembershipEditDrawer: { type: Object, default: null },
     factionMembershipCreateDrawer: { type: Object, default: null },
     factionRoster: { type: Array, default: () => [] },
     memberMemberships: { type: Array, default: () => [] },
     isFactionEntity: { type: Boolean, default: false },
+    noteCreateDrawer: { type: [Boolean, Object], default: null },
+    noteEditDrawer: { type: Object, default: null },
+    questionCreateDrawer: { type: [Boolean, Object], default: null },
+    questionEditDrawer: { type: Object, default: null },
 })
 
 const page = usePage()
@@ -772,8 +787,30 @@ const RichDocumentValue = defineAsyncComponent(() => import('@/Components/scaffo
 const showEditDrawer = computed(() =>
     Boolean(props.editDrawer) || matchesPendingDrawerHref(route('entities.edit', props.entity.id))
 )
+const aliasesCloseHref = computed(() =>
+    route('entities.show', { entity: props.entity.id, tab: 'aliases' })
+)
 const membershipsCloseHref = computed(() =>
     route('entities.show', { entity: props.entity.id, tab: 'memberships' })
+)
+const notesCloseHref = computed(() =>
+    route('entities.show', { entity: props.entity.id, tab: 'notes' })
+)
+const questionsCloseHref = computed(() =>
+    route('entities.show', { entity: props.entity.id, tab: 'questions' })
+)
+const aliasEditRoutes = computed(() =>
+    (props.entity.aliases ?? []).map((alias) => route('entities.aliases.edit', {
+        entity: props.entity.id,
+        alias: alias.id,
+        tab: 'aliases',
+    }))
+)
+const aliasCreateRoute = computed(() =>
+    route('entities.aliases.create', {
+        entity: props.entity.id,
+        tab: 'aliases',
+    })
 )
 const factionMembershipEditRoutes = computed(() => [
     ...props.factionRoster.map((membership) => route('faction-memberships.edit', {
@@ -811,6 +848,56 @@ const showFactionMembershipCreateDrawer = computed(() =>
     Boolean(props.factionMembershipCreateDrawer)
     || factionMembershipCreateRoutes.value.some((href) => matchesPendingDrawerHref(href))
 )
+const noteEditRoutes = computed(() =>
+    (props.entity.notes ?? []).map((note) => route('entities.notes.edit', {
+        entity: props.entity.id,
+        note: note.id,
+        tab: 'notes',
+    }))
+)
+const noteCreateRoute = computed(() =>
+    route('entities.notes.create', {
+        entity: props.entity.id,
+        tab: 'notes',
+    })
+)
+const questionEditRoutes = computed(() =>
+    (props.entity.questions ?? []).map((question) => route('entities.questions.edit', {
+        entity: props.entity.id,
+        question: question.id,
+        tab: 'questions',
+    }))
+)
+const questionCreateRoute = computed(() =>
+    route('entities.questions.create', {
+        entity: props.entity.id,
+        tab: 'questions',
+    })
+)
+const showAliasEditDrawer = computed(() =>
+    Boolean(props.aliasEditDrawer)
+    || aliasEditRoutes.value.some((href) => matchesPendingDrawerHref(href))
+)
+const showAliasCreateDrawer = computed(() =>
+    Boolean(props.aliasCreateDrawer)
+    || matchesPendingDrawerHref(aliasCreateRoute.value)
+)
+const showNoteEditDrawer = computed(() =>
+    Boolean(props.noteEditDrawer)
+    || noteEditRoutes.value.some((href) => matchesPendingDrawerHref(href))
+)
+const showNoteCreateDrawer = computed(() =>
+    Boolean(props.noteCreateDrawer)
+    || matchesPendingDrawerHref(noteCreateRoute.value)
+)
+const showQuestionEditDrawer = computed(() =>
+    Boolean(props.questionEditDrawer)
+    || questionEditRoutes.value.some((href) => matchesPendingDrawerHref(href))
+)
+const showQuestionCreateDrawer = computed(() =>
+    Boolean(props.questionCreateDrawer)
+    || matchesPendingDrawerHref(questionCreateRoute.value)
+)
 
 // --- Tabs ---
 
@@ -830,10 +917,6 @@ const tabs = computed(() => {
 
 const activeTab = ref('identity')
 
-const editingAliasId = ref(null)
-const editingNoteId = ref(null)
-const editingQuestionId = ref(null)
-
 const validTabs = computed(() => tabs.value.map((tab) => tab.id))
 
 const urlParams = computed(() => {
@@ -842,155 +925,10 @@ const urlParams = computed(() => {
     return new URLSearchParams(queryString)
 })
 
-// --- Alias form ---
-
-const aliasForm = useForm({
-    alias:      '',
-    alias_type: '',
-    context:    '',
-    era_start:  '',
-    era_end:    '',
-    is_active:  true,
-})
-
-const isEditingAlias = computed(() => editingAliasId.value !== null)
-
-const resetAliasForm = () => {
-    aliasForm.reset()
-    aliasForm.is_active = true
-}
-
-const beginAliasEdit = (alias) => {
-    editingAliasId.value = alias.id
-    aliasForm.alias = alias.alias ?? ''
-    aliasForm.alias_type = alias.alias_type ?? ''
-    aliasForm.context = alias.context ?? ''
-    aliasForm.era_start = alias.era_start ?? ''
-    aliasForm.era_end = alias.era_end ?? ''
-    aliasForm.is_active = alias.is_active ?? false
-}
-
-const cancelAliasEdit = () => {
-    editingAliasId.value = null
-    aliasForm.clearErrors()
-    resetAliasForm()
-}
-
-const submitAlias = () => {
-    if (isEditingAlias.value) {
-        aliasForm.put(route('entities.aliases.update', [props.entity.id, editingAliasId.value]), {
-            onSuccess: () => cancelAliasEdit(),
-        })
-        return
-    }
-
-    aliasForm.post(route('entities.aliases.store', props.entity.id), {
-        onSuccess: () => resetAliasForm(),
-    })
-}
-
-const deleteAlias = (aliasId) => {
-    router.delete(route('entities.aliases.destroy', [props.entity.id, aliasId]))
-}
-
-// --- Note form ---
-
-const noteForm = useForm({
-    note_label: '',
-    content:    '',
-    sort_order: '',
-})
-
-const isEditingNote = computed(() => editingNoteId.value !== null)
-
-const resetNoteForm = () => {
-    noteForm.reset()
-}
-
-const beginNoteEdit = (note) => {
-    editingNoteId.value = note.id
-    noteForm.note_label = note.note_label ?? ''
-    noteForm.content = note.content ?? ''
-    noteForm.sort_order = note.sort_order ?? ''
-}
-
-const cancelNoteEdit = () => {
-    editingNoteId.value = null
-    noteForm.clearErrors()
-    resetNoteForm()
-}
-
-const submitNote = () => {
-    if (isEditingNote.value) {
-        noteForm.put(route('entities.notes.update', [props.entity.id, editingNoteId.value]), {
-            onSuccess: () => cancelNoteEdit(),
-        })
-        return
-    }
-
-    noteForm.post(route('entities.notes.store', props.entity.id), {
-        onSuccess: () => resetNoteForm(),
-    })
-}
-
-const deleteNote = (noteId) => {
-    router.delete(route('entities.notes.destroy', [props.entity.id, noteId]))
-}
-
-// --- Question form ---
-
-const questionForm = useForm({
-    question:   '',
-    context:    '',
-    priority:   'medium',
-    status:     'open',
-    resolution: '',
-})
-
-const isEditingQuestion = computed(() => editingQuestionId.value !== null)
-
-const resetQuestionForm = () => {
-    questionForm.reset()
-    questionForm.priority = 'medium'
-    questionForm.status = 'open'
-}
-
-const beginQuestionEdit = (question) => {
-    editingQuestionId.value = question.id
-    questionForm.question = question.question ?? ''
-    questionForm.context = question.context ?? ''
-    questionForm.priority = question.priority ?? 'medium'
-    questionForm.status = question.status ?? 'open'
-    questionForm.resolution = question.resolution ?? ''
-}
-
-const cancelQuestionEdit = () => {
-    editingQuestionId.value = null
-    questionForm.clearErrors()
-    resetQuestionForm()
-}
-
-const submitQuestion = () => {
-    if (isEditingQuestion.value) {
-        questionForm.put(route('entities.questions.update', [props.entity.id, editingQuestionId.value]), {
-            onSuccess: () => cancelQuestionEdit(),
-        })
-        return
-    }
-
-    questionForm.post(route('entities.questions.store', props.entity.id), {
-        onSuccess: () => resetQuestionForm(),
-    })
-}
-
 const resolveQuestion = (questionId) => {
-    router.put(route('entities.questions.update', [props.entity.id, questionId]), {
+    router.put(route('entities.questions.update', { entity: props.entity.id, question: questionId, tab: 'questions' }), {
         status: 'resolved',
     })
-}
-
-const deleteQuestion = (questionId) => {
-    router.delete(route('entities.questions.destroy', [props.entity.id, questionId]))
 }
 
 const destroyEntity = async () => {
@@ -1017,60 +955,11 @@ const destroyEntity = async () => {
     })
 }
 
-// --- Static options ---
-
-const priorityOptions = [
-    { value: 'blocking', label: 'Blocking' },
-    { value: 'high',     label: 'High'     },
-    { value: 'medium',   label: 'Medium'   },
-    { value: 'low',      label: 'Low'      },
-]
-
-const questionStatusOptions = [
-    { value: 'open',     label: 'Open'     },
-    { value: 'deferred', label: 'Deferred' },
-    { value: 'resolved', label: 'Resolved' },
-]
-
 const applyRouteState = () => {
     const requestedTab = urlParams.value.get('tab')
     const nextTab = validTabs.value.includes(requestedTab) ? requestedTab : 'identity'
 
     activeTab.value = nextTab
-
-    const editAliasId = Number(urlParams.value.get('edit_alias'))
-    const editNoteId = Number(urlParams.value.get('edit_note'))
-    const editQuestionId = Number(urlParams.value.get('edit_question'))
-
-    if (Number.isInteger(editAliasId) && editAliasId > 0) {
-        const alias = props.entity.aliases?.find((record) => record.id === editAliasId)
-
-        if (alias) {
-            beginAliasEdit(alias)
-        }
-    } else if (editingAliasId.value !== null) {
-        cancelAliasEdit()
-    }
-
-    if (Number.isInteger(editNoteId) && editNoteId > 0) {
-        const note = props.entity.notes?.find((record) => record.id === editNoteId)
-
-        if (note) {
-            beginNoteEdit(note)
-        }
-    } else if (editingNoteId.value !== null) {
-        cancelNoteEdit()
-    }
-
-    if (Number.isInteger(editQuestionId) && editQuestionId > 0) {
-        const question = props.entity.questions?.find((record) => record.id === editQuestionId)
-
-        if (question) {
-            beginQuestionEdit(question)
-        }
-    } else if (editingQuestionId.value !== null) {
-        cancelQuestionEdit()
-    }
 }
 
 watch(

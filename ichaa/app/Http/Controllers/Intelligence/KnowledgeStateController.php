@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Intelligence;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
-use App\Domain\Identity\Models\Entity;
 use App\Domain\Connections\Models\GroupRelationship;
 use App\Domain\Connections\Models\Relationship;
+use App\Domain\Identity\Models\Entity;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\Secret;
-use App\Domain\Temporal\Models\Timeline;
 use App\Domain\Intelligence\Services\IntelligenceService;
+use App\Domain\Temporal\Models\Timeline;
+use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class KnowledgeStateController extends Controller
 {
@@ -33,12 +33,12 @@ class KnowledgeStateController extends Controller
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('knowledge-states', 'store'));
 
         $knower = Entity::findOrFail($validated['knower_entity_id']);
-        $state  = $this->service->recordKnowledge($knower, $validated);
+        $state = $this->service->recordKnowledge($knower, $validated);
 
         return $this->to('knowledge-states.show', [$state], 'Knowledge state recorded.');
     }
@@ -51,28 +51,25 @@ class KnowledgeStateController extends Controller
     public function edit(KnowledgeState $knowledgeState): Response
     {
         return $this->showPage($knowledgeState, [
-            'editDrawer' => [
-                'beliefStates' => KnowledgeState::BELIEF_STATES,
-                'accuracyLevels' => KnowledgeState::ACCURACY_LEVELS,
-            ],
+            'editDrawer' => $this->createFormProps(),
         ]);
     }
 
-    public function update(Request $request, KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, KnowledgeState $knowledgeState): RedirectResponse
     {
         $knowledgeState->update($request->validate(DataverseRules::web('knowledge-states', 'update')));
 
         return $this->to('knowledge-states.show', [$knowledgeState], 'Knowledge state updated.');
     }
 
-    public function destroy(KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
+    public function destroy(KnowledgeState $knowledgeState): RedirectResponse
     {
         $knowledgeState->delete();
 
         return $this->to('knowledge-states.index', [], 'Knowledge state deleted.');
     }
 
-    public function markActedOn(Request $request, KnowledgeState $knowledgeState): \Illuminate\Http\RedirectResponse
+    public function markActedOn(Request $request, KnowledgeState $knowledgeState): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::webAction('knowledge-state-act-on'));
 
@@ -80,8 +77,6 @@ class KnowledgeStateController extends Controller
 
         return $this->back('Marked as acted on.');
     }
-
-
 
     private function indexPage(Request $request, array $props = []): Response
     {
@@ -105,25 +100,25 @@ class KnowledgeStateController extends Controller
             $query->compartmentalizing();
         }
 
-                return $this->page('Intelligence/KnowledgeStates/Index', array_merge([
-            'states'  => $query->paginate(40)->withQueryString(),
+        return $this->page('Intelligence/KnowledgeStates/Index', array_merge([
+            'states' => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['knower', 'about', 'latent', 'compartmentalizing']),
         ], $props));
-    
+
     }
 
     private function createFormProps(): array
     {
         return [
-            'entities'           => Entity::query()
+            'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->orderBy('name')
                 ->get(),
-            'secrets'            => Secret::query()
+            'secrets' => Secret::query()
                 ->select('id', 'title', 'secret_type')
                 ->orderBy('title')
                 ->get(),
-            'relationships'      => Relationship::query()
+            'relationships' => Relationship::query()
                 ->with(['fromEntity:id,name', 'toEntity:id,name'])
                 ->orderByDesc('id')
                 ->get(['id', 'from_entity_id', 'to_entity_id', 'relationship_type']),
@@ -131,15 +126,15 @@ class KnowledgeStateController extends Controller
                 ->select('id', 'name', 'relationship_type')
                 ->orderBy('name')
                 ->get(),
-            'eventEntries'       => Timeline::query()
+            'eventEntries' => Timeline::query()
                 ->with(['eventEntity:id,name,entity_type', 'timeline:id,name'])
                 ->orderByDesc('id')
                 ->get(['id', 'timeline_id', 'event_entity_id', 'entry_label', 'au_date']),
-            'knowledgeTypes'     => KnowledgeState::KNOWLEDGE_TYPES,
-            'accuracyLevels'     => KnowledgeState::ACCURACY_LEVELS,
-            'beliefStates'       => KnowledgeState::BELIEF_STATES,
+            'knowledgeTypes' => KnowledgeState::KNOWLEDGE_TYPES,
+            'accuracyLevels' => KnowledgeState::ACCURACY_LEVELS,
+            'beliefStates' => KnowledgeState::BELIEF_STATES,
             'acquisitionMethods' => KnowledgeState::ACQUISITION_METHODS,
-        
+
         ];
     }
 

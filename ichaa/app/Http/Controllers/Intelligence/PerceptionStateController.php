@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers\Intelligence;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
 use App\Domain\Connections\Models\GroupRelationship;
 use App\Domain\Connections\Models\Relationship;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\EntityType;
-use App\Domain\Intelligence\Models\Secret;
-use App\Domain\Lore\Models\Document;
 use App\Domain\Intelligence\Models\PerceptionState;
-use App\Domain\Temporal\Models\Timeline;
 use App\Domain\Intelligence\Services\IntelligenceService;
+use App\Domain\Lore\Models\Document;
+use App\Domain\Temporal\Models\Timeline;
+use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class PerceptionStateController extends Controller
 {
@@ -35,7 +34,7 @@ class PerceptionStateController extends Controller
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('perception-states', 'store'));
 
@@ -52,36 +51,32 @@ class PerceptionStateController extends Controller
     public function edit(PerceptionState $perceptionState): Response
     {
         return $this->showPage($perceptionState, [
-            'editDrawer' => [
-                'maintenanceMethods' => PerceptionState::MAINTENANCE_METHODS,
-                'maintenanceEfforts' => PerceptionState::MAINTENANCE_EFFORTS,
-                'revelationRisks' => PerceptionState::REVELATION_RISKS,
-            ],
+            'editDrawer' => $this->createFormProps(),
         ]);
     }
 
-    public function update(Request $request, PerceptionState $perceptionState): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, PerceptionState $perceptionState): RedirectResponse
     {
         $perceptionState->update($request->validate(DataverseRules::web('perception-states', 'update')));
 
         return $this->to('perception-states.show', [$perceptionState], 'Perception state updated.');
     }
 
-    public function destroy(PerceptionState $perceptionState): \Illuminate\Http\RedirectResponse
+    public function destroy(PerceptionState $perceptionState): RedirectResponse
     {
         $perceptionState->delete();
 
         return $this->to('perception-states.index', [], 'Perception state deleted.');
     }
 
-    public function addImmune(PerceptionState $perceptionState, Entity $entity): \Illuminate\Http\RedirectResponse
+    public function addImmune(PerceptionState $perceptionState, Entity $entity): RedirectResponse
     {
         $this->service->addImmuneEntity($perceptionState, $entity->id);
 
         return $this->back("{$entity->name} added to immune list.");
     }
 
-    public function collapse(Request $request, PerceptionState $perceptionState): \Illuminate\Http\RedirectResponse
+    public function collapse(Request $request, PerceptionState $perceptionState): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::webAction('perception-collapse'));
 
@@ -108,13 +103,13 @@ class PerceptionStateController extends Controller
     {
         $entity = $id ? Entity::query()->select('id', 'name', 'entity_type')->find($id) : null;
 
-        if (!$entity) {
+        if (! $entity) {
             return ['label' => $id ? "Unknown entity #{$id}" : 'Unknown entity'];
         }
 
         return [
-            'label' => "{$entity->name}" . ($entity->entity_type ? " ({$entity->entity_type})" : ''),
-            'href'  => route('entities.show', [$entity]),
+            'label' => "{$entity->name}".($entity->entity_type ? " ({$entity->entity_type})" : ''),
+            'href' => route('entities.show', [$entity]),
         ];
     }
 
@@ -124,13 +119,13 @@ class PerceptionStateController extends Controller
             ? Relationship::query()->with(['fromEntity:id,name', 'toEntity:id,name'])->find($id)
             : null;
 
-        if (!$relationship) {
+        if (! $relationship) {
             return ['label' => $id ? "Unknown relationship #{$id}" : 'Unknown relationship'];
         }
 
         return [
             'label' => "{$relationship->fromEntity?->name} -> {$relationship->toEntity?->name}",
-            'href'  => route('relationships.show', [$relationship]),
+            'href' => route('relationships.show', [$relationship]),
         ];
     }
 
@@ -138,13 +133,13 @@ class PerceptionStateController extends Controller
     {
         $group = $id ? GroupRelationship::query()->select('id', 'name', 'relationship_type')->find($id) : null;
 
-        if (!$group) {
+        if (! $group) {
             return ['label' => $id ? "Unknown group relationship #{$id}" : 'Unknown group relationship'];
         }
 
         return [
-            'label' => "{$group->name}" . ($group->relationship_type ? " ({$group->relationship_type})" : ''),
-            'href'  => route('group-relationships.show', [$group]),
+            'label' => "{$group->name}".($group->relationship_type ? " ({$group->relationship_type})" : ''),
+            'href' => route('group-relationships.show', [$group]),
         ];
     }
 
@@ -156,7 +151,7 @@ class PerceptionStateController extends Controller
                 ->find($id)
             : null;
 
-        if (!$entry) {
+        if (! $entry) {
             return ['label' => $id ? "Unknown event entry #{$id}" : 'Unknown event entry'];
         }
 
@@ -172,17 +167,15 @@ class PerceptionStateController extends Controller
     {
         $document = $id ? Document::query()->select('id', 'title', 'document_type')->find($id) : null;
 
-        if (!$document) {
+        if (! $document) {
             return ['label' => $id ? "Unknown document #{$id}" : 'Unknown document'];
         }
 
         return [
-            'label' => "{$document->title}" . ($document->document_type ? " ({$document->document_type})" : ''),
-            'href'  => route('documents.show', [$document]),
+            'label' => "{$document->title}".($document->document_type ? " ({$document->document_type})" : ''),
+            'href' => route('documents.show', [$document]),
         ];
     }
-
-
 
     private function indexPage(Request $request, array $props = []): Response
     {
@@ -196,31 +189,31 @@ class PerceptionStateController extends Controller
             $query->criticalMaintenance();
         }
 
-                return $this->page('Intelligence/PerceptionStates/Index', array_merge([
-            'states'  => $query->paginate(40)->withQueryString(),
+        return $this->page('Intelligence/PerceptionStates/Index', array_merge([
+            'states' => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['high_risk', 'critical_maintenance']),
         ], $props));
-    
+
     }
 
     private function createFormProps(): array
     {
         return [
-            'entities'           => Entity::query()
+            'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->orderBy('name')
                 ->get(),
-            'factionEntities'    => Entity::query()
+            'factionEntities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->whereIn('entity_type', EntityType::FACTION_TYPES)
                 ->orderBy('name')
                 ->get(),
-            'locationEntities'   => Entity::query()
+            'locationEntities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
                 ->whereIn('entity_type', EntityType::SPATIAL_TYPES)
                 ->orderBy('name')
                 ->get(),
-            'relationships'      => Relationship::query()
+            'relationships' => Relationship::query()
                 ->with(['fromEntity:id,name', 'toEntity:id,name'])
                 ->orderByDesc('id')
                 ->get(['id', 'from_entity_id', 'to_entity_id', 'relationship_type']),
@@ -228,20 +221,20 @@ class PerceptionStateController extends Controller
                 ->select('id', 'name', 'relationship_type')
                 ->orderBy('name')
                 ->get(),
-            'eventEntries'       => Timeline::query()
+            'eventEntries' => Timeline::query()
                 ->with(['eventEntity:id,name,entity_type', 'timeline:id,name'])
                 ->orderByDesc('id')
                 ->get(['id', 'timeline_id', 'event_entity_id', 'entry_label', 'au_date']),
-            'documents'          => Document::query()
+            'documents' => Document::query()
                 ->select('id', 'title', 'document_type')
                 ->orderBy('title')
                 ->get(),
-            'subjectTypes'       => PerceptionState::SUBJECT_TYPES,
-            'divergenceLevels'   => PerceptionState::DIVERGENCE_LEVELS,
+            'subjectTypes' => PerceptionState::SUBJECT_TYPES,
+            'divergenceLevels' => PerceptionState::DIVERGENCE_LEVELS,
             'maintenanceMethods' => PerceptionState::MAINTENANCE_METHODS,
             'maintenanceEfforts' => PerceptionState::MAINTENANCE_EFFORTS,
-            'revelationRisks'    => PerceptionState::REVELATION_RISKS,
-        
+            'revelationRisks' => PerceptionState::REVELATION_RISKS,
+
         ];
     }
 
@@ -262,13 +255,13 @@ class PerceptionStateController extends Controller
                 ->map(function ($id) use ($maintainers) {
                     $entity = $maintainers->get($id);
 
-                    if (!$entity) {
+                    if (! $entity) {
                         return ['label' => "Unknown entity #{$id}"];
                     }
 
                     return [
-                        'label' => "{$entity->name}" . ($entity->entity_type ? " ({$entity->entity_type})" : ''),
-                        'href'  => route('entities.show', [$entity]),
+                        'label' => "{$entity->name}".($entity->entity_type ? " ({$entity->entity_type})" : ''),
+                        'href' => route('entities.show', [$entity]),
                     ];
                 })
                 ->values()
@@ -282,8 +275,8 @@ class PerceptionStateController extends Controller
                     }
 
                     return [
-                        'label' => "{$entity->name}" . ($entity->entity_type ? " ({$entity->entity_type})" : ''),
-                        'href'  => route('entities.show', [$entity]),
+                        'label' => "{$entity->name}".($entity->entity_type ? " ({$entity->entity_type})" : ''),
+                        'href' => route('entities.show', [$entity]),
                     ];
                 })
                 ->values()

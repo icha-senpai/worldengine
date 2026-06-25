@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { login } from './support/auth'
+import { confirmAppDialog } from './support/dialogs'
 
 test.describe('route surface actions', () => {
     test('faction membership flow stays inside the memberships tab', async ({ page }) => {
@@ -56,8 +57,8 @@ test.describe('route surface actions', () => {
 
         await updatedRosterCard.getByRole('link', { name: 'Edit' }).click()
         await expect(editDrawer).toBeVisible()
-        page.once('dialog', (dialog) => dialog.accept())
         await editDrawer.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(new RegExp(`/entities/${factionId}\\?tab=memberships$`))
         await expect(page.locator('.record-card', { hasText: memberName })).toHaveCount(0)
@@ -105,8 +106,8 @@ test.describe('route surface actions', () => {
 
         await updatedAffiliationCard.getByRole('link', { name: 'Edit' }).click()
         await expect(editDrawer).toBeVisible()
-        page.once('dialog', (dialog) => dialog.accept())
         await editDrawer.getByRole('button', { name: 'Move to Trash' }).click()
+        await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(new RegExp(`/entities/${memberId}\\?tab=memberships$`))
         await expect(page.locator('.record-card', { hasText: factionName })).toHaveCount(0)
@@ -153,8 +154,8 @@ test.describe('route surface actions', () => {
         await expect(memberCard).toBeVisible()
         await expect(memberCard.getByText('manual')).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await memberCard.getByRole('button', { name: 'Remove' }).click()
+        await confirmAppDialog(page, 'Remove Member')
 
         await expect(page.locator('.record-card', { hasText: memberName })).toHaveCount(0)
     })
@@ -181,8 +182,8 @@ test.describe('route surface actions', () => {
         await expect(memberCard).toBeVisible()
         await expect(memberCard.getByText('Observer')).toBeVisible()
 
-        page.once('dialog', (dialog) => dialog.accept())
         await memberCard.getByRole('button', { name: 'Remove' }).click()
+        await confirmAppDialog(page, 'Remove Member')
 
         const departedMemberCard = page.locator('.record-card', { hasText: memberName }).first()
         await expect(departedMemberCard).toBeVisible()

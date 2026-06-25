@@ -415,7 +415,19 @@ const domains = [
     },
 ]
 
-const currentPath = computed(() => page.url.split('?')[0] || '/')
+const currentPath = computed(() => {
+    const path = page.url.split('?')[0] || '/'
+
+    if (path === '/datacrypt') {
+        return '/'
+    }
+
+    if (path.startsWith('/datacrypt/')) {
+        return path.slice('/datacrypt'.length)
+    }
+
+    return path
+})
 
 const pathMatches = (path, match) => {
     if (match === '/') {

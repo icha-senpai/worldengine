@@ -241,7 +241,10 @@ class ConnectionsWorkflowTest extends TestCase
                 'is_undercover' => true,
                 'public_membership_known' => false,
             ])
-            ->assertRedirect(route('faction-memberships.create'))
+            ->assertRedirect(route('entities.show', [
+                'entity' => $faction->id,
+                'tab' => 'memberships',
+            ]))
             ->assertSessionHas('success');
 
         /** @var FactionMembership $membership */
@@ -261,7 +264,10 @@ class ConnectionsWorkflowTest extends TestCase
                 'is_undercover' => false,
                 'public_membership_known' => true,
             ])
-            ->assertRedirect(route('entities.show', $faction))
+            ->assertRedirect(route('entities.show', [
+                'entity' => $faction->id,
+                'tab' => 'memberships',
+            ]))
             ->assertSessionHas('success');
 
         $membership->refresh();
@@ -274,7 +280,10 @@ class ConnectionsWorkflowTest extends TestCase
         $this->actingAs($user)
             ->from(route('entities.show', $faction))
             ->delete(route('faction-memberships.destroy', $membership))
-            ->assertRedirect(route('entities.show', $faction))
+            ->assertRedirect(route('entities.show', [
+                'entity' => $faction->id,
+                'tab' => 'memberships',
+            ]))
             ->assertSessionHas('success');
 
         $this->assertSoftDeleted('faction_memberships', ['id' => $membership->id]);
@@ -282,8 +291,6 @@ class ConnectionsWorkflowTest extends TestCase
 
     private function verifiedUser(): User
     {
-        return User::factory()->create([
-            'email_verified_at' => now(),
-        ]);
+        return $this->createVerifiedAdminUser();
     }
 }

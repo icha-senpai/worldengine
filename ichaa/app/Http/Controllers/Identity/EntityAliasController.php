@@ -4,30 +4,32 @@ namespace App\Http\Controllers\Identity;
 
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityAlias;
+use App\Http\Controllers\Concerns\RendersEntityShowPage;
 use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response;
 
 class EntityAliasController extends Controller
 {
-    public function create(Entity $entity): RedirectResponse
+    use RendersEntityShowPage;
+
+    public function create(Entity $entity): Response
     {
-        return $this->to('entities.show', [
-            'entity' => $entity,
-            'tab' => 'aliases',
-            'compose' => 1,
+        return $this->showEntityPage($entity, [
+            'aliasCreateDrawer' => true,
         ]);
     }
 
-    public function edit(Entity $entity, EntityAlias $alias): RedirectResponse
+    public function edit(Entity $entity, EntityAlias $alias): Response
     {
         abort_unless((int) $alias->entity_id === (int) $entity->id, 404);
 
-        return $this->to('entities.show', [
-            'entity' => $entity,
-            'tab' => 'aliases',
-            'edit_alias' => $alias->id,
+        return $this->showEntityPage($entity, [
+            'aliasEditDrawer' => [
+                'alias' => $alias,
+            ],
         ]);
     }
 
@@ -44,7 +46,10 @@ class EntityAliasController extends Controller
 
         $entity->aliases()->create($validated);
 
-        return $this->back('Alias added.');
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'aliases',
+        ], 'Alias added.');
     }
 
     // PUT /entities/{entity}/aliases/{alias}
@@ -56,7 +61,10 @@ class EntityAliasController extends Controller
 
         $alias->update($validated);
 
-        return $this->back('Alias updated.');
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'aliases',
+        ], 'Alias updated.');
     }
 
     // DELETE /entities/{entity}/aliases/{alias}
@@ -66,6 +74,9 @@ class EntityAliasController extends Controller
 
         $alias->delete();
 
-        return $this->back('Alias removed.');
+        return $this->to('entities.show', [
+            'entity' => $entity,
+            'tab' => 'aliases',
+        ], 'Alias removed.');
     }
 }

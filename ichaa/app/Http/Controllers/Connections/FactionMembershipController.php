@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers\Connections;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-use App\Http\Controllers\Controller;
-use App\Domain\Identity\Models\Entity;
-use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Connections\Models\FactionMembership;
 use App\Domain\Connections\Services\RelationshipService;
+use App\Domain\Identity\Models\Entity;
+use App\Domain\Identity\ValueObjects\EntityType;
+use App\Http\Controllers\Concerns\RendersEntityShowPage;
+use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class FactionMembershipController extends Controller
 {
+    use RendersEntityShowPage;
+
     public function __construct(
         private readonly RelationshipService $service,
     ) {}
@@ -67,6 +71,7 @@ class FactionMembershipController extends Controller
 
         return $this->showEntityPage($returnEntity, [
             'factionMembershipEditDrawer' => [
+                'factionEntities' => $this->factionEntityOptions(),
                 'entities' => $this->entityOptions(),
                 'membership' => $membership,
                 'returnContext' => $request->string('return_context')->toString(),
@@ -77,12 +82,12 @@ class FactionMembershipController extends Controller
     }
 
     // POST /faction-memberships
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('faction-memberships', 'store'));
 
         $faction = Entity::findOrFail($validated['faction_entity_id']);
-        $member  = Entity::findOrFail($validated['member_entity_id']);
+        $member = Entity::findOrFail($validated['member_entity_id']);
         $returnEntityId = $this->resolveReturnEntityId($request, $faction->id, null, $member->id);
 
         $this->service->createFactionMembership($faction, $member, $validated);
@@ -94,7 +99,7 @@ class FactionMembershipController extends Controller
     }
 
     // PUT /faction-memberships/{factionMembership}
-    public function update(Request $request, FactionMembership $factionMembership): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, FactionMembership $factionMembership): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('faction-memberships', 'update'));
         $returnEntityId = $this->resolveReturnEntityId($request, $factionMembership->faction_entity_id, $factionMembership->member_entity_id);
@@ -108,7 +113,7 @@ class FactionMembershipController extends Controller
     }
 
     // DELETE /faction-memberships/{factionMembership}
-    public function destroy(FactionMembership $factionMembership): \Illuminate\Http\RedirectResponse
+    public function destroy(FactionMembership $factionMembership): RedirectResponse
     {
         $returnEntityId = $this->resolveReturnEntityId(request(), $factionMembership->faction_entity_id, $factionMembership->member_entity_id);
         $factionMembership->delete();
@@ -229,38 +234,5 @@ class FactionMembershipController extends Controller
         parse_str($query, $params);
 
         return $cached[$cacheKey] = is_array($params) ? $params : [];
-    }
-
-    private function showEntityPage(Entity $entity, array $props = []): Response
-    {
-        $entity->load([
-            'aliases',
-            'notes' => fn ($q) => $q->orderBy('sort_order')->orderBy('created_at'),
-            'questions' => fn ($q) => $q->orderByRaw("CASE priority WHEN 'blocking' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END")->orderBy('created_at'),
-            'controlledFactions' => fn ($q) => $q
-                ->with([
-                    'member:id,name,entity_type,public_title,status,visibility,completion_score',
-                    'trueLoyalty:id,name',
-                    'recruitedBy:id,name',
-                ])
-                ->orderByRaw("CASE membership_status WHEN 'active' THEN 1 WHEN 'inactive' THEN 2 WHEN 'former' THEN 3 ELSE 4 END")
-                ->orderBy('rank_or_role')
-                ->orderBy('created_at'),
-            'factionMemberships' => fn ($q) => $q
-                ->with([
-                    'faction:id,name,entity_type,public_title,status,visibility,completion_score',
-                    'trueLoyalty:id,name',
-                    'recruitedBy:id,name',
-                ])
-                ->orderByRaw("CASE membership_status WHEN 'active' THEN 1 WHEN 'inactive' THEN 2 WHEN 'former' THEN 3 ELSE 4 END")
-                ->orderBy('created_at'),
-        ]);
-
-        return $this->pageWithNotionNote('Entities/Show', $entity, 'entities', array_merge([
-            'entity' => $entity,
-            'factionRoster' => $entity->controlledFactions,
-            'memberMemberships' => $entity->factionMemberships,
-            'isFactionEntity' => in_array($entity->entity_type, EntityType::FACTION_TYPES, true),
-        ], $props));
     }
 }

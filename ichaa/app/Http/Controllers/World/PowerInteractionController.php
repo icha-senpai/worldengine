@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\World;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\World\Models\PowerInteraction;
 use App\Domain\World\Models\PowerInteractionInstance;
 use App\Domain\World\Services\WorldService;
+use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class PowerInteractionController extends Controller
 {
@@ -30,7 +30,7 @@ class PowerInteractionController extends Controller
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('power-interactions', 'store'));
 
@@ -47,14 +47,11 @@ class PowerInteractionController extends Controller
     public function edit(PowerInteraction $powerInteraction): Response
     {
         return $this->showPage($powerInteraction, [
-            'editDrawer' => [
-                'dangerRatings' => PowerInteraction::DANGER_RATINGS,
-                'knowledgeStates' => PowerInteraction::KNOWLEDGE_STATES,
-            ],
+            'editDrawer' => $this->createFormProps(),
         ]);
     }
 
-    public function update(Request $request, PowerInteraction $powerInteraction): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, PowerInteraction $powerInteraction): RedirectResponse
     {
         $this->service->updatePowerInteraction($powerInteraction, $request->validate(
             DataverseRules::web('power-interactions', 'update')
@@ -63,14 +60,14 @@ class PowerInteractionController extends Controller
         return $this->to('power-interactions.show', [$powerInteraction], 'Interaction updated.');
     }
 
-    public function destroy(PowerInteraction $powerInteraction): \Illuminate\Http\RedirectResponse
+    public function destroy(PowerInteraction $powerInteraction): RedirectResponse
     {
         $powerInteraction->delete();
 
         return $this->to('power-interactions.index', [], 'Interaction deleted.');
     }
 
-    public function resolve(Request $request, PowerInteraction $powerInteraction): \Illuminate\Http\RedirectResponse
+    public function resolve(Request $request, PowerInteraction $powerInteraction): RedirectResponse
     {
         $this->service->resolveInteraction($powerInteraction, $request->validate(
             DataverseRules::webAction('power-interaction-resolve')
@@ -79,7 +76,7 @@ class PowerInteractionController extends Controller
         return $this->back('Interaction resolved.');
     }
 
-    public function recordInstance(Request $request, PowerInteraction $powerInteraction): \Illuminate\Http\RedirectResponse
+    public function recordInstance(Request $request, PowerInteraction $powerInteraction): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::webAction('power-interaction-instance'));
 

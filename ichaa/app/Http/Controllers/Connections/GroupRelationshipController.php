@@ -50,9 +50,7 @@ class GroupRelationshipController extends Controller
     public function edit(GroupRelationship $groupRelationship): Response
     {
         return $this->showPage($groupRelationship, [
-            'editDrawer' => [
-                'tensionCharges' => TensionCharge::ALL,
-            ],
+            'editDrawer' => $this->createFormProps(),
         ]);
     }
 
@@ -108,8 +106,6 @@ class GroupRelationshipController extends Controller
         return $this->back('Member removed.');
     }
 
-
-
     private function indexPage(Request $request, array $props = []): Response
     {
         $query = GroupRelationship::withCount('activeMembers')->latest();
@@ -122,18 +118,18 @@ class GroupRelationshipController extends Controller
             $query->masked();
         }
 
-                return $this->page('GroupRelationships/Index', array_merge([
+        return $this->page('GroupRelationships/Index', array_merge([
             'groups' => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['volatile', 'masked']),
         ], $props));
-    
+
     }
 
     private function createFormProps(): array
     {
         return [
             'tensionCharges' => TensionCharge::ALL,
-        
+
         ];
     }
 

@@ -49,7 +49,7 @@
                             <span class="surface-section__title">Recent Writing</span>
                             <p class="surface-section__subtitle">Newest movement across pipeline items, chapter work, and supporting notes.</p>
                         </div>
-                        <a :href="route('pipeline.index')" class="dashboard-link">All -></a>
+                            <Link :href="route('pipeline.index')" class="dashboard-link">All -></Link>
                     </div>
 
                     <div v-if="recentPipeline.length === 0" class="surface-row text-center text-muted-3 text-sm font-ui">
@@ -58,9 +58,9 @@
 
                     <div v-for="item in recentPipeline" :key="item.id" class="surface-row flex flex-col gap-3 sm:flex-row sm:items-center">
                         <div class="flex-1 min-w-0">
-                            <a :href="route('pipeline.show', item.id)" class="prose-wrap block text-primary text-base font-light hover:text-focus transition-colors">
+                            <Link :href="route('pipeline.show', item.id)" class="prose-wrap block text-primary text-base font-light hover:text-focus transition-colors">
                                 {{ item.title }}
-                            </a>
+                            </Link>
                             <div class="mt-1 flex flex-wrap items-center gap-2">
                                 <span class="text-muted-3 text-xs font-ui">{{ item.pipeline_type }}</span>
                                 <span class="text-border-2">&middot;</span>
@@ -91,9 +91,9 @@
 
                     <div v-for="q in blockingQuestions" :key="q.id" class="surface-row">
                         <div class="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <a :href="`/entities/${q.entity.id}`" class="text-xs font-ui uppercase tracking-wider text-muted-2 hover:text-focus transition-colors">
+                            <Link :href="route('entities.show', q.entity.id)" class="text-xs font-ui uppercase tracking-wider text-muted-2 hover:text-focus transition-colors">
                                 {{ q.entity.name }}
-                            </a>
+                            </Link>
                             <span v-if="q.priority" class="tag" :class="q.priority === 'critical' ? 'tag--danger' : 'tag--warn'">
                                 {{ q.priority }}
                             </span>
@@ -122,9 +122,9 @@
 
                     <div v-for="state in latentTension" :key="state.id" class="surface-row">
                         <div class="mb-0.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <a :href="`/entities/${state.knower.id}`" class="text-primary text-base font-light hover:text-focus transition-colors">
+                            <Link :href="route('entities.show', state.knower.id)" class="text-primary text-base font-light hover:text-focus transition-colors">
                                 {{ state.knower.name }}
-                            </a>
+                            </Link>
                             <span class="tag tag--warn">{{ formatLabel(state.knowledge_type) }}</span>
                         </div>
                         <div v-if="state.subject_name" class="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-3 font-ui">
@@ -153,9 +153,9 @@
 
                     <div v-for="secret in exposureRisk" :key="secret.id" class="surface-row">
                         <div class="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <a :href="`/secrets/${secret.id}`" class="text-primary text-base font-light hover:text-focus transition-colors">
+                            <Link :href="route('secrets.show', secret.id)" class="text-primary text-base font-light hover:text-focus transition-colors">
                                 {{ secret.title }}
-                            </a>
+                            </Link>
                             <span class="tag" :class="secret.exposure_risk === 'critical' || secret.exposure_risk === 'inevitable' ? 'tag--danger' : 'tag--warn'">
                                 {{ secret.exposure_risk }}
                             </span>
@@ -183,9 +183,9 @@
 
                     <div v-for="state in perceptionGaps" :key="state.id" class="surface-row">
                         <div class="mb-0.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <a :href="`/perception-states/${state.id}`" class="text-muted-2 text-sm font-ui italic hover:text-primary transition-colors">
+                            <Link :href="route('perception-states.show', state.id)" class="text-muted-2 text-sm font-ui italic hover:text-primary transition-colors">
                                 {{ state.subject_type }} #{{ state.subject_id }}
-                            </a>
+                            </Link>
                             <span class="tag" :class="state.revelation_risk === 'inevitable' || state.revelation_risk === 'imminent' ? 'tag--danger' : 'tag--warn'">
                                 {{ state.revelation_risk }}
                             </span>
@@ -205,6 +205,7 @@
 </template>
 
 <script setup>
+import { Link } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { formatLabel } from '@/Components/scaffold/formatters'
 

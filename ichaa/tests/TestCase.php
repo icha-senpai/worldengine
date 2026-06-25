@@ -2,8 +2,10 @@
 
 namespace Tests;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Spatie\Permission\Models\Role;
 use Tests\Concerns\RefreshSharedPostgresDatabase;
 
 abstract class TestCase extends BaseTestCase
@@ -27,5 +29,18 @@ abstract class TestCase extends BaseTestCase
         } finally {
             $this->traitsUsedByTest = $originalTraits;
         }
+    }
+
+    protected function createVerifiedAdminUser(array $attributes = []): User
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+            ...$attributes,
+        ]);
+
+        Role::findOrCreate('admin', 'web');
+        $user->assignRole('admin');
+
+        return $user;
     }
 }

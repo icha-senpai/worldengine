@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel;
+use Spatie\Permission\Models\Role;
 
 require __DIR__.'/../../../vendor/autoload.php';
 
@@ -26,5 +27,8 @@ $user = User::updateOrCreate(
 $user->forceFill([
     'email_verified_at' => now(),
 ])->save();
+
+Role::findOrCreate('admin', 'web');
+$user->assignRole('admin');
 
 echo "E2E user ready.\n";
