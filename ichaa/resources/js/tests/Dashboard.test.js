@@ -60,6 +60,33 @@ describe('Dashboard page', () => {
                     entity: { id: 12, name: 'Seraphine' },
                 },
             ],
+            blockingContradictions: [
+                {
+                    id: 6,
+                    title: 'Johnny cannot know both versions of the breach.',
+                    meta_note_type: 'continuity_issue',
+                    action_status: 'pending',
+                },
+            ],
+            unresolvedInteractions: [
+                {
+                    id: 7,
+                    interaction_name: 'Storm and Null',
+                    knowledge_state: 'rumored',
+                    danger_rating: 'high',
+                    system_a_name: 'Storm Binding',
+                    system_b_name: 'Null Weave',
+                },
+            ],
+            deprecatedCanonStates: [
+                {
+                    id: 8,
+                    version_label: 'Old Seraphine',
+                    version_number: 3,
+                    entity: { id: 12, name: 'Seraphine' },
+                    replacement_label: 'Fracture Seraphine',
+                },
+            ],
         })
 
         expect(wrapper.text()).toContain('Overview')
@@ -74,6 +101,12 @@ describe('Dashboard page', () => {
         expect(wrapper.text()).toContain('entity #12')
         expect(wrapper.text()).toContain('Blocking Questions')
         expect(wrapper.text()).toContain('Who taught Seraphine the fracture ritual?')
+        expect(wrapper.text()).toContain('Blocking Contradictions')
+        expect(wrapper.text()).toContain('Johnny cannot know both versions of the breach.')
+        expect(wrapper.text()).toContain('Unresolved Interactions')
+        expect(wrapper.text()).toContain('Storm and Null')
+        expect(wrapper.text()).toContain('Deprecated Canon States')
+        expect(wrapper.text()).toContain('Fracture Seraphine')
     })
 
     it('shows the empty-state messaging when dashboard lists are empty', () => {
@@ -81,6 +114,9 @@ describe('Dashboard page', () => {
 
         expect(wrapper.text()).toContain('No pipeline items yet.')
         expect(wrapper.text()).toContain('No blocking questions.')
+        expect(wrapper.text()).toContain('No blocking contradictions.')
+        expect(wrapper.text()).toContain('No unresolved interactions.')
+        expect(wrapper.text()).toContain('No deprecated canon states.')
         expect(wrapper.text()).toContain('No latent tension recorded.')
         expect(wrapper.text()).toContain('No high-risk secrets.')
         expect(wrapper.text()).not.toContain('Perception Gaps')
@@ -96,6 +132,9 @@ function mountPage(props = {}) {
             exposureRisk: [],
             perceptionGaps: [],
             blockingQuestions: [],
+            blockingContradictions: [],
+            unresolvedInteractions: [],
+            deprecatedCanonStates: [],
             ...props,
         },
         global: {

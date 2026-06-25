@@ -4,7 +4,11 @@ namespace App\Support\Validation;
 
 use App\Domain\Connections\ValueObjects\RelationshipType;
 use App\Domain\Connections\ValueObjects\TensionCharge;
+use App\Domain\Identity\Models\EntityAlias;
 use App\Domain\Identity\Models\MediaReference;
+use App\Domain\Identity\Models\Entity;
+use App\Domain\Identity\ValueObjects\ContentClassification;
+use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\PerceptionState;
@@ -153,8 +157,9 @@ class DataverseRules
                     'origin_type' => ['nullable', 'string'],
                     'canon_deviation' => ['nullable', 'string'],
                     'origin_notes' => self::richDocumentRule(),
-                    'visibility' => ['nullable', 'string'],
-                    'content_classification' => ['nullable', 'string'],
+                    'status' => ['nullable', 'string', 'in:'.implode(',', Entity::STATUSES)],
+                    'visibility' => ['nullable', 'string', 'in:'.implode(',', VisibilityLevel::ALL)],
+                    'content_classification' => ['nullable', 'string', 'in:'.implode(',', ContentClassification::ALL)],
                 ],
             ] : [
                 'attributes' => [
@@ -178,22 +183,22 @@ class DataverseRules
                     'origin_notes' => self::richDocumentRule(),
                     'control_state' => ['nullable', 'string'],
                     'persona_divergence' => ['nullable', 'string'],
-                    'visibility' => ['nullable', 'string'],
-                    'content_classification' => ['nullable', 'string'],
+                    'visibility' => ['nullable', 'string', 'in:'.implode(',', VisibilityLevel::ALL)],
+                    'content_classification' => ['nullable', 'string', 'in:'.implode(',', ContentClassification::ALL)],
                 ],
             ],
             'entity-aliases' => $operation === 'store' ? [
                 'attributes' => [
                     'alias' => ['required', 'string', 'max:255'],
-                    'alias_type' => ['required', 'string'],
+                    'alias_type' => ['required', 'string', 'in:'.implode(',', EntityAlias::ALIAS_TYPES)],
                     'context' => ['nullable', 'string'],
                     'era_start' => ['nullable', 'string'],
                     'era_end' => ['nullable', 'string'],
                     'is_active' => ['nullable', 'boolean'],
                     'known_by_entity_ids' => ['nullable', 'array'],
                     'known_by_entity_ids.*' => ['integer', 'exists:entities,id'],
-                    'visibility' => ['nullable', 'string'],
-                    'content_classification' => ['nullable', 'string'],
+                    'visibility' => ['nullable', 'string', 'in:'.implode(',', VisibilityLevel::ALL)],
+                    'content_classification' => ['nullable', 'string', 'in:'.implode(',', ContentClassification::ALL)],
                 ],
                 'relationships' => [
                     'entity_id' => ['required', 'integer', 'exists:entities,id'],
@@ -201,13 +206,15 @@ class DataverseRules
             ] : [
                 'attributes' => [
                     'alias' => ['sometimes', 'string', 'max:255'],
-                    'alias_type' => ['sometimes', 'string'],
+                    'alias_type' => ['sometimes', 'string', 'in:'.implode(',', EntityAlias::ALIAS_TYPES)],
                     'context' => ['nullable', 'string'],
                     'era_start' => ['nullable', 'string'],
                     'era_end' => ['nullable', 'string'],
                     'is_active' => ['nullable', 'boolean'],
                     'known_by_entity_ids' => ['nullable', 'array'],
                     'known_by_entity_ids.*' => ['integer', 'exists:entities,id'],
+                    'visibility' => ['nullable', 'string', 'in:'.implode(',', VisibilityLevel::ALL)],
+                    'content_classification' => ['nullable', 'string', 'in:'.implode(',', ContentClassification::ALL)],
                 ],
             ],
             'entity-notes' => $operation === 'store' ? [
@@ -271,8 +278,8 @@ class DataverseRules
                     'height_px' => ['nullable', 'integer', 'min:0'],
                     'sort_order' => ['nullable', 'integer'],
                     'is_primary' => ['nullable', 'boolean'],
-                    'visibility' => ['nullable', 'string'],
-                    'content_classification' => ['nullable', 'string'],
+                    'visibility' => ['nullable', 'string', 'in:'.implode(',', VisibilityLevel::ALL)],
+                    'content_classification' => ['nullable', 'string', 'in:'.implode(',', ContentClassification::ALL)],
                 ],
                 'relationships' => [
                     'entity_id' => ['nullable', 'integer', 'exists:entities,id'],
@@ -299,8 +306,8 @@ class DataverseRules
                     'height_px' => ['nullable', 'integer', 'min:0'],
                     'sort_order' => ['nullable', 'integer'],
                     'is_primary' => ['nullable', 'boolean'],
-                    'visibility' => ['nullable', 'string'],
-                    'content_classification' => ['nullable', 'string'],
+                    'visibility' => ['nullable', 'string', 'in:'.implode(',', VisibilityLevel::ALL)],
+                    'content_classification' => ['nullable', 'string', 'in:'.implode(',', ContentClassification::ALL)],
                 ],
                 'relationships' => [
                     'entity_id' => ['nullable', 'integer', 'exists:entities,id'],
@@ -322,8 +329,8 @@ class DataverseRules
                     'is_active' => ['nullable', 'boolean'],
                     'perceived_type' => ['nullable', 'string'],
                     'true_type' => ['nullable', 'string'],
-                    'visibility' => ['nullable', 'string'],
-                    'content_classification' => ['nullable', 'string'],
+                    'visibility' => ['nullable', 'string', 'in:'.implode(',', VisibilityLevel::ALL)],
+                    'content_classification' => ['nullable', 'string', 'in:'.implode(',', ContentClassification::ALL)],
                 ],
                 'relationships' => [
                     'from_entity_id' => ['required', 'integer', 'exists:entities,id'],
@@ -340,8 +347,8 @@ class DataverseRules
                     'is_active' => ['nullable', 'boolean'],
                     'perceived_type' => ['nullable', 'string'],
                     'true_type' => ['nullable', 'string'],
-                    'visibility' => ['nullable', 'string'],
-                    'content_classification' => ['nullable', 'string'],
+                    'visibility' => ['nullable', 'string', 'in:'.implode(',', VisibilityLevel::ALL)],
+                    'content_classification' => ['nullable', 'string', 'in:'.implode(',', ContentClassification::ALL)],
                 ],
                 'relationships' => [
                     'from_entity_id' => ['sometimes', 'integer', 'exists:entities,id'],
@@ -1033,9 +1040,21 @@ class DataverseRules
             'entity-save-version' => [
                 'attributes' => [
                     'version_label' => ['nullable', 'string', 'max:255'],
-                    'what_changed' => ['nullable', 'string'],
-                    'why_changed' => ['nullable', 'string'],
+                    'what_changed' => ['nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                        if (! is_string($value) && ! is_array($value)) {
+                            $fail("The {$attribute} field must be a string or rich document payload.");
+                        }
+                    }],
+                    'why_changed' => ['nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                        if (! is_string($value) && ! is_array($value)) {
+                            $fail("The {$attribute} field must be a string or rich document payload.");
+                        }
+                    }],
                     'valid_from_era' => ['nullable', 'string'],
+                    'version_zero_confidence' => ['nullable', 'string', 'in:rough,developing,solid,verified'],
+                    'version_zero_notes' => ['nullable', 'string'],
+                    'visibility' => ['nullable', 'string', 'in:'.implode(',', VisibilityLevel::ALL)],
+                    'content_classification' => ['nullable', 'string', 'in:'.implode(',', ContentClassification::ALL)],
                     'is_version_zero' => ['nullable', 'boolean'],
                 ],
             ],

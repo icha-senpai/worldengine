@@ -20,6 +20,11 @@ import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { formatLabel } from '@/Components/scaffold/formatters'
+import {
+    contentClassificationOptions,
+    entityStatusOptions,
+    visibilityLevelOptions,
+} from '@/Pages/Entities/entityFieldOptions'
 
 const props = defineProps({
     embedded: { type: Boolean, default: false },
@@ -58,16 +63,6 @@ const entityTypeOptions = computed(() =>
     ),
 )
 
-const statusOptions = [
-    'concept',
-    'active',
-    'archived',
-    'deceased',
-    'destroyed',
-    'dormant',
-    'unknown',
-]
-
 const originTypeOptions = [
     { value: 'native', label: 'Native' },
     { value: 'canonical', label: 'Canonical' },
@@ -80,18 +75,6 @@ const canonDeviationOptions = [
     { value: 'moderate', label: 'Moderate - significant changes' },
     { value: 'major', label: 'Major - heavily AU' },
     { value: 'concept_only', label: 'Concept Only - inspired by' },
-]
-
-const visibilityOptions = [
-    { value: 'private', label: 'Private' },
-    { value: 'author_only', label: 'Author Only' },
-    { value: 'public_knowledge', label: 'Public Knowledge' },
-]
-
-const classificationOptions = [
-    { value: 'restricted', label: 'Restricted' },
-    { value: 'sensitive', label: 'Sensitive' },
-    { value: 'open', label: 'Open' },
 ]
 
 const powerTierOptions = [
@@ -191,7 +174,7 @@ const sections = computed(() => {
             title: 'Identity',
             fields: [
                 { key: 'name', label: 'Name', required: true },
-                { key: 'public_title', label: 'Public Title', placeholder: 'How the world knows them' },
+                { key: 'public_title', label: 'Public-Facing Title', placeholder: 'How the world knows them' },
                 {
                     key: 'entity_type',
                     label: 'Type',
@@ -209,7 +192,7 @@ const sections = computed(() => {
                     key: 'status',
                     label: 'Status',
                     type: 'select',
-                    options: statusOptions,
+                    options: entityStatusOptions,
                     placeholder: 'Select a status...',
                 },
                 {
@@ -273,12 +256,12 @@ const sections = computed(() => {
         {
             title: 'Access',
             fields: [
-                { key: 'visibility', label: 'Visibility', type: 'select', options: visibilityOptions },
+                { key: 'visibility', label: 'Visibility', type: 'select', options: visibilityLevelOptions },
                 {
                     key: 'content_classification',
                     label: 'Content Classification',
                     type: 'select',
-                    options: classificationOptions,
+                    options: contentClassificationOptions,
                 },
             ],
         },

@@ -18,6 +18,15 @@
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first knowledge state ->"
         >
+        <template #toolbar>
+            <ScaffoldFilterBar
+                :fields="filterFields"
+                :form="filterForm"
+                :has-active-filters="hasActiveFilters"
+                :on-apply="applyFilters"
+                :on-clear="clearFilters"
+            />
+        </template>
         <template #create-drawer>
             <CreateKnowledgeState
                 v-if="createDrawer"
@@ -31,15 +40,35 @@
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreateKnowledgeState from '@/Pages/Intelligence/KnowledgeStates/Create.vue'
 import { asArray, badge, buildMeta, countRecords, formatLabel } from '@/Pages/scaffold/pageBuilders'
+import { toEntityOptions } from '@/Components/scaffold/formatters'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     states: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
+    entities: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
 })
+
+const entityOptions = computed(() => toEntityOptions(props.entities))
+
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('knowledge-states.index', {
+    knower: props.filters.knower ? String(props.filters.knower) : '',
+    about: props.filters.about ? String(props.filters.about) : '',
+    latent: Boolean(props.filters.latent),
+    compartmentalizing: Boolean(props.filters.compartmentalizing),
+})
+
+const filterFields = computed(() => [
+    { key: 'knower', type: 'select', placeholder: 'All knowers', options: entityOptions.value },
+    { key: 'about', type: 'select', placeholder: 'All subjects', options: entityOptions.value },
+    { key: 'latent', type: 'checkbox', label: 'Latent only' },
+    { key: 'compartmentalizing', type: 'checkbox', label: 'Compartmentalizing only' },
+])
 
 const items = computed(() =>
     asArray(props.states).map((state) => ({

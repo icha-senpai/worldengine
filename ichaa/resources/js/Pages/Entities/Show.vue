@@ -2,32 +2,41 @@
     <AuthenticatedLayout>
 
         <template #header>
-            <div class="flex items-start justify-between gap-4">
+            <div class="page-hero">
 
                 <!-- Left: name + breadcrumb -->
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
+                <div class="page-hero__copy min-w-0">
+                    <div class="page-hero__eyebrow">
                         <Link :href="route('entities.index')" class="text-muted-3 text-sm font-ui hover:text-muted-2 transition-colors">
                             Entities
                         </Link>
-                        <span class="text-muted-3 text-sm font-ui">/</span>
+                        <span>/</span>
                         <span class="type-chip" :class="typeBadgeClass(entity.entity_type)">
                             {{ formatLabel(entity.entity_type) }}
                         </span>
                     </div>
-                    <h1 class="text-primary text-2xl font-light tracking-wide leading-tight">
+                    <h1 class="page-hero__title page-hero__title--md">
                         {{ entity.name }}
                     </h1>
-                    <p v-if="entity.public_title" class="text-muted-3 text-sm font-ui mt-0.5 italic">
+                    <p v-if="entity.public_title" class="page-hero__subtitle italic">
                         "{{ entity.public_title }}"
                     </p>
+                    <div v-if="entityHeroMeta.length" class="page-hero__meta">
+                        <div v-for="meta in entityHeroMeta" :key="meta.label" class="page-hero__meta-item">
+                            <span class="page-hero__meta-label">{{ meta.label }}</span>
+                            <span class="page-hero__meta-value">{{ meta.value }}</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Right: actions -->
-                <div class="flex shrink-0 items-center gap-2 pt-1">
-                    <span class="status-badge" :class="statusBadgeClass(entity.status)">
-                        {{ formatLabel(entity.status) }}
-                    </span>
+                <div class="page-hero__actions">
+                    <AppButton
+                        :href="route('entities.versions.index', entity.id)"
+                        variant="ghost"
+                    >
+                        Versions
+                    </AppButton>
                     <AppButton type="button" variant="danger" @click="destroyEntity">
                         Move to Trash
                     </AppButton>
@@ -236,13 +245,29 @@
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
                                 <span class="text-primary text-sm">{{ a.alias }}</span>
-                                <span class="alias-type-chip">{{ formatLabel(a.alias_type) }}</span>
+                                <span class="alias-type-chip">{{ formatEntityAliasType(a.alias_type) }}</span>
                                 <span v-if="!a.is_active" class="text-muted-3 text-xs font-ui">(inactive)</span>
                             </div>
                             <p v-if="a.context" class="text-muted-3 text-sm mt-1">{{ a.context }}</p>
+                            <div class="mt-2 flex flex-wrap gap-1.5">
+                                <span class="accent-tag">{{ formatLabel(a.visibility || 'private') }}</span>
+                                <span class="accent-tag">{{ formatLabel(a.content_classification || 'restricted') }}</span>
+                                <span class="accent-tag">{{ a.known_by_entities_display?.length ? 'restricted audience' : 'publicly known' }}</span>
+                            </div>
                             <p v-if="a.era_start || a.era_end" class="text-muted-3 text-xs font-ui mt-1">
                                 {{ a.era_start || '?' }} → {{ a.era_end || 'present' }}
                             </p>
+                            <div v-if="a.known_by_entities_display?.length" class="mt-2 flex flex-wrap items-center gap-2">
+                                <span class="field-label field-label--fixed">Known By</span>
+                                <Link
+                                    v-for="knownBy in a.known_by_entities_display"
+                                    :key="knownBy.id"
+                                    :href="route('entities.show', knownBy.id)"
+                                    class="accent-tag accent-tag--interactive"
+                                >
+                                    {{ knownBy.name }}
+                                </Link>
+                            </div>
                             <NotionNotePanel :note="a.notion_note" class="mt-3" />
                         </div>
                         <div class="flex shrink-0 items-center gap-2">
@@ -353,6 +378,33 @@
                             <p v-if="q.resolution" class="prose-wrap text-muted-2 text-sm mt-2 italic">
                                 ↳ {{ q.resolution }}
                             </p>
+                            <div
+                                v-if="q.linked_entities_display?.length || q.linked_group_relationships_display?.length"
+                                class="mt-3 space-y-2"
+                            >
+                                <div v-if="q.linked_entities_display?.length" class="flex flex-wrap items-center gap-2">
+                                    <span class="field-label field-label--fixed">Entities</span>
+                                    <Link
+                                        v-for="linkedEntity in q.linked_entities_display"
+                                        :key="`question-entity-${q.id}-${linkedEntity.id}`"
+                                        :href="route('entities.show', linkedEntity.id)"
+                                        class="accent-tag accent-tag--interactive"
+                                    >
+                                        {{ linkedEntity.name }}
+                                    </Link>
+                                </div>
+                                <div v-if="q.linked_group_relationships_display?.length" class="flex flex-wrap items-center gap-2">
+                                    <span class="field-label field-label--fixed">Groups</span>
+                                    <Link
+                                        v-for="linkedGroup in q.linked_group_relationships_display"
+                                        :key="`question-group-${q.id}-${linkedGroup.id}`"
+                                        :href="route('group-relationships.show', linkedGroup.id)"
+                                        class="accent-tag accent-tag--interactive"
+                                    >
+                                        {{ linkedGroup.name }}
+                                    </Link>
+                                </div>
+                            </div>
                             <NotionNotePanel :note="q.notion_note" class="mt-3" />
                         </div>
                         <div class="flex shrink-0 flex-col items-end gap-1.5">
@@ -655,6 +707,7 @@
                 embedded
                 :entity="entity"
                 :alias="aliasEditDrawer.alias"
+                :entities="entities"
             />
         </DrawerRouteShell>
 
@@ -671,6 +724,7 @@
                 v-if="aliasCreateDrawer"
                 embedded
                 :entity="entity"
+                :entities="entities"
             />
         </DrawerRouteShell>
 
@@ -721,6 +775,8 @@
                 embedded
                 :entity="entity"
                 :question="questionEditDrawer.question"
+                :entities="entities"
+                :group-relationships="groupRelationships"
             />
         </DrawerRouteShell>
 
@@ -737,6 +793,8 @@
                 v-if="questionCreateDrawer"
                 embedded
                 :entity="entity"
+                :entities="entities"
+                :group-relationships="groupRelationships"
             />
         </DrawerRouteShell>
 
@@ -761,12 +819,15 @@ import EditNote from '@/Pages/Entities/Notes/Edit.vue'
 import EditQuestion from '@/Pages/Entities/Questions/Edit.vue'
 import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { formatLabel, isRichDocument } from '@/Components/scaffold/formatters'
+import { formatEntityAliasType } from '@/Pages/Entities/aliasTypes'
 import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 // --- Props ---
 
 const props = defineProps({
     entity: { type: Object, required: true },
+    entities: { type: Array, default: () => [] },
+    groupRelationships: { type: Array, default: () => [] },
     editDrawer: { type: Object, default: null },
     aliasCreateDrawer: { type: [Boolean, Object], default: null },
     aliasEditDrawer: { type: Object, default: null },
@@ -975,6 +1036,17 @@ const hasPowerTiers = computed(() =>
     props.entity.power_tier_operating ||
     props.entity.power_tier_influence
 )
+const entityHeroMeta = computed(() => [
+    { label: 'Status', value: formatLabel(props.entity.status || 'concept') },
+    { label: 'Visibility', value: formatLabel(props.entity.visibility || 'private') },
+    { label: 'Completion', value: `${props.entity.completion_score ?? 0}%` },
+    {
+        label: 'Published',
+        value: props.entity.published_at
+            ? formatDate(props.entity.published_at)
+            : 'Draft',
+    },
+])
 
 // --- Formatters ---
 
@@ -1017,6 +1089,7 @@ const statusBadgeClass = (status) => {
     const map = {
         active:    'status--active',
         concept:   'status--concept',
+        recorded:  'status--default',
         archived:  'status--archived',
         deceased:  'status--deceased',
         destroyed: 'status--deceased',

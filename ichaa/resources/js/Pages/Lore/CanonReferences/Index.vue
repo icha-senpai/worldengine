@@ -18,6 +18,15 @@
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first reference ->"
         >
+        <template #toolbar>
+            <ScaffoldFilterBar
+                :fields="filterFields"
+                :form="filterForm"
+                :has-active-filters="hasActiveFilters"
+                :on-apply="applyFilters"
+                :on-clear="clearFilters"
+            />
+        </template>
         <template #create-drawer>
             <CreateCanonReference
                 v-if="createDrawer"
@@ -31,15 +40,26 @@
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreateCanonReference from '@/Pages/Lore/CanonReferences/Create.vue'
 import { badge, buildMeta } from '@/Pages/scaffold/pageBuilders'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     references: { type: Array, default: () => [] },
     filters: { type: Object, default: () => ({}) },
+    universes: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
 })
+
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('canon-references.index', {
+    universe: props.filters.universe ?? '',
+})
+
+const filterFields = computed(() => [
+    { key: 'universe', type: 'select', placeholder: 'All universes', options: props.universes },
+])
 
 const items = computed(() =>
     props.references.map((reference) => ({

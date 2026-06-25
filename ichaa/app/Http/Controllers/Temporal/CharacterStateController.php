@@ -85,6 +85,11 @@ class CharacterStateController extends Controller
         return $this->page('Temporal/CharacterStates/Index', array_merge([
             'states' => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['entity', 'breaking']),
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->whereIn('entity_type', EntityType::POWERED_TYPES)
+                ->orderBy('name')
+                ->get(),
         ], $props));
 
     }

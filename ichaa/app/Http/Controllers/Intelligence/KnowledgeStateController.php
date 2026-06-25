@@ -103,6 +103,10 @@ class KnowledgeStateController extends Controller
         return $this->page('Intelligence/KnowledgeStates/Index', array_merge([
             'states' => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['knower', 'about', 'latent', 'compartmentalizing']),
+            'entities' => Entity::query()
+                ->select('id', 'name', 'entity_type')
+                ->orderBy('name')
+                ->get(),
         ], $props));
 
     }

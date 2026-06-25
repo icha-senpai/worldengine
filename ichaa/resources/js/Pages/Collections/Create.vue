@@ -26,6 +26,8 @@ const props = defineProps({
     types: { type: Array, default: () => [] },
     modes: { type: Array, default: () => [] },
     completionStates: { type: Array, default: () => [] },
+    visibilityLevels: { type: Array, default: () => [] },
+    contentClassifications: { type: Array, default: () => [] },
 })
 
 const collectionOptions = computed(() => toCollectionOptions(props.collections))
@@ -61,8 +63,8 @@ const sections = computed(() => [
     {
         title: 'Access',
         fields: [
-            { key: 'visibility', label: 'Visibility', placeholder: 'private, author_only, public_knowledge...' },
-            { key: 'content_classification', label: 'Content Classification', placeholder: 'restricted, sensitive, open...' },
+            { key: 'visibility', label: 'Visibility', type: 'select', options: props.visibilityLevels },
+            { key: 'content_classification', label: 'Content Classification', type: 'select', options: props.contentClassifications },
         ],
     },
     {

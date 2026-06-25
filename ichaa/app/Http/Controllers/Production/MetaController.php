@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Production;
 
 use App\Domain\Identity\Models\Entity;
+use App\Domain\Identity\ValueObjects\ContentClassification;
+use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Domain\Production\Models\Meta;
 use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
@@ -177,6 +179,8 @@ class MetaController extends Controller
             'priorities' => Meta::PRIORITIES,
             'actionStatuses' => Meta::ACTION_STATUSES,
             'symbolScopes' => Meta::SYMBOL_SCOPES,
+            'visibilityLevels' => VisibilityLevel::ALL,
+            'contentClassifications' => ContentClassification::ALL,
         ];
     }
 }

@@ -18,6 +18,15 @@
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first group ->"
         >
+        <template #toolbar>
+            <ScaffoldFilterBar
+                :fields="filterFields"
+                :form="filterForm"
+                :has-active-filters="hasActiveFilters"
+                :on-apply="applyFilters"
+                :on-clear="clearFilters"
+            />
+        </template>
         <template #create-drawer>
             <CreateGroupRelationship
                 v-if="createDrawer"
@@ -31,15 +40,27 @@
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreateGroupRelationship from '@/Pages/GroupRelationships/Create.vue'
 import { asArray, badge, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     groups: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
     createDrawer: { type: Object, default: null },
 })
+
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('group-relationships.index', {
+    volatile: Boolean(props.filters.volatile),
+    masked: Boolean(props.filters.masked),
+})
+
+const filterFields = [
+    { key: 'volatile', type: 'checkbox', label: 'Volatile only' },
+    { key: 'masked', type: 'checkbox', label: 'Masked only' },
+]
 
 const items = computed(() =>
     asArray(props.groups).map((group) => ({

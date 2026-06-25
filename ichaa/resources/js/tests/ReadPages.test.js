@@ -1,6 +1,8 @@
 import { defineComponent } from 'vue'
 import { mount } from '@vue/test-utils'
 import EntityShow from '@/Pages/Entities/Show.vue'
+import EntityVersionsIndex from '@/Pages/Entities/Versions/Index.vue'
+import EntityVersionShow from '@/Pages/Entities/Versions/Show.vue'
 import RelationshipShow from '@/Pages/Relationships/Show.vue'
 import CollectionShow from '@/Pages/Collections/Show.vue'
 import CollectionsIndex from '@/Pages/Collections/Index.vue'
@@ -209,6 +211,23 @@ describe('read pages', () => {
                         era_start: 'Year 0',
                         era_end: null,
                         is_active: true,
+                        visibility: 'secret',
+                        content_classification: 'author_only',
+                        known_by_entities_display: [
+                            { id: 2, name: 'Johnny Voss', entity_type: 'character' },
+                        ],
+                    },
+                    {
+                        id: 11,
+                        alias: 'Master of Death',
+                        alias_type: 'hidden_title',
+                        context: 'Known only to a narrow circle.',
+                        era_start: null,
+                        era_end: null,
+                        is_active: true,
+                        visibility: 'private',
+                        content_classification: 'restricted',
+                        known_by_entities_display: [],
                     },
                 ],
                 notes: [],
@@ -218,10 +237,161 @@ describe('read pages', () => {
 
         expect(wrapper.text()).toContain('Seraphine Vale')
         expect(wrapper.text()).toContain('Silent Heir')
+        expect(wrapper.text()).toContain('Master of Death')
+        expect(wrapper.text()).toContain('Hidden Title')
         expect(wrapper.text()).toContain('Court usage')
+        expect(wrapper.text()).toContain('Author Only')
+        expect(wrapper.text()).toContain('restricted audience')
+        expect(wrapper.text()).toContain('Johnny Voss')
         expect(wrapper.text()).toContain('Add Alias')
         expect(wrapper.text()).toContain('Notion Notes')
         expect(wrapper.text()).toContain('This is mirrored from the Notion page body.')
+    })
+
+    it('renders linked entities and group relationships on the entity questions tab', () => {
+        usePageMock.mockReturnValue({
+            url: '/entities/1?tab=questions',
+            props: {},
+        })
+
+        const wrapper = mountPage(EntityShow, {
+            entity: {
+                id: 1,
+                name: 'Seraphine Vale',
+                entity_type: 'character',
+                status: 'active',
+                summary: 'A central figure in the fracture.',
+                source_universes: ['Harry Potter'],
+                visibility: 'private',
+                content_classification: 'restricted',
+                completion_score: 55,
+                has_attributes: true,
+                has_relationships: true,
+                has_timeline_entries: false,
+                has_aliases: true,
+                has_media: false,
+                aliases: [],
+                notes: [],
+                questions: [
+                    {
+                        id: 41,
+                        question: 'Does the archive trust Johnny with the truth?',
+                        context: 'This affects the next disclosure scene.',
+                        priority: 'blocking',
+                        status: 'open',
+                        resolution: '',
+                        linked_entities_display: [
+                            { id: 2, name: 'Johnny Voss', entity_type: 'character' },
+                        ],
+                        linked_group_relationships_display: [
+                            { id: 12, name: 'Night Council', relationship_type: 'alliance' },
+                        ],
+                    },
+                ],
+            },
+        })
+
+        expect(wrapper.text()).toContain('Does the archive trust Johnny with the truth?')
+        expect(wrapper.text()).toContain('Johnny Voss')
+        expect(wrapper.text()).toContain('Night Council')
+    })
+
+    it('builds the entity versions index items with canon summary metadata', () => {
+        const scaffold = mountIndexScaffoldPage(EntityVersionsIndex, {
+            entity: {
+                id: 1,
+                name: 'Seraphine Vale',
+                entity_type: 'character',
+                visibility: 'private',
+                content_classification: 'restricted',
+                current_version_number: 2,
+            },
+            versions: [
+                {
+                    id: 10,
+                    version_label: 'Post-Fracture',
+                    version_type: 'soft',
+                    version_state: 'current',
+                    version_number: 2,
+                    trigger_type: 'manual',
+                    valid_from_era: 'Year 0',
+                    visibility: 'private',
+                    content_classification: 'restricted',
+                    is_current: true,
+                    is_version_zero: false,
+                    what_changed: { type: 'doc', content: [] },
+                },
+            ],
+            summary: {
+                current: { version_label: 'Post-Fracture', version_number: 2, valid_from_era: 'Year 0' },
+                versionZero: { version_label: 'Version Zero - Seraphine', version_zero_confidence: 'solid' },
+                counts: { total: 2, automatic: 0, versionZero: 1, deprecated: 0 },
+            },
+        })
+
+        expect(scaffold.props('title')).toBe('Seraphine Vale Versions')
+        expect(scaffold.props('count')).toBe(1)
+        expect(scaffold.props('items')).toEqual([
+            {
+                id: 10,
+                href: { name: 'entities.versions.show', params: [1, 10] },
+                title: 'Post-Fracture',
+                subtitle: '[Document]',
+                badges: [
+                    { label: 'Type', value: 'soft' },
+                    { label: 'State', value: 'current' },
+                ],
+                meta: [
+                    { label: 'Version #', value: '2' },
+                    { label: 'Trigger', value: 'manual' },
+                    { label: 'Valid From', value: 'Year 0' },
+                    { label: 'Visibility', value: 'private' },
+                    { label: 'Classification', value: 'restricted' },
+                    { label: 'Current', value: 'Yes' },
+                ],
+            },
+        ])
+    })
+
+    it('builds the entity version show sections with lineage and canon detail', () => {
+        const scaffold = mountScaffoldPage(EntityVersionShow, {
+            entity: {
+                id: 1,
+                name: 'Seraphine Vale',
+                entity_type: 'character',
+            },
+            version: {
+                id: 10,
+                version_label: 'Post-Fracture',
+                version_type: 'soft',
+                version_state: 'deprecated',
+                version_number: 2,
+                is_current: false,
+                is_version_zero: false,
+                trigger_type: 'automatic',
+                triggered_by_field: 'status',
+                valid_from_era: 'Year 0',
+                valid_until_era: 'Year 2',
+                visibility: 'private',
+                content_classification: 'restricted',
+                superseded_by: { id: 11, version_label: 'Fracture Consolidated', version_number: 3 },
+                deprecation_reason: { type: 'doc', content: [] },
+                entity_snapshot: { status: 'active' },
+            },
+        })
+
+        expect(scaffold.props('title')).toBe('Post-Fracture')
+        expect(scaffold.props('badge')).toBe('Deprecated')
+        expect(findEntry(scaffold.props('sections'), 'Triggered By Field', 'Version Metadata').value).toBe('status')
+        expect(findEntry(scaffold.props('sections'), 'Content Classification', 'Access and Canon Position').value).toBe('restricted')
+        expect(findEntry(scaffold.props('sections'), 'Superseded By', 'Access and Canon Position').value).toBe('Fracture Consolidated')
+        expect(findEntry(scaffold.props('sections'), 'Deprecation Reason', 'Narrative Record').value).toEqual({
+            type: 'doc',
+            content: [],
+        })
+        expect(findEntry(scaffold.props('sections'), 'Snapshot Payload', 'Entity Snapshot').value).toEqual({
+            status: 'active',
+        })
     })
 
     it('builds the relationship show sections with participant and state-link data', () => {

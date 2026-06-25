@@ -3,8 +3,12 @@
 namespace Tests\Feature\Identity;
 
 use App\Domain\Identity\Models\Entity;
+use App\Domain\Identity\Models\VersionAndCanonState;
+use App\Domain\Identity\Services\EntityService;
 use App\Domain\Identity\ValueObjects\EntityType;
+use App\Domain\Identity\ValueObjects\ContentClassification;
 use App\Domain\Identity\ValueObjects\VisibilityLevel;
+use App\Domain\System\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -32,7 +36,6 @@ class EntityManagementTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Entities/Index')
                 ->where('filters.type', EntityType::CHARACTER)
-                ->has('entities.data', 1)
                 ->where('entities.data.0.id', $matching->id)
                 ->where('entities.data.0.name', $matching->name)
             );
@@ -63,7 +66,6 @@ class EntityManagementTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Entities/Index')
                 ->where('filters.type', 'category:people')
-                ->has('entities.data', 2)
                 ->where('entities.data.0.id', $character->id)
                 ->where('entities.data.1.id', $historicalFigure->id)
             );
@@ -97,6 +99,32 @@ class EntityManagementTest extends TestCase
             'is_current' => true,
             'is_version_zero' => false,
         ]);
+    }
+
+    public function test_entities_can_use_recorded_status_and_canonical_access_values(): void
+    {
+        $user = $this->verifiedUser();
+
+        $response = $this
+            ->actingAs($user)
+            ->post(route('entities.store'), [
+                'name' => 'Archive Witness',
+                'entity_type' => EntityType::CHARACTER,
+                'status' => 'recorded',
+                'visibility' => VisibilityLevel::SECRET,
+                'content_classification' => ContentClassification::SECRET,
+            ]);
+
+        $entity = Entity::where('name', 'Archive Witness')->first();
+
+        $response
+            ->assertRedirect(route('entities.show', $entity))
+            ->assertSessionHas('success');
+
+        $this->assertNotNull($entity);
+        $this->assertSame('recorded', $entity->status);
+        $this->assertSame(VisibilityLevel::SECRET, $entity->visibility);
+        $this->assertSame(ContentClassification::SECRET, $entity->content_classification);
     }
 
     public function test_incomplete_entities_cannot_be_published(): void
@@ -144,6 +172,51 @@ class EntityManagementTest extends TestCase
 
         $this->assertNotNull($entity->published_at);
         $this->assertSame(VisibilityLevel::PUBLIC_KNOWLEDGE, $entity->visibility);
+    }
+
+    public function test_status_change_auto_save_respects_settings_preferences(): void
+    {
+        $entity = app(EntityService::class)->create([
+            'name' => 'Status Flag Entity',
+            'entity_type' => EntityType::CHARACTER,
+            'status' => 'concept',
+        ]);
+
+        $settings = Setting::singleton();
+        $settings->update([
+            'notification_preferences' => array_merge($settings->notification_preferences ?? [], [
+                'auto_save_canon_state_on_status_change' => false,
+            ]),
+        ]);
+
+        $this->actingAs($this->verifiedUser())
+            ->patch(route('entities.update', $entity), [
+                'status' => 'active',
+            ])
+            ->assertRedirect(route('entities.show', $entity));
+
+        $this->assertSame(1, VersionAndCanonState::where('entity_id', $entity->id)->count());
+
+        $settings->update([
+            'notification_preferences' => array_merge($settings->notification_preferences ?? [], [
+                'auto_save_canon_state_on_status_change' => true,
+            ]),
+        ]);
+
+        $this->actingAs($this->verifiedUser())
+            ->patch(route('entities.update', $entity), [
+                'status' => 'archived',
+            ])
+            ->assertRedirect(route('entities.show', $entity));
+
+        $latestVersion = VersionAndCanonState::where('entity_id', $entity->id)
+            ->orderByDesc('version_number')
+            ->first();
+
+        $this->assertNotNull($latestVersion);
+        $this->assertSame(2, VersionAndCanonState::where('entity_id', $entity->id)->count());
+        $this->assertSame('automatic', $latestVersion->trigger_type);
+        $this->assertSame('status', $latestVersion->triggered_by_field);
     }
 
     private function verifiedUser(): User

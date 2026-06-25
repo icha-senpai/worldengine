@@ -28,7 +28,9 @@
             </div>
         </template>
 
-        <div v-if="items.length" class="surface-list">
+        <slot name="toolbar" />
+
+        <div v-if="items.length" class="index-surface">
             <component
                 :is="item.href ? DrawerLink : 'div'"
                 v-for="item in items"
@@ -39,12 +41,12 @@
                     preserveState: item.preserveState ?? false,
                     opensDrawer: item.opensDrawer ?? false,
                 } : {}"
-                class="record-card record-card--interactive"
+                class="index-record index-record--interactive"
             >
-                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div class="min-w-0 flex-1">
+                <div class="index-record__layout">
+                    <div class="index-record__copy">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="prose-wrap text-primary text-lg font-light leading-snug">{{ item.title }}</span>
+                            <span class="index-record__title prose-wrap">{{ item.title }}</span>
                             <span
                                 v-for="badge in item.badges ?? []"
                                 :key="badge.label + badge.value"
@@ -54,7 +56,7 @@
                             </span>
                         </div>
 
-                        <p v-if="item.subtitle" class="prose-wrap mt-2 text-muted-2 text-sm leading-relaxed">
+                        <p v-if="item.subtitle" class="index-record__subtitle prose-wrap">
                             {{ item.subtitle }}
                         </p>
 
@@ -69,7 +71,7 @@
                         </div>
                     </div>
 
-                    <div v-if="item.stats?.length" class="flex flex-wrap items-center gap-2 lg:max-w-[16rem] lg:flex-col lg:items-end lg:justify-start">
+                    <div v-if="item.stats?.length" class="index-record__side">
                         <span
                             v-for="stat in item.stats"
                             :key="stat.label + stat.value"
@@ -96,6 +98,28 @@
             </DrawerLink>
         </div>
 
+        <div v-if="hasPagination" class="index-pagination">
+            <span class="text-muted-3 text-sm font-ui">
+                Page {{ resolvedPagination.current_page }} of {{ resolvedPagination.last_page }}
+            </span>
+            <div class="flex items-center gap-1">
+                <Link
+                    v-if="resolvedPagination.prev_page_url"
+                    :href="resolvedPagination.prev_page_url"
+                    class="index-pagination__link"
+                >
+                    ← Prev
+                </Link>
+                <Link
+                    v-if="resolvedPagination.next_page_url"
+                    :href="resolvedPagination.next_page_url"
+                    class="index-pagination__link"
+                >
+                    Next →
+                </Link>
+            </div>
+        </div>
+
         <DrawerRouteShell
             v-if="showCreateDrawer"
             :open="showCreateDrawer"
@@ -115,8 +139,9 @@
 
 <script setup>
 import { computed } from 'vue'
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Link, usePage } from '@inertiajs/vue3'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import DrawerLink from '@/Components/ui/DrawerLink.vue'
@@ -136,6 +161,7 @@ const props = defineProps({
     createDrawerTitle: { type: String, default: '' },
     createCloseHref: { type: String, default: '' },
     items: { type: Array, default: () => [] },
+    pagination: { type: Object, default: null },
     emptyTitle: { type: String, default: 'No records found' },
     emptyCtaHref: { type: String, default: '' },
     emptyCtaLabel: { type: String, default: 'Create one ->' },
@@ -143,10 +169,27 @@ const props = defineProps({
     emptyCtaPreserveState: { type: Boolean, default: false },
 })
 
+const page = usePage()
+
 const showCreateDrawer = computed(() =>
     Boolean(props.createHref && props.createCloseHref)
     && (props.createDrawerOpen || matchesPendingDrawerHref(props.createHref))
 )
 
 const resolvedCreateDrawerTitle = computed(() => props.createDrawerTitle || props.createLabel)
+
+const isPaginationObject = (value) =>
+    value
+    && typeof value === 'object'
+    && Array.isArray(value.data)
+    && typeof value.current_page === 'number'
+    && typeof value.last_page === 'number'
+
+const inferredPagination = computed(() =>
+    Object.values(page.props ?? {}).find(isPaginationObject) ?? null
+)
+
+const resolvedPagination = computed(() => props.pagination ?? inferredPagination.value)
+
+const hasPagination = computed(() => (resolvedPagination.value?.last_page ?? 1) > 1)
 </script>

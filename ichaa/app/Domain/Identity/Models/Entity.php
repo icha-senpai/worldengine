@@ -36,6 +36,17 @@ class Entity extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public const STATUSES = [
+        'concept',
+        'recorded',
+        'active',
+        'archived',
+        'deceased',
+        'destroyed',
+        'dormant',
+        'unknown',
+    ];
+
     protected $table = 'entities';
 
     protected $fillable = [

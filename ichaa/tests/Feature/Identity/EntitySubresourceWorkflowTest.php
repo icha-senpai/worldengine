@@ -2,12 +2,14 @@
 
 namespace Tests\Feature\Identity;
 
+use App\Domain\Connections\Models\GroupRelationship;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityAlias;
 use App\Domain\Identity\Models\EntityNote;
 use App\Domain\Identity\Models\EntityQuestion;
 use App\Domain\Identity\Models\VersionAndCanonState;
 use App\Domain\Identity\Services\EntityService;
+use App\Domain\Identity\ValueObjects\ContentClassification;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Models\User;
@@ -26,6 +28,9 @@ class EntitySubresourceWorkflowTest extends TestCase
             'name' => 'Seraphine',
             'has_aliases' => false,
         ]);
+        $audienceEntity = Entity::factory()->character()->create([
+            'name' => 'Johnny Voss',
+        ]);
 
         $this->actingAs($user)
             ->from(route('entities.show', $entity))
@@ -35,10 +40,11 @@ class EntitySubresourceWorkflowTest extends TestCase
                 'context' => 'Used by the old court.',
                 'era_start' => 'Cycle 1',
                 'is_active' => true,
-                'visibility' => '',
-                'content_classification' => '',
+                'known_by_entity_ids' => [$audienceEntity->id],
+                'visibility' => VisibilityLevel::SECRET,
+                'content_classification' => ContentClassification::AUTHOR_ONLY,
             ])
-            ->assertRedirect(route('entities.show', $entity))
+            ->assertRedirect(route('entities.show', ['entity' => $entity, 'tab' => 'aliases']))
             ->assertSessionHas('success');
 
         /** @var EntityAlias $alias */
@@ -47,30 +53,38 @@ class EntitySubresourceWorkflowTest extends TestCase
         $this->assertNotNull($alias);
         $this->assertSame('Silent Heir', $alias->alias);
         $this->assertSame('title', $alias->alias_type);
-        $this->assertSame('private', $alias->visibility);
-        $this->assertSame('restricted', $alias->content_classification);
+        $this->assertSame([$audienceEntity->id], $alias->known_by_entity_ids);
+        $this->assertSame(VisibilityLevel::SECRET, $alias->visibility);
+        $this->assertSame(ContentClassification::AUTHOR_ONLY, $alias->content_classification);
 
         $this->actingAs($user)
             ->from(route('entities.show', $entity))
             ->put(route('entities.aliases.update', [$entity, $alias]), [
                 'alias' => 'Hidden Heir',
-                'alias_type' => 'title',
+                'alias_type' => 'hidden_title',
                 'context' => 'After the fracture.',
                 'era_end' => 'Cycle 2',
                 'is_active' => false,
+                'known_by_entity_ids' => [],
+                'visibility' => VisibilityLevel::PUBLIC_KNOWLEDGE,
+                'content_classification' => ContentClassification::PUBLIC,
             ])
-            ->assertRedirect(route('entities.show', $entity))
+            ->assertRedirect(route('entities.show', ['entity' => $entity, 'tab' => 'aliases']))
             ->assertSessionHas('success');
 
         $alias->refresh();
 
         $this->assertSame('Hidden Heir', $alias->alias);
+        $this->assertSame('hidden_title', $alias->alias_type);
+        $this->assertSame([], $alias->known_by_entity_ids);
+        $this->assertSame(VisibilityLevel::PUBLIC_KNOWLEDGE, $alias->visibility);
+        $this->assertSame(ContentClassification::PUBLIC, $alias->content_classification);
         $this->assertSame('Cycle 2', $alias->era_end);
         $this->assertFalse($alias->is_active);
 
         $this->actingAs($user)
             ->delete(route('entities.aliases.destroy', [$entity, $alias]))
-            ->assertRedirect(route('entities.show', $entity))
+            ->assertRedirect(route('entities.show', ['entity' => $entity, 'tab' => 'aliases']))
             ->assertSessionHas('success');
 
         $this->assertSoftDeleted('entity_aliases', ['id' => $alias->id]);
@@ -94,7 +108,7 @@ class EntitySubresourceWorkflowTest extends TestCase
                 'note_label' => 'Backstory',
                 'content' => 'Second note',
             ])
-            ->assertRedirect(route('entities.show', $entity))
+            ->assertRedirect(route('entities.show', ['entity' => $entity, 'tab' => 'notes']))
             ->assertSessionHas('success');
 
         /** @var EntityNote $note */
@@ -109,7 +123,7 @@ class EntitySubresourceWorkflowTest extends TestCase
                 'content' => 'Expanded note',
                 'sort_order' => 2,
             ])
-            ->assertRedirect(route('entities.show', $entity))
+            ->assertRedirect(route('entities.show', ['entity' => $entity, 'tab' => 'notes']))
             ->assertSessionHas('success');
 
         $note->refresh();
@@ -120,7 +134,7 @@ class EntitySubresourceWorkflowTest extends TestCase
 
         $this->actingAs($user)
             ->delete(route('entities.notes.destroy', [$entity, $note]))
-            ->assertRedirect(route('entities.show', $entity))
+            ->assertRedirect(route('entities.show', ['entity' => $entity, 'tab' => 'notes']))
             ->assertSessionHas('success');
 
         $this->assertSoftDeleted('entity_notes', ['id' => $note->id]);
@@ -131,6 +145,13 @@ class EntitySubresourceWorkflowTest extends TestCase
         $user = $this->verifiedUser();
         $entity = Entity::factory()->character()->create(['name' => 'Aurelia Vex']);
         $linkedEntity = Entity::factory()->create(['name' => 'Seraphine']);
+        $linkedGroup = GroupRelationship::create([
+            'name' => 'The Quiet Accord',
+            'relationship_type' => 'alliance',
+            'current_tension_charge' => 'neutral',
+            'visibility' => VisibilityLevel::PRIVATE,
+            'content_classification' => ContentClassification::RESTRICTED,
+        ]);
 
         EntityQuestion::create([
             'entity_id' => $entity->id,
@@ -148,24 +169,29 @@ class EntitySubresourceWorkflowTest extends TestCase
                 'priority' => 'blocking',
                 'status' => 'open',
                 'linked_entity_ids' => [$linkedEntity->id],
+                'linked_group_relationship_ids' => [$linkedGroup->id],
+                'sort_order' => 7,
             ])
-            ->assertRedirect(route('entities.show', $entity))
+            ->assertRedirect(route('entities.show', ['entity' => $entity, 'tab' => 'questions']))
             ->assertSessionHas('success');
 
         /** @var EntityQuestion $question */
         $question = EntityQuestion::where('question', 'Does Aurelia foresee the fracture?')->first();
 
         $this->assertNotNull($question);
-        $this->assertSame(2, $question->sort_order);
+        $this->assertSame(7, $question->sort_order);
         $this->assertSame([$linkedEntity->id], $question->linked_entity_ids);
+        $this->assertSame([$linkedGroup->id], $question->linked_group_relationship_ids);
 
         $this->actingAs($user)
             ->put(route('entities.questions.update', [$entity, $question]), [
                 'status' => 'resolved',
                 'resolution' => 'Yes, but too late to stop it.',
                 'priority' => 'blocking',
+                'linked_entity_ids' => [$linkedEntity->id],
+                'linked_group_relationship_ids' => [$linkedGroup->id],
             ])
-            ->assertRedirect(route('entities.show', $entity))
+            ->assertRedirect(route('entities.show', ['entity' => $entity, 'tab' => 'questions']))
             ->assertSessionHas('success');
 
         $question->refresh();
@@ -176,7 +202,7 @@ class EntitySubresourceWorkflowTest extends TestCase
 
         $this->actingAs($user)
             ->delete(route('entities.questions.destroy', [$entity, $question]))
-            ->assertRedirect(route('entities.show', $entity))
+            ->assertRedirect(route('entities.show', ['entity' => $entity, 'tab' => 'questions']))
             ->assertSessionHas('success');
 
         $this->assertSoftDeleted('entity_questions', ['id' => $question->id]);

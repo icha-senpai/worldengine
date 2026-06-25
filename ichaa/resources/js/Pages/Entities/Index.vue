@@ -3,12 +3,14 @@
     <AuthenticatedLayout>
 
         <template #header>
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div class="flex flex-wrap items-baseline gap-3">
-                    <h1 class="text-primary text-2xl font-light tracking-wide">Entities</h1>
-                    <span class="text-muted-3 text-sm font-ui">{{ entities.total }} total</span>
+            <div class="page-hero">
+                <div class="page-hero__copy">
+                    <div class="page-hero__eyebrow">
+                        <span>{{ entities.total }} total</span>
+                    </div>
+                    <h1 class="page-hero__title page-hero__title--lg">Entities</h1>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
+                <div class="page-hero__actions">
                     <NotionSyncButton resource="entities" label="Sync from Notion" />
                     <AppButton
                         :href="route('entities.create')"
@@ -23,10 +25,8 @@
             </div>
         </template>
 
-        <!-- FILTERS -->
-        <div class="flex items-center gap-3 mb-5 flex-wrap">
+        <div class="index-toolbar">
 
-            <!-- Search -->
             <div class="relative w-full sm:flex-1 sm:min-w-48 sm:max-w-72">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-3" viewBox="0 0 16 16" fill="none">
                     <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
@@ -41,7 +41,6 @@
                 />
             </div>
 
-            <!-- Type filter — grouped by category -->
             <SelectInput v-model="filterForm.type" class="w-full sm:w-auto" @change="applyFilters">
                 <option value="">All types</option>
                 <template v-for="(types, category) in entityTypes" :key="category">
@@ -50,19 +49,16 @@
                 </template>
             </SelectInput>
 
-            <!-- Status filter -->
             <SelectInput v-model="filterForm.status" class="w-full sm:w-auto" @change="applyFilters">
                 <option value="">All statuses</option>
                 <option v-for="s in statuses" :key="s" :value="s">{{ formatLabel(s) }}</option>
             </SelectInput>
 
-            <!-- Universe filter -->
             <SelectInput v-model="filterForm.universe" class="w-full sm:w-auto" @change="applyFilters">
                 <option value="">All universes</option>
                 <option v-for="u in universes" :key="u" :value="u">{{ u }}</option>
             </SelectInput>
 
-            <!-- Active filters indicator -->
             <AppButton
                 v-if="hasActiveFilters"
                 type="button"
@@ -71,13 +67,10 @@
             >
                 Clear filters ×
             </AppButton>
-
         </div>
 
-        <!-- TABLE -->
-        <div class="bg-surface-2 border border-border rounded-md overflow-hidden">
+        <div class="index-surface">
 
-            <!-- Header row -->
             <div class="hidden md:grid grid-cols-entity-list items-center px-4 py-3 border-b border-border bg-surface">
                 <span class="col-label">Entity</span>
                 <span class="col-label">Type</span>
@@ -86,7 +79,6 @@
                 <span class="col-label text-right">Complete</span>
             </div>
 
-            <!-- Empty state -->
             <div v-if="entities.data.length === 0" class="px-4 py-16 text-center">
                 <p class="text-muted-3 text-sm font-ui uppercase tracking-widest">No entities found</p>
                 <DrawerLink
@@ -100,14 +92,12 @@
                 </DrawerLink>
             </div>
 
-            <!-- Entity rows -->
             <Link
                 v-for="entity in entities.data"
                 :key="entity.id"
                 :href="route('entities.show', entity.id)"
                 class="grid-cols-entity-list flex flex-col gap-3 px-4 py-4 border-b border-border last:border-b-0 hover:bg-surface transition-colors group md:grid md:items-start md:gap-x-0 md:gap-y-2"
             >
-                <!-- Name + summary -->
                 <div class="min-w-0 md:pr-4">
                     <div class="flex items-center gap-2">
                         <span class="text-primary text-base font-light group-hover:text-focus transition-colors prose-wrap">
@@ -119,7 +109,6 @@
                     </div>
                 </div>
 
-                <!-- Type -->
                 <div class="flex items-center justify-between gap-3 md:block">
                     <span class="mobile-label md:hidden">Type</span>
                     <span class="type-badge" :class="typeBadgeClass(entity.entity_type)">
@@ -127,7 +116,6 @@
                     </span>
                 </div>
 
-                <!-- Status -->
                 <div class="flex items-center justify-between gap-3 md:block">
                     <span class="mobile-label md:hidden">Status</span>
                     <div class="flex items-center md:block">
@@ -136,7 +124,6 @@
                     </div>
                 </div>
 
-                <!-- Universe -->
                 <div class="flex items-center justify-between gap-3 md:block">
                     <span class="mobile-label md:hidden">Universe</span>
                     <div class="prose-wrap text-muted-3 text-sm font-ui">
@@ -144,7 +131,6 @@
                     </div>
                 </div>
 
-                <!-- Completion score -->
                 <div class="flex items-center justify-between gap-3 md:justify-end md:self-start">
                     <span class="mobile-label md:hidden">Complete</span>
                     <div class="flex items-center gap-2">
@@ -167,8 +153,7 @@
             </Link>
         </div>
 
-        <!-- PAGINATION -->
-        <div v-if="entities.last_page > 1" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div v-if="entities.last_page > 1" class="index-pagination">
             <span class="text-muted-3 text-sm font-ui">
                 Page {{ entities.current_page }} of {{ entities.last_page }}
             </span>
@@ -176,14 +161,14 @@
                 <Link
                     v-if="entities.prev_page_url"
                     :href="entities.prev_page_url"
-                    class="px-3 py-2 text-sm font-ui border border-border rounded-md text-muted-2 hover:border-border-2 hover:text-primary transition-colors"
+                    class="index-pagination__link"
                 >
                     ← Prev
                 </Link>
                 <Link
                     v-if="entities.next_page_url"
                     :href="entities.next_page_url"
-                    class="px-3 py-2 text-sm font-ui border border-border rounded-md text-muted-2 hover:border-border-2 hover:text-primary transition-colors"
+                    class="index-pagination__link"
                 >
                     Next →
                 </Link>

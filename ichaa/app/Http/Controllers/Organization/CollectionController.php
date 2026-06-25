@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Organization;
 
 use App\Domain\Identity\Models\Entity;
+use App\Domain\Identity\ValueObjects\ContentClassification;
+use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Domain\Organization\Models\Collection;
 use App\Domain\Organization\Services\CollectionService;
 use App\Http\Controllers\Controller;
@@ -112,6 +114,8 @@ class CollectionController extends Controller
             'types' => Collection::TYPES,
             'modes' => Collection::MODES,
             'completionStates' => Collection::COMPLETION_STATES,
+            'visibilityLevels' => VisibilityLevel::ALL,
+            'contentClassifications' => ContentClassification::ALL,
         ];
     }
 

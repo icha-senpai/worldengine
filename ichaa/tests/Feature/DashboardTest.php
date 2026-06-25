@@ -4,12 +4,16 @@ namespace Tests\Feature;
 
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityQuestion;
+use App\Domain\Identity\Models\VersionAndCanonState;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\PerceptionState;
 use App\Domain\Intelligence\Models\Secret;
+use App\Domain\Production\Models\Meta;
 use App\Domain\Production\Models\PipelineItem;
 use App\Domain\Production\Models\SessionLog;
+use App\Domain\System\Models\Setting;
+use App\Domain\World\Models\PowerInteraction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -102,7 +106,7 @@ class DashboardTest extends TestCase
                 ->where('sessionStats.session_count', 2)
                 ->where('sessionStats.major_count', 1)
                 ->where('sessionStats.tools_used', ['claude', 'chatgpt'])
-                ->has('recentPipeline', 1)
+                ->has('recentPipeline')
                 ->where('recentPipeline.0.title', 'Library breach')
                 ->has('latentTension', 1)
                 ->where('latentTension.0.knower.name', 'Johnny')
@@ -114,6 +118,81 @@ class DashboardTest extends TestCase
                 ->where('perceptionGaps.0.revelation_risk', 'high')
                 ->has('blockingQuestions', 1)
                 ->where('blockingQuestions.0.entity.name', 'Seraphine')
+            );
+    }
+
+    public function test_dashboard_notification_preferences_gate_the_optional_alert_panels(): void
+    {
+        $user = $this->verifiedUser();
+        $systemA = Entity::factory()->create([
+            'name' => 'Storm Binding',
+            'entity_type' => 'power_system',
+        ]);
+        $systemB = Entity::factory()->create([
+            'name' => 'Null Weave',
+            'entity_type' => 'magic_system',
+        ]);
+
+        Meta::create([
+            'title' => 'Contradiction: breach timing',
+            'category' => 'tensions_and_contradictions',
+            'meta_note_type' => 'question',
+            'priority' => 'blocking',
+            'action_status' => 'pending',
+        ]);
+
+        PowerInteraction::create([
+            'system_a_entity_id' => $systemA->id,
+            'system_b_entity_id' => $systemB->id,
+            'interaction_name' => 'Storm and Null',
+            'directionality' => 'contextual',
+            'knowledge_state' => 'rumored',
+            'danger_rating' => 'high',
+            'unresolved_flag' => true,
+            'visibility' => 'private',
+            'content_classification' => 'restricted',
+        ]);
+
+        VersionAndCanonState::create([
+            'entity_id' => $systemA->id,
+            'version_type' => 'soft',
+            'version_number' => 3,
+            'version_label' => 'Old Storm Binding',
+            'version_state' => 'deprecated',
+            'is_current' => false,
+            'is_version_zero' => false,
+            'entity_snapshot' => [],
+            'trigger_type' => 'manual',
+            'deprecated_at' => now(),
+            'visibility' => 'private',
+            'content_classification' => 'restricted',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('blockingContradictions', 1)
+                ->has('unresolvedInteractions', 1)
+                ->has('deprecatedCanonStates', 1)
+            );
+
+        $settings = Setting::singleton();
+        $settings->update([
+            'notification_preferences' => array_merge($settings->notification_preferences ?? [], [
+                'flag_blocking_contradictions' => false,
+                'flag_unresolved_power_interactions' => false,
+                'flag_deprecated_canon_states' => false,
+            ]),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('blockingContradictions', 0)
+                ->has('unresolvedInteractions', 0)
+                ->has('deprecatedCanonStates', 0)
             );
     }
 

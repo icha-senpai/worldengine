@@ -18,6 +18,15 @@
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first relationship ->"
         >
+        <template #toolbar>
+            <ScaffoldFilterBar
+                :fields="filterFields"
+                :form="filterForm"
+                :has-active-filters="hasActiveFilters"
+                :on-apply="applyFilters"
+                :on-clear="clearFilters"
+            />
+        </template>
         <template #create-drawer>
             <CreateRelationship
                 v-if="createDrawer"
@@ -31,9 +40,11 @@
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreateRelationship from '@/Pages/Relationships/Create.vue'
 import { asArray, badge, buildMeta, countRecords, formatLabel } from '@/Pages/scaffold/pageBuilders'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     relationships: { type: Object, required: true },
@@ -42,6 +53,20 @@ const props = defineProps({
     tensionCharges: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
 })
+
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('relationships.index', {
+    type: props.filters.type ?? '',
+    charge: props.filters.charge ?? '',
+    volatile: Boolean(props.filters.volatile),
+    masked: Boolean(props.filters.masked),
+})
+
+const filterFields = computed(() => [
+    { key: 'type', type: 'select', placeholder: 'All types', options: props.relationshipTypes },
+    { key: 'charge', type: 'select', placeholder: 'All charges', options: props.tensionCharges },
+    { key: 'volatile', type: 'checkbox', label: 'Volatile only' },
+    { key: 'masked', type: 'checkbox', label: 'Masked only' },
+])
 
 const items = computed(() =>
     asArray(props.relationships).map((relationship) => ({

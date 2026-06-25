@@ -18,6 +18,15 @@
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first interaction ->"
         >
+        <template #toolbar>
+            <ScaffoldFilterBar
+                :fields="filterFields"
+                :form="filterForm"
+                :has-active-filters="hasActiveFilters"
+                :on-apply="applyFilters"
+                :on-clear="clearFilters"
+            />
+        </template>
         <template #create-drawer>
             <CreatePowerInteraction
                 v-if="createDrawer"
@@ -31,15 +40,25 @@
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreatePowerInteraction from '@/Pages/World/PowerInteractions/Create.vue'
 import { asArray, badge, buildMeta, countRecords, formatLabel } from '@/Pages/scaffold/pageBuilders'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     interactions: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
     createDrawer: { type: Object, default: null },
 })
+
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('power-interactions.index', {
+    unresolved: Boolean(props.filters.unresolved),
+})
+
+const filterFields = [
+    { key: 'unresolved', type: 'checkbox', label: 'Unresolved only' },
+]
 
 const items = computed(() =>
     asArray(props.interactions).map((interaction) => ({

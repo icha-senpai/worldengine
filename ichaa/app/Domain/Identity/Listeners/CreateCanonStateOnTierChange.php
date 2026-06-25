@@ -6,6 +6,7 @@ use App\Domain\Identity\Events\PowerTierChanged;
 use App\Domain\Identity\Events\TrueNatureChanged;
 use App\Domain\Identity\Events\EntityStatusChanged;
 use App\Domain\Identity\Models\VersionAndCanonState;
+use App\Domain\System\Models\Setting;
 
 class CreateCanonStateOnTierChange
 {
@@ -14,6 +15,10 @@ class CreateCanonStateOnTierChange
 
     public function handlePowerTierChanged(PowerTierChanged $event): void
     {
+        if (! $this->settings()->notificationFlag('auto_save_canon_state_on_power_tier_change', true)) {
+            return;
+        }
+
         // Ceiling changes always snapshot
         // Operating changes only snapshot if crossing the planetary threshold
         if (!$event->isCeilingChange() && !$event->crossedPlanetaryThreshold()) {
@@ -29,6 +34,10 @@ class CreateCanonStateOnTierChange
 
     public function handleTrueNatureChanged(TrueNatureChanged $event): void
     {
+        if (! $this->settings()->notificationFlag('auto_save_canon_state_on_true_nature_change', true)) {
+            return;
+        }
+
         // True nature changes always snapshot — no threshold check needed
         $this->createSnapshot(
             entity: $event->entity,
@@ -41,6 +50,10 @@ class CreateCanonStateOnTierChange
 
     public function handleEntityStatusChanged(EntityStatusChanged $event): void
     {
+        if (! $this->settings()->notificationFlag('auto_save_canon_state_on_status_change', false)) {
+            return;
+        }
+
         if (!$event->isSignificant()) {
             return;
         }
@@ -101,5 +114,10 @@ class CreateCanonStateOnTierChange
         $direction = $event->isIncrease() ? 'ascended' : 'descended';
 
         return "{$axisLabel} {$direction}: {$event->previousTier} → {$event->newTier} — {$event->entity->name}";
+    }
+
+    private function settings(): Setting
+    {
+        return Setting::singleton();
     }
 }

@@ -18,6 +18,15 @@
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first term ->"
         >
+        <template #toolbar>
+            <ScaffoldFilterBar
+                :fields="filterFields"
+                :form="filterForm"
+                :has-active-filters="hasActiveFilters"
+                :on-apply="applyFilters"
+                :on-clear="clearFilters"
+            />
+        </template>
         <template #create-drawer>
             <CreateGlossary
                 v-if="createDrawer"
@@ -31,15 +40,29 @@
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreateGlossary from '@/Pages/Glossary/Create.vue'
 import { asArray, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     terms: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
+    usageContexts: { type: Array, default: () => [] },
+    originUniverses: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
 })
+
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('glossary.index', {
+    universe: props.filters.universe ?? '',
+    context: props.filters.context ?? '',
+})
+
+const filterFields = computed(() => [
+    { key: 'universe', type: 'select', placeholder: 'All universes', options: props.originUniverses },
+    { key: 'context', type: 'select', placeholder: 'All contexts', options: props.usageContexts },
+])
 
 const items = computed(() =>
     asArray(props.terms).map((term) => ({

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\System\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use Inertia\Response;
 
@@ -9,13 +10,18 @@ class DashboardController extends Controller
 {
     public function index(): Response
     {
+        $settings = Setting::singleton();
+
         return $this->page('Dashboard', [
-            'recentPipeline'    => $this->recentPipeline(),
-            'sessionStats'      => $this->sessionStats(),
-            'latentTension'     => $this->latentTension(),
-            'exposureRisk'      => $this->exposureRisk(),
-            'perceptionGaps'    => $this->perceptionGaps(),
-            'blockingQuestions' => $this->blockingQuestions(),
+            'recentPipeline'         => $this->recentPipeline(),
+            'sessionStats'           => $this->sessionStats(),
+            'latentTension'          => $this->latentTension(),
+            'exposureRisk'           => $this->exposureRisk(),
+            'perceptionGaps'         => $this->perceptionGaps(),
+            'blockingQuestions'      => $settings->notificationFlag('flag_blocking_entity_questions', true) ? $this->blockingQuestions() : [],
+            'blockingContradictions' => $settings->notificationFlag('flag_blocking_contradictions', true) ? $this->blockingContradictions() : [],
+            'unresolvedInteractions' => $settings->notificationFlag('flag_unresolved_power_interactions', true) ? $this->unresolvedInteractions() : [],
+            'deprecatedCanonStates'  => $settings->notificationFlag('flag_deprecated_canon_states', true) ? $this->deprecatedCanonStates() : [],
         ]);
     }
 
@@ -196,6 +202,86 @@ class DashboardController extends Controller
                 'question' => $row->question,
                 'priority' => $row->priority,
                 'entity'   => ['id' => $row->entity_id, 'name' => $row->entity_name],
+            ])
+            ->toArray();
+    }
+
+    private function blockingContradictions(): array
+    {
+        return DB::table('meta')
+            ->whereNull('deleted_at')
+            ->whereNull('superseded_by_meta_id')
+            ->where('category', 'tensions_and_contradictions')
+            ->where('priority', 'blocking')
+            ->whereNull('resolved_at')
+            ->orderByDesc('updated_at')
+            ->limit(12)
+            ->get(['id', 'title', 'meta_note_type', 'action_status'])
+            ->map(fn ($row) => [
+                'id' => $row->id,
+                'title' => $row->title,
+                'meta_note_type' => $row->meta_note_type,
+                'action_status' => $row->action_status,
+            ])
+            ->toArray();
+    }
+
+    private function unresolvedInteractions(): array
+    {
+        return DB::table('power_interactions as pi')
+            ->leftJoin('entities as a', 'a.id', '=', 'pi.system_a_entity_id')
+            ->leftJoin('entities as b', 'b.id', '=', 'pi.system_b_entity_id')
+            ->whereNull('pi.deleted_at')
+            ->where('pi.unresolved_flag', true)
+            ->orderByDesc('pi.updated_at')
+            ->limit(12)
+            ->get([
+                'pi.id',
+                'pi.interaction_name',
+                'pi.knowledge_state',
+                'pi.danger_rating',
+                'a.name as system_a_name',
+                'b.name as system_b_name',
+            ])
+            ->map(fn ($row) => [
+                'id' => $row->id,
+                'interaction_name' => $row->interaction_name,
+                'knowledge_state' => $row->knowledge_state,
+                'danger_rating' => $row->danger_rating,
+                'system_a_name' => $row->system_a_name,
+                'system_b_name' => $row->system_b_name,
+            ])
+            ->toArray();
+    }
+
+    private function deprecatedCanonStates(): array
+    {
+        return DB::table('versions_and_canon_states as vcs')
+            ->join('entities as e', 'e.id', '=', 'vcs.entity_id')
+            ->leftJoin('versions_and_canon_states as replacement', 'replacement.id', '=', 'vcs.superseded_by_version_id')
+            ->whereNull('vcs.deleted_at')
+            ->where('vcs.version_state', 'deprecated')
+            ->orderByDesc('vcs.deprecated_at')
+            ->limit(12)
+            ->get([
+                'vcs.id',
+                'vcs.version_label',
+                'vcs.version_number',
+                'vcs.deprecated_at',
+                'e.id as entity_id',
+                'e.name as entity_name',
+                'replacement.version_label as replacement_label',
+            ])
+            ->map(fn ($row) => [
+                'id' => $row->id,
+                'version_label' => $row->version_label,
+                'version_number' => $row->version_number,
+                'deprecated_at' => $row->deprecated_at,
+                'entity' => [
+                    'id' => $row->entity_id,
+                    'name' => $row->entity_name,
+                ],
+                'replacement_label' => $row->replacement_label,
             ])
             ->toArray();
     }

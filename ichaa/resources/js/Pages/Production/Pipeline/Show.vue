@@ -2,31 +2,41 @@
     <AuthenticatedLayout>
 
         <template #header>
-            <div class="flex items-start justify-between gap-4">
+            <div class="page-hero">
 
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
+                <div class="page-hero__copy min-w-0">
+                    <div class="page-hero__eyebrow">
                         <Link :href="route('pipeline.index')" class="text-muted-3 text-sm font-ui hover:text-muted-2 transition-colors">
                             Pipeline
                         </Link>
-                        <span class="text-muted-3 text-sm font-ui">/</span>
+                        <span>/</span>
                         <span v-if="item.parent" class="text-muted-3 text-sm font-ui hover:text-muted-2 transition-colors">
                             <Link :href="route('pipeline.show', item.parent.id)">{{ item.parent.title }}</Link>
                         </span>
-                        <span v-if="item.parent" class="text-muted-3 text-sm font-ui">/</span>
+                        <span v-if="item.parent">/</span>
                         <span class="type-chip" :class="'type--' + item.pipeline_type">
                             {{ formatLabel(item.pipeline_type) }}
                         </span>
                     </div>
-                    <h1 class="text-primary text-2xl font-light tracking-wide leading-tight">
+                    <h1 class="page-hero__title page-hero__title--md">
                         {{ item.title }}
                     </h1>
+                    <p v-if="pipelineSubtitle" class="page-hero__subtitle prose-wrap">
+                        {{ pipelineSubtitle }}
+                    </p>
+                    <div v-if="pipelineHeroMeta.length" class="page-hero__meta">
+                        <div
+                            v-for="meta in pipelineHeroMeta"
+                            :key="meta.label"
+                            class="page-hero__meta-item"
+                        >
+                            <span class="page-hero__meta-label">{{ meta.label }}</span>
+                            <span class="page-hero__meta-value">{{ meta.value }}</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex shrink-0 items-center gap-2 pt-1">
-                    <span class="stage-badge" :class="'stage--' + item.pipeline_stage">
-                        {{ formatLabel(item.pipeline_stage) }}
-                    </span>
+                <div class="page-hero__actions">
                     <AppButton
                         v-if="canAdvance"
                         @click="advance"
@@ -48,27 +58,35 @@
             </div>
         </template>
 
-        <div class="space-y-5">
+        <div class="detail-shell">
 
-            <!-- STATS BAR (word count / reading time) -->
-            <div v-if="item.word_count" class="flex items-center gap-4 p-3 bg-surface-2 border border-border rounded-md">
-                <div class="metric">
-                    <span class="metric-label">Words</span>
-                    <span class="metric-value">{{ item.word_count.toLocaleString() }}</span>
+            <div v-if="showMetricStrip" class="dashboard-metric-strip">
+                <div class="dashboard-metric">
+                    <span class="dashboard-metric__label">Stage</span>
+                    <span class="dashboard-metric__value">{{ formatLabel(item.pipeline_stage || 'concept') }}</span>
                 </div>
-                <div v-if="item.reading_time_minutes" class="metric">
-                    <span class="metric-label">Reading Time</span>
-                    <span class="metric-value">{{ readingTime }}</span>
+                <div class="dashboard-metric">
+                    <span class="dashboard-metric__label">Words</span>
+                    <span class="dashboard-metric__value">{{ item.word_count ? item.word_count.toLocaleString() : '—' }}</span>
                 </div>
-                <div v-if="item.pipeline_stage" class="metric">
-                    <span class="metric-label">Stage</span>
-                    <span class="metric-value">{{ formatLabel(item.pipeline_stage) }}</span>
+                <div class="dashboard-metric">
+                    <span class="dashboard-metric__label">Reading Time</span>
+                    <span class="dashboard-metric__value">{{ readingTime }}</span>
+                </div>
+                <div class="dashboard-metric">
+                    <span class="dashboard-metric__label">Sub-Items</span>
+                    <span class="dashboard-metric__value">{{ item.children?.length ?? 0 }}</span>
                 </div>
             </div>
 
             <!-- CONTENT (prose/notes body) -->
             <div v-if="item.content" class="panel">
-                <h3 class="panel-label">Content</h3>
+                <div class="panel-heading">
+                    <div>
+                        <h3 class="panel-label mb-1!">Content</h3>
+                        <p class="panel-copy">Primary draft material or core writing payload for this pipeline item.</p>
+                    </div>
+                </div>
                 <RichDocumentValue
                     v-if="isRichDocument(item.content)"
                     :content="item.content"
@@ -77,10 +95,15 @@
             </div>
 
             <!-- SCENE DETAILS -->
-            <div v-if="item.pipeline_type === 'scene'" class="grid grid-cols-2 gap-4">
+            <div v-if="item.pipeline_type === 'scene'" class="grid gap-4 md:grid-cols-2">
 
                 <div class="panel">
-                    <h3 class="panel-label">Scene</h3>
+                    <div class="panel-heading">
+                        <div>
+                            <h3 class="panel-label mb-1!">Scene</h3>
+                            <p class="panel-copy">Point-of-view anchors and scene-level framing details.</p>
+                        </div>
+                    </div>
                     <div class="space-y-2">
                         <div class="flex items-start gap-2">
                             <span class="field-label field-label--fixed">POV</span>
@@ -108,7 +131,12 @@
                 </div>
 
                 <div v-if="item.narrative_purpose" class="panel">
-                    <h3 class="panel-label">Narrative Purpose</h3>
+                    <div class="panel-heading">
+                        <div>
+                            <h3 class="panel-label mb-1!">Narrative Purpose</h3>
+                            <p class="panel-copy">Why this scene exists and what it needs to move in the story.</p>
+                        </div>
+                    </div>
                     <RichDocumentValue
                         v-if="isRichDocument(item.narrative_purpose)"
                         :content="item.narrative_purpose"
@@ -120,7 +148,12 @@
 
             <!-- CHARACTER STUDY / ARC TRACKER -->
             <div v-if="item.pipeline_type === 'character_study' && (item.tracked_entity || item.arc_stage || item.arc_notes)" class="panel">
-                <h3 class="panel-label">Arc Tracker</h3>
+                <div class="panel-heading">
+                    <div>
+                        <h3 class="panel-label mb-1!">Arc Tracker</h3>
+                        <p class="panel-copy">Track the character focus, their current stage, and any notes shaping the arc.</p>
+                    </div>
+                </div>
                 <div class="space-y-2">
                     <div v-if="item.tracked_entity" class="flex items-start gap-2">
                         <span class="field-label field-label--fixed">Character</span>
@@ -147,7 +180,12 @@
 
             <!-- AUTHOR NOTES -->
             <div v-if="item.notes" class="panel">
-                <h3 class="panel-label">Author Notes</h3>
+                <div class="panel-heading">
+                    <div>
+                        <h3 class="panel-label mb-1!">Author Notes</h3>
+                        <p class="panel-copy">Private notes for revisions, constraints, and decisions around this item.</p>
+                    </div>
+                </div>
                 <RichDocumentValue
                     v-if="isRichDocument(item.notes)"
                     :content="item.notes"
@@ -156,30 +194,38 @@
             </div>
 
             <!-- CHILDREN (sub-items: scenes under a chapter, etc.) -->
-            <div v-if="item.children && item.children.length" class="space-y-2">
-                <h3 class="subsection-label">Sub-Items ({{ item.children.length }})</h3>
-                <Link
-                    v-for="child in item.children"
-                    :key="child.id"
-                    :href="route('pipeline.show', child.id)"
-                    class="record-card record-card--interactive"
-                >
-                    <div class="flex items-center gap-3">
-                        <span class="type-chip" :class="'type--' + child.pipeline_type">
-                            {{ formatLabel(child.pipeline_type) }}
-                        </span>
-                        <span class="stage-badge stage-badge--sm" :class="'stage--' + child.pipeline_stage">
-                            {{ formatLabel(child.pipeline_stage) }}
-                        </span>
-                        <span class="text-muted-2 text-sm">{{ child.title }}</span>
-                        <span v-if="child.pov_character" class="text-muted-3 text-sm font-ui ml-auto">
-                            {{ child.pov_character.name }}
-                        </span>
-                        <span v-if="child.word_count" class="text-muted-3 text-sm font-ui ml-auto">
-                            {{ child.word_count.toLocaleString() }}w
-                        </span>
+            <div v-if="item.children && item.children.length" class="panel space-y-4">
+                <div class="panel-heading">
+                    <div>
+                        <h3 class="panel-label mb-1!">Sub-Items</h3>
+                        <p class="panel-copy">Nested scenes, chapters, and supporting pieces attached to this parent item.</p>
                     </div>
-                </Link>
+                    <span class="mini-chip">{{ item.children.length }} linked</span>
+                </div>
+                <div class="space-y-3">
+                    <Link
+                        v-for="child in item.children"
+                        :key="child.id"
+                        :href="route('pipeline.show', child.id)"
+                        class="record-card record-card--interactive"
+                    >
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="type-chip" :class="'type--' + child.pipeline_type">
+                                {{ formatLabel(child.pipeline_type) }}
+                            </span>
+                            <span class="stage-badge stage-badge--sm" :class="'stage--' + child.pipeline_stage">
+                                {{ formatLabel(child.pipeline_stage) }}
+                            </span>
+                            <span class="text-muted-2 text-sm">{{ child.title }}</span>
+                            <span v-if="child.pov_character" class="text-muted-3 text-sm font-ui ml-auto">
+                                {{ child.pov_character.name }}
+                            </span>
+                            <span v-if="child.word_count" class="text-muted-3 text-sm font-ui">
+                                {{ child.word_count.toLocaleString() }}w
+                            </span>
+                        </div>
+                    </Link>
+                </div>
                 <DrawerLink
                     :href="route('pipeline.create', { parent: item.id })"
                     opens-drawer
@@ -192,7 +238,12 @@
 
             <!-- ACCESS -->
             <div class="panel">
-                <h3 class="panel-label">Access</h3>
+                <div class="panel-heading">
+                    <div>
+                        <h3 class="panel-label mb-1!">Access</h3>
+                        <p class="panel-copy">Visibility and classification settings controlling who should treat this item as readable or sensitive.</p>
+                    </div>
+                </div>
                 <div class="flex items-center gap-4">
                     <div class="flex items-start gap-2">
                         <span class="field-label field-label--fixed">Visibility</span>
@@ -289,6 +340,22 @@ const stageProgression = {
 
 const canAdvance = computed(() =>
     props.item.pipeline_stage in stageProgression
+)
+const pipelineSubtitle = computed(() => {
+    if (props.item.parent?.title) {
+        return `Nested under ${props.item.parent.title}, this ${formatLabel(props.item.pipeline_type).toLowerCase()} tracks its own writing stage and attached notes.`
+    }
+
+    return `${formatLabel(props.item.pipeline_type)} item in the writing pipeline with stage tracking, notes, and linked sub-items.`
+})
+const pipelineHeroMeta = computed(() => [
+    { label: 'Stage', value: formatLabel(props.item.pipeline_stage || 'concept') },
+    { label: 'Visibility', value: formatLabel(props.item.visibility || 'private') },
+    { label: 'Words', value: props.item.word_count ? props.item.word_count.toLocaleString() : '—' },
+    { label: 'Reading', value: readingTime.value },
+])
+const showMetricStrip = computed(() =>
+    Boolean(props.item.pipeline_stage || props.item.word_count || props.item.reading_time_minutes || props.item.children?.length)
 )
 
 const readingTime = computed(() => {

@@ -1,20 +1,26 @@
 <template>
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-start justify-between gap-4">
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
+            <div class="page-hero">
+                <div class="page-hero__copy min-w-0">
+                    <div class="page-hero__eyebrow">
                         <Link :href="route('media-references.index')" class="text-muted-3 text-sm font-ui hover:text-muted-2 transition-colors">
                             Media Library
                         </Link>
-                        <span class="text-muted-3 text-sm font-ui">/</span>
+                        <span>/</span>
                         <span class="chip">{{ formatLabel(media.media_type) }}</span>
                     </div>
-                    <h1 class="text-primary text-2xl font-light tracking-wide leading-tight">{{ media.title }}</h1>
-                    <p v-if="media.description" class="prose-wrap text-muted-3 text-base mt-2">{{ media.description }}</p>
+                    <h1 class="page-hero__title page-hero__title--md">{{ media.title }}</h1>
+                    <p v-if="media.description" class="page-hero__subtitle prose-wrap">{{ media.description }}</p>
+                    <div v-if="mediaHeroMeta.length" class="page-hero__meta">
+                        <div v-for="meta in mediaHeroMeta" :key="meta.label" class="page-hero__meta-item">
+                            <span class="page-hero__meta-label">{{ meta.label }}</span>
+                            <span class="page-hero__meta-value">{{ meta.value }}</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="page-hero__actions">
                     <AppButton type="button" variant="danger" @click="destroyRecord">Move to Trash</AppButton>
                     <AppButton
                         :href="route('media-references.edit', media.id)"
@@ -31,10 +37,17 @@
 
         <div class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
             <section class="panel">
-                <h3 class="panel-label">Preview</h3>
+                <div class="panel-heading">
+                    <div>
+                        <h3 class="panel-label mb-1!">Preview</h3>
+                        <p class="panel-copy">Best available view of the asset, with a direct path to the original file or source URL.</p>
+                    </div>
+                </div>
 
                 <div v-if="media.preview_url && media.media_type === 'image'" class="space-y-4">
-                    <img :src="media.preview_url" :alt="media.title" class="max-h-144 w-full rounded-md border border-border bg-surface object-contain">
+                    <div class="detail-preview-frame">
+                        <img :src="media.preview_url" :alt="media.title" class="max-h-144 w-full rounded-md border border-border bg-surface object-contain">
+                    </div>
                     <a :href="media.preview_url" target="_blank" rel="noopener noreferrer" class="text-cyan text-sm font-ui hover:underline">
                         Open full asset
                     </a>
@@ -54,9 +67,14 @@
                 </div>
             </section>
 
-            <div class="grid gap-4">
+            <div class="detail-side-stack">
                 <section class="panel">
-                    <h3 class="panel-label">Identity</h3>
+                    <div class="panel-heading">
+                        <div>
+                            <h3 class="panel-label mb-1!">Identity</h3>
+                            <p class="panel-copy">What the asset is for, where it is attached, and whether it represents the primary visual.</p>
+                        </div>
+                    </div>
 
                     <div class="space-y-4">
                         <div class="entry-row">
@@ -90,7 +108,12 @@
                 </section>
 
                 <section class="panel">
-                    <h3 class="panel-label">Source</h3>
+                    <div class="panel-heading">
+                        <div>
+                            <h3 class="panel-label mb-1!">Source</h3>
+                            <p class="panel-copy">Where this asset came from and the file-level details needed to relocate or verify it.</p>
+                        </div>
+                    </div>
 
                     <div class="space-y-4">
                         <div class="entry-row">
@@ -129,7 +152,12 @@
                 </section>
 
                 <section class="panel">
-                    <h3 class="panel-label">Display</h3>
+                    <div class="panel-heading">
+                        <div>
+                            <h3 class="panel-label mb-1!">Display</h3>
+                            <p class="panel-copy">Presentation settings, sizing, and visibility controls used around the app.</p>
+                        </div>
+                    </div>
 
                     <div class="space-y-4">
                         <div class="entry-row">
@@ -211,6 +239,12 @@ const editMediaProps = computed(() => {
 const showEditDrawer = computed(() =>
     Boolean(editMediaProps.value) || matchesPendingDrawerHref(route('media-references.edit', props.media.id))
 )
+const mediaHeroMeta = computed(() => [
+    { label: 'Purpose', value: formatLabel(props.media.purpose || 'reference') },
+    { label: 'Visibility', value: formatLabel(props.media.visibility || 'private') },
+    { label: 'Primary', value: props.media.is_primary ? 'Yes' : 'No' },
+    { label: 'Attachment', value: props.media.attachment?.type ? formatLabel(props.media.attachment.type) : '—' },
+])
 
 const dimensionLabel = computed(() => {
     if (!props.media.width_px || !props.media.height_px) {

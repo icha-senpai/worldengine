@@ -11,6 +11,26 @@ class EntityAlias extends Model
 {
     use SoftDeletes;
 
+    public const ALIAS_TYPES = [
+        'name',
+        'nickname',
+        'title',
+        'role_title',
+        'public_title',
+        'hidden_title',
+        'cover_identity',
+        'codename',
+        'epithet',
+        'birth_name',
+        'alias',
+        'honorific',
+        'posthumous',
+        'reputation',
+        'common',
+        'classified',
+        'other',
+    ];
+
     protected $table = 'entity_aliases';
 
     protected $fillable = [

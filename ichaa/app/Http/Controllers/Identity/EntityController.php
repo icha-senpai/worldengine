@@ -162,10 +162,7 @@ class EntityController extends Controller
             'entities' => $query->paginate(40)->withQueryString(),
             'filters' => $request->only(['type', 'status', 'universe', 'q', 'incomplete']),
             'entityTypes' => EntityType::CATEGORIES,
-            'statuses' => [
-                'concept', 'active', 'archived',
-                'deceased', 'destroyed', 'dormant', 'unknown',
-            ],
+            'statuses' => Entity::STATUSES,
             'universes' => \App\Domain\Identity\ValueObjects\SourceUniverse::ALL ?? [],
         ], $props));
     }

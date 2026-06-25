@@ -109,6 +109,16 @@
                                     </p>
                                 </div>
 
+                                <AppStructuredDateTimeInput
+                                    v-else-if="resolvedFieldType(field) === 'date' || resolvedFieldType(field) === 'datetime'"
+                                    :input-id="fieldInputId(field)"
+                                    v-model="form[field.key]"
+                                    :mode="resolvedFieldType(field) === 'datetime' ? 'datetime' : 'date'"
+                                    :aria-label="displayLabel(field)"
+                                    :described-by="fieldHelpId(field)"
+                                    :date-placeholder="field.placeholder ?? 'YYYY-MM-DD'"
+                                />
+
                                 <label
                                     v-else-if="resolvedFieldType(field) === 'checkbox'"
                                     class="checkbox-card"
@@ -283,6 +293,16 @@
                             </p>
                         </div>
 
+                        <AppStructuredDateTimeInput
+                            v-else-if="resolvedFieldType(field) === 'date' || resolvedFieldType(field) === 'datetime'"
+                            :input-id="fieldInputId(field)"
+                            v-model="form[field.key]"
+                            :mode="resolvedFieldType(field) === 'datetime' ? 'datetime' : 'date'"
+                            :aria-label="displayLabel(field)"
+                            :described-by="fieldHelpId(field)"
+                            :date-placeholder="field.placeholder ?? 'YYYY-MM-DD'"
+                        />
+
                         <label
                             v-else-if="resolvedFieldType(field) === 'checkbox'"
                             class="checkbox-card"
@@ -373,6 +393,7 @@ import PageHeaderTrail from '@/Components/ui/PageHeaderTrail.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextareaInput from '@/Components/TextareaInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import AppStructuredDateTimeInput from '@/Components/ui/AppStructuredDateTimeInput.vue'
 import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { normalizeRichDocument, prepareRichDocumentForSubmit } from '@/lib/tiptap/documents'
 

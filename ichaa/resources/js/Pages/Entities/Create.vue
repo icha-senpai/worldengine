@@ -19,6 +19,11 @@ import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
 import { formatLabel } from '@/Components/scaffold/formatters'
+import {
+    contentClassificationOptions,
+    entityStatusOptions,
+    visibilityLevelOptions,
+} from '@/Pages/Entities/entityFieldOptions'
 
 const props = defineProps({
     embedded: { type: Boolean, default: false },
@@ -27,7 +32,10 @@ const props = defineProps({
 
 const form = useForm({
     name: '',
+    public_title: '',
     entity_type: '',
+    status: 'concept',
+    type_status: '',
     origin_type: 'native',
     source_universes: [],
     canon_deviation: '',
@@ -58,18 +66,6 @@ const canonDeviationOptions = [
     { value: 'moderate', label: 'Moderate - significant changes' },
     { value: 'major', label: 'Major - heavily AU' },
     { value: 'concept_only', label: 'Concept Only - inspired by' },
-]
-
-const visibilityOptions = [
-    { value: 'private', label: 'Private' },
-    { value: 'author_only', label: 'Author Only' },
-    { value: 'public_knowledge', label: 'Public Knowledge' },
-]
-
-const classificationOptions = [
-    { value: 'restricted', label: 'Restricted' },
-    { value: 'sensitive', label: 'Sensitive' },
-    { value: 'open', label: 'Open' },
 ]
 
 const universeOptions = [
@@ -140,6 +136,7 @@ const sections = computed(() => {
             title: 'Identity',
             fields: [
                 { key: 'name', label: 'Name', required: true, placeholder: 'Entity name' },
+                { key: 'public_title', label: 'Public-Facing Title', placeholder: 'How the world knows them' },
                 {
                     key: 'entity_type',
                     label: 'Type',
@@ -147,6 +144,23 @@ const sections = computed(() => {
                     required: true,
                     options: entityTypeOptions.value,
                     placeholder: 'Select an entity type...',
+                },
+            ],
+        },
+        {
+            title: 'Status',
+            fields: [
+                {
+                    key: 'status',
+                    label: 'Status',
+                    type: 'select',
+                    options: entityStatusOptions,
+                    placeholder: 'Select a status...',
+                },
+                {
+                    key: 'type_status',
+                    label: 'Type Status',
+                    placeholder: 'e.g. Horcrux, Shard Vessel, Champion...',
                 },
             ],
         },
@@ -174,13 +188,13 @@ const sections = computed(() => {
                     key: 'visibility',
                     label: 'Visibility',
                     type: 'select',
-                    options: visibilityOptions,
+                    options: visibilityLevelOptions,
                 },
                 {
                     key: 'content_classification',
                     label: 'Content Classification',
                     type: 'select',
-                    options: classificationOptions,
+                    options: contentClassificationOptions,
                 },
             ],
         },

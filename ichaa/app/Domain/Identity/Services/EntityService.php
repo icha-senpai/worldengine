@@ -154,8 +154,8 @@ class EntityService
                 'why_changed'     => $data['why_changed'] ?? null,
                 'trigger_type'    => 'manual',
                 'valid_from_era'  => $data['valid_from_era'] ?? null,
-                'visibility'      => $entity->visibility,
-                'content_classification' => $entity->content_classification,
+                'visibility'      => $data['visibility'] ?? $entity->visibility,
+                'content_classification' => $data['content_classification'] ?? $entity->content_classification,
             ]);
         });
     }
@@ -178,8 +178,9 @@ class EntityService
             'version_zero_notes'       => $data['version_zero_notes'] ?? null,
             'entity_snapshot'          => $entity->toArray(),
             'trigger_type'             => 'manual',
-            'visibility'               => VisibilityLevel::PRIVATE,
-            'content_classification'   => ContentClassification::AUTHOR_ONLY,
+            'valid_from_era'           => $data['valid_from_era'] ?? null,
+            'visibility'               => $data['visibility'] ?? VisibilityLevel::PRIVATE,
+            'content_classification'   => $data['content_classification'] ?? ContentClassification::AUTHOR_ONLY,
         ]);
     }
 

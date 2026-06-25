@@ -3,15 +3,15 @@
     <AuthenticatedLayout>
 
         <template #header>
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div class="min-w-0">
-                    <h1 class="text-primary text-2xl font-light tracking-wide">Writing Pipeline</h1>
-                    <p class="text-muted-3 text-sm font-ui mt-1">
-                        {{ items.total }} item{{ items.total !== 1 ? 's' : '' }}
-                        <span v-if="hasFilters"> · filtered</span>
-                    </p>
+            <div class="page-hero">
+                <div class="page-hero__copy">
+                    <div class="page-hero__eyebrow">
+                        <span>{{ items.total }} item{{ items.total !== 1 ? 's' : '' }}</span>
+                        <span v-if="hasFilters">Filtered</span>
+                    </div>
+                    <h1 class="page-hero__title page-hero__title--lg">Writing Pipeline</h1>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
+                <div class="page-hero__actions">
                     <NotionSyncButton resource="pipeline_items" label="Sync from Notion" />
                     <AppButton
                         :href="route('pipeline.create')"
@@ -26,9 +26,7 @@
             </div>
         </template>
 
-        <!-- FILTERS -->
-        <div class="flex items-center gap-3 mb-5 flex-wrap">
-
+        <div class="index-toolbar">
             <div class="flex gap-1.5 flex-wrap">
                 <AppButton
                     @click="setFilter('type', '')"
@@ -65,21 +63,17 @@
             <AppButton v-if="hasFilters" @click="clearFilters" variant="select-danger">
                 Clear
             </AppButton>
-
         </div>
 
-        <!-- LIST -->
-        <div v-if="items.data.length" class="space-y-2">
+        <div v-if="items.data.length" class="index-surface">
             <Link
                 v-for="item in items.data"
                 :key="item.id"
                 :href="route('pipeline.show', item.id)"
-                class="record-card record-card--interactive"
+                class="index-record index-record--interactive"
             >
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-
-                    <!-- Left: title + meta -->
-                    <div class="min-w-0 flex-1">
+                <div class="index-record__layout">
+                    <div class="index-record__copy">
                         <div class="flex items-center gap-2 mb-1">
                             <span class="type-chip" :class="'type--' + item.pipeline_type">
                                 {{ formatLabel(item.pipeline_type) }}
@@ -88,7 +82,7 @@
                                 {{ formatLabel(item.pipeline_stage) }}
                             </span>
                         </div>
-                        <p class="prose-wrap text-primary text-base font-light leading-snug">{{ item.title }}</p>
+                        <p class="index-record__title prose-wrap">{{ item.title }}</p>
                         <div class="flex flex-wrap items-center gap-3 mt-1.5">
                             <span v-if="item.pov_character" class="meta-tag">
                                 POV: {{ item.pov_character.name }}
@@ -105,11 +99,9 @@
                         </div>
                     </div>
 
-                    <!-- Right: children count if any -->
-                    <div v-if="item.children_count > 0" class="shrink-0 text-left sm:text-right">
+                    <div v-if="item.children_count > 0" class="index-record__side shrink-0 text-left sm:text-right">
                         <span class="count-badge">{{ item.children_count }}</span>
                     </div>
-
                 </div>
             </Link>
         </div>
@@ -128,22 +120,21 @@
             </DrawerLink>
         </div>
 
-        <!-- PAGINATION -->
-        <div v-if="items.last_page > 1" class="mt-6 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div v-if="items.last_page > 1" class="index-pagination">
             <span class="text-muted-3 text-sm font-ui">
                 Page {{ items.current_page }} of {{ items.last_page }}
             </span>
             <div class="flex gap-2">
-                <AppButton
+                <Link
                     v-if="items.prev_page_url"
                     :href="items.prev_page_url"
-                    variant="ghost"
-                >← Prev</AppButton>
-                <AppButton
+                    class="index-pagination__link"
+                >← Prev</Link>
+                <Link
                     v-if="items.next_page_url"
                     :href="items.next_page_url"
-                    variant="ghost"
-                >Next →</AppButton>
+                    class="index-pagination__link"
+                >Next →</Link>
             </div>
         </div>
 

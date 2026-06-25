@@ -6,6 +6,9 @@ const pagesRoot = path.resolve(process.cwd(), 'resources/js/Pages')
 
 const parityResources = [
     'Collections',
+    'Entities',
+    'Entities/Aliases',
+    'Entities/Questions',
     'FactionMemberships',
     'Glossary',
     'GroupRelationships',

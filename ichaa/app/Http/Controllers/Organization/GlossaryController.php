@@ -77,6 +77,8 @@ class GlossaryController extends Controller
                 return $this->page('Glossary/Index', array_merge([
             'terms'   => $query->paginate(60)->withQueryString(),
             'filters' => $request->only(['universe', 'context']),
+            'usageContexts' => Glossary::USAGE_CONTEXTS,
+            'originUniverses' => SourceUniverse::ALL,
         ], $props));
     
     }

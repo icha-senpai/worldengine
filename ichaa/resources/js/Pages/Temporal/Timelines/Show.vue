@@ -1,19 +1,19 @@
 <template>
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
+            <div class="page-hero">
+                <div class="page-hero__copy min-w-0">
+                    <div class="page-hero__eyebrow">
                         <Link :href="route('timelines.index')" class="text-muted-3 text-sm font-ui hover:text-muted-2 transition-colors">
                             Timelines
                         </Link>
-                        <span class="text-muted-3 text-sm font-ui">/</span>
+                        <span>/</span>
                         <span class="chip">Timeline</span>
                     </div>
-                    <h1 class="text-primary text-2xl font-light tracking-wide leading-tight">
+                    <h1 class="page-hero__title page-hero__title--md">
                         {{ timeline.name }}
                     </h1>
-                    <div v-if="timeline.summary" class="mt-2">
+                    <div v-if="timeline.summary" class="page-hero__subtitle">
                         <RichDocumentValue
                             v-if="isRichDocument(timeline.summary)"
                             :content="timeline.summary"
@@ -22,9 +22,15 @@
                             {{ timeline.summary }}
                         </p>
                     </div>
+                    <div class="page-hero__meta">
+                        <div v-for="meta in timelineHeroMeta" :key="meta.label" class="page-hero__meta-item">
+                            <span class="page-hero__meta-label">{{ meta.label }}</span>
+                            <span class="page-hero__meta-value">{{ meta.value }}</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div class="page-hero__actions">
                     <AppButton type="button" variant="danger" @click="destroyTimeline">
                         Move to Trash
                     </AppButton>
@@ -41,11 +47,40 @@
             </div>
         </template>
 
+        <div class="detail-shell">
+            <div class="dashboard-metric-strip">
+                <div class="dashboard-metric">
+                    <span class="dashboard-metric__label">Status</span>
+                    <span class="dashboard-metric__value">{{ formatLabel(timeline.status || 'concept') }}</span>
+                </div>
+                <div class="dashboard-metric">
+                    <span class="dashboard-metric__label">Visibility</span>
+                    <span class="dashboard-metric__value">{{ formatLabel(timeline.visibility || 'private') }}</span>
+                </div>
+                <div class="dashboard-metric">
+                    <span class="dashboard-metric__label">Chronological</span>
+                    <span class="dashboard-metric__value">{{ chronologicalEntries.length }}</span>
+                </div>
+                <div class="dashboard-metric">
+                    <span class="dashboard-metric__label">Atemporal</span>
+                    <span class="dashboard-metric__value">{{ atemporalEntries.length }}</span>
+                </div>
+            </div>
+
         <div class="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <section class="panel">
-                <h3 class="panel-label">Overview</h3>
+                <div class="panel-heading">
+                    <div>
+                        <h3 class="panel-label mb-1!">Overview</h3>
+                        <p class="panel-copy">High-level state for this timeline and the shape of the entries currently placed on it.</p>
+                    </div>
+                </div>
 
                 <dl class="space-y-3">
+                    <div class="entry-row">
+                        <dt class="field-label">Timeline Name</dt>
+                        <dd class="entry-value">{{ timeline.name }}</dd>
+                    </div>
                     <div class="entry-row">
                         <dt class="field-label">Status</dt>
                         <dd class="entry-value">{{ formatLabel(timeline.status) }}</dd>
@@ -53,14 +88,6 @@
                     <div class="entry-row">
                         <dt class="field-label">Visibility</dt>
                         <dd class="entry-value">{{ formatLabel(timeline.visibility) }}</dd>
-                    </div>
-                    <div class="entry-row">
-                        <dt class="field-label">Entries</dt>
-                        <dd class="entry-value">{{ chronologicalEntries.length }}</dd>
-                    </div>
-                    <div class="entry-row">
-                        <dt class="field-label">Atemporal</dt>
-                        <dd class="entry-value">{{ atemporalEntries.length }}</dd>
                     </div>
                 </dl>
             </section>
@@ -200,7 +227,13 @@
             </section>
 
             <section class="panel">
-                <h3 class="panel-label">Chronological Events</h3>
+                <div class="panel-heading">
+                    <div>
+                        <h3 class="panel-label mb-1!">Chronological Events</h3>
+                        <p class="panel-copy">Ordered moments anchored to dated positions inside the timeline.</p>
+                    </div>
+                    <span class="mini-chip">{{ chronologicalEntries.length }} entries</span>
+                </div>
 
                 <ul v-if="chronologicalEntries.length" class="entry-list">
                     <li v-for="entry in chronologicalEntries" :key="entry.id" class="entry-card">
@@ -257,7 +290,13 @@
             </section>
 
             <section class="panel">
-                <h3 class="panel-label">Atemporal Events</h3>
+                <div class="panel-heading">
+                    <div>
+                        <h3 class="panel-label mb-1!">Atemporal Events</h3>
+                        <p class="panel-copy">Timeless, contextual, or out-of-sequence events that still belong beside this timeline.</p>
+                    </div>
+                    <span class="mini-chip">{{ atemporalEntries.length }} entries</span>
+                </div>
 
                 <ul v-if="atemporalEntries.length" class="entry-list">
                     <li v-for="entry in atemporalEntries" :key="entry.id" class="entry-card">
@@ -309,6 +348,7 @@
 
                 <p v-else class="empty-copy">No atemporal entries yet.</p>
             </section>
+        </div>
         </div>
 
         <NotionNotePanel :note="notionNote" />
@@ -392,6 +432,12 @@ const showEventEditDrawer = computed(() =>
     || chronologicalEntries.value.some((entry) => matchesPendingDrawerHref(route('timelines.events.edit', { timeline: props.timeline.id, entry: entry.id })))
     || atemporalEntries.value.some((entry) => matchesPendingDrawerHref(route('timelines.events.edit', { timeline: props.timeline.id, entry: entry.id })))
 )
+const timelineHeroMeta = computed(() => [
+    { label: 'Status', value: formatLabel(props.timeline.status || 'concept') },
+    { label: 'Visibility', value: formatLabel(props.timeline.visibility || 'private') },
+    { label: 'Chronological', value: String(chronologicalEntries.value.length) },
+    { label: 'Atemporal', value: String(atemporalEntries.value.length) },
+])
 const availableEventOptions = computed(() => toEntityOptions(props.availableEvents))
 const concurrencyGroupOptions = computed(() =>
     (props.concurrencyGroups ?? []).map((group) => ({

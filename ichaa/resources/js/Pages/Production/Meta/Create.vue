@@ -28,6 +28,8 @@ const props = defineProps({
     priorities: { type: Array, default: () => [] },
     actionStatuses: { type: Array, default: () => [] },
     symbolScopes: { type: Array, default: () => [] },
+    visibilityLevels: { type: Array, default: () => [] },
+    contentClassifications: { type: Array, default: () => [] },
 })
 
 const entityOptions = computed(() => toEntityOptions(props.entities))
@@ -65,8 +67,8 @@ const sections = computed(() => [
             { key: 'meta_note_type', label: 'Note Type', type: 'select', required: true, options: props.noteTypes },
             { key: 'priority', label: 'Priority', type: 'select', options: props.priorities },
             { key: 'action_status', label: 'Action Status', type: 'select', options: props.actionStatuses },
-            { key: 'visibility', label: 'Visibility' },
-            { key: 'content_classification', label: 'Content Classification' },
+            { key: 'visibility', label: 'Visibility', type: 'select', options: props.visibilityLevels },
+            { key: 'content_classification', label: 'Content Classification', type: 'select', options: props.contentClassifications },
         ],
     },
     {

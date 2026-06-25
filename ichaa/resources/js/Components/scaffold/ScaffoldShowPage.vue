@@ -16,6 +16,16 @@
                     <p v-if="subtitle" class="page-hero__subtitle prose-wrap">
                         {{ subtitle }}
                     </p>
+                    <div v-if="heroMeta.length" class="page-hero__meta">
+                        <div
+                            v-for="item in heroMeta"
+                            :key="`${item.label}-${item.value}`"
+                            class="page-hero__meta-item"
+                        >
+                            <span class="page-hero__meta-label">{{ item.label }}</span>
+                            <span class="page-hero__meta-value">{{ item.value }}</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="page-hero__actions">
@@ -36,33 +46,49 @@
             </div>
         </template>
 
-        <div class="grid gap-5 md:grid-cols-2">
+        <div class="show-grid">
             <section
-                v-for="section in sections"
+                v-for="section in normalizedSections"
                 :key="section.title"
-                class="panel"
+                class="panel show-section"
                 :class="{ 'md:col-span-2': section.fullWidth }"
             >
-                <h3 class="panel-label">{{ section.title }}</h3>
+                <div class="show-section__header">
+                    <div class="min-w-0">
+                        <h3 class="panel-label mb-0!">{{ section.title }}</h3>
+                        <p v-if="section.description" class="show-section__description">
+                            {{ section.description }}
+                        </p>
+                    </div>
+                    <span v-if="section.entries.length" class="mini-chip show-section__count">
+                        {{ section.entries.length }} {{ section.entries.length === 1 ? 'field' : 'fields' }}
+                    </span>
+                </div>
 
-                <div v-if="section.entries?.length">
+                <div v-if="section.entries.length" class="show-section__entries">
                     <div v-for="entry in section.entries" :key="section.title + entry.label" class="entry-row">
                         <span class="field-label">{{ entry.label }}</span>
                         <div class="entry-value">
                             <template v-if="entry.kind === 'list'">
-                                <ul v-if="entry.value?.length" class="space-y-1">
-                                    <li v-for="item in entry.value" :key="item.label ?? item.value ?? item" class="text-muted-2 text-sm leading-relaxed">
+                                <div v-if="entry.value?.length" class="entry-stack">
+                                    <div
+                                        v-for="item in entry.value"
+                                        :key="item.label ?? item.value ?? item"
+                                        class="entry-stack__item"
+                                    >
                                         <template v-if="item.href">
-                                            <Link :href="item.href" class="text-cyan hover:underline">
+                                            <Link :href="item.href" class="entry-stack__link">
                                                 {{ item.label ?? item.value }}
                                             </Link>
                                         </template>
                                         <template v-else>
-                                            {{ item.label ?? item.value ?? item }}
+                                            <span class="entry-stack__text">
+                                                {{ item.label ?? item.value ?? item }}
+                                            </span>
                                         </template>
-                                    </li>
-                                </ul>
-                                <span v-else class="text-muted-3 text-sm font-ui">--</span>
+                                    </div>
+                                </div>
+                                <span v-else class="entry-placeholder">--</span>
                             </template>
 
                             <template v-else-if="entry.kind === 'json'">
@@ -73,14 +99,26 @@
                                 <pre v-else class="json-block">{{ prettyJson(entry.value) || '--' }}</pre>
                             </template>
 
+                            <template v-else-if="typeof entry.value === 'boolean'">
+                                <span
+                                    class="status-badge status-badge--sm"
+                                    :class="entry.value ? 'show-status--positive' : 'show-status--muted'"
+                                >
+                                    {{ entry.value ? 'Yes' : 'No' }}
+                                </span>
+                            </template>
+
                             <template v-else-if="entry.href">
-                                <Link :href="entry.href" class="text-cyan hover:underline">
+                                <Link :href="entry.href" class="entry-link">
                                     {{ summarizeValue(entry.value) }}
                                 </Link>
                             </template>
 
                             <template v-else>
-                                <span class="prose-wrap text-muted-2 text-sm leading-relaxed">
+                                <span
+                                    class="prose-wrap text-muted-2 text-sm leading-relaxed"
+                                    :class="{ 'entry-placeholder': isEmptyValue(entry.value) }"
+                                >
                                     {{ summarizeValue(entry.value) }}
                                 </span>
                             </template>
@@ -146,10 +184,35 @@ const props = defineProps({
 
 const page = usePage()
 const notionNote = computed(() => page.props?.notionNote ?? null)
+const normalizedSections = computed(() =>
+    props.sections.map((section) => ({
+        ...section,
+        description: section.description ?? '',
+        entries: (section.entries ?? []).filter((entry) => entry && entry.label),
+    })),
+)
 const showEditDrawer = computed(() =>
     Boolean(props.editHref) && (props.editDrawerOpen || matchesPendingDrawerHref(props.editHref))
 )
 const resolvedEditDrawerTitle = computed(() => props.editDrawerTitle || `Edit ${props.title}`)
+const heroMeta = computed(() =>
+    normalizedSections.value
+        .flatMap((section) => section.entries)
+        .filter((entry) =>
+            entry.kind !== 'json'
+            && entry.kind !== 'list'
+            && !entry.href
+            && !isEmptyValue(entry.value)
+            && summarizeValue(entry.value).length <= 40,
+        )
+        .slice(0, 4)
+        .map((entry) => ({
+            label: entry.label,
+            value: summarizeValue(entry.value),
+        })),
+)
+
+const isEmptyValue = (value) => value === null || value === undefined || value === ''
 
 const destroyRecord = async () => {
     if (!props.destroyHref) {

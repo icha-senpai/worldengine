@@ -54,7 +54,7 @@ test.describe('site navigation and drawer flows', () => {
         await expect(page).toHaveURL(/\/entities\/\d+\/edit$/)
         await expect(page.getByRole('dialog', { name: 'Edit Entity' })).toBeVisible()
 
-        await page.getByLabel(/^Public Title$/).fill(publicTitle)
+        await page.getByLabel(/^Public-Facing Title$/).fill(publicTitle)
         await page.getByRole('button', { name: 'Save Changes' }).click()
 
         await expect(page).toHaveURL(/\/entities\/\d+$/)

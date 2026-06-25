@@ -39,6 +39,10 @@
                 <span class="dashboard-metric__value">{{ blockingQuestions.length }}</span>
                 <span class="dashboard-metric__label">Blocking questions</span>
             </div>
+            <div class="dashboard-metric">
+                <span class="dashboard-metric__value">{{ blockingContradictions.length }}</span>
+                <span class="dashboard-metric__label">Contradictions</span>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 gap-5 items-start xl:grid-cols-2">
@@ -99,6 +103,28 @@
                             </span>
                         </div>
                         <p class="text-primary text-sm leading-relaxed">{{ q.question }}</p>
+                    </div>
+                </div>
+
+                <div v-if="blockingContradictions.length > 0" class="surface-section">
+                    <div class="surface-section__header">
+                        <div class="surface-section__copy">
+                            <span class="surface-section__title">Blocking Contradictions</span>
+                            <p class="surface-section__subtitle">Meta notes still flagging direct continuity conflicts or unresolved author contradictions.</p>
+                        </div>
+                        <span class="count count--danger">{{ blockingContradictions.length }}</span>
+                    </div>
+
+                    <div v-for="note in blockingContradictions" :key="note.id" class="surface-row">
+                        <div class="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <Link :href="route('meta.show', note.id)" class="text-primary text-base font-light hover:text-focus transition-colors">
+                                {{ note.title }}
+                            </Link>
+                            <span class="tag tag--danger">{{ note.meta_note_type }}</span>
+                        </div>
+                        <div class="text-xs text-muted-3 font-ui">
+                            {{ note.action_status || 'pending' }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -169,6 +195,53 @@
                     </div>
                 </div>
 
+                <div v-if="unresolvedInteractions.length > 0" class="surface-section">
+                    <div class="surface-section__header">
+                        <div class="surface-section__copy">
+                            <span class="surface-section__title">Unresolved Interactions</span>
+                            <p class="surface-section__subtitle">Power interactions still marked unresolved and likely to create future contradiction or escalation.</p>
+                        </div>
+                        <span class="count count--warn">{{ unresolvedInteractions.length }}</span>
+                    </div>
+
+                    <div v-for="interaction in unresolvedInteractions" :key="interaction.id" class="surface-row">
+                        <div class="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <Link :href="route('power-interactions.show', interaction.id)" class="text-primary text-base font-light hover:text-focus transition-colors">
+                                {{ interaction.interaction_name }}
+                            </Link>
+                            <span class="tag tag--warn">{{ interaction.danger_rating }}</span>
+                        </div>
+                        <div class="text-xs text-muted-3 font-ui">
+                            {{ interaction.system_a_name || 'Unknown' }} vs {{ interaction.system_b_name || 'Unknown' }}
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="deprecatedCanonStates.length > 0" class="surface-section">
+                    <div class="surface-section__header">
+                        <div class="surface-section__copy">
+                            <span class="surface-section__title">Deprecated Canon States</span>
+                            <p class="surface-section__subtitle">Version records marked deprecated and still worth reviewing for replacement or continuity drift.</p>
+                        </div>
+                        <span class="count count--warn">{{ deprecatedCanonStates.length }}</span>
+                    </div>
+
+                    <div v-for="version in deprecatedCanonStates" :key="version.id" class="surface-row">
+                        <div class="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <Link :href="route('entities.versions.show', [version.entity.id, version.id])" class="text-primary text-base font-light hover:text-focus transition-colors">
+                                {{ version.version_label || `Version ${version.version_number}` }}
+                            </Link>
+                            <span class="tag tag--warn">deprecated</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-xs text-muted-3 font-ui">
+                            <Link :href="route('entities.show', version.entity.id)" class="hover:text-focus transition-colors">
+                                {{ version.entity.name }}
+                            </Link>
+                            <span v-if="version.replacement_label" class="text-muted-2">replaced by {{ version.replacement_label }}</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div v-if="perceptionGaps.length > 0" class="surface-section">
                     <div class="surface-section__header">
                         <div class="surface-section__copy">
@@ -216,5 +289,8 @@ defineProps({
     exposureRisk:       { type: Array,  default: () => [] },
     perceptionGaps:     { type: Array,  default: () => [] },
     blockingQuestions:  { type: Array,  default: () => [] },
+    blockingContradictions: { type: Array, default: () => [] },
+    unresolvedInteractions: { type: Array, default: () => [] },
+    deprecatedCanonStates: { type: Array, default: () => [] },
 })
 </script>

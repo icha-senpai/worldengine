@@ -4,6 +4,9 @@ import RelationshipCreate from '@/Pages/Relationships/Create.vue'
 import RelationshipEdit from '@/Pages/Relationships/Edit.vue'
 import GroupRelationshipCreate from '@/Pages/GroupRelationships/Create.vue'
 import GroupRelationshipEdit from '@/Pages/GroupRelationships/Edit.vue'
+import EntityCreate from '@/Pages/Entities/Create.vue'
+import EntityAliasCreate from '@/Pages/Entities/Aliases/Create.vue'
+import EntityQuestionCreate from '@/Pages/Entities/Questions/Create.vue'
 import FactionMembershipCreate from '@/Pages/FactionMemberships/Create.vue'
 import FactionMembershipEdit from '@/Pages/FactionMemberships/Edit.vue'
 import CollectionCreate from '@/Pages/Collections/Create.vue'
@@ -91,6 +94,91 @@ describe('domain scaffold forms', () => {
         })
 
         global.route = vi.fn((name, params) => ({ name, params }))
+    })
+
+    it('builds the entity create form with recorded status and canonical access options', async () => {
+        const { form, scaffold } = mountPage(EntityCreate, {
+            entityTypes: {
+                people: ['character'],
+            },
+        })
+
+        const statusField = findField(scaffold.props('sections'), 'status')
+        const visibilityField = findField(scaffold.props('sections'), 'visibility')
+        const classificationField = findField(scaffold.props('sections'), 'content_classification')
+
+        expect(form.status).toBe('concept')
+        expect(statusField.options).toContain('recorded')
+        expect(visibilityField.options).toEqual([
+            { value: 'private', label: 'Private' },
+            { value: 'author_only', label: 'Author Only' },
+            { value: 'secret', label: 'Secret' },
+            { value: 'public_knowledge', label: 'Public Knowledge' },
+        ])
+        expect(classificationField.options).toEqual([
+            { value: 'public', label: 'Public' },
+            { value: 'restricted', label: 'Restricted' },
+            { value: 'secret', label: 'Secret' },
+            { value: 'author_only', label: 'Author Only' },
+        ])
+
+        await scaffold.props('onSubmit')()
+
+        expect(form.post).toHaveBeenCalledWith({ name: 'entities.store', params: undefined })
+    })
+
+    it('builds the alias create form with access controls and audience options', async () => {
+        const { form, scaffold } = mountPage(EntityAliasCreate, {
+            entity: { id: 8, name: 'Harry Potter' },
+            entities: [{ id: 14, name: 'Hermione Granger', entity_type: 'character' }],
+        })
+
+        const aliasTypeField = findField(scaffold.props('sections'), 'alias_type')
+        const knownByField = findField(scaffold.props('sections'), 'known_by_entity_ids')
+
+        expect(form.known_by_entity_ids).toEqual([])
+        expect(form.visibility).toBe('private')
+        expect(form.content_classification).toBe('restricted')
+        expect(aliasTypeField.options.some((option) => option.value === 'hidden_title')).toBe(true)
+        expect(knownByField.options).toEqual([
+            { value: 14, label: 'Hermione Granger (#14 · Character)' },
+        ])
+
+        await scaffold.props('onSubmit')()
+
+        expect(form.post).toHaveBeenCalledWith({
+            name: 'entities.aliases.store',
+            params: { entity: 8, tab: 'aliases' },
+        })
+    })
+
+    it('builds the entity question create form with linked entity and group options', async () => {
+        const { form, scaffold } = mountPage(EntityQuestionCreate, {
+            entity: { id: 5, name: 'Seraphine' },
+            entities: [{ id: 9, name: 'Johnny', entity_type: 'character' }],
+            groupRelationships: [{ id: 13, name: 'Night Council', relationship_type: 'alliance' }],
+        })
+
+        const linkedEntityField = findField(scaffold.props('sections'), 'linked_entity_ids')
+        const linkedGroupField = findField(scaffold.props('sections'), 'linked_group_relationship_ids')
+        const sortOrderField = findField(scaffold.props('sections'), 'sort_order')
+
+        expect(form.linked_entity_ids).toEqual([])
+        expect(form.linked_group_relationship_ids).toEqual([])
+        expect(linkedEntityField.options).toEqual([
+            { value: 9, label: 'Johnny (#9 · Character)' },
+        ])
+        expect(linkedGroupField.options).toEqual([
+            { value: 13, label: 'Night Council (#13 · Alliance)' },
+        ])
+        expect(sortOrderField.type).toBe('number')
+
+        await scaffold.props('onSubmit')()
+
+        expect(form.post).toHaveBeenCalledWith({
+            name: 'entities.questions.store',
+            params: { entity: 5, tab: 'questions' },
+        })
     })
 
     it('builds the relationship create form with a default direction and store route', async () => {

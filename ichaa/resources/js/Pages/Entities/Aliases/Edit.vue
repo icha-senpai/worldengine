@@ -21,26 +21,19 @@
 import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ScaffoldFormPage from '@/Components/scaffold/ScaffoldFormPage.vue'
+import { entityAliasTypeOptions } from '@/Pages/Entities/aliasTypes'
+import { toEntityOptions } from '@/Components/scaffold/formatters'
+import { contentClassificationOptions, visibilityLevelOptions } from '@/Pages/Entities/entityFieldOptions'
 
 const props = defineProps({
     embedded: { type: Boolean, default: false },
     entity: { type: Object, required: true },
     alias: { type: Object, required: true },
+    entities: { type: Array, default: () => [] },
 })
 
-const aliasTypeOptions = [
-    { value: 'nickname', label: 'Nickname' },
-    { value: 'title', label: 'Title' },
-    { value: 'codename', label: 'Codename' },
-    { value: 'epithet', label: 'Epithet' },
-    { value: 'birth_name', label: 'Birth Name' },
-    { value: 'alias', label: 'Alias' },
-    { value: 'honorific', label: 'Honorific' },
-    { value: 'posthumous', label: 'Posthumous' },
-    { value: 'other', label: 'Other' },
-]
-
 const backHref = computed(() => route('entities.show', { entity: props.entity.id, tab: 'aliases' }))
+const entityOptions = computed(() => toEntityOptions(props.entities))
 
 const form = useForm({
     alias: props.alias.alias ?? '',
@@ -49,6 +42,9 @@ const form = useForm({
     era_start: props.alias.era_start ?? '',
     era_end: props.alias.era_end ?? '',
     is_active: props.alias.is_active ?? false,
+    known_by_entity_ids: props.alias.known_by_entity_ids ?? [],
+    visibility: props.alias.visibility ?? 'private',
+    content_classification: props.alias.content_classification ?? 'restricted',
 })
 
 const sections = computed(() => [
@@ -61,7 +57,7 @@ const sections = computed(() => [
                 label: 'Type',
                 type: 'select',
                 required: true,
-                options: aliasTypeOptions,
+                options: entityAliasTypeOptions,
                 placeholder: 'Select alias type...',
             },
             {
@@ -74,6 +70,31 @@ const sections = computed(() => [
             { key: 'era_start', label: 'Era Start', placeholder: 'e.g. Year of the Dragon' },
             { key: 'era_end', label: 'Era End', placeholder: 'Leave blank if still active' },
             { key: 'is_active', label: 'Currently Active', type: 'checkbox' },
+        ],
+    },
+    {
+        title: 'Access',
+        fields: [
+            {
+                key: 'known_by_entity_ids',
+                label: 'Known By Specific Entities',
+                type: 'multiselect',
+                options: entityOptions.value,
+                emptyMessage: 'No entities are available yet.',
+                help: 'Leave empty if this alias is broadly or publicly known.',
+            },
+            {
+                key: 'visibility',
+                label: 'Visibility',
+                type: 'select',
+                options: visibilityLevelOptions,
+            },
+            {
+                key: 'content_classification',
+                label: 'Content Classification',
+                type: 'select',
+                options: contentClassificationOptions,
+            },
         ],
     },
 ])

@@ -72,6 +72,13 @@ class SourceCanonReferenceController extends Controller
         return $this->page('Lore/CanonReferences/Index', array_merge([
             'references' => $query->with('childReferences')->get(),
             'filters' => $request->only(['universe']),
+            'universes' => SourceCanonReference::query()
+                ->select('universe')
+                ->distinct()
+                ->orderBy('universe')
+                ->pluck('universe')
+                ->filter()
+                ->values(),
         ], $props));
 
     }

@@ -66,8 +66,8 @@ test.describe('show page action panels', () => {
         await page.getByLabel(/^Exposure Level$/).selectOption('fully_exposed')
         await page.getByRole('button', { name: 'Record Exposure' }).click()
 
-        await expect(page.getByText('Red Winter')).toBeVisible()
-        await expect(page.getByText('fully_exposed')).toBeVisible()
+        await expect(page.getByText('Red Winter').first()).toBeVisible()
+        await expect(page.getByText('fully_exposed').first()).toBeVisible()
     })
 
     test('perception state show page can add immune entities and collapse', async ({ page }) => {

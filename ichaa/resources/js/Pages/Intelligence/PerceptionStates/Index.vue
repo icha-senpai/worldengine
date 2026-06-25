@@ -18,6 +18,15 @@
             :empty-cta-preserve-state="true"
             empty-cta-label="Create the first perception state ->"
         >
+        <template #toolbar>
+            <ScaffoldFilterBar
+                :fields="filterFields"
+                :form="filterForm"
+                :has-active-filters="hasActiveFilters"
+                :on-apply="applyFilters"
+                :on-clear="clearFilters"
+            />
+        </template>
         <template #create-drawer>
             <CreatePerceptionState
                 v-if="createDrawer"
@@ -31,15 +40,27 @@
 
 <script setup>
 import { computed } from 'vue'
+import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreatePerceptionState from '@/Pages/Intelligence/PerceptionStates/Create.vue'
 import { asArray, badge, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
+import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
     states: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
     createDrawer: { type: Object, default: null },
 })
+
+const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('perception-states.index', {
+    high_risk: Boolean(props.filters.high_risk),
+    critical_maintenance: Boolean(props.filters.critical_maintenance),
+})
+
+const filterFields = [
+    { key: 'high_risk', type: 'checkbox', label: 'High risk only' },
+    { key: 'critical_maintenance', type: 'checkbox', label: 'Critical maintenance only' },
+]
 
 const items = computed(() =>
     asArray(props.states).map((state) => ({

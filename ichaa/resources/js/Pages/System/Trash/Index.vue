@@ -1,13 +1,18 @@
 <template>
     <AuthenticatedLayout>
         <template #header>
-            <div>
-                <h1 class="text-primary text-2xl font-light tracking-wide">Trash</h1>
-                <p class="text-muted-3 text-sm font-ui mt-1">Recently removed records stay here until you restore them.</p>
+            <div class="page-hero">
+                <div class="page-hero__copy">
+                    <div class="page-hero__eyebrow">
+                        <span>{{ items.length }} visible</span>
+                    </div>
+                    <h1 class="page-hero__title page-hero__title--lg">Trash</h1>
+                    <p class="page-hero__subtitle">Recently removed records stay here until you restore them.</p>
+                </div>
             </div>
         </template>
 
-        <form class="panel max-w-4xl mb-5" @submit.prevent="submit">
+        <form class="index-panel max-w-4xl" @submit.prevent="submit">
             <div class="grid gap-4 md:grid-cols-[220px_1fr_auto] md:items-end">
                 <div class="field-group">
                     <label class="field-label" for="trash-type">Type</label>
@@ -37,8 +42,8 @@
             </div>
         </form>
 
-        <div v-if="items.length" class="space-y-3">
-            <div v-for="item in items" :key="`${item.type}-${item.id}`" class="record-card record-card--split">
+        <div v-if="items.length" class="index-surface">
+            <div v-for="item in items" :key="`${item.type}-${item.id}`" class="index-record index-record--split">
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2 mb-2">
                         <span class="resource-chip">{{ item.resource_label }}</span>

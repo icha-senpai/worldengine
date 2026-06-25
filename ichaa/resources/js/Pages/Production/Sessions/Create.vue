@@ -66,7 +66,7 @@ const sections = computed(() => [
         title: 'Session',
         fields: [
             { key: 'title', label: 'Title', required: true },
-            { key: 'session_date', label: 'Session Date', type: 'text', placeholder: 'YYYY-MM-DD' },
+            { key: 'session_date', label: 'Session Date', type: 'date' },
             { key: 'external_tool', label: 'External Tool', type: 'select', required: true, options: externalTools },
             { key: 'session_significance', label: 'Session Significance', type: 'select', options: props.significanceLevels },
             { key: 'focus_description', label: 'Focus Description' },
