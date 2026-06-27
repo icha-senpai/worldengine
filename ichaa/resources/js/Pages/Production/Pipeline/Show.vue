@@ -46,6 +46,40 @@
                 </div>
             </div>
 
+            <section class="panel space-y-4">
+                <div>
+                    <h3 class="panel-label mb-0!">Workflow</h3>
+                    <p class="text-muted-3 text-sm font-ui mt-1">
+                        Advance this item step by step or resolve it directly when the work is settled.
+                    </p>
+                </div>
+
+                <div v-if="item.pipeline_stage === 'complete'" class="empty-state">
+                    This pipeline item is already complete.
+                </div>
+
+                <div v-else class="space-y-3">
+                    <div class="field-group">
+                        <label class="field-label" for="pipeline-resolution-notes">Resolution Notes</label>
+                        <RichTextEditor
+                            input-id="pipeline-resolution-notes"
+                            aria-label="Resolution Notes"
+                            v-model="resolutionDocument"
+                            placeholder="What settled this item and what should remain true now?"
+                        />
+                    </div>
+
+                    <AppButton
+                        type="button"
+                        variant="success"
+                        :disabled="resolveForm.processing"
+                        @click="resolveItem"
+                    >
+                        Resolve as Complete
+                    </AppButton>
+                </div>
+            </section>
+
             <div v-if="item.content" class="panel">
                 <div class="panel-heading">
                     <div>
@@ -225,17 +259,19 @@
 </template>
 
 <script setup>
-import { computed, defineAsyncComponent } from 'vue'
-import { Link, router } from '@inertiajs/vue3'
+import { computed, defineAsyncComponent, ref } from 'vue'
+import { Link, router, useForm } from '@inertiajs/vue3'
 import AppButton from '@/Components/ui/AppButton.vue'
 import CreatePipelineItem from '@/Pages/Production/Pipeline/Create.vue'
 import DrawerLink from '@/Components/ui/DrawerLink.vue'
 import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import EditPipelineItem from '@/Pages/Production/Pipeline/Edit.vue'
+import RichTextEditor from '@/Components/scaffold/RichTextEditor.vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
 import { formatLabel, isRichDocument } from '@/Components/scaffold/formatters'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
+import { normalizeRichDocument, prepareRichDocumentForSubmit } from '@/lib/tiptap/documents'
 
 const props = defineProps({
     item: { type: Object, required: true },
@@ -244,6 +280,10 @@ const props = defineProps({
 })
 
 const RichDocumentValue = defineAsyncComponent(() => import('@/Components/scaffold/RichDocumentValue.vue'))
+const resolveForm = useForm({
+    resolution_notes: props.item.notes ?? null,
+})
+const resolutionDocument = ref(normalizeRichDocument(props.item.notes))
 const showCreateDrawer = computed(() =>
     Boolean(props.createDrawer) || matchesPendingDrawerHref(route('pipeline.create', { parent: props.item.id }))
 )
@@ -318,5 +358,11 @@ const readingTime = computed(() => {
 
 const advance = () => {
     router.post(route('pipeline.advance', props.item.id))
+}
+
+const resolveItem = () => {
+    resolveForm.transform(() => ({
+        resolution_notes: prepareRichDocumentForSubmit(resolutionDocument.value, null),
+    })).post(route('pipeline.resolve', props.item.id))
 }
 </script>

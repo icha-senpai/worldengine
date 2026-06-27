@@ -48,6 +48,9 @@ describe('pipeline custom pages', () => {
                 errors: {},
                 processing: false,
                 isDirty: false,
+                transform: vi.fn(function transform() {
+                    return form
+                }),
                 post: vi.fn(),
                 put: vi.fn(),
             })
@@ -186,17 +189,18 @@ describe('pipeline custom pages', () => {
         })
 
         expect(wrapper.text()).toContain('Writing Pipeline')
-        expect(wrapper.text()).toContain('filtered')
+        expect(wrapper.text()).toContain('Scene')
         expect(wrapper.text()).toContain('POV: Seraphine')
-        expect(wrapper.text()).toContain('@ Mirror Library')
-        expect(wrapper.text()).toContain('1,400w')
+        expect(wrapper.text()).toContain('Location: Mirror Library')
+        expect(wrapper.text()).toContain('Words 1,400')
 
-        await clickButtonByText(wrapper, 'button', 'Character Study')
+        await wrapper.findAll('select')[0].setValue('character_study')
+        await wrapper.get('form').trigger('submit.prevent')
 
         expect(routerGetMock).toHaveBeenCalledWith(
             { name: 'pipeline.index', params: undefined },
-            { type: 'character_study', stage: '' },
-            { preserveState: true, replace: true },
+            { type: 'character_study' },
+            { preserveState: true, preserveScroll: true, replace: true },
         )
 
         await clickButtonByText(wrapper, 'button', 'Clear')
@@ -204,7 +208,7 @@ describe('pipeline custom pages', () => {
         expect(routerGetMock).toHaveBeenLastCalledWith(
             { name: 'pipeline.index', params: undefined },
             {},
-            { replace: true },
+            { preserveState: true, preserveScroll: true, replace: true },
         )
     })
 
@@ -240,13 +244,17 @@ describe('pipeline custom pages', () => {
         expect(wrapper.text()).toContain('Johnny')
         expect(wrapper.text()).toContain('Transformation')
         expect(wrapper.text()).toContain('1h 5m')
-        expect(wrapper.text()).toContain('Sub-Items (1)')
+        expect(wrapper.text()).toContain('Sub-Items')
         expect(wrapper.text()).toContain('Check the emotional pacing.')
 
-        await clickButtonByText(wrapper, 'button', 'Advance →')
+        const resolveForm = formInstances.at(-1)
+
+        await clickButtonByText(wrapper, 'button', 'Resolve as Complete')
+        await clickButtonByText(wrapper, 'button', 'Advance ->')
         await clickButtonByText(wrapper, 'button', 'Move to Trash')
         await Promise.resolve()
 
+        expect(resolveForm.post).toHaveBeenCalledWith({ name: 'pipeline.resolve', params: 44 })
         expect(routerPostMock).toHaveBeenCalledWith({ name: 'pipeline.advance', params: 44 })
         expect(routerDeleteMock).toHaveBeenCalledWith(
             { name: 'pipeline.destroy', params: 44 },

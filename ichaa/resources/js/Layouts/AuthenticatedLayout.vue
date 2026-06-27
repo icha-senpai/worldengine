@@ -334,10 +334,12 @@ const domains = [
         key: 'connections',
         label: 'Connections',
         href: route('relationships.index'),
-        matches: ['/relationships', '/group-relationships', '/faction-memberships'],
+        matches: ['/relationships', '/group-relationships', '/group-relationship-memberships', '/faction-memberships'],
         children: [
             { key: 'relationships', label: 'Relationships', href: route('relationships.index'), matches: ['/relationships'] },
             { key: 'group-relationships', label: 'Group Relationships', href: route('group-relationships.index'), matches: ['/group-relationships'] },
+            { key: 'group-relationship-memberships', label: 'Group Memberships', href: route('group-relationship-memberships.index'), matches: ['/group-relationship-memberships'] },
+            { key: 'faction-memberships', label: 'Faction Memberships', href: route('faction-memberships.index'), matches: ['/faction-memberships'] },
         ],
         icon: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/><circle cx="13" cy="4" r="2" stroke="currentColor" stroke-width="1.5"/><circle cx="13" cy="12" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l6-4M5 8l6 4" stroke="currentColor" stroke-width="1.5"/></svg>`
     },
@@ -345,10 +347,12 @@ const domains = [
         key: 'temporal',
         label: 'Temporal',
         href: route('timelines.index'),
-        matches: ['/timelines', '/character-states', '/concurrency-groups'],
+        matches: ['/timelines', '/timeline-placements', '/character-states', '/state-relationships', '/concurrency-groups'],
         children: [
             { key: 'timelines', label: 'Timelines', href: route('timelines.index'), matches: ['/timelines'] },
+            { key: 'timeline-placements', label: 'Timeline Placements', href: route('timeline-placements.index'), matches: ['/timeline-placements'] },
             { key: 'character-states', label: 'Character States', href: route('character-states.index'), matches: ['/character-states'] },
+            { key: 'state-relationships', label: 'State Relationships', href: route('state-relationships.index'), matches: ['/state-relationships'] },
             { key: 'concurrency-groups', label: 'Concurrency Groups', href: route('concurrency-groups.index'), matches: ['/concurrency-groups'] },
         ],
         icon: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>`
@@ -357,10 +361,12 @@ const domains = [
         key: 'lore',
         label: 'Lore',
         href: route('documents.index'),
-        matches: ['/documents', '/canon-references', '/crossover-entry-points'],
+        matches: ['/documents', '/document-entities', '/canon-references', '/canon-reference-entities', '/crossover-entry-points'],
         children: [
             { key: 'documents', label: 'Documents', href: route('documents.index'), matches: ['/documents'] },
+            { key: 'document-entities', label: 'Document Links', href: route('document-entities.index'), matches: ['/document-entities'] },
             { key: 'canon-references', label: 'Canon References', href: route('canon-references.index'), matches: ['/canon-references'] },
+            { key: 'canon-reference-entities', label: 'Reference Links', href: route('canon-reference-entities.index'), matches: ['/canon-reference-entities'] },
             { key: 'crossover-entry-points', label: 'Entry Points', href: route('crossover-entry-points.index'), matches: ['/crossover-entry-points'] },
         ],
         icon: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="3" y="1" width="10" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M6 5h4M6 8h4M6 11h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`
@@ -381,12 +387,14 @@ const domains = [
         key: 'world',
         label: 'World',
         href: route('power-interactions.index'),
-        matches: ['/power-interactions', '/travel-routes', '/location-containment', '/location-control'],
+        matches: ['/power-interactions', '/power-interaction-instances', '/travel-routes', '/location-containment', '/location-control', '/galactic-regions'],
         children: [
             { key: 'power-interactions', label: 'Power Interactions', href: route('power-interactions.index'), matches: ['/power-interactions'] },
+            { key: 'power-interaction-instances', label: 'Instances', href: route('power-interaction-instances.index'), matches: ['/power-interaction-instances'] },
             { key: 'travel-routes', label: 'Travel Routes', href: route('travel-routes.index'), matches: ['/travel-routes'] },
             { key: 'location-containment', label: 'Containment', href: route('location-containment.index'), matches: ['/location-containment'] },
             { key: 'location-control', label: 'Control', href: route('location-control.index'), matches: ['/location-control'] },
+            { key: 'galactic-regions', label: 'Galactic Regions', href: route('galactic-regions.index'), matches: ['/galactic-regions'] },
         ],
         icon: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M2 8h12M8 2a9 9 0 010 12M8 2a9 9 0 000 12" stroke="currentColor" stroke-width="1.5"/></svg>`
     },
@@ -394,9 +402,11 @@ const domains = [
         key: 'organize',
         label: 'Organize',
         href: route('collections.index'),
-        matches: ['/collections', '/glossary'],
+        matches: ['/collections', '/collection-entities', '/collection-documents', '/glossary'],
         children: [
             { key: 'collections', label: 'Collections', href: route('collections.index'), matches: ['/collections'] },
+            { key: 'collection-entities', label: 'Collection Entities', href: route('collection-entities.index'), matches: ['/collection-entities'] },
+            { key: 'collection-documents', label: 'Collection Docs', href: route('collection-documents.index'), matches: ['/collection-documents'] },
             { key: 'glossary', label: 'Glossary', href: route('glossary.index'), matches: ['/glossary'] },
         ],
         icon: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`
@@ -412,6 +422,18 @@ const domains = [
             { key: 'session-logs', label: 'Sessions', href: route('session-logs.index'), matches: ['/session-logs'] },
         ],
         icon: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 5-10 5V3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`
+    },
+    {
+        key: 'admin',
+        label: 'Admin',
+        href: route('admin.revisions.index'),
+        matches: ['/admin/revisions', '/admin/notion-notes', '/admin/notion-sync-mappings'],
+        children: [
+            { key: 'admin-revisions', label: 'Revisions', href: route('admin.revisions.index'), matches: ['/admin/revisions'] },
+            { key: 'admin-notion-notes', label: 'Notion Notes', href: route('admin.notion-notes.index'), matches: ['/admin/notion-notes'] },
+            { key: 'admin-notion-sync-mappings', label: 'Sync Mappings', href: route('admin.notion-sync-mappings.index'), matches: ['/admin/notion-sync-mappings'] },
+        ],
+        icon: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 6.5h6M5 9h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`
     },
 ]
 

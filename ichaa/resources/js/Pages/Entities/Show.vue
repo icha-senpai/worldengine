@@ -41,6 +41,62 @@
 
         <!-- TAB: IDENTITY -->
         <div v-if="activeTab === 'identity'" class="space-y-5">
+            <div class="panel space-y-4">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <h3 class="panel-label mb-0!">Lifecycle</h3>
+                        <p class="text-muted-3 text-sm font-ui mt-1">
+                            Publish, unpublish, or archive this entity without leaving the page.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                        <AppButton
+                            v-if="!entity.published_at"
+                            type="button"
+                            variant="success"
+                            @click="publishEntity"
+                        >
+                            Publish
+                        </AppButton>
+                        <AppButton
+                            v-else
+                            type="button"
+                            variant="warn"
+                            @click="unpublishEntity"
+                        >
+                            Unpublish
+                        </AppButton>
+                        <AppButton
+                            v-if="entity.status !== 'archived'"
+                            type="button"
+                            variant="danger"
+                            @click="archiveEntity"
+                        >
+                            Archive
+                        </AppButton>
+                    </div>
+                </div>
+
+                <div class="grid gap-3 md:grid-cols-3">
+                    <div class="info-box">
+                        <span class="info-box-label">Status</span>
+                        <span class="info-box-value">{{ formatLabel(entity.status || 'concept') }}</span>
+                    </div>
+                    <div class="info-box">
+                        <span class="info-box-label">Published</span>
+                        <span class="info-box-value">{{ entity.published_at ? formatDate(entity.published_at) : 'Draft only' }}</span>
+                    </div>
+                    <div class="info-box">
+                        <span class="info-box-label">Visibility</span>
+                        <span class="info-box-value">{{ formatLabel(entity.visibility || 'private') }}</span>
+                    </div>
+                </div>
+
+                <div v-if="publishError" class="record-card border border-danger/40 bg-danger/10">
+                    <p class="text-danger text-sm font-ui">{{ publishError }}</p>
+                </div>
+            </div>
 
             <!-- Completion bar -->
             <div class="flex items-center gap-3 p-3 bg-surface-2 border border-border rounded-md">
@@ -600,15 +656,95 @@
 
         <!-- TAB: INTELLIGENCE -->
         <div v-if="activeTab === 'intelligence'" class="space-y-4">
-            <div class="panel">
-                <h3 class="panel-label">Intelligence</h3>
-                <p class="text-muted-3 text-sm font-ui">
-                    Knowledge states and secrets involving this entity are managed from the
-                    <Link :href="route('knowledge-states.index')" class="text-cyan hover:underline">Knowledge States</Link>
-                    and
-                    <Link :href="route('secrets.index')" class="text-cyan hover:underline">Secrets</Link>
-                    domains. This tab will display a read-only summary once those pages are built.
-                </p>
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div class="info-box">
+                    <span class="info-box-label">Knowledge Held</span>
+                    <span class="info-box-value">{{ intelligenceSummary.counts?.knowledge_held ?? 0 }}</span>
+                </div>
+                <div class="info-box">
+                    <span class="info-box-label">Known About</span>
+                    <span class="info-box-value">{{ intelligenceSummary.counts?.knowledge_about ?? 0 }}</span>
+                </div>
+                <div class="info-box">
+                    <span class="info-box-label">Secrets About</span>
+                    <span class="info-box-value">{{ intelligenceSummary.counts?.secrets_about ?? 0 }}</span>
+                </div>
+                <div class="info-box">
+                    <span class="info-box-label">Secrets Held</span>
+                    <span class="info-box-value">{{ intelligenceSummary.counts?.secrets_held ?? 0 }}</span>
+                </div>
+                <div class="info-box">
+                    <span class="info-box-label">Secrets Known</span>
+                    <span class="info-box-value">{{ intelligenceSummary.counts?.secrets_known ?? 0 }}</span>
+                </div>
+                <div class="info-box">
+                    <span class="info-box-label">Perception Gaps</span>
+                    <span class="info-box-value">{{ intelligenceSummary.counts?.perception_states ?? 0 }}</span>
+                </div>
+            </div>
+
+            <div class="grid gap-4 xl:grid-cols-2">
+                <div class="panel space-y-3">
+                    <div>
+                        <h3 class="panel-label mb-0!">Current Knowledge</h3>
+                        <p class="text-muted-3 text-sm font-ui mt-1">
+                            What {{ entity.name }} currently knows, and what other people currently know about them.
+                        </p>
+                    </div>
+
+                    <div v-if="hasKnowledgeSummary" class="space-y-2">
+                        <div v-for="entry in intelligenceSummary.knowledgeHeld" :key="`knowledge-held-${entry.id}`" class="record-card">
+                            <Link :href="entry.href" class="text-primary text-sm hover:text-cyan transition-colors">
+                                {{ entry.label }}
+                            </Link>
+                            <p v-if="entry.meta" class="text-muted-3 text-xs font-ui mt-1">{{ formatLabel(entry.meta) }}</p>
+                        </div>
+                        <div v-for="entry in intelligenceSummary.knowledgeAbout" :key="`knowledge-about-${entry.id}`" class="record-card">
+                            <Link :href="entry.href" class="text-primary text-sm hover:text-cyan transition-colors">
+                                {{ entry.label }}
+                            </Link>
+                            <p v-if="entry.meta" class="text-muted-3 text-xs font-ui mt-1">{{ formatLabel(entry.meta) }}</p>
+                        </div>
+                    </div>
+                    <div v-else class="empty-state">No current knowledge states tied to this entity.</div>
+                </div>
+
+                <div class="panel space-y-3">
+                    <div>
+                        <h3 class="panel-label mb-0!">Secrets and Perception</h3>
+                        <p class="text-muted-3 text-sm font-ui mt-1">
+                            Secrets involving {{ entity.name }} and any active perception gap centered on them.
+                        </p>
+                    </div>
+
+                    <div v-if="hasSecretSummary" class="space-y-2">
+                        <div v-for="entry in intelligenceSummary.secretsAbout" :key="`secret-about-${entry.id}`" class="record-card">
+                            <Link :href="entry.href" class="text-primary text-sm hover:text-cyan transition-colors">
+                                {{ entry.label }}
+                            </Link>
+                            <p v-if="entry.meta" class="text-muted-3 text-xs font-ui mt-1">{{ formatLabel(entry.meta) }}</p>
+                        </div>
+                        <div v-for="entry in intelligenceSummary.secretsHeld" :key="`secret-held-${entry.id}`" class="record-card">
+                            <Link :href="entry.href" class="text-primary text-sm hover:text-cyan transition-colors">
+                                {{ entry.label }}
+                            </Link>
+                            <p v-if="entry.meta" class="text-muted-3 text-xs font-ui mt-1">{{ formatLabel(entry.meta) }}</p>
+                        </div>
+                        <div v-for="entry in intelligenceSummary.secretsKnown" :key="`secret-known-${entry.id}`" class="record-card">
+                            <Link :href="entry.href" class="text-primary text-sm hover:text-cyan transition-colors">
+                                {{ entry.label }}
+                            </Link>
+                            <p v-if="entry.meta" class="text-muted-3 text-xs font-ui mt-1">{{ formatLabel(entry.meta) }}</p>
+                        </div>
+                        <div v-for="entry in intelligenceSummary.perceptionStates" :key="`perception-${entry.id}`" class="record-card">
+                            <Link :href="entry.href" class="text-primary text-sm hover:text-cyan transition-colors">
+                                {{ entry.label }}
+                            </Link>
+                            <p v-if="entry.meta" class="text-muted-3 text-xs font-ui mt-1">{{ formatLabel(entry.meta) }}</p>
+                        </div>
+                    </div>
+                    <div v-else class="empty-state">No secret or perception records tied to this entity.</div>
+                </div>
             </div>
         </div>
 
@@ -778,6 +914,7 @@ import EditQuestion from '@/Pages/Entities/Questions/Edit.vue'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
 import { formatLabel, isRichDocument } from '@/Components/scaffold/formatters'
 import { formatEntityAliasType } from '@/Pages/Entities/aliasTypes'
+import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { matchesPendingDrawerHref } from '@/lib/drawerNavigation'
 
 // --- Props ---
@@ -792,6 +929,7 @@ const props = defineProps({
     factionMembershipEditDrawer: { type: Object, default: null },
     factionMembershipCreateDrawer: { type: Object, default: null },
     factionRoster: { type: Array, default: () => [] },
+    intelligenceSummary: { type: Object, default: () => ({ counts: {} }) },
     memberMemberships: { type: Array, default: () => [] },
     isFactionEntity: { type: Boolean, default: false },
     noteCreateDrawer: { type: [Boolean, Object], default: null },
@@ -946,6 +1084,43 @@ const resolveQuestion = (questionId) => {
     })
 }
 
+const publishEntity = () => {
+    router.post(route('entities.publish', props.entity.id), {}, {
+        preserveScroll: true,
+    })
+}
+
+const unpublishEntity = () => {
+    router.post(route('entities.unpublish', props.entity.id), {}, {
+        preserveScroll: true,
+    })
+}
+
+const archiveEntity = async () => {
+    const confirmed = await confirmDialog({
+        title: 'Archive Entity',
+        message: `Archive "${props.entity.name}"?`,
+        confirmLabel: 'Archive Entity',
+        cancelLabel: 'Cancel',
+        confirmVariant: 'danger',
+    })
+
+    if (!confirmed) {
+        return
+    }
+
+    router.post(route('entities.archive', props.entity.id), {}, {
+        preserveScroll: true,
+        onError: (errors) => {
+            void showErrorDialog({
+                title: 'Could not archive entity',
+                message: 'The request did not complete.',
+                details: errors,
+            })
+        },
+    })
+}
+
 const applyRouteState = () => {
     const requestedTab = urlParams.value.get('tab')
     const nextTab = validTabs.value.includes(requestedTab) ? requestedTab : 'identity'
@@ -981,6 +1156,17 @@ const entitySubtitle = computed(() =>
     props.entity.public_title ? `"${props.entity.public_title}"` : ''
 )
 const entityDestroyConfirm = computed(() => `Move "${props.entity.name}" to trash?`)
+const publishError = computed(() => page.props?.errors?.publish ?? '')
+const hasKnowledgeSummary = computed(() =>
+    (props.intelligenceSummary.knowledgeHeld?.length ?? 0) > 0
+    || (props.intelligenceSummary.knowledgeAbout?.length ?? 0) > 0
+)
+const hasSecretSummary = computed(() =>
+    (props.intelligenceSummary.secretsAbout?.length ?? 0) > 0
+    || (props.intelligenceSummary.secretsHeld?.length ?? 0) > 0
+    || (props.intelligenceSummary.secretsKnown?.length ?? 0) > 0
+    || (props.intelligenceSummary.perceptionStates?.length ?? 0) > 0
+)
 
 // --- Formatters ---
 

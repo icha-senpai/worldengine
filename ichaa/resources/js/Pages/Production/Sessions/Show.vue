@@ -34,6 +34,9 @@ import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     session: { type: Object, required: true },
+    focusEntities: { type: Array, default: () => [] },
+    focusGroupRelationships: { type: Array, default: () => [] },
+    focusCollections: { type: Array, default: () => [] },
     editDrawer: { type: Object, default: null },
 })
 
@@ -46,6 +49,15 @@ const sections = computed(() => [
             sectionEntry('Focus Description', props.session.focus_description),
             sectionEntry('Session Significance', props.session.session_significance),
         ],
+    },
+    {
+        title: 'Focus Links',
+        entries: [
+            sectionEntry('Focus Entities', props.focusEntities, { kind: 'list' }),
+            sectionEntry('Focus Group Relationships', props.focusGroupRelationships, { kind: 'list' }),
+            sectionEntry('Focus Collections', props.focusCollections, { kind: 'list' }),
+        ],
+        fullWidth: true,
     },
     {
         title: 'Working Notes',

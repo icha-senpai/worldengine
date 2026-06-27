@@ -76,6 +76,18 @@ class PerceptionStateController extends Controller
         return $this->back("{$entity->name} added to immune list.");
     }
 
+    public function removeImmune(PerceptionState $perceptionState, Entity $entity): RedirectResponse
+    {
+        $immune = collect($perceptionState->immune_entity_ids ?? [])
+            ->reject(fn ($id) => (int) $id === (int) $entity->id)
+            ->values()
+            ->all();
+
+        $perceptionState->update(['immune_entity_ids' => $immune]);
+
+        return $this->back("{$entity->name} removed from immune list.");
+    }
+
     public function collapse(Request $request, PerceptionState $perceptionState): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::webAction('perception-collapse'));
@@ -267,10 +279,14 @@ class PerceptionStateController extends Controller
                     $entity = $maintainers->get($id);
 
                     if (! $entity) {
-                        return ['label' => "Unknown entity #{$id}"];
+                        return [
+                            'id' => (int) $id,
+                            'label' => "Unknown entity #{$id}",
+                        ];
                     }
 
                     return [
+                        'id' => $entity->id,
                         'label' => "{$entity->name}".($entity->entity_type ? " ({$entity->entity_type})" : ''),
                         'href' => route('entities.show', [$entity]),
                     ];
@@ -282,10 +298,14 @@ class PerceptionStateController extends Controller
                     $entity = $maintainers->get($id);
 
                     if (! $entity) {
-                        return ['label' => "Unknown entity #{$id}"];
+                        return [
+                            'id' => (int) $id,
+                            'label' => "Unknown entity #{$id}",
+                        ];
                     }
 
                     return [
+                        'id' => $entity->id,
                         'label' => "{$entity->name}".($entity->entity_type ? " ({$entity->entity_type})" : ''),
                         'href' => route('entities.show', [$entity]),
                     ];

@@ -104,10 +104,24 @@ class DocumentController extends Controller
 
     private function showPage(Document $document, array $props = []): Response
     {
-        $document->load(['officialAuthor:id,name', 'trueAuthor:id,name', 'owner:id,name']);
+        $document->load(['officialAuthor:id,name', 'trueAuthor:id,name', 'owner:id,name', 'suppressedBy:id,name']);
+
+        $knownByEntities = Entity::query()
+            ->select('id', 'name', 'entity_type')
+            ->whereIn('id', $document->known_by_entity_ids ?? [])
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Entity $entity) => [
+                'id' => $entity->id,
+                'label' => "{$entity->name}".($entity->entity_type ? " ({$entity->entity_type})" : ''),
+                'href' => route('entities.show', [$entity]),
+            ])
+            ->values()
+            ->all();
 
         return $this->pageWithNotionNote('Lore/Documents/Show', $document, 'documents', array_merge([
             'document' => $document,
+            'knownByEntities' => $knownByEntities,
         ], $props));
     }
 }

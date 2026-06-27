@@ -153,17 +153,84 @@ class KnowledgeStateController extends Controller
         ];
     }
 
+    private function resolveSubjectDisplay(KnowledgeState $knowledgeState): array
+    {
+        if ($knowledgeState->subject_entity_id && $knowledgeState->subjectEntity) {
+            return [
+                'typeLabel' => 'Entity',
+                'label' => $knowledgeState->subjectEntity->name,
+                'href' => route('entities.show', [$knowledgeState->subjectEntity]),
+            ];
+        }
+
+        if ($knowledgeState->subject_relationship_id && $knowledgeState->subjectRelationship) {
+            $from = $knowledgeState->subjectRelationship->fromEntity?->name ?? 'Unknown';
+            $to = $knowledgeState->subjectRelationship->toEntity?->name ?? 'Unknown';
+
+            return [
+                'typeLabel' => 'Relationship',
+                'label' => "{$from} -> {$to}",
+                'href' => route('relationships.show', [$knowledgeState->subjectRelationship]),
+            ];
+        }
+
+        if ($knowledgeState->subject_group_relationship_id && $knowledgeState->subjectGroupRelationship) {
+            return [
+                'typeLabel' => 'Group Relationship',
+                'label' => $knowledgeState->subjectGroupRelationship->name,
+                'href' => route('group-relationships.show', [$knowledgeState->subjectGroupRelationship]),
+            ];
+        }
+
+        if ($knowledgeState->subject_event_id && $knowledgeState->subjectEvent) {
+            $label = $knowledgeState->subjectEvent->entry_label
+                ?: $knowledgeState->subjectEvent->eventEntity?->name
+                ?: "Timeline entry #{$knowledgeState->subjectEvent->id}";
+            $timelineName = $knowledgeState->subjectEvent->timeline?->name
+                ? " on {$knowledgeState->subjectEvent->timeline->name}"
+                : '';
+
+            return [
+                'typeLabel' => 'Event',
+                'label' => "{$label}{$timelineName}",
+            ];
+        }
+
+        if ($knowledgeState->subject_secret_id && $knowledgeState->subjectSecret) {
+            return [
+                'typeLabel' => 'Secret',
+                'label' => $knowledgeState->subjectSecret->title,
+                'href' => route('secrets.show', [$knowledgeState->subjectSecret]),
+            ];
+        }
+
+        return [
+            'typeLabel' => 'Unknown',
+            'label' => $knowledgeState->subjectId()
+                ? "Unknown subject #{$knowledgeState->subjectId()}"
+                : 'Unknown subject',
+        ];
+    }
+
     private function showPage(KnowledgeState $knowledgeState, array $props = []): Response
     {
         $knowledgeState->load([
             'knower:id,name,entity_type',
             'subjectEntity:id,name,entity_type',
+            'subjectRelationship:id,from_entity_id,to_entity_id',
+            'subjectRelationship.fromEntity:id,name',
+            'subjectRelationship.toEntity:id,name',
+            'subjectGroupRelationship:id,name,relationship_type',
+            'subjectEvent:id,timeline_id,event_entity_id,entry_label,au_date',
+            'subjectEvent.eventEntity:id,name',
+            'subjectEvent.timeline:id,name',
             'subjectSecret:id,title',
             'acquiredFrom:id,name',
         ]);
 
         return $this->pageWithNotionNote('Intelligence/KnowledgeStates/Show', $knowledgeState, 'knowledge_states', array_merge([
             'state' => $knowledgeState,
+            'subjectDisplay' => $this->resolveSubjectDisplay($knowledgeState),
         ], $props));
     }
 }

@@ -92,6 +92,31 @@ class ProductionWorkflowTest extends TestCase
         $this->assertSame('transformation', $item->arc_stage);
     }
 
+    public function test_pipeline_items_can_be_resolved_from_the_show_surface(): void
+    {
+        $user = $this->verifiedUser();
+        $item = PipelineItem::create([
+            'title' => 'Archive Sweep',
+            'pipeline_type' => 'scene',
+            'pipeline_stage' => 'drafted',
+            'sort_order' => 1,
+            'notes' => ['type' => 'doc', 'content' => []],
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('pipeline.show', $item))
+            ->post(route('pipeline.resolve', $item), [
+                'resolution_notes' => ['type' => 'doc', 'content' => [['type' => 'paragraph']]],
+            ])
+            ->assertRedirect(route('pipeline.show', $item))
+            ->assertSessionHas('success');
+
+        $item->refresh();
+
+        $this->assertSame('complete', $item->pipeline_stage);
+        $this->assertSame(['type' => 'doc', 'content' => [['type' => 'paragraph']]], $item->notes);
+    }
+
     public function test_meta_notes_can_be_resolved_and_linked_to_entities(): void
     {
         $user = $this->verifiedUser();

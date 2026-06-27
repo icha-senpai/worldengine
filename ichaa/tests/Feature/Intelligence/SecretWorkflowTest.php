@@ -77,6 +77,65 @@ class SecretWorkflowTest extends TestCase
         $this->assertSame('Year 2000', $secret->revealed_at_era);
     }
 
+    public function test_secret_show_actions_can_add_and_remove_known_by_and_holders(): void
+    {
+        $user = $this->verifiedUser();
+        $holder = Entity::factory()->create(['name' => 'Mirror Council']);
+        $knower = Entity::factory()->create(['name' => 'Johnny Voss']);
+        $secret = Secret::create([
+            'title' => 'The Puppet Cycle',
+            'secret_content' => ['type' => 'doc', 'content' => []],
+            'secret_type' => 'plan',
+            'subject_entity_ids' => [],
+            'holder_entity_ids' => [],
+            'known_by_entity_ids' => [],
+            'exposure_risk' => 'medium',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('secrets.show', $secret))
+            ->post(route('secrets.holders.add', ['secret' => $secret, 'entity' => $holder]))
+            ->assertRedirect(route('secrets.show', $secret))
+            ->assertSessionHas('success');
+
+        $secret->refresh();
+
+        $this->assertSame([$holder->id], $secret->holder_entity_ids);
+        $this->assertSame([$holder->id], $secret->known_by_entity_ids);
+
+        $this->actingAs($user)
+            ->from(route('secrets.show', $secret))
+            ->post(route('secrets.known-by.add', ['secret' => $secret, 'entity' => $knower]))
+            ->assertRedirect(route('secrets.show', $secret))
+            ->assertSessionHas('success');
+
+        $secret->refresh();
+
+        $this->assertSame([$holder->id, $knower->id], $secret->known_by_entity_ids);
+
+        $this->actingAs($user)
+            ->from(route('secrets.show', $secret))
+            ->delete(route('secrets.known-by.remove', ['secret' => $secret, 'entity' => $knower]))
+            ->assertRedirect(route('secrets.show', $secret))
+            ->assertSessionHas('success');
+
+        $secret->refresh();
+
+        $this->assertSame([$holder->id], $secret->known_by_entity_ids);
+
+        $this->actingAs($user)
+            ->from(route('secrets.show', $secret))
+            ->delete(route('secrets.holders.remove', ['secret' => $secret, 'entity' => $holder]))
+            ->assertRedirect(route('secrets.show', $secret))
+            ->assertSessionHas('success');
+
+        $secret->refresh();
+
+        $this->assertSame([], $secret->holder_entity_ids);
+        $this->assertSame([$holder->id], $secret->known_by_entity_ids);
+    }
+
     private function verifiedUser(): User
     {
         return $this->createVerifiedAdminUser();

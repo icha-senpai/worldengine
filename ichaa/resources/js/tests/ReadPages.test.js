@@ -1,4 +1,4 @@
-import { defineComponent } from 'vue'
+import { defineComponent, reactive } from 'vue'
 import { mount } from '@vue/test-utils'
 import EntityShow from '@/Pages/Entities/Show.vue'
 import EntityVersionsIndex from '@/Pages/Entities/Versions/Index.vue'
@@ -66,12 +66,50 @@ const ScaffoldShowPageStub = defineComponent({
     name: 'ScaffoldShowPage',
     props: {
         title: { type: String, default: '' },
+        subtitle: { type: String, default: '' },
         sections: { type: Array, default: () => [] },
         badge: { type: String, default: '' },
         backHref: { type: [String, Object], default: null },
         editHref: { type: [String, Object], default: null },
+        destroyHref: { type: [String, Object], default: null },
+        destroyLabel: { type: String, default: 'Move to Trash' },
     },
-    template: '<div data-test="show-page">{{ title }}</div>',
+    computed: {
+        notionNote() {
+            return usePageMock()?.props?.notionNote ?? null
+        },
+    },
+    methods: {
+        async destroyRecord() {
+            if (!this.destroyHref) {
+                return
+            }
+
+            const confirmed = await confirmDialogMock()
+
+            if (!confirmed) {
+                return
+            }
+
+            routerDeleteMock(this.destroyHref, {
+                onError: () => {},
+            })
+        },
+    },
+    template: `
+        <div data-test="show-page">
+            {{ title }}
+            <p v-if="subtitle">{{ subtitle }}</p>
+            <slot name="hero-actions" />
+            <button v-if="destroyHref" type="button" @click="destroyRecord">{{ destroyLabel }}</button>
+            <slot />
+            <slot name="edit-drawer" />
+            <section v-if="notionNote?.content">
+                <h3>{{ notionNote.label || 'Notion Notes' }}</h3>
+                <p>{{ notionNote.content }}</p>
+            </section>
+        </div>
+    `,
 })
 
 const ScaffoldIndexPageStub = defineComponent({
@@ -156,15 +194,18 @@ describe('read pages', () => {
         usePageMock.mockReset()
         usePageMock.mockReturnValue({ url: '/entities/1?tab=aliases', props: {} })
         useFormMock.mockImplementation((initial) => {
-            const form = {
+            const form = reactive({
                 ...initial,
                 processing: false,
                 errors: {},
                 reset: vi.fn(),
                 clearErrors: vi.fn(),
+                transform: vi.fn(function transform() {
+                    return form
+                }),
                 post: vi.fn(),
                 put: vi.fn(),
-            }
+            })
 
             formInstances.push(form)
 
@@ -216,6 +257,10 @@ describe('read pages', () => {
                         known_by_entities_display: [
                             { id: 2, name: 'Johnny Voss', entity_type: 'character' },
                         ],
+                        notion_note: {
+                            label: 'Notion Notes',
+                            content: 'This is mirrored from the Notion page body.',
+                        },
                     },
                     {
                         id: 11,
@@ -296,6 +341,131 @@ describe('read pages', () => {
         expect(wrapper.text()).toContain('Night Council')
     })
 
+    it('renders entity lifecycle controls, publish errors, and intelligence summary actions', async () => {
+        usePageMock.mockReturnValue({
+            url: '/entities/1?tab=identity',
+            props: {
+                errors: {
+                    publish: 'Needs a public summary before publishing.',
+                },
+            },
+        })
+
+        const lifecycleWrapper = mountPage(EntityShow, {
+            entity: {
+                id: 1,
+                name: 'Seraphine Vale',
+                entity_type: 'character',
+                status: 'active',
+                summary: 'A central figure in the fracture.',
+                source_universes: ['Harry Potter'],
+                visibility: 'private',
+                content_classification: 'restricted',
+                completion_score: 55,
+                has_attributes: true,
+                has_relationships: true,
+                has_timeline_entries: false,
+                has_aliases: true,
+                has_media: false,
+                aliases: [],
+                notes: [],
+                questions: [],
+                published_at: null,
+            },
+            intelligenceSummary: {
+                counts: {
+                    knowledge_held: 1,
+                    knowledge_about: 2,
+                    secrets_about: 1,
+                    secrets_held: 1,
+                    secrets_known: 2,
+                    perception_states: 1,
+                },
+                knowledgeHeld: [
+                    { id: 7, label: 'Puppet Cycle', meta: 'secret', href: { name: 'knowledge-states.show', params: [7] } },
+                ],
+                knowledgeAbout: [],
+                secretsAbout: [
+                    { id: 8, label: 'Puppet Cycle', meta: 'plan', href: { name: 'secrets.show', params: [8] } },
+                ],
+                secretsHeld: [],
+                secretsKnown: [],
+                perceptionStates: [],
+            },
+        })
+
+        expect(lifecycleWrapper.text()).toContain('Publish')
+        expect(lifecycleWrapper.text()).toContain('Archive')
+        expect(lifecycleWrapper.text()).toContain('Needs a public summary before publishing.')
+
+        await clickButtonByText(lifecycleWrapper, 'button', 'Publish')
+        await clickButtonByText(lifecycleWrapper, 'button', 'Archive')
+        await Promise.resolve()
+
+        expect(routerPostMock).toHaveBeenNthCalledWith(1, { name: 'entities.publish', params: 1 }, {}, {
+            preserveScroll: true,
+        })
+        expect(routerPostMock).toHaveBeenNthCalledWith(2, { name: 'entities.archive', params: 1 }, {}, expect.objectContaining({
+            preserveScroll: true,
+            onError: expect.any(Function),
+        }))
+
+        usePageMock.mockReturnValue({
+            url: '/entities/1?tab=intelligence',
+            props: {
+                errors: {
+                    publish: 'Needs a public summary before publishing.',
+                },
+            },
+        })
+
+        const intelligenceWrapper = mountPage(EntityShow, {
+            entity: {
+                id: 1,
+                name: 'Seraphine Vale',
+                entity_type: 'character',
+                status: 'active',
+                summary: 'A central figure in the fracture.',
+                source_universes: ['Harry Potter'],
+                visibility: 'private',
+                content_classification: 'restricted',
+                completion_score: 55,
+                has_attributes: true,
+                has_relationships: true,
+                has_timeline_entries: false,
+                has_aliases: true,
+                has_media: false,
+                aliases: [],
+                notes: [],
+                questions: [],
+                published_at: null,
+            },
+            intelligenceSummary: {
+                counts: {
+                    knowledge_held: 1,
+                    knowledge_about: 2,
+                    secrets_about: 1,
+                    secrets_held: 1,
+                    secrets_known: 2,
+                    perception_states: 1,
+                },
+                knowledgeHeld: [
+                    { id: 7, label: 'Puppet Cycle', meta: 'secret', href: { name: 'knowledge-states.show', params: [7] } },
+                ],
+                knowledgeAbout: [],
+                secretsAbout: [
+                    { id: 8, label: 'Puppet Cycle', meta: 'plan', href: { name: 'secrets.show', params: [8] } },
+                ],
+                secretsHeld: [],
+                secretsKnown: [],
+                perceptionStates: [],
+            },
+        })
+
+        expect(intelligenceWrapper.text()).toContain('Knowledge Held')
+        expect(intelligenceWrapper.text()).toContain('Secrets About')
+    })
+
     it('builds the entity versions index items with canon summary metadata', () => {
         const scaffold = mountIndexScaffoldPage(EntityVersionsIndex, {
             entity: {
@@ -336,7 +506,7 @@ describe('read pages', () => {
                 id: 10,
                 href: { name: 'entities.versions.show', params: [1, 10] },
                 title: 'Post-Fracture',
-                subtitle: '[Document]',
+                subtitle: '—',
                 badges: [
                     { label: 'Type', value: 'soft' },
                     { label: 'State', value: 'current' },
@@ -504,17 +674,25 @@ describe('read pages', () => {
                 document_status: 'suppressed',
                 document_authenticity: 'disputed',
                 era_created: 'Cycle 12',
+                access_level: 'sealed',
                 official_author: { id: 5, name: 'Public Scribe' },
                 true_author: { id: 6, name: 'Shadow Editor' },
                 owner: { id: 7, name: 'Archive Circle' },
+                suppressed_by: { id: 8, name: 'Archivist Prime' },
+                suppression_notes: { type: 'doc', content: [{ type: 'paragraph' }] },
                 official_narrative: { type: 'doc', content: [] },
                 true_content: { type: 'doc', content: [{ type: 'paragraph' }] },
             },
+            knownByEntities: [{ label: 'Johnny Voss (character)', href: '/entities/9' }],
         })
 
         expect(scaffold.props('title')).toBe('Mirror Concordance')
         expect(findEntry(scaffold.props('sections'), 'Official Author').value).toBe('Public Scribe')
         expect(findEntry(scaffold.props('sections'), 'True Author').value).toBe('Shadow Editor')
+        expect(findEntry(scaffold.props('sections'), 'Suppressed By', 'Suppression and Access').value).toBe('Archivist Prime')
+        expect(findEntry(scaffold.props('sections'), 'Known By', 'Suppression and Access').value).toEqual([
+            { label: 'Johnny Voss (character)', href: '/entities/9' },
+        ])
         expect(findEntry(scaffold.props('sections'), 'Content', 'True Content').value).toEqual({
             type: 'doc',
             content: [{ type: 'paragraph' }],
@@ -621,7 +799,7 @@ describe('read pages', () => {
         const form = formInstances.at(-1)
 
         expect(wrapper.text()).toContain('Place Event')
-        expect(wrapper.text()).toContain('Tracks the fracture chronology.')
+        expect(wrapper.text()).toContain('Add an event entity directly onto this timeline without leaving the page.')
         expect(wrapper.text()).toContain('The Fracture')
         expect(wrapper.text()).toContain('The Library Watches')
         expect(wrapper.text()).toContain('Archive Fire (#44 · Event)')
@@ -744,27 +922,80 @@ describe('read pages', () => {
         ])
     })
 
+    it('routes secret holder and known-by actions through the show surface', async () => {
+        const wrapper = mountPage(SecretShow, {
+            secret: {
+                id: 41,
+                title: 'Puppet Cycle',
+                secret_type: 'plan',
+                exposure_risk: 'critical',
+                status: 'active',
+                revealed_at_era: null,
+                known_by_entity_ids: [3],
+                holder_entity_ids: [2],
+            },
+            holderEntities: [{ id: 2, label: 'Mirror Council (faction)', href: '/entities/2' }],
+            knownByEntities: [{ id: 3, label: 'Johnny (character)', href: '/entities/3' }],
+            entities: [
+                { id: 2, name: 'Mirror Council', entity_type: 'faction' },
+                { id: 3, name: 'Johnny', entity_type: 'character' },
+                { id: 4, name: 'Seraphine', entity_type: 'character' },
+            ],
+        })
+
+        await wrapper.get('#secret-holder').setValue('4')
+        await clickButtonByText(wrapper, 'button', 'Add Holder')
+        await wrapper.get('#secret-known-by').setValue('4')
+        await clickButtonByText(wrapper, 'button', 'Add Entity')
+        await wrapper.findAll('button').find((button) => button.text() === 'Remove').trigger('click')
+        await wrapper.findAll('button').filter((button) => button.text() === 'Remove')[1].trigger('click')
+        await Promise.resolve()
+
+        expect(routerPostMock).toHaveBeenCalledWith(
+            { name: 'secrets.holders.add', params: { secret: 41, entity: 4 } },
+            {},
+            expect.objectContaining({ preserveScroll: true, onSuccess: expect.any(Function) }),
+        )
+        expect(routerPostMock).toHaveBeenCalledWith(
+            { name: 'secrets.known-by.add', params: { secret: 41, entity: 4 } },
+            {},
+            expect.objectContaining({ preserveScroll: true, onSuccess: expect.any(Function) }),
+        )
+        expect(routerDeleteMock).toHaveBeenCalledWith(
+            { name: 'secrets.holders.remove', params: { secret: 41, entity: 2 } },
+            expect.objectContaining({ preserveScroll: true, onError: expect.any(Function) }),
+        )
+        expect(routerDeleteMock).toHaveBeenCalledWith(
+            { name: 'secrets.known-by.remove', params: { secret: 41, entity: 3 } },
+            expect.objectContaining({ preserveScroll: true, onError: expect.any(Function) }),
+        )
+    })
+
     it('builds the knowledge-state show sections with participant links and assessment data', () => {
         const scaffold = mountScaffoldPage(KnowledgeStateShow, {
             state: {
                 id: 55,
                 knowledge_type: 'secret',
                 accuracy: 'partial',
-                current_belief_state: 'believed',
+                current_belief_state: 'believes',
                 acquired_through: 'observation',
                 acquired_at_era: 'Cycle 12',
                 knowledge_content: { type: 'doc', content: [{ type: 'paragraph' }] },
                 knower: { id: 8, name: 'Johnny' },
-                subject_entity: { id: 9, name: 'Seraphine' },
-                subject_secret: { title: 'Puppet Cycle' },
                 acquired_from: { id: 10, name: 'Mirror Council' },
+            },
+            subjectDisplay: {
+                typeLabel: 'Relationship',
+                label: 'Seraphine -> Johnny',
+                href: { name: 'relationships.show', params: [17] },
             },
         })
 
         expect(scaffold.props('title')).toBe('Johnny Knowledge')
         expect(scaffold.props('badge')).toBe('Secret')
         expect(findEntry(scaffold.props('sections'), 'Knower', 'Participants').value).toBe('Johnny')
-        expect(findEntry(scaffold.props('sections'), 'Subject Secret', 'Participants').value).toBe('Puppet Cycle')
+        expect(findEntry(scaffold.props('sections'), 'Subject Type', 'Participants').value).toBe('Relationship')
+        expect(findEntry(scaffold.props('sections'), 'Subject', 'Participants').value).toBe('Seraphine -> Johnny')
         expect(findEntry(scaffold.props('sections'), 'Acquired Through', 'Assessment').value).toBe('Observation')
         expect(findEntry(scaffold.props('sections'), 'Knowledge Content', 'Content').value).toEqual({
             type: 'doc',
@@ -800,6 +1031,43 @@ describe('read pages', () => {
         expect(findEntry(scaffold.props('sections'), 'Maintained By Entities', 'States').value).toEqual([
             { label: 'Mirror Council', href: '/entities/7' },
         ])
+    })
+
+    it('routes perception immune removal through the show surface', async () => {
+        const wrapper = mountPage(PerceptionStateShow, {
+            state: {
+                id: 57,
+                subject_type: 'secret',
+                subject_id: 12,
+                divergence_level: 'severe',
+                maintenance_method: 'ritual',
+                maintenance_effort: 'high',
+                revelation_risk: 'critical',
+                is_current: true,
+                true_state: { type: 'doc', content: [{ type: 'paragraph' }] },
+                perceived_state: { type: 'doc', content: [] },
+            },
+            immuneEntities: [{ id: 7, label: 'Mirror Council (faction)', href: '/entities/7' }],
+            entities: [
+                { id: 7, name: 'Mirror Council', entity_type: 'faction' },
+                { id: 8, name: 'Seraphine', entity_type: 'character' },
+            ],
+        })
+
+        await wrapper.get('#perception-immune-entity').setValue('8')
+        await clickButtonByText(wrapper, 'button', 'Add Immune')
+        await clickButtonByText(wrapper, 'button', 'Remove')
+        await Promise.resolve()
+
+        expect(routerPostMock).toHaveBeenCalledWith(
+            { name: 'perception-states.immune.add', params: { perceptionState: 57, entity: 8 } },
+            {},
+            expect.objectContaining({ preserveScroll: true, onSuccess: expect.any(Function) }),
+        )
+        expect(routerDeleteMock).toHaveBeenCalledWith(
+            { name: 'perception-states.immune.remove', params: { perceptionState: 57, entity: 7 } },
+            expect.objectContaining({ preserveScroll: true, onError: expect.any(Function) }),
+        )
     })
 
     it('builds the power-interaction show sections with risk and observed instances', () => {
@@ -928,20 +1196,17 @@ describe('read pages', () => {
                 ],
             },
         })
+        const scaffold = wrapper.getComponent(ScaffoldShowPageStub)
 
         expect(wrapper.text()).toContain('Year 0 Confrontation')
         expect(wrapper.text()).toContain('Advance')
         expect(wrapper.text()).toContain('Needs sharper final line.')
 
-        await clickButtonByText(wrapper, 'button', 'Advance →')
-        await clickButtonByText(wrapper, 'button', 'Move to Trash')
+        await clickButtonByText(wrapper, 'button', 'Advance ->')
         await Promise.resolve()
 
         expect(routerPostMock).toHaveBeenCalledWith({ name: 'pipeline.advance', params: 99 })
-        expect(routerDeleteMock).toHaveBeenCalledWith(
-            { name: 'pipeline.destroy', params: 99 },
-            { onError: expect.any(Function) },
-        )
+        expect(scaffold.props('destroyHref')).toEqual({ name: 'pipeline.destroy', params: 99 })
     })
 })
 
@@ -965,6 +1230,7 @@ function mountPage(component, props, extraStubs = {}) {
     return mount(component, {
         props,
         global: {
+            renderStubDefaultSlot: true,
             config: {
                 globalProperties: {
                     route: global.route,

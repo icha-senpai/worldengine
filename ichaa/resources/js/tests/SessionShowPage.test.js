@@ -58,6 +58,9 @@ describe('Session show page', () => {
             notes: null,
             entity_questions: [],
         }
+        const focusEntities = [{ label: 'Seraphine (character)', href: { name: 'entities.show', params: 1 } }]
+        const focusGroupRelationships = [{ label: 'Triad (alliance)', href: { name: 'group-relationships.show', params: 2 } }]
+        const focusCollections = [{ label: 'Core Cast (custom)', href: { name: 'collections.show', params: 3 } }]
 
         const editDrawer = {
             entities: [{ id: 1, name: 'Seraphine', entity_type: 'character' }],
@@ -69,6 +72,9 @@ describe('Session show page', () => {
         const wrapper = mount(SessionShow, {
             props: {
                 session,
+                focusEntities,
+                focusGroupRelationships,
+                focusCollections,
                 editDrawer,
             },
             global: {
@@ -92,6 +98,16 @@ describe('Session show page', () => {
             name: 'session-logs.show',
             params: 42,
         })
+        expect(scaffold.props('sections')).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                title: 'Focus Links',
+                entries: expect.arrayContaining([
+                    expect.objectContaining({ label: 'Focus Entities', value: focusEntities }),
+                    expect.objectContaining({ label: 'Focus Group Relationships', value: focusGroupRelationships }),
+                    expect.objectContaining({ label: 'Focus Collections', value: focusCollections }),
+                ]),
+            }),
+        ]))
         expect(editForm.props('embedded')).toBe(true)
         expect(editForm.props('session')).toEqual(session)
         expect(editForm.props('entities')).toEqual(editDrawer.entities)

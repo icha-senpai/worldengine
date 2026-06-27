@@ -81,6 +81,37 @@ class SecretController extends Controller
         return $this->back("{$entity->name} added to known-by.");
     }
 
+    public function removeKnownBy(Secret $secret, Entity $entity): RedirectResponse
+    {
+        $knownBy = collect($secret->known_by_entity_ids ?? [])
+            ->reject(fn ($id) => (int) $id === (int) $entity->id)
+            ->values()
+            ->all();
+
+        $secret->update(['known_by_entity_ids' => $knownBy]);
+
+        return $this->back("{$entity->name} removed from known-by.");
+    }
+
+    public function addHolder(Secret $secret, Entity $entity): RedirectResponse
+    {
+        $this->service->addToHolders($secret, $entity->id);
+
+        return $this->back("{$entity->name} added to holders.");
+    }
+
+    public function removeHolder(Secret $secret, Entity $entity): RedirectResponse
+    {
+        $holders = collect($secret->holder_entity_ids ?? [])
+            ->reject(fn ($id) => (int) $id === (int) $entity->id)
+            ->values()
+            ->all();
+
+        $secret->update(['holder_entity_ids' => $holders]);
+
+        return $this->back("{$entity->name} removed from holders.");
+    }
+
     private function entityListItems(array $ids, Collection $entities): array
     {
         return collect($ids)
@@ -89,6 +120,7 @@ class SecretController extends Controller
 
                 if (! $entity) {
                     return [
+                        'id' => (int) $id,
                         'label' => "Unknown entity #{$id}",
                     ];
                 }
@@ -96,6 +128,7 @@ class SecretController extends Controller
                 $type = $entity->entity_type ? " ({$entity->entity_type})" : '';
 
                 return [
+                    'id' => $entity->id,
                     'label' => "{$entity->name}{$type}",
                     'href' => route('entities.show', [$entity]),
                 ];

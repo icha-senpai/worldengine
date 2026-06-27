@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Production;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Production\Models\PipelineItem;
+use App\Domain\Production\Services\ProductionService;
 use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,10 @@ use Inertia\Response;
 
 class PipelineItemController extends Controller
 {
+    public function __construct(
+        private readonly ProductionService $productionService,
+    ) {}
+
     public function index(Request $request): Response
     {
         return $this->indexPage($request);
@@ -120,6 +125,15 @@ class PipelineItemController extends Controller
         }
 
         return $this->back("Stage advanced to '{$pipeline->fresh()->pipeline_stage}'.");
+    }
+
+    public function resolve(Request $request, PipelineItem $pipeline): RedirectResponse
+    {
+        $validated = $request->validate(DataverseRules::webAction('pipeline-resolve'));
+
+        $this->productionService->resolvePipelineItem($pipeline, $validated['resolution_notes'] ?? null);
+
+        return $this->back("'{$pipeline->title}' resolved.");
     }
 
     private function indexPage(Request $request, array $props = []): Response

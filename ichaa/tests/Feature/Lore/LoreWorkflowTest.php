@@ -134,6 +134,31 @@ class LoreWorkflowTest extends TestCase
         $this->assertSoftDeleted('documents', ['id' => $document->id]);
     }
 
+    public function test_document_show_page_includes_suppression_metadata(): void
+    {
+        $user = $this->verifiedUser();
+        $suppressor = Entity::factory()->create(['name' => 'Archivist Prime']);
+        $knower = Entity::factory()->create(['name' => 'Johnny Voss']);
+        $document = Document::create([
+            'title' => 'Red Ledger',
+            'document_type' => 'intelligence_report',
+            'document_status' => 'suppressed',
+            'access_level' => 'sealed',
+            'suppressed_by_entity_id' => $suppressor->id,
+            'suppression_notes' => ['type' => 'doc', 'content' => []],
+            'known_by_entity_ids' => [$knower->id],
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('documents.show', $document))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Lore/Documents/Show')
+                ->where('document.suppressed_by.id', $suppressor->id)
+                ->where('knownByEntities.0.label', 'Johnny Voss (character)')
+            );
+    }
+
     public function test_canon_references_can_be_filtered_created_and_updated(): void
     {
         $user = $this->verifiedUser();

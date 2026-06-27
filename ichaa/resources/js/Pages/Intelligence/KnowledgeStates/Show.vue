@@ -48,15 +48,15 @@
                     </div>
                 </section>
             </div>
-                <template #edit-drawer>
-            <EditKnowledgeState
-                        v-if="editDrawer"
-                        embedded
-                        :state="state"
-                        v-bind="editDrawer"
-                    />
-        </template>
-    </ScaffoldShowPage>
+            <template #edit-drawer>
+                <EditKnowledgeState
+                    v-if="editDrawer"
+                    embedded
+                    :state="state"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 
@@ -72,6 +72,7 @@ import { formatLabel, sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
     state: { type: Object, required: true },
+    subjectDisplay: { type: Object, default: () => ({}) },
     editDrawer: { type: Object, default: null },
 })
 
@@ -92,8 +93,8 @@ const sections = computed(() => [
         title: 'Participants',
         entries: [
             sectionEntry('Knower', props.state.knower?.name, props.state.knower ? { href: route('entities.show', props.state.knower.id) } : {}),
-            sectionEntry('Subject Entity', props.state.subject_entity?.name, props.state.subject_entity ? { href: route('entities.show', props.state.subject_entity.id) } : {}),
-            sectionEntry('Subject Secret', props.state.subject_secret?.title),
+            sectionEntry('Subject Type', props.subjectDisplay?.typeLabel),
+            sectionEntry('Subject', props.subjectDisplay?.label || `Subject #${props.state.id}`, props.subjectDisplay?.href ? { href: props.subjectDisplay.href } : {}),
             sectionEntry('Acquired From', props.state.acquired_from?.name, props.state.acquired_from ? { href: route('entities.show', props.state.acquired_from.id) } : {}),
         ],
     },

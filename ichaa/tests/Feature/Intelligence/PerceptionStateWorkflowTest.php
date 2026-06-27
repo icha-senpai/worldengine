@@ -112,6 +112,31 @@ class PerceptionStateWorkflowTest extends TestCase
         $this->assertSame('inevitable', $state->revelation_risk);
     }
 
+    public function test_immune_entities_can_be_removed_from_the_show_surface_route(): void
+    {
+        $user = $this->verifiedUser();
+        $immune = Entity::factory()->create(['name' => 'Johnny Voss']);
+        $state = PerceptionState::create([
+            'subject_type' => 'entity',
+            'subject_id' => Entity::factory()->create()->id,
+            'true_state' => ['type' => 'doc', 'content' => []],
+            'perceived_state' => ['type' => 'doc', 'content' => []],
+            'divergence_level' => 'complete',
+            'maintained_by_entity_ids' => [],
+            'immune_entity_ids' => [$immune->id],
+            'revelation_risk' => 'critical',
+            'is_current' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('perception-states.show', $state))
+            ->delete(route('perception-states.immune.remove', ['perceptionState' => $state, 'entity' => $immune]))
+            ->assertRedirect(route('perception-states.show', $state))
+            ->assertSessionHas('success');
+
+        $this->assertSame([], $state->fresh()->immune_entity_ids);
+    }
+
     private function verifiedUser(): User
     {
         return $this->createVerifiedAdminUser();

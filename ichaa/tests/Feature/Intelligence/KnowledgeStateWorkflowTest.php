@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Intelligence;
 
+use App\Domain\Connections\Models\Relationship;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Services\IntelligenceService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class KnowledgeStateWorkflowTest extends TestCase
@@ -79,6 +81,40 @@ class KnowledgeStateWorkflowTest extends TestCase
 
         $this->assertTrue($state->acted_on);
         $this->assertSame(['type' => 'doc', 'content' => []], $state->action_notes);
+    }
+
+    public function test_show_page_renders_alternate_subject_display_for_relationship_subjects(): void
+    {
+        $user = $this->verifiedUser();
+        $from = Entity::factory()->create(['name' => 'Seraphine']);
+        $to = Entity::factory()->create(['name' => 'Johnny']);
+        $relationship = Relationship::create([
+            'from_entity_id' => $from->id,
+            'to_entity_id' => $to->id,
+            'relationship_type' => 'conflict',
+            'direction' => 'one_way',
+            'current_tension_charge' => 'volatile',
+            'is_active' => true,
+        ]);
+        $state = KnowledgeState::create([
+            'knower_entity_id' => Entity::factory()->create()->id,
+            'subject_relationship_id' => $relationship->id,
+            'knowledge_type' => 'public_fact',
+            'accuracy' => 'true',
+            'acquired_through' => 'observation',
+            'current_belief_state' => 'believes',
+            'acted_on' => false,
+            'is_current' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('knowledge-states.show', $state))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Intelligence/KnowledgeStates/Show')
+                ->where('subjectDisplay.typeLabel', 'Relationship')
+                ->where('subjectDisplay.label', 'Seraphine -> Johnny')
+            );
     }
 
     private function verifiedUser(): User

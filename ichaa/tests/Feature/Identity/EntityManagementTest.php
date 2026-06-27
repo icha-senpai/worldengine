@@ -5,9 +5,12 @@ namespace Tests\Feature\Identity;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\VersionAndCanonState;
 use App\Domain\Identity\Services\EntityService;
-use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Identity\ValueObjects\ContentClassification;
+use App\Domain\Identity\ValueObjects\EntityType;
 use App\Domain\Identity\ValueObjects\VisibilityLevel;
+use App\Domain\Intelligence\Models\KnowledgeState;
+use App\Domain\Intelligence\Models\PerceptionState;
+use App\Domain\Intelligence\Models\Secret;
 use App\Domain\System\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -231,6 +234,71 @@ class EntityManagementTest extends TestCase
 
         $this->assertNotNull($entity->published_at);
         $this->assertSame(VisibilityLevel::PUBLIC_KNOWLEDGE, $entity->visibility);
+    }
+
+    public function test_entity_show_page_includes_intelligence_summary_counts(): void
+    {
+        $user = $this->verifiedUser();
+        $entity = Entity::factory()->create(['name' => 'Seraphine']);
+        $other = Entity::factory()->create(['name' => 'Johnny']);
+
+        KnowledgeState::create([
+            'knower_entity_id' => $entity->id,
+            'subject_entity_id' => $other->id,
+            'knowledge_type' => 'secret',
+            'accuracy' => 'true',
+            'acquired_through' => 'observation',
+            'current_belief_state' => 'believes',
+            'acted_on' => false,
+            'is_current' => true,
+        ]);
+
+        KnowledgeState::create([
+            'knower_entity_id' => $other->id,
+            'subject_entity_id' => $entity->id,
+            'knowledge_type' => 'public_fact',
+            'accuracy' => 'true',
+            'acquired_through' => 'observation',
+            'current_belief_state' => 'believes',
+            'acted_on' => false,
+            'is_current' => true,
+        ]);
+
+        Secret::create([
+            'title' => 'Puppet Cycle',
+            'secret_content' => ['type' => 'doc', 'content' => []],
+            'secret_type' => 'plan',
+            'subject_entity_ids' => [$entity->id],
+            'holder_entity_ids' => [$entity->id],
+            'known_by_entity_ids' => [$entity->id, $other->id],
+            'exposure_risk' => 'critical',
+            'status' => 'active',
+        ]);
+
+        PerceptionState::create([
+            'subject_type' => 'entity',
+            'subject_id' => $entity->id,
+            'true_state' => ['type' => 'doc', 'content' => []],
+            'perceived_state' => ['type' => 'doc', 'content' => []],
+            'divergence_level' => 'significant',
+            'maintained_by_entity_ids' => [],
+            'immune_entity_ids' => [],
+            'revelation_risk' => 'high',
+            'is_current' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('entities.show', $entity))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Entities/Show')
+                ->where('intelligenceSummary.counts.knowledge_held', 1)
+                ->where('intelligenceSummary.counts.knowledge_about', 1)
+                ->where('intelligenceSummary.counts.secrets_about', 1)
+                ->where('intelligenceSummary.counts.secrets_held', 1)
+                ->where('intelligenceSummary.counts.secrets_known', 1)
+                ->where('intelligenceSummary.counts.perception_states', 1)
+            );
     }
 
     public function test_status_change_auto_save_respects_settings_preferences(): void

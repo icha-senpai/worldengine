@@ -19,7 +19,7 @@
                     <div>
                         <h3 class="panel-label mb-0!">Immune Entities</h3>
                         <p class="text-muted-3 text-sm font-ui mt-1">
-                            Add the people or powers who can see through this perception state.
+                            Add or remove the people or powers who can see through this perception state.
                         </p>
                     </div>
 
@@ -42,6 +42,27 @@
                             </AppButton>
                         </div>
                     </div>
+
+                    <div v-if="immuneEntities.length" class="space-y-2">
+                        <div v-for="entity in immuneEntities" :key="`immune-${entity.id ?? entity.label}`" class="record-card">
+                            <div class="flex items-center justify-between gap-3">
+                                <Link v-if="entity.href" :href="entity.href" class="text-primary text-sm hover:text-cyan transition-colors">
+                                    {{ entity.label }}
+                                </Link>
+                                <span v-else class="text-primary text-sm">{{ entity.label }}</span>
+                                <AppButton
+                                    v-if="entity.id"
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    @click="removeImmune(entity)"
+                                >
+                                    Remove
+                                </AppButton>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="empty-state">No immune entities recorded yet.</div>
                 </section>
 
                 <section class="panel space-y-4">
@@ -79,26 +100,27 @@
                     </div>
                 </section>
             </div>
-                <template #edit-drawer>
-            <EditPerceptionState
-                        v-if="editDrawer"
-                        embedded
-                        :state="state"
-                        v-bind="editDrawer"
-                    />
-        </template>
-    </ScaffoldShowPage>
+            <template #edit-drawer>
+                <EditPerceptionState
+                    v-if="editDrawer"
+                    embedded
+                    :state="state"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { router, useForm } from '@inertiajs/vue3'
+import { Link, router, useForm } from '@inertiajs/vue3'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
 import EditPerceptionState from '@/Pages/Intelligence/PerceptionStates/Edit.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
@@ -119,9 +141,9 @@ const collapseForm = useForm({
 })
 
 const availableImmuneOptions = computed(() => {
-    const immuneIds = new Set(props.state.immune_entity_ids ?? [])
+    const immuneIds = new Set(props.immuneEntities.map((entity) => Number(entity.id)).filter(Boolean))
 
-    return props.entities.filter((entity) => !immuneIds.has(entity.id))
+    return props.entities.filter((entity) => !immuneIds.has(Number(entity.id)))
 })
 
 const addImmune = () => {
@@ -129,7 +151,36 @@ const addImmune = () => {
         perceptionState: props.state.id,
         entity: Number(immuneForm.entity_id),
     }), {}, {
+        preserveScroll: true,
         onSuccess: () => immuneForm.reset(),
+    })
+}
+
+const removeImmune = async (entity) => {
+    const confirmed = await confirmDialog({
+        title: 'Remove Immune Entity',
+        message: `Remove ${entity.label} from the immune list?`,
+        confirmLabel: 'Remove Entity',
+        cancelLabel: 'Cancel',
+        confirmVariant: 'danger',
+    })
+
+    if (!confirmed) {
+        return
+    }
+
+    router.delete(route('perception-states.immune.remove', {
+        perceptionState: props.state.id,
+        entity: entity.id,
+    }), {
+        preserveScroll: true,
+        onError: (errors) => {
+            void showErrorDialog({
+                title: 'Could not remove immune entity',
+                message: 'The request did not complete.',
+                details: errors,
+            })
+        },
     })
 }
 

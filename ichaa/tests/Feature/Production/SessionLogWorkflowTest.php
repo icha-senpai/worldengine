@@ -222,6 +222,43 @@ class SessionLogWorkflowTest extends TestCase
             );
     }
 
+    public function test_session_log_show_page_includes_focus_links(): void
+    {
+        $user = $this->verifiedUser();
+        $entity = Entity::factory()->create(['name' => 'Seraphine', 'entity_type' => 'character']);
+        $groupRelationship = GroupRelationship::create([
+            'name' => 'Night Council',
+            'relationship_type' => 'alliance',
+            'current_tension_charge' => 'neutral',
+            'is_active' => true,
+        ]);
+        $collection = Collection::create([
+            'name' => 'Current Arc',
+            'collection_type' => 'custom',
+            'collection_mode' => 'manual',
+        ]);
+        $session = SessionLog::create([
+            'title' => 'Thread untangling',
+            'session_date' => now()->toDateString(),
+            'external_tool' => 'claude',
+            'focus_entity_ids' => [$entity->id],
+            'focus_group_relationship_ids' => [$groupRelationship->id],
+            'focus_collection_ids' => [$collection->id],
+            'focus_description' => 'Updated focus note.',
+            'session_significance' => 'major',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('session-logs.show', $session))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Production/Sessions/Show')
+                ->where('focusEntities.0.label', 'Seraphine (character)')
+                ->where('focusGroupRelationships.0.label', 'Night Council (alliance)')
+                ->where('focusCollections.0.label', 'Current Arc (custom)')
+            );
+    }
+
     private function verifiedUser(): User
     {
         return $this->createVerifiedAdminUser();

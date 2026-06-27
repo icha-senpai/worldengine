@@ -13,7 +13,7 @@
             :badge="secret.secret_type || 'secret'"
             :sections="sections"
         >
-            <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <div class="mt-4 grid gap-4 xl:grid-cols-3">
                 <section class="panel space-y-4">
                     <div>
                         <h3 class="panel-label mb-0!">Exposure</h3>
@@ -54,9 +54,59 @@
 
                 <section class="panel space-y-4">
                     <div>
+                        <h3 class="panel-label mb-0!">Holders</h3>
+                        <p class="text-muted-3 text-sm font-ui mt-1">
+                            Track the entities actively holding and concealing this secret.
+                        </p>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="secret-holder">Entity</label>
+                        <div class="flex flex-col gap-3 md:flex-row">
+                            <SelectInput id="secret-holder" v-model="holderForm.entity_id" class="w-full">
+                                <option value="">Select an entity...</option>
+                                <option v-for="option in availableHolderOptions" :key="option.id" :value="String(option.id)">
+                                    {{ entityOptionLabel(option) }}
+                                </option>
+                            </SelectInput>
+                            <AppButton
+                                type="button"
+                                variant="primary"
+                                :disabled="holderForm.processing || !holderForm.entity_id"
+                                @click="addHolder"
+                            >
+                                Add Holder
+                            </AppButton>
+                        </div>
+                    </div>
+
+                    <div v-if="holderEntities.length" class="space-y-2">
+                        <div v-for="entity in holderEntities" :key="`holder-${entity.id ?? entity.label}`" class="record-card">
+                            <div class="flex items-center justify-between gap-3">
+                                <Link v-if="entity.href" :href="entity.href" class="text-primary text-sm hover:text-cyan transition-colors">
+                                    {{ entity.label }}
+                                </Link>
+                                <span v-else class="text-primary text-sm">{{ entity.label }}</span>
+                                <AppButton
+                                    v-if="entity.id"
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    @click="removeHolder(entity)"
+                                >
+                                    Remove
+                                </AppButton>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="empty-state">No holders recorded yet.</div>
+                </section>
+
+                <section class="panel space-y-4">
+                    <div>
                         <h3 class="panel-label mb-0!">Known By</h3>
                         <p class="text-muted-3 text-sm font-ui mt-1">
-                            Add entities who now know the truth of this secret.
+                            Add or remove entities who now know the truth of this secret.
                         </p>
                     </div>
 
@@ -66,7 +116,7 @@
                             <SelectInput id="secret-known-by" v-model="knownByForm.entity_id" class="w-full">
                                 <option value="">Select an entity...</option>
                                 <option v-for="option in availableKnownByOptions" :key="option.id" :value="String(option.id)">
-                                    {{ option.name }} ({{ option.entity_type }})
+                                    {{ entityOptionLabel(option) }}
                                 </option>
                             </SelectInput>
                             <AppButton
@@ -79,28 +129,50 @@
                             </AppButton>
                         </div>
                     </div>
+
+                    <div v-if="knownByEntities.length" class="space-y-2">
+                        <div v-for="entity in knownByEntities" :key="`known-${entity.id ?? entity.label}`" class="record-card">
+                            <div class="flex items-center justify-between gap-3">
+                                <Link v-if="entity.href" :href="entity.href" class="text-primary text-sm hover:text-cyan transition-colors">
+                                    {{ entity.label }}
+                                </Link>
+                                <span v-else class="text-primary text-sm">{{ entity.label }}</span>
+                                <AppButton
+                                    v-if="entity.id"
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    @click="removeKnownBy(entity)"
+                                >
+                                    Remove
+                                </AppButton>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="empty-state">No known-by entities recorded yet.</div>
                 </section>
             </div>
-                <template #edit-drawer>
-            <EditSecret
-                        v-if="editDrawer"
-                        embedded
-                        :secret="secret"
-                        v-bind="editDrawer"
-                    />
-        </template>
-    </ScaffoldShowPage>
+            <template #edit-drawer>
+                <EditSecret
+                    v-if="editDrawer"
+                    embedded
+                    :secret="secret"
+                    v-bind="editDrawer"
+                />
+            </template>
+        </ScaffoldShowPage>
     </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { router, useForm } from '@inertiajs/vue3'
+import { Link, router, useForm } from '@inertiajs/vue3'
 import ScaffoldShowPage from '@/Components/scaffold/ScaffoldShowPage.vue'
 import EditSecret from '@/Pages/Intelligence/Secrets/Edit.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import { confirmDialog, showErrorDialog } from '@/lib/appDialog'
 import { sectionEntry } from '@/Pages/scaffold/pageBuilders'
 
 const props = defineProps({
@@ -122,16 +194,39 @@ const exposeForm = useForm({
     exposure_level: props.secret.status === 'fully_exposed' ? 'fully_exposed' : 'partially_exposed',
 })
 
+const holderForm = useForm({
+    entity_id: '',
+})
+
 const knownByForm = useForm({
     entity_id: '',
 })
 
-const availableKnownByOptions = computed(() =>
-    props.entities.filter((entity) => !(props.secret.known_by_entity_ids ?? []).includes(entity.id))
+const holderIds = computed(() => new Set(props.holderEntities.map((entity) => Number(entity.id)).filter(Boolean)))
+const knownByIds = computed(() => new Set(props.knownByEntities.map((entity) => Number(entity.id)).filter(Boolean)))
+
+const availableHolderOptions = computed(() =>
+    props.entities.filter((entity) => !holderIds.value.has(Number(entity.id)))
 )
+
+const availableKnownByOptions = computed(() =>
+    props.entities.filter((entity) => !knownByIds.value.has(Number(entity.id)))
+)
+
+const entityOptionLabel = (entity) => `${entity.name} (${entity.entity_type})`
 
 const exposeSecret = () => {
     exposeForm.post(route('secrets.expose', props.secret.id))
+}
+
+const addHolder = () => {
+    router.post(route('secrets.holders.add', {
+        secret: props.secret.id,
+        entity: Number(holderForm.entity_id),
+    }), {}, {
+        preserveScroll: true,
+        onSuccess: () => holderForm.reset(),
+    })
 }
 
 const addKnownBy = () => {
@@ -139,7 +234,64 @@ const addKnownBy = () => {
         secret: props.secret.id,
         entity: Number(knownByForm.entity_id),
     }), {}, {
+        preserveScroll: true,
         onSuccess: () => knownByForm.reset(),
+    })
+}
+
+const removeHolder = async (entity) => {
+    const confirmed = await confirmDialog({
+        title: 'Remove Holder',
+        message: `Remove ${entity.label} from the holder list?`,
+        confirmLabel: 'Remove Holder',
+        cancelLabel: 'Cancel',
+        confirmVariant: 'danger',
+    })
+
+    if (!confirmed) {
+        return
+    }
+
+    router.delete(route('secrets.holders.remove', {
+        secret: props.secret.id,
+        entity: entity.id,
+    }), {
+        preserveScroll: true,
+        onError: (errors) => {
+            void showErrorDialog({
+                title: 'Could not remove holder',
+                message: 'The request did not complete.',
+                details: errors,
+            })
+        },
+    })
+}
+
+const removeKnownBy = async (entity) => {
+    const confirmed = await confirmDialog({
+        title: 'Remove Known-By Entity',
+        message: `Remove ${entity.label} from the known-by list?`,
+        confirmLabel: 'Remove Entity',
+        cancelLabel: 'Cancel',
+        confirmVariant: 'danger',
+    })
+
+    if (!confirmed) {
+        return
+    }
+
+    router.delete(route('secrets.known-by.remove', {
+        secret: props.secret.id,
+        entity: entity.id,
+    }), {
+        preserveScroll: true,
+        onError: (errors) => {
+            void showErrorDialog({
+                title: 'Could not remove known-by entity',
+                message: 'The request did not complete.',
+                details: errors,
+            })
+        },
     })
 }
 

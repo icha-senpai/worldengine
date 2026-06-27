@@ -1,5 +1,16 @@
 <template>
     <div>
+        <div class="dashboard-metric-strip mb-6">
+            <div class="dashboard-metric">
+                <span class="dashboard-metric__value">{{ stats.session_count ?? 0 }}</span>
+                <span class="dashboard-metric__label">Sessions / 30d</span>
+            </div>
+            <div class="dashboard-metric">
+                <span class="dashboard-metric__value">{{ stats.major_count ?? 0 }}</span>
+                <span class="dashboard-metric__label">Major sessions</span>
+            </div>
+        </div>
+
         <ScaffoldIndexPage
             title="Session Logs"
             :count="countRecords(sessions)"
@@ -18,22 +29,22 @@
             :empty-cta-preserve-state="true"
             empty-cta-label="Log the first session ->"
         >
-        <template #toolbar>
-            <ScaffoldFilterBar
-                :fields="filterFields"
-                :form="filterForm"
-                :has-active-filters="hasActiveFilters"
-                :on-apply="applyFilters"
-                :on-clear="clearFilters"
-            />
-        </template>
-        <template #create-drawer>
-            <CreateSession
-                v-if="createDrawer"
-                embedded
-                v-bind="createDrawer"
-            />
-        </template>
+            <template #toolbar>
+                <ScaffoldFilterBar
+                    :fields="filterFields"
+                    :form="filterForm"
+                    :has-active-filters="hasActiveFilters"
+                    :on-apply="applyFilters"
+                    :on-clear="clearFilters"
+                />
+            </template>
+            <template #create-drawer>
+                <CreateSession
+                    v-if="createDrawer"
+                    embedded
+                    v-bind="createDrawer"
+                />
+            </template>
         </ScaffoldIndexPage>
     </div>
 </template>
@@ -52,7 +63,7 @@ const props = defineProps({
     filters: { type: Object, default: () => ({}) },
     externalTools: { type: Array, default: () => [] },
     significanceLevels: { type: Array, default: () => [] },
-    createDrawer: { type: Object, default: null },
+    createDrawer: { type: Object, default: () => null },
 })
 
 const { filterForm, hasActiveFilters, applyFilters, clearFilters } = useIndexFilters('session-logs.index', {
