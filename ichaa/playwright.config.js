@@ -13,6 +13,7 @@ export default defineConfig({
         trace: 'on-first-retry',
     },
     globalSetup: './tests/e2e/support/global-setup.js',
+    globalTeardown: './tests/e2e/support/global-teardown.js',
     webServer: {
         command: 'php artisan serve --env=testing --host=127.0.0.1 --port=8011',
         url: baseURL,

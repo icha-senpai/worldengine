@@ -1,8 +1,8 @@
 <template>
-    <div class="min-h-screen flex flex-col bg-canvas">
+    <div class="min-h-screen bg-canvas md:flex">
 
-        <!-- TOP NAV -->
-        <header class="sticky top-0 z-50 shrink-0 bg-surface border-b border-border">
+        <!-- MOBILE NAV -->
+        <header class="sticky top-0 z-50 shrink-0 bg-surface border-b border-border md:hidden">
             <div class="md:hidden px-4 py-3">
                 <div class="flex items-center gap-3">
                     <a :href="route('dashboard')" class="flex items-baseline shrink-0 font-ui text-base tracking-widest uppercase">
@@ -78,62 +78,87 @@
 
             <div v-if="mobileNavOpen" class="md:hidden border-t border-border bg-surface-2/70 px-4 py-4 space-y-4">
                 <div>
-                    <p class="mobile-section-label">Domains</p>
+                    <p class="mobile-section-label">Sections</p>
                     <nav class="grid gap-2" aria-label="Primary mobile">
-                        <div
-                            v-for="domain in domains"
-                            :key="domain.key"
-                            class="mobile-domain-group"
+                        <button
+                            type="button"
+                            class="mobile-domain-toggle"
+                            :class="{ 'active': isWorldEngineActive }"
+                            :aria-expanded="mobileWorldEngineOpen ? 'true' : 'false'"
+                            @click="mobileWorldEngineOpen = !mobileWorldEngineOpen"
                         >
-                            <Link
-                                v-if="!domain.children?.length"
-                                :href="domain.href"
-                                class="mobile-domain-nav-item"
-                                :class="{ 'active': isDomainActive(domain.key) }"
-                                @click="mobileNavOpen = false"
+                            <span class="flex items-center gap-3 min-w-0">
+                                <span class="truncate">World Engine</span>
+                            </span>
+
+                            <svg
+                                class="mobile-domain-chevron"
+                                :class="{ 'open': mobileWorldEngineOpen }"
+                                width="14"
+                                height="14"
+                                viewBox="0 0 16 16"
+                                fill="none"
                             >
-                                <span class="opacity-60 flex items-center" v-html="domain.icon" />
-                                <span>{{ domain.label }}</span>
-                            </Link>
+                                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
 
-                            <template v-else>
-                                <button
-                                    type="button"
-                                    class="mobile-domain-toggle"
+                        <div v-if="mobileWorldEngineOpen" class="mobile-workspace-children">
+                            <div
+                                v-for="domain in domains"
+                                :key="domain.key"
+                                class="mobile-domain-group"
+                            >
+                                <Link
+                                    v-if="!domain.children?.length"
+                                    :href="domain.href"
+                                    class="mobile-domain-nav-item"
                                     :class="{ 'active': isDomainActive(domain.key) }"
-                                    :aria-expanded="isMobileDomainExpanded(domain) ? 'true' : 'false'"
-                                    @click="toggleMobileDomain(domain)"
+                                    @click="mobileNavOpen = false"
                                 >
-                                    <span class="flex items-center gap-3 min-w-0">
-                                        <span class="opacity-60 flex items-center shrink-0" v-html="domain.icon" />
-                                        <span class="truncate">{{ domain.label }}</span>
-                                    </span>
+                                    <span class="opacity-60 flex items-center" v-html="domain.icon" />
+                                    <span>{{ domain.label }}</span>
+                                </Link>
 
-                                    <svg
-                                        class="mobile-domain-chevron"
-                                        :class="{ 'open': isMobileDomainExpanded(domain) }"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 16 16"
-                                        fill="none"
+                                <template v-else>
+                                    <button
+                                        type="button"
+                                        class="mobile-domain-toggle"
+                                        :class="{ 'active': isDomainActive(domain.key) }"
+                                        :aria-expanded="isMobileDomainExpanded(domain) ? 'true' : 'false'"
+                                        @click="toggleMobileDomain(domain)"
                                     >
-                                        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                </button>
+                                        <span class="flex items-center gap-3 min-w-0">
+                                            <span class="opacity-60 flex items-center shrink-0" v-html="domain.icon" />
+                                            <span class="truncate">{{ domain.label }}</span>
+                                        </span>
 
-                                <div v-if="isMobileDomainExpanded(domain)" class="mobile-domain-children">
-                                    <Link
-                                        v-for="item in domain.children"
-                                        :key="item.key"
-                                        :href="item.href"
-                                        class="mobile-domain-child-link"
-                                        :class="{ 'active': isNavItemActive(item) }"
-                                        @click="mobileNavOpen = false"
-                                    >
-                                        {{ item.label }}
-                                    </Link>
-                                </div>
-                            </template>
+                                        <svg
+                                            class="mobile-domain-chevron"
+                                            :class="{ 'open': isMobileDomainExpanded(domain) }"
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 16 16"
+                                            fill="none"
+                                        >
+                                            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+
+                                    <div v-if="isMobileDomainExpanded(domain)" class="mobile-domain-children">
+                                        <Link
+                                            v-for="item in domain.children"
+                                            :key="item.key"
+                                            :href="item.href"
+                                            class="mobile-domain-child-link"
+                                            :class="{ 'active': isNavItemActive(item) }"
+                                            @click="mobileNavOpen = false"
+                                        >
+                                            {{ item.label }}
+                                        </Link>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </nav>
                 </div>
@@ -157,129 +182,149 @@
                 </div>
             </div>
 
-            <div class="hidden md:flex items-center h-16 px-5 lg:px-6">
+        </header>
 
-                <!-- Wordmark -->
-                <a :href="route('dashboard')" class="mr-8 flex shrink-0 items-baseline font-ui text-base uppercase tracking-[0.22em]">
+        <!-- DESKTOP SIDEBAR -->
+        <header class="desktop-shell-sidebar hidden md:flex">
+            <div class="desktop-shell-sidebar__brand">
+                <a :href="route('dashboard')" class="desktop-shell-sidebar__wordmark">
                     <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
                 </a>
 
-                <!-- Domain nav -->
-                <nav class="flex items-center h-full flex-1 overflow-x-auto scrollbar-none" aria-label="Primary">
-                    <Link
-                        v-for="domain in domains"
-                        :key="domain.key"
-                        :href="domain.href"
-                        class="domain-nav-item"
-                        :class="{ 'active': isDomainActive(domain.key) }"
-                    >
-                        <span class="opacity-50 flex items-center" v-html="domain.icon" />
-                        <span>{{ domain.label }}</span>
-                    </Link>
-                </nav>
-
-                <!-- Right cluster -->
-                <div class="shell-toolbar ml-4 shrink-0">
-
-                    <div class="shell-toolbar__group">
-                        <Link
-                            :href="route('search')"
-                            class="shell-control"
-                        >
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                                <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
-                                <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            </svg>
-                            <span>Search</span>
-                            <kbd>/</kbd>
-                        </Link>
-
-                        <Link
-                            :href="route('trash.index')"
-                            class="shell-control"
-                            :class="currentPath === '/trash'
-                                ? 'border-[rgb(var(--accent-pink-rgb)/0.35)]! text-(--accent-pink)! bg-[rgb(var(--accent-pink-rgb)/0.08)]!'
-                                : ''"
-                        >
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                                <path d="M3 4h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                <path d="M5 6.5v4.5M8 6.5v4.5M11 6.5v4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                <path d="M4 4l.6 8.1A1 1 0 005.6 13h4.8a1 1 0 001-.9L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            </svg>
-                            <span>Trash</span>
-                        </Link>
-                    </div>
-
-                    <div class="shell-toolbar__group">
-                        <NotionSyncButton resource="all" label="Sync All" compact />
-                    </div>
-
-                    <div v-if="$page.props.flash?.success || $page.props.flash?.error" class="shell-toolbar__group">
-                        <Transition name="flash">
-                            <div
-                                v-if="$page.props.flash?.success"
-                                class="text-sm font-ui text-success border border-success/25 bg-success/10 rounded-md px-3 py-1.5"
-                            >
-                                {{ $page.props.flash.success }}
-                            </div>
-                        </Transition>
-
-                        <Transition name="flash">
-                            <div
-                                v-if="$page.props.flash?.error"
-                                class="text-sm font-ui text-(--accent-pink) border border-[rgb(var(--accent-pink-rgb)/0.28)] bg-[rgb(var(--accent-pink-rgb)/0.08)] rounded-md px-3 py-1.5"
-                            >
-                                {{ $page.props.flash.error }}
-                            </div>
-                        </Transition>
-                    </div>
-
-                    <div class="shell-toolbar__group">
-                        <Dropdown align="right" width="44">
-                            <template #trigger>
-                                <button
-                                    type="button"
-                                    class="shell-control"
-                                >
-                                    <span>{{ $page.props.auth.user.name }}</span>
-                                    <svg class="w-3.5 h-3.5 opacity-50" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            </template>
-                            <template #content>
-                                <DropdownLink :href="route('profile.edit')">Profile</DropdownLink>
-                                <DropdownLink :href="route('logout')" method="post" as="button">Log Out</DropdownLink>
-                            </template>
-                        </Dropdown>
-                    </div>
-
-                </div>
+                <p class="desktop-shell-sidebar__current">{{ activeDomain.label }}</p>
             </div>
 
-            <div
-                v-if="activeSubnavItems.length"
-                class="hidden md:flex items-center gap-1.5 px-5 lg:px-6 h-12 border-t border-border bg-surface-2/70 overflow-x-auto scrollbar-none"
-            >
+            <div class="desktop-shell-sidebar__quick-actions">
                 <Link
-                    v-for="item in activeSubnavItems"
-                    :key="item.key"
-                    :href="item.href"
-                    class="subdomain-nav-item"
-                    :class="{ 'active': isNavItemActive(item) }"
+                    :href="route('search')"
+                    class="desktop-shell-action"
+                    :class="{ 'active': currentPath === '/search' }"
                 >
-                    {{ item.label }}
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span>Search</span>
+                    <kbd>/</kbd>
                 </Link>
+
+                <Link
+                    :href="route('trash.index')"
+                    class="desktop-shell-action"
+                    :class="{ 'desktop-shell-action--danger': currentPath === '/trash' }"
+                >
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 4h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M5 6.5v4.5M8 6.5v4.5M11 6.5v4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M4 4l.6 8.1A1 1 0 005.6 13h4.8a1 1 0 001-.9L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span>Trash</span>
+                </Link>
+            </div>
+
+            <nav class="desktop-shell-nav" aria-label="Primary">
+                <button
+                    type="button"
+                    class="desktop-shell-nav__workspace"
+                    :class="{ 'active': isWorldEngineActive }"
+                    :aria-expanded="desktopWorldEngineOpen ? 'true' : 'false'"
+                    @click="desktopWorldEngineOpen = !desktopWorldEngineOpen"
+                >
+                    <span class="truncate">World Engine</span>
+
+                    <svg
+                        class="desktop-shell-nav__chevron"
+                        :class="{ 'open': desktopWorldEngineOpen }"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                    >
+                        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div v-if="desktopWorldEngineOpen" class="desktop-shell-nav__workspace-children">
+                    <template v-for="domain in domains" :key="domain.key">
+                        <Link
+                            v-if="!domain.children?.length"
+                            :href="domain.href"
+                            class="desktop-shell-nav__domain"
+                            :class="{ 'active': isDomainActive(domain.key) }"
+                        >
+                            <span class="desktop-shell-nav__icon" v-html="domain.icon" />
+                            <span class="truncate">{{ domain.label }}</span>
+                        </Link>
+
+                        <button
+                            v-else
+                            type="button"
+                            class="desktop-shell-nav__domain"
+                            :class="{
+                                'active': isDomainActive(domain.key),
+                                'expanded': isDesktopDomainExpanded(domain),
+                            }"
+                            :aria-expanded="isDesktopDomainExpanded(domain) ? 'true' : 'false'"
+                            @click="toggleDesktopDomain(domain)"
+                        >
+                            <span class="desktop-shell-nav__domain-label">
+                                <span class="desktop-shell-nav__icon" v-html="domain.icon" />
+                                <span class="truncate">{{ domain.label }}</span>
+                            </span>
+
+                            <svg
+                                class="desktop-shell-nav__chevron"
+                                :class="{ 'open': isDesktopDomainExpanded(domain) }"
+                                width="14"
+                                height="14"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                            >
+                                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <div
+                            v-if="isDesktopDomainExpanded(domain)"
+                            class="desktop-shell-nav__children"
+                        >
+                            <Link
+                                v-for="item in domain.children"
+                                :key="item.key"
+                                :href="item.href"
+                                class="desktop-shell-nav__child"
+                                :class="{ 'active': isNavItemActive(item) }"
+                            >
+                                {{ item.label }}
+                            </Link>
+                        </div>
+                    </template>
+                </div>
+            </nav>
+
+            <div class="desktop-shell-sidebar__footer">
+                <div class="desktop-shell-sidebar__sync">
+                    <NotionSyncButton resource="all" label="Sync All" compact />
+                </div>
+
+                <div class="desktop-shell-account">
+                    <p class="truncate">{{ $page.props.auth.user.name }}</p>
+
+                    <div class="desktop-shell-account__links">
+                        <Link :href="route('profile.edit')" class="desktop-shell-account-link">Profile</Link>
+                        <Link :href="route('logout')" method="post" as="button" class="desktop-shell-account-link">Log Out</Link>
+                    </div>
+                </div>
             </div>
         </header>
 
         <!-- BODY -->
-        <div class="flex flex-1 min-h-0">
+        <div class="flex flex-1 min-h-0 md:min-w-0">
 
             <!-- SIDEBAR — optional, provided by each page via slot -->
             <aside v-if="$slots.sidebar" class="w-48 shrink-0 bg-surface border-r border-border">
-                <div class="sticky py-4" :style="{ top: headerOffset }">
+                <div class="sticky top-0 py-4">
                     <slot name="sidebar" />
                 </div>
             </aside>
@@ -289,6 +334,26 @@
                 class="flex-1 min-w-0 p-4 md:p-7 xl:p-8"
                 :class="{ 'max-w-6xl mx-auto w-full': !$slots.sidebar }"
             >
+                <div v-if="$page.props.flash?.success || $page.props.flash?.error" class="hidden md:block mb-6">
+                    <Transition name="flash">
+                        <div
+                            v-if="$page.props.flash?.success"
+                            class="text-sm font-ui text-success border border-success/25 bg-success/10 rounded-md px-3 py-2"
+                        >
+                            {{ $page.props.flash.success }}
+                        </div>
+                    </Transition>
+
+                    <Transition name="flash">
+                        <div
+                            v-if="$page.props.flash?.error"
+                            class="text-sm font-ui text-(--accent-pink) border border-[rgb(var(--accent-pink-rgb)/0.28)] bg-[rgb(var(--accent-pink-rgb)/0.08)] rounded-md px-3 py-2"
+                        >
+                            {{ $page.props.flash.error }}
+                        </div>
+                    </Transition>
+                </div>
+
                 <div v-if="$slots.header" class="mb-7 pb-6 border-b border-border">
                     <slot name="header" />
                 </div>
@@ -302,13 +367,14 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
-import Dropdown from '@/Components/Dropdown.vue'
-import DropdownLink from '@/Components/DropdownLink.vue'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 
 const page = usePage()
 const mobileNavOpen = ref(false)
+const mobileWorldEngineOpen = ref(true)
+const desktopWorldEngineOpen = ref(true)
 const mobileExpandedDomainKey = ref(null)
+const desktopExpandedDomainKeys = ref([])
 
 const domains = [
     {
@@ -439,6 +505,15 @@ const domains = [
 
 const currentPath = computed(() => {
     const path = page.url.split('?')[0] || '/'
+    const worldEnginePrefix = '/datacrypt/worldengine'
+
+    if (path === worldEnginePrefix) {
+        return '/'
+    }
+
+    if (path.startsWith(`${worldEnginePrefix}/`)) {
+        return path.slice(worldEnginePrefix.length)
+    }
 
     if (path === '/datacrypt') {
         return '/'
@@ -465,21 +540,43 @@ const activeDomain = computed(() =>
     domains.find((domain) => isNavItemActive(domain)) ?? domains[0]
 )
 
-const activeSubnavItems = computed(() => activeDomain.value?.children ?? [])
-
-const headerOffset = computed(() => (activeSubnavItems.value.length ? '100px' : '56px'))
+const isWorldEngineActive = computed(() =>
+    ['/', '/profile', '/search', '/trash'].some((match) => pathMatches(currentPath.value, match))
+        || domains.some((domain) => isNavItemActive(domain))
+)
 
 const isDomainActive = (key) => activeDomain.value?.key === key
 const isMobileDomainExpanded = (domain) => mobileExpandedDomainKey.value === domain.key
+const isDesktopDomainExpanded = (domain) => desktopExpandedDomainKeys.value.includes(domain.key)
 
 const toggleMobileDomain = (domain) => {
     mobileExpandedDomainKey.value = mobileExpandedDomainKey.value === domain.key ? null : domain.key
 }
 
+const toggleDesktopDomain = (domain) => {
+    if (!domain.children?.length) {
+        return
+    }
+
+    desktopExpandedDomainKeys.value = isDesktopDomainExpanded(domain)
+        ? desktopExpandedDomainKeys.value.filter((key) => key !== domain.key)
+        : [...desktopExpandedDomainKeys.value, domain.key]
+}
+
 watch(
     () => activeDomain.value?.key,
     (key) => {
+        if (isWorldEngineActive.value) {
+            desktopWorldEngineOpen.value = true
+            mobileWorldEngineOpen.value = true
+        }
+
         mobileExpandedDomainKey.value = key ?? null
+
+        const domain = domains.find((item) => item.key === key)
+        if (domain?.children?.length && !desktopExpandedDomainKeys.value.includes(domain.key)) {
+            desktopExpandedDomainKeys.value = [...desktopExpandedDomainKeys.value, domain.key]
+        }
     },
     { immediate: true },
 )

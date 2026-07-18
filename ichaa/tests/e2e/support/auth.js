@@ -1,9 +1,10 @@
 import { expect } from '@playwright/test'
 
-const DATACRYPT_PREFIX = '/datacrypt'
+const DATACRYPT_ROOT = '/datacrypt'
+const DATACRYPT_PREFIX = `${DATACRYPT_ROOT}/worldengine`
 
 function isPrefixedAppPath(url) {
-    return url === DATACRYPT_PREFIX || url.startsWith(`${DATACRYPT_PREFIX}/`)
+    return url === DATACRYPT_ROOT || url.startsWith(`${DATACRYPT_ROOT}/`)
 }
 
 function isAuthOrPublicPath(url) {
@@ -60,6 +61,6 @@ export async function login(page) {
     await page.getByRole('button', { name: 'Log in' }).click()
 
     await expect(page).not.toHaveURL(/\/login$/)
-    await expect(page).toHaveURL(/\/datacrypt(?:\/)?$/)
+    await expect(page).toHaveURL(/\/datacrypt\/worldengine(?:\/)?$/)
     await expect(page.getByRole('banner')).toContainText('Dataverse')
 }

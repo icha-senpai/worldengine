@@ -63,13 +63,13 @@ defineProps({
             <main class="flex flex-1 items-center py-12 sm:py-16">
                 <div class="grid w-full gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,24rem)] lg:items-start">
                     <section class="rounded-2xl border border-border bg-surface px-6 py-8 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] sm:px-8 sm:py-10">
-                        <p class="font-ui text-xs uppercase tracking-[0.24em] text-focus">Worldbuilding Control Surface</p>
+                        <p class="font-ui text-xs uppercase tracking-[0.24em] text-focus">Private Control Surface</p>
                         <h2 class="mt-4 max-w-3xl font-ui text-3xl uppercase leading-tight tracking-[0.12em] text-primary sm:text-4xl">
-                            Dataverse keeps the public front door open and the authoring system behind Datacrypt.
+                            Dataverse keeps the public front door open and the private workspace behind Datacrypt.
                         </h2>
                         <p class="mt-5 max-w-2xl text-base leading-7 text-muted-2 sm:text-lg">
-                            This public root is a clean landing space. The full Inertia authoring app now lives under
-                            <span class="font-ui uppercase tracking-[0.12em] text-primary">/datacrypt</span> and only opens for admin accounts.
+                            This public root is a clean landing space. The World Engine now lives under
+                            <span class="font-ui uppercase tracking-[0.12em] text-primary">/datacrypt/worldengine</span>, with room for more private sections beside it.
                         </p>
 
                         <div
@@ -97,7 +97,7 @@ defineProps({
                                     :href="route('dashboard')"
                                     class="inline-flex items-center rounded-md border border-focus/40 bg-focus px-5 py-3 font-ui text-sm uppercase tracking-[0.16em] text-primary transition hover:bg-focus/85"
                                 >
-                                    Enter Datacrypt
+                                    Enter World Engine
                                 </Link>
                             </template>
 
@@ -122,7 +122,7 @@ defineProps({
                             >
                                 <p class="font-ui text-xs uppercase tracking-[0.18em] text-success">Admin Access</p>
                                 <p class="mt-2 text-sm leading-6 text-muted-1">
-                                    Your account can enter Datacrypt and use the protected authoring routes.
+                                    Your account can enter Datacrypt and use the protected workspace routes.
                                 </p>
                             </div>
 
@@ -132,7 +132,7 @@ defineProps({
                             >
                                 <p class="font-ui text-xs uppercase tracking-[0.18em] text-muted-2">Signed In</p>
                                 <p class="mt-2 text-sm leading-6 text-muted-1">
-                                    You are logged in, but this account does not have Datacrypt admin access.
+                                    You are logged in, but this account does not have Datacrypt access.
                                 </p>
                             </div>
 
@@ -142,15 +142,16 @@ defineProps({
                             >
                                 <p class="font-ui text-xs uppercase tracking-[0.18em] text-muted-2">Guest</p>
                                 <p class="mt-2 text-sm leading-6 text-muted-1">
-                                    Sign in to identify yourself. Only admin accounts can open the protected Datacrypt workspace.
+                                    Sign in to identify yourself. Only admin accounts can open the protected Datacrypt sections.
                                 </p>
                             </div>
 
                             <div class="rounded-xl border border-border bg-surface px-4 py-4">
                                 <p class="font-ui text-xs uppercase tracking-[0.18em] text-muted-2">Route Layout</p>
                                 <p class="mt-2 text-sm leading-6 text-muted-1">
-                                    Public landing page at <span class="font-ui text-primary">/</span>. Protected authoring app at
-                                    <span class="font-ui text-primary">/datacrypt</span>.
+                                    Public landing page at <span class="font-ui text-primary">/</span>. Private sections start at
+                                    <span class="font-ui text-primary">/datacrypt</span>, with World Engine at
+                                    <span class="font-ui text-primary">/datacrypt/worldengine</span>.
                                 </p>
                             </div>
                         </div>

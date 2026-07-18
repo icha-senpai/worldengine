@@ -5,21 +5,49 @@ test.describe('site navigation and drawer flows', () => {
     test('user can navigate the primary shell and dismiss create drawers cleanly', async ({ page }) => {
         await login(page)
 
+        const primaryNav = page.getByRole('banner').getByRole('navigation', { name: 'Primary' })
+        await page.goto('/datacrypt')
+        await expect(page).toHaveURL(/\/datacrypt\/worldengine$/)
+        await expect(primaryNav.getByRole('button', { name: 'World Engine', exact: true })).toBeVisible()
+
+        const worldEngineUrl = page.url()
+        await primaryNav.getByRole('button', { name: 'World Engine', exact: true }).click()
+        await expect(page).toHaveURL(worldEngineUrl)
+        await expect(primaryNav.getByRole('link', { name: 'Overview', exact: true })).toBeHidden()
+        await primaryNav.getByRole('button', { name: 'World Engine', exact: true }).click()
+        await expect(primaryNav.getByRole('link', { name: 'Overview', exact: true })).toBeVisible()
+
         const navTargets = [
-            ['Entities', /\/entities$/],
-            ['Connections', /\/relationships$/],
-            ['Temporal', /\/timelines$/],
-            ['Lore', /\/documents$/],
-            ['Intelligence', /\/knowledge-states$/],
-            ['World', /\/power-interactions$/],
-            ['Organize', /\/collections$/],
-            ['Production', /\/meta$/],
+            ['Entities', 'All Entities', /\/entities$/],
+            ['Connections', 'Relationships', /\/relationships$/],
+            ['Temporal', 'Timelines', /\/timelines$/],
+            ['Lore', 'Documents', /\/documents$/],
+            ['Intelligence', 'Knowledge States', /\/knowledge-states$/],
+            ['World', 'Power Interactions', /\/power-interactions$/],
+            ['Organize', 'Collections', /\/collections$/],
+            ['Production', 'Meta', /\/meta$/],
         ]
 
-        for (const [label, urlPattern] of navTargets) {
-            await page.getByRole('link', { name: label }).click()
+        for (const [label, childLabel, urlPattern] of navTargets) {
+            const currentUrl = page.url()
+
+            await primaryNav.getByRole('button', { name: label, exact: true }).click()
+            await expect(page).toHaveURL(currentUrl)
+
+            await primaryNav.getByRole('link', { name: childLabel, exact: true }).click()
             await expect(page).toHaveURL(urlPattern)
         }
+
+        const productionUrl = page.url()
+        await primaryNav.getByRole('button', { name: 'Entities', exact: true }).click()
+        await primaryNav.getByRole('button', { name: 'Connections', exact: true }).click()
+        await expect(page).toHaveURL(productionUrl)
+        await expect(primaryNav.getByRole('link', { name: 'All Entities', exact: true })).toBeVisible()
+        await expect(primaryNav.getByRole('link', { name: 'Relationships', exact: true })).toBeVisible()
+
+        await primaryNav.getByRole('button', { name: 'Entities', exact: true }).click()
+        await expect(page).toHaveURL(productionUrl)
+        await expect(primaryNav.getByRole('link', { name: 'All Entities', exact: true })).toBeHidden()
 
         await page.getByRole('link', { name: /Search/ }).click()
         await expect(page).toHaveURL(/\/search$/)

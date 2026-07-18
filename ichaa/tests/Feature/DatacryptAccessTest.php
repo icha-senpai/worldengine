@@ -30,6 +30,20 @@ class DatacryptAccessTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
+    public function test_datacrypt_root_redirects_admin_users_to_world_engine(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
+
+        Role::findOrCreate('admin', 'web');
+        $user->assignRole('admin');
+
+        $this->actingAs($user)
+            ->get('/datacrypt')
+            ->assertRedirect(route('dashboard'));
+    }
+
     public function test_non_admin_users_are_redirected_back_to_public_home_when_visiting_datacrypt(): void
     {
         $user = User::factory()->create([
