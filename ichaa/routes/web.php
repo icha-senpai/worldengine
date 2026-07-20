@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\NotionNoteController as AdminNotionNoteController;
 use App\Http\Controllers\Admin\NotionSyncMappingController as AdminNotionSyncMappingController;
 use App\Http\Controllers\Admin\RevisionController as AdminRevisionController;
+use App\Http\Controllers\Bitcraft\BitcraftToolController;
 use App\Http\Controllers\Connections\FactionMembershipController;
 use App\Http\Controllers\Connections\GroupRelationshipController;
 // Breeze
@@ -76,6 +77,13 @@ Route::get('/', fn () => Inertia::render('Welcome', [
 
 Route::prefix('datacrypt')->middleware(['auth', 'verified', EnsureAdmin::class])->group(function () {
     Route::redirect('/', '/datacrypt/worldengine');
+
+    Route::prefix('bitcraft')->name('bitcraft.')->group(function () {
+        Route::redirect('/', '/datacrypt/bitcraft/market');
+        Route::get('market', [BitcraftToolController::class, 'market'])->name('market');
+        Route::get('barter-stalls', [BitcraftToolController::class, 'barterStalls'])->name('barter-stalls');
+        Route::get('crafting', [BitcraftToolController::class, 'crafting'])->name('crafting');
+    });
 
     Route::prefix('worldengine')->group(function () {
 

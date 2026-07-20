@@ -57,3 +57,4 @@ Use this when connecting a remote MCP client like Notion AI through your public 
 5. After that handshake, the client should receive a Passport OAuth access token and be able to call the MCP endpoint normally.
 
 If a connect card is stuck on "needs connection", it usually means the browser-based login/consent step has not been completed yet.
+https://reappear-absinthe-tinker.ngrok-free.dev/mcp/dataverse

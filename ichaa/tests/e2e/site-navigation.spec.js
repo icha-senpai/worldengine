@@ -49,6 +49,16 @@ test.describe('site navigation and drawer flows', () => {
         await expect(page).toHaveURL(productionUrl)
         await expect(primaryNav.getByRole('link', { name: 'All Entities', exact: true })).toBeHidden()
 
+        const beforeBitcraftUrl = page.url()
+        await primaryNav.getByRole('button', { name: 'Bitcraft Tools', exact: true }).click()
+        await expect(page).toHaveURL(beforeBitcraftUrl)
+        await primaryNav.getByRole('link', { name: 'Market Finder', exact: true }).click()
+        await expect(page).toHaveURL(/\/datacrypt\/bitcraft\/market$/)
+        await primaryNav.getByRole('link', { name: 'Barter Stalls', exact: true }).click()
+        await expect(page).toHaveURL(/\/datacrypt\/bitcraft\/barter-stalls$/)
+        await primaryNav.getByRole('link', { name: 'Crafting Calculator', exact: true }).click()
+        await expect(page).toHaveURL(/\/datacrypt\/bitcraft\/crafting$/)
+
         await page.getByRole('link', { name: /Search/ }).click()
         await expect(page).toHaveURL(/\/search$/)
 

@@ -11,7 +11,7 @@
 
                     <div class="min-w-0 flex-1">
                         <p class="text-[11px] font-ui uppercase tracking-[0.16em] text-muted-3">Current</p>
-                        <p class="truncate text-sm font-ui text-primary">{{ activeDomain.label }}</p>
+                        <p class="truncate text-sm font-ui text-primary">{{ activeShellLabel }}</p>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -160,6 +160,42 @@
                                 </template>
                             </div>
                         </div>
+
+                        <button
+                            type="button"
+                            class="mobile-domain-toggle"
+                            :class="{ 'active': isBitcraftToolsActive }"
+                            :aria-expanded="mobileBitcraftToolsOpen ? 'true' : 'false'"
+                            @click="mobileBitcraftToolsOpen = !mobileBitcraftToolsOpen"
+                        >
+                            <span class="flex items-center gap-3 min-w-0">
+                                <span class="truncate">Bitcraft Tools</span>
+                            </span>
+
+                            <svg
+                                class="mobile-domain-chevron"
+                                :class="{ 'open': mobileBitcraftToolsOpen }"
+                                width="14"
+                                height="14"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                            >
+                                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <div v-if="mobileBitcraftToolsOpen" class="mobile-workspace-children">
+                            <Link
+                                v-for="item in bitcraftTools.children"
+                                :key="item.key"
+                                :href="item.href"
+                                class="mobile-domain-child-link"
+                                :class="{ 'active': isNavItemActive(item) }"
+                                @click="mobileNavOpen = false"
+                            >
+                                {{ item.label }}
+                            </Link>
+                        </div>
                     </nav>
                 </div>
 
@@ -191,7 +227,7 @@
                     <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
                 </a>
 
-                <p class="desktop-shell-sidebar__current">{{ activeDomain.label }}</p>
+                <p class="desktop-shell-sidebar__current">{{ activeShellLabel }}</p>
             </div>
 
             <div class="desktop-shell-sidebar__quick-actions">
@@ -301,6 +337,39 @@
                         </div>
                     </template>
                 </div>
+
+                <button
+                    type="button"
+                    class="desktop-shell-nav__workspace"
+                    :class="{ 'active': isBitcraftToolsActive }"
+                    :aria-expanded="desktopBitcraftToolsOpen ? 'true' : 'false'"
+                    @click="desktopBitcraftToolsOpen = !desktopBitcraftToolsOpen"
+                >
+                    <span class="truncate">Bitcraft Tools</span>
+
+                    <svg
+                        class="desktop-shell-nav__chevron"
+                        :class="{ 'open': desktopBitcraftToolsOpen }"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                    >
+                        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div v-if="desktopBitcraftToolsOpen" class="desktop-shell-nav__workspace-children">
+                    <Link
+                        v-for="item in bitcraftTools.children"
+                        :key="item.key"
+                        :href="item.href"
+                        class="desktop-shell-nav__child"
+                        :class="{ 'active': isNavItemActive(item) }"
+                    >
+                        {{ item.label }}
+                    </Link>
+                </div>
             </nav>
 
             <div class="desktop-shell-sidebar__footer">
@@ -373,6 +442,8 @@ const page = usePage()
 const mobileNavOpen = ref(false)
 const mobileWorldEngineOpen = ref(true)
 const desktopWorldEngineOpen = ref(true)
+const mobileBitcraftToolsOpen = ref(false)
+const desktopBitcraftToolsOpen = ref(false)
 const mobileExpandedDomainKey = ref(null)
 const desktopExpandedDomainKeys = ref([])
 
@@ -503,6 +574,17 @@ const domains = [
     },
 ]
 
+const bitcraftTools = {
+    key: 'bitcraft-tools',
+    label: 'Bitcraft Tools',
+    matches: ['/bitcraft'],
+    children: [
+        { key: 'bitcraft-market', label: 'Market Finder', href: route('bitcraft.market'), matches: ['/bitcraft/market'] },
+        { key: 'bitcraft-barter-stalls', label: 'Barter Stalls', href: route('bitcraft.barter-stalls'), matches: ['/bitcraft/barter-stalls'] },
+        { key: 'bitcraft-crafting', label: 'Crafting Calculator', href: route('bitcraft.crafting'), matches: ['/bitcraft/crafting'] },
+    ],
+}
+
 const currentPath = computed(() => {
     const path = page.url.split('?')[0] || '/'
     const worldEnginePrefix = '/datacrypt/worldengine'
@@ -545,6 +627,18 @@ const isWorldEngineActive = computed(() =>
         || domains.some((domain) => isNavItemActive(domain))
 )
 
+const isBitcraftToolsActive = computed(() => isNavItemActive(bitcraftTools))
+
+const activeShellLabel = computed(() => {
+    if (isBitcraftToolsActive.value) {
+        const activeTool = bitcraftTools.children.find((item) => isNavItemActive(item))
+
+        return activeTool?.label ?? bitcraftTools.label
+    }
+
+    return activeDomain.value.label
+})
+
 const isDomainActive = (key) => activeDomain.value?.key === key
 const isMobileDomainExpanded = (domain) => mobileExpandedDomainKey.value === domain.key
 const isDesktopDomainExpanded = (domain) => desktopExpandedDomainKeys.value.includes(domain.key)
@@ -576,6 +670,17 @@ watch(
         const domain = domains.find((item) => item.key === key)
         if (domain?.children?.length && !desktopExpandedDomainKeys.value.includes(domain.key)) {
             desktopExpandedDomainKeys.value = [...desktopExpandedDomainKeys.value, domain.key]
+        }
+    },
+    { immediate: true },
+)
+
+watch(
+    isBitcraftToolsActive,
+    (active) => {
+        if (active) {
+            desktopBitcraftToolsOpen.value = true
+            mobileBitcraftToolsOpen.value = true
         }
     },
     { immediate: true },
