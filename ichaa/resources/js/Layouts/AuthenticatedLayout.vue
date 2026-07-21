@@ -582,6 +582,8 @@ const bitcraftTools = {
         { key: 'bitcraft-market', label: 'Market Finder', href: route('bitcraft.market'), matches: ['/bitcraft/market'] },
         { key: 'bitcraft-barter-stalls', label: 'Barter Stalls', href: route('bitcraft.barter-stalls'), matches: ['/bitcraft/barter-stalls'] },
         { key: 'bitcraft-crafting', label: 'Crafting Calculator', href: route('bitcraft.crafting'), matches: ['/bitcraft/crafting'] },
+        { key: 'bitcraft-activity', label: 'Live Activity', href: route('bitcraft.activity', { source: 'default', setup: 1 }), matches: ['/bitcraft/activity'] },
+        { key: 'bitcraft-inventory-tracker', label: 'Inventory Tracker', href: route('bitcraft.inventory-tracker', { source: 'default', setup: 1 }), matches: ['/bitcraft/inventory-tracker'] },
     ],
 }
 

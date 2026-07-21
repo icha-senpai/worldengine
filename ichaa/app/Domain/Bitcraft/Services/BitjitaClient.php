@@ -133,6 +133,37 @@ class BitjitaClient
         return $this->get("api/items/{$itemId}");
     }
 
+    public function cargo(?string $query = null): array
+    {
+        return $this->get('api/cargo', [
+            'q' => $query,
+        ]);
+    }
+
+    public function players(string $query): array
+    {
+        return $this->get('api/players', [
+            'q' => $query,
+        ]);
+    }
+
+    public function player(string $playerEntityId): array
+    {
+        return $this->get("api/players/{$playerEntityId}");
+    }
+
+    public function playerInventories(string $playerEntityId, ?string $query = null): array
+    {
+        return $this->get("api/players/{$playerEntityId}/inventories", [
+            'q' => $query,
+        ]);
+    }
+
+    public function experienceLevels(): array
+    {
+        return $this->get('static/experience/levels.json');
+    }
+
     private function get(string $path, array $query = []): array
     {
         $query = $this->filledQuery($query);
@@ -282,6 +313,9 @@ class BitjitaClient
             preg_match('#^api/empires/[^/]+/claims$#', $path) === 1 => (int) config('services.bitjita.empires_cache_seconds', 600),
             $path === 'api/items',
             preg_match('#^api/items/[^/]+$#', $path) === 1 => (int) config('services.bitjita.items_cache_seconds', 3600),
+            $path === 'api/cargo',
+            preg_match('#^api/cargo/[^/]+$#', $path) === 1 => (int) config('services.bitjita.items_cache_seconds', 3600),
+            $path === 'static/experience/levels.json' => 86400,
             default => 0,
         };
     }

@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\NotionNoteController as AdminNotionNoteController;
 use App\Http\Controllers\Admin\NotionSyncMappingController as AdminNotionSyncMappingController;
 use App\Http\Controllers\Admin\RevisionController as AdminRevisionController;
+use App\Http\Controllers\Bitcraft\BitcraftActivityController;
+use App\Http\Controllers\Bitcraft\BitcraftInventoryTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftToolController;
 use App\Http\Controllers\Connections\FactionMembershipController;
 use App\Http\Controllers\Connections\GroupRelationshipController;
@@ -70,6 +72,13 @@ Route::get('/', fn () => Inertia::render('Welcome', [
     'canLogin' => Route::has('login'),
     'canRegister' => Route::has('register'),
 ]))->name('home');
+
+Route::prefix('datacrypt/bitcraft')->name('bitcraft.')->group(function () {
+    Route::get('activity', [BitcraftActivityController::class, 'show'])->name('activity');
+    Route::get('activity/snapshot', [BitcraftActivityController::class, 'snapshot'])->name('activity.snapshot');
+    Route::get('inventory-tracker', [BitcraftInventoryTrackerController::class, 'show'])->name('inventory-tracker');
+    Route::get('inventory-tracker/snapshot', [BitcraftInventoryTrackerController::class, 'snapshot'])->name('inventory-tracker.snapshot');
+});
 
 // ---------------------------------------------------------------------------
 // All app routes require auth

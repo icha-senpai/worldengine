@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Bitcraft;
 
+use App\Domain\Bitcraft\Models\BitcraftWidgetProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -878,5 +879,451 @@ class BitcraftToolTest extends TestCase
                 ->where('detail.craftingRecipes.0.name', 'Forge Astralite Pickaxe')
                 ->where('detail.craftingRecipes.0.ingredients.0.name', 'Astralite Ingot')
             );
+    }
+
+    public function test_activity_tracker_page_resolves_player_skill_and_level_progress(): void
+    {
+        $this->fakeActivityTrackerResponses();
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.activity', [
+                'character' => 'icha',
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Activity')
+                ->where('filters.character', 'icha')
+                ->where('filters.skill', 'all')
+                ->where('snapshot.error', null)
+                ->where('snapshot.tracker.player.username', 'Icha')
+                ->where('snapshot.tracker.scope', 'all')
+                ->where('snapshot.tracker.skill.name', 'Sailing')
+                ->has('snapshot.tracker.skills', 2)
+                ->where('snapshot.tracker.skills.0.name', 'Fishing')
+                ->where('snapshot.tracker.skills.1.name', 'Sailing')
+                ->where('snapshot.tracker.levels.2.level', 40)
+                ->where('snapshot.tracker.xp', 285390)
+                ->where('snapshot.tracker.level', 39)
+                ->where('snapshot.tracker.nextLevel', 40)
+                ->where('snapshot.tracker.xpRemaining', 31830)
+                ->where('snapshot.tracker.progressPercent', 4.6)
+                ->where('pollUrl', route('bitcraft.activity.snapshot', [
+                    'character' => '1224979098725428189',
+                    'skill' => 'all',
+                ], false))
+            );
+    }
+
+    public function test_activity_tracker_setup_accepts_xp_and_level_goals(): void
+    {
+        $this->fakeActivityTrackerResponses();
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.activity', [
+                'character' => 'icha',
+                'title' => 'Stream Goals',
+                'icons' => '',
+                'skillKeys' => '12,21',
+                'skillGoalLevels' => '12=40',
+                'skillGoalXp' => '21=500000',
+                'setup' => 1,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Activity')
+                ->where('filters.title', 'Stream Goals')
+                ->where('filters.icons', '')
+                ->where('filters.skillKeys.0', '12')
+                ->where('filters.skillKeys.1', '21')
+                ->where('filters.skillGoalLevels.12', 40)
+                ->where('filters.skillGoalXp.21', 500000)
+                ->where('filters.setup', true)
+                ->where('snapshot.tracker.skills.0.name', 'Fishing')
+                ->where('snapshot.tracker.skills.1.name', 'Sailing')
+                ->where('pollUrl', route('bitcraft.activity.snapshot', [
+                    'character' => '1224979098725428189',
+                    'skill' => 'all',
+                ], false))
+            );
+    }
+
+    public function test_activity_tracker_snapshot_returns_live_json_payload(): void
+    {
+        $this->fakeActivityTrackerResponses();
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.activity.snapshot', [
+                'character' => 'icha',
+                'skill' => 'all',
+                '_' => '1784649999999',
+            ]));
+
+        $response->assertOk()
+            ->assertHeader('Cache-Control', 'max-age=0, must-revalidate, no-cache, no-store, private')
+            ->assertHeader('Pragma', 'no-cache')
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.player.entityId', '1224979098725428189')
+            ->assertJsonPath('tracker.scope', 'all')
+            ->assertJsonPath('tracker.skill.id', 21)
+            ->assertJsonPath('tracker.skills.0.name', 'Fishing')
+            ->assertJsonPath('tracker.skills.1.name', 'Sailing')
+            ->assertJsonPath('tracker.level', 39)
+            ->assertJsonPath('tracker.nextLevelXp', 317220)
+            ->assertJsonPath('tracker.xpRemaining', 31830);
+    }
+
+    public function test_activity_tracker_widget_is_public_for_obs(): void
+    {
+        $this->fakeActivityTrackerResponses();
+
+        $response = $this->get(route('bitcraft.activity', [
+            'character' => 'icha',
+            'skillKeys' => '21',
+        ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Activity')
+                ->where('snapshot.error', null)
+                ->where('snapshot.tracker.player.username', 'Icha')
+            );
+    }
+
+    public function test_activity_tracker_source_profile_keeps_widget_url_stable(): void
+    {
+        $this->get(route('bitcraft.activity', [
+            'source' => 'stream',
+            'character' => 'icha',
+            'skillKeys' => '21',
+            'skillGoalLevels' => '21=40',
+        ]))->assertRedirect(route('bitcraft.activity', ['source' => 'stream']));
+
+        $this->assertSame(['21'], BitcraftWidgetProfile::query()
+            ->where('widget', 'activity')
+            ->where('source', 'stream')
+            ->firstOrFail()
+            ->settings['skillKeys']);
+
+        $this->fakeActivityTrackerResponses();
+
+        $this->get(route('bitcraft.activity', ['source' => 'stream']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Activity')
+                ->where('filters.source', 'stream')
+                ->where('filters.character', 'icha')
+                ->where('filters.skillKeys.0', '21')
+                ->where('filters.skillGoalLevels.21', 40)
+            );
+    }
+
+    public function test_inventory_tracker_setup_lists_inventory_item_and_cargo_options(): void
+    {
+        $this->fakeInventoryTrackerResponses();
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.inventory-tracker', [
+                'character' => 'icha',
+                'icons' => '',
+                'setup' => 1,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/InventoryTracker')
+                ->where('filters.character', 'icha')
+                ->where('filters.icons', '')
+                ->where('filters.setup', true)
+                ->where('snapshot.tracker', null)
+                ->where('snapshot.error', null)
+                ->where('snapshot.options.0.name', 'Astralite Pickaxe')
+                ->where('snapshot.options.0.kind', 'item')
+                ->where('snapshot.options.0.quantity', 0)
+                ->where('snapshot.options.1.name', 'Briny Linus')
+                ->where('snapshot.options.1.kind', 'cargo')
+                ->where('snapshot.options.1.quantity', 3)
+                ->where('snapshot.options.2.name', 'Vibrant Janus')
+                ->where('snapshot.options.2.kind', 'item')
+                ->where('snapshot.options.2.quantity', 29)
+            );
+    }
+
+    public function test_inventory_tracker_snapshot_aggregates_selected_item_from_tracked_sources(): void
+    {
+        $this->fakeInventoryTrackerResponses();
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.inventory-tracker.snapshot', [
+                'character' => 'icha',
+                'title' => 'Fishing Day!',
+                'icons' => 'fish',
+                'itemSearch' => 'Vibrant Janus',
+                'itemKey' => 'item:1516591189',
+                'need' => 1057,
+            ]));
+
+        $response->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.player.username', 'Icha')
+            ->assertJsonPath('tracker.item.name', 'Vibrant Janus')
+            ->assertJsonPath('tracker.items.0.name', 'Vibrant Janus')
+            ->assertJsonPath('tracker.quantity', 29)
+            ->assertJsonPath('tracker.need', 1057)
+            ->assertJsonPath('tracker.remaining', 1028)
+            ->assertJsonPath('tracker.progressPercent', 2.7)
+            ->assertJsonPath('tracker.sources.0.name', 'Icha\'s Cart (II)')
+            ->assertJsonPath('tracker.sources.0.quantity', 14)
+            ->assertJsonPath('tracker.sources.1.name', 'Inventory')
+            ->assertJsonPath('tracker.sources.1.quantity', 10)
+            ->assertJsonPath('tracker.sources.2.name', 'Icha\'s Personal Cache (I)')
+            ->assertJsonPath('tracker.sources.2.quantity', 5);
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/players/1224979098725428189/inventories');
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/players/1224979098725428189/inventories?'));
+    }
+
+    public function test_inventory_tracker_snapshot_aggregates_multiple_selected_items(): void
+    {
+        $this->fakeInventoryTrackerResponses();
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.inventory-tracker.snapshot', [
+                'character' => 'icha',
+                'itemKeys' => 'item:1516591189,cargo:6000',
+                'itemNeeds' => 'item:1516591189=40,cargo:6000=9',
+                'need' => 30,
+            ]));
+
+        $response->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.items.0.name', 'Vibrant Janus')
+            ->assertJsonPath('tracker.items.0.quantity', 29)
+            ->assertJsonPath('tracker.items.0.need', 40)
+            ->assertJsonPath('tracker.items.0.remaining', 11)
+            ->assertJsonPath('tracker.items.1.name', 'Briny Linus')
+            ->assertJsonPath('tracker.items.1.kind', 'cargo')
+            ->assertJsonPath('tracker.items.1.quantity', 3)
+            ->assertJsonPath('tracker.items.1.need', 9)
+            ->assertJsonPath('tracker.items.1.remaining', 6);
+    }
+
+    public function test_inventory_tracker_widget_is_public_for_obs(): void
+    {
+        $this->fakeInventoryTrackerResponses();
+
+        $response = $this->get(route('bitcraft.inventory-tracker', [
+            'character' => 'icha',
+            'itemKeys' => 'item:1516591189',
+            'itemNeeds' => 'item:1516591189=40',
+        ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/InventoryTracker')
+                ->where('snapshot.error', null)
+                ->where('snapshot.tracker.player.username', 'Icha')
+                ->where('snapshot.tracker.items.0.name', 'Vibrant Janus')
+                ->where('snapshotUrl', route('bitcraft.inventory-tracker.snapshot', [
+                    'character' => '1224979098725428189',
+                    'title' => 'Fishing Day!',
+                    'icons' => '🐟 🎣',
+                    'itemKey' => 'item:1516591189',
+                    'itemKeys' => 'item:1516591189',
+                    'itemNeeds' => 'item:1516591189=40',
+                ], false))
+            );
+    }
+
+    public function test_inventory_tracker_source_profile_keeps_widget_url_stable(): void
+    {
+        $this->get(route('bitcraft.inventory-tracker', [
+            'source' => 'stream',
+            'character' => 'icha',
+            'itemKeys' => 'item:1516591189',
+            'itemNeeds' => 'item:1516591189=40',
+        ]))->assertRedirect(route('bitcraft.inventory-tracker', ['source' => 'stream']));
+
+        $this->assertSame(['item:1516591189'], BitcraftWidgetProfile::query()
+            ->where('widget', 'inventory-tracker')
+            ->where('source', 'stream')
+            ->firstOrFail()
+            ->settings['itemKeys']);
+
+        $this->fakeInventoryTrackerResponses();
+
+        $this->get(route('bitcraft.inventory-tracker', ['source' => 'stream']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/InventoryTracker')
+                ->where('filters.source', 'stream')
+                ->where('filters.character', 'icha')
+                ->where('filters.itemKeys.0', 'item:1516591189')
+                ->where('filters.itemNeeds.item:1516591189', 40)
+                ->where('snapshot.tracker.items.0.name', 'Vibrant Janus')
+            );
+    }
+
+    private function fakeActivityTrackerResponses(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/players?q=icha' => Http::response([
+                'players' => [[
+                    'entityId' => '1224979098725428189',
+                    'username' => 'Icha',
+                    'signedIn' => true,
+                    'updatedAt' => '2026-07-21 09:00:00+00',
+                ]],
+                'total' => 1,
+            ]),
+            'https://bitjita.com/api/players/1224979098725428189' => Http::response([
+                'player' => [
+                    'entityId' => '1224979098725428189',
+                    'username' => 'Icha',
+                    'signedIn' => true,
+                    'updatedAt' => '2026-07-21 09:00:00+00',
+                    'experience' => [[
+                        'quantity' => 133354,
+                        'skill_id' => 12,
+                    ], [
+                        'quantity' => 285390,
+                        'skill_id' => 21,
+                    ]],
+                    'skillMap' => [
+                        '12' => [
+                            'id' => 12,
+                            'name' => 'Fishing',
+                            'title' => 'Fisher',
+                            'skillCategoryStr' => 'Profession',
+                        ],
+                        '21' => [
+                            'id' => 21,
+                            'name' => 'Sailing',
+                            'title' => 'Sailor',
+                            'skillCategoryStr' => 'Adventure',
+                        ],
+                    ],
+                ],
+            ]),
+            'https://bitjita.com/static/experience/levels.json' => Http::response([
+                ['level' => 38, 'xp' => 253930],
+                ['level' => 39, 'xp' => 283840],
+                ['level' => 40, 'xp' => 317220],
+            ]),
+        ]);
+    }
+
+    private function fakeInventoryTrackerResponses(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/players?q=icha' => Http::response([
+                'players' => [[
+                    'entityId' => '1224979098725428189',
+                    'username' => 'Icha',
+                ]],
+                'total' => 1,
+            ]),
+            'https://bitjita.com/api/players/1224979098725428189' => Http::response([
+                'player' => [
+                    'entityId' => '1224979098725428189',
+                    'username' => 'Icha',
+                ],
+            ]),
+            'https://bitjita.com/api/items' => Http::response([
+                'items' => [[
+                    'id' => 1421716234,
+                    'name' => 'Astralite Pickaxe',
+                    'tier' => 5,
+                    'rarityStr' => 'Rare',
+                    'tag' => 'Miner Tool',
+                ], [
+                    'id' => 1516591189,
+                    'name' => 'Vibrant Janus',
+                    'tier' => 6,
+                    'rarityStr' => 'Common',
+                    'tag' => 'Ocean Fish',
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo' => Http::response([
+                'cargos' => [[
+                    'id' => 6000,
+                    'name' => 'Briny Linus',
+                    'tier' => 1,
+                    'rarityStr' => 'Common',
+                    'tag' => 'Ocean Fish',
+                ]],
+            ]),
+            'https://bitjita.com/api/players/1224979098725428189/inventories' => Http::response([
+                'inventories' => [
+                    [
+                        'entityId' => 'inventory-1',
+                        'inventoryName' => 'Inventory',
+                        'pockets' => [[
+                            'contents' => [
+                                'itemId' => 1516591189,
+                                'itemType' => 0,
+                                'quantity' => 10,
+                            ],
+                        ], [
+                            'contents' => [
+                                'itemId' => 6000,
+                                'itemType' => 1,
+                                'quantity' => 3,
+                            ],
+                        ]],
+                    ],
+                    [
+                        'entityId' => 'cart-1',
+                        'inventoryName' => 'Icha\'s Cart (II)',
+                        'pockets' => [[
+                            'contents' => [
+                                'itemId' => 1516591189,
+                                'itemType' => 0,
+                                'quantity' => 14,
+                            ],
+                        ]],
+                    ],
+                    [
+                        'entityId' => 'cache-1',
+                        'inventoryName' => 'Icha\'s Personal Cache (I)',
+                        'pockets' => [[
+                            'contents' => [
+                                'itemId' => 1516591189,
+                                'itemType' => 0,
+                                'quantity' => 5,
+                            ],
+                        ]],
+                    ],
+                    [
+                        'entityId' => 'bank-1',
+                        'inventoryName' => 'Town Bank',
+                        'pockets' => [[
+                            'contents' => [
+                                'itemId' => 1516591189,
+                                'itemType' => 0,
+                                'quantity' => 999,
+                            ],
+                        ]],
+                    ],
+                ],
+                'items' => [
+                    '1516591189' => [
+                        'name' => 'Vibrant Janus',
+                        'tier' => 6,
+                        'rarityStr' => 'Common',
+                        'tag' => 'Ocean Fish',
+                    ],
+                ],
+                'cargos' => [
+                    '6000' => [
+                        'name' => 'Briny Linus',
+                        'tier' => 1,
+                        'rarityStr' => 'Common',
+                        'tag' => 'Ocean Fish',
+                    ],
+                ],
+            ]),
+        ]);
     }
 }
