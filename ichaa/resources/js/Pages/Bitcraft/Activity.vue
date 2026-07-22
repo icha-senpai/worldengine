@@ -107,11 +107,15 @@
                 </div>
             </header>
 
-            <div v-if="error" class="activity-widget__error">
+            <div v-if="blockingError" class="activity-widget__error">
                 {{ error }}
             </div>
 
             <template v-else>
+                <div v-if="error" class="activity-widget__warning">
+                    {{ error }}
+                </div>
+
                 <div class="activity-widget__progress" aria-hidden="true">
                     <span :style="{ width: `${summaryProgressPercent}%` }" />
                 </div>
@@ -186,6 +190,7 @@ const POLL_INTERVAL_MS = 10 * 1000
 const MIN_RATE_SAMPLE_MS = 60 * 1000
 const RATE_SAMPLE_MS = 5 * 60 * 1000
 const SAMPLE_WINDOW_MS = RATE_SAMPLE_MS + MIN_RATE_SAMPLE_MS
+const ACTIVE_STAT_GRACE_MS = 15 * 60 * 1000
 const STORAGE_KEY = 'bitcraft.activityTracker.lastSetup'
 const SAMPLE_STORAGE_PREFIX = 'bitcraft.activityTracker.samples.'
 
@@ -196,6 +201,8 @@ const samples = ref([])
 const now = ref(new Date())
 const pickerOpen = ref(false)
 const pickerElement = ref(null)
+const lastActiveSkillStats = ref([])
+const lastActiveSkillStatsAt = ref(0)
 let pollTimer = null
 let clockTimer = null
 let restoredSetup = false
@@ -304,10 +311,14 @@ const refresh = async () => {
         }
 
         const payload = await response.json()
-        tracker.value = payload.tracker
+
+        if (payload.tracker) {
+            tracker.value = payload.tracker
+            sampledAt.value = payload.sampledAt
+            addSample(payload.tracker, payload.sampledAt)
+        }
+
         error.value = payload.error
-        sampledAt.value = payload.sampledAt
-        addSample(payload.tracker, payload.sampledAt)
     } catch {
         error.value = 'Tracker refresh failed. Waiting for the next Bitjita check.'
     }
@@ -649,8 +660,23 @@ const goalSkillStats = computed(() => form.skillKeys
 const activeSkillStats = computed(() => skillStats.value
     .filter((stat) => stat.xpDelta > 0 && stat.hourRate > 0)
     .sort((a, b) => b.hourRate - a.hourRate))
+watch(activeSkillStats, (stats) => {
+    if (!stats.length) {
+        return
+    }
+
+    lastActiveSkillStats.value = stats
+    lastActiveSkillStatsAt.value = Date.now()
+})
 const goalMode = computed(() => goalSkillStats.value.length > 0)
-const displaySkillStats = computed(() => goalMode.value ? goalSkillStats.value : activeSkillStats.value)
+const fallbackActiveSkillStats = computed(() => {
+    if (!lastActiveSkillStats.value.length || now.value.getTime() - lastActiveSkillStatsAt.value > ACTIVE_STAT_GRACE_MS) {
+        return []
+    }
+
+    return lastActiveSkillStats.value
+})
+const displaySkillStats = computed(() => goalMode.value ? goalSkillStats.value : (activeSkillStats.value.length ? activeSkillStats.value : fallbackActiveSkillStats.value))
 
 const totalStats = computed(() => activeSkillStats.value.reduce((total, stat) => ({
     xpDelta: total.xpDelta + stat.xpDelta,
@@ -690,6 +716,7 @@ const clockLabel = computed(() => new Intl.DateTimeFormat(undefined, {
 
 const totalXpRateLabel = computed(() => `${formatCompact(totalStats.value.hourRate)} XP/hr`)
 const totalRecentXpLabel = computed(() => `${formatNumber(totalStats.value.xpDelta)} recent XP across ${activeSkillStats.value.length} skill${activeSkillStats.value.length === 1 ? '' : 's'}`)
+const blockingError = computed(() => Boolean(error.value && !tracker.value))
 const waitingLabel = computed(() => tracker.value
     ? 'Sampling at least a minute before calculating XP/hr.'
     : 'Waiting for Bitjita data.')
@@ -1081,6 +1108,17 @@ const skillDetailLabel = (stat) => {
     background: rgb(var(--accent-pink-rgb) / 0.1);
     color: var(--accent-pink);
     font-size: 13px;
+    font-weight: 800;
+}
+
+.activity-widget__warning {
+    margin: 12px 16px 0;
+    padding: 10px 12px;
+    border: 1px solid rgb(var(--accent-pink-rgb) / 0.28);
+    border-radius: 8px;
+    background: rgb(var(--accent-pink-rgb) / 0.08);
+    color: color-mix(in srgb, var(--text-primary-2) 72%, var(--accent-pink));
+    font-size: 12px;
     font-weight: 800;
 }
 

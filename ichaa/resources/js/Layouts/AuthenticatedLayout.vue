@@ -584,6 +584,7 @@ const bitcraftTools = {
         { key: 'bitcraft-crafting', label: 'Crafting Calculator', href: route('bitcraft.crafting'), matches: ['/bitcraft/crafting'] },
         { key: 'bitcraft-activity', label: 'Live Activity', href: route('bitcraft.activity', { source: 'default', setup: 1 }), matches: ['/bitcraft/activity'] },
         { key: 'bitcraft-inventory-tracker', label: 'Inventory Tracker', href: route('bitcraft.inventory-tracker', { source: 'default', setup: 1 }), matches: ['/bitcraft/inventory-tracker'] },
+        { key: 'bitcraft-task-tracker', label: 'Task Tracker', href: route('bitcraft.task-tracker', { source: 'default', setup: 1 }), matches: ['/bitcraft/task-tracker'] },
     ],
 }
 

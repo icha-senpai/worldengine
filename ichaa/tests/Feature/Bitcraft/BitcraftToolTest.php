@@ -1165,6 +1165,92 @@ class BitcraftToolTest extends TestCase
             );
     }
 
+    public function test_task_tracker_setup_accepts_tasks(): void
+    {
+        $tasks = json_encode([
+            ['id' => 'task-one', 'text' => 'Gather fish', 'done' => false],
+            ['id' => 'task-two', 'text' => 'Return to town', 'done' => true],
+        ], JSON_THROW_ON_ERROR);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.task-tracker', [
+                'title' => 'Fishing Run',
+                'icons' => '',
+                'tasks' => $tasks,
+                'setup' => 1,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/TaskTracker')
+                ->where('filters.title', 'Fishing Run')
+                ->where('filters.icons', '')
+                ->where('filters.tasks.0.id', 'task-one')
+                ->where('filters.tasks.0.text', 'Gather fish')
+                ->where('filters.tasks.0.done', false)
+                ->where('filters.tasks.1.id', 'task-two')
+                ->where('filters.tasks.1.text', 'Return to town')
+                ->where('filters.tasks.1.done', true)
+                ->where('filters.setup', true)
+            );
+    }
+
+    public function test_task_tracker_widget_is_public_for_obs(): void
+    {
+        $tasks = json_encode([
+            ['id' => 'task-one', 'text' => 'Gather fish', 'done' => false],
+        ], JSON_THROW_ON_ERROR);
+
+        $response = $this->get(route('bitcraft.task-tracker', [
+            'title' => 'Fishing Run',
+            'tasks' => $tasks,
+        ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/TaskTracker')
+                ->where('filters.title', 'Fishing Run')
+                ->where('filters.tasks.0.text', 'Gather fish')
+            );
+    }
+
+    public function test_task_tracker_source_profile_keeps_widget_url_stable(): void
+    {
+        $tasks = json_encode([
+            ['id' => 'task-one', 'text' => 'Gather fish', 'done' => false],
+            ['id' => 'task-two', 'text' => 'Return to town', 'done' => true],
+        ], JSON_THROW_ON_ERROR);
+
+        $this->get(route('bitcraft.task-tracker', [
+            'source' => 'stream',
+            'title' => 'Fishing Run',
+            'icons' => '',
+            'tasks' => $tasks,
+        ]))->assertRedirect(route('bitcraft.task-tracker', ['source' => 'stream']));
+
+        $settings = BitcraftWidgetProfile::query()
+            ->where('widget', 'task-tracker')
+            ->where('source', 'stream')
+            ->firstOrFail()
+            ->settings;
+
+        $this->assertSame('Fishing Run', $settings['title']);
+        $this->assertSame('', $settings['icons']);
+        $this->assertSame('Gather fish', $settings['tasks'][0]['text']);
+        $this->assertTrue($settings['tasks'][1]['done']);
+
+        $this->get(route('bitcraft.task-tracker', ['source' => 'stream']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/TaskTracker')
+                ->where('filters.source', 'stream')
+                ->where('filters.title', 'Fishing Run')
+                ->where('filters.icons', '')
+                ->where('filters.tasks.0.text', 'Gather fish')
+                ->where('filters.tasks.1.done', true)
+            );
+    }
+
     private function fakeActivityTrackerResponses(): void
     {
         Http::fake([
