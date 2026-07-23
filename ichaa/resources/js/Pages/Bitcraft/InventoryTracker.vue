@@ -1,5 +1,14 @@
 <template>
-    <main class="inventory-tracker-source" :class="{ 'inventory-tracker-source--setup': setupVisible }" :style="widgetThemeStyle">
+    <WidgetPageShell
+        :setup="setupPageVisible"
+        title="Inventory Tracker"
+        description="Configure tracked items, cargo, and goals for the OBS widget."
+    >
+        <main
+            class="inventory-tracker-source"
+            :class="{ 'inventory-tracker-source--setup': setupVisible, 'inventory-tracker-source--in-app': setupPageVisible }"
+            :style="widgetThemeStyle"
+        >
         <form v-if="setupVisible" class="inventory-tracker-setup" @submit.prevent="submitSetup(true)">
             <div class="inventory-tracker-setup__grid">
                 <label>
@@ -151,13 +160,15 @@
                 </article>
             </template>
         </section>
-    </main>
+        </main>
+    </WidgetPageShell>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
+import WidgetPageShell from './Components/WidgetPageShell.vue'
 import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'
 
 const props = defineProps({
@@ -250,7 +261,8 @@ const form = reactive({
 
 let restoredSetup = false
 
-const setupVisible = computed(() => Boolean(props.filters.setup) || !form.itemKeys.length)
+const setupPageVisible = computed(() => Boolean(props.filters.setup))
+const setupVisible = computed(() => setupPageVisible.value || !form.itemKeys.length)
 const titleLabel = computed(() => form.title || 'Inventory Tracker')
 const iconsLabel = computed(() => form.icons || '')
 const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form))
@@ -551,6 +563,12 @@ onBeforeUnmount(() => {
 .inventory-tracker-source--setup {
     padding: 14px;
     background: var(--bg-canvas);
+}
+
+.inventory-tracker-source--in-app {
+    min-height: auto;
+    padding: 0;
+    background: transparent;
 }
 
 .inventory-tracker-setup {

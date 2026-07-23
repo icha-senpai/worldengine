@@ -140,6 +140,11 @@ class BitjitaClient
         ]);
     }
 
+    public function cargoItem(int $cargoId): array
+    {
+        return $this->get("api/cargo/{$cargoId}");
+    }
+
     public function players(string $query): array
     {
         return $this->get('api/players', [

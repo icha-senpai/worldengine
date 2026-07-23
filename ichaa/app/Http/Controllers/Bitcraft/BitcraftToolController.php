@@ -11,6 +11,8 @@ use Throwable;
 
 class BitcraftToolController extends Controller
 {
+    private const CRAFTING_TREE_MAX_DEPTH = 6;
+
     private const HEX_COIN_ITEM_ID = 1;
 
     public function market(Request $request, BitjitaClient $bitjita): Response
@@ -205,21 +207,29 @@ class BitcraftToolController extends Controller
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:120'],
             'itemId' => ['nullable', 'integer', 'min:1'],
+            'itemKind' => ['nullable', 'in:item,cargo'],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:999999'],
         ]);
 
         $query = trim((string) ($validated['q'] ?? ''));
         $itemId = $validated['itemId'] ?? null;
+        $itemKind = $validated['itemKind'] ?? 'item';
+        $quantity = (int) ($validated['quantity'] ?? 1);
         $items = [];
         $detail = null;
         $error = null;
 
         try {
             if ($query !== '') {
-                $items = $this->normalizeItems($bitjita->items($query));
+                $items = $this->recipeTargets($bitjita, $query);
             }
 
             if ($itemId) {
-                $detail = $this->normalizeItemDetail($bitjita->item((int) $itemId));
+                $detail = $this->craftingTargetDetailPayload(
+                    $bitjita,
+                    $this->craftingTargetDetail($bitjita, $itemKind, (int) $itemId),
+                    $itemKind,
+                );
             }
         } catch (Throwable $exception) {
             report($exception);
@@ -230,6 +240,8 @@ class BitcraftToolController extends Controller
             'filters' => [
                 'q' => $query,
                 'itemId' => $itemId,
+                'itemKind' => $itemKind,
+                'quantity' => $quantity,
             ],
             'items' => $items,
             'detail' => $detail,
@@ -1009,48 +1021,208 @@ class BitcraftToolController extends Controller
 
     private function normalizeItems(array $payload): array
     {
-        return collect(data_get($payload, 'items', data_get($payload, 'data.items', [])))
-            ->map(fn (array $item) => [
-                'id' => data_get($item, 'id', data_get($item, 'itemId')),
-                'name' => data_get($item, 'name', data_get($item, 'itemName', 'Unknown item')),
-                'category' => data_get($item, 'category', data_get($item, 'tag')),
-                'tier' => data_get($item, 'tier'),
-                'rarity' => data_get($item, 'rarityStr'),
-                'iconAssetName' => data_get($item, 'iconAssetName'),
-            ])
+        return $this->normalizeCraftingTargets(data_get($payload, 'items', data_get($payload, 'data.items', [])), 'item');
+    }
+
+    private function normalizeCargo(array $payload): array
+    {
+        return $this->normalizeCraftingTargets(data_get($payload, 'cargos', data_get($payload, 'cargo', [])), 'cargo');
+    }
+
+    private function normalizeCraftingTargets(array $items, string $kind): array
+    {
+        return collect($items)
+            ->map(fn (array $item) => $this->normalizeCraftingTarget($item, $kind))
             ->filter(fn (array $item) => filled($item['id']))
             ->values()
             ->all();
     }
 
-    private function normalizeItemDetail(array $payload): array
+    private function normalizeCraftingTarget(array $item, string $kind): array
     {
-        $item = data_get($payload, 'item', []);
+        return [
+            'id' => data_get($item, 'id', data_get($item, 'itemId')),
+            'kind' => $kind,
+            'name' => data_get($item, 'name', data_get($item, 'itemName', 'Unknown item')),
+            'category' => data_get($item, 'category', data_get($item, 'tag', $kind === 'cargo' ? 'Cargo' : null)),
+            'tier' => data_get($item, 'tier'),
+            'rarity' => data_get($item, 'rarityStr'),
+            'description' => data_get($item, 'description'),
+            'iconAssetName' => data_get($item, 'iconAssetName'),
+        ];
+    }
+
+    private function craftingTargetDetailPayload(BitjitaClient $bitjita, array $payload, string $kind): array
+    {
+        $detail = $this->normalizeCraftingTargetDetail($payload, $kind);
+        $targetKey = $this->craftingTargetKey($detail['item']);
+        $detail['recipeTree'] = $this->recipeTree($bitjita, $detail, 0, [$targetKey]);
+
+        return $detail;
+    }
+
+    private function normalizeCraftingTargetDetail(array $payload, string $kind): array
+    {
+        $item = data_get($payload, $kind, data_get($payload, 'item', data_get($payload, 'cargo', [])));
 
         return [
-            'item' => [
-                'id' => data_get($item, 'id', data_get($item, 'itemId')),
-                'name' => data_get($item, 'name', data_get($item, 'itemName', 'Unknown item')),
-                'category' => data_get($item, 'category', data_get($item, 'tag')),
-                'tier' => data_get($item, 'tier'),
-                'rarity' => data_get($item, 'rarityStr'),
-                'description' => data_get($item, 'description'),
-                'iconAssetName' => data_get($item, 'iconAssetName'),
-            ],
-            'craftingRecipes' => $this->normalizeRecipes(data_get($payload, 'craftingRecipes', [])),
-            'extractionRecipes' => $this->normalizeRecipes(data_get($payload, 'extractionRecipes', [])),
-            'recipesUsingItem' => $this->normalizeRecipes(data_get($payload, 'recipesUsingItem', [])),
+            'item' => $this->normalizeCraftingTarget($item, $kind),
+            'craftingRecipes' => $this->normalizeRecipes(data_get($payload, 'craftingRecipes', []), 'crafting'),
+            'extractionRecipes' => $this->normalizeRecipes(data_get($payload, 'extractionRecipes', []), 'extraction'),
             'marketStats' => data_get($payload, 'marketStats', []),
         ];
     }
 
-    private function normalizeRecipes(array $recipes): array
+    private function recipeTargets(BitjitaClient $bitjita, string $query): array
+    {
+        return collect([
+            ...$this->normalizeItems($bitjita->items($query)),
+            ...$this->normalizeCargo($bitjita->cargo($query)),
+        ])
+            ->filter(fn (array $item) => $this->craftingTargetHasRecipes($bitjita, $item))
+            ->sortBy([
+                fn (array $item) => strtolower((string) $item['name']),
+                fn (array $item) => $item['kind'],
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function craftingTargetHasRecipes(BitjitaClient $bitjita, array $item): bool
+    {
+        $detail = $this->normalizeCraftingTargetDetail(
+            $this->craftingTargetDetail($bitjita, (string) $item['kind'], (int) $item['id']),
+            (string) $item['kind'],
+        );
+
+        return $detail['craftingRecipes'] !== [] || $detail['extractionRecipes'] !== [];
+    }
+
+    private function craftingTargetDetail(BitjitaClient $bitjita, string $kind, int $itemId): array
+    {
+        if ($kind === 'cargo') {
+            return $bitjita->cargoItem($itemId);
+        }
+
+        return $bitjita->item($itemId);
+    }
+
+    private function recipeTree(BitjitaClient $bitjita, array $detail, int $depth, array $seen): array
+    {
+        if ($depth >= self::CRAFTING_TREE_MAX_DEPTH) {
+            return [];
+        }
+
+        return collect($this->preferredRecipeOptions($detail))
+            ->map(fn (array $recipe) => [
+                ...$recipe,
+                'ingredients' => collect($recipe['ingredients'])
+                    ->map(fn (array $ingredient) => [
+                        ...$ingredient,
+                        'recipes' => $this->ingredientRecipeTree($bitjita, $ingredient, $depth + 1, $seen),
+                    ])
+                    ->values()
+                    ->all(),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function ingredientRecipeTree(BitjitaClient $bitjita, array $ingredient, int $depth, array $seen): array
+    {
+        if ($depth >= self::CRAFTING_TREE_MAX_DEPTH || blank($ingredient['id'])) {
+            return [];
+        }
+
+        $target = [
+            'id' => $ingredient['id'],
+            'kind' => $ingredient['kind'],
+        ];
+        $targetKey = $this->craftingTargetKey($target);
+
+        if (in_array($targetKey, $seen, true)) {
+            return [];
+        }
+
+        try {
+            $detail = $this->normalizeCraftingTargetDetail(
+                $this->craftingTargetDetail($bitjita, (string) $target['kind'], (int) $target['id']),
+                (string) $target['kind'],
+            );
+        } catch (Throwable) {
+            return [];
+        }
+
+        return $this->recipeTree($bitjita, $detail, $depth, [...$seen, $targetKey]);
+    }
+
+    private function preferredRecipeOptions(array $detail): array
+    {
+        $recipes = collect([
+            ...$detail['craftingRecipes'],
+            ...$detail['extractionRecipes'],
+        ]);
+
+        if ($recipes->isEmpty()) {
+            return [];
+        }
+
+        $preferredRecipes = $recipes
+            ->reject(fn (array $recipe) => $this->isExcludedCraftingRoute($recipe));
+
+        if ($preferredRecipes->isEmpty()) {
+            return [];
+        }
+
+        return $preferredRecipes
+            ->sort(fn (array $left, array $right) => $this->recipePreferenceTuple($left) <=> $this->recipePreferenceTuple($right))
+            ->take(1)
+            ->values()
+            ->all();
+    }
+
+    private function recipePreferenceTuple(array $recipe): array
+    {
+        return [
+            $this->recipeOutputQuantity($recipe),
+            $this->recipeInputCount($recipe),
+            strtolower((string) $recipe['name']),
+        ];
+    }
+
+    private function isExcludedCraftingRoute(array $recipe): bool
+    {
+        $haystack = strtolower(collect([
+            $recipe['name'],
+            ...collect($recipe['ingredients'])->pluck('name')->all(),
+        ])->filter()->join(' '));
+
+        return str_contains($haystack, 'package') || str_contains($haystack, 'hexite');
+    }
+
+    private function recipeOutputQuantity(array $recipe): float
+    {
+        return max(1, (float) ($recipe['outputQuantity'] ?? 1));
+    }
+
+    private function recipeInputCount(array $recipe): int
+    {
+        return count($recipe['ingredients']);
+    }
+
+    private function craftingTargetKey(array $target): string
+    {
+        return $target['kind'].':'.$target['id'];
+    }
+
+    private function normalizeRecipes(array $recipes, ?string $source = null): array
     {
         return collect($recipes)
             ->map(fn (array $recipe) => [
                 'id' => data_get($recipe, 'id', data_get($recipe, 'recipeId')),
+                'source' => $source,
                 'name' => data_get($recipe, 'name', data_get($recipe, 'recipeName', data_get($recipe, 'craftingStation', 'Recipe'))),
-                'station' => data_get($recipe, 'buildingName', data_get($recipe, 'craftingStation', data_get($recipe, 'stationName'))),
+                'station' => $this->normalizeCraftingStationName(data_get($recipe, 'buildingName', data_get($recipe, 'craftingStation', data_get($recipe, 'stationName')))),
                 'skill' => data_get($recipe, 'skillName', data_get($recipe, 'levelRequirements.0.skill.name', data_get($recipe, 'skill'))),
                 'duration' => data_get($recipe, 'timeRequirement', data_get($recipe, 'duration', data_get($recipe, 'craftDuration'))),
                 'outputQuantity' => data_get($recipe, 'outputQuantity', data_get($recipe, 'craftedItems.0.quantity', data_get($recipe, 'quantity'))),
@@ -1060,8 +1232,38 @@ class BitcraftToolController extends Controller
             ->all();
     }
 
+    private function normalizeCraftingStationName(mixed $station): ?string
+    {
+        if (! is_string($station) || $station === '') {
+            return null;
+        }
+
+        return preg_replace('/^(Ancient|Rough|Simple|Sturdy|Fine|Exquisite|Peerless|Ornate|Pristine|Magnificent|Flawless)\s+/i', '', $station);
+    }
+
     private function normalizeIngredients(array $recipe): array
     {
+        $stacks = data_get($recipe, 'consumedItemStacks');
+        $consumedItems = data_get($recipe, 'consumedItems');
+
+        if (is_array($stacks)) {
+            return collect($stacks)
+                ->map(function (array $ingredient, int $index) use ($consumedItems) {
+                    $displayIngredient = is_array($consumedItems) ? data_get($consumedItems, $index, []) : [];
+                    $type = data_get($ingredient, 'item_type', data_get($displayIngredient, 'itemType', data_get($ingredient, 'type')));
+
+                    return [
+                        'id' => data_get($ingredient, 'item_id', data_get($ingredient, 'id', data_get($ingredient, 'itemId'))),
+                        'name' => data_get($displayIngredient, 'name', data_get($ingredient, 'name', data_get($ingredient, 'itemName', data_get($ingredient, 'cargoName', 'Unknown')))),
+                        'quantity' => data_get($ingredient, 'quantity', data_get($ingredient, 'amount')),
+                        'type' => $type,
+                        'kind' => $this->itemKind($type),
+                    ];
+                })
+                ->values()
+                ->all();
+        }
+
         $ingredients = Arr::first([
             data_get($recipe, 'consumedItems'),
             data_get($recipe, 'ingredients'),
@@ -1072,12 +1274,17 @@ class BitcraftToolController extends Controller
         ], fn ($value) => is_array($value));
 
         return collect($ingredients ?? [])
-            ->map(fn (array $ingredient) => [
-                'id' => data_get($ingredient, 'id', data_get($ingredient, 'itemId')),
-                'name' => data_get($ingredient, 'name', data_get($ingredient, 'itemName', data_get($ingredient, 'cargoName', 'Unknown'))),
-                'quantity' => data_get($ingredient, 'quantity', data_get($ingredient, 'amount')),
-                'type' => data_get($ingredient, 'itemType', data_get($ingredient, 'type')),
-            ])
+            ->map(function (array $ingredient) {
+                $type = data_get($ingredient, 'itemType', data_get($ingredient, 'type'));
+
+                return [
+                    'id' => data_get($ingredient, 'id', data_get($ingredient, 'itemId')),
+                    'name' => data_get($ingredient, 'name', data_get($ingredient, 'itemName', data_get($ingredient, 'cargoName', 'Unknown'))),
+                    'quantity' => data_get($ingredient, 'quantity', data_get($ingredient, 'amount')),
+                    'type' => $type,
+                    'kind' => $this->itemKind($type),
+                ];
+            })
             ->values()
             ->all();
     }

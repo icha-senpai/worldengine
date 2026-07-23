@@ -7,15 +7,16 @@
                         <span>Bitcraft tools</span>
                     </div>
                     <h1 class="page-hero__title page-hero__title--lg">Crafting Calculator</h1>
-                    <p class="page-hero__subtitle">Search an item and inspect its Bitjita recipe data.</p>
+                    <p class="page-hero__subtitle">Search craftable items and cargo, then scale their Bitjita recipe data.</p>
                 </div>
             </div>
         </template>
 
         <form @submit.prevent="submit" class="index-panel max-w-3xl">
-            <label class="field-label">Item search</label>
-            <div class="mt-3 flex flex-col gap-3 sm:flex-row">
-                <TextInput v-model.trim="form.q" type="text" class="flex-1" placeholder="Pickaxe, plank, ingot..." />
+            <label class="field-label">Recipe search</label>
+            <div class="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px_auto]">
+                <TextInput v-model.trim="form.q" type="text" placeholder="Timber, pickaxe, plank, ingot..." />
+                <TextInput v-model.number="form.quantity" type="number" min="1" max="999999" inputmode="numeric" />
                 <AppButton type="submit" variant="primary">Search</AppButton>
             </div>
         </form>
@@ -29,20 +30,21 @@
                 <div class="surface-section__header">
                     <div class="surface-section__copy">
                         <h2 class="surface-section__title">Matches</h2>
-                        <p class="surface-section__subtitle">{{ items.length }} item{{ items.length === 1 ? '' : 's' }}</p>
+                        <p class="surface-section__subtitle">{{ items.length }} recipe target{{ items.length === 1 ? '' : 's' }}</p>
                     </div>
                 </div>
 
                 <div v-if="items.length" class="index-surface index-surface--nested">
                     <Link
                         v-for="item in items"
-                        :key="item.id"
-                        :href="route('bitcraft.crafting', { q: form.q, itemId: item.id })"
+                        :key="`${item.kind}:${item.id}`"
+                        :href="route('bitcraft.crafting', selectedParams(item))"
                         class="index-record block hover:border-[rgb(var(--accent-cyan-rgb)/0.35)] transition-colors"
-                        :class="{ 'border-[rgb(var(--accent-cyan-rgb)/0.5)]': selectedItemId === Number(item.id) }"
+                        :class="{ 'border-[rgb(var(--accent-cyan-rgb)/0.5)]': isSelected(item) }"
                     >
                         <p class="index-record__title prose-wrap">{{ item.name }}</p>
                         <div class="mt-2 flex flex-wrap gap-2">
+                            <span class="tag">{{ item.kind === 'cargo' ? 'Cargo' : 'Item' }}</span>
                             <span v-if="item.category" class="tag">{{ item.category }}</span>
                             <span v-if="item.tier" class="tag">Tier {{ item.tier }}</span>
                             <span v-if="item.rarity" class="tag">{{ item.rarity }}</span>
@@ -61,7 +63,8 @@
                         <div class="surface-section__copy">
                             <h2 class="surface-section__title">{{ detail.item.name }}</h2>
                             <p class="surface-section__subtitle">
-                                <span v-if="detail.item.category">{{ detail.item.category }}</span>
+                                <span>{{ detail.item.kind === 'cargo' ? 'Cargo' : 'Item' }}</span>
+                                <span v-if="detail.item.category"> · {{ detail.item.category }}</span>
                                 <span v-if="detail.item.tier"> · Tier {{ detail.item.tier }}</span>
                                 <span v-if="detail.item.rarity"> · {{ detail.item.rarity }}</span>
                             </p>
@@ -73,14 +76,12 @@
                     </p>
 
                     <div class="mt-5 grid gap-4">
-                        <RecipeGroup title="Crafting recipes" :recipes="detail.craftingRecipes" />
-                        <RecipeGroup title="Extraction recipes" :recipes="detail.extractionRecipes" />
-                        <RecipeGroup title="Used by recipes" :recipes="detail.recipesUsingItem" />
+                        <CraftingRecipeTree :recipes="detail.recipeTree" :desired-quantity="desiredQuantity" />
                     </div>
                 </div>
 
                 <div v-else class="empty-state-panel">
-                    <p class="text-muted-3 text-sm font-ui">Select an item to inspect its recipes.</p>
+                    <p class="text-muted-3 text-sm font-ui">Select an item or cargo target to inspect its recipes.</p>
                 </div>
             </section>
         </div>
@@ -88,11 +89,12 @@
 </template>
 
 <script setup>
-import { computed, h, reactive, watch } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import TextInput from '@/Components/TextInput.vue'
+import CraftingRecipeTree from '@/Pages/Bitcraft/Components/CraftingRecipeTree.vue'
 
 const props = defineProps({
     filters: { type: Object, default: () => ({}) },
@@ -103,57 +105,58 @@ const props = defineProps({
 
 const form = reactive({
     q: props.filters.q ?? '',
+    quantity: props.filters.quantity ?? 1,
 })
 
 watch(() => props.filters, (filters) => {
     form.q = filters.q ?? ''
+    form.quantity = filters.quantity ?? 1
 })
 
 const selectedItemId = computed(() => Number(props.filters.itemId))
+const selectedItemKind = computed(() => props.filters.itemKind ?? 'item')
+const desiredQuantity = computed(() => Math.max(1, Number(props.filters.quantity ?? 1) || 1))
+
+const searchParams = () => {
+    const params = {}
+
+    if (form.q) {
+        params.q = form.q
+    }
+
+    if (Number(form.quantity) > 1) {
+        params.quantity = Number(form.quantity)
+    }
+
+    if (form.q === (props.filters.q ?? '') && props.filters.itemId) {
+        params.itemId = props.filters.itemId
+        params.itemKind = props.filters.itemKind ?? 'item'
+    }
+
+    return params
+}
 
 const submit = () => {
-    router.get(route('bitcraft.crafting'), form.q ? { q: form.q } : {}, {
+    router.get(route('bitcraft.crafting'), searchParams(), {
         preserveState: true,
         replace: true,
     })
 }
 
-const RecipeGroup = (props) => {
-    if (!props.recipes.length) {
-        return h('div', { class: 'empty-state-panel' }, [
-            h('p', { class: 'text-muted-3 text-sm font-ui' }, `No ${props.title.toLowerCase()} found.`),
-        ])
+const selectedParams = (item) => {
+    const params = {
+        q: form.q,
+        itemId: item.id,
+        itemKind: item.kind,
     }
 
-    return h('section', { class: 'index-surface index-surface--nested' }, [
-        h('div', { class: 'px-4 py-3 border-b border-border' }, [
-            h('h3', { class: 'surface-section__title' }, props.title),
-        ]),
-        ...props.recipes.map((recipe) => h('div', { class: 'index-record', key: recipe.id ?? recipe.name }, [
-            h('div', { class: 'flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between' }, [
-                h('div', { class: 'min-w-0' }, [
-                    h('p', { class: 'index-record__title prose-wrap' }, recipe.name),
-                    h('p', { class: 'index-record__subtitle prose-wrap' }, [
-                        recipe.station,
-                        recipe.skill,
-                        recipe.duration ? `${recipe.duration}s` : null,
-                    ].filter(Boolean).join(' · ')),
-                ]),
-                recipe.outputQuantity ? h('span', { class: 'tag' }, `Makes ${recipe.outputQuantity}`) : null,
-            ]),
-            recipe.ingredients.length ? h('div', { class: 'mt-3 grid gap-2 sm:grid-cols-2' }, recipe.ingredients.map((ingredient) => h('div', {
-                class: 'rounded-md border border-border bg-surface px-3 py-2 text-sm text-muted-2',
-                key: `${ingredient.type}-${ingredient.id}-${ingredient.name}`,
-            }, [
-                h('span', { class: 'text-primary' }, ingredient.name),
-                h('span', { class: 'float-right font-ui text-muted-3' }, ingredient.quantity ? `x${ingredient.quantity}` : ''),
-            ]))) : null,
-        ])),
-    ])
+    if (Number(form.quantity) > 1) {
+        params.quantity = Number(form.quantity)
+    }
+
+    return params
 }
 
-RecipeGroup.props = {
-    title: { type: String, required: true },
-    recipes: { type: Array, default: () => [] },
-}
+const isSelected = (item) => selectedItemId.value === Number(item.id) && selectedItemKind.value === item.kind
+
 </script>

@@ -1,5 +1,14 @@
 <template>
-    <main class="task-tracker-source" :class="{ 'task-tracker-source--setup': setupVisible }" :style="widgetThemeStyle">
+    <WidgetPageShell
+        :setup="setupPageVisible"
+        title="Task Tracker"
+        description="Configure the task list overlay and keep the OBS widget URL clean."
+    >
+        <main
+            class="task-tracker-source"
+            :class="{ 'task-tracker-source--setup': setupVisible, 'task-tracker-source--in-app': setupPageVisible }"
+            :style="widgetThemeStyle"
+        >
         <form v-if="setupVisible" class="task-tracker-setup" @submit.prevent="submitSetup(true)">
             <div class="task-tracker-setup__grid">
                 <label>
@@ -113,13 +122,15 @@
                 </article>
             </template>
         </section>
-    </main>
+        </main>
+    </WidgetPageShell>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
+import WidgetPageShell from './Components/WidgetPageShell.vue'
 import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'
 
 const props = defineProps({
@@ -185,7 +196,8 @@ const form = reactive({
     ...normalizeWidgetTheme(props.filters),
 })
 
-const setupVisible = computed(() => Boolean(props.filters.setup) || !form.tasks.length)
+const setupPageVisible = computed(() => Boolean(props.filters.setup))
+const setupVisible = computed(() => setupPageVisible.value || !form.tasks.length)
 const titleLabel = computed(() => form.title || 'Task Tracker')
 const iconsLabel = computed(() => form.icons || '')
 const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form))
@@ -378,6 +390,12 @@ onMounted(() => {
 .task-tracker-source--setup {
     padding: 14px;
     background: var(--bg-canvas);
+}
+
+.task-tracker-source--in-app {
+    min-height: auto;
+    padding: 0;
+    background: transparent;
 }
 
 .task-tracker-setup {

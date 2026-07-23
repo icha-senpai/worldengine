@@ -1,5 +1,14 @@
 <template>
-    <main class="activity-source" :class="{ 'activity-source--setup': setupVisible }" :style="widgetThemeStyle">
+    <WidgetPageShell
+        :setup="setupPageVisible"
+        title="Live Activity"
+        description="Configure XP goals, watched skills, and the live OBS widget styling."
+    >
+        <main
+            class="activity-source"
+            :class="{ 'activity-source--setup': setupVisible, 'activity-source--in-app': setupPageVisible }"
+            :style="widgetThemeStyle"
+        >
         <form v-if="setupVisible" class="activity-setup" @submit.prevent="submitSetup(true)">
             <div class="activity-setup__grid">
                 <label>
@@ -175,13 +184,15 @@
                 </div>
             </template>
         </section>
-    </main>
+        </main>
+    </WidgetPageShell>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
+import WidgetPageShell from './Components/WidgetPageShell.vue'
 import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'
 
 const props = defineProps({
@@ -506,7 +517,8 @@ const submitSetup = (setup) => {
 
 const skills = computed(() => trackerSkills(tracker.value))
 const levels = computed(() => tracker.value?.levels ?? [])
-const setupVisible = computed(() => Boolean(props.filters.setup))
+const setupPageVisible = computed(() => Boolean(props.filters.setup))
+const setupVisible = computed(() => setupPageVisible.value)
 const titleLabel = computed(() => form.title || 'Live Activity')
 const iconsLabel = computed(() => form.icons || '')
 const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form))
@@ -805,6 +817,12 @@ const skillDetailLabel = (stat) => {
 .activity-source--setup {
     padding: 14px;
     background: var(--bg-canvas);
+}
+
+.activity-source--in-app {
+    min-height: auto;
+    padding: 0;
+    background: transparent;
 }
 
 .activity-setup {

@@ -845,6 +845,10 @@ class BitcraftToolTest extends TestCase
                     'rarityStr' => 'Rare',
                 ]],
             ]),
+            'https://bitjita.com/api/cargo?q=Pickaxe' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
             'https://bitjita.com/api/items/1421716234' => Http::response([
                 'item' => [
                     'id' => 1421716234,
@@ -863,6 +867,16 @@ class BitcraftToolTest extends TestCase
                     ]],
                 ]],
             ]),
+            'https://bitjita.com/api/items/111' => Http::response([
+                'item' => [
+                    'id' => 111,
+                    'name' => 'Astralite Ingot',
+                    'tag' => 'Ingot',
+                    'tier' => 5,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
         ]);
 
         $response = $this->actingAs($this->createVerifiedAdminUser())
@@ -875,10 +889,193 @@ class BitcraftToolTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Bitcraft/Crafting')
                 ->where('items.0.name', 'Astralite Pickaxe')
+                ->where('items.0.kind', 'item')
                 ->where('detail.item.name', 'Astralite Pickaxe')
+                ->where('detail.item.kind', 'item')
                 ->where('detail.craftingRecipes.0.name', 'Forge Astralite Pickaxe')
+                ->where('detail.craftingRecipes.0.station', 'Smithy')
                 ->where('detail.craftingRecipes.0.ingredients.0.name', 'Astralite Ingot')
+                ->where('detail.recipeTree.0.name', 'Forge Astralite Pickaxe')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Astralite Ingot')
             );
+    }
+
+    public function test_crafting_tool_searches_cargo_and_filters_to_recipe_targets(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Timber' => Http::response([
+                'items' => [[
+                    'id' => 9001,
+                    'name' => 'Timber Token',
+                    'tag' => 'Collectible',
+                    'tier' => 1,
+                    'rarityStr' => 'Common',
+                ]],
+            ]),
+            'https://bitjita.com/api/items/9001' => Http::response([
+                'item' => [
+                    'id' => 9001,
+                    'name' => 'Timber Token',
+                    'tag' => 'Collectible',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/cargo?q=Timber' => Http::response([
+                'cargos' => [[
+                    'id' => 1201,
+                    'name' => 'Simple Timber',
+                    'tag' => 'Timber',
+                    'tier' => 2,
+                    'rarityStr' => 'Common',
+                ]],
+                'count' => 1,
+            ]),
+            'https://bitjita.com/api/cargo/1201' => Http::response([
+                'cargo' => [
+                    'id' => 1201,
+                    'name' => 'Simple Timber',
+                    'tag' => 'Timber',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 202002,
+                    'name' => 'Craft Simple Timber',
+                    'buildingName' => 'Ancient Carpentry Station',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 2020003,
+                        'name' => 'Simple Plank',
+                        'quantity' => 20,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/2020003' => Http::response([
+                'item' => [
+                    'id' => 2020003,
+                    'name' => 'Simple Plank',
+                    'tag' => 'Plank',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 202009,
+                    'name' => 'Treat Simple Stripped Wood Into Simple Plank',
+                    'buildingName' => 'Ancient Carpentry Station',
+                    'outputQuantity' => 1,
+                    'consumedItemStacks' => [[
+                        'item_id' => 362614434,
+                        'quantity' => 1,
+                        'item_type' => 'item',
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 362614434,
+                        'name' => 'Simple Stripped Wood',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 1117318721,
+                    'name' => 'Treat Simple Stripped Wood Into Simple Plank',
+                    'buildingName' => 'Ancient Carpentry Station',
+                    'outputQuantity' => 2,
+                    'consumedItemStacks' => [[
+                        'item_id' => 362614434,
+                        'quantity' => 1,
+                        'item_type' => 'item',
+                    ], [
+                        'item_id' => 1939049017,
+                        'quantity' => 3,
+                        'item_type' => 'item',
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 362614434,
+                        'name' => 'Simple Stripped Wood',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 1939049017,
+                        'name' => 'Hexite Wood Fragment',
+                        'quantity' => 3,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 1117209372,
+                    'name' => 'Unpack Simple Wood Plank Package',
+                    'buildingName' => 'Rough Carpentry Station',
+                    'outputQuantity' => 100,
+                    'consumedItemStacks' => [[
+                        'item_id' => 260001,
+                        'quantity' => 1,
+                        'item_type' => 'cargo',
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 4295227296,
+                        'name' => 'Simple Wood Plank Package',
+                        'quantity' => 1,
+                        'itemType' => 1,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/362614434' => Http::response([
+                'item' => [
+                    'id' => 362614434,
+                    'name' => 'Simple Stripped Wood',
+                    'tag' => 'Stripped Wood',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/1939049017' => Http::response([
+                'item' => [
+                    'id' => 1939049017,
+                    'name' => 'Hexite Wood Fragment',
+                    'tag' => 'Wood Fragment',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Timber',
+                'itemId' => 1201,
+                'itemKind' => 'cargo',
+                'quantity' => 25,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('filters.itemKind', 'cargo')
+                ->where('filters.quantity', 25)
+                ->has('items', 1)
+                ->where('items.0.name', 'Simple Timber')
+                ->where('items.0.kind', 'cargo')
+                ->where('detail.item.name', 'Simple Timber')
+                ->where('detail.item.kind', 'cargo')
+                ->where('detail.craftingRecipes.0.name', 'Craft Simple Timber')
+                ->where('detail.craftingRecipes.0.station', 'Carpentry Station')
+                ->where('detail.craftingRecipes.0.ingredients.0.name', 'Simple Plank')
+                ->where('detail.craftingRecipes.0.ingredients.0.quantity', 20)
+                ->where('detail.recipeTree.0.name', 'Craft Simple Timber')
+                ->where('detail.recipeTree.0.station', 'Carpentry Station')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Simple Plank')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.name', 'Treat Simple Stripped Wood Into Simple Plank')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.station', 'Carpentry Station')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.name', 'Simple Stripped Wood')
+                ->has('detail.recipeTree.0.ingredients.0.recipes', 1)
+                ->has('detail.recipeTree.0.ingredients.0.recipes.0.ingredients', 1)
+            );
+
+        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/items/1939049017');
+        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/cargo/260001');
     }
 
     public function test_activity_tracker_page_resolves_player_skill_and_level_progress(): void
