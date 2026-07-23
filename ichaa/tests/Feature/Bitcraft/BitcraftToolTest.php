@@ -998,13 +998,31 @@ class BitcraftToolTest extends TestCase
             'character' => 'icha',
             'skillKeys' => '21',
             'skillGoalLevels' => '21=40',
+            'theme' => 'ember',
+            'accentColor' => '#fb923c',
+            'highlightColor' => '#facc15',
+            'panelColor' => '#431407',
+            'textColor' => '#fff7ed',
+            'mutedColor' => '#fdba74',
+            'borderColor' => '#f97316',
+            'fontScale' => 115,
+            'width' => 520,
+            'radius' => 12,
+            'panelOpacity' => 84,
         ]))->assertRedirect(route('bitcraft.activity', ['source' => 'stream']));
 
-        $this->assertSame(['21'], BitcraftWidgetProfile::query()
+        $settings = BitcraftWidgetProfile::query()
             ->where('widget', 'activity')
             ->where('source', 'stream')
             ->firstOrFail()
-            ->settings['skillKeys']);
+            ->settings;
+
+        $this->assertSame(['21'], $settings['skillKeys']);
+        $this->assertSame('ember', $settings['theme']);
+        $this->assertSame('#fb923c', $settings['accentColor']);
+        $this->assertSame(115, $settings['fontScale']);
+        $this->assertSame(520, $settings['width']);
+        $this->assertSame(84, $settings['panelOpacity']);
 
         $this->fakeActivityTrackerResponses();
 
@@ -1016,6 +1034,11 @@ class BitcraftToolTest extends TestCase
                 ->where('filters.character', 'icha')
                 ->where('filters.skillKeys.0', '21')
                 ->where('filters.skillGoalLevels.21', 40)
+                ->where('filters.theme', 'ember')
+                ->where('filters.accentColor', '#fb923c')
+                ->where('filters.fontScale', 115)
+                ->where('filters.width', 520)
+                ->where('filters.panelOpacity', 84)
             );
     }
 
@@ -1143,13 +1166,31 @@ class BitcraftToolTest extends TestCase
             'character' => 'icha',
             'itemKeys' => 'item:1516591189',
             'itemNeeds' => 'item:1516591189=40',
+            'theme' => 'harbor',
+            'accentColor' => '#38bdf8',
+            'highlightColor' => '#22c55e',
+            'panelColor' => '#082f49',
+            'textColor' => '#f0f9ff',
+            'mutedColor' => '#bae6fd',
+            'borderColor' => '#0ea5e9',
+            'fontScale' => 105,
+            'width' => 480,
+            'radius' => 20,
+            'panelOpacity' => 90,
         ]))->assertRedirect(route('bitcraft.inventory-tracker', ['source' => 'stream']));
 
-        $this->assertSame(['item:1516591189'], BitcraftWidgetProfile::query()
+        $settings = BitcraftWidgetProfile::query()
             ->where('widget', 'inventory-tracker')
             ->where('source', 'stream')
             ->firstOrFail()
-            ->settings['itemKeys']);
+            ->settings;
+
+        $this->assertSame(['item:1516591189'], $settings['itemKeys']);
+        $this->assertSame('harbor', $settings['theme']);
+        $this->assertSame('#38bdf8', $settings['accentColor']);
+        $this->assertSame(105, $settings['fontScale']);
+        $this->assertSame(480, $settings['width']);
+        $this->assertSame(90, $settings['panelOpacity']);
 
         $this->fakeInventoryTrackerResponses();
 
@@ -1161,6 +1202,11 @@ class BitcraftToolTest extends TestCase
                 ->where('filters.character', 'icha')
                 ->where('filters.itemKeys.0', 'item:1516591189')
                 ->where('filters.itemNeeds.item:1516591189', 40)
+                ->where('filters.theme', 'harbor')
+                ->where('filters.accentColor', '#38bdf8')
+                ->where('filters.fontScale', 105)
+                ->where('filters.width', 480)
+                ->where('filters.panelOpacity', 90)
                 ->where('snapshot.tracker.items.0.name', 'Vibrant Janus')
             );
     }
@@ -1226,6 +1272,17 @@ class BitcraftToolTest extends TestCase
             'title' => 'Fishing Run',
             'icons' => '',
             'tasks' => $tasks,
+            'theme' => 'grove',
+            'accentColor' => '#a3e635',
+            'highlightColor' => '#2dd4bf',
+            'panelColor' => '#1a2e05',
+            'textColor' => '#f7fee7',
+            'mutedColor' => '#bef264',
+            'borderColor' => '#65a30d',
+            'fontScale' => 110,
+            'width' => 500,
+            'radius' => 10,
+            'panelOpacity' => 88,
         ]))->assertRedirect(route('bitcraft.task-tracker', ['source' => 'stream']));
 
         $settings = BitcraftWidgetProfile::query()
@@ -1238,6 +1295,11 @@ class BitcraftToolTest extends TestCase
         $this->assertSame('', $settings['icons']);
         $this->assertSame('Gather fish', $settings['tasks'][0]['text']);
         $this->assertTrue($settings['tasks'][1]['done']);
+        $this->assertSame('grove', $settings['theme']);
+        $this->assertSame('#a3e635', $settings['accentColor']);
+        $this->assertSame(110, $settings['fontScale']);
+        $this->assertSame(500, $settings['width']);
+        $this->assertSame(88, $settings['panelOpacity']);
 
         $this->get(route('bitcraft.task-tracker', ['source' => 'stream']))
             ->assertOk()
@@ -1248,6 +1310,46 @@ class BitcraftToolTest extends TestCase
                 ->where('filters.icons', '')
                 ->where('filters.tasks.0.text', 'Gather fish')
                 ->where('filters.tasks.1.done', true)
+                ->where('filters.theme', 'grove')
+                ->where('filters.accentColor', '#a3e635')
+                ->where('filters.fontScale', 110)
+                ->where('filters.width', 500)
+                ->where('filters.panelOpacity', 88)
+            );
+    }
+
+    public function test_dataverse_widget_theme_ignores_stale_saved_custom_colors(): void
+    {
+        BitcraftWidgetProfile::query()->create([
+            'widget' => 'task-tracker',
+            'source' => 'stream',
+            'settings' => [
+                'title' => 'Fishing Run',
+                'icons' => '',
+                'tasks' => [
+                    ['id' => 'task-one', 'text' => 'Gather fish', 'done' => false],
+                ],
+                'theme' => 'dataverse',
+                'accentColor' => '#67e8f9',
+                'highlightColor' => '#34d399',
+                'panelColor' => '#111827',
+                'textColor' => '#f8fafc',
+                'mutedColor' => '#94a3b8',
+                'borderColor' => '#2dd4bf',
+            ],
+        ]);
+
+        $this->get(route('bitcraft.task-tracker', ['source' => 'stream']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/TaskTracker')
+                ->where('filters.theme', 'dataverse')
+                ->where('filters.accentColor', '#d4a44a')
+                ->where('filters.highlightColor', '#6fb08d')
+                ->where('filters.panelColor', '#110a18')
+                ->where('filters.textColor', '#fff6e6')
+                ->where('filters.mutedColor', '#b99456')
+                ->where('filters.borderColor', '#8c6531')
             );
     }
 

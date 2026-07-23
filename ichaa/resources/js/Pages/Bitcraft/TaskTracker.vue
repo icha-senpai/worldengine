@@ -1,5 +1,5 @@
 <template>
-    <main class="task-tracker-source" :class="{ 'task-tracker-source--setup': setupVisible }">
+    <main class="task-tracker-source" :class="{ 'task-tracker-source--setup': setupVisible }" :style="widgetThemeStyle">
         <form v-if="setupVisible" class="task-tracker-setup" @submit.prevent="submitSetup(true)">
             <div class="task-tracker-setup__grid">
                 <label>
@@ -34,6 +34,8 @@
                     </div>
                 </div>
             </div>
+
+            <WidgetThemeControls :model="form" @update="updateTheme" />
 
             <div class="task-tracker-entry">
                 <label>
@@ -117,6 +119,8 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
+import WidgetThemeControls from './Components/WidgetThemeControls.vue'
+import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'
 
 const props = defineProps({
     filters: { type: Object, default: () => ({}) },
@@ -178,11 +182,13 @@ const form = reactive({
     icons: props.filters.icons ?? '',
     taskText: props.filters.taskText ?? '',
     tasks: safeParseTasks(props.filters.tasks ?? []),
+    ...normalizeWidgetTheme(props.filters),
 })
 
 const setupVisible = computed(() => Boolean(props.filters.setup) || !form.tasks.length)
 const titleLabel = computed(() => form.title || 'Task Tracker')
 const iconsLabel = computed(() => form.icons || '')
+const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form))
 const selectedEmojiList = computed(() => form.icons.split(/\s+/).filter(Boolean))
 const visibleTasks = computed(() => form.tasks.filter((task) => task.text))
 const completedCount = computed(() => visibleTasks.value.filter((task) => task.done).length)
@@ -212,6 +218,7 @@ const normalizeSetup = (setup) => ({
     icons: typeof setup.icons === 'string' ? setup.icons.trim() : '',
     taskText: typeof setup.taskText === 'string' ? setup.taskText.trim() : '',
     tasks: safeParseTasks(setup.tasks ?? []),
+    ...normalizeWidgetTheme(setup),
 })
 
 const browserStorage = () => {
@@ -268,6 +275,11 @@ const clearEmojis = () => {
     saveEmojiList([])
 }
 
+const updateTheme = (updates) => {
+    Object.assign(form, updates)
+    saveSetup()
+}
+
 const addTask = () => {
     const text = form.taskText.trim()
 
@@ -310,6 +322,7 @@ const payload = (setup) => ({
     icons: form.icons,
     taskText: form.taskText,
     tasks: JSON.stringify(visibleTasks.value),
+    ...widgetThemePayload(form),
     setup: setup ? 1 : 0,
 })
 
@@ -329,6 +342,7 @@ watch(() => props.filters, (filters) => {
     form.icons = filters.icons ?? ''
     form.taskText = filters.taskText ?? ''
     form.tasks = safeParseTasks(filters.tasks ?? [])
+    Object.assign(form, normalizeWidgetTheme(filters))
 })
 
 watch(form, saveSetup, { deep: true })
@@ -518,13 +532,17 @@ onMounted(() => {
 }
 
 .task-tracker-widget {
-    width: min(450px, 100vw);
+    width: min(var(--tracker-width), 100vw);
     overflow: hidden;
-    border: 1px solid rgb(var(--border-color-2-rgb) / 0.46);
-    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--tracker-border) 46%, transparent);
+    border-radius: var(--tracker-radius);
     background:
-        linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.68), rgb(var(--bg-surface-rgb) / 0.98)),
-        var(--bg-surface);
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--tracker-panel) var(--tracker-panel-opacity), transparent),
+            color-mix(in srgb, var(--tracker-panel) 96%, black)
+        );
+    color: var(--tracker-text);
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.04);
 }
 
@@ -534,27 +552,27 @@ onMounted(() => {
     justify-content: space-between;
     gap: 12px;
     padding: 18px 22px 14px;
-    border-bottom: 1px solid rgb(var(--border-color-2-rgb) / 0.22);
+    border-bottom: 1px solid color-mix(in srgb, var(--tracker-border) 24%, transparent);
 }
 
 .task-tracker-widget__header h1 {
     min-width: 0;
-    color: var(--text-primary-2);
-    font-size: 24px;
+    color: var(--tracker-text);
+    font-size: calc(24px * var(--tracker-font-scale));
     font-weight: 900;
     line-height: 1.1;
 }
 
 .task-tracker-widget__header p {
     margin-top: 5px;
-    color: var(--text-muted-2);
-    font-size: 12px;
+    color: var(--tracker-muted);
+    font-size: calc(12px * var(--tracker-font-scale));
     font-weight: 800;
 }
 
 .task-tracker-widget__header strong {
-    color: var(--accent-cyan-2);
-    font-size: 20px;
+    color: var(--tracker-accent);
+    font-size: calc(20px * var(--tracker-font-scale));
     line-height: 1;
     white-space: nowrap;
 }
@@ -564,14 +582,14 @@ onMounted(() => {
     margin: 12px 22px 0;
     overflow: hidden;
     border-radius: 999px;
-    background: rgb(var(--bg-canvas-rgb) / 0.58);
+    background: color-mix(in srgb, var(--tracker-panel) 68%, black);
 }
 
 .task-tracker-widget__bar span {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--success), var(--accent-cyan));
+    background: linear-gradient(90deg, var(--tracker-highlight), var(--tracker-accent));
     transition: width 320ms ease;
 }
 
@@ -584,7 +602,7 @@ onMounted(() => {
 }
 
 .task-tracker-widget__task + .task-tracker-widget__task {
-    border-top: 1px solid rgb(var(--border-color-2-rgb) / 0.22);
+    border-top: 1px solid color-mix(in srgb, var(--tracker-border) 24%, transparent);
 }
 
 .task-tracker-widget__check {
@@ -592,46 +610,46 @@ onMounted(() => {
     height: 30px;
     display: grid;
     place-items: center;
-    border: 1px solid rgb(var(--accent-cyan-rgb) / 0.38);
+    border: 1px solid color-mix(in srgb, var(--tracker-accent) 44%, transparent);
     border-radius: 7px;
-    background: rgb(var(--bg-canvas-rgb) / 0.5);
-    color: var(--success);
-    font-size: 17px;
+    background: color-mix(in srgb, var(--tracker-panel) 72%, black);
+    color: var(--tracker-highlight);
+    font-size: calc(17px * var(--tracker-font-scale));
     font-weight: 900;
 }
 
 .task-tracker-widget__task.done .task-tracker-widget__check {
-    background: rgb(var(--success-rgb) / 0.16);
+    background: color-mix(in srgb, var(--tracker-highlight) 20%, transparent);
 }
 
 .task-tracker-widget__copy p {
-    color: var(--text-primary-2);
-    font-size: 17px;
+    color: var(--tracker-text);
+    font-size: calc(17px * var(--tracker-font-scale));
     font-weight: 900;
     line-height: 1.25;
     overflow-wrap: anywhere;
 }
 
 .task-tracker-widget__task.done .task-tracker-widget__copy p {
-    color: var(--text-muted-2);
+    color: var(--tracker-muted);
     text-decoration: line-through;
 }
 
 .task-tracker-widget__copy small {
     display: block;
     margin-top: 4px;
-    color: var(--text-muted-2);
-    font-size: 11px;
+    color: var(--tracker-muted);
+    font-size: calc(11px * var(--tracker-font-scale));
     font-weight: 800;
 }
 
 .task-tracker-widget__empty {
     margin: 16px;
     padding: 14px;
-    border: 1px dashed rgb(var(--border-color-2-rgb) / 0.42);
+    border: 1px dashed color-mix(in srgb, var(--tracker-border) 42%, transparent);
     border-radius: 8px;
-    color: var(--text-muted-2);
-    font-size: 13px;
+    color: var(--tracker-muted);
+    font-size: calc(13px * var(--tracker-font-scale));
     font-weight: 800;
 }
 

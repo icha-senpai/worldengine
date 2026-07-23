@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Bitcraft;
 
 use App\Domain\Bitcraft\Models\BitcraftWidgetProfile;
 use App\Domain\Bitcraft\Services\BitjitaClient;
+use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,8 @@ use Throwable;
 
 class BitcraftInventoryTrackerController extends Controller
 {
+    use NormalizesBitcraftWidgetTheme;
+
     private const DEFAULT_CHARACTER = 'icha';
 
     private const DEFAULT_TITLE = 'Fishing Day!';
@@ -80,6 +83,7 @@ class BitcraftInventoryTrackerController extends Controller
             'itemNeeds' => ['nullable', 'string', 'max:2000'],
             'need' => ['nullable', 'integer', 'min:1', 'max:999999999'],
             'setup' => ['nullable', 'boolean'],
+            ...$this->widgetThemeValidationRules(),
         ]);
         $source = trim((string) ($validated['source'] ?? 'default')) ?: 'default';
         $stored = $request->has('source') && ! $this->hasProfileInput($request)
@@ -103,6 +107,7 @@ class BitcraftInventoryTrackerController extends Controller
             'itemKeys' => $itemKeys,
             'itemNeeds' => $itemNeeds,
             'need' => isset($validated['need']) ? (int) $validated['need'] : data_get($stored, 'need'),
+            ...$this->widgetThemeSettings($validated, $stored),
             'setup' => $request->has('setup') ? $request->boolean('setup') : false,
         ];
     }
@@ -114,7 +119,7 @@ class BitcraftInventoryTrackerController extends Controller
     private function snapshotQuery(array $filters): array
     {
         return collect($filters)
-            ->except('setup', 'source', 'itemSearch')
+            ->except(['setup', 'source', 'itemSearch', ...$this->widgetThemeInputKeys()])
             ->map(fn ($value, string $key) => $key === 'itemNeeds' && is_array($value)
                 ? $this->serializeItemNeeds($value)
                 : (is_array($value) ? implode(',', $value) : $value))
@@ -242,6 +247,7 @@ class BitcraftInventoryTrackerController extends Controller
             'itemKeys',
             'itemNeeds',
             'need',
+            ...$this->widgetThemeInputKeys(),
         ])->contains(fn (string $key): bool => $request->has($key));
     }
 

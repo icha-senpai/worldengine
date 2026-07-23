@@ -1,5 +1,5 @@
 <template>
-    <main class="inventory-tracker-source" :class="{ 'inventory-tracker-source--setup': setupVisible }">
+    <main class="inventory-tracker-source" :class="{ 'inventory-tracker-source--setup': setupVisible }" :style="widgetThemeStyle">
         <form v-if="setupVisible" class="inventory-tracker-setup" @submit.prevent="submitSetup(true)">
             <div class="inventory-tracker-setup__grid">
                 <label>
@@ -44,6 +44,8 @@
                     <input v-model.number="form.need" type="number" min="1" max="999999999" />
                 </label>
             </div>
+
+            <WidgetThemeControls :model="form" @update="updateTheme" />
 
             <div ref="pickerElement" class="inventory-tracker-picker">
                 <label>
@@ -155,6 +157,8 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
+import WidgetThemeControls from './Components/WidgetThemeControls.vue'
+import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'
 
 const props = defineProps({
     filters: { type: Object, default: () => ({}) },
@@ -241,6 +245,7 @@ const form = reactive({
     itemKeys: parseItemKeys(props.filters.itemKeys ?? props.filters.itemKey ?? ''),
     itemNeeds: parseItemNeeds(props.filters.itemNeeds ?? ''),
     need: props.filters.need ?? null,
+    ...normalizeWidgetTheme(props.filters),
 })
 
 let restoredSetup = false
@@ -248,6 +253,7 @@ let restoredSetup = false
 const setupVisible = computed(() => Boolean(props.filters.setup) || !form.itemKeys.length)
 const titleLabel = computed(() => form.title || 'Inventory Tracker')
 const iconsLabel = computed(() => form.icons || '')
+const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form))
 const selectedEmojiList = computed(() => form.icons.split(/\s+/).filter(Boolean))
 const trackerItems = computed(() => {
     if (!tracker.value) {
@@ -371,6 +377,11 @@ const clearEmojis = () => {
     saveEmojiList([])
 }
 
+const updateTheme = (updates) => {
+    Object.assign(form, updates)
+    saveSetup()
+}
+
 const selectOption = (option) => {
     if (!form.itemKeys.includes(option.key)) {
         form.itemKeys.push(option.key)
@@ -409,6 +420,7 @@ const payload = (setup) => ({
     itemKeys: form.itemKeys.join(','),
     itemNeeds: formatItemNeeds(form.itemNeeds),
     need: form.need,
+    ...widgetThemePayload(form),
     setup: setup ? 1 : 0,
 })
 
@@ -430,6 +442,7 @@ const normalizeSetup = (setup) => ({
     itemKey: parseItemKeys(setup.itemKeys ?? setup.itemKey)[0] ?? '',
     itemNeeds: parseItemNeeds(setup.itemNeeds),
     need: Number.isFinite(Number(setup.need)) && Number(setup.need) > 0 ? Number(setup.need) : null,
+    ...normalizeWidgetTheme(setup),
 })
 
 const loadSetup = () => {
@@ -731,13 +744,17 @@ onBeforeUnmount(() => {
 }
 
 .inventory-tracker-widget {
-    width: min(450px, 100vw);
+    width: min(var(--tracker-width), 100vw);
     overflow: hidden;
-    border: 1px solid rgb(var(--border-color-2-rgb) / 0.46);
-    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--tracker-border) 46%, transparent);
+    border-radius: var(--tracker-radius);
     background:
-        linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.68), rgb(var(--bg-surface-rgb) / 0.98)),
-        var(--bg-surface);
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--tracker-panel) var(--tracker-panel-opacity), transparent),
+            color-mix(in srgb, var(--tracker-panel) 96%, black)
+        );
+    color: var(--tracker-text);
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.04);
 }
 
@@ -746,25 +763,25 @@ onBeforeUnmount(() => {
     align-items: center;
     gap: 10px;
     padding: 18px 22px 14px;
-    border-bottom: 1px solid rgb(var(--border-color-2-rgb) / 0.22);
+    border-bottom: 1px solid color-mix(in srgb, var(--tracker-border) 24%, transparent);
 }
 
 .inventory-tracker-widget__header h1 {
     min-width: 0;
-    color: var(--text-primary-2);
-    font-size: 24px;
+    color: var(--tracker-text);
+    font-size: calc(24px * var(--tracker-font-scale));
     font-weight: 900;
     line-height: 1.1;
 }
 
 .inventory-tracker-widget__header p {
-    color: var(--accent-cyan-2);
-    font-size: 20px;
+    color: var(--tracker-accent);
+    font-size: calc(20px * var(--tracker-font-scale));
     line-height: 1;
 }
 
 .inventory-tracker-widget__tracked-item + .inventory-tracker-widget__tracked-item {
-    border-top: 1px solid rgb(var(--border-color-2-rgb) / 0.22);
+    border-top: 1px solid color-mix(in srgb, var(--tracker-border) 24%, transparent);
 }
 
 .inventory-tracker-widget__row {
@@ -778,8 +795,8 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--text-primary-2);
-    font-size: 18px;
+    color: var(--tracker-text);
+    font-size: calc(18px * var(--tracker-font-scale));
     font-weight: 900;
     line-height: 1.25;
 }
@@ -790,17 +807,17 @@ onBeforeUnmount(() => {
     min-height: 22px;
     padding: 0 7px;
     border-radius: 5px;
-    background: rgb(var(--accent-pink-rgb) / 0.32);
-    color: var(--text-primary-2);
-    font-size: 13px;
+    background: color-mix(in srgb, var(--tracker-accent) 28%, transparent);
+    color: var(--tracker-text);
+    font-size: calc(13px * var(--tracker-font-scale));
 }
 
 .inventory-tracker-widget__item small,
 .inventory-tracker-widget__count small {
     display: block;
     margin-top: 5px;
-    color: var(--text-muted-2);
-    font-size: 11px;
+    color: var(--tracker-muted);
+    font-size: calc(11px * var(--tracker-font-scale));
     font-weight: 800;
 }
 
@@ -809,14 +826,14 @@ onBeforeUnmount(() => {
 }
 
 .inventory-tracker-widget__count small {
-    color: var(--success);
+    color: var(--tracker-highlight);
 }
 
 .inventory-tracker-widget__count strong {
     display: block;
     margin-top: 3px;
-    color: var(--text-primary-2);
-    font-size: 19px;
+    color: var(--tracker-text);
+    font-size: calc(19px * var(--tracker-font-scale));
     font-weight: 900;
 }
 
@@ -825,14 +842,14 @@ onBeforeUnmount(() => {
     margin: 8px 24px 0;
     overflow: hidden;
     border-radius: 999px;
-    background: rgb(var(--bg-canvas-rgb) / 0.58);
+    background: color-mix(in srgb, var(--tracker-panel) 68%, black);
 }
 
 .inventory-tracker-widget__bar span {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--success), var(--accent-cyan));
+    background: linear-gradient(90deg, var(--tracker-highlight), var(--tracker-accent));
     transition: width 320ms ease;
 }
 
@@ -842,8 +859,8 @@ onBeforeUnmount(() => {
     justify-content: space-between;
     gap: 16px;
     padding: 8px 24px 0;
-    color: color-mix(in srgb, var(--text-primary-2) 72%, var(--accent-pink));
-    font-size: 13px;
+    color: color-mix(in srgb, var(--tracker-text) 72%, var(--tracker-accent));
+    font-size: calc(13px * var(--tracker-font-scale));
     font-weight: 900;
 }
 
@@ -855,12 +872,12 @@ onBeforeUnmount(() => {
 }
 
 .inventory-tracker-widget__sources span {
-    border: 1px solid rgb(var(--border-color-2-rgb) / 0.32);
+    border: 1px solid color-mix(in srgb, var(--tracker-border) 32%, transparent);
     border-radius: 999px;
     padding: 4px 8px;
-    background: rgb(var(--bg-canvas-rgb) / 0.34);
-    color: var(--text-muted-2);
-    font-size: 11px;
+    background: color-mix(in srgb, var(--tracker-panel) 72%, black);
+    color: var(--tracker-muted);
+    font-size: calc(11px * var(--tracker-font-scale));
     font-weight: 800;
 }
 
@@ -869,13 +886,13 @@ onBeforeUnmount(() => {
     margin: 16px;
     padding: 14px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: calc(13px * var(--tracker-font-scale));
     font-weight: 800;
 }
 
 .inventory-tracker-widget__empty {
-    border: 1px dashed rgb(var(--border-color-2-rgb) / 0.42);
-    color: var(--text-muted-2);
+    border: 1px dashed color-mix(in srgb, var(--tracker-border) 42%, transparent);
+    color: var(--tracker-muted);
 }
 
 .inventory-tracker-widget__error {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Bitcraft;
 
 use App\Domain\Bitcraft\Models\BitcraftWidgetProfile;
 use App\Domain\Bitcraft\Services\BitjitaClient;
+use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,8 @@ use Throwable;
 
 class BitcraftActivityController extends Controller
 {
+    use NormalizesBitcraftWidgetTheme;
+
     private const DEFAULT_CHARACTER = 'icha';
 
     private const DEFAULT_SKILL = 'all';
@@ -72,6 +75,7 @@ class BitcraftActivityController extends Controller
             'skillGoalLevels' => ['nullable', 'string', 'max:1000'],
             'skillGoalXp' => ['nullable', 'string', 'max:1000'],
             'setup' => ['nullable', 'boolean'],
+            ...$this->widgetThemeValidationRules(),
         ]);
         $source = trim((string) ($validated['source'] ?? 'default')) ?: 'default';
         $stored = $request->has('source') && ! $this->hasProfileInput($request)
@@ -90,6 +94,7 @@ class BitcraftActivityController extends Controller
             'skillKeys' => $this->selectedSkillKeys($validated['skillKeys'] ?? data_get($stored, 'skillKeys', '')),
             'skillGoalLevels' => $this->selectedSkillGoals($validated['skillGoalLevels'] ?? data_get($stored, 'skillGoalLevels', '')),
             'skillGoalXp' => $this->selectedSkillGoals($validated['skillGoalXp'] ?? data_get($stored, 'skillGoalXp', '')),
+            ...$this->widgetThemeSettings($validated, $stored),
             'setup' => $request->has('setup') ? $request->boolean('setup') : false,
         ];
     }
@@ -232,6 +237,7 @@ class BitcraftActivityController extends Controller
             'skillKeys',
             'skillGoalLevels',
             'skillGoalXp',
+            ...$this->widgetThemeInputKeys(),
         ])->contains(fn (string $key): bool => $request->has($key));
     }
 

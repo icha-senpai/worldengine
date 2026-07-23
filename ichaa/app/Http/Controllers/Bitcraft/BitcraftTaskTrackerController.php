@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Bitcraft;
 
 use App\Domain\Bitcraft\Models\BitcraftWidgetProfile;
+use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,6 +12,8 @@ use Inertia\Response as InertiaResponse;
 
 class BitcraftTaskTrackerController extends Controller
 {
+    use NormalizesBitcraftWidgetTheme;
+
     private const DEFAULT_TITLE = 'Stream Tasks';
 
     private const DEFAULT_ICONS = '✅ ✨';
@@ -44,6 +47,7 @@ class BitcraftTaskTrackerController extends Controller
             'taskText' => ['nullable', 'string', 'max:160'],
             'tasks' => ['nullable', 'string', 'max:4000'],
             'setup' => ['nullable', 'boolean'],
+            ...$this->widgetThemeValidationRules(),
         ]);
         $source = trim((string) ($validated['source'] ?? 'default')) ?: 'default';
         $stored = $request->has('source') && ! $this->hasProfileInput($request)
@@ -58,6 +62,7 @@ class BitcraftTaskTrackerController extends Controller
                 : trim((string) data_get($stored, 'icons', self::DEFAULT_ICONS)),
             'taskText' => trim((string) ($validated['taskText'] ?? data_get($stored, 'taskText', ''))),
             'tasks' => $this->tasks($validated['tasks'] ?? data_get($stored, 'tasks', [])),
+            ...$this->widgetThemeSettings($validated, $stored),
             'setup' => $request->has('setup') ? $request->boolean('setup') : false,
         ];
     }
@@ -69,6 +74,7 @@ class BitcraftTaskTrackerController extends Controller
             'icons',
             'taskText',
             'tasks',
+            ...$this->widgetThemeInputKeys(),
         ])->contains(fn (string $key): bool => $request->has($key));
     }
 

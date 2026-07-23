@@ -1,5 +1,5 @@
 <template>
-    <main class="activity-source" :class="{ 'activity-source--setup': setupVisible }">
+    <main class="activity-source" :class="{ 'activity-source--setup': setupVisible }" :style="widgetThemeStyle">
         <form v-if="setupVisible" class="activity-setup" @submit.prevent="submitSetup(true)">
             <div class="activity-setup__grid">
                 <label>
@@ -31,6 +31,8 @@
                     </select>
                 </label>
             </div>
+
+            <WidgetThemeControls :model="form" @update="updateTheme" />
 
             <div ref="pickerElement" class="activity-picker">
                 <label>
@@ -179,6 +181,8 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
+import WidgetThemeControls from './Components/WidgetThemeControls.vue'
+import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'
 
 const props = defineProps({
     filters: { type: Object, default: () => ({ character: 'icha', skill: 'all' }) },
@@ -250,6 +254,7 @@ const form = reactive({
     skillKeys: parseSkillKeys(props.filters.skillKeys ?? ''),
     skillGoalLevels: parseGoalMap(props.filters.skillGoalLevels ?? ''),
     skillGoalXp: parseGoalMap(props.filters.skillGoalXp ?? ''),
+    ...normalizeWidgetTheme(props.filters),
 })
 
 const trackerSkills = (nextTracker) => {
@@ -387,6 +392,7 @@ const payload = (setup) => ({
     skillKeys: form.skillKeys.join(','),
     skillGoalLevels: formatGoalMap(form.skillGoalLevels),
     skillGoalXp: formatGoalMap(form.skillGoalXp),
+    ...widgetThemePayload(form),
     setup: setup ? 1 : 0,
 })
 
@@ -456,6 +462,7 @@ const normalizeSetup = (setup) => ({
     skillKeys: parseSkillKeys(setup.skillKeys),
     skillGoalLevels: parseGoalMap(setup.skillGoalLevels),
     skillGoalXp: parseGoalMap(setup.skillGoalXp),
+    ...normalizeWidgetTheme(setup),
 })
 
 const loadSetup = () => {
@@ -482,6 +489,11 @@ const saveSetup = () => {
     storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)))
 }
 
+const updateTheme = (updates) => {
+    Object.assign(form, updates)
+    saveSetup()
+}
+
 const submitSetup = (setup) => {
     saveSetup()
 
@@ -497,6 +509,7 @@ const levels = computed(() => tracker.value?.levels ?? [])
 const setupVisible = computed(() => Boolean(props.filters.setup))
 const titleLabel = computed(() => form.title || 'Live Activity')
 const iconsLabel = computed(() => form.icons || '')
+const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form))
 const skillOptions = computed(() => skills.value
     .slice()
     .sort((a, b) => String(a.name).localeCompare(String(b.name))))
@@ -949,13 +962,17 @@ const skillDetailLabel = (stat) => {
 }
 
 .activity-widget {
-    width: min(450px, 100vw);
+    width: min(var(--tracker-width), 100vw);
     overflow: hidden;
-    border: 1px solid rgb(var(--border-color-2-rgb) / 0.46);
-    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--tracker-border) 46%, transparent);
+    border-radius: var(--tracker-radius);
     background:
-        linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.68), rgb(var(--bg-surface-rgb) / 0.98)),
-        var(--bg-surface);
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--tracker-panel) var(--tracker-panel-opacity), transparent),
+            color-mix(in srgb, var(--tracker-panel) 96%, black)
+        );
+    color: var(--tracker-text);
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.04);
 }
 
@@ -965,7 +982,7 @@ const skillDetailLabel = (stat) => {
     justify-content: space-between;
     gap: 10px;
     padding: 18px 22px 14px;
-    border-bottom: 1px solid rgb(var(--border-color-2-rgb) / 0.22);
+    border-bottom: 1px solid color-mix(in srgb, var(--tracker-border) 24%, transparent);
 }
 
 .activity-widget__identity,
@@ -975,8 +992,8 @@ const skillDetailLabel = (stat) => {
 
 .activity-widget__eyebrow,
 .activity-widget__metric-count small {
-    color: var(--accent-cyan);
-    font-size: 11px;
+    color: var(--tracker-accent);
+    font-size: calc(11px * var(--tracker-font-scale));
     font-weight: 800;
     line-height: 1.1;
     text-transform: uppercase;
@@ -984,8 +1001,8 @@ const skillDetailLabel = (stat) => {
 
 .activity-widget h1 {
     margin-top: 4px;
-    color: var(--text-primary-2);
-    font-size: 24px;
+    color: var(--tracker-text);
+    font-size: calc(24px * var(--tracker-font-scale));
     font-weight: 900;
     line-height: 1.1;
 }
@@ -995,8 +1012,8 @@ const skillDetailLabel = (stat) => {
 }
 
 .activity-widget__level p {
-    color: var(--accent-cyan-2);
-    font-size: 18px;
+    color: var(--tracker-accent);
+    font-size: calc(18px * var(--tracker-font-scale));
     font-weight: 900;
     line-height: 1.1;
 }
@@ -1004,8 +1021,8 @@ const skillDetailLabel = (stat) => {
 .activity-widget__level time {
     display: block;
     margin-top: 4px;
-    color: color-mix(in srgb, var(--accent-cyan-2) 74%, var(--text-primary-2));
-    font-size: 12px;
+    color: color-mix(in srgb, var(--tracker-accent) 74%, var(--tracker-text));
+    font-size: calc(12px * var(--tracker-font-scale));
     font-weight: 800;
 }
 
@@ -1016,7 +1033,7 @@ const skillDetailLabel = (stat) => {
 .activity-widget__progress span {
     display: block;
     height: 100%;
-    background: linear-gradient(90deg, var(--success), var(--accent-cyan));
+    background: linear-gradient(90deg, var(--tracker-highlight), var(--tracker-accent));
     transition: width 320ms ease;
 }
 
@@ -1036,7 +1053,7 @@ const skillDetailLabel = (stat) => {
 }
 
 .activity-widget__metric + .activity-widget__metric {
-    border-top: 1px solid rgb(var(--border-color-2-rgb) / 0.22);
+    border-top: 1px solid color-mix(in srgb, var(--tracker-border) 24%, transparent);
 }
 
 .activity-widget__metric-row {
@@ -1050,8 +1067,8 @@ const skillDetailLabel = (stat) => {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--text-primary-2);
-    font-size: 18px;
+    color: var(--tracker-text);
+    font-size: calc(18px * var(--tracker-font-scale));
     font-weight: 900;
     line-height: 1.25;
 }
@@ -1060,8 +1077,8 @@ const skillDetailLabel = (stat) => {
 .activity-widget__metric-count small {
     display: block;
     margin-top: 5px;
-    color: var(--text-muted-2);
-    font-size: 11px;
+    color: var(--tracker-muted);
+    font-size: calc(11px * var(--tracker-font-scale));
     font-weight: 800;
     line-height: 1.35;
 }
@@ -1071,14 +1088,14 @@ const skillDetailLabel = (stat) => {
 }
 
 .activity-widget__metric-count small {
-    color: var(--success);
+    color: var(--tracker-highlight);
 }
 
 .activity-widget__metric-count strong {
     display: block;
     margin-top: 3px;
-    color: var(--text-primary-2);
-    font-size: 19px;
+    color: var(--tracker-text);
+    font-size: calc(19px * var(--tracker-font-scale));
     font-weight: 900;
     line-height: 1;
 }
@@ -1088,7 +1105,7 @@ const skillDetailLabel = (stat) => {
     margin: 8px 24px 0;
     overflow: hidden;
     border-radius: 999px;
-    background: rgb(var(--bg-canvas-rgb) / 0.58);
+    background: color-mix(in srgb, var(--tracker-panel) 68%, black);
 }
 
 .activity-widget__mini-progress span {
@@ -1096,7 +1113,7 @@ const skillDetailLabel = (stat) => {
     height: 100%;
     margin: 0;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--success), var(--accent-cyan));
+    background: linear-gradient(90deg, var(--tracker-highlight), var(--tracker-accent));
     transition: width 320ms ease;
 }
 
