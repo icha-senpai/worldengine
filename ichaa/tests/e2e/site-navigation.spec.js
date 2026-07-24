@@ -9,13 +9,15 @@ test.describe('site navigation and drawer flows', () => {
         await page.goto('/datacrypt')
         await expect(page).toHaveURL(/\/datacrypt\/worldengine$/)
         await expect(primaryNav.getByRole('button', { name: 'World Engine', exact: true })).toBeVisible()
+        await expect(primaryNav.getByRole('link', { name: 'Overview', exact: true })).toBeHidden()
 
         const worldEngineUrl = page.url()
         await primaryNav.getByRole('button', { name: 'World Engine', exact: true }).click()
         await expect(page).toHaveURL(worldEngineUrl)
+        await expect(primaryNav.getByRole('link', { name: 'Overview', exact: true })).toBeVisible()
+        await primaryNav.getByRole('button', { name: 'World Engine', exact: true }).click()
         await expect(primaryNav.getByRole('link', { name: 'Overview', exact: true })).toBeHidden()
         await primaryNav.getByRole('button', { name: 'World Engine', exact: true }).click()
-        await expect(primaryNav.getByRole('link', { name: 'Overview', exact: true })).toBeVisible()
 
         const navTargets = [
             ['Entities', 'All Entities', /\/entities$/],
@@ -31,16 +33,15 @@ test.describe('site navigation and drawer flows', () => {
         for (const [label, childLabel, urlPattern] of navTargets) {
             const currentUrl = page.url()
 
-            await primaryNav.getByRole('button', { name: label, exact: true }).click()
+            await openDomain(primaryNav, label, childLabel)
             await expect(page).toHaveURL(currentUrl)
 
             await primaryNav.getByRole('link', { name: childLabel, exact: true }).click()
             await expect(page).toHaveURL(urlPattern)
+            await expect(primaryNav.getByRole('link', { name: childLabel, exact: true })).toBeVisible()
         }
 
         const productionUrl = page.url()
-        await primaryNav.getByRole('button', { name: 'Entities', exact: true }).click()
-        await primaryNav.getByRole('button', { name: 'Connections', exact: true }).click()
         await expect(page).toHaveURL(productionUrl)
         await expect(primaryNav.getByRole('link', { name: 'All Entities', exact: true })).toBeVisible()
         await expect(primaryNav.getByRole('link', { name: 'Relationships', exact: true })).toBeVisible()
@@ -105,6 +106,14 @@ test.describe('site navigation and drawer flows', () => {
         await expect(page.getByRole('heading', { name: entityName })).toBeVisible()
     })
 })
+
+async function openDomain(primaryNav, label, childLabel) {
+    const child = primaryNav.getByRole('link', { name: childLabel, exact: true })
+
+    if (!await child.isVisible()) {
+        await primaryNav.getByRole('button', { name: label, exact: true }).click()
+    }
+}
 
 async function createEntity(page, name, typeLabel = 'Character') {
     await page.goto('/entities/create')

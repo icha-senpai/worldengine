@@ -439,13 +439,60 @@ import { Link, usePage } from '@inertiajs/vue3'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 
 const page = usePage()
+const NAV_STORAGE_KEY = 'dataverse.shellNavState'
+const savedNavState = readNavState()
 const mobileNavOpen = ref(false)
-const mobileWorldEngineOpen = ref(true)
-const desktopWorldEngineOpen = ref(true)
-const mobileBitcraftToolsOpen = ref(false)
-const desktopBitcraftToolsOpen = ref(false)
-const mobileExpandedDomainKey = ref(null)
-const desktopExpandedDomainKeys = ref([])
+const mobileWorldEngineOpen = ref(savedNavState.mobileWorldEngineOpen)
+const desktopWorldEngineOpen = ref(savedNavState.desktopWorldEngineOpen)
+const mobileBitcraftToolsOpen = ref(savedNavState.mobileBitcraftToolsOpen)
+const desktopBitcraftToolsOpen = ref(savedNavState.desktopBitcraftToolsOpen)
+const mobileExpandedDomainKey = ref(savedNavState.mobileExpandedDomainKey)
+const desktopExpandedDomainKeys = ref(savedNavState.desktopExpandedDomainKeys)
+
+function readNavState() {
+    if (typeof window === 'undefined') {
+        return defaultNavState()
+    }
+
+    try {
+        const saved = JSON.parse(window.localStorage.getItem(NAV_STORAGE_KEY) ?? '{}')
+
+        return {
+            ...defaultNavState(),
+            ...saved,
+            desktopExpandedDomainKeys: Array.isArray(saved.desktopExpandedDomainKeys) ? saved.desktopExpandedDomainKeys : [],
+            mobileExpandedDomainKey: typeof saved.mobileExpandedDomainKey === 'string' ? saved.mobileExpandedDomainKey : null,
+        }
+    } catch {
+        return defaultNavState()
+    }
+}
+
+function defaultNavState() {
+    return {
+        mobileWorldEngineOpen: false,
+        desktopWorldEngineOpen: false,
+        mobileBitcraftToolsOpen: false,
+        desktopBitcraftToolsOpen: false,
+        mobileExpandedDomainKey: null,
+        desktopExpandedDomainKeys: [],
+    }
+}
+
+const saveNavState = () => {
+    if (typeof window === 'undefined') {
+        return
+    }
+
+    window.localStorage.setItem(NAV_STORAGE_KEY, JSON.stringify({
+        mobileWorldEngineOpen: mobileWorldEngineOpen.value,
+        desktopWorldEngineOpen: desktopWorldEngineOpen.value,
+        mobileBitcraftToolsOpen: mobileBitcraftToolsOpen.value,
+        desktopBitcraftToolsOpen: desktopBitcraftToolsOpen.value,
+        mobileExpandedDomainKey: mobileExpandedDomainKey.value,
+        desktopExpandedDomainKeys: desktopExpandedDomainKeys.value,
+    }))
+}
 
 const domains = [
     {
@@ -660,40 +707,19 @@ const toggleDesktopDomain = (domain) => {
         : [...desktopExpandedDomainKeys.value, domain.key]
 }
 
-watch(
-    () => activeDomain.value?.key,
-    (key) => {
-        if (isWorldEngineActive.value) {
-            desktopWorldEngineOpen.value = true
-            mobileWorldEngineOpen.value = true
-        }
-
-        mobileExpandedDomainKey.value = key ?? null
-
-        const domain = domains.find((item) => item.key === key)
-        if (domain?.children?.length && !desktopExpandedDomainKeys.value.includes(domain.key)) {
-            desktopExpandedDomainKeys.value = [...desktopExpandedDomainKeys.value, domain.key]
-        }
-    },
-    { immediate: true },
-)
-
-watch(
-    isBitcraftToolsActive,
-    (active) => {
-        if (active) {
-            desktopBitcraftToolsOpen.value = true
-            mobileBitcraftToolsOpen.value = true
-        }
-    },
-    { immediate: true },
-)
+watch([
+    mobileWorldEngineOpen,
+    desktopWorldEngineOpen,
+    mobileBitcraftToolsOpen,
+    desktopBitcraftToolsOpen,
+    mobileExpandedDomainKey,
+    desktopExpandedDomainKeys,
+], saveNavState, { deep: true })
 
 watch(
     () => page.url,
     () => {
         mobileNavOpen.value = false
-        mobileExpandedDomainKey.value = activeDomain.value?.key ?? null
     },
 )
 </script>

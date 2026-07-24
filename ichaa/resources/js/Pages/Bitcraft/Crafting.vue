@@ -25,8 +25,8 @@
             {{ error }}
         </div>
 
-        <div class="mt-5 grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
-            <section class="surface-section">
+        <div class="mt-5 grid gap-4 2xl:grid-cols-[300px_minmax(0,1fr)]">
+            <section class="surface-section min-w-0">
                 <div class="surface-section__header">
                     <div class="surface-section__copy">
                         <h2 class="surface-section__title">Matches</h2>
@@ -57,7 +57,7 @@
                 </div>
             </section>
 
-            <section class="surface-section">
+            <section class="surface-section min-w-0">
                 <div v-if="detail">
                     <div class="surface-section__header">
                         <div class="surface-section__copy">

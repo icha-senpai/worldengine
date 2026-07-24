@@ -60,4 +60,18 @@ return [
         'stalls_cache_seconds' => (int) env('BITJITA_STALLS_CACHE_SECONDS', 300),
     ],
 
+    'bitcraft_spacetime' => [
+        'enabled' => (bool) env('BITCRAFT_SPACETIME_ENABLED', true),
+        'enabled_in_tests' => (bool) env('BITCRAFT_SPACETIME_ENABLED_IN_TESTS', false),
+        'host' => env('BITCRAFT_SPACETIME_HOST', 'wss://bitcraft-early-access.spacetimedb.com'),
+        'region_database' => env('BITCRAFT_SPACETIME_REGION_DATABASE', 'bitcraft-live-19'),
+        'auth_token' => env('BITCRAFT_AUTH_TOKEN'),
+        'static_snapshot_path' => env('BITCRAFT_SPACETIME_STATIC_SNAPSHOT', storage_path('app/bitcraft/spacetime-static.json')),
+        'sync_timeout' => (int) env('BITCRAFT_SPACETIME_SYNC_TIMEOUT', 45),
+        'tables' => array_values(array_filter(array_map('trim', explode(',', env(
+            'BITCRAFT_SPACETIME_TABLES',
+            'item_desc,cargo_desc,crafting_recipe_desc,construction_recipe_desc,extraction_recipe_desc,building_desc,building_type_desc,tool_type_desc,tool_desc,skill_desc',
+        ))))),
+    ],
+
 ];

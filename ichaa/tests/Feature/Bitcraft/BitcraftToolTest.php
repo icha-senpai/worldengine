@@ -900,6 +900,192 @@ class BitcraftToolTest extends TestCase
             );
     }
 
+    public function test_crafting_tool_uses_spacetime_snapshot_when_available(): void
+    {
+        $snapshotPath = storage_path('framework/testing/bitcraft-spacetime-static.json');
+
+        if (! is_dir(dirname($snapshotPath))) {
+            mkdir(dirname($snapshotPath), 0777, true);
+        }
+
+        file_put_contents($snapshotPath, json_encode([
+            'source' => 'bitcraft-spacetimedb',
+            'generatedAt' => now()->toISOString(),
+            'host' => 'wss://bitcraft-early-access.spacetimedb.com',
+            'database' => 'bitcraft-live-19',
+            'tables' => [
+                'item_desc' => [
+                    'count' => 5,
+                    'rows' => [[
+                        'id' => 100,
+                        'name' => 'Simple Timber',
+                        'description' => 'A workable timber.',
+                        'tier' => 2,
+                        'tag' => 'Timber',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/SimpleTimber',
+                    ], [
+                        'id' => 101,
+                        'name' => 'Simple Plank',
+                        'description' => 'A simple plank.',
+                        'tier' => 2,
+                        'tag' => 'Plank',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/SimplePlank',
+                    ], [
+                        'id' => 102,
+                        'name' => 'Simple Stripped Wood',
+                        'description' => 'Simple stripped wood.',
+                        'tier' => 2,
+                        'tag' => 'Stripped Wood',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/SimpleStrippedWood',
+                    ], [
+                        'id' => 103,
+                        'name' => 'Simple Wood Log',
+                        'description' => 'A simple log.',
+                        'tier' => 2,
+                        'tag' => 'Wood Log',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/SimpleWoodLog',
+                    ], [
+                        'id' => 104,
+                        'name' => 'Hexite Wood Fragment',
+                        'description' => 'A special fragment.',
+                        'tier' => 2,
+                        'tag' => 'Wood Fragment',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/HexiteWoodFragment',
+                    ]],
+                ],
+                'cargo_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 200,
+                        'name' => 'Simple Timber Package',
+                        'description' => 'Bulk simple timber.',
+                        'tier' => 2,
+                        'tag' => 'Package',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/SimpleTimberPackage',
+                    ]],
+                ],
+                'crafting_recipe_desc' => [
+                    'count' => 4,
+                    'rows' => [[
+                        'id' => 500,
+                        'name' => 'Craft {0}',
+                        'time_requirement' => 1.6,
+                        'building_requirement' => [0, [
+                            'building_type' => 9,
+                            'tier' => 2,
+                        ]],
+                        'level_requirements' => [[8, 5]],
+                        'crafted_item_stacks' => [[100, 1, [0, []], [1, []]]],
+                        'consumed_item_stacks' => [[101, 20, [0, []], 1, 1]],
+                    ], [
+                        'id' => 501,
+                        'name' => 'Package {1} into {0}',
+                        'time_requirement' => 1.6,
+                        'building_requirement' => [0, [
+                            'building_type' => 9,
+                            'tier' => 2,
+                        ]],
+                        'level_requirements' => [[8, 5]],
+                        'crafted_item_stacks' => [[200, 1, [1, []], [1, []]]],
+                        'consumed_item_stacks' => [[100, 100, [0, []], 1, 1]],
+                    ], [
+                        'id' => 502,
+                        'name' => 'Treat {1} Into {0}',
+                        'time_requirement' => 1.6,
+                        'building_requirement' => [0, [
+                            'building_type' => 9,
+                            'tier' => 2,
+                        ]],
+                        'level_requirements' => [[8, 5]],
+                        'crafted_item_stacks' => [[101, 1, [0, []], [1, []]]],
+                        'consumed_item_stacks' => [[102, 1, [0, []], 1, 1]],
+                    ], [
+                        'id' => 503,
+                        'name' => 'Treat {1} Into {0}',
+                        'time_requirement' => 1.6,
+                        'building_requirement' => [0, [
+                            'building_type' => 9,
+                            'tier' => 2,
+                        ]],
+                        'level_requirements' => [[8, 5]],
+                        'crafted_item_stacks' => [[101, 2, [0, []], [1, []]]],
+                        'consumed_item_stacks' => [[102, 1, [0, []], 1, 1], [104, 3, [0, []], 1, 1]],
+                    ], [
+                        'id' => 504,
+                        'name' => 'Saw {0}',
+                        'time_requirement' => 1.6,
+                        'building_requirement' => [0, [
+                            'building_type' => 9,
+                            'tier' => 2,
+                        ]],
+                        'level_requirements' => [[8, 5]],
+                        'crafted_item_stacks' => [[102, 1, [0, []], [1, []]]],
+                        'consumed_item_stacks' => [[103, 3, [0, []], 1, 1]],
+                    ]],
+                ],
+                'extraction_recipe_desc' => ['count' => 0, 'rows' => []],
+                'building_type_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 9,
+                        'name' => 'Carpentry Station',
+                    ]],
+                ],
+                'skill_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 8,
+                        'name' => 'Carpentry',
+                    ]],
+                ],
+            ],
+        ], JSON_THROW_ON_ERROR));
+
+        config([
+            'services.bitcraft_spacetime.enabled' => true,
+            'services.bitcraft_spacetime.enabled_in_tests' => true,
+            'services.bitcraft_spacetime.static_snapshot_path' => $snapshotPath,
+        ]);
+
+        Http::fake([
+            'https://bitjita.com/*' => Http::response([], 500),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Timber',
+                'itemId' => 100,
+                'itemKind' => 'item',
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->has('items', 1)
+                ->where('items.0.name', 'Simple Timber')
+                ->where('items.0.kind', 'item')
+                ->where('detail.item.name', 'Simple Timber')
+                ->where('detail.craftingRecipes.0.name', 'Craft Simple Timber')
+                ->where('detail.craftingRecipes.0.station', 'Carpentry Station')
+                ->where('detail.craftingRecipes.0.skill', 'Carpentry')
+                ->where('detail.craftingRecipes.0.ingredients.0.name', 'Simple Plank')
+                ->where('detail.craftingRecipes.0.ingredients.0.quantity', 20)
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.name', 'Treat Simple Stripped Wood Into Simple Plank')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.name', 'Simple Stripped Wood')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.recipes.0.name', 'Saw Simple Stripped Wood')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.recipes.0.ingredients.0.name', 'Simple Wood Log')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.alternatives.1.ingredients.1.name', 'Hexite Wood Fragment')
+            );
+
+        Http::assertNothingSent();
+    }
+
     public function test_crafting_tool_searches_cargo_and_filters_to_recipe_targets(): void
     {
         Http::fake([
@@ -941,9 +1127,15 @@ class BitcraftToolTest extends TestCase
                 ],
                 'craftingRecipes' => [[
                     'id' => 202002,
-                    'name' => 'Craft Simple Timber',
+                    'name' => 'Craft {0}',
                     'buildingName' => 'Ancient Carpentry Station',
                     'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 1201,
+                        'name' => 'Simple Timber',
+                        'quantity' => 1,
+                        'itemType' => 1,
+                    ]],
                     'consumedItems' => [[
                         'id' => 2020003,
                         'name' => 'Simple Plank',
@@ -1070,12 +1262,518 @@ class BitcraftToolTest extends TestCase
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.name', 'Treat Simple Stripped Wood Into Simple Plank')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.station', 'Carpentry Station')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.name', 'Simple Stripped Wood')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.alternatives.1.ingredients.1.name', 'Hexite Wood Fragment')
                 ->has('detail.recipeTree.0.ingredients.0.recipes', 1)
                 ->has('detail.recipeTree.0.ingredients.0.recipes.0.ingredients', 1)
+                ->has('detail.recipeTree.0.ingredients.0.recipes.0.alternatives', 2)
+                ->has('detail.recipeTree.0.ingredients.0.recipes.0.alternatives.1.ingredients', 2)
             );
 
-        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/items/1939049017');
         Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/cargo/260001');
+    }
+
+    public function test_crafting_tool_offers_mortar_route_as_alternative_and_filters_construction_material_pack_routes(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Refined%20Simple%20Brick' => Http::response([
+                'items' => [[
+                    'id' => 529266245,
+                    'name' => 'Refined Simple Brick',
+                    'tag' => 'Refined Brick',
+                    'tier' => 2,
+                    'rarityStr' => 'Epic',
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Refined%20Simple%20Brick' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/529266245' => Http::response([
+                'item' => [
+                    'id' => 529266245,
+                    'name' => 'Refined Simple Brick',
+                    'tag' => 'Refined Brick',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 10,
+                    'name' => 'Use Ancient Mortar For Refined Simple Brick',
+                    'buildingName' => 'Ancient Masonry Station',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 1903879412,
+                        'name' => 'Ancient Mortar',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 11,
+                    'name' => 'Break Down Simple Construction Materials Pack',
+                    'buildingName' => 'Ancient Masonry Station',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 1020001,
+                        'name' => 'Simple Construction Materials Pack',
+                        'quantity' => 1,
+                        'itemType' => 1,
+                    ]],
+                ], [
+                    'id' => 12,
+                    'name' => 'Refine Refined Simple Brick',
+                    'buildingName' => 'Simple Masonry Station',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 2030002,
+                        'name' => 'Simple Brick',
+                        'quantity' => 5,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 666637937,
+                        'name' => 'Simple Firesand',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/2030002' => Http::response([
+                'item' => [
+                    'id' => 2030002,
+                    'name' => 'Simple Brick',
+                    'tag' => 'Brick',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/666637937' => Http::response([
+                'item' => [
+                    'id' => 666637937,
+                    'name' => 'Simple Firesand',
+                    'tag' => 'Firesand',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/1903879412' => Http::response([
+                'item' => [
+                    'id' => 1903879412,
+                    'name' => 'Ancient Mortar',
+                    'tag' => 'Currency',
+                    'tier' => -1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Refined Simple Brick',
+                'itemId' => 529266245,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.name', 'Refine Refined Simple Brick')
+                ->where('detail.recipeTree.0.station', 'Masonry Station')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Simple Brick')
+                ->where('detail.recipeTree.0.ingredients.1.name', 'Simple Firesand')
+                ->where('detail.recipeTree.0.alternatives.1.name', 'Use Ancient Mortar For Refined Simple Brick')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', 'Ancient Mortar')
+                ->has('detail.recipeTree.0.ingredients', 2)
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+
+        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/cargo/1020001');
+    }
+
+    public function test_crafting_tool_uses_same_tier_wood_log_for_stale_construction_material_pack_ingredients(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Rough%20Brick' => Http::response([
+                'items' => [[
+                    'id' => 1030002,
+                    'name' => 'Rough Brick',
+                    'tag' => 'Brick',
+                    'tier' => 1,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Rough%20Brick' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/1030002' => Http::response([
+                'item' => [
+                    'id' => 1030002,
+                    'name' => 'Rough Brick',
+                    'tag' => 'Brick',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 1577688923,
+                    'name' => 'Bake Rough Brick',
+                    'buildingName' => 'Ancient Kiln',
+                    'outputQuantity' => 2,
+                    'consumedItems' => [[
+                        'id' => 2044934693,
+                        'name' => 'Unfired Rough Brick',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 1010001,
+                        'name' => 'Rough Construction Materials Pack',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 1903879412,
+                        'name' => 'Ancient Mortar',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 103001,
+                    'name' => 'Bake Rough Brick',
+                    'buildingName' => 'Rough Kiln',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 2044934693,
+                        'name' => 'Unfired Rough Brick',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 1010001,
+                        'name' => 'Rough Construction Materials Pack',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 103002,
+                    'name' => 'Unpack Rough Brick Package',
+                    'buildingName' => 'Rough Masonry Station',
+                    'outputQuantity' => 100,
+                    'consumedItems' => [[
+                        'id' => 683661636,
+                        'name' => 'Rough Brick Package',
+                        'quantity' => 1,
+                        'itemType' => 1,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/2044934693' => Http::response([
+                'item' => [
+                    'id' => 2044934693,
+                    'name' => 'Unfired Rough Brick',
+                    'tag' => 'Brick',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 2044934694,
+                    'name' => 'Shape Unfired Rough Brick',
+                    'buildingName' => 'Rough Masonry Station',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 894623392,
+                        'name' => "Basic Potter's Mix",
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/1010001' => Http::response([
+                'item' => [
+                    'id' => 1010001,
+                    'name' => 'Rough Wood Log',
+                    'tag' => 'Wood Log',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/894623392' => Http::response([
+                'item' => [
+                    'id' => 894623392,
+                    'name' => "Basic Potter's Mix",
+                    'tag' => 'Potter Mix',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/1903879412' => Http::response([
+                'item' => [
+                    'id' => 1903879412,
+                    'name' => 'Ancient Mortar',
+                    'tag' => 'Currency',
+                    'tier' => -1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Rough Brick',
+                'itemId' => 1030002,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.item.name', 'Rough Brick')
+                ->has('detail.craftingRecipes', 3)
+                ->where('detail.craftingRecipes.1.ingredients.1.name', 'Rough Wood Log')
+                ->where('detail.recipeTree.0.name', 'Bake Rough Brick')
+                ->where('detail.recipeTree.0.station', 'Kiln')
+                ->where('detail.recipeTree.0.outputQuantity', 1)
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Unfired Rough Brick')
+                ->where('detail.recipeTree.0.ingredients.1.name', 'Rough Wood Log')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.name', 'Shape Unfired Rough Brick')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.station', 'Masonry Station')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.2.name', 'Ancient Mortar')
+                ->has('detail.recipeTree.0.ingredients', 2)
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/items/2044934693');
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/items/1010001');
+        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/cargo/683661636');
+    }
+
+    public function test_crafting_tool_uses_pebbles_for_stale_potters_mix_construction_material_pack_ingredients(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Basic%20Potter%27s%20Mix' => Http::response([
+                'items' => [[
+                    'id' => 894623392,
+                    'name' => "Basic Potter's Mix",
+                    'tag' => "Potter's Mix",
+                    'tier' => 1,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Basic%20Potter%27s%20Mix' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/894623392' => Http::response([
+                'item' => [
+                    'id' => 894623392,
+                    'name' => "Basic Potter's Mix",
+                    'tag' => "Potter's Mix",
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 1613691572,
+                    'name' => "Mix Basic Potter's Mix",
+                    'buildingName' => 'Rough Masonry Station',
+                    'outputQuantity' => 1,
+                    'consumedItemStacks' => [[
+                        'item_id' => 1030001,
+                        'quantity' => 5,
+                        'item_type' => 'item',
+                    ], [
+                        'item_id' => 1130003,
+                        'quantity' => 2,
+                        'item_type' => 'item',
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 1030001,
+                        'quantity' => 5,
+                        'itemType' => 0,
+                        'name' => 'Sturdy Construction Materials Pack',
+                    ], [
+                        'id' => 1130003,
+                        'quantity' => 2,
+                        'itemType' => 0,
+                        'name' => 'Basic Clay Lump',
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/1030001' => Http::response([
+                'item' => [
+                    'id' => 1030001,
+                    'name' => 'Rough Pebbles',
+                    'tag' => 'Pebbles',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/1130003' => Http::response([
+                'item' => [
+                    'id' => 1130003,
+                    'name' => 'Basic Clay Lump',
+                    'tag' => 'Clay',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => "Basic Potter's Mix",
+                'itemId' => 894623392,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.name', "Mix Basic Potter's Mix")
+                ->where('detail.recipeTree.0.station', 'Masonry Station')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Rough Pebbles')
+                ->where('detail.recipeTree.0.ingredients.0.quantity', 5)
+                ->where('detail.recipeTree.0.ingredients.1.name', 'Basic Clay Lump')
+                ->where('detail.recipeTree.0.ingredients.1.quantity', 2)
+                ->has('detail.recipeTree.0.ingredients', 2)
+            );
+    }
+
+    public function test_crafting_tool_uses_ferralith_ingot_for_stale_exquisite_construction_material_pack_names(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Ferralith%20Ingot' => Http::response([
+                'items' => [[
+                    'id' => 1050001,
+                    'name' => 'Ferralith Ingot',
+                    'tag' => 'Ingot',
+                    'tier' => 1,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Ferralith%20Ingot' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/1050001' => Http::response([
+                'item' => [
+                    'id' => 1050001,
+                    'name' => 'Ferralith Ingot',
+                    'tag' => 'Ingot',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 105001,
+                    'name' => 'Forge Exquisite Construction Materials Pack',
+                    'buildingName' => 'Rough Smithy',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 1050003,
+                        'name' => 'Molten Ferralith',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'craftedItems' => [[
+                        'id' => 1050001,
+                        'name' => 'Exquisite Construction Materials Pack',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/1050003' => Http::response([
+                'item' => [
+                    'id' => 1050003,
+                    'name' => 'Molten Ferralith',
+                    'tag' => 'Molten Metal',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Ferralith Ingot',
+                'itemId' => 1050001,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.craftingRecipes.0.name', 'Forge Ferralith Ingot')
+                ->where('detail.recipeTree.0.name', 'Forge Ferralith Ingot')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Molten Ferralith')
+                ->has('detail.recipeTree.0.ingredients', 1)
+            );
+    }
+
+    public function test_crafting_tool_loads_deep_tiered_recipe_chains(): void
+    {
+        $responses = [
+            'https://bitjita.com/api/items?q=Layered%20Codex' => Http::response([
+                'items' => [[
+                    'id' => 9100,
+                    'name' => 'Layered Codex',
+                    'tag' => 'Codex',
+                    'tier' => 10,
+                    'rarityStr' => 'Epic',
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Layered%20Codex' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+        ];
+
+        foreach (range(0, 8) as $index) {
+            $itemId = 9100 + $index;
+            $nextId = $itemId + 1;
+            $name = $index === 0 ? 'Layered Codex' : "Layer {$index}";
+
+            $responses["https://bitjita.com/api/items/{$itemId}"] = Http::response([
+                'item' => [
+                    'id' => $itemId,
+                    'name' => $name,
+                    'tag' => $index === 0 ? 'Codex' : 'Component',
+                    'tier' => max(1, 10 - $index),
+                ],
+                'craftingRecipes' => $index < 8 ? [[
+                    'id' => $itemId,
+                    'name' => "Craft {$name}",
+                    'buildingName' => 'Scholar Station',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => $nextId,
+                        'name' => 'Layer '.($index + 1),
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]] : [],
+                'extractionRecipes' => [],
+            ]);
+        }
+
+        Http::fake($responses);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Layered Codex',
+                'itemId' => 9100,
+            ]));
+
+        $deepestIngredientPath = 'detail.recipeTree.0.ingredients.0'
+            .'.recipes.0.ingredients.0'
+            .'.recipes.0.ingredients.0'
+            .'.recipes.0.ingredients.0'
+            .'.recipes.0.ingredients.0'
+            .'.recipes.0.ingredients.0'
+            .'.recipes.0.ingredients.0'
+            .'.recipes.0.ingredients.0.name';
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where($deepestIngredientPath, 'Layer 8')
+            );
     }
 
     public function test_activity_tracker_page_resolves_player_skill_and_level_progress(): void

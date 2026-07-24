@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bitcraft;
 
+use App\Domain\Bitcraft\Services\BitcraftSpacetimeStaticData;
 use App\Domain\Bitcraft\Services\BitjitaClient;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -11,9 +12,15 @@ use Throwable;
 
 class BitcraftToolController extends Controller
 {
-    private const CRAFTING_TREE_MAX_DEPTH = 6;
+    private const CRAFTING_TREE_MAX_DEPTH = 16;
 
     private const HEX_COIN_ITEM_ID = 1;
+
+    private const STALE_CONSTRUCTION_MATERIAL_ITEM_NAMES = [
+        '1010001' => 'Rough Wood Log',
+        '1030001' => 'Rough Pebbles',
+        '1050001' => 'Ferralith Ingot',
+    ];
 
     public function market(Request $request, BitjitaClient $bitjita): Response
     {
@@ -202,7 +209,7 @@ class BitcraftToolController extends Controller
         ]);
     }
 
-    public function crafting(Request $request, BitjitaClient $bitjita): Response
+    public function crafting(Request $request, BitjitaClient $bitjita, BitcraftSpacetimeStaticData $spacetime): Response
     {
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:120'],
@@ -221,14 +228,34 @@ class BitcraftToolController extends Controller
 
         try {
             if ($query !== '') {
-                $items = $this->recipeTargets($bitjita, $query);
+                $items = $spacetime->isAvailable()
+                    ? $this->spacetimeRecipeTargets($spacetime, $query)
+                    : $this->recipeTargets($bitjita, $query);
             }
 
             if ($itemId) {
+                $targetKind = $itemKind;
+                $payload = null;
+
+                if ($spacetime->isAvailable()) {
+                    $payload = $spacetime->detail($targetKind, (int) $itemId);
+
+                    if ($payload === null) {
+                        $alternateKind = $targetKind === 'cargo' ? 'item' : 'cargo';
+                        $payload = $spacetime->detail($alternateKind, (int) $itemId);
+
+                        if ($payload !== null) {
+                            $targetKind = $alternateKind;
+                            $itemKind = $alternateKind;
+                        }
+                    }
+                }
+
                 $detail = $this->craftingTargetDetailPayload(
                     $bitjita,
-                    $this->craftingTargetDetail($bitjita, $itemKind, (int) $itemId),
-                    $itemKind,
+                    $payload ?? $this->craftingTargetDetail($bitjita, $targetKind, (int) $itemId),
+                    $targetKind,
+                    $spacetime,
                 );
             }
         } catch (Throwable $exception) {
@@ -1052,11 +1079,11 @@ class BitcraftToolController extends Controller
         ];
     }
 
-    private function craftingTargetDetailPayload(BitjitaClient $bitjita, array $payload, string $kind): array
+    private function craftingTargetDetailPayload(BitjitaClient $bitjita, array $payload, string $kind, ?BitcraftSpacetimeStaticData $spacetime = null): array
     {
         $detail = $this->normalizeCraftingTargetDetail($payload, $kind);
         $targetKey = $this->craftingTargetKey($detail['item']);
-        $detail['recipeTree'] = $this->recipeTree($bitjita, $detail, 0, [$targetKey]);
+        $detail['recipeTree'] = $this->recipeTree($bitjita, $detail, 0, [$targetKey], $spacetime);
 
         return $detail;
     }
@@ -1088,6 +1115,25 @@ class BitcraftToolController extends Controller
             ->all();
     }
 
+    private function spacetimeRecipeTargets(BitcraftSpacetimeStaticData $spacetime, string $query): array
+    {
+        return collect($spacetime->targets($query))
+            ->filter(fn (array $item): bool => $this->spacetimeTargetHasPreferredRecipes($spacetime, $item))
+            ->values()
+            ->all();
+    }
+
+    private function spacetimeTargetHasPreferredRecipes(BitcraftSpacetimeStaticData $spacetime, array $item): bool
+    {
+        $detail = $spacetime->detail((string) $item['kind'], (int) $item['id']);
+
+        if ($detail === null) {
+            return false;
+        }
+
+        return $this->preferredRecipeOptions($this->normalizeCraftingTargetDetail($detail, (string) $item['kind'])) !== [];
+    }
+
     private function craftingTargetHasRecipes(BitjitaClient $bitjita, array $item): bool
     {
         $detail = $this->normalizeCraftingTargetDetail(
@@ -1095,7 +1141,7 @@ class BitcraftToolController extends Controller
             (string) $item['kind'],
         );
 
-        return $detail['craftingRecipes'] !== [] || $detail['extractionRecipes'] !== [];
+        return $this->preferredRecipeOptions($detail) !== [];
     }
 
     private function craftingTargetDetail(BitjitaClient $bitjita, string $kind, int $itemId): array
@@ -1107,28 +1153,50 @@ class BitcraftToolController extends Controller
         return $bitjita->item($itemId);
     }
 
-    private function recipeTree(BitjitaClient $bitjita, array $detail, int $depth, array $seen): array
+    private function recipeTree(BitjitaClient $bitjita, array $detail, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime = null): array
     {
         if ($depth >= self::CRAFTING_TREE_MAX_DEPTH) {
             return [];
         }
 
         return collect($this->preferredRecipeOptions($detail))
-            ->map(fn (array $recipe) => [
-                ...$recipe,
-                'ingredients' => collect($recipe['ingredients'])
-                    ->map(fn (array $ingredient) => [
-                        ...$ingredient,
-                        'recipes' => $this->ingredientRecipeTree($bitjita, $ingredient, $depth + 1, $seen),
-                    ])
-                    ->values()
-                    ->all(),
+            ->map(fn (array $recipe) => $this->recipeTreeNode($bitjita, $recipe, $depth, $seen, $spacetime))
+            ->values()
+            ->all();
+    }
+
+    private function recipeTreeNode(BitjitaClient $bitjita, array $recipe, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime = null): array
+    {
+        $node = [
+            ...$recipe,
+            'ingredients' => $this->recipeIngredientsWithTree($bitjita, $recipe, $depth, $seen, $spacetime),
+        ];
+
+        if (count($recipe['alternatives'] ?? []) > 1) {
+            $node['alternatives'] = collect($recipe['alternatives'])
+                ->map(fn (array $alternative): array => [
+                    ...Arr::except($alternative, ['alternatives']),
+                    'ingredients' => $this->recipeIngredientsWithTree($bitjita, $alternative, $depth, $seen, $spacetime),
+                ])
+                ->values()
+                ->all();
+        }
+
+        return $node;
+    }
+
+    private function recipeIngredientsWithTree(BitjitaClient $bitjita, array $recipe, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime = null): array
+    {
+        return collect($recipe['ingredients'])
+            ->map(fn (array $ingredient) => [
+                ...$ingredient,
+                'recipes' => $this->ingredientRecipeTree($bitjita, $ingredient, $depth + 1, $seen, $spacetime),
             ])
             ->values()
             ->all();
     }
 
-    private function ingredientRecipeTree(BitjitaClient $bitjita, array $ingredient, int $depth, array $seen): array
+    private function ingredientRecipeTree(BitjitaClient $bitjita, array $ingredient, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime = null): array
     {
         if ($depth >= self::CRAFTING_TREE_MAX_DEPTH || blank($ingredient['id'])) {
             return [];
@@ -1146,17 +1214,35 @@ class BitcraftToolController extends Controller
 
         try {
             $detail = $this->normalizeCraftingTargetDetail(
-                $this->craftingTargetDetail($bitjita, (string) $target['kind'], (int) $target['id']),
+                $spacetime?->detail((string) $target['kind'], (int) $target['id'])
+                    ?? $this->craftingTargetDetail($bitjita, (string) $target['kind'], (int) $target['id']),
                 (string) $target['kind'],
             );
         } catch (Throwable) {
             return [];
         }
 
-        return $this->recipeTree($bitjita, $detail, $depth, [...$seen, $targetKey]);
+        return $this->recipeTree($bitjita, $detail, $depth, [...$seen, $targetKey], $spacetime);
     }
 
     private function preferredRecipeOptions(array $detail): array
+    {
+        $recipes = $this->availableRecipeOptions($detail);
+
+        if ($recipes === []) {
+            return [];
+        }
+
+        $recipe = $recipes[0];
+
+        if (count($recipes) > 1) {
+            $recipe['alternatives'] = $recipes;
+        }
+
+        return [$recipe];
+    }
+
+    private function availableRecipeOptions(array $detail): array
     {
         $recipes = collect([
             ...$detail['craftingRecipes'],
@@ -1167,16 +1253,21 @@ class BitcraftToolController extends Controller
             return [];
         }
 
-        $preferredRecipes = $recipes
-            ->reject(fn (array $recipe) => $this->isExcludedCraftingRoute($recipe));
+        $routeRecipes = $recipes
+            ->reject(fn (array $recipe) => $this->isBlockedCraftingRoute($recipe));
 
-        if ($preferredRecipes->isEmpty()) {
+        $standardRecipes = $routeRecipes
+            ->reject(fn (array $recipe) => $this->isSpecialCraftingRoute($recipe));
+
+        if ($standardRecipes->isEmpty()) {
             return [];
         }
 
-        return $preferredRecipes
+        return $standardRecipes
             ->sort(fn (array $left, array $right) => $this->recipePreferenceTuple($left) <=> $this->recipePreferenceTuple($right))
-            ->take(1)
+            ->concat($routeRecipes
+                ->filter(fn (array $recipe) => $this->isSpecialCraftingRoute($recipe))
+                ->sort(fn (array $left, array $right) => $this->recipePreferenceTuple($left) <=> $this->recipePreferenceTuple($right)))
             ->values()
             ->all();
     }
@@ -1190,14 +1281,48 @@ class BitcraftToolController extends Controller
         ];
     }
 
-    private function isExcludedCraftingRoute(array $recipe): bool
+    private function isBlockedCraftingRoute(array $recipe): bool
     {
-        $haystack = strtolower(collect([
-            $recipe['name'],
-            ...collect($recipe['ingredients'])->pluck('name')->all(),
-        ])->filter()->join(' '));
+        $haystack = $this->recipeRouteHaystack($recipe);
 
-        return str_contains($haystack, 'package') || str_contains($haystack, 'hexite');
+        if (collect([
+            'construction materials pack',
+            'package',
+        ])->contains(fn (string $term): bool => str_contains($haystack, $term))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function isSpecialCraftingRoute(array $recipe): bool
+    {
+        $haystack = $this->recipeRouteHaystack($recipe);
+
+        if (collect([
+            'ancient mortar',
+            'hexite',
+        ])->contains(fn (string $term): bool => str_contains($haystack, $term))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function recipeRouteHaystack(array $recipe): string
+    {
+        $recipeName = strtolower((string) $recipe['name']);
+        $ingredientNames = collect($recipe['ingredients'])
+            ->pluck('name')
+            ->filter()
+            ->map(fn (string $name): string => strtolower($name));
+
+        $haystack = collect([
+            $recipeName,
+            ...$ingredientNames->all(),
+        ])->filter()->join(' ');
+
+        return $haystack;
     }
 
     private function recipeOutputQuantity(array $recipe): float
@@ -1221,7 +1346,7 @@ class BitcraftToolController extends Controller
             ->map(fn (array $recipe) => [
                 'id' => data_get($recipe, 'id', data_get($recipe, 'recipeId')),
                 'source' => $source,
-                'name' => data_get($recipe, 'name', data_get($recipe, 'recipeName', data_get($recipe, 'craftingStation', 'Recipe'))),
+                'name' => $this->normalizeRecipeName($recipe),
                 'station' => $this->normalizeCraftingStationName(data_get($recipe, 'buildingName', data_get($recipe, 'craftingStation', data_get($recipe, 'stationName')))),
                 'skill' => data_get($recipe, 'skillName', data_get($recipe, 'levelRequirements.0.skill.name', data_get($recipe, 'skill'))),
                 'duration' => data_get($recipe, 'timeRequirement', data_get($recipe, 'duration', data_get($recipe, 'craftDuration'))),
@@ -1230,6 +1355,28 @@ class BitcraftToolController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    private function normalizeRecipeName(array $recipe): string
+    {
+        $name = (string) data_get($recipe, 'name', data_get($recipe, 'recipeName', data_get($recipe, 'craftingStation', 'Recipe')));
+
+        if ($name === '') {
+            return 'Recipe';
+        }
+
+        if (str_contains($name, '{')) {
+            $name = preg_replace_callback('/\{(\d+)\}/', function (array $matches) use ($recipe): string {
+                $index = (int) $matches[1];
+                $replacement = $index === 0
+                    ? data_get($recipe, 'craftedItems.0.name')
+                    : data_get($recipe, 'consumedItems.'.($index - 1).'.name', data_get($recipe, "craftedItems.{$index}.name"));
+
+                return filled($replacement) ? (string) $replacement : $matches[0];
+            }, $name) ?: $name;
+        }
+
+        return $this->normalizeRecipeText($name, $recipe);
     }
 
     private function normalizeCraftingStationName(mixed $station): ?string
@@ -1250,11 +1397,16 @@ class BitcraftToolController extends Controller
             return collect($stacks)
                 ->map(function (array $ingredient, int $index) use ($consumedItems) {
                     $displayIngredient = is_array($consumedItems) ? data_get($consumedItems, $index, []) : [];
+                    $id = data_get($ingredient, 'item_id', data_get($ingredient, 'id', data_get($ingredient, 'itemId')));
                     $type = data_get($ingredient, 'item_type', data_get($displayIngredient, 'itemType', data_get($ingredient, 'type')));
 
                     return [
-                        'id' => data_get($ingredient, 'item_id', data_get($ingredient, 'id', data_get($ingredient, 'itemId'))),
-                        'name' => data_get($displayIngredient, 'name', data_get($ingredient, 'name', data_get($ingredient, 'itemName', data_get($ingredient, 'cargoName', 'Unknown')))),
+                        'id' => $id,
+                        'name' => $this->normalizeIngredientName(
+                            data_get($displayIngredient, 'name', data_get($ingredient, 'name', data_get($ingredient, 'itemName', data_get($ingredient, 'cargoName', 'Unknown')))),
+                            $id,
+                            $type,
+                        ),
                         'quantity' => data_get($ingredient, 'quantity', data_get($ingredient, 'amount')),
                         'type' => $type,
                         'kind' => $this->itemKind($type),
@@ -1275,11 +1427,16 @@ class BitcraftToolController extends Controller
 
         return collect($ingredients ?? [])
             ->map(function (array $ingredient) {
+                $id = data_get($ingredient, 'id', data_get($ingredient, 'itemId'));
                 $type = data_get($ingredient, 'itemType', data_get($ingredient, 'type'));
 
                 return [
-                    'id' => data_get($ingredient, 'id', data_get($ingredient, 'itemId')),
-                    'name' => data_get($ingredient, 'name', data_get($ingredient, 'itemName', data_get($ingredient, 'cargoName', 'Unknown'))),
+                    'id' => $id,
+                    'name' => $this->normalizeIngredientName(
+                        data_get($ingredient, 'name', data_get($ingredient, 'itemName', data_get($ingredient, 'cargoName', 'Unknown'))),
+                        $id,
+                        $type,
+                    ),
                     'quantity' => data_get($ingredient, 'quantity', data_get($ingredient, 'amount')),
                     'type' => $type,
                     'kind' => $this->itemKind($type),
@@ -1287,5 +1444,45 @@ class BitcraftToolController extends Controller
             })
             ->values()
             ->all();
+    }
+
+    private function normalizeRecipeText(string $name, array $recipe): string
+    {
+        foreach (['craftedItems', 'consumedItems'] as $key) {
+            foreach (data_get($recipe, $key, []) as $item) {
+                $original = data_get($item, 'name');
+                $replacement = $this->staleConstructionMaterialItemName(
+                    data_get($item, 'id'),
+                    data_get($item, 'itemType', data_get($item, 'type')),
+                    $original,
+                );
+
+                if (filled($original) && $replacement !== null) {
+                    $name = str_ireplace((string) $original, $replacement, $name);
+                }
+            }
+        }
+
+        return $name;
+    }
+
+    private function normalizeIngredientName(mixed $name, mixed $id = null, mixed $type = null): string
+    {
+        $name = filled($name) ? (string) $name : 'Unknown';
+
+        return $this->staleConstructionMaterialItemName($id, $type, $name) ?? $name;
+    }
+
+    private function staleConstructionMaterialItemName(mixed $id, mixed $type, mixed $name): ?string
+    {
+        if (! filled($id) || ! str_contains(strtolower((string) $name), 'construction materials pack')) {
+            return null;
+        }
+
+        if ($this->itemKind($type ?? 'item') !== 'item') {
+            return null;
+        }
+
+        return self::STALE_CONSTRUCTION_MATERIAL_ITEM_NAMES[(string) $id] ?? null;
     }
 }
