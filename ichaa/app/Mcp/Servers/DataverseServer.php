@@ -5,6 +5,7 @@ namespace App\Mcp\Servers;
 use App\Mcp\Resources\DataverseCatalogResource;
 use App\Mcp\Tools\CreateDataverseRecordTool;
 use App\Mcp\Tools\DeleteDataverseRecordTool;
+use App\Mcp\Tools\GetBitcraftRecipeTool;
 use App\Mcp\Tools\GetDataverseRecordTool;
 use App\Mcp\Tools\InspectDataverseRevisionTool;
 use App\Mcp\Tools\ListDataverseRecordsTool;
@@ -13,6 +14,8 @@ use App\Mcp\Tools\ReplaceDataverseMediaFileTool;
 use App\Mcp\Tools\RestoreDataverseRecordTool;
 use App\Mcp\Tools\RestoreDataverseRevisionTool;
 use App\Mcp\Tools\RunDataverseActionTool;
+use App\Mcp\Tools\SearchBitcraftBarterStallsTool;
+use App\Mcp\Tools\SearchBitcraftMarketTool;
 use App\Mcp\Tools\SearchDataverseTool;
 use App\Mcp\Tools\SyncDataverseNotionTool;
 use App\Mcp\Tools\UpdateDataverseRecordTool;
@@ -30,11 +33,15 @@ Use this server to read, search, author, revise, restore, and sync Dataverse dat
 Start with the dataverse://catalog resource when you need the exact resource slug, include names, or custom action name.
 For every non-create mutation, provide the latest base_revision_id to avoid stale-write conflicts.
 Use the revision tools before restore operations when you need to inspect or compare prior state.
+BitCraft tools are read-only and expose market, barter stall, and crafting recipe lookup data from the same normalized surfaces as the app UI.
 TEXT)]
 class DataverseServer extends Server
 {
     protected array $tools = [
         SearchDataverseTool::class,
+        SearchBitcraftMarketTool::class,
+        SearchBitcraftBarterStallsTool::class,
+        GetBitcraftRecipeTool::class,
         ListDataverseRecordsTool::class,
         GetDataverseRecordTool::class,
         CreateDataverseRecordTool::class,

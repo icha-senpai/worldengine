@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Bitcraft;
 use App\Domain\Bitcraft\Services\BitcraftSpacetimeStaticData;
 use App\Domain\Bitcraft\Services\BitjitaClient;
 use App\Http\Controllers\Controller;
+use App\Support\Api\ApiAuthorizer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Inertia\Response;
@@ -32,7 +34,30 @@ class BitcraftToolController extends Controller
         return $this->marketPage($request, $bitjita, 'barter');
     }
 
+    public function apiMarket(Request $request, BitjitaClient $bitjita): JsonResponse
+    {
+        ApiAuthorizer::ensure($request, 'read', '*');
+
+        return $this->apiResponse($request, $this->marketPayload($request, $bitjita, 'market'), [
+            'tool' => 'market',
+        ]);
+    }
+
+    public function apiBarterStalls(Request $request, BitjitaClient $bitjita): JsonResponse
+    {
+        ApiAuthorizer::ensure($request, 'read', '*');
+
+        return $this->apiResponse($request, $this->marketPayload($request, $bitjita, 'barter'), [
+            'tool' => 'barter-stalls',
+        ]);
+    }
+
     private function marketPage(Request $request, BitjitaClient $bitjita, string $tool): Response
+    {
+        return $this->page('Bitcraft/Market', $this->marketPayload($request, $bitjita, $tool));
+    }
+
+    private function marketPayload(Request $request, BitjitaClient $bitjita, string $tool): array
     {
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:120'],
@@ -200,16 +225,30 @@ class BitcraftToolController extends Controller
             }
         }
 
-        return $this->page('Bitcraft/Market', [
+        return [
             'filters' => $filters,
             'regions' => $regions,
             'market' => $market,
             'tool' => $this->marketTool($tool),
             'error' => $error,
-        ]);
+        ];
     }
 
     public function crafting(Request $request, BitjitaClient $bitjita, BitcraftSpacetimeStaticData $spacetime): Response
+    {
+        return $this->page('Bitcraft/Crafting', $this->craftingPayload($request, $bitjita, $spacetime));
+    }
+
+    public function apiCrafting(Request $request, BitjitaClient $bitjita, BitcraftSpacetimeStaticData $spacetime): JsonResponse
+    {
+        ApiAuthorizer::ensure($request, 'read', '*');
+
+        return $this->apiResponse($request, $this->craftingPayload($request, $bitjita, $spacetime), [
+            'tool' => 'crafting',
+        ]);
+    }
+
+    private function craftingPayload(Request $request, BitjitaClient $bitjita, BitcraftSpacetimeStaticData $spacetime): array
     {
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:120'],
@@ -263,7 +302,7 @@ class BitcraftToolController extends Controller
             $error = 'Bitjita did not respond cleanly. Try the lookup again in a moment.';
         }
 
-        return $this->page('Bitcraft/Crafting', [
+        return [
             'filters' => [
                 'q' => $query,
                 'itemId' => $itemId,
@@ -273,6 +312,19 @@ class BitcraftToolController extends Controller
             'items' => $items,
             'detail' => $detail,
             'error' => $error,
+        ];
+    }
+
+    private function apiResponse(Request $request, array $data, array $meta = []): JsonResponse
+    {
+        return response()->json([
+            'data' => $data,
+            'included' => [],
+            'meta' => [
+                'api_version' => 'v1',
+                'request_id' => $request->headers->get('X-Request-Id'),
+                ...$meta,
+            ],
         ]);
     }
 
@@ -1410,6 +1462,9 @@ class BitcraftToolController extends Controller
                         'quantity' => data_get($ingredient, 'quantity', data_get($ingredient, 'amount')),
                         'type' => $type,
                         'kind' => $this->itemKind($type),
+                        'iconAssetName' => data_get($displayIngredient, 'iconAssetName', data_get($ingredient, 'iconAssetName')),
+                        'tier' => data_get($displayIngredient, 'tier', data_get($ingredient, 'tier')),
+                        'rarity' => data_get($displayIngredient, 'rarityStr', data_get($displayIngredient, 'rarity', data_get($ingredient, 'rarityStr', data_get($ingredient, 'rarity')))),
                     ];
                 })
                 ->values()
@@ -1440,6 +1495,9 @@ class BitcraftToolController extends Controller
                     'quantity' => data_get($ingredient, 'quantity', data_get($ingredient, 'amount')),
                     'type' => $type,
                     'kind' => $this->itemKind($type),
+                    'iconAssetName' => data_get($ingredient, 'iconAssetName'),
+                    'tier' => data_get($ingredient, 'tier'),
+                    'rarity' => data_get($ingredient, 'rarityStr', data_get($ingredient, 'rarity')),
                 ];
             })
             ->values()

@@ -843,6 +843,7 @@ class BitcraftToolTest extends TestCase
                     'tag' => 'Miner Tool',
                     'tier' => 5,
                     'rarityStr' => 'Rare',
+                    'iconAssetName' => 'GeneratedIcons/Items/Pickaxe',
                 ]],
             ]),
             'https://bitjita.com/api/cargo?q=Pickaxe' => Http::response([
@@ -855,6 +856,7 @@ class BitcraftToolTest extends TestCase
                     'name' => 'Astralite Pickaxe',
                     'tag' => 'Miner Tool',
                     'tier' => 5,
+                    'iconAssetName' => 'GeneratedIcons/Items/Pickaxe',
                 ],
                 'craftingRecipes' => [[
                     'id' => 55,
@@ -864,6 +866,9 @@ class BitcraftToolTest extends TestCase
                         'itemId' => 111,
                         'itemName' => 'Astralite Ingot',
                         'quantity' => 3,
+                        'iconAssetName' => 'GeneratedIcons/Items/Ingot',
+                        'tier' => 5,
+                        'rarityStr' => 'Rare',
                     ]],
                 ]],
             ]),
@@ -873,6 +878,7 @@ class BitcraftToolTest extends TestCase
                     'name' => 'Astralite Ingot',
                     'tag' => 'Ingot',
                     'tier' => 5,
+                    'iconAssetName' => 'GeneratedIcons/Items/Ingot',
                 ],
                 'craftingRecipes' => [],
                 'extractionRecipes' => [],
@@ -890,13 +896,21 @@ class BitcraftToolTest extends TestCase
                 ->component('Bitcraft/Crafting')
                 ->where('items.0.name', 'Astralite Pickaxe')
                 ->where('items.0.kind', 'item')
+                ->where('items.0.iconAssetName', 'GeneratedIcons/Items/Pickaxe')
                 ->where('detail.item.name', 'Astralite Pickaxe')
                 ->where('detail.item.kind', 'item')
+                ->where('detail.item.iconAssetName', 'GeneratedIcons/Items/Pickaxe')
                 ->where('detail.craftingRecipes.0.name', 'Forge Astralite Pickaxe')
                 ->where('detail.craftingRecipes.0.station', 'Smithy')
                 ->where('detail.craftingRecipes.0.ingredients.0.name', 'Astralite Ingot')
+                ->where('detail.craftingRecipes.0.ingredients.0.iconAssetName', 'GeneratedIcons/Items/Ingot')
+                ->where('detail.craftingRecipes.0.ingredients.0.tier', 5)
+                ->where('detail.craftingRecipes.0.ingredients.0.rarity', 'Rare')
                 ->where('detail.recipeTree.0.name', 'Forge Astralite Pickaxe')
                 ->where('detail.recipeTree.0.ingredients.0.name', 'Astralite Ingot')
+                ->where('detail.recipeTree.0.ingredients.0.iconAssetName', 'GeneratedIcons/Items/Ingot')
+                ->where('detail.recipeTree.0.ingredients.0.tier', 5)
+                ->where('detail.recipeTree.0.ingredients.0.rarity', 'Rare')
             );
     }
 
@@ -1070,16 +1084,27 @@ class BitcraftToolTest extends TestCase
                 ->has('items', 1)
                 ->where('items.0.name', 'Simple Timber')
                 ->where('items.0.kind', 'item')
+                ->where('items.0.iconAssetName', 'GeneratedIcons/Items/SimpleTimber')
                 ->where('detail.item.name', 'Simple Timber')
+                ->where('detail.item.iconAssetName', 'GeneratedIcons/Items/SimpleTimber')
                 ->where('detail.craftingRecipes.0.name', 'Craft Simple Timber')
                 ->where('detail.craftingRecipes.0.station', 'Carpentry Station')
                 ->where('detail.craftingRecipes.0.skill', 'Carpentry')
                 ->where('detail.craftingRecipes.0.ingredients.0.name', 'Simple Plank')
                 ->where('detail.craftingRecipes.0.ingredients.0.quantity', 20)
+                ->where('detail.craftingRecipes.0.ingredients.0.iconAssetName', 'GeneratedIcons/Items/SimplePlank')
+                ->where('detail.craftingRecipes.0.ingredients.0.tier', 2)
+                ->where('detail.craftingRecipes.0.ingredients.0.rarity', 'Common')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.name', 'Treat Simple Stripped Wood Into Simple Plank')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.name', 'Simple Stripped Wood')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.iconAssetName', 'GeneratedIcons/Items/SimpleStrippedWood')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.tier', 2)
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.rarity', 'Common')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.recipes.0.name', 'Saw Simple Stripped Wood')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.recipes.0.ingredients.0.name', 'Simple Wood Log')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.recipes.0.ingredients.0.iconAssetName', 'GeneratedIcons/Items/SimpleWoodLog')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.recipes.0.ingredients.0.tier', 2)
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.recipes.0.ingredients.0.rarity', 'Common')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.alternatives.1.ingredients.1.name', 'Hexite Wood Fragment')
             );
 

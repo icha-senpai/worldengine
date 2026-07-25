@@ -79,7 +79,7 @@ class DataverseMcpServerTest extends TestCase
                 'entity_type' => 'character',
                 'summary' => 'Created through the MCP server.',
                 'public_title' => 'MCP Created Entity',
-                'status' => 'draft',
+                'status' => 'active',
             ],
             'reason' => 'Create through MCP',
         ])->assertOk()->assertStructuredContent(function ($json) {

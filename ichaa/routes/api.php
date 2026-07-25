@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\ActionController;
 use App\Http\Controllers\Api\V1\ResourceController;
 use App\Http\Controllers\Api\V1\SystemController;
+use App\Http\Controllers\Bitcraft\BitcraftToolController;
 use App\Support\Api\ApiResourceRegistry;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,10 @@ Route::prefix('v1')
         Route::get('revisions/compare', [SystemController::class, 'compareRevisions']);
         Route::get('revisions/{revision}', [SystemController::class, 'showRevision']);
         Route::post('revisions/{revision}/restore', [SystemController::class, 'restoreRevision']);
+
+        Route::get('bitcraft/market', [BitcraftToolController::class, 'apiMarket']);
+        Route::get('bitcraft/barter-stalls', [BitcraftToolController::class, 'apiBarterStalls']);
+        Route::get('bitcraft/crafting', [BitcraftToolController::class, 'apiCrafting']);
 
         Route::post('entities/{record}/publish', [ActionController::class, 'publishEntity']);
         Route::post('entities/{record}/unpublish', [ActionController::class, 'unpublishEntity']);

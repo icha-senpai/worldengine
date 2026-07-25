@@ -69,6 +69,35 @@ abstract class DataverseTool extends Tool
         return $query;
     }
 
+    protected function bitcraftQueryArray(Request $request, array $stringKeys = [], array $integerKeys = [], array $booleanKeys = []): array
+    {
+        $query = [];
+
+        foreach ($stringKeys as $key) {
+            $value = $request->get($key);
+
+            if (is_string($value) && trim($value) !== '') {
+                $query[$key] = trim($value);
+            }
+        }
+
+        foreach ($integerKeys as $key) {
+            $value = $request->get($key);
+
+            if ($value !== null && $value !== '') {
+                $query[$key] = (int) $value;
+            }
+        }
+
+        foreach ($booleanKeys as $key) {
+            if ($request->get($key) !== null) {
+                $query[$key] = $request->boolean($key) ? 1 : 0;
+            }
+        }
+
+        return $query;
+    }
+
     protected function writePayload(Request $request, bool $requireBaseRevision): array
     {
         $meta = [

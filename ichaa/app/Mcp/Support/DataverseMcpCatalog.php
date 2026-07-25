@@ -250,12 +250,33 @@ class DataverseMcpCatalog
                 array_values(self::actions()),
             ),
             'notion_sync_resources' => self::notionSyncResources(),
+            'bitcraft_tools' => [
+                [
+                    'name' => 'search_bitcraft_market',
+                    'method' => 'GET',
+                    'path' => 'bitcraft/market',
+                    'description' => 'Search BitCraft market targets and optionally load an order book for a selected item or cargo.',
+                ],
+                [
+                    'name' => 'search_bitcraft_barter_stalls',
+                    'method' => 'GET',
+                    'path' => 'bitcraft/barter-stalls',
+                    'description' => 'Search BitCraft barter stall listings by item, cargo, claim, empire, region, and side.',
+                ],
+                [
+                    'name' => 'get_bitcraft_recipe',
+                    'method' => 'GET',
+                    'path' => 'bitcraft/crafting',
+                    'description' => 'Search craftable BitCraft targets and load a selected target with its cascading recipe tree.',
+                ],
+            ],
             'notes' => [
                 'Mutating tools should send base_revision_id for every non-create write.',
                 'The API returns canonical envelopes with data, included, and meta.',
                 'Use the catalog resource first when you need the exact action or resource slug.',
                 'Use upload_dataverse_media when you need to create a media-reference from actual file bytes rather than a URL or local path.',
                 'Use replace_dataverse_media_file when you need to swap the stored bytes for an existing media-reference.',
+                'BitCraft MCP tools are read-only and use the authenticated /api/v1/bitcraft endpoints.',
             ],
         ];
     }

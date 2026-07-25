@@ -34,7 +34,16 @@
             >
                 <details v-if="ingredient.recipes?.length" class="crafting-ingredient" open>
                     <summary class="crafting-ingredient__row">
-                        <span class="crafting-ingredient__icon" aria-hidden="true">{{ itemInitials(ingredient.name) }}</span>
+                        <span class="crafting-ingredient__icon" :style="ingredientFrameStyle(ingredient)" aria-hidden="true">
+                            <img
+                                v-if="ingredientIconUrl(ingredient)"
+                                :src="ingredientIconUrl(ingredient)"
+                                alt=""
+                                loading="lazy"
+                                @error="hideBrokenIcon(ingredient.iconAssetName)"
+                            >
+                            <span v-else>{{ itemInitials(ingredient.name) }}</span>
+                        </span>
                         <span class="crafting-ingredient__copy">
                             <span class="crafting-ingredient__name">
                                 <strong>{{ formatQuantity(scaledQuantity(ingredient.quantity)) }}x</strong>
@@ -42,7 +51,9 @@
                             </span>
                             <span v-if="ingredientMeta(ingredient)" class="crafting-ingredient__meta">{{ ingredientMeta(ingredient) }}</span>
                         </span>
-                        <span v-if="ingredient.tier" class="crafting-ingredient__tier">T{{ ingredient.tier }}</span>
+                        <span v-if="ingredient.tier" class="crafting-ingredient__tier bitcraft-tier-badge" :style="tierStyle(ingredient.tier)">
+                            T{{ ingredient.tier }}
+                        </span>
                         <span class="crafting-ingredient__chevron" aria-hidden="true"></span>
                     </summary>
 
@@ -58,7 +69,16 @@
 
                 <div v-else class="crafting-ingredient">
                     <div class="crafting-ingredient__row">
-                        <span class="crafting-ingredient__icon" aria-hidden="true">{{ itemInitials(ingredient.name) }}</span>
+                        <span class="crafting-ingredient__icon" :style="ingredientFrameStyle(ingredient)" aria-hidden="true">
+                            <img
+                                v-if="ingredientIconUrl(ingredient)"
+                                :src="ingredientIconUrl(ingredient)"
+                                alt=""
+                                loading="lazy"
+                                @error="hideBrokenIcon(ingredient.iconAssetName)"
+                            >
+                            <span v-else>{{ itemInitials(ingredient.name) }}</span>
+                        </span>
                         <span class="crafting-ingredient__copy">
                             <span class="crafting-ingredient__name">
                                 <strong>{{ formatQuantity(scaledQuantity(ingredient.quantity)) }}x</strong>
@@ -66,7 +86,9 @@
                             </span>
                             <span v-if="ingredientMeta(ingredient)" class="crafting-ingredient__meta">{{ ingredientMeta(ingredient) }}</span>
                         </span>
-                        <span v-if="ingredient.tier" class="crafting-ingredient__tier">T{{ ingredient.tier }}</span>
+                        <span v-if="ingredient.tier" class="crafting-ingredient__tier bitcraft-tier-badge" :style="tierStyle(ingredient.tier)">
+                            T{{ ingredient.tier }}
+                        </span>
                     </div>
                 </div>
             </template>
@@ -76,6 +98,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { bitcraftItemFrameStyle, bitcraftTierStyle, bitjitaAssetUrl } from '@/Pages/Bitcraft/bitjitaAssets.js'
 
 defineOptions({ name: 'CraftingRecipeNode' })
 
@@ -86,6 +109,7 @@ const props = defineProps({
 })
 
 const selectedAlternativeIndex = ref(0)
+const brokenIconAssets = ref(new Set())
 
 const alternatives = computed(() => {
     if (Array.isArray(props.recipe.alternatives) && props.recipe.alternatives.length > 1) {
@@ -141,6 +165,23 @@ const itemInitials = (name) => String(name ?? '?')
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || '?'
+
+const ingredientIconUrl = (ingredient) => {
+    const assetName = ingredient?.iconAssetName
+
+    if (brokenIconAssets.value.has(assetName)) {
+        return null
+    }
+
+    return bitjitaAssetUrl(assetName)
+}
+
+const hideBrokenIcon = (assetName) => {
+    brokenIconAssets.value = new Set([...brokenIconAssets.value, assetName])
+}
+
+const tierStyle = (tier) => bitcraftTierStyle(tier)
+const ingredientFrameStyle = (ingredient) => bitcraftItemFrameStyle(ingredient?.tier, ingredient?.rarity)
 
 const scaledQuantity = (quantity) => {
     const number = Number(quantity)
@@ -267,19 +308,31 @@ details > .crafting-ingredient__row {
 }
 
 .crafting-ingredient__icon {
+    position: relative;
     display: grid;
     width: 34px;
     height: 34px;
     place-items: center;
-    border: 1px solid rgb(var(--border-color-rgb) / 0.7);
+    border: 1px solid var(--bitcraft-item-frame-border, rgb(var(--border-color-rgb) / 0.7));
     border-radius: 6px;
     background:
-        radial-gradient(circle at 35% 25%, rgb(var(--accent-cyan-rgb) / 0.2), transparent 42%),
+        radial-gradient(circle at 35% 25%, var(--bitcraft-item-frame-bg, rgb(var(--accent-cyan-rgb) / 0.2)), transparent 42%),
+        linear-gradient(180deg, color-mix(in srgb, var(--bitcraft-item-frame-accent, transparent) 12%, transparent), transparent),
         rgb(var(--bg-surface-rgb) / 0.92);
-    color: var(--text-muted-2);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 12px color-mix(in srgb, var(--bitcraft-item-frame-accent, transparent) 20%, transparent);
+    color: var(--bitcraft-item-frame-text, var(--text-muted-2));
     font-family: var(--font-ui);
     font-size: 11px;
     font-weight: 800;
+    overflow: hidden;
+}
+
+.crafting-ingredient__icon img {
+    position: absolute;
+    inset: 3px;
+    width: calc(100% - 6px);
+    height: calc(100% - 6px);
+    object-fit: contain;
 }
 
 .crafting-ingredient__copy {
@@ -326,6 +379,15 @@ details > .crafting-ingredient__row {
     font-weight: 800;
     line-height: 1;
     padding: 5px 7px;
+}
+
+.bitcraft-tier-badge {
+    border: 1px solid var(--bitcraft-tier-border, rgb(var(--border-color-rgb) / 0.7));
+    background:
+        linear-gradient(180deg, var(--bitcraft-tier-bg, rgb(var(--bg-surface-rgb) / 0.75)), rgb(var(--bg-surface-rgb) / 0.72)),
+        rgb(var(--bg-surface-rgb) / 0.75);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 12px color-mix(in srgb, var(--bitcraft-tier-accent, transparent) 24%, transparent);
+    color: var(--bitcraft-tier-text, var(--text-muted));
 }
 
 .crafting-ingredient__chevron {

@@ -265,6 +265,9 @@ class BitcraftSpacetimeStaticData
                     'name' => data_get($target, 'name', 'Unknown'),
                     'itemName' => data_get($target, 'name', 'Unknown'),
                     'quantity' => $stack['quantity'],
+                    'iconAssetName' => data_get($target, 'iconAssetName'),
+                    'tier' => data_get($target, 'tier'),
+                    'rarity' => data_get($target, 'rarity'),
                 ];
             })
             ->values()
