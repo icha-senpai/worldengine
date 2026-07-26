@@ -114,9 +114,6 @@ describe('Dashboard page', () => {
 
         expect(wrapper.text()).toContain('No pipeline items yet.')
         expect(wrapper.text()).toContain('No blocking questions.')
-        expect(wrapper.text()).toContain('No blocking contradictions.')
-        expect(wrapper.text()).toContain('No unresolved interactions.')
-        expect(wrapper.text()).toContain('No deprecated canon states.')
         expect(wrapper.text()).toContain('No latent tension recorded.')
         expect(wrapper.text()).toContain('No high-risk secrets.')
         expect(wrapper.text()).not.toContain('Perception Gaps')

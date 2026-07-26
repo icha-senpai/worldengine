@@ -58,9 +58,9 @@ test.describe('show page action panels', () => {
         const secretId = await createSecret(page, secretTitle)
 
         await page.goto(`/secrets/${secretId}`)
-        await page.getByLabel(/^Entity$/).selectOption(String(witnessId))
+        await page.locator('#secret-known-by').selectOption(String(witnessId))
         await page.getByRole('button', { name: 'Add Entity' }).click()
-        await expect(page.getByRole('main').getByText(`${witnessName} (character)`)).toBeVisible()
+        await expect(page.getByRole('main').getByRole('link', { name: `${witnessName} (character)` }).first()).toBeVisible()
 
         await page.getByLabel(/^Revealed At Era$/).fill('Red Winter')
         await page.getByLabel(/^Exposure Level$/).selectOption('fully_exposed')
@@ -84,7 +84,7 @@ test.describe('show page action panels', () => {
         await page.goto(`/perception-states/${perceptionId}`)
         await page.getByLabel(/^Entity$/).selectOption(String(immuneId))
         await page.getByRole('button', { name: 'Add Immune' }).click()
-        await expect(page.getByRole('main').getByText(`${immuneName} (character)`)).toBeVisible()
+        await expect(page.getByRole('main').getByRole('link', { name: `${immuneName} (character)` }).first()).toBeVisible()
 
         await page.getByLabel(/^Revealed At Era$/).fill('Shattered Spring')
         await page.getByRole('button', { name: 'Collapse Perception State' }).click()

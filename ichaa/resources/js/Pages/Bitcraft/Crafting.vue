@@ -7,7 +7,7 @@
                         <span>Bitcraft tools</span>
                     </div>
                     <h1 class="page-hero__title page-hero__title--lg">Crafting Calculator</h1>
-                    <p class="page-hero__subtitle">Search craftable items and cargo, then scale their Bitjita recipe data.</p>
+                    <p class="page-hero__subtitle">Search for recipes.</p>
                 </div>
             </div>
         </template>
@@ -28,7 +28,7 @@
             {{ error }}
         </div>
 
-        <div class="mt-5 grid gap-4 2xl:grid-cols-[300px_minmax(0,1fr)]">
+        <div class="mt-5 grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]">
             <section class="surface-section min-w-0">
                 <div class="surface-section__header">
                     <div class="surface-section__copy">
@@ -112,7 +112,11 @@
                         </p>
 
                         <div class="grid gap-4" :class="{ 'mt-5': detail.item.description }">
-                            <CraftingRecipeTree :recipes="detail.recipeTree" :desired-quantity="desiredQuantity" />
+                            <CraftingRecipeTree
+                                :recipes="detail.recipeTree"
+                                :desired-quantity="desiredQuantity"
+                                :storage-key="recipeStorageKey"
+                            />
                         </div>
                     </div>
                 </div>
@@ -159,6 +163,17 @@ watch(() => props.filters, (filters) => {
 const selectedItemId = computed(() => Number(props.filters.itemId))
 const selectedItemKind = computed(() => props.filters.itemKind ?? 'item')
 const desiredQuantity = computed(() => Math.max(1, Number(props.filters.quantity ?? 1) || 1))
+const recipeStorageKey = computed(() => {
+    if (!props.detail?.item?.id) {
+        return null
+    }
+
+    return [
+        'bitcraft-crafting',
+        props.detail.item.kind ?? selectedItemKind.value,
+        props.detail.item.id,
+    ].join(':')
+})
 const snapshotLabel = computed(() => {
     if (!props.snapshot?.available) {
         return 'Live fallback'

@@ -121,7 +121,7 @@ test.describe('entity detail actions', () => {
         await expect(page.getByRole('heading', { name: title })).toBeVisible()
         await expect(page.getByRole('main').getByText(/^Concept$/).first()).toBeVisible()
 
-        await page.getByRole('button', { name: 'Advance →' }).click()
+        await page.getByRole('button', { name: 'Advance ->' }).click()
         await expect(page.getByRole('main').getByText(/^Outlined$/).first()).toBeVisible()
     })
 })

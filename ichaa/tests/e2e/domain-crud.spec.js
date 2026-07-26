@@ -91,7 +91,7 @@ test.describe('representative domain CRUD flows', () => {
 
         await expect(page).toHaveURL(/\/meta\/\d+$/)
         await expect(page.getByRole('heading', { name: updatedTitle })).toBeVisible()
-        await expect(page.getByText('In Progress')).toBeVisible()
+        await expect(page.getByText('In Progress').first()).toBeVisible()
 
         await page.getByRole('button', { name: 'Move to Trash' }).click()
         await confirmAppDialog(page, 'Move to Trash')

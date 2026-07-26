@@ -24,10 +24,11 @@ test.describe('ui polish surfaces', () => {
         await attachScreenshot(page, testInfo, 'entity-show')
 
         await page.getByRole('link', { name: 'Edit' }).click()
-        await expect(page.getByRole('dialog', { name: 'Edit Entity' })).toBeVisible()
+        await expect(page.getByRole('dialog', { name: new RegExp(`^Edit ${escapeRegex(entityName)}$`) })).toBeVisible()
         await attachScreenshot(page, testInfo, 'entity-edit-drawer')
         await page.getByRole('button', { name: 'Close' }).click()
-        await expect(page.getByRole('heading', { name: entityName })).toBeVisible()
+        await expect(page.getByRole('dialog', { name: new RegExp(`^Edit ${escapeRegex(entityName)}$`) })).toHaveCount(0)
+        await expect(page.getByRole('heading', { name: entityName, exact: true })).toBeVisible()
 
         await page.goto('/faction-memberships/create')
         await expect(page.getByRole('dialog', { name: 'New Faction Membership' })).toBeVisible()
@@ -59,4 +60,8 @@ async function attachScreenshot(page, testInfo, name) {
         body: await page.screenshot({ fullPage: true }),
         contentType: 'image/png',
     })
+}
+
+function escapeRegex(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }

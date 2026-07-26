@@ -63,6 +63,7 @@
                             :key="childRecipe.id ?? childRecipe.name"
                             :recipe="childRecipe"
                             :desired-quantity="scaledQuantity(ingredient.quantity)"
+                            @route-selected="emit('route-selected', $event)"
                         />
                     </div>
                 </details>
@@ -89,7 +90,19 @@
                         <span v-if="ingredient.tier" class="crafting-ingredient__tier bitcraft-tier-badge" :style="tierStyle(ingredient.tier)">
                             T{{ ingredient.tier }}
                         </span>
+                        <button
+                            v-if="ingredient.recipesDeferred"
+                            type="button"
+                            class="crafting-ingredient__load"
+                            :disabled="isBranchLoading(ingredient)"
+                            @click.stop="loadBranch(ingredient)"
+                        >
+                            {{ isBranchLoading(ingredient) ? 'Loading...' : 'Load' }}
+                        </button>
                     </div>
+                    <p v-if="branchError(ingredient)" class="crafting-ingredient__error">
+                        {{ branchError(ingredient) }}
+                    </p>
                 </div>
             </template>
         </div>
@@ -102,14 +115,18 @@ import { bitcraftItemFrameStyle, bitcraftTierStyle, bitjitaAssetUrl } from '@/Pa
 
 defineOptions({ name: 'CraftingRecipeNode' })
 
+const emit = defineEmits(['route-selected'])
+
 const props = defineProps({
     recipe: { type: Object, required: true },
     desiredQuantity: { type: Number, default: 1 },
     root: { type: Boolean, default: false },
 })
 
-const selectedAlternativeIndex = ref(0)
+const selectedAlternativeIndex = ref(Number(props.recipe.selectedAlternativeIndex ?? 0))
 const brokenIconAssets = ref(new Set())
+const loadingBranches = ref(new Set())
+const branchErrors = ref({})
 
 const alternatives = computed(() => {
     if (Array.isArray(props.recipe.alternatives) && props.recipe.alternatives.length > 1) {
@@ -124,7 +141,11 @@ const hasAlternatives = computed(() => alternatives.value.length > 1)
 const activeRecipe = computed(() => alternatives.value[selectedAlternativeIndex.value] ?? alternatives.value[0] ?? props.recipe)
 
 watch(() => props.recipe, () => {
-    selectedAlternativeIndex.value = 0
+    selectedAlternativeIndex.value = Number(props.recipe.selectedAlternativeIndex ?? 0)
+})
+
+watch(selectedAlternativeIndex, (index) => {
+    emit('route-selected', { recipe: props.recipe, index })
 })
 
 const formatQuantity = (quantity) => {
@@ -180,6 +201,66 @@ const hideBrokenIcon = (assetName) => {
     brokenIconAssets.value = new Set([...brokenIconAssets.value, assetName])
 }
 
+const branchKey = (ingredient) => `${ingredient.kind}:${ingredient.id}`
+
+const isBranchLoading = (ingredient) => loadingBranches.value.has(branchKey(ingredient))
+
+const branchError = (ingredient) => branchErrors.value[branchKey(ingredient)] ?? null
+
+const setBranchError = (ingredient, message) => {
+    branchErrors.value = {
+        ...branchErrors.value,
+        [branchKey(ingredient)]: message,
+    }
+}
+
+const clearBranchError = (ingredient) => {
+    const nextErrors = { ...branchErrors.value }
+    delete nextErrors[branchKey(ingredient)]
+    branchErrors.value = nextErrors
+}
+
+const loadBranch = async (ingredient) => {
+    if (!ingredient?.id || !ingredient?.kind || isBranchLoading(ingredient)) {
+        return
+    }
+
+    const key = branchKey(ingredient)
+    loadingBranches.value = new Set([...loadingBranches.value, key])
+    clearBranchError(ingredient)
+
+    try {
+        const url = route('bitcraft.crafting.branch', {
+            itemId: ingredient.id,
+            itemKind: ingredient.kind,
+        })
+        const response = await fetch(url, {
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error('Branch request failed.')
+        }
+
+        const payload = await response.json()
+        ingredient.recipes = Array.isArray(payload.recipes) ? payload.recipes : []
+        ingredient.recipesDeferred = false
+
+        if (!ingredient.recipes.length) {
+            setBranchError(ingredient, payload.error ?? 'No crafting steps found for this branch.')
+        }
+    } catch (error) {
+        setBranchError(ingredient, 'Could not load this branch.')
+    } finally {
+        const nextLoadingBranches = new Set(loadingBranches.value)
+        nextLoadingBranches.delete(key)
+        loadingBranches.value = nextLoadingBranches
+    }
+}
+
 const tierStyle = (tier) => bitcraftTierStyle(tier)
 const ingredientFrameStyle = (ingredient) => bitcraftItemFrameStyle(ingredient?.tier, ingredient?.rarity)
 
@@ -196,8 +277,13 @@ const scaledQuantity = (quantity) => {
 
 <style scoped>
 .crafting-node {
+    --crafting-connector: rgb(var(--accent-cyan-rgb) / 0.34);
+    --crafting-connector-muted: rgb(var(--border-color-2-rgb) / 0.72);
     display: grid;
     gap: 10px;
+    max-width: 100%;
+    min-width: 0;
+    position: relative;
 }
 
 .crafting-node--root {
@@ -207,6 +293,7 @@ const scaledQuantity = (quantity) => {
 .crafting-node__recipe {
     display: grid;
     gap: 6px;
+    min-width: 0;
 }
 
 .crafting-node__recipe-head {
@@ -214,6 +301,7 @@ const scaledQuantity = (quantity) => {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    min-width: 0;
 }
 
 .crafting-node__recipe h4 {
@@ -222,12 +310,14 @@ const scaledQuantity = (quantity) => {
     font-family: var(--font-ui);
     font-size: 14px;
     font-weight: 700;
+    min-width: 0;
     overflow-wrap: anywhere;
 }
 
 .crafting-node__route-select {
-    min-width: min(260px, 100%);
+    min-width: 0;
     max-width: 100%;
+    width: min(260px, 100%);
     border: 1px solid rgb(var(--border-color-rgb) / 0.82);
     border-radius: 6px;
     background: rgb(var(--bg-surface-rgb) / 0.94);
@@ -258,36 +348,63 @@ const scaledQuantity = (quantity) => {
 }
 
 .crafting-node__ingredients {
+    position: relative;
     display: grid;
-    gap: 10px;
+    gap: 12px;
+    margin-left: 10px;
+    min-width: 0;
+    padding-left: 12px;
+}
+
+.crafting-node__ingredients::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 29px;
+    left: 0;
+    width: 1px;
+    background: linear-gradient(180deg, var(--crafting-connector), var(--crafting-connector-muted));
 }
 
 .crafting-ingredient {
     position: relative;
     display: block;
+    min-width: 0;
 }
 
 .crafting-ingredient::before {
     content: "";
     position: absolute;
-    top: -10px;
-    left: -13px;
-    width: 13px;
-    height: 33px;
-    border-bottom: 1px solid rgb(var(--border-color-2-rgb) / 0.8);
-    border-left: 1px solid rgb(var(--border-color-2-rgb) / 0.8);
+    top: 28px;
+    left: -12px;
+    width: 12px;
+    height: 12px;
+    border-bottom: 1px solid var(--crafting-connector);
+    border-left: 1px solid var(--crafting-connector);
+    border-bottom-left-radius: 8px;
+    transform: translateY(-100%);
 }
 
-.crafting-node--root > .crafting-node__ingredients > .crafting-ingredient::before {
-    display: none;
+.crafting-ingredient:last-child::after {
+    content: "";
+    position: absolute;
+    top: 29px;
+    bottom: -12px;
+    left: -12px;
+    width: 2px;
+    background: var(--bg-surface);
 }
 
 .crafting-ingredient__row {
+    position: relative;
     display: grid;
     grid-template-columns: 34px minmax(0, 1fr) auto auto;
     align-items: center;
+    box-sizing: border-box;
     gap: 10px;
+    max-width: 100%;
     min-height: 58px;
+    min-width: 0;
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.62);
     border-radius: 8px;
     background:
@@ -297,6 +414,20 @@ const scaledQuantity = (quantity) => {
     cursor: default;
     list-style: none;
     padding: 10px 12px;
+}
+
+.crafting-ingredient__row::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -17px;
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--crafting-connector);
+    border-radius: 999px;
+    background: var(--bg-surface-2);
+    box-shadow: 0 0 0 3px var(--bg-surface);
+    transform: translateY(-50%);
 }
 
 details > .crafting-ingredient__row {
@@ -381,6 +512,31 @@ details > .crafting-ingredient__row {
     padding: 5px 7px;
 }
 
+.crafting-ingredient__load {
+    border: 1px solid rgb(var(--accent-cyan-rgb) / 0.45);
+    border-radius: 6px;
+    background: rgb(var(--accent-cyan-rgb) / 0.12);
+    color: var(--accent-cyan);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    padding: 8px 10px;
+}
+
+.crafting-ingredient__load:disabled {
+    cursor: wait;
+    opacity: 0.72;
+}
+
+.crafting-ingredient__error {
+    margin: 6px 0 0 44px;
+    color: var(--accent-pink);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 650;
+}
+
 .bitcraft-tier-badge {
     border: 1px solid var(--bitcraft-tier-border, rgb(var(--border-color-rgb) / 0.7));
     background:
@@ -406,10 +562,11 @@ details:not([open]) > .crafting-ingredient__row .crafting-ingredient__chevron {
 .crafting-ingredient__children {
     position: relative;
     display: grid;
-    gap: 10px;
-    margin-left: 14px;
-    padding-top: 10px;
-    padding-left: 14px;
+    gap: 12px;
+    margin-left: 10px;
+    min-width: 0;
+    padding-top: 12px;
+    padding-left: 12px;
 }
 
 .crafting-ingredient__children::before {
@@ -418,7 +575,14 @@ details:not([open]) > .crafting-ingredient__row .crafting-ingredient__chevron {
     top: 0;
     bottom: 29px;
     left: 0;
-    border-left: 1px solid rgb(var(--border-color-2-rgb) / 0.78);
+    width: 1px;
+    background: linear-gradient(180deg, var(--crafting-connector), var(--crafting-connector-muted));
+}
+
+.crafting-ingredient__children .crafting-node__ingredients,
+.crafting-ingredient__children .crafting-ingredient__children {
+    margin-left: 8px;
+    padding-left: 10px;
 }
 
 @media (max-width: 640px) {
@@ -447,13 +611,40 @@ details:not([open]) > .crafting-ingredient__row .crafting-ingredient__chevron {
         height: 30px;
     }
 
+    .crafting-node__ingredients {
+        margin-left: 6px;
+        padding-left: 10px;
+    }
+
+    .crafting-ingredient::before {
+        left: -10px;
+        width: 10px;
+    }
+
+    .crafting-ingredient:last-child::after {
+        left: -10px;
+    }
+
+    .crafting-ingredient__row::before {
+        left: -15px;
+    }
+
     .crafting-ingredient__children {
-        margin-left: 10px;
-        padding-left: 12px;
+        margin-left: 6px;
+        padding-left: 10px;
     }
 
     .crafting-ingredient__tier {
         display: none;
+    }
+
+    .crafting-ingredient__load {
+        grid-column: 2 / -1;
+        justify-self: start;
+    }
+
+    .crafting-ingredient__error {
+        margin-left: 40px;
     }
 }
 </style>

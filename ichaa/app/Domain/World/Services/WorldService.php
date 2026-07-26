@@ -268,6 +268,10 @@ class WorldService
     {
         unset($data['resistance_entity_ids'], $data['resistance_entity_id']);
 
+        $data['resistance_level'] = filled($data['resistance_level'] ?? null)
+            ? $data['resistance_level']
+            : 'none';
+
         return $data;
     }
 

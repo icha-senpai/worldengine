@@ -1,5 +1,5 @@
 <template>
-    <AuthenticatedLayout v-if="showSetupLayout">
+    <AuthenticatedLayout v-if="showSetupLayout" class="bitcraft-widget-layout">
         <template #header>
             <div class="bitcraft-widget-page-header">
                 <p>Bitcraft Widget Setup</p>
@@ -30,6 +30,10 @@ const showSetupLayout = computed(() => props.setup && Boolean(page.props.auth?.u
 </script>
 
 <style scoped>
+:global(.bitcraft-widget-layout main) {
+    max-width: 72rem;
+}
+
 .bitcraft-widget-page-header {
     display: grid;
     gap: 6px;

@@ -94,6 +94,7 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified', EnsureAdmin::class])
         Route::get('market', [BitcraftToolController::class, 'market'])->name('market');
         Route::get('barter-stalls', [BitcraftToolController::class, 'barterStalls'])->name('barter-stalls');
         Route::get('crafting', [BitcraftToolController::class, 'crafting'])->name('crafting');
+        Route::get('crafting/branch', [BitcraftToolController::class, 'craftingBranch'])->name('crafting.branch');
     });
 
     Route::prefix('worldengine')->group(function () {
@@ -137,13 +138,13 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified', EnsureAdmin::class])
             Route::post('members', [GroupRelationshipController::class, 'addMember'])->name('members.add');
             Route::delete('members/{entry}', [GroupRelationshipController::class, 'removeMember'])->name('members.remove');
         });
+        Route::resource('faction-memberships', FactionMembershipController::class)->except(['index', 'show']);
         Route::get('faction-memberships', [TopLevelModeledResourceController::class, 'index'])
             ->defaults('resource', 'faction-memberships')
             ->name('faction-memberships.index');
         Route::get('faction-memberships/{record}', [TopLevelModeledResourceController::class, 'show'])
             ->defaults('resource', 'faction-memberships')
             ->name('faction-memberships.show');
-        Route::resource('faction-memberships', FactionMembershipController::class)->except(['index', 'show']);
 
         // -----------------------------------------------------------------------
         // Organization

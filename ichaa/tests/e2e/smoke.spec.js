@@ -12,13 +12,12 @@ test.describe('smoke flows', () => {
         await createEntity(page, entityName)
 
         await page.goto('/collections/create')
-        await page.getByPlaceholder('Collection name').fill(collectionName)
-
-        const collectionSelects = page.locator('select')
-        await collectionSelects.nth(0).selectOption('character_roster')
-        await collectionSelects.nth(1).selectOption('smart')
-        await page.locator('textarea').fill('entity_type = character')
-        await page.getByRole('button', { name: 'Create Collection' }).click()
+        const drawer = page.getByRole('dialog', { name: 'New Collection' })
+        await drawer.getByPlaceholder('Collection name').fill(collectionName)
+        await drawer.getByLabel(/^Collection Type$/).selectOption('character_roster')
+        await drawer.getByLabel(/^Collection Mode$/).selectOption('smart')
+        await drawer.locator('textarea').fill('entity_type = character')
+        await drawer.getByRole('button', { name: 'Create Collection' }).click()
 
         await expect(page).toHaveURL(/\/collections\/\d+$/)
         await expect(page.getByRole('heading', { name: collectionName })).toBeVisible()
@@ -35,11 +34,11 @@ test.describe('smoke flows', () => {
         const toId = await createEntity(page, toName)
 
         await page.goto('/relationships/create')
-        const relationshipSelects = page.locator('select')
-        await relationshipSelects.nth(0).selectOption(String(fromId))
-        await relationshipSelects.nth(1).selectOption(String(toId))
-        await relationshipSelects.nth(2).selectOption('power')
-        await page.getByRole('button', { name: 'Create Relationship' }).click()
+        const drawer = page.getByRole('dialog', { name: 'New Relationship' })
+        await drawer.getByLabel(/^From Entity$/).selectOption(String(fromId))
+        await drawer.getByLabel(/^To Entity$/).selectOption(String(toId))
+        await drawer.getByLabel(/^Relationship Type$/).selectOption('power')
+        await drawer.getByRole('button', { name: 'Create Relationship' }).click()
 
         await expect(page).toHaveURL(/\/relationships\/\d+$/)
         await expect(page.getByRole('heading', { name: `${fromName} -> ${toName}` })).toBeVisible()
@@ -52,12 +51,12 @@ test.describe('smoke flows', () => {
         await login(page)
 
         await page.goto('/documents/create')
-        await page.locator('input').first().fill(title)
-        const documentSelects = page.locator('select')
-        await documentSelects.nth(0).selectOption('research_notes')
-        await documentSelects.nth(1).selectOption('authentic')
-        await documentSelects.nth(2).selectOption('extant')
-        await page.getByRole('button', { name: 'Create Document' }).click()
+        const drawer = page.getByRole('dialog', { name: 'New Document' })
+        await drawer.getByLabel(/^Title$/).fill(title)
+        await drawer.getByLabel(/^Document Type$/).selectOption('research_notes')
+        await drawer.getByLabel(/^Authenticity$/).selectOption('authentic')
+        await drawer.getByLabel(/^Document Status$/).selectOption('extant')
+        await drawer.getByRole('button', { name: 'Create Document' }).click()
 
         await expect(page).toHaveURL(/\/documents\/\d+$/)
         await expect(page.getByRole('heading', { name: title })).toBeVisible()
@@ -66,12 +65,8 @@ test.describe('smoke flows', () => {
         await page.getByPlaceholder('Search the archive...').fill(title)
         await page.getByRole('button', { name: 'Search' }).click()
 
-        const documentResult = page.locator('li').filter({
-            has: page.getByRole('link', { name: title }),
-        })
-
-        await expect(documentResult).toBeVisible()
-        await expect(documentResult).toContainText('Research Notes')
+        await expect(page.getByRole('link', { name: title })).toBeVisible()
+        await expect(page.getByText('Research Notes')).toBeVisible()
     })
 
     test('user can place an event onto a timeline from the timeline page', async ({ page }) => {
@@ -124,13 +119,8 @@ test.describe('smoke flows', () => {
         await page.getByPlaceholder('Search the archive...').fill(entityName)
         await page.getByRole('button', { name: 'Search' }).click()
 
-        const entityResult = page.locator('li').filter({
-            has: page.getByRole('link', { name: entityName }),
-        })
-
-        await expect(entityResult).toBeVisible()
-        await expect(entityResult).toContainText('Character')
-        await expect(entityResult).toContainText('Concept')
+        await expect(page.getByRole('link', { name: entityName })).toBeVisible()
+        await expect(page.getByText('Character · Concept')).toBeVisible()
     })
 
     test('user can move an entity to trash and restore it', async ({ page }) => {
@@ -145,16 +135,18 @@ test.describe('smoke flows', () => {
         await expect(page).toHaveURL(/\/entities$/)
 
         await page.goto('/trash')
+        await page.getByRole('textbox', { name: 'Search' }).fill(entityName)
+        await page.getByRole('button', { name: 'Apply' }).click()
 
-        const trashRow = page.locator('.record-card').filter({
+        const trashRecord = page.locator('.index-record', {
             has: page.getByRole('heading', { name: entityName }),
         })
 
-        await expect(trashRow).toBeVisible()
-        await trashRow.getByRole('button', { name: 'Restore' }).click()
+        await expect(trashRecord).toBeVisible()
+        await trashRecord.getByRole('button', { name: 'Restore' }).click()
         await confirmAppDialog(page, 'Restore')
 
-        await expect(trashRow).toHaveCount(0)
+        await expect(page.getByRole('heading', { name: entityName })).toHaveCount(0)
 
         await page.goto('/search')
         await page.getByPlaceholder('Search the archive...').fill(entityName)
@@ -174,7 +166,7 @@ test.describe('smoke flows', () => {
 
         await expect(page).toHaveURL(/\/pipeline\/\d+$/)
         await expect(page.getByRole('heading', { name: title })).toBeVisible()
-        await expect(page.getByText('Concept')).toBeVisible()
+        await expect(page.getByText('Concept').first()).toBeVisible()
     })
 })
 

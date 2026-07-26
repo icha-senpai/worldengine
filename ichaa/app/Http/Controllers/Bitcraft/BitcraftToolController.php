@@ -16,6 +16,8 @@ class BitcraftToolController extends Controller
 {
     private const CRAFTING_TREE_MAX_DEPTH = 16;
 
+    private const CRAFTING_TREE_MAX_NODES = 250;
+
     private const HEX_COIN_ITEM_ID = 1;
 
     private const STALE_CONSTRUCTION_MATERIAL_ITEM_NAMES = [
@@ -239,6 +241,37 @@ class BitcraftToolController extends Controller
         return $this->page('Bitcraft/Crafting', $this->craftingPayload($request, $bitjita, $spacetime));
     }
 
+    public function craftingBranch(Request $request, BitjitaClient $bitjita, BitcraftSpacetimeStaticData $spacetime): JsonResponse
+    {
+        $validated = $request->validate([
+            'itemId' => ['required', 'integer', 'min:1'],
+            'itemKind' => ['nullable', 'in:item,cargo'],
+        ]);
+
+        try {
+            $detail = $this->craftingBranchPayload(
+                $bitjita,
+                $spacetime,
+                (int) $validated['itemId'],
+                (string) ($validated['itemKind'] ?? 'item'),
+            );
+
+            return response()->json([
+                'item' => $detail['item'],
+                'recipes' => $detail['recipeTree'],
+                'error' => null,
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'item' => null,
+                'recipes' => [],
+                'error' => 'Bitjita did not respond cleanly. Try loading this branch again in a moment.',
+            ], 502);
+        }
+    }
+
     public function apiCrafting(Request $request, BitjitaClient $bitjita, BitcraftSpacetimeStaticData $spacetime): JsonResponse
     {
         ApiAuthorizer::ensure($request, 'read', '*');
@@ -314,6 +347,32 @@ class BitcraftToolController extends Controller
             'snapshot' => $spacetime->metadata(),
             'error' => $error,
         ];
+    }
+
+    private function craftingBranchPayload(BitjitaClient $bitjita, BitcraftSpacetimeStaticData $spacetime, int $itemId, string $itemKind): array
+    {
+        $targetKind = $itemKind === 'cargo' ? 'cargo' : 'item';
+        $payload = null;
+
+        if ($spacetime->isAvailable()) {
+            $payload = $spacetime->detail($targetKind, $itemId);
+
+            if ($payload === null) {
+                $alternateKind = $targetKind === 'cargo' ? 'item' : 'cargo';
+                $payload = $spacetime->detail($alternateKind, $itemId);
+
+                if ($payload !== null) {
+                    $targetKind = $alternateKind;
+                }
+            }
+        }
+
+        return $this->craftingTargetDetailPayload(
+            $bitjita,
+            $payload ?? $this->craftingTargetDetail($bitjita, $targetKind, $itemId),
+            $targetKind,
+            $spacetime,
+        );
     }
 
     private function apiResponse(Request $request, array $data, array $meta = []): JsonResponse
@@ -1272,7 +1331,10 @@ class BitcraftToolController extends Controller
     {
         $detail = $this->normalizeCraftingTargetDetail($payload, $kind);
         $targetKey = $this->craftingTargetKey($detail['item']);
-        $detail['recipeTree'] = $this->recipeTree($bitjita, $detail, 0, [$targetKey], $spacetime);
+        $expandedTargets = [$targetKey => true];
+        $detailCache = [$targetKey => $detail];
+        $remainingNodes = self::CRAFTING_TREE_MAX_NODES;
+        $detail['recipeTree'] = $this->recipeTree($bitjita, $detail, 0, [$targetKey], $spacetime, $expandedTargets, $detailCache, $remainingNodes);
 
         return $detail;
     }
@@ -1342,53 +1404,92 @@ class BitcraftToolController extends Controller
         return $bitjita->item($itemId);
     }
 
-    private function recipeTree(BitjitaClient $bitjita, array $detail, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime = null): array
+    private function recipeTree(BitjitaClient $bitjita, array $detail, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime, array &$expandedTargets, array &$detailCache, int &$remainingNodes): array
     {
-        if ($depth >= self::CRAFTING_TREE_MAX_DEPTH) {
+        if ($depth >= self::CRAFTING_TREE_MAX_DEPTH || $remainingNodes <= 0) {
             return [];
         }
 
-        return collect($this->preferredRecipeOptions($detail, $depth === 0))
-            ->map(fn (array $recipe) => $this->recipeTreeNode($bitjita, $recipe, $depth, $seen, $spacetime))
-            ->values()
-            ->all();
+        $tree = [];
+
+        foreach ($this->preferredRecipeOptions($detail, $depth === 0) as $recipe) {
+            if ($remainingNodes <= 0) {
+                break;
+            }
+
+            $tree[] = $this->recipeTreeNode($bitjita, $recipe, $depth, $seen, $spacetime, $expandedTargets, $detailCache, $remainingNodes);
+        }
+
+        return $tree;
     }
 
-    private function recipeTreeNode(BitjitaClient $bitjita, array $recipe, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime = null): array
+    private function recipeTreeNode(BitjitaClient $bitjita, array $recipe, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime, array &$expandedTargets, array &$detailCache, int &$remainingNodes): array
     {
+        $remainingNodes--;
+
         $node = [
             ...$recipe,
-            'ingredients' => $this->recipeIngredientsWithTree($bitjita, $recipe, $depth, $seen, $spacetime),
+            'ingredients' => $this->recipeIngredientsWithTree($bitjita, $recipe, $depth, $seen, $spacetime, $expandedTargets, $detailCache, $remainingNodes),
         ];
 
-        if (count($recipe['alternatives'] ?? []) > 1) {
-            $node['alternatives'] = collect($recipe['alternatives'])
-                ->map(fn (array $alternative): array => [
+        if (count($recipe['alternatives'] ?? []) > 1 && $remainingNodes > 0) {
+            $alternatives = [];
+
+            foreach ($recipe['alternatives'] as $alternative) {
+                if ($remainingNodes <= 0) {
+                    break;
+                }
+
+                $remainingNodes--;
+                $alternatives[] = [
                     ...Arr::except($alternative, ['alternatives']),
-                    'ingredients' => $this->recipeIngredientsWithTree($bitjita, $alternative, $depth, $seen, $spacetime),
-                ])
-                ->values()
-                ->all();
+                    'ingredients' => $this->recipeIngredientsWithTree($bitjita, $alternative, $depth, $seen, $spacetime, $expandedTargets, $detailCache, $remainingNodes),
+                ];
+            }
+
+            $node['alternatives'] = $alternatives;
         }
 
         return $node;
     }
 
-    private function recipeIngredientsWithTree(BitjitaClient $bitjita, array $recipe, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime = null): array
+    private function recipeIngredientsWithTree(BitjitaClient $bitjita, array $recipe, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime, array &$expandedTargets, array &$detailCache, int &$remainingNodes): array
     {
-        return collect($recipe['ingredients'])
-            ->map(fn (array $ingredient) => [
+        $ingredients = [];
+
+        foreach ($recipe['ingredients'] as $ingredient) {
+            $tree = $this->ingredientRecipeTree($bitjita, $ingredient, $depth + 1, $seen, $spacetime, $expandedTargets, $detailCache, $remainingNodes);
+            $ingredient = [
                 ...$ingredient,
-                'recipes' => $this->ingredientRecipeTree($bitjita, $ingredient, $depth + 1, $seen, $spacetime),
-            ])
-            ->values()
-            ->all();
+                'recipes' => $tree['recipes'],
+            ];
+
+            if ($tree['deferred']) {
+                $ingredient['recipesDeferred'] = true;
+            }
+
+            $ingredients[] = [
+                ...$ingredient,
+            ];
+        }
+
+        return $ingredients;
     }
 
-    private function ingredientRecipeTree(BitjitaClient $bitjita, array $ingredient, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime = null): array
+    private function ingredientRecipeTree(BitjitaClient $bitjita, array $ingredient, int $depth, array $seen, ?BitcraftSpacetimeStaticData $spacetime, array &$expandedTargets, array &$detailCache, int &$remainingNodes): array
     {
-        if ($depth >= self::CRAFTING_TREE_MAX_DEPTH || blank($ingredient['id'])) {
-            return [];
+        if (blank($ingredient['id'])) {
+            return [
+                'recipes' => [],
+                'deferred' => false,
+            ];
+        }
+
+        if ($depth >= self::CRAFTING_TREE_MAX_DEPTH || $remainingNodes <= 0) {
+            return [
+                'recipes' => [],
+                'deferred' => true,
+            ];
         }
 
         $target = [
@@ -1397,21 +1498,32 @@ class BitcraftToolController extends Controller
         ];
         $targetKey = $this->craftingTargetKey($target);
 
-        if (in_array($targetKey, $seen, true)) {
-            return [];
+        if (in_array($targetKey, $seen, true) || isset($expandedTargets[$targetKey])) {
+            return [
+                'recipes' => [],
+                'deferred' => true,
+            ];
         }
 
+        $expandedTargets[$targetKey] = true;
+
         try {
-            $detail = $this->normalizeCraftingTargetDetail(
+            $detail = $detailCache[$targetKey] ??= $this->normalizeCraftingTargetDetail(
                 $spacetime?->detail((string) $target['kind'], (int) $target['id'])
-                    ?? $this->craftingTargetDetail($bitjita, (string) $target['kind'], (int) $target['id']),
+                ?? $this->craftingTargetDetail($bitjita, (string) $target['kind'], (int) $target['id']),
                 (string) $target['kind'],
             );
         } catch (Throwable) {
-            return [];
+            return [
+                'recipes' => [],
+                'deferred' => false,
+            ];
         }
 
-        return $this->recipeTree($bitjita, $detail, $depth, [...$seen, $targetKey], $spacetime);
+        return [
+            'recipes' => $this->recipeTree($bitjita, $detail, $depth, [...$seen, $targetKey], $spacetime, $expandedTargets, $detailCache, $remainingNodes),
+            'deferred' => false,
+        ];
     }
 
     private function preferredRecipeOptions(array $detail, bool $allowPackageOnlyRoutes = false): array
@@ -1496,7 +1608,15 @@ class BitcraftToolController extends Controller
 
         if (collect([
             'ancient mortar',
+            'dried boot',
             'hexite',
+            'repaired shipwreck steering wheel',
+            "salvaged pirate's weapon",
+            'salvaged pirate weapon',
+            'salvaged pirate weapons',
+            'scroll',
+            'uncharted',
+            'winter snow',
         ])->contains(fn (string $term): bool => str_contains($haystack, $term))) {
             return true;
         }

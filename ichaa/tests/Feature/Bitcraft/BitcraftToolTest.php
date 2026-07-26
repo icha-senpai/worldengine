@@ -1734,6 +1734,615 @@ class BitcraftToolTest extends TestCase
         Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/cargo/1020001');
     }
 
+    public function test_crafting_tool_offers_uncharted_route_as_alternative_without_defaulting_to_it(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Fine%20Silk%20Cloth' => Http::response([
+                'items' => [[
+                    'id' => 880001,
+                    'name' => 'Fine Silk Cloth',
+                    'tag' => 'Cloth',
+                    'tier' => 5,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Fine%20Silk%20Cloth' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/880001' => Http::response([
+                'item' => [
+                    'id' => 880001,
+                    'name' => 'Fine Silk Cloth',
+                    'tag' => 'Cloth',
+                    'tier' => 5,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 880101,
+                    'name' => 'Stitch Fine Silk Cloth From Uncharted Silk Threads',
+                    'buildingName' => 'Fine Textile Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 880001,
+                        'name' => 'Fine Silk Cloth',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 880003,
+                        'name' => 'Uncharted Silk Threads',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 880102,
+                    'name' => 'Weave Fine Silk Cloth',
+                    'buildingName' => 'Fine Textile Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 880001,
+                        'name' => 'Fine Silk Cloth',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 880002,
+                        'name' => 'Fine Silk Thread',
+                        'quantity' => 4,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/880002' => Http::response([
+                'item' => [
+                    'id' => 880002,
+                    'name' => 'Fine Silk Thread',
+                    'tag' => 'Thread',
+                    'tier' => 5,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/880003' => Http::response([
+                'item' => [
+                    'id' => 880003,
+                    'name' => 'Uncharted Silk Threads',
+                    'tag' => 'Thread',
+                    'tier' => 5,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Fine Silk Cloth',
+                'itemId' => 880001,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.name', 'Weave Fine Silk Cloth')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Fine Silk Thread')
+                ->where('detail.recipeTree.0.alternatives.1.name', 'Stitch Fine Silk Cloth From Uncharted Silk Threads')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', 'Uncharted Silk Threads')
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+    }
+
+    public function test_crafting_tool_offers_scroll_route_as_alternative_without_defaulting_to_it(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Proficient%20Study%20Journal' => Http::response([
+                'items' => [[
+                    'id' => 881001,
+                    'name' => 'Proficient Study Journal',
+                    'tag' => 'Study Journal',
+                    'tier' => 4,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Proficient%20Study%20Journal' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/881001' => Http::response([
+                'item' => [
+                    'id' => 881001,
+                    'name' => 'Proficient Study Journal',
+                    'tag' => 'Study Journal',
+                    'tier' => 4,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 881101,
+                    'name' => 'Bind Proficient Study Journal From Scrolls',
+                    'buildingName' => 'Proficient Scholar Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 881001,
+                        'name' => 'Proficient Study Journal',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 881003,
+                        'name' => 'Proficient Study Scroll',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 881102,
+                    'name' => 'Bind Proficient Study Journal',
+                    'buildingName' => 'Proficient Scholar Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 881001,
+                        'name' => 'Proficient Study Journal',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 881002,
+                        'name' => 'Proficient Blank Journal',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/881002' => Http::response([
+                'item' => [
+                    'id' => 881002,
+                    'name' => 'Proficient Blank Journal',
+                    'tag' => 'Journal',
+                    'tier' => 4,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/881003' => Http::response([
+                'item' => [
+                    'id' => 881003,
+                    'name' => 'Proficient Study Scroll',
+                    'tag' => 'Scroll',
+                    'tier' => 4,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Proficient Study Journal',
+                'itemId' => 881001,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.name', 'Bind Proficient Study Journal')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Proficient Blank Journal')
+                ->where('detail.recipeTree.0.alternatives.1.name', 'Bind Proficient Study Journal From Scrolls')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', 'Proficient Study Scroll')
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+    }
+
+    public function test_crafting_tool_offers_salvaged_pirate_weapon_route_as_alternative_without_defaulting_to_it(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Sturdy%20Ingot' => Http::response([
+                'items' => [[
+                    'id' => 882001,
+                    'name' => 'Sturdy Ingot',
+                    'tag' => 'Ingot',
+                    'tier' => 3,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Sturdy%20Ingot' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/882001' => Http::response([
+                'item' => [
+                    'id' => 882001,
+                    'name' => 'Sturdy Ingot',
+                    'tag' => 'Ingot',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 882101,
+                    'name' => "Smelt Sturdy Ingot From Salvaged Pirate's Weapon",
+                    'buildingName' => 'Sturdy Smelter',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 882001,
+                        'name' => 'Sturdy Ingot',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 882003,
+                        'name' => "Salvaged Pirate's Weapon",
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 882102,
+                    'name' => 'Smelt Sturdy Ingot',
+                    'buildingName' => 'Sturdy Smelter',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 882001,
+                        'name' => 'Sturdy Ingot',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 882002,
+                        'name' => 'Sturdy Ore',
+                        'quantity' => 4,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/882002' => Http::response([
+                'item' => [
+                    'id' => 882002,
+                    'name' => 'Sturdy Ore',
+                    'tag' => 'Ore',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/882003' => Http::response([
+                'item' => [
+                    'id' => 882003,
+                    'name' => "Salvaged Pirate's Weapon",
+                    'tag' => 'Weapon',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Sturdy Ingot',
+                'itemId' => 882001,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.name', 'Smelt Sturdy Ingot')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Sturdy Ore')
+                ->where('detail.recipeTree.0.alternatives.1.name', "Smelt Sturdy Ingot From Salvaged Pirate's Weapon")
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', "Salvaged Pirate's Weapon")
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+    }
+
+    public function test_crafting_tool_offers_winter_snow_route_as_alternative_without_defaulting_to_it(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Bright%20Ingot' => Http::response([
+                'items' => [[
+                    'id' => 883001,
+                    'name' => 'Bright Ingot',
+                    'tag' => 'Ingot',
+                    'tier' => 3,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Bright%20Ingot' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/883001' => Http::response([
+                'item' => [
+                    'id' => 883001,
+                    'name' => 'Bright Ingot',
+                    'tag' => 'Ingot',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 883101,
+                    'name' => 'Smelt Bright Ingot With Winter Snow',
+                    'buildingName' => 'Bright Smelter',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 883001,
+                        'name' => 'Bright Ingot',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 883003,
+                        'name' => 'Winter Snow',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 883102,
+                    'name' => 'Smelt Bright Ingot',
+                    'buildingName' => 'Bright Smelter',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 883001,
+                        'name' => 'Bright Ingot',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 883002,
+                        'name' => 'Bright Ore',
+                        'quantity' => 4,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/883002' => Http::response([
+                'item' => [
+                    'id' => 883002,
+                    'name' => 'Bright Ore',
+                    'tag' => 'Ore',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/883003' => Http::response([
+                'item' => [
+                    'id' => 883003,
+                    'name' => 'Winter Snow',
+                    'tag' => 'Currency',
+                    'tier' => -1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Bright Ingot',
+                'itemId' => 883001,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.name', 'Smelt Bright Ingot')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Bright Ore')
+                ->where('detail.recipeTree.0.alternatives.1.name', 'Smelt Bright Ingot With Winter Snow')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', 'Winter Snow')
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+    }
+
+    public function test_crafting_tool_offers_dried_boot_and_shipwreck_routes_as_alternatives_without_defaulting_to_them(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Sturdy%20Leather' => Http::response([
+                'items' => [[
+                    'id' => 884001,
+                    'name' => 'Sturdy Leather',
+                    'tag' => 'Leather',
+                    'tier' => 3,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Sturdy%20Leather' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/884001' => Http::response([
+                'item' => [
+                    'id' => 884001,
+                    'name' => 'Sturdy Leather',
+                    'tag' => 'Leather',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 884101,
+                    'name' => 'Stitch Sturdy Leather',
+                    'buildingName' => 'Sturdy Hideworking Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 884001,
+                        'name' => 'Sturdy Leather',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 884003,
+                        'name' => 'Dried Boot',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 884102,
+                    'name' => 'Stitch Sturdy Leather',
+                    'buildingName' => 'Sturdy Hideworking Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 884001,
+                        'name' => 'Sturdy Leather',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 884002,
+                        'name' => 'Sturdy Tanned Pelt',
+                        'quantity' => 2,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 884004,
+                        'name' => 'Hideworking Salt',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/884002' => Http::response([
+                'item' => [
+                    'id' => 884002,
+                    'name' => 'Sturdy Tanned Pelt',
+                    'tag' => 'Tanned Pelt',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/884003' => Http::response([
+                'item' => [
+                    'id' => 884003,
+                    'name' => 'Dried Boot',
+                    'tag' => 'Junk',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/884004' => Http::response([
+                'item' => [
+                    'id' => 884004,
+                    'name' => 'Hideworking Salt',
+                    'tag' => 'Salt',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items?q=Sturdy%20Plank' => Http::response([
+                'items' => [[
+                    'id' => 885001,
+                    'name' => 'Sturdy Plank',
+                    'tag' => 'Plank',
+                    'tier' => 3,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Sturdy%20Plank' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/885001' => Http::response([
+                'item' => [
+                    'id' => 885001,
+                    'name' => 'Sturdy Plank',
+                    'tag' => 'Plank',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 885101,
+                    'name' => 'Salvage Sturdy Plank',
+                    'buildingName' => 'Sturdy Carpentry Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 885001,
+                        'name' => 'Sturdy Plank',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 885003,
+                        'name' => 'Repaired Shipwreck Steering Wheel',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 885102,
+                    'name' => 'Treat Sturdy Stripped Wood Into Sturdy Plank',
+                    'buildingName' => 'Sturdy Carpentry Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 885001,
+                        'name' => 'Sturdy Plank',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 885002,
+                        'name' => 'Sturdy Stripped Wood',
+                        'quantity' => 3,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 885004,
+                        'name' => 'Woodworking Sandpaper',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/885002' => Http::response([
+                'item' => [
+                    'id' => 885002,
+                    'name' => 'Sturdy Stripped Wood',
+                    'tag' => 'Stripped Wood',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/885003' => Http::response([
+                'item' => [
+                    'id' => 885003,
+                    'name' => 'Repaired Shipwreck Steering Wheel',
+                    'tag' => 'Shipwreck Salvage',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/885004' => Http::response([
+                'item' => [
+                    'id' => 885004,
+                    'name' => 'Woodworking Sandpaper',
+                    'tag' => 'Sandpaper',
+                    'tier' => 3,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Sturdy Leather',
+                'itemId' => 884001,
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Sturdy Tanned Pelt')
+                ->where('detail.recipeTree.0.ingredients.1.name', 'Hideworking Salt')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', 'Dried Boot')
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+
+        $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Sturdy Plank',
+                'itemId' => 885001,
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.name', 'Treat Sturdy Stripped Wood Into Sturdy Plank')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Sturdy Stripped Wood')
+                ->where('detail.recipeTree.0.ingredients.1.name', 'Woodworking Sandpaper')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', 'Repaired Shipwreck Steering Wheel')
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+    }
+
     public function test_crafting_tool_uses_same_tier_wood_log_for_stale_construction_material_pack_ingredients(): void
     {
         Http::fake([
@@ -2172,6 +2781,181 @@ class BitcraftToolTest extends TestCase
                 ->component('Bitcraft/Crafting')
                 ->where($deepestIngredientPath, 'Layer 8')
             );
+    }
+
+    public function test_crafting_tool_expands_shared_recipe_ingredients_once(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Shared%20Codex' => Http::response([
+                'items' => [[
+                    'id' => 9200,
+                    'name' => 'Shared Codex',
+                    'tag' => 'Codex',
+                    'tier' => 10,
+                    'rarityStr' => 'Epic',
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Shared%20Codex' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/9200' => Http::response([
+                'item' => [
+                    'id' => 9200,
+                    'name' => 'Shared Codex',
+                    'tag' => 'Codex',
+                    'tier' => 10,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 9200,
+                    'name' => 'Craft Shared Codex',
+                    'buildingName' => 'Flawless Scholar Station',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 9201,
+                        'name' => 'Shared Stone Research',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 9202,
+                        'name' => 'Shared Wood Research',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'craftedItems' => [[
+                        'id' => 9200,
+                        'name' => 'Shared Codex',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/9201' => Http::response([
+                'item' => [
+                    'id' => 9201,
+                    'name' => 'Shared Stone Research',
+                    'tag' => 'Stone Research',
+                    'tier' => 10,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 9201,
+                    'name' => 'Craft Shared Stone Research',
+                    'buildingName' => 'Flawless Scholar Station',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 9203,
+                        'name' => 'Shared Journal',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'craftedItems' => [[
+                        'id' => 9201,
+                        'name' => 'Shared Stone Research',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/9202' => Http::response([
+                'item' => [
+                    'id' => 9202,
+                    'name' => 'Shared Wood Research',
+                    'tag' => 'Wood Research',
+                    'tier' => 10,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 9202,
+                    'name' => 'Craft Shared Wood Research',
+                    'buildingName' => 'Flawless Scholar Station',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 9203,
+                        'name' => 'Shared Journal',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'craftedItems' => [[
+                        'id' => 9202,
+                        'name' => 'Shared Wood Research',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/9203' => Http::response([
+                'item' => [
+                    'id' => 9203,
+                    'name' => 'Shared Journal',
+                    'tag' => 'Journal',
+                    'tier' => 10,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 9203,
+                    'name' => 'Craft Shared Journal',
+                    'buildingName' => 'Flawless Scholar Station',
+                    'outputQuantity' => 1,
+                    'consumedItems' => [[
+                        'id' => 9204,
+                        'name' => 'Shared Parchment',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'craftedItems' => [[
+                        'id' => 9203,
+                        'name' => 'Shared Journal',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/9204' => Http::response([
+                'item' => [
+                    'id' => 9204,
+                    'name' => 'Shared Parchment',
+                    'tag' => 'Parchment',
+                    'tier' => 10,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $user = $this->createVerifiedAdminUser();
+
+        $response = $this->actingAs($user)
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Shared Codex',
+                'itemId' => 9200,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.name', 'Craft Shared Stone Research')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.recipes.0.name', 'Craft Shared Journal')
+                ->where('detail.recipeTree.0.ingredients.1.recipes.0.name', 'Craft Shared Wood Research')
+                ->where('detail.recipeTree.0.ingredients.1.recipes.0.ingredients.0.recipes', [])
+                ->where('detail.recipeTree.0.ingredients.1.recipes.0.ingredients.0.recipesDeferred', true)
+            );
+
+        $this->actingAs($user)
+            ->getJson(route('bitcraft.crafting.branch', [
+                'itemId' => 9203,
+                'itemKind' => 'item',
+            ]))
+            ->assertOk()
+            ->assertJsonPath('item.name', 'Shared Journal')
+            ->assertJsonPath('recipes.0.name', 'Craft Shared Journal')
+            ->assertJsonPath('recipes.0.ingredients.0.name', 'Shared Parchment');
+
+        $journalRequests = collect(Http::recorded())
+            ->filter(fn (array $record) => $record[0]->url() === 'https://bitjita.com/api/items/9203');
+
+        $this->assertCount(1, $journalRequests);
     }
 
     public function test_activity_tracker_page_resolves_player_skill_and_level_progress(): void

@@ -133,7 +133,7 @@ test.describe('extended domain CRUD flows', () => {
         await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/knowledge-states$/)
-        await expect(page.getByText(knowerName)).toHaveCount(0)
+        await expect(page.getByRole('link', { name: new RegExp(`^${escapeRegex(knowerName)} Knowledge$`) })).toHaveCount(0)
     })
 
     test('user can create, edit, and trash a travel route', async ({ page }) => {
@@ -164,7 +164,7 @@ test.describe('extended domain CRUD flows', () => {
         await page.getByRole('button', { name: 'Save Route' }).click()
 
         await expect(page).toHaveURL(/\/travel-routes\/\d+$/)
-        await expect(page.getByText(updatedDuration)).toBeVisible()
+        await expect(page.getByText(updatedDuration).first()).toBeVisible()
 
         await page.getByRole('button', { name: 'Move to Trash' }).click()
         await confirmAppDialog(page, 'Move to Trash')

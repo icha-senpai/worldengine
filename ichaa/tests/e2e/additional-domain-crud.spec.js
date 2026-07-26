@@ -150,21 +150,23 @@ test.describe('additional domain CRUD flows', () => {
         await selectFirstNonEmptyOption(page, 'Containment Type')
         await page.getByRole('button', { name: 'Create Containment' }).click()
 
-        await expect(page).toHaveURL(/\/location-containment$/)
-        await expect(page.getByText(title)).toBeVisible()
+        await expect(page).toHaveURL(/\/location-containment\/\d+$/)
+        await expect(page.getByRole('heading', { name: title })).toBeVisible()
 
-        await page.getByRole('link', { name: title }).click()
+        await page.getByRole('link', { name: 'Edit' }).click()
         await expect(page).toHaveURL(/\/location-containment\/\d+\/edit$/)
         await page.getByLabel(/^Era End$/).fill('After the breach')
         await page.getByRole('button', { name: 'Save Containment' }).click()
 
-        await expect(page).toHaveURL(/\/location-containment$/)
-        await expect(page.getByText(title)).toBeVisible()
+        await expect(page).toHaveURL(/\/location-containment\/\d+$/)
+        await expect(page.getByRole('heading', { name: title })).toBeVisible()
 
-        await page.getByRole('link', { name: title }).click()
+        await page.getByRole('link', { name: 'Edit' }).click()
         await expect(page).toHaveURL(/\/location-containment\/\d+\/edit$/)
 
-        await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await page.getByRole('dialog', { name: /Edit .* -> .*/ })
+            .getByRole('button', { name: 'Move to Trash' })
+            .click()
         await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/location-containment$/)
@@ -188,21 +190,23 @@ test.describe('additional domain CRUD flows', () => {
         await selectFirstNonEmptyOption(page, 'Control Type')
         await page.getByRole('button', { name: 'Create Control Record' }).click()
 
-        await expect(page).toHaveURL(/\/location-control$/)
-        await expect(page.getByText(title)).toBeVisible()
+        await expect(page).toHaveURL(/\/location-control\/\d+$/)
+        await expect(page.getByRole('heading', { name: title })).toBeVisible()
 
-        await page.getByRole('link', { name: title }).click()
+        await page.getByRole('link', { name: 'Edit' }).click()
         await expect(page).toHaveURL(/\/location-control\/\d+\/edit$/)
         await selectFirstNonEmptyOption(page, 'Resistance Level')
         await page.getByRole('button', { name: 'Save Control Record' }).click()
 
-        await expect(page).toHaveURL(/\/location-control$/)
-        await expect(page.getByText(title)).toBeVisible()
+        await expect(page).toHaveURL(/\/location-control\/\d+$/)
+        await expect(page.getByRole('heading', { name: title })).toBeVisible()
 
-        await page.getByRole('link', { name: title }).click()
+        await page.getByRole('link', { name: 'Edit' }).click()
         await expect(page).toHaveURL(/\/location-control\/\d+\/edit$/)
 
-        await page.getByRole('button', { name: 'Move to Trash' }).click()
+        await page.getByRole('dialog', { name: /Edit .* -> .*/ })
+            .getByRole('button', { name: 'Move to Trash' })
+            .click()
         await confirmAppDialog(page, 'Move to Trash')
 
         await expect(page).toHaveURL(/\/location-control$/)

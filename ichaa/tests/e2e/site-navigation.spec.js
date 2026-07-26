@@ -68,7 +68,7 @@ test.describe('site navigation and drawer flows', () => {
 
         await page.goto('/entities')
         await page.getByRole('link', { name: /\+ New Entity|New Entity|Create the first one/i }).first().click()
-        await expect(page).toHaveURL(/\/entities\/create$/)
+        await expect(page).toHaveURL(/\/entities$/)
         await expect(page.getByRole('dialog', { name: 'New Entity' })).toBeVisible()
         await page.getByRole('button', { name: 'Close' }).click()
         await expect(page).toHaveURL(/\/entities$/)
@@ -91,7 +91,7 @@ test.describe('site navigation and drawer flows', () => {
 
         await page.getByRole('link', { name: 'Edit' }).click()
         await expect(page).toHaveURL(/\/entities\/\d+\/edit$/)
-        await expect(page.getByRole('dialog', { name: 'Edit Entity' })).toBeVisible()
+        await expect(page.getByRole('dialog', { name: new RegExp(`^Edit ${escapeRegex(entityName)}$`) })).toBeVisible()
 
         await page.getByLabel(/^Public-Facing Title$/).fill(publicTitle)
         await page.getByRole('button', { name: 'Save Changes' }).click()
@@ -137,4 +137,8 @@ function entityTypeOptionValue(typeLabel) {
     }
 
     return map[normalized] ?? normalized.replace(/\s+/g, '_')
+}
+
+function escapeRegex(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }

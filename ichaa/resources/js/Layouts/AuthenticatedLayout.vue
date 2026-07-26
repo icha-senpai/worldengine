@@ -400,8 +400,7 @@
 
             <!-- MAIN -->
             <main
-                class="flex-1 min-w-0 p-4 md:p-7 xl:p-8"
-                :class="{ 'max-w-6xl mx-auto w-full': !$slots.sidebar }"
+                class="mx-auto w-full max-w-[104rem] flex-1 min-w-0 p-4 md:p-7 xl:p-8"
             >
                 <div v-if="$page.props.flash?.success || $page.props.flash?.error" class="hidden md:block mb-6">
                     <Transition name="flash">
