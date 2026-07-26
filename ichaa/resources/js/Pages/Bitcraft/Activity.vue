@@ -1,7 +1,7 @@
 <template>
     <WidgetPageShell
         :setup="setupPageVisible"
-        title="Live Activity"
+        title="EXP Tracker"
         description="Configure XP goals, watched skills, and the live OBS widget styling."
     >
         <main
@@ -105,7 +105,7 @@
             </div>
         </form>
 
-        <section class="activity-widget" aria-label="Live Bitcraft activity tracker">
+        <section class="activity-widget" aria-label="Bitcraft EXP tracker">
             <header class="activity-widget__header">
                 <div class="activity-widget__identity">
                     <p class="activity-widget__eyebrow">{{ titleLabel }}</p>
@@ -520,7 +520,7 @@ const skills = computed(() => trackerSkills(tracker.value))
 const levels = computed(() => tracker.value?.levels ?? [])
 const setupPageVisible = computed(() => Boolean(props.filters.setup))
 const setupVisible = computed(() => setupPageVisible.value)
-const titleLabel = computed(() => form.title || 'Live Activity')
+const titleLabel = computed(() => form.title || 'EXP Tracker')
 const iconsLabel = computed(() => form.icons || '')
 const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form))
 const skillOptions = computed(() => skills.value
