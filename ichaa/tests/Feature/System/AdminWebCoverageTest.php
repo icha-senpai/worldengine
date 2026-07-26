@@ -38,6 +38,9 @@ class AdminWebCoverageTest extends TestCase
     public function test_top_level_modeled_resources_and_galactic_regions_render_in_web_surfaces(): void
     {
         $user = $this->verifiedUser();
+
+        $this->actingAs($user);
+
         $memberEntity = Entity::factory()->create([
             'name' => 'Seraphine Vale',
             'entity_type' => EntityType::CHARACTER,
@@ -62,6 +65,7 @@ class AdminWebCoverageTest extends TestCase
         $group = GroupRelationship::create([
             'name' => 'Quiet Accord',
             'relationship_type' => 'alliance',
+            'current_tension_charge' => TensionCharge::NEUTRAL,
         ]);
         $collection = Collection::create([
             'name' => 'Archive Dossiers',
@@ -129,8 +133,6 @@ class AdminWebCoverageTest extends TestCase
             'member_entity_id' => $memberEntity->id,
             'rank_or_role' => 'Archivist',
             'membership_status' => 'active',
-            'visibility' => 'private',
-            'content_classification' => 'restricted',
         ]);
         $collectionEntity = CollectionEntity::create([
             'collection_id' => $collection->id,
@@ -192,37 +194,37 @@ class AdminWebCoverageTest extends TestCase
         ]);
 
         $genericIndexes = [
-            'group-relationship-memberships.index',
-            'faction-memberships.index',
-            'collection-entities.index',
-            'collection-documents.index',
-            'document-entities.index',
-            'canon-reference-entities.index',
-            'timeline-placements.index',
-            'state-relationships.index',
-            'power-interaction-instances.index',
+            ['route' => 'group-relationship-memberships.index', 'component' => 'ScaffoldResources/Index'],
+            ['route' => 'faction-memberships.index', 'component' => 'ModeledResources/Index'],
+            ['route' => 'collection-entities.index', 'component' => 'ModeledResources/Index'],
+            ['route' => 'collection-documents.index', 'component' => 'ScaffoldResources/Index'],
+            ['route' => 'document-entities.index', 'component' => 'ScaffoldResources/Index'],
+            ['route' => 'canon-reference-entities.index', 'component' => 'ScaffoldResources/Index'],
+            ['route' => 'timeline-placements.index', 'component' => 'ScaffoldResources/Index'],
+            ['route' => 'state-relationships.index', 'component' => 'ScaffoldResources/Index'],
+            ['route' => 'power-interaction-instances.index', 'component' => 'ModeledResources/Index'],
         ];
 
-        foreach ($genericIndexes as $routeName) {
+        foreach ($genericIndexes as $surface) {
             $this->actingAs($user)
-                ->get(route($routeName))
+                ->get(route($surface['route']))
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
-                    ->component('ModeledResources/Index')
+                    ->component($surface['component'])
                     ->has('items', 1)
                 );
         }
 
         $genericShows = [
-            ['route' => 'group-relationship-memberships.show', 'record' => $groupMembership->id, 'title' => 'Seraphine Vale in Quiet Accord'],
-            ['route' => 'faction-memberships.show', 'record' => $factionMembership->id, 'title' => 'Seraphine Vale -> Night Council'],
-            ['route' => 'collection-entities.show', 'record' => $collectionEntity->id, 'title' => 'Seraphine Vale in Archive Dossiers'],
-            ['route' => 'collection-documents.show', 'record' => $collectionDocument->id, 'title' => 'Sealed Ledger in Archive Dossiers'],
-            ['route' => 'document-entities.show', 'record' => $documentEntity->id, 'title' => 'Seraphine Vale in Sealed Ledger'],
-            ['route' => 'canon-reference-entities.show', 'record' => $canonLink->id, 'title' => 'Seraphine Vale in Canon Ledger'],
-            ['route' => 'timeline-placements.show', 'record' => $timelinePlacement->id, 'title' => 'Battle of Dawn on Prime Timeline'],
-            ['route' => 'state-relationships.show', 'record' => $stateRelationship->id, 'title' => 'Arc Start -> Relationship #'.$relationship->id],
-            ['route' => 'power-interaction-instances.show', 'record' => $powerInstance->id, 'title' => 'Battle of Dawn for Archive Resonance'],
+            ['route' => 'group-relationship-memberships.show', 'component' => 'ScaffoldResources/Show', 'record' => $groupMembership->id, 'title' => 'Seraphine Vale'],
+            ['route' => 'faction-memberships.show', 'component' => 'ModeledResources/Show', 'record' => $factionMembership->id, 'title' => 'Seraphine Vale -> Night Council'],
+            ['route' => 'collection-entities.show', 'component' => 'ModeledResources/Show', 'record' => $collectionEntity->id, 'title' => 'Seraphine Vale in Archive Dossiers'],
+            ['route' => 'collection-documents.show', 'component' => 'ScaffoldResources/Show', 'record' => $collectionDocument->id, 'title' => 'Sealed Ledger'],
+            ['route' => 'document-entities.show', 'component' => 'ScaffoldResources/Show', 'record' => $documentEntity->id, 'title' => 'Seraphine Vale'],
+            ['route' => 'canon-reference-entities.show', 'component' => 'ScaffoldResources/Show', 'record' => $canonLink->id, 'title' => 'Seraphine Vale'],
+            ['route' => 'timeline-placements.show', 'component' => 'ScaffoldResources/Show', 'record' => $timelinePlacement->id, 'title' => 'Battle of Dawn'],
+            ['route' => 'state-relationships.show', 'component' => 'ScaffoldResources/Show', 'record' => $stateRelationship->id, 'title' => "Seraphine Vale -> Aurelian March \u{00B7} Knowledge"],
+            ['route' => 'power-interaction-instances.show', 'component' => 'ModeledResources/Show', 'record' => $powerInstance->id, 'title' => 'Battle of Dawn for Archive Resonance'],
         ];
 
         foreach ($genericShows as $surface) {
@@ -230,7 +232,7 @@ class AdminWebCoverageTest extends TestCase
                 ->get(route($surface['route'], $surface['record']))
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
-                    ->component('ModeledResources/Show')
+                    ->component($surface['component'])
                     ->where('title', $surface['title'])
                 );
         }
@@ -239,16 +241,15 @@ class AdminWebCoverageTest extends TestCase
             ->get(route('galactic-regions.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('World/GalacticRegions/Index')
+                ->component('ScaffoldResources/Index')
                 ->has('items', 1)
-                ->where('filters.q', null)
             );
 
         $this->actingAs($user)
             ->get(route('galactic-regions.show', $region))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('World/GalacticRegions/Show')
+                ->component('ScaffoldResources/Show')
                 ->where('title', 'Outer Reach')
             );
     }
@@ -256,6 +257,9 @@ class AdminWebCoverageTest extends TestCase
     public function test_notion_admin_pages_render_as_read_only_web_surfaces(): void
     {
         $user = $this->verifiedUser();
+
+        $this->actingAs($user);
+
         $entity = Entity::factory()->create(['name' => 'Mapped Entity']);
         $note = NotionNote::create([
             'sync_resource' => 'entities',
@@ -263,6 +267,7 @@ class AdminWebCoverageTest extends TestCase
             'noteable_type' => Entity::class,
             'noteable_id' => $entity->id,
             'content' => 'Mirrored note body',
+            'content_hash' => sha1('Mirrored note body'),
         ]);
         $mapping = NotionSyncMapping::create([
             'sync_resource' => 'entities',

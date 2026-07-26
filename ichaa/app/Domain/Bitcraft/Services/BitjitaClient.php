@@ -116,6 +116,61 @@ class BitjitaClient
         return $this->get("api/claims/{$claimEntityId}/buildings");
     }
 
+    public function claimBuildingsMany(array $claimEntityIds): array
+    {
+        $ids = collect($claimEntityIds)
+            ->map(fn (mixed $id): string => trim((string) $id))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $payloads = [];
+        $missing = [];
+
+        foreach ($ids as $id) {
+            $path = "api/claims/{$id}/buildings";
+            $cacheSeconds = $this->cacheSecondsFor($path);
+            $cacheKey = $this->getCacheKey($path);
+
+            if ($cacheSeconds > 0 && Cache::has($cacheKey)) {
+                $payloads[$id] = Cache::get($cacheKey, []);
+
+                continue;
+            }
+
+            $missing[$id] = [
+                'path' => $path,
+                'cacheKey' => $cacheKey,
+                'cacheSeconds' => $cacheSeconds,
+            ];
+        }
+
+        if ($missing !== []) {
+            $responses = Http::pool(fn (Pool $pool) => collect($missing)
+                ->map(fn (array $request, string $id) => $this->poolRequest($pool, $id)->get($request['path']))
+                ->all());
+
+            foreach ($missing as $id => $request) {
+                /** @var Response $response */
+                $response = $responses[$id];
+                $response->throw();
+
+                $payload = $response->json() ?? [];
+                $payloads[$id] = $payload;
+
+                if ($request['cacheSeconds'] > 0) {
+                    Cache::put($request['cacheKey'], $payload, now()->addSeconds($request['cacheSeconds']));
+                }
+            }
+        }
+
+        return $payloads;
+    }
+
     public function claimInventories(string $claimEntityId): array
     {
         return $this->get("api/claims/{$claimEntityId}/inventories");
@@ -179,7 +234,7 @@ class BitjitaClient
         }
 
         return Cache::remember(
-            $this->cacheKey('get.'.$path.'.'.$this->queryFingerprint($query)),
+            $this->getCacheKey($path, $query),
             now()->addSeconds($cacheSeconds),
             fn () => $this->fetch($path, $query),
         );
@@ -301,6 +356,11 @@ class BitjitaClient
             (string) config('services.bitjita.identity'),
             (string) config('services.bitjita.token'),
         ])).':'.$key;
+    }
+
+    private function getCacheKey(string $path, array $query = []): string
+    {
+        return $this->cacheKey('get.'.$path.'.'.$this->queryFingerprint($this->filledQuery($query)));
     }
 
     private function cacheSecondsFor(string $path): int

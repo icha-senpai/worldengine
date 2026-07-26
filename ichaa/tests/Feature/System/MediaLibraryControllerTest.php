@@ -4,7 +4,6 @@ namespace Tests\Feature\System;
 
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\MediaReference;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +15,7 @@ class MediaLibraryControllerTest extends TestCase
 
     public function test_authenticated_users_can_browse_media_library_items(): void
     {
-        $user = User::factory()->create();
+        $user = $this->createVerifiedAdminUser();
         $entity = Entity::factory()->create(['name' => 'Seraphine Morbraith']);
 
         MediaReference::query()->create([
@@ -60,7 +59,7 @@ class MediaLibraryControllerTest extends TestCase
 
     public function test_authenticated_users_can_preview_local_media_files(): void
     {
-        $user = User::factory()->create();
+        $user = $this->createVerifiedAdminUser();
         $entity = Entity::factory()->create();
         $directory = storage_path('framework/testing/media-library');
 
@@ -95,7 +94,7 @@ class MediaLibraryControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = $this->createVerifiedAdminUser();
         $entity = Entity::factory()->create(['name' => 'Grey Archive']);
 
         Storage::disk('public')->put(

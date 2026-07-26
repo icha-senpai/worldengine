@@ -79,6 +79,30 @@ const formatCount = (value) => {
     return Number.isFinite(number) ? number.toLocaleString() : String(value)
 }
 
+const normalizeTimestamp = (value) => {
+    if (!value) {
+        return null
+    }
+
+    const normalized = String(value)
+        .replace(' ', 'T')
+        .replace(/(\.\d{3})\d+/, '$1')
+        .replace(/([+-]\d{2})$/, '$1:00')
+
+    const date = new Date(normalized)
+
+    if (Number.isNaN(date.getTime())) {
+        const fallback = String(value).match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/)
+
+        return fallback ? `${fallback[1]} ${fallback[2]}` : String(value)
+    }
+
+    return new Intl.DateTimeFormat(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    }).format(date)
+}
+
 const formatTotal = (order) => {
     const price = Number(order.price)
     const quantity = Number(order.quantity)
@@ -111,8 +135,8 @@ const OrderList = (componentProps) => h('section', { class: 'index-surface index
                     h('p', { class: 'index-record__title prose-wrap' }, order.claimName || 'Unknown market'),
                     h('div', { class: 'mt-2 flex flex-wrap gap-2' }, [
                         order.ownerUsername ? h('span', { class: 'tag' }, order.ownerUsername) : null,
-                        order.regionName ? h('span', { class: 'tag' }, order.regionName) : null,
-                        order.updatedAt ? h('span', { class: 'tag' }, order.updatedAt) : null,
+                        order.regionName ? h('span', { class: 'tag' }, `Region: ${order.regionName}`) : null,
+                        order.updatedAt ? h('span', { class: 'tag' }, normalizeTimestamp(order.updatedAt)) : null,
                     ]),
                     order.claimEntityId ? h(Link, {
                         href: componentProps.claimLinkHref(order),
@@ -120,17 +144,17 @@ const OrderList = (componentProps) => h('section', { class: 'index-surface index
                     }, () => 'Filter to this claim ->') : null,
                 ]),
                 h('div', { class: 'grid gap-2 border-t border-border pt-3 text-xs font-ui text-muted-2 sm:grid-cols-3' }, [
-                    h('div', { class: 'flex items-center justify-between gap-3' }, [
-                        h('span', 'Unit price'),
-                        h('span', { class: 'text-primary' }, formatCoins(order.price)),
+                    h('div', { class: 'rounded-md border border-border bg-surface-2 px-3 py-2' }, [
+                        h('span', { class: 'block uppercase tracking-wide text-[10px] text-muted-3' }, 'Unit price'),
+                        h('span', { class: 'mt-1 block text-sm font-semibold text-primary' }, formatCoins(order.price)),
                     ]),
-                    h('div', { class: 'flex items-center justify-between gap-3' }, [
-                        h('span', 'Quantity'),
-                        h('span', { class: 'text-primary' }, formatCount(order.quantity)),
+                    h('div', { class: 'rounded-md border border-border bg-surface-2 px-3 py-2' }, [
+                        h('span', { class: 'block uppercase tracking-wide text-[10px] text-muted-3' }, 'Qty available'),
+                        h('span', { class: 'mt-1 block text-sm font-semibold text-primary' }, formatCount(order.quantity)),
                     ]),
-                    h('div', { class: 'flex items-center justify-between gap-3' }, [
-                        h('span', 'Total'),
-                        h('span', { class: 'text-primary' }, formatTotal(order)),
+                    h('div', { class: 'rounded-md border border-border bg-surface-2 px-3 py-2' }, [
+                        h('span', { class: 'block uppercase tracking-wide text-[10px] text-muted-3' }, 'Line total'),
+                        h('span', { class: 'mt-1 block text-sm font-semibold text-primary' }, formatTotal(order)),
                     ]),
                 ]),
             ]),

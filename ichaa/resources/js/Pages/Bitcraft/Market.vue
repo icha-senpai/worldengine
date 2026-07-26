@@ -12,14 +12,26 @@
             </div>
         </template>
 
-        <form @submit.prevent="submit" class="index-panel">
-            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.3fr)_minmax(160px,0.7fr)_minmax(210px,0.95fr)_minmax(190px,0.85fr)_minmax(190px,0.85fr)_minmax(150px,0.65fr)]">
-                <label class="field-group">
+        <form @submit.prevent="submit" class="market-search-panel">
+            <div class="market-search-panel__header">
+                <div class="min-w-0">
+                    <p class="market-search-panel__eyebrow">{{ isBarterTool ? 'Barter stalls' : 'Market finder' }}</p>
+                    <h2 class="market-search-panel__title">Item Search</h2>
+                </div>
+
+                <div class="market-search-panel__stats">
+                    <span class="tag">{{ market.items.length }} item{{ market.items.length === 1 ? '' : 's' }}</span>
+                    <span class="tag">{{ market.claims.length }} claim{{ market.claims.length === 1 ? '' : 's' }}</span>
+                </div>
+            </div>
+
+            <div class="market-search-panel__primary">
+                <label class="field-group market-search-panel__query">
                     <span class="field-label">Item search</span>
-                    <TextInput v-model.trim="form.q" type="text" placeholder="Astralite, timber, pickaxe..." />
+                    <TextInput v-model.trim="form.q" type="search" class="market-search-panel__search-input" placeholder="Astralite, timber, pickaxe..." />
                 </label>
 
-                <label class="field-group">
+                <label class="field-group market-search-panel__category">
                     <span class="field-label">Category</span>
                     <SelectInput v-model="form.category" @change="submit">
                         <option value="">All categories</option>
@@ -33,6 +45,17 @@
                     </SelectInput>
                 </label>
 
+                <label v-if="isBarterTool" class="field-group market-search-panel__side">
+                    <span class="field-label">Listing side</span>
+                    <SelectInput v-model="form.side">
+                        <option value="">Both</option>
+                        <option value="sell">Sell</option>
+                        <option value="buy">Buy</option>
+                    </SelectInput>
+                </label>
+            </div>
+
+            <div class="market-search-panel__filters">
                 <label class="field-group">
                     <span class="field-label">{{ tool.claimIdLabel }}</span>
                     <TextInput v-model.trim="form.claimEntityId" type="text" inputmode="numeric" placeholder="288230376165363891" />
@@ -59,35 +82,33 @@
                 </label>
             </div>
 
-            <div v-if="isBarterTool" class="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(140px,0.4fr)]">
-                <label class="field-group">
-                    <span class="field-label">Listing side</span>
-                    <SelectInput v-model="form.side">
-                        <option value="">Both</option>
-                        <option value="sell">Sell</option>
-                        <option value="buy">Buy</option>
-                    </SelectInput>
-                </label>
-            </div>
-
-            <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div class="flex flex-wrap gap-3">
-                    <label class="inline-flex items-center gap-2 text-sm font-ui text-muted-2">
-                        <input v-model="form.hasOrders" type="checkbox" class="rounded border-border bg-surface text-primary focus:ring-primary" />
-                        Has orders
+            <div class="market-search-panel__footer">
+                <div class="market-search-panel__toggles" aria-label="Order filters">
+                    <label class="market-search-toggle" :class="{ 'is-active': form.hasOrders }">
+                        <input v-model="form.hasOrders" type="checkbox" class="market-search-toggle__input" />
+                        <span class="market-search-toggle__copy">
+                            <span class="market-search-toggle__label">Has orders</span>
+                            <span class="market-search-toggle__hint">Any side</span>
+                        </span>
                     </label>
-                    <label class="inline-flex items-center gap-2 text-sm font-ui text-muted-2">
-                        <input v-model="form.hasSellOrders" type="checkbox" class="rounded border-border bg-surface text-primary focus:ring-primary" />
-                        Sell orders
+                    <label class="market-search-toggle" :class="{ 'is-active': form.hasSellOrders }">
+                        <input v-model="form.hasSellOrders" type="checkbox" class="market-search-toggle__input" />
+                        <span class="market-search-toggle__copy">
+                            <span class="market-search-toggle__label">Sell orders</span>
+                            <span class="market-search-toggle__hint">Players selling</span>
+                        </span>
                     </label>
-                    <label class="inline-flex items-center gap-2 text-sm font-ui text-muted-2">
-                        <input v-model="form.hasBuyOrders" type="checkbox" class="rounded border-border bg-surface text-primary focus:ring-primary" />
-                        Buy orders
+                    <label class="market-search-toggle" :class="{ 'is-active': form.hasBuyOrders }">
+                        <input v-model="form.hasBuyOrders" type="checkbox" class="market-search-toggle__input" />
+                        <span class="market-search-toggle__copy">
+                            <span class="market-search-toggle__label">Buy orders</span>
+                            <span class="market-search-toggle__hint">Players buying</span>
+                        </span>
                     </label>
                 </div>
 
-                <div class="flex flex-wrap gap-2">
-                    <AppButton type="submit" variant="primary">Search</AppButton>
+                <div class="market-search-panel__actions">
+                    <AppButton type="submit" variant="primary" :disabled="searching">{{ searching ? 'Searching...' : 'Search' }}</AppButton>
                     <AppButton v-if="form.claimEntityId" type="button" variant="ghost" @click="clearClaim">{{ tool.clearLabel }}</AppButton>
                     <AppButton type="button" variant="ghost" @click="reset">Reset</AppButton>
                 </div>
@@ -111,100 +132,114 @@
                     </div>
                 </div>
 
-                <div v-if="market.items.length" class="space-y-5">
-                    <section
-                        v-for="group in groupedMarketItems"
-                        :key="group.category"
-                        class="space-y-3"
-                    >
-                        <div class="flex items-center justify-between gap-3">
-                            <h3 class="text-sm font-ui font-semibold text-primary">{{ group.category }}</h3>
-                            <span class="tag">{{ group.items.length }}</span>
-                        </div>
+                <div class="surface-section__body">
+                    <div v-if="market.items.length" class="space-y-5">
+                        <section
+                            v-for="group in groupedMarketItems"
+                            :key="group.category"
+                            class="space-y-3"
+                        >
+                            <div class="flex items-center justify-between gap-3">
+                                <h3 class="text-sm font-ui font-semibold text-primary">{{ group.category }}</h3>
+                                <span class="tag">{{ group.items.length }}</span>
+                            </div>
 
-                        <div class="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
-                            <article
-                                v-for="item in group.items"
-                                :key="`${item.type}-${item.id}`"
-                                :id="isBarterTool ? barterItemAnchor(item) : null"
-                                class="index-record"
-                                :class="{
-                                    'border-[rgb(var(--accent-cyan-rgb)/0.5)]': isSelectedExplorerItem(item),
-                                }"
-                            >
-                                <div class="flex min-h-16 gap-3">
-                                    <div class="flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-surface-2 text-xs font-ui text-muted-3">
-                                        {{ item.tier ? `T${item.tier}` : 'Item' }}
+                            <div class="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+                                <article
+                                    v-for="item in group.items"
+                                    :key="`${item.type}-${item.id}`"
+                                    :id="isBarterTool ? barterItemAnchor(item) : null"
+                                    class="index-record"
+                                    :class="{
+                                        'border-[rgb(var(--accent-cyan-rgb)/0.5)]': isSelectedExplorerItem(item),
+                                    }"
+                                >
+                                    <div class="flex min-h-16 gap-3">
+                                        <span
+                                            class="market-item-icon"
+                                            :style="itemFrameStyle(item)"
+                                            aria-hidden="true"
+                                        >
+                                            <img
+                                                v-if="marketItemIconUrl(item)"
+                                                :src="marketItemIconUrl(item)"
+                                                alt=""
+                                                loading="lazy"
+                                                class="absolute inset-1 size-10 object-contain"
+                                                @error="hideBrokenIcon(item.iconAssetName)"
+                                            >
+                                            <span v-else>{{ itemInitials(item.name) }}</span>
+                                        </span>
+
+                                        <div class="min-w-0 flex-1">
+                                            <p class="index-record__title prose-wrap">{{ item.name }}</p>
+                                            <p class="index-record__subtitle prose-wrap">{{ item.category || 'Uncategorized' }}</p>
+                                        </div>
                                     </div>
 
-                                    <div class="min-w-0 flex-1">
-                                        <p class="index-record__title prose-wrap">{{ item.name }}</p>
-                                        <p class="index-record__subtitle prose-wrap">{{ item.category || 'Uncategorized' }}</p>
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        <span v-if="item.rarity" class="tag">{{ item.rarity }}</span>
+                                        <span v-if="item.tier" class="tag">Tier {{ item.tier }}</span>
+                                        <span class="tag">{{ item.kind }}</span>
                                     </div>
-                                </div>
 
-                                <div class="mt-3 flex flex-wrap gap-2">
-                                    <span v-if="item.rarity" class="tag">{{ item.rarity }}</span>
-                                    <span v-if="item.tier" class="tag">Tier {{ item.tier }}</span>
-                                    <span class="tag">{{ item.kind }}</span>
-                                </div>
+                                    <div class="mt-4 grid grid-cols-2 gap-2">
+                                        <button
+                                            v-if="isBarterTool"
+                                            type="button"
+                                            class="tag justify-center text-center transition-colors"
+                                            :class="item.sellOrderCount ? 'tag--success hover:text-focus' : 'opacity-45 pointer-events-none'"
+                                            :disabled="!item.sellOrderCount"
+                                            @click="openBarterItem(item, 'sell')"
+                                        >
+                                            Sell {{ item.sellOrderCount ? formatCount(item.sellOrderCount) : '-' }}
+                                        </button>
+                                        <button
+                                            v-else
+                                            type="button"
+                                            class="tag justify-center text-center transition-colors"
+                                            :class="item.sellOrderCount ? 'tag--success hover:text-focus' : 'opacity-45 pointer-events-none'"
+                                            :disabled="!item.sellOrderCount"
+                                            @click="openMarketItem(item, 'sell')"
+                                        >
+                                            Sell {{ item.sellOrderCount ? formatCount(item.sellOrderCount) : '-' }}
+                                        </button>
+                                        <button
+                                            v-if="isBarterTool"
+                                            type="button"
+                                            class="tag justify-center text-center transition-colors"
+                                            :class="item.buyOrderCount ? 'tag--warn hover:text-focus' : 'opacity-45 pointer-events-none'"
+                                            :disabled="!item.buyOrderCount"
+                                            @click="openBarterItem(item, 'buy')"
+                                        >
+                                            Buy {{ item.buyOrderCount ? formatCount(item.buyOrderCount) : '-' }}
+                                        </button>
+                                        <button
+                                            v-else
+                                            type="button"
+                                            class="tag justify-center text-center transition-colors"
+                                            :class="item.buyOrderCount ? 'tag--warn hover:text-focus' : 'opacity-45 pointer-events-none'"
+                                            :disabled="!item.buyOrderCount"
+                                            @click="openMarketItem(item, 'buy')"
+                                        >
+                                            Buy {{ item.buyOrderCount ? formatCount(item.buyOrderCount) : '-' }}
+                                        </button>
+                                    </div>
 
-                                <div class="mt-4 grid grid-cols-2 gap-2">
-                                    <button
-                                        v-if="isBarterTool"
-                                        type="button"
-                                        class="tag justify-center text-center transition-colors"
-                                        :class="item.sellOrderCount ? 'tag--success hover:text-focus' : 'opacity-45 pointer-events-none'"
-                                        :disabled="!item.sellOrderCount"
-                                        @click="openBarterItem(item, 'sell')"
-                                    >
-                                        Sell {{ item.sellOrderCount ? formatCount(item.sellOrderCount) : '-' }}
-                                    </button>
-                                    <button
-                                        v-else
-                                        type="button"
-                                        class="tag justify-center text-center transition-colors"
-                                        :class="item.sellOrderCount ? 'tag--success hover:text-focus' : 'opacity-45 pointer-events-none'"
-                                        :disabled="!item.sellOrderCount"
-                                        @click="openMarketItem(item, 'sell')"
-                                    >
-                                        Sell {{ item.sellOrderCount ? formatCount(item.sellOrderCount) : '-' }}
-                                    </button>
-                                    <button
-                                        v-if="isBarterTool"
-                                        type="button"
-                                        class="tag justify-center text-center transition-colors"
-                                        :class="item.buyOrderCount ? 'tag--warn hover:text-focus' : 'opacity-45 pointer-events-none'"
-                                        :disabled="!item.buyOrderCount"
-                                        @click="openBarterItem(item, 'buy')"
-                                    >
-                                        Buy {{ item.buyOrderCount ? formatCount(item.buyOrderCount) : '-' }}
-                                    </button>
-                                    <button
-                                        v-else
-                                        type="button"
-                                        class="tag justify-center text-center transition-colors"
-                                        :class="item.buyOrderCount ? 'tag--warn hover:text-focus' : 'opacity-45 pointer-events-none'"
-                                        :disabled="!item.buyOrderCount"
-                                        @click="openMarketItem(item, 'buy')"
-                                    >
-                                        Buy {{ item.buyOrderCount ? formatCount(item.buyOrderCount) : '-' }}
-                                    </button>
-                                </div>
+                                    <div class="mt-3 grid grid-cols-2 gap-2 text-xs font-ui text-muted-2">
+                                        <span>Lowest sell</span>
+                                        <span class="text-right text-primary">{{ formatCoins(item.lowestSellPrice) }}</span>
+                                        <span>Highest buy</span>
+                                        <span class="text-right text-primary">{{ formatCoins(item.highestBuyPrice) }}</span>
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+                    </div>
 
-                                <div class="mt-3 grid grid-cols-2 gap-2 text-xs font-ui text-muted-2">
-                                    <span>Lowest sell</span>
-                                    <span class="text-right text-primary">{{ formatCoins(item.lowestSellPrice) }}</span>
-                                    <span>Highest buy</span>
-                                    <span class="text-right text-primary">{{ formatCoins(item.highestBuyPrice) }}</span>
-                                </div>
-                            </article>
-                        </div>
-                    </section>
-                </div>
-
-                <div v-else class="empty-state-panel">
-                    <p class="text-muted-3 text-sm font-ui">{{ explorerEmptyLabel }}</p>
+                    <div v-else class="empty-state-panel">
+                        <p class="text-muted-3 text-sm font-ui">{{ explorerEmptyLabel }}</p>
+                    </div>
                 </div>
             </section>
 
@@ -216,30 +251,32 @@
                     </div>
                 </div>
 
-                <div v-if="market.claims.length" class="grid gap-2">
-                    <button
-                        v-for="claim in market.claims"
-                        :key="claim.entityId"
-                        type="button"
-                        class="index-record text-left hover:border-[rgb(var(--accent-cyan-rgb)/0.35)] transition-colors"
-                        :class="{ 'border-[rgb(var(--accent-cyan-rgb)/0.5)]': form.claimEntityId === String(claim.entityId) }"
-                        @click="selectClaim(claim)"
-                    >
-                        <span class="index-record__title prose-wrap">{{ claim.name }}</span>
-                        <span class="mt-1 block index-record__subtitle prose-wrap">
-                            {{ claim.regionName || 'Unknown region' }}
-                            <span v-if="claim.tier"> · Tier {{ claim.tier }}</span>
-                            <span v-if="claim.empireName"> · {{ claim.empireName }}</span>
-                        </span>
-                        <span v-if="claim.tradeBuildingCount" class="mt-2 block text-xs font-ui text-muted-2">
-                            {{ claim.tradeBuildingCount }} {{ claim.tradeBuildingCount === 1 ? tool.tradeBuildingSingular : tool.tradeBuildingPlural }}
-                            <span v-if="claim.tradeOrderCount"> · {{ claim.tradeOrderCount }} trade slots</span>
-                        </span>
-                        <span class="mt-2 block text-[11px] font-ui text-muted-3">{{ claim.entityId }}</span>
-                    </button>
-                </div>
-                <div v-else class="empty-state-panel">
-                    <p class="text-muted-3 text-sm font-ui">{{ tool.claimEmptyLabel }}</p>
+                <div class="surface-section__body">
+                    <div v-if="market.claims.length" class="grid gap-2">
+                        <button
+                            v-for="claim in market.claims"
+                            :key="claim.entityId"
+                            type="button"
+                            class="index-record text-left hover:border-[rgb(var(--accent-cyan-rgb)/0.35)] transition-colors"
+                            :class="{ 'border-[rgb(var(--accent-cyan-rgb)/0.5)]': form.claimEntityId === String(claim.entityId) }"
+                            @click="selectClaim(claim)"
+                        >
+                            <span class="index-record__title prose-wrap">{{ claim.name }}</span>
+                            <span class="mt-1 block index-record__subtitle prose-wrap">
+                                {{ claim.regionName || 'Unknown region' }}
+                                <span v-if="claim.tier"> · Tier {{ claim.tier }}</span>
+                                <span v-if="claim.empireName"> · {{ claim.empireName }}</span>
+                            </span>
+                            <span v-if="claim.tradeBuildingCount" class="mt-2 block text-xs font-ui text-muted-2">
+                                {{ claim.tradeBuildingCount }} {{ claim.tradeBuildingCount === 1 ? tool.tradeBuildingSingular : tool.tradeBuildingPlural }}
+                                <span v-if="claim.tradeOrderCount"> · {{ claim.tradeOrderCount }} trade slots</span>
+                            </span>
+                            <span class="mt-2 block text-[11px] font-ui text-muted-3">{{ claim.entityId }}</span>
+                        </button>
+                    </div>
+                    <div v-else class="empty-state-panel">
+                        <p class="text-muted-3 text-sm font-ui">{{ tool.claimEmptyLabel }}</p>
+                    </div>
                 </div>
             </section>
 
@@ -277,6 +314,7 @@ import BarterListingsPopup from '@/Pages/Bitcraft/Components/BarterListingsPopup
 import MarketOrderBookPopup from '@/Pages/Bitcraft/Components/MarketOrderBookPopup.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
+import { bitcraftItemFrameStyle, bitjitaAssetUrl } from '@/Pages/Bitcraft/bitjitaAssets.js'
 
 const props = defineProps({
     filters: { type: Object, default: () => ({}) },
@@ -338,6 +376,8 @@ const activeBarterItemKind = ref(String(props.filters.itemKind ?? ''))
 const activeBarterSide = ref(props.filters.side ?? '')
 const activeBarterPopupOpen = ref(Boolean(props.filters.itemId))
 const activeMarketPopupOpen = ref(Boolean(props.market.orderBook))
+const brokenIconAssets = ref(new Set())
+const searching = ref(false)
 const selectedOrderBookItemId = computed(() => String(props.market.orderBook?.item?.id ?? ''))
 const isBarterTool = computed(() => props.tool.key === 'barter-stalls')
 const hasStallOrderListings = computed(() => (props.market.listings ?? []).some((listing) => listing.source === 'stall-order'))
@@ -450,19 +490,49 @@ const marketItemParams = (item, orderSide = null) => {
 
 const barterItemAnchor = (item) => `barter-item-${item.kind ?? item.type ?? 'item'}-${item.id}`
 
-const submit = () => {
-    router.get(route(props.tool.routeName ?? 'bitcraft.market'), cleanPayload(), {
+const itemInitials = (name) => String(name ?? '?')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || '?'
+
+const marketItemIconUrl = (item) => {
+    const assetName = item?.iconAssetName
+
+    if (brokenIconAssets.value.has(assetName)) {
+        return null
+    }
+
+    return bitjitaAssetUrl(assetName)
+}
+
+const hideBrokenIcon = (assetName) => {
+    brokenIconAssets.value = new Set([...brokenIconAssets.value, assetName])
+}
+
+const itemFrameStyle = (item) => bitcraftItemFrameStyle(item?.tier, item?.rarity)
+
+const visitTool = (url, params = {}) => {
+    router.get(url, params, {
         preserveState: true,
         preserveScroll: true,
         replace: true,
+        onStart: () => {
+            searching.value = true
+        },
+        onFinish: () => {
+            searching.value = false
+        },
     })
 }
 
+const submit = () => {
+    visitTool(route(props.tool.routeName ?? 'bitcraft.market'), cleanPayload())
+}
+
 const reset = () => {
-    router.get(route(props.tool.routeName ?? 'bitcraft.market'), {}, {
-        preserveState: true,
-        replace: true,
-    })
+    visitTool(route(props.tool.routeName ?? 'bitcraft.market'), {})
 }
 
 const selectClaim = (claim) => {
@@ -495,11 +565,7 @@ const openBarterItem = (item, side) => {
 const openMarketItem = (item, side) => {
     const params = marketItemParams(item, side)
 
-    router.get(route(props.tool.routeName ?? 'bitcraft.market', params), {}, {
-        preserveState: true,
-        preserveScroll: true,
-        replace: true,
-    })
+    visitTool(route(props.tool.routeName ?? 'bitcraft.market', params), {})
 }
 
 const setSide = (side, item = null) => {
@@ -521,11 +587,7 @@ const setSide = (side, item = null) => {
     form.side = side
     const params = item ? marketItemParams(item, side) : cleanPayload()
 
-    router.get(route(props.tool.routeName ?? 'bitcraft.market', params), {}, {
-        preserveState: true,
-        preserveScroll: true,
-        replace: true,
-    })
+    visitTool(route(props.tool.routeName ?? 'bitcraft.market', params), {})
 }
 
 const barterListingMatchesActiveItem = (listing) => {
@@ -617,3 +679,230 @@ const formatCount = (value) => {
 }
 
 </script>
+
+<style scoped>
+.market-search-panel {
+    margin-bottom: 20px;
+    padding: 18px;
+    overflow: hidden;
+    border: 1px solid rgb(var(--border-color-2-rgb) / 0.28);
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at top left, rgb(var(--accent-cyan-rgb) / 0.14), transparent 34%),
+        linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.98), rgb(var(--bg-surface-rgb) / 0.96));
+    box-shadow:
+        inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.05),
+        0 18px 38px rgb(0 0 0 / 0.18);
+}
+
+.market-search-panel__header,
+.market-search-panel__footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.market-search-panel__eyebrow {
+    color: var(--accent-cyan);
+    font-family: var(--font-ui);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.market-search-panel__title {
+    margin-top: 3px;
+    color: var(--text-primary);
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.15;
+}
+
+.market-search-panel__stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.market-search-panel__primary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.market-search-panel__filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgb(var(--border-color-2-rgb) / 0.18);
+}
+
+.market-search-panel__footer {
+    flex-direction: column;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgb(var(--border-color-2-rgb) / 0.18);
+}
+
+.market-search-panel__toggles,
+.market-search-panel__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.market-search-panel__actions {
+    width: 100%;
+}
+
+.market-search-panel__actions :deep(.app-btn) {
+    flex: 1 1 120px;
+}
+
+.market-search-panel__search-input {
+    height: 52px;
+    padding-inline: 18px;
+    border-color: rgb(var(--accent-cyan-rgb) / 0.36);
+    font-size: 16px;
+    background:
+        linear-gradient(180deg, rgb(var(--bg-surface-4-rgb) / 0.36), rgb(var(--bg-surface-rgb) / 0.96)),
+        var(--bg-surface);
+}
+
+.market-search-toggle {
+    position: relative;
+    display: inline-flex;
+    min-width: 132px;
+    flex: 1 1 132px;
+    cursor: pointer;
+    border: 1px solid rgb(var(--border-color-2-rgb) / 0.22);
+    border-radius: 8px;
+    background: rgb(var(--bg-surface-2-rgb) / 0.64);
+    padding: 10px 12px;
+    transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.15s;
+}
+
+.market-search-toggle:hover {
+    border-color: rgb(var(--accent-cyan-rgb) / 0.38);
+    background: rgb(var(--bg-surface-3-rgb) / 0.68);
+}
+
+.market-search-toggle.is-active {
+    border-color: rgb(var(--accent-cyan-rgb) / 0.54);
+    background: rgb(var(--accent-cyan-rgb) / 0.12);
+    box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.05);
+}
+
+.market-search-toggle__input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.market-search-toggle__input:focus-visible + .market-search-toggle__copy {
+    outline: 2px solid rgb(var(--accent-cyan-rgb) / 0.7);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.market-search-toggle__copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    pointer-events: none;
+}
+
+.market-search-toggle__label {
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.market-search-toggle__hint {
+    color: var(--text-muted-3);
+    font-family: var(--font-ui);
+    font-size: 11px;
+}
+
+.market-search-toggle.is-active .market-search-toggle__hint {
+    color: var(--accent-cyan-2);
+}
+
+.market-item-icon {
+    position: relative;
+    display: grid;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--bitcraft-item-frame-border, rgb(var(--border-color-rgb) / 0.7));
+    border-radius: 6px;
+    background:
+        radial-gradient(circle at 35% 25%, var(--bitcraft-item-frame-bg, rgb(var(--accent-cyan-rgb) / 0.2)), transparent 42%),
+        linear-gradient(180deg, color-mix(in srgb, var(--bitcraft-item-frame-accent, transparent) 12%, transparent), transparent),
+        rgb(var(--bg-surface-rgb) / 0.92);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 12px color-mix(in srgb, var(--bitcraft-item-frame-accent, transparent) 20%, transparent);
+    color: var(--bitcraft-item-frame-text, var(--text-muted-3));
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+@media (min-width: 640px) {
+    .market-search-panel {
+        padding: 20px;
+    }
+
+    .market-search-panel__primary {
+        grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
+        align-items: end;
+    }
+
+    .market-search-panel__primary:has(.market-search-panel__side) {
+        grid-template-columns: minmax(0, 1fr) minmax(160px, 200px) minmax(140px, 170px);
+    }
+
+    .market-search-panel__filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .market-search-panel__actions {
+        width: auto;
+        justify-content: flex-end;
+    }
+
+    .market-search-panel__actions :deep(.app-btn) {
+        flex: 0 0 auto;
+    }
+}
+
+@media (min-width: 1024px) {
+    .market-search-panel__footer {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .market-search-panel__toggles {
+        flex: 1 1 auto;
+    }
+
+    .market-search-panel__filters {
+        grid-template-columns: minmax(190px, 0.95fr) minmax(190px, 1fr) minmax(190px, 1fr) minmax(150px, 0.8fr);
+    }
+
+    .market-search-toggle {
+        flex: 0 1 150px;
+    }
+}
+</style>

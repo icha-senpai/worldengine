@@ -31,7 +31,7 @@ class NotionNote extends Model
         return $this->morphTo();
     }
 
-    public function scopeForPage(Builder $query, string $pageId): Builder
+    public function scopeForNotionPage(Builder $query, string $pageId): Builder
     {
         return $query->where('notion_page_id', $pageId);
     }

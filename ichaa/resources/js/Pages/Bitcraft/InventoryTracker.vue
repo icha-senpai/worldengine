@@ -424,6 +424,7 @@ const closePickerOnOutsidePointer = (event) => {
 
 const payload = (setup) => ({
     source: form.source,
+    user: props.filters.user ?? undefined,
     character: form.character,
     title: form.title,
     icons: form.icons,

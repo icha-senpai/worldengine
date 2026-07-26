@@ -149,7 +149,7 @@ class BitcraftToolController extends Controller
                         ? $this->claimSearchResults($bitjita, $filters)
                         : [];
                 } else {
-                    $market['claims'] = $this->claimSearchResults($bitjita, $filters);
+                    $market['claims'] = $this->marketClaimSearchResults($bitjita, $filters);
                 }
             } catch (Throwable $exception) {
                 report($exception);
@@ -165,7 +165,7 @@ class BitcraftToolController extends Controller
 
                 if ($filters['claimEntityId'] !== '') {
                     if ($tool === 'market') {
-                        $market = $this->normalizeMarket($bitjita->market($this->marketSearchFilters($filters)));
+                        $market = $this->normalizeMarket($bitjita->market($this->marketSearchFilters($filters)), $filters);
                         $market['claims'] = $claims;
                         $market['empires'] = $empires;
                         $market['claim'] = $this->selectedClaim($claims, $filters['claimEntityId']);
@@ -206,7 +206,7 @@ class BitcraftToolController extends Controller
                     $market['items'] = $this->marketItemsFromListings($market['listings']);
                     $market['categories'] = $this->categoriesFromMarketItems($market['items']);
                 } elseif ($tool === 'market' && $this->shouldSearchGlobalMarket($filters)) {
-                    $market = $this->normalizeMarket($bitjita->market($this->marketSearchFilters($filters)));
+                    $market = $this->normalizeMarket($bitjita->market($this->marketSearchFilters($filters)), $filters);
                     $market['claims'] = $claims;
                     $market['empires'] = $empires;
                     $selectedItem = $this->selectedMarketItem($market['items'], $filters);
@@ -311,6 +311,7 @@ class BitcraftToolController extends Controller
             ],
             'items' => $items,
             'detail' => $detail,
+            'snapshot' => $spacetime->metadata(),
             'error' => $error,
         ];
     }
@@ -455,15 +456,17 @@ class BitcraftToolController extends Controller
         ];
     }
 
-    private function normalizeMarket(array $payload): array
+    private function normalizeMarket(array $payload, array $filters = []): array
     {
         $data = data_get($payload, 'data', $payload);
+        $items = collect(data_get($data, 'items', []))
+            ->map(fn (array $item) => $this->normalizeMarketItem($item))
+            ->filter(fn (array $item) => $this->matchesMarketOrderFilters($item, $filters))
+            ->values()
+            ->all();
 
         return [
-            'items' => collect(data_get($data, 'items', []))
-                ->map(fn (array $item) => $this->normalizeMarketItem($item))
-                ->values()
-                ->all(),
+            'items' => $items,
             'categories' => collect(data_get($data, 'categories', []))
                 ->map(fn ($category) => is_array($category) ? data_get($category, 'name', '') : $category)
                 ->filter()
@@ -497,6 +500,26 @@ class BitcraftToolController extends Controller
             'sellOrderCount' => data_get($item, 'sellOrderCount', data_get($item, 'sellOrders', data_get($stats, 'sellOrderCount'))),
             'buyOrderCount' => data_get($item, 'buyOrderCount', data_get($item, 'buyOrders', data_get($stats, 'buyOrderCount'))),
         ];
+    }
+
+    private function matchesMarketOrderFilters(array $item, array $filters): bool
+    {
+        $sellOrderCount = (int) ($item['sellOrderCount'] ?? 0);
+        $buyOrderCount = (int) ($item['buyOrderCount'] ?? 0);
+
+        if (($filters['hasSellOrders'] ?? false) && $sellOrderCount <= 0) {
+            return false;
+        }
+
+        if (($filters['hasBuyOrders'] ?? false) && $buyOrderCount <= 0) {
+            return false;
+        }
+
+        if (($filters['hasOrders'] ?? false) && ($sellOrderCount + $buyOrderCount) <= 0) {
+            return false;
+        }
+
+        return true;
     }
 
     private function selectedMarketItem(array $items, array $filters): ?array
@@ -655,6 +678,45 @@ class BitcraftToolController extends Controller
         ]));
     }
 
+    private function marketClaimSearchResults(BitjitaClient $bitjita, array $filters): array
+    {
+        $claims = $this->claimSearchResults($bitjita, $filters);
+        $buildingsByClaim = $bitjita->claimBuildingsMany(collect($claims)->pluck('entityId')->all());
+
+        return collect($claims)
+            ->map(fn (array $claim) => $this->claimWithMarketBuildingPayload($claim, $buildingsByClaim[(string) $claim['entityId']] ?? []))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function claimWithMarketBuildings(BitjitaClient $bitjita, array $claim): ?array
+    {
+        return $this->claimWithMarketBuildingPayload($claim, $bitjita->claimBuildings((string) $claim['entityId']));
+    }
+
+    private function claimWithMarketBuildingPayload(array $claim, array $payload): ?array
+    {
+        $buildings = $this->marketBuildings($payload);
+
+        if ($buildings === []) {
+            return null;
+        }
+
+        return [
+            ...$claim,
+            'tradeBuildingCount' => count($buildings),
+            'tradeOrderCount' => collect($buildings)->sum(fn (array $building): int => (int) ($building['tradeOrders'] ?? 0)),
+            'tradeBuildings' => $buildings,
+            'tradeBuildingNames' => collect($buildings)
+                ->map(fn (array $building) => $building['buildingNickname'] ?: $building['buildingName'])
+                ->filter()
+                ->unique()
+                ->values()
+                ->all(),
+        ];
+    }
+
     private function filterClaims(array $claims, array $filters): array
     {
         $query = strtolower($filters['claimQ']);
@@ -664,6 +726,81 @@ class BitcraftToolController extends Controller
             ->filter(fn (array $claim) => $query === '' || str_contains(strtolower((string) $claim['name']), $query))
             ->values()
             ->all();
+    }
+
+    private function marketBuildings(array $payload): array
+    {
+        $buildings = data_get($payload, 'buildings')
+            ?? data_get($payload, 'data.buildings')
+            ?? (array_is_list($payload) ? $payload : []);
+
+        return collect($buildings)
+            ->filter(fn (array $building): bool => $this->isMarketBuilding($building))
+            ->map(fn (array $building): array => $this->normalizeMarketBuilding($building))
+            ->values()
+            ->all();
+    }
+
+    private function isMarketBuilding(array $building): bool
+    {
+        $name = strtolower((string) data_get($building, 'buildingName', data_get($building, 'name', '')));
+
+        if (str_contains($name, 'barter')) {
+            return false;
+        }
+
+        return str_contains($name, 'market')
+            || (string) data_get($building, 'buildingDescriptionId') === '934683282'
+            || $this->buildingTradeOrderCount($building) > 0;
+    }
+
+    private function normalizeMarketBuilding(array $building): array
+    {
+        return [
+            'entityId' => data_get($building, 'entityId'),
+            'buildingDescriptionId' => data_get($building, 'buildingDescriptionId'),
+            'buildingName' => data_get($building, 'buildingName', data_get($building, 'name', 'Market')),
+            'buildingNickname' => data_get($building, 'buildingNickname', data_get($building, 'nickname')),
+            'iconAssetName' => data_get($building, 'iconAssetName'),
+            'level' => data_get($building, 'level'),
+            'tradeOrders' => $this->buildingTradeOrderCount($building),
+            'buildingKind' => data_get($building, 'buildingKind', 'Market'),
+            'storageSlots' => $this->buildingFunctionSlotCount($building, 'storage_slots'),
+            'cargoSlots' => $this->buildingFunctionSlotCount($building, 'cargo_slots'),
+            'claimEntityId' => data_get($building, 'claimEntityId'),
+            'claimName' => data_get($building, 'claimName'),
+            'regionId' => data_get($building, 'regionId'),
+            'regionName' => data_get($building, 'regionName'),
+            'locationX' => data_get($building, 'locationX'),
+            'locationZ' => data_get($building, 'locationZ'),
+            'ownerName' => data_get($building, 'ownerName'),
+            'inventoryItems' => [],
+        ];
+    }
+
+    private function buildingTradeOrderCount(array $building): int
+    {
+        $directCount = (int) data_get($building, 'tradeOrders', data_get($building, 'trade_orders', 0));
+        $functionCount = $this->buildingFunctionSlotCount($building, 'trade_orders');
+
+        return max($directCount, $functionCount);
+    }
+
+    private function buildingFunctionSlotCount(array $building, string $key): int
+    {
+        return collect($this->buildingFunctions($building))
+            ->sum(fn (array $function): int => (int) data_get($function, $key, 0));
+    }
+
+    private function buildingFunctions(array $building): array
+    {
+        $functions = data_get($building, 'functions', []);
+
+        if (! is_array($functions)) {
+            return [];
+        }
+
+        return array_is_list($functions) ? $functions : [$functions];
     }
 
     private function normalizeStalls(array $payload): array
@@ -1183,7 +1320,7 @@ class BitcraftToolController extends Controller
             return false;
         }
 
-        return $this->preferredRecipeOptions($this->normalizeCraftingTargetDetail($detail, (string) $item['kind'])) !== [];
+        return $this->preferredRecipeOptions($this->normalizeCraftingTargetDetail($detail, (string) $item['kind']), true) !== [];
     }
 
     private function craftingTargetHasRecipes(BitjitaClient $bitjita, array $item): bool
@@ -1193,7 +1330,7 @@ class BitcraftToolController extends Controller
             (string) $item['kind'],
         );
 
-        return $this->preferredRecipeOptions($detail) !== [];
+        return $this->preferredRecipeOptions($detail, true) !== [];
     }
 
     private function craftingTargetDetail(BitjitaClient $bitjita, string $kind, int $itemId): array
@@ -1211,7 +1348,7 @@ class BitcraftToolController extends Controller
             return [];
         }
 
-        return collect($this->preferredRecipeOptions($detail))
+        return collect($this->preferredRecipeOptions($detail, $depth === 0))
             ->map(fn (array $recipe) => $this->recipeTreeNode($bitjita, $recipe, $depth, $seen, $spacetime))
             ->values()
             ->all();
@@ -1277,9 +1414,9 @@ class BitcraftToolController extends Controller
         return $this->recipeTree($bitjita, $detail, $depth, [...$seen, $targetKey], $spacetime);
     }
 
-    private function preferredRecipeOptions(array $detail): array
+    private function preferredRecipeOptions(array $detail, bool $allowPackageOnlyRoutes = false): array
     {
-        $recipes = $this->availableRecipeOptions($detail);
+        $recipes = $this->availableRecipeOptions($detail, $allowPackageOnlyRoutes);
 
         if ($recipes === []) {
             return [];
@@ -1294,12 +1431,13 @@ class BitcraftToolController extends Controller
         return [$recipe];
     }
 
-    private function availableRecipeOptions(array $detail): array
+    private function availableRecipeOptions(array $detail, bool $allowPackageOnlyRoutes = false): array
     {
         $recipes = collect([
             ...$detail['craftingRecipes'],
             ...$detail['extractionRecipes'],
-        ]);
+        ])
+            ->filter(fn (array $recipe): bool => $this->recipeOutputsTarget($recipe, $detail['item']));
 
         if ($recipes->isEmpty()) {
             return [];
@@ -1310,6 +1448,14 @@ class BitcraftToolController extends Controller
 
         $standardRecipes = $routeRecipes
             ->reject(fn (array $recipe) => $this->isSpecialCraftingRoute($recipe));
+
+        if ($standardRecipes->isEmpty() && $allowPackageOnlyRoutes) {
+            return $routeRecipes
+                ->filter(fn (array $recipe) => $this->isPackageCraftingRoute($recipe))
+                ->sort(fn (array $left, array $right) => $this->recipePreferenceTuple($left) <=> $this->recipePreferenceTuple($right))
+                ->values()
+                ->all();
+        }
 
         if ($standardRecipes->isEmpty()) {
             return [];
@@ -1337,10 +1483,7 @@ class BitcraftToolController extends Controller
     {
         $haystack = $this->recipeRouteHaystack($recipe);
 
-        if (collect([
-            'construction materials pack',
-            'package',
-        ])->contains(fn (string $term): bool => str_contains($haystack, $term))) {
+        if (str_contains($haystack, 'construction materials pack')) {
             return true;
         }
 
@@ -1358,7 +1501,12 @@ class BitcraftToolController extends Controller
             return true;
         }
 
-        return false;
+        return $this->isPackageCraftingRoute($recipe);
+    }
+
+    private function isPackageCraftingRoute(array $recipe): bool
+    {
+        return preg_match('/\b(unpack|packs?|packages?)\b/i', $this->recipeRouteHaystack($recipe)) === 1;
     }
 
     private function recipeRouteHaystack(array $recipe): string
@@ -1403,8 +1551,84 @@ class BitcraftToolController extends Controller
                 'skill' => data_get($recipe, 'skillName', data_get($recipe, 'levelRequirements.0.skill.name', data_get($recipe, 'skill'))),
                 'duration' => data_get($recipe, 'timeRequirement', data_get($recipe, 'duration', data_get($recipe, 'craftDuration'))),
                 'outputQuantity' => data_get($recipe, 'outputQuantity', data_get($recipe, 'craftedItems.0.quantity', data_get($recipe, 'quantity'))),
+                'outputs' => $this->normalizeRecipeOutputs($recipe),
                 'ingredients' => $this->normalizeIngredients($recipe),
             ])
+            ->values()
+            ->all();
+    }
+
+    private function recipeOutputsTarget(array $recipe, array $target): bool
+    {
+        $outputs = $recipe['outputs'] ?? [];
+
+        if ($outputs === []) {
+            if ($this->isPackageCraftingRoute($recipe)) {
+                return $this->packageRecipeMayOutputTarget($recipe, $target);
+            }
+
+            return true;
+        }
+
+        return collect($outputs)
+            ->contains(fn (array $output): bool => $this->craftingTargetKey($output) === $this->craftingTargetKey($target));
+    }
+
+    private function packageRecipeMayOutputTarget(array $recipe, array $target): bool
+    {
+        $recipeName = strtolower((string) $recipe['name']);
+        $targetIsPackage = $this->isPackageTarget($target);
+
+        if (preg_match('/\bunpack\b/i', $recipeName) === 1) {
+            return ! $targetIsPackage;
+        }
+
+        if (preg_match('/\b(packs?|packages?)\b/i', $recipeName) === 1) {
+            return $targetIsPackage;
+        }
+
+        return true;
+    }
+
+    private function isPackageTarget(array $target): bool
+    {
+        return str_contains(strtolower((string) ($target['name'] ?? '')), 'package')
+            || str_contains(strtolower((string) ($target['category'] ?? '')), 'package');
+    }
+
+    private function normalizeRecipeOutputs(array $recipe): array
+    {
+        $stacks = data_get($recipe, 'craftedItemStacks');
+        $craftedItems = data_get($recipe, 'craftedItems');
+
+        if (is_array($stacks)) {
+            return collect($stacks)
+                ->map(function (array $output, int $index) use ($craftedItems): array {
+                    $displayOutput = is_array($craftedItems) ? data_get($craftedItems, $index, []) : [];
+                    $id = data_get($output, 'item_id', data_get($output, 'id', data_get($output, 'itemId')));
+                    $type = data_get($output, 'item_type', data_get($displayOutput, 'itemType', data_get($output, 'type')));
+
+                    return [
+                        'id' => $id,
+                        'kind' => $this->itemKind($type),
+                    ];
+                })
+                ->filter(fn (array $output): bool => filled($output['id']))
+                ->values()
+                ->all();
+        }
+
+        return collect(is_array($craftedItems) ? $craftedItems : [])
+            ->map(function (array $output): array {
+                $id = data_get($output, 'id', data_get($output, 'itemId'));
+                $type = data_get($output, 'itemType', data_get($output, 'type'));
+
+                return [
+                    'id' => $id,
+                    'kind' => $this->itemKind($type),
+                ];
+            })
+            ->filter(fn (array $output): bool => filled($output['id']))
             ->values()
             ->all();
     }

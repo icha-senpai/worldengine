@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Bitcraft;
 
-use App\Domain\Bitcraft\Models\BitcraftWidgetProfile;
 use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
+use App\Http\Controllers\Bitcraft\Concerns\ScopesBitcraftWidgetProfiles;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +13,7 @@ use Inertia\Response as InertiaResponse;
 class BitcraftTaskTrackerController extends Controller
 {
     use NormalizesBitcraftWidgetTheme;
+    use ScopesBitcraftWidgetProfiles;
 
     private const DEFAULT_TITLE = 'Stream Tasks';
 
@@ -23,10 +24,10 @@ class BitcraftTaskTrackerController extends Controller
         $filters = $this->filters($request);
 
         if ($request->has('source') && $this->hasProfileInput($request)) {
-            $this->saveProfile($filters);
+            $this->saveBitcraftWidgetProfile($request, 'task-tracker', $filters);
 
             if (! $filters['setup']) {
-                return redirect()->route('bitcraft.task-tracker', ['source' => $filters['source']]);
+                return redirect()->route('bitcraft.task-tracker', $this->bitcraftWidgetProfileRouteParameters($request, $filters));
             }
         }
 
@@ -47,14 +48,17 @@ class BitcraftTaskTrackerController extends Controller
             'taskText' => ['nullable', 'string', 'max:160'],
             'tasks' => ['nullable', 'string', 'max:4000'],
             'setup' => ['nullable', 'boolean'],
+            'user' => ['nullable', 'integer', 'min:1'],
             ...$this->widgetThemeValidationRules(),
         ]);
         $source = trim((string) ($validated['source'] ?? 'default')) ?: 'default';
+        $userId = $this->bitcraftWidgetProfileUserId($request, $validated);
         $stored = $request->has('source') && ! $this->hasProfileInput($request)
-            ? $this->profileSettings($source)
+            ? $this->bitcraftWidgetProfileSettings('task-tracker', $source, $userId)
             : [];
 
         return [
+            'user' => $userId,
             'source' => $source,
             'title' => trim((string) ($validated['title'] ?? data_get($stored, 'title', self::DEFAULT_TITLE))) ?: self::DEFAULT_TITLE,
             'icons' => $request->has('icons')
@@ -76,34 +80,6 @@ class BitcraftTaskTrackerController extends Controller
             'tasks',
             ...$this->widgetThemeInputKeys(),
         ])->contains(fn (string $key): bool => $request->has($key));
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function profileSettings(string $source): array
-    {
-        return BitcraftWidgetProfile::query()
-            ->where('widget', 'task-tracker')
-            ->where('source', $source)
-            ->first()
-            ?->settings ?? [];
-    }
-
-    /**
-     * @param  array<string, mixed>  $filters
-     */
-    private function saveProfile(array $filters): void
-    {
-        BitcraftWidgetProfile::query()->updateOrCreate(
-            [
-                'widget' => 'task-tracker',
-                'source' => $filters['source'],
-            ],
-            [
-                'settings' => collect($filters)->except('setup')->all(),
-            ],
-        );
     }
 
     /**

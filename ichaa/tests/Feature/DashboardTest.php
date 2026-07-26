@@ -26,6 +26,7 @@ class DashboardTest extends TestCase
     public function test_verified_users_can_view_the_dashboard_with_curated_overview_panels(): void
     {
         $user = $this->verifiedUser();
+        $this->actingAs($user);
 
         $knower = Entity::factory()->character()->create(['name' => 'Johnny']);
         $subject = Entity::factory()->character()->create(['name' => 'Seraphine']);
@@ -124,6 +125,8 @@ class DashboardTest extends TestCase
     public function test_dashboard_notification_preferences_gate_the_optional_alert_panels(): void
     {
         $user = $this->verifiedUser();
+        $this->actingAs($user);
+
         $systemA = Entity::factory()->create([
             'name' => 'Storm Binding',
             'entity_type' => 'power_system',

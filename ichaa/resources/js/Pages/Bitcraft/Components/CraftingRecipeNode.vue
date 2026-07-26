@@ -201,7 +201,7 @@ const scaledQuantity = (quantity) => {
 }
 
 .crafting-node--root {
-    padding: 12px 14px 14px;
+    padding: 14px 16px 16px;
 }
 
 .crafting-node__recipe {
@@ -296,7 +296,7 @@ const scaledQuantity = (quantity) => {
     color: var(--text-primary);
     cursor: default;
     list-style: none;
-    padding: 8px 10px;
+    padding: 10px 12px;
 }
 
 details > .crafting-ingredient__row {
@@ -423,7 +423,7 @@ details:not([open]) > .crafting-ingredient__row .crafting-ingredient__chevron {
 
 @media (max-width: 640px) {
     .crafting-node--root {
-        padding: 10px;
+        padding: 12px;
     }
 
     .crafting-node__recipe-head {
@@ -439,6 +439,7 @@ details:not([open]) > .crafting-ingredient__row .crafting-ingredient__chevron {
         grid-template-columns: 30px minmax(0, 1fr) auto;
         min-height: 54px;
         gap: 8px;
+        padding: 10px;
     }
 
     .crafting-ingredient__icon {

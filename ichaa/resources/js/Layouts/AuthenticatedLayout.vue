@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen bg-canvas md:flex">
+    <div class="min-h-screen bg-canvas md:flex" :style="siteThemeVariables">
 
         <!-- MOBILE NAV -->
         <header class="sticky top-0 z-50 shrink-0 bg-surface border-b border-border md:hidden">
@@ -434,9 +434,10 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import NotionSyncButton from '@/Components/NotionSyncButton.vue'
+import { normalizeSiteTheme, siteThemeStyle } from '@/Pages/Bitcraft/widgetTheme'
 
 const page = usePage()
 const NAV_STORAGE_KEY = 'dataverse.shellNavState'
@@ -448,6 +449,29 @@ const mobileBitcraftToolsOpen = ref(savedNavState.mobileBitcraftToolsOpen)
 const desktopBitcraftToolsOpen = ref(savedNavState.desktopBitcraftToolsOpen)
 const mobileExpandedDomainKey = ref(savedNavState.mobileExpandedDomainKey)
 const desktopExpandedDomainKeys = ref(savedNavState.desktopExpandedDomainKeys)
+const siteThemeKey = computed(() => normalizeSiteTheme(page.props.auth?.user?.site_theme))
+const siteThemeVariables = computed(() => siteThemeStyle(siteThemeKey.value))
+const siteThemeVariableNames = Object.keys(siteThemeStyle('dataverse'))
+
+function applyDocumentSiteTheme(variables) {
+    if (typeof document === 'undefined') {
+        return
+    }
+
+    Object.entries(variables).forEach(([name, value]) => {
+        document.documentElement.style.setProperty(name, value)
+    })
+}
+
+function clearDocumentSiteTheme() {
+    if (typeof document === 'undefined') {
+        return
+    }
+
+    siteThemeVariableNames.forEach((name) => {
+        document.documentElement.style.removeProperty(name)
+    })
+}
 
 function readNavState() {
     if (typeof window === 'undefined') {
@@ -716,10 +740,15 @@ watch([
     desktopExpandedDomainKeys,
 ], saveNavState, { deep: true })
 
+watch(siteThemeVariables, applyDocumentSiteTheme, { immediate: true })
+
 watch(
     () => page.url,
     () => {
         mobileNavOpen.value = false
     },
 )
+
+onMounted(() => applyDocumentSiteTheme(siteThemeVariables.value))
+onBeforeUnmount(clearDocumentSiteTheme)
 </script>

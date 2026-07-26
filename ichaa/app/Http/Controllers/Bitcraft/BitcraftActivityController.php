@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Bitcraft;
 
-use App\Domain\Bitcraft\Models\BitcraftWidgetProfile;
 use App\Domain\Bitcraft\Services\BitjitaClient;
 use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
+use App\Http\Controllers\Bitcraft\Concerns\ScopesBitcraftWidgetProfiles;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +16,7 @@ use Throwable;
 class BitcraftActivityController extends Controller
 {
     use NormalizesBitcraftWidgetTheme;
+    use ScopesBitcraftWidgetProfiles;
 
     private const DEFAULT_CHARACTER = 'icha';
 
@@ -30,10 +31,10 @@ class BitcraftActivityController extends Controller
         $filters = $this->filters($request);
 
         if ($request->has('source') && $this->hasProfileInput($request)) {
-            $this->saveProfile($filters);
+            $this->saveBitcraftWidgetProfile($request, 'activity', $filters);
 
             if (! $filters['setup']) {
-                return redirect()->route('bitcraft.activity', ['source' => $filters['source']]);
+                return redirect()->route('bitcraft.activity', $this->bitcraftWidgetProfileRouteParameters($request, $filters));
             }
         }
 
@@ -75,14 +76,17 @@ class BitcraftActivityController extends Controller
             'skillGoalLevels' => ['nullable', 'string', 'max:1000'],
             'skillGoalXp' => ['nullable', 'string', 'max:1000'],
             'setup' => ['nullable', 'boolean'],
+            'user' => ['nullable', 'integer', 'min:1'],
             ...$this->widgetThemeValidationRules(),
         ]);
         $source = trim((string) ($validated['source'] ?? 'default')) ?: 'default';
+        $userId = $this->bitcraftWidgetProfileUserId($request, $validated);
         $stored = $request->has('source') && ! $this->hasProfileInput($request)
-            ? $this->profileSettings('activity', $source)
+            ? $this->bitcraftWidgetProfileSettings('activity', $source, $userId)
             : [];
 
         return [
+            'user' => $userId,
             'source' => $source,
             'character' => trim((string) ($validated['character'] ?? data_get($stored, 'character', self::DEFAULT_CHARACTER))) ?: self::DEFAULT_CHARACTER,
             'skill' => trim((string) ($validated['skill'] ?? data_get($stored, 'skill', self::DEFAULT_SKILL))) ?: self::DEFAULT_SKILL,
@@ -239,34 +243,6 @@ class BitcraftActivityController extends Controller
             'skillGoalXp',
             ...$this->widgetThemeInputKeys(),
         ])->contains(fn (string $key): bool => $request->has($key));
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function profileSettings(string $widget, string $source): array
-    {
-        return BitcraftWidgetProfile::query()
-            ->where('widget', $widget)
-            ->where('source', $source)
-            ->first()
-            ?->settings ?? [];
-    }
-
-    /**
-     * @param  array<string, mixed>  $filters
-     */
-    private function saveProfile(array $filters): void
-    {
-        BitcraftWidgetProfile::query()->updateOrCreate(
-            [
-                'widget' => 'activity',
-                'source' => $filters['source'],
-            ],
-            [
-                'settings' => collect($filters)->except('setup')->all(),
-            ],
-        );
     }
 
     /**

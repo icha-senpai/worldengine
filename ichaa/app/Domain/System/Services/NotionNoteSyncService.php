@@ -23,7 +23,7 @@ class NotionNoteSyncService
             return false;
         }
 
-        $note = NotionNote::query()->forPage($pageId)->first();
+        $note = NotionNote::query()->forNotionPage($pageId)->first();
 
         if (! $note) {
             return true;
@@ -55,7 +55,7 @@ class NotionNoteSyncService
             $this->client->retrieveBlockChildren($pageId)
         );
 
-        $note = NotionNote::query()->forPage($pageId)->first();
+        $note = NotionNote::query()->forNotionPage($pageId)->first();
 
         if (! $this->hasMeaningfulText($content)) {
             if (! $note) {

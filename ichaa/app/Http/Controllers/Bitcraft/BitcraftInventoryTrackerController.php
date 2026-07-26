@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Bitcraft;
 
-use App\Domain\Bitcraft\Models\BitcraftWidgetProfile;
 use App\Domain\Bitcraft\Services\BitjitaClient;
 use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
+use App\Http\Controllers\Bitcraft\Concerns\ScopesBitcraftWidgetProfiles;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +16,7 @@ use Throwable;
 class BitcraftInventoryTrackerController extends Controller
 {
     use NormalizesBitcraftWidgetTheme;
+    use ScopesBitcraftWidgetProfiles;
 
     private const DEFAULT_CHARACTER = 'icha';
 
@@ -41,10 +42,10 @@ class BitcraftInventoryTrackerController extends Controller
         $filters = $this->filters($request);
 
         if ($request->has('source') && $this->hasProfileInput($request)) {
-            $this->saveProfile($filters);
+            $this->saveBitcraftWidgetProfile($request, 'inventory-tracker', $filters);
 
             if (! $filters['setup']) {
-                return redirect()->route('bitcraft.inventory-tracker', ['source' => $filters['source']]);
+                return redirect()->route('bitcraft.inventory-tracker', $this->bitcraftWidgetProfileRouteParameters($request, $filters));
             }
         }
 
@@ -83,11 +84,13 @@ class BitcraftInventoryTrackerController extends Controller
             'itemNeeds' => ['nullable', 'string', 'max:2000'],
             'need' => ['nullable', 'integer', 'min:1', 'max:999999999'],
             'setup' => ['nullable', 'boolean'],
+            'user' => ['nullable', 'integer', 'min:1'],
             ...$this->widgetThemeValidationRules(),
         ]);
         $source = trim((string) ($validated['source'] ?? 'default')) ?: 'default';
+        $userId = $this->bitcraftWidgetProfileUserId($request, $validated);
         $stored = $request->has('source') && ! $this->hasProfileInput($request)
-            ? $this->profileSettings('inventory-tracker', $source)
+            ? $this->bitcraftWidgetProfileSettings('inventory-tracker', $source, $userId)
             : [];
         $itemKeys = $this->selectedItemKeys(
             $validated['itemKeys'] ?? data_get($stored, 'itemKeys', ''),
@@ -96,6 +99,7 @@ class BitcraftInventoryTrackerController extends Controller
         $itemNeeds = $this->selectedItemNeeds($validated['itemNeeds'] ?? data_get($stored, 'itemNeeds', ''));
 
         return [
+            'user' => $userId,
             'source' => $source,
             'character' => trim((string) ($validated['character'] ?? data_get($stored, 'character', self::DEFAULT_CHARACTER))) ?: self::DEFAULT_CHARACTER,
             'title' => trim((string) ($validated['title'] ?? data_get($stored, 'title', self::DEFAULT_TITLE))) ?: self::DEFAULT_TITLE,
@@ -249,34 +253,6 @@ class BitcraftInventoryTrackerController extends Controller
             'need',
             ...$this->widgetThemeInputKeys(),
         ])->contains(fn (string $key): bool => $request->has($key));
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function profileSettings(string $widget, string $source): array
-    {
-        return BitcraftWidgetProfile::query()
-            ->where('widget', $widget)
-            ->where('source', $source)
-            ->first()
-            ?->settings ?? [];
-    }
-
-    /**
-     * @param  array<string, mixed>  $filters
-     */
-    private function saveProfile(array $filters): void
-    {
-        BitcraftWidgetProfile::query()->updateOrCreate(
-            [
-                'widget' => 'inventory-tracker',
-                'source' => $filters['source'],
-            ],
-            [
-                'settings' => collect($filters)->except('setup')->all(),
-            ],
-        );
     }
 
     private function selectedItemKeys(array|string $itemKeys, array|string $itemKey = ''): array

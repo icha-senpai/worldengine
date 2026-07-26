@@ -34,7 +34,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => fn () => $request->user()
                     ? [
-                        ...$request->user()->only(['id', 'name', 'email', 'email_verified_at']),
+                        ...$request->user()->only(['id', 'name', 'email', 'email_verified_at', 'site_theme']),
                         'is_admin' => $request->user()->isAdmin(),
                     ]
                     : null,

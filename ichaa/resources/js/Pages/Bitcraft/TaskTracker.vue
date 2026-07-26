@@ -330,6 +330,7 @@ const removeTask = (id) => {
 
 const payload = (setup) => ({
     source: form.source,
+    user: props.filters.user ?? undefined,
     title: form.title,
     icons: form.icons,
     taskText: form.taskText,

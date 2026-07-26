@@ -37,6 +37,21 @@ class BitcraftSpacetimeStaticData
         return $this->snapshot() !== null;
     }
 
+    public function metadata(): array
+    {
+        $snapshot = $this->snapshot();
+
+        return [
+            'enabled' => (bool) config('services.bitcraft_spacetime.enabled', true),
+            'available' => $this->isAvailable(),
+            'generatedAt' => data_get($snapshot, 'generatedAt'),
+            'database' => data_get($snapshot, 'database'),
+            'tables' => collect(data_get($snapshot, 'tables', []))
+                ->map(fn (array $table): int => (int) data_get($table, 'count', count(data_get($table, 'rows', []))))
+                ->all(),
+        ];
+    }
+
     public function targets(string $query): array
     {
         if (! $this->isAvailable()) {
@@ -100,7 +115,7 @@ class BitcraftSpacetimeStaticData
             return $this->snapshot;
         }
 
-        $path = (string) config('services.bitcraft_spacetime.static_snapshot_path');
+        $path = $this->snapshotPath();
 
         if ($path === '' || ! File::isFile($path)) {
             return null;
@@ -320,6 +335,17 @@ class BitcraftSpacetimeStaticData
         }
 
         return data_get(collect($this->tableRows('building_type_desc'))->firstWhere('id', (int) $buildingType), 'name');
+    }
+
+    private function snapshotPath(): string
+    {
+        $path = (string) config('services.bitcraft_spacetime.static_snapshot_path');
+
+        if ($path === '' || str_starts_with($path, '/') || preg_match('/^[A-Za-z]:[\/\\\\]/', $path) === 1) {
+            return $path;
+        }
+
+        return base_path($path);
     }
 
     private function rarityName(mixed $rarity): ?string

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\WorldEngine\WorldEngineUserScope;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
@@ -24,5 +25,7 @@ class AppServiceProvider extends ServiceProvider
         Vite::prefetch(concurrency: 3);
 
         Passport::authorizationView('mcp.authorize');
+
+        WorldEngineUserScope::boot();
     }
 }

@@ -74,7 +74,7 @@ Artisan::command('dataverse:seed-demo-lore', function () {
     return Command::SUCCESS;
 })->purpose('Seed rich Harry Potter, Stormlight, and original crossover content into Dataverse.');
 
-Artisan::command('bitcraft:spacetime-sync {--table=* : Limit the sync to specific SpacetimeDB tables} {--out= : Override the snapshot output path} {--timeout= : Timeout in seconds}', function () {
+$syncBitcraftCraftingSnapshot = function () {
     $token = (string) config('services.bitcraft_spacetime.auth_token');
 
     if (blank($token)) {
@@ -128,4 +128,10 @@ Artisan::command('bitcraft:spacetime-sync {--table=* : Limit the sync to specifi
     $this->info('BitCraft SpacetimeDB snapshot synced.');
 
     return Command::SUCCESS;
-})->purpose('Snapshot BitCraft SpacetimeDB static tables for the crafting calculator.');
+};
+
+Artisan::command('bitcraft:spacetime-sync {--table=* : Limit the sync to specific SpacetimeDB tables} {--out= : Override the snapshot output path} {--timeout= : Timeout in seconds}', $syncBitcraftCraftingSnapshot)
+    ->purpose('Snapshot BitCraft SpacetimeDB static tables for the crafting calculator.');
+
+Artisan::command('bitcraft:crafting-sync {--table=* : Limit the sync to specific SpacetimeDB tables} {--out= : Override the snapshot output path} {--timeout= : Timeout in seconds}', $syncBitcraftCraftingSnapshot)
+    ->purpose('Sync the BitCraft crafting calculator static snapshot.');

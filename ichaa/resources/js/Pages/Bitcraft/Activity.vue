@@ -395,6 +395,7 @@ const formatDuration = (minutes) => {
 
 const payload = (setup) => ({
     source: form.source,
+    user: props.filters.user ?? undefined,
     character: form.character,
     skill: form.skill,
     title: form.title,

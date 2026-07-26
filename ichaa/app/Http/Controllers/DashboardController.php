@@ -13,15 +13,15 @@ class DashboardController extends Controller
         $settings = Setting::singleton();
 
         return $this->page('Dashboard', [
-            'recentPipeline'         => $this->recentPipeline(),
-            'sessionStats'           => $this->sessionStats(),
-            'latentTension'          => $this->latentTension(),
-            'exposureRisk'           => $this->exposureRisk(),
-            'perceptionGaps'         => $this->perceptionGaps(),
-            'blockingQuestions'      => $settings->notificationFlag('flag_blocking_entity_questions', true) ? $this->blockingQuestions() : [],
+            'recentPipeline' => $this->recentPipeline(),
+            'sessionStats' => $this->sessionStats(),
+            'latentTension' => $this->latentTension(),
+            'exposureRisk' => $this->exposureRisk(),
+            'perceptionGaps' => $this->perceptionGaps(),
+            'blockingQuestions' => $settings->notificationFlag('flag_blocking_entity_questions', true) ? $this->blockingQuestions() : [],
             'blockingContradictions' => $settings->notificationFlag('flag_blocking_contradictions', true) ? $this->blockingContradictions() : [],
             'unresolvedInteractions' => $settings->notificationFlag('flag_unresolved_power_interactions', true) ? $this->unresolvedInteractions() : [],
-            'deprecatedCanonStates'  => $settings->notificationFlag('flag_deprecated_canon_states', true) ? $this->deprecatedCanonStates() : [],
+            'deprecatedCanonStates' => $settings->notificationFlag('flag_deprecated_canon_states', true) ? $this->deprecatedCanonStates() : [],
         ]);
     }
 
@@ -29,6 +29,7 @@ class DashboardController extends Controller
     private function recentPipeline(): array
     {
         return DB::table('writing_pipeline')
+            ->where('user_id', auth()->id())
             ->whereNull('deleted_at')
             ->orderByDesc('updated_at')
             ->limit(10)
@@ -42,14 +43,15 @@ class DashboardController extends Controller
         $cutoff = now()->subDays(30)->toDateString();
 
         $rows = DB::table('session_log')
+            ->where('user_id', auth()->id())
             ->whereNull('deleted_at')
             ->where('session_date', '>=', $cutoff)
             ->get(['session_significance', 'external_tool']);
 
         return [
-            'session_count'   => $rows->count(),
-            'major_count'     => $rows->where('session_significance', 'major')->count(),
-            'tools_used'      => $rows->pluck('external_tool')->unique()->filter()->values()->toArray(),
+            'session_count' => $rows->count(),
+            'major_count' => $rows->where('session_significance', 'major')->count(),
+            'tools_used' => $rows->pluck('external_tool')->unique()->filter()->values()->toArray(),
         ];
     }
 
@@ -59,6 +61,7 @@ class DashboardController extends Controller
     {
         return DB::table('knowledge_states as ks')
             ->join('entities as knower', 'knower.id', '=', 'ks.knower_entity_id')
+            ->where('ks.user_id', auth()->id())
             ->whereNull('ks.deleted_at')
             ->where('ks.is_current', true)
             ->where('ks.acted_on', false)
@@ -80,19 +83,21 @@ class DashboardController extends Controller
                 if ($row->subject_entity_id) {
                     $subjectName = DB::table('entities')
                         ->where('id', $row->subject_entity_id)
+                        ->where('user_id', auth()->id())
                         ->value('name');
                 } elseif ($row->subject_secret_id) {
                     $subjectName = DB::table('secrets')
                         ->where('id', $row->subject_secret_id)
+                        ->where('user_id', auth()->id())
                         ->value('title');
                 }
 
                 return [
-                    'id'                  => $row->id,
-                    'knowledge_type'      => $row->knowledge_type,
-                    'current_belief_state'=> $row->current_belief_state,
-                    'subject_name'        => $subjectName,
-                    'knower'              => ['id' => $row->knower_id, 'name' => $row->knower_name],
+                    'id' => $row->id,
+                    'knowledge_type' => $row->knowledge_type,
+                    'current_belief_state' => $row->current_belief_state,
+                    'subject_name' => $subjectName,
+                    'knower' => ['id' => $row->knower_id, 'name' => $row->knower_name],
                 ];
             })
             ->toArray();
@@ -103,6 +108,7 @@ class DashboardController extends Controller
     private function exposureRisk(): array
     {
         return DB::table('secrets')
+            ->where('user_id', auth()->id())
             ->whereNull('deleted_at')
             ->where('status', 'active')
             ->whereIn('exposure_risk', ['high', 'critical', 'inevitable'])
@@ -122,14 +128,14 @@ class DashboardController extends Controller
                 $knownBy = json_decode($row->known_by_entity_ids ?? '[]', true);
 
                 return [
-                    'id'            => $row->id,
-                    'title'         => $row->title,
-                    'secret_type'   => $row->secret_type,
+                    'id' => $row->id,
+                    'title' => $row->title,
+                    'secret_type' => $row->secret_type,
                     'exposure_risk' => $row->exposure_risk,
-                    'holder_count'  => count($holders),
-                    'known_by_count'=> count($knownBy),
+                    'holder_count' => count($holders),
+                    'known_by_count' => count($knownBy),
                     // Leaking = more people know it than are supposed to hold it
-                    'is_leaking'    => count($knownBy) > count($holders),
+                    'is_leaking' => count($knownBy) > count($holders),
                 ];
             })
             ->toArray();
@@ -140,6 +146,7 @@ class DashboardController extends Controller
     private function perceptionGaps(): array
     {
         return DB::table('perception_states')
+            ->where('user_id', auth()->id())
             ->whereNull('deleted_at')
             ->where('is_current', true)
             ->whereNull('revealed_at_era')
@@ -157,20 +164,20 @@ class DashboardController extends Controller
                 'maintained_by_entity_ids',
             ])
             ->map(function ($row) {
-                $immune      = json_decode($row->immune_entity_ids ?? '[]', true);
+                $immune = json_decode($row->immune_entity_ids ?? '[]', true);
                 $maintainers = json_decode($row->maintained_by_entity_ids ?? '[]', true);
 
                 return [
-                    'id'               => $row->id,
-                    'subject_type'     => $row->subject_type,
-                    'subject_id'       => $row->subject_id,
+                    'id' => $row->id,
+                    'subject_type' => $row->subject_type,
+                    'subject_id' => $row->subject_id,
                     'divergence_level' => $row->divergence_level,
-                    'revelation_risk'  => $row->revelation_risk,
-                    'maintenance_effort'=> $row->maintenance_effort,
-                    'immune_count'     => count($immune),
+                    'revelation_risk' => $row->revelation_risk,
+                    'maintenance_effort' => $row->maintenance_effort,
+                    'immune_count' => count($immune),
                     'maintainer_count' => count($maintainers),
                     // High ratio = many immune relative to maintainers = fragile
-                    'tension_ratio'    => count($maintainers) > 0
+                    'tension_ratio' => count($maintainers) > 0
                         ? round(count($immune) / count($maintainers), 1)
                         : count($immune),
                 ];
@@ -183,6 +190,7 @@ class DashboardController extends Controller
     {
         return DB::table('entity_questions as eq')
             ->join('entities as e', 'e.id', '=', 'eq.entity_id')
+            ->where('eq.user_id', auth()->id())
             ->whereNull('eq.deleted_at')
             ->where('eq.status', 'unresolved')
             ->whereIn('eq.priority', ['critical', 'high'])
@@ -197,11 +205,11 @@ class DashboardController extends Controller
                 'e.id as entity_id',
                 'e.name as entity_name',
             ])
-            ->map(fn($row) => [
-                'id'       => $row->id,
+            ->map(fn ($row) => [
+                'id' => $row->id,
                 'question' => $row->question,
                 'priority' => $row->priority,
-                'entity'   => ['id' => $row->entity_id, 'name' => $row->entity_name],
+                'entity' => ['id' => $row->entity_id, 'name' => $row->entity_name],
             ])
             ->toArray();
     }
@@ -209,6 +217,7 @@ class DashboardController extends Controller
     private function blockingContradictions(): array
     {
         return DB::table('meta')
+            ->where('user_id', auth()->id())
             ->whereNull('deleted_at')
             ->whereNull('superseded_by_meta_id')
             ->where('category', 'tensions_and_contradictions')
@@ -231,6 +240,7 @@ class DashboardController extends Controller
         return DB::table('power_interactions as pi')
             ->leftJoin('entities as a', 'a.id', '=', 'pi.system_a_entity_id')
             ->leftJoin('entities as b', 'b.id', '=', 'pi.system_b_entity_id')
+            ->where('pi.user_id', auth()->id())
             ->whereNull('pi.deleted_at')
             ->where('pi.unresolved_flag', true)
             ->orderByDesc('pi.updated_at')
@@ -259,6 +269,7 @@ class DashboardController extends Controller
         return DB::table('versions_and_canon_states as vcs')
             ->join('entities as e', 'e.id', '=', 'vcs.entity_id')
             ->leftJoin('versions_and_canon_states as replacement', 'replacement.id', '=', 'vcs.superseded_by_version_id')
+            ->where('vcs.user_id', auth()->id())
             ->whereNull('vcs.deleted_at')
             ->where('vcs.version_state', 'deprecated')
             ->orderByDesc('vcs.deprecated_at')

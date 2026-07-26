@@ -3,6 +3,7 @@ import AppButton from '@/Components/ui/AppButton.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import { bitcraftWidgetThemes } from '@/Pages/Bitcraft/widgetTheme';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 
 defineProps({
@@ -19,6 +20,7 @@ const user = usePage().props.auth.user;
 const form = useForm({
     name: user.name,
     email: user.email,
+    site_theme: user.site_theme ?? 'dataverse',
 });
 </script>
 
@@ -30,7 +32,7 @@ const form = useForm({
             </h2>
 
             <p class="mt-1 text-sm text-muted">
-                Update your account's profile information and email address.
+                Update your account's profile information, email address, and site theme.
             </p>
         </header>
 
@@ -67,6 +69,42 @@ const form = useForm({
                 />
 
                 <InputError class="mt-2" :message="form.errors.email" />
+            </div>
+
+            <div>
+                <InputLabel for="site_theme" value="Site theme" />
+
+                <select
+                    id="site_theme"
+                    v-model="form.site_theme"
+                    class="mt-1 block w-full rounded-md border-border bg-surface-2 text-primary shadow-sm focus:border-focus focus:ring-focus"
+                >
+                    <option
+                        v-for="theme in bitcraftWidgetThemes"
+                        :key="theme.key"
+                        :value="theme.key"
+                    >
+                        {{ theme.label }}
+                    </option>
+                </select>
+
+                <div class="mt-3 grid grid-cols-5 gap-2">
+                    <button
+                        v-for="theme in bitcraftWidgetThemes"
+                        :key="`swatch-${theme.key}`"
+                        type="button"
+                        class="h-8 rounded-md border transition"
+                        :class="form.site_theme === theme.key ? 'border-focus ring-2 ring-focus/35' : 'border-border'"
+                        :style="{
+                            background: `linear-gradient(135deg, ${theme.panelColor}, ${theme.accentColor} 55%, ${theme.highlightColor})`,
+                        }"
+                        :aria-label="theme.label"
+                        :aria-pressed="form.site_theme === theme.key"
+                        @click="form.site_theme = theme.key"
+                    />
+                </div>
+
+                <InputError class="mt-2" :message="form.errors.site_theme" />
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">

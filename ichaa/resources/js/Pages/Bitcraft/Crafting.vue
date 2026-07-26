@@ -13,11 +13,14 @@
         </template>
 
         <form @submit.prevent="submit" class="index-panel max-w-3xl">
-            <label class="field-label">Recipe search</label>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <label class="field-label">Recipe search</label>
+                <span class="tag" :class="snapshot?.available ? 'tag--success' : ''">{{ snapshotLabel }}</span>
+            </div>
             <div class="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px_auto]">
                 <TextInput v-model.trim="form.q" type="text" placeholder="Timber, pickaxe, plank, ingot..." />
                 <TextInput v-model.number="form.quantity" type="number" min="1" max="999999" inputmode="numeric" />
-                <AppButton type="submit" variant="primary">Search</AppButton>
+                <AppButton type="submit" variant="primary" :disabled="searching">{{ searching ? 'Searching...' : 'Search' }}</AppButton>
             </div>
         </form>
 
@@ -34,42 +37,44 @@
                     </div>
                 </div>
 
-                <div v-if="items.length" class="index-surface index-surface--nested">
-                    <Link
-                        v-for="item in items"
-                        :key="`${item.kind}:${item.id}`"
-                        :href="route('bitcraft.crafting', selectedParams(item))"
-                        class="index-record crafting-match hover:border-[rgb(var(--accent-cyan-rgb)/0.35)] transition-colors"
-                        :class="{ 'border-[rgb(var(--accent-cyan-rgb)/0.5)]': isSelected(item) }"
-                    >
-                        <span class="crafting-item-icon" :style="itemFrameStyle(item)" aria-hidden="true">
-                            <img
-                                v-if="itemIconUrl(item)"
-                                :src="itemIconUrl(item)"
-                                alt=""
-                                loading="lazy"
-                                @error="hideBrokenIcon(item.iconAssetName)"
-                            >
-                            <span v-else>{{ itemInitials(item.name) }}</span>
-                        </span>
-                        <span class="min-w-0">
-                            <span class="index-record__title prose-wrap block">{{ item.name }}</span>
-                            <span class="mt-2 flex flex-wrap gap-2">
-                                <span class="tag">{{ item.kind === 'cargo' ? 'Cargo' : 'Item' }}</span>
-                                <span v-if="item.category" class="tag">{{ item.category }}</span>
-                                <span v-if="item.tier" class="tag bitcraft-tier-badge" :style="tierStyle(item.tier)">
-                                    Tier {{ item.tier }}
-                                </span>
-                                <span v-if="item.rarity" class="tag bitcraft-rarity-badge" :style="rarityStyle(item.rarity)">
-                                    {{ item.rarity }}
+                <div class="surface-section__body">
+                    <div v-if="items.length" class="index-surface index-surface--nested">
+                        <Link
+                            v-for="item in items"
+                            :key="`${item.kind}:${item.id}`"
+                            :href="route('bitcraft.crafting', selectedParams(item))"
+                            class="index-record crafting-match hover:border-[rgb(var(--accent-cyan-rgb)/0.35)] transition-colors"
+                            :class="{ 'border-[rgb(var(--accent-cyan-rgb)/0.5)]': isSelected(item) }"
+                        >
+                            <span class="crafting-item-icon" :style="itemFrameStyle(item)" aria-hidden="true">
+                                <img
+                                    v-if="itemIconUrl(item)"
+                                    :src="itemIconUrl(item)"
+                                    alt=""
+                                    loading="lazy"
+                                    @error="hideBrokenIcon(item.iconAssetName)"
+                                >
+                                <span v-else>{{ itemInitials(item.name) }}</span>
+                            </span>
+                            <span class="min-w-0">
+                                <span class="index-record__title prose-wrap block">{{ item.name }}</span>
+                                <span class="mt-2 flex flex-wrap gap-2">
+                                    <span class="tag">{{ item.kind === 'cargo' ? 'Cargo' : 'Item' }}</span>
+                                    <span v-if="item.category" class="tag">{{ item.category }}</span>
+                                    <span v-if="item.tier" class="tag bitcraft-tier-badge" :style="tierStyle(item.tier)">
+                                        Tier {{ item.tier }}
+                                    </span>
+                                    <span v-if="item.rarity" class="tag bitcraft-rarity-badge" :style="rarityStyle(item.rarity)">
+                                        {{ item.rarity }}
+                                    </span>
                                 </span>
                             </span>
-                        </span>
-                    </Link>
-                </div>
+                        </Link>
+                    </div>
 
-                <div v-else class="empty-state-panel">
-                    <p class="text-muted-3 text-sm font-ui">Search for an item to load recipe options.</p>
+                    <div v-else class="empty-state-panel">
+                        <p class="text-muted-3 text-sm font-ui">Search for an item to load recipe options.</p>
+                    </div>
                 </div>
             </section>
 
@@ -101,17 +106,21 @@
                         </div>
                     </div>
 
-                    <p v-if="detail.item.description" class="prose-wrap text-sm leading-relaxed text-muted-2">
-                        {{ detail.item.description }}
-                    </p>
+                    <div class="surface-section__body">
+                        <p v-if="detail.item.description" class="prose-wrap text-sm leading-relaxed text-muted-2">
+                            {{ detail.item.description }}
+                        </p>
 
-                    <div class="mt-5 grid gap-4">
-                        <CraftingRecipeTree :recipes="detail.recipeTree" :desired-quantity="desiredQuantity" />
+                        <div class="grid gap-4" :class="{ 'mt-5': detail.item.description }">
+                            <CraftingRecipeTree :recipes="detail.recipeTree" :desired-quantity="desiredQuantity" />
+                        </div>
                     </div>
                 </div>
 
-                <div v-else class="empty-state-panel">
-                    <p class="text-muted-3 text-sm font-ui">Select an item or cargo target to inspect its recipes.</p>
+                <div v-else class="surface-section__body">
+                    <div class="empty-state-panel">
+                        <p class="text-muted-3 text-sm font-ui">Select an item or cargo target to inspect its recipes.</p>
+                    </div>
                 </div>
             </section>
         </div>
@@ -131,6 +140,7 @@ const props = defineProps({
     filters: { type: Object, default: () => ({}) },
     items: { type: Array, default: () => [] },
     detail: { type: Object, default: null },
+    snapshot: { type: Object, default: () => ({}) },
     error: { type: String, default: null },
 })
 
@@ -139,6 +149,7 @@ const form = reactive({
     quantity: props.filters.quantity ?? 1,
 })
 const brokenIconAssets = ref(new Set())
+const searching = ref(false)
 
 watch(() => props.filters, (filters) => {
     form.q = filters.q ?? ''
@@ -148,6 +159,27 @@ watch(() => props.filters, (filters) => {
 const selectedItemId = computed(() => Number(props.filters.itemId))
 const selectedItemKind = computed(() => props.filters.itemKind ?? 'item')
 const desiredQuantity = computed(() => Math.max(1, Number(props.filters.quantity ?? 1) || 1))
+const snapshotLabel = computed(() => {
+    if (!props.snapshot?.available) {
+        return 'Live fallback'
+    }
+
+    if (!props.snapshot.generatedAt) {
+        return 'Static snapshot'
+    }
+
+    const date = new Date(props.snapshot.generatedAt)
+
+    if (Number.isNaN(date.getTime())) {
+        return 'Static snapshot'
+    }
+
+    return `Snapshot ${date.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    })}`
+})
 
 const searchParams = () => {
     const params = {}
@@ -172,6 +204,12 @@ const submit = () => {
     router.get(route('bitcraft.crafting'), searchParams(), {
         preserveState: true,
         replace: true,
+        onStart: () => {
+            searching.value = true
+        },
+        onFinish: () => {
+            searching.value = false
+        },
     })
 }
 

@@ -204,9 +204,77 @@ class BitcraftToolTest extends TestCase
             && str_contains($request->url(), 'claimEntityId=288230376165363891')
             && $request->hasHeader('x-app-identifier'));
         Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims/288230376165363891/market/listings'));
-        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/claims/288230376165363891/buildings');
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/claims/288230376165363891/buildings');
         Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/claims/288230376165363891/inventories');
         Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/logs/storage'));
+    }
+
+    public function test_market_finder_filters_returned_items_by_order_counts(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/regions' => Http::response([]),
+            'https://bitjita.com/api/market*' => Http::response([
+                'data' => [
+                    'items' => [
+                        [
+                            'id' => 1421716234,
+                            'name' => 'Astralite Pickaxe',
+                            'category' => 'Miner Tool',
+                            'sellOrders' => 3,
+                            'buyOrders' => 0,
+                        ],
+                        [
+                            'id' => 1421716235,
+                            'name' => 'Astralite Hammer',
+                            'category' => 'Smith Tool',
+                            'sellOrders' => 0,
+                            'buyOrders' => 4,
+                        ],
+                        [
+                            'id' => 1421716236,
+                            'name' => 'Astralite Saw',
+                            'category' => 'Carpentry Tool',
+                            'sellOrders' => 0,
+                            'buyOrders' => 0,
+                        ],
+                    ],
+                    'categories' => ['Miner Tool', 'Smith Tool', 'Carpentry Tool'],
+                ],
+            ]),
+        ]);
+
+        $sellResponse = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.market', [
+                'q' => 'Astralite',
+                'hasSellOrders' => 1,
+            ]));
+
+        $sellResponse->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Market')
+                ->where('filters.hasSellOrders', true)
+                ->has('market.items', 1)
+                ->where('market.items.0.name', 'Astralite Pickaxe')
+            );
+
+        $buyResponse = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.market', [
+                'q' => 'Astralite',
+                'hasBuyOrders' => 1,
+            ]));
+
+        $buyResponse->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Market')
+                ->where('filters.hasBuyOrders', true)
+                ->has('market.items', 1)
+                ->where('market.items.0.name', 'Astralite Hammer')
+            );
+
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
+            && str_contains($request->url(), 'hasSellOrders=1'));
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
+            && str_contains($request->url(), 'hasBuyOrders=1'));
     }
 
     public function test_barter_stall_finder_filters_region_claim_search_to_claims_with_barter_stations(): void
@@ -692,7 +760,7 @@ class BitcraftToolTest extends TestCase
         Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?'));
     }
 
-    public function test_market_finder_filters_claim_search_by_region_without_building_lookup(): void
+    public function test_market_finder_filters_region_claim_search_to_claims_with_marketplaces(): void
     {
         Http::fake([
             'https://bitjita.com/api/regions' => Http::response([
@@ -721,6 +789,30 @@ class BitcraftToolTest extends TestCase
                 ]],
                 'count' => 101,
             ]),
+            'https://bitjita.com/api/claims/288230376165363892/buildings' => Http::response([
+                'buildings' => [[
+                    'entityId' => '864691128500984099',
+                    'buildingDescriptionId' => 100,
+                    'buildingName' => 'Basic Workbench',
+                    'functions' => [[
+                        'crafting' => true,
+                    ]],
+                ]],
+            ]),
+            'https://bitjita.com/api/claims/288230376165363891/buildings' => Http::response([
+                'data' => [
+                    'buildings' => [[
+                        'entityId' => '864691128500984071',
+                        'buildingDescriptionId' => 12345,
+                        'buildingName' => 'Town Exchange',
+                        'buildingNickname' => 'Jita Exchange',
+                        'functions' => [
+                            'trade_orders' => 50,
+                            'storage_slots' => 20,
+                        ],
+                    ]],
+                ],
+            ]),
         ]);
 
         $response = $this->actingAs($this->createVerifiedAdminUser())
@@ -736,9 +828,11 @@ class BitcraftToolTest extends TestCase
                 ->where('filters.region', 'Solmere')
                 ->where('filters.regionId', '8')
                 ->where('filters.regionName', 'Solmere')
-                ->has('market.claims', 2)
-                ->where('market.claims.0.name', 'Workshop Only')
-                ->where('market.claims.1.name', 'Jita')
+                ->has('market.claims', 1)
+                ->where('market.claims.0.name', 'Jita')
+                ->where('market.claims.0.tradeBuildingCount', 1)
+                ->where('market.claims.0.tradeOrderCount', 50)
+                ->where('market.claims.0.tradeBuildingNames.0', 'Jita Exchange')
                 ->has('market.items', 0)
                 ->has('market.listings', 0)
             );
@@ -752,7 +846,8 @@ class BitcraftToolTest extends TestCase
             && str_contains($request->url(), 'limit=100')
             && str_contains($request->url(), 'regionId=8'));
         Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?'));
-        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), '/buildings'));
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/claims/288230376165363892/buildings');
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/claims/288230376165363891/buildings');
     }
 
     public function test_barter_stall_listings_show_buy_orders_when_item_is_required(): void
@@ -917,6 +1012,7 @@ class BitcraftToolTest extends TestCase
     public function test_crafting_tool_uses_spacetime_snapshot_when_available(): void
     {
         $snapshotPath = storage_path('framework/testing/bitcraft-spacetime-static.json');
+        $generatedAt = now()->toISOString();
 
         if (! is_dir(dirname($snapshotPath))) {
             mkdir(dirname($snapshotPath), 0777, true);
@@ -924,7 +1020,7 @@ class BitcraftToolTest extends TestCase
 
         file_put_contents($snapshotPath, json_encode([
             'source' => 'bitcraft-spacetimedb',
-            'generatedAt' => now()->toISOString(),
+            'generatedAt' => $generatedAt,
             'host' => 'wss://bitcraft-early-access.spacetimedb.com',
             'database' => 'bitcraft-live-19',
             'tables' => [
@@ -1081,10 +1177,16 @@ class BitcraftToolTest extends TestCase
         $response->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Bitcraft/Crafting')
-                ->has('items', 1)
+                ->where('snapshot.available', true)
+                ->where('snapshot.generatedAt', $generatedAt)
+                ->where('snapshot.database', 'bitcraft-live-19')
+                ->where('snapshot.tables.item_desc', 5)
+                ->has('items', 2)
                 ->where('items.0.name', 'Simple Timber')
                 ->where('items.0.kind', 'item')
                 ->where('items.0.iconAssetName', 'GeneratedIcons/Items/SimpleTimber')
+                ->where('items.1.name', 'Simple Timber Package')
+                ->where('items.1.kind', 'cargo')
                 ->where('detail.item.name', 'Simple Timber')
                 ->where('detail.item.iconAssetName', 'GeneratedIcons/Items/SimpleTimber')
                 ->where('detail.craftingRecipes.0.name', 'Craft Simple Timber')
@@ -1167,6 +1269,23 @@ class BitcraftToolTest extends TestCase
                         'quantity' => 20,
                         'itemType' => 0,
                     ]],
+                ], [
+                    'id' => 202003,
+                    'name' => 'Package Simple Timber',
+                    'buildingName' => 'Ancient Carpentry Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 1202,
+                        'name' => 'Simple Timber Package',
+                        'quantity' => 1,
+                        'itemType' => 1,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 1201,
+                        'name' => 'Simple Timber',
+                        'quantity' => 100,
+                        'itemType' => 1,
+                    ]],
                 ]],
                 'extractionRecipes' => [],
             ]),
@@ -1182,6 +1301,12 @@ class BitcraftToolTest extends TestCase
                     'name' => 'Treat Simple Stripped Wood Into Simple Plank',
                     'buildingName' => 'Ancient Carpentry Station',
                     'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 2020003,
+                        'name' => 'Simple Plank',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
                     'consumedItemStacks' => [[
                         'item_id' => 362614434,
                         'quantity' => 1,
@@ -1198,6 +1323,12 @@ class BitcraftToolTest extends TestCase
                     'name' => 'Treat Simple Stripped Wood Into Simple Plank',
                     'buildingName' => 'Ancient Carpentry Station',
                     'outputQuantity' => 2,
+                    'craftedItems' => [[
+                        'id' => 2020003,
+                        'name' => 'Simple Plank',
+                        'quantity' => 2,
+                        'itemType' => 0,
+                    ]],
                     'consumedItemStacks' => [[
                         'item_id' => 362614434,
                         'quantity' => 1,
@@ -1223,6 +1354,12 @@ class BitcraftToolTest extends TestCase
                     'name' => 'Unpack Simple Wood Plank Package',
                     'buildingName' => 'Rough Carpentry Station',
                     'outputQuantity' => 100,
+                    'craftedItems' => [[
+                        'id' => 2020003,
+                        'name' => 'Simple Plank',
+                        'quantity' => 100,
+                        'itemType' => 0,
+                    ]],
                     'consumedItemStacks' => [[
                         'item_id' => 260001,
                         'quantity' => 1,
@@ -1245,6 +1382,33 @@ class BitcraftToolTest extends TestCase
                     'tier' => 2,
                 ],
                 'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/cargo/260001' => Http::response([
+                'cargo' => [
+                    'id' => 260001,
+                    'name' => 'Simple Wood Plank Package',
+                    'tag' => 'Package',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 1117209373,
+                    'name' => 'Package Simple Plank',
+                    'buildingName' => 'Rough Carpentry Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 260001,
+                        'name' => 'Simple Wood Plank Package',
+                        'quantity' => 1,
+                        'itemType' => 1,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 2020003,
+                        'name' => 'Simple Plank',
+                        'quantity' => 100,
+                        'itemType' => 0,
+                    ]],
+                ]],
                 'extractionRecipes' => [],
             ]),
             'https://bitjita.com/api/items/1939049017' => Http::response([
@@ -1284,17 +1448,172 @@ class BitcraftToolTest extends TestCase
                 ->where('detail.recipeTree.0.name', 'Craft Simple Timber')
                 ->where('detail.recipeTree.0.station', 'Carpentry Station')
                 ->where('detail.recipeTree.0.ingredients.0.name', 'Simple Plank')
+                ->missing('detail.recipeTree.0.alternatives')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.name', 'Treat Simple Stripped Wood Into Simple Plank')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.station', 'Carpentry Station')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.ingredients.0.name', 'Simple Stripped Wood')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.alternatives.1.ingredients.1.name', 'Hexite Wood Fragment')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.alternatives.2.name', 'Unpack Simple Wood Plank Package')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.alternatives.2.ingredients.0.name', 'Simple Wood Plank Package')
+                ->where('detail.recipeTree.0.ingredients.0.recipes.0.alternatives.2.ingredients.0.recipes', [])
                 ->has('detail.recipeTree.0.ingredients.0.recipes', 1)
                 ->has('detail.recipeTree.0.ingredients.0.recipes.0.ingredients', 1)
-                ->has('detail.recipeTree.0.ingredients.0.recipes.0.alternatives', 2)
+                ->has('detail.recipeTree.0.ingredients.0.recipes.0.alternatives', 3)
                 ->has('detail.recipeTree.0.ingredients.0.recipes.0.alternatives.1.ingredients', 2)
             );
 
-        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/cargo/260001');
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/cargo/260001');
+    }
+
+    public function test_crafting_tool_offers_package_routes_as_alternatives_without_replacing_standard_recipe(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Briny%20Argus%20Filet' => Http::response([
+                'items' => [[
+                    'id' => 710001,
+                    'name' => 'Briny Argus Filet',
+                    'tag' => 'Cooked Fish',
+                    'tier' => 2,
+                    'rarityStr' => 'Common',
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Briny%20Argus%20Filet' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/710001' => Http::response([
+                'item' => [
+                    'id' => 710001,
+                    'name' => 'Briny Argus Filet',
+                    'tag' => 'Cooked Fish',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 710101,
+                    'name' => 'Prepare Briny Argus Filet',
+                    'buildingName' => 'Simple Kitchen',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 710001,
+                        'name' => 'Briny Argus Filet',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 710000,
+                        'name' => 'Briny Argus',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 710102,
+                    'name' => 'Package Briny Argus Filet',
+                    'buildingName' => 'Simple Kitchen',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 710900,
+                        'name' => 'Briny Argus Filet Package',
+                        'quantity' => 1,
+                        'itemType' => 1,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 710001,
+                        'name' => 'Briny Argus Filet',
+                        'quantity' => 100,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 710103,
+                    'name' => 'Unpack Briny Argus Filet Package',
+                    'buildingName' => 'Simple Kitchen',
+                    'outputQuantity' => 100,
+                    'craftedItems' => [[
+                        'id' => 710001,
+                        'name' => 'Briny Argus Filet',
+                        'quantity' => 100,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 710900,
+                        'name' => 'Briny Argus Filet Package',
+                        'quantity' => 1,
+                        'itemType' => 1,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/710000' => Http::response([
+                'item' => [
+                    'id' => 710000,
+                    'name' => 'Briny Argus',
+                    'tag' => 'Fish',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/cargo/710900' => Http::response([
+                'cargo' => [
+                    'id' => 710900,
+                    'name' => 'Briny Argus Filet Package',
+                    'tag' => 'Package',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 710102,
+                    'name' => 'Package Briny Argus Filet',
+                    'buildingName' => 'Simple Kitchen',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 710900,
+                        'name' => 'Briny Argus Filet Package',
+                        'quantity' => 1,
+                        'itemType' => 1,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 710001,
+                        'name' => 'Briny Argus Filet',
+                        'quantity' => 100,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Briny Argus Filet',
+                'itemId' => 710001,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.name', 'Prepare Briny Argus Filet')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Briny Argus')
+                ->where('detail.recipeTree.0.alternatives.1.name', 'Unpack Briny Argus Filet Package')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', 'Briny Argus Filet Package')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.kind', 'cargo')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.recipes', [])
+                ->has('detail.recipeTree.0.ingredients', 1)
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Briny Argus Filet Package',
+                'itemId' => 710900,
+                'itemKind' => 'cargo',
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.name', 'Package Briny Argus Filet')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Briny Argus Filet')
+                ->has('detail.recipeTree.0.ingredients', 1)
+            );
     }
 
     public function test_crafting_tool_offers_mortar_route_as_alternative_and_filters_construction_material_pack_routes(): void
@@ -1442,6 +1761,12 @@ class BitcraftToolTest extends TestCase
                     'name' => 'Bake Rough Brick',
                     'buildingName' => 'Ancient Kiln',
                     'outputQuantity' => 2,
+                    'craftedItems' => [[
+                        'id' => 1030002,
+                        'name' => 'Rough Brick',
+                        'quantity' => 2,
+                        'itemType' => 0,
+                    ]],
                     'consumedItems' => [[
                         'id' => 2044934693,
                         'name' => 'Unfired Rough Brick',
@@ -1463,6 +1788,12 @@ class BitcraftToolTest extends TestCase
                     'name' => 'Bake Rough Brick',
                     'buildingName' => 'Rough Kiln',
                     'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 1030002,
+                        'name' => 'Rough Brick',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
                     'consumedItems' => [[
                         'id' => 2044934693,
                         'name' => 'Unfired Rough Brick',
@@ -1479,6 +1810,12 @@ class BitcraftToolTest extends TestCase
                     'name' => 'Unpack Rough Brick Package',
                     'buildingName' => 'Rough Masonry Station',
                     'outputQuantity' => 100,
+                    'craftedItems' => [[
+                        'id' => 1030002,
+                        'name' => 'Rough Brick',
+                        'quantity' => 100,
+                        'itemType' => 0,
+                    ]],
                     'consumedItems' => [[
                         'id' => 683661636,
                         'name' => 'Rough Brick Package',
@@ -1500,10 +1837,43 @@ class BitcraftToolTest extends TestCase
                     'name' => 'Shape Unfired Rough Brick',
                     'buildingName' => 'Rough Masonry Station',
                     'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 2044934693,
+                        'name' => 'Unfired Rough Brick',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
                     'consumedItems' => [[
                         'id' => 894623392,
                         'name' => "Basic Potter's Mix",
                         'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/cargo/683661636' => Http::response([
+                'cargo' => [
+                    'id' => 683661636,
+                    'name' => 'Rough Brick Package',
+                    'tag' => 'Package',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 103003,
+                    'name' => 'Package Rough Brick',
+                    'buildingName' => 'Rough Masonry Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 683661636,
+                        'name' => 'Rough Brick Package',
+                        'quantity' => 1,
+                        'itemType' => 1,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 1030002,
+                        'name' => 'Rough Brick',
+                        'quantity' => 100,
                         'itemType' => 0,
                     ]],
                 ]],
@@ -1561,13 +1931,16 @@ class BitcraftToolTest extends TestCase
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.name', 'Shape Unfired Rough Brick')
                 ->where('detail.recipeTree.0.ingredients.0.recipes.0.station', 'Masonry Station')
                 ->where('detail.recipeTree.0.alternatives.1.ingredients.2.name', 'Ancient Mortar')
+                ->where('detail.recipeTree.0.alternatives.2.name', 'Unpack Rough Brick Package')
+                ->where('detail.recipeTree.0.alternatives.2.ingredients.0.name', 'Rough Brick Package')
+                ->where('detail.recipeTree.0.alternatives.2.ingredients.0.recipes', [])
                 ->has('detail.recipeTree.0.ingredients', 2)
-                ->has('detail.recipeTree.0.alternatives', 2)
+                ->has('detail.recipeTree.0.alternatives', 3)
             );
 
         Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/items/2044934693');
         Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/items/1010001');
-        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/cargo/683661636');
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/cargo/683661636');
     }
 
     public function test_crafting_tool_uses_pebbles_for_stale_potters_mix_construction_material_pack_ingredients(): void
@@ -1913,7 +2286,9 @@ class BitcraftToolTest extends TestCase
 
     public function test_activity_tracker_source_profile_keeps_widget_url_stable(): void
     {
-        $this->get(route('bitcraft.activity', [
+        $user = $this->createVerifiedAdminUser();
+
+        $this->actingAs($user)->get(route('bitcraft.activity', [
             'source' => 'stream',
             'character' => 'icha',
             'skillKeys' => '21',
@@ -1929,9 +2304,10 @@ class BitcraftToolTest extends TestCase
             'width' => 520,
             'radius' => 12,
             'panelOpacity' => 84,
-        ]))->assertRedirect(route('bitcraft.activity', ['source' => 'stream']));
+        ]))->assertRedirect(route('bitcraft.activity', ['source' => 'stream', 'user' => $user->id]));
 
         $settings = BitcraftWidgetProfile::query()
+            ->where('user_id', $user->id)
             ->where('widget', 'activity')
             ->where('source', 'stream')
             ->firstOrFail()
@@ -1946,10 +2322,11 @@ class BitcraftToolTest extends TestCase
 
         $this->fakeActivityTrackerResponses();
 
-        $this->get(route('bitcraft.activity', ['source' => 'stream']))
+        $this->get(route('bitcraft.activity', ['source' => 'stream', 'user' => $user->id]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Bitcraft/Activity')
+                ->where('filters.user', $user->id)
                 ->where('filters.source', 'stream')
                 ->where('filters.character', 'icha')
                 ->where('filters.skillKeys.0', '21')
@@ -2081,7 +2458,9 @@ class BitcraftToolTest extends TestCase
 
     public function test_inventory_tracker_source_profile_keeps_widget_url_stable(): void
     {
-        $this->get(route('bitcraft.inventory-tracker', [
+        $user = $this->createVerifiedAdminUser();
+
+        $this->actingAs($user)->get(route('bitcraft.inventory-tracker', [
             'source' => 'stream',
             'character' => 'icha',
             'itemKeys' => 'item:1516591189',
@@ -2097,9 +2476,10 @@ class BitcraftToolTest extends TestCase
             'width' => 480,
             'radius' => 20,
             'panelOpacity' => 90,
-        ]))->assertRedirect(route('bitcraft.inventory-tracker', ['source' => 'stream']));
+        ]))->assertRedirect(route('bitcraft.inventory-tracker', ['source' => 'stream', 'user' => $user->id]));
 
         $settings = BitcraftWidgetProfile::query()
+            ->where('user_id', $user->id)
             ->where('widget', 'inventory-tracker')
             ->where('source', 'stream')
             ->firstOrFail()
@@ -2114,10 +2494,11 @@ class BitcraftToolTest extends TestCase
 
         $this->fakeInventoryTrackerResponses();
 
-        $this->get(route('bitcraft.inventory-tracker', ['source' => 'stream']))
+        $this->get(route('bitcraft.inventory-tracker', ['source' => 'stream', 'user' => $user->id]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Bitcraft/InventoryTracker')
+                ->where('filters.user', $user->id)
                 ->where('filters.source', 'stream')
                 ->where('filters.character', 'icha')
                 ->where('filters.itemKeys.0', 'item:1516591189')
@@ -2182,12 +2563,13 @@ class BitcraftToolTest extends TestCase
 
     public function test_task_tracker_source_profile_keeps_widget_url_stable(): void
     {
+        $user = $this->createVerifiedAdminUser();
         $tasks = json_encode([
             ['id' => 'task-one', 'text' => 'Gather fish', 'done' => false],
             ['id' => 'task-two', 'text' => 'Return to town', 'done' => true],
         ], JSON_THROW_ON_ERROR);
 
-        $this->get(route('bitcraft.task-tracker', [
+        $this->actingAs($user)->get(route('bitcraft.task-tracker', [
             'source' => 'stream',
             'title' => 'Fishing Run',
             'icons' => '',
@@ -2203,9 +2585,10 @@ class BitcraftToolTest extends TestCase
             'width' => 500,
             'radius' => 10,
             'panelOpacity' => 88,
-        ]))->assertRedirect(route('bitcraft.task-tracker', ['source' => 'stream']));
+        ]))->assertRedirect(route('bitcraft.task-tracker', ['source' => 'stream', 'user' => $user->id]));
 
         $settings = BitcraftWidgetProfile::query()
+            ->where('user_id', $user->id)
             ->where('widget', 'task-tracker')
             ->where('source', 'stream')
             ->firstOrFail()
@@ -2221,10 +2604,11 @@ class BitcraftToolTest extends TestCase
         $this->assertSame(500, $settings['width']);
         $this->assertSame(88, $settings['panelOpacity']);
 
-        $this->get(route('bitcraft.task-tracker', ['source' => 'stream']))
+        $this->get(route('bitcraft.task-tracker', ['source' => 'stream', 'user' => $user->id]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Bitcraft/TaskTracker')
+                ->where('filters.user', $user->id)
                 ->where('filters.source', 'stream')
                 ->where('filters.title', 'Fishing Run')
                 ->where('filters.icons', '')
@@ -2238,9 +2622,67 @@ class BitcraftToolTest extends TestCase
             );
     }
 
+    public function test_bitcraft_widget_profiles_are_scoped_per_user(): void
+    {
+        $firstUser = $this->createVerifiedAdminUser(['email' => 'first@example.com']);
+        $secondUser = $this->createVerifiedAdminUser(['email' => 'second@example.com']);
+
+        $firstTasks = json_encode([
+            ['id' => 'task-one', 'text' => 'Gather fish', 'done' => false],
+        ], JSON_THROW_ON_ERROR);
+        $secondTasks = json_encode([
+            ['id' => 'task-one', 'text' => 'Mine stone', 'done' => true],
+        ], JSON_THROW_ON_ERROR);
+
+        $this->actingAs($firstUser)->get(route('bitcraft.task-tracker', [
+            'source' => 'stream',
+            'title' => 'Fishing Run',
+            'tasks' => $firstTasks,
+        ]))->assertRedirect(route('bitcraft.task-tracker', ['source' => 'stream', 'user' => $firstUser->id]));
+
+        $this->actingAs($secondUser)->get(route('bitcraft.task-tracker', [
+            'source' => 'stream',
+            'title' => 'Mining Run',
+            'tasks' => $secondTasks,
+        ]))->assertRedirect(route('bitcraft.task-tracker', ['source' => 'stream', 'user' => $secondUser->id]));
+
+        $this->assertDatabaseHas('bitcraft_widget_profiles', [
+            'user_id' => $firstUser->id,
+            'widget' => 'task-tracker',
+            'source' => 'stream',
+        ]);
+        $this->assertDatabaseHas('bitcraft_widget_profiles', [
+            'user_id' => $secondUser->id,
+            'widget' => 'task-tracker',
+            'source' => 'stream',
+        ]);
+
+        $this->actingAs($firstUser)->get(route('bitcraft.task-tracker', ['source' => 'stream']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/TaskTracker')
+                ->where('filters.user', $firstUser->id)
+                ->where('filters.title', 'Fishing Run')
+                ->where('filters.tasks.0.text', 'Gather fish')
+            );
+
+        $this->actingAs($secondUser)->get(route('bitcraft.task-tracker', ['source' => 'stream']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/TaskTracker')
+                ->where('filters.user', $secondUser->id)
+                ->where('filters.title', 'Mining Run')
+                ->where('filters.tasks.0.text', 'Mine stone')
+                ->where('filters.tasks.0.done', true)
+            );
+    }
+
     public function test_dataverse_widget_theme_ignores_stale_saved_custom_colors(): void
     {
+        $user = $this->createVerifiedAdminUser();
+
         BitcraftWidgetProfile::query()->create([
+            'user_id' => $user->id,
             'widget' => 'task-tracker',
             'source' => 'stream',
             'settings' => [
@@ -2259,7 +2701,7 @@ class BitcraftToolTest extends TestCase
             ],
         ]);
 
-        $this->get(route('bitcraft.task-tracker', ['source' => 'stream']))
+        $this->get(route('bitcraft.task-tracker', ['source' => 'stream', 'user' => $user->id]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Bitcraft/TaskTracker')
