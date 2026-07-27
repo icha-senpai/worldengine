@@ -36,6 +36,13 @@ class BitcraftTaskTrackerController extends Controller
         ]);
     }
 
+    public function setup(Request $request): InertiaResponse|RedirectResponse
+    {
+        $request->merge(['setup' => true]);
+
+        return $this->show($request);
+    }
+
     /**
      * @return array<string, mixed>
      */

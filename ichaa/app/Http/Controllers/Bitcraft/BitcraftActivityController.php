@@ -52,6 +52,13 @@ class BitcraftActivityController extends Controller
         ]);
     }
 
+    public function setup(Request $request, BitjitaClient $bitjita): InertiaResponse|RedirectResponse
+    {
+        $request->merge(['setup' => true]);
+
+        return $this->show($request, $bitjita);
+    }
+
     public function snapshot(Request $request, BitjitaClient $bitjita): JsonResponse
     {
         return response()

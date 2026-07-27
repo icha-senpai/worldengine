@@ -95,6 +95,9 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified', EnsureAdmin::class])
         Route::get('barter-stalls', [BitcraftToolController::class, 'barterStalls'])->name('barter-stalls');
         Route::get('crafting', [BitcraftToolController::class, 'crafting'])->name('crafting');
         Route::get('crafting/branch', [BitcraftToolController::class, 'craftingBranch'])->name('crafting.branch');
+        Route::get('activity/setup', [BitcraftActivityController::class, 'setup'])->name('activity.setup');
+        Route::get('inventory-tracker/setup', [BitcraftInventoryTrackerController::class, 'setup'])->name('inventory-tracker.setup');
+        Route::get('task-tracker/setup', [BitcraftTaskTrackerController::class, 'setup'])->name('task-tracker.setup');
     });
 
     Route::prefix('worldengine')->group(function () {

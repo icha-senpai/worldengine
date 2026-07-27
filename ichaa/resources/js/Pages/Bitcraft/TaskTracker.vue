@@ -197,7 +197,7 @@ const form = reactive({
 })
 
 const setupPageVisible = computed(() => Boolean(props.filters.setup))
-const setupVisible = computed(() => setupPageVisible.value || !form.tasks.length)
+const setupVisible = computed(() => setupPageVisible.value)
 const titleLabel = computed(() => form.title || 'Task Tracker')
 const iconsLabel = computed(() => form.icons || '')
 const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form))
@@ -342,7 +342,7 @@ const payload = (setup) => ({
 const submitSetup = (setup) => {
     saveSetup()
 
-    router.get(route('bitcraft.task-tracker'), payload(setup), {
+    router.get(setup ? route('bitcraft.task-tracker.setup') : route('bitcraft.task-tracker'), payload(setup), {
         preserveScroll: true,
         preserveState: false,
         replace: true,

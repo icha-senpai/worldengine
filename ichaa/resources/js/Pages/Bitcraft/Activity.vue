@@ -509,7 +509,7 @@ const updateTheme = (updates) => {
 const submitSetup = (setup) => {
     saveSetup()
 
-    router.get(route('bitcraft.activity'), payload(setup), {
+    router.get(setup ? route('bitcraft.activity.setup') : route('bitcraft.activity'), payload(setup), {
         preserveScroll: true,
         preserveState: false,
         replace: true,

@@ -262,7 +262,7 @@ const form = reactive({
 let restoredSetup = false
 
 const setupPageVisible = computed(() => Boolean(props.filters.setup))
-const setupVisible = computed(() => setupPageVisible.value || !form.itemKeys.length)
+const setupVisible = computed(() => setupPageVisible.value)
 const titleLabel = computed(() => form.title || 'Inventory Tracker')
 const iconsLabel = computed(() => form.icons || '')
 const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form))
@@ -485,7 +485,7 @@ const saveSetup = () => {
 const submitSetup = (setup) => {
     saveSetup()
 
-    router.get(route('bitcraft.inventory-tracker'), payload(setup), {
+    router.get(setup ? route('bitcraft.inventory-tracker.setup') : route('bitcraft.inventory-tracker'), payload(setup), {
         preserveScroll: true,
         preserveState: false,
         replace: true,
