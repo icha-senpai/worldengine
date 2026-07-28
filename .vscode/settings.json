@@ -1,4 +1,8 @@
 {
     "php.format.codeStyle": "Laravel",
-    "material-icon-theme.activeIconPack": "vue"
+    "material-icon-theme.activeIconPack": "vue",
+    "git.ignoreLimitWarning": true,
+    "git.ignoredRepositories": [
+        "tmp/BitCraftPublic"
+    ]
 }
