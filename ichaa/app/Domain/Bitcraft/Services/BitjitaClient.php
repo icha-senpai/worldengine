@@ -111,6 +111,11 @@ class BitjitaClient
         return $this->get("api/empires/{$empireEntityId}/claims");
     }
 
+    public function claimConstruction(string $claimEntityId): array
+    {
+        return $this->get("api/claims/{$claimEntityId}/construction");
+    }
+
     public function claimBuildings(string $claimEntityId): array
     {
         return $this->get("api/claims/{$claimEntityId}/buildings");
@@ -216,6 +221,31 @@ class BitjitaClient
     {
         return $this->get("api/players/{$playerEntityId}/inventories", [
             'q' => $query,
+        ]);
+    }
+
+    public function crafts(array $filters = []): array
+    {
+        return $this->get('api/crafts', [
+            'claimEntityId' => data_get($filters, 'claimEntityId'),
+            'completed' => data_get($filters, 'completed'),
+        ]);
+    }
+
+    public function craftContributions(string $craftId): array
+    {
+        return $this->get("api/crafts/{$craftId}/contributions");
+    }
+
+    public function storageLogs(array $filters = []): array
+    {
+        return $this->get('api/logs/storage', [
+            'playerEntityId' => data_get($filters, 'playerEntityId'),
+            'buildingEntityId' => data_get($filters, 'buildingEntityId'),
+            'claimEntityId' => data_get($filters, 'claimEntityId'),
+            'limit' => data_get($filters, 'limit'),
+            'afterId' => data_get($filters, 'afterId'),
+            'since' => data_get($filters, 'since'),
         ]);
     }
 
@@ -372,8 +402,12 @@ class BitjitaClient
             $path === 'api/claims' => (int) config('services.bitjita.claims_cache_seconds', 300),
             preg_match('#^api/claims/[^/]+$#', $path) === 1 => (int) config('services.bitjita.claim_details_cache_seconds', 300),
             preg_match('#^api/claims/[^/]+/market/listings$#', $path) === 1 => (int) config('services.bitjita.claim_market_listings_cache_seconds', 30),
+            preg_match('#^api/claims/[^/]+/construction$#', $path) === 1 => 30,
             preg_match('#^api/claims/[^/]+/buildings$#', $path) === 1 => (int) config('services.bitjita.claim_buildings_cache_seconds', 300),
             preg_match('#^api/claims/[^/]+/inventories$#', $path) === 1 => (int) config('services.bitjita.claim_inventories_cache_seconds', 300),
+            $path === 'api/crafts',
+            preg_match('#^api/crafts/[^/]+/contributions$#', $path) === 1,
+            $path === 'api/logs/storage' => 30,
             $path === 'api/empires',
             preg_match('#^api/empires/[^/]+/claims$#', $path) === 1 => (int) config('services.bitjita.empires_cache_seconds', 600),
             $path === 'api/items',

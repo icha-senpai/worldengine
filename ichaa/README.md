@@ -8,7 +8,7 @@
 
 ## What This Is
 
-A custom Laravel 12 / Vue 3 / PostgreSQL application for managing a 20+ universe crossover fiction AU. It is built to replace sprawling notes with a structured, queryable backend that can support creative workflows, cross-domain search, and eventually AI-assisted exploration on top of clean domain data.
+A custom Laravel 13 / Inertia v3 / Vue 3 / PostgreSQL application for managing a 20+ universe crossover fiction AU. It is built to replace sprawling notes with a structured, queryable backend that can support creative workflows, cross-domain search, and AI-assisted exploration on top of clean domain data.
 
 The schema design is still one of the strongest parts of the project, but the application itself is no longer just a parked artifact. The current focus is shipping the actual authoring and reference-management experience on top of that foundation.
 
@@ -16,16 +16,17 @@ The schema design is still one of the strongest parts of the project, but the ap
 
 ## Stack
 
-- **Backend:** Laravel 12, Sanctum auth, Breeze scaffolding
-- **Frontend:** Vue 3, Inertia.js, TailwindCSS 4
+- **Backend:** Laravel 13, Breeze auth, Sanctum, Passport, Spatie permission
+- **Frontend:** Vue 3, Inertia.js v3, TailwindCSS 4, Tiptap rich-text editing
 - **Database:** PostgreSQL
+- **API / MCP:** Versioned `/api/v1` authoring API, native Laravel MCP server, Dataverse and Bitcraft MCP tools
 - **Architecture:** Lightweight DDD — domain-organized models and controllers, service-layer logic, named scopes. No repositories or aggregate roots.
 
 ---
 
 ## Domain Structure
 
-Nine explicit domains, each with its own `app/Domain/` and `app/Http/Controllers/` subdirectory.
+The World Engine is organized around explicit domains, each with its own `app/Domain/` and matching `app/Http/Controllers/` area where the surface needs controllers. Bitcraft tooling is active alongside the core worldbuilding domains.
 
 | Domain | Tables | Purpose |
 |---|---|---|
@@ -38,14 +39,15 @@ Nine explicit domains, each with its own `app/Domain/` and `app/Http/Controllers
 | **Intelligence** | knowledge_states, secrets, perception_states | Who knows what, what's hidden, and perception vs. reality gaps |
 | **Production** | writing_pipeline, session_log, meta, contradictions_and_conflicts | Actual writing workflow — scenes, drafts, author notes, session tracking |
 | **System** | settings | Global config |
+| **Bitcraft** | bitcraft_widget_profiles plus external Bitjita/SpacetimeDB data | Market, barter, crafting, settlement, and OBS widget tooling |
 
-**47 tables total.** Full migration set runs clean. All deferred foreign keys resolved.
+The migration set targets PostgreSQL and includes generated search vectors, JSONB document fields, soft-delete/restore flows, API revision tracking, OAuth tables, media references, and Bitcraft widget profiles.
 
 ---
 
 ## Current App Surface
 
-The app now has live page stacks across the main domains, including Identity, Connections, Organization, Lore, Temporal, Intelligence, Production, Search, Profile, and World.
+The app now has live page stacks across the main domains, including Identity, Connections, Organization, Lore, Temporal, Intelligence, Production, Search, Profile, World, System/admin surfaces, and Bitcraft tools.
 
 ### Active UI areas
 
@@ -57,6 +59,9 @@ The app now has live page stacks across the main domains, including Identity, Co
 - **Intelligence** — secrets, knowledge states, perception states.
 - **Production** — pipeline, meta, session logs.
 - **World** — power interactions, travel routes, containment, location control.
+- **System** — search, media library, trash/restore, revisions, Notion sync records.
+- **Bitcraft** — market finder, barter stalls, crafting calculator, settlement projects, EXP tracker, inventory tracker, task tracker.
+- **API/MCP** — authenticated `/api/v1` resource and action endpoints, media upload/replace, revision-aware mutations, Dataverse MCP catalog/tools, and read-only Bitcraft MCP tools.
 
 Most create/edit/show/index pages are scaffold-backed, which keeps cross-domain behavior consistent and makes contract drift easier to catch in tests.
 
@@ -64,17 +69,20 @@ Most create/edit/show/index pages are scaffold-backed, which keeps cross-domain 
 
 ## Key Architecture Decisions
 
-### Custom RBAC over Spatie
-Horizon (the related ops platform) uses scoped squadron-level permissions. Spatie's permission package is global-role-oriented and doesn't cleanly support the "same user, different permissions per squadron" model. Custom RBAC was the right call for that system. Same reasoning applied here.
+### Admin-gated Datacrypt Access
+Authenticated app routes under `/datacrypt` require `auth`, `verified`, and the local `EnsureAdmin` middleware. User roles are provided through Spatie permission; the current app gate is intentionally simple: admins enter Datacrypt, non-admins are redirected home.
 
-### Custom media library over Spatie Media Library
-Polymorphic `media_references` table with collection-based organization and variant generation via Intervention Image. Spatie's package assumes a simpler attachment model and doesn't fit the domain's needs cleanly.
+### Managed Media References
+Dataverse keeps media as first-class `media_references` records with explicit attachment targets, managed uploads, external links, media-library pages, and API/MCP upload and replace flows. Check the local media code before assuming a generic package attachment pattern.
 
-### Plain text over Tiptap JSON for notes/content
-The original schema used `jsonb` for `content` fields (entity notes, pipeline item content) anticipating a rich text editor. The editor was never built. The columns were migrated to `text` type. Lesson: don't model for a feature that doesn't exist yet.
+### Rich Documents Where The Surface Supports Them
+Tiptap-backed rich document fields are active in shared scaffold forms and several custom pages. JSON scaffold fields must declare explicit behavior metadata such as `jsonMode`, and rich-document empty-state behavior should be handled deliberately instead of inferred from field names.
 
 ### No Eloquent magic, explicit everything
 All relationships are explicitly typed. No dynamic properties relied on. Casts are declared. Scopes are named. The goal was code that could be read six months later without archaeology.
+
+### Shared Catalogs Before One-Off Maps
+Web, API, and MCP surfaces have shared catalogs and registries. Before adding a new resource path or tool surface, check `ResourcePageBuilder`, `DataverseWebResourceRegistry`, `TopLevelModeledResourceCatalog`, `ApiResourceRegistry`, and `DataverseMcpCatalog`.
 
 ---
 
@@ -161,7 +169,7 @@ php artisan serve
 npm run dev
 ```
 
-Requires PHP 8.4, Node 20+, PostgreSQL 15+.
+Requires PHP 8.3+, Node 20+, and PostgreSQL.
 
 ---
 
@@ -184,6 +192,7 @@ npm run test:e2e
 
 - The backend suite is designed around PostgreSQL-backed behavior in this app, not SQLite shortcuts.
 - If you split local and test databases, keep a dedicated `.env.testing` that points at a separate Postgres database before running `php artisan test`.
+- Local feature tests use a shared PostgreSQL test database bootstrap plus per-test transactions. Run separate `php artisan test` commands sequentially unless the test database strategy changes.
 - The frontend suite covers shared scaffold helpers, scaffold form contracts, search behavior, and a targeted set of dense read pages.
 - The Playwright smoke suite seeds a verified `e2e@example.com` user automatically and serves the app on `http://127.0.0.1:8011`.
 - On a fresh machine you may need to install the Playwright browser once before the smoke suite can run:
