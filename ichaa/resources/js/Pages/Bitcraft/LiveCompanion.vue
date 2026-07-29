@@ -134,6 +134,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 
 const props = defineProps({
+    enabled: { type: Boolean, default: false },
     snapshot: { type: Object, required: true },
     snapshotUrl: { type: String, required: true },
 })
@@ -158,6 +159,10 @@ const capturedAtLabel = computed(() => {
     return `Captured ${new Date(snapshot.value.lastCapturedAt).toLocaleString()}`
 })
 const statusSubtitle = computed(() => {
+    if (!props.enabled || snapshot.value.disabled) {
+        return 'Live companion checks are disabled for official play.'
+    }
+
     if (snapshot.value.online) {
         return `Fresh bridge data, ${Math.round((snapshot.value.ageMs ?? 0) / 1000)}s old.`
     }
@@ -168,8 +173,8 @@ const statusSubtitle = computed(() => {
 
     return 'Waiting for BitCraft to write a bridge snapshot.'
 })
-const inventoryEmptyLabel = computed(() => snapshot.value.online ? 'Inventory reader returned no stacks.' : 'Start BitCraft with the live companion mod enabled.')
-const deployablesEmptyLabel = computed(() => snapshot.value.online ? 'No loaded deployables found.' : 'Deployables will appear after the bridge is fresh.')
+const inventoryEmptyLabel = computed(() => props.enabled && snapshot.value.online ? 'Inventory reader returned no stacks.' : 'Live companion checks are disabled.')
+const deployablesEmptyLabel = computed(() => props.enabled && snapshot.value.online ? 'No loaded deployables found.' : 'Live companion checks are disabled.')
 
 const formatNumber = (value) => new Intl.NumberFormat().format(Math.max(0, Math.round(Number(value) || 0)))
 const stackLabel = (stack) => `${stack.kind || 'stack'} ${stack.id || ''}`.trim()
@@ -208,6 +213,10 @@ const refresh = async () => {
 }
 
 onMounted(() => {
+    if (!props.enabled) {
+        return
+    }
+
     pollTimer = window.setInterval(refresh, POLL_INTERVAL_MS)
 })
 

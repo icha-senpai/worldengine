@@ -75,6 +75,7 @@ return [
     ],
 
     'bitcraft_live_companion' => [
+        'enabled' => (bool) env('BITCRAFT_LIVE_COMPANION_ENABLED', false),
         'state_path' => env('BITCRAFT_LIVE_COMPANION_STATE_PATH')
             ?: (env('LOCALAPPDATA')
                 ? env('LOCALAPPDATA').DIRECTORY_SEPARATOR.'BitCraftLiveCompanion'.DIRECTORY_SEPARATOR.'live-state.json'

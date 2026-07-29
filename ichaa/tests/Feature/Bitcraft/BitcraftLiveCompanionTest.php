@@ -53,6 +53,7 @@ class BitcraftLiveCompanionTest extends TestCase
         ]);
 
         config([
+            'services.bitcraft_live_companion.enabled' => true,
             'services.bitcraft_live_companion.state_path' => $path,
             'services.bitcraft_live_companion.stale_after_seconds' => 60,
         ]);
@@ -63,6 +64,7 @@ class BitcraftLiveCompanionTest extends TestCase
         $response->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Bitcraft/LiveCompanion')
+                ->where('enabled', true)
                 ->where('snapshot.online', true)
                 ->where('snapshot.stale', false)
                 ->where('snapshot.state.biome.name', 'Calm Forest')
@@ -90,6 +92,7 @@ class BitcraftLiveCompanionTest extends TestCase
         touch($path, time() - 30);
 
         config([
+            'services.bitcraft_live_companion.enabled' => true,
             'services.bitcraft_live_companion.state_path' => $path,
             'services.bitcraft_live_companion.stale_after_seconds' => 10,
         ]);
@@ -102,6 +105,44 @@ class BitcraftLiveCompanionTest extends TestCase
             ->assertJsonPath('stale', true)
             ->assertJsonPath('state', null)
             ->assertJsonPath('lastCapturedAt', '2026-07-29T12:00:00+00:00');
+    }
+
+    public function test_live_companion_snapshot_stays_disabled_without_reading_bridge(): void
+    {
+        $path = $this->writeBridgeSnapshot([
+            'schemaVersion' => 1,
+            'capturedAt' => '2026-07-29T12:00:00+00:00',
+            'inventory' => [[
+                'kind' => 'item',
+                'id' => 123,
+                'name' => 'Simple Stick',
+                'quantity' => 4,
+            ]],
+        ]);
+
+        config([
+            'services.bitcraft_live_companion.enabled' => false,
+            'services.bitcraft_live_companion.state_path' => $path,
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.live-companion'));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/LiveCompanion')
+                ->where('enabled', false)
+                ->where('snapshot.disabled', true)
+                ->where('snapshot.online', false)
+                ->where('snapshot.state', null)
+            );
+
+        $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.live-companion.snapshot'))
+            ->assertOk()
+            ->assertJsonPath('disabled', true)
+            ->assertJsonPath('online', false)
+            ->assertJsonPath('state', null);
     }
 
     /**

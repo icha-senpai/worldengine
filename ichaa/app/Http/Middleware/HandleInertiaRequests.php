@@ -43,6 +43,11 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            'features' => [
+                'bitcraft' => [
+                    'live_companion' => (bool) config('services.bitcraft_live_companion.enabled', false),
+                ],
+            ],
         ];
     }
 }

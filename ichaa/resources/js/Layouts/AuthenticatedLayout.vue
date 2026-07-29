@@ -644,21 +644,25 @@ const domains = [
     },
 ]
 
-const bitcraftTools = {
+const bitcraftToolChildren = computed(() => [
+    { key: 'bitcraft-market', label: 'Market Finder', href: route('bitcraft.market'), matches: ['/bitcraft/market'] },
+    { key: 'bitcraft-barter-stalls', label: 'Barter Stalls', href: route('bitcraft.barter-stalls'), matches: ['/bitcraft/barter-stalls'] },
+    { key: 'bitcraft-crafting', label: 'Crafting Calculator', href: route('bitcraft.crafting'), matches: ['/bitcraft/crafting'] },
+    { key: 'bitcraft-settlement-projects', label: 'Settlement Projects', href: route('bitcraft.settlement-projects'), matches: ['/bitcraft/settlement-projects'] },
+    page.props.features?.bitcraft?.live_companion
+        ? { key: 'bitcraft-live-companion', label: 'Live Companion', href: route('bitcraft.live-companion'), matches: ['/bitcraft/live-companion'] }
+        : null,
+    { key: 'bitcraft-activity', label: 'EXP Tracker', href: route('bitcraft.activity.setup', { source: 'default' }), matches: ['/bitcraft/activity'] },
+    { key: 'bitcraft-inventory-tracker', label: 'Inventory Tracker', href: route('bitcraft.inventory-tracker.setup', { source: 'default' }), matches: ['/bitcraft/inventory-tracker'] },
+    { key: 'bitcraft-task-tracker', label: 'Task Tracker', href: route('bitcraft.task-tracker.setup', { source: 'default' }), matches: ['/bitcraft/task-tracker'] },
+].filter(Boolean))
+
+const bitcraftTools = computed(() => ({
     key: 'bitcraft-tools',
     label: 'Bitcraft Tools',
     matches: ['/bitcraft'],
-    children: [
-        { key: 'bitcraft-market', label: 'Market Finder', href: route('bitcraft.market'), matches: ['/bitcraft/market'] },
-        { key: 'bitcraft-barter-stalls', label: 'Barter Stalls', href: route('bitcraft.barter-stalls'), matches: ['/bitcraft/barter-stalls'] },
-        { key: 'bitcraft-crafting', label: 'Crafting Calculator', href: route('bitcraft.crafting'), matches: ['/bitcraft/crafting'] },
-        { key: 'bitcraft-settlement-projects', label: 'Settlement Projects', href: route('bitcraft.settlement-projects'), matches: ['/bitcraft/settlement-projects'] },
-        { key: 'bitcraft-live-companion', label: 'Live Companion', href: route('bitcraft.live-companion'), matches: ['/bitcraft/live-companion'] },
-        { key: 'bitcraft-activity', label: 'EXP Tracker', href: route('bitcraft.activity.setup', { source: 'default' }), matches: ['/bitcraft/activity'] },
-        { key: 'bitcraft-inventory-tracker', label: 'Inventory Tracker', href: route('bitcraft.inventory-tracker.setup', { source: 'default' }), matches: ['/bitcraft/inventory-tracker'] },
-        { key: 'bitcraft-task-tracker', label: 'Task Tracker', href: route('bitcraft.task-tracker.setup', { source: 'default' }), matches: ['/bitcraft/task-tracker'] },
-    ],
-}
+    children: bitcraftToolChildren.value,
+}))
 
 const currentPath = computed(() => {
     const path = page.url.split('?')[0] || '/'
@@ -702,13 +706,13 @@ const isWorldEngineActive = computed(() =>
         || domains.some((domain) => isNavItemActive(domain))
 )
 
-const isBitcraftToolsActive = computed(() => isNavItemActive(bitcraftTools))
+const isBitcraftToolsActive = computed(() => isNavItemActive(bitcraftTools.value))
 
 const activeShellLabel = computed(() => {
     if (isBitcraftToolsActive.value) {
-        const activeTool = bitcraftTools.children.find((item) => isNavItemActive(item))
+        const activeTool = bitcraftTools.value.children.find((item) => isNavItemActive(item))
 
-        return activeTool?.label ?? bitcraftTools.label
+        return activeTool?.label ?? bitcraftTools.value.label
     }
 
     return activeDomain.value.label

@@ -13,6 +13,7 @@ class BitcraftLiveCompanionController extends Controller
     public function show(BitcraftLiveCompanionState $companion): InertiaResponse
     {
         return Inertia::render('Bitcraft/LiveCompanion', [
+            'enabled' => $companion->enabled(),
             'snapshot' => $companion->snapshot(),
             'snapshotUrl' => route('bitcraft.live-companion.snapshot', absolute: false),
         ]);

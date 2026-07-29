@@ -13,10 +13,20 @@ class BitcraftLiveCompanionState
      */
     public function snapshot(): array
     {
+        if (! $this->enabled()) {
+            return [
+                ...$this->offline($this->statePath()),
+                'disabled' => true,
+            ];
+        }
+
         $path = $this->statePath();
 
         if ($path === '' || ! File::exists($path)) {
-            return $this->offline($path);
+            return [
+                ...$this->offline($path),
+                'disabled' => false,
+            ];
         }
 
         $modifiedAt = File::lastModified($path);
@@ -27,6 +37,7 @@ class BitcraftLiveCompanionState
             return [
                 ...$this->offline($path),
                 'error' => 'The live companion bridge file could not be parsed.',
+                'disabled' => false,
             ];
         }
 
@@ -39,6 +50,7 @@ class BitcraftLiveCompanionState
                 'lastCapturedAt' => Arr::get($payload, 'capturedAt'),
                 'state' => null,
                 'error' => null,
+                'disabled' => false,
             ];
         }
 
@@ -50,7 +62,13 @@ class BitcraftLiveCompanionState
             'lastCapturedAt' => Arr::get($payload, 'capturedAt'),
             'state' => $this->normalizeState($payload),
             'error' => null,
+            'disabled' => false,
         ];
+    }
+
+    public function enabled(): bool
+    {
+        return (bool) config('services.bitcraft_live_companion.enabled', false);
     }
 
     private function statePath(): string
