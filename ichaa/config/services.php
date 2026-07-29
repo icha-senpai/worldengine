@@ -74,4 +74,12 @@ return [
         ))))),
     ],
 
+    'bitcraft_live_companion' => [
+        'state_path' => env('BITCRAFT_LIVE_COMPANION_STATE_PATH')
+            ?: (env('LOCALAPPDATA')
+                ? env('LOCALAPPDATA').DIRECTORY_SEPARATOR.'BitCraftLiveCompanion'.DIRECTORY_SEPARATOR.'live-state.json'
+                : storage_path('app/bitcraft/live-state.json')),
+        'stale_after_seconds' => (int) env('BITCRAFT_LIVE_COMPANION_STALE_AFTER_SECONDS', 10),
+    ],
+
 ];
