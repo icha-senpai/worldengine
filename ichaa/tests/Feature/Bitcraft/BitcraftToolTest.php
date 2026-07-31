@@ -2126,6 +2126,388 @@ class BitcraftToolTest extends TestCase
             );
     }
 
+    public function test_crafting_tool_offers_silken_hexmoth_bait_route_as_alternative_without_defaulting_to_it(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Bait' => Http::response([
+                'items' => [[
+                    'id' => 886001,
+                    'name' => 'Bait',
+                    'tag' => 'Bait',
+                    'tier' => 2,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Bait' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/886001' => Http::response([
+                'item' => [
+                    'id' => 886001,
+                    'name' => 'Bait',
+                    'tag' => 'Bait',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 886101,
+                    'name' => 'Prepare Bait With Silken Hexmoth',
+                    'buildingName' => 'Basic Fishing Station',
+                    'outputQuantity' => 2,
+                    'craftedItems' => [[
+                        'id' => 886001,
+                        'name' => 'Bait',
+                        'quantity' => 2,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 886001,
+                        'name' => 'Bait',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 886003,
+                        'name' => 'Silken Hexmoth',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ], [
+                    'id' => 886102,
+                    'name' => 'Prepare Bait',
+                    'buildingName' => 'Basic Fishing Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 886001,
+                        'name' => 'Bait',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 886002,
+                        'name' => 'Simple Grub',
+                        'quantity' => 2,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 886004,
+                        'name' => 'Simple Plant Fiber',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/886002' => Http::response([
+                'item' => [
+                    'id' => 886002,
+                    'name' => 'Simple Grub',
+                    'tag' => 'Grub',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/886003' => Http::response([
+                'item' => [
+                    'id' => 886003,
+                    'name' => 'Silken Hexmoth',
+                    'tag' => 'Moth',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/886004' => Http::response([
+                'item' => [
+                    'id' => 886004,
+                    'name' => 'Simple Plant Fiber',
+                    'tag' => 'Fiber',
+                    'tier' => 1,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Bait',
+                'itemId' => 886001,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.recipeTree.0.name', 'Prepare Bait')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Simple Grub')
+                ->where('detail.recipeTree.0.ingredients.1.name', 'Simple Plant Fiber')
+                ->where('detail.recipeTree.0.alternatives.1.name', 'Prepare Bait With Silken Hexmoth')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', 'Bait')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.1.name', 'Silken Hexmoth')
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+    }
+
+    public function test_crafting_tool_promotes_bait_and_shells_route_over_silken_hexmoth_enrichment(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/items?q=Basic%20Bait' => Http::response([
+                'items' => [[
+                    'id' => 887001,
+                    'name' => 'Basic Bait',
+                    'tag' => 'Bait',
+                    'tier' => 2,
+                ]],
+            ]),
+            'https://bitjita.com/api/items?q=Basic%20Bait%20and%20Shells' => Http::response([
+                'items' => [[
+                    'id' => 887019,
+                    'name' => 'Basic Bait and Shells',
+                    'tag' => 'Bait Output',
+                    'tier' => 2,
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo?q=Basic%20Bait' => Http::response([
+                'cargos' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/items/887001' => Http::response([
+                'item' => [
+                    'id' => 887001,
+                    'name' => 'Basic Bait',
+                    'tag' => 'Bait',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 887101,
+                    'name' => 'Enrich {0}',
+                    'buildingName' => 'Basic Fishing Station',
+                    'outputQuantity' => 2,
+                    'craftedItems' => [[
+                        'id' => 887001,
+                        'name' => 'Basic Bait',
+                        'quantity' => 2,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 887001,
+                        'name' => 'Basic Bait',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ], [
+                        'id' => 887002,
+                        'name' => 'Silken Hexmoth',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/887019' => Http::response([
+                'item' => [
+                    'id' => 887019,
+                    'name' => 'Basic Bait and Shells',
+                    'tag' => 'Bait Output',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [[
+                    'id' => 887119,
+                    'name' => 'Process Briny Guppi',
+                    'buildingName' => 'Basic Fishing Station',
+                    'outputQuantity' => 1,
+                    'craftedItems' => [[
+                        'id' => 887019,
+                        'name' => 'Basic Bait and Shells',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                    'consumedItems' => [[
+                        'id' => 887016,
+                        'name' => 'Briny Guppi',
+                        'quantity' => 1,
+                        'itemType' => 0,
+                    ]],
+                ]],
+                'extractionRecipes' => [],
+                'itemListPossibilities' => [[
+                    'targetId' => 887001,
+                    'targetItem' => [
+                        'id' => 887001,
+                        'name' => 'Basic Bait',
+                    ],
+                    'quantity' => 2,
+                    'chance' => 1,
+                    'isCargo' => false,
+                ]],
+            ]),
+            'https://bitjita.com/api/items/887016' => Http::response([
+                'item' => [
+                    'id' => 887016,
+                    'name' => 'Briny Guppi',
+                    'tag' => 'Baitfish',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+            'https://bitjita.com/api/items/887002' => Http::response([
+                'item' => [
+                    'id' => 887002,
+                    'name' => 'Silken Hexmoth',
+                    'tag' => 'Moth',
+                    'tier' => 2,
+                ],
+                'craftingRecipes' => [],
+                'extractionRecipes' => [],
+            ]),
+        ]);
+
+        $searchResponse = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Basic Bait',
+            ]));
+
+        $searchResponse->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->has('items', 1)
+                ->where('items.0.name', 'Basic Bait')
+            );
+
+        $detailResponse = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Basic Bait',
+                'itemId' => 887001,
+            ]));
+
+        $detailResponse->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->where('detail.item.name', 'Basic Bait')
+                ->where('detail.craftingRecipes.0.name', 'Process Briny Guppi')
+                ->where('detail.craftingRecipes.0.outputQuantity', 2)
+                ->where('detail.craftingRecipes.0.ingredients.0.name', 'Briny Guppi')
+                ->where('detail.craftingRecipes.1.name', 'Enrich Basic Bait')
+                ->where('detail.recipeTree.0.name', 'Process Briny Guppi')
+                ->where('detail.recipeTree.0.outputQuantity', 2)
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Briny Guppi')
+                ->where('detail.recipeTree.0.alternatives.1.name', 'Enrich Basic Bait')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', 'Basic Bait')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.1.name', 'Silken Hexmoth')
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+    }
+
+    public function test_crafting_tool_promotes_static_bait_and_shells_route_over_silken_hexmoth_enrichment(): void
+    {
+        $snapshotPath = storage_path('framework/testing/bitcraft-bait-static.json');
+
+        if (! is_dir(dirname($snapshotPath))) {
+            mkdir(dirname($snapshotPath), 0777, true);
+        }
+
+        file_put_contents($snapshotPath, json_encode([
+            'source' => 'bitcraft-spacetimedb',
+            'generatedAt' => now()->toISOString(),
+            'host' => 'wss://bitcraft-early-access.spacetimedb.com',
+            'database' => 'bitcraft-live-19',
+            'tables' => [
+                'item_desc' => [
+                    'count' => 4,
+                    'rows' => [[
+                        'id' => 1110003,
+                        'name' => 'Basic Bait',
+                        'description' => 'Bait made at a fishing station.',
+                        'tier' => 1,
+                        'tag' => 'Bait',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/Bait',
+                    ], [
+                        'id' => 1220019,
+                        'name' => 'Basic Bait and Shells',
+                        'description' => 'Materials from a fish processed at a fishing station.',
+                        'tier' => 1,
+                        'tag' => 'Bait Output',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/SeashellsAndBait',
+                    ], [
+                        'id' => 1110016,
+                        'name' => 'Briny Guppi',
+                        'description' => 'A fish found in shallow lakes and rivers.',
+                        'tier' => 1,
+                        'tag' => 'Baitfish',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/T1 Baitfish',
+                    ], [
+                        'id' => 1075000,
+                        'name' => 'Silken Hexmoth',
+                        'description' => 'A special moth.',
+                        'tier' => 1,
+                        'tag' => 'Resource',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'Resources/SilkenHexmoth',
+                    ]],
+                ],
+                'cargo_desc' => ['count' => 0, 'rows' => []],
+                'crafting_recipe_desc' => [
+                    'count' => 2,
+                    'rows' => [[
+                        'id' => 111006,
+                        'name' => 'Process {1}',
+                        'time_requirement' => 1.6,
+                        'crafted_item_stacks' => [[1220019, 1, [0, []], [1, []]]],
+                        'consumed_item_stacks' => [[1110016, 1, [0, []], 1, 1]],
+                    ], [
+                        'id' => 111007,
+                        'name' => 'Enrich {0}',
+                        'time_requirement' => 1.6,
+                        'crafted_item_stacks' => [[1110003, 2, [0, []], [1, []]]],
+                        'consumed_item_stacks' => [[1110003, 1, [0, []], 1, 1], [1075000, 1, [0, []], 1, 1]],
+                    ]],
+                ],
+                'extraction_recipe_desc' => ['count' => 0, 'rows' => []],
+                'building_type_desc' => ['count' => 0, 'rows' => []],
+                'skill_desc' => ['count' => 0, 'rows' => []],
+            ],
+        ], JSON_THROW_ON_ERROR));
+
+        config([
+            'services.bitcraft_spacetime.enabled' => true,
+            'services.bitcraft_spacetime.enabled_in_tests' => true,
+            'services.bitcraft_spacetime.static_snapshot_path' => $snapshotPath,
+        ]);
+
+        Http::fake([
+            'https://bitjita.com/*' => Http::response([], 500),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.crafting', [
+                'q' => 'Basic Bait',
+                'itemId' => 1110003,
+                'itemKind' => 'item',
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Crafting')
+                ->has('items', 2)
+                ->where('items.0.name', 'Basic Bait')
+                ->where('items.1.name', 'Basic Bait and Shells')
+                ->where('detail.item.name', 'Basic Bait')
+                ->where('detail.craftingRecipes.0.name', 'Process Briny Guppi')
+                ->where('detail.craftingRecipes.0.outputQuantity', 2)
+                ->where('detail.craftingRecipes.0.ingredients.0.name', 'Briny Guppi')
+                ->where('detail.craftingRecipes.1.name', 'Enrich Basic Bait')
+                ->where('detail.recipeTree.0.name', 'Process Briny Guppi')
+                ->where('detail.recipeTree.0.ingredients.0.name', 'Briny Guppi')
+                ->where('detail.recipeTree.0.alternatives.1.name', 'Enrich Basic Bait')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.0.name', 'Basic Bait')
+                ->where('detail.recipeTree.0.alternatives.1.ingredients.1.name', 'Silken Hexmoth')
+                ->has('detail.recipeTree.0.alternatives', 2)
+            );
+
+        Http::assertNothingSent();
+    }
+
     public function test_crafting_tool_offers_dried_boot_and_shipwreck_routes_as_alternatives_without_defaulting_to_them(): void
     {
         Http::fake([

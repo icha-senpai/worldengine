@@ -1330,6 +1330,10 @@ class BitcraftToolController extends Controller
     private function craftingTargetDetailPayload(BitjitaClient $bitjita, array $payload, string $kind, ?BitcraftSpacetimeStaticData $spacetime = null): array
     {
         $detail = $this->normalizeCraftingTargetDetail($payload, $kind);
+        $detail['craftingRecipes'] = [
+            ...$this->baitAndShellsRecipesForBait($bitjita, $detail, $spacetime),
+            ...$detail['craftingRecipes'],
+        ];
         $targetKey = $this->craftingTargetKey($detail['item']);
         $expandedTargets = [$targetKey => true];
         $detailCache = [$targetKey => $detail];
@@ -1382,7 +1386,7 @@ class BitcraftToolController extends Controller
             return false;
         }
 
-        return $this->preferredRecipeOptions($this->normalizeCraftingTargetDetail($detail, (string) $item['kind']), true) !== [];
+        return $this->hasUnblockedRecipeOptions($this->normalizeCraftingTargetDetail($detail, (string) $item['kind']));
     }
 
     private function craftingTargetHasRecipes(BitjitaClient $bitjita, array $item): bool
@@ -1392,7 +1396,7 @@ class BitcraftToolController extends Controller
             (string) $item['kind'],
         );
 
-        return $this->preferredRecipeOptions($detail, true) !== [];
+        return $this->hasUnblockedRecipeOptions($detail);
     }
 
     private function craftingTargetDetail(BitjitaClient $bitjita, string $kind, int $itemId): array
@@ -1526,9 +1530,9 @@ class BitcraftToolController extends Controller
         ];
     }
 
-    private function preferredRecipeOptions(array $detail, bool $allowPackageOnlyRoutes = false): array
+    private function preferredRecipeOptions(array $detail, bool $allowSpecialOnlyRoutes = false): array
     {
-        $recipes = $this->availableRecipeOptions($detail, $allowPackageOnlyRoutes);
+        $recipes = $this->availableRecipeOptions($detail, $allowSpecialOnlyRoutes);
 
         if ($recipes === []) {
             return [];
@@ -1543,7 +1547,7 @@ class BitcraftToolController extends Controller
         return [$recipe];
     }
 
-    private function availableRecipeOptions(array $detail, bool $allowPackageOnlyRoutes = false): array
+    private function availableRecipeOptions(array $detail, bool $allowSpecialOnlyRoutes = false): array
     {
         $recipes = collect([
             ...$detail['craftingRecipes'],
@@ -1561,9 +1565,9 @@ class BitcraftToolController extends Controller
         $standardRecipes = $routeRecipes
             ->reject(fn (array $recipe) => $this->isSpecialCraftingRoute($recipe));
 
-        if ($standardRecipes->isEmpty() && $allowPackageOnlyRoutes) {
+        if ($standardRecipes->isEmpty() && $allowSpecialOnlyRoutes) {
             return $routeRecipes
-                ->filter(fn (array $recipe) => $this->isPackageCraftingRoute($recipe))
+                ->reject(fn (array $recipe) => $this->isSelfReferentialSpecialCraftingRoute($recipe, $detail['item']))
                 ->sort(fn (array $left, array $right) => $this->recipePreferenceTuple($left) <=> $this->recipePreferenceTuple($right))
                 ->values()
                 ->all();
@@ -1614,6 +1618,7 @@ class BitcraftToolController extends Controller
             "salvaged pirate's weapon",
             'salvaged pirate weapon',
             'salvaged pirate weapons',
+            'silken hexmoth',
             'scroll',
             'uncharted',
             'winter snow',
@@ -1692,6 +1697,109 @@ class BitcraftToolController extends Controller
 
         return collect($outputs)
             ->contains(fn (array $output): bool => $this->craftingTargetKey($output) === $this->craftingTargetKey($target));
+    }
+
+    private function hasUnblockedRecipeOptions(array $detail): bool
+    {
+        return collect([
+            ...$detail['craftingRecipes'],
+            ...$detail['extractionRecipes'],
+        ])
+            ->filter(fn (array $recipe): bool => $this->recipeOutputsTarget($recipe, $detail['item']))
+            ->reject(fn (array $recipe) => $this->isBlockedCraftingRoute($recipe))
+            ->isNotEmpty();
+    }
+
+    private function baitAndShellsRecipesForBait(BitjitaClient $bitjita, array $detail, ?BitcraftSpacetimeStaticData $spacetime): array
+    {
+        $baitAndShellsName = $this->baitAndShellsNameForBait($detail['item']);
+
+        if ($baitAndShellsName === null) {
+            return [];
+        }
+
+        $baitAndShellsTarget = $this->baitAndShellsTarget($bitjita, $baitAndShellsName, $spacetime);
+
+        if ($baitAndShellsTarget === null) {
+            return [];
+        }
+
+        $baitAndShellsPayload = $spacetime?->isAvailable()
+            ? $spacetime->detail((string) $baitAndShellsTarget['kind'], (int) $baitAndShellsTarget['id'])
+            : $this->craftingTargetDetail($bitjita, (string) $baitAndShellsTarget['kind'], (int) $baitAndShellsTarget['id']);
+
+        if ($baitAndShellsPayload === null) {
+            return [];
+        }
+
+        $baitAndShellsDetail = $this->normalizeCraftingTargetDetail($baitAndShellsPayload, (string) $baitAndShellsTarget['kind']);
+        $outputQuantity = $this->baitOutputQuantity($baitAndShellsPayload, $detail['item']);
+
+        return collect($baitAndShellsDetail['craftingRecipes'])
+            ->filter(fn (array $recipe): bool => $this->recipeOutputsTarget($recipe, $baitAndShellsDetail['item']))
+            ->map(fn (array $recipe): array => [
+                ...$recipe,
+                'id' => implode(':', array_filter([
+                    $recipe['id'],
+                    $detail['item']['kind'],
+                    $detail['item']['id'],
+                    'bait-output',
+                ], fn (mixed $part): bool => filled($part))),
+                'source' => 'bait-output',
+                'outputQuantity' => $outputQuantity,
+                'outputs' => [[
+                    'id' => $detail['item']['id'],
+                    'kind' => $detail['item']['kind'],
+                ]],
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function baitAndShellsNameForBait(array $target): ?string
+    {
+        if (($target['kind'] ?? '') !== 'item' || strtolower((string) ($target['category'] ?? '')) !== 'bait') {
+            return null;
+        }
+
+        $name = trim((string) ($target['name'] ?? ''));
+
+        if (preg_match('/\s+bait$/i', $name) !== 1) {
+            return null;
+        }
+
+        return preg_replace('/\s+bait$/i', ' Bait and Shells', $name) ?: null;
+    }
+
+    private function baitAndShellsTarget(BitjitaClient $bitjita, string $name, ?BitcraftSpacetimeStaticData $spacetime): ?array
+    {
+        $targets = $spacetime?->isAvailable()
+            ? $spacetime->targets($name)
+            : $this->normalizeItems($bitjita->items($name));
+
+        return collect($targets)
+            ->first(fn (array $target): bool => strcasecmp((string) ($target['name'] ?? ''), $name) === 0
+                && strtolower((string) ($target['category'] ?? '')) === 'bait output');
+    }
+
+    private function baitOutputQuantity(array $payload, array $target): float
+    {
+        $quantity = collect(data_get($payload, 'itemListPossibilities', []))
+            ->filter(fn (array $possibility): bool => (int) data_get($possibility, 'targetId') === (int) $target['id']
+                && ! (bool) data_get($possibility, 'isCargo', false))
+            ->sum(fn (array $possibility): float => (float) data_get($possibility, 'quantity', 0) * (float) data_get($possibility, 'chance', 1));
+
+        return $quantity > 0 ? $quantity : 2;
+    }
+
+    private function isSelfReferentialSpecialCraftingRoute(array $recipe, array $target): bool
+    {
+        if (! $this->isSpecialCraftingRoute($recipe)) {
+            return false;
+        }
+
+        return collect($recipe['ingredients'] ?? [])
+            ->contains(fn (array $ingredient): bool => $this->craftingTargetKey($ingredient) === $this->craftingTargetKey($target));
     }
 
     private function packageRecipeMayOutputTarget(array $recipe, array $target): bool
