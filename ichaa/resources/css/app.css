@@ -164,6 +164,15 @@
   *::-webkit-scrollbar-corner {
     background: var(--scrollbar-corner);
   }
+
+  :where(a[href], button, summary, select, input[type="button"], input[type="submit"], input[type="reset"], input[type="checkbox"], input[type="radio"], [role="button"]):not(:disabled):not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  :where(button, select, input[type="button"], input[type="submit"], input[type="reset"], input[type="checkbox"], input[type="radio"], [role="button"]):disabled,
+  :where([aria-disabled="true"]) {
+    cursor: not-allowed;
+  }
 }
 
 @layer components {

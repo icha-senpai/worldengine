@@ -61,7 +61,7 @@
             </div>
 
             <div v-if="form.tasks.length" class="task-tracker-selected">
-                <span v-for="task in form.tasks" :key="task.id">
+                <div v-for="task in form.tasks" :key="task.id" class="task-tracker-selected__task">
                     <button
                         type="button"
                         class="task-tracker-selected__check"
@@ -73,7 +73,7 @@
                     </button>
                     <input v-model.trim="task.text" type="text" maxlength="160" />
                     <button type="button" @click="removeTask(task.id)">Remove</button>
-                </span>
+                </div>
             </div>
 
             <div class="task-tracker-setup__actions">
@@ -508,7 +508,7 @@ onMounted(() => {
     margin-top: 10px;
 }
 
-.task-tracker-selected span {
+.task-tracker-selected__task {
     display: grid;
     grid-template-columns: 32px minmax(0, 1fr) auto;
     align-items: center;
@@ -526,10 +526,12 @@ onMounted(() => {
     place-items: center;
     border: 1px solid rgb(var(--accent-cyan-rgb) / 0.38);
     border-radius: 6px;
+    padding: 0;
     background: rgb(var(--bg-canvas-rgb) / 0.5);
     color: var(--success);
     font-size: 16px;
     font-weight: 900;
+    line-height: 1;
 }
 
 .task-tracker-selected__check.done {
@@ -641,10 +643,12 @@ onMounted(() => {
     place-items: center;
     border: 1px solid color-mix(in srgb, var(--tracker-accent) 44%, transparent);
     border-radius: 7px;
+    padding: 0;
     background: color-mix(in srgb, var(--tracker-panel) 72%, black);
     color: var(--tracker-highlight);
     font-size: calc(17px * var(--tracker-font-scale));
     font-weight: 900;
+    line-height: 1;
 }
 
 .task-tracker-widget__task.done .task-tracker-widget__check {
