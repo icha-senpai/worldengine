@@ -104,7 +104,7 @@
 
             <div class="inventory-tracker-setup__actions">
                 <button type="submit">Search / Update</button>
-                <button type="button" @click="submitSetup(false)">Widget Mode</button>
+                <button type="button" @click="openWidgetMode">Widget Mode</button>
             </div>
         </form>
 
@@ -403,7 +403,7 @@ const selectOption = (option) => {
     }
 
     form.itemKey = form.itemKeys[0] ?? option.key
-    form.itemSearch = option.name
+    form.itemSearch = ''
     pickerOpen.value = false
     saveSetup()
 }
@@ -490,6 +490,16 @@ const submitSetup = (setup) => {
         preserveState: false,
         replace: true,
     })
+}
+
+const openWidgetMode = () => {
+    saveSetup()
+
+    if (typeof window === 'undefined') {
+        return
+    }
+
+    window.open(route('bitcraft.inventory-tracker', payload(false)), '_blank', 'noopener,noreferrer')
 }
 
 const refresh = async () => {

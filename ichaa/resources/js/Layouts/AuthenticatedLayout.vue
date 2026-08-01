@@ -648,7 +648,6 @@ const bitcraftToolChildren = computed(() => [
     { key: 'bitcraft-market', label: 'Market Finder', href: route('bitcraft.market'), matches: ['/bitcraft/market'] },
     { key: 'bitcraft-barter-stalls', label: 'Barter Stalls', href: route('bitcraft.barter-stalls'), matches: ['/bitcraft/barter-stalls'] },
     { key: 'bitcraft-crafting', label: 'Crafting Calculator', href: route('bitcraft.crafting'), matches: ['/bitcraft/crafting'] },
-    { key: 'bitcraft-settlement-projects', label: 'Settlement Projects', href: route('bitcraft.settlement-projects'), matches: ['/bitcraft/settlement-projects'] },
     page.props.features?.bitcraft?.live_companion
         ? { key: 'bitcraft-live-companion', label: 'Live Companion', href: route('bitcraft.live-companion'), matches: ['/bitcraft/live-companion'] }
         : null,

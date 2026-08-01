@@ -3408,6 +3408,30 @@ class BitcraftToolTest extends TestCase
             );
     }
 
+    public function test_activity_tracker_scoped_skill_keeps_full_picker_options(): void
+    {
+        $this->fakeActivityTrackerResponses();
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.activity', [
+                'character' => 'icha',
+                'skill' => '12',
+                'setup' => 1,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Activity')
+                ->where('filters.skill', '12')
+                ->where('snapshot.tracker.scope', 'skill')
+                ->has('snapshot.tracker.skills', 1)
+                ->where('snapshot.tracker.skills.0.name', 'Fishing')
+                ->has('snapshot.tracker.skillOptions', 2)
+                ->where('snapshot.tracker.skillOptions.0.name', 'Fishing')
+                ->where('snapshot.tracker.skillOptions.1.name', 'Sailing')
+            );
+    }
+
     public function test_activity_tracker_snapshot_returns_live_json_payload(): void
     {
         $this->fakeActivityTrackerResponses();
@@ -3534,6 +3558,29 @@ class BitcraftToolTest extends TestCase
                 ->where('snapshot.options.2.kind', 'item')
                 ->where('snapshot.options.2.quantity', 29)
             );
+    }
+
+    public function test_inventory_tracker_setup_searches_item_and_cargo_catalogs(): void
+    {
+        $this->fakeInventoryTrackerResponses();
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.inventory-tracker', [
+                'character' => 'icha',
+                'itemSearch' => 'Timber',
+                'setup' => 1,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/InventoryTracker')
+                ->where('filters.itemSearch', 'Timber')
+                ->where('snapshot.options.1.name', 'Simple Timber')
+                ->where('snapshot.options.1.kind', 'cargo')
+            );
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/items?q=Timber');
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/cargo?q=Timber');
     }
 
     public function test_inventory_tracker_snapshot_aggregates_selected_item_from_tracked_sources(): void
@@ -3946,7 +3993,10 @@ class BitcraftToolTest extends TestCase
                     'username' => 'Icha',
                 ],
             ]),
-            'https://bitjita.com/api/items' => Http::response([
+            'https://bitjita.com/api/items?q=Timber' => Http::response([
+                'items' => [],
+            ]),
+            'https://bitjita.com/api/items*' => Http::response([
                 'items' => [[
                     'id' => 1421716234,
                     'name' => 'Astralite Pickaxe',
@@ -3961,7 +4011,16 @@ class BitcraftToolTest extends TestCase
                     'tag' => 'Ocean Fish',
                 ]],
             ]),
-            'https://bitjita.com/api/cargo' => Http::response([
+            'https://bitjita.com/api/cargo?q=Timber' => Http::response([
+                'cargos' => [[
+                    'id' => 1201,
+                    'name' => 'Simple Timber',
+                    'tier' => 1,
+                    'rarityStr' => 'Common',
+                    'tag' => 'Construction',
+                ]],
+            ]),
+            'https://bitjita.com/api/cargo*' => Http::response([
                 'cargos' => [[
                     'id' => 6000,
                     'name' => 'Briny Linus',

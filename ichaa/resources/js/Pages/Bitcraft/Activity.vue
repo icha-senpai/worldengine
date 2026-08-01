@@ -101,7 +101,7 @@
 
             <div class="activity-setup__actions">
                 <button type="submit">Search / Update</button>
-                <button type="button" @click="submitSetup(false)">Widget Mode</button>
+                <button type="button" @click="openWidgetMode">Widget Mode</button>
             </div>
         </form>
 
@@ -516,14 +516,31 @@ const submitSetup = (setup) => {
     })
 }
 
+const openWidgetMode = () => {
+    saveSetup()
+
+    if (typeof window === 'undefined') {
+        return
+    }
+
+    window.open(route('bitcraft.activity', payload(false)), '_blank', 'noopener,noreferrer')
+}
+
 const skills = computed(() => trackerSkills(tracker.value))
+const availableSkills = computed(() => {
+    if (Array.isArray(tracker.value?.skillOptions) && tracker.value.skillOptions.length) {
+        return tracker.value.skillOptions
+    }
+
+    return skills.value
+})
 const levels = computed(() => tracker.value?.levels ?? [])
 const setupPageVisible = computed(() => Boolean(props.filters.setup))
 const setupVisible = computed(() => setupPageVisible.value)
 const titleLabel = computed(() => form.title || 'EXP Tracker')
 const iconsLabel = computed(() => form.icons || '')
 const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form))
-const skillOptions = computed(() => skills.value
+const skillOptions = computed(() => availableSkills.value
     .slice()
     .sort((a, b) => String(a.name).localeCompare(String(b.name))))
 const filteredSkillOptions = computed(() => {

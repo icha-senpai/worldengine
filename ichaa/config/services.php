@@ -56,7 +56,6 @@ return [
         'claim_market_listings_cache_seconds' => (int) env('BITJITA_CLAIM_MARKET_LISTINGS_CACHE_SECONDS', 30),
         'claim_details_cache_seconds' => (int) env('BITJITA_CLAIM_DETAILS_CACHE_SECONDS', 300),
         'claim_buildings_cache_seconds' => (int) env('BITJITA_CLAIM_BUILDINGS_CACHE_SECONDS', 300),
-        'claim_inventories_cache_seconds' => (int) env('BITJITA_CLAIM_INVENTORIES_CACHE_SECONDS', 300),
         'stalls_cache_seconds' => (int) env('BITJITA_STALLS_CACHE_SECONDS', 300),
     ],
 

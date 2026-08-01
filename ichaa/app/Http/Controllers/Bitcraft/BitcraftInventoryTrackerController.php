@@ -155,7 +155,7 @@ class BitcraftInventoryTrackerController extends Controller
 
             $catalog = $this->catalog($inventoriesPayload);
             $inventoryEntries = $this->inventoryEntries($inventoriesPayload, $catalog);
-            $options = $this->options($inventoryEntries, $catalog, $bitjita);
+            $options = $this->options($inventoryEntries, $catalog, $bitjita, (string) $filters['itemSearch']);
             $itemKeys = $filters['itemKeys'] ?? [];
             $itemKeys = is_array($itemKeys) ? $itemKeys : $this->selectedItemKeys((string) $itemKeys);
             $itemNeeds = $filters['itemNeeds'] ?? [];
@@ -449,7 +449,7 @@ class BitcraftInventoryTrackerController extends Controller
      * @param  array<string, array<string, mixed>>  $catalog
      * @return array<int, array<string, mixed>>
      */
-    private function options(array $inventoryEntries, array $catalog, BitjitaClient $bitjita): array
+    private function options(array $inventoryEntries, array $catalog, BitjitaClient $bitjita, string $search): array
     {
         $inventoryOptions = collect($inventoryEntries)
             ->groupBy('key')
@@ -468,8 +468,8 @@ class BitcraftInventoryTrackerController extends Controller
             });
 
         $catalogOptions = collect([
-            ...$this->catalogEntries(data_get($bitjita->items(), 'items', []), 'item'),
-            ...$this->catalogEntries(data_get($bitjita->cargo(), 'cargos', []), 'cargo'),
+            ...$this->catalogEntries(data_get($bitjita->items($search), 'items', []), 'item'),
+            ...$this->catalogEntries(data_get($bitjita->cargo($search), 'cargos', []), 'cargo'),
         ])
             ->map(fn (array $option): array => [
                 ...$option,

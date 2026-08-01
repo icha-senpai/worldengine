@@ -136,6 +136,7 @@ class BitcraftActivityController extends Controller
             }
 
             $levels = $this->normalizeLevels($bitjita->experienceLevels());
+            $skillOptions = $this->resolveSkills($player, 'all', $levels);
             $skills = $this->resolveSkills($player, $filters['skill'], $levels);
 
             if ($skills === []) {
@@ -162,6 +163,7 @@ class BitcraftActivityController extends Controller
                     ],
                     'xp' => $primarySkill['xp'],
                     'skills' => $skills,
+                    'skillOptions' => $skillOptions,
                     'levels' => $levels,
                     ...collect($primarySkill)
                         ->only([

@@ -6,7 +6,6 @@ use App\Http\Controllers\Admin\RevisionController as AdminRevisionController;
 use App\Http\Controllers\Bitcraft\BitcraftActivityController;
 use App\Http\Controllers\Bitcraft\BitcraftInventoryTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftLiveCompanionController;
-use App\Http\Controllers\Bitcraft\BitcraftSettlementProjectsController;
 use App\Http\Controllers\Bitcraft\BitcraftTaskTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftToolController;
 use App\Http\Controllers\Connections\FactionMembershipController;
@@ -97,7 +96,6 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified', EnsureAdmin::class])
         Route::get('barter-stalls', [BitcraftToolController::class, 'barterStalls'])->name('barter-stalls');
         Route::get('crafting', [BitcraftToolController::class, 'crafting'])->name('crafting');
         Route::get('crafting/branch', [BitcraftToolController::class, 'craftingBranch'])->name('crafting.branch');
-        Route::get('settlement-projects', [BitcraftSettlementProjectsController::class, 'show'])->name('settlement-projects');
         Route::get('live-companion', [BitcraftLiveCompanionController::class, 'show'])->name('live-companion');
         Route::get('live-companion/snapshot', [BitcraftLiveCompanionController::class, 'snapshot'])->name('live-companion.snapshot');
         Route::get('activity/setup', [BitcraftActivityController::class, 'setup'])->name('activity.setup');

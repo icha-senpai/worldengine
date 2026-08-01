@@ -39,7 +39,7 @@ The World Engine is organized around explicit domains, each with its own `app/Do
 | **Intelligence** | knowledge_states, secrets, perception_states | Who knows what, what's hidden, and perception vs. reality gaps |
 | **Production** | writing_pipeline, session_log, meta, contradictions_and_conflicts | Actual writing workflow — scenes, drafts, author notes, session tracking |
 | **System** | settings | Global config |
-| **Bitcraft** | bitcraft_widget_profiles plus external Bitjita/SpacetimeDB data | Market, barter, crafting, settlement, and OBS widget tooling |
+| **Bitcraft** | bitcraft_widget_profiles plus external Bitjita/SpacetimeDB data | Market, barter, crafting, and OBS widget tooling |
 
 The migration set targets PostgreSQL and includes generated search vectors, JSONB document fields, soft-delete/restore flows, API revision tracking, OAuth tables, media references, and Bitcraft widget profiles.
 
@@ -60,7 +60,7 @@ The app now has live page stacks across the main domains, including Identity, Co
 - **Production** — pipeline, meta, session logs.
 - **World** — power interactions, travel routes, containment, location control.
 - **System** — search, media library, trash/restore, revisions, Notion sync records.
-- **Bitcraft** — market finder, barter stalls, crafting calculator, settlement projects, EXP tracker, inventory tracker, task tracker.
+- **Bitcraft** — market finder, barter stalls, crafting calculator, EXP tracker, inventory tracker, task tracker.
 - **API/MCP** — authenticated `/api/v1` resource and action endpoints, media upload/replace, revision-aware mutations, Dataverse MCP catalog/tools, and read-only Bitcraft MCP tools.
 
 Most create/edit/show/index pages are scaffold-backed, which keeps cross-domain behavior consistent and makes contract drift easier to catch in tests.

@@ -78,7 +78,7 @@
 
             <div class="task-tracker-setup__actions">
                 <button type="submit">Search / Update</button>
-                <button type="button" @click="submitSetup(false)">Widget Mode</button>
+                <button type="button" @click="openWidgetMode">Widget Mode</button>
             </div>
         </form>
 
@@ -347,6 +347,16 @@ const submitSetup = (setup) => {
         preserveState: false,
         replace: true,
     })
+}
+
+const openWidgetMode = () => {
+    saveSetup()
+
+    if (typeof window === 'undefined') {
+        return
+    }
+
+    window.open(route('bitcraft.task-tracker', payload(false)), '_blank', 'noopener,noreferrer')
 }
 
 watch(() => props.filters, (filters) => {
