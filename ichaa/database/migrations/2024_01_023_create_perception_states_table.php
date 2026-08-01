@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -120,7 +121,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE perception_states
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -130,12 +131,12 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX perception_states_search_vector_idx ON perception_states USING GIN (search_vector)');
+        DB::statement('CREATE INDEX perception_states_search_vector_idx ON perception_states USING GIN (search_vector)');
 
-        \DB::statement('CREATE INDEX perception_states_maintained_by_idx ON perception_states USING GIN (maintained_by_entity_ids)');
-        \DB::statement('CREATE INDEX perception_states_perceiving_idx ON perception_states USING GIN (perceiving_entity_ids)');
-        \DB::statement('CREATE INDEX perception_states_immune_idx ON perception_states USING GIN (immune_entity_ids)');
-        \DB::statement('CREATE INDEX perception_states_knowledge_states_idx ON perception_states USING GIN (related_knowledge_state_ids)');
+        DB::statement('CREATE INDEX perception_states_maintained_by_idx ON perception_states USING GIN (maintained_by_entity_ids)');
+        DB::statement('CREATE INDEX perception_states_perceiving_idx ON perception_states USING GIN (perceiving_entity_ids)');
+        DB::statement('CREATE INDEX perception_states_immune_idx ON perception_states USING GIN (immune_entity_ids)');
+        DB::statement('CREATE INDEX perception_states_knowledge_states_idx ON perception_states USING GIN (related_knowledge_state_ids)');
 
         Schema::table('perception_states', function (Blueprint $table) {
             $table->index('subject_type');

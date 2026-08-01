@@ -137,7 +137,7 @@ class CharacterStateController extends Controller
             'stateRelationships.relationship',
         ]);
 
-        return $this->pageWithNotionNote('Temporal/CharacterStates/Show', $characterState, 'character_states', array_merge([
+        return $this->page('Temporal/CharacterStates/Show', array_merge([
             'state' => $characterState,
         ], $props));
     }

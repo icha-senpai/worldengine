@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -22,7 +23,7 @@ return new class extends Migration
             $table->date('session_date');
 
             $table->string('external_tool');
-            // notion, chatgpt, qwen, claude, handwritten,
+            // chatgpt, qwen, claude, handwritten,
             // voice_memo, other
 
             // --- FOCUS ---
@@ -98,7 +99,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE session_log
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -109,11 +110,11 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX session_log_search_vector_idx ON session_log USING GIN (search_vector)');
+        DB::statement('CREATE INDEX session_log_search_vector_idx ON session_log USING GIN (search_vector)');
 
-        \DB::statement('CREATE INDEX session_log_focus_entities_idx ON session_log USING GIN (focus_entity_ids)');
-        \DB::statement('CREATE INDEX session_log_focus_groups_idx ON session_log USING GIN (focus_group_relationship_ids)');
-        \DB::statement('CREATE INDEX session_log_follow_up_questions_idx ON session_log USING GIN (follow_up_question_ids)');
+        DB::statement('CREATE INDEX session_log_focus_entities_idx ON session_log USING GIN (focus_entity_ids)');
+        DB::statement('CREATE INDEX session_log_focus_groups_idx ON session_log USING GIN (focus_group_relationship_ids)');
+        DB::statement('CREATE INDEX session_log_follow_up_questions_idx ON session_log USING GIN (follow_up_question_ids)');
 
         Schema::table('session_log', function (Blueprint $table) {
             $table->index('session_date');
@@ -146,7 +147,6 @@ return new class extends Migration
 | EXTERNAL TOOL ENUM
 |--------------------------------------------------------------------------
 |
-|   notion       — Notion AI or Notion workspace sessions
 |   chatgpt      — ChatGPT sessions
 |   qwen         — Qwen sessions
 |   claude       — Claude sessions outside this system
@@ -173,7 +173,7 @@ return new class extends Migration
 |
 | The intended workflow for external sessions:
 |
-|   1. You work through a problem in ChatGPT, Notion, Qwen, etc.
+|   1. You work through a problem in ChatGPT, Qwen, etc.
 |   2. You return to Horizon and create a session_log entry.
 |   3. You fill in decisions_made — the things you settled.
 |      These decisions propagate to meta records if significant.

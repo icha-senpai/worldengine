@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Lore;
 
-use App\Domain\Identity\ValueObjects\VisibilityLevel;
+use App\Domain\Lore\Models\CrossoverEntryPoint;
+use App\Http\Controllers\Controller;
+use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
-
-use App\Http\Controllers\Controller;
-use App\Domain\Lore\Models\CrossoverEntryPoint;
-use App\Support\Validation\DataverseRules;
 
 class CrossoverEntryPointController extends Controller
 {
@@ -24,7 +23,7 @@ class CrossoverEntryPointController extends Controller
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('crossover-entry-points', 'store'));
 
@@ -47,7 +46,7 @@ class CrossoverEntryPointController extends Controller
         ]);
     }
 
-    public function update(Request $request, CrossoverEntryPoint $crossoverEntryPoint): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, CrossoverEntryPoint $crossoverEntryPoint): RedirectResponse
     {
         $crossoverEntryPoint->update($request->validate(
             DataverseRules::web('crossover-entry-points', 'update')
@@ -56,14 +55,12 @@ class CrossoverEntryPointController extends Controller
         return $this->to('crossover-entry-points.show', [$crossoverEntryPoint], 'Entry point updated.');
     }
 
-    public function destroy(CrossoverEntryPoint $crossoverEntryPoint): \Illuminate\Http\RedirectResponse
+    public function destroy(CrossoverEntryPoint $crossoverEntryPoint): RedirectResponse
     {
         $crossoverEntryPoint->delete();
 
         return $this->to('crossover-entry-points.index', [], 'Entry point deleted.');
     }
-
-
 
     private function indexPage(Request $request, array $props = []): Response
     {
@@ -93,13 +90,13 @@ class CrossoverEntryPointController extends Controller
     {
         return [
             'statuses' => CrossoverEntryPoint::STATUSES,
-        
+
         ];
     }
 
     private function showPage(CrossoverEntryPoint $crossoverEntryPoint, array $props = []): Response
     {
-        return $this->pageWithNotionNote('Lore/CrossoverEntryPoints/Show', $crossoverEntryPoint, 'crossover_entry_points', array_merge([
+        return $this->page('Lore/CrossoverEntryPoints/Show', array_merge([
             'entryPoint' => $crossoverEntryPoint->load('firstDocumentedCrossingEvent:id,name'),
         ], $props));
     }

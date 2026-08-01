@@ -4,7 +4,6 @@ namespace Tests\Feature\Mcp;
 
 use App\Domain\Identity\Models\Entity;
 use App\Domain\System\Models\Revision;
-use App\Domain\System\Services\NotionDataverseSyncService;
 use App\Domain\System\Services\RevisionService;
 use App\Mcp\Resources\DataverseCatalogResource;
 use App\Mcp\Servers\DataverseServer;
@@ -16,12 +15,10 @@ use App\Mcp\Tools\RestoreDataverseRecordTool;
 use App\Mcp\Tools\RestoreDataverseRevisionTool;
 use App\Mcp\Tools\RunDataverseActionTool;
 use App\Mcp\Tools\SearchDataverseTool;
-use App\Mcp\Tools\SyncDataverseNotionTool;
 use App\Mcp\Tools\UpdateDataverseRecordTool;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Mcp\Facades\Mcp;
-use Mockery;
 use Tests\TestCase;
 
 class DataverseMcpServerTest extends TestCase
@@ -57,14 +54,14 @@ class DataverseMcpServerTest extends TestCase
             ->assertJsonPath('result.instructions', fn (string $instructions) => str_contains($instructions, 'base_revision_id'));
     }
 
-    public function test_catalog_resource_exposes_resources_actions_and_sync_surfaces(): void
+    public function test_catalog_resource_exposes_resources_actions_and_bitcraft_tools(): void
     {
         DataverseServer::resource(DataverseCatalogResource::class)
             ->assertOk()
             ->assertSee([
                 'entities',
                 'entity.publish',
-                'notion_sync_resources',
+                'bitcraft_tools',
             ]);
     }
 
@@ -219,33 +216,6 @@ class DataverseMcpServerTest extends TestCase
         ])->assertOk()->assertStructuredContent(function ($json) {
             $json->where('status', 200)
                 ->where('body.data.attributes.visibility', 'public_knowledge')
-                ->etc();
-        });
-    }
-
-    public function test_mcp_sync_tool_uses_the_canonical_sync_endpoint(): void
-    {
-        config()->set('services.dataverse_mcp.token', $this->assistantToken());
-
-        $mock = Mockery::mock(NotionDataverseSyncService::class);
-        $mock->shouldReceive('sync')
-            ->once()
-            ->with('documents', false, true)
-            ->andReturn([
-                'created' => 0,
-                'updated' => 2,
-                'skipped' => 5,
-            ]);
-
-        $this->app->instance(NotionDataverseSyncService::class, $mock);
-
-        DataverseServer::tool(SyncDataverseNotionTool::class, [
-            'resource' => 'documents',
-            'dry_run' => true,
-        ])->assertOk()->assertStructuredContent(function ($json) {
-            $json->where('status', 200)
-                ->where('body.data.resource', 'documents')
-                ->where('body.data.stats.updated', 2)
                 ->etc();
         });
     }

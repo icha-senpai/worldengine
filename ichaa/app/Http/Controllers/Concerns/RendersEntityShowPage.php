@@ -4,11 +4,7 @@ namespace App\Http\Controllers\Concerns;
 
 use App\Domain\Connections\Models\GroupRelationship;
 use App\Domain\Identity\Models\Entity;
-use App\Domain\Identity\Models\EntityAlias;
-use App\Domain\Identity\Models\EntityNote;
-use App\Domain\Identity\Models\EntityQuestion;
 use App\Domain\Identity\ValueObjects\EntityType;
-use App\Domain\System\Models\NotionNote;
 use Inertia\Response;
 
 trait RendersEntityShowPage
@@ -41,11 +37,10 @@ trait RendersEntityShowPage
                 ->orderBy('created_at'),
         ]);
 
-        $this->attachEmbeddedNotionNotes($entity);
         $this->attachAliasAudienceDisplays($entity);
         $this->attachQuestionLinkDisplays($entity);
 
-        return $this->pageWithNotionNote('Entities/Show', $entity, 'entities', array_merge([
+        return $this->page('Entities/Show', array_merge([
             'entity' => $entity,
             'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')
@@ -59,47 +54,6 @@ trait RendersEntityShowPage
             'memberMemberships' => $entity->factionMemberships,
             'isFactionEntity' => in_array($entity->entity_type, EntityType::FACTION_TYPES, true),
         ], $props));
-    }
-
-    protected function attachEmbeddedNotionNotes(Entity $entity): void
-    {
-        $entity->setRelation('aliases', $this->attachNotionNotesToRecords(
-            $entity->aliases,
-            EntityAlias::class,
-            'entity_aliases',
-        ));
-
-        $entity->setRelation('notes', $this->attachNotionNotesToRecords(
-            $entity->notes,
-            EntityNote::class,
-            'entity_notes',
-        ));
-
-        $entity->setRelation('questions', $this->attachNotionNotesToRecords(
-            $entity->questions,
-            EntityQuestion::class,
-            'entity_questions',
-        ));
-    }
-
-    protected function attachNotionNotesToRecords($records, string $modelClass, string $resource)
-    {
-        if ($records->isEmpty()) {
-            return $records;
-        }
-
-        $noteMap = NotionNote::query()
-            ->where('noteable_type', $modelClass)
-            ->where('sync_resource', $resource)
-            ->whereIn('noteable_id', $records->pluck('id'))
-            ->get()
-            ->keyBy('noteable_id');
-
-        return $records->map(function ($record) use ($noteMap) {
-            $record->setAttribute('notion_note', $this->formatNotionNote($noteMap->get($record->getKey())));
-
-            return $record;
-        })->values();
     }
 
     protected function attachAliasAudienceDisplays(Entity $entity): void

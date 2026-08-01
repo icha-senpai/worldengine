@@ -36,6 +36,10 @@ class HandleInertiaRequests extends Middleware
                     ? [
                         ...$request->user()->only(['id', 'name', 'email', 'email_verified_at', 'site_theme']),
                         'is_admin' => $request->user()->isAdmin(),
+                        'can_access_admin' => $request->user()->canAccessAdmin(),
+                        'can_access_bitcraft' => $request->user()->canAccessBitcraft(),
+                        'can_access_world_engine' => $request->user()->canAccessWorldEngine(),
+                        'can_access_datacrypt' => $request->user()->canAccessDatacrypt(),
                     ]
                     : null,
             ],

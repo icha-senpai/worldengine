@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -138,7 +139,7 @@ return new class extends Migration
         // --- INDEXES ---
 
         // Full text search on group relationship name and dynamic description
-        \DB::statement("
+        DB::statement("
             ALTER TABLE group_relationships
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -148,11 +149,11 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX group_relationships_search_vector_idx ON group_relationships USING GIN (search_vector)');
+        DB::statement('CREATE INDEX group_relationships_search_vector_idx ON group_relationships USING GIN (search_vector)');
 
         // JSONB indexes
-        \DB::statement('CREATE INDEX group_relationships_charge_history_idx ON group_relationships USING GIN (charge_history)');
-        \DB::statement('CREATE INDEX group_relationships_perceived_by_idx ON group_relationships USING GIN (perceived_by)');
+        DB::statement('CREATE INDEX group_relationships_charge_history_idx ON group_relationships USING GIN (charge_history)');
+        DB::statement('CREATE INDEX group_relationships_perceived_by_idx ON group_relationships USING GIN (perceived_by)');
 
         Schema::table('group_relationships', function (Blueprint $table) {
             $table->index('relationship_type');

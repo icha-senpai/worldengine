@@ -2,22 +2,15 @@
 
 namespace Tests\Feature\Api;
 
-use App\Domain\Connections\Models\FactionMembership;
-use App\Domain\Connections\Models\GroupRelationshipEntity;
 use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Services\EntityService;
-use App\Domain\Intelligence\Models\KnowledgeState;
-use App\Domain\Intelligence\Models\PerceptionState;
 use App\Domain\Intelligence\Models\Secret;
 use App\Domain\Lore\Models\Document;
 use App\Domain\Organization\Models\Collection;
-use App\Domain\System\Models\NotionSyncMapping;
 use App\Domain\System\Models\Revision;
-use App\Domain\System\Services\NotionDataverseSyncService;
 use App\Domain\World\Models\TravelRoute;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
 use Tests\TestCase;
 
 class V1AuthoringApiCoverageTest extends TestCase
@@ -452,12 +445,12 @@ class V1AuthoringApiCoverageTest extends TestCase
             ->assertJsonPath('data.attributes.holder_entity_ids', []);
     }
 
-    public function test_document_travel_route_and_notion_mapping_resources_work_via_api(): void
+    public function test_document_and_travel_route_resources_work_via_api(): void
     {
         $origin = Entity::factory()->create(['entity_type' => 'location']);
         $destination = Entity::factory()->create(['entity_type' => 'location']);
         $author = Entity::factory()->create();
-        $token = $this->assistantToken(['read:*', 'write:*', 'delete:*', 'history:*']);
+        $token = $this->adminAssistantToken(['read:*', 'write:*', 'delete:*', 'history:*']);
 
         $document = $this->withToken($token)->postJson('/api/v1/documents', [
             'data' => [
@@ -527,39 +520,6 @@ class V1AuthoringApiCoverageTest extends TestCase
         ])->assertOk()
             ->assertJsonPath('data.attributes.is_active', false);
 
-        $mapping = $this->withToken($token)->postJson('/api/v1/notion-sync-mappings', [
-            'data' => [
-                'attributes' => [
-                    'sync_resource' => 'documents',
-                    'notion_page_id' => 'page-api-doc',
-                    'notion_parent_database_id' => 'db-main',
-                    'local_model_type' => Document::class,
-                    'local_model_id' => $documentId,
-                ],
-            ],
-            'meta' => [
-                'source' => 'phpunit',
-                'reason' => 'create notion mapping',
-            ],
-        ])->assertCreated();
-
-        $mappingId = (int) $mapping->json('data.id');
-        $mappingRevisionId = (int) $mapping->json('data.meta.current_revision_id');
-
-        $this->withToken($token)->patchJson("/api/v1/notion-sync-mappings/{$mappingId}", [
-            'data' => [
-                'attributes' => [
-                    'last_payload_hash' => sha1('mapping-refresh'),
-                ],
-            ],
-            'meta' => [
-                'base_revision_id' => $mappingRevisionId,
-                'source' => 'phpunit',
-                'reason' => 'update notion mapping',
-            ],
-        ])->assertOk()
-            ->assertJsonPath('data.attributes.last_payload_hash', sha1('mapping-refresh'));
-
         $this->withToken($token)->deleteJson("/api/v1/documents/{$documentId}", [
             'meta' => [
                 'base_revision_id' => Revision::query()->forResource('documents', $documentId)->max('id'),
@@ -570,50 +530,17 @@ class V1AuthoringApiCoverageTest extends TestCase
             ->assertJsonPath('meta.deleted', true);
     }
 
-    public function test_notion_sync_endpoint_uses_service_and_non_soft_delete_resources_are_rejected(): void
-    {
-        $mock = Mockery::mock(NotionDataverseSyncService::class);
-        $mock->shouldReceive('sync')
-            ->once()
-            ->with('documents', true, true)
-            ->andReturn([
-                'created' => 1,
-                'updated' => 2,
-                'skipped' => 3,
-            ]);
-
-        $this->app->instance(NotionDataverseSyncService::class, $mock);
-
-        $token = $this->assistantToken(['read:*', 'write:*', 'delete:*', 'history:*', 'sync:notion']);
-
-        $this->withToken($token)
-            ->withHeader('X-Request-Id', 'sync-request')
-            ->postJson('/api/v1/notion-sync/documents?include_drafts=1&dry_run=1')
-            ->assertOk()
-            ->assertJsonPath('meta.request_id', 'sync-request')
-            ->assertJsonPath('data.stats.created', 1)
-            ->assertJsonPath('data.stats.updated', 2);
-
-        $mapping = NotionSyncMapping::create([
-            'sync_resource' => 'documents',
-            'notion_page_id' => 'page-non-soft',
-            'local_model_type' => Document::class,
-            'local_model_id' => 1,
-        ]);
-
-        $this->withToken($token)->deleteJson("/api/v1/notion-sync-mappings/{$mapping->id}", [
-            'meta' => [
-                'base_revision_id' => 0,
-                'source' => 'phpunit',
-                'reason' => 'attempt non-soft delete',
-            ],
-        ])->assertStatus(409);
-    }
-
     private function assistantToken(array $abilities): string
     {
         $user = User::factory()->create();
 
         return $user->createToken('assistant', $abilities)->plainTextToken;
+    }
+
+    private function adminAssistantToken(array $abilities): string
+    {
+        return $this->createVerifiedAdminUser()
+            ->createToken('assistant', $abilities)
+            ->plainTextToken;
     }
 }

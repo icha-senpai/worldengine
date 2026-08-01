@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -132,7 +133,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE versions_and_canon_states
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -141,7 +142,7 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX versions_search_vector_idx ON versions_and_canon_states USING GIN (search_vector)');
+        DB::statement('CREATE INDEX versions_search_vector_idx ON versions_and_canon_states USING GIN (search_vector)');
 
         Schema::table('versions_and_canon_states', function (Blueprint $table) {
             $table->index('entity_id');

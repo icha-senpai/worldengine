@@ -41,7 +41,6 @@ const mountPage = (sections) => mount(ScaffoldShowPage, {
             AppButton: {
                 template: '<button><slot /></button>',
             },
-            NotionNotePanel: true,
         },
     },
 })

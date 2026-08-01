@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -153,7 +154,7 @@ return new class extends Migration
         // --- INDEXES ---
 
         // Full text search on collection name
-        \DB::statement("
+        DB::statement("
             ALTER TABLE collections
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -162,11 +163,11 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX collections_search_vector_idx ON collections USING GIN (search_vector)');
+        DB::statement('CREATE INDEX collections_search_vector_idx ON collections USING GIN (search_vector)');
 
         // JSONB indexes
-        \DB::statement('CREATE INDEX collections_rules_idx ON collections USING GIN (rules)');
-        \DB::statement('CREATE INDEX collections_excluded_entities_idx ON collections USING GIN (excluded_entity_ids)');
+        DB::statement('CREATE INDEX collections_rules_idx ON collections USING GIN (rules)');
+        DB::statement('CREATE INDEX collections_excluded_entities_idx ON collections USING GIN (excluded_entity_ids)');
 
         Schema::table('collections', function (Blueprint $table) {
             $table->index('collection_type');

@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -157,7 +158,7 @@ return new class extends Migration
 
         // Full text search index across name and summary
         // PostgreSQL GIN index for JSONB and tsvector search
-        \DB::statement("
+        DB::statement("
             ALTER TABLE entities
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -168,12 +169,12 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX entities_search_vector_idx ON entities USING GIN (search_vector)');
+        DB::statement('CREATE INDEX entities_search_vector_idx ON entities USING GIN (search_vector)');
 
         // JSONB indexes for source_universes and attributes filtering
-        \DB::statement('CREATE INDEX entities_source_universes_idx ON entities USING GIN (source_universes)');
-        \DB::statement('CREATE INDEX entities_attributes_idx ON entities USING GIN (attributes)');
-        \DB::statement('CREATE INDEX entities_known_by_idx ON entities USING GIN (known_by)');
+        DB::statement('CREATE INDEX entities_source_universes_idx ON entities USING GIN (source_universes)');
+        DB::statement('CREATE INDEX entities_attributes_idx ON entities USING GIN (attributes)');
+        DB::statement('CREATE INDEX entities_known_by_idx ON entities USING GIN (known_by)');
 
         // Standard indexes for common filter queries
         Schema::table('entities', function (Blueprint $table) {

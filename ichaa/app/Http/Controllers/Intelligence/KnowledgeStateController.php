@@ -228,7 +228,7 @@ class KnowledgeStateController extends Controller
             'acquiredFrom:id,name',
         ]);
 
-        return $this->pageWithNotionNote('Intelligence/KnowledgeStates/Show', $knowledgeState, 'knowledge_states', array_merge([
+        return $this->page('Intelligence/KnowledgeStates/Show', array_merge([
             'state' => $knowledgeState,
             'subjectDisplay' => $this->resolveSubjectDisplay($knowledgeState),
         ], $props));

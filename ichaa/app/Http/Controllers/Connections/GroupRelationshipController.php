@@ -148,7 +148,7 @@ class GroupRelationshipController extends Controller
             'memberEntries.entity:id,name,entity_type',
         ]);
 
-        return $this->pageWithNotionNote('GroupRelationships/Show', $groupRelationship, 'group_relationships', array_merge([
+        return $this->page('GroupRelationships/Show', array_merge([
             'group' => $groupRelationship,
             'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')

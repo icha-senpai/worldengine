@@ -294,7 +294,6 @@
                                     {{ knownBy.name }}
                                 </Link>
                             </div>
-                            <NotionNotePanel :note="a.notion_note" class="mt-3" />
                         </div>
                         <div class="flex shrink-0 items-center gap-2">
                             <AppButton
@@ -357,7 +356,6 @@
                         </div>
                     </div>
                     <p class="prose-wrap text-muted-2 text-sm leading-relaxed">{{ n.content }}</p>
-                    <NotionNotePanel :note="n.notion_note" class="mt-3" />
                 </div>
                 </div>
                 <div v-else class="empty-state">No notes recorded.</div>
@@ -431,7 +429,6 @@
                                     </Link>
                                 </div>
                             </div>
-                            <NotionNotePanel :note="q.notion_note" class="mt-3" />
                         </div>
                         <div class="flex shrink-0 flex-col items-end gap-1.5">
                             <AppButton
@@ -899,7 +896,6 @@
 <script setup>
 import { ref, computed, watch, defineAsyncComponent } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
-import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import CreateAlias from '@/Pages/Entities/Aliases/Create.vue'

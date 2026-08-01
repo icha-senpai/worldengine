@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -211,7 +212,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE power_interactions
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -223,13 +224,13 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX power_interactions_search_vector_idx ON power_interactions USING GIN (search_vector)');
+        DB::statement('CREATE INDEX power_interactions_search_vector_idx ON power_interactions USING GIN (search_vector)');
 
         // JSONB indexes for condition queries
-        \DB::statement('CREATE INDEX power_interactions_effects_idx ON power_interactions USING GIN (effects)');
-        \DB::statement('CREATE INDEX power_interactions_location_conditions_idx ON power_interactions USING GIN (location_conditions)');
-        \DB::statement('CREATE INDEX power_interactions_artifact_conditions_idx ON power_interactions USING GIN (artifact_conditions)');
-        \DB::statement('CREATE INDEX power_interaction_instances_involved_idx ON power_interaction_instances USING GIN (involved_entity_ids)');
+        DB::statement('CREATE INDEX power_interactions_effects_idx ON power_interactions USING GIN (effects)');
+        DB::statement('CREATE INDEX power_interactions_location_conditions_idx ON power_interactions USING GIN (location_conditions)');
+        DB::statement('CREATE INDEX power_interactions_artifact_conditions_idx ON power_interactions USING GIN (artifact_conditions)');
+        DB::statement('CREATE INDEX power_interaction_instances_involved_idx ON power_interaction_instances USING GIN (involved_entity_ids)');
 
         Schema::table('power_interactions', function (Blueprint $table) {
             $table->index('system_a_entity_id');

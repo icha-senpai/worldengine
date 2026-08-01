@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -203,7 +204,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE character_state_tracker
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -218,14 +219,14 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX character_state_search_vector_idx ON character_state_tracker USING GIN (search_vector)');
+        DB::statement('CREATE INDEX character_state_search_vector_idx ON character_state_tracker USING GIN (search_vector)');
 
         // JSONB indexes
-        \DB::statement('CREATE INDEX character_state_physical_changes_idx ON character_state_tracker USING GIN (significant_physical_changes)');
-        \DB::statement('CREATE INDEX character_state_abilities_idx ON character_state_tracker USING GIN (available_abilities)');
-        \DB::statement('CREATE INDEX character_state_artifacts_idx ON character_state_tracker USING GIN (current_artifacts_and_hallows)');
-        \DB::statement('CREATE INDEX character_state_relationships_summary_idx ON character_state_tracker USING GIN (key_relationships_summary)');
-        \DB::statement('CREATE INDEX character_state_group_ids_idx ON character_state_tracker USING GIN (active_group_relationship_ids)');
+        DB::statement('CREATE INDEX character_state_physical_changes_idx ON character_state_tracker USING GIN (significant_physical_changes)');
+        DB::statement('CREATE INDEX character_state_abilities_idx ON character_state_tracker USING GIN (available_abilities)');
+        DB::statement('CREATE INDEX character_state_artifacts_idx ON character_state_tracker USING GIN (current_artifacts_and_hallows)');
+        DB::statement('CREATE INDEX character_state_relationships_summary_idx ON character_state_tracker USING GIN (key_relationships_summary)');
+        DB::statement('CREATE INDEX character_state_group_ids_idx ON character_state_tracker USING GIN (active_group_relationship_ids)');
 
         Schema::table('character_state_tracker', function (Blueprint $table) {
             $table->index('entity_id');

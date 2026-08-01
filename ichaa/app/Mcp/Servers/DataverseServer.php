@@ -17,7 +17,6 @@ use App\Mcp\Tools\RunDataverseActionTool;
 use App\Mcp\Tools\SearchBitcraftBarterStallsTool;
 use App\Mcp\Tools\SearchBitcraftMarketTool;
 use App\Mcp\Tools\SearchDataverseTool;
-use App\Mcp\Tools\SyncDataverseNotionTool;
 use App\Mcp\Tools\UpdateDataverseRecordTool;
 use App\Mcp\Tools\UploadDataverseMediaTool;
 use Laravel\Mcp\Server;
@@ -28,7 +27,7 @@ use Laravel\Mcp\Server\Attributes\Version;
 #[Name('Dataverse Authoring MCP')]
 #[Version('1.0.0')]
 #[Instructions(<<<'TEXT'
-Use this server to read, search, author, revise, restore, and sync Dataverse data through the canonical /api/v1 authoring API.
+Use this server to read, search, author, revise, and restore Dataverse data through the canonical /api/v1 authoring API.
 
 Start with the dataverse://catalog resource when you need the exact resource slug, include names, or custom action name.
 For every non-create mutation, provide the latest base_revision_id to avoid stale-write conflicts.
@@ -54,7 +53,6 @@ class DataverseServer extends Server
         InspectDataverseRevisionTool::class,
         RestoreDataverseRevisionTool::class,
         ListDataverseTrashTool::class,
-        SyncDataverseNotionTool::class,
     ];
 
     protected array $resources = [

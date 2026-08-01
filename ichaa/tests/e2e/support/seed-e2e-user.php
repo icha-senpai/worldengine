@@ -19,7 +19,7 @@ $kernel->bootstrap();
 $user = User::updateOrCreate(
     ['email' => 'e2e@example.com'],
     [
-        'name' => 'E2E User',
+        'name' => User::FOOTMOUTHKICK_NAME,
         'password' => 'password',
     ]
 );
@@ -28,7 +28,7 @@ $user->forceFill([
     'email_verified_at' => now(),
 ])->save();
 
-Role::findOrCreate('admin', 'web');
-$user->assignRole('admin');
+Role::findOrCreate(User::ROLE_ADMIN, 'web');
+$user->assignRole(User::ROLE_ADMIN);
 
 echo "E2E user ready.\n";

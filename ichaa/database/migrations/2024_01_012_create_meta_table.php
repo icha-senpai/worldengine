@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -154,7 +155,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE meta
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -169,9 +170,9 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX meta_search_vector_idx ON meta USING GIN (search_vector)');
+        DB::statement('CREATE INDEX meta_search_vector_idx ON meta USING GIN (search_vector)');
 
-        \DB::statement('CREATE INDEX meta_symbol_entities_idx ON meta USING GIN (symbol_associated_entity_ids)');
+        DB::statement('CREATE INDEX meta_symbol_entities_idx ON meta USING GIN (symbol_associated_entity_ids)');
 
         Schema::table('meta', function (Blueprint $table) {
             $table->index('category');

@@ -74,11 +74,6 @@ const ScaffoldShowPageStub = defineComponent({
         destroyHref: { type: [String, Object], default: null },
         destroyLabel: { type: String, default: 'Move to Trash' },
     },
-    computed: {
-        notionNote() {
-            return usePageMock()?.props?.notionNote ?? null
-        },
-    },
     methods: {
         async destroyRecord() {
             if (!this.destroyHref) {
@@ -104,10 +99,6 @@ const ScaffoldShowPageStub = defineComponent({
             <button v-if="destroyHref" type="button" @click="destroyRecord">{{ destroyLabel }}</button>
             <slot />
             <slot name="edit-drawer" />
-            <section v-if="notionNote?.content">
-                <h3>{{ notionNote.label || 'Notion Notes' }}</h3>
-                <p>{{ notionNote.content }}</p>
-            </section>
         </div>
     `,
 })
@@ -219,12 +210,7 @@ describe('read pages', () => {
     it('renders the entity show page with route-selected alias content', () => {
         usePageMock.mockReturnValue({
             url: '/entities/1?tab=aliases',
-            props: {
-                notionNote: {
-                    label: 'Notion Notes',
-                    content: 'This is mirrored from the Notion page body.',
-                },
-            },
+            props: {},
         })
 
         const wrapper = mountPage(EntityShow, {
@@ -257,10 +243,6 @@ describe('read pages', () => {
                         known_by_entities_display: [
                             { id: 2, name: 'Johnny Voss', entity_type: 'character' },
                         ],
-                        notion_note: {
-                            label: 'Notion Notes',
-                            content: 'This is mirrored from the Notion page body.',
-                        },
                     },
                     {
                         id: 11,
@@ -289,8 +271,6 @@ describe('read pages', () => {
         expect(wrapper.text()).toContain('restricted audience')
         expect(wrapper.text()).toContain('Johnny Voss')
         expect(wrapper.text()).toContain('Add Alias')
-        expect(wrapper.text()).toContain('Notion Notes')
-        expect(wrapper.text()).toContain('This is mirrored from the Notion page body.')
     })
 
     it('renders linked entities and group relationships on the entity questions tab', () => {

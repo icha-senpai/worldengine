@@ -10,7 +10,6 @@ use App\Domain\Connections\Services\RelationshipService;
 use App\Domain\Identity\Listeners\FlipEntityCompletionFlags;
 use App\Domain\Identity\Listeners\UpdateCompletionScore;
 use App\Domain\Identity\Models\Entity;
-use App\Domain\Identity\Models\EntityAlias;
 use App\Domain\Identity\Models\EntityNote;
 use App\Domain\Identity\Models\EntityQuestion;
 use App\Domain\Identity\Models\MediaReference;
@@ -2029,9 +2028,9 @@ class CuratedCrossoverSeeder extends Seeder
     {
         $sessions = [];
 
-        $sessions['notion'] = $this->upsertSessionLog('Notion Sync: Convergence Skeleton', [
+        $sessions['planning'] = $this->upsertSessionLog('Planning Pass: Convergence Skeleton', [
             'session_date' => '2026-06-23',
-            'external_tool' => 'notion',
+            'external_tool' => 'chatgpt',
             'focus_entity_ids' => [$entities['harry']->id, $entities['hermione']->id, $entities['veilfracture']->id],
             'focus_collection_ids' => [$collections['principals']->id, $collections['sites']->id],
             'focus_description' => 'Build the foundational crossover cast, threshold locations, and first-contact beats.',
@@ -2206,7 +2205,7 @@ class CuratedCrossoverSeeder extends Seeder
             'status' => 'open',
             'priority' => 'high',
             'linked_entity_ids' => [$entities['hermione']->id, $entities['seraphine']->id],
-            'source_session_log_id' => $sessions['notion']->id,
+            'source_session_log_id' => $sessions['planning']->id,
             'sort_order' => 1,
         ]);
     }

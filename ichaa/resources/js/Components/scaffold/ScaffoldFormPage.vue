@@ -179,7 +179,6 @@
                         </div>
                     </div>
 
-                    <NotionNotePanel v-if="showNotionNote" :note="notionNote" />
                 </div>
 
                 <template #footer>
@@ -363,8 +362,6 @@
                 </div>
             </div>
 
-            <NotionNotePanel v-if="showNotionNote" :note="notionNote" />
-
             <div class="form-actions">
                 <AppButton type="submit" variant="primary" :disabled="form.processing || hasJsonErrors">
                     <span v-if="form.processing">{{ processingLabel }}</span>
@@ -381,10 +378,9 @@
 
 <script setup>
 import { computed, defineAsyncComponent, nextTick, reactive } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { formatLabel, prettyJson } from '@/Components/scaffold/formatters'
-import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import Checkbox from '@/Components/Checkbox.vue'
 import AppDrawer from '@/Components/ui/AppDrawer.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
@@ -419,13 +415,10 @@ const props = defineProps({
     },
 })
 
-const page = usePage()
-const notionNote = computed(() => page.props?.notionNote ?? null)
 const RichTextEditor = defineAsyncComponent(() => import('@/Components/scaffold/RichTextEditor.vue'))
 const isDrawerPresentation = computed(() => props.presentation === 'drawer')
 const layoutComponent = computed(() => (props.embedded ? 'div' : AuthenticatedLayout))
 const showLayoutHeader = computed(() => !props.embedded && !isDrawerPresentation.value)
-const showNotionNote = computed(() => !props.embedded)
 
 const normalizedSections = computed(() =>
     props.sections.map((section) => ({

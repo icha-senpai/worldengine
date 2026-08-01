@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -103,7 +104,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE secrets
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -113,13 +114,13 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX secrets_search_vector_idx ON secrets USING GIN (search_vector)');
+        DB::statement('CREATE INDEX secrets_search_vector_idx ON secrets USING GIN (search_vector)');
 
-        \DB::statement('CREATE INDEX secrets_subject_entities_idx ON secrets USING GIN (subject_entity_ids)');
-        \DB::statement('CREATE INDEX secrets_holder_entities_idx ON secrets USING GIN (holder_entity_ids)');
-        \DB::statement('CREATE INDEX secrets_known_by_idx ON secrets USING GIN (known_by_entity_ids)');
-        \DB::statement('CREATE INDEX secrets_knowledge_states_idx ON secrets USING GIN (related_knowledge_state_ids)');
-        \DB::statement('CREATE INDEX secrets_perception_states_idx ON secrets USING GIN (related_perception_state_ids)');
+        DB::statement('CREATE INDEX secrets_subject_entities_idx ON secrets USING GIN (subject_entity_ids)');
+        DB::statement('CREATE INDEX secrets_holder_entities_idx ON secrets USING GIN (holder_entity_ids)');
+        DB::statement('CREATE INDEX secrets_known_by_idx ON secrets USING GIN (known_by_entity_ids)');
+        DB::statement('CREATE INDEX secrets_knowledge_states_idx ON secrets USING GIN (related_knowledge_state_ids)');
+        DB::statement('CREATE INDEX secrets_perception_states_idx ON secrets USING GIN (related_perception_state_ids)');
 
         Schema::table('secrets', function (Blueprint $table) {
             $table->index('secret_type');

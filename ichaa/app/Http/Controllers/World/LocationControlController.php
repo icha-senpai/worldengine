@@ -111,7 +111,7 @@ class LocationControlController extends Controller
 
     private function showPage(LocationControlHistory $locationControl, array $props = []): Response
     {
-        return $this->pageWithNotionNote('World/LocationControl/Show', $locationControl, 'location_control', array_merge([
+        return $this->page('World/LocationControl/Show', array_merge([
             'record' => $locationControl->load([
                 'location:id,name',
                 'controllingEntity:id,name',

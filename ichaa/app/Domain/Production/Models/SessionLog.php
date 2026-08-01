@@ -2,10 +2,11 @@
 
 namespace App\Domain\Production\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Domain\Identity\Models\EntityQuestion;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SessionLog extends Model
 {
@@ -31,20 +32,19 @@ class SessionLog extends Model
     ];
 
     protected $casts = [
-        'focus_entity_ids'             => 'array',
+        'focus_entity_ids' => 'array',
         'focus_group_relationship_ids' => 'array',
-        'focus_collection_ids'         => 'array',
-        'follow_up_question_ids'       => 'array',
-        'decisions_made'               => 'array',
-        'changes_applied'              => 'array',
-        'open_threads'                 => 'array',
-        'notes'                        => 'array',
-        'session_date'                 => 'date',
-        'deleted_at'                   => 'datetime',
+        'focus_collection_ids' => 'array',
+        'follow_up_question_ids' => 'array',
+        'decisions_made' => 'array',
+        'changes_applied' => 'array',
+        'open_threads' => 'array',
+        'notes' => 'array',
+        'session_date' => 'date',
+        'deleted_at' => 'datetime',
     ];
 
     const EXTERNAL_TOOLS = [
-        'notion',
         'chatgpt',
         'qwen',
         'claude',
@@ -65,7 +65,7 @@ class SessionLog extends Model
     public function entityQuestions(): HasMany
     {
         return $this->hasMany(
-            \App\Domain\Identity\Models\EntityQuestion::class,
+            EntityQuestion::class,
             'source_session_log_id'
         );
     }
@@ -113,6 +113,7 @@ class SessionLog extends Model
     public function hasOpenThreads(): bool
     {
         $threads = $this->open_threads ?? [];
-        return !empty($threads);
+
+        return ! empty($threads);
     }
 }

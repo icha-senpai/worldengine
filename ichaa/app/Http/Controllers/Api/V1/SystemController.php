@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Domain\System\Models\NotionNote;
 use App\Domain\System\Models\Revision;
-use App\Domain\System\Services\NotionDataverseSyncService;
 use App\Domain\System\Services\RevisionService;
 use App\Support\Api\ApiMutationService;
 use App\Support\Api\ApiRecordPresenter;
@@ -21,7 +19,6 @@ class SystemController extends ApiController
     public function __construct(
         private readonly RevisionService $revisions,
         private readonly ApiMutationService $mutations,
-        private readonly NotionDataverseSyncService $notionSync,
         private readonly ApiRecordPresenter $presenter,
     ) {}
 
@@ -45,27 +42,17 @@ class SystemController extends ApiController
         $resourceFilter = $request->query('filter.resource') ?? $request->query('filter.resource_type');
         $resources = $resourceFilter && in_array($resourceFilter, ApiResourceRegistry::slugs(), true)
             ? [$resourceFilter]
-            : array_values(array_filter(
-                ApiResourceRegistry::slugs(),
-                fn (string $resource) => $resource !== 'notion-notes',
-            ));
+            : ApiResourceRegistry::slugs();
 
         $results = [];
         $included = [];
 
         foreach ($resources as $resource) {
             $query = ApiResourceRegistry::query($resource);
-            $matchedNoteIds = $this->matchingNotionNoteIds($resource, $term);
             $applied = false;
 
-            $query->where(function (Builder $inner) use ($resource, $term, $matchedNoteIds, &$applied) {
+            $query->where(function (Builder $inner) use ($resource, $term, &$applied) {
                 $applied = $this->applySearch($inner, $term, $resource);
-
-                if ($matchedNoteIds !== []) {
-                    $method = $applied ? 'orWhereIn' : 'whereIn';
-                    $inner->{$method}($inner->getModel()->qualifyColumn($inner->getModel()->getKeyName()), $matchedNoteIds);
-                    $applied = true;
-                }
             });
 
             if (! $applied) {
@@ -156,31 +143,6 @@ class SystemController extends ApiController
         return $this->jsonRecord($resource, $restored, $request);
     }
 
-    public function syncNotion(Request $request, string $resource): JsonResponse
-    {
-        $this->authorizeToken($request, 'sync:notion');
-        abort_unless(
-            in_array($resource, NotionDataverseSyncService::supportedResources(), true),
-            404,
-            "Unsupported Notion sync resource [{$resource}].",
-        );
-
-        $stats = $this->notionSync->sync(
-            $resource,
-            (bool) $request->boolean('include_drafts'),
-            (bool) $request->boolean('dry_run'),
-        );
-
-        return response()->json([
-            'data' => [
-                'resource' => $resource,
-                'stats' => $stats,
-            ],
-            'included' => [],
-            'meta' => $this->responseMeta($request),
-        ]);
-    }
-
     public function showRevision(Request $request, Revision $revision): JsonResponse
     {
         $this->authorizeToken($request, 'history', $revision->resource_type);
@@ -241,6 +203,7 @@ class SystemController extends ApiController
     {
         if (method_exists($query->getModel(), 'scopeSearch')) {
             $query->search($term);
+
             return true;
         }
 
@@ -270,40 +233,6 @@ class SystemController extends ApiController
             }
         }
 
-        $notionResource = ApiResourceRegistry::definition($resource)['notion_resource'] ?? null;
-
-        if ($notionResource) {
-            $note = NotionNote::query()
-                ->where('sync_resource', $notionResource)
-                ->where('noteable_type', ApiResourceRegistry::modelClass($resource))
-                ->where('noteable_id', $recordId)
-                ->whereRaw("content ILIKE ?", ["%{$term}%"])
-                ->first();
-
-            if ($note) {
-                return Str::limit(preg_replace('/\s+/', ' ', strip_tags($note->content)) ?? '', 180);
-            }
-        }
-
         return '';
-    }
-
-    private function matchingNotionNoteIds(string $resource, string $term): array
-    {
-        $notionResource = ApiResourceRegistry::definition($resource)['notion_resource'] ?? null;
-
-        if (! $notionResource) {
-            return [];
-        }
-
-        return NotionNote::query()
-            ->where('sync_resource', $notionResource)
-            ->where('noteable_type', ApiResourceRegistry::modelClass($resource))
-            ->whereRaw('content ILIKE ?', ["%{$term}%"])
-            ->pluck('noteable_id')
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
     }
 }

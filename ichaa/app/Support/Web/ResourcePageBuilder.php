@@ -12,8 +12,6 @@ use App\Domain\Lore\Models\DocumentEntity;
 use App\Domain\Lore\Models\SourceCanonReference;
 use App\Domain\Organization\Models\Collection;
 use App\Domain\Organization\Models\CollectionDocument;
-use App\Domain\System\Models\NotionNote;
-use App\Domain\System\Models\NotionSyncMapping;
 use App\Domain\Temporal\Models\CharacterStateTracker;
 use App\Domain\Temporal\Models\StateRelationship;
 use App\Domain\Temporal\Models\TimelineEntity;
@@ -113,7 +111,7 @@ class ResourcePageBuilder
 
     public function readOnly(string $resource): bool
     {
-        return in_array($resource, ['notion-notes', 'notion-sync-mappings'], true);
+        return false;
     }
 
     private function modelClass(string $resource): string
@@ -126,8 +124,6 @@ class ResourcePageBuilder
             'timeline-placements' => TimelineEntity::class,
             'state-relationships' => StateRelationship::class,
             'galactic-regions' => GalacticRegion::class,
-            'notion-notes' => NotionNote::class,
-            'notion-sync-mappings' => NotionSyncMapping::class,
             default => abort(404),
         };
     }
@@ -166,12 +162,6 @@ class ResourcePageBuilder
             'galactic-regions' => $modelClass::query()
                 ->with(['parentRegion:id,region_name', 'controllingEntity:id,name,entity_type'])
                 ->orderBy('region_name'),
-            'notion-notes' => $modelClass::query()
-                ->orderByDesc('last_synced_at')
-                ->orderByDesc('updated_at'),
-            'notion-sync-mappings' => $modelClass::query()
-                ->orderByDesc('last_synced_at')
-                ->orderByDesc('updated_at'),
             default => $modelClass::query(),
         };
     }
@@ -212,14 +202,6 @@ class ResourcePageBuilder
                     ->where('region_name', 'like', "%{$term}%")
                     ->orWhere('region_type', 'like', "%{$term}%")
                     ->orWhere('source_universe', 'like', "%{$term}%"),
-                'notion-notes' => $inner
-                    ->where('sync_resource', 'like', "%{$term}%")
-                    ->orWhere('notion_page_id', 'like', "%{$term}%")
-                    ->orWhere('content', 'like', "%{$term}%"),
-                'notion-sync-mappings' => $inner
-                    ->where('sync_resource', 'like', "%{$term}%")
-                    ->orWhere('notion_page_id', 'like', "%{$term}%")
-                    ->orWhere('local_model_type', 'like', "%{$term}%"),
                 default => null,
             };
         });
@@ -313,27 +295,6 @@ class ResourcePageBuilder
                     ['label' => 'Parent', 'value' => $record->parentRegion?->region_name],
                     ['label' => 'Control', 'value' => $record->controllingEntity?->name],
                     ['label' => 'Universe', 'value' => $record->source_universe],
-                ]),
-            ],
-            'notion-notes' => [
-                'id' => $record->getKey(),
-                'href' => route("{$resource}.show", $record),
-                'title' => $record->sync_resource ?: "Notion Note #{$record->getKey()}",
-                'subtitle' => Str::limit(strip_tags((string) $record->content), 120),
-                'meta' => $this->meta([
-                    ['label' => 'Page', 'value' => $record->notion_page_id],
-                    ['label' => 'Linked Model', 'value' => class_basename((string) $record->noteable_type).' #'.$record->noteable_id],
-                    ['label' => 'Synced', 'value' => optional($record->last_synced_at)?->toDateTimeString()],
-                ]),
-            ],
-            'notion-sync-mappings' => [
-                'id' => $record->getKey(),
-                'href' => route("{$resource}.show", $record),
-                'title' => $record->sync_resource ?: "Sync Mapping #{$record->getKey()}",
-                'meta' => $this->meta([
-                    ['label' => 'Page', 'value' => $record->notion_page_id],
-                    ['label' => 'Model', 'value' => class_basename((string) $record->local_model_type).' #'.$record->local_model_id],
-                    ['label' => 'Synced', 'value' => optional($record->last_synced_at)?->toDateTimeString()],
                 ]),
             ],
             default => [],
@@ -512,41 +473,6 @@ class ResourcePageBuilder
                     ],
                 ],
             ],
-            'notion-notes' => [
-                [
-                    'title' => 'Overview',
-                    'entries' => [
-                        $this->entry('Sync Resource', $record->sync_resource),
-                        $this->entry('Notion Page ID', $record->notion_page_id),
-                        $this->entry('Linked Model', class_basename((string) $record->noteable_type).' #'.$record->noteable_id),
-                        $this->entry('Last Synced At', optional($record->last_synced_at)?->toDateTimeString()),
-                        $this->entry('Last Edited In Notion', optional($record->notion_last_edited_at)?->toDateTimeString()),
-                        $this->linkedLocalEntry($record->noteable_type, $record->noteable_id),
-                    ],
-                ],
-                [
-                    'title' => 'Content',
-                    'entries' => [
-                        $this->entry('Content', $record->content),
-                    ],
-                    'fullWidth' => true,
-                ],
-            ],
-            'notion-sync-mappings' => [
-                [
-                    'title' => 'Overview',
-                    'entries' => [
-                        $this->entry('Sync Resource', $record->sync_resource),
-                        $this->entry('Notion Page ID', $record->notion_page_id),
-                        $this->entry('Parent Database ID', $record->notion_parent_database_id),
-                        $this->entry('Local Model', class_basename((string) $record->local_model_type).' #'.$record->local_model_id),
-                        $this->entry('Last Synced At', optional($record->last_synced_at)?->toDateTimeString()),
-                        $this->entry('Last Edited In Notion', optional($record->notion_last_edited_at)?->toDateTimeString()),
-                        $this->entry('Payload Hash', $record->last_payload_hash),
-                        $this->linkedLocalEntry($record->local_model_type, $record->local_model_id),
-                    ],
-                ],
-            ],
             default => [],
         };
     }
@@ -561,8 +487,6 @@ class ResourcePageBuilder
             'timeline-placements' => $record->eventEntity?->name ?? "Placement #{$record->getKey()}",
             'state-relationships' => $this->relationshipLabel($record->relationship),
             'galactic-regions' => $record->region_name,
-            'notion-notes' => "Notion Note #{$record->getKey()}",
-            'notion-sync-mappings' => "Sync Mapping #{$record->getKey()}",
             default => "{$this->singularLabel($resource)} #{$record->getKey()}",
         };
     }
@@ -930,8 +854,6 @@ class ResourcePageBuilder
             'timeline-placements' => 'Timeline Placement',
             'state-relationships' => 'State Relationship',
             'galactic-regions' => 'Galactic Region',
-            'notion-notes' => 'Notion Note',
-            'notion-sync-mappings' => 'Notion Sync Mapping',
             default => Str::of($resource)->replace('-', ' ')->singular()->title()->toString(),
         };
     }
@@ -946,8 +868,6 @@ class ResourcePageBuilder
             'timeline-placements' => 'Timeline Placements',
             'state-relationships' => 'State Relationships',
             'galactic-regions' => 'Galactic Regions',
-            'notion-notes' => 'Notion Notes',
-            'notion-sync-mappings' => 'Notion Sync Mappings',
             default => Str::of($resource)->replace('-', ' ')->title()->toString(),
         };
     }

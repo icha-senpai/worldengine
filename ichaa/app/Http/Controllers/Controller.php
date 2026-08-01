@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\System\Models\NotionNote;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller as BaseController;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -22,16 +21,9 @@ abstract class Controller extends BaseController
         return Inertia::render($component, $props);
     }
 
-    protected function pageWithNotionNote(string $component, Model $model, string $resource, array $props = []): InertiaResponse
-    {
-        return $this->page($component, array_merge([
-            'notionNote' => $this->notionNoteFor($model, $resource),
-        ], $props));
-    }
-
     // Redirect back with a flash message.
     // Message surfaces in the Vue layout via usePage().props.flash
-    protected function back(string $message = ''): \Illuminate\Http\RedirectResponse
+    protected function back(string $message = ''): RedirectResponse
     {
         if ($message) {
             session()->flash('success', $message);
@@ -41,32 +33,12 @@ abstract class Controller extends BaseController
     }
 
     // Redirect to a named route with a flash message.
-    protected function to(string $route, array $params = [], string $message = ''): \Illuminate\Http\RedirectResponse
+    protected function to(string $route, array $params = [], string $message = ''): RedirectResponse
     {
         if ($message) {
             session()->flash('success', $message);
         }
 
         return redirect()->route($route, $params);
-    }
-
-    protected function notionNoteFor(Model $model, string $resource): ?array
-    {
-        $note = NotionNote::query()->forModel($model, $resource)->first();
-
-        return $this->formatNotionNote($note);
-    }
-
-    protected function formatNotionNote(?NotionNote $note): ?array
-    {
-        if (! $note || blank($note->content)) {
-            return null;
-        }
-
-        return [
-            'label' => 'Notion Notes',
-            'content' => $note->content,
-            'lastSyncedAt' => optional($note->last_synced_at)?->toIso8601String(),
-        ];
     }
 }

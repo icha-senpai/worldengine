@@ -103,7 +103,7 @@ class LocationContainmentController extends Controller
 
     private function showPage(LocationContainment $locationContainment, array $props = []): Response
     {
-        return $this->pageWithNotionNote('World/LocationContainment/Show', $locationContainment, 'location_containment', array_merge([
+        return $this->page('World/LocationContainment/Show', array_merge([
             'containment' => $locationContainment->load([
                 'childLocation:id,name',
                 'parentLocation:id,name',

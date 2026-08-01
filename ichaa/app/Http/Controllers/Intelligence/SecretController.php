@@ -192,7 +192,7 @@ class SecretController extends Controller
             ->get()
             ->keyBy('id');
 
-        return $this->pageWithNotionNote('Intelligence/Secrets/Show', $secret, 'secrets', array_merge([
+        return $this->page('Intelligence/Secrets/Show', array_merge([
             'secret' => $secret,
             'subjectEntities' => $this->entityListItems($secret->subject_entity_ids ?? [], $entities),
             'holderEntities' => $this->entityListItems($secret->holder_entity_ids ?? [], $entities),

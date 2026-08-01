@@ -160,7 +160,7 @@ class SessionLogController extends Controller
 
         $sessionLog->load(['entityQuestions.entity:id,name']);
 
-        return $this->pageWithNotionNote('Production/Sessions/Show', $sessionLog, 'session_logs', array_merge([
+        return $this->page('Production/Sessions/Show', array_merge([
             'session' => $sessionLog,
             'focusEntities' => collect($focusEntityIds)
                 ->map(function ($id) use ($focusEntities) {

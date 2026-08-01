@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Temporal;
 
-use Illuminate\Http\Request;
-use Inertia\Response;
-
-use App\Http\Controllers\Controller;
 use App\Domain\Temporal\Models\ConcurrencyGroup;
 use App\Domain\Temporal\Services\TemporalService;
+use App\Http\Controllers\Controller;
 use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
 
 class ConcurrencyGroupController extends Controller
 {
@@ -33,7 +33,7 @@ class ConcurrencyGroupController extends Controller
         return $this->showPage($concurrencyGroup);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $this->normalizePayload(
             $request->validate(DataverseRules::web('concurrency-groups', 'store'))
@@ -53,7 +53,7 @@ class ConcurrencyGroupController extends Controller
         ]);
     }
 
-    public function update(Request $request, ConcurrencyGroup $concurrencyGroup): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, ConcurrencyGroup $concurrencyGroup): RedirectResponse
     {
         $concurrencyGroup->update($this->normalizePayload(
             $request->validate(DataverseRules::web('concurrency-groups', 'update'))
@@ -62,14 +62,12 @@ class ConcurrencyGroupController extends Controller
         return $this->to('concurrency-groups.show', [$concurrencyGroup], 'Concurrency group updated.');
     }
 
-    public function destroy(ConcurrencyGroup $concurrencyGroup): \Illuminate\Http\RedirectResponse
+    public function destroy(ConcurrencyGroup $concurrencyGroup): RedirectResponse
     {
         $concurrencyGroup->delete();
 
         return $this->to('concurrency-groups.index', [], 'Concurrency group deleted.');
     }
-
-
 
     private function indexPage(Request $request, array $props = []): Response
     {
@@ -100,13 +98,13 @@ class ConcurrencyGroupController extends Controller
     {
         return [
             'significanceLevels' => ConcurrencyGroup::SIGNIFICANCE_LEVELS,
-        
+
         ];
     }
 
     private function showPage(ConcurrencyGroup $concurrencyGroup, array $props = []): Response
     {
-        return $this->pageWithNotionNote('Temporal/ConcurrencyGroups/Show', $concurrencyGroup, 'concurrency_groups', array_merge([
+        return $this->page('Temporal/ConcurrencyGroups/Show', array_merge([
             'group' => $concurrencyGroup->load([
                 'timelineEntries.timeline:id,name',
                 'timelineEntries.eventEntity:id,name,entity_type',

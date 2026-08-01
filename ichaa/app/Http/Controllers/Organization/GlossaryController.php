@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Organization;
 
+use App\Domain\Identity\ValueObjects\SourceUniverse;
+use App\Domain\Organization\Models\Glossary;
+use App\Http\Controllers\Controller;
+use App\Support\Validation\DataverseRules;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
-
-use App\Http\Controllers\Controller;
-use App\Domain\Organization\Models\Glossary;
-use App\Domain\Identity\ValueObjects\SourceUniverse;
-use App\Support\Validation\DataverseRules;
 
 class GlossaryController extends Controller
 {
@@ -24,7 +24,7 @@ class GlossaryController extends Controller
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(DataverseRules::web('glossary', 'store'));
         $validated['term_status'] = $validated['term_status'] ?? 'active';
@@ -46,21 +46,19 @@ class GlossaryController extends Controller
         ]);
     }
 
-    public function update(Request $request, Glossary $glossary): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, Glossary $glossary): RedirectResponse
     {
         $glossary->update($request->validate(DataverseRules::web('glossary', 'update')));
 
         return $this->to('glossary.show', [$glossary], 'Term updated.');
     }
 
-    public function destroy(Glossary $glossary): \Illuminate\Http\RedirectResponse
+    public function destroy(Glossary $glossary): RedirectResponse
     {
         $glossary->delete();
 
         return $this->to('glossary.index', [], 'Term deleted.');
     }
-
-
 
     private function indexPage(Request $request, array $props = []): Response
     {
@@ -83,13 +81,13 @@ class GlossaryController extends Controller
             });
         }
 
-                return $this->page('Glossary/Index', array_merge([
-            'terms'   => $query->paginate(60)->withQueryString(),
+        return $this->page('Glossary/Index', array_merge([
+            'terms' => $query->paginate(60)->withQueryString(),
             'filters' => $request->only(['q', 'universe', 'context']),
             'usageContexts' => Glossary::USAGE_CONTEXTS,
             'originUniverses' => SourceUniverse::ALL,
         ], $props));
-    
+
     }
 
     private function createFormProps(): array
@@ -108,7 +106,7 @@ class GlossaryController extends Controller
 
     private function showPage(Glossary $glossary, array $props = []): Response
     {
-        return $this->pageWithNotionNote('Glossary/Show', $glossary, 'glossary', array_merge([
+        return $this->page('Glossary/Show', array_merge([
             'term' => $glossary,
         ], $props));
     }

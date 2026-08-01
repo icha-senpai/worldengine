@@ -17,8 +17,6 @@ use App\Domain\Lore\Models\SourceCanonReference;
 use App\Domain\Organization\Models\Collection;
 use App\Domain\Organization\Models\CollectionDocument;
 use App\Domain\Organization\Models\CollectionEntity;
-use App\Domain\System\Models\NotionNote;
-use App\Domain\System\Models\NotionSyncMapping;
 use App\Domain\System\Models\Revision;
 use App\Domain\Temporal\Models\CharacterStateTracker;
 use App\Domain\Temporal\Models\StateRelationship;
@@ -251,63 +249,6 @@ class AdminWebCoverageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('ScaffoldResources/Show')
                 ->where('title', 'Outer Reach')
-            );
-    }
-
-    public function test_notion_admin_pages_render_as_read_only_web_surfaces(): void
-    {
-        $user = $this->verifiedUser();
-
-        $this->actingAs($user);
-
-        $entity = Entity::factory()->create(['name' => 'Mapped Entity']);
-        $note = NotionNote::create([
-            'sync_resource' => 'entities',
-            'notion_page_id' => 'page-123',
-            'noteable_type' => Entity::class,
-            'noteable_id' => $entity->id,
-            'content' => 'Mirrored note body',
-            'content_hash' => sha1('Mirrored note body'),
-        ]);
-        $mapping = NotionSyncMapping::create([
-            'sync_resource' => 'entities',
-            'notion_page_id' => 'page-123',
-            'local_model_type' => Entity::class,
-            'local_model_id' => $entity->id,
-        ]);
-
-        $this->actingAs($user)
-            ->get(route('admin.notion-notes.index'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/NotionNotes/Index')
-                ->has('items', 1)
-            );
-
-        $this->actingAs($user)
-            ->get(route('admin.notion-notes.show', $note))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/NotionNotes/Show')
-                ->where('note.id', $note->id)
-                ->where('note.record_link.label', 'Mapped Entity')
-            );
-
-        $this->actingAs($user)
-            ->get(route('admin.notion-sync-mappings.index'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/NotionSyncMappings/Index')
-                ->has('items', 1)
-            );
-
-        $this->actingAs($user)
-            ->get(route('admin.notion-sync-mappings.show', $mapping))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/NotionSyncMappings/Show')
-                ->where('mapping.id', $mapping->id)
-                ->where('mapping.record_link.label', 'Mapped Entity')
             );
     }
 

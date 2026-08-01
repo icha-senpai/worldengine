@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -118,7 +119,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE crossover_entry_points
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -127,10 +128,10 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX crossover_entry_points_search_vector_idx ON crossover_entry_points USING GIN (search_vector)');
+        DB::statement('CREATE INDEX crossover_entry_points_search_vector_idx ON crossover_entry_points USING GIN (search_vector)');
 
-        \DB::statement('CREATE INDEX crossover_entry_points_known_examples_idx ON crossover_entry_points USING GIN (known_examples)');
-        \DB::statement('CREATE INDEX crossover_entry_points_known_entry_points_idx ON crossover_entry_points USING GIN (known_entry_points)');
+        DB::statement('CREATE INDEX crossover_entry_points_known_examples_idx ON crossover_entry_points USING GIN (known_examples)');
+        DB::statement('CREATE INDEX crossover_entry_points_known_entry_points_idx ON crossover_entry_points USING GIN (known_entry_points)');
 
         Schema::table('crossover_entry_points', function (Blueprint $table) {
             $table->index('source_universe');

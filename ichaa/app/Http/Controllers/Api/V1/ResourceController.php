@@ -9,7 +9,6 @@ use App\Support\Api\ApiMutationService;
 use App\Support\Api\ApiPayload;
 use App\Support\Api\ApiResourceRegistry;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -146,7 +145,7 @@ class ResourceController extends ApiController
         }
 
         $modelClass = ApiResourceRegistry::modelClass($resource);
-        $casts = (new $modelClass())->getCasts();
+        $casts = (new $modelClass)->getCasts();
         $allowedFilters = ApiResourceRegistry::filterableFields($resource);
 
         foreach ($filters as $field => $value) {
@@ -156,6 +155,7 @@ class ResourceController extends ApiController
 
             if (($casts[$field] ?? null) === 'array') {
                 $query->whereJsonContains($field, $value);
+
                 continue;
             }
 
@@ -173,6 +173,7 @@ class ResourceController extends ApiController
 
         if (method_exists($query->getModel(), 'scopeSearch')) {
             $query->search($term);
+
             return;
         }
 
@@ -196,6 +197,7 @@ class ResourceController extends ApiController
 
         if ($sort === '') {
             $query->latest('id');
+
             return;
         }
 

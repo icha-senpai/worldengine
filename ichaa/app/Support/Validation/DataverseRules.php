@@ -4,12 +4,12 @@ namespace App\Support\Validation;
 
 use App\Domain\Connections\ValueObjects\RelationshipType;
 use App\Domain\Connections\ValueObjects\TensionCharge;
+use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\Models\EntityAlias;
 use App\Domain\Identity\Models\MediaReference;
-use App\Domain\Identity\Models\Entity;
 use App\Domain\Identity\ValueObjects\ContentClassification;
-use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Domain\Identity\ValueObjects\EntityType;
+use App\Domain\Identity\ValueObjects\VisibilityLevel;
 use App\Domain\Intelligence\Models\KnowledgeState;
 use App\Domain\Intelligence\Models\PerceptionState;
 use App\Domain\Intelligence\Models\Secret;
@@ -905,29 +905,6 @@ class DataverseRules
                     'notes' => ['nullable', 'array'],
                 ],
             ],
-            'notion-sync-mappings' => $operation === 'store' ? [
-                'attributes' => [
-                    'sync_resource' => ['required', 'string', 'max:255'],
-                    'notion_page_id' => ['required', 'string', 'max:255'],
-                    'notion_parent_database_id' => ['nullable', 'string', 'max:255'],
-                    'local_model_type' => ['required', 'string', 'max:255'],
-                    'local_model_id' => ['required', 'integer', 'min:1'],
-                    'notion_last_edited_at' => ['nullable', 'date'],
-                    'last_synced_at' => ['nullable', 'date'],
-                    'last_payload_hash' => ['nullable', 'string', 'max:255'],
-                ],
-            ] : [
-                'attributes' => [
-                    'sync_resource' => ['sometimes', 'string', 'max:255'],
-                    'notion_page_id' => ['sometimes', 'string', 'max:255'],
-                    'notion_parent_database_id' => ['nullable', 'string', 'max:255'],
-                    'local_model_type' => ['sometimes', 'string', 'max:255'],
-                    'local_model_id' => ['sometimes', 'integer', 'min:1'],
-                    'notion_last_edited_at' => ['nullable', 'date'],
-                    'last_synced_at' => ['nullable', 'date'],
-                    'last_payload_hash' => ['nullable', 'string', 'max:255'],
-                ],
-            ],
             'timeline-entries' => [
                 'attributes' => [
                     'entry_label' => ['nullable', 'string', 'max:255'],
@@ -1042,12 +1019,12 @@ class DataverseRules
             'entity-save-version' => [
                 'attributes' => [
                     'version_label' => ['nullable', 'string', 'max:255'],
-                    'what_changed' => ['nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                    'what_changed' => ['nullable', function (string $attribute, mixed $value, Closure $fail): void {
                         if (! is_string($value) && ! is_array($value)) {
                             $fail("The {$attribute} field must be a string or rich document payload.");
                         }
                     }],
-                    'why_changed' => ['nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                    'why_changed' => ['nullable', function (string $attribute, mixed $value, Closure $fail): void {
                         if (! is_string($value) && ! is_array($value)) {
                             $fail("The {$attribute} field must be a string or rich document payload.");
                         }

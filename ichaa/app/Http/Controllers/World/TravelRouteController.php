@@ -121,7 +121,7 @@ class TravelRouteController extends Controller
 
     private function showPage(TravelRoute $travelRoute, array $props = []): Response
     {
-        return $this->pageWithNotionNote('World/TravelRoutes/Show', $travelRoute, 'travel_routes', array_merge([
+        return $this->page('World/TravelRoutes/Show', array_merge([
             'routeRecord' => $travelRoute->load(['origin:id,name', 'destination:id,name', 'controlledBy:id,name']),
         ], $props));
     }

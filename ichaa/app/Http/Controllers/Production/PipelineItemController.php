@@ -203,7 +203,7 @@ class PipelineItemController extends Controller
             'parent:id,title',
         ]);
 
-        return $this->pageWithNotionNote('Production/Pipeline/Show', $pipeline, 'pipeline_items', array_merge([
+        return $this->page('Production/Pipeline/Show', array_merge([
             'item' => $pipeline,
         ], $props));
     }

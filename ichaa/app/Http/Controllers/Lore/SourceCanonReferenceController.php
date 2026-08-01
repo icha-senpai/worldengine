@@ -125,7 +125,7 @@ class SourceCanonReferenceController extends Controller
     {
         $canonReference->load(['childReferences.childReferences', 'auEntity:id,name', 'linkedEntities:id,name']);
 
-        return $this->pageWithNotionNote('Lore/CanonReferences/Show', $canonReference, 'canon_references', array_merge([
+        return $this->page('Lore/CanonReferences/Show', array_merge([
             'reference' => $canonReference,
         ], $props));
     }

@@ -4,7 +4,6 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -31,11 +30,9 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('home', absolute: false));
     }
 
-    public function test_admin_users_are_redirected_to_datacrypt_after_login(): void
+    public function test_admin_users_are_redirected_to_datacrypt_hub_after_login(): void
     {
-        $user = User::factory()->create();
-        Role::findOrCreate('admin', 'web');
-        $user->assignRole('admin');
+        $user = $this->createVerifiedAdminUser();
 
         $response = $this->post('/login', [
             'email' => $user->email,
@@ -43,7 +40,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('datacrypt.hub', absolute: false));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

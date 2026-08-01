@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -107,7 +108,7 @@ return new class extends Migration
         // --- INDEXES ---
 
         // Full text search across notes
-        \DB::statement("
+        DB::statement("
             ALTER TABLE relationships
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -116,12 +117,12 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX relationships_search_vector_idx ON relationships USING GIN (search_vector)');
+        DB::statement('CREATE INDEX relationships_search_vector_idx ON relationships USING GIN (search_vector)');
 
         // JSONB indexes
-        \DB::statement('CREATE INDEX relationships_charge_history_idx ON relationships USING GIN (charge_history)');
-        \DB::statement('CREATE INDEX relationships_history_idx ON relationships USING GIN (relationship_history)');
-        \DB::statement('CREATE INDEX relationships_perceived_by_idx ON relationships USING GIN (perceived_by)');
+        DB::statement('CREATE INDEX relationships_charge_history_idx ON relationships USING GIN (charge_history)');
+        DB::statement('CREATE INDEX relationships_history_idx ON relationships USING GIN (relationship_history)');
+        DB::statement('CREATE INDEX relationships_perceived_by_idx ON relationships USING GIN (perceived_by)');
 
         Schema::table('relationships', function (Blueprint $table) {
             $table->index('from_entity_id');

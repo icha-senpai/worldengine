@@ -5,7 +5,7 @@
         <header class="sticky top-0 z-50 shrink-0 bg-surface border-b border-border md:hidden">
             <div class="md:hidden px-4 py-3">
                 <div class="flex items-center gap-3">
-                    <a :href="route('dashboard')" class="flex items-baseline shrink-0 font-ui text-base tracking-widest uppercase">
+                    <a :href="shellHomeHref" class="flex items-baseline shrink-0 font-ui text-base tracking-widest uppercase">
                         <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
                     </a>
 
@@ -16,6 +16,7 @@
 
                     <div class="flex items-center gap-2">
                         <Link
+                            v-if="canAccessWorldEngine"
                             :href="route('search')"
                             class="mobile-icon-btn"
                             aria-label="Search"
@@ -27,6 +28,7 @@
                         </Link>
 
                         <Link
+                            v-if="canAccessWorldEngine"
                             :href="route('trash.index')"
                             class="mobile-icon-btn"
                             :class="{ 'mobile-icon-btn--danger': currentPath === '/trash' }"
@@ -81,6 +83,7 @@
                     <p class="mobile-section-label">Sections</p>
                     <nav class="grid gap-2" aria-label="Primary mobile">
                         <button
+                            v-if="canAccessWorldEngine"
                             type="button"
                             class="mobile-domain-toggle"
                             :class="{ 'active': isWorldEngineActive }"
@@ -103,7 +106,7 @@
                             </svg>
                         </button>
 
-                        <div v-if="mobileWorldEngineOpen" class="mobile-workspace-children">
+                        <div v-if="canAccessWorldEngine && mobileWorldEngineOpen" class="mobile-workspace-children">
                             <div
                                 v-for="domain in domains"
                                 :key="domain.key"
@@ -162,6 +165,7 @@
                         </div>
 
                         <button
+                            v-if="canAccessBitcraft"
                             type="button"
                             class="mobile-domain-toggle"
                             :class="{ 'active': isBitcraftToolsActive }"
@@ -184,7 +188,7 @@
                             </svg>
                         </button>
 
-                        <div v-if="mobileBitcraftToolsOpen" class="mobile-workspace-children">
+                        <div v-if="canAccessBitcraft && mobileBitcraftToolsOpen" class="mobile-workspace-children">
                             <Link
                                 v-for="item in bitcraftTools.children"
                                 :key="item.key"
@@ -196,14 +200,44 @@
                                 {{ item.label }}
                             </Link>
                         </div>
-                    </nav>
-                </div>
 
-                <div>
-                    <p class="mobile-section-label">Workspace</p>
-                    <div class="rounded-md border border-border bg-surface px-3 py-3">
-                        <NotionSyncButton resource="all" label="Sync All" class="w-full" />
-                    </div>
+                        <button
+                            v-if="canAccessAdmin"
+                            type="button"
+                            class="mobile-domain-toggle"
+                            :class="{ 'active': isAdminToolsActive }"
+                            :aria-expanded="mobileAdminToolsOpen ? 'true' : 'false'"
+                            @click="mobileAdminToolsOpen = !mobileAdminToolsOpen"
+                        >
+                            <span class="flex items-center gap-3 min-w-0">
+                                <span class="truncate">Admin</span>
+                            </span>
+
+                            <svg
+                                class="mobile-domain-chevron"
+                                :class="{ 'open': mobileAdminToolsOpen }"
+                                width="14"
+                                height="14"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                            >
+                                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <div v-if="canAccessAdmin && mobileAdminToolsOpen" class="mobile-workspace-children">
+                            <Link
+                                v-for="item in adminTools.children"
+                                :key="item.key"
+                                :href="item.href"
+                                class="mobile-domain-child-link"
+                                :class="{ 'active': isNavItemActive(item) }"
+                                @click="mobileNavOpen = false"
+                            >
+                                {{ item.label }}
+                            </Link>
+                        </div>
+                    </nav>
                 </div>
 
                 <div>
@@ -223,14 +257,14 @@
         <!-- DESKTOP SIDEBAR -->
         <header class="desktop-shell-sidebar hidden md:flex">
             <div class="desktop-shell-sidebar__brand">
-                <a :href="route('dashboard')" class="desktop-shell-sidebar__wordmark">
+                <a :href="shellHomeHref" class="desktop-shell-sidebar__wordmark">
                     <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
                 </a>
 
                 <p class="desktop-shell-sidebar__current">{{ activeShellLabel }}</p>
             </div>
 
-            <div class="desktop-shell-sidebar__quick-actions">
+            <div v-if="canAccessWorldEngine" class="desktop-shell-sidebar__quick-actions">
                 <Link
                     :href="route('search')"
                     class="desktop-shell-action"
@@ -261,6 +295,7 @@
 
             <nav class="desktop-shell-nav" aria-label="Primary">
                 <button
+                    v-if="canAccessWorldEngine"
                     type="button"
                     class="desktop-shell-nav__workspace"
                     :class="{ 'active': isWorldEngineActive }"
@@ -281,7 +316,7 @@
                     </svg>
                 </button>
 
-                <div v-if="desktopWorldEngineOpen" class="desktop-shell-nav__workspace-children">
+                <div v-if="canAccessWorldEngine && desktopWorldEngineOpen" class="desktop-shell-nav__workspace-children">
                     <template v-for="domain in domains" :key="domain.key">
                         <Link
                             v-if="!domain.children?.length"
@@ -339,6 +374,7 @@
                 </div>
 
                 <button
+                    v-if="canAccessBitcraft"
                     type="button"
                     class="desktop-shell-nav__workspace"
                     :class="{ 'active': isBitcraftToolsActive }"
@@ -359,9 +395,43 @@
                     </svg>
                 </button>
 
-                <div v-if="desktopBitcraftToolsOpen" class="desktop-shell-nav__workspace-children">
+                <div v-if="canAccessBitcraft && desktopBitcraftToolsOpen" class="desktop-shell-nav__workspace-children">
                     <Link
                         v-for="item in bitcraftTools.children"
+                        :key="item.key"
+                        :href="item.href"
+                        class="desktop-shell-nav__child"
+                        :class="{ 'active': isNavItemActive(item) }"
+                    >
+                        {{ item.label }}
+                    </Link>
+                </div>
+
+                <button
+                    v-if="canAccessAdmin"
+                    type="button"
+                    class="desktop-shell-nav__workspace"
+                    :class="{ 'active': isAdminToolsActive }"
+                    :aria-expanded="desktopAdminToolsOpen ? 'true' : 'false'"
+                    @click="desktopAdminToolsOpen = !desktopAdminToolsOpen"
+                >
+                    <span class="truncate">Admin</span>
+
+                    <svg
+                        class="desktop-shell-nav__chevron"
+                        :class="{ 'open': desktopAdminToolsOpen }"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                    >
+                        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div v-if="canAccessAdmin && desktopAdminToolsOpen" class="desktop-shell-nav__workspace-children">
+                    <Link
+                        v-for="item in adminTools.children"
                         :key="item.key"
                         :href="item.href"
                         class="desktop-shell-nav__child"
@@ -373,10 +443,6 @@
             </nav>
 
             <div class="desktop-shell-sidebar__footer">
-                <div class="desktop-shell-sidebar__sync">
-                    <NotionSyncButton resource="all" label="Sync All" compact />
-                </div>
-
                 <div class="desktop-shell-account">
                     <p class="truncate">{{ $page.props.auth.user.name }}</p>
 
@@ -435,7 +501,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
-import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 import { normalizeSiteTheme, siteThemeStyle } from '@/Pages/Bitcraft/widgetTheme'
 
 const page = usePage()
@@ -446,8 +511,20 @@ const mobileWorldEngineOpen = ref(savedNavState.mobileWorldEngineOpen)
 const desktopWorldEngineOpen = ref(savedNavState.desktopWorldEngineOpen)
 const mobileBitcraftToolsOpen = ref(savedNavState.mobileBitcraftToolsOpen)
 const desktopBitcraftToolsOpen = ref(savedNavState.desktopBitcraftToolsOpen)
+const mobileAdminToolsOpen = ref(savedNavState.mobileAdminToolsOpen)
+const desktopAdminToolsOpen = ref(savedNavState.desktopAdminToolsOpen)
 const mobileExpandedDomainKey = ref(savedNavState.mobileExpandedDomainKey)
 const desktopExpandedDomainKeys = ref(savedNavState.desktopExpandedDomainKeys)
+const canAccessAdmin = computed(() => Boolean(page.props.auth?.user?.can_access_admin))
+const canAccessBitcraft = computed(() => Boolean(page.props.auth?.user?.can_access_bitcraft))
+const canAccessWorldEngine = computed(() => Boolean(page.props.auth?.user?.can_access_world_engine))
+const shellHomeHref = computed(() => {
+    if (page.props.auth?.user?.can_access_datacrypt) {
+        return route('datacrypt.hub')
+    }
+
+    return route('home')
+})
 const siteThemeKey = computed(() => normalizeSiteTheme(page.props.auth?.user?.site_theme))
 const siteThemeVariables = computed(() => siteThemeStyle(siteThemeKey.value))
 const siteThemeVariableNames = Object.keys(siteThemeStyle('dataverse'))
@@ -497,6 +574,8 @@ function defaultNavState() {
         desktopWorldEngineOpen: false,
         mobileBitcraftToolsOpen: false,
         desktopBitcraftToolsOpen: false,
+        mobileAdminToolsOpen: false,
+        desktopAdminToolsOpen: false,
         mobileExpandedDomainKey: null,
         desktopExpandedDomainKeys: [],
     }
@@ -512,6 +591,8 @@ const saveNavState = () => {
         desktopWorldEngineOpen: desktopWorldEngineOpen.value,
         mobileBitcraftToolsOpen: mobileBitcraftToolsOpen.value,
         desktopBitcraftToolsOpen: desktopBitcraftToolsOpen.value,
+        mobileAdminToolsOpen: mobileAdminToolsOpen.value,
+        desktopAdminToolsOpen: desktopAdminToolsOpen.value,
         mobileExpandedDomainKey: mobileExpandedDomainKey.value,
         desktopExpandedDomainKeys: desktopExpandedDomainKeys.value,
     }))
@@ -630,18 +711,6 @@ const domains = [
         ],
         icon: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 5-10 5V3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`
     },
-    {
-        key: 'admin',
-        label: 'Admin',
-        href: route('admin.revisions.index'),
-        matches: ['/admin/revisions', '/admin/notion-notes', '/admin/notion-sync-mappings'],
-        children: [
-            { key: 'admin-revisions', label: 'Revisions', href: route('admin.revisions.index'), matches: ['/admin/revisions'] },
-            { key: 'admin-notion-notes', label: 'Notion Notes', href: route('admin.notion-notes.index'), matches: ['/admin/notion-notes'] },
-            { key: 'admin-notion-sync-mappings', label: 'Sync Mappings', href: route('admin.notion-sync-mappings.index'), matches: ['/admin/notion-sync-mappings'] },
-        ],
-        icon: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 6.5h6M5 9h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`
-    },
 ]
 
 const bitcraftToolChildren = computed(() => [
@@ -663,6 +732,16 @@ const bitcraftTools = computed(() => ({
     children: bitcraftToolChildren.value,
 }))
 
+const adminTools = computed(() => ({
+    key: 'admin-tools',
+    label: 'Admin',
+    matches: ['/admin'],
+    children: [
+        { key: 'admin-users', label: 'Users', href: route('admin.users.index'), matches: ['/admin/users'] },
+        { key: 'admin-revisions', label: 'Revisions', href: route('admin.revisions.index'), matches: ['/admin/revisions'] },
+    ],
+}))
+
 const currentPath = computed(() => {
     const path = page.url.split('?')[0] || '/'
     const worldEnginePrefix = '/datacrypt/worldengine'
@@ -676,7 +755,7 @@ const currentPath = computed(() => {
     }
 
     if (path === '/datacrypt') {
-        return '/'
+        return '/hub'
     }
 
     if (path.startsWith('/datacrypt/')) {
@@ -706,12 +785,23 @@ const isWorldEngineActive = computed(() =>
 )
 
 const isBitcraftToolsActive = computed(() => isNavItemActive(bitcraftTools.value))
+const isAdminToolsActive = computed(() => isNavItemActive(adminTools.value))
 
 const activeShellLabel = computed(() => {
+    if (currentPath.value === '/hub') {
+        return 'Datacrypt'
+    }
+
     if (isBitcraftToolsActive.value) {
         const activeTool = bitcraftTools.value.children.find((item) => isNavItemActive(item))
 
         return activeTool?.label ?? bitcraftTools.value.label
+    }
+
+    if (isAdminToolsActive.value) {
+        const activeAdminTool = adminTools.value.children.find((item) => isNavItemActive(item))
+
+        return activeAdminTool?.label ?? adminTools.value.label
     }
 
     return activeDomain.value.label
@@ -740,6 +830,8 @@ watch([
     desktopWorldEngineOpen,
     mobileBitcraftToolsOpen,
     desktopBitcraftToolsOpen,
+    mobileAdminToolsOpen,
+    desktopAdminToolsOpen,
     mobileExpandedDomainKey,
     desktopExpandedDomainKeys,
 ], saveNavState, { deep: true })

@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -135,7 +136,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE knowledge_states
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -145,7 +146,7 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX knowledge_states_search_vector_idx ON knowledge_states USING GIN (search_vector)');
+        DB::statement('CREATE INDEX knowledge_states_search_vector_idx ON knowledge_states USING GIN (search_vector)');
 
         Schema::table('knowledge_states', function (Blueprint $table) {
             $table->index('knower_entity_id');

@@ -27,8 +27,6 @@ use App\Domain\Organization\Models\Glossary;
 use App\Domain\Production\Models\Meta;
 use App\Domain\Production\Models\PipelineItem;
 use App\Domain\Production\Models\SessionLog;
-use App\Domain\System\Models\NotionNote;
-use App\Domain\System\Models\NotionSyncMapping;
 use App\Domain\System\Models\Revision;
 use App\Domain\Temporal\Models\CharacterStateTracker;
 use App\Domain\Temporal\Models\ConcurrencyGroup;
@@ -482,24 +480,6 @@ class DataverseWebResourceRegistry
                 'link' => fn (SessionLog $session) => [
                     'label' => $session->title ?: 'Session Log #'.$session->getKey(),
                     'href' => route('session-logs.show', $session),
-                ],
-            ],
-            'notion-notes' => [
-                'label' => 'Notion Notes',
-                'model' => NotionNote::class,
-                'with' => [],
-                'link' => fn (NotionNote $note) => [
-                    'label' => 'Notion Note '.$note->notion_page_id,
-                    'href' => route('admin.notion-notes.show', $note),
-                ],
-            ],
-            'notion-sync-mappings' => [
-                'label' => 'Notion Sync Mappings',
-                'model' => NotionSyncMapping::class,
-                'with' => [],
-                'link' => fn (NotionSyncMapping $mapping) => [
-                    'label' => 'Notion Mapping '.$mapping->notion_page_id,
-                    'href' => route('admin.notion-sync-mappings.show', $mapping),
                 ],
             ],
             'revisions' => [

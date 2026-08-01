@@ -2,7 +2,6 @@
 
 namespace App\Mcp\Support;
 
-use App\Domain\System\Services\NotionDataverseSyncService;
 use App\Support\Api\ApiResourceRegistry;
 
 class DataverseMcpCatalog
@@ -219,11 +218,6 @@ class DataverseMcpCatalog
         return $action;
     }
 
-    public static function notionSyncResources(): array
-    {
-        return NotionDataverseSyncService::supportedResources();
-    }
-
     public static function catalog(): array
     {
         return [
@@ -249,7 +243,6 @@ class DataverseMcpCatalog
                 array_keys(self::actions()),
                 array_values(self::actions()),
             ),
-            'notion_sync_resources' => self::notionSyncResources(),
             'bitcraft_tools' => [
                 [
                     'name' => 'search_bitcraft_market',

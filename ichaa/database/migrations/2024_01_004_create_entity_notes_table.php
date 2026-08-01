@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -43,7 +44,7 @@ return new class extends Migration
 
         // Full text search on note content
         // Allows searching your own scratch pad notes across all entities
-        \DB::statement("
+        DB::statement("
             ALTER TABLE entity_notes
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -57,7 +58,7 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX entity_notes_search_vector_idx ON entity_notes USING GIN (search_vector)');
+        DB::statement('CREATE INDEX entity_notes_search_vector_idx ON entity_notes USING GIN (search_vector)');
 
         Schema::table('entity_notes', function (Blueprint $table) {
             $table->index('entity_id');

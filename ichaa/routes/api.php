@@ -19,7 +19,6 @@ Route::prefix('v1')
         Route::get('trash', [SystemController::class, 'trash']);
         Route::post('trash/{resource}/{record}/restore', [SystemController::class, 'restoreTrash'])
             ->where('resource', $resourcePattern);
-        Route::post('notion-sync/{resource}', [SystemController::class, 'syncNotion']);
         Route::get('revisions/compare', [SystemController::class, 'compareRevisions']);
         Route::get('revisions/{revision}', [SystemController::class, 'showRevision']);
         Route::post('revisions/{revision}/restore', [SystemController::class, 'restoreRevision']);

@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -169,7 +170,7 @@ return new class extends Migration
         // --- INDEXES ---
 
         // Full text search across title and content
-        \DB::statement("
+        DB::statement("
             ALTER TABLE documents
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -180,11 +181,11 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX documents_search_vector_idx ON documents USING GIN (search_vector)');
+        DB::statement('CREATE INDEX documents_search_vector_idx ON documents USING GIN (search_vector)');
 
         // JSONB indexes
-        \DB::statement('CREATE INDEX documents_content_idx ON documents USING GIN (content)');
-        \DB::statement('CREATE INDEX documents_banned_by_idx ON documents USING GIN (banned_by)');
+        DB::statement('CREATE INDEX documents_content_idx ON documents USING GIN (content)');
+        DB::statement('CREATE INDEX documents_banned_by_idx ON documents USING GIN (banned_by)');
 
         Schema::table('documents', function (Blueprint $table) {
             $table->index('document_type');

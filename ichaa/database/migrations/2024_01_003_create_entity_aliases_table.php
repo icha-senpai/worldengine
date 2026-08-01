@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -65,7 +66,7 @@ return new class extends Migration
 
         // Full text search on alias — this is the core search index
         // When you search "Silent Heir" this is what finds Seraphine
-        \DB::statement("
+        DB::statement("
             ALTER TABLE entity_aliases
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -74,10 +75,10 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX entity_aliases_search_vector_idx ON entity_aliases USING GIN (search_vector)');
+        DB::statement('CREATE INDEX entity_aliases_search_vector_idx ON entity_aliases USING GIN (search_vector)');
 
         // JSONB index for known_by queries
-        \DB::statement('CREATE INDEX entity_aliases_known_by_idx ON entity_aliases USING GIN (known_by_entity_ids)');
+        DB::statement('CREATE INDEX entity_aliases_known_by_idx ON entity_aliases USING GIN (known_by_entity_ids)');
 
         // Standard indexes
         Schema::table('entity_aliases', function (Blueprint $table) {

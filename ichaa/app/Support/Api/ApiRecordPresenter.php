@@ -2,7 +2,6 @@
 
 namespace App\Support\Api;
 
-use App\Domain\System\Models\NotionNote;
 use App\Domain\System\Services\RevisionService;
 use Illuminate\Database\Eloquent\Model;
 
@@ -32,11 +31,6 @@ class ApiRecordPresenter
         $included = [];
 
         foreach ($requestedIncludes as $include) {
-            if ($include === 'notion_note') {
-                $included[$include] = $this->notionNoteFor($resource, $model);
-                continue;
-            }
-
             if (method_exists($model, $include)) {
                 $model->loadMissing($include);
                 $included[$include] = $model->getRelation($include)?->toArray();
@@ -44,28 +38,5 @@ class ApiRecordPresenter
         }
 
         return $included;
-    }
-
-    private function notionNoteFor(string $resource, Model $model): ?array
-    {
-        $notionResource = ApiResourceRegistry::definition($resource)['notion_resource'] ?? null;
-
-        if (! $notionResource) {
-            return null;
-        }
-
-        $note = NotionNote::query()
-            ->forModel($model, $notionResource)
-            ->first();
-
-        if (! $note || blank($note->content)) {
-            return null;
-        }
-
-        return [
-            'label' => 'Notion Notes',
-            'content' => $note->content,
-            'last_synced_at' => optional($note->last_synced_at)?->toIso8601String(),
-        ];
     }
 }

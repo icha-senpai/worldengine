@@ -257,7 +257,7 @@ test.describe('additional domain CRUD flows', () => {
         await page.goto('/session-logs/create')
         await page.getByLabel(/^Title$/).fill(title)
         await page.getByLabel(/^Session Date$/).fill('2026-06-23')
-        await page.getByLabel(/^External Tool$/).selectOption('notion')
+        await page.getByLabel(/^External Tool$/).selectOption('chatgpt')
         await page.getByLabel(/^Focus Description$/).fill('Broader CRUD verification pass.')
         await page.getByRole('button', { name: 'Create Session Log' }).click()
 

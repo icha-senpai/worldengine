@@ -8,12 +8,7 @@
                     </div>
                     <h1 class="page-hero__title page-hero__title--lg">{{ title }}</h1>
                 </div>
-                <div v-if="syncResource || createHref" class="page-hero__actions">
-                    <NotionSyncButton
-                        v-if="syncResource"
-                        :resource="syncResource"
-                        :label="syncLabel"
-                    />
+                <div v-if="createHref" class="page-hero__actions">
                     <AppButton
                         v-if="createHref"
                         :href="createHref"
@@ -140,7 +135,6 @@
 <script setup>
 import { computed } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
-import NotionSyncButton from '@/Components/NotionSyncButton.vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
@@ -151,8 +145,6 @@ const props = defineProps({
     title: { type: String, required: true },
     count: { type: Number, default: 0 },
     countLabel: { type: String, default: 'records' },
-    syncResource: { type: String, default: '' },
-    syncLabel: { type: String, default: 'Sync from Notion' },
     createHref: { type: String, default: '' },
     createLabel: { type: String, default: 'Create' },
     createPreserveScroll: { type: Boolean, default: false },

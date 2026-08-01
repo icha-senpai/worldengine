@@ -148,7 +148,7 @@ class RelationshipController extends Controller
             'stateRelationships.characterState',
         ]);
 
-        return $this->pageWithNotionNote('Relationships/Show', $relationship, 'relationships', array_merge([
+        return $this->page('Relationships/Show', array_merge([
             'relationship' => $relationship,
         ], $props));
     }

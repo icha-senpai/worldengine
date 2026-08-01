@@ -148,7 +148,6 @@
             <slot name="edit-drawer" />
         </DrawerRouteShell>
 
-        <NotionNotePanel :note="notionNote" />
     </AuthenticatedLayout>
 </template>
 
@@ -156,7 +155,6 @@
 import { computed } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import NotionNotePanel from '@/Components/NotionNotePanel.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import DrawerRouteShell from '@/Components/ui/DrawerRouteShell.vue'
 import RichDocumentValue from '@/Components/scaffold/RichDocumentValue.vue'
@@ -185,7 +183,6 @@ const props = defineProps({
 })
 
 const page = usePage()
-const notionNote = computed(() => page.props?.notionNote ?? null)
 const normalizedSections = computed(() =>
     props.sections.map((section) => ({
         ...section,

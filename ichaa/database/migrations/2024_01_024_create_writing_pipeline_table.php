@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -286,7 +287,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE writing_pipeline
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -301,10 +302,10 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX writing_pipeline_search_vector_idx ON writing_pipeline USING GIN (search_vector)');
-        \DB::statement('CREATE INDEX writing_pipeline_influenced_entities_idx ON writing_pipeline USING GIN (influenced_entity_ids)');
-        \DB::statement('CREATE INDEX writing_pipeline_speakers_idx ON writing_pipeline USING GIN (speakers_entity_ids)');
-        \DB::statement('CREATE INDEX writing_pipeline_warnings_idx ON writing_pipeline USING GIN (scene_content_warnings)');
+        DB::statement('CREATE INDEX writing_pipeline_search_vector_idx ON writing_pipeline USING GIN (search_vector)');
+        DB::statement('CREATE INDEX writing_pipeline_influenced_entities_idx ON writing_pipeline USING GIN (influenced_entity_ids)');
+        DB::statement('CREATE INDEX writing_pipeline_speakers_idx ON writing_pipeline USING GIN (speakers_entity_ids)');
+        DB::statement('CREATE INDEX writing_pipeline_warnings_idx ON writing_pipeline USING GIN (scene_content_warnings)');
 
         Schema::table('writing_pipeline', function (Blueprint $table) {
             $table->index('pipeline_type');

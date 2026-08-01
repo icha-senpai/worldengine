@@ -7,7 +7,7 @@
                         <span>Cross-domain index</span>
                     </div>
                     <h1 class="page-hero__title page-hero__title--lg">Search</h1>
-                    <p class="page-hero__subtitle">Cross-domain lookup for entities, documents, secrets, glossary terms, and synced Notion notes.</p>
+                    <p class="page-hero__subtitle">Cross-domain lookup for entities, documents, secrets, and glossary terms.</p>
                 </div>
             </div>
         </template>
@@ -40,10 +40,6 @@
                         </Link>
                         <span v-else class="index-record__title prose-wrap">{{ item.label }}</span>
                         <p v-if="item.meta" class="index-record__subtitle prose-wrap">{{ item.meta }}</p>
-                        <p v-if="item.noteExcerpt" class="prose-wrap text-muted-2 text-sm mt-3">
-                            <span class="note-label mr-2">Notion note</span>
-                            {{ item.noteExcerpt }}
-                        </p>
                     </div>
                 </div>
 
@@ -85,7 +81,6 @@ const groups = computed(() => [
             label: entity.name,
             meta: `${formatLabel(entity.entity_type)} · ${formatLabel(entity.status)}`,
             href: route('entities.show', entity.id),
-            noteExcerpt: entity.notion_note_excerpt,
         })),
     },
     {
@@ -94,7 +89,6 @@ const groups = computed(() => [
             label: document.title,
             meta: `${formatLabel(document.document_type)} · ${formatLabel(document.document_status)}`,
             href: route('documents.show', document.id),
-            noteExcerpt: document.notion_note_excerpt,
         })),
     },
     {
@@ -103,7 +97,6 @@ const groups = computed(() => [
             label: secret.title,
             meta: `${formatLabel(secret.secret_type)} · ${formatLabel(secret.exposure_risk)}`,
             href: route('secrets.show', secret.id),
-            noteExcerpt: secret.notion_note_excerpt,
         })),
     },
     {
@@ -112,7 +105,6 @@ const groups = computed(() => [
             label: term.term,
             meta: term.usage_context,
             href: route('glossary.show', term.id),
-            noteExcerpt: term.notion_note_excerpt,
         })),
     },
 ])

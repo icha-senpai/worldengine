@@ -134,7 +134,7 @@ class PowerInteractionController extends Controller
             'instances.eventEntity:id,name',
         ]);
 
-        return $this->pageWithNotionNote('World/PowerInteractions/Show', $powerInteraction, 'power_interactions', array_merge([
+        return $this->page('World/PowerInteractions/Show', array_merge([
             'interaction' => $powerInteraction,
             'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')

@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -194,7 +195,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE source_canon_reference
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -208,12 +209,12 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX source_canon_search_vector_idx ON source_canon_reference USING GIN (search_vector)');
+        DB::statement('CREATE INDEX source_canon_search_vector_idx ON source_canon_reference USING GIN (search_vector)');
 
-        \DB::statement('CREATE INDEX source_canon_canonical_properties_idx ON source_canon_reference USING GIN (canonical_properties)');
-        \DB::statement('CREATE INDEX source_canon_borrowed_idx ON source_canon_reference USING GIN (primary_elements_borrowed)');
-        \DB::statement('CREATE INDEX source_canon_divergences_idx ON source_canon_reference USING GIN (primary_divergences)');
-        \DB::statement('CREATE INDEX source_canon_dispute_sources_idx ON source_canon_reference USING GIN (dispute_sources)');
+        DB::statement('CREATE INDEX source_canon_canonical_properties_idx ON source_canon_reference USING GIN (canonical_properties)');
+        DB::statement('CREATE INDEX source_canon_borrowed_idx ON source_canon_reference USING GIN (primary_elements_borrowed)');
+        DB::statement('CREATE INDEX source_canon_divergences_idx ON source_canon_reference USING GIN (primary_divergences)');
+        DB::statement('CREATE INDEX source_canon_dispute_sources_idx ON source_canon_reference USING GIN (dispute_sources)');
 
         Schema::table('source_canon_reference', function (Blueprint $table) {
             $table->index('universe');

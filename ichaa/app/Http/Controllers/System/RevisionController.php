@@ -27,8 +27,6 @@ use App\Domain\Organization\Models\Glossary;
 use App\Domain\Production\Models\Meta;
 use App\Domain\Production\Models\PipelineItem;
 use App\Domain\Production\Models\SessionLog;
-use App\Domain\System\Models\NotionNote;
-use App\Domain\System\Models\NotionSyncMapping;
 use App\Domain\System\Models\Revision;
 use App\Domain\System\Services\RevisionService;
 use App\Domain\Temporal\Models\CharacterStateTracker;
@@ -292,8 +290,6 @@ class RevisionController extends Controller
             'meta' => ['model' => Meta::class, 'route' => 'meta.show', 'label' => 'Meta'],
             'pipeline-items' => ['model' => PipelineItem::class, 'route' => 'pipeline.show', 'label' => 'Pipeline Item'],
             'session-logs' => ['model' => SessionLog::class, 'route' => 'session-logs.show', 'label' => 'Session Log'],
-            'notion-notes' => ['model' => NotionNote::class, 'route' => 'notion-notes.show', 'label' => 'Notion Note'],
-            'notion-sync-mappings' => ['model' => NotionSyncMapping::class, 'route' => 'notion-sync-mappings.show', 'label' => 'Notion Sync Mapping'],
         ];
     }
 }

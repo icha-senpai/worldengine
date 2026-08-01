@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -225,7 +226,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE concurrency_groups
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -233,9 +234,9 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX concurrency_groups_search_vector_idx ON concurrency_groups USING GIN (search_vector)');
+        DB::statement('CREATE INDEX concurrency_groups_search_vector_idx ON concurrency_groups USING GIN (search_vector)');
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE timeline
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -246,12 +247,12 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX timeline_search_vector_idx ON timeline USING GIN (search_vector)');
+        DB::statement('CREATE INDEX timeline_search_vector_idx ON timeline USING GIN (search_vector)');
 
         // JSONB indexes for causality chain queries
-        \DB::statement('CREATE INDEX timeline_caused_by_idx ON timeline USING GIN (caused_by_event_ids)');
-        \DB::statement('CREATE INDEX timeline_caused_events_idx ON timeline USING GIN (caused_event_ids)');
-        \DB::statement('CREATE INDEX timeline_truth_known_by_idx ON timeline USING GIN (truth_known_by)');
+        DB::statement('CREATE INDEX timeline_caused_by_idx ON timeline USING GIN (caused_by_event_ids)');
+        DB::statement('CREATE INDEX timeline_caused_events_idx ON timeline USING GIN (caused_event_ids)');
+        DB::statement('CREATE INDEX timeline_truth_known_by_idx ON timeline USING GIN (truth_known_by)');
 
         Schema::table('concurrency_groups', function (Blueprint $table) {
             $table->index('narrative_significance');

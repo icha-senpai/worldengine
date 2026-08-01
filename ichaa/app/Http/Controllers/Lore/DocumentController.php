@@ -119,7 +119,7 @@ class DocumentController extends Controller
             ->values()
             ->all();
 
-        return $this->pageWithNotionNote('Lore/Documents/Show', $document, 'documents', array_merge([
+        return $this->page('Lore/Documents/Show', array_merge([
             'document' => $document,
             'knownByEntities' => $knownByEntities,
         ], $props));

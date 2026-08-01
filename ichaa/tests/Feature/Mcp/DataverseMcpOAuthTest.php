@@ -49,7 +49,7 @@ class DataverseMcpOAuthTest extends TestCase
             'params' => [
                 'protocolVersion' => '2025-11-05',
                 'clientInfo' => [
-                    'name' => 'notion-test',
+                    'name' => 'external-client-test',
                     'version' => '1.0.0',
                 ],
                 'capabilities' => [],
@@ -65,9 +65,9 @@ class DataverseMcpOAuthTest extends TestCase
     public function test_oauth_client_registration_endpoint_accepts_public_redirect_uris(): void
     {
         $this->postJson('/oauth/register', [
-            'client_name' => 'Notion AI',
+            'client_name' => 'External AI',
             'redirect_uris' => [
-                'https://www.notion.so/callback/example',
+                'https://client.example.test/callback/example',
             ],
         ])
             ->assertCreated()
@@ -88,16 +88,16 @@ class DataverseMcpOAuthTest extends TestCase
     public function test_passport_authorize_route_redirects_guests_to_login(): void
     {
         $clientId = $this->postJson('/oauth/register', [
-            'client_name' => 'Notion AI',
+            'client_name' => 'External AI',
             'redirect_uris' => [
-                'https://www.notion.so/callback/example',
+                'https://client.example.test/callback/example',
             ],
         ])->json('client_id');
 
         $this->get('/oauth/authorize?'.http_build_query([
             'response_type' => 'code',
             'client_id' => $clientId,
-            'redirect_uri' => 'https://www.notion.so/callback/example',
+            'redirect_uri' => 'https://client.example.test/callback/example',
             'scope' => 'mcp:use',
             'state' => 'test-state',
             'code_challenge' => str_repeat('a', 43),
@@ -109,9 +109,9 @@ class DataverseMcpOAuthTest extends TestCase
     public function test_passport_authorize_route_renders_the_local_mcp_authorize_view_for_authenticated_users(): void
     {
         $clientId = $this->postJson('/oauth/register', [
-            'client_name' => 'Notion AI',
+            'client_name' => 'External AI',
             'redirect_uris' => [
-                'https://www.notion.so/callback/example',
+                'https://client.example.test/callback/example',
             ],
         ])->json('client_id');
 
@@ -120,14 +120,14 @@ class DataverseMcpOAuthTest extends TestCase
         $this->actingAs($user)->get('/oauth/authorize?'.http_build_query([
             'response_type' => 'code',
             'client_id' => $clientId,
-            'redirect_uri' => 'https://www.notion.so/callback/example',
+            'redirect_uri' => 'https://client.example.test/callback/example',
             'scope' => 'mcp:use',
             'state' => 'test-state',
             'code_challenge' => str_repeat('a', 43),
             'code_challenge_method' => 'S256',
         ]))
             ->assertOk()
-            ->assertSee('Authorize Notion AI', false)
+            ->assertSee('Authorize External AI', false)
             ->assertSee('Signed in as', false)
             ->assertSee($user->email, false)
             ->assertSee('Authorize connection', false)

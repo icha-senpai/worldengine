@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Api;
 
-use App\Domain\Connections\Models\Relationship;
 use App\Domain\Connections\ValueObjects\RelationshipType;
 use App\Domain\Connections\ValueObjects\TensionCharge;
 use App\Domain\Identity\Models\Entity;
@@ -10,19 +9,16 @@ use App\Domain\Identity\Models\EntityAlias;
 use App\Domain\Identity\Models\MediaReference;
 use App\Domain\Intelligence\Models\Secret;
 use App\Domain\Lore\Models\Document;
+use App\Domain\Organization\Models\Collection;
+use App\Domain\Organization\Models\CollectionEntity;
 use App\Domain\Production\Models\Meta;
 use App\Domain\Production\Models\PipelineItem;
 use App\Domain\Production\Models\SessionLog;
-use App\Domain\System\Models\NotionNote;
-use App\Domain\System\Models\NotionSyncMapping;
 use App\Domain\System\Models\Revision;
-use App\Domain\System\Services\NotionDataverseSyncService;
-use App\Domain\Temporal\Models\Timeline;
-use App\Support\Api\ApiResourceRegistry;
 use App\Models\User;
+use App\Support\Api\ApiResourceRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
-use Mockery;
 use Tests\TestCase;
 
 class V1AuthoringApiTest extends TestCase
@@ -591,30 +587,6 @@ class V1AuthoringApiTest extends TestCase
             ->assertJsonPath('data.attributes.pipeline_stage', 'complete');
     }
 
-    public function test_search_returns_notion_note_match_context(): void
-    {
-        $entity = Entity::factory()->create([
-            'name' => 'Grey Lantern',
-        ]);
-
-        NotionNote::query()->create([
-            'sync_resource' => 'entities',
-            'notion_page_id' => 'page-grey-lantern',
-            'noteable_type' => Entity::class,
-            'noteable_id' => $entity->id,
-            'content' => 'Grey ritual lattice hidden behind devotional language.',
-            'content_hash' => sha1('Grey ritual lattice hidden behind devotional language.'),
-            'last_synced_at' => now(),
-        ]);
-
-        $this->withToken($this->assistantToken(['read:*']))->getJson('/api/v1/search?search=ritual')
-            ->assertOk()
-            ->assertJsonPath('data.0.type', 'entities')
-            ->assertJsonFragment([
-                'match_context' => 'Grey ritual lattice hidden behind devotional language.',
-            ]);
-    }
-
     public function test_media_upload_endpoint_creates_managed_media_for_assistant_tokens(): void
     {
         Storage::fake('public');
@@ -787,8 +759,6 @@ class V1AuthoringApiTest extends TestCase
             'meta',
             'pipeline-items',
             'session-logs',
-            'notion-notes',
-            'notion-sync-mappings',
             'revisions',
         ];
 
@@ -825,13 +795,6 @@ class V1AuthoringApiTest extends TestCase
                 ],
             ])
             ->assertCreated();
-    }
-
-    public function test_sync_notion_requires_the_explicit_sync_ability(): void
-    {
-        $this->withToken($this->assistantToken(['read:*']))
-            ->postJson('/api/v1/notion-sync/documents?dry_run=1')
-            ->assertForbidden();
     }
 
     public function test_entity_version_revision_show_and_secret_remove_known_by_endpoints_work_via_api(): void
@@ -979,49 +942,42 @@ class V1AuthoringApiTest extends TestCase
             'is_active' => true,
         ]);
 
-        NotionNote::query()->create([
-            'sync_resource' => 'entities',
-            'notion_page_id' => 'page-envelope-entity',
-            'noteable_type' => Entity::class,
-            'noteable_id' => $entity->id,
-            'content' => 'Top level include envelope note.',
-            'content_hash' => sha1('Top level include envelope note.'),
-            'last_synced_at' => now(),
-        ]);
-
         $token = $this->assistantToken(['read:*']);
 
         $show = $this->withToken($token)
-            ->getJson("/api/v1/entities/{$entity->id}?include=aliases,notion_note")
+            ->getJson("/api/v1/entities/{$entity->id}?include=aliases")
             ->assertOk();
 
         $showPayload = $show->json();
 
         $this->assertArrayNotHasKey('included', $showPayload['data']);
         $this->assertSame('Cipher Name', data_get($showPayload, 'included.aliases.0.alias'));
-        $this->assertSame('Notion Notes', data_get($showPayload, 'included.notion_note.label'));
 
         $index = $this->withToken($token)
-            ->getJson('/api/v1/entities?search=Envelope%20Entity&include=notion_note')
+            ->getJson('/api/v1/entities?search=Envelope%20Entity&include=aliases')
             ->assertOk();
 
         $indexPayload = $index->json();
 
         $this->assertArrayNotHasKey('included', $indexPayload['data'][0]);
-        $this->assertSame('Notion Notes', data_get($indexPayload, "included.notion_note.{$entity->id}.label"));
     }
 
     public function test_non_soft_deletable_resources_return_json_conflicts(): void
     {
-        $mapping = NotionSyncMapping::query()->create([
-            'sync_resource' => 'documents',
-            'notion_page_id' => 'page-non-soft-delete',
-            'local_model_type' => Document::class,
-            'local_model_id' => 1,
+        $collection = Collection::create([
+            'name' => 'Non Soft Collection',
+            'collection_type' => 'character_roster',
+            'collection_mode' => 'manual',
+        ]);
+        $entity = Entity::factory()->create();
+        $membership = CollectionEntity::query()->create([
+            'collection_id' => $collection->id,
+            'entity_id' => $entity->id,
+            'added_manually' => true,
         ]);
 
-        $this->withToken($this->assistantToken(['delete:*']))
-            ->deleteJson("/api/v1/notion-sync-mappings/{$mapping->id}", [
+        $this->withToken($this->adminAssistantToken(['delete:*']))
+            ->deleteJson("/api/v1/collection-entities/{$membership->id}", [
                 'meta' => [
                     'base_revision_id' => 0,
                     'source' => 'phpunit',
@@ -1030,7 +986,7 @@ class V1AuthoringApiTest extends TestCase
             ])
             ->assertStatus(409)
             ->assertJson([
-                'message' => 'Resource [notion-sync-mappings] does not support soft deletes in v1.',
+                'message' => 'Resource [collection-entities] does not support soft deletes in v1.',
             ]);
     }
 
@@ -1078,7 +1034,7 @@ class V1AuthoringApiTest extends TestCase
         SessionLog::query()->create([
             'title' => 'Mirror Archive Debrief',
             'session_date' => now()->toDateString(),
-            'external_tool' => 'notion',
+            'external_tool' => 'chatgpt',
             'focus_description' => 'Grey line follow-up and archive sweep.',
         ]);
 
@@ -1498,10 +1454,10 @@ class V1AuthoringApiTest extends TestCase
         ]);
     }
 
-    public function test_lore_system_and_notion_sync_endpoints_work_via_api(): void
+    public function test_lore_system_endpoints_work_via_api(): void
     {
         $author = Entity::factory()->create(['entity_type' => 'character']);
-        $token = $this->assistantToken(['read:*', 'write:*', 'delete:*', 'history:*', 'sync:notion']);
+        $token = $this->assistantToken(['read:*', 'write:*', 'delete:*', 'history:*']);
 
         $documentCreate = $this->withToken($token)->postJson('/api/v1/documents', [
             'data' => [
@@ -1541,56 +1497,6 @@ class V1AuthoringApiTest extends TestCase
         ])->assertOk()
             ->assertJsonPath('data.attributes.document_status', 'suppressed');
 
-        $mappingCreate = $this->withToken($token)->postJson('/api/v1/notion-sync-mappings', [
-            'data' => [
-                'attributes' => [
-                    'sync_resource' => 'documents',
-                    'notion_page_id' => 'page-api-dossier',
-                    'local_model_type' => Document::class,
-                    'local_model_id' => $documentId,
-                ],
-            ],
-            'meta' => [
-                'source' => 'phpunit',
-                'reason' => 'create notion sync mapping',
-            ],
-        ])->assertCreated();
-
-        $mappingId = (int) $mappingCreate->json('data.id');
-
-        $this->withToken($token)->patchJson("/api/v1/notion-sync-mappings/{$mappingId}", [
-            'data' => [
-                'attributes' => [
-                    'last_payload_hash' => 'hash-updated-by-api',
-                ],
-            ],
-            'meta' => [
-                'base_revision_id' => $this->currentRevisionId('notion-sync-mappings', $mappingId),
-                'source' => 'phpunit',
-                'reason' => 'update notion sync mapping',
-            ],
-        ])->assertOk()
-            ->assertJsonPath('data.attributes.last_payload_hash', 'hash-updated-by-api');
-
-        $syncMock = Mockery::mock(NotionDataverseSyncService::class);
-        $syncMock->shouldReceive('sync')
-            ->once()
-            ->with('documents', false, true)
-            ->andReturn([
-                'created' => 1,
-                'updated' => 2,
-                'skipped' => 3,
-                'warnings' => [],
-            ]);
-
-        $this->app->instance(NotionDataverseSyncService::class, $syncMock);
-
-        $this->withToken($token)
-            ->postJson('/api/v1/notion-sync/documents?dry_run=1')
-            ->assertOk()
-            ->assertJsonPath('data.resource', 'documents')
-            ->assertJsonPath('data.stats.updated', 2);
-
         $this->withToken($token)->deleteJson("/api/v1/documents/{$documentId}", [
             'meta' => [
                 'base_revision_id' => $this->currentRevisionId('documents', $documentId),
@@ -1618,6 +1524,13 @@ class V1AuthoringApiTest extends TestCase
         $user = User::factory()->create();
 
         return $user->createToken('assistant', $abilities)->plainTextToken;
+    }
+
+    private function adminAssistantToken(array $abilities): string
+    {
+        return $this->createVerifiedAdminUser()
+            ->createToken('assistant', $abilities)
+            ->plainTextToken;
     }
 
     private function currentRevisionId(string $resource, int $recordId): int

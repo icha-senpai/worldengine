@@ -38,7 +38,6 @@ const groupRelationshipOptions = computed(() => toGroupRelationshipOptions(props
 const collectionOptions = computed(() => toCollectionOptions(props.collections))
 
 const externalTools = [
-    'notion',
     'chatgpt',
     'qwen',
     'claude',

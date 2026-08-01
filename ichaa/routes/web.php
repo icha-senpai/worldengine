@@ -1,8 +1,7 @@
 <?php
 
-use App\Http\Controllers\Admin\NotionNoteController as AdminNotionNoteController;
-use App\Http\Controllers\Admin\NotionSyncMappingController as AdminNotionSyncMappingController;
 use App\Http\Controllers\Admin\RevisionController as AdminRevisionController;
+use App\Http\Controllers\Admin\UserAccessController as AdminUserAccessController;
 use App\Http\Controllers\Bitcraft\BitcraftActivityController;
 use App\Http\Controllers\Bitcraft\BitcraftInventoryTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftLiveCompanionController;
@@ -44,7 +43,6 @@ use App\Http\Controllers\Production\SessionLogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Scaffold\TopLevelModeledResourceController;
 use App\Http\Controllers\System\MediaLibraryController;
-use App\Http\Controllers\System\NotionSyncController;
 use App\Http\Controllers\System\SearchController;
 use App\Http\Controllers\System\TrashController;
 // Intelligence
@@ -60,7 +58,9 @@ use App\Http\Controllers\World\LocationControlController;
 use App\Http\Controllers\World\PowerInteractionController;
 // System
 use App\Http\Controllers\World\TravelRouteController;
-use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureAreaAccess;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -87,10 +87,22 @@ Route::prefix('datacrypt/bitcraft')->name('bitcraft.')->group(function () {
 // All app routes require auth
 // ---------------------------------------------------------------------------
 
-Route::prefix('datacrypt')->middleware(['auth', 'verified', EnsureAdmin::class])->group(function () {
-    Route::redirect('/', '/datacrypt/worldengine');
+Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', function (Request $request) {
+        if ($request->user()?->canAccessDatacrypt()) {
+            return Inertia::render('Datacrypt/Hub');
+        }
 
-    Route::prefix('bitcraft')->name('bitcraft.')->group(function () {
+        return redirect()
+            ->route('home')
+            ->with('error', 'You do not have access to Datacrypt.');
+    })->name('datacrypt.hub');
+
+    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::prefix('bitcraft')->name('bitcraft.')->middleware(EnsureAreaAccess::class.':'.User::ROLE_BITCRAFT)->group(function () {
         Route::redirect('/', '/datacrypt/bitcraft/market');
         Route::get('market', [BitcraftToolController::class, 'market'])->name('market');
         Route::get('barter-stalls', [BitcraftToolController::class, 'barterStalls'])->name('barter-stalls');
@@ -103,15 +115,24 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified', EnsureAdmin::class])
         Route::get('task-tracker/setup', [BitcraftTaskTrackerController::class, 'setup'])->name('task-tracker.setup');
     });
 
-    Route::prefix('worldengine')->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware(EnsureAreaAccess::class.':'.User::ROLE_ADMIN)->group(function () {
+        Route::get('users', [AdminUserAccessController::class, 'index'])->name('users.index');
+        Route::post('users', [AdminUserAccessController::class, 'store'])->name('users.store');
+        Route::put('users/{user}', [AdminUserAccessController::class, 'update'])->name('users.update');
+        Route::put('users/{user}/access', [AdminUserAccessController::class, 'updateAccess'])->name('users.access.update');
+        Route::delete('users/{user}', [AdminUserAccessController::class, 'destroy'])->name('users.destroy');
+
+        Route::get('revisions', [AdminRevisionController::class, 'index'])->name('revisions.index');
+        Route::get('revisions/compare', [AdminRevisionController::class, 'compare'])->name('revisions.compare');
+        Route::get('revisions/{revision}', [AdminRevisionController::class, 'show'])->name('revisions.show');
+        Route::post('revisions/{revision}/restore', [AdminRevisionController::class, 'restore'])->name('revisions.restore');
+
+    });
+
+    Route::prefix('worldengine')->middleware(EnsureAreaAccess::class.':'.User::ROLE_WORLD_ENGINE)->group(function () {
 
         // Dashboard
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-
-        // Breeze profile
-        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
         // -----------------------------------------------------------------------
         // Identity — Entities
@@ -283,19 +304,6 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified', EnsureAdmin::class])
         Route::get('search', [SearchController::class, 'index'])->name('search');
         Route::get('media-library/items', [MediaLibraryController::class, 'index'])->name('media-library.index');
         Route::get('media-library/{mediaReference}/asset', [MediaLibraryController::class, 'asset'])->name('media-library.asset');
-        Route::post('notion/sync/{resource}', [NotionSyncController::class, 'store'])->name('notion.sync');
-        Route::prefix('admin')->name('admin.')->group(function () {
-            Route::get('revisions', [AdminRevisionController::class, 'index'])->name('revisions.index');
-            Route::get('revisions/compare', [AdminRevisionController::class, 'compare'])->name('revisions.compare');
-            Route::get('revisions/{revision}', [AdminRevisionController::class, 'show'])->name('revisions.show');
-            Route::post('revisions/{revision}/restore', [AdminRevisionController::class, 'restore'])->name('revisions.restore');
-
-            Route::get('notion-notes', [AdminNotionNoteController::class, 'index'])->name('notion-notes.index');
-            Route::get('notion-notes/{notionNote}', [AdminNotionNoteController::class, 'show'])->name('notion-notes.show');
-
-            Route::get('notion-sync-mappings', [AdminNotionSyncMappingController::class, 'index'])->name('notion-sync-mappings.index');
-            Route::get('notion-sync-mappings/{notionSyncMapping}', [AdminNotionSyncMappingController::class, 'show'])->name('notion-sync-mappings.show');
-        });
         Route::get('trash', [TrashController::class, 'index'])->name('trash.index');
         Route::post('trash/{type}/{record}/restore', [TrashController::class, 'restore'])->name('trash.restore');
 

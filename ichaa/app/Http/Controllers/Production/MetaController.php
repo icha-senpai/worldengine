@@ -162,7 +162,7 @@ class MetaController extends Controller
                 ->values()
         );
 
-        return $this->pageWithNotionNote('Production/Meta/Show', $meta, 'meta', array_merge([
+        return $this->page('Production/Meta/Show', array_merge([
             'note' => $meta,
             'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')

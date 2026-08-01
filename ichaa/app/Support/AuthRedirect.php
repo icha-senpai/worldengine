@@ -8,9 +8,11 @@ class AuthRedirect
 {
     public static function home(?User $user): string
     {
-        return $user?->isAdmin()
-            ? route('dashboard', absolute: false)
-            : route('home', absolute: false);
+        if ($user?->canAccessDatacrypt()) {
+            return route('datacrypt.hub', absolute: false);
+        }
+
+        return route('home', absolute: false);
     }
 
     public static function verifiedHome(?User $user): string

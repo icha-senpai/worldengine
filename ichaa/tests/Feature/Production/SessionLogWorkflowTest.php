@@ -36,7 +36,7 @@ class SessionLogWorkflowTest extends TestCase
         SessionLog::create([
             'title' => 'Old Major',
             'session_date' => now()->subDays(45)->toDateString(),
-            'external_tool' => 'notion',
+            'external_tool' => 'chatgpt',
             'session_significance' => 'major',
         ]);
 

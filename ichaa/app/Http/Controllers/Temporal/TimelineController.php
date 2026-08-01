@@ -52,6 +52,7 @@ class TimelineController extends Controller
     public function show(Entity $timeline): Response
     {
         $this->assertTimelineEntity($timeline);
+
         return $this->showPage($timeline);
     }
 
@@ -172,8 +173,6 @@ class TimelineController extends Controller
         return array_intersect_key($filtered, $supportedColumns);
     }
 
-
-
     private function indexPage(Request $request, array $props = []): Response
     {
         $timelines = Entity::ofType('timeline')
@@ -224,7 +223,7 @@ class TimelineController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'au_date', 'narrative_significance']);
 
-        return $this->pageWithNotionNote('Temporal/Timelines/Show', $timeline, 'timelines', array_merge([
+        return $this->page('Temporal/Timelines/Show', array_merge([
             'timeline' => $timeline,
             'atemporal' => $events['atemporal'],
             'events' => $events['chronological'],

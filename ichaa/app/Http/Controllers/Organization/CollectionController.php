@@ -136,7 +136,7 @@ class CollectionController extends Controller
             'childCollections:id,parent_collection_id,name,collection_type',
         ]);
 
-        return $this->pageWithNotionNote('Collections/Show', $collection, 'collections', array_merge([
+        return $this->page('Collections/Show', array_merge([
             'collection' => $collection,
             'entities' => Entity::query()
                 ->select('id', 'name', 'entity_type')

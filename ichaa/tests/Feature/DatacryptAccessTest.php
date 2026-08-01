@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class DatacryptAccessTest extends TestCase
@@ -30,21 +29,21 @@ class DatacryptAccessTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
-    public function test_datacrypt_root_redirects_admin_users_to_world_engine(): void
+    public function test_datacrypt_root_renders_the_hub_for_admin_users(): void
     {
-        $user = User::factory()->create([
-            'email_verified_at' => now(),
-        ]);
-
-        Role::findOrCreate('admin', 'web');
-        $user->assignRole('admin');
+        $user = $this->createVerifiedAdminUser();
 
         $this->actingAs($user)
-            ->get('/datacrypt')
-            ->assertRedirect(route('dashboard'));
+            ->get(route('datacrypt.hub'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Datacrypt/Hub')
+                ->where('auth.user.can_access_bitcraft', true)
+                ->where('auth.user.can_access_world_engine', true)
+            );
     }
 
-    public function test_non_admin_users_are_redirected_back_to_public_home_when_visiting_datacrypt(): void
+    public function test_users_without_datacrypt_access_are_redirected_back_to_public_home_when_visiting_datacrypt(): void
     {
         $user = User::factory()->create([
             'email_verified_at' => now(),
@@ -53,7 +52,7 @@ class DatacryptAccessTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertRedirect(route('home'))
-            ->assertSessionHas('error', 'You do not have access to Datacrypt.');
+            ->assertSessionHas('error', 'You do not have access to that Datacrypt section.');
     }
 
     public function test_logged_in_non_admin_users_can_view_the_public_home_with_admin_flag_false(): void
@@ -74,12 +73,7 @@ class DatacryptAccessTest extends TestCase
 
     public function test_logged_in_admin_users_can_view_datacrypt_and_get_admin_flag_on_public_home(): void
     {
-        $user = User::factory()->create([
-            'email_verified_at' => now(),
-        ]);
-
-        Role::findOrCreate('admin', 'web');
-        $user->assignRole('admin');
+        $user = $this->createVerifiedAdminUser();
 
         $this->actingAs($user)
             ->get(route('dashboard'))
@@ -92,6 +86,9 @@ class DatacryptAccessTest extends TestCase
                 ->component('Welcome')
                 ->where('auth.user.name', $user->name)
                 ->where('auth.user.is_admin', true)
+                ->where('auth.user.can_access_admin', true)
+                ->where('auth.user.can_access_bitcraft', true)
+                ->where('auth.user.can_access_world_engine', true)
             );
     }
 }

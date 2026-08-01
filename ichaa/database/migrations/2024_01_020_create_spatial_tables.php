@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -295,8 +296,8 @@ return new class extends Migration
         });
 
         // Travel routes
-        \DB::statement('CREATE INDEX travel_routes_method_variants_idx ON travel_routes USING GIN (method_variants)');
-        \DB::statement('CREATE INDEX travel_routes_known_by_idx ON travel_routes USING GIN (known_by_entity_ids)');
+        DB::statement('CREATE INDEX travel_routes_method_variants_idx ON travel_routes USING GIN (method_variants)');
+        DB::statement('CREATE INDEX travel_routes_known_by_idx ON travel_routes USING GIN (known_by_entity_ids)');
 
         Schema::table('travel_routes', function (Blueprint $table) {
             $table->index('origin_location_entity_id');
@@ -343,9 +344,9 @@ return new class extends Migration
         });
 
         // Galactic regions
-        \DB::statement('CREATE INDEX galactic_regions_connected_locations_idx ON galactic_regions USING GIN (connected_location_entity_ids)');
+        DB::statement('CREATE INDEX galactic_regions_connected_locations_idx ON galactic_regions USING GIN (connected_location_entity_ids)');
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE galactic_regions
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -355,7 +356,7 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX galactic_regions_search_vector_idx ON galactic_regions USING GIN (search_vector)');
+        DB::statement('CREATE INDEX galactic_regions_search_vector_idx ON galactic_regions USING GIN (search_vector)');
 
         Schema::table('galactic_regions', function (Blueprint $table) {
             $table->index('region_type');

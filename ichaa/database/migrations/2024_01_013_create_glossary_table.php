@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -85,7 +86,7 @@ return new class extends Migration
         // Full text search — term and definition are both indexed
         // Searching "Edged State" surfaces the glossary entry
         // Searching "suppressed transformation" finds definitions containing it
-        \DB::statement("
+        DB::statement("
             ALTER TABLE glossary
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -94,10 +95,10 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX glossary_search_vector_idx ON glossary USING GIN (search_vector)');
+        DB::statement('CREATE INDEX glossary_search_vector_idx ON glossary USING GIN (search_vector)');
 
         // JSONB index for related entity queries
-        \DB::statement('CREATE INDEX glossary_related_entities_idx ON glossary USING GIN (related_entity_ids)');
+        DB::statement('CREATE INDEX glossary_related_entities_idx ON glossary USING GIN (related_entity_ids)');
 
         Schema::table('glossary', function (Blueprint $table) {
             $table->index('usage_context');

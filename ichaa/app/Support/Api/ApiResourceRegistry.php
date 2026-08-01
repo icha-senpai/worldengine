@@ -27,8 +27,6 @@ use App\Domain\Organization\Models\Glossary;
 use App\Domain\Production\Models\Meta;
 use App\Domain\Production\Models\PipelineItem;
 use App\Domain\Production\Models\SessionLog;
-use App\Domain\System\Models\NotionNote;
-use App\Domain\System\Models\NotionSyncMapping;
 use App\Domain\System\Models\Revision;
 use App\Domain\Temporal\Models\CharacterStateTracker;
 use App\Domain\Temporal\Models\ConcurrencyGroup;
@@ -196,19 +194,16 @@ class ApiResourceRegistry
             'pipeline-items' => self::base(PipelineItem::class, ['parent', 'children', 'povCharacter', 'location'], ['title', 'pipeline_type', 'pipeline_stage'], 'pipeline_items'),
             'session-logs' => self::base(SessionLog::class, [], ['title', 'focus_description', 'external_tool'], 'session_logs'),
 
-            'notion-notes' => self::base(NotionNote::class, [], ['sync_resource', 'content']),
-            'notion-sync-mappings' => self::base(NotionSyncMapping::class, [], ['sync_resource', 'notion_page_id']),
             'revisions' => self::base(Revision::class, ['actor', 'restoredFrom'], ['resource_type', 'action', 'reason']),
         ];
     }
 
-    private static function base(string $modelClass, array $includes = [], array $searchFields = [], ?string $notionResource = null): array
+    private static function base(string $modelClass, array $includes = [], array $searchFields = [], ?string $_legacySyncResource = null): array
     {
         return [
             'model' => $modelClass,
-            'includes' => array_values(array_unique(array_merge($includes, $notionResource ? ['notion_note'] : []))),
+            'includes' => array_values(array_unique($includes)),
             'search_fields' => $searchFields,
-            'notion_resource' => $notionResource,
         ];
     }
 }

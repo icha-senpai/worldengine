@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -96,7 +97,7 @@ return new class extends Migration
 
         // --- INDEXES ---
 
-        \DB::statement("
+        DB::statement("
             ALTER TABLE contradictions_and_conflicts
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -105,13 +106,13 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX contradictions_search_vector_idx ON contradictions_and_conflicts USING GIN (search_vector)');
+        DB::statement('CREATE INDEX contradictions_search_vector_idx ON contradictions_and_conflicts USING GIN (search_vector)');
 
-        \DB::statement('CREATE INDEX contradictions_entity_ids_idx ON contradictions_and_conflicts USING GIN (entity_ids)');
-        \DB::statement('CREATE INDEX contradictions_relationship_ids_idx ON contradictions_and_conflicts USING GIN (relationship_ids)');
-        \DB::statement('CREATE INDEX contradictions_timeline_ids_idx ON contradictions_and_conflicts USING GIN (timeline_entry_ids)');
-        \DB::statement('CREATE INDEX contradictions_power_ids_idx ON contradictions_and_conflicts USING GIN (power_interaction_ids)');
-        \DB::statement('CREATE INDEX contradictions_canon_ids_idx ON contradictions_and_conflicts USING GIN (canon_reference_ids)');
+        DB::statement('CREATE INDEX contradictions_entity_ids_idx ON contradictions_and_conflicts USING GIN (entity_ids)');
+        DB::statement('CREATE INDEX contradictions_relationship_ids_idx ON contradictions_and_conflicts USING GIN (relationship_ids)');
+        DB::statement('CREATE INDEX contradictions_timeline_ids_idx ON contradictions_and_conflicts USING GIN (timeline_entry_ids)');
+        DB::statement('CREATE INDEX contradictions_power_ids_idx ON contradictions_and_conflicts USING GIN (power_interaction_ids)');
+        DB::statement('CREATE INDEX contradictions_canon_ids_idx ON contradictions_and_conflicts USING GIN (canon_reference_ids)');
 
         Schema::table('contradictions_and_conflicts', function (Blueprint $table) {
             $table->index('contradiction_type');

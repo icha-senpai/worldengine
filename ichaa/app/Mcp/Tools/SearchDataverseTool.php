@@ -4,19 +4,21 @@ namespace App\Mcp\Tools;
 
 use App\Mcp\Support\DataverseMcpCatalog;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
+use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 
 #[Name('search_dataverse')]
-#[Description('Search canonical Dataverse records and Notion-backed note bodies through the authoring API search index.')]
+#[Description('Search canonical Dataverse records through the authoring API search index.')]
 class SearchDataverseTool extends DataverseTool
 {
-    public function handle(Request $request): \Laravel\Mcp\ResponseFactory
+    public function handle(Request $request): ResponseFactory
     {
         $validated = $request->validate([
             'search' => ['required', 'string'],
-            'resource' => ['nullable', 'string', \Illuminate\Validation\Rule::in(DataverseMcpCatalog::resources())],
+            'resource' => ['nullable', 'string', Rule::in(DataverseMcpCatalog::resources())],
             'include' => ['nullable', 'string'],
         ]);
 
@@ -38,7 +40,7 @@ class SearchDataverseTool extends DataverseTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'search' => $schema->string()->description('Full text term to search across canonical records and Notion notes.')->required(),
+            'search' => $schema->string()->description('Full text term to search across canonical records.')->required(),
             'resource' => $schema->string()->enum(DataverseMcpCatalog::resources())->description('Optional resource slug to narrow the search surface.'),
             'include' => $schema->string()->description('Optional comma-separated include list to expand related records.'),
         ];

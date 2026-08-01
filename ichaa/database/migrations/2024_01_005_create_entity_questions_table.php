@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -73,7 +74,7 @@ return new class extends Migration
         // --- INDEXES ---
 
         // Full text search across question text
-        \DB::statement("
+        DB::statement("
             ALTER TABLE entity_questions
             ADD COLUMN search_vector tsvector
             GENERATED ALWAYS AS (
@@ -81,11 +82,11 @@ return new class extends Migration
             ) STORED
         ");
 
-        \DB::statement('CREATE INDEX entity_questions_search_vector_idx ON entity_questions USING GIN (search_vector)');
+        DB::statement('CREATE INDEX entity_questions_search_vector_idx ON entity_questions USING GIN (search_vector)');
 
         // JSONB indexes for linked entity queries
-        \DB::statement('CREATE INDEX entity_questions_linked_entities_idx ON entity_questions USING GIN (linked_entity_ids)');
-        \DB::statement('CREATE INDEX entity_questions_linked_groups_idx ON entity_questions USING GIN (linked_group_relationship_ids)');
+        DB::statement('CREATE INDEX entity_questions_linked_entities_idx ON entity_questions USING GIN (linked_entity_ids)');
+        DB::statement('CREATE INDEX entity_questions_linked_groups_idx ON entity_questions USING GIN (linked_group_relationship_ids)');
 
         Schema::table('entity_questions', function (Blueprint $table) {
             $table->index('entity_id');
