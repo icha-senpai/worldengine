@@ -38,6 +38,7 @@ class HandleInertiaRequests extends Middleware
                         'is_admin' => $request->user()->isAdmin(),
                         'can_access_admin' => $request->user()->canAccessAdmin(),
                         'can_access_bitcraft' => $request->user()->canAccessBitcraft(),
+                        'can_access_connected_realms' => $request->user()->canAccessConnectedRealms(),
                         'can_access_world_engine' => $request->user()->canAccessWorldEngine(),
                         'can_access_datacrypt' => $request->user()->canAccessDatacrypt(),
                     ]

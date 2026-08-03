@@ -201,6 +201,16 @@
                             </Link>
                         </div>
 
+                        <Link
+                            v-if="canAccessConnectedRealms"
+                            :href="route('evergather.index')"
+                            class="mobile-domain-nav-item"
+                            :class="{ 'active': isConnectedRealmsActive }"
+                            @click="mobileNavOpen = false"
+                        >
+                            <span>Evergather</span>
+                        </Link>
+
                         <button
                             v-if="canAccessAdmin"
                             type="button"
@@ -407,6 +417,15 @@
                     </Link>
                 </div>
 
+                <Link
+                    v-if="canAccessConnectedRealms"
+                    :href="route('evergather.index')"
+                    class="desktop-shell-nav__workspace"
+                    :class="{ 'active': isConnectedRealmsActive }"
+                >
+                    <span class="truncate">Evergather</span>
+                </Link>
+
                 <button
                     v-if="canAccessAdmin"
                     type="button"
@@ -517,6 +536,7 @@ const mobileExpandedDomainKey = ref(savedNavState.mobileExpandedDomainKey)
 const desktopExpandedDomainKeys = ref(savedNavState.desktopExpandedDomainKeys)
 const canAccessAdmin = computed(() => Boolean(page.props.auth?.user?.can_access_admin))
 const canAccessBitcraft = computed(() => Boolean(page.props.auth?.user?.can_access_bitcraft))
+const canAccessConnectedRealms = computed(() => Boolean(page.props.auth?.user?.can_access_connected_realms))
 const canAccessWorldEngine = computed(() => Boolean(page.props.auth?.user?.can_access_world_engine))
 const shellHomeHref = computed(() => {
     if (page.props.auth?.user?.can_access_datacrypt) {
@@ -732,6 +752,13 @@ const bitcraftTools = computed(() => ({
     children: bitcraftToolChildren.value,
 }))
 
+const connectedRealms = computed(() => ({
+    key: 'evergather',
+    label: 'Evergather',
+    matches: ['/evergather'],
+    children: [],
+}))
+
 const adminTools = computed(() => ({
     key: 'admin-tools',
     label: 'Admin',
@@ -785,6 +812,7 @@ const isWorldEngineActive = computed(() =>
 )
 
 const isBitcraftToolsActive = computed(() => isNavItemActive(bitcraftTools.value))
+const isConnectedRealmsActive = computed(() => isNavItemActive(connectedRealms.value))
 const isAdminToolsActive = computed(() => isNavItemActive(adminTools.value))
 
 const activeShellLabel = computed(() => {
@@ -796,6 +824,10 @@ const activeShellLabel = computed(() => {
         const activeTool = bitcraftTools.value.children.find((item) => isNavItemActive(item))
 
         return activeTool?.label ?? bitcraftTools.value.label
+    }
+
+    if (isConnectedRealmsActive.value) {
+        return connectedRealms.value.label
     }
 
     if (isAdminToolsActive.value) {

@@ -32,7 +32,8 @@ class UserAccessControllerTest extends TestCase
                 ->component('Admin/Users/Index')
                 ->has('users')
                 ->where('roles.0.key', User::ROLE_BITCRAFT)
-                ->where('roles.1.key', User::ROLE_WORLD_ENGINE)
+                ->where('roles.1.key', User::ROLE_CONNECTED_REALMS)
+                ->where('roles.2.key', User::ROLE_WORLD_ENGINE)
             );
     }
 

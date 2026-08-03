@@ -7,6 +7,7 @@ use App\Http\Controllers\Bitcraft\BitcraftInventoryTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftLiveCompanionController;
 use App\Http\Controllers\Bitcraft\BitcraftTaskTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftToolController;
+use App\Http\Controllers\ConnectedRealms\ConnectedRealmsController;
 use App\Http\Controllers\Connections\FactionMembershipController;
 use App\Http\Controllers\Connections\GroupRelationshipController;
 // Breeze
@@ -113,6 +114,25 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
         Route::get('activity/setup', [BitcraftActivityController::class, 'setup'])->name('activity.setup');
         Route::get('inventory-tracker/setup', [BitcraftInventoryTrackerController::class, 'setup'])->name('inventory-tracker.setup');
         Route::get('task-tracker/setup', [BitcraftTaskTrackerController::class, 'setup'])->name('task-tracker.setup');
+    });
+
+    Route::prefix('evergather')->name('evergather.')->middleware(EnsureAreaAccess::class.':'.User::ROLE_CONNECTED_REALMS)->group(function () {
+        Route::get('/', [ConnectedRealmsController::class, 'index'])->name('index');
+        Route::put('character', [ConnectedRealmsController::class, 'updateCharacter'])->name('character.update');
+        Route::post('actions', [ConnectedRealmsController::class, 'store'])->name('actions.store');
+        Route::post('activities', [ConnectedRealmsController::class, 'performActivity'])->name('activities.store');
+        Route::post('crafting', [ConnectedRealmsController::class, 'craft'])->name('crafting.store');
+        Route::post('jobs', [ConnectedRealmsController::class, 'completeJob'])->name('jobs.store');
+        Route::post('expeditions', [ConnectedRealmsController::class, 'runExpedition'])->name('expeditions.store');
+        Route::post('shop/purchases', [ConnectedRealmsController::class, 'buyShopOffer'])->name('shop.purchases.store');
+        Route::post('tools/equipment', [ConnectedRealmsController::class, 'equipTool'])->name('tools.equipment.store');
+        Route::delete('tools/equipment', [ConnectedRealmsController::class, 'unequipTool'])->name('tools.equipment.destroy');
+        Route::post('tools/rarity-upgrades', [ConnectedRealmsController::class, 'upgradeToolRarity'])->name('tools.rarity-upgrades.store');
+        Route::post('tools/tier-upgrades', [ConnectedRealmsController::class, 'upgradeToolTier'])->name('tools.tier-upgrades.store');
+        Route::post('marketplace/listings', [ConnectedRealmsController::class, 'listMarketItem'])->name('marketplace.listings.store');
+        Route::post('marketplace/vendor-sales', [ConnectedRealmsController::class, 'sellToNpc'])->name('marketplace.vendor-sales.store');
+        Route::post('marketplace/listings/{listing}/buy', [ConnectedRealmsController::class, 'buyMarketListing'])->name('marketplace.listings.buy');
+        Route::delete('marketplace/listings/{listing}', [ConnectedRealmsController::class, 'cancelMarketListing'])->name('marketplace.listings.destroy');
     });
 
     Route::prefix('admin')->name('admin.')->middleware(EnsureAreaAccess::class.':'.User::ROLE_ADMIN)->group(function () {

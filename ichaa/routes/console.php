@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\ConnectedRealms\Services\ConnectedRealmsSimulationService;
 use App\Domain\System\Services\DemoLoreSeeder;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -31,6 +32,28 @@ Artisan::command('dataverse:seed-demo-lore', function () {
 
     return Command::SUCCESS;
 })->purpose('Seed rich Harry Potter, Stormlight, and original crossover content into Dataverse.');
+
+Artisan::command('evergather:simulate-users {--hours=2 : Number of in-game hours to simulate} {--fresh : Reset Rico and Kye Evergather data before simulating}', function (ConnectedRealmsSimulationService $simulation) {
+    $hours = (float) $this->option('hours');
+
+    if ($hours <= 0) {
+        $this->error('Hours must be greater than zero.');
+
+        return Command::FAILURE;
+    }
+
+    $summary = $simulation->simulateRicoAndKye($hours, (bool) $this->option('fresh'));
+
+    $this->info("Evergather simulation complete for {$summary['hours']} hours.");
+
+    foreach ($summary['personas'] as $persona) {
+        $this->line("{$persona['display_name']}: {$persona['actions_completed']} actions, {$persona['gold']} gold, ".count($persona['active_listings']).' active listings.');
+        $this->line('  Tools: '.collect($persona['tools_bought'])->implode(', '));
+        $this->line('  Listings: '.collect($persona['active_listings'])->map(fn (array $listing): string => "{$listing['quantity']} {$listing['item_name']} @ {$listing['unit_price']}g")->implode('; '));
+    }
+
+    return Command::SUCCESS;
+})->purpose('Simulate Rico and Kye through Evergather gameplay and list their spoils on the marketplace.');
 
 $syncBitcraftCraftingSnapshot = function () {
     $token = (string) config('services.bitcraft_spacetime.auth_token');

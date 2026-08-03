@@ -30,6 +30,7 @@ class UserAccessController extends Controller
                 'is_footmouthkick_user' => $user->isFootmouthkickUser(),
                 'is_verified' => $user->hasVerifiedEmail(),
                 'can_access_bitcraft' => $user->canAccessBitcraft(),
+                'can_access_connected_realms' => $user->canAccessConnectedRealms(),
                 'can_access_world_engine' => $user->canAccessWorldEngine(),
                 'access_roles' => $user->accessRoleNames(),
                 'can_delete' => ! $user->isFootmouthkickUser(),

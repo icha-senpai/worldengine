@@ -19,6 +19,8 @@ class User extends Authenticatable
 
     public const ROLE_BITCRAFT = 'bitcraft';
 
+    public const ROLE_CONNECTED_REALMS = 'connected-realms';
+
     public const ROLE_WORLD_ENGINE = 'world-engine';
 
     public const FOOTMOUTHKICK_NAME = 'footmouthkick';
@@ -27,6 +29,7 @@ class User extends Authenticatable
 
     public const ACCESS_ROLE_LABELS = [
         self::ROLE_BITCRAFT => 'Bitcraft',
+        self::ROLE_CONNECTED_REALMS => 'Evergather',
         self::ROLE_WORLD_ENGINE => 'World Engine',
     ];
 
@@ -81,6 +84,11 @@ class User extends Authenticatable
         return $this->isAdmin() || $this->hasRole(self::ROLE_BITCRAFT);
     }
 
+    public function canAccessConnectedRealms(): bool
+    {
+        return $this->isAdmin() || $this->hasRole(self::ROLE_CONNECTED_REALMS);
+    }
+
     public function canAccessWorldEngine(): bool
     {
         return $this->isAdmin() || $this->hasRole(self::ROLE_WORLD_ENGINE);
@@ -95,6 +103,7 @@ class User extends Authenticatable
     {
         return $this->canAccessAdmin()
             || $this->canAccessBitcraft()
+            || $this->canAccessConnectedRealms()
             || $this->canAccessWorldEngine();
     }
 
@@ -102,6 +111,7 @@ class User extends Authenticatable
     {
         return match ($area) {
             self::ROLE_BITCRAFT => $this->canAccessBitcraft(),
+            self::ROLE_CONNECTED_REALMS => $this->canAccessConnectedRealms(),
             self::ROLE_WORLD_ENGINE => $this->canAccessWorldEngine(),
             self::ROLE_ADMIN => $this->canAccessAdmin(),
             default => false,

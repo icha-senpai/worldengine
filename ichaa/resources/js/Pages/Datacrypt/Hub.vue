@@ -65,6 +65,13 @@ const sections = computed(() => [
         status: user.value.can_access_bitcraft ? 'Market, crafting, and trackers.' : 'No access assigned.',
     },
     {
+        key: 'evergather',
+        label: 'Evergather',
+        href: route('evergather.index'),
+        enabled: Boolean(user.value.can_access_connected_realms),
+        status: user.value.can_access_connected_realms ? 'Social RPG foundation and gathering loop.' : 'No access assigned.',
+    },
+    {
         key: 'world-engine',
         label: 'World Engine',
         href: route('dashboard'),
