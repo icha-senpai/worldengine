@@ -30,7 +30,7 @@ class ExpeditionService
      */
     private const EXPEDITIONS = [
         'moonwake_supply_run' => [
-            'label' => 'Moonwake Supply Run',
+            'label' => 'Moonwake Provision Walk',
             'region' => 'Moonwake Coast',
             'skill' => 'exploration',
             'experience' => 45,
@@ -111,7 +111,7 @@ class ExpeditionService
             ],
         ],
         'campfire_loop' => [
-            'label' => 'Campfire Loop',
+            'label' => 'Ashcamp Provision Cart',
             'region' => 'Briarwake Camps',
             'skill' => 'survival',
             'required_level' => 3,
@@ -235,7 +235,7 @@ class ExpeditionService
         ],
         'crew_call' => [
             'label' => 'Crew Call',
-            'region' => 'Guild Yard',
+            'region' => 'Oathhall Yard',
             'skill' => 'leadership',
             'required_level' => 3,
             'experience' => 64,
@@ -249,7 +249,7 @@ class ExpeditionService
             ],
         ],
         'market_loop' => [
-            'label' => 'Market Loop',
+            'label' => 'Harbor Price Walk',
             'region' => 'Moonwake Exchange',
             'skill' => 'trading',
             'required_level' => 3,
@@ -462,7 +462,7 @@ class ExpeditionService
                 ['item_key' => 'ancient_tablet', 'item_name' => 'Ancient Tablet', 'rarity' => 'rare', 'quantity' => 1],
                 ['item_key' => 'clockwork_spring', 'item_name' => 'Clockwork Spring', 'rarity' => 'uncommon', 'quantity' => 2],
             ]),
-            'coastal_cargo_run' => self::expedition('Coastal Cargo Run', 'Moonwake Coast', 'sailing', 1, 58, 54, [
+            'coastal_cargo_run' => self::expedition('Coastal Cargo Manifest', 'Moonwake Coast', 'sailing', 1, 58, 54, [
                 ['item_key' => 'skiff_rib', 'item_name' => 'Skiff Rib', 'quantity' => 1],
                 ['item_key' => 'grilled_minnow', 'item_name' => 'Grilled Minnow', 'quantity' => 1],
             ], [
@@ -476,7 +476,7 @@ class ExpeditionService
                 ['item_key' => 'battle_sinew', 'item_name' => 'Battle Sinew', 'rarity' => 'uncommon', 'quantity' => 2],
                 ['item_key' => 'sharp_fang', 'item_name' => 'Sharp Fang', 'rarity' => 'uncommon', 'quantity' => 1],
             ]),
-            'storm_route_chart' => self::expedition('Storm Route Chart', 'Stormward Sea', 'cartography', 20, 94, 86, [
+            'storm_route_chart' => self::expedition('Stormglass Sea Chart', 'Stormward Sea', 'cartography', 20, 94, 86, [
                 ['item_key' => 'dungeon_chart', 'item_name' => 'Dungeon Chart', 'quantity' => 1],
                 ['item_key' => 'survey_compass', 'item_name' => 'Survey Compass', 'quantity' => 1],
             ], [
@@ -502,9 +502,9 @@ class ExpeditionService
                 ['item_key' => 'primal_hide', 'item_name' => 'Primal Hide', 'rarity' => 'rare', 'quantity' => 1],
                 ['item_key' => 'spirit_fruit', 'item_name' => 'Spirit Fruit', 'rarity' => 'epic', 'quantity' => 1],
             ]),
-            'council_envoy_run' => self::expedition('Council Envoy Run', 'Regional Council', 'reputation', 20, 90, 88, [
+            'council_envoy_run' => self::expedition('Council Envoy Visit', 'Regional Council', 'reputation', 20, 90, 88, [
                 ['item_key' => 'merchant_seal', 'item_name' => 'Merchant Seal', 'quantity' => 1],
-                ['item_key' => 'guild_table', 'item_name' => 'Guild Table', 'quantity' => 1],
+                ['item_key' => 'guild_table', 'item_name' => 'Oathhall Table', 'quantity' => 1],
             ], [
                 ['item_key' => 'council_token', 'item_name' => 'Council Token', 'rarity' => 'rare', 'quantity' => 1],
             ]),
@@ -523,38 +523,37 @@ class ExpeditionService
     private static function midgameExpeditions(): array
     {
         $skills = [
-            'combat' => ['region' => 'Midfield Trial Grounds', 'supply' => 'smithing', 'reward' => 'combat_badge'],
-            'slayer' => ['region' => 'Marked Hunt Trail', 'supply' => 'leatherworking', 'reward' => 'slayer_mark'],
-            'defense' => ['region' => 'Shield Line Post', 'supply' => 'construction', 'reward' => 'defense_badge'],
-            'healing' => ['region' => 'Field Medic Route', 'supply' => 'alchemy', 'reward' => 'healing_writ'],
-            'magic' => ['region' => 'Moon Ward Circle', 'supply' => 'enchanting', 'reward' => 'magic_seal'],
-            'ranged' => ['region' => 'High Perch Range', 'supply' => 'carpentry', 'reward' => 'ranged_mark'],
-            'exploration' => ['region' => 'Hidden Mile Route', 'supply' => 'cartography', 'reward' => 'explorer_badge'],
-            'dungeoneering' => ['region' => 'Lower Vault Wing', 'supply' => 'cartography', 'reward' => 'vault_key'],
-            'sailing' => ['region' => 'Stormbreak Channel', 'supply' => 'boatbuilding', 'reward' => 'sailing_writ'],
-            'survival' => ['region' => 'Cold Camp Circuit', 'supply' => 'cooking', 'reward' => 'survival_mark'],
-            'cartography' => ['region' => 'Surveyor Ridge', 'supply' => 'cartography', 'reward' => 'survey_writ'],
-            'reputation' => ['region' => 'Faction Errand Route', 'supply' => 'trading', 'reward' => 'faction_seal'],
-            'leadership' => ['region' => 'Crew Muster Yard', 'supply' => 'construction', 'reward' => 'crew_banner'],
-            'trading' => ['region' => 'Regional Trade Loop', 'supply' => 'trading', 'reward' => 'trade_writ'],
+            'combat' => ['region' => 'Midfield Trial Grounds', 'supply' => 'smithing', 'reward' => 'combat_badge', 'labels' => [15 => 'Silverbank Guard Road', 20 => 'Sablecross Vanguard Drill', 25 => 'Runebound Field Assignment', 30 => 'Moonwake Shield Break', 35 => 'Stormglass Champion Yard', 40 => 'Starline Warband Push', 45 => 'Crownline Trial March']],
+            'slayer' => ['region' => 'Marked Hunt Trail', 'supply' => 'leatherworking', 'reward' => 'slayer_mark', 'labels' => [15 => 'Silverbank Fang Trail', 20 => 'Sablecross Bounty Line', 25 => 'Runebound Weakness Hunt', 30 => 'Moonwake Stalker Den', 35 => 'Stormglass Nightfang Mark', 40 => 'Starline Greatbeast Warrant', 45 => 'Crownline Trophy Road']],
+            'defense' => ['region' => 'Shield Line Post', 'supply' => 'construction', 'reward' => 'defense_badge', 'labels' => [15 => 'Silverbank Gate Brace', 20 => 'Sablecross Repair Roster', 25 => 'Runebound Armor Hold', 30 => 'Moonwake Party Guard', 35 => 'Stormglass Bulwark Post', 40 => 'Starline Dungeon Guard', 45 => 'Crownline Wallbreaker Stand']],
+            'healing' => ['region' => 'Field Medic Route', 'supply' => 'alchemy', 'reward' => 'healing_writ', 'labels' => [15 => 'Silverbank Triage Cart', 20 => 'Sablecross Sap Tonic Run', 25 => 'Runebound Recovery Tent', 30 => 'Moonwake Medic Kit Walk', 35 => 'Stormglass Stabilizer Route', 40 => 'Starline Field Hospital', 45 => 'Crownline Revival Path']],
+            'magic' => ['region' => 'Moon Ward Circle', 'supply' => 'enchanting', 'reward' => 'magic_seal', 'labels' => [15 => 'Silverbank Rune Thread Road', 20 => 'Sablecross Ward Circle', 25 => 'Runebound Element Focus', 30 => 'Moonwake Ritual Night', 35 => 'Stormglass Arcane Weather', 40 => 'Starline Sealed Reading', 45 => 'Crownline Spellguard Route']],
+            'ranged' => ['region' => 'High Perch Range', 'supply' => 'carpentry', 'reward' => 'ranged_mark', 'labels' => [15 => 'Silverbank Bow Sightline', 20 => 'Sablecross Arrow Stock', 25 => 'Runebound Special Shot', 30 => 'Moonwake Siege Range', 35 => 'Stormglass Trail Bow Refit', 40 => 'Starline Trick Shot Walk', 45 => 'Crownline Skywatch Quiver']],
+            'exploration' => ['region' => 'Hidden Mile Route', 'supply' => 'cartography', 'reward' => 'explorer_badge', 'labels' => [15 => 'Silverbank Sketch Route', 20 => 'Sablecross Regional Path', 25 => 'Runebound Hidden Room', 30 => 'Moonwake Distant Trail', 35 => 'Stormglass Ancient Gate', 40 => 'Starline Frontier Proof', 45 => 'Crownline Worldwalker Waybill']],
+            'dungeoneering' => ['region' => 'Lower Vault Wing', 'supply' => 'cartography', 'reward' => 'vault_key', 'labels' => [15 => 'Silverbank Room Check', 20 => 'Sablecross Trap Read', 25 => 'Runebound Party Route', 30 => 'Moonwake Boss Room Stock', 35 => 'Stormglass Dungeon Audit', 40 => 'Starline Deep Chamber', 45 => 'Crownline Vault Key Report']],
+            'sailing' => ['region' => 'Stormbreak Channel', 'supply' => 'boatbuilding', 'reward' => 'sailing_writ', 'labels' => [15 => 'Silverbank Dock Rope', 20 => 'Sablecross Coastal Trip', 25 => 'Runebound Cargo Manifest', 30 => 'Moonwake Fleet Support', 35 => 'Stormbreak Glassway Crossing', 40 => 'Starline Harbor Signal', 45 => 'Crownline Tide Captain Lot']],
+            'survival' => ['region' => 'Cold Camp Circuit', 'supply' => 'cooking', 'reward' => 'survival_mark', 'labels' => [15 => 'Silverbank Flatbread Cache', 20 => 'Sablecross Weather Read', 25 => 'Runebound Long Trip Stock', 30 => 'Moonwake Hazard Kit', 35 => 'Stormglass Hostile Region', 40 => 'Starline Campcraft Ledger', 45 => 'Crownline Last Light Cache']],
+            'cartography' => ['region' => 'Surveyor Ridge', 'supply' => 'cartography', 'reward' => 'survey_writ', 'labels' => [15 => 'Silverbank Survey Note', 20 => 'Sablecross Route Map', 25 => 'Runebound Dungeon Chart', 30 => 'Moonwake Region Atlas', 35 => 'Stormglass Secret Road', 40 => 'Starline Survey Parcel', 45 => 'Crownline Starmapper Grid']],
+            'reputation' => ['region' => 'Faction Errand Route', 'supply' => 'trading', 'reward' => 'faction_seal', 'labels' => [15 => 'Silverbank Barter Note', 20 => 'Sablecross Favor Seal', 25 => 'Runebound Rate Petition', 30 => 'Moonwake Council Gift', 35 => 'Stormglass Title Claim', 40 => 'Starline Envoy Introduction', 45 => 'Crownline Realm Favor']],
+            'leadership' => ['region' => 'Crew Muster Yard', 'supply' => 'construction', 'reward' => 'crew_banner', 'labels' => [15 => 'Silverbank Crate Muster', 20 => 'Sablecross Party Call', 25 => 'Runebound Oathhall Task', 30 => 'Moonwake Raid Brief', 35 => 'Stormglass Banner Drill', 40 => 'Starline Campaign Writ', 45 => 'Crownline Command Tent']],
+            'trading' => ['region' => 'Crossroads Brokerage', 'supply' => 'trading', 'reward' => 'trade_writ', 'labels' => [15 => 'Silverbank Token Exchange', 20 => 'Sablecross Bulk Listing', 25 => 'Runebound Work Packet', 30 => 'Moonwake Storefront Stock', 35 => 'Stormglass Route Manifest', 40 => 'Starline Arbitrage Writ', 45 => 'Crownline Merchant Seal']],
         ];
         $tiers = [
-            ['level' => 15, 'prefix' => 'Silver', 'rarity' => 'uncommon', 'experience' => 92, 'gold' => 76],
-            ['level' => 20, 'prefix' => 'Sable', 'rarity' => 'uncommon', 'experience' => 112, 'gold' => 92],
-            ['level' => 25, 'prefix' => 'Runed', 'rarity' => 'rare', 'experience' => 132, 'gold' => 108],
-            ['level' => 30, 'prefix' => 'Moon', 'rarity' => 'rare', 'experience' => 156, 'gold' => 128],
-            ['level' => 35, 'prefix' => 'Storm', 'rarity' => 'rare', 'experience' => 184, 'gold' => 148],
-            ['level' => 40, 'prefix' => 'Star', 'rarity' => 'epic', 'experience' => 216, 'gold' => 176],
-            ['level' => 45, 'prefix' => 'Crown', 'rarity' => 'epic', 'experience' => 252, 'gold' => 204],
+            ['level' => 15, 'mark' => 'Silverbank', 'rarity' => 'uncommon', 'experience' => 92, 'gold' => 76],
+            ['level' => 20, 'mark' => 'Sablecross', 'rarity' => 'uncommon', 'experience' => 112, 'gold' => 92],
+            ['level' => 25, 'mark' => 'Runebound', 'rarity' => 'rare', 'experience' => 132, 'gold' => 108],
+            ['level' => 30, 'mark' => 'Moonwake', 'rarity' => 'rare', 'experience' => 156, 'gold' => 128],
+            ['level' => 35, 'mark' => 'Stormglass', 'rarity' => 'rare', 'experience' => 184, 'gold' => 148],
+            ['level' => 40, 'mark' => 'Starline', 'rarity' => 'epic', 'experience' => 216, 'gold' => 176],
+            ['level' => 45, 'mark' => 'Crownline', 'rarity' => 'epic', 'experience' => 252, 'gold' => 204],
         ];
         $expeditions = [];
 
         foreach ($skills as $skill => $definition) {
             foreach ($tiers as $tier) {
                 $level = $tier['level'];
-                $label = str($skill)->headline()->toString();
                 $expeditions["{$skill}_midgame_expedition_{$level}"] = self::expedition(
-                    "{$tier['prefix']} {$label} Expedition",
+                    $definition['labels'][$level],
                     $definition['region'],
                     $skill,
                     $level,
@@ -566,7 +565,7 @@ class ExpeditionService
                     [
                         [
                             'item_key' => "{$definition['reward']}_{$level}",
-                            'item_name' => "{$tier['prefix']} ".str($definition['reward'])->headline()->toString(),
+                            'item_name' => "{$tier['mark']} Expedition ".self::rewardDisplayName($definition['reward']),
                             'rarity' => $tier['rarity'],
                             'quantity' => 1,
                         ],
@@ -584,34 +583,33 @@ class ExpeditionService
     private static function endgameExpeditions(): array
     {
         $skills = [
-            'combat' => ['region' => 'Champion Trial Grounds', 'supply' => 'smithing', 'reward' => 'champion_crest'],
-            'slayer' => ['region' => 'Mythic Hunt Board', 'supply' => 'leatherworking', 'reward' => 'bane_trophy'],
-            'defense' => ['region' => 'Unbroken Wall', 'supply' => 'construction', 'reward' => 'bulwark_oath'],
-            'healing' => ['region' => 'Life Warden Hospice', 'supply' => 'alchemy', 'reward' => 'life_ward'],
-            'magic' => ['region' => 'Archmage Circle', 'supply' => 'enchanting', 'reward' => 'arcane_vow'],
-            'ranged' => ['region' => 'Sky Archer Range', 'supply' => 'carpentry', 'reward' => 'sky_mark'],
-            'exploration' => ['region' => 'Worldwalker Gate', 'supply' => 'cartography', 'reward' => 'worldwalker_token'],
-            'dungeoneering' => ['region' => 'Deep Warden Halls', 'supply' => 'cartography', 'reward' => 'deep_warden_key'],
-            'sailing' => ['region' => 'Tide Captain Route', 'supply' => 'boatbuilding', 'reward' => 'tide_captain_writ'],
-            'survival' => ['region' => 'Last Light Wilds', 'supply' => 'cooking', 'reward' => 'last_light_brand'],
-            'cartography' => ['region' => 'Star Mapper Observatory', 'supply' => 'cartography', 'reward' => 'star_atlas'],
-            'reputation' => ['region' => 'Realm Envoy Council', 'supply' => 'trading', 'reward' => 'envoy_seal'],
-            'leadership' => ['region' => 'Bannerlord Campaign', 'supply' => 'construction', 'reward' => 'bannerlord_standard'],
-            'trading' => ['region' => 'Market Sovereign Exchange', 'supply' => 'trading', 'reward' => 'sovereign_ledger'],
+            'combat' => ['region' => 'Champion Trial Grounds', 'supply' => 'smithing', 'reward' => 'champion_crest', 'labels' => [50 => 'Highguard Champion Trial', 75 => 'Mythgate Realmguard Bout', 100 => 'Crownmark Realm Champion Rite']],
+            'slayer' => ['region' => 'Crownbeast Hunt Board', 'supply' => 'leatherworking', 'reward' => 'bane_trophy', 'labels' => [50 => 'Highguard Nightfang Hunt', 75 => 'Mythgate Crownbeast Warrant', 100 => 'Crownmark Monster Bane Road']],
+            'defense' => ['region' => 'Unbroken Wall', 'supply' => 'construction', 'reward' => 'bulwark_oath', 'labels' => [50 => 'Highguard Party Wall', 75 => 'Mythgate Citadel Bulwark', 100 => 'Crownmark Unbroken Stand']],
+            'healing' => ['region' => 'Life Warden Hospice', 'supply' => 'alchemy', 'reward' => 'life_ward', 'labels' => [50 => 'Highguard Expedition Medic', 75 => 'Mythgate Lifewarden Renewal', 100 => 'Crownmark Life Warden Vigil']],
+            'magic' => ['region' => 'Archmage Circle', 'supply' => 'enchanting', 'reward' => 'arcane_vow', 'labels' => [50 => 'Highguard Ritual Circle', 75 => 'Mythgate Astral Rite', 100 => 'Crownmark Archmage Channel']],
+            'ranged' => ['region' => 'Sky Archer Range', 'supply' => 'carpentry', 'reward' => 'sky_mark', 'labels' => [50 => 'Highguard Marksman Trial', 75 => 'Mythgate Stormshot Range', 100 => 'Crownmark Sky Archer Volley']],
+            'exploration' => ['region' => 'Worldwalker Gate', 'supply' => 'cartography', 'reward' => 'worldwalker_token', 'labels' => [50 => 'Highguard Worldwalker Gate', 75 => 'Mythgate Ancient Passage', 100 => 'Crownmark Horizon Crossing']],
+            'dungeoneering' => ['region' => 'Deep Warden Halls', 'supply' => 'cartography', 'reward' => 'deep_warden_key', 'labels' => [50 => 'Highguard Labyrinth Route', 75 => 'Mythgate Vault Descent', 100 => 'Crownmark Deep Warden Descent']],
+            'sailing' => ['region' => 'Tide Captain Route', 'supply' => 'boatbuilding', 'reward' => 'tide_captain_writ', 'labels' => [50 => 'Highguard Expedition Sail', 75 => 'Mythgate Stormroute Crossing', 100 => 'Crownmark Tide Captain Voyage']],
+            'survival' => ['region' => 'Last Light Wilds', 'supply' => 'cooking', 'reward' => 'last_light_brand', 'labels' => [50 => 'Highguard Wild March', 75 => 'Mythgate Hostile Wilds', 100 => 'Crownmark Last Light Trek']],
+            'cartography' => ['region' => 'Star Mapper Observatory', 'supply' => 'cartography', 'reward' => 'star_atlas', 'labels' => [50 => 'Highguard Navigator Archive', 75 => 'Mythgate Secret Atlas', 100 => 'Crownmark Star Mapper Draft']],
+            'reputation' => ['region' => 'Realm Envoy Council', 'supply' => 'trading', 'reward' => 'envoy_seal', 'labels' => [50 => 'Highguard Envoy Hearing', 75 => 'Mythgate Council Seat', 100 => 'Crownmark Envoy Address']],
+            'leadership' => ['region' => 'Bannerlord Campaign', 'supply' => 'construction', 'reward' => 'bannerlord_standard', 'labels' => [50 => 'Highguard War Table', 75 => 'Mythgate Campaign Standard', 100 => 'Crownmark Bannerlord Muster']],
+            'trading' => ['region' => 'Market Sovereign Exchange', 'supply' => 'trading', 'reward' => 'sovereign_ledger', 'labels' => [50 => 'Highguard Market Ledger', 75 => 'Mythgate Royal Exchange', 100 => 'Crownmark Sovereign Market']],
         ];
         $tiers = [
-            ['level' => 50, 'prefix' => 'Elite', 'rarity' => 'rare', 'experience' => 180, 'gold' => 160],
-            ['level' => 75, 'prefix' => 'Mythic', 'rarity' => 'epic', 'experience' => 300, 'gold' => 260],
-            ['level' => 100, 'prefix' => 'Evergather', 'rarity' => 'legendary', 'experience' => 520, 'gold' => 440],
+            ['level' => 50, 'mark' => 'Highguard', 'rarity' => 'rare', 'experience' => 180, 'gold' => 160],
+            ['level' => 75, 'mark' => 'Mythgate', 'rarity' => 'epic', 'experience' => 300, 'gold' => 260],
+            ['level' => 100, 'mark' => 'Crownmark', 'rarity' => 'legendary', 'experience' => 520, 'gold' => 440],
         ];
         $expeditions = [];
 
         foreach ($skills as $skill => $definition) {
             foreach ($tiers as $tier) {
                 $level = $tier['level'];
-                $label = str($skill)->headline()->toString();
                 $expeditions["{$skill}_expedition_{$level}"] = self::expedition(
-                    "{$tier['prefix']} {$label} Expedition",
+                    $definition['labels'][$level],
                     $definition['region'],
                     $skill,
                     $level,
@@ -623,7 +621,7 @@ class ExpeditionService
                     [
                         [
                             'item_key' => "{$definition['reward']}_{$level}",
-                            'item_name' => "{$tier['prefix']} ".str($definition['reward'])->headline()->toString(),
+                            'item_name' => "{$tier['mark']} Expedition ".self::rewardDisplayName($definition['reward']),
                             'rarity' => $tier['rarity'],
                             'quantity' => 1,
                         ],
@@ -686,5 +684,40 @@ class ExpeditionService
     private static function midgameCraftedSupplyName(string $skill, int $level): string
     {
         return GeneratedItemNameService::midgameCraftOutputName($skill, $level);
+    }
+
+    private static function rewardDisplayName(string $reward): string
+    {
+        return match ($reward) {
+            'combat_badge' => 'Sparring Crest',
+            'slayer_mark' => 'Fang-Etched Hunt Mark',
+            'defense_badge' => 'Shieldwall Rivet',
+            'healing_writ' => 'Clean-Bandage Writ',
+            'magic_seal' => 'Moonlit Casting Seal',
+            'ranged_mark' => 'Feathered Score Tab',
+            'explorer_badge' => 'Trail-Etched Compass Plate',
+            'vault_key' => 'Notched Vault Key',
+            'sailing_writ' => 'Brine-Sealed Sailing Writ',
+            'survival_mark' => 'Smoke-Cured Survival Mark',
+            'survey_writ' => 'Brass Survey Writ',
+            'faction_seal' => 'Pressed Faction Seal',
+            'crew_banner' => 'Hemmed Crew Pennant',
+            'trade_writ' => 'Broker-Sealed Trade Note',
+            'champion_crest' => 'Realm Champion Crest',
+            'bane_trophy' => 'Nightfang Bane Trophy',
+            'bulwark_oath' => 'Bulwark Oath Plate',
+            'life_ward' => 'Life Warden Sigil',
+            'arcane_vow' => 'Archmage Vow Seal',
+            'sky_mark' => 'Sky Archer Score Tab',
+            'worldwalker_token' => 'Worldwalker Trail Token',
+            'deep_warden_key' => 'Deep Warden Key',
+            'tide_captain_writ' => 'Tide Captain Seal',
+            'last_light_brand' => 'Last Light Brand',
+            'star_atlas' => 'Star Mapper Atlas',
+            'envoy_seal' => 'Realm Envoy Seal',
+            'bannerlord_standard' => 'Bannerlord Standard',
+            'sovereign_ledger' => 'Sovereign Exchange Ledger',
+            default => str($reward)->headline()->toString(),
+        };
     }
 }

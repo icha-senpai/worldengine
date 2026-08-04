@@ -2,7 +2,7 @@
     <section class="surface-section">
         <div class="surface-section__header">
             <div class="surface-section__copy">
-                <span class="surface-section__title">Resource Runs</span>
+                <span class="surface-section__title">Gathering Board</span>
                 <p class="surface-section__subtitle">{{ unlockedCount }} unlocked · {{ actionStateLabel }}</p>
             </div>
         </div>
@@ -11,7 +11,7 @@
             <div class="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
                 <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
                     <div class="flex items-center justify-between gap-3">
-                        <p class="text-sm font-ui text-primary">Run Board</p>
+                        <p class="text-sm font-ui text-primary">Action Board</p>
                         <span class="tag">{{ activeBoard.count }} {{ activeBoard.unit }}</span>
                     </div>
                     <p class="mt-1 text-xs text-muted-3">{{ activeBoard.description }}</p>
@@ -216,9 +216,9 @@ const actionBoards = computed(() => [
         key: 'ready',
         label: 'Ready',
         count: readyActions.value.length,
-        unit: 'runs',
+        unit: 'actions',
         entries: readyActions.value,
-        description: `${activeFilter.value.label} runs you can start now.`,
+        description: `${activeFilter.value.label} actions you can start now.`,
     },
     {
         key: 'next',
@@ -256,10 +256,10 @@ const cooldownLabel = computed(() => {
 const actionStateLabel = computed(() => (canActNow.value ? 'Ready' : `Ready in ${cooldownLabel.value}`))
 const emptyBoardMessage = computed(() => {
     if (selectedBoard.value === 'ready') {
-        return 'No ready runs match. Check Next for the closest unlocks.'
+        return 'No ready actions match. Check Next for the closest unlocks.'
     }
 
-    return 'No resource runs match.'
+    return 'No gathering actions match.'
 })
 
 onMounted(() => {
@@ -279,12 +279,12 @@ watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
 
-watch(readyActions, (actions) => {
-    if (!actions.length && selectedBoard.value === 'ready') {
+watch([readyActions, lockedActions], () => {
+    if (!readyActions.value.length && lockedActions.value.length && selectedBoard.value === 'ready') {
         selectedBoard.value = 'next'
     }
 
-    if (actions.length && selectedBoard.value === 'next') {
+    if (!lockedActions.value.length && readyActions.value.length && selectedBoard.value === 'next') {
         selectedBoard.value = 'ready'
     }
 }, { immediate: true })

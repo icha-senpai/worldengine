@@ -68,7 +68,7 @@ class SkillCatalogService
             'category' => 'Gathering',
             'role' => 'Food, aquatic materials, coastal events',
             'description' => 'Catch fish, scales, shells, and rare tideborn resources.',
-            'unlocks' => [1 => 'River casts', 10 => 'Coastal shoals', 25 => 'Treasure nets', 50 => 'Deepwater routes', 75 => 'Mythic tide pools', 100 => 'Leviathan angler'],
+            'unlocks' => [1 => 'River casts', 10 => 'Coastal shoals', 25 => 'Treasure nets', 50 => 'Deepwater routes', 75 => 'Leviathan tide pools', 100 => 'Leviathan angler'],
         ],
         'mining' => [
             'label' => 'Mining',
@@ -132,7 +132,7 @@ class SkillCatalogService
             'category' => 'Processing',
             'role' => 'Logs into planks',
             'description' => 'Turn logs, bark, resin, and timber into planks and construction stock.',
-            'unlocks' => [1 => 'Basic planks', 10 => 'Bark sheets', 25 => 'Resin-treated boards', 50 => 'Precision beams', 75 => 'Heartwood stock', 100 => 'Master sawyer'],
+            'unlocks' => [1 => 'Rough planks', 10 => 'Bark sheets', 25 => 'Resin-treated boards', 50 => 'Precision beams', 75 => 'Heartwood stock', 100 => 'Master sawyer'],
         ],
         'tanning' => [
             'label' => 'Tanning',
@@ -148,7 +148,7 @@ class SkillCatalogService
             'category' => 'Processing',
             'role' => 'Gems into jewels',
             'description' => 'Cut gems, fossils, lenses, and magical stones for crafting and enchantment.',
-            'unlocks' => [1 => 'Rough cuts', 10 => 'Gem polishing', 25 => 'Socket stones', 50 => 'Prismatic cuts', 75 => 'Mythic facets', 100 => 'Facet savant'],
+            'unlocks' => [1 => 'Rough cuts', 10 => 'Gem polishing', 25 => 'Socket stones', 50 => 'Prismatic cuts', 75 => 'Starfacet work', 100 => 'Facet savant'],
         ],
         'weaving' => [
             'label' => 'Weaving',
@@ -164,7 +164,7 @@ class SkillCatalogService
             'category' => 'Crafting',
             'role' => 'Metal tools, armor, weapons',
             'description' => 'Craft tools, fittings, armor, blades, and heavy metal equipment.',
-            'unlocks' => [1 => 'Basic fittings', 10 => 'Starter tools', 25 => 'Steel equipment', 50 => 'Masterwork frames', 75 => 'Meteor gear', 100 => 'Anvil saint'],
+            'unlocks' => [1 => 'Field fittings', 10 => 'Tool blanks', 25 => 'Steel equipment', 50 => 'Masterwork frames', 75 => 'Meteor gear', 100 => 'Anvil saint'],
         ],
         'carpentry' => [
             'label' => 'Carpentry',
@@ -180,7 +180,7 @@ class SkillCatalogService
             'category' => 'Crafting',
             'role' => 'Food, buffs, raid supplies',
             'description' => 'Prepare food, stews, feasts, field rations, and event provisions.',
-            'unlocks' => [1 => 'Simple meals', 10 => 'Rations', 25 => 'Skill foods', 50 => 'Party feasts', 75 => 'Mythic cuisine', 100 => 'Realm chef'],
+            'unlocks' => [1 => 'Simple meals', 10 => 'Rations', 25 => 'Skill foods', 50 => 'Party feasts', 75 => 'Starfeast cuisine', 100 => 'Realm chef'],
         ],
         'alchemy' => [
             'label' => 'Alchemy',
@@ -228,7 +228,7 @@ class SkillCatalogService
             'category' => 'Crafting',
             'role' => 'Jewels, rings, trinkets',
             'description' => 'Craft rings, amulets, settings, trinkets, lenses, and focus stones.',
-            'unlocks' => [1 => 'Copper settings', 10 => 'Gem rings', 25 => 'Socket trinkets', 50 => 'Focus lenses', 75 => 'Mythic jewelry', 100 => 'Gem sovereign'],
+            'unlocks' => [1 => 'Copper settings', 10 => 'Gem rings', 25 => 'Socket trinkets', 50 => 'Focus lenses', 75 => 'Starfacet jewelry', 100 => 'Gem sovereign'],
         ],
         'boatbuilding' => [
             'label' => 'Boatbuilding',
@@ -242,9 +242,9 @@ class SkillCatalogService
             'label' => 'Furniture Crafting',
             'type' => 'profession',
             'category' => 'Crafting',
-            'role' => 'Housing, guild halls, cosmetics',
-            'description' => 'Craft furniture, trophies, displays, housing upgrades, and guild fixtures.',
-            'unlocks' => [1 => 'Stools and crates', 10 => 'Tables', 25 => 'Displays', 50 => 'Guild fixtures', 75 => 'Prestige sets', 100 => 'Hall architect'],
+            'role' => 'Housing, oathhalls, cosmetics',
+            'description' => 'Craft furniture, trophies, displays, housing upgrades, and oathhall fixtures.',
+            'unlocks' => [1 => 'Stools and crates', 10 => 'Tables', 25 => 'Displays', 50 => 'Oathhall fixtures', 75 => 'Prestige sets', 100 => 'Hall architect'],
         ],
         'construction' => [
             'label' => 'Construction',
@@ -252,7 +252,7 @@ class SkillCatalogService
             'category' => 'Crafting',
             'role' => 'Buildings, projects, settlements',
             'description' => 'Build settlement projects, fortifications, stations, and world-event structures.',
-            'unlocks' => [1 => 'Repair tasks', 10 => 'Small stations', 25 => 'Workshops', 50 => 'Guild halls', 75 => 'Fortifications', 100 => 'Realm builder'],
+            'unlocks' => [1 => 'Repair tasks', 10 => 'Small stations', 25 => 'Workshops', 50 => 'Oathhall frames', 75 => 'Fortifications', 100 => 'Realm builder'],
         ],
         'combat' => [
             'label' => 'Combat',
@@ -260,7 +260,7 @@ class SkillCatalogService
             'category' => 'Combat',
             'role' => 'General fighting capability',
             'description' => 'Improve overall combat output, tactical reliability, and encounter readiness.',
-            'unlocks' => [1 => 'Basic attacks', 10 => 'Combat stances', 25 => 'Role focus', 50 => 'Elite tactics', 75 => 'Champion trials', 100 => 'Realm champion'],
+            'unlocks' => [1 => 'Guard cuts', 10 => 'Combat stances', 25 => 'Role focus', 50 => 'Vanguard tactics', 75 => 'Champion trials', 100 => 'Realm champion'],
         ],
         'slayer' => [
             'label' => 'Slayer',
@@ -268,7 +268,7 @@ class SkillCatalogService
             'category' => 'Combat',
             'role' => 'Monster marks and weaknesses',
             'description' => 'Take dangerous marks, exploit weaknesses, and recover monster trophies.',
-            'unlocks' => [1 => 'Minor marks', 10 => 'Weakness study', 25 => 'Special gear', 50 => 'Elite marks', 75 => 'Mythic hunts', 100 => 'Monster bane'],
+            'unlocks' => [1 => 'Trail marks', 10 => 'Weakness study', 25 => 'Special gear', 50 => 'Nightfang marks', 75 => 'Crownbeast hunts', 100 => 'Monster bane'],
         ],
         'defense' => [
             'label' => 'Defense',
@@ -316,7 +316,7 @@ class SkillCatalogService
             'category' => 'World',
             'role' => 'Dungeon routing and room checks',
             'description' => 'Handle traps, branching routes, boss rooms, and dungeon resource planning.',
-            'unlocks' => [1 => 'Room checks', 10 => 'Trap reads', 25 => 'Party routing', 50 => 'Boss prep', 75 => 'Mythic chambers', 100 => 'Deep warden'],
+            'unlocks' => [1 => 'Room checks', 10 => 'Trap reads', 25 => 'Party routing', 50 => 'Boss prep', 75 => 'Deep chambers', 100 => 'Deep warden'],
         ],
         'sailing' => [
             'label' => 'Sailing',
@@ -324,7 +324,7 @@ class SkillCatalogService
             'category' => 'World',
             'role' => 'Boats, coasts, sea expeditions',
             'description' => 'Navigate coasts, move cargo, support fleets, and unlock waterborne expeditions.',
-            'unlocks' => [1 => 'Dock work', 10 => 'Coastal trips', 25 => 'Cargo runs', 50 => 'Fleet support', 75 => 'Storm routes', 100 => 'Tide captain'],
+            'unlocks' => [1 => 'Dock work', 10 => 'Coastal trips', 25 => 'Cargo manifests', 50 => 'Fleet support', 75 => 'Stormglass sea charts', 100 => 'Tide captain'],
         ],
         'survival' => [
             'label' => 'Survival',
@@ -354,9 +354,9 @@ class SkillCatalogService
             'label' => 'Leadership',
             'type' => 'skill',
             'category' => 'Social',
-            'role' => 'Guilds, parties, raids',
-            'description' => 'Coordinate parties, guild projects, raid supplies, and shared objectives.',
-            'unlocks' => [1 => 'Party calls', 10 => 'Small teams', 25 => 'Guild tasks', 50 => 'Raid planning', 75 => 'Regional campaigns', 100 => 'Bannerlord'],
+            'role' => 'Crews, parties, raids',
+            'description' => 'Coordinate parties, crew projects, raid supplies, and shared objectives.',
+            'unlocks' => [1 => 'Party calls', 10 => 'Small teams', 25 => 'Crew tasks', 50 => 'Raid planning', 75 => 'Regional campaigns', 100 => 'Bannerlord'],
         ],
         'trading' => [
             'label' => 'Trading',
@@ -364,7 +364,7 @@ class SkillCatalogService
             'category' => 'Social',
             'role' => 'Marketplace, work orders, storefronts',
             'description' => 'Improve market access, storefronts, commissions, logistics, and economic play.',
-            'unlocks' => [1 => 'Basic listings', 10 => 'Bulk listings', 25 => 'Work orders', 50 => 'Storefronts', 75 => 'Regional arbitrage', 100 => 'Market sovereign'],
+            'unlocks' => [1 => 'Market listings', 10 => 'Bulk listings', 25 => 'Work orders', 50 => 'Storefronts', 75 => 'Regional arbitrage', 100 => 'Market sovereign'],
         ],
     ];
 
@@ -389,7 +389,7 @@ class SkillCatalogService
             'description' => 'Progression record awaiting catalog definition.',
             'unlocks' => [1 => 'Known record', 100 => 'Mastery'],
         ];
-        $definition['unlocks'] = $this->unlocksFor($definition);
+        $definition['unlocks'] = $this->unlocksFor($skill, $definition);
         $definition['target_hours_range'] = $this->targetHoursRangeFor($definition['category']);
 
         return [
@@ -513,14 +513,14 @@ class SkillCatalogService
     }
 
     /**
-     * @param  array{type: string, category: string, unlocks: array<int, string>}  $definition
+     * @param  array{label: string, type: string, category: string, unlocks: array<int, string>}  $definition
      * @return array<int, string>
      */
-    private function unlocksFor(array $definition): array
+    private function unlocksFor(string $skill, array $definition): array
     {
         $unlocks = $definition['unlocks'];
 
-        foreach ($this->earlyUnlocksFor($definition['category'], $definition['type']) as $level => $label) {
+        foreach ($this->earlyUnlocksFor($skill, $definition) as $level => $label) {
             if (! array_key_exists($level, $unlocks)) {
                 $unlocks[$level] = $label;
             }
@@ -532,75 +532,78 @@ class SkillCatalogService
     }
 
     /**
+     * @param  array{label: string, type: string, category: string}  $definition
      * @return array<int, string>
      */
-    private function earlyUnlocksFor(string $category, string $type): array
+    private function earlyUnlocksFor(string $skill, array $definition): array
     {
-        return match ($category) {
+        $label = $definition['label'] ?? str($skill)->headline()->toString();
+
+        return match ($definition['category']) {
             'Gathering' => [
-                3 => 'Local side routes',
-                5 => 'Material sorting',
-                8 => 'Focused yield runs',
-                12 => 'Supplier requests',
-                15 => 'Advanced route prep',
-                20 => 'Guild gathering board',
+                3 => "{$label} side routes",
+                5 => "{$label} material sorting",
+                8 => "{$label} yield targeting",
+                12 => "{$label} supplier requests",
+                15 => "{$label} route prep",
+                20 => "{$label} regional board",
             ],
             'Processing' => [
-                3 => 'Starter batch work',
-                5 => 'Waste reduction',
-                8 => 'Improved component prep',
-                12 => 'Workshop quotas',
-                15 => 'Refined material orders',
-                20 => 'Guild batch commissions',
+                3 => "{$label} first batches",
+                5 => "{$label} waste reduction",
+                8 => "{$label} component prep",
+                12 => "{$label} workshop quotas",
+                15 => "{$label} refined orders",
+                20 => "{$label} batch commissions",
             ],
             'Crafting' => [
-                3 => 'Starter commissions',
-                5 => 'Component fitting',
-                8 => 'Apprentice gear',
-                12 => 'Workshop request board',
-                15 => 'Specialist patterns',
-                20 => 'Guild tool patterns',
+                3 => "{$label} bench commissions",
+                5 => "{$label} component fitting",
+                8 => "{$label} fitted gear",
+                12 => "{$label} request board",
+                15 => "{$label} specialist patterns",
+                20 => "{$label} oathhall patterns",
             ],
             'Combat' => [
-                3 => 'Training rounds',
-                5 => 'Role drills',
-                8 => 'Field assignments',
-                12 => 'Party support tasks',
-                15 => 'Threat study',
-                20 => 'Guild encounter board',
+                3 => "{$label} training rounds",
+                5 => "{$label} role drills",
+                8 => "{$label} field assignments",
+                12 => "{$label} party support",
+                15 => "{$label} threat study",
+                20 => "{$label} encounter board",
             ],
             'World' => [
-                3 => 'Local route checks',
-                5 => 'Field notes',
-                8 => 'Supply loops',
-                12 => 'Regional scouting',
-                15 => 'Hazard prep',
-                20 => 'Guild route commissions',
+                3 => "{$label} route checks",
+                5 => "{$label} field notes",
+                8 => "{$label} supply caches",
+                12 => "{$label} regional scouting",
+                15 => "{$label} hazard prep",
+                20 => "{$label} wayfinder commissions",
             ],
             'Social' => [
-                3 => 'Local errands',
-                5 => 'Notice board access',
-                8 => 'Small commissions',
-                12 => 'Trusted introductions',
-                15 => 'Faction request board',
-                20 => 'Guild trade contacts',
+                3 => "{$label} local errands",
+                5 => "{$label} notice access",
+                8 => "{$label} small commissions",
+                12 => "{$label} introductions",
+                15 => "{$label} request board",
+                20 => "{$label} regional contacts",
             ],
-            default => $type === 'profession'
+            default => $definition['type'] === 'profession'
                 ? [
-                    3 => 'Starter work orders',
-                    5 => 'Component prep',
-                    8 => 'Apprentice commissions',
-                    12 => 'Workshop board',
-                    15 => 'Specialist patterns',
-                    20 => 'Guild commissions',
+                    3 => "{$label} first orders",
+                    5 => "{$label} component prep",
+                    8 => "{$label} bench commissions",
+                    12 => "{$label} workshop board",
+                    15 => "{$label} specialist patterns",
+                    20 => "{$label} board commissions",
                 ]
                 : [
-                    3 => 'Starter activities',
-                    5 => 'Local requests',
-                    8 => 'Apprentice tasks',
-                    12 => 'Field board',
-                    15 => 'Specialist routes',
-                    20 => 'Guild commissions',
+                    3 => "{$label} first activities",
+                    5 => "{$label} local requests",
+                    8 => "{$label} field tasks",
+                    12 => "{$label} field board",
+                    15 => "{$label} specialist routes",
+                    20 => "{$label} board commissions",
                 ],
         };
     }

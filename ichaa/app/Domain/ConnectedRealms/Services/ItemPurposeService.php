@@ -56,7 +56,7 @@ class ItemPurposeService
                 ['type' => 'experience', 'label' => str($skill)->headline()->toString().' XP', 'quantity' => $experience],
             ],
             'sink' => [
-                'type' => 'Guild Requisition',
+                'type' => 'Oathhall Claim',
                 'label' => $label,
                 'required_level' => $requiredLevel,
                 'context' => str($skill)->headline()->toString(),
@@ -78,7 +78,7 @@ class ItemPurposeService
             'consumable' => 'Supply Crate',
             'equipment', 'tool', 'trinket' => 'Appraisal',
             'housing', 'structure' => 'Settlement Order',
-            default => 'Ledger Intake',
+            default => 'Market Appraisal',
         };
 
         return "{$itemName} {$suffix}";
@@ -112,7 +112,7 @@ class ItemPurposeService
             'consumable' => 'Supply Requisitions',
             'equipment', 'tool', 'trinket' => 'Appraisals',
             'housing', 'structure' => 'Settlement Requisitions',
-            default => 'Ledger Requisitions',
+            default => 'Market Appraisals',
         };
     }
 

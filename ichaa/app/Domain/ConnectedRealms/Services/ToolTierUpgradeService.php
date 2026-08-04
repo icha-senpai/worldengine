@@ -8,7 +8,6 @@ use App\Domain\ConnectedRealms\Models\ConnectedRealmsPlayer;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsTool;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ToolTierUpgradeService
@@ -101,8 +100,8 @@ class ToolTierUpgradeService
 
             $ingredients = $this->tools->tierIngredients($family, $tier, $tier['extra']);
             $consumed = $this->consumeIngredients($player, $ingredients);
-            $itemName = "{$tier['prefix']} {$family['noun']}";
-            $itemKey = Str::of($itemName)->slug('_')->toString();
+            $itemName = $this->tools->tierToolName($family, $tier);
+            $itemKey = $this->tools->tierToolKey($family, $tier);
             $previousName = $tool->item_name;
 
             $player->forceFill([
@@ -188,7 +187,7 @@ class ToolTierUpgradeService
             'slot' => $equipment->slot,
             'item_name' => $equipment->item_name,
             'current_tier_level' => $tool->tier_level,
-            'next_item_name' => "{$tier['prefix']} {$family['noun']}",
+            'next_item_name' => $this->tools->tierToolName($family, $tier),
             'target_tier_level' => $tier['level'],
             'target_rarity' => $tier['rarity'],
             'craft_skill' => $family['craft'],

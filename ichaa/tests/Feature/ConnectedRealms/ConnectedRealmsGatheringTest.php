@@ -18,6 +18,7 @@ use App\Domain\ConnectedRealms\Models\ConnectedRealmsVendorSale;
 use App\Domain\ConnectedRealms\Services\CraftingService;
 use App\Domain\ConnectedRealms\Services\ExpeditionService;
 use App\Domain\ConnectedRealms\Services\GatheringActionService;
+use App\Domain\ConnectedRealms\Services\ItemCatalogService;
 use App\Domain\ConnectedRealms\Services\ItemPurposeService;
 use App\Domain\ConnectedRealms\Services\JobContractService;
 use App\Domain\ConnectedRealms\Services\ShopService;
@@ -62,14 +63,18 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('actions.0.loot_preview.0.quality', 'standard')
                 ->where('actions.0.loot_preview.0.weight', 0.2)
                 ->where('actions.0.loot_preview.0.item_class', 'resource')
+                ->where('actions.0.is_unlocked', true)
                 ->where('actions.7.required_level', 3)
+                ->where('actions.7.is_unlocked', false)
                 ->where('actions.28.required_level', 15)
                 ->has('skill_activities', 310)
                 ->where('skill_activities.0.key', 'smelting_starter_activity_1')
                 ->where('skill_activities.0.band', '1-30')
                 ->where('skill_activities.0.cooldown_seconds', 1)
                 ->where('skill_activities.0.equipped_tool.signature_trait', 'Coalbed Heat Sense')
+                ->where('skill_activities.0.is_unlocked', true)
                 ->where('skill_activities.4.required_level', 30)
+                ->where('skill_activities.4.is_unlocked', false)
                 ->where('skill_activities.8.band', '80-100')
                 ->has('skills', 38)
                 ->where('skills.0.skill', 'fishing')
@@ -78,6 +83,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('skills.0.target_hours_range.0', 50)
                 ->where('skills.0.target_hours_range.1', 90)
                 ->has('skills.0.activities', 28)
+                ->where('skills.0.activities', fn ($activities): bool => collect($activities)->contains(fn (array $activity): bool => $activity['required_level'] > 1 && $activity['unlocked'] === false))
                 ->where('skills.0.unlocks.1.level', 3)
                 ->has('skill_catalog.groups')
                 ->where('item_catalog.rarities.common.quality', 'standard')
@@ -99,7 +105,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('tool_rarity_upgrades.options.0.gold_cost', 45)
                 ->where('tool_rarity_upgrades.options.0.materials.0.item_key', 'amber_sap')
                 ->has('tool_tier_upgrades.options', 38)
-                ->where('tool_tier_upgrades.options.0.next_item_name', 'Apprentice Alembic')
+                ->where('tool_tier_upgrades.options.0.next_item_name', 'Amberbound Mooncap Alembic')
                 ->where('tool_tier_upgrades.options.0.gold_cost', 35)
                 ->has('crafting_recipes', 689)
                 ->where('crafting_recipes.0.key', 'grilled_minnow')
@@ -493,7 +499,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             $this->actingAs($user)
                 ->post(route('evergather.activities.store'), ['activity' => 'combat_starter_activity_1'])
                 ->assertRedirect(route('evergather.index'))
-                ->assertSessionHas('success', 'Moonwake Sparring Candlemark Primer completed.')
+                ->assertSessionHas('success', 'Candleline Guard Cut completed.')
                 ->assertSessionHas('connected_realms_result.type', 'skill_activity')
                 ->assertSessionHas('connected_realms_result.band', '1-30');
 
@@ -518,7 +524,7 @@ class ConnectedRealmsGatheringTest extends TestCase
 
             $this->assertDatabaseHas('connected_realms_inventory_stacks', [
                 'player_id' => $player->id,
-                'item_key' => 'combat_starter_combat_badge_1',
+                'item_key' => 'combat_candlemark_combat_badge_1',
             ]);
         } finally {
             Carbon::setTestNow();
@@ -713,9 +719,146 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         $this->assertSame([], $placeholderLabels);
         $this->assertSame([], $placeholderLoot);
-        $this->assertSame('Moonwake Sparring Candlemark Primer', $activities->get('combat_starter_activity_1')['label']);
-        $this->assertSame('Candlemark Sparring Notch', $activities->get('combat_starter_activity_1')['loot'][0]['item_name']);
-        $this->assertSame('Crownmark Sparring Notch', $activities->get('combat_evergather_activity_100')['loot'][0]['item_name']);
+        $this->assertSame('Candleline Guard Cut', $activities->get('combat_starter_activity_1')['label']);
+        $this->assertSame('Candleline Sparring Notch Sample', $activities->get('combat_starter_activity_1')['loot'][0]['item_name']);
+        $this->assertSame('Crownmark Sparring Notch Crownpiece', $activities->get('combat_evergather_activity_100')['loot'][0]['item_name']);
+    }
+
+    public function test_evergather_gathering_action_labels_are_distinct(): void
+    {
+        $actionLabels = collect($this->privateStaticCatalog(GatheringActionService::class, 'actionDefinitions'))
+            ->pluck('label')
+            ->countBy()
+            ->filter(fn (int $count): bool => $count > 1)
+            ->keys()
+            ->values()
+            ->all();
+
+        $this->assertSame([], $actionLabels);
+    }
+
+    public function test_evergather_tracked_catalog_labels_are_distinct_by_surface(): void
+    {
+        $catalogs = $this->evergatherCatalogs();
+        $surfaces = [
+            'actions' => collect($catalogs['actions'])->pluck('label'),
+            'activities' => collect($catalogs['activities'])->pluck('label'),
+            'recipes' => collect($catalogs['recipes'])->pluck('label'),
+            'jobs' => collect($catalogs['jobs'])->pluck('label'),
+            'expeditions' => collect($catalogs['expeditions'])->pluck('label'),
+            'shop_offers' => collect($catalogs['shop_offers'])->pluck('label'),
+            'skill_unlocks' => collect(app(SkillCatalogService::class)->all())
+                ->flatMap(fn (array $skill): array => collect($skill['unlocks'])
+                    ->map(fn (string $unlock): string => $unlock)
+                    ->all()),
+        ];
+
+        $duplicateLabels = collect($surfaces)
+            ->map(fn ($labels) => collect($labels)
+                ->filter()
+                ->countBy()
+                ->filter(fn (int $count): bool => $count > 1)
+                ->keys()
+                ->values()
+                ->all())
+            ->filter(fn (array $labels): bool => $labels !== [])
+            ->all();
+
+        $this->assertSame([], $duplicateLabels);
+    }
+
+    public function test_evergather_generated_names_are_not_prefix_swaps(): void
+    {
+        $catalogs = $this->evergatherCatalogs();
+        $surfaces = [
+            'gathering_actions' => collect($catalogs['actions'])->pluck('label'),
+            'skill_activities' => collect($catalogs['activities'])->pluck('label'),
+            'activity_loot' => collect($catalogs['activities'])
+                ->flatMap(fn (array $activity): array => collect($activity['loot'])->pluck('item_name')->all()),
+            'jobs' => collect($catalogs['jobs'])->pluck('label'),
+            'expeditions' => collect($catalogs['expeditions'])->pluck('label'),
+            'shop_offers' => collect($catalogs['shop_offers'])->pluck('label'),
+            'skill_unlocks' => collect(app(SkillCatalogService::class)->all())
+                ->flatMap(fn (array $skill): array => collect($skill['unlocks'])
+                    ->map(fn (string $unlock): string => $unlock)
+                    ->all()),
+        ];
+
+        $prefixSwaps = collect($surfaces)
+            ->map(fn ($labels) => collect($labels)
+                ->filter()
+                ->map(fn (string $label): string => $this->normalizedGeneratedName($label))
+                ->filter(fn (string $label): bool => $label !== '')
+                ->countBy()
+                ->filter(fn (int $count): bool => $count > 1)
+                ->keys()
+                ->values()
+                ->all())
+            ->filter(fn (array $labels): bool => $labels !== [])
+            ->all();
+
+        $this->assertSame([], $prefixSwaps);
+    }
+
+    public function test_evergather_catalog_display_text_avoids_generated_slop(): void
+    {
+        $catalogs = $this->evergatherCatalogs();
+        $displayTexts = [];
+
+        foreach ($catalogs['actions'] as $key => $action) {
+            $this->recordDisplayText($displayTexts, "action:{$key}:label", $action['label'] ?? null);
+            $this->recordDisplayText($displayTexts, "action:{$key}:location", $action['location'] ?? null);
+            $this->recordItemDisplayTexts($displayTexts, "action:{$key}:loot", $action['loot'] ?? []);
+        }
+
+        foreach ($catalogs['activities'] as $key => $activity) {
+            $this->recordDisplayText($displayTexts, "activity:{$key}:label", $activity['label'] ?? null);
+            $this->recordDisplayText($displayTexts, "activity:{$key}:track", $activity['track'] ?? null);
+            $this->recordDisplayText($displayTexts, "activity:{$key}:location", $activity['location'] ?? null);
+            $this->recordItemDisplayTexts($displayTexts, "activity:{$key}:loot", $activity['loot'] ?? []);
+        }
+
+        foreach ($catalogs['recipes'] as $key => $recipe) {
+            $this->recordDisplayText($displayTexts, "recipe:{$key}:label", $recipe['label'] ?? null);
+            $this->recordDisplayText($displayTexts, "recipe:{$key}:category", $recipe['category'] ?? null);
+            $this->recordItemDisplayTexts($displayTexts, "recipe:{$key}:ingredients", $recipe['ingredients'] ?? []);
+            $this->recordItemDisplayTexts($displayTexts, "recipe:{$key}:outputs", $recipe['outputs'] ?? []);
+        }
+
+        foreach ($catalogs['jobs'] as $key => $job) {
+            $this->recordDisplayText($displayTexts, "job:{$key}:label", $job['label'] ?? null);
+            $this->recordDisplayText($displayTexts, "job:{$key}:category", $job['category'] ?? null);
+            $this->recordItemDisplayTexts($displayTexts, "job:{$key}:requirements", $job['requirements'] ?? []);
+        }
+
+        foreach ($catalogs['expeditions'] as $key => $expedition) {
+            $this->recordDisplayText($displayTexts, "expedition:{$key}:label", $expedition['label'] ?? null);
+            $this->recordDisplayText($displayTexts, "expedition:{$key}:region", $expedition['region'] ?? null);
+            $this->recordItemDisplayTexts($displayTexts, "expedition:{$key}:supplies", $expedition['supplies'] ?? []);
+            $this->recordItemDisplayTexts($displayTexts, "expedition:{$key}:rewards", $expedition['rewards'] ?? []);
+        }
+
+        foreach ($catalogs['shop_offers'] as $key => $offer) {
+            $this->recordDisplayText($displayTexts, "shop:{$key}:label", $offer['label'] ?? null);
+            $this->recordDisplayText($displayTexts, "shop:{$key}:category", $offer['category'] ?? null);
+            $this->recordDisplayText($displayTexts, "shop:{$key}:item_name", $offer['item_name'] ?? null);
+        }
+
+        foreach (app(SkillCatalogService::class)->all() as $skill) {
+            $this->recordDisplayText($displayTexts, "skill:{$skill['key']}:label", $skill['label'] ?? null);
+            $this->recordDisplayText($displayTexts, "skill:{$skill['key']}:role", $skill['role'] ?? null);
+            $this->recordDisplayText($displayTexts, "skill:{$skill['key']}:description", $skill['description'] ?? null);
+
+            foreach (($skill['unlocks'] ?? []) as $level => $unlock) {
+                $this->recordDisplayText($displayTexts, "skill:{$skill['key']}:unlock:{$level}", $unlock);
+            }
+        }
+
+        $badDisplayTexts = collect($displayTexts)
+            ->filter(fn (string $text): bool => $this->isGeneratedSlopDisplayText($text))
+            ->all();
+
+        $this->assertSame([], $badDisplayTexts);
     }
 
     public function test_evergather_item_economy_has_coherent_sources_sinks_and_names(): void
@@ -725,6 +868,13 @@ class ConnectedRealmsGatheringTest extends TestCase
         $producedItems = [];
         $consumedItems = [];
         $itemNames = [];
+
+        foreach ($tools->families() as $family) {
+            $this->recordCatalogItemName($itemNames, [
+                'item_key' => $family['starter_item_key'],
+                'item_name' => $family['starter_item_name'],
+            ]);
+        }
 
         foreach ($catalogs['actions'] as $key => $action) {
             foreach ($action['loot'] as $item) {
@@ -820,11 +970,41 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->filter(fn (string $name): bool => $this->isPlaceholderItemName($name))
             ->values()
             ->all();
+        $displayNamesByKey = [];
+
+        foreach ($itemNames as $itemKey => $names) {
+            foreach (array_keys($names) as $name) {
+                $displayNamesByKey[$name][] = $itemKey;
+            }
+        }
+
+        $duplicateDisplayNames = collect($displayNamesByKey)
+            ->map(fn (array $keys): array => array_values(array_unique($keys)))
+            ->filter(fn (array $keys): bool => count($keys) > 1)
+            ->all();
+        $itemCatalog = app(ItemCatalogService::class);
+        $unclassifiedItems = collect($itemNames)
+            ->map(function (array $names, string $itemKey) use ($itemCatalog): array {
+                $payload = $itemCatalog->enrich([
+                    'item_key' => $itemKey,
+                    'item_name' => array_key_first($names),
+                ]);
+
+                return [
+                    'item_name' => $payload['item_name'],
+                    'item_class' => $payload['item_class'],
+                    'material_family' => $payload['material_family'],
+                ];
+            })
+            ->filter(fn (array $payload): bool => $payload['item_class'] === 'misc' || $payload['material_family'] === 'General')
+            ->all();
 
         $this->assertSame([], $missingSources);
         $this->assertSame([], $missingUses);
         $this->assertSame([], $conflictingNames);
         $this->assertSame([], $placeholderNames);
+        $this->assertSame([], $duplicateDisplayNames);
+        $this->assertSame([], $unclassifiedItems);
     }
 
     public function test_owned_orphan_items_unlock_meaningful_requisition_jobs(): void
@@ -984,7 +1164,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         ConnectedRealmsExpeditionRun::query()->create([
             'player_id' => $activePlayer->id,
             'expedition_key' => 'moonwake_supply_run',
-            'expedition_name' => 'Moonwake Supply Run',
+            'expedition_name' => 'Moonwake Provision Walk',
             'status' => 'completed',
             'supplies_consumed' => [],
             'items_awarded' => [],
@@ -1130,14 +1310,14 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('evergather.crafting.store'), ['recipe' => 'apprentice_pickaxe_craft'])
+            ->post(route('evergather.crafting.store'), ['recipe' => 'amberbound_stonebite_pickaxe_craft'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Apprentice Pickaxe crafted.');
+            ->assertSessionHas('success', 'Amberbound Stonebite Pickaxe crafted.');
 
         $this->assertDatabaseHas('connected_realms_equipment_slots', [
             'player_id' => $player->id,
             'slot' => 'tool_mining',
-            'item_key' => 'apprentice_pickaxe',
+            'item_key' => 'amberbound_stonebite_pickaxe',
             'rarity' => 'uncommon',
         ]);
         $this->assertDatabaseHas('connected_realms_player_skills', [
@@ -1157,9 +1337,9 @@ class ConnectedRealmsGatheringTest extends TestCase
         $player->forceFill(['gold' => 100])->save();
 
         $this->actingAs($user)
-            ->post(route('evergather.shop.purchases.store'), ['offer' => 'apprentice_pickaxe'])
+            ->post(route('evergather.shop.purchases.store'), ['offer' => 'amberbound_stonebite_pickaxe'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Apprentice Pickaxe purchased.');
+            ->assertSessionHas('success', 'Amberbound Stonebite Pickaxe purchased.');
 
         $player->refresh();
 
@@ -1167,22 +1347,22 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertDatabaseHas('connected_realms_equipment_slots', [
             'player_id' => $player->id,
             'slot' => 'tool_mining',
-            'item_key' => 'apprentice_pickaxe',
+            'item_key' => 'amberbound_stonebite_pickaxe',
         ]);
 
         $shopOffer = collect(app(ShopService::class)->snapshotFor($player->refresh())['offers'])
-            ->firstWhere('key', 'apprentice_pickaxe');
+            ->firstWhere('key', 'amberbound_stonebite_pickaxe');
 
         $this->assertTrue($shopOffer['is_equipped']);
         $this->assertFalse($shopOffer['can_buy']);
         $this->assertSame('Already equipped', $shopOffer['ownership_status']);
-        $this->assertSame('Apprentice Pickaxe', $shopOffer['current_tool']['item_name']);
+        $this->assertSame('Amberbound Stonebite Pickaxe', $shopOffer['current_tool']['item_name']);
 
         $player->forceFill(['gold' => 100])->save();
 
         $this->actingAs($user)
             ->from(route('evergather.index'))
-            ->post(route('evergather.shop.purchases.store'), ['offer' => 'apprentice_pickaxe'])
+            ->post(route('evergather.shop.purchases.store'), ['offer' => 'amberbound_stonebite_pickaxe'])
             ->assertRedirect(route('evergather.index'))
             ->assertSessionHasErrors('offer');
     }
@@ -1195,7 +1375,7 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         $this->actingAs($user)
             ->from(route('evergather.index'))
-            ->post(route('evergather.shop.purchases.store'), ['offer' => 'apprentice_pickaxe'])
+            ->post(route('evergather.shop.purchases.store'), ['offer' => 'amberbound_stonebite_pickaxe'])
             ->assertRedirect(route('evergather.index'))
             ->assertSessionHasErrors('offer');
 
@@ -1281,7 +1461,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->actingAs($user)
             ->post(route('evergather.expeditions.store'), ['expedition' => 'moonwake_supply_run'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Moonwake Supply Run resolved.');
+            ->assertSessionHas('success', 'Moonwake Provision Walk resolved.');
 
         $player->refresh();
 
@@ -1557,8 +1737,8 @@ class ConnectedRealmsGatheringTest extends TestCase
             'player_id' => $player->id,
             'slot' => 'tool_mining',
             'skill' => 'mining',
-            'item_key' => 'guild_pickaxe',
-            'item_name' => 'Guild Pickaxe',
+            'item_key' => 'prism_sighted_stonebite_pickaxe',
+            'item_name' => 'Prism-Sighted Stonebite Pickaxe',
             'rarity' => 'rare',
             'durability' => 100,
             'bonuses' => ['skill' => 'mining', 'experience' => 17, 'yield' => 3],
@@ -1575,7 +1755,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 'unit_price' => 400,
             ])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Guild Pickaxe listed.');
+            ->assertSessionHas('success', 'Prism-Sighted Stonebite Pickaxe listed.');
 
         $tool->refresh();
 
@@ -1584,7 +1764,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             'seller_player_id' => $player->id,
             'listing_type' => ConnectedRealmsMarketListing::TYPE_TOOL,
             'tool_id' => $tool->id,
-            'item_key' => 'guild_pickaxe',
+            'item_key' => 'prism_sighted_stonebite_pickaxe',
             'quantity' => 1,
             'unit_price' => 400,
             'status' => ConnectedRealmsMarketListing::STATUS_ACTIVE,
@@ -1612,8 +1792,8 @@ class ConnectedRealmsGatheringTest extends TestCase
             'player_id' => $seller->id,
             'slot' => 'tool_mining',
             'skill' => 'mining',
-            'item_key' => 'guild_pickaxe',
-            'item_name' => 'Guild Pickaxe',
+            'item_key' => 'prism_sighted_stonebite_pickaxe',
+            'item_name' => 'Prism-Sighted Stonebite Pickaxe',
             'rarity' => 'rare',
             'durability' => 100,
             'bonuses' => ['skill' => 'mining', 'experience' => 17, 'yield' => 3],
@@ -1637,7 +1817,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->actingAs($buyerUser)
             ->post(route('evergather.marketplace.listings.buy', $listing->id))
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Guild Pickaxe purchased.');
+            ->assertSessionHas('success', 'Prism-Sighted Stonebite Pickaxe purchased.');
 
         $seller->refresh();
         $buyer->refresh();
@@ -1649,7 +1829,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame($buyer->id, $tool->player_id);
         $this->assertSame(ConnectedRealmsTool::STATUS_INVENTORY, $tool->status);
         $this->assertSame(ConnectedRealmsMarketListing::STATUS_SOLD, $listing->status);
-        $this->assertSame(0, ConnectedRealmsInventoryStack::query()->where('player_id', $buyer->id)->where('item_key', 'guild_pickaxe')->count());
+        $this->assertSame(0, ConnectedRealmsInventoryStack::query()->where('player_id', $buyer->id)->where('item_key', 'prism_sighted_stonebite_pickaxe')->count());
         $this->assertDatabaseHas('connected_realms_market_transactions', [
             'listing_id' => $listing->id,
             'listing_type' => ConnectedRealmsMarketListing::TYPE_TOOL,
@@ -1711,7 +1891,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->assertRedirect(route('evergather.index'))
             ->assertSessionHas('connected_realms_result.type', 'tool_tier_upgrade')
             ->assertSessionHas('connected_realms_result.previous_item_name', 'Worn Pickaxe')
-            ->assertSessionHas('connected_realms_result.item_name', 'Apprentice Pickaxe');
+            ->assertSessionHas('connected_realms_result.item_name', 'Amberbound Stonebite Pickaxe');
 
         $equipment->refresh();
         $player->refresh();
@@ -1719,8 +1899,8 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         $this->assertSame($toolId, $equipment->tool_id);
         $this->assertSame($toolId, $tool->id);
-        $this->assertSame('apprentice_pickaxe', $tool->item_key);
-        $this->assertSame('Apprentice Pickaxe', $tool->item_name);
+        $this->assertSame('amberbound_stonebite_pickaxe', $tool->item_key);
+        $this->assertSame('Amberbound Stonebite Pickaxe', $tool->item_name);
         $this->assertSame('upgraded', $tool->origin);
         $this->assertSame(1, $tool->tier_level);
         $this->assertSame(1, $tool->tier_upgrade_count);
@@ -1752,8 +1932,8 @@ class ConnectedRealmsGatheringTest extends TestCase
             'player_id' => $player->id,
             'slot' => 'tool_mining',
             'skill' => 'mining',
-            'item_key' => 'guild_pickaxe',
-            'item_name' => 'Guild Pickaxe',
+            'item_key' => 'prism_sighted_stonebite_pickaxe',
+            'item_name' => 'Prism-Sighted Stonebite Pickaxe',
             'rarity' => 'rare',
             'durability' => 100,
             'bonuses' => ['skill' => 'mining', 'experience' => 17, 'yield' => 3],
@@ -1767,7 +1947,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 'tool_id' => $storedTool->id,
             ])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Guild Pickaxe equipped.')
+            ->assertSessionHas('success', 'Prism-Sighted Stonebite Pickaxe equipped.')
             ->assertSessionHas('connected_realms_result.type', 'tool_equip');
 
         $starterEquipment->refresh();
@@ -1775,7 +1955,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $starterTool = ConnectedRealmsTool::query()->findOrFail($starterToolId);
 
         $this->assertSame($storedTool->id, $starterEquipment->tool_id);
-        $this->assertSame('Guild Pickaxe', $starterEquipment->item_name);
+        $this->assertSame('Prism-Sighted Stonebite Pickaxe', $starterEquipment->item_name);
         $this->assertSame(ConnectedRealmsTool::STATUS_EQUIPPED, $storedTool->status);
         $this->assertSame(ConnectedRealmsTool::STATUS_INVENTORY, $starterTool->status);
     }
@@ -1791,8 +1971,8 @@ class ConnectedRealmsGatheringTest extends TestCase
             'player_id' => $player->id,
             'slot' => 'tool_mining',
             'skill' => 'mining',
-            'item_key' => 'guild_pickaxe',
-            'item_name' => 'Guild Pickaxe',
+            'item_key' => 'prism_sighted_stonebite_pickaxe',
+            'item_name' => 'Prism-Sighted Stonebite Pickaxe',
             'rarity' => 'rare',
             'durability' => 100,
             'bonuses' => ['skill' => 'mining', 'experience' => 17, 'yield' => 3],
@@ -1810,7 +1990,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 'slot' => 'tool_mining',
             ])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Guild Pickaxe unequipped.')
+            ->assertSessionHas('success', 'Prism-Sighted Stonebite Pickaxe unequipped.')
             ->assertSessionHas('connected_realms_result.type', 'tool_unequip');
 
         $equipment = ConnectedRealmsEquipmentSlot::query()
@@ -2052,7 +2232,45 @@ class ConnectedRealmsGatheringTest extends TestCase
         }
 
         $items[$itemKey][] = $source;
+        $this->recordCatalogItemName($itemNames, $item);
+    }
+
+    /**
+     * @param  array<string, array<string, true>>  $itemNames
+     * @param  array<string, mixed>  $item
+     */
+    private function recordCatalogItemName(array &$itemNames, array $item): void
+    {
+        $itemKey = $this->catalogItemKey($item);
+
+        if ($itemKey === '') {
+            return;
+        }
+
         $itemNames[$itemKey][$this->catalogItemName($item)] = true;
+    }
+
+    /**
+     * @param  array<string, string>  $displayTexts
+     */
+    private function recordDisplayText(array &$displayTexts, string $source, mixed $text): void
+    {
+        if (! is_string($text) || trim($text) === '') {
+            return;
+        }
+
+        $displayTexts[$source] = $text;
+    }
+
+    /**
+     * @param  array<string, string>  $displayTexts
+     * @param  list<array<string, mixed>>  $items
+     */
+    private function recordItemDisplayTexts(array &$displayTexts, string $source, array $items): void
+    {
+        foreach ($items as $index => $item) {
+            $this->recordDisplayText($displayTexts, "{$source}.{$index}", $item['item_name'] ?? $item['name'] ?? null);
+        }
     }
 
     /**
@@ -2075,9 +2293,49 @@ class ConnectedRealmsGatheringTest extends TestCase
     {
         $skillPattern = 'Fishing|Mining|Woodcutting|Foraging|Hunting|Farming|Excavation|Smelting|Milling|Tanning|Cutting|Weaving|Smithing|Carpentry|Cooking|Alchemy|Tailoring|Leatherworking|Engineering|Enchanting|Jewelcrafting|Boatbuilding|Furniture|Construction|Cartography|Trading';
 
+        $genericPrefixPattern = 'Starter|Apprentice|Guild|Journeyman|Artisan|Expert|Masterwork|Ascendant|Basic|Common|Uncommon|Rare|Epic|Legendary';
+
         return preg_match("/\\b({$skillPattern}) (Resource|Work)\\b/", $name) === 1
+            || preg_match("/^(?:{$genericPrefixPattern})\\b/", $name) === 1
             || preg_match('/\\b(Astral|Prismatic|Elder|Mythic|Runed|Evergather) \\1\\b/', $name) === 1
             || str_contains($name, 'Mythic Mythrite');
+    }
+
+    private function isGeneratedSlopDisplayText(string $text): bool
+    {
+        $legacyPrefix = 'Starter|Local|Apprentice|Guild|Runed|Storm|Elite|Elder|Mythic|Evergather';
+        $genericPhrase = 'Loop|Primer|Ledger Intake|Trade Writ Ledger|Broker Loop|Regional Trade Loop|Starter Trade Writ|Stamped Trade Writ|Price-Scratched Ledger Page';
+
+        return preg_match("/\\b(?:{$genericPhrase})\\b/", $text) === 1
+            || preg_match("/^(?:{$legacyPrefix})\\s+(?:[A-Z][A-Za-z-]+\\s+){0,3}(?:Activity|Contract|Commission|Intake|Ledger|Loop|Order|Primer|Route|Run|Shift|Task|Trial|Warrant|Work|Writ)\\b/", $text) === 1;
+    }
+
+    private function normalizedGeneratedName(string $name): string
+    {
+        $tierWords = [
+            'Candleline',
+            'Candlemark',
+            'Wayside',
+            'Moonwake',
+            'Hearthsign',
+            'Runebound',
+            'Stormglass',
+            'Highguild',
+            'Elderwake',
+            'Mythgate',
+            'Crownmark',
+            'Silverbank',
+            'Sablecross',
+            'Starline',
+            'Astral',
+            'Prismatic',
+            'Mythrite',
+            'Realmwake',
+        ];
+        $normalized = preg_replace('/\b(?:'.implode('|', $tierWords).')\b/', '', $name) ?? $name;
+        $normalized = preg_replace('/\s+/', ' ', trim($normalized)) ?? trim($normalized);
+
+        return str($normalized)->lower()->toString();
     }
 
     /**

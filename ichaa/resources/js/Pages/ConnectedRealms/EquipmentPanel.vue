@@ -187,7 +187,7 @@
                                 :disabled="inventoryForm.processing || entry.tool.origin === 'starter'"
                                 @click="unequipTool(entry.tool.slot)"
                             >
-                                {{ entry.tool.origin === 'starter' ? 'Starter' : 'Unequip' }}
+                                {{ entry.tool.origin === 'starter' ? 'Field Kit' : 'Unequip' }}
                             </button>
                         </div>
                     </article>

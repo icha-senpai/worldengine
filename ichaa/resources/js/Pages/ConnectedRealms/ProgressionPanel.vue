@@ -401,13 +401,13 @@ watch([selectedBoard, selectedCategory], () => {
     visibleLimit.value = boardPageSize
 })
 
-watch(claimableAchievements, (achievements) => {
-    if (achievements.length && selectedBoard.value === 'next') {
-        selectedBoard.value = 'ready'
+watch([claimableAchievements, lockedAchievements], () => {
+    if (!claimableAchievements.value.length && lockedAchievements.value.length && selectedBoard.value === 'ready') {
+        selectedBoard.value = 'next'
     }
 
-    if (!achievements.length && selectedBoard.value === 'ready') {
-        selectedBoard.value = 'next'
+    if (!lockedAchievements.value.length && claimableAchievements.value.length && selectedBoard.value === 'next') {
+        selectedBoard.value = 'ready'
     }
 }, { immediate: true })
 

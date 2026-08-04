@@ -585,7 +585,7 @@ class ConnectedRealmsPlayerService
         $equipment = $this->starterEquipmentForSlot($slot);
 
         if ($equipment === null) {
-            throw new \InvalidArgumentException("{$slot} does not have an Evergather starter tool.");
+            throw new \InvalidArgumentException("{$slot} does not have an Evergather field kit tool.");
         }
 
         $starterTool = ConnectedRealmsTool::query()
@@ -945,12 +945,12 @@ class ConnectedRealmsPlayerService
             return self::STARTER_EQUIPMENT[$family['slot']];
         }
 
-        $itemName = "Starter {$family['noun']}";
+        $itemName = (string) ($family['starter_item_name'] ?? "{$family['line']} {$family['noun']}");
 
         return [
             'slot_label' => "{$family['label']} Tool",
             'skill' => $family['skill'],
-            'item_key' => str($itemName)->slug('_')->toString(),
+            'item_key' => (string) ($family['starter_item_key'] ?? str($itemName)->slug('_')->toString()),
             'item_name' => $itemName,
             'rarity' => 'common',
             'durability' => 100,
@@ -1041,7 +1041,7 @@ class ConnectedRealmsPlayerService
         $rows = [];
 
         foreach ($actions as $action) {
-            $rows[$action['skill']][] = $this->activityRow('Resource Run', $action);
+            $rows[$action['skill']][] = $this->activityRow('Gathering Board', $action);
         }
 
         foreach ($activities as $activity) {
@@ -1074,11 +1074,13 @@ class ConnectedRealmsPlayerService
      */
     private function activityRow(string $type, array $entry): array
     {
+        $requiredLevel = (int) ($entry['required_level'] ?? 1);
+
         return [
             'type' => $type,
             'label' => $entry['label'],
-            'required_level' => (int) ($entry['required_level'] ?? 1),
-            'unlocked' => (bool) ($entry['is_unlocked'] ?? true),
+            'required_level' => $requiredLevel,
+            'unlocked' => (bool) ($entry['is_unlocked'] ?? $requiredLevel <= 1),
         ];
     }
 

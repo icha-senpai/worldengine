@@ -5,29 +5,32 @@ namespace App\Domain\ConnectedRealms\Services;
 class ToolCatalogService
 {
     /**
-     * @return array<string, array{label: string, noun: string, slot: string, skill: string, craft: string, base: string, base_name: string, starter_item_key?: string, starter_item_name?: string}>
+     * @return array<string, array{label: string, noun: string, line: string, slot: string, skill: string, craft: string, base: string, base_name: string, starter_item_key?: string, starter_item_name?: string}>
      */
     public function families(): array
     {
         $families = [
-            'fishing' => ['label' => 'Fishing', 'noun' => 'Rod', 'slot' => 'tool_fishing', 'skill' => 'fishing', 'craft' => 'carpentry', 'base' => 'ashwood_plank', 'base_name' => 'Ashwood Plank'],
-            'mining' => ['label' => 'Mining', 'noun' => 'Pickaxe', 'slot' => 'tool_mining', 'skill' => 'mining', 'craft' => 'smithing', 'base' => 'iron_bar', 'base_name' => 'Iron Bar'],
-            'woodcutting' => ['label' => 'Woodcutting', 'noun' => 'Hatchet', 'slot' => 'tool_woodcutting', 'skill' => 'woodcutting', 'craft' => 'smithing', 'base' => 'iron_bar', 'base_name' => 'Iron Bar'],
-            'foraging' => ['label' => 'Foraging', 'noun' => 'Satchel', 'slot' => 'tool_foraging', 'skill' => 'foraging', 'craft' => 'tailoring', 'base' => 'fiber_thread', 'base_name' => 'Fiber Thread'],
-            'hunting' => ['label' => 'Hunting', 'noun' => 'Trap Kit', 'slot' => 'tool_hunting', 'skill' => 'hunting', 'craft' => 'leatherworking', 'base' => 'cured_leather', 'base_name' => 'Cured Leather'],
-            'farming' => ['label' => 'Farming', 'noun' => 'Cultivator', 'slot' => 'tool_farming', 'skill' => 'farming', 'craft' => 'engineering', 'base' => 'clockwork_spring', 'base_name' => 'Clockwork Spring'],
-            'excavation' => ['label' => 'Excavation', 'noun' => 'Survey Trowel', 'slot' => 'tool_excavation', 'skill' => 'excavation', 'craft' => 'engineering', 'base' => 'relic_fragment', 'base_name' => 'Relic Fragment'],
+            'fishing' => ['label' => 'Fishing', 'noun' => 'Rod', 'line' => 'Tidehook', 'slot' => 'tool_fishing', 'skill' => 'fishing', 'craft' => 'carpentry', 'base' => 'ashwood_plank', 'base_name' => 'Ashwood Plank', 'starter_item_key' => 'reed_rod', 'starter_item_name' => 'Reed Rod'],
+            'mining' => ['label' => 'Mining', 'noun' => 'Pickaxe', 'line' => 'Stonebite', 'slot' => 'tool_mining', 'skill' => 'mining', 'craft' => 'smithing', 'base' => 'iron_bar', 'base_name' => 'Iron Bar', 'starter_item_key' => 'worn_pickaxe', 'starter_item_name' => 'Worn Pickaxe'],
+            'woodcutting' => ['label' => 'Woodcutting', 'noun' => 'Hatchet', 'line' => 'Boughsplitter', 'slot' => 'tool_woodcutting', 'skill' => 'woodcutting', 'craft' => 'smithing', 'base' => 'iron_bar', 'base_name' => 'Iron Bar', 'starter_item_key' => 'trail_hatchet', 'starter_item_name' => 'Trail Hatchet'],
+            'foraging' => ['label' => 'Foraging', 'noun' => 'Satchel', 'line' => 'Mosskeeper', 'slot' => 'tool_foraging', 'skill' => 'foraging', 'craft' => 'tailoring', 'base' => 'fiber_thread', 'base_name' => 'Fiber Thread', 'starter_item_key' => 'woven_satchel', 'starter_item_name' => 'Woven Satchel'],
+            'hunting' => ['label' => 'Hunting', 'noun' => 'Trap Kit', 'line' => 'Snarefang', 'slot' => 'tool_hunting', 'skill' => 'hunting', 'craft' => 'leatherworking', 'base' => 'cured_leather', 'base_name' => 'Cured Leather', 'starter_item_key' => 'snare_kit', 'starter_item_name' => 'Snare Kit'],
+            'farming' => ['label' => 'Farming', 'noun' => 'Cultivator', 'line' => 'Seedwake', 'slot' => 'tool_farming', 'skill' => 'farming', 'craft' => 'engineering', 'base' => 'clockwork_spring', 'base_name' => 'Clockwork Spring', 'starter_item_key' => 'seed_spade', 'starter_item_name' => 'Seed Spade'],
+            'excavation' => ['label' => 'Excavation', 'noun' => 'Survey Trowel', 'line' => 'Relicprobe', 'slot' => 'tool_excavation', 'skill' => 'excavation', 'craft' => 'engineering', 'base' => 'relic_fragment', 'base_name' => 'Relic Fragment', 'starter_item_key' => 'field_trowel', 'starter_item_name' => 'Field Trowel'],
         ];
 
         foreach ($this->professionalFamilies() as $skill => $family) {
             $families[$skill] = [
                 'label' => $family['label'],
                 'noun' => $family['noun'],
+                'line' => $family['line'],
                 'slot' => "tool_{$skill}",
                 'skill' => $skill,
                 'craft' => $family['craft'],
                 'base' => $family['base'],
                 'base_name' => $family['base_name'],
+                'starter_item_key' => str($family['starter_item_name'])->slug('_')->toString(),
+                'starter_item_name' => $family['starter_item_name'],
             ];
         }
 
@@ -35,22 +38,50 @@ class ToolCatalogService
     }
 
     /**
-     * @return list<array{prefix: string, rarity: string, level: int, xp: int, experience_bonus: int, yield_bonus: int, gold_cost: int, extra: array{item_key: string, item_name: string, quantity: int}|null}>
+     * @return list<array{name_mark: string, rarity: string, level: int, xp: int, experience_bonus: int, yield_bonus: int, gold_cost: int, extra: array{item_key: string, item_name: string, quantity: int}|null}>
      */
     public function tierPath(): array
     {
         return [
-            ['prefix' => 'Apprentice', 'rarity' => 'uncommon', 'level' => 1, 'xp' => 44, 'experience_bonus' => 9, 'yield_bonus' => 2, 'gold_cost' => 35, 'extra' => ['item_key' => 'amber_sap', 'item_name' => 'Amber Sap', 'quantity' => 1]],
-            ['prefix' => 'Guild', 'rarity' => 'rare', 'level' => 20, 'xp' => 86, 'experience_bonus' => 17, 'yield_bonus' => 3, 'gold_cost' => 90, 'extra' => ['item_key' => 'prism_lens', 'item_name' => 'Prism Lens', 'quantity' => 1]],
-            ['prefix' => 'Journeyman', 'rarity' => 'rare', 'level' => 25, 'xp' => 98, 'experience_bonus' => 19, 'yield_bonus' => 3, 'gold_cost' => 120, 'extra' => null],
-            ['prefix' => 'Artisan', 'rarity' => 'rare', 'level' => 30, 'xp' => 112, 'experience_bonus' => 22, 'yield_bonus' => 4, 'gold_cost' => 160, 'extra' => null],
-            ['prefix' => 'Expert', 'rarity' => 'epic', 'level' => 35, 'xp' => 124, 'experience_bonus' => 24, 'yield_bonus' => 4, 'gold_cost' => 210, 'extra' => null],
-            ['prefix' => 'Runed', 'rarity' => 'epic', 'level' => 40, 'xp' => 132, 'experience_bonus' => 26, 'yield_bonus' => 5, 'gold_cost' => 260, 'extra' => null],
-            ['prefix' => 'Crown', 'rarity' => 'epic', 'level' => 45, 'xp' => 140, 'experience_bonus' => 27, 'yield_bonus' => 5, 'gold_cost' => 330, 'extra' => null],
-            ['prefix' => 'Masterwork', 'rarity' => 'epic', 'level' => 50, 'xp' => 146, 'experience_bonus' => 28, 'yield_bonus' => 5, 'gold_cost' => 420, 'extra' => ['item_key' => 'star_metal_ingot', 'item_name' => 'Star Metal Ingot', 'quantity' => 1]],
-            ['prefix' => 'Mythic', 'rarity' => 'epic', 'level' => 75, 'xp' => 220, 'experience_bonus' => 42, 'yield_bonus' => 7, 'gold_cost' => 780, 'extra' => null],
-            ['prefix' => 'Ascendant', 'rarity' => 'legendary', 'level' => 100, 'xp' => 340, 'experience_bonus' => 65, 'yield_bonus' => 10, 'gold_cost' => 1400, 'extra' => null],
+            ['name_mark' => 'Amberbound', 'rarity' => 'uncommon', 'level' => 1, 'xp' => 44, 'experience_bonus' => 9, 'yield_bonus' => 2, 'gold_cost' => 35, 'extra' => ['item_key' => 'amber_sap', 'item_name' => 'Amber Sap', 'quantity' => 1]],
+            ['name_mark' => 'Prism-Sighted', 'rarity' => 'rare', 'level' => 20, 'xp' => 86, 'experience_bonus' => 17, 'yield_bonus' => 3, 'gold_cost' => 90, 'extra' => ['item_key' => 'prism_lens', 'item_name' => 'Prism Lens', 'quantity' => 1]],
+            ['name_mark' => 'Steelbound', 'rarity' => 'rare', 'level' => 25, 'xp' => 98, 'experience_bonus' => 19, 'yield_bonus' => 3, 'gold_cost' => 120, 'extra' => null],
+            ['name_mark' => 'Moon-Graven', 'rarity' => 'rare', 'level' => 30, 'xp' => 112, 'experience_bonus' => 22, 'yield_bonus' => 4, 'gold_cost' => 160, 'extra' => null],
+            ['name_mark' => 'Stormglass', 'rarity' => 'epic', 'level' => 35, 'xp' => 124, 'experience_bonus' => 24, 'yield_bonus' => 4, 'gold_cost' => 210, 'extra' => null],
+            ['name_mark' => 'Glyphline', 'rarity' => 'epic', 'level' => 40, 'xp' => 132, 'experience_bonus' => 26, 'yield_bonus' => 5, 'gold_cost' => 260, 'extra' => null],
+            ['name_mark' => 'Crownsteel', 'rarity' => 'epic', 'level' => 45, 'xp' => 140, 'experience_bonus' => 27, 'yield_bonus' => 5, 'gold_cost' => 330, 'extra' => null],
+            ['name_mark' => 'Star-Metal', 'rarity' => 'epic', 'level' => 50, 'xp' => 146, 'experience_bonus' => 28, 'yield_bonus' => 5, 'gold_cost' => 420, 'extra' => ['item_key' => 'star_metal_ingot', 'item_name' => 'Star Metal Ingot', 'quantity' => 1]],
+            ['name_mark' => 'Mythrite', 'rarity' => 'epic', 'level' => 75, 'xp' => 220, 'experience_bonus' => 42, 'yield_bonus' => 7, 'gold_cost' => 780, 'extra' => null],
+            ['name_mark' => 'Realmwake', 'rarity' => 'legendary', 'level' => 100, 'xp' => 340, 'experience_bonus' => 65, 'yield_bonus' => 10, 'gold_cost' => 1400, 'extra' => null],
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $family
+     * @param  array<string, mixed>  $tier
+     */
+    public function tierToolName(array $family, array $tier): string
+    {
+        $tierRole = match ($tier['name_mark']) {
+            'Mythrite' => 'Deepreach',
+            'Realmwake' => 'Crownwake',
+            default => null,
+        };
+
+        if ($tierRole !== null) {
+            return "{$tier['name_mark']} {$tierRole} {$family['line']} {$family['noun']}";
+        }
+
+        return "{$tier['name_mark']} {$family['line']} {$family['noun']}";
+    }
+
+    /**
+     * @param  array<string, mixed>  $family
+     * @param  array<string, mixed>  $tier
+     */
+    public function tierToolKey(array $family, array $tier): string
+    {
+        return str($this->tierToolName($family, $tier))->slug('_')->toString();
     }
 
     /**
@@ -117,42 +148,42 @@ class ToolCatalogService
     }
 
     /**
-     * @return array<string, array{label: string, noun: string, craft: string, base: string, base_name: string}>
+     * @return array<string, array{label: string, noun: string, line: string, craft: string, base: string, base_name: string, starter_item_name: string}>
      */
     private function professionalFamilies(): array
     {
         return [
-            'smelting' => ['label' => 'Smelting', 'noun' => 'Crucible', 'craft' => 'smelting', 'base' => 'coal_chunk', 'base_name' => 'Coal Chunk'],
-            'milling' => ['label' => 'Milling', 'noun' => 'Plane', 'craft' => 'milling', 'base' => 'ashwood_log', 'base_name' => 'Ashwood Log'],
-            'tanning' => ['label' => 'Tanning', 'noun' => 'Curing Rack', 'craft' => 'tanning', 'base' => 'soft_hide', 'base_name' => 'Soft Hide'],
-            'cutting' => ['label' => 'Gem Cutting', 'noun' => 'Lapidary Kit', 'craft' => 'cutting', 'base' => 'rough_gem', 'base_name' => 'Rough Gem'],
-            'weaving' => ['label' => 'Weaving', 'noun' => 'Loom Shuttle', 'craft' => 'weaving', 'base' => 'fiber_thread', 'base_name' => 'Fiber Thread'],
-            'smithing' => ['label' => 'Smithing', 'noun' => 'Hammer', 'craft' => 'smithing', 'base' => 'iron_bar', 'base_name' => 'Iron Bar'],
-            'carpentry' => ['label' => 'Carpentry', 'noun' => 'Carving Kit', 'craft' => 'carpentry', 'base' => 'ashwood_plank', 'base_name' => 'Ashwood Plank'],
-            'cooking' => ['label' => 'Cooking', 'noun' => 'Cook Kit', 'craft' => 'cooking', 'base' => 'sunfield_grain', 'base_name' => 'Sunfield Grain'],
-            'alchemy' => ['label' => 'Alchemy', 'noun' => 'Alembic', 'craft' => 'alchemy', 'base' => 'mooncap_mushroom', 'base_name' => 'Mooncap Mushroom'],
-            'tailoring' => ['label' => 'Tailoring', 'noun' => 'Needle Kit', 'craft' => 'tailoring', 'base' => 'fiber_thread', 'base_name' => 'Fiber Thread'],
-            'leatherworking' => ['label' => 'Leatherworking', 'noun' => 'Awl Kit', 'craft' => 'leatherworking', 'base' => 'cured_leather', 'base_name' => 'Cured Leather'],
-            'engineering' => ['label' => 'Engineering', 'noun' => 'Caliper Set', 'craft' => 'engineering', 'base' => 'clockwork_spring', 'base_name' => 'Clockwork Spring'],
-            'enchanting' => ['label' => 'Enchanting', 'noun' => 'Rune Focus', 'craft' => 'enchanting', 'base' => 'minor_ward_oil', 'base_name' => 'Minor Ward Oil'],
-            'jewelcrafting' => ['label' => 'Jewelcrafting', 'noun' => 'Setting Kit', 'craft' => 'jewelcrafting', 'base' => 'polished_gem', 'base_name' => 'Polished Gem'],
-            'boatbuilding' => ['label' => 'Boatbuilding', 'noun' => 'Shipwright Kit', 'craft' => 'boatbuilding', 'base' => 'skiff_rib', 'base_name' => 'Skiff Rib'],
-            'furniture' => ['label' => 'Furniture Crafting', 'noun' => 'Finishing Kit', 'craft' => 'furniture', 'base' => 'trophy_stand', 'base_name' => 'Trophy Stand'],
-            'construction' => ['label' => 'Construction', 'noun' => 'Builder Kit', 'craft' => 'construction', 'base' => 'repair_scaffold', 'base_name' => 'Repair Scaffold'],
-            'combat' => ['label' => 'Combat', 'noun' => 'Blade', 'craft' => 'smithing', 'base' => 'iron_knife', 'base_name' => 'Iron Knife'],
-            'slayer' => ['label' => 'Slayer', 'noun' => 'Bounty Kit', 'craft' => 'leatherworking', 'base' => 'marked_trophy_bone', 'base_name' => 'Marked Trophy Bone'],
-            'defense' => ['label' => 'Defense', 'noun' => 'Shield Kit', 'craft' => 'smithing', 'base' => 'iron_fittings', 'base_name' => 'Iron Fittings'],
-            'healing' => ['label' => 'Healing', 'noun' => 'Medic Kit', 'craft' => 'alchemy', 'base' => 'field_tonic', 'base_name' => 'Field Tonic'],
-            'magic' => ['label' => 'Magic', 'noun' => 'Spell Focus', 'craft' => 'enchanting', 'base' => 'ember_charm', 'base_name' => 'Ember Charm'],
-            'ranged' => ['label' => 'Ranged', 'noun' => 'Bow Kit', 'craft' => 'carpentry', 'base' => 'trail_bow', 'base_name' => 'Trail Bow'],
-            'exploration' => ['label' => 'Exploration', 'noun' => 'Scout Kit', 'craft' => 'cartography', 'base' => 'route_map', 'base_name' => 'Route Map'],
-            'dungeoneering' => ['label' => 'Dungeoneering', 'noun' => 'Delver Kit', 'craft' => 'cartography', 'base' => 'dungeon_chart', 'base_name' => 'Dungeon Chart'],
-            'sailing' => ['label' => 'Sailing', 'noun' => 'Navigator Kit', 'craft' => 'boatbuilding', 'base' => 'skiff_rib', 'base_name' => 'Skiff Rib'],
-            'survival' => ['label' => 'Survival', 'noun' => 'Camp Kit', 'craft' => 'cooking', 'base' => 'hunter_ration', 'base_name' => 'Hunter Ration'],
-            'cartography' => ['label' => 'Cartography', 'noun' => 'Map Case', 'craft' => 'cartography', 'base' => 'route_map', 'base_name' => 'Route Map'],
-            'reputation' => ['label' => 'Reputation', 'noun' => 'Envoy Ledger', 'craft' => 'trading', 'base' => 'trade_manifest', 'base_name' => 'Trade Manifest'],
-            'leadership' => ['label' => 'Leadership', 'noun' => 'Command Banner', 'craft' => 'tailoring', 'base' => 'trade_manifest', 'base_name' => 'Trade Manifest'],
-            'trading' => ['label' => 'Trading', 'noun' => 'Ledger', 'craft' => 'trading', 'base' => 'trade_manifest', 'base_name' => 'Trade Manifest'],
+            'smelting' => ['label' => 'Smelting', 'noun' => 'Crucible', 'line' => 'Coalbed', 'craft' => 'smelting', 'base' => 'coal_chunk', 'base_name' => 'Coal Chunk', 'starter_item_name' => 'Coalbed Crucible'],
+            'milling' => ['label' => 'Milling', 'noun' => 'Hand Plane', 'line' => 'Whisperplane', 'craft' => 'milling', 'base' => 'ashwood_log', 'base_name' => 'Ashwood Log', 'starter_item_name' => 'Ashwood Hand Plane'],
+            'tanning' => ['label' => 'Tanning', 'noun' => 'Curing Rack', 'line' => 'Briarhide', 'craft' => 'tanning', 'base' => 'soft_hide', 'base_name' => 'Soft Hide', 'starter_item_name' => 'Briarhide Curing Rack'],
+            'cutting' => ['label' => 'Gem Cutting', 'noun' => 'Lapidary Kit', 'line' => 'Prismfacet', 'craft' => 'cutting', 'base' => 'rough_gem', 'base_name' => 'Rough Gem', 'starter_item_name' => 'Prismdust Lapidary Kit'],
+            'weaving' => ['label' => 'Weaving', 'noun' => 'Loom Shuttle', 'line' => 'Sunshuttle', 'craft' => 'weaving', 'base' => 'fiber_thread', 'base_name' => 'Fiber Thread', 'starter_item_name' => 'Sunfield Loom Shuttle'],
+            'smithing' => ['label' => 'Smithing', 'noun' => 'Hammer', 'line' => 'Ironhand', 'craft' => 'smithing', 'base' => 'iron_bar', 'base_name' => 'Iron Bar', 'starter_item_name' => 'Ironhand Hammer'],
+            'carpentry' => ['label' => 'Carpentry', 'noun' => 'Carving Kit', 'line' => 'Dovetail', 'craft' => 'carpentry', 'base' => 'ashwood_plank', 'base_name' => 'Ashwood Plank', 'starter_item_name' => 'Ashwood Carving Kit'],
+            'cooking' => ['label' => 'Cooking', 'noun' => 'Cook Kit', 'line' => 'Hearthgrain', 'craft' => 'cooking', 'base' => 'sunfield_grain', 'base_name' => 'Sunfield Grain', 'starter_item_name' => 'Hearthgrain Cook Kit'],
+            'alchemy' => ['label' => 'Alchemy', 'noun' => 'Alembic', 'line' => 'Mooncap', 'craft' => 'alchemy', 'base' => 'mooncap_mushroom', 'base_name' => 'Mooncap Mushroom', 'starter_item_name' => 'Mooncap Alembic'],
+            'tailoring' => ['label' => 'Tailoring', 'noun' => 'Needle Kit', 'line' => 'Threadneedle', 'craft' => 'tailoring', 'base' => 'fiber_thread', 'base_name' => 'Fiber Thread', 'starter_item_name' => 'Threadneedle Kit'],
+            'leatherworking' => ['label' => 'Leatherworking', 'noun' => 'Awl Kit', 'line' => 'Hideworn', 'craft' => 'leatherworking', 'base' => 'cured_leather', 'base_name' => 'Cured Leather', 'starter_item_name' => 'Hideworn Awl Kit'],
+            'engineering' => ['label' => 'Engineering', 'noun' => 'Caliper Set', 'line' => 'Clockwork', 'craft' => 'engineering', 'base' => 'clockwork_spring', 'base_name' => 'Clockwork Spring', 'starter_item_name' => 'Clockwork Caliper Set'],
+            'enchanting' => ['label' => 'Enchanting', 'noun' => 'Rune Focus', 'line' => 'Emberrune', 'craft' => 'enchanting', 'base' => 'minor_ward_oil', 'base_name' => 'Minor Ward Oil', 'starter_item_name' => 'Ember Rune Focus'],
+            'jewelcrafting' => ['label' => 'Jewelcrafting', 'noun' => 'Setting Kit', 'line' => 'Beadlight', 'craft' => 'jewelcrafting', 'base' => 'polished_gem', 'base_name' => 'Polished Gem', 'starter_item_name' => 'Beadlight Setting Kit'],
+            'boatbuilding' => ['label' => 'Boatbuilding', 'noun' => 'Shipwright Kit', 'line' => 'Skiffwright', 'craft' => 'boatbuilding', 'base' => 'skiff_rib', 'base_name' => 'Skiff Rib', 'starter_item_name' => 'Skiffwright Ship Kit'],
+            'furniture' => ['label' => 'Furniture Crafting', 'noun' => 'Finishing Kit', 'line' => 'Hearthwood', 'craft' => 'furniture', 'base' => 'trophy_stand', 'base_name' => 'Trophy Stand', 'starter_item_name' => 'Hearthwood Finishing Kit'],
+            'construction' => ['label' => 'Construction', 'noun' => 'Builder Kit', 'line' => 'Plumbline', 'craft' => 'construction', 'base' => 'repair_scaffold', 'base_name' => 'Repair Scaffold', 'starter_item_name' => 'Plumbline Builder Kit'],
+            'combat' => ['label' => 'Combat', 'noun' => 'Blade', 'line' => 'Ironmark', 'craft' => 'smithing', 'base' => 'iron_knife', 'base_name' => 'Iron Knife', 'starter_item_name' => 'Ironmark Blade'],
+            'slayer' => ['label' => 'Slayer', 'noun' => 'Bounty Kit', 'line' => 'Redfang', 'craft' => 'leatherworking', 'base' => 'marked_trophy_bone', 'base_name' => 'Marked Trophy Bone', 'starter_item_name' => 'Redfang Bounty Kit'],
+            'defense' => ['label' => 'Defense', 'noun' => 'Shield Kit', 'line' => 'Rivetguard', 'craft' => 'smithing', 'base' => 'iron_fittings', 'base_name' => 'Iron Fittings', 'starter_item_name' => 'Rivetguard Shield Kit'],
+            'healing' => ['label' => 'Healing', 'noun' => 'Medic Kit', 'line' => 'Fieldglass', 'craft' => 'alchemy', 'base' => 'field_tonic', 'base_name' => 'Field Tonic', 'starter_item_name' => 'Fieldglass Medic Kit'],
+            'magic' => ['label' => 'Magic', 'noun' => 'Spell Focus', 'line' => 'Emberglow', 'craft' => 'enchanting', 'base' => 'ember_charm', 'base_name' => 'Ember Charm', 'starter_item_name' => 'Emberglow Spell Focus'],
+            'ranged' => ['label' => 'Ranged', 'noun' => 'Bow Kit', 'line' => 'Trailstring', 'craft' => 'carpentry', 'base' => 'trail_bow', 'base_name' => 'Trail Bow', 'starter_item_name' => 'Trailstring Bow Kit'],
+            'exploration' => ['label' => 'Exploration', 'noun' => 'Scout Kit', 'line' => 'Wayfinder', 'craft' => 'cartography', 'base' => 'route_map', 'base_name' => 'Route Map', 'starter_item_name' => 'Wayfinder Scout Kit'],
+            'dungeoneering' => ['label' => 'Dungeoneering', 'noun' => 'Delver Kit', 'line' => 'Deepmark', 'craft' => 'cartography', 'base' => 'dungeon_chart', 'base_name' => 'Dungeon Chart', 'starter_item_name' => 'Deepmark Delver Kit'],
+            'sailing' => ['label' => 'Sailing', 'noun' => 'Navigator Kit', 'line' => 'Tidechart', 'craft' => 'boatbuilding', 'base' => 'skiff_rib', 'base_name' => 'Skiff Rib', 'starter_item_name' => 'Tidechart Navigator Kit'],
+            'survival' => ['label' => 'Survival', 'noun' => 'Camp Kit', 'line' => 'Ashcamp', 'craft' => 'cooking', 'base' => 'hunter_ration', 'base_name' => 'Hunter Ration', 'starter_item_name' => 'Ashcamp Camp Kit'],
+            'cartography' => ['label' => 'Cartography', 'noun' => 'Map Case', 'line' => 'Ridgepath', 'craft' => 'cartography', 'base' => 'route_map', 'base_name' => 'Route Map', 'starter_item_name' => 'Ridgepath Map Case'],
+            'reputation' => ['label' => 'Reputation', 'noun' => 'Envoy Ledger', 'line' => 'Councilmark', 'craft' => 'trading', 'base' => 'trade_manifest', 'base_name' => 'Trade Manifest', 'starter_item_name' => 'Council Envoy Ledger'],
+            'leadership' => ['label' => 'Leadership', 'noun' => 'Command Banner', 'line' => 'Warcall', 'craft' => 'tailoring', 'base' => 'trade_manifest', 'base_name' => 'Trade Manifest', 'starter_item_name' => 'Warcall Command Banner'],
+            'trading' => ['label' => 'Trading', 'noun' => 'Ledger', 'line' => 'Marketseal', 'craft' => 'trading', 'base' => 'trade_manifest', 'base_name' => 'Trade Manifest', 'starter_item_name' => 'Marketseal Ledger'],
         ];
     }
 }

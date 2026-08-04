@@ -226,12 +226,12 @@ watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
 
-watch(readyRecipes, (recipes) => {
-    if (!recipes.length && selectedBoard.value === 'ready') {
+watch([readyRecipes, prepareRecipes], () => {
+    if (!readyRecipes.value.length && prepareRecipes.value.length && selectedBoard.value === 'ready') {
         selectedBoard.value = 'prepare'
     }
 
-    if (recipes.length && selectedBoard.value === 'prepare') {
+    if (!prepareRecipes.value.length && readyRecipes.value.length && selectedBoard.value === 'prepare') {
         selectedBoard.value = 'ready'
     }
 }, { immediate: true })

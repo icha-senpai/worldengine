@@ -22,10 +22,10 @@ class ConnectedRealmsSimulationTest extends TestCase
         $this->assertArrayHasKey('kye', $summary['personas']);
         $this->assertGreaterThan(20, $summary['personas']['rico']['actions_completed']);
         $this->assertGreaterThan(20, $summary['personas']['kye']['actions_completed']);
-        $this->assertContains('Apprentice Rod', $summary['personas']['rico']['tools_bought']);
-        $this->assertContains('Apprentice Cultivator', $summary['personas']['rico']['tools_bought']);
-        $this->assertContains('Apprentice Trap Kit', $summary['personas']['kye']['tools_bought']);
-        $this->assertContains('Apprentice Satchel', $summary['personas']['kye']['tools_bought']);
+        $this->assertContains('Amberbound Tidehook Rod', $summary['personas']['rico']['tools_bought']);
+        $this->assertContains('Amberbound Seedwake Cultivator', $summary['personas']['rico']['tools_bought']);
+        $this->assertContains('Amberbound Snarefang Trap Kit', $summary['personas']['kye']['tools_bought']);
+        $this->assertContains('Amberbound Mosskeeper Satchel', $summary['personas']['kye']['tools_bought']);
         $this->assertGreaterThanOrEqual(3, count($summary['personas']['rico']['active_listings']));
         $this->assertGreaterThanOrEqual(3, count($summary['personas']['kye']['active_listings']));
 
@@ -60,22 +60,22 @@ class ConnectedRealmsSimulationTest extends TestCase
         $this->assertDatabaseHas('connected_realms_equipment_slots', [
             'player_id' => $rico->id,
             'slot' => 'tool_fishing',
-            'item_key' => 'apprentice_rod',
+            'item_key' => 'amberbound_tidehook_rod',
         ]);
         $this->assertDatabaseHas('connected_realms_equipment_slots', [
             'player_id' => $rico->id,
             'slot' => 'tool_farming',
-            'item_key' => 'apprentice_cultivator',
+            'item_key' => 'amberbound_seedwake_cultivator',
         ]);
         $this->assertDatabaseHas('connected_realms_equipment_slots', [
             'player_id' => $kye->id,
             'slot' => 'tool_hunting',
-            'item_key' => 'apprentice_trap_kit',
+            'item_key' => 'amberbound_snarefang_trap_kit',
         ]);
         $this->assertDatabaseHas('connected_realms_equipment_slots', [
             'player_id' => $kye->id,
             'slot' => 'tool_foraging',
-            'item_key' => 'apprentice_satchel',
+            'item_key' => 'amberbound_mosskeeper_satchel',
         ]);
 
         $this->assertGreaterThanOrEqual(3, ConnectedRealmsMarketListing::query()

@@ -9,12 +9,12 @@ class GeneratedItemNameService
      */
     private const MIDGAME_GATHERING_RESOURCES = [
         'fishing' => [20 => 'Lantern Tuna', 25 => 'Sable Crab', 30 => 'Moonwake Cod', 35 => 'Stormfin Pike', 40 => 'Glassfin Ray'],
-        'mining' => [20 => 'Silver Ore', 25 => 'Cobalt Ore', 30 => 'Runed Iron Ore', 35 => 'Basalt Core', 40 => 'Crystalized Flux'],
-        'woodcutting' => [20 => 'Silverbough Log', 25 => 'Cedarheart Log', 30 => 'Runed Branch', 35 => 'Ironwood Log', 40 => 'Amberheart Log'],
-        'foraging' => [20 => 'Silverleaf Herb', 25 => 'Sablecap Mushroom', 30 => 'Runed Bitterroot', 35 => 'Moonspike Herb', 40 => 'Stormbloom'],
-        'hunting' => [20 => 'Stag Hide', 25 => 'Ridgeback Meat', 30 => 'Runed Sinew', 35 => 'Direwolf Hide', 40 => 'Stormclaw Bone'],
-        'farming' => [20 => 'Silvergrain', 25 => 'Sable Bean', 30 => 'Runed Flax', 35 => 'Moonroot Crop', 40 => 'Stormfruit'],
-        'excavation' => [20 => 'Silver Relic Shard', 25 => 'Sable Pottery', 30 => 'Runed Tablet', 35 => 'Moon Gate Fragment', 40 => 'Storm Vault Relic'],
+        'mining' => [20 => 'Silver Ore', 25 => 'Sable Cobalt Veinstone', 30 => 'Runevein Iron Ore', 35 => 'Basalt Core', 40 => 'Crystalized Flux'],
+        'woodcutting' => [20 => 'Silverbough Log', 25 => 'Cedarheart Log', 30 => 'Runevein Branch', 35 => 'Ironwood Log', 40 => 'Amberheart Log'],
+        'foraging' => [20 => 'Silverleaf Herb', 25 => 'Sablecap Mushroom', 30 => 'Runebound Bitterroot', 35 => 'Moonspike Herb', 40 => 'Stormbloom'],
+        'hunting' => [20 => 'Stag Hide', 25 => 'Ridgeback Meat', 30 => 'Runebound Sinew', 35 => 'Direwolf Hide', 40 => 'Stormclaw Bone'],
+        'farming' => [20 => 'Silvergrain', 25 => 'Sable Bean', 30 => 'Runeweft Flax', 35 => 'Moonroot Crop', 40 => 'Stormfruit'],
+        'excavation' => [20 => 'Silver Relic Shard', 25 => 'Sable Pottery', 30 => 'Rune-Etched Tablet', 35 => 'Moon Gate Fragment', 40 => 'Storm Vault Relic'],
     ];
 
     /**
@@ -38,8 +38,22 @@ class GeneratedItemNameService
         'boatbuilding' => 'Hull Rib',
         'furniture' => 'Hall Fixture',
         'construction' => 'Mason Frame',
-        'cartography' => 'Route Chart',
+        'cartography' => 'Waymap',
         'trading' => 'Trade Charter',
+    ];
+
+    /**
+     * @var array<string, array<int, string>>
+     */
+    private const MIDGAME_CRAFT_OUTPUT_LEVELS = [
+        'cartography' => [
+            20 => 'Silverbank Waymap',
+            25 => 'Sablecross Road Atlas',
+            30 => 'Runebound Crossing Map',
+            35 => 'Moonwake Path Atlas',
+            40 => 'Stormglass Sea Chart',
+            45 => 'Starline Expedition Atlas',
+        ],
     ];
 
     /**
@@ -90,6 +104,12 @@ class GeneratedItemNameService
 
     public static function midgameCraftOutputName(string $skill, int $level): string
     {
+        $effectiveLevel = max(20, min(45, $level));
+
+        if (isset(self::MIDGAME_CRAFT_OUTPUT_LEVELS[$skill][$effectiveLevel])) {
+            return self::MIDGAME_CRAFT_OUTPUT_LEVELS[$skill][$effectiveLevel];
+        }
+
         return self::prefixedName(
             self::midgamePrefix($level),
             self::MIDGAME_CRAFT_OUTPUTS[$skill] ?? str($skill)->headline()->toString().' Commission',
@@ -115,24 +135,24 @@ class GeneratedItemNameService
     private static function midgamePrefix(int $level): string
     {
         return match (true) {
-            $level >= 45 => 'Star',
-            $level >= 40 => 'Storm',
-            $level >= 35 => 'Moon',
-            $level >= 30 => 'Runed',
-            $level >= 25 => 'Sable',
-            default => 'Silver',
+            $level >= 45 => 'Starline',
+            $level >= 40 => 'Stormglass',
+            $level >= 35 => 'Moonwake',
+            $level >= 30 => 'Runebound',
+            $level >= 25 => 'Sablecross',
+            default => 'Silverbank',
         };
     }
 
     private static function endgamePrefix(int $level): string
     {
         return match (true) {
-            $level >= 100 => 'Evergather',
+            $level >= 100 => 'Crownmark',
             $level >= 95 => 'Prismatic',
             $level >= 85 => 'Astral',
-            $level >= 75 => 'Mythic',
-            $level >= 65 => 'Elder',
-            default => 'Runed',
+            $level >= 75 => 'Mythgate',
+            $level >= 65 => 'Elderwake',
+            default => 'Runebound',
         };
     }
 

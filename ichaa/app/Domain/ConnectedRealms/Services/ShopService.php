@@ -32,18 +32,18 @@ class ShopService
     ];
 
     /**
-     * @var list<array{tier: string, prefix: string, price: int, required_level: int, experience: int, yield: int}>
+     * @var list<array{tier: string, name_mark: string, price: int, required_level: int, experience: int, yield: int}>
      */
     private const TOOL_TIERS = [
-        ['tier' => 'uncommon', 'prefix' => 'Apprentice', 'price' => 80, 'required_level' => 1, 'experience' => 9, 'yield' => 2],
-        ['tier' => 'rare', 'prefix' => 'Guild', 'price' => 260, 'required_level' => 15, 'experience' => 16, 'yield' => 3],
-        ['tier' => 'rare', 'prefix' => 'Artisan', 'price' => 430, 'required_level' => 25, 'experience' => 21, 'yield' => 4],
-        ['tier' => 'epic', 'prefix' => 'Runed', 'price' => 620, 'required_level' => 35, 'experience' => 24, 'yield' => 4],
-        ['tier' => 'epic', 'prefix' => 'Masterwork', 'price' => 760, 'required_level' => 40, 'experience' => 25, 'yield' => 4],
-        ['tier' => 'epic', 'prefix' => 'Crown', 'price' => 980, 'required_level' => 45, 'experience' => 29, 'yield' => 5],
-        ['tier' => 'legendary', 'prefix' => 'Realmforged', 'price' => 1900, 'required_level' => 70, 'experience' => 38, 'yield' => 6],
-        ['tier' => 'legendary', 'prefix' => 'Mythic', 'price' => 3400, 'required_level' => 85, 'experience' => 52, 'yield' => 8],
-        ['tier' => 'legendary', 'prefix' => 'Ascendant', 'price' => 5200, 'required_level' => 100, 'experience' => 70, 'yield' => 11],
+        ['tier' => 'uncommon', 'name_mark' => 'Amberbound', 'price' => 80, 'required_level' => 1, 'experience' => 9, 'yield' => 2],
+        ['tier' => 'rare', 'name_mark' => 'Prism-Sighted', 'price' => 260, 'required_level' => 15, 'experience' => 16, 'yield' => 3],
+        ['tier' => 'rare', 'name_mark' => 'Moon-Graven', 'price' => 430, 'required_level' => 25, 'experience' => 21, 'yield' => 4],
+        ['tier' => 'epic', 'name_mark' => 'Glyphline', 'price' => 620, 'required_level' => 35, 'experience' => 24, 'yield' => 4],
+        ['tier' => 'epic', 'name_mark' => 'Star-Metal', 'price' => 760, 'required_level' => 40, 'experience' => 25, 'yield' => 4],
+        ['tier' => 'epic', 'name_mark' => 'Crownsteel', 'price' => 980, 'required_level' => 45, 'experience' => 29, 'yield' => 5],
+        ['tier' => 'legendary', 'name_mark' => 'Realmwake', 'price' => 1900, 'required_level' => 70, 'experience' => 38, 'yield' => 6],
+        ['tier' => 'legendary', 'name_mark' => 'Mythrite', 'price' => 3400, 'required_level' => 85, 'experience' => 52, 'yield' => 8],
+        ['tier' => 'legendary', 'name_mark' => 'Everdawn', 'price' => 5200, 'required_level' => 100, 'experience' => 70, 'yield' => 11],
     ];
 
     /**
@@ -57,7 +57,7 @@ class ShopService
         'bundle_hide_pack' => ['label' => 'Hide Pack', 'category' => 'Materials', 'price' => 42, 'required_level' => 1, 'item_key' => 'soft_hide', 'item_name' => 'Soft Hide', 'rarity' => 'common', 'quantity' => 5],
         'bundle_seed_sack' => ['label' => 'Seed Sack', 'category' => 'Materials', 'price' => 34, 'required_level' => 1, 'item_key' => 'sunfield_grain', 'item_name' => 'Sunfield Grain', 'rarity' => 'common', 'quantity' => 7],
         'bundle_relic_case' => ['label' => 'Relic Case', 'category' => 'Materials', 'price' => 55, 'required_level' => 1, 'item_key' => 'relic_fragment', 'item_name' => 'Relic Fragment', 'rarity' => 'common', 'quantity' => 5],
-        'bundle_guild_commission' => ['label' => 'Guild Commission Kit', 'category' => 'Commissions', 'price' => 120, 'required_level' => 10, 'item_key' => 'trade_manifest', 'item_name' => 'Trade Manifest', 'rarity' => 'common', 'quantity' => 1],
+        'bundle_guild_commission' => ['label' => 'Oathhall Commission Kit', 'category' => 'Commissions', 'price' => 120, 'required_level' => 10, 'item_key' => 'trade_manifest', 'item_name' => 'Trade Manifest', 'rarity' => 'common', 'quantity' => 1],
         'bundle_expedition_cache' => ['label' => 'Expedition Cache', 'category' => 'Commissions', 'price' => 180, 'required_level' => 20, 'item_key' => 'route_map', 'item_name' => 'Route Map', 'rarity' => 'common', 'quantity' => 1],
     ];
 
@@ -224,10 +224,12 @@ class ShopService
 
         $offers = [];
 
-        foreach ((new ToolCatalogService)->families() as $skill => $family) {
+        $tools = new ToolCatalogService;
+
+        foreach ($tools->families() as $skill => $family) {
             foreach (self::TOOL_TIERS as $tier) {
-                $itemName = "{$tier['prefix']} {$family['noun']}";
-                $key = str($itemName)->slug('_')->toString();
+                $itemName = $tools->tierToolName($family, $tier);
+                $key = $tools->tierToolKey($family, $tier);
 
                 $offers[$key] = [
                     'label' => $itemName,

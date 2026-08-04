@@ -19,56 +19,56 @@ class SkillActivityService
     private static ?array $activityCache = null;
 
     /**
-     * @var array<string, array{track: string, theme: string, location: string, rewards: list<array{key: string, name: string}>}>
+     * @var array<string, array{track: string, theme: string, activities: list<string>, location: string, rewards: list<array{key: string, name: string}>}>
      */
     private const ACTIVITY_FAMILIES = [
-        'smelting' => ['track' => 'Forge Work', 'theme' => 'Emberdeep Bellows', 'location' => 'Emberdeep Forge Hall', 'rewards' => [['key' => 'slag_glass', 'name' => 'Slagglass Bloom'], ['key' => 'forge_credit', 'name' => 'Heat-Seal Chit']]],
-        'milling' => ['track' => 'Mill Work', 'theme' => 'Whisperbough Planer', 'location' => 'Whisperbough Millhouse', 'rewards' => [['key' => 'sawdust_bundle', 'name' => 'Sweetdust Bundle'], ['key' => 'mill_token', 'name' => 'Millwheel Token']]],
-        'tanning' => ['track' => 'Tannery Work', 'theme' => 'Briarwake Cure Vat', 'location' => 'Briarwake Tannery', 'rewards' => [['key' => 'tannin_vial', 'name' => 'Amber Tannin Vial'], ['key' => 'tannery_token', 'name' => 'Hidewright Tag']]],
-        'cutting' => ['track' => 'Lapidary Work', 'theme' => 'Gemcutter Facet Table', 'location' => 'Gemcutter Row', 'rewards' => [['key' => 'gem_dust', 'name' => 'Prism Gemdust'], ['key' => 'lapidary_credit', 'name' => 'Facet Ledger Chip']]],
-        'weaving' => ['track' => 'Loom Work', 'theme' => 'Sunfield Shuttle Loom', 'location' => 'Sunfield Loomhall', 'rewards' => [['key' => 'loom_thread', 'name' => 'Dyed Loomthread'], ['key' => 'weaver_token', 'name' => 'Shuttle-Knot Token']]],
-        'smithing' => ['track' => 'Smithing Orders', 'theme' => 'Moonwake Anvil', 'location' => 'Moonwake Anvil Yard', 'rewards' => [['key' => 'weapon_blank', 'name' => 'Tempered Weapon Blank'], ['key' => 'smith_mark', 'name' => 'Anvil-Seal Mark']]],
-        'carpentry' => ['track' => 'Carpentry Orders', 'theme' => 'Whisperbough Joinery', 'location' => 'Whisperbough Workshop', 'rewards' => [['key' => 'joinery_piece', 'name' => 'Dovetail Joinery Piece'], ['key' => 'carpenter_mark', 'name' => 'Plane-Shave Mark']]],
-        'cooking' => ['track' => 'Kitchen Orders', 'theme' => 'Moonwake Hearthline', 'location' => 'Moonwake Hearthline', 'rewards' => [['key' => 'kitchen_scrap', 'name' => 'Seasoned Hearth Scrap'], ['key' => 'cook_mark', 'name' => 'Copper Ladle Mark']]],
-        'alchemy' => ['track' => 'Alchemy Orders', 'theme' => 'Glimmerfen Still', 'location' => 'Glimmerfen Stillroom', 'rewards' => [['key' => 'catalyst_drop', 'name' => 'Bright Catalyst Drop'], ['key' => 'alchemist_mark', 'name' => 'Stillroom Sigil']]],
-        'tailoring' => ['track' => 'Tailoring Orders', 'theme' => 'Sunfield Stitchery', 'location' => 'Sunfield Stitchery', 'rewards' => [['key' => 'pattern_scrap', 'name' => 'Chalked Pattern Scrap'], ['key' => 'tailor_mark', 'name' => 'Needle-Eye Mark']]],
-        'leatherworking' => ['track' => 'Leather Orders', 'theme' => 'Briarwake Strap Bench', 'location' => 'Briarwake Leather Bench', 'rewards' => [['key' => 'strap_cutting', 'name' => 'Oiled Strap Cutting'], ['key' => 'leatherworker_mark', 'name' => 'Awl-Punched Mark']]],
-        'engineering' => ['track' => 'Engineering Orders', 'theme' => 'Clockwork Assembly Yard', 'location' => 'Clockwork Yard', 'rewards' => [['key' => 'gear_shaving', 'name' => 'Brass Gear Shaving'], ['key' => 'engineer_mark', 'name' => 'Caliper Stamp']]],
-        'enchanting' => ['track' => 'Enchanting Orders', 'theme' => 'Moon Ward Infusion', 'location' => 'Moon Ward Annex', 'rewards' => [['key' => 'rune_dust', 'name' => 'Sung Rune Dust'], ['key' => 'enchanter_mark', 'name' => 'Ward-Script Sigil']]],
-        'jewelcrafting' => ['track' => 'Jewelry Orders', 'theme' => 'Gemcutter Setting', 'location' => 'Gemcutter Row', 'rewards' => [['key' => 'setting_wire', 'name' => 'Fine Setting Wire'], ['key' => 'jeweler_mark', 'name' => 'Loupe-Etched Mark']]],
-        'boatbuilding' => ['track' => 'Shipwright Orders', 'theme' => 'Moonwake Keel Bench', 'location' => 'Moonwake Drydock', 'rewards' => [['key' => 'pitch_bucket', 'name' => 'Resin Pitch Bucket'], ['key' => 'shipwright_mark', 'name' => 'Keelstamp Mark']]],
-        'furniture' => ['track' => 'Furniture Orders', 'theme' => 'Hallwright Finish Table', 'location' => 'Guild Hall Shop', 'rewards' => [['key' => 'varnish_pot', 'name' => 'Amber Varnish Pot'], ['key' => 'furnisher_mark', 'name' => 'Carved Maker Mark']]],
-        'construction' => ['track' => 'Construction Orders', 'theme' => 'Settlement Frame Crew', 'location' => 'Settlement Works Yard', 'rewards' => [['key' => 'mason_chit', 'name' => 'Stonewise Mason Chit'], ['key' => 'builder_mark', 'name' => 'Plumbline Mark']]],
-        'combat' => ['track' => 'Combat Drills', 'theme' => 'Moonwake Sparring', 'location' => 'Moonwake Training Ring', 'rewards' => [['key' => 'combat_badge', 'name' => 'Sparring Notch'], ['key' => 'training_blade', 'name' => 'Blunted Practice Blade']]],
-        'slayer' => ['track' => 'Slayer Marks', 'theme' => 'Briarwake Bounty', 'location' => 'Briarwake Bounty Board', 'rewards' => [['key' => 'slayer_mark', 'name' => 'Fang-Etched Bounty Tag'], ['key' => 'monster_trophy', 'name' => 'Salted Trophy Tooth']]],
-        'defense' => ['track' => 'Guard Rotations', 'theme' => 'Old Gate Shieldline', 'location' => 'Old Gate Shield Line', 'rewards' => [['key' => 'defense_badge', 'name' => 'Shieldwall Rivet'], ['key' => 'shield_plate', 'name' => 'Dented Shield Plate']]],
-        'healing' => ['track' => 'Medic Rounds', 'theme' => 'Moonwake Triage', 'location' => 'Moonwake Infirmary', 'rewards' => [['key' => 'healing_writ', 'name' => 'Clean-Bandage Writ'], ['key' => 'medic_satchel', 'name' => 'Packed Medic Satchel']]],
-        'magic' => ['track' => 'Arcane Trials', 'theme' => 'Moon Ward Channel', 'location' => 'Moon Ward Circle', 'rewards' => [['key' => 'magic_seal', 'name' => 'Moonlit Casting Seal'], ['key' => 'focus_shard', 'name' => 'Attuned Focus Shard']]],
-        'ranged' => ['track' => 'Range Trials', 'theme' => 'High Perch Marksmanship', 'location' => 'High Perch Range', 'rewards' => [['key' => 'ranged_mark', 'name' => 'Feathered Score Tab'], ['key' => 'fletching_bundle', 'name' => 'Waxed Fletching Bundle']]],
-        'exploration' => ['track' => 'Scout Routes', 'theme' => 'Hidden Mile Scout', 'location' => 'Hidden Mile Route', 'rewards' => [['key' => 'explorer_badge', 'name' => 'Trail-Etched Compass Plate'], ['key' => 'route_note', 'name' => 'Weathered Route Note']]],
-        'dungeoneering' => ['track' => 'Dungeon Rooms', 'theme' => 'Lower Vault Breach', 'location' => 'Lower Vault Wing', 'rewards' => [['key' => 'vault_key', 'name' => 'Notched Vault Key'], ['key' => 'trap_diagram', 'name' => 'Smudged Trap Diagram']]],
-        'sailing' => ['track' => 'Sailing Runs', 'theme' => 'Stormbreak Helm', 'location' => 'Stormbreak Channel', 'rewards' => [['key' => 'sailing_writ', 'name' => 'Brine-Sealed Sailing Writ'], ['key' => 'tide_chart', 'name' => 'Saltcurl Tide Chart']]],
-        'survival' => ['track' => 'Survival Circuits', 'theme' => 'Cold Camp Trial', 'location' => 'Cold Camp Circuit', 'rewards' => [['key' => 'survival_mark', 'name' => 'Smoke-Cured Survival Mark'], ['key' => 'camp_cache', 'name' => 'Waxcloth Camp Cache']]],
-        'cartography' => ['track' => 'Survey Work', 'theme' => 'Surveyor Ridge Charting', 'location' => 'Surveyor Ridge', 'rewards' => [['key' => 'survey_writ', 'name' => 'Brass Survey Writ'], ['key' => 'map_fragment', 'name' => 'Ink-Rubbed Map Fragment']]],
-        'reputation' => ['track' => 'Faction Work', 'theme' => 'Council Errand', 'location' => 'Regional Council Board', 'rewards' => [['key' => 'faction_seal', 'name' => 'Pressed Faction Seal'], ['key' => 'favor_note', 'name' => 'Handwritten Favor Note']]],
-        'leadership' => ['track' => 'Crew Commands', 'theme' => 'Guild Muster Command', 'location' => 'Guild Muster Yard', 'rewards' => [['key' => 'crew_banner', 'name' => 'Hemmed Crew Pennant'], ['key' => 'order_sheet', 'name' => 'Signed Order Sheet']]],
-        'trading' => ['track' => 'Trade Routes', 'theme' => 'Regional Broker Loop', 'location' => 'Regional Trade Loop', 'rewards' => [['key' => 'trade_writ', 'name' => 'Stamped Trade Writ'], ['key' => 'ledger_page', 'name' => 'Price-Scratched Ledger Page']]],
+        'smelting' => ['track' => 'Forge Work', 'theme' => 'Emberdeep Bellows', 'activities' => ['Candleline Crucible Warmup', 'Market Road Slag Pull', 'Moonwake Bloom Pour', 'Hearthsign Coal Blend', 'Runebound Alloy Reading', 'Stormglass Flux Pour', 'Highguild Crucible Charge', 'Elderwake Star-Metal Temper', 'Mythgate Worldforge Draft', 'Crownmark Eternal Heat'], 'location' => 'Emberdeep Forge Hall', 'rewards' => [['key' => 'slag_glass', 'name' => 'Slagglass'], ['key' => 'forge_credit', 'name' => 'Heat-Seal']]],
+        'milling' => ['track' => 'Mill Work', 'theme' => 'Whisperbough Planer', 'activities' => ['Candleline Saw Set', 'Market Road Bark Plane', 'Moonwake Plank Grading', 'Hearthsign Resin Board Press', 'Runebound Beam Squaring', 'Stormglass Heartwood Lathe', 'Highguild Precision Dowel', 'Elderwake Oathbeam Cut', 'Mythgate Livingwood Join', 'Crownmark Worldroot Mill'], 'location' => 'Whisperbough Millhouse', 'rewards' => [['key' => 'sawdust_bundle', 'name' => 'Sweetdust'], ['key' => 'mill_token', 'name' => 'Millwheel']]],
+        'tanning' => ['track' => 'Tannery Work', 'theme' => 'Briarwake Cure Vat', 'activities' => ['Candleline Hide Rinse', 'Market Road Tannin Steep', 'Moonwake Rack Turn', 'Hearthsign Scale Backing', 'Runebound Harness Cure', 'Stormglass Beastguard Oil', 'Highguild Monsterhide Stretch', 'Elderwake Apex Leather Cure', 'Mythgate Primal Hide Temper', 'Crownmark Worldhide Finish'], 'location' => 'Briarwake Tannery', 'rewards' => [['key' => 'tannin_vial', 'name' => 'Amber Tannin'], ['key' => 'tannery_token', 'name' => 'Hidewright']]],
+        'cutting' => ['track' => 'Lapidary Work', 'theme' => 'Gemcutter Facet Table', 'activities' => ['Candleline Chip Sorting', 'Market Road Rough Cut', 'Moonwake Socket Polish', 'Hearthsign Lens Grind', 'Runebound Prism Split', 'Stormglass Focus Cut', 'Highguild Geode Appraisal', 'Elderwake Starfacet Align', 'Mythgate Crown Facet', 'Crownmark First-Light Cut'], 'location' => 'Gemcutter Row', 'rewards' => [['key' => 'gem_dust', 'name' => 'Prism Gemdust'], ['key' => 'lapidary_credit', 'name' => 'Facet Chip']]],
+        'weaving' => ['track' => 'Loom Work', 'theme' => 'Sunfield Shuttle Loom', 'activities' => ['Candleline Thread Wind', 'Market Road Reed Weave', 'Moonwake Canvas Stretch', 'Hearthsign Silk Pass', 'Runebound Spellthread Spin', 'Stormglass Banner Loom', 'Highguild Moonweave Bolt', 'Elderwake Astral Threading', 'Mythgate Crown Loom Pattern', 'Crownmark Worldcloth Finish'], 'location' => 'Sunfield Loomhall', 'rewards' => [['key' => 'loom_thread', 'name' => 'Dyed Loomthread'], ['key' => 'weaver_token', 'name' => 'Shuttle-Knot']]],
+        'smithing' => ['track' => 'Smithing Orders', 'theme' => 'Moonwake Anvil', 'activities' => ['Candleline Rivet Set', 'Market Road Toolhead Forge', 'Moonwake Steel Frame', 'Hearthsign Armor Rivet', 'Runebound Pick Head', 'Stormglass Anvil Brief', 'Highguild Warplate Fit', 'Elderwake Meteor Edge', 'Mythgate Crownsteel Temper', 'Crownmark Anvil Saint Work'], 'location' => 'Moonwake Anvil Yard', 'rewards' => [['key' => 'weapon_blank', 'name' => 'Tempered Blank'], ['key' => 'smith_mark', 'name' => 'Anvil-Seal']]],
+        'carpentry' => ['track' => 'Carpentry Orders', 'theme' => 'Whisperbough Joinery', 'activities' => ['Candleline Handle Fit', 'Market Road Bow Stave', 'Moonwake Crate Join', 'Hearthsign Expedition Timber', 'Runebound Oathhall Joinery', 'Stormglass Living Handle', 'Highguild Master Carpenter Writ', 'Elderwake Heartwood Frame', 'Mythgate Worldroot Join', 'Crownmark Dovetail Masterwork'], 'location' => 'Whisperbough Workshop', 'rewards' => [['key' => 'joinery_piece', 'name' => 'Dovetail Joinery'], ['key' => 'carpenter_mark', 'name' => 'Plane-Shave']]],
+        'cooking' => ['track' => 'Kitchen Orders', 'theme' => 'Moonwake Hearthline', 'activities' => ['Candleline Ration Kettle', 'Market Road Harbor Soup', 'Moonwake Skill Meal Prep', 'Hearthsign Hunter Feast', 'Runebound Raid Pantry', 'Stormglass Dusk Feast', 'Highguild Banquet Plating', 'Elderwake Starfeast Simmer', 'Mythgate Realm Chef Course', 'Crownmark Oathhall Banquet'], 'location' => 'Moonwake Hearthline', 'rewards' => [['key' => 'kitchen_scrap', 'name' => 'Seasoned Hearth'], ['key' => 'cook_mark', 'name' => 'Copper Ladle']]],
+        'alchemy' => ['track' => 'Alchemy Orders', 'theme' => 'Glimmerfen Still', 'activities' => ['Candleline Tonic Steep', 'Market Road Ward Oil Decant', 'Moonwake Combat Draught', 'Hearthsign Catalyst Measure', 'Runebound Bitterroot Remedy', 'Stormglass Reagent Vessel', 'Highguild Transmutation Flask', 'Elderwake Dreamroot Elixir', 'Mythgate Grand Still Work', 'Crownmark Alchemist Mandate'], 'location' => 'Glimmerfen Stillroom', 'rewards' => [['key' => 'catalyst_drop', 'name' => 'Bright Catalyst'], ['key' => 'alchemist_mark', 'name' => 'Stillroom']]],
+        'tailoring' => ['track' => 'Tailoring Orders', 'theme' => 'Sunfield Stitchery', 'activities' => ['Candleline Field Wrap Hem', 'Market Road Satchel Stitch', 'Moonwake Robe Panel', 'Hearthsign Sailcloth Cut', 'Runebound Banner Hem', 'Stormglass Spellcloth Fit', 'Highguild Court Outfit', 'Elderwake Astral Vestment', 'Mythgate Regalia Pattern', 'Crownmark Couture Finish'], 'location' => 'Sunfield Stitchery', 'rewards' => [['key' => 'pattern_scrap', 'name' => 'Chalked Pattern'], ['key' => 'tailor_mark', 'name' => 'Needle-Eye']]],
+        'leatherworking' => ['track' => 'Leather Orders', 'theme' => 'Briarwake Strap Bench', 'activities' => ['Candleline Pouch Stitch', 'Market Road Tool Belt Fit', 'Moonwake Armor Panel', 'Hearthsign Travel Harness', 'Runebound Monster Gear', 'Stormglass Saddle Stock', 'Highguild Rugged Kit Fit', 'Elderwake Beastguard Harness', 'Mythgate Apex Hide Cut', 'Crownmark Hide Artisan Work'], 'location' => 'Briarwake Leather Bench', 'rewards' => [['key' => 'strap_cutting', 'name' => 'Oiled Strap'], ['key' => 'leatherworker_mark', 'name' => 'Awl-Punched']]],
+        'engineering' => ['track' => 'Engineering Orders', 'theme' => 'Clockwork Assembly Yard', 'activities' => ['Candleline Spring Packet', 'Market Road Trap Mechanism', 'Moonwake Gadget Bench', 'Hearthsign Siege Gear', 'Runebound Engine Coupling', 'Stormglass Trigger Tuning', 'Highguild Survey Device', 'Elderwake Astral Engine', 'Mythgate Prototype Yard', 'Crownmark Chief Engineer Trial'], 'location' => 'Clockwork Yard', 'rewards' => [['key' => 'gear_shaving', 'name' => 'Brass Gear'], ['key' => 'engineer_mark', 'name' => 'Caliper']]],
+        'enchanting' => ['track' => 'Enchanting Orders', 'theme' => 'Moon Ward Infusion', 'activities' => ['Candleline Charm Wash', 'Market Road Ward Oil Script', 'Moonwake Socket Rune', 'Hearthsign Trait Binding', 'Runebound Relic Wake', 'Stormglass Major Enchantment', 'Highguild Arcane Seal', 'Elderwake Astral Binding', 'Mythgate Prismatic Rune', 'Crownmark Arcane Binder Rite'], 'location' => 'Moon Ward Annex', 'rewards' => [['key' => 'rune_dust', 'name' => 'Sung Rune Dust'], ['key' => 'enchanter_mark', 'name' => 'Ward-Script']]],
+        'jewelcrafting' => ['track' => 'Jewelry Orders', 'theme' => 'Gemcutter Setting', 'activities' => ['Candleline Copper Bezel', 'Market Road Silver Ring', 'Moonwake Trinket Socket', 'Hearthsign Amulet Frame', 'Runebound Focus Lens', 'Stormglass Gem Trial', 'Highguild Prismatic Lens', 'Elderwake Starfacet Setting', 'Mythgate Crown Beadwork', 'Crownmark Gem Sovereign Work'], 'location' => 'Gemcutter Row', 'rewards' => [['key' => 'setting_wire', 'name' => 'Fine Setting Wire'], ['key' => 'jeweler_mark', 'name' => 'Loupe-Etched']]],
+        'boatbuilding' => ['track' => 'Shipwright Orders', 'theme' => 'Moonwake Keel Bench', 'activities' => ['Candleline Skiff Rib', 'Market Road Reed Float', 'Moonwake Cargo Hull', 'Hearthsign Sail Frame', 'Runebound Dockwright Timber', 'Stormglass Expedition Hull', 'Highguild Fleet Refit', 'Elderwake Stormfleet Keel', 'Mythgate Harbor Master Trial', 'Crownmark Shipwright Mandate'], 'location' => 'Moonwake Drydock', 'rewards' => [['key' => 'pitch_bucket', 'name' => 'Resin Pitch'], ['key' => 'shipwright_mark', 'name' => 'Keelstamp']]],
+        'furniture' => ['track' => 'Furniture Orders', 'theme' => 'Hallwright Finish Table', 'activities' => ['Candleline Stool Sanding', 'Market Road Table Fit', 'Moonwake Display Stand', 'Hearthsign Trophy Hall', 'Runebound Oathhall Fixture', 'Stormglass Prestige Fitting', 'Highguild Carved Crate', 'Elderwake Royal Suite Joinery', 'Mythgate Hall Architect Plan', 'Crownmark Grand Hall Finish'], 'location' => 'Oathhall Woodshop', 'rewards' => [['key' => 'varnish_pot', 'name' => 'Amber Varnish'], ['key' => 'furnisher_mark', 'name' => 'Carved Maker']]],
+        'construction' => ['track' => 'Construction Orders', 'theme' => 'Settlement Frame Crew', 'activities' => ['Candleline Signpost Brace', 'Market Road Station Repair', 'Moonwake Workshop Frame', 'Hearthsign Bridge Scaffold', 'Runebound Foundation Brief', 'Stormglass Watchtower Stone', 'Highguild Settlement Works', 'Elderwake Citadel Wall', 'Mythgate Realm Builder Survey', 'Crownmark Worldhall Raise'], 'location' => 'Settlement Works Yard', 'rewards' => [['key' => 'mason_chit', 'name' => 'Stonewise Mason'], ['key' => 'builder_mark', 'name' => 'Plumbline']]],
+        'combat' => ['track' => 'Combat Drills', 'theme' => 'Moonwake Sparring', 'activities' => ['Candleline Guard Cut', 'Market Road Footwork Round', 'Moonwake Stance Exchange', 'Hearthsign Vanguard Drill', 'Runebound Field Assignment', 'Stormglass Champion Trial', 'Highguild Warband Scrimmage', 'Elderwake Realmguard Trial', 'Mythgate Crown Duel', 'Crownmark Realm Champion Bout'], 'location' => 'Moonwake Training Ring', 'rewards' => [['key' => 'combat_badge', 'name' => 'Sparring Notch'], ['key' => 'training_blade', 'name' => 'Blunted Practice']]],
+        'slayer' => ['track' => 'Slayer Marks', 'theme' => 'Briarwake Bounty', 'activities' => ['Candleline Fang Study', 'Market Road Bounty Pin', 'Moonwake Weakness Read', 'Hearthsign Stalker Report', 'Runebound Nightfang Prep', 'Stormglass Greatbeast Mark', 'Highguild Monster Bane Drill', 'Elderwake Crownbeast Warrant', 'Mythgate Apex Trophy Claim', 'Crownmark First Hunt Trial'], 'location' => 'Briarwake Bounty Board', 'rewards' => [['key' => 'slayer_mark', 'name' => 'Fang-Etched Bounty'], ['key' => 'monster_trophy', 'name' => 'Salted Trophy']]],
+        'defense' => ['track' => 'Guard Rotations', 'theme' => 'Old Gate Shieldline', 'activities' => ['Candleline Shield Brace', 'Market Road Field Repair', 'Moonwake Armor Mastery', 'Hearthsign Party Guard', 'Runebound Bulwark Supply', 'Stormglass Dungeon Guard', 'Highguild Wallbreaker Hold', 'Elderwake Citadel Bulwark', 'Mythgate Unbroken Line', 'Crownmark Last Wall Stand'], 'location' => 'Old Gate Shield Line', 'rewards' => [['key' => 'defense_badge', 'name' => 'Shieldwall Rivet'], ['key' => 'shield_plate', 'name' => 'Dented Shield']]],
+        'healing' => ['track' => 'Medic Rounds', 'theme' => 'Moonwake Triage', 'activities' => ['Candleline Bandage Pack', 'Market Road Sap Tonic', 'Moonwake Recovery Round', 'Hearthsign Medic Kit', 'Runebound Stabilizer Vial', 'Stormglass Field Hospital', 'Highguild Revival Rite', 'Elderwake Lifewarden Supply', 'Mythgate Renewal Ward', 'Crownmark Life Warden Call'], 'location' => 'Moonwake Infirmary', 'rewards' => [['key' => 'healing_writ', 'name' => 'Clean-Bandage'], ['key' => 'medic_satchel', 'name' => 'Packed Medic']]],
+        'magic' => ['track' => 'Arcane Trials', 'theme' => 'Moon Ward Channel', 'activities' => ['Candleline Spark Channel', 'Market Road Ward Circle', 'Moonwake Elemental Focus', 'Hearthsign Ritual Night', 'Runebound Storm Report', 'Stormglass Rune Reading', 'Highguild Spellguard Work', 'Elderwake Astral Rite', 'Mythgate Archmage Trial', 'Crownmark Starward Channel'], 'location' => 'Moon Ward Circle', 'rewards' => [['key' => 'magic_seal', 'name' => 'Moonlit Casting'], ['key' => 'focus_shard', 'name' => 'Attuned Focus']]],
+        'ranged' => ['track' => 'Range Trials', 'theme' => 'High Perch Marksmanship', 'activities' => ['Candleline Bow Sighting', 'Market Road Arrow Stock', 'Moonwake Special Shot', 'Hearthsign Siege Range', 'Runebound Trail Bow Refit', 'Stormglass Trick Shot', 'Highguild Marksman Trial', 'Elderwake Stormshot Practice', 'Mythgate Sky Archer Drill', 'Crownmark High Perch Volley'], 'location' => 'High Perch Range', 'rewards' => [['key' => 'ranged_mark', 'name' => 'Feathered Score'], ['key' => 'fletching_bundle', 'name' => 'Waxed Fletching']]],
+        'exploration' => ['track' => 'Scout Routes', 'theme' => 'Hidden Mile Scout', 'activities' => ['Candleline Sketch Route', 'Market Road Regional Path', 'Moonwake Hidden Room', 'Hearthsign Distant Trail', 'Runebound Ancient Gate', 'Stormglass Frontier Proof', 'Highguild Worldwalker Waybill', 'Elderwake Gate Warrant', 'Mythgate Lost Road Reading', 'Crownmark Horizon Walk'], 'location' => 'Hidden Mile Route', 'rewards' => [['key' => 'explorer_badge', 'name' => 'Trail-Etched Compass'], ['key' => 'route_note', 'name' => 'Weathered Route']]],
+        'dungeoneering' => ['track' => 'Dungeon Rooms', 'theme' => 'Lower Vault Breach', 'activities' => ['Candleline Room Check', 'Market Road Trap Read', 'Moonwake Party Route', 'Hearthsign Boss Room Supply', 'Runebound Dungeon Audit', 'Stormglass Deep Chamber', 'Highguild Vault Key Report', 'Elderwake Labyrinth Writ', 'Mythgate Deep Warden Trial', 'Crownmark Lower Vault Crown'], 'location' => 'Lower Vault Wing', 'rewards' => [['key' => 'vault_key', 'name' => 'Notched Vault'], ['key' => 'trap_diagram', 'name' => 'Smudged Trap']]],
+        'sailing' => ['track' => 'Sea Routes', 'theme' => 'Stormbreak Helm', 'activities' => ['Candleline Dock Rope', 'Market Road Coastal Trip', 'Moonwake Cargo Manifest', 'Hearthsign Fleet Support', 'Runebound Sea Chart', 'Stormglass Harbor Signal', 'Highguild Tide Captain Lot', 'Elderwake Stormroute Warrant', 'Mythgate Expedition Sail', 'Crownmark Tide Captain Crossing'], 'location' => 'Stormbreak Channel', 'rewards' => [['key' => 'sailing_writ', 'name' => 'Brine-Sealed Sailing'], ['key' => 'tide_chart', 'name' => 'Saltcurl Tide']]],
+        'survival' => ['track' => 'Survival Circuits', 'theme' => 'Cold Camp Trial', 'activities' => ['Candleline Flatbread Cache', 'Market Road Weather Read', 'Moonwake Long Trip Supply', 'Hearthsign Hazard Kit', 'Runebound Hostile Region', 'Stormglass Campcraft Ledger', 'Highguild Last Light Cache', 'Elderwake Wild March', 'Mythgate Hostile Wilds', 'Crownmark Last Light March'], 'location' => 'Cold Camp Circuit', 'rewards' => [['key' => 'survival_mark', 'name' => 'Smoke-Cured Survival'], ['key' => 'camp_cache', 'name' => 'Waxcloth Camp']]],
+        'cartography' => ['track' => 'Survey Work', 'theme' => 'Surveyor Ridge Charting', 'activities' => ['Candleline Survey Note', 'Market Road Route Map', 'Moonwake Dungeon Chart', 'Hearthsign Region Atlas', 'Runebound Secret Road', 'Stormglass Survey Parcel', 'Highguild Starmapper Grid', 'Elderwake Navigator Archive', 'Mythgate Secret Atlas', 'Crownmark Star Map Draft'], 'location' => 'Surveyor Ridge', 'rewards' => [['key' => 'survey_writ', 'name' => 'Brass Survey'], ['key' => 'map_fragment', 'name' => 'Ink-Rubbed Map']]],
+        'reputation' => ['track' => 'Faction Work', 'theme' => 'Council Errand', 'activities' => ['Candleline Barter Note', 'Market Road Favor Seal', 'Moonwake Rate Petition', 'Hearthsign Council Gift', 'Runebound Title Claim', 'Stormglass Envoy Introduction', 'Highguild Realm Favor', 'Elderwake Council Seat Case', 'Mythgate Realm Envoy Hearing', 'Crownmark Concord Address'], 'location' => 'Regional Council Board', 'rewards' => [['key' => 'faction_seal', 'name' => 'Pressed Faction'], ['key' => 'favor_note', 'name' => 'Handwritten Favor']]],
+        'leadership' => ['track' => 'Crew Commands', 'theme' => 'Muster Command', 'activities' => ['Candleline Crate Muster', 'Market Road Party Call', 'Moonwake Oathhall Task', 'Hearthsign Raid Brief', 'Runebound Banner Drill', 'Stormglass Campaign Writ', 'Highguild Command Tent', 'Elderwake Standard Warrant', 'Mythgate War Table Mandate', 'Crownmark Bannerlord Call'], 'location' => 'Oathhall Muster Yard', 'rewards' => [['key' => 'crew_banner', 'name' => 'Hemmed Crew'], ['key' => 'order_sheet', 'name' => 'Signed Order']]],
+        'trading' => ['track' => 'Trade Routes', 'theme' => 'Regional Brokerage', 'activities' => ['Candleline Market Token', 'Market Road Bulk Listing', 'Moonwake Work Packet', 'Hearthsign Storefront Stock', 'Runebound Route Manifest', 'Stormglass Arbitrage Writ', 'Highguild Merchant Seal', 'Elderwake Royal Exchange', 'Mythgate Sovereign Counter', 'Crownmark Market Oath'], 'location' => 'Regional Brokerage', 'rewards' => [['key' => 'trade_writ', 'name' => 'Stamped Trade'], ['key' => 'ledger_page', 'name' => 'Price-Scratched Page']]],
     ];
 
     /**
-     * @var list<array{level: int, band: string, prefix: string, rank: string, station: string, loot_mark: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}>
+     * @var list<array{level: int, band: string, key_slug: string, mark: string, station: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}>
      */
     private const TIERS = [
-        ['level' => 1, 'band' => '1-30', 'prefix' => 'Starter', 'rank' => 'Candlemark Primer', 'station' => 'Candleline Station', 'loot_mark' => 'Candlemark', 'rarity' => 'common', 'experience' => [22, 34], 'gold' => [3, 8], 'cooldown' => 70],
-        ['level' => 5, 'band' => '1-30', 'prefix' => 'Local', 'rank' => 'Wayside Rotation', 'station' => 'Market Road Station', 'loot_mark' => 'Wayside', 'rarity' => 'common', 'experience' => [30, 46], 'gold' => [4, 10], 'cooldown' => 85],
-        ['level' => 10, 'band' => '1-30', 'prefix' => 'Apprentice', 'rank' => 'Moonwake Brief', 'station' => 'Moonwake Desk', 'loot_mark' => 'Moonwake', 'rarity' => 'uncommon', 'experience' => [40, 60], 'gold' => [6, 13], 'cooldown' => 100],
-        ['level' => 20, 'band' => '1-30', 'prefix' => 'Guild', 'rank' => 'Hearthsign Ledger', 'station' => 'Hearthsign Counter', 'loot_mark' => 'Hearthsign', 'rarity' => 'uncommon', 'experience' => [58, 86], 'gold' => [8, 18], 'cooldown' => 125],
-        ['level' => 30, 'band' => '30-50', 'prefix' => 'Runed', 'rank' => 'Runebound Warrant', 'station' => 'Runebound Annex', 'loot_mark' => 'Runebound', 'rarity' => 'rare', 'experience' => [78, 116], 'gold' => [12, 25], 'cooldown' => 155],
-        ['level' => 40, 'band' => '30-50', 'prefix' => 'Storm', 'rank' => 'Stormglass Shift', 'station' => 'Stormglass Bay', 'loot_mark' => 'Stormglass', 'rarity' => 'rare', 'experience' => [102, 152], 'gold' => [16, 34], 'cooldown' => 190],
-        ['level' => 50, 'band' => '50-80', 'prefix' => 'Elite', 'rank' => 'Highguild Contract', 'station' => 'Highguild Office', 'loot_mark' => 'Highguild', 'rarity' => 'rare', 'experience' => [132, 196], 'gold' => [22, 45], 'cooldown' => 230],
-        ['level' => 65, 'band' => '50-80', 'prefix' => 'Elder', 'rank' => 'Elderwake Mandate', 'station' => 'Elderwake Span', 'loot_mark' => 'Elderwake', 'rarity' => 'epic', 'experience' => [176, 260], 'gold' => [30, 62], 'cooldown' => 285],
-        ['level' => 80, 'band' => '80-100', 'prefix' => 'Mythic', 'rank' => 'Mythgate Trial', 'station' => 'Mythgate Hall', 'loot_mark' => 'Mythgate', 'rarity' => 'epic', 'experience' => [238, 350], 'gold' => [42, 84], 'cooldown' => 350],
-        ['level' => 100, 'band' => '80-100', 'prefix' => 'Evergather', 'rank' => 'Crown Ledger Rite', 'station' => 'Crown Ledger', 'loot_mark' => 'Crownmark', 'rarity' => 'legendary', 'experience' => [360, 520], 'gold' => [62, 120], 'cooldown' => 430],
+        ['level' => 1, 'band' => '1-30', 'key_slug' => 'starter', 'mark' => 'Candlemark', 'station' => 'Candleline Station', 'rarity' => 'common', 'experience' => [22, 34], 'gold' => [3, 8], 'cooldown' => 70],
+        ['level' => 5, 'band' => '1-30', 'key_slug' => 'local', 'mark' => 'Wayside', 'station' => 'Market Road Station', 'rarity' => 'common', 'experience' => [30, 46], 'gold' => [4, 10], 'cooldown' => 85],
+        ['level' => 10, 'band' => '1-30', 'key_slug' => 'apprentice', 'mark' => 'Moonwake', 'station' => 'Moonwake Desk', 'rarity' => 'uncommon', 'experience' => [40, 60], 'gold' => [6, 13], 'cooldown' => 100],
+        ['level' => 20, 'band' => '1-30', 'key_slug' => 'guild', 'mark' => 'Hearthsign', 'station' => 'Hearthsign Counter', 'rarity' => 'uncommon', 'experience' => [58, 86], 'gold' => [8, 18], 'cooldown' => 125],
+        ['level' => 30, 'band' => '30-50', 'key_slug' => 'runed', 'mark' => 'Runebound', 'station' => 'Runebound Annex', 'rarity' => 'rare', 'experience' => [78, 116], 'gold' => [12, 25], 'cooldown' => 155],
+        ['level' => 40, 'band' => '30-50', 'key_slug' => 'storm', 'mark' => 'Stormglass', 'station' => 'Stormglass Bay', 'rarity' => 'rare', 'experience' => [102, 152], 'gold' => [16, 34], 'cooldown' => 190],
+        ['level' => 50, 'band' => '50-80', 'key_slug' => 'elite', 'mark' => 'Highguild', 'station' => 'Highguild Office', 'rarity' => 'rare', 'experience' => [132, 196], 'gold' => [22, 45], 'cooldown' => 230],
+        ['level' => 65, 'band' => '50-80', 'key_slug' => 'elder', 'mark' => 'Elderwake', 'station' => 'Elderwake Span', 'rarity' => 'epic', 'experience' => [176, 260], 'gold' => [30, 62], 'cooldown' => 285],
+        ['level' => 80, 'band' => '80-100', 'key_slug' => 'mythic', 'mark' => 'Mythgate', 'station' => 'Mythgate Hall', 'rarity' => 'epic', 'experience' => [238, 350], 'gold' => [42, 84], 'cooldown' => 350],
+        ['level' => 100, 'band' => '80-100', 'key_slug' => 'evergather', 'mark' => 'Crownmark', 'station' => 'Crown Ledger', 'rarity' => 'legendary', 'experience' => [360, 520], 'gold' => [62, 120], 'cooldown' => 430],
     ];
 
     /**
@@ -276,7 +276,7 @@ class SkillActivityService
             $category = (string) ($skillDefinitions->get($skill)['category'] ?? 'General');
 
             foreach (self::TIERS as $tier) {
-                $key = str("{$skill} {$tier['prefix']} activity {$tier['level']}")->slug('_')->toString();
+                $key = str("{$skill} {$tier['key_slug']} activity {$tier['level']}")->slug('_')->toString();
                 $activities[$key] = self::activity($skill, $category, $family, $tier);
             }
         }
@@ -287,8 +287,8 @@ class SkillActivityService
     }
 
     /**
-     * @param  array{track: string, theme: string, location: string, rewards: list<array{key: string, name: string}>}  $family
-     * @param  array{level: int, band: string, prefix: string, rank: string, station: string, loot_mark: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}  $tier
+     * @param  array{track: string, theme: string, activities: list<string>, location: string, rewards: list<array{key: string, name: string}>}  $family
+     * @param  array{level: int, band: string, key_slug: string, mark: string, station: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}  $tier
      * @return array<string, mixed>
      */
     private static function activity(string $skill, string $category, array $family, array $tier): array
@@ -298,7 +298,7 @@ class SkillActivityService
         $secondaryReward = $family['rewards'][1];
 
         return [
-            'label' => "{$family['theme']} {$tier['rank']}",
+            'label' => self::activityLabelFor($family, $tier),
             'track' => $family['track'],
             'activity_type' => "{$category} Activity",
             'band' => $tier['band'],
@@ -312,21 +312,69 @@ class SkillActivityService
             'gold' => ['min' => $tier['gold'][0], 'max' => $tier['gold'][1]],
             'loot' => [
                 [
-                    'item_key' => str("{$skill} {$tier['prefix']} {$primaryReward['key']} {$tier['level']}")->slug('_')->toString(),
-                    'item_name' => "{$tier['loot_mark']} {$primaryReward['name']}",
+                    'item_key' => str("{$skill} {$tier['mark']} {$primaryReward['key']} {$tier['level']}")->slug('_')->toString(),
+                    'item_name' => self::activityRewardName($primaryReward['name'], $tier, 0),
                     'rarity' => $tier['rarity'],
                     'quantity' => $tier['level'] >= 50 ? 2 : 1,
                     'chance' => 100,
                 ],
                 [
-                    'item_key' => str("{$skill} {$tier['prefix']} {$secondaryReward['key']} {$tier['level']}")->slug('_')->toString(),
-                    'item_name' => "{$tier['loot_mark']} {$secondaryReward['name']}",
+                    'item_key' => str("{$skill} {$tier['mark']} {$secondaryReward['key']} {$tier['level']}")->slug('_')->toString(),
+                    'item_name' => self::activityRewardName($secondaryReward['name'], $tier, 1),
                     'rarity' => $tier['level'] >= 80 ? 'epic' : ($tier['level'] >= 30 ? 'rare' : 'uncommon'),
                     'quantity' => 1,
                     'chance' => $tier['level'] >= 80 ? 55 : 70,
                 ],
             ],
         ];
+    }
+
+    /**
+     * @param  array{activities: list<string>}  $family
+     * @param  array{key_slug: string}  $tier
+     */
+    private static function activityLabelFor(array $family, array $tier): string
+    {
+        $index = self::tierIndex($tier['key_slug']);
+
+        return $family['activities'][$index] ?? $family['activities'][0];
+    }
+
+    /**
+     * @param  array{key_slug: string}  $tier
+     */
+    private static function activityRewardName(string $baseName, array $tier, int $rewardIndex): string
+    {
+        $forms = [
+            'starter' => ['Candleline %s Sample', 'Candleline %s Tag'],
+            'local' => ['Wayside %s Bundle', 'Wayside %s Notch'],
+            'apprentice' => ['Moonwake %s Proof', 'Moonwake %s Mark'],
+            'guild' => ['Hearthsign %s Packet', 'Hearthsign %s Chit'],
+            'runed' => ['Runebound %s Etching', 'Runebound %s Seal'],
+            'storm' => ['Stormglass %s Shard', 'Stormglass %s Sigil'],
+            'elite' => ['Highguild %s Cache', 'Highguild %s Warrant'],
+            'elder' => ['Elderwake %s Relic', 'Elderwake %s Crest'],
+            'mythic' => ['Mythgate %s Core', 'Mythgate %s Oath'],
+            'evergather' => ['Crownmark %s Crownpiece', 'Crownmark %s Testament'],
+        ];
+
+        return sprintf($forms[$tier['key_slug']][$rewardIndex] ?? '%s', $baseName);
+    }
+
+    private static function tierIndex(string $keySlug): int
+    {
+        return match ($keySlug) {
+            'local' => 1,
+            'apprentice' => 2,
+            'guild' => 3,
+            'runed' => 4,
+            'storm' => 5,
+            'elite' => 6,
+            'elder' => 7,
+            'mythic' => 8,
+            'evergather' => 9,
+            default => 0,
+        };
     }
 
     private static function descriptionFor(string $skillLabel, string $track, string $band, string $theme): string

@@ -310,12 +310,12 @@ watch([selectedBoard, selectedCategory, selectedBand, () => props.searchTerm], (
     visibleLimit.value = boardPageSize
 })
 
-watch(readyActivities, (activities) => {
-    if (!activities.length && selectedBoard.value === 'ready') {
+watch([readyActivities, lockedActivities], () => {
+    if (!readyActivities.value.length && lockedActivities.value.length && selectedBoard.value === 'ready') {
         selectedBoard.value = 'next'
     }
 
-    if (activities.length && selectedBoard.value === 'next') {
+    if (!lockedActivities.value.length && readyActivities.value.length && selectedBoard.value === 'next') {
         selectedBoard.value = 'ready'
     }
 }, { immediate: true })

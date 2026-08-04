@@ -24,15 +24,15 @@ class ConnectedRealmsLeaderboardService
         ['key' => 'skills', 'group_key' => 'skills', 'group_label' => 'Skills', 'label' => 'Top Skill XP', 'description' => 'The highest individual skill records in the realm.', 'sort_order' => 40],
         ['key' => 'skill_champions', 'group_key' => 'skills', 'group_label' => 'Skills', 'label' => 'Skill Champions', 'description' => 'The current leader for every skill that has an XP record.', 'sort_order' => 50],
         ['key' => 'activity', 'group_key' => 'activity', 'group_label' => 'Activity', 'label' => 'All Activity', 'description' => 'Every logged action type rolled into one pace board.', 'sort_order' => 60],
-        ['key' => 'gathering', 'group_key' => 'activity', 'group_label' => 'Activity', 'label' => 'Gathering Runs', 'description' => 'Players pushing the most website gathering actions.', 'sort_order' => 70],
+        ['key' => 'gathering', 'group_key' => 'activity', 'group_label' => 'Activity', 'label' => 'Gathering Actions', 'description' => 'Players pushing the most website gathering actions.', 'sort_order' => 70],
         ['key' => 'crafting', 'group_key' => 'activity', 'group_label' => 'Activity', 'label' => 'Crafting Output', 'description' => 'Players completing the most recipes.', 'sort_order' => 80],
-        ['key' => 'jobs', 'group_key' => 'activity', 'group_label' => 'Activity', 'label' => 'Guild Commissions', 'description' => 'Players turning inventory into commission rewards.', 'sort_order' => 90],
+        ['key' => 'jobs', 'group_key' => 'activity', 'group_label' => 'Activity', 'label' => 'Commission Board', 'description' => 'Players turning inventory into posted rewards.', 'sort_order' => 90],
         ['key' => 'expeditions', 'group_key' => 'activity', 'group_label' => 'Activity', 'label' => 'Expeditions', 'description' => 'Players resolving supplied expedition routes.', 'sort_order' => 100],
         ['key' => 'inventory', 'group_key' => 'trade', 'group_label' => 'Trade', 'label' => 'Collectors', 'description' => 'Players holding the deepest inventories by quantity.', 'sort_order' => 110],
         ['key' => 'market_sellers', 'group_key' => 'trade', 'group_label' => 'Trade', 'label' => 'Market Sellers', 'description' => 'Players earning the most gold from marketplace sales.', 'sort_order' => 120],
         ['key' => 'market_buyers', 'group_key' => 'trade', 'group_label' => 'Trade', 'label' => 'Market Buyers', 'description' => 'Players spending the most gold on marketplace purchases.', 'sort_order' => 130],
         ['key' => 'market_volume', 'group_key' => 'trade', 'group_label' => 'Trade', 'label' => 'Trade Volume', 'description' => 'Players with the most combined marketplace buying and selling volume.', 'sort_order' => 140],
-        ['key' => 'vendor_floor', 'group_key' => 'trade', 'group_label' => 'Trade', 'label' => 'Ledger Floor', 'description' => 'Players converting inventory into NPC floor gold.', 'sort_order' => 150],
+        ['key' => 'vendor_floor', 'group_key' => 'trade', 'group_label' => 'Trade', 'label' => 'Vendor Floor', 'description' => 'Players converting inventory into NPC floor gold.', 'sort_order' => 150],
         ['key' => 'tool_crafters', 'group_key' => 'equipment', 'group_label' => 'Equipment', 'label' => 'Toolwrights', 'description' => 'Players producing, buying, and upgrading non-starter tools.', 'sort_order' => 160],
         ['key' => 'rarity_artisans', 'group_key' => 'equipment', 'group_label' => 'Equipment', 'label' => 'Rarity Artisans', 'description' => 'Players pushing rarity attempts and successful rarity history.', 'sort_order' => 170],
         ['key' => 'event_participants', 'group_key' => 'events', 'group_label' => 'Events', 'label' => 'Event Runners', 'description' => 'Players completing actions while world events are active.', 'sort_order' => 180],
@@ -345,7 +345,7 @@ class ConnectedRealmsLeaderboardService
                     ...$this->playerIdentity($player),
                     'score' => $total,
                     'score_label' => "{$total} actions",
-                    'detail' => "{$player->action_logs_count} gather · {$player->crafting_logs_count} craft · {$player->job_completions_count} jobs · {$player->expedition_runs_count} runs",
+                    'detail' => "{$player->action_logs_count} gather · {$player->crafting_logs_count} craft · {$player->job_completions_count} jobs · {$player->expedition_runs_count} expeditions",
                     'action_count' => (int) $player->action_logs_count,
                     'craft_count' => (int) $player->crafting_logs_count,
                     'job_count' => (int) $player->job_completions_count,
@@ -375,7 +375,7 @@ class ConnectedRealmsLeaderboardService
             ->map(fn (ConnectedRealmsPlayer $player): array => [
                 ...$this->playerIdentity($player),
                 'score' => (int) $player->action_logs_count,
-                'score_label' => "{$player->action_logs_count} runs",
+                'score_label' => "{$player->action_logs_count} actions",
                 'detail' => number_format((int) $player->gathered_experience).' XP · '.((int) $player->gathered_gold).' gold',
                 'experience' => (int) $player->gathered_experience,
                 'gold' => (int) $player->gathered_gold,
@@ -451,7 +451,7 @@ class ConnectedRealmsLeaderboardService
             ->map(fn (ConnectedRealmsPlayer $player): array => [
                 ...$this->playerIdentity($player),
                 'score' => (int) $player->expedition_runs_count,
-                'score_label' => "{$player->expedition_runs_count} runs",
+                'score_label' => "{$player->expedition_runs_count} expeditions",
                 'detail' => number_format((int) $player->expedition_experience).' XP · '.((int) $player->expedition_gold).' gold',
                 'gold' => (int) $player->expedition_gold,
                 'experience' => (int) $player->expedition_experience,
@@ -616,7 +616,7 @@ class ConnectedRealmsLeaderboardService
      */
     private function eventParticipants(): array
     {
-        return $this->eventRows('COUNT(*)', 'event runs');
+        return $this->eventRows('COUNT(*)', 'event actions');
     }
 
     /**

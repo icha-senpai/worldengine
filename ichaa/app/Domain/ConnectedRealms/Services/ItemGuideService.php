@@ -68,7 +68,7 @@ class ItemGuideService
         }
 
         foreach ($shop['offers'] ?? [] as $offer) {
-            $this->addSource($items, $offer, 'Guild Shop', (string) $offer['label'], (int) ($offer['required_level'] ?? 1), (string) ($offer['group'] ?? 'Shop'));
+            $this->addSource($items, $offer, 'Market Shop', (string) $offer['label'], (int) ($offer['required_level'] ?? 1), (string) ($offer['group'] ?? 'Shop'));
         }
 
         foreach ($marketplace['active_listings'] ?? [] as $listing) {
@@ -214,7 +214,7 @@ class ItemGuideService
                         $items,
                         $item,
                         'Tool Tier Upgrade',
-                        "{$tier['prefix']} {$family['noun']} Upgrade",
+                        $this->tools->tierToolName($family, $tier).' Upgrade',
                         (int) $tier['level'],
                         (string) $family['label'],
                     );

@@ -226,12 +226,12 @@ watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
 
-watch(readyJobs, (jobs) => {
-    if (!jobs.length && selectedBoard.value === 'ready') {
+watch([readyJobs, prepareJobs], () => {
+    if (!readyJobs.value.length && prepareJobs.value.length && selectedBoard.value === 'ready') {
         selectedBoard.value = 'prepare'
     }
 
-    if (jobs.length && selectedBoard.value === 'prepare') {
+    if (!prepareJobs.value.length && readyJobs.value.length && selectedBoard.value === 'prepare') {
         selectedBoard.value = 'ready'
     }
 }, { immediate: true })

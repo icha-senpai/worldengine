@@ -13,7 +13,7 @@ class ToolEffectService
     private const RARITY_EFFECTS = [
         'common' => ['rank' => 1, 'label' => 'Field-Worn', 'cooldown' => 0, 'critical' => 0, 'preservation' => 0, 'market' => 0],
         'uncommon' => ['rank' => 2, 'label' => 'Tuned', 'cooldown' => 1, 'critical' => 2, 'preservation' => 1, 'market' => 8],
-        'rare' => ['rank' => 3, 'label' => 'Guild-Sealed', 'cooldown' => 2, 'critical' => 4, 'preservation' => 2, 'market' => 18],
+        'rare' => ['rank' => 3, 'label' => 'Oath-Sealed', 'cooldown' => 2, 'critical' => 4, 'preservation' => 2, 'market' => 18],
         'epic' => ['rank' => 4, 'label' => 'Runebound', 'cooldown' => 4, 'critical' => 7, 'preservation' => 4, 'market' => 34],
         'legendary' => ['rank' => 5, 'label' => 'Realm-Forged', 'cooldown' => 7, 'critical' => 11, 'preservation' => 7, 'market' => 60],
     ];
@@ -44,7 +44,7 @@ class ToolEffectService
         'enchanting' => ['signature' => 'Ward-Oil Resonance', 'discipline' => 'Moon Ward Infusion'],
         'jewelcrafting' => ['signature' => 'Setting Spark', 'discipline' => 'Gemcutter Setting Work'],
         'boatbuilding' => ['signature' => 'Keelcurve Measure', 'discipline' => 'Moonwake Shipwrighting'],
-        'furniture' => ['signature' => 'Varnish Depth', 'discipline' => 'Guild Hall Finishwork'],
+        'furniture' => ['signature' => 'Varnish Depth', 'discipline' => 'Oathhall Finishwork'],
         'construction' => ['signature' => 'Loadstone Plumb', 'discipline' => 'Settlement Framecraft'],
         'combat' => ['signature' => 'Ring-Step Tempo', 'discipline' => 'Moonwake Blade Drill'],
         'slayer' => ['signature' => 'Marked Quarry Instinct', 'discipline' => 'Bounty Board Pursuit'],
@@ -80,7 +80,7 @@ class ToolEffectService
         $tierUpgradeCount = max(0, (int) ($tool instanceof ConnectedRealmsTool ? $tool->tier_upgrade_count : ($tool->tool?->tier_upgrade_count ?? 0)));
         $rarityAttempts = max(0, (int) ($tool->rarity_upgrade_attempts ?? 0));
         $rarityEffect = self::RARITY_EFFECTS[$rarity] ?? self::RARITY_EFFECTS['common'];
-        $trait = self::SKILL_TRAITS[$skill] ?? ['signature' => 'Wayfinder Handling', 'discipline' => 'General Guildcraft'];
+        $trait = self::SKILL_TRAITS[$skill] ?? ['signature' => 'Wayfinder Handling', 'discipline' => 'General Fieldcraft'];
         $historyRank = intdiv($upgradeCount + $tierUpgradeCount + $rarityAttempts, 3);
         $tierRank = intdiv($tierLevel, 10);
         $criticalChance = min(35, $rarityEffect['critical'] + $tierRank + intdiv($historyRank, 2));

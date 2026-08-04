@@ -226,12 +226,12 @@ watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
 
-watch(readyExpeditions, (expeditions) => {
-    if (!expeditions.length && selectedBoard.value === 'ready') {
+watch([readyExpeditions, prepareExpeditions], () => {
+    if (!readyExpeditions.value.length && prepareExpeditions.value.length && selectedBoard.value === 'ready') {
         selectedBoard.value = 'prepare'
     }
 
-    if (expeditions.length && selectedBoard.value === 'prepare') {
+    if (!prepareExpeditions.value.length && readyExpeditions.value.length && selectedBoard.value === 'prepare') {
         selectedBoard.value = 'ready'
     }
 }, { immediate: true })

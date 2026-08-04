@@ -67,7 +67,7 @@ class ToolInventoryService
 
             if ($tool->origin === 'starter') {
                 throw ValidationException::withMessages([
-                    'slot' => 'Starter tools stay equipped until another tool replaces them.',
+                    'slot' => 'Field kit tools stay equipped until another tool replaces them.',
                 ]);
             }
 

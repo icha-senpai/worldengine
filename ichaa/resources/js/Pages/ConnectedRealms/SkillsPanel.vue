@@ -298,12 +298,12 @@ watch([selectedSkillKey, selectedSkillBoard], () => {
     visibleSkillLimit.value = skillBoardPageSize
 })
 
-watch(readySkillActivities, (activities) => {
-    if (!activities.length && selectedSkillBoard.value === 'ready') {
+watch([readySkillActivities, lockedSkillActivities], () => {
+    if (!readySkillActivities.value.length && lockedSkillActivities.value.length && selectedSkillBoard.value === 'ready') {
         selectedSkillBoard.value = 'next'
     }
 
-    if (activities.length && selectedSkillBoard.value === 'next') {
+    if (!lockedSkillActivities.value.length && readySkillActivities.value.length && selectedSkillBoard.value === 'next') {
         selectedSkillBoard.value = 'ready'
     }
 }, { immediate: true })

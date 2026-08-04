@@ -2,7 +2,7 @@
     <section class="surface-section xl:col-span-2">
         <div class="surface-section__header">
             <div class="surface-section__copy">
-                <span class="surface-section__title">Guild Shop</span>
+                <span class="surface-section__title">Market Shop</span>
                 <p class="surface-section__subtitle">{{ buyableCount }} offers affordable · {{ shop.offers.length }} listed.</p>
             </div>
         </div>
@@ -11,7 +11,7 @@
             <div class="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
                 <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
                     <div class="flex items-center justify-between gap-3">
-                        <p class="text-sm font-ui text-primary">Guild Counter</p>
+                        <p class="text-sm font-ui text-primary">Supply Counter</p>
                         <span class="tag">{{ activeBoard.count }} {{ activeBoard.unit }}</span>
                     </div>
                     <p class="mt-1 text-xs text-muted-3">{{ activeBoard.description }}</p>
@@ -248,12 +248,12 @@ watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
 
-watch(buyableOffers, (offers) => {
-    if (!offers.length && selectedBoard.value === 'buyable') {
+watch([buyableOffers, usefulLockedOffers], () => {
+    if (!buyableOffers.value.length && usefulLockedOffers.value.length && selectedBoard.value === 'buyable') {
         selectedBoard.value = 'plan'
     }
 
-    if (offers.length && selectedBoard.value === 'plan') {
+    if (!usefulLockedOffers.value.length && buyableOffers.value.length && selectedBoard.value === 'plan') {
         selectedBoard.value = 'buyable'
     }
 }, { immediate: true })

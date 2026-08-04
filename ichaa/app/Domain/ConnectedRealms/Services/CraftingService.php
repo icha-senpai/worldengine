@@ -625,10 +625,10 @@ class CraftingService
                 ['item_key' => 'whisperbark_sheet', 'item_name' => 'Whisperbark Sheet', 'quantity' => 1],
                 ['item_key' => 'coal_chunk', 'item_name' => 'Coal Chunk', 'quantity' => 1],
             ], [['item_key' => 'sketch_map', 'item_name' => 'Sketch Map', 'rarity' => 'common', 'quantity' => 1]], 'World'),
-            'resource_note' => self::itemRecipe('Resource Note', 'cartography', 8, 50, [
+            'resource_note' => self::itemRecipe('Chamber Survey Note', 'cartography', 8, 50, [
                 ['item_key' => 'sketch_map', 'item_name' => 'Sketch Map', 'quantity' => 1],
                 ['item_key' => 'survey_marker', 'item_name' => 'Survey Marker', 'quantity' => 1],
-            ], [['item_key' => 'resource_note', 'item_name' => 'Resource Note', 'rarity' => 'common', 'quantity' => 1]], 'World'),
+            ], [['item_key' => 'resource_note', 'item_name' => 'Chamber Survey Note', 'rarity' => 'common', 'quantity' => 1]], 'World'),
             'barter_note' => self::itemRecipe('Barter Note', 'trading', 3, 34, [
                 ['item_key' => 'whisperbark_sheet', 'item_name' => 'Whisperbark Sheet', 'quantity' => 1],
                 ['item_key' => 'sunfield_grain', 'item_name' => 'Sunfield Grain', 'quantity' => 1],
@@ -728,10 +728,10 @@ class CraftingService
                 ['item_key' => 'skiff_rib', 'item_name' => 'Skiff Rib', 'quantity' => 2],
                 ['item_key' => 'silk_sail', 'item_name' => 'Silk Sail', 'quantity' => 1],
             ], [['item_key' => 'cargo_skiff', 'item_name' => 'Cargo Skiff', 'rarity' => 'rare', 'quantity' => 1]], 'Crafting'),
-            'guild_table' => self::itemRecipe('Guild Table', 'furniture', 25, 76, [
+            'guild_table' => self::itemRecipe('Oathhall Table', 'furniture', 25, 76, [
                 ['item_key' => 'heartwood_beam', 'item_name' => 'Heartwood Beam', 'quantity' => 1],
                 ['item_key' => 'trophy_stand', 'item_name' => 'Trophy Stand', 'quantity' => 1],
-            ], [['item_key' => 'guild_table', 'item_name' => 'Guild Table', 'rarity' => 'rare', 'quantity' => 1]], 'Crafting'),
+            ], [['item_key' => 'guild_table', 'item_name' => 'Oathhall Table', 'rarity' => 'rare', 'quantity' => 1]], 'Crafting'),
             'watchtower_frame' => self::itemRecipe('Watchtower Frame', 'construction', 30, 88, [
                 ['item_key' => 'repair_scaffold', 'item_name' => 'Repair Scaffold', 'quantity' => 2],
                 ['item_key' => 'steel_ingot', 'item_name' => 'Steel Ingot', 'quantity' => 1],
@@ -752,25 +752,16 @@ class CraftingService
      */
     private static function toolRecipes(): array
     {
-        $families = (new ToolCatalogService)->families();
-        $tiers = [
-            ['prefix' => 'Apprentice', 'rarity' => 'uncommon', 'level' => 1, 'xp' => 44, 'experience_bonus' => 9, 'yield_bonus' => 2, 'extra' => ['item_key' => 'amber_sap', 'item_name' => 'Amber Sap', 'quantity' => 1]],
-            ['prefix' => 'Guild', 'rarity' => 'rare', 'level' => 20, 'xp' => 86, 'experience_bonus' => 17, 'yield_bonus' => 3, 'extra' => ['item_key' => 'prism_lens', 'item_name' => 'Prism Lens', 'quantity' => 1]],
-            ['prefix' => 'Journeyman', 'rarity' => 'rare', 'level' => 25, 'xp' => 98, 'experience_bonus' => 19, 'yield_bonus' => 3, 'extra' => null],
-            ['prefix' => 'Artisan', 'rarity' => 'rare', 'level' => 30, 'xp' => 112, 'experience_bonus' => 22, 'yield_bonus' => 4, 'extra' => null],
-            ['prefix' => 'Expert', 'rarity' => 'epic', 'level' => 35, 'xp' => 124, 'experience_bonus' => 24, 'yield_bonus' => 4, 'extra' => null],
-            ['prefix' => 'Runed', 'rarity' => 'epic', 'level' => 40, 'xp' => 132, 'experience_bonus' => 26, 'yield_bonus' => 5, 'extra' => null],
-            ['prefix' => 'Crown', 'rarity' => 'epic', 'level' => 45, 'xp' => 140, 'experience_bonus' => 27, 'yield_bonus' => 5, 'extra' => null],
-            ['prefix' => 'Masterwork', 'rarity' => 'epic', 'level' => 50, 'xp' => 146, 'experience_bonus' => 28, 'yield_bonus' => 5, 'extra' => ['item_key' => 'star_metal_ingot', 'item_name' => 'Star Metal Ingot', 'quantity' => 1]],
-            ['prefix' => 'Mythic', 'rarity' => 'epic', 'level' => 75, 'xp' => 220, 'experience_bonus' => 42, 'yield_bonus' => 7, 'extra' => null],
-            ['prefix' => 'Ascendant', 'rarity' => 'legendary', 'level' => 100, 'xp' => 340, 'experience_bonus' => 65, 'yield_bonus' => 10, 'extra' => null],
-        ];
+        $tools = new ToolCatalogService;
+        $families = $tools->families();
+        $tiers = $tools->tierPath();
         $recipes = [];
 
         foreach ($families as $skill => $family) {
             foreach ($tiers as $tier) {
-                $itemName = "{$tier['prefix']} {$family['noun']}";
-                $key = str($itemName)->slug('_')->toString().'_craft';
+                $itemName = $tools->tierToolName($family, $tier);
+                $itemKey = $tools->tierToolKey($family, $tier);
+                $key = "{$itemKey}_craft";
                 $extra = $tier['extra'] ?? self::craftedToolWorkIngredient($family['craft'], $tier['level']);
 
                 $recipes[$key] = [
@@ -785,7 +776,7 @@ class CraftingService
                         $extra,
                     ],
                     'outputs' => [[
-                        'item_key' => str($itemName)->slug('_')->toString(),
+                        'item_key' => $itemKey,
                         'item_name' => $itemName,
                         'rarity' => $tier['rarity'],
                         'quantity' => 1,
@@ -830,12 +821,12 @@ class CraftingService
             'trading' => ['category' => 'Social', 'ingredient_skill' => 'farming'],
         ];
         $tiers = [
-            ['level' => 20, 'prefix' => 'Silver', 'rarity' => 'uncommon', 'experience' => 74],
-            ['level' => 25, 'prefix' => 'Sable', 'rarity' => 'uncommon', 'experience' => 88],
-            ['level' => 30, 'prefix' => 'Runed', 'rarity' => 'rare', 'experience' => 106],
-            ['level' => 35, 'prefix' => 'Moon', 'rarity' => 'rare', 'experience' => 128],
-            ['level' => 40, 'prefix' => 'Storm', 'rarity' => 'epic', 'experience' => 154],
-            ['level' => 45, 'prefix' => 'Star', 'rarity' => 'epic', 'experience' => 182],
+            ['level' => 20, 'prefix' => 'Silverbank', 'rarity' => 'uncommon', 'experience' => 74],
+            ['level' => 25, 'prefix' => 'Sablecross', 'rarity' => 'uncommon', 'experience' => 88],
+            ['level' => 30, 'prefix' => 'Runebound', 'rarity' => 'rare', 'experience' => 106],
+            ['level' => 35, 'prefix' => 'Moonwake', 'rarity' => 'rare', 'experience' => 128],
+            ['level' => 40, 'prefix' => 'Stormglass', 'rarity' => 'epic', 'experience' => 154],
+            ['level' => 45, 'prefix' => 'Starline', 'rarity' => 'epic', 'experience' => 182],
         ];
         $recipes = [];
 
@@ -898,12 +889,12 @@ class CraftingService
             'trading' => ['noun' => 'Charter', 'category' => 'Social', 'ingredient_skill' => 'farming', 'ingredient' => 'seed'],
         ];
         $tiers = [
-            ['level' => 55, 'prefix' => 'Runed', 'rarity' => 'rare', 'experience' => 150],
-            ['level' => 65, 'prefix' => 'Elder', 'rarity' => 'rare', 'experience' => 190],
-            ['level' => 75, 'prefix' => 'Mythic', 'rarity' => 'epic', 'experience' => 245],
+            ['level' => 55, 'prefix' => 'Runebound', 'rarity' => 'rare', 'experience' => 150],
+            ['level' => 65, 'prefix' => 'Elderwake', 'rarity' => 'rare', 'experience' => 190],
+            ['level' => 75, 'prefix' => 'Mythgate', 'rarity' => 'epic', 'experience' => 245],
             ['level' => 85, 'prefix' => 'Astral', 'rarity' => 'epic', 'experience' => 310],
             ['level' => 95, 'prefix' => 'Prismatic', 'rarity' => 'legendary', 'experience' => 395],
-            ['level' => 100, 'prefix' => 'Evergather', 'rarity' => 'legendary', 'experience' => 520],
+            ['level' => 100, 'prefix' => 'Crownmark', 'rarity' => 'legendary', 'experience' => 520],
         ];
         $recipes = [];
 

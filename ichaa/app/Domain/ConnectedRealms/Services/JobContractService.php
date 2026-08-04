@@ -95,7 +95,7 @@ class JobContractService
         'bait_bucket_order' => ['label' => 'Bait Bucket Order', 'category' => 'Gathering', 'skill' => 'fishing', 'level' => 3, 'experience' => 34, 'gold' => 24, 'item_key' => 'tide_snail', 'item_name' => 'Tide Snail', 'quantity' => 3],
         'copper_assay' => ['label' => 'Copper Assay', 'category' => 'Gathering', 'skill' => 'mining', 'level' => 3, 'experience' => 36, 'gold' => 26, 'item_key' => 'copper_ore', 'item_name' => 'Copper Ore', 'quantity' => 3],
         'kindling_quota' => ['label' => 'Kindling Quota', 'category' => 'Gathering', 'skill' => 'woodcutting', 'level' => 3, 'experience' => 32, 'gold' => 24, 'item_key' => 'branch_bundle', 'item_name' => 'Branch Bundle', 'quantity' => 3],
-        'seed_cache_sort' => ['label' => 'Seed Cache Sort', 'category' => 'Gathering', 'skill' => 'foraging', 'level' => 3, 'experience' => 30, 'gold' => 22, 'item_key' => 'common_seed', 'item_name' => 'Common Seed', 'quantity' => 3],
+        'seed_cache_sort' => ['label' => 'Seed Cache Sort', 'category' => 'Gathering', 'skill' => 'foraging', 'level' => 3, 'experience' => 30, 'gold' => 22, 'item_key' => 'common_seed', 'item_name' => 'Sunfield Seed Mix', 'quantity' => 3],
         'camp_meat_delivery' => ['label' => 'Camp Meat Delivery', 'category' => 'Gathering', 'skill' => 'hunting', 'level' => 3, 'experience' => 38, 'gold' => 28, 'item_key' => 'small_game_meat', 'item_name' => 'Small Game Meat', 'quantity' => 3],
         'bean_row_sample' => ['label' => 'Bean Row Sample', 'category' => 'Gathering', 'skill' => 'farming', 'level' => 7, 'experience' => 42, 'gold' => 30, 'item_key' => 'field_bean', 'item_name' => 'Field Bean', 'quantity' => 3],
         'pottery_sort' => ['label' => 'Pottery Sort', 'category' => 'Gathering', 'skill' => 'excavation', 'level' => 3, 'experience' => 38, 'gold' => 28, 'item_key' => 'pottery_shard', 'item_name' => 'Pottery Shard', 'quantity' => 3],
@@ -112,7 +112,7 @@ class JobContractService
         'binding_order' => ['label' => 'Binding Order', 'category' => 'Workshop', 'skill' => 'leatherworking', 'level' => 3, 'experience' => 44, 'gold' => 34, 'item_key' => 'sinew_binding', 'item_name' => 'Sinew Binding', 'quantity' => 1],
         'spring_calibration' => ['label' => 'Spring Calibration', 'category' => 'Workshop', 'skill' => 'engineering', 'level' => 3, 'experience' => 48, 'gold' => 38, 'item_key' => 'clockwork_spring', 'item_name' => 'Clockwork Spring', 'quantity' => 1],
         'ward_oil_request' => ['label' => 'Ward Oil Request', 'category' => 'Arcane', 'skill' => 'enchanting', 'level' => 3, 'experience' => 50, 'gold' => 40, 'item_key' => 'minor_ward_oil', 'item_name' => 'Minor Ward Oil', 'quantity' => 1],
-        'copper_setting_lot' => ['label' => 'Copper Setting Lot', 'category' => 'Luxury', 'skill' => 'jewelcrafting', 'level' => 3, 'experience' => 46, 'gold' => 36, 'item_key' => 'copper_setting', 'item_name' => 'Copper Setting', 'quantity' => 1],
+        'copper_setting_lot' => ['label' => 'Gemsetter Copper Lot', 'category' => 'Luxury', 'skill' => 'jewelcrafting', 'level' => 3, 'experience' => 46, 'gold' => 36, 'item_key' => 'copper_setting', 'item_name' => 'Copper Setting', 'quantity' => 1],
         'reed_float_bundle' => ['label' => 'Reed Float Bundle', 'category' => 'Settlement', 'skill' => 'boatbuilding', 'level' => 3, 'experience' => 44, 'gold' => 34, 'item_key' => 'reed_float', 'item_name' => 'Reed Float', 'quantity' => 1],
         'stool_delivery' => ['label' => 'Stool Delivery', 'category' => 'Settlement', 'skill' => 'furniture', 'level' => 3, 'experience' => 44, 'gold' => 34, 'item_key' => 'ashwood_stool', 'item_name' => 'Ashwood Stool', 'quantity' => 1],
         'signpost_crew' => ['label' => 'Signpost Crew', 'category' => 'Settlement', 'skill' => 'construction', 'level' => 3, 'experience' => 50, 'gold' => 40, 'item_key' => 'trail_signpost', 'item_name' => 'Trail Signpost', 'quantity' => 1],
@@ -120,13 +120,13 @@ class JobContractService
         'fang_study' => ['label' => 'Fang Study', 'category' => 'Combat', 'skill' => 'slayer', 'level' => 8, 'experience' => 62, 'gold' => 50, 'item_key' => 'sharp_fang', 'item_name' => 'Sharp Fang', 'quantity' => 1],
         'repair_line' => ['label' => 'Repair Line', 'category' => 'Combat', 'skill' => 'defense', 'level' => 8, 'experience' => 60, 'gold' => 48, 'item_key' => 'field_repair_kit', 'item_name' => 'Field Repair Kit', 'quantity' => 1],
         'sap_rounds' => ['label' => 'Sap Rounds', 'category' => 'Support', 'skill' => 'healing', 'level' => 8, 'experience' => 60, 'gold' => 48, 'item_key' => 'sap_tonic', 'item_name' => 'Sap Tonic', 'quantity' => 1],
-        'rune_thread_watch' => ['label' => 'Rune Thread Watch', 'category' => 'Arcane', 'skill' => 'magic', 'level' => 8, 'experience' => 64, 'gold' => 52, 'item_key' => 'rune_thread', 'item_name' => 'Rune Thread', 'quantity' => 1],
+        'rune_thread_watch' => ['label' => 'Runespun Thread Watch', 'category' => 'Arcane', 'skill' => 'magic', 'level' => 8, 'experience' => 64, 'gold' => 52, 'item_key' => 'rune_thread', 'item_name' => 'Rune Thread', 'quantity' => 1],
         'bow_sighting' => ['label' => 'Bow Sighting', 'category' => 'Combat', 'skill' => 'ranged', 'level' => 8, 'experience' => 60, 'gold' => 48, 'item_key' => 'trail_bow', 'item_name' => 'Trail Bow', 'quantity' => 1],
         'sketch_route' => ['label' => 'Sketch Route', 'category' => 'World', 'skill' => 'exploration', 'level' => 3, 'experience' => 50, 'gold' => 40, 'item_key' => 'sketch_map', 'item_name' => 'Sketch Map', 'quantity' => 1],
-        'resource_room_notes' => ['label' => 'Resource Room Notes', 'category' => 'World', 'skill' => 'dungeoneering', 'level' => 8, 'experience' => 62, 'gold' => 50, 'item_key' => 'resource_note', 'item_name' => 'Resource Note', 'quantity' => 1],
+        'resource_room_notes' => ['label' => 'Chamber Survey Notes', 'category' => 'World', 'skill' => 'dungeoneering', 'level' => 8, 'experience' => 62, 'gold' => 50, 'item_key' => 'resource_note', 'item_name' => 'Chamber Survey Note', 'quantity' => 1],
         'dock_rope_order' => ['label' => 'Dock Rope Order', 'category' => 'World', 'skill' => 'sailing', 'level' => 8, 'experience' => 58, 'gold' => 48, 'item_key' => 'dock_rope', 'item_name' => 'Dock Rope', 'quantity' => 1],
         'flatbread_cache' => ['label' => 'Flatbread Cache', 'category' => 'World', 'skill' => 'survival', 'level' => 8, 'experience' => 58, 'gold' => 46, 'item_key' => 'grain_flatbread', 'item_name' => 'Grain Flatbread', 'quantity' => 1],
-        'resource_note_sale' => ['label' => 'Resource Note Sale', 'category' => 'World', 'skill' => 'cartography', 'level' => 8, 'experience' => 58, 'gold' => 46, 'item_key' => 'resource_note', 'item_name' => 'Resource Note', 'quantity' => 1],
+        'resource_note_sale' => ['label' => 'Chamber Note Transfer', 'category' => 'World', 'skill' => 'cartography', 'level' => 8, 'experience' => 58, 'gold' => 46, 'item_key' => 'resource_note', 'item_name' => 'Chamber Survey Note', 'quantity' => 1],
         'barter_errand' => ['label' => 'Barter Errand', 'category' => 'Social', 'skill' => 'reputation', 'level' => 3, 'experience' => 48, 'gold' => 38, 'item_key' => 'barter_note', 'item_name' => 'Barter Note', 'quantity' => 1],
         'crate_muster' => ['label' => 'Crate Muster', 'category' => 'Social', 'skill' => 'leadership', 'level' => 8, 'experience' => 62, 'gold' => 50, 'item_key' => 'supply_crate', 'item_name' => 'Supply Crate', 'quantity' => 1],
         'token_exchange' => ['label' => 'Token Exchange', 'category' => 'Social', 'skill' => 'trading', 'level' => 8, 'experience' => 58, 'gold' => 48, 'item_key' => 'market_token', 'item_name' => 'Market Token', 'quantity' => 1],
@@ -136,44 +136,44 @@ class JobContractService
      * @var array<string, array<int, string>>
      */
     private const JOB_TITLES = [
-        'fishing' => [15 => 'River Market Icebox', 20 => 'Netmender Supply Run', 25 => 'Reef Eel Tally', 30 => 'Moonpool Bait Ledger', 35 => 'Deepwater Catch Hold', 40 => 'Pearlscale Fishery Claim', 45 => 'Stormdock Provision Lot', 50 => 'Tidewarden Reef Order', 75 => 'Leviathan Wake Bounty', 100 => 'Evergather Tide Tribute'],
-        'mining' => [15 => 'Copper Vein Assay', 20 => 'Coalhouse Stock Writ', 25 => 'Cobalt Claim Ledger', 30 => 'Gem Pocket Survey', 35 => 'Deep Quarry Delivery', 40 => 'Runed Ore Inspection', 45 => 'Foundry Reserve Haul', 50 => 'Mountainheart Assay', 75 => 'Starmetal Claim Warrant', 100 => 'Crownspire Ore Tribute'],
+        'fishing' => [15 => 'River Market Icebox', 20 => 'Netmender Supply Crate', 25 => 'Reef Eel Tally', 30 => 'Moonpool Bait Ledger', 35 => 'Deepwater Catch Hold', 40 => 'Pearlscale Fishery Claim', 45 => 'Stormdock Provision Lot', 50 => 'Tidewarden Reef Order', 75 => 'Leviathan Wake Bounty', 100 => 'Evergather Tide Tribute'],
+        'mining' => [15 => 'Copper Vein Assay', 20 => 'Coalhouse Stock Writ', 25 => 'Cobalt Claim Ledger', 30 => 'Gem Pocket Survey', 35 => 'Deep Quarry Delivery', 40 => 'Runebound Ore Inspection', 45 => 'Foundry Reserve Haul', 50 => 'Mountainheart Assay', 75 => 'Starmetal Claim Warrant', 100 => 'Crownspire Ore Tribute'],
         'woodcutting' => [15 => 'Hardwood Camp Quota', 20 => 'Resin Tap Ledger', 25 => 'Heartwood Survey Order', 30 => 'Bridge Beam Requisition', 35 => 'Grovekeeper Timber Lot', 40 => 'Stormfall Lumber Claim', 45 => 'Ancient Bark Harvest', 50 => 'Living Timber Writ', 75 => 'Elder Grove Stewardship', 100 => 'Worldroot Timber Tribute'],
         'foraging' => [15 => 'Herbalist Field Satchel', 20 => 'Mushroom Ring Survey', 25 => 'Silk Moss Parcel', 30 => 'Bitterroot Remedy Cache', 35 => 'Mooncap Grove Tally', 40 => 'Rare Bloom Preservation', 45 => 'Alchemist Wild Stock', 50 => 'Dawnpetal Reserve Order', 75 => 'Moonlit Orchid Warrant', 100 => 'Wildskeeper Seed Tribute'],
-        'hunting' => [15 => 'Trail Trap Recovery', 20 => 'Hide Camp Muster', 25 => 'Fang Trophy Tally', 30 => 'Ridge Stalker Parcel', 35 => 'Monster Hide Delivery', 40 => 'Great Beast Tracking Writ', 45 => 'Hunter Lodge Reserve', 50 => 'Apex Spoor Dossier', 75 => 'Mythic Trophy Warrant', 100 => 'First Hunt Tribute'],
-        'farming' => [15 => 'Bean Row Harvest', 20 => 'Herb Bed Ledger', 25 => 'Dusk Wheat Parcel', 30 => 'Orchard Market Cart', 35 => 'Greenhouse Yield Order', 40 => 'Seasonal Seed Audit', 45 => 'Sunfield Granary Lot', 50 => 'Harvest Guild Reserve', 75 => 'Mythic Crop Warrant', 100 => 'Evergarden Bounty'],
-        'excavation' => [15 => 'Relic Grid Report', 20 => 'Bone Bed Recovery', 25 => 'Ancient Tablet Claim', 30 => 'Buried Mechanism Cache', 35 => 'Ruin Chamber Ledger', 40 => 'Lost Archive Parcel', 45 => 'Sanctum Dust Survey', 50 => 'Deep Archive Intake', 75 => 'Mythic Relic Warrant', 100 => 'First Age Reliquary'],
-        'smelting' => [15 => 'Iron Furnace Batch', 20 => 'Coal Blend Ledger', 25 => 'Cobalt Bar Quota', 30 => 'Alloy Heat Order', 35 => 'Runed Ingot Pour', 40 => 'Foundry Night Shift', 45 => 'Prismatic Flux Batch', 50 => 'Master Furnace Intake', 75 => 'Starmetal Refinement Warrant', 100 => 'Worldforge Pour'],
-        'milling' => [15 => 'Ashwood Plank Run', 20 => 'Bark Sheet Quota', 25 => 'Resin Board Ledger', 30 => 'Bridge Beam Batch', 35 => 'Precision Dowel Order', 40 => 'Heartwood Stock Intake', 45 => 'Living Timber Cut List', 50 => 'Guildhall Beam Requisition', 75 => 'Elderwood Mill Warrant', 100 => 'Worldroot Saw Order'],
-        'tanning' => [15 => 'Cured Hide Parcel', 20 => 'Leather Strip Quota', 25 => 'Scale Backing Order', 30 => 'Harness Stock Ledger', 35 => 'Monster Hide Cure', 40 => 'Reinforced Leather Intake', 45 => 'Sinew Binding Lot', 50 => 'Beastguard Stock Writ', 75 => 'Mythic Hide Warrant', 100 => 'Apex Leather Tribute'],
-        'cutting' => [15 => 'Polished Gem Packet', 20 => 'Socket Stone Ledger', 25 => 'Quartz Lens Order', 30 => 'Prismatic Facet Brief', 35 => 'Geode Appraisal Lot', 40 => 'Focus Cut Register', 45 => 'Mythic Gem Claim', 50 => 'Crown Facet Intake', 75 => 'Starfacet Warrant', 100 => 'First Light Jewel'],
-        'weaving' => [15 => 'Fiber Thread Bundle', 20 => 'Reed Cloth Quota', 25 => 'Canvas Reinforcement Lot', 30 => 'Silk Loom Ledger', 35 => 'Spellthread Spool Order', 40 => 'Banner Cloth Requisition', 45 => 'Moonweave Bolt', 50 => 'Guild Loom Intake', 75 => 'Astral Thread Warrant', 100 => 'Evergather Loom Tribute'],
+        'hunting' => [15 => 'Trail Trap Recovery', 20 => 'Hide Camp Muster', 25 => 'Fang Trophy Tally', 30 => 'Ridge Stalker Parcel', 35 => 'Monster Hide Delivery', 40 => 'Great Beast Tracking Writ', 45 => 'Hunter Lodge Reserve', 50 => 'Apex Spoor Dossier', 75 => 'Crownbeast Trophy Warrant', 100 => 'First Hunt Tribute'],
+        'farming' => [15 => 'Bean Row Harvest', 20 => 'Herb Bed Ledger', 25 => 'Dusk Wheat Parcel', 30 => 'Orchard Market Cart', 35 => 'Greenhouse Yield Order', 40 => 'Seasonal Seed Audit', 45 => 'Sunfield Granary Lot', 50 => 'Sunfield Reserve Granary', 75 => 'Everdawn Crop Warrant', 100 => 'Evergarden Bounty'],
+        'excavation' => [15 => 'Relic Grid Report', 20 => 'Bone Bed Recovery', 25 => 'Ancient Tablet Claim', 30 => 'Buried Mechanism Cache', 35 => 'Ruin Chamber Ledger', 40 => 'Lost Archive Parcel', 45 => 'Sanctum Dust Survey', 50 => 'Deep Archive Claim', 75 => 'First Age Relic Warrant', 100 => 'First Age Reliquary'],
+        'smelting' => [15 => 'Iron Furnace Batch', 20 => 'Coal Blend Ledger', 25 => 'Cobalt Bar Quota', 30 => 'Alloy Heat Order', 35 => 'Runebound Ingot Pour', 40 => 'Foundry Night Shift', 45 => 'Prismatic Flux Batch', 50 => 'Master Furnace Charge', 75 => 'Starmetal Refinement Warrant', 100 => 'Worldforge Pour'],
+        'milling' => [15 => 'Ashwood Plank Haul', 20 => 'Bark Sheet Quota', 25 => 'Resin Board Ledger', 30 => 'Bridge Beam Batch', 35 => 'Precision Dowel Order', 40 => 'Heartwood Stock Measure', 45 => 'Living Timber Cut List', 50 => 'Oathhall Beam Requisition', 75 => 'Elderwood Mill Warrant', 100 => 'Worldroot Saw Order'],
+        'tanning' => [15 => 'Cured Hide Parcel', 20 => 'Leather Strip Quota', 25 => 'Scale Backing Order', 30 => 'Harness Stock Ledger', 35 => 'Monster Hide Cure', 40 => 'Reinforced Leather Fit', 45 => 'Sinew Binding Lot', 50 => 'Beastguard Stock Writ', 75 => 'Apex Leather Warrant', 100 => 'Apex Leather Tribute'],
+        'cutting' => [15 => 'Polished Gem Packet', 20 => 'Socket Stone Ledger', 25 => 'Quartz Lens Order', 30 => 'Prismatic Facet Brief', 35 => 'Geode Appraisal Lot', 40 => 'Focus Cut Register', 45 => 'Starfacet Gem Claim', 50 => 'Crown Facet Register', 75 => 'Starfacet Warrant', 100 => 'First Light Jewel'],
+        'weaving' => [15 => 'Fiber Thread Bundle', 20 => 'Reed Cloth Quota', 25 => 'Canvas Reinforcement Lot', 30 => 'Silk Loom Ledger', 35 => 'Spellthread Spool Order', 40 => 'Banner Cloth Requisition', 45 => 'Moonweave Bolt', 50 => 'Moonweave Loomhouse Claim', 75 => 'Astral Thread Warrant', 100 => 'Crown Loom Tribute'],
         'smithing' => [15 => 'Iron Fittings Order', 20 => 'Toolhead Forge Ticket', 25 => 'Steel Frame Request', 30 => 'Armor Rivet Lot', 35 => 'Runed Pick Head', 40 => 'Masterwork Anvil Brief', 45 => 'Crown Tool Commission', 50 => 'Warplate Assembly Writ', 75 => 'Meteor Gear Warrant', 100 => 'Anvil Saint Mandate'],
-        'carpentry' => [15 => 'Handlewright Lot', 20 => 'Bow Stave Request', 25 => 'Strong Frame Ledger', 30 => 'Cratewright Delivery', 35 => 'Expedition Timber Kit', 40 => 'Guildhall Joinery Brief', 45 => 'Living Wood Handle', 50 => 'Master Carpenter Writ', 75 => 'Heartwood Frame Warrant', 100 => 'Worldroot Joinery Mandate'],
-        'cooking' => [15 => 'Ration Kettle Order', 20 => 'Harbor Soup Shift', 25 => 'Skill Meal Platter', 30 => 'Hunter Feast Ledger', 35 => 'Raid Pantry Refill', 40 => 'Dusk Feast Request', 45 => 'Festival Kitchen Brief', 50 => 'Guild Banquet Order', 75 => 'Mythic Cuisine Warrant', 100 => 'Realm Chef Banquet'],
-        'alchemy' => [15 => 'Field Tonic Crate', 20 => 'Ward Oil Ledger', 25 => 'Combat Draught Parcel', 30 => 'Catalyst Vial Brief', 35 => 'Bitterroot Remedy Order', 40 => 'Prismatic Reagent Intake', 45 => 'Transmutation Vessel', 50 => 'Grand Still Requisition', 75 => 'Mythic Elixir Warrant', 100 => 'Grand Alchemist Mandate'],
-        'tailoring' => [15 => 'Field Wrap Bundle', 20 => 'Satchel Stitch Order', 25 => 'Robe Panel Ledger', 30 => 'Sailcloth Delivery', 35 => 'Banner Hem Brief', 40 => 'Spellcloth Garment Lot', 45 => 'Court Outfit Request', 50 => 'Guild Regalia Writ', 75 => 'Astral Vestment Warrant', 100 => 'Couture Master Mandate'],
-        'leatherworking' => [15 => 'Pouchmaker Parcel', 20 => 'Tool Belt Order', 25 => 'Leather Armor Fit', 30 => 'Travel Harness Ledger', 35 => 'Monster Gear Brief', 40 => 'Saddle Stock Request', 45 => 'Rugged Kit Intake', 50 => 'Beastguard Harness Writ', 75 => 'Apex Hide Warrant', 100 => 'Hide Artisan Mandate'],
-        'engineering' => [15 => 'Clockwork Spring Packet', 20 => 'Trapline Mechanism Order', 25 => 'Gadget Bench Brief', 30 => 'Siege Gear Ledger', 35 => 'Arcane Engine Coupling', 40 => 'Precision Trigger Lot', 45 => 'Survey Device Intake', 50 => 'Workshop Prototype Writ', 75 => 'Astral Engine Warrant', 100 => 'Chief Engineer Mandate'],
-        'enchanting' => [15 => 'Minor Ward Oil Request', 20 => 'Charm Infusion Ledger', 25 => 'Socket Rune Brief', 30 => 'Trait Binding Parcel', 35 => 'Relic Wake Draft', 40 => 'Major Enchantment Order', 45 => 'Prismatic Rune Claim', 50 => 'Arcane Seal Requisition', 75 => 'Mythic Binding Warrant', 100 => 'Arcane Binder Mandate'],
-        'jewelcrafting' => [15 => 'Copper Setting Lot', 20 => 'Silver Ring Request', 25 => 'Socket Trinket Ledger', 30 => 'Amulet Frame Brief', 35 => 'Focus Lens Parcel', 40 => 'Gem Sovereign Trial', 45 => 'Crown Bead Intake', 50 => 'Prismatic Lens Ledger', 75 => 'Mythic Jewelry Warrant', 100 => 'Gem Sovereign Mandate'],
+        'carpentry' => [15 => 'Handlewright Lot', 20 => 'Bow Stave Request', 25 => 'Strong Frame Ledger', 30 => 'Cratewright Delivery', 35 => 'Expedition Timber Kit', 40 => 'Oathhall Joinery Brief', 45 => 'Living Wood Handle', 50 => 'Master Carpenter Writ', 75 => 'Heartwood Frame Warrant', 100 => 'Worldroot Joinery Mandate'],
+        'cooking' => [15 => 'Ration Kettle Order', 20 => 'Harbor Soup Shift', 25 => 'Skill Meal Platter', 30 => 'Hunter Feast Ledger', 35 => 'Raid Pantry Refill', 40 => 'Dusk Feast Request', 45 => 'Festival Kitchen Brief', 50 => 'Oathhall Banquet Order', 75 => 'Starfeast Cuisine Warrant', 100 => 'Realm Chef Banquet'],
+        'alchemy' => [15 => 'Field Tonic Crate', 20 => 'Ward Oil Ledger', 25 => 'Combat Draught Parcel', 30 => 'Catalyst Vial Brief', 35 => 'Bitterroot Remedy Order', 40 => 'Prismatic Reagent Vessel', 45 => 'Transmutation Vessel', 50 => 'Grand Still Requisition', 75 => 'Dreamroot Elixir Warrant', 100 => 'Grand Alchemist Mandate'],
+        'tailoring' => [15 => 'Field Wrap Bundle', 20 => 'Satchel Stitch Order', 25 => 'Robe Panel Ledger', 30 => 'Sailcloth Delivery', 35 => 'Banner Hem Brief', 40 => 'Spellcloth Garment Lot', 45 => 'Court Outfit Request', 50 => 'Court Regalia Parcel', 75 => 'Astral Vestment Warrant', 100 => 'Couture Master Mandate'],
+        'leatherworking' => [15 => 'Pouchmaker Parcel', 20 => 'Tool Belt Order', 25 => 'Leather Armor Fit', 30 => 'Travel Harness Ledger', 35 => 'Monster Gear Brief', 40 => 'Saddle Stock Request', 45 => 'Rugged Kit Fit', 50 => 'Beastguard Harness Writ', 75 => 'Apex Hide Warrant', 100 => 'Hide Artisan Mandate'],
+        'engineering' => [15 => 'Clockwork Spring Packet', 20 => 'Trapline Mechanism Order', 25 => 'Gadget Bench Brief', 30 => 'Siege Gear Ledger', 35 => 'Arcane Engine Coupling', 40 => 'Precision Trigger Lot', 45 => 'Survey Device Calibration', 50 => 'Workshop Prototype Writ', 75 => 'Astral Engine Warrant', 100 => 'Chief Engineer Mandate'],
+        'enchanting' => [15 => 'Minor Ward Oil Request', 20 => 'Charm Infusion Ledger', 25 => 'Socket Rune Brief', 30 => 'Trait Binding Parcel', 35 => 'Relic Wake Draft', 40 => 'Major Enchantment Order', 45 => 'Prismatic Rune Claim', 50 => 'Arcane Seal Requisition', 75 => 'Astral Binding Warrant', 100 => 'Arcane Binder Mandate'],
+        'jewelcrafting' => [15 => 'Copper Bezel Parcel', 20 => 'Silver Ring Request', 25 => 'Socket Trinket Ledger', 30 => 'Amulet Frame Brief', 35 => 'Focus Lens Parcel', 40 => 'Gem Sovereign Trial', 45 => 'Crown Bead Intake', 50 => 'Prismatic Lens Ledger', 75 => 'Starfacet Jewelry Warrant', 100 => 'Gem Sovereign Mandate'],
         'boatbuilding' => [15 => 'Skiff Rib Delivery', 20 => 'Reed Float Order', 25 => 'Cargo Hull Ledger', 30 => 'Sail Frame Brief', 35 => 'Dockwright Timber Lot', 40 => 'Expedition Hull Request', 45 => 'Fleet Cargo Refit', 50 => 'Harbor Master Writ', 75 => 'Stormfleet Warrant', 100 => 'Shipwright Mandate'],
-        'furniture' => [15 => 'Ashwood Stool Delivery', 20 => 'Tablemaker Work Slip', 25 => 'Display Stand Ledger', 30 => 'Trophy Hall Brief', 35 => 'Guild Fixture Parcel', 40 => 'Prestige Set Intake', 45 => 'Carved Crate Request', 50 => 'Hall Architect Writ', 75 => 'Royal Suite Warrant', 100 => 'Grand Hall Mandate'],
-        'construction' => [15 => 'Trail Signpost Crew', 20 => 'Station Repair Writ', 25 => 'Workshop Frame Ledger', 30 => 'Fortification Timber Lot', 35 => 'Bridge Scaffold Request', 40 => 'Guildhall Foundation Brief', 45 => 'Watchtower Stone Order', 50 => 'Settlement Works Writ', 75 => 'Citadel Wall Warrant', 100 => 'Realm Builder Mandate'],
-        'combat' => [15 => 'Guard Patrol Muster', 20 => 'Training Yard Drill', 25 => 'Iron Line Brief', 30 => 'Outrider Clash Report', 35 => 'Champion Trial Notice', 40 => 'Raid Vanguard Order', 45 => 'Warcamp Readiness Writ', 50 => 'Elite Tactics Mandate', 75 => 'Mythic Champion Warrant', 100 => 'Realm Champion Challenge'],
-        'slayer' => [15 => 'Fang Study Notice', 20 => 'Marked Trophy Claim', 25 => 'Beast Weakness Dossier', 30 => 'Monster Bounty Ledger', 35 => 'Stalker Den Report', 40 => 'Elite Mark Writ', 45 => 'Great Beast Warrant', 50 => 'Nightfang Hunt Brief', 75 => 'Mythic Hunt Warrant', 100 => 'Monster Bane Challenge'],
-        'defense' => [15 => 'Shield Line Drill', 20 => 'Field Repair Roster', 25 => 'Armor Mastery Brief', 30 => 'Party Guard Muster', 35 => 'Bulwark Supply Ledger', 40 => 'Dungeon Guard Writ', 45 => 'Wallbreaker Hold Order', 50 => 'Unbroken Line Mandate', 75 => 'Citadel Bulwark Warrant', 100 => 'Unbroken Wall Challenge'],
-        'healing' => [15 => 'Triage Shift Notice', 20 => 'Sap Tonic Parcel', 25 => 'Group Recovery Roster', 30 => 'Expedition Medic Kit', 35 => 'Stabilizer Vial Ledger', 40 => 'Field Hospital Intake', 45 => 'Revival Rite Brief', 50 => 'Lifewarden Supply Writ', 75 => 'Mythic Renewal Warrant', 100 => 'Life Warden Challenge'],
-        'magic' => [15 => 'Rune Thread Watch', 20 => 'Ward Circle Ledger', 25 => 'Elemental Focus Brief', 30 => 'Ritual Night Roster', 35 => 'Arcane Storm Report', 40 => 'Sealed Rune Intake', 45 => 'Spellguard Requisition', 50 => 'Archmage Trial Writ', 75 => 'Astral Rite Warrant', 100 => 'Archmage Challenge'],
+        'furniture' => [15 => 'Ashwood Stool Delivery', 20 => 'Tablemaker Work Slip', 25 => 'Display Stand Ledger', 30 => 'Trophy Hall Brief', 35 => 'Oathhall Fixture Parcel', 40 => 'Prestige Set Fitting', 45 => 'Carved Crate Request', 50 => 'Hall Architect Writ', 75 => 'Royal Suite Warrant', 100 => 'Grand Hall Mandate'],
+        'construction' => [15 => 'Trail Signpost Crew', 20 => 'Station Repair Writ', 25 => 'Workshop Frame Ledger', 30 => 'Fortification Timber Lot', 35 => 'Bridge Scaffold Request', 40 => 'Oathhall Foundation Brief', 45 => 'Watchtower Stone Order', 50 => 'Settlement Works Writ', 75 => 'Citadel Wall Warrant', 100 => 'Realm Builder Mandate'],
+        'combat' => [15 => 'Guard Patrol Muster', 20 => 'Training Yard Drill', 25 => 'Iron Line Brief', 30 => 'Outrider Clash Report', 35 => 'Champion Trial Notice', 40 => 'Raid Vanguard Order', 45 => 'Warcamp Readiness Writ', 50 => 'Vanguard Tactics Mandate', 75 => 'Realm Champion Warrant', 100 => 'Realm Champion Challenge'],
+        'slayer' => [15 => 'Fang Study Notice', 20 => 'Marked Trophy Claim', 25 => 'Beast Weakness Dossier', 30 => 'Monster Bounty Ledger', 35 => 'Stalker Den Report', 40 => 'Nightfang Mark Writ', 45 => 'Great Beast Warrant', 50 => 'Nightfang Hunt Brief', 75 => 'Crownbeast Hunt Warrant', 100 => 'Monster Bane Challenge'],
+        'defense' => [15 => 'Shieldline Formation Drill', 20 => 'Field Repair Roster', 25 => 'Armor Mastery Brief', 30 => 'Party Guard Muster', 35 => 'Bulwark Supply Ledger', 40 => 'Dungeon Guard Writ', 45 => 'Wallbreaker Hold Order', 50 => 'Unbroken Line Mandate', 75 => 'Citadel Bulwark Warrant', 100 => 'Unbroken Wall Challenge'],
+        'healing' => [15 => 'Triage Shift Notice', 20 => 'Sap Tonic Parcel', 25 => 'Group Recovery Roster', 30 => 'Expedition Medic Kit', 35 => 'Stabilizer Vial Ledger', 40 => 'Field Hospital Roster', 45 => 'Revival Rite Brief', 50 => 'Lifewarden Supply Writ', 75 => 'Lifewarden Renewal Warrant', 100 => 'Life Warden Challenge'],
+        'magic' => [15 => 'Rune Script Watch', 20 => 'Ward Circle Ledger', 25 => 'Elemental Focus Brief', 30 => 'Ritual Night Roster', 35 => 'Arcane Storm Report', 40 => 'Sealed Rune Reading', 45 => 'Spellguard Requisition', 50 => 'Archmage Trial Writ', 75 => 'Astral Rite Warrant', 100 => 'Archmage Challenge'],
         'ranged' => [15 => 'Bow Sighting Order', 20 => 'Arrow Stock Ledger', 25 => 'Special Shot Brief', 30 => 'Siege Range Roster', 35 => 'Trail Bow Refit', 40 => 'Trick Shot Notice', 45 => 'Skywatcher Quiver Lot', 50 => 'Marksman Trial Writ', 75 => 'Stormshot Warrant', 100 => 'Sky Archer Challenge'],
-        'exploration' => [15 => 'Sketch Route Survey', 20 => 'Regional Path Ledger', 25 => 'Hidden Room Report', 30 => 'Distant Trail Cache', 35 => 'Ancient Gate Reading', 40 => 'Scoutmaster Route Brief', 45 => 'Frontier Map Intake', 50 => 'Worldwalker Waybill', 75 => 'Ancient Gate Warrant', 100 => 'Worldwalker Mandate'],
-        'dungeoneering' => [15 => 'Room Check Notice', 20 => 'Trap Read Ledger', 25 => 'Party Route Dossier', 30 => 'Boss Room Supply List', 35 => 'Dungeon Resource Audit', 40 => 'Deep Chamber Brief', 45 => 'Vault Key Report', 50 => 'Labyrinth Route Writ', 75 => 'Mythic Chamber Warrant', 100 => 'Deep Warden Mandate'],
-        'sailing' => [15 => 'Dock Rope Delivery', 20 => 'Coastal Trip Ledger', 25 => 'Cargo Run Manifest', 30 => 'Fleet Support Order', 35 => 'Storm Route Chart', 40 => 'Harbor Signal Brief', 45 => 'Tide Captain Supply Lot', 50 => 'Expedition Sail Writ', 75 => 'Stormroute Warrant', 100 => 'Tide Captain Mandate'],
+        'exploration' => [15 => 'Sketch Route Survey', 20 => 'Regional Path Ledger', 25 => 'Hidden Room Report', 30 => 'Distant Trail Cache', 35 => 'Ancient Gate Reading', 40 => 'Scoutmaster Route Brief', 45 => 'Frontier Map Proof', 50 => 'Worldwalker Waybill', 75 => 'Ancient Gate Warrant', 100 => 'Worldwalker Mandate'],
+        'dungeoneering' => [15 => 'Room Check Notice', 20 => 'Trap Read Ledger', 25 => 'Party Route Dossier', 30 => 'Boss Room Supply List', 35 => 'Dungeon Resource Audit', 40 => 'Deep Chamber Brief', 45 => 'Vault Key Report', 50 => 'Labyrinth Route Writ', 75 => 'Deep Chamber Warrant', 100 => 'Deep Warden Mandate'],
+        'sailing' => [15 => 'Dock Rope Delivery', 20 => 'Coastal Trip Ledger', 25 => 'Cargo Run Manifest', 30 => 'Fleet Support Order', 35 => 'Stormglass Sea Chart', 40 => 'Harbor Signal Brief', 45 => 'Tide Captain Supply Lot', 50 => 'Expedition Sail Writ', 75 => 'Stormroute Warrant', 100 => 'Tide Captain Mandate'],
         'survival' => [15 => 'Flatbread Cache Order', 20 => 'Weather Read Report', 25 => 'Long Trip Supply List', 30 => 'Hazard Kit Parcel', 35 => 'Hostile Region Brief', 40 => 'Campcraft Ledger', 45 => 'Last Light Cache', 50 => 'Wild March Writ', 75 => 'Hostile Wilds Warrant', 100 => 'Last Light Mandate'],
-        'cartography' => [15 => 'Resource Note Sale', 20 => 'Route Map Ledger', 25 => 'Dungeon Chart Brief', 30 => 'Region Atlas Intake', 35 => 'Secret Road Survey', 40 => 'Surveyor Mark Parcel', 45 => 'Starmapper Grid Report', 50 => 'Navigator Archive Writ', 75 => 'Secret Atlas Warrant', 100 => 'Star Mapper Mandate'],
+        'cartography' => [15 => 'Survey Note Exchange', 20 => 'Route Map Ledger', 25 => 'Dungeon Chart Brief', 30 => 'Region Atlas Proof', 35 => 'Secret Road Survey', 40 => 'Surveyor Mark Parcel', 45 => 'Starmapper Grid Report', 50 => 'Navigator Archive Writ', 75 => 'Secret Atlas Warrant', 100 => 'Star Mapper Mandate'],
         'reputation' => [15 => 'Barter Note Errand', 20 => 'Faction Favor Ledger', 25 => 'Regional Rate Petition', 30 => 'Trusted Access Notice', 35 => 'Council Gift Parcel', 40 => 'Title Claim Brief', 45 => 'Envoy Introduction Writ', 50 => 'Realm Favor Mandate', 75 => 'Council Seat Warrant', 100 => 'Realm Envoy Mandate'],
-        'leadership' => [15 => 'Crate Muster Notice', 20 => 'Party Call Roster', 25 => 'Guild Task Ledger', 30 => 'Raid Supply Brief', 35 => 'Banner Drill Order', 40 => 'Regional Campaign Writ', 45 => 'Command Tent Intake', 50 => 'War Table Mandate', 75 => 'Campaign Standard Warrant', 100 => 'Bannerlord Mandate'],
-        'trading' => [15 => 'Market Token Exchange', 20 => 'Bulk Listing Ledger', 25 => 'Work Order Packet', 30 => 'Storefront Stock Brief', 35 => 'Trade Route Manifest', 40 => 'Regional Arbitrage Writ', 45 => 'Merchant Seal Intake', 50 => 'Guild Ledger Mandate', 75 => 'Royal Exchange Warrant', 100 => 'Market Sovereign Mandate'],
+        'leadership' => [15 => 'Crate Muster Notice', 20 => 'Party Call Roster', 25 => 'Oathhall Task Ledger', 30 => 'Raid Supply Brief', 35 => 'Banner Drill Order', 40 => 'Regional Campaign Writ', 45 => 'Command Tent Roster', 50 => 'War Table Mandate', 75 => 'Campaign Standard Warrant', 100 => 'Bannerlord Mandate'],
+        'trading' => [15 => 'Market Token Exchange', 20 => 'Bulk Listing Ledger', 25 => 'Work Order Packet', 30 => 'Storefront Stock Brief', 35 => 'Trade Route Manifest', 40 => 'Regional Arbitrage Writ', 45 => 'Merchant Seal Counter', 50 => 'Market Ledger Mandate', 75 => 'Royal Exchange Warrant', 100 => 'Market Sovereign Mandate'],
     ];
 
     public function __construct(private ConnectedRealmsPlayerService $players, private ItemCatalogService $items, private ItemPurposeService $purposes) {}
@@ -463,7 +463,7 @@ class JobContractService
                 ['item_key' => 'marked_trophy_bone', 'item_name' => 'Marked Trophy Bone', 'quantity' => 1],
                 ['item_key' => 'trail_bow', 'item_name' => 'Trail Bow', 'quantity' => 1],
             ]),
-            'shield_line_drill' => self::job('Shield Line Drill', 'Combat', 'defense', 1, 54, 54, [
+            'shield_line_drill' => self::job('Shieldwall Brace Drill', 'Combat', 'defense', 1, 54, 54, [
                 ['item_key' => 'repair_scaffold', 'item_name' => 'Repair Scaffold', 'quantity' => 1],
             ]),
             'triage_shift' => self::job('Triage Shift', 'Support', 'healing', 1, 54, 58, [
@@ -597,10 +597,10 @@ class JobContractService
 
         return match (true) {
             $level >= 100 => "{$label} Grand Mandate",
-            $level >= 75 => "{$label} Mythic Warrant",
+            $level >= 75 => "{$label} Apex Claim",
             $level >= 50 => "{$label} Masterwork Writ",
-            $level >= 35 => "{$label} Guild Request",
-            default => "{$label} Work Order",
+            $level >= 35 => "{$label} Board Parcel",
+            default => "{$label} Posting",
         };
     }
 
@@ -608,11 +608,11 @@ class JobContractService
     {
         return match (true) {
             $level >= 100 => 'Realm Mandates',
-            $level >= 75 => 'Mythic Warrants',
+            $level >= 75 => 'Apex Claims',
             $level >= 50 => 'Masterwork Writs',
             $level >= 35 => 'Expert Requests',
             $level >= 25 => 'Specialist Orders',
-            default => 'Guild Commissions',
+            default => 'Posted Commissions',
         };
     }
 
@@ -717,7 +717,7 @@ class JobContractService
 
     private static function endgameGatheringResourceKey(string $skill, int $level): string
     {
-        $prefix = $level >= 100 ? 'Evergather' : 'Mythic';
+        $prefix = $level >= 100 ? 'Crownmark' : 'Mythgate';
         $resource = match ($skill) {
             'fishing' => 'fish',
             'mining' => 'ore',
@@ -734,12 +734,12 @@ class JobContractService
     private static function endgameGatheringResourceName(string $skill, int $level): string
     {
         $prefix = match (true) {
-            $level >= 100 => 'Evergather',
+            $level >= 100 => 'Crownmark',
             $level >= 95 => 'Prismatic',
             $level >= 85 => 'Astral',
-            $level >= 75 => 'Mythic',
-            $level >= 65 => 'Elder',
-            default => 'Runed',
+            $level >= 75 => 'Mythgate',
+            $level >= 65 => 'Elderwake',
+            default => 'Runebound',
         };
         $resource = match ($skill) {
             'fishing' => 'fish',
