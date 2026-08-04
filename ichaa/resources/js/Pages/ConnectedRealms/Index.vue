@@ -41,17 +41,62 @@
                     </div>
                 </div>
 
-                <label class="relative min-w-0">
-                    <span class="sr-only">Search Evergather</span>
-                    <input
-                        v-model="searchQuery"
-                        type="search"
-                        class="w-full rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
-                        placeholder="Search Evergather..."
+                <div class="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <label class="relative min-w-0">
+                        <span class="sr-only">Search Evergather</span>
+                        <input
+                            v-model="searchQuery"
+                            type="search"
+                            class="w-full rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
+                            placeholder="Search Evergather..."
+                        >
+                    </label>
+
+                    <button
+                        type="button"
+                        class="app-btn app-btn--primary app-btn--sm"
+                        :disabled="repeatProcessing || !last_result"
+                        @click="repeatLast"
                     >
-                </label>
+                        {{ repeatButtonLabel }}
+                    </button>
+                </div>
             </div>
         </nav>
+
+        <div
+            v-if="repeatDialog.open"
+            class="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="repeat-dialog-title"
+        >
+            <div class="w-full max-w-md rounded-md border border-border bg-surface px-4 py-4 shadow-xl">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <p id="repeat-dialog-title" class="text-sm font-ui text-primary">{{ repeatDialog.title }}</p>
+                        <p class="mt-2 text-sm text-muted-2">{{ repeatDialog.message }}</p>
+                    </div>
+                    <button
+                        type="button"
+                        class="rounded-md border border-border bg-surface-2 px-2 py-1 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
+                        @click="closeRepeatDialog"
+                    >
+                        Close
+                    </button>
+                </div>
+
+                <div v-if="repeatDialog.details.length" class="mt-4 grid gap-2">
+                    <div
+                        v-for="detail in repeatDialog.details"
+                        :key="detail"
+                        class="rounded-md border border-border bg-canvas px-3 py-2 text-xs text-muted-2"
+                    >
+                        {{ detail }}
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(24rem,0.75fr)]">
             <section v-if="activePanel === 'overview' && activeSubPanel === 'character'" class="surface-section xl:col-span-2">
@@ -458,7 +503,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useForm } from '@inertiajs/vue3'
+import { router, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import CraftingPanel from './CraftingPanel.vue'
 import EquipmentPanel from './EquipmentPanel.vue'
@@ -473,7 +518,17 @@ import ShopPanel from './ShopPanel.vue'
 import SkillActivitiesPanel from './SkillActivitiesPanel.vue'
 import SkillsPanel from './SkillsPanel.vue'
 import WorldEventsPanel from './WorldEventsPanel.vue'
-import { characterReloadProps } from './reloadProps'
+import {
+    actionReloadProps,
+    activityReloadProps,
+    characterReloadProps,
+    craftingReloadProps,
+    equipmentReloadProps,
+    expeditionReloadProps,
+    jobReloadProps,
+    marketplaceReloadProps,
+    shopReloadProps,
+} from './reloadProps'
 
 const props = defineProps({
     player: {
@@ -597,6 +652,13 @@ const activeSubPanels = ref(savedNavigationState.activeSubPanels)
 const searchQuery = ref(savedNavigationState.searchQuery)
 const selectedInventoryCategory = ref('all')
 const selectedInventoryKey = ref('')
+const repeatProcessing = ref(false)
+const repeatDialog = ref({
+    open: false,
+    title: '',
+    message: '',
+    details: [],
+})
 
 const characterForm = useForm({
     display_name: props.player.display_name,
@@ -678,6 +740,14 @@ const visibleInventoryWeight = computed(() => Math.round(visibleInventory.value.
 const visibleInventoryValue = computed(() => visibleInventory.value.reduce((total, item) => total + item.total_vendor_value, 0))
 const recentActionExperience = computed(() => props.recent_actions.reduce((total, entry) => total + entry.experience_awarded, 0))
 const recentActionGold = computed(() => props.recent_actions.reduce((total, entry) => total + entry.gold_awarded, 0))
+const repeatCommand = computed(() => repeatCommandFor(props.last_result))
+const repeatButtonLabel = computed(() => {
+    if (repeatProcessing.value) {
+        return 'Repeating...'
+    }
+
+    return props.last_result ? 'Repeat Last' : 'No Last'
+})
 
 const avatarPaletteClass = computed(() => ({
     moonlit: 'text-focus bg-focus/10',
@@ -703,6 +773,159 @@ function submitCharacter() {
         preserveScroll: true,
         only: characterReloadProps,
     })
+}
+
+function repeatLast() {
+    const command = repeatCommand.value
+
+    if (!props.last_result) {
+        openRepeatDialog('Nothing to repeat', 'Complete an Evergather action first, then this command can replay it.')
+
+        return
+    }
+
+    if (!command?.repeatable) {
+        openRepeatDialog('Cannot repeat that', command?.message ?? 'That result needs a fresh choice before it can run again.')
+
+        return
+    }
+
+    router.visit(command.url, {
+        method: command.method,
+        data: command.data,
+        preserveScroll: true,
+        only: command.only,
+        onStart: () => {
+            repeatProcessing.value = true
+        },
+        onError: (errors) => {
+            const details = repeatErrorDetails(errors)
+
+            openRepeatDialog(
+                'Repeat stopped',
+                repeatErrorMessage(props.last_result),
+                details.length ? details : ['The game could not repeat that action with the resources you have right now.'],
+            )
+        },
+        onSuccess: () => {
+            closeRepeatDialog()
+        },
+        onFinish: () => {
+            repeatProcessing.value = false
+        },
+    })
+}
+
+function repeatCommandFor(result) {
+    if (!result) {
+        return null
+    }
+
+    if (result.action && result.type !== 'skill_activity') {
+        return repeatRequest('post', 'evergather.actions.store', { action: result.action }, actionReloadProps)
+    }
+
+    switch (result.type) {
+        case 'skill_activity':
+            return repeatRequest('post', 'evergather.activities.store', { activity: result.activity }, activityReloadProps)
+        case 'crafting':
+            return repeatRequest('post', 'evergather.crafting.store', { recipe: result.recipe_key }, craftingReloadProps)
+        case 'job':
+            return repeatRequest('post', 'evergather.jobs.store', { job: result.job_key }, jobReloadProps)
+        case 'expedition':
+            return repeatRequest('post', 'evergather.expeditions.store', { expedition: result.expedition_key }, expeditionReloadProps)
+        case 'shop':
+            return repeatRequest('post', 'evergather.shop.purchases.store', { offer: result.offer_key }, shopReloadProps)
+        case 'tool_rarity_upgrade':
+            return repeatRequest('post', 'evergather.tools.rarity-upgrades.store', { slot: result.slot }, equipmentReloadProps)
+        case 'tool_tier_upgrade':
+            return repeatRequest('post', 'evergather.tools.tier-upgrades.store', { slot: result.slot }, equipmentReloadProps)
+        case 'market_listing':
+            return repeatMarketListingCommand(result)
+        case 'npc_sale':
+            return repeatRequest('post', 'evergather.marketplace.vendor-sales.store', {
+                item_key: result.item_key,
+                quantity: result.quantity,
+            }, marketplaceReloadProps)
+        case 'market_purchase':
+            return nonRepeatable('Market purchases depend on a live listing. Pick the listing again from Marketplace so the price and seller are current.')
+        case 'market_cancel':
+            return nonRepeatable('Cancelled listings are already resolved. Create a fresh listing from Marketplace if you want to sell it again.')
+        case 'tool_equip':
+        case 'tool_unequip':
+            return nonRepeatable('Tool equipment changes depend on a specific stored tool. Choose the tool again from Equipment.')
+        case 'achievement_claim':
+        case 'reward_loadout':
+            return nonRepeatable('Progress rewards and loadouts are one-time choices, so they need a fresh selection.')
+        default:
+            return nonRepeatable('That result does not carry enough action data to repeat safely.')
+    }
+}
+
+function repeatMarketListingCommand(result) {
+    const listingType = result.listing_type ?? 'item'
+
+    if (listingType === 'tool') {
+        return nonRepeatable('Tool listings move a unique tool out of storage. Pick the next tool from Marketplace so the right one is listed.')
+    }
+
+    return repeatRequest('post', 'evergather.marketplace.listings.store', {
+        listing_type: 'item',
+        item_key: result.item_key,
+        tool_id: null,
+        quantity: result.quantity,
+        unit_price: result.unit_price,
+    }, marketplaceReloadProps)
+}
+
+function repeatRequest(method, routeName, data, only) {
+    return {
+        repeatable: true,
+        method,
+        url: route(routeName),
+        data,
+        only,
+    }
+}
+
+function nonRepeatable(message) {
+    return {
+        repeatable: false,
+        message,
+    }
+}
+
+function repeatErrorMessage(result) {
+    const label = result?.label ?? result?.item_name ?? 'That action'
+
+    return `${label} could not be repeated. You may be out of materials, gold, cooldown time, or the target may no longer be available.`
+}
+
+function repeatErrorDetails(errors) {
+    return Object.values(errors ?? {})
+        .flatMap((error) => Array.isArray(error) ? error : [error])
+        .flatMap((error) => typeof error === 'object' && error !== null ? Object.values(error) : [error])
+        .flatMap((error) => Array.isArray(error) ? error : [error])
+        .map((error) => String(error))
+        .filter(Boolean)
+}
+
+function openRepeatDialog(title, message, details = []) {
+    repeatDialog.value = {
+        open: true,
+        title,
+        message,
+        details,
+    }
+}
+
+function closeRepeatDialog() {
+    repeatDialog.value = {
+        open: false,
+        title: '',
+        message: '',
+        details: [],
+    }
 }
 
 function selectWorkspaceTab(panel) {
