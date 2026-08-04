@@ -36,15 +36,20 @@ use App\Http\Requests\ConnectedRealms\StoreVendorSaleRequest;
 use App\Http\Requests\ConnectedRealms\UpdateCharacterRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Response;
 
 class ConnectedRealmsController extends Controller
 {
     public function index(Request $request, ConnectedRealmsPlayerService $players, GatheringActionService $gathering, SkillActivityService $activities, CraftingService $crafting, JobContractService $jobs, ExpeditionService $expeditions, MarketplaceService $marketplace, ProgressionService $progression, WorldEventService $worldEvents, ShopService $shop, ToolRarityUpgradeService $toolUpgrades, ToolTierUpgradeService $toolTierUpgrades, ConnectedRealmsLeaderboardService $leaderboards): Response
     {
+        $props = $players->profileForUser($request->user(), $gathering, $activities, $crafting, $jobs, $expeditions, $marketplace, $progression, $worldEvents, $shop, $toolUpgrades, $toolTierUpgrades);
+        $props['item_guide'] = Inertia::defer($props['item_guide'], 'evergather-inventory');
+        $props['world_events'] = Inertia::defer($props['world_events'], 'evergather-events');
+        $props['leaderboards'] = Inertia::defer(fn (): array => $leaderboards->snapshot(), 'evergather-ranks');
+
         return $this->page('ConnectedRealms/Index', [
-            ...$players->profileForUser($request->user(), $gathering, $activities, $crafting, $jobs, $expeditions, $marketplace, $progression, $worldEvents, $shop, $toolUpgrades, $toolTierUpgrades),
-            'leaderboards' => fn (): array => $leaderboards->snapshot(),
+            ...$props,
             'last_result' => $request->session()->get('connected_realms_result'),
         ]);
     }

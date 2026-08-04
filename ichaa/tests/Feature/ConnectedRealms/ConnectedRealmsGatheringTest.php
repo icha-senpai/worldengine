@@ -75,14 +75,20 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('skills.0.skill', 'fishing')
                 ->where('skills.0.level', 1)
                 ->where('skills.0.next_level_experience', 200)
+                ->where('skills.0.target_hours_range.0', 50)
+                ->where('skills.0.target_hours_range.1', 90)
                 ->has('skills.0.activities', 28)
                 ->where('skills.0.unlocks.1.level', 3)
                 ->has('skill_catalog.groups')
                 ->where('item_catalog.rarities.common.quality', 'standard')
                 ->where('item_catalog.rarities.legendary.quality', 'masterwork')
-                ->where('skill_catalog.pacing.level_100_experience', 620000)
-                ->where('skill_catalog.pacing.target_hours_range.0', 400)
-                ->where('skill_catalog.pacing.target_hours_range.1', 500)
+                ->where('skill_catalog.pacing.level_100_experience', 170000)
+                ->where('skill_catalog.pacing.target_hours_range.0', 25)
+                ->where('skill_catalog.pacing.target_hours_range.1', 200)
+                ->where('skill_catalog.pacing.category_targets.Gathering.target_hours_range.0', 50)
+                ->where('skill_catalog.pacing.category_targets.Gathering.target_hours_range.1', 90)
+                ->where('skill_catalog.pacing.major_action_goal_range.0', 3000)
+                ->where('skill_catalog.pacing.major_action_goal_range.1', 5000)
                 ->has('equipment', 38)
                 ->has('tool_inventory', 38)
                 ->where('tool_inventory.0.status', 'equipped')
@@ -110,7 +116,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('progression.account_level', 1)
                 ->where('progression.skill_count', 38)
                 ->where('progression.active_skill_count', 0)
-                ->where('progression.pacing.estimated_hours_to_level_100', 450.9)
+                ->where('progression.pacing.estimated_hours_to_level_100', 106.3)
                 ->has('progression.achievements', 295)
                 ->where('progression.achievements.0.key', 'first_steps')
                 ->where('progression.achievements.0.category', 'Gathering')
@@ -139,19 +145,23 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->has('marketplace.my_listings', 0)
                 ->has('marketplace.recent_transactions', 0)
                 ->has('marketplace.market_board.rows', 0)
-                ->where('item_guide.summary.tracked_items', fn (int $count): bool => $count > 1000)
-                ->where('item_guide.summary.items_with_sources', fn (int $count): bool => $count > 1000)
-                ->where('item_guide.summary.items_without_sinks', 0)
-                ->has('item_guide.categories')
-                ->has('world_events.active', 3)
-                ->where('world_events.active.0.key', 'meteorfall')
-                ->where('world_events.active.1.key', 'wardens_muster')
-                ->has('world_events.upcoming', 5)
-                ->has('world_events.categories', 8)
-                ->has('leaderboards.wealth', 1)
-                ->where('leaderboards.wealth.0.display_name', $user->name)
-                ->has('leaderboards.skills', 0)
-                ->has('leaderboards.activity', 1)
+                ->missing('item_guide')
+                ->missing('world_events')
+                ->missing('leaderboards')
+                ->loadDeferredProps(['evergather-inventory', 'evergather-events', 'evergather-ranks'], fn (Assert $page) => $page
+                    ->where('item_guide.summary.tracked_items', fn (int $count): bool => $count > 1000)
+                    ->where('item_guide.summary.items_with_sources', fn (int $count): bool => $count > 1000)
+                    ->where('item_guide.summary.items_without_sinks', 0)
+                    ->has('item_guide.categories')
+                    ->has('world_events.active', 3)
+                    ->where('world_events.active.0.key', 'meteorfall')
+                    ->where('world_events.active.1.key', 'wardens_muster')
+                    ->has('world_events.upcoming', 5)
+                    ->has('world_events.categories', 8)
+                    ->has('leaderboards.wealth')
+                    ->has('leaderboards.skills', 0)
+                    ->has('leaderboards.activity')
+                )
             );
 
         $this->assertDatabaseHas('connected_realms_players', [
@@ -178,7 +188,14 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->has('actions', 119)
                 ->has('crafting_recipes', 689)
                 ->has('shop.offers', 351)
-                ->has('leaderboards.wealth')
+                ->missing('item_guide')
+                ->missing('world_events')
+                ->missing('leaderboards')
+                ->loadDeferredProps(['evergather-inventory', 'evergather-events', 'evergather-ranks'], fn (Assert $deferred) => $deferred
+                    ->has('item_guide.summary')
+                    ->has('world_events.active', 3)
+                    ->has('leaderboards.wealth')
+                )
                 ->reloadOnly(['player', 'summary'], fn (Assert $reload) => $reload
                     ->where('player.display_name', $user->name)
                     ->has('summary')
@@ -476,7 +493,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             $this->actingAs($user)
                 ->post(route('evergather.activities.store'), ['activity' => 'combat_starter_activity_1'])
                 ->assertRedirect(route('evergather.index'))
-                ->assertSessionHas('success', 'Starter Combat Engage completed.')
+                ->assertSessionHas('success', 'Moonwake Sparring Candlemark Primer completed.')
                 ->assertSessionHas('connected_realms_result.type', 'skill_activity')
                 ->assertSessionHas('connected_realms_result.band', '1-30');
 
@@ -496,7 +513,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 'player_id' => $player->id,
                 'action' => 'combat_starter_activity_1',
                 'skill' => 'combat',
-                'result_label' => 'Starter Moonwake Training Ring',
+                'result_label' => 'Moonwake Training Ring - Candleline Station',
             ]);
 
             $this->assertDatabaseHas('connected_realms_inventory_stacks', [
@@ -508,7 +525,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         }
     }
 
-    public function test_skill_catalog_has_level_100_progression_tuned_to_400_to_500_hours(): void
+    public function test_skill_catalog_has_level_100_progression_targets_for_all_leveling_tracks(): void
     {
         $catalog = app(SkillCatalogService::class);
         $pacing = $catalog->pacing();
@@ -517,12 +534,34 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame(1, $catalog->levelForExperience(0));
         $this->assertSame(1, $catalog->levelForExperience(199));
         $this->assertSame(2, $catalog->levelForExperience(200));
-        $this->assertSame(99, $catalog->levelForExperience(619999));
-        $this->assertSame(100, $catalog->levelForExperience(620000));
+        $this->assertSame(2500, $catalog->experienceForLevel(20));
+        $this->assertSame(9000, $catalog->experienceForLevel(40));
+        $this->assertSame(26000, $catalog->experienceForLevel(60));
+        $this->assertSame(52000, $catalog->experienceForLevel(75));
+        $this->assertSame(95000, $catalog->experienceForLevel(90));
+        $this->assertSame(150000, $catalog->experienceForLevel(99));
+        $this->assertSame(99, $catalog->levelForExperience(169999));
+        $this->assertSame(100, $catalog->levelForExperience(170000));
         $this->assertNull($catalog->nextLevelExperience(100));
-        $this->assertSame(620000, $pacing['level_100_experience']);
-        $this->assertGreaterThanOrEqual(400, $pacing['estimated_hours_to_level_100']);
-        $this->assertLessThanOrEqual(500, $pacing['estimated_hours_to_level_100']);
+        $this->assertSame(170000, $pacing['level_100_experience']);
+        $this->assertSame(106.3, $pacing['estimated_hours_to_level_100']);
+        $this->assertSame([25, 200], $pacing['target_hours_range']);
+        $this->assertSame([50, 90], $catalog->definition('fishing')['target_hours_range']);
+        $this->assertSame([50, 100], $catalog->definition('smithing')['target_hours_range']);
+        $this->assertSame([75, 150], $catalog->definition('slayer')['target_hours_range']);
+        $this->assertSame([100, 200], $catalog->definition('exploration')['target_hours_range']);
+        $this->assertSame([100, 200], $catalog->definition('leadership')['target_hours_range']);
+        $this->assertSame([3000, 5000], $pacing['major_action_goal_range']);
+        $this->assertSame(20000, $pacing['brutal_repetition_threshold']);
+        $this->assertSame([
+            ['from_level' => 1, 'to_level' => 20, 'target_hours_range' => [1, 2]],
+            ['from_level' => 20, 'to_level' => 40, 'target_hours_range' => [3, 5]],
+            ['from_level' => 40, 'to_level' => 60, 'target_hours_range' => [8, 12]],
+            ['from_level' => 60, 'to_level' => 75, 'target_hours_range' => [12, 18]],
+            ['from_level' => 75, 'to_level' => 90, 'target_hours_range' => [20, 30]],
+            ['from_level' => 90, 'to_level' => 99, 'target_hours_range' => [20, 35]],
+            ['from_level' => 99, 'to_level' => 100, 'target_hours_range' => [5, 15]],
+        ], $pacing['level_band_targets']);
     }
 
     public function test_skill_milestone_achievements_unlock_through_level_100(): void
@@ -653,6 +692,30 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame('Evergather Tide Tribute', $jobs->get('fishing_mastery_contract_100')['label']);
         $this->assertSame('Market Sovereign Mandate', $jobs->get('trading_mastery_contract_100')['label']);
         $this->assertSame('Realm Mandates', $jobs->get('fishing_mastery_contract_100')['category']);
+    }
+
+    public function test_evergather_generated_activity_names_are_board_ready(): void
+    {
+        $activities = collect($this->privateStaticCatalog(SkillActivityService::class, 'activities'));
+        $oldTierPrefixes = ['Starter ', 'Local ', 'Apprentice ', 'Guild ', 'Runed ', 'Storm ', 'Elite ', 'Elder ', 'Mythic ', 'Evergather '];
+        $skillPattern = 'Smelting|Milling|Tanning|Cutting|Weaving|Smithing|Carpentry|Cooking|Alchemy|Tailoring|Leatherworking|Engineering|Enchanting|Jewelcrafting|Boatbuilding|Furniture|Construction|Combat|Slayer|Defense|Healing|Magic|Ranged|Exploration|Dungeoneering|Sailing|Survival|Cartography|Reputation|Leadership|Trading';
+
+        $placeholderLabels = $activities
+            ->pluck('label')
+            ->filter(fn (string $label): bool => preg_match("/^(?:Starter|Local|Apprentice|Guild|Runed|Storm|Elite|Elder|Mythic|Evergather) (?:{$skillPattern})\\b/", $label) === 1)
+            ->values()
+            ->all();
+        $placeholderLoot = $activities
+            ->flatMap(fn (array $activity): array => collect($activity['loot'])->pluck('item_name')->all())
+            ->filter(fn (string $name): bool => str($name)->startsWith($oldTierPrefixes))
+            ->values()
+            ->all();
+
+        $this->assertSame([], $placeholderLabels);
+        $this->assertSame([], $placeholderLoot);
+        $this->assertSame('Moonwake Sparring Candlemark Primer', $activities->get('combat_starter_activity_1')['label']);
+        $this->assertSame('Candlemark Sparring Notch', $activities->get('combat_starter_activity_1')['loot'][0]['item_name']);
+        $this->assertSame('Crownmark Sparring Notch', $activities->get('combat_evergather_activity_100')['loot'][0]['item_name']);
     }
 
     public function test_evergather_item_economy_has_coherent_sources_sinks_and_names(): void
@@ -789,7 +852,10 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('jobs.443.label', 'Brine Shrimp Field Sample')
                 ->where('jobs.443.category', 'Field Requisitions')
                 ->where('jobs.443.can_complete', true)
-                ->where('item_guide.summary.items_without_sinks', 0)
+                ->missing('item_guide')
+                ->loadDeferredProps('evergather-inventory', fn (Assert $deferred) => $deferred
+                    ->where('item_guide.summary.items_without_sinks', 0)
+                )
             );
 
         $this->actingAs($user)
@@ -960,21 +1026,24 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->get(route('evergather.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('leaderboards.groups.0.key', 'summary')
-                ->where('leaderboards.wealth.0.display_name', 'High Gold')
-                ->where('leaderboards.overall.0.display_name', 'Busy Crafter')
-                ->where('leaderboards.realm_score.0.display_name', 'High Gold')
-                ->where('leaderboards.skills.0.display_name', 'Busy Crafter')
-                ->where('leaderboards.skill_champions.0.display_name', 'High Gold')
-                ->where('leaderboards.skill_champions.1.display_name', 'Busy Crafter')
-                ->where('leaderboards.activity.0.display_name', 'Busy Crafter')
-                ->where('leaderboards.gathering.0.display_name', 'Busy Crafter')
-                ->where('leaderboards.crafting.0.display_name', 'Busy Crafter')
-                ->where('leaderboards.jobs.0.display_name', 'Busy Crafter')
-                ->where('leaderboards.expeditions.0.display_name', 'Busy Crafter')
-                ->where('leaderboards.inventory.0.display_name', 'Busy Crafter')
-                ->where('leaderboards.market_sellers.0.display_name', 'Busy Crafter')
-                ->where('leaderboards.market_buyers.0.display_name', 'High Gold')
+                ->missing('leaderboards')
+                ->loadDeferredProps('evergather-ranks', fn (Assert $deferred) => $deferred
+                    ->where('leaderboards.groups.0.key', 'summary')
+                    ->where('leaderboards.wealth.0.display_name', 'High Gold')
+                    ->where('leaderboards.overall.0.display_name', 'Busy Crafter')
+                    ->where('leaderboards.realm_score.0.display_name', 'High Gold')
+                    ->where('leaderboards.skills.0.display_name', 'Busy Crafter')
+                    ->where('leaderboards.skill_champions.0.display_name', 'High Gold')
+                    ->where('leaderboards.skill_champions.1.display_name', 'Busy Crafter')
+                    ->where('leaderboards.activity.0.display_name', 'Busy Crafter')
+                    ->where('leaderboards.gathering.0.display_name', 'Busy Crafter')
+                    ->where('leaderboards.crafting.0.display_name', 'Busy Crafter')
+                    ->where('leaderboards.jobs.0.display_name', 'Busy Crafter')
+                    ->where('leaderboards.expeditions.0.display_name', 'Busy Crafter')
+                    ->where('leaderboards.inventory.0.display_name', 'Busy Crafter')
+                    ->where('leaderboards.market_sellers.0.display_name', 'Busy Crafter')
+                    ->where('leaderboards.market_buyers.0.display_name', 'High Gold')
+                )
             );
 
         $this->assertDatabaseHas('connected_realms_leaderboard_seasons', [

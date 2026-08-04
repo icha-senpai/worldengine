@@ -1012,6 +1012,7 @@ class ConnectedRealmsPlayerService
                     'label' => $definition['label'],
                     'type' => $definition['type'],
                     'category' => $definition['category'],
+                    'target_hours_range' => $definition['target_hours_range'],
                     'role' => $definition['role'],
                     'description' => $definition['description'],
                     'level' => $level,

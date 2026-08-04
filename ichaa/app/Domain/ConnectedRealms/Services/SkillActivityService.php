@@ -19,56 +19,56 @@ class SkillActivityService
     private static ?array $activityCache = null;
 
     /**
-     * @var array<string, array{track: string, verb: string, location: string, rewards: list<array{key: string, name: string}>}>
+     * @var array<string, array{track: string, theme: string, location: string, rewards: list<array{key: string, name: string}>}>
      */
     private const ACTIVITY_FAMILIES = [
-        'smelting' => ['track' => 'Forge Work', 'verb' => 'Run', 'location' => 'Emberdeep Forge Hall', 'rewards' => [['key' => 'slag_glass', 'name' => 'Slag Glass'], ['key' => 'forge_credit', 'name' => 'Forge Credit']]],
-        'milling' => ['track' => 'Mill Work', 'verb' => 'Plane', 'location' => 'Whisperbough Millhouse', 'rewards' => [['key' => 'sawdust_bundle', 'name' => 'Sawdust Bundle'], ['key' => 'mill_token', 'name' => 'Mill Token']]],
-        'tanning' => ['track' => 'Tannery Work', 'verb' => 'Cure', 'location' => 'Briarwake Tannery', 'rewards' => [['key' => 'tannin_vial', 'name' => 'Tannin Vial'], ['key' => 'tannery_token', 'name' => 'Tannery Token']]],
-        'cutting' => ['track' => 'Lapidary Work', 'verb' => 'Facet', 'location' => 'Gemcutter Row', 'rewards' => [['key' => 'gem_dust', 'name' => 'Gem Dust'], ['key' => 'lapidary_credit', 'name' => 'Lapidary Credit']]],
-        'weaving' => ['track' => 'Loom Work', 'verb' => 'Weave', 'location' => 'Sunfield Loomhall', 'rewards' => [['key' => 'loom_thread', 'name' => 'Loom Thread'], ['key' => 'weaver_token', 'name' => 'Weaver Token']]],
-        'smithing' => ['track' => 'Smithing Orders', 'verb' => 'Forge', 'location' => 'Moonwake Anvil Yard', 'rewards' => [['key' => 'weapon_blank', 'name' => 'Weapon Blank'], ['key' => 'smith_mark', 'name' => 'Smith Mark']]],
-        'carpentry' => ['track' => 'Carpentry Orders', 'verb' => 'Shape', 'location' => 'Whisperbough Workshop', 'rewards' => [['key' => 'joinery_piece', 'name' => 'Joinery Piece'], ['key' => 'carpenter_mark', 'name' => 'Carpenter Mark']]],
-        'cooking' => ['track' => 'Kitchen Orders', 'verb' => 'Prepare', 'location' => 'Moonwake Hearthline', 'rewards' => [['key' => 'kitchen_scrap', 'name' => 'Kitchen Scrap'], ['key' => 'cook_mark', 'name' => 'Cook Mark']]],
-        'alchemy' => ['track' => 'Alchemy Orders', 'verb' => 'Brew', 'location' => 'Glimmerfen Stillroom', 'rewards' => [['key' => 'catalyst_drop', 'name' => 'Catalyst Drop'], ['key' => 'alchemist_mark', 'name' => 'Alchemist Mark']]],
-        'tailoring' => ['track' => 'Tailoring Orders', 'verb' => 'Stitch', 'location' => 'Sunfield Stitchery', 'rewards' => [['key' => 'pattern_scrap', 'name' => 'Pattern Scrap'], ['key' => 'tailor_mark', 'name' => 'Tailor Mark']]],
-        'leatherworking' => ['track' => 'Leather Orders', 'verb' => 'Bind', 'location' => 'Briarwake Leather Bench', 'rewards' => [['key' => 'strap_cutting', 'name' => 'Strap Cutting'], ['key' => 'leatherworker_mark', 'name' => 'Leatherworker Mark']]],
-        'engineering' => ['track' => 'Engineering Orders', 'verb' => 'Assemble', 'location' => 'Clockwork Yard', 'rewards' => [['key' => 'gear_shaving', 'name' => 'Gear Shaving'], ['key' => 'engineer_mark', 'name' => 'Engineer Mark']]],
-        'enchanting' => ['track' => 'Enchanting Orders', 'verb' => 'Infuse', 'location' => 'Moon Ward Annex', 'rewards' => [['key' => 'rune_dust', 'name' => 'Rune Dust'], ['key' => 'enchanter_mark', 'name' => 'Enchanter Mark']]],
-        'jewelcrafting' => ['track' => 'Jewelry Orders', 'verb' => 'Set', 'location' => 'Gemcutter Row', 'rewards' => [['key' => 'setting_wire', 'name' => 'Setting Wire'], ['key' => 'jeweler_mark', 'name' => 'Jeweler Mark']]],
-        'boatbuilding' => ['track' => 'Shipwright Orders', 'verb' => 'Fit', 'location' => 'Moonwake Drydock', 'rewards' => [['key' => 'pitch_bucket', 'name' => 'Pitch Bucket'], ['key' => 'shipwright_mark', 'name' => 'Shipwright Mark']]],
-        'furniture' => ['track' => 'Furniture Orders', 'verb' => 'Finish', 'location' => 'Guild Hall Shop', 'rewards' => [['key' => 'varnish_pot', 'name' => 'Varnish Pot'], ['key' => 'furnisher_mark', 'name' => 'Furnisher Mark']]],
-        'construction' => ['track' => 'Construction Orders', 'verb' => 'Build', 'location' => 'Settlement Works Yard', 'rewards' => [['key' => 'mason_chit', 'name' => 'Mason Chit'], ['key' => 'builder_mark', 'name' => 'Builder Mark']]],
-        'combat' => ['track' => 'Combat Drills', 'verb' => 'Engage', 'location' => 'Moonwake Training Ring', 'rewards' => [['key' => 'combat_badge', 'name' => 'Combat Badge'], ['key' => 'training_blade', 'name' => 'Training Blade']]],
-        'slayer' => ['track' => 'Slayer Marks', 'verb' => 'Hunt', 'location' => 'Briarwake Bounty Board', 'rewards' => [['key' => 'slayer_mark', 'name' => 'Slayer Mark'], ['key' => 'monster_trophy', 'name' => 'Monster Trophy']]],
-        'defense' => ['track' => 'Guard Rotations', 'verb' => 'Hold', 'location' => 'Old Gate Shield Line', 'rewards' => [['key' => 'defense_badge', 'name' => 'Defense Badge'], ['key' => 'shield_plate', 'name' => 'Shield Plate']]],
-        'healing' => ['track' => 'Medic Rounds', 'verb' => 'Stabilize', 'location' => 'Moonwake Infirmary', 'rewards' => [['key' => 'healing_writ', 'name' => 'Healing Writ'], ['key' => 'medic_satchel', 'name' => 'Medic Satchel']]],
-        'magic' => ['track' => 'Arcane Trials', 'verb' => 'Channel', 'location' => 'Moon Ward Circle', 'rewards' => [['key' => 'magic_seal', 'name' => 'Magic Seal'], ['key' => 'focus_shard', 'name' => 'Focus Shard']]],
-        'ranged' => ['track' => 'Range Trials', 'verb' => 'Mark', 'location' => 'High Perch Range', 'rewards' => [['key' => 'ranged_mark', 'name' => 'Ranged Mark'], ['key' => 'fletching_bundle', 'name' => 'Fletching Bundle']]],
-        'exploration' => ['track' => 'Scout Routes', 'verb' => 'Scout', 'location' => 'Hidden Mile Route', 'rewards' => [['key' => 'explorer_badge', 'name' => 'Explorer Badge'], ['key' => 'route_note', 'name' => 'Route Note']]],
-        'dungeoneering' => ['track' => 'Dungeon Rooms', 'verb' => 'Clear', 'location' => 'Lower Vault Wing', 'rewards' => [['key' => 'vault_key', 'name' => 'Vault Key'], ['key' => 'trap_diagram', 'name' => 'Trap Diagram']]],
-        'sailing' => ['track' => 'Sailing Runs', 'verb' => 'Navigate', 'location' => 'Stormbreak Channel', 'rewards' => [['key' => 'sailing_writ', 'name' => 'Sailing Writ'], ['key' => 'tide_chart', 'name' => 'Tide Chart']]],
-        'survival' => ['track' => 'Survival Circuits', 'verb' => 'Endure', 'location' => 'Cold Camp Circuit', 'rewards' => [['key' => 'survival_mark', 'name' => 'Survival Mark'], ['key' => 'camp_cache', 'name' => 'Camp Cache']]],
-        'cartography' => ['track' => 'Survey Work', 'verb' => 'Chart', 'location' => 'Surveyor Ridge', 'rewards' => [['key' => 'survey_writ', 'name' => 'Survey Writ'], ['key' => 'map_fragment', 'name' => 'Map Fragment']]],
-        'reputation' => ['track' => 'Faction Work', 'verb' => 'Represent', 'location' => 'Regional Council Board', 'rewards' => [['key' => 'faction_seal', 'name' => 'Faction Seal'], ['key' => 'favor_note', 'name' => 'Favor Note']]],
-        'leadership' => ['track' => 'Crew Commands', 'verb' => 'Coordinate', 'location' => 'Guild Muster Yard', 'rewards' => [['key' => 'crew_banner', 'name' => 'Crew Banner'], ['key' => 'order_sheet', 'name' => 'Order Sheet']]],
-        'trading' => ['track' => 'Trade Routes', 'verb' => 'Broker', 'location' => 'Regional Trade Loop', 'rewards' => [['key' => 'trade_writ', 'name' => 'Trade Writ'], ['key' => 'ledger_page', 'name' => 'Ledger Page']]],
+        'smelting' => ['track' => 'Forge Work', 'theme' => 'Emberdeep Bellows', 'location' => 'Emberdeep Forge Hall', 'rewards' => [['key' => 'slag_glass', 'name' => 'Slagglass Bloom'], ['key' => 'forge_credit', 'name' => 'Heat-Seal Chit']]],
+        'milling' => ['track' => 'Mill Work', 'theme' => 'Whisperbough Planer', 'location' => 'Whisperbough Millhouse', 'rewards' => [['key' => 'sawdust_bundle', 'name' => 'Sweetdust Bundle'], ['key' => 'mill_token', 'name' => 'Millwheel Token']]],
+        'tanning' => ['track' => 'Tannery Work', 'theme' => 'Briarwake Cure Vat', 'location' => 'Briarwake Tannery', 'rewards' => [['key' => 'tannin_vial', 'name' => 'Amber Tannin Vial'], ['key' => 'tannery_token', 'name' => 'Hidewright Tag']]],
+        'cutting' => ['track' => 'Lapidary Work', 'theme' => 'Gemcutter Facet Table', 'location' => 'Gemcutter Row', 'rewards' => [['key' => 'gem_dust', 'name' => 'Prism Gemdust'], ['key' => 'lapidary_credit', 'name' => 'Facet Ledger Chip']]],
+        'weaving' => ['track' => 'Loom Work', 'theme' => 'Sunfield Shuttle Loom', 'location' => 'Sunfield Loomhall', 'rewards' => [['key' => 'loom_thread', 'name' => 'Dyed Loomthread'], ['key' => 'weaver_token', 'name' => 'Shuttle-Knot Token']]],
+        'smithing' => ['track' => 'Smithing Orders', 'theme' => 'Moonwake Anvil', 'location' => 'Moonwake Anvil Yard', 'rewards' => [['key' => 'weapon_blank', 'name' => 'Tempered Weapon Blank'], ['key' => 'smith_mark', 'name' => 'Anvil-Seal Mark']]],
+        'carpentry' => ['track' => 'Carpentry Orders', 'theme' => 'Whisperbough Joinery', 'location' => 'Whisperbough Workshop', 'rewards' => [['key' => 'joinery_piece', 'name' => 'Dovetail Joinery Piece'], ['key' => 'carpenter_mark', 'name' => 'Plane-Shave Mark']]],
+        'cooking' => ['track' => 'Kitchen Orders', 'theme' => 'Moonwake Hearthline', 'location' => 'Moonwake Hearthline', 'rewards' => [['key' => 'kitchen_scrap', 'name' => 'Seasoned Hearth Scrap'], ['key' => 'cook_mark', 'name' => 'Copper Ladle Mark']]],
+        'alchemy' => ['track' => 'Alchemy Orders', 'theme' => 'Glimmerfen Still', 'location' => 'Glimmerfen Stillroom', 'rewards' => [['key' => 'catalyst_drop', 'name' => 'Bright Catalyst Drop'], ['key' => 'alchemist_mark', 'name' => 'Stillroom Sigil']]],
+        'tailoring' => ['track' => 'Tailoring Orders', 'theme' => 'Sunfield Stitchery', 'location' => 'Sunfield Stitchery', 'rewards' => [['key' => 'pattern_scrap', 'name' => 'Chalked Pattern Scrap'], ['key' => 'tailor_mark', 'name' => 'Needle-Eye Mark']]],
+        'leatherworking' => ['track' => 'Leather Orders', 'theme' => 'Briarwake Strap Bench', 'location' => 'Briarwake Leather Bench', 'rewards' => [['key' => 'strap_cutting', 'name' => 'Oiled Strap Cutting'], ['key' => 'leatherworker_mark', 'name' => 'Awl-Punched Mark']]],
+        'engineering' => ['track' => 'Engineering Orders', 'theme' => 'Clockwork Assembly Yard', 'location' => 'Clockwork Yard', 'rewards' => [['key' => 'gear_shaving', 'name' => 'Brass Gear Shaving'], ['key' => 'engineer_mark', 'name' => 'Caliper Stamp']]],
+        'enchanting' => ['track' => 'Enchanting Orders', 'theme' => 'Moon Ward Infusion', 'location' => 'Moon Ward Annex', 'rewards' => [['key' => 'rune_dust', 'name' => 'Sung Rune Dust'], ['key' => 'enchanter_mark', 'name' => 'Ward-Script Sigil']]],
+        'jewelcrafting' => ['track' => 'Jewelry Orders', 'theme' => 'Gemcutter Setting', 'location' => 'Gemcutter Row', 'rewards' => [['key' => 'setting_wire', 'name' => 'Fine Setting Wire'], ['key' => 'jeweler_mark', 'name' => 'Loupe-Etched Mark']]],
+        'boatbuilding' => ['track' => 'Shipwright Orders', 'theme' => 'Moonwake Keel Bench', 'location' => 'Moonwake Drydock', 'rewards' => [['key' => 'pitch_bucket', 'name' => 'Resin Pitch Bucket'], ['key' => 'shipwright_mark', 'name' => 'Keelstamp Mark']]],
+        'furniture' => ['track' => 'Furniture Orders', 'theme' => 'Hallwright Finish Table', 'location' => 'Guild Hall Shop', 'rewards' => [['key' => 'varnish_pot', 'name' => 'Amber Varnish Pot'], ['key' => 'furnisher_mark', 'name' => 'Carved Maker Mark']]],
+        'construction' => ['track' => 'Construction Orders', 'theme' => 'Settlement Frame Crew', 'location' => 'Settlement Works Yard', 'rewards' => [['key' => 'mason_chit', 'name' => 'Stonewise Mason Chit'], ['key' => 'builder_mark', 'name' => 'Plumbline Mark']]],
+        'combat' => ['track' => 'Combat Drills', 'theme' => 'Moonwake Sparring', 'location' => 'Moonwake Training Ring', 'rewards' => [['key' => 'combat_badge', 'name' => 'Sparring Notch'], ['key' => 'training_blade', 'name' => 'Blunted Practice Blade']]],
+        'slayer' => ['track' => 'Slayer Marks', 'theme' => 'Briarwake Bounty', 'location' => 'Briarwake Bounty Board', 'rewards' => [['key' => 'slayer_mark', 'name' => 'Fang-Etched Bounty Tag'], ['key' => 'monster_trophy', 'name' => 'Salted Trophy Tooth']]],
+        'defense' => ['track' => 'Guard Rotations', 'theme' => 'Old Gate Shieldline', 'location' => 'Old Gate Shield Line', 'rewards' => [['key' => 'defense_badge', 'name' => 'Shieldwall Rivet'], ['key' => 'shield_plate', 'name' => 'Dented Shield Plate']]],
+        'healing' => ['track' => 'Medic Rounds', 'theme' => 'Moonwake Triage', 'location' => 'Moonwake Infirmary', 'rewards' => [['key' => 'healing_writ', 'name' => 'Clean-Bandage Writ'], ['key' => 'medic_satchel', 'name' => 'Packed Medic Satchel']]],
+        'magic' => ['track' => 'Arcane Trials', 'theme' => 'Moon Ward Channel', 'location' => 'Moon Ward Circle', 'rewards' => [['key' => 'magic_seal', 'name' => 'Moonlit Casting Seal'], ['key' => 'focus_shard', 'name' => 'Attuned Focus Shard']]],
+        'ranged' => ['track' => 'Range Trials', 'theme' => 'High Perch Marksmanship', 'location' => 'High Perch Range', 'rewards' => [['key' => 'ranged_mark', 'name' => 'Feathered Score Tab'], ['key' => 'fletching_bundle', 'name' => 'Waxed Fletching Bundle']]],
+        'exploration' => ['track' => 'Scout Routes', 'theme' => 'Hidden Mile Scout', 'location' => 'Hidden Mile Route', 'rewards' => [['key' => 'explorer_badge', 'name' => 'Trail-Etched Compass Plate'], ['key' => 'route_note', 'name' => 'Weathered Route Note']]],
+        'dungeoneering' => ['track' => 'Dungeon Rooms', 'theme' => 'Lower Vault Breach', 'location' => 'Lower Vault Wing', 'rewards' => [['key' => 'vault_key', 'name' => 'Notched Vault Key'], ['key' => 'trap_diagram', 'name' => 'Smudged Trap Diagram']]],
+        'sailing' => ['track' => 'Sailing Runs', 'theme' => 'Stormbreak Helm', 'location' => 'Stormbreak Channel', 'rewards' => [['key' => 'sailing_writ', 'name' => 'Brine-Sealed Sailing Writ'], ['key' => 'tide_chart', 'name' => 'Saltcurl Tide Chart']]],
+        'survival' => ['track' => 'Survival Circuits', 'theme' => 'Cold Camp Trial', 'location' => 'Cold Camp Circuit', 'rewards' => [['key' => 'survival_mark', 'name' => 'Smoke-Cured Survival Mark'], ['key' => 'camp_cache', 'name' => 'Waxcloth Camp Cache']]],
+        'cartography' => ['track' => 'Survey Work', 'theme' => 'Surveyor Ridge Charting', 'location' => 'Surveyor Ridge', 'rewards' => [['key' => 'survey_writ', 'name' => 'Brass Survey Writ'], ['key' => 'map_fragment', 'name' => 'Ink-Rubbed Map Fragment']]],
+        'reputation' => ['track' => 'Faction Work', 'theme' => 'Council Errand', 'location' => 'Regional Council Board', 'rewards' => [['key' => 'faction_seal', 'name' => 'Pressed Faction Seal'], ['key' => 'favor_note', 'name' => 'Handwritten Favor Note']]],
+        'leadership' => ['track' => 'Crew Commands', 'theme' => 'Guild Muster Command', 'location' => 'Guild Muster Yard', 'rewards' => [['key' => 'crew_banner', 'name' => 'Hemmed Crew Pennant'], ['key' => 'order_sheet', 'name' => 'Signed Order Sheet']]],
+        'trading' => ['track' => 'Trade Routes', 'theme' => 'Regional Broker Loop', 'location' => 'Regional Trade Loop', 'rewards' => [['key' => 'trade_writ', 'name' => 'Stamped Trade Writ'], ['key' => 'ledger_page', 'name' => 'Price-Scratched Ledger Page']]],
     ];
 
     /**
-     * @var list<array{level: int, band: string, prefix: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}>
+     * @var list<array{level: int, band: string, prefix: string, rank: string, station: string, loot_mark: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}>
      */
     private const TIERS = [
-        ['level' => 1, 'band' => '1-30', 'prefix' => 'Starter', 'rarity' => 'common', 'experience' => [22, 34], 'gold' => [3, 8], 'cooldown' => 70],
-        ['level' => 5, 'band' => '1-30', 'prefix' => 'Local', 'rarity' => 'common', 'experience' => [30, 46], 'gold' => [4, 10], 'cooldown' => 85],
-        ['level' => 10, 'band' => '1-30', 'prefix' => 'Apprentice', 'rarity' => 'uncommon', 'experience' => [40, 60], 'gold' => [6, 13], 'cooldown' => 100],
-        ['level' => 20, 'band' => '1-30', 'prefix' => 'Guild', 'rarity' => 'uncommon', 'experience' => [58, 86], 'gold' => [8, 18], 'cooldown' => 125],
-        ['level' => 30, 'band' => '30-50', 'prefix' => 'Runed', 'rarity' => 'rare', 'experience' => [78, 116], 'gold' => [12, 25], 'cooldown' => 155],
-        ['level' => 40, 'band' => '30-50', 'prefix' => 'Storm', 'rarity' => 'rare', 'experience' => [102, 152], 'gold' => [16, 34], 'cooldown' => 190],
-        ['level' => 50, 'band' => '50-80', 'prefix' => 'Elite', 'rarity' => 'rare', 'experience' => [132, 196], 'gold' => [22, 45], 'cooldown' => 230],
-        ['level' => 65, 'band' => '50-80', 'prefix' => 'Elder', 'rarity' => 'epic', 'experience' => [176, 260], 'gold' => [30, 62], 'cooldown' => 285],
-        ['level' => 80, 'band' => '80-100', 'prefix' => 'Mythic', 'rarity' => 'epic', 'experience' => [238, 350], 'gold' => [42, 84], 'cooldown' => 350],
-        ['level' => 100, 'band' => '80-100', 'prefix' => 'Evergather', 'rarity' => 'legendary', 'experience' => [360, 520], 'gold' => [62, 120], 'cooldown' => 430],
+        ['level' => 1, 'band' => '1-30', 'prefix' => 'Starter', 'rank' => 'Candlemark Primer', 'station' => 'Candleline Station', 'loot_mark' => 'Candlemark', 'rarity' => 'common', 'experience' => [22, 34], 'gold' => [3, 8], 'cooldown' => 70],
+        ['level' => 5, 'band' => '1-30', 'prefix' => 'Local', 'rank' => 'Wayside Rotation', 'station' => 'Market Road Station', 'loot_mark' => 'Wayside', 'rarity' => 'common', 'experience' => [30, 46], 'gold' => [4, 10], 'cooldown' => 85],
+        ['level' => 10, 'band' => '1-30', 'prefix' => 'Apprentice', 'rank' => 'Moonwake Brief', 'station' => 'Moonwake Desk', 'loot_mark' => 'Moonwake', 'rarity' => 'uncommon', 'experience' => [40, 60], 'gold' => [6, 13], 'cooldown' => 100],
+        ['level' => 20, 'band' => '1-30', 'prefix' => 'Guild', 'rank' => 'Hearthsign Ledger', 'station' => 'Hearthsign Counter', 'loot_mark' => 'Hearthsign', 'rarity' => 'uncommon', 'experience' => [58, 86], 'gold' => [8, 18], 'cooldown' => 125],
+        ['level' => 30, 'band' => '30-50', 'prefix' => 'Runed', 'rank' => 'Runebound Warrant', 'station' => 'Runebound Annex', 'loot_mark' => 'Runebound', 'rarity' => 'rare', 'experience' => [78, 116], 'gold' => [12, 25], 'cooldown' => 155],
+        ['level' => 40, 'band' => '30-50', 'prefix' => 'Storm', 'rank' => 'Stormglass Shift', 'station' => 'Stormglass Bay', 'loot_mark' => 'Stormglass', 'rarity' => 'rare', 'experience' => [102, 152], 'gold' => [16, 34], 'cooldown' => 190],
+        ['level' => 50, 'band' => '50-80', 'prefix' => 'Elite', 'rank' => 'Highguild Contract', 'station' => 'Highguild Office', 'loot_mark' => 'Highguild', 'rarity' => 'rare', 'experience' => [132, 196], 'gold' => [22, 45], 'cooldown' => 230],
+        ['level' => 65, 'band' => '50-80', 'prefix' => 'Elder', 'rank' => 'Elderwake Mandate', 'station' => 'Elderwake Span', 'loot_mark' => 'Elderwake', 'rarity' => 'epic', 'experience' => [176, 260], 'gold' => [30, 62], 'cooldown' => 285],
+        ['level' => 80, 'band' => '80-100', 'prefix' => 'Mythic', 'rank' => 'Mythgate Trial', 'station' => 'Mythgate Hall', 'loot_mark' => 'Mythgate', 'rarity' => 'epic', 'experience' => [238, 350], 'gold' => [42, 84], 'cooldown' => 350],
+        ['level' => 100, 'band' => '80-100', 'prefix' => 'Evergather', 'rank' => 'Crown Ledger Rite', 'station' => 'Crown Ledger', 'loot_mark' => 'Crownmark', 'rarity' => 'legendary', 'experience' => [360, 520], 'gold' => [62, 120], 'cooldown' => 430],
     ];
 
     /**
@@ -287,8 +287,8 @@ class SkillActivityService
     }
 
     /**
-     * @param  array{track: string, verb: string, location: string, rewards: list<array{key: string, name: string}>}  $family
-     * @param  array{level: int, band: string, prefix: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}  $tier
+     * @param  array{track: string, theme: string, location: string, rewards: list<array{key: string, name: string}>}  $family
+     * @param  array{level: int, band: string, prefix: string, rank: string, station: string, loot_mark: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}  $tier
      * @return array<string, mixed>
      */
     private static function activity(string $skill, string $category, array $family, array $tier): array
@@ -298,14 +298,14 @@ class SkillActivityService
         $secondaryReward = $family['rewards'][1];
 
         return [
-            'label' => "{$tier['prefix']} {$skillLabel} {$family['verb']}",
+            'label' => "{$family['theme']} {$tier['rank']}",
             'track' => $family['track'],
             'activity_type' => "{$category} Activity",
             'band' => $tier['band'],
             'skill' => $skill,
             'category' => $category,
-            'location' => "{$tier['prefix']} {$family['location']}",
-            'description' => self::descriptionFor($skillLabel, $family['track'], $tier['band']),
+            'location' => "{$family['location']} - {$tier['station']}",
+            'description' => self::descriptionFor($skillLabel, $family['track'], $tier['band'], $family['theme']),
             'required_level' => $tier['level'],
             'cooldown_seconds' => $tier['cooldown'],
             'experience' => ['min' => $tier['experience'][0], 'max' => $tier['experience'][1]],
@@ -313,14 +313,14 @@ class SkillActivityService
             'loot' => [
                 [
                     'item_key' => str("{$skill} {$tier['prefix']} {$primaryReward['key']} {$tier['level']}")->slug('_')->toString(),
-                    'item_name' => "{$tier['prefix']} {$primaryReward['name']}",
+                    'item_name' => "{$tier['loot_mark']} {$primaryReward['name']}",
                     'rarity' => $tier['rarity'],
                     'quantity' => $tier['level'] >= 50 ? 2 : 1,
                     'chance' => 100,
                 ],
                 [
                     'item_key' => str("{$skill} {$tier['prefix']} {$secondaryReward['key']} {$tier['level']}")->slug('_')->toString(),
-                    'item_name' => "{$tier['prefix']} {$secondaryReward['name']}",
+                    'item_name' => "{$tier['loot_mark']} {$secondaryReward['name']}",
                     'rarity' => $tier['level'] >= 80 ? 'epic' : ($tier['level'] >= 30 ? 'rare' : 'uncommon'),
                     'quantity' => 1,
                     'chance' => $tier['level'] >= 80 ? 55 : 70,
@@ -329,8 +329,8 @@ class SkillActivityService
         ];
     }
 
-    private static function descriptionFor(string $skillLabel, string $track, string $band): string
+    private static function descriptionFor(string $skillLabel, string $track, string $band, string $theme): string
     {
-        return "{$track} progression for {$skillLabel}, tuned for the {$band} level band with direct XP, gold, and tradeable rewards.";
+        return "{$theme} work for {$skillLabel}, tuned for the {$band} level band with direct XP, gold, and tradeable {$track} rewards.";
     }
 }

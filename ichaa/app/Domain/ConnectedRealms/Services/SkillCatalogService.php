@@ -6,9 +6,50 @@ class SkillCatalogService
 {
     public const MAX_LEVEL = 100;
 
-    public const LEVEL_100_EXPERIENCE = 620000;
+    public const LEVEL_100_EXPERIENCE = 170000;
 
-    public const CALIBRATED_EXPERIENCE_PER_HOUR = 1375;
+    public const CALIBRATED_EXPERIENCE_PER_HOUR = 1600;
+
+    /**
+     * @var array<int, int>
+     */
+    private const LEVEL_EXPERIENCE_ANCHORS = [
+        1 => 0,
+        2 => 200,
+        20 => 2500,
+        40 => 9000,
+        60 => 26000,
+        75 => 52000,
+        90 => 95000,
+        99 => 150000,
+        100 => self::LEVEL_100_EXPERIENCE,
+    ];
+
+    /**
+     * @var list<array{from_level: int, to_level: int, target_hours_range: array{int, int}}>
+     */
+    private const LEVEL_BAND_TARGETS = [
+        ['from_level' => 1, 'to_level' => 20, 'target_hours_range' => [1, 2]],
+        ['from_level' => 20, 'to_level' => 40, 'target_hours_range' => [3, 5]],
+        ['from_level' => 40, 'to_level' => 60, 'target_hours_range' => [8, 12]],
+        ['from_level' => 60, 'to_level' => 75, 'target_hours_range' => [12, 18]],
+        ['from_level' => 75, 'to_level' => 90, 'target_hours_range' => [20, 30]],
+        ['from_level' => 90, 'to_level' => 99, 'target_hours_range' => [20, 35]],
+        ['from_level' => 99, 'to_level' => 100, 'target_hours_range' => [5, 15]],
+    ];
+
+    /**
+     * @var array<string, array{label: string, target_hours_range: array{int, int}}>
+     */
+    private const CATEGORY_TARGETS = [
+        'Utility' => ['label' => 'Minor or Utility', 'target_hours_range' => [25, 50]],
+        'Gathering' => ['label' => 'Gathering', 'target_hours_range' => [50, 90]],
+        'Processing' => ['label' => 'Crafting', 'target_hours_range' => [50, 100]],
+        'Crafting' => ['label' => 'Crafting', 'target_hours_range' => [50, 100]],
+        'Combat' => ['label' => 'Combat or Slayer', 'target_hours_range' => [75, 150]],
+        'World' => ['label' => 'Major Prestige', 'target_hours_range' => [100, 200]],
+        'Social' => ['label' => 'Major Prestige', 'target_hours_range' => [100, 200]],
+    ];
 
     /**
      * @var array<string, array{
@@ -349,6 +390,7 @@ class SkillCatalogService
             'unlocks' => [1 => 'Known record', 100 => 'Mastery'],
         ];
         $definition['unlocks'] = $this->unlocksFor($definition);
+        $definition['target_hours_range'] = $this->targetHoursRangeFor($definition['category']);
 
         return [
             'key' => $skill,
@@ -380,7 +422,11 @@ class SkillCatalogService
             'level_100_experience' => self::LEVEL_100_EXPERIENCE,
             'calibrated_experience_per_hour' => self::CALIBRATED_EXPERIENCE_PER_HOUR,
             'estimated_hours_to_level_100' => round(self::LEVEL_100_EXPERIENCE / self::CALIBRATED_EXPERIENCE_PER_HOUR, 1),
-            'target_hours_range' => [400, 500],
+            'target_hours_range' => [25, 200],
+            'level_band_targets' => self::LEVEL_BAND_TARGETS,
+            'category_targets' => self::CATEGORY_TARGETS,
+            'major_action_goal_range' => [3000, 5000],
+            'brutal_repetition_threshold' => 20000,
         ];
     }
 
@@ -403,9 +449,27 @@ class SkillCatalogService
             return 0;
         }
 
-        $ratio = ($level - 1) / (self::MAX_LEVEL - 1);
+        $anchors = self::LEVEL_EXPERIENCE_ANCHORS;
+        $anchorLevels = array_keys($anchors);
 
-        return (int) round(self::LEVEL_100_EXPERIENCE * ($ratio ** 1.75));
+        if (isset($anchors[$level])) {
+            return $anchors[$level];
+        }
+
+        for ($index = 0; $index < count($anchorLevels) - 1; $index++) {
+            $lowerLevel = $anchorLevels[$index];
+            $upperLevel = $anchorLevels[$index + 1];
+
+            if ($level > $lowerLevel && $level < $upperLevel) {
+                $lowerExperience = $anchors[$lowerLevel];
+                $upperExperience = $anchors[$upperLevel];
+                $ratio = ($level - $lowerLevel) / ($upperLevel - $lowerLevel);
+
+                return (int) round($lowerExperience + (($upperExperience - $lowerExperience) * $ratio));
+            }
+        }
+
+        return self::LEVEL_100_EXPERIENCE;
     }
 
     public function nextLevelExperience(int $level): ?int
@@ -539,5 +603,13 @@ class SkillCatalogService
                     20 => 'Guild commissions',
                 ],
         };
+    }
+
+    /**
+     * @return array{int, int}
+     */
+    private function targetHoursRangeFor(string $category): array
+    {
+        return self::CATEGORY_TARGETS[$category]['target_hours_range'] ?? self::CATEGORY_TARGETS['Utility']['target_hours_range'];
     }
 }

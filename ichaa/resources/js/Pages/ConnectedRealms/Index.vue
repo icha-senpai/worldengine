@@ -34,6 +34,8 @@
                             class="shrink-0 rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
                             :class="{ 'border-focus/70 bg-focus/10 text-primary': activeSubPanel === tab.key }"
                             :aria-pressed="activeSubPanel === tab.key"
+                            @focus="warmSubPanel(tab.key)"
+                            @pointerenter="warmSubPanel(tab.key)"
                             @click="selectSubPanel(tab.key)"
                         >
                             {{ tab.label }} · {{ tab.count }}
@@ -287,23 +289,36 @@
 
             <ShopPanel v-if="activePanel === 'trade' && activeSubPanel === 'shop'" class="xl:col-span-2" :shop="shop" :search-term="searchQuery" />
 
-            <WorldEventsPanel v-if="activePanel === 'progress' && activeSubPanel === 'events'" class="xl:col-span-2" :world-events="world_events" />
+            <Deferred v-if="activePanel === 'progress' && activeSubPanel === 'events'" data="world_events">
+                <WorldEventsPanel class="xl:col-span-2" :world-events="world_events" />
 
-            <LeaderboardPanel v-if="activePanel === 'progress' && activeSubPanel === 'leaderboards'" class="xl:col-span-2" :leaderboards="leaderboards" />
+                <template #fallback>
+                    <DeferredPanelSkeleton title="World Events" subtitle="Warming the event calendar..." />
+                </template>
+            </Deferred>
+
+            <Deferred v-if="activePanel === 'progress' && activeSubPanel === 'leaderboards'" data="leaderboards">
+                <LeaderboardPanel class="xl:col-span-2" :leaderboards="leaderboards" />
+
+                <template #fallback>
+                    <DeferredPanelSkeleton title="Ranks" subtitle="Pulling the leaderboard tables..." />
+                </template>
+            </Deferred>
 
             <SkillsPanel v-if="activePanel === 'progress' && activeSubPanel === 'skills'" class="xl:col-span-2" :skills="skills" :catalog="skill_catalog" :search-term="searchQuery" />
 
-            <section v-if="activePanel === 'trade' && activeSubPanel === 'inventory'" class="surface-section xl:col-span-2">
-                <div class="surface-section__header">
-                    <div class="surface-section__copy">
-                        <span class="surface-section__title">Inventory Guide</span>
-                        <p class="surface-section__subtitle">{{ item_guide.summary.tracked_items }} tracked items · {{ item_guide.summary.items_with_sinks }} with known uses.</p>
+            <Deferred v-if="activePanel === 'trade' && activeSubPanel === 'inventory'" data="item_guide">
+                <section class="surface-section xl:col-span-2">
+                    <div class="surface-section__header">
+                        <div class="surface-section__copy">
+                            <span class="surface-section__title">Inventory Guide</span>
+                            <p class="surface-section__subtitle">{{ item_guide.summary.tracked_items }} tracked items · {{ item_guide.summary.items_with_sinks }} with known uses.</p>
+                        </div>
                     </div>
-                </div>
 
-                <div class="surface-section__body">
-                    <div class="grid gap-4 xl:grid-cols-[14rem_minmax(0,1fr)_minmax(18rem,0.8fr)]">
-                        <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+                    <div class="surface-section__body">
+                        <div class="grid gap-4 xl:grid-cols-[14rem_minmax(0,1fr)_minmax(18rem,0.8fr)]">
+                            <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
                             <p class="text-sm font-ui text-primary">Item Index</p>
                             <div class="mt-3 flex flex-wrap gap-2 xl:grid">
                                 <button
@@ -432,10 +447,15 @@
                                     </span>
                                 </div>
                             </div>
-                        </aside>
+                            </aside>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+
+                <template #fallback>
+                    <DeferredPanelSkeleton title="Inventory Guide" subtitle="Building item sources, uses, and market paths..." />
+                </template>
+            </Deferred>
 
             <section v-if="activePanel === 'progress' && activeSubPanel === 'recent'" class="surface-section xl:col-span-2">
                 <div class="surface-section__header">
@@ -503,9 +523,10 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { router, useForm } from '@inertiajs/vue3'
+import { Deferred, router, useForm, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import CraftingPanel from './CraftingPanel.vue'
+import DeferredPanelSkeleton from './DeferredPanelSkeleton.vue'
 import EquipmentPanel from './EquipmentPanel.vue'
 import ExpeditionsPanel from './ExpeditionsPanel.vue'
 import GatheringPanel from './GatheringPanel.vue'
@@ -561,7 +582,15 @@ const props = defineProps({
     },
     item_guide: {
         type: Object,
-        required: true,
+        default: () => ({
+            summary: {
+                tracked_items: 0,
+                owned_items: 0,
+                items_with_sinks: 0,
+            },
+            categories: [],
+            items: [],
+        }),
     },
     inventory: {
         type: Array,
@@ -609,7 +638,11 @@ const props = defineProps({
     },
     world_events: {
         type: Object,
-        required: true,
+        default: () => ({
+            active: [],
+            upcoming: [],
+            categories: [],
+        }),
     },
     recent_actions: {
         type: Array,
@@ -621,7 +654,13 @@ const props = defineProps({
     },
     leaderboards: {
         type: Object,
-        required: true,
+        default: () => ({
+            groups: [],
+            boards: [],
+            wealth: [],
+            realm_score: [],
+            skills: [],
+        }),
     },
     last_result: {
         type: Object,
@@ -645,7 +684,14 @@ const defaultActiveSubPanels = {
     trade: 'marketplace',
     progress: 'skills',
 }
+const deferredPropsBySubPanel = {
+    inventory: ['item_guide'],
+    events: ['world_events'],
+    leaderboards: ['leaderboards'],
+}
 const savedNavigationState = readSavedNavigationState()
+const page = usePage()
+const warmingDeferredProps = new Set()
 
 const activePanel = ref(savedNavigationState.activePanel)
 const activeSubPanels = ref(savedNavigationState.activeSubPanels)
@@ -707,8 +753,8 @@ const workspaceSubTabs = computed(() => ({
     ],
     progress: [
         { key: 'skills', label: 'Skills', count: props.skills.length },
-        { key: 'events', label: 'World Events', count: props.world_events.active.length + props.world_events.upcoming.length },
-        { key: 'leaderboards', label: 'Ranks', count: props.leaderboards.groups.reduce((total, group) => total + group.count, 0) },
+        { key: 'events', label: 'World Events', count: deferredCount('world_events', props.world_events.active.length + props.world_events.upcoming.length) },
+        { key: 'leaderboards', label: 'Ranks', count: deferredCount('leaderboards', props.leaderboards.groups.reduce((total, group) => total + group.count, 0)) },
         { key: 'recent', label: 'Recent', count: props.summary.action_count },
     ],
 }))
@@ -941,10 +987,37 @@ function selectSubPanel(panel) {
         return
     }
 
+    warmSubPanel(panel)
+
     activeSubPanels.value = {
         ...activeSubPanels.value,
         [activePanel.value]: panel,
     }
+}
+
+function deferredCount(prop, count) {
+    return deferredPropLoaded(prop) ? count : 'Load'
+}
+
+function deferredPropLoaded(prop) {
+    return page.props[prop] !== undefined
+}
+
+function warmSubPanel(panel) {
+    const propsToLoad = (deferredPropsBySubPanel[panel] ?? [])
+        .filter((prop) => !deferredPropLoaded(prop) && !warmingDeferredProps.has(prop))
+
+    if (!propsToLoad.length) {
+        return
+    }
+
+    propsToLoad.forEach((prop) => warmingDeferredProps.add(prop))
+
+    router.reload({
+        only: propsToLoad,
+        preserveScroll: true,
+        onFinish: () => propsToLoad.forEach((prop) => warmingDeferredProps.delete(prop)),
+    })
 }
 
 function resultSubTab() {

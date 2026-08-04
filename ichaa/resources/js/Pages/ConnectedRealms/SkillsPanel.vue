@@ -4,7 +4,7 @@
             <div class="surface-section__copy">
                 <span class="surface-section__title">Skills & Professions</span>
                 <p class="surface-section__subtitle">
-                    {{ skills.length }} tracks · Level {{ catalog.pacing.max_level }} cap · {{ catalog.pacing.estimated_hours_to_level_100 }}h mastery pace.
+                    {{ skills.length }} tracks · Level {{ catalog.pacing.max_level }} cap · {{ catalog.pacing.estimated_hours_to_level_100 }}h baseline curve.
                 </p>
             </div>
         </div>
@@ -39,8 +39,12 @@
                             <span class="text-primary">{{ catalog.pacing.calibrated_experience_per_hour.toLocaleString() }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
-                            <span class="text-muted-2">Target</span>
-                            <span class="text-primary">{{ catalog.pacing.target_hours_range[0] }}-{{ catalog.pacing.target_hours_range[1] }}h</span>
+                            <span class="text-muted-2">Category Target</span>
+                            <span class="text-primary">{{ formatHoursRange(activeGroupTargetRange) }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="text-muted-2">Major Goal</span>
+                            <span class="text-primary">{{ formatNumberRange(majorActionGoalRange) }} acts</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-muted-2">Unlocked Acts</span>
@@ -234,6 +238,13 @@ const groupedSkills = computed(() => props.skills.filter((skill) => searchMatche
     return groups
 }, []))
 const activeGroup = computed(() => groupedSkills.value.find((group) => group.category === selectedCategory.value) ?? groupedSkills.value[0] ?? { category: 'Skills', entries: [] })
+const activeGroupTargetRange = computed(() => (
+    props.catalog.pacing.category_targets?.[activeGroup.value.category]?.target_hours_range
+    ?? activeGroup.value.entries[0]?.target_hours_range
+    ?? props.catalog.pacing.target_hours_range
+    ?? [0, 0]
+))
+const majorActionGoalRange = computed(() => props.catalog.pacing.major_action_goal_range ?? [3000, 5000])
 const activeUnlockedActivities = computed(() => activeGroup.value.entries.reduce((total, skill) => total + skill.activities.filter((activity) => activity.unlocked).length, 0))
 const activeSkill = computed(() => activeGroup.value.entries.find((skill) => skill.skill === selectedSkillKey.value) ?? activeGroup.value.entries[0] ?? null)
 const readySkillActivities = computed(() => activeSkill.value?.activities.filter((activity) => activity.unlocked) ?? [])
@@ -308,6 +319,14 @@ function unlockedActivityCount(skill) {
 
 function unlockedMilestoneCount(skill) {
     return skill.unlocks.filter((unlock) => skill.level >= unlock.level).length
+}
+
+function formatHoursRange(range) {
+    return `${range[0]}-${range[1]}h`
+}
+
+function formatNumberRange(range) {
+    return `${range[0].toLocaleString()}-${range[1].toLocaleString()}`
 }
 
 function searchMatches(skill, query) {
