@@ -6,6 +6,7 @@ use App\Domain\ConnectedRealms\Models\ConnectedRealmsInventoryStack;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsJobCompletion;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsPlayer;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -175,7 +176,7 @@ class JobContractService
         'trading' => [15 => 'Market Token Exchange', 20 => 'Bulk Listing Ledger', 25 => 'Work Order Packet', 30 => 'Storefront Stock Brief', 35 => 'Trade Route Manifest', 40 => 'Regional Arbitrage Writ', 45 => 'Merchant Seal Intake', 50 => 'Guild Ledger Mandate', 75 => 'Royal Exchange Warrant', 100 => 'Market Sovereign Mandate'],
     ];
 
-    public function __construct(private ConnectedRealmsPlayerService $players, private ItemCatalogService $items) {}
+    public function __construct(private ConnectedRealmsPlayerService $players, private ItemCatalogService $items, private ItemPurposeService $purposes) {}
 
     /**
      * @return list<string>
@@ -195,7 +196,12 @@ class JobContractService
             : $player->inventoryStacks()->get())
             ->keyBy('item_key');
 
-        return collect(self::jobs())
+        $jobCatalog = [
+            ...self::jobs(),
+            ...$this->itemRequisitionJobsFor($inventory),
+        ];
+
+        return collect($jobCatalog)
             ->map(function (array $job, string $key) use ($inventory, $player): array {
                 $requiredLevel = (int) ($job['required_level'] ?? 1);
                 $skillLevel = $this->players->currentSkillLevel($player, $job['skill']);
@@ -238,20 +244,19 @@ class JobContractService
      */
     public function complete(User $user, string $jobKey): array
     {
-        $job = self::jobs()[$jobKey] ?? null;
-
-        if ($job === null) {
-            throw ValidationException::withMessages([
-                'job' => 'That Evergather job is not available.',
-            ]);
-        }
-
-        return DB::transaction(function () use ($user, $jobKey, $job): array {
+        return DB::transaction(function () use ($user, $jobKey): array {
             $player = $this->players->playerForUser($user);
             $player = ConnectedRealmsPlayer::query()
                 ->whereKey($player->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+            $job = self::jobs()[$jobKey] ?? $this->itemRequisitionJobFor($player, $jobKey);
+
+            if ($job === null) {
+                throw ValidationException::withMessages([
+                    'job' => 'That Evergather job is not available.',
+                ]);
+            }
 
             $requiredLevel = (int) ($job['required_level'] ?? 1);
 
@@ -345,6 +350,53 @@ class JobContractService
         ];
 
         return self::$jobCache;
+    }
+
+    /**
+     * @param  Collection<string, ConnectedRealmsInventoryStack>  $inventory
+     * @return array<string, array<string, mixed>>
+     */
+    private function itemRequisitionJobsFor($inventory): array
+    {
+        return $inventory
+            ->filter(fn (ConnectedRealmsInventoryStack $stack): bool => $stack->quantity > 0)
+            ->mapWithKeys(function (ConnectedRealmsInventoryStack $stack): array {
+                $job = $this->purposes->requisitionFor([
+                    'item_key' => $stack->item_key,
+                    'item_name' => $stack->item_name,
+                    'rarity' => $stack->rarity,
+                ]);
+
+                return [$job['key'] => $job];
+            })
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function itemRequisitionJobFor(ConnectedRealmsPlayer $player, string $jobKey): ?array
+    {
+        $itemKey = $this->purposes->requisitionItemKey($jobKey);
+
+        if ($itemKey === null) {
+            return null;
+        }
+
+        $stack = ConnectedRealmsInventoryStack::query()
+            ->where('player_id', $player->id)
+            ->where('item_key', $itemKey)
+            ->first();
+
+        if ($stack === null || $stack->quantity <= 0) {
+            return null;
+        }
+
+        return $this->purposes->requisitionFor([
+            'item_key' => $stack->item_key,
+            'item_name' => $stack->item_name,
+            'rarity' => $stack->rarity,
+        ]);
     }
 
     /**

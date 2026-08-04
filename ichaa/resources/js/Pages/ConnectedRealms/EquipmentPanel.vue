@@ -8,22 +8,32 @@
         </div>
 
         <div class="surface-section__body">
-            <div class="mb-4 flex flex-wrap gap-2">
-                <button
-                    v-for="filter in categoryFilters"
-                    :key="filter.key"
-                    type="button"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                    :class="{ 'border-focus/70 bg-focus/10 text-primary': selectedCategory === filter.key }"
-                    @click="selectedCategory = filter.key"
-                >
-                    {{ filter.label }} · {{ filter.count }}
-                </button>
-            </div>
-
             <div class="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
                 <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-                    <p class="text-sm font-ui text-primary">Tool Loadout</p>
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-sm font-ui text-primary">Tool Loadout</p>
+                        <span class="tag">{{ visibleEquipmentWithUpgrades.length }}</span>
+                    </div>
+
+                    <div class="mt-4 grid gap-2">
+                        <button
+                            v-for="filter in categoryFilters"
+                            :key="filter.key"
+                            type="button"
+                            class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedCategory === filter.key }"
+                            @click="selectedCategory = filter.key"
+                        >
+                            <span class="flex min-w-0 items-center justify-between gap-2">
+                                <span class="truncate text-xs font-ui text-primary">{{ filter.label }}</span>
+                                <span class="text-[11px] text-muted-3">{{ filter.count }}</span>
+                            </span>
+                            <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                                <span class="block h-full rounded-full bg-focus" :style="{ width: `${filterProgress(filter)}%` }" />
+                            </span>
+                        </button>
+                    </div>
+
                     <div class="mt-3 grid gap-2 text-xs">
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-muted-2">Equipped</span>
@@ -56,11 +66,11 @@
                     </div>
                 </div>
 
-                <div v-if="visibleEquipmentWithUpgrades.length" class="grid gap-3">
+                <div v-if="visibleEquipmentWithUpgrades.length" class="grid content-start gap-3">
                     <article
                         v-for="(entry, index) in visibleEquipmentWithUpgrades"
                         :key="entry.tool.slot"
-                        class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                        class="grid min-h-44 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_9rem]"
                     >
                         <div class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary">
                             #{{ index + 1 }}
@@ -204,7 +214,7 @@
                     <article
                         v-for="tool in inventoryTools"
                         :key="tool.tool_id"
-                        class="rounded-md border border-border bg-canvas px-3 py-3"
+                        class="min-h-36 rounded-md border border-border bg-canvas px-3 py-3"
                     >
                         <div class="flex flex-wrap items-center gap-2">
                             <p class="truncate text-sm font-ui text-primary">{{ tool.item_name }}</p>
@@ -286,6 +296,16 @@ const categoryFilters = computed(() => ['All', ...new Set(props.equipment.map((t
 })))
 const visibleEquipmentWithUpgrades = computed(() => equipmentWithUpgrades.value.filter((entry) => selectedCategory.value === 'All' || entry.tool.category === selectedCategory.value))
 const inventoryTools = computed(() => props.toolInventory.filter((tool) => tool.status === 'inventory'))
+
+function filterProgress(filter) {
+    if (!filter.count) {
+        return 0
+    }
+
+    const upgradeReadyCount = equipmentWithUpgrades.value.filter((entry) => (filter.key === 'All' || entry.tool.category === filter.key) && (entry.upgrade?.can_upgrade || entry.tier?.can_upgrade)).length
+
+    return Math.round((upgradeReadyCount / filter.count) * 100)
+}
 
 function attemptRarityUpgrade(slot) {
     rarityForm.slot = slot

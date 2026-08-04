@@ -277,6 +277,166 @@ class BitcraftToolTest extends TestCase
             && str_contains($request->url(), 'hasBuyOrders=1'));
     }
 
+    public function test_market_finder_combines_item_and_region_searches(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/regions' => Http::response([[
+                'regionId' => 8,
+                'regionName' => 'Solmere',
+            ]]),
+            'https://bitjita.com/api/claims?page=1*regionId=8*' => Http::response([
+                'claims' => [],
+                'count' => 0,
+            ]),
+            'https://bitjita.com/api/market/item/1421716234*' => Http::response([
+                'item' => [
+                    'id' => '1421716234',
+                    'name' => 'Astralite Pickaxe',
+                    'tag' => 'Miner Tool',
+                    'tier' => 5,
+                    'rarityStr' => 'Rare',
+                ],
+                'sellOrders' => [[
+                    'entityId' => 'order-1',
+                    'ownerUsername' => 'Astra',
+                    'claimEntityId' => '288230376165363891',
+                    'claimName' => 'Jita',
+                    'priceThreshold' => '1200',
+                    'quantity' => '4',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ], [
+                    'entityId' => 'order-2',
+                    'ownerUsername' => 'Wrong Place',
+                    'claimEntityId' => '288230376165363892',
+                    'claimName' => 'Far Market',
+                    'priceThreshold' => '900',
+                    'quantity' => '2',
+                    'regionId' => 12,
+                    'regionName' => 'Elyndor',
+                ]],
+                'buyOrders' => [[
+                    'entityId' => 'order-3',
+                    'ownerUsername' => 'Distant Buyer',
+                    'claimEntityId' => '288230376165363893',
+                    'claimName' => 'Far Buyer',
+                    'priceThreshold' => '1500',
+                    'quantity' => '1',
+                    'regionId' => 12,
+                    'regionName' => 'Elyndor',
+                ]],
+                'stats' => [
+                    'lowestSell' => 900,
+                    'highestBuy' => 1500,
+                ],
+            ]),
+            'https://bitjita.com/api/market*' => Http::response([
+                'data' => [
+                    'items' => [[
+                        'id' => 1421716234,
+                        'name' => 'Astralite Pickaxe',
+                        'category' => 'Miner Tool',
+                        'sellOrders' => 3,
+                        'buyOrders' => 0,
+                    ]],
+                    'categories' => ['Miner Tool'],
+                ],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.market', [
+                'q' => 'Astralite',
+                'region' => 'Solmere',
+                'itemId' => 1421716234,
+                'itemKind' => 'item',
+                'hasOrders' => 1,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Market')
+                ->where('tool.key', 'market')
+                ->where('filters.q', 'Astralite')
+                ->where('filters.region', 'Solmere')
+                ->where('filters.regionId', '8')
+                ->has('market.items', 1)
+                ->where('market.items.0.name', 'Astralite Pickaxe')
+                ->where('market.orderBook.item.name', 'Astralite Pickaxe')
+                ->has('market.orderBook.sellOrders', 1)
+                ->where('market.orderBook.sellOrders.0.regionName', 'Solmere')
+                ->has('market.orderBook.buyOrders', 0)
+                ->where('market.orderBook.stats.lowestSell', 1200)
+                ->where('market.orderBook.stats.highestBuy', null)
+            );
+
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
+            && str_contains($request->url(), 'q=Astralite')
+            && str_contains($request->url(), 'regionId=8')
+            && str_contains($request->url(), 'hasOrders=1'));
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market/item/1421716234?')
+            && str_contains($request->url(), 'regionId=8'));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims?'));
+        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), '/buildings'));
+    }
+
+    public function test_market_order_book_prefetch_returns_region_filtered_orders(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/regions' => Http::response([[
+                'regionId' => 8,
+                'regionName' => 'Solmere',
+            ]]),
+            'https://bitjita.com/api/market/item/1421716234*' => Http::response([
+                'item' => [
+                    'id' => '1421716234',
+                    'name' => 'Astralite Pickaxe',
+                    'tag' => 'Miner Tool',
+                    'tier' => 5,
+                    'rarityStr' => 'Rare',
+                ],
+                'sellOrders' => [[
+                    'entityId' => 'order-1',
+                    'ownerUsername' => 'Astra',
+                    'claimEntityId' => '288230376165363891',
+                    'claimName' => 'Jita',
+                    'priceThreshold' => '1200',
+                    'quantity' => '4',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ], [
+                    'entityId' => 'order-2',
+                    'ownerUsername' => 'Wrong Place',
+                    'claimEntityId' => '288230376165363892',
+                    'claimName' => 'Far Market',
+                    'priceThreshold' => '900',
+                    'quantity' => '2',
+                    'regionId' => 12,
+                    'regionName' => 'Elyndor',
+                ]],
+                'buyOrders' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.market.order-book', [
+                'itemId' => 1421716234,
+                'itemKind' => 'item',
+                'region' => 'Solmere',
+            ]));
+
+        $response->assertOk()
+            ->assertJsonPath('orderBook.item.name', 'Astralite Pickaxe')
+            ->assertJsonCount(1, 'orderBook.sellOrders')
+            ->assertJsonPath('orderBook.sellOrders.0.regionName', 'Solmere')
+            ->assertJsonCount(0, 'orderBook.buyOrders')
+            ->assertJsonPath('cache.sources.1.label', 'Order book')
+            ->assertJsonPath('error', null);
+
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market/item/1421716234?')
+            && str_contains($request->url(), 'regionId=8'));
+    }
+
     public function test_barter_stall_finder_filters_region_claim_search_to_claims_with_barter_stations(): void
     {
         Http::fake([

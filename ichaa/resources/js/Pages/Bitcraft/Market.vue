@@ -13,6 +13,8 @@
         </template>
 
         <form @submit.prevent="submit" class="market-search-panel">
+            <div v-if="searching" class="market-search-panel__progress" aria-hidden="true"></div>
+
             <div class="market-search-panel__header">
                 <div class="min-w-0">
                     <p class="market-search-panel__eyebrow">{{ isBarterTool ? 'Barter stalls' : 'Market finder' }}</p>
@@ -22,6 +24,8 @@
                 <div class="market-search-panel__stats">
                     <span class="tag">{{ market.items.length }} item{{ market.items.length === 1 ? '' : 's' }}</span>
                     <span class="tag">{{ market.claims.length }} claim{{ market.claims.length === 1 ? '' : 's' }}</span>
+                    <span v-if="updatedAtLabel" class="tag">Updated {{ updatedAtLabel }}</span>
+                    <span v-if="cacheSummary" class="tag">{{ cacheSummary }}</span>
                 </div>
             </div>
 
@@ -296,8 +300,8 @@
         />
 
         <MarketOrderBookPopup
-            :show="!isBarterTool && activeMarketPopupOpen && Boolean(market.orderBook)"
-            :order-book="market.orderBook"
+            :show="!isBarterTool && activeMarketPopupOpen && Boolean(effectiveMarketOrderBook)"
+            :order-book="effectiveMarketOrderBook"
             :claim-link-href="marketClaimHref"
             @close="closeMarketPopup"
         />
@@ -355,6 +359,13 @@ const props = defineProps({
         }),
     },
     error: { type: String, default: null },
+    cache: {
+        type: Object,
+        default: () => ({
+            updatedAt: null,
+            sources: [],
+        }),
+    },
 })
 
 const form = reactive({
@@ -376,16 +387,46 @@ const activeBarterItemKind = ref(String(props.filters.itemKind ?? ''))
 const activeBarterSide = ref(props.filters.side ?? '')
 const activeBarterPopupOpen = ref(Boolean(props.filters.itemId))
 const activeMarketPopupOpen = ref(Boolean(props.market.orderBook))
+const localMarketOrderBook = ref(null)
+const prefetchedOrderBooks = ref(new Map())
+const prefetchingOrderBooks = ref(new Set())
 const brokenIconAssets = ref(new Set())
 const searching = ref(false)
-const selectedOrderBookItemId = computed(() => String(props.market.orderBook?.item?.id ?? ''))
+const syncingFilters = ref(false)
+let debouncedSearchTimer = null
+const effectiveMarketOrderBook = computed(() => localMarketOrderBook.value ?? props.market.orderBook)
+const selectedOrderBookItemId = computed(() => String(effectiveMarketOrderBook.value?.item?.id ?? ''))
 const isBarterTool = computed(() => props.tool.key === 'barter-stalls')
 const hasStallOrderListings = computed(() => (props.market.listings ?? []).some((listing) => listing.source === 'stall-order'))
 const scrollStorageKey = computed(() => `bitcraft:${props.tool.key}:${window.location.pathname}${window.location.search}`)
 const explorerTitle = computed(() => (isBarterTool.value ? 'Barter Stall Explorer' : 'Market Explorer'))
-const explorerEmptyLabel = computed(() => (
-    isBarterTool.value ? 'Search an item with an empire, region, or claim to explore barter stall listings.' : 'No market matches yet.'
-))
+const activeItemSearchLabel = computed(() => form.q || form.category || '')
+const activeRegionLabel = computed(() => form.region || '')
+const explorerEmptyLabel = computed(() => {
+    if (searching.value) {
+        return isBarterTool.value ? 'Searching barter stalls...' : 'Searching market orders...'
+    }
+
+    if (activeItemSearchLabel.value && activeRegionLabel.value) {
+        return isBarterTool.value
+            ? `No barter stall listings found for ${activeItemSearchLabel.value} in ${activeRegionLabel.value}.`
+            : `No market orders found for ${activeItemSearchLabel.value} in ${activeRegionLabel.value}.`
+    }
+
+    if (activeItemSearchLabel.value) {
+        return isBarterTool.value
+            ? `No barter stall listings found for ${activeItemSearchLabel.value}.`
+            : `No market orders found for ${activeItemSearchLabel.value}.`
+    }
+
+    if (activeRegionLabel.value) {
+        return isBarterTool.value
+            ? `No barter stalls found in ${activeRegionLabel.value}.`
+            : `No market items found in ${activeRegionLabel.value}.`
+    }
+
+    return isBarterTool.value ? 'Search an item with an empire, region, or claim to explore barter stall listings.' : 'No market matches yet.'
+})
 const groupedMarketItems = computed(() => {
     const groups = new Map()
 
@@ -421,8 +462,20 @@ const sideOptions = [
     { label: 'Sell', value: 'sell' },
     { label: 'Buy', value: 'buy' },
 ]
+const cacheSources = computed(() => props.cache?.sources ?? [])
+const updatedAtLabel = computed(() => formatTime(props.cache?.updatedAt))
+const cacheSummary = computed(() => {
+    if (!cacheSources.value.length) {
+        return ''
+    }
+
+    const shortestCache = Math.min(...cacheSources.value.map((source) => Number(source.maxAgeSeconds)).filter(Number.isFinite))
+
+    return Number.isFinite(shortestCache) ? `Cache ${formatDuration(shortestCache)}` : ''
+})
 
 watch(() => props.filters, (filters) => {
+    syncingFilters.value = true
     form.q = filters.q ?? ''
     form.category = filters.category ?? ''
     form.claimQ = filters.claimQ ?? ''
@@ -438,9 +491,15 @@ watch(() => props.filters, (filters) => {
     activeBarterItemKind.value = String(filters.itemKind ?? '')
     activeBarterSide.value = filters.side ?? ''
     activeBarterPopupOpen.value = Boolean(filters.itemId)
+
+    nextTick(() => {
+        syncingFilters.value = false
+    })
 })
 
 watch(() => props.market.orderBook, (orderBook) => {
+    localMarketOrderBook.value = null
+
     if (orderBook) {
         activeMarketPopupOpen.value = true
 
@@ -449,6 +508,10 @@ watch(() => props.market.orderBook, (orderBook) => {
 
     activeMarketPopupOpen.value = false
 }, { immediate: true })
+
+watch(() => [form.q, form.region], () => {
+    scheduleDebouncedSearch()
+}, { flush: 'post' })
 
 const cleanPayload = () => ({
     ...(form.q ? { q: form.q } : {}),
@@ -486,6 +549,49 @@ const marketItemParams = (item, orderSide = null) => {
     }
 
     return payload
+}
+
+const orderBookLookupParams = (item) => ({
+    ...(form.claimEntityId ? { claimEntityId: form.claimEntityId } : {}),
+    ...(form.region ? { region: form.region } : {}),
+    itemId: item.id,
+    itemKind: item.kind ?? 'item',
+})
+
+const orderBookCacheKey = (params) => JSON.stringify({
+    claimEntityId: params.claimEntityId ?? '',
+    region: params.region ?? '',
+    itemId: String(params.itemId ?? ''),
+    itemKind: params.itemKind ?? 'item',
+})
+
+const loadedFilterValue = (key) => {
+    if (key === 'region') {
+        return props.filters.region ?? props.filters.regionName ?? props.filters.regionId ?? ''
+    }
+
+    if (key === 'empire') {
+        return props.filters.empire ?? props.filters.empireName ?? ''
+    }
+
+    return props.filters[key] ?? ''
+}
+
+const marketOrderBookMatches = (item) => {
+    if (isBarterTool.value || !effectiveMarketOrderBook.value) {
+        return false
+    }
+
+    if (selectedOrderBookItemId.value !== String(item.id)) {
+        return false
+    }
+
+    const payload = cleanPayload()
+    const sameItemKind = String(props.filters.itemKind ?? item.kind ?? 'item') === String(item.kind ?? 'item')
+    const sameSearchContext = ['q', 'category', 'claimQ', 'claimEntityId', 'empire', 'empireEntityId', 'region']
+        .every((key) => String(payload[key] ?? '') === String(loadedFilterValue(key)))
+
+    return sameItemKind && sameSearchContext
 }
 
 const barterItemAnchor = (item) => `barter-item-${item.kind ?? item.type ?? 'item'}-${item.id}`
@@ -528,10 +634,12 @@ const visitTool = (url, params = {}) => {
 }
 
 const submit = () => {
+    clearDebouncedSearch()
     visitTool(route(props.tool.routeName ?? 'bitcraft.market'), cleanPayload())
 }
 
 const reset = () => {
+    clearDebouncedSearch()
     visitTool(route(props.tool.routeName ?? 'bitcraft.market'), {})
 }
 
@@ -564,9 +672,117 @@ const openBarterItem = (item, side) => {
 
 const openMarketItem = (item, side) => {
     const params = marketItemParams(item, side)
+    const cachedOrderBook = prefetchedOrderBooks.value.get(orderBookCacheKey(orderBookLookupParams(item)))
+
+    if (cachedOrderBook) {
+        localMarketOrderBook.value = cachedOrderBook
+        activeMarketPopupOpen.value = true
+
+        return
+    }
+
+    if (marketOrderBookMatches(item)) {
+        activeMarketPopupOpen.value = true
+
+        return
+    }
 
     visitTool(route(props.tool.routeName ?? 'bitcraft.market', params), {})
 }
+
+const prefetchMarketOrderBooks = () => {
+    if (isBarterTool.value || !(props.market.items ?? []).length) {
+        return
+    }
+
+    const candidates = (props.market.items ?? [])
+        .filter((item) => Number(item.sellOrderCount ?? 0) + Number(item.buyOrderCount ?? 0) > 0)
+        .slice(0, 3)
+
+    for (const item of candidates) {
+        prefetchMarketOrderBook(item)
+    }
+}
+
+const prefetchMarketOrderBook = async (item) => {
+    const params = orderBookLookupParams(item)
+    const key = orderBookCacheKey(params)
+
+    if (prefetchedOrderBooks.value.has(key) || prefetchingOrderBooks.value.has(key)) {
+        return
+    }
+
+    prefetchingOrderBooks.value = new Set([...prefetchingOrderBooks.value, key])
+
+    try {
+        const response = await fetch(route('bitcraft.market.order-book', params), {
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+
+        if (!response.ok) {
+            return
+        }
+
+        const payload = await response.json()
+
+        if (payload.orderBook) {
+            const orderBooks = new Map(prefetchedOrderBooks.value)
+            orderBooks.set(key, payload.orderBook)
+            prefetchedOrderBooks.value = orderBooks
+        }
+    } finally {
+        const prefetching = new Set(prefetchingOrderBooks.value)
+        prefetching.delete(key)
+        prefetchingOrderBooks.value = prefetching
+    }
+}
+
+const clearDebouncedSearch = () => {
+    if (debouncedSearchTimer) {
+        clearTimeout(debouncedSearchTimer)
+        debouncedSearchTimer = null
+    }
+}
+
+const shouldRunDebouncedSearch = () => {
+    const itemQuery = form.q.trim()
+    const regionQuery = form.region.trim()
+    const loadedItemQuery = String(loadedFilterValue('q') ?? '')
+    const loadedRegionQuery = String(loadedFilterValue('region') ?? '')
+
+    if (itemQuery === loadedItemQuery && regionQuery === loadedRegionQuery) {
+        return false
+    }
+
+    if (itemQuery === '' && regionQuery === '') {
+        return loadedItemQuery !== '' || loadedRegionQuery !== ''
+    }
+
+    return itemQuery.length >= 2 || regionQuery.length >= 2 || /^\d+$/.test(regionQuery)
+}
+
+const scheduleDebouncedSearch = () => {
+    if (syncingFilters.value) {
+        return
+    }
+
+    clearDebouncedSearch()
+
+    if (!shouldRunDebouncedSearch()) {
+        return
+    }
+
+    debouncedSearchTimer = setTimeout(() => {
+        submit()
+    }, 450)
+}
+
+watch(() => [props.tool.key, props.market.items, props.filters.region, props.filters.claimEntityId], () => {
+    prefetchMarketOrderBooks()
+}, { flush: 'post', immediate: true })
 
 const setSide = (side, item = null) => {
     if (item && isBarterTool.value) {
@@ -649,10 +865,44 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+    clearDebouncedSearch()
     rememberScroll()
     window.removeEventListener('beforeunload', rememberScroll)
     window.removeEventListener('pagehide', rememberScroll)
 })
+
+const formatTime = (value) => {
+    if (!value) {
+        return ''
+    }
+
+    const date = new Date(value)
+
+    if (Number.isNaN(date.getTime())) {
+        return ''
+    }
+
+    return new Intl.DateTimeFormat(undefined, {
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(date)
+}
+
+const formatDuration = (seconds) => {
+    if (!Number.isFinite(seconds)) {
+        return ''
+    }
+
+    if (seconds < 60) {
+        return `${seconds}s`
+    }
+
+    if (seconds < 3600) {
+        return `${Math.round(seconds / 60)}m`
+    }
+
+    return `${Math.round(seconds / 3600)}h`
+}
 
 const formatCoins = (value) => {
     if (value === null || value === undefined || value === '') {
@@ -682,6 +932,7 @@ const formatCount = (value) => {
 
 <style scoped>
 .market-search-panel {
+    position: relative;
     margin-bottom: 20px;
     padding: 18px;
     overflow: hidden;
@@ -693,6 +944,16 @@ const formatCount = (value) => {
     box-shadow:
         inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.05),
         0 18px 38px rgb(0 0 0 / 0.18);
+}
+
+.market-search-panel__progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2px;
+    width: 38%;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-pink), transparent);
+    animation: market-search-progress 1s ease-in-out infinite;
 }
 
 .market-search-panel__header,
@@ -724,6 +985,16 @@ const formatCount = (value) => {
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 8px;
+}
+
+@keyframes market-search-progress {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(270%);
+    }
 }
 
 .market-search-panel__primary {

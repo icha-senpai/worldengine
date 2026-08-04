@@ -8,22 +8,47 @@
         </div>
 
         <div class="surface-section__body">
-            <div class="flex flex-wrap gap-2">
-                <button
-                    v-for="group in offerGroups"
-                    :key="group.key"
-                    type="button"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                    :class="{ 'border-focus/70 bg-focus/10 text-primary': selectedFilter === group.key }"
-                    @click="selectedFilter = group.key"
-                >
-                    {{ group.label }} · {{ group.count }}
-                </button>
-            </div>
-
-            <div class="mt-4 grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
+            <div class="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
                 <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-                    <p class="text-sm font-ui text-primary">{{ activeGroup.label }}</p>
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-sm font-ui text-primary">Guild Counter</p>
+                        <span class="tag">{{ activeBoard.count }} {{ activeBoard.unit }}</span>
+                    </div>
+                    <p class="mt-1 text-xs text-muted-3">{{ activeBoard.description }}</p>
+
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                        <button
+                            v-for="board in offerBoards"
+                            :key="board.key"
+                            type="button"
+                            class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedBoard === board.key }"
+                            @click="selectedBoard = board.key"
+                        >
+                            <span class="block text-xs font-ui text-primary">{{ board.label }}</span>
+                            <span class="mt-1 block text-[11px] text-muted-3">{{ board.count }} {{ board.unit }}</span>
+                        </button>
+                    </div>
+
+                    <div class="mt-4 grid gap-2">
+                        <button
+                            v-for="group in offerGroups"
+                            :key="group.key"
+                            type="button"
+                            class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedFilter === group.key }"
+                            @click="selectedFilter = group.key"
+                        >
+                            <span class="flex min-w-0 items-center justify-between gap-2">
+                                <span class="truncate text-xs font-ui text-primary">{{ group.label }}</span>
+                                <span class="text-[11px] text-muted-3">{{ group.buyable }}/{{ group.count }}</span>
+                            </span>
+                            <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                                <span class="block h-full rounded-full bg-focus" :style="{ width: `${groupProgress(group)}%` }" />
+                            </span>
+                        </button>
+                    </div>
+
                     <div class="mt-3 grid gap-2 text-xs">
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-muted-2">Affordable</span>
@@ -52,12 +77,22 @@
                     </div>
                 </div>
 
-                <div class="grid gap-4">
+                <div class="grid content-start gap-4">
+                    <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-ui text-primary">{{ activeBoard.label }}</p>
+                                <p class="mt-1 text-xs text-muted-3">{{ activeGroup.label }} · {{ visibleOffers.length }} visible</p>
+                            </div>
+                            <span class="tag">{{ activeGroup.highestPrice }}g max</span>
+                        </div>
+                    </div>
+
                     <div v-if="visibleOffers.length" class="grid gap-2">
                         <article
                             v-for="(offer, index) in visibleOffers"
                             :key="offer.key"
-                            class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                            class="grid min-h-32 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
                         >
                             <div class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary">
                                 #{{ index + 1 }}
@@ -114,8 +149,17 @@
                         </article>
                     </div>
 
-                    <p v-else class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2">
-                        No offers match.
+                    <button
+                        v-if="canShowMoreOffers"
+                        type="button"
+                        class="app-btn app-btn--ghost app-btn--sm justify-self-center"
+                        @click="visibleLimit += boardPageSize"
+                    >
+                        Show More
+                    </button>
+
+                    <p v-if="!visibleOffers.length" class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2">
+                        {{ emptyBoardMessage }}
                     </p>
                 </div>
             </div>
@@ -128,7 +172,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { shopReloadProps } from './reloadProps'
 
@@ -144,6 +188,9 @@ const props = defineProps({
 })
 
 const selectedFilter = ref('Tools')
+const selectedBoard = ref('buyable')
+const boardPageSize = 12
+const visibleLimit = ref(boardPageSize)
 const form = useForm({
     offer: null,
 })
@@ -161,11 +208,55 @@ const offerGroups = computed(() => ['Tools', 'Materials', 'Commissions'].map((ke
     }
 }))
 const activeGroup = computed(() => offerGroups.value.find((group) => group.key === selectedFilter.value) ?? offerGroups.value[0])
-const visibleOffers = computed(() => props.shop.offers
+const filteredOffers = computed(() => props.shop.offers
     .filter((offer) => offerMatchesGroup(offer, selectedFilter.value))
     .filter((offer) => searchMatches(offer, props.searchTerm))
     .sort((a, b) => Number(b.can_buy) - Number(a.can_buy) || b.price - a.price))
+const buyableOffers = computed(() => filteredOffers.value.filter((offer) => offer.can_buy))
+const usefulLockedOffers = computed(() => filteredOffers.value.filter((offer) => !offer.can_buy && !offer.is_equipped && !offer.is_downgrade))
+const offerBoards = computed(() => [
+    {
+        key: 'buyable',
+        label: 'Buyable',
+        count: buyableOffers.value.length,
+        unit: 'ready',
+        entries: buyableOffers.value,
+        description: `${activeGroup.value.label} you can afford and use now.`,
+    },
+    {
+        key: 'plan',
+        label: 'Plan',
+        count: usefulLockedOffers.value.length,
+        unit: 'locked',
+        entries: usefulLockedOffers.value,
+        description: 'Useful offers that need gold or levels.',
+    },
+])
+const activeBoard = computed(() => offerBoards.value.find((board) => board.key === selectedBoard.value) ?? offerBoards.value[0])
+const visibleOffers = computed(() => activeBoard.value.entries.slice(0, visibleLimit.value))
+const canShowMoreOffers = computed(() => activeBoard.value.entries.length > visibleOffers.value.length)
 const buyableCount = computed(() => props.shop.offers.filter((offer) => offer.can_buy).length)
+const emptyBoardMessage = computed(() => {
+    if (selectedBoard.value === 'buyable') {
+        return 'No buyable offers match. Check Plan for what to save for.'
+    }
+
+    return 'No offers match.'
+})
+
+watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
+    visibleLimit.value = boardPageSize
+})
+
+watch(buyableOffers, (offers) => {
+    if (!offers.length && selectedBoard.value === 'buyable') {
+        selectedBoard.value = 'plan'
+    }
+
+    if (offers.length && selectedBoard.value === 'plan') {
+        selectedBoard.value = 'buyable'
+    }
+}, { immediate: true })
 
 function offerMatchesGroup(offer, group) {
     if (group === 'Tools') {
@@ -193,6 +284,14 @@ function searchMatches(offer, query) {
         offer.material_family,
         ...(offer.tags ?? []),
     ].filter(Boolean).join(' ').toLowerCase().includes(normalizedQuery)
+}
+
+function groupProgress(group) {
+    if (!group.count) {
+        return 0
+    }
+
+    return Math.round((group.buyable / group.count) * 100)
 }
 
 function buy(offer) {

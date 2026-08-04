@@ -108,12 +108,26 @@
                             <div class="rounded-md border border-border bg-canvas px-3 py-3">
                                 <div class="flex items-center justify-between gap-3">
                                     <p class="text-sm font-ui text-primary">Activity Tree</p>
-                                    <span class="tag">{{ unlockedActivityCount(activeSkill) }} ready</span>
+                                    <span class="tag">{{ activeSkillBoard.count }} {{ activeSkillBoard.unit }}</span>
+                                </div>
+
+                                <div class="mt-3 grid grid-cols-2 gap-2">
+                                    <button
+                                        v-for="board in skillActivityBoards"
+                                        :key="board.key"
+                                        type="button"
+                                        class="rounded-md border border-border bg-surface-2 px-3 py-2 text-left transition hover:border-focus/60"
+                                        :class="{ 'border-focus/70 bg-focus/10': selectedSkillBoard === board.key }"
+                                        @click="selectedSkillBoard = board.key"
+                                    >
+                                        <span class="block text-xs font-ui text-primary">{{ board.label }}</span>
+                                        <span class="mt-1 block text-[11px] text-muted-3">{{ board.count }} {{ board.unit }}</span>
+                                    </button>
                                 </div>
 
                                 <div class="mt-3 grid gap-2">
                                     <div
-                                        v-for="activity in activeSkill.activities"
+                                        v-for="activity in visibleSkillActivities"
                                         :key="`${activity.type}-${activity.label}`"
                                         class="grid gap-2 rounded-md border border-border bg-surface-2 px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto]"
                                     >
@@ -129,7 +143,16 @@
                                         </span>
                                     </div>
 
-                                    <p v-if="!activeSkill.activities.length" class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2">
+                                    <button
+                                        v-if="canShowMoreSkillActivities"
+                                        type="button"
+                                        class="app-btn app-btn--ghost app-btn--sm justify-self-center"
+                                        @click="visibleSkillLimit += skillBoardPageSize"
+                                    >
+                                        Show More
+                                    </button>
+
+                                    <p v-if="!activeSkillBoard.entries.length" class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2">
                                         No activities listed.
                                     </p>
                                 </div>
@@ -143,7 +166,7 @@
 
                                 <div class="mt-3 grid gap-2">
                                     <div
-                                        v-for="unlock in activeSkill.unlocks"
+                                        v-for="unlock in visibleSkillUnlocks"
                                         :key="unlock.level"
                                         class="grid gap-2 rounded-md border border-border bg-surface-2 px-3 py-2 sm:grid-cols-[4rem_minmax(0,1fr)_auto]"
                                     >
@@ -153,6 +176,10 @@
                                             {{ activeSkill.level >= unlock.level ? 'Open' : 'Locked' }}
                                         </span>
                                     </div>
+
+                                    <p v-if="!visibleSkillUnlocks.length" class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2">
+                                        No unlocks on this board.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -187,6 +214,9 @@ const props = defineProps({
 
 const selectedCategory = ref('')
 const selectedSkillKey = ref('')
+const selectedSkillBoard = ref('ready')
+const skillBoardPageSize = 8
+const visibleSkillLimit = ref(skillBoardPageSize)
 const groupedSkills = computed(() => props.skills.filter((skill) => searchMatches(skill, props.searchTerm)).reduce((groups, skill) => {
     const group = groups.find((entry) => entry.category === skill.category)
 
@@ -206,6 +236,42 @@ const groupedSkills = computed(() => props.skills.filter((skill) => searchMatche
 const activeGroup = computed(() => groupedSkills.value.find((group) => group.category === selectedCategory.value) ?? groupedSkills.value[0] ?? { category: 'Skills', entries: [] })
 const activeUnlockedActivities = computed(() => activeGroup.value.entries.reduce((total, skill) => total + skill.activities.filter((activity) => activity.unlocked).length, 0))
 const activeSkill = computed(() => activeGroup.value.entries.find((skill) => skill.skill === selectedSkillKey.value) ?? activeGroup.value.entries[0] ?? null)
+const readySkillActivities = computed(() => activeSkill.value?.activities.filter((activity) => activity.unlocked) ?? [])
+const lockedSkillActivities = computed(() => activeSkill.value?.activities.filter((activity) => !activity.unlocked) ?? [])
+const skillActivityBoards = computed(() => [
+    {
+        key: 'ready',
+        label: 'Ready',
+        count: readySkillActivities.value.length,
+        unit: 'acts',
+        entries: readySkillActivities.value,
+    },
+    {
+        key: 'next',
+        label: 'Next',
+        count: lockedSkillActivities.value.length,
+        unit: 'locked',
+        entries: lockedSkillActivities.value,
+    },
+])
+const activeSkillBoard = computed(() => skillActivityBoards.value.find((board) => board.key === selectedSkillBoard.value) ?? skillActivityBoards.value[0])
+const visibleSkillActivities = computed(() => activeSkillBoard.value.entries.slice(0, visibleSkillLimit.value))
+const canShowMoreSkillActivities = computed(() => activeSkillBoard.value.entries.length > visibleSkillActivities.value.length)
+const visibleSkillUnlocks = computed(() => {
+    if (!activeSkill.value) {
+        return []
+    }
+
+    if (selectedSkillBoard.value === 'ready') {
+        return activeSkill.value.unlocks.filter((unlock) => activeSkill.value.level >= unlock.level)
+    }
+
+    if (selectedSkillBoard.value === 'next') {
+        return activeSkill.value.unlocks.filter((unlock) => activeSkill.value.level < unlock.level).slice(0, skillBoardPageSize)
+    }
+
+    return []
+})
 
 watch(groupedSkills, (groups) => {
     if (!groups.some((group) => group.category === selectedCategory.value)) {
@@ -214,6 +280,20 @@ watch(groupedSkills, (groups) => {
 
     if (!activeGroup.value.entries.some((skill) => skill.skill === selectedSkillKey.value)) {
         selectedSkillKey.value = activeGroup.value.entries[0]?.skill ?? ''
+    }
+}, { immediate: true })
+
+watch([selectedSkillKey, selectedSkillBoard], () => {
+    visibleSkillLimit.value = skillBoardPageSize
+})
+
+watch(readySkillActivities, (activities) => {
+    if (!activities.length && selectedSkillBoard.value === 'ready') {
+        selectedSkillBoard.value = 'next'
+    }
+
+    if (activities.length && selectedSkillBoard.value === 'next') {
+        selectedSkillBoard.value = 'ready'
     }
 }, { immediate: true })
 

@@ -16,10 +16,12 @@ class ItemCatalogService
      * @var array<string, array{item_class: string, material_family: string, weight: float, base_value: int, tags: list<string>}>
      */
     private const KEY_RULES = [
-        'fish' => ['item_class' => 'resource', 'material_family' => 'Fish', 'weight' => 0.45, 'base_value' => 3, 'tags' => ['food', 'fish']],
+        'shrimp' => ['item_class' => 'resource', 'material_family' => 'Shellfish', 'weight' => 0.08, 'base_value' => 2, 'tags' => ['food', 'shellfish']],
+        'crab' => ['item_class' => 'resource', 'material_family' => 'Shellfish', 'weight' => 0.3, 'base_value' => 4, 'tags' => ['food', 'shellfish']],
         'minnow' => ['item_class' => 'resource', 'material_family' => 'Fish', 'weight' => 0.2, 'base_value' => 2, 'tags' => ['food', 'fish']],
         'snail' => ['item_class' => 'resource', 'material_family' => 'Shellfish', 'weight' => 0.12, 'base_value' => 2, 'tags' => ['food', 'shellfish']],
         'crayfish' => ['item_class' => 'resource', 'material_family' => 'Shellfish', 'weight' => 0.22, 'base_value' => 3, 'tags' => ['food', 'shellfish']],
+        'fish' => ['item_class' => 'resource', 'material_family' => 'Fish', 'weight' => 0.45, 'base_value' => 3, 'tags' => ['food', 'fish']],
         'perch' => ['item_class' => 'resource', 'material_family' => 'Fish', 'weight' => 0.35, 'base_value' => 4, 'tags' => ['food', 'fish']],
         'herring' => ['item_class' => 'resource', 'material_family' => 'Fish', 'weight' => 0.3, 'base_value' => 4, 'tags' => ['food', 'fish']],
         'eel' => ['item_class' => 'resource', 'material_family' => 'Fish', 'weight' => 0.9, 'base_value' => 7, 'tags' => ['food', 'fish']],
@@ -88,6 +90,7 @@ class ItemCatalogService
         'pouch' => ['item_class' => 'tooling', 'material_family' => 'Bag', 'weight' => 0.3, 'base_value' => 16, 'tags' => ['bag', 'tailoring']],
         'bolt' => ['item_class' => 'material', 'material_family' => 'Cloth', 'weight' => 0.55, 'base_value' => 24, 'tags' => ['cloth', 'tailoring']],
         'spellthread' => ['item_class' => 'material', 'material_family' => 'Thread', 'weight' => 0.04, 'base_value' => 45, 'tags' => ['thread', 'arcane']],
+        'trace' => ['item_class' => 'material', 'material_family' => 'Attunement Trace', 'weight' => 0.02, 'base_value' => 10, 'tags' => ['trace', 'attunement', 'refinement']],
         'fragment' => ['item_class' => 'resource', 'material_family' => 'Relic', 'weight' => 0.35, 'base_value' => 8, 'tags' => ['relic', 'excavation']],
         'tablet' => ['item_class' => 'resource', 'material_family' => 'Relic', 'weight' => 1.1, 'base_value' => 35, 'tags' => ['relic', 'lore']],
         'rune' => ['item_class' => 'resource', 'material_family' => 'Rune', 'weight' => 0.18, 'base_value' => 20, 'tags' => ['rune', 'arcane']],

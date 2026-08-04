@@ -2,6 +2,7 @@
 
 namespace App\Domain\ConnectedRealms\Services;
 
+use App\Domain\ConnectedRealms\Models\ConnectedRealmsAchievementClaim;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsActionLog;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsCraftingLog;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsEquipmentSlot;
@@ -216,6 +217,7 @@ class ConnectedRealmsPlayerService
                     'jobCompletions' => fn ($query) => $query->latest()->limit(6),
                     'expeditionRuns' => fn ($query) => $query->latest()->limit(6),
                     'actionLogs' => fn ($query) => $query->latest()->limit(8),
+                    'achievementClaims' => fn ($query) => $query->latest('claimed_at'),
                 ])
                 ->firstOrFail();
 
@@ -346,6 +348,7 @@ class ConnectedRealmsPlayerService
                 'home_region' => $loadedPlayer()->home_region,
                 'home_region_label' => self::HOME_REGIONS[$loadedPlayer()->home_region] ?? str($loadedPlayer()->home_region)->headline()->toString(),
                 'appearance' => $this->normalizedAppearance($loadedPlayer()->appearance),
+                'reward_loadout' => $this->rewardLoadoutPayload($loadedPlayer()->reward_loadout, $loadedPlayer()->achievementClaims),
                 'gold' => $loadedPlayer()->gold,
                 'last_action_at' => optional($loadedPlayer()->last_action_at)->toIso8601String(),
                 'next_action_at' => optional($loadedPlayer()->next_action_at)->toIso8601String(),
@@ -848,6 +851,35 @@ class ConnectedRealmsPlayerService
                 ? $appearance['outfit']
                 : 'traveler',
         ];
+    }
+
+    /**
+     * @param  iterable<int, ConnectedRealmsAchievementClaim>  $claims
+     * @return array{title_claim_key: string|null, title_label: string|null, title_source: string|null, has_equipped: bool}
+     */
+    private function rewardLoadoutPayload(mixed $loadout, iterable $claims): array
+    {
+        $loadout = is_array($loadout) ? $loadout : [];
+        $claimsByKey = collect($claims)->keyBy('achievement_key');
+        $titleClaim = $claimsByKey->get($this->nullableRewardKey($loadout['title_claim_key'] ?? null));
+
+        return [
+            'title_claim_key' => $titleClaim instanceof ConnectedRealmsAchievementClaim ? $titleClaim->achievement_key : null,
+            'title_label' => $titleClaim instanceof ConnectedRealmsAchievementClaim ? (string) ($titleClaim->reward['title'] ?? '') : null,
+            'title_source' => $titleClaim instanceof ConnectedRealmsAchievementClaim ? $titleClaim->achievement_label : null,
+            'has_equipped' => $titleClaim instanceof ConnectedRealmsAchievementClaim,
+        ];
+    }
+
+    private function nullableRewardKey(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value === '' ? null : $value;
     }
 
     private function ensureStarterEquipment(ConnectedRealmsPlayer $player): void

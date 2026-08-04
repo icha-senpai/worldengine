@@ -4,7 +4,7 @@ namespace App\Domain\ConnectedRealms\Services;
 
 class ItemGuideService
 {
-    public function __construct(private ItemCatalogService $items) {}
+    public function __construct(private ItemCatalogService $items, private ToolCatalogService $tools, private ItemPurposeService $purposes) {}
 
     /**
      * @param  list<array<string, mixed>>  $inventory
@@ -75,15 +75,21 @@ class ItemGuideService
             $this->addSource($items, $listing, 'Player Market', (string) $listing['item_name'], 1, (string) ($listing['seller_name'] ?? 'Market'));
         }
 
+        $this->addToolUpgradeSinks($items);
+        $this->addPurposeSinks($items);
+
         $rows = collect($items)
             ->map(function (array $record): array {
                 $payload = $this->items->enrich([
                     ...$record['item'],
                     'quantity' => max(1, (int) $record['owned_quantity']),
                 ]);
+                $purpose = $record['sinks'][0] ?? $this->purposes->requisitionFor($payload)['sink'];
 
                 return [
                     ...$payload,
+                    'purpose' => $this->purposes->requisitionFor($payload)['purpose'],
+                    'purpose_context' => (string) $purpose['context'],
                     'owned_quantity' => (int) $record['owned_quantity'],
                     'source_count' => count($record['sources']),
                     'sink_count' => count($record['sinks']),
@@ -109,6 +115,7 @@ class ItemGuideService
                 'owned_items' => $rows->where('owned_quantity', '>', 0)->count(),
                 'items_with_sources' => $rows->where('source_count', '>', 0)->count(),
                 'items_with_sinks' => $rows->where('sink_count', '>', 0)->count(),
+                'items_without_sinks' => $rows->where('sink_count', 0)->count(),
             ],
             'categories' => $rows
                 ->groupBy('item_class')
@@ -174,7 +181,59 @@ class ItemGuideService
         $key = $this->itemKey($item);
 
         if ($key !== '') {
-            $items[$key]['sinks'][] = $this->guideRow($type, $label, $requiredLevel, $context);
+            $row = $this->guideRow($type, $label, $requiredLevel, $context);
+
+            if (! in_array($row, $items[$key]['sinks'], true)) {
+                $items[$key]['sinks'][] = $row;
+            }
+        }
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $items
+     */
+    private function addToolUpgradeSinks(array &$items): void
+    {
+        foreach (['common', 'uncommon', 'rare', 'epic'] as $rarity) {
+            foreach ($this->tools->rarityMaterials($rarity) as $item) {
+                $this->addSink(
+                    $items,
+                    $item,
+                    'Tool Rarity Upgrade',
+                    str($rarity)->headline()->toString().' Tool Attunement',
+                    1,
+                    'Equipment',
+                );
+            }
+        }
+
+        foreach ($this->tools->families() as $family) {
+            foreach ($this->tools->tierPath() as $tier) {
+                foreach ($this->tools->tierIngredients($family, $tier, $tier['extra']) as $item) {
+                    $this->addSink(
+                        $items,
+                        $item,
+                        'Tool Tier Upgrade',
+                        "{$tier['prefix']} {$family['noun']} Upgrade",
+                        (int) $tier['level'],
+                        (string) $family['label'],
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $items
+     */
+    private function addPurposeSinks(array &$items): void
+    {
+        foreach ($items as $key => $record) {
+            if ($record['sinks'] !== []) {
+                continue;
+            }
+
+            $items[$key]['sinks'][] = $this->purposes->requisitionFor($record['item'])['sink'];
         }
     }
 

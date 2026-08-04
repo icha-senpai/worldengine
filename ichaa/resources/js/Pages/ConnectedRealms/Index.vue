@@ -9,43 +9,49 @@
             </div>
         </template>
 
-        <div class="mb-5 grid gap-3 xl:grid-cols-[minmax(0,1fr)_20rem]">
-            <div class="flex flex-wrap gap-2">
-                <button
-                    v-for="tab in workspaceTabs"
-                    :key="tab.key"
-                    type="button"
-                    class="tag transition hover:border-focus/60"
-                    :class="{ 'border-focus/70 bg-focus/10 text-primary': activePanel === tab.key }"
-                    @click="selectWorkspaceTab(tab.key)"
-                >
-                    {{ tab.label }} · {{ tab.count }}
-                </button>
+        <nav class="mb-5 border-y border-border/70 py-3" aria-label="Evergather command board">
+            <div class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] xl:items-start">
+                <div class="min-w-0 space-y-3">
+                    <div class="flex min-w-0 gap-2 overflow-x-auto pb-1" aria-label="Evergather workspaces">
+                        <button
+                            v-for="tab in workspaceTabs"
+                            :key="tab.key"
+                            type="button"
+                            class="tag shrink-0 transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10 text-primary': activePanel === tab.key }"
+                            :aria-pressed="activePanel === tab.key"
+                            @click="selectWorkspaceTab(tab.key)"
+                        >
+                            {{ tab.label }} · {{ tab.count }}
+                        </button>
+                    </div>
+
+                    <div class="flex min-w-0 gap-2 overflow-x-auto pb-1" aria-label="Evergather sections">
+                        <button
+                            v-for="tab in activeWorkspaceSubTabs"
+                            :key="tab.key"
+                            type="button"
+                            class="shrink-0 rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
+                            :class="{ 'border-focus/70 bg-focus/10 text-primary': activeSubPanel === tab.key }"
+                            :aria-pressed="activeSubPanel === tab.key"
+                            @click="selectSubPanel(tab.key)"
+                        >
+                            {{ tab.label }} · {{ tab.count }}
+                        </button>
+                    </div>
+                </div>
+
+                <label class="relative min-w-0">
+                    <span class="sr-only">Search Evergather</span>
+                    <input
+                        v-model="searchQuery"
+                        type="search"
+                        class="w-full rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
+                        placeholder="Search Evergather..."
+                    >
+                </label>
             </div>
-
-            <label class="relative">
-                <span class="sr-only">Search Evergather</span>
-                <input
-                    v-model="searchQuery"
-                    type="search"
-                    class="w-full rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
-                    placeholder="Search items, tools, events, recipes, market, skills..."
-                >
-            </label>
-        </div>
-
-        <div class="mb-5 flex flex-wrap items-center gap-2 border-y border-border/70 py-3">
-            <button
-                v-for="tab in activeWorkspaceSubTabs"
-                :key="tab.key"
-                type="button"
-                class="rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                :class="{ 'border-focus/70 bg-focus/10 text-primary': activeSubPanel === tab.key }"
-                @click="selectSubPanel(tab.key)"
-            >
-                {{ tab.label }} · {{ tab.count }}
-            </button>
-        </div>
+        </nav>
 
         <div class="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(24rem,0.75fr)]">
             <section v-if="activePanel === 'overview' && activeSubPanel === 'character'" class="surface-section xl:col-span-2">
@@ -66,13 +72,17 @@
                     <div class="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
                         <div class="rounded-md border border-border bg-surface-2 p-4">
                             <div
-                                class="mx-auto grid aspect-square w-full max-w-44 place-items-center rounded-md border border-border"
+                                class="relative mx-auto grid aspect-square w-full max-w-44 place-items-center rounded-md border"
                                 :class="avatarPaletteClass"
                             >
                                 <div class="grid place-items-center gap-2">
                                     <div class="h-16 w-16 rounded-full border-2 border-current bg-surface/50" />
                                     <div class="h-16 w-24 rounded-t-full border-2 border-current bg-surface/40" />
                                 </div>
+                            </div>
+
+                            <div v-if="player.reward_loadout?.title_label" class="mt-4 flex flex-wrap justify-center gap-2">
+                                <span class="tag">{{ player.reward_loadout.title_label }}</span>
                             </div>
 
                             <div class="mt-4 grid gap-2 text-xs text-muted-2">
@@ -216,27 +226,27 @@
 
             <LatestResultPanel v-if="last_result && activeSubPanel === 'result'" class="xl:col-span-2" :result="last_result" />
 
-            <GatheringPanel v-if="activePanel === 'gather' && activeSubPanel === 'actions'" :actions="actions" :player="player" :search-term="searchQuery" />
+            <GatheringPanel v-if="activePanel === 'gather' && activeSubPanel === 'actions'" class="xl:col-span-2" :actions="actions" :player="player" :search-term="searchQuery" />
 
-            <SkillActivitiesPanel v-if="activePanel === 'gather' && activeSubPanel === 'activities'" :activities="skill_activities" :player="player" :search-term="searchQuery" />
+            <SkillActivitiesPanel v-if="activePanel === 'gather' && activeSubPanel === 'activities'" class="xl:col-span-2" :activities="skill_activities" :player="player" :search-term="searchQuery" />
 
             <EquipmentPanel v-if="activePanel === 'craft' && activeSubPanel === 'equipment'" class="xl:col-span-2" :equipment="equipment" :tool-inventory="tool_inventory" :tool-rarity-upgrades="tool_rarity_upgrades" :tool-tier-upgrades="tool_tier_upgrades" />
 
-            <CraftingPanel v-if="activePanel === 'craft' && activeSubPanel === 'recipes'" :recipes="crafting_recipes" :search-term="searchQuery" />
+            <CraftingPanel v-if="activePanel === 'craft' && activeSubPanel === 'recipes'" class="xl:col-span-2" :recipes="crafting_recipes" :search-term="searchQuery" />
 
-            <JobsPanel v-if="activePanel === 'craft' && activeSubPanel === 'jobs'" :jobs="jobs" :search-term="searchQuery" />
+            <JobsPanel v-if="activePanel === 'craft' && activeSubPanel === 'jobs'" class="xl:col-span-2" :jobs="jobs" :search-term="searchQuery" />
 
-            <ExpeditionsPanel v-if="activePanel === 'craft' && activeSubPanel === 'expeditions'" :expeditions="expeditions" :search-term="searchQuery" />
+            <ExpeditionsPanel v-if="activePanel === 'craft' && activeSubPanel === 'expeditions'" class="xl:col-span-2" :expeditions="expeditions" :search-term="searchQuery" />
 
-            <MarketplacePanel v-if="activePanel === 'trade' && activeSubPanel === 'marketplace'" :marketplace="marketplace" :search-term="searchQuery" />
+            <MarketplacePanel v-if="activePanel === 'trade' && activeSubPanel === 'marketplace'" class="xl:col-span-2" :marketplace="marketplace" :search-term="searchQuery" />
 
-            <ShopPanel v-if="activePanel === 'trade' && activeSubPanel === 'shop'" :shop="shop" :search-term="searchQuery" />
+            <ShopPanel v-if="activePanel === 'trade' && activeSubPanel === 'shop'" class="xl:col-span-2" :shop="shop" :search-term="searchQuery" />
 
             <WorldEventsPanel v-if="activePanel === 'progress' && activeSubPanel === 'events'" class="xl:col-span-2" :world-events="world_events" />
 
             <LeaderboardPanel v-if="activePanel === 'progress' && activeSubPanel === 'leaderboards'" class="xl:col-span-2" :leaderboards="leaderboards" />
 
-            <SkillsPanel v-if="activePanel === 'progress' && activeSubPanel === 'skills'" :skills="skills" :catalog="skill_catalog" :search-term="searchQuery" />
+            <SkillsPanel v-if="activePanel === 'progress' && activeSubPanel === 'skills'" class="xl:col-span-2" :skills="skills" :catalog="skill_catalog" :search-term="searchQuery" />
 
             <section v-if="activePanel === 'trade' && activeSubPanel === 'inventory'" class="surface-section xl:col-span-2">
                 <div class="surface-section__header">
@@ -351,6 +361,9 @@
                                 <p v-if="selectedInventoryItem.best_sink" class="mt-2 text-sm text-primary">{{ selectedInventoryItem.best_sink.label }}</p>
                                 <p v-if="selectedInventoryItem.best_sink" class="mt-1 text-xs text-muted-2">
                                     {{ selectedInventoryItem.best_sink.type }} · {{ selectedInventoryItem.best_sink.context }} · Lv {{ selectedInventoryItem.best_sink.required_level }}
+                                </p>
+                                <p v-if="selectedInventoryItem.purpose" class="mt-2 text-xs text-muted-2">
+                                    {{ selectedInventoryItem.purpose }}
                                 </p>
                                 <p v-else class="mt-2 text-xs text-muted-2">No sink mapped yet.</p>
                             </div>

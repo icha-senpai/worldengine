@@ -8,22 +8,47 @@
         </div>
 
         <div class="surface-section__body">
-            <div class="flex flex-wrap gap-2">
-                <button
-                    v-for="filter in filters"
-                    :key="filter.key"
-                    type="button"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                    :class="{ 'border-focus/70 bg-focus/10 text-primary': selectedFilter === filter.key }"
-                    @click="selectedFilter = filter.key"
-                >
-                    {{ filter.label }} · {{ filter.count }}
-                </button>
-            </div>
-
-            <div class="mt-4 grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
+            <div class="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
                 <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-                    <p class="text-sm font-ui text-primary">{{ activeFilter.label }}</p>
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-sm font-ui text-primary">Run Board</p>
+                        <span class="tag">{{ activeBoard.count }} {{ activeBoard.unit }}</span>
+                    </div>
+                    <p class="mt-1 text-xs text-muted-3">{{ activeBoard.description }}</p>
+
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                        <button
+                            v-for="board in actionBoards"
+                            :key="board.key"
+                            type="button"
+                            class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedBoard === board.key }"
+                            @click="selectedBoard = board.key"
+                        >
+                            <span class="block text-xs font-ui text-primary">{{ board.label }}</span>
+                            <span class="mt-1 block text-[11px] text-muted-3">{{ board.count }} {{ board.unit }}</span>
+                        </button>
+                    </div>
+
+                    <div class="mt-4 grid gap-2">
+                        <button
+                            v-for="filter in filters"
+                            :key="filter.key"
+                            type="button"
+                            class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedFilter === filter.key }"
+                            @click="selectedFilter = filter.key"
+                        >
+                            <span class="flex min-w-0 items-center justify-between gap-2">
+                                <span class="truncate text-xs font-ui text-primary">{{ filter.label }}</span>
+                                <span class="text-[11px] text-muted-3">{{ filter.count }}</span>
+                            </span>
+                            <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                                <span class="block h-full rounded-full bg-focus" :style="{ width: `${filterProgress(filter)}%` }" />
+                            </span>
+                        </button>
+                    </div>
+
                     <div class="mt-3 grid gap-2 text-xs">
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-muted-2">Unlocked</span>
@@ -53,12 +78,22 @@
                     </button>
                 </div>
 
-                <div class="grid gap-3">
+                <div class="grid content-start gap-3">
+                    <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-ui text-primary">{{ activeBoard.label }}</p>
+                                <p class="mt-1 text-xs text-muted-3">{{ activeFilter.label }} · {{ visibleActions.length }} visible</p>
+                            </div>
+                            <span class="tag">{{ cooldownLabel }}</span>
+                        </div>
+                    </div>
+
                     <button
                         v-for="(action, index) in visibleActions"
                         :key="action.key"
                         type="button"
-                        class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 text-left transition hover:border-focus/60 disabled:cursor-not-allowed disabled:opacity-55 md:grid-cols-[3rem_minmax(0,1fr)_5.75rem]"
+                        class="grid min-h-32 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 text-left transition hover:border-focus/60 disabled:cursor-not-allowed disabled:opacity-55 md:grid-cols-[3rem_minmax(0,1fr)_5.75rem]"
                         :disabled="form.processing || !canActNow || !action.is_unlocked"
                         @click="submitAction(action.key)"
                     >
@@ -103,8 +138,17 @@
                         </span>
                     </button>
 
+                    <button
+                        v-if="canShowMoreActions"
+                        type="button"
+                        class="app-btn app-btn--ghost app-btn--sm justify-self-center"
+                        @click="visibleLimit += boardPageSize"
+                    >
+                        Show More
+                    </button>
+
                     <p v-if="!visibleActions.length" class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2">
-                        No resource runs match.
+                        {{ emptyBoardMessage }}
                     </p>
                 </div>
             </div>
@@ -117,7 +161,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { actionReloadProps } from './reloadProps'
 
@@ -137,6 +181,9 @@ const props = defineProps({
 })
 
 const selectedFilter = ref('All')
+const selectedBoard = ref('ready')
+const boardPageSize = 12
+const visibleLimit = ref(boardPageSize)
 const now = ref(Date.now())
 const autoRepeatEnabled = ref(false)
 const repeatActionKey = ref('')
@@ -153,7 +200,7 @@ const filters = computed(() => ['All', ...new Set(props.actions.map((action) => 
 })))
 const activeFilter = computed(() => filters.value.find((filter) => filter.key === selectedFilter.value) ?? filters.value[0])
 const unlockedCount = computed(() => props.actions.filter((action) => action.is_unlocked).length)
-const visibleActions = computed(() => props.actions.filter((action) => {
+const filteredActions = computed(() => props.actions.filter((action) => {
     const matchesFilter = selectedFilter.value === 'All' || action.skill_label === selectedFilter.value
 
     if (!matchesFilter) {
@@ -162,6 +209,29 @@ const visibleActions = computed(() => props.actions.filter((action) => {
 
     return searchMatches(action, props.searchTerm)
 }))
+const readyActions = computed(() => filteredActions.value.filter((action) => action.is_unlocked))
+const lockedActions = computed(() => filteredActions.value.filter((action) => !action.is_unlocked))
+const actionBoards = computed(() => [
+    {
+        key: 'ready',
+        label: 'Ready',
+        count: readyActions.value.length,
+        unit: 'runs',
+        entries: readyActions.value,
+        description: `${activeFilter.value.label} runs you can start now.`,
+    },
+    {
+        key: 'next',
+        label: 'Next',
+        count: lockedActions.value.length,
+        unit: 'locked',
+        entries: lockedActions.value,
+        description: 'Closest locked routes without crowding the ready board.',
+    },
+])
+const activeBoard = computed(() => actionBoards.value.find((board) => board.key === selectedBoard.value) ?? actionBoards.value[0])
+const visibleActions = computed(() => activeBoard.value.entries.slice(0, visibleLimit.value))
+const canShowMoreActions = computed(() => activeBoard.value.entries.length > visibleActions.value.length)
 const activeUnlockedCount = computed(() => visibleActions.value.filter((action) => action.is_unlocked).length)
 const nextActionAt = computed(() => props.player.next_action_at ? new Date(props.player.next_action_at).getTime() : null)
 const cooldownRemainingMs = computed(() => {
@@ -184,6 +254,13 @@ const cooldownLabel = computed(() => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
 })
 const actionStateLabel = computed(() => (canActNow.value ? 'Ready' : `Ready in ${cooldownLabel.value}`))
+const emptyBoardMessage = computed(() => {
+    if (selectedBoard.value === 'ready') {
+        return 'No ready runs match. Check Next for the closest unlocks.'
+    }
+
+    return 'No resource runs match.'
+})
 
 onMounted(() => {
     cooldownTimer = window.setInterval(() => {
@@ -197,6 +274,20 @@ onBeforeUnmount(() => {
         window.clearInterval(cooldownTimer)
     }
 })
+
+watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
+    visibleLimit.value = boardPageSize
+})
+
+watch(readyActions, (actions) => {
+    if (!actions.length && selectedBoard.value === 'ready') {
+        selectedBoard.value = 'next'
+    }
+
+    if (actions.length && selectedBoard.value === 'next') {
+        selectedBoard.value = 'ready'
+    }
+}, { immediate: true })
 
 function submitAction(action) {
     repeatActionKey.value = action
@@ -222,6 +313,16 @@ function maybeRepeatAction() {
     }
 
     submitAction(repeatActionKey.value)
+}
+
+function filterProgress(filter) {
+    if (!filter.count) {
+        return 0
+    }
+
+    const readyCount = props.actions.filter((action) => (filter.key === 'All' || action.skill_label === filter.key) && action.is_unlocked).length
+
+    return Math.round((readyCount / filter.count) * 100)
 }
 
 function searchMatches(action, query) {

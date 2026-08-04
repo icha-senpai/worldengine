@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\ConnectedRealms;
 
+use App\Domain\ConnectedRealms\Services\ItemPurposeService;
 use App\Domain\ConnectedRealms\Services\JobContractService;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreJobCompletionRequest extends FormRequest
 {
@@ -20,7 +20,23 @@ class StoreJobCompletionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'job' => ['required', 'string', Rule::in(JobContractService::jobKeys())],
+            'job' => [
+                'required',
+                'string',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $jobKey = (string) $value;
+
+                    if (in_array($jobKey, JobContractService::jobKeys(), true)) {
+                        return;
+                    }
+
+                    if (app(ItemPurposeService::class)->requisitionItemKey($jobKey) !== null) {
+                        return;
+                    }
+
+                    $fail('The selected job is invalid.');
+                },
+            ],
         ];
     }
 

@@ -8,22 +8,47 @@
         </div>
 
         <div class="surface-section__body">
-            <div class="flex flex-wrap gap-2">
-                <button
-                    v-for="filter in filters"
-                    :key="filter.key"
-                    type="button"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                    :class="{ 'border-focus/70 bg-focus/10 text-primary': selectedFilter === filter.key }"
-                    @click="selectedFilter = filter.key"
-                >
-                    {{ filter.label }} · {{ filter.count }}
-                </button>
-            </div>
-
-            <div class="mt-4 grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
+            <div class="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
                 <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-                    <p class="text-sm font-ui text-primary">{{ activeFilter.label }}</p>
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-sm font-ui text-primary">Recipe Board</p>
+                        <span class="tag">{{ activeBoard.count }} {{ activeBoard.unit }}</span>
+                    </div>
+                    <p class="mt-1 text-xs text-muted-3">{{ activeBoard.description }}</p>
+
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                        <button
+                            v-for="board in craftBoards"
+                            :key="board.key"
+                            type="button"
+                            class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedBoard === board.key }"
+                            @click="selectedBoard = board.key"
+                        >
+                            <span class="block text-xs font-ui text-primary">{{ board.label }}</span>
+                            <span class="mt-1 block text-[11px] text-muted-3">{{ board.count }} {{ board.unit }}</span>
+                        </button>
+                    </div>
+
+                    <div class="mt-4 grid gap-2">
+                        <button
+                            v-for="filter in filters"
+                            :key="filter.key"
+                            type="button"
+                            class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedFilter === filter.key }"
+                            @click="selectedFilter = filter.key"
+                        >
+                            <span class="flex min-w-0 items-center justify-between gap-2">
+                                <span class="truncate text-xs font-ui text-primary">{{ filter.label }}</span>
+                                <span class="text-[11px] text-muted-3">{{ filter.count }}</span>
+                            </span>
+                            <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                                <span class="block h-full rounded-full bg-focus" :style="{ width: `${filterProgress(filter)}%` }" />
+                            </span>
+                        </button>
+                    </div>
+
                     <div class="mt-3 grid gap-2 text-xs">
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-muted-2">Ready</span>
@@ -40,11 +65,21 @@
                     </div>
                 </div>
 
-                <div class="grid gap-3">
+                <div class="grid content-start gap-3">
+                    <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-ui text-primary">{{ activeBoard.label }}</p>
+                                <p class="mt-1 text-xs text-muted-3">{{ activeFilter.label }} · {{ visibleRecipes.length }} visible</p>
+                            </div>
+                            <span class="tag">{{ visibleExperience }} XP</span>
+                        </div>
+                    </div>
+
                     <article
                         v-for="(recipe, index) in visibleRecipes"
                         :key="recipe.key"
-                        class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                        class="grid min-h-32 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
                         :class="{ 'opacity-70': !recipe.is_unlocked }"
                     >
                         <div class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary">
@@ -98,8 +133,17 @@
                         </div>
                     </article>
 
+                    <button
+                        v-if="canShowMoreRecipes"
+                        type="button"
+                        class="app-btn app-btn--ghost app-btn--sm justify-self-center"
+                        @click="visibleLimit += boardPageSize"
+                    >
+                        Show More
+                    </button>
+
                     <p v-if="!visibleRecipes.length" class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2">
-                        No recipes match.
+                        {{ emptyBoardMessage }}
                     </p>
                 </div>
             </div>
@@ -112,7 +156,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { craftingReloadProps } from './reloadProps'
 
@@ -130,28 +174,67 @@ const props = defineProps({
 const form = useForm({
     recipe: null,
 })
-const selectedFilter = ref('Ready')
+const selectedFilter = ref('All')
+const selectedBoard = ref('ready')
+const boardPageSize = 12
+const visibleLimit = ref(boardPageSize)
 
 const craftableCount = computed(() => props.recipes.filter((recipe) => recipe.can_craft).length)
-const filters = computed(() => ['Ready', 'All', ...new Set(props.recipes.map((recipe) => recipe.category))].map((filter) => ({
+const filters = computed(() => ['All', ...new Set(props.recipes.map((recipe) => recipe.category))].map((filter) => ({
     key: filter,
     label: filter,
-    count: props.recipes.filter((recipe) => filter === 'All' || (filter === 'Ready' ? recipe.can_craft : recipe.category === filter)).length,
+    count: props.recipes.filter((recipe) => filter === 'All' || recipe.category === filter).length,
 })))
 const activeFilter = computed(() => filters.value.find((filter) => filter.key === selectedFilter.value) ?? filters.value[0])
-const visibleRecipes = computed(() => props.recipes.filter((recipe) => {
-    if (selectedFilter.value === 'Ready') {
-        return recipe.can_craft
-    }
-
-    if (selectedFilter.value === 'All') {
-        return true
-    }
-
-    return recipe.category === selectedFilter.value
-}).filter((recipe) => searchMatches(recipe, props.searchTerm)))
+const filteredRecipes = computed(() => props.recipes
+    .filter((recipe) => selectedFilter.value === 'All' || recipe.category === selectedFilter.value)
+    .filter((recipe) => searchMatches(recipe, props.searchTerm)))
+const readyRecipes = computed(() => filteredRecipes.value.filter((recipe) => recipe.can_craft))
+const prepareRecipes = computed(() => filteredRecipes.value.filter((recipe) => recipe.is_unlocked && !recipe.can_craft))
+const craftBoards = computed(() => [
+    {
+        key: 'ready',
+        label: 'Ready',
+        count: readyRecipes.value.length,
+        unit: 'recipes',
+        entries: readyRecipes.value,
+        description: `${activeFilter.value.label} recipes you can craft now.`,
+    },
+    {
+        key: 'prepare',
+        label: 'Prepare',
+        count: prepareRecipes.value.length,
+        unit: 'short',
+        entries: prepareRecipes.value,
+        description: 'Unlocked recipes that need materials or gold.',
+    },
+])
+const activeBoard = computed(() => craftBoards.value.find((board) => board.key === selectedBoard.value) ?? craftBoards.value[0])
+const visibleRecipes = computed(() => activeBoard.value.entries.slice(0, visibleLimit.value))
+const canShowMoreRecipes = computed(() => activeBoard.value.entries.length > visibleRecipes.value.length)
 const visibleExperience = computed(() => visibleRecipes.value.reduce((total, recipe) => total + recipe.experience, 0))
 const visibleGoldCost = computed(() => visibleRecipes.value.reduce((total, recipe) => total + recipe.gold_cost, 0))
+const emptyBoardMessage = computed(() => {
+    if (selectedBoard.value === 'ready') {
+        return 'No craftable recipes match. Check Prepare for recipes missing supplies.'
+    }
+
+    return 'No recipes match.'
+})
+
+watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
+    visibleLimit.value = boardPageSize
+})
+
+watch(readyRecipes, (recipes) => {
+    if (!recipes.length && selectedBoard.value === 'ready') {
+        selectedBoard.value = 'prepare'
+    }
+
+    if (recipes.length && selectedBoard.value === 'prepare') {
+        selectedBoard.value = 'ready'
+    }
+}, { immediate: true })
 
 function searchMatches(recipe, query) {
     const normalizedQuery = query.trim().toLowerCase()
@@ -178,6 +261,16 @@ function itemSearchFields(item) {
         item.material_family,
         ...(item.tags ?? []),
     ]
+}
+
+function filterProgress(filter) {
+    if (!filter.count) {
+        return 0
+    }
+
+    const readyCount = props.recipes.filter((recipe) => (filter.key === 'All' || recipe.category === filter.key) && recipe.can_craft).length
+
+    return Math.round((readyCount / filter.count) * 100)
 }
 
 function craft(recipe) {

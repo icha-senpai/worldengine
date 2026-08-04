@@ -19,11 +19,13 @@ use App\Domain\ConnectedRealms\Services\WorldEventService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ConnectedRealms\BuyMarketListingRequest;
 use App\Http\Requests\ConnectedRealms\CancelMarketListingRequest;
+use App\Http\Requests\ConnectedRealms\StoreAchievementClaimRequest;
 use App\Http\Requests\ConnectedRealms\StoreCraftingRequest;
 use App\Http\Requests\ConnectedRealms\StoreExpeditionRequest;
 use App\Http\Requests\ConnectedRealms\StoreGatheringActionRequest;
 use App\Http\Requests\ConnectedRealms\StoreJobCompletionRequest;
 use App\Http\Requests\ConnectedRealms\StoreMarketListingRequest;
+use App\Http\Requests\ConnectedRealms\StoreRewardLoadoutRequest;
 use App\Http\Requests\ConnectedRealms\StoreShopPurchaseRequest;
 use App\Http\Requests\ConnectedRealms\StoreSkillActivityRequest;
 use App\Http\Requests\ConnectedRealms\StoreToolEquipRequest;
@@ -73,6 +75,26 @@ class ConnectedRealmsController extends Controller
         return redirect()
             ->route('evergather.index')
             ->with('success', "{$result['label']} completed.")
+            ->with('connected_realms_result', $result);
+    }
+
+    public function claimAchievement(StoreAchievementClaimRequest $request, ConnectedRealmsPlayerService $players, ProgressionService $progression): RedirectResponse
+    {
+        $result = $progression->claimAchievement($players->playerForUser($request->user()), $request->achievementKey());
+
+        return redirect()
+            ->route('evergather.index')
+            ->with('success', "{$result['label']} reward claimed.")
+            ->with('connected_realms_result', $result);
+    }
+
+    public function updateRewardLoadout(StoreRewardLoadoutRequest $request, ConnectedRealmsPlayerService $players, ProgressionService $progression): RedirectResponse
+    {
+        $result = $progression->updateRewardLoadout($players->playerForUser($request->user()), $request->loadout());
+
+        return redirect()
+            ->route('evergather.index')
+            ->with('success', 'Reward loadout updated.')
             ->with('connected_realms_result', $result);
     }
 

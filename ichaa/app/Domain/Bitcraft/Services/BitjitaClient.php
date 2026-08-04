@@ -54,6 +54,7 @@ class BitjitaClient
     {
         return $this->get("api/market/{$itemKind}/{$itemId}", [
             'claimEntityId' => data_get($filters, 'claimEntityId'),
+            'regionId' => data_get($filters, 'regionId'),
         ]);
     }
 
@@ -217,6 +218,11 @@ class BitjitaClient
     public function experienceLevels(): array
     {
         return $this->get('static/experience/levels.json');
+    }
+
+    public function applicationCacheKey(string $key): string
+    {
+        return $this->cacheKey($key);
     }
 
     private function get(string $path, array $query = []): array

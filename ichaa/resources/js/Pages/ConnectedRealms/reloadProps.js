@@ -102,3 +102,10 @@ export const characterReloadProps = [
     'summary',
     'last_result',
 ]
+
+export const achievementReloadProps = [
+    'player',
+    'progression',
+    'summary',
+    'last_result',
+]

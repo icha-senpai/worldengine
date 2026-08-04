@@ -2,8 +2,11 @@
 
 namespace App\Domain\ConnectedRealms\Services;
 
+use App\Domain\ConnectedRealms\Models\ConnectedRealmsAchievementClaim;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsPlayer;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ProgressionService
 {
@@ -54,6 +57,10 @@ class ProgressionService
         $highestNamedSkillLevel = fn (array $skills): int => (int) $skillLevels
             ->filter(fn (int $level, string $skill): bool => in_array($skill, $skills, true))
             ->max();
+        $achievementClaims = $player->relationLoaded('achievementClaims')
+            ? $player->achievementClaims
+            : $player->achievementClaims()->latest('claimed_at')->get();
+        $rewardLoadout = $this->rewardLoadoutPayload($player, $achievementClaims);
 
         return [
             'account_level' => $accountLevel,
@@ -62,7 +69,7 @@ class ProgressionService
             'active_skill_count' => $activeSkills,
             'mastered_skill_count' => $masteredSkills,
             'pacing' => $this->catalog->pacing(),
-            'achievements' => [
+            'achievements' => $this->applyAchievementClaims([
                 $this->achievement('first_steps', 'First Steps', 'Complete any gathering action.', $actionCount >= 1, 'Gathering'),
                 $this->achievement('working_hands', 'Working Hands', 'Complete a crafting recipe.', $craftCount >= 1, 'Crafting'),
                 $this->achievement('contract_hand', 'Commission Hand', 'Turn in a guild commission.', $jobCount >= 1, 'Jobs'),
@@ -126,7 +133,19 @@ class ProgressionService
                 $this->achievement('realm_veteran', 'Realm Veteran', 'Complete 250 total actions, crafts, jobs, or expeditions.', $totalActivityCount >= 250, 'Account'),
                 ...$this->accountMilestoneAchievements($accountLevel),
                 ...$this->skillMilestoneAchievements($skillLevels),
-            ],
+            ], $achievementClaims),
+            'claimed_rewards' => $achievementClaims
+                ->map(fn (ConnectedRealmsAchievementClaim $claim): array => [
+                    'achievement_key' => $claim->achievement_key,
+                    'achievement_label' => $claim->achievement_label,
+                    'category' => $claim->category,
+                    'reward' => $claim->reward,
+                    'claimed_at' => optional($claim->claimed_at)->toIso8601String(),
+                ])
+                ->values()
+                ->all(),
+            'reward_options' => $this->rewardOptions($achievementClaims),
+            'reward_loadout' => $rewardLoadout,
             'stats' => [
                 'actions' => $actionCount,
                 'crafts' => $craftCount,
@@ -149,6 +168,131 @@ class ProgressionService
     /**
      * @return array<string, mixed>
      */
+    public function claimAchievement(ConnectedRealmsPlayer $player, string $achievementKey): array
+    {
+        return DB::transaction(function () use ($player, $achievementKey): array {
+            $lockedPlayer = ConnectedRealmsPlayer::query()
+                ->whereKey($player->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $totalExperience = (int) $lockedPlayer->skills()->sum('experience');
+            $inventoryQuantity = (int) $lockedPlayer->inventoryStacks()->sum('quantity');
+            $achievement = collect($this->snapshotFor($lockedPlayer, $totalExperience, $inventoryQuantity)['achievements'])
+                ->firstWhere('key', $achievementKey);
+
+            if (! is_array($achievement)) {
+                throw ValidationException::withMessages([
+                    'achievement' => 'That achievement does not exist.',
+                ]);
+            }
+
+            if (! $achievement['unlocked']) {
+                throw ValidationException::withMessages([
+                    'achievement' => 'That achievement is not unlocked yet.',
+                ]);
+            }
+
+            if ($achievement['claimed']) {
+                throw ValidationException::withMessages([
+                    'achievement' => 'That achievement reward has already been claimed.',
+                ]);
+            }
+
+            $reward = $achievement['reward'];
+            $gold = max(0, (int) ($reward['gold'] ?? 0));
+            $claim = ConnectedRealmsAchievementClaim::query()->create([
+                'player_id' => $lockedPlayer->id,
+                'achievement_key' => $achievement['key'],
+                'achievement_label' => $achievement['label'],
+                'category' => $achievement['category'],
+                'reward' => $reward,
+                'claimed_at' => now(),
+            ]);
+
+            $updates = [
+                'gold' => $lockedPlayer->gold + $gold,
+            ];
+            $rewardLoadout = $this->normalizeRewardLoadoutKeys($lockedPlayer->reward_loadout);
+
+            if (($lockedPlayer->title === null || $lockedPlayer->title === '') && is_string($reward['title'] ?? null)) {
+                $updates['title'] = $reward['title'];
+            }
+
+            if (is_string($reward['title'] ?? null) && $rewardLoadout['title_claim_key'] === null) {
+                $rewardLoadout['title_claim_key'] = $achievement['key'];
+            }
+
+            $updates['reward_loadout'] = $rewardLoadout;
+
+            $lockedPlayer->forceFill($updates)->save();
+            $claims = ConnectedRealmsAchievementClaim::query()
+                ->where('player_id', $lockedPlayer->id)
+                ->latest('claimed_at')
+                ->get();
+
+            return [
+                'type' => 'achievement_claim',
+                'id' => $claim->id,
+                'achievement_key' => $achievement['key'],
+                'label' => $achievement['label'],
+                'reward' => $reward,
+                'reward_loadout' => $this->rewardLoadoutPayload($lockedPlayer->refresh(), $claims),
+                'gold_awarded' => $gold,
+                'title_applied' => array_key_exists('title', $updates),
+                'claimed_at' => $claim->claimed_at->toIso8601String(),
+            ];
+        });
+    }
+
+    /**
+     * @param  array{title_claim_key?: string|null}  $loadout
+     * @return array<string, mixed>
+     */
+    public function updateRewardLoadout(ConnectedRealmsPlayer $player, array $loadout): array
+    {
+        return DB::transaction(function () use ($player, $loadout): array {
+            $lockedPlayer = ConnectedRealmsPlayer::query()
+                ->whereKey($player->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $claims = ConnectedRealmsAchievementClaim::query()
+                ->where('player_id', $lockedPlayer->id)
+                ->latest('claimed_at')
+                ->get();
+            $claimsByKey = $claims->keyBy('achievement_key');
+            $requestedLoadout = $this->normalizeRewardLoadoutKeys($loadout);
+            $previousLoadout = $this->normalizeRewardLoadoutKeys($lockedPlayer->reward_loadout);
+            $selectedTitleClaim = $this->claimForLoadoutSlot($claimsByKey, $requestedLoadout['title_claim_key'], 'title', 'title_claim_key');
+            $updates = [
+                'reward_loadout' => $requestedLoadout,
+            ];
+
+            if ($selectedTitleClaim instanceof ConnectedRealmsAchievementClaim) {
+                $updates['title'] = $selectedTitleClaim->reward['title'];
+            } elseif ($previousLoadout['title_claim_key'] !== null) {
+                $previousTitleClaim = $claimsByKey->get($previousLoadout['title_claim_key']);
+
+                if ($previousTitleClaim instanceof ConnectedRealmsAchievementClaim
+                    && $lockedPlayer->title === ($previousTitleClaim->reward['title'] ?? null)) {
+                    $updates['title'] = null;
+                }
+            }
+
+            $lockedPlayer->forceFill($updates)->save();
+            $lockedPlayer->setRelation('achievementClaims', $claims);
+
+            return [
+                'type' => 'reward_loadout',
+                'label' => 'Reward Loadout',
+                'title' => $selectedTitleClaim?->reward['title'] ?? null,
+                'reward_loadout' => $this->rewardLoadoutPayload($lockedPlayer->refresh(), $claims),
+            ];
+        });
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     private function achievement(string $key, string $label, string $description, bool $unlocked, string $category): array
     {
         return [
@@ -156,6 +300,8 @@ class ProgressionService
             'label' => $label,
             'description' => $description,
             'unlocked' => $unlocked,
+            'claimed' => false,
+            'can_claim' => $unlocked,
             'category' => $category,
             'category_key' => str($category)->slug('_')->toString(),
             'reward' => $this->achievementReward($key, $label, $category),
@@ -163,7 +309,131 @@ class ProgressionService
     }
 
     /**
-     * @return array{title: string, gold: int, profile_badge: string, unlock: string}
+     * @param  list<array<string, mixed>>  $achievements
+     * @param  Collection<int, ConnectedRealmsAchievementClaim>  $claims
+     * @return list<array<string, mixed>>
+     */
+    private function applyAchievementClaims(array $achievements, Collection $claims): array
+    {
+        $claimsByKey = $claims->keyBy('achievement_key');
+
+        return collect($achievements)
+            ->map(function (array $achievement) use ($claimsByKey): array {
+                $claim = $claimsByKey->get($achievement['key']);
+
+                return [
+                    ...$achievement,
+                    'claimed' => $claim !== null,
+                    'can_claim' => $achievement['unlocked'] && $claim === null,
+                    'claimed_at' => optional($claim?->claimed_at)->toIso8601String(),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  Collection<int, ConnectedRealmsAchievementClaim>  $claims
+     * @return array{titles: list<array<string, mixed>>}
+     */
+    private function rewardOptions(Collection $claims): array
+    {
+        return [
+            'titles' => $this->rewardOptionRows($claims, 'title'),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, ConnectedRealmsAchievementClaim>  $claims
+     * @return array{title_claim_key: string|null, title_label: string|null, title_source: string|null, has_equipped: bool}
+     */
+    private function rewardLoadoutPayload(ConnectedRealmsPlayer $player, Collection $claims): array
+    {
+        $loadout = $this->normalizeRewardLoadoutKeys($player->reward_loadout);
+        $claimsByKey = $claims->keyBy('achievement_key');
+        $titleClaim = $claimsByKey->get($loadout['title_claim_key']);
+
+        return [
+            'title_claim_key' => $titleClaim instanceof ConnectedRealmsAchievementClaim ? $titleClaim->achievement_key : null,
+            'title_label' => $titleClaim instanceof ConnectedRealmsAchievementClaim ? (string) ($titleClaim->reward['title'] ?? '') : null,
+            'title_source' => $titleClaim instanceof ConnectedRealmsAchievementClaim ? $titleClaim->achievement_label : null,
+            'has_equipped' => $titleClaim instanceof ConnectedRealmsAchievementClaim,
+        ];
+    }
+
+    /**
+     * @param  Collection<string, ConnectedRealmsAchievementClaim>  $claimsByKey
+     */
+    private function claimForLoadoutSlot(Collection $claimsByKey, ?string $achievementKey, string $rewardKey, string $field): ?ConnectedRealmsAchievementClaim
+    {
+        if ($achievementKey === null) {
+            return null;
+        }
+
+        $claim = $claimsByKey->get($achievementKey);
+
+        if (! $claim instanceof ConnectedRealmsAchievementClaim) {
+            throw ValidationException::withMessages([
+                $field => 'Claim that reward before equipping it.',
+            ]);
+        }
+
+        if ($this->rewardValue($claim->reward, $rewardKey) === null) {
+            throw ValidationException::withMessages([
+                $field => 'That reward cannot be equipped in this slot.',
+            ]);
+        }
+
+        return $claim;
+    }
+
+    /**
+     * @param  Collection<int, ConnectedRealmsAchievementClaim>  $claims
+     * @return list<array<string, mixed>>
+     */
+    private function rewardOptionRows(Collection $claims, string $rewardKey): array
+    {
+        return $claims
+            ->filter(fn (ConnectedRealmsAchievementClaim $claim): bool => $this->rewardValue($claim->reward, $rewardKey) !== null)
+            ->map(fn (ConnectedRealmsAchievementClaim $claim): array => [
+                'key' => $claim->achievement_key,
+                'label' => match ($rewardKey) {
+                    'title' => $this->rewardValue($claim->reward, 'title'),
+                    default => $this->rewardValue($claim->reward, $rewardKey),
+                },
+                'source' => $claim->achievement_label,
+                'category' => $claim->category,
+                'claimed_at' => optional($claim->claimed_at)->toIso8601String(),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array{title_claim_key: string|null}
+     */
+    private function normalizeRewardLoadoutKeys(mixed $loadout): array
+    {
+        $loadout = is_array($loadout) ? $loadout : [];
+
+        return [
+            'title_claim_key' => $this->nullableRewardKey($loadout['title_claim_key'] ?? null),
+        ];
+    }
+
+    private function nullableRewardKey(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value === '' ? null : $value;
+    }
+
+    /**
+     * @return array{title: string, gold: int}
      */
     private function achievementReward(string $key, string $label, string $category): array
     {
@@ -174,12 +444,19 @@ class ProgressionService
             'title' => $level >= 100
                 ? "{$label} Crown"
                 : match ($categoryKey) {
+                    'gathering', 'gathering_milestones' => 'Trailmarked',
+                    'crafting', 'crafting_milestones', 'processing_milestones' => 'Workshop Hand',
+                    'jobs' => 'Guild Hand',
+                    'exploration', 'world_milestones' => 'Pathfinder',
+                    'wealth' => 'Coinbound',
+                    'inventory' => 'Quartermaster',
+                    'skills', 'account' => 'Realm Regular',
                     'trade' => 'Ledger Notch',
                     'equipment' => 'Toolbelt Mark',
                     'mastery' => 'Mastery Sigil',
                     'combat' => 'Warden Mark',
                     'social' => 'Council Favor',
-                    default => "{$label} Badge",
+                    default => $label,
                 },
             'gold' => match (true) {
                 $level >= 100 => 1000,
@@ -190,18 +467,27 @@ class ProgressionService
                 $level >= 5 => 35,
                 default => 15,
             },
-            'profile_badge' => str($label)->slug('_')->toString(),
-            'unlock' => match ($categoryKey) {
-                'gathering', 'gathering_milestones' => 'Resource run banner trim',
-                'crafting', 'crafting_milestones', 'processing_milestones' => 'Workshop stamp and recipe pin',
-                'trade', 'social', 'social_milestones' => 'Ledger profile seal',
-                'equipment' => 'Tool provenance stamp',
-                'combat', 'combat_milestones' => 'Warden profile crest',
-                'exploration', 'world_milestones' => 'Route map badge',
-                'mastery' => 'Mastery frame',
-                default => 'Profile badge',
-            },
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $reward
+     */
+    private function rewardValue(array $reward, string $rewardKey): ?string
+    {
+        $value = $reward[$rewardKey] ?? null;
+
+        if (is_array($value)) {
+            $value = $value['label'] ?? null;
+        }
+
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value === '' ? null : $value;
     }
 
     private function accountLevel(int $totalExperience): int

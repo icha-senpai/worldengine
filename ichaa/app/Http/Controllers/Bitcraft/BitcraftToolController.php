@@ -9,6 +9,7 @@ use App\Support\Api\ApiAuthorizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Response;
 use Throwable;
 
@@ -34,6 +35,63 @@ class BitcraftToolController extends Controller
     public function barterStalls(Request $request, BitjitaClient $bitjita): Response
     {
         return $this->marketPage($request, $bitjita, 'barter');
+    }
+
+    public function marketOrderBook(Request $request, BitjitaClient $bitjita): JsonResponse
+    {
+        $validated = $request->validate([
+            'itemId' => ['required', 'integer', 'min:1'],
+            'itemKind' => ['nullable', 'in:item,cargo'],
+            'claimEntityId' => ['nullable', 'regex:/^\d+$/'],
+            'region' => ['nullable', 'string', 'max:120'],
+            'regionId' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $filters = [
+            'claimEntityId' => trim((string) ($validated['claimEntityId'] ?? '')),
+            'region' => trim((string) ($validated['region'] ?? $validated['regionId'] ?? '')),
+            'regionId' => null,
+            'regionName' => null,
+        ];
+
+        try {
+            $regions = $this->normalizeRegions($bitjita->regions());
+            $resolvedRegion = $this->resolveRegion($filters['region'], $regions);
+            $filters['regionId'] = $resolvedRegion['regionId'];
+            $filters['regionName'] = $resolvedRegion['regionName'];
+
+            if ($filters['region'] !== '' && blank($filters['regionId'])) {
+                return response()->json([
+                    'orderBook' => null,
+                    'cache' => $this->marketCachePayload('order-book', true),
+                    'error' => "No Bitjita region matched '{$filters['region']}'.",
+                ], 422);
+            }
+
+            return response()->json([
+                'orderBook' => $this->normalizeMarketOrderBook(
+                    $bitjita->marketOrders(
+                        $validated['itemKind'] ?? 'item',
+                        $validated['itemId'],
+                        [
+                            'claimEntityId' => $filters['claimEntityId'],
+                            'regionId' => $filters['regionId'],
+                        ],
+                    ),
+                    $filters,
+                ),
+                'cache' => $this->marketCachePayload('order-book', true),
+                'error' => null,
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'orderBook' => null,
+                'cache' => $this->marketCachePayload('order-book', true),
+                'error' => 'Bitjita did not respond cleanly. Try opening this order book again in a moment.',
+            ], 502);
+        }
     }
 
     public function apiMarket(Request $request, BitjitaClient $bitjita): JsonResponse
@@ -144,7 +202,7 @@ class BitcraftToolController extends Controller
             }
         }
 
-        if ($this->shouldSearchClaims($filters) && ! $this->hasUnresolvedRegion($filters) && ! $this->hasUnresolvedEmpire($filters)) {
+        if ($this->shouldSearchClaimResults($filters, $tool) && ! $this->hasUnresolvedRegion($filters) && ! $this->hasUnresolvedEmpire($filters)) {
             try {
                 if ($tool === 'barter') {
                     $market['claims'] = $filters['empireEntityId'] !== ''
@@ -174,37 +232,35 @@ class BitcraftToolController extends Controller
                     } else {
                         $claim = collect($claims)->firstWhere('entityId', $filters['claimEntityId'])
                             ?? $this->normalizeClaim(data_get($bitjita->claim($filters['claimEntityId']), 'claim', []));
-                        $stalls = $this->filteredBarterStalls(
-                            $this->normalizeStalls($bitjita->stalls()),
+                        $barterSearch = $this->barterStallSearch(
+                            $this->normalizedStalls($bitjita),
                             $filters,
                             [$claim],
                             $claim,
                         );
+                        $stalls = $barterSearch['stalls'];
 
                         $market['claims'] = $this->claimsFromStalls($stalls, [$claim]);
                         $market['claim'] = $claim;
                         $market['tradeBuildings'] = $this->tradeBuildingsFromStalls($stalls);
-                        $market['listings'] = $this->shouldListBarterOrders($filters)
-                            ? $this->barterStallListings($stalls, $filters)
-                            : [];
+                        $market['listings'] = $barterSearch['listings'];
                         $market['items'] = $this->marketItemsFromListings($market['listings']);
                         $market['categories'] = $this->categoriesFromMarketItems($market['items']);
                     }
 
                     $selectedItem = $this->selectedMarketItem($market['items'], $filters);
                 } elseif ($tool === 'barter' && $this->shouldSearchGlobalBarter($filters)) {
-                    $stalls = $this->filteredBarterStalls(
-                        $this->normalizeStalls($bitjita->stalls()),
+                    $barterSearch = $this->barterStallSearch(
+                        $this->normalizedStalls($bitjita),
                         $filters,
                         $claims,
                     );
+                    $stalls = $barterSearch['stalls'];
 
                     $market['claims'] = $this->claimsFromStalls($stalls, $claims);
                     $market['empires'] = $empires;
                     $market['tradeBuildings'] = $this->tradeBuildingsFromStalls($stalls);
-                    $market['listings'] = $this->shouldListBarterOrders($filters)
-                        ? $this->barterStallListings($stalls, $filters)
-                        : [];
+                    $market['listings'] = $barterSearch['listings'];
                     $market['items'] = $this->marketItemsFromListings($market['listings']);
                     $market['categories'] = $this->categoriesFromMarketItems($market['items']);
                 } elseif ($tool === 'market' && $this->shouldSearchGlobalMarket($filters)) {
@@ -215,11 +271,17 @@ class BitcraftToolController extends Controller
                 }
 
                 if ($selectedItem && $tool === 'market') {
-                    $market['orderBook'] = $this->normalizeMarketOrderBook($bitjita->marketOrders(
-                        $selectedItem['kind'],
-                        $selectedItem['id'],
-                        ['claimEntityId' => $filters['claimEntityId']],
-                    ));
+                    $market['orderBook'] = $this->normalizeMarketOrderBook(
+                        $bitjita->marketOrders(
+                            $selectedItem['kind'],
+                            $selectedItem['id'],
+                            [
+                                'claimEntityId' => $filters['claimEntityId'],
+                                'regionId' => $filters['regionId'],
+                            ],
+                        ),
+                        $filters,
+                    );
                 }
             } catch (Throwable $exception) {
                 report($exception);
@@ -233,6 +295,7 @@ class BitcraftToolController extends Controller
             'market' => $market,
             'tool' => $this->marketTool($tool),
             'error' => $error,
+            'cache' => $this->marketCachePayload($tool, filled(data_get($market, 'orderBook'))),
         ];
     }
 
@@ -402,6 +465,25 @@ class BitcraftToolController extends Controller
             || $filters['empireEntityId'] !== '';
     }
 
+    private function shouldSearchClaimResults(array $filters, string $tool): bool
+    {
+        if (! $this->shouldSearchClaims($filters)) {
+            return false;
+        }
+
+        return ! ($tool === 'market' && $this->isRegionScopedMarketItemSearch($filters));
+    }
+
+    private function isRegionScopedMarketItemSearch(array $filters): bool
+    {
+        return $filters['region'] !== ''
+            && $filters['claimQ'] === ''
+            && $filters['claimEntityId'] === ''
+            && $filters['empire'] === ''
+            && $filters['empireEntityId'] === ''
+            && ($filters['q'] !== '' || $filters['category'] !== '' || filled($filters['itemId']));
+    }
+
     private function hasUnresolvedRegion(array $filters): bool
     {
         return $filters['region'] !== '' && blank($filters['regionId']);
@@ -464,10 +546,48 @@ class BitcraftToolController extends Controller
             'q',
             'category',
             'claimEntityId',
+            'regionId',
             'hasOrders',
             'hasSellOrders',
             'hasBuyOrders',
         ]);
+    }
+
+    private function marketCachePayload(string $tool, bool $hasOrderBook = false): array
+    {
+        $sources = [[
+            'label' => 'Regions',
+            'maxAgeSeconds' => (int) config('services.bitjita.regions_cache_seconds', 86400),
+        ]];
+
+        if ($tool === 'barter') {
+            $sources[] = [
+                'label' => 'Barter stalls',
+                'maxAgeSeconds' => (int) config('services.bitjita.stalls_cache_seconds', 300),
+            ];
+        } elseif ($tool === 'order-book') {
+            $sources[] = [
+                'label' => 'Order book',
+                'maxAgeSeconds' => (int) config('services.bitjita.market_orders_cache_seconds', 30),
+            ];
+        } else {
+            $sources[] = [
+                'label' => 'Market search',
+                'maxAgeSeconds' => (int) config('services.bitjita.market_cache_seconds', 60),
+            ];
+
+            if ($hasOrderBook) {
+                $sources[] = [
+                    'label' => 'Order book',
+                    'maxAgeSeconds' => (int) config('services.bitjita.market_orders_cache_seconds', 30),
+                ];
+            }
+        }
+
+        return [
+            'updatedAt' => now()->toIso8601String(),
+            'sources' => $sources,
+        ];
     }
 
     private function marketTool(string $tool): array
@@ -897,6 +1017,15 @@ class BitcraftToolController extends Controller
             ->all();
     }
 
+    private function normalizedStalls(BitjitaClient $bitjita): array
+    {
+        return Cache::remember(
+            $bitjita->applicationCacheKey('normalized-stalls.v2'),
+            now()->addSeconds((int) config('services.bitjita.stalls_cache_seconds', 300)),
+            fn () => $this->normalizeStalls($bitjita->stalls()),
+        );
+    }
+
     private function normalizeStallStacks(array $stacks, string $kind): array
     {
         return collect($stacks)
@@ -912,13 +1041,39 @@ class BitcraftToolController extends Controller
             ->all();
     }
 
-    private function filteredBarterStalls(array $stalls, array $filters, array $claims = [], ?array $selectedClaim = null): array
+    /**
+     * @return array{stalls: array<int, array<string, mixed>>, listings: array<int, array<string, mixed>>}
+     */
+    private function barterStallSearch(array $stalls, array $filters, array $claims = [], ?array $selectedClaim = null): array
     {
-        return collect($stalls)
+        $scopedStalls = collect($stalls)
             ->filter(fn (array $stall) => $this->stallMatchesBarterScope($stall, $filters, $claims, $selectedClaim))
-            ->filter(fn (array $stall) => ! $this->shouldSearchBarterItems($filters) || $this->barterStallListings([$stall], $filters) !== [])
             ->values()
             ->all();
+        $listings = $this->shouldListBarterOrders($filters)
+            ? $this->barterStallListings($scopedStalls, $filters)
+            : [];
+
+        if (! $this->shouldSearchBarterItems($filters)) {
+            return [
+                'stalls' => $scopedStalls,
+                'listings' => $listings,
+            ];
+        }
+
+        $matchingStallIds = collect($listings)
+            ->pluck('stall.entityId')
+            ->filter()
+            ->unique()
+            ->flip();
+
+        return [
+            'stalls' => collect($scopedStalls)
+                ->filter(fn (array $stall) => $matchingStallIds->has((string) $stall['entityId']))
+                ->values()
+                ->all(),
+            'listings' => $listings,
+        ];
     }
 
     private function stallMatchesBarterScope(array $stall, array $filters, array $claims = [], ?array $selectedClaim = null): bool
@@ -1248,9 +1403,11 @@ class BitcraftToolController extends Controller
             ->all();
     }
 
-    private function normalizeMarketOrderBook(array $payload): array
+    private function normalizeMarketOrderBook(array $payload, array $filters = []): array
     {
         $item = data_get($payload, 'item', []);
+        $sellOrders = $this->filterMarketOrdersByRegion($this->normalizeOrders(data_get($payload, 'sellOrders', []), 'sell'), $filters);
+        $buyOrders = $this->filterMarketOrdersByRegion($this->normalizeOrders(data_get($payload, 'buyOrders', []), 'buy'), $filters);
 
         return [
             'item' => [
@@ -1260,9 +1417,9 @@ class BitcraftToolController extends Controller
                 'tier' => data_get($item, 'tier'),
                 'rarity' => data_get($item, 'rarityStr'),
             ],
-            'sellOrders' => $this->normalizeOrders(data_get($payload, 'sellOrders', []), 'sell'),
-            'buyOrders' => $this->normalizeOrders(data_get($payload, 'buyOrders', []), 'buy'),
-            'stats' => data_get($payload, 'stats', []),
+            'sellOrders' => $sellOrders,
+            'buyOrders' => $buyOrders,
+            'stats' => $this->marketOrderBookStats(data_get($payload, 'stats', []), $sellOrders, $buyOrders, $filters),
         ];
     }
 
@@ -1277,11 +1434,49 @@ class BitcraftToolController extends Controller
                 'claimName' => data_get($order, 'claimName'),
                 'price' => data_get($order, 'priceThreshold', data_get($order, 'price')),
                 'quantity' => data_get($order, 'quantity'),
+                'regionId' => data_get($order, 'regionId'),
                 'regionName' => data_get($order, 'regionName'),
                 'updatedAt' => data_get($order, 'updatedAt'),
             ])
             ->values()
             ->all();
+    }
+
+    private function filterMarketOrdersByRegion(array $orders, array $filters): array
+    {
+        if (blank($filters['regionId'] ?? null) && blank($filters['regionName'] ?? null)) {
+            return $orders;
+        }
+
+        return collect($orders)
+            ->filter(function (array $order) use ($filters): bool {
+                if (filled($filters['regionId'] ?? null) && filled($order['regionId'] ?? null)) {
+                    return (string) $order['regionId'] === (string) $filters['regionId'];
+                }
+
+                if (filled($filters['regionName'] ?? null) && filled($order['regionName'] ?? null)) {
+                    return strtolower((string) $order['regionName']) === strtolower((string) $filters['regionName']);
+                }
+
+                return false;
+            })
+            ->values()
+            ->all();
+    }
+
+    private function marketOrderBookStats(array $stats, array $sellOrders, array $buyOrders, array $filters): array
+    {
+        if (blank($filters['regionId'] ?? null) && blank($filters['regionName'] ?? null)) {
+            return $stats;
+        }
+
+        return [
+            ...$stats,
+            'lowestSell' => collect($sellOrders)->min(fn (array $order) => $this->numericOrNull($order['price'])),
+            'highestBuy' => collect($buyOrders)->max(fn (array $order) => $this->numericOrNull($order['price'])),
+            'sellOrderCount' => count($sellOrders),
+            'buyOrderCount' => count($buyOrders),
+        ];
     }
 
     private function itemKind(mixed $type): string

@@ -8,22 +8,47 @@
         </div>
 
         <div class="surface-section__body">
-            <div class="flex flex-wrap gap-2">
-                <button
-                    v-for="filter in filters"
-                    :key="filter.key"
-                    type="button"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                    :class="{ 'border-focus/70 bg-focus/10 text-primary': selectedFilter === filter.key }"
-                    @click="selectedFilter = filter.key"
-                >
-                    {{ filter.label }} · {{ filter.count }}
-                </button>
-            </div>
-
-            <div class="mt-4 grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
+            <div class="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
                 <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-                    <p class="text-sm font-ui text-primary">{{ activeFilter.label }}</p>
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-sm font-ui text-primary">Route Board</p>
+                        <span class="tag">{{ activeBoard.count }} {{ activeBoard.unit }}</span>
+                    </div>
+                    <p class="mt-1 text-xs text-muted-3">{{ activeBoard.description }}</p>
+
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                        <button
+                            v-for="board in expeditionBoards"
+                            :key="board.key"
+                            type="button"
+                            class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedBoard === board.key }"
+                            @click="selectedBoard = board.key"
+                        >
+                            <span class="block text-xs font-ui text-primary">{{ board.label }}</span>
+                            <span class="mt-1 block text-[11px] text-muted-3">{{ board.count }} {{ board.unit }}</span>
+                        </button>
+                    </div>
+
+                    <div class="mt-4 grid gap-2">
+                        <button
+                            v-for="filter in filters"
+                            :key="filter.key"
+                            type="button"
+                            class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedFilter === filter.key }"
+                            @click="selectedFilter = filter.key"
+                        >
+                            <span class="flex min-w-0 items-center justify-between gap-2">
+                                <span class="truncate text-xs font-ui text-primary">{{ filter.label }}</span>
+                                <span class="text-[11px] text-muted-3">{{ filter.count }}</span>
+                            </span>
+                            <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                                <span class="block h-full rounded-full bg-focus" :style="{ width: `${filterProgress(filter)}%` }" />
+                            </span>
+                        </button>
+                    </div>
+
                     <div class="mt-3 grid gap-2 text-xs">
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-muted-2">Ready</span>
@@ -40,11 +65,21 @@
                     </div>
                 </div>
 
-                <div class="grid gap-3">
+                <div class="grid content-start gap-3">
+                    <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-ui text-primary">{{ activeBoard.label }}</p>
+                                <p class="mt-1 text-xs text-muted-3">{{ activeFilter.label }} · {{ visibleExpeditions.length }} visible</p>
+                            </div>
+                            <span class="tag">{{ visibleGold }}g</span>
+                        </div>
+                    </div>
+
                     <article
                         v-for="(expedition, index) in visibleExpeditions"
                         :key="expedition.key"
-                        class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                        class="grid min-h-32 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
                         :class="{ 'opacity-70': !expedition.is_unlocked }"
                     >
                         <div class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary">
@@ -98,8 +133,17 @@
                         </div>
                     </article>
 
+                    <button
+                        v-if="canShowMoreExpeditions"
+                        type="button"
+                        class="app-btn app-btn--ghost app-btn--sm justify-self-center"
+                        @click="visibleLimit += boardPageSize"
+                    >
+                        Show More
+                    </button>
+
                     <p v-if="!visibleExpeditions.length" class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2">
-                        No expeditions match.
+                        {{ emptyBoardMessage }}
                     </p>
                 </div>
             </div>
@@ -112,7 +156,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { expeditionReloadProps } from './reloadProps'
 
@@ -131,27 +175,66 @@ const form = useForm({
     expedition: null,
 })
 const selectedFilter = ref('All')
+const selectedBoard = ref('ready')
+const boardPageSize = 12
+const visibleLimit = ref(boardPageSize)
 
 const readyCount = computed(() => props.expeditions.filter((expedition) => expedition.can_start).length)
-const filters = computed(() => ['All', 'Ready', ...new Set(props.expeditions.map((expedition) => expedition.skill_label))].map((filter) => ({
+const filters = computed(() => ['All', ...new Set(props.expeditions.map((expedition) => expedition.skill_label))].map((filter) => ({
     key: filter,
     label: filter,
-    count: props.expeditions.filter((expedition) => filter === 'All' || (filter === 'Ready' ? expedition.can_start : expedition.skill_label === filter)).length,
+    count: props.expeditions.filter((expedition) => filter === 'All' || expedition.skill_label === filter).length,
 })))
 const activeFilter = computed(() => filters.value.find((filter) => filter.key === selectedFilter.value) ?? filters.value[0])
-const visibleExpeditions = computed(() => props.expeditions.filter((expedition) => {
-    if (selectedFilter.value === 'Ready') {
-        return expedition.can_start
-    }
-
-    if (selectedFilter.value === 'All') {
-        return true
-    }
-
-    return expedition.skill_label === selectedFilter.value
-}).filter((expedition) => searchMatches(expedition, props.searchTerm)))
+const filteredExpeditions = computed(() => props.expeditions
+    .filter((expedition) => selectedFilter.value === 'All' || expedition.skill_label === selectedFilter.value)
+    .filter((expedition) => searchMatches(expedition, props.searchTerm)))
+const readyExpeditions = computed(() => filteredExpeditions.value.filter((expedition) => expedition.can_start))
+const prepareExpeditions = computed(() => filteredExpeditions.value.filter((expedition) => expedition.is_unlocked && !expedition.can_start))
+const expeditionBoards = computed(() => [
+    {
+        key: 'ready',
+        label: 'Ready',
+        count: readyExpeditions.value.length,
+        unit: 'routes',
+        entries: readyExpeditions.value,
+        description: `${activeFilter.value.label} routes with supplies packed.`,
+    },
+    {
+        key: 'prepare',
+        label: 'Prepare',
+        count: prepareExpeditions.value.length,
+        unit: 'short',
+        entries: prepareExpeditions.value,
+        description: 'Unlocked expeditions missing supplies.',
+    },
+])
+const activeBoard = computed(() => expeditionBoards.value.find((board) => board.key === selectedBoard.value) ?? expeditionBoards.value[0])
+const visibleExpeditions = computed(() => activeBoard.value.entries.slice(0, visibleLimit.value))
+const canShowMoreExpeditions = computed(() => activeBoard.value.entries.length > visibleExpeditions.value.length)
 const visibleGold = computed(() => visibleExpeditions.value.reduce((total, expedition) => total + expedition.gold, 0))
 const visibleExperience = computed(() => visibleExpeditions.value.reduce((total, expedition) => total + expedition.experience, 0))
+const emptyBoardMessage = computed(() => {
+    if (selectedBoard.value === 'ready') {
+        return 'No supplied expeditions match. Check Prepare for routes missing supplies.'
+    }
+
+    return 'No expeditions match.'
+})
+
+watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
+    visibleLimit.value = boardPageSize
+})
+
+watch(readyExpeditions, (expeditions) => {
+    if (!expeditions.length && selectedBoard.value === 'ready') {
+        selectedBoard.value = 'prepare'
+    }
+
+    if (expeditions.length && selectedBoard.value === 'prepare') {
+        selectedBoard.value = 'ready'
+    }
+}, { immediate: true })
 
 function searchMatches(expedition, query) {
     const normalizedQuery = query.trim().toLowerCase()
@@ -178,6 +261,16 @@ function itemSearchFields(item) {
         item.material_family,
         ...(item.tags ?? []),
     ]
+}
+
+function filterProgress(filter) {
+    if (!filter.count) {
+        return 0
+    }
+
+    const readyCount = props.expeditions.filter((expedition) => (filter.key === 'All' || expedition.skill_label === filter.key) && expedition.can_start).length
+
+    return Math.round((readyCount / filter.count) * 100)
 }
 
 function run(expedition) {

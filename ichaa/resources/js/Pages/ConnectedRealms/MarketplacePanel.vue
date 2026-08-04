@@ -8,22 +8,27 @@
         </div>
 
         <div class="surface-section__body">
-            <div class="flex flex-wrap gap-2">
-                <button
-                    v-for="board in boards"
-                    :key="board.key"
-                    type="button"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                    :class="{ 'border-focus/70 bg-focus/10 text-primary': activeBoard === board.key }"
-                    @click="activeBoard = board.key"
-                >
-                    {{ board.label }} · {{ board.count }}
-                </button>
-            </div>
-
-            <div class="mt-4 grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
+            <div class="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
                 <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-                    <p class="text-sm font-ui text-primary">{{ activeBoardRecord.label }}</p>
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-sm font-ui text-primary">Market Desk</p>
+                        <span class="tag">{{ activeBoardRecord.count }}</span>
+                    </div>
+
+                    <div class="mt-4 grid gap-2">
+                        <button
+                            v-for="board in boards"
+                            :key="board.key"
+                            type="button"
+                            class="grid gap-1 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': activeBoard === board.key }"
+                            @click="activeBoard = board.key"
+                        >
+                            <span class="truncate text-xs font-ui text-primary">{{ board.label }}</span>
+                            <span class="text-[11px] text-muted-3">{{ board.count }} records</span>
+                        </button>
+                    </div>
+
                     <div class="mt-3 grid gap-2 text-xs">
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-muted-2">Listings</span>
@@ -221,11 +226,11 @@
                     </button>
                 </form>
 
-                <div v-else-if="activeBoard === 'market'" class="grid gap-3">
+                <div v-else-if="activeBoard === 'market'" class="grid content-start gap-3">
                     <article
                         v-for="(row, index) in visibleMarketRows"
                         :key="`${row.listing_type}-${row.item_key ?? row.item_name}`"
-                        class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                            class="grid min-h-28 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
                     >
                         <div class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary">
                             #{{ index + 1 }}
@@ -256,11 +261,11 @@
                     </p>
                 </div>
 
-                <div v-else-if="activeBoard === 'sales'" class="grid gap-3">
+                <div v-else-if="activeBoard === 'sales'" class="grid content-start gap-3">
                     <article
                         v-for="(transaction, index) in visibleTransactions"
                         :key="transaction.id"
-                        class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                            class="grid min-h-28 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
                     >
                         <div class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary">
                             #{{ index + 1 }}
@@ -282,11 +287,11 @@
                     </p>
                 </div>
 
-                <div v-else class="grid gap-3">
+                <div v-else class="grid content-start gap-3">
                     <article
                         v-for="(listing, index) in visibleActiveListings"
                         :key="listing.id"
-                        class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                            class="grid min-h-28 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
                     >
                         <div class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary">
                             #{{ index + 1 }}

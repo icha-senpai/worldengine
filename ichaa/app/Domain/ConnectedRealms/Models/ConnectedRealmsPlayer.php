@@ -17,6 +17,7 @@ class ConnectedRealmsPlayer extends Model
         'pronouns',
         'home_region',
         'appearance',
+        'reward_loadout',
         'gold',
         'last_action_at',
         'next_action_at',
@@ -24,6 +25,7 @@ class ConnectedRealmsPlayer extends Model
 
     protected $casts = [
         'appearance' => 'array',
+        'reward_loadout' => 'array',
         'gold' => 'integer',
         'last_action_at' => 'datetime',
         'next_action_at' => 'datetime',
@@ -77,6 +79,11 @@ class ConnectedRealmsPlayer extends Model
     public function vendorSales(): HasMany
     {
         return $this->hasMany(ConnectedRealmsVendorSale::class, 'player_id');
+    }
+
+    public function achievementClaims(): HasMany
+    {
+        return $this->hasMany(ConnectedRealmsAchievementClaim::class, 'player_id');
     }
 
     public function expeditionRuns(): HasMany

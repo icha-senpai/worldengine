@@ -106,6 +106,7 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
     Route::prefix('bitcraft')->name('bitcraft.')->middleware(EnsureAreaAccess::class.':'.User::ROLE_BITCRAFT)->group(function () {
         Route::redirect('/', '/datacrypt/bitcraft/market');
         Route::get('market', [BitcraftToolController::class, 'market'])->name('market');
+        Route::get('market/order-book', [BitcraftToolController::class, 'marketOrderBook'])->name('market.order-book');
         Route::get('barter-stalls', [BitcraftToolController::class, 'barterStalls'])->name('barter-stalls');
         Route::get('crafting', [BitcraftToolController::class, 'crafting'])->name('crafting');
         Route::get('crafting/branch', [BitcraftToolController::class, 'craftingBranch'])->name('crafting.branch');
@@ -121,6 +122,8 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
         Route::put('character', [ConnectedRealmsController::class, 'updateCharacter'])->name('character.update');
         Route::post('actions', [ConnectedRealmsController::class, 'store'])->name('actions.store');
         Route::post('activities', [ConnectedRealmsController::class, 'performActivity'])->name('activities.store');
+        Route::post('achievements/claims', [ConnectedRealmsController::class, 'claimAchievement'])->name('achievements.claims.store');
+        Route::put('rewards/loadout', [ConnectedRealmsController::class, 'updateRewardLoadout'])->name('rewards.loadout.update');
         Route::post('crafting', [ConnectedRealmsController::class, 'craft'])->name('crafting.store');
         Route::post('jobs', [ConnectedRealmsController::class, 'completeJob'])->name('jobs.store');
         Route::post('expeditions', [ConnectedRealmsController::class, 'runExpedition'])->name('expeditions.store');

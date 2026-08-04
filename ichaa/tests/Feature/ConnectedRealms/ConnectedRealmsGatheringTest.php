@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\ConnectedRealms;
 
+use App\Domain\ConnectedRealms\Models\ConnectedRealmsAchievementClaim;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsActionLog;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsCraftingLog;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsEquipmentSlot;
@@ -17,6 +18,7 @@ use App\Domain\ConnectedRealms\Models\ConnectedRealmsVendorSale;
 use App\Domain\ConnectedRealms\Services\CraftingService;
 use App\Domain\ConnectedRealms\Services\ExpeditionService;
 use App\Domain\ConnectedRealms\Services\GatheringActionService;
+use App\Domain\ConnectedRealms\Services\ItemPurposeService;
 use App\Domain\ConnectedRealms\Services\JobContractService;
 use App\Domain\ConnectedRealms\Services\ShopService;
 use App\Domain\ConnectedRealms\Services\SkillActivityService;
@@ -47,6 +49,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('player.species', 'human')
                 ->where('player.home_region', 'moonwake_coast')
                 ->where('player.appearance.palette', 'moonlit')
+                ->where('player.reward_loadout.has_equipped', false)
                 ->where('player.gold', 0)
                 ->where('player.can_act_now', true)
                 ->has('character_options.species')
@@ -138,6 +141,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->has('marketplace.market_board.rows', 0)
                 ->where('item_guide.summary.tracked_items', fn (int $count): bool => $count > 1000)
                 ->where('item_guide.summary.items_with_sources', fn (int $count): bool => $count > 1000)
+                ->where('item_guide.summary.items_without_sinks', 0)
                 ->has('item_guide.categories')
                 ->has('world_events.active', 3)
                 ->where('world_events.active.0.key', 'meteorfall')
@@ -350,6 +354,112 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->where('progression.achievements.0.key', 'first_steps')
                     ->where('progression.achievements.0.unlocked', true)
                 );
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_unlocked_achievement_rewards_can_be_claimed_once(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+        $now = Carbon::parse('2026-08-03 12:00:00');
+
+        Carbon::setTestNow($now);
+
+        try {
+            $this->actingAs($user)
+                ->post(route('evergather.actions.store'), ['action' => 'fish'])
+                ->assertRedirect(route('evergather.index'));
+
+            $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+            $goldBeforeClaim = $player->gold;
+
+            $this->actingAs($user)
+                ->post(route('evergather.achievements.claims.store'), ['achievement' => 'first_steps'])
+                ->assertRedirect(route('evergather.index'))
+                ->assertSessionHas('success', 'First Steps reward claimed.')
+                ->assertSessionHas('connected_realms_result.type', 'achievement_claim')
+                ->assertSessionHas('connected_realms_result.gold_awarded', 15);
+
+            $player->refresh();
+
+            $this->assertSame($goldBeforeClaim + 15, $player->gold);
+            $this->assertSame('Trailmarked', $player->title);
+            $this->assertSame('first_steps', $player->reward_loadout['title_claim_key']);
+            $this->assertArrayNotHasKey('badge_claim_key', $player->reward_loadout);
+            $this->assertArrayNotHasKey('frame_claim_key', $player->reward_loadout);
+            $this->assertDatabaseHas('connected_realms_achievement_claims', [
+                'player_id' => $player->id,
+                'achievement_key' => 'first_steps',
+                'achievement_label' => 'First Steps',
+            ]);
+
+            $claim = ConnectedRealmsAchievementClaim::query()
+                ->where('player_id', $player->id)
+                ->where('achievement_key', 'first_steps')
+                ->firstOrFail();
+
+            $this->assertSame('Trailmarked', $claim->reward['title']);
+            $this->assertSame(15, $claim->reward['gold']);
+            $this->assertArrayNotHasKey('profile_badge', $claim->reward);
+            $this->assertArrayNotHasKey('profile_frame', $claim->reward);
+            $this->assertArrayNotHasKey('unlock', $claim->reward);
+
+            $this->actingAs($user)
+                ->from(route('evergather.index'))
+                ->post(route('evergather.achievements.claims.store'), ['achievement' => 'first_steps'])
+                ->assertRedirect(route('evergather.index'))
+                ->assertSessionHasErrors('achievement');
+
+            $this->assertSame(1, ConnectedRealmsAchievementClaim::query()->where('player_id', $player->id)->count());
+
+            $this->actingAs($user)
+                ->get(route('evergather.index'))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('player.reward_loadout.title_label', 'Trailmarked')
+                    ->missing('player.reward_loadout.badge_label')
+                    ->missing('player.reward_loadout.badge_mark')
+                    ->missing('player.reward_loadout.badge_tone')
+                    ->missing('player.reward_loadout.badge_icon_path')
+                    ->missing('player.reward_loadout.frame_label')
+                    ->missing('player.reward_loadout.frame_style')
+                    ->missing('player.reward_loadout.frame_image_path')
+                    ->where('progression.achievements.0.key', 'first_steps')
+                    ->where('progression.achievements.0.claimed', true)
+                    ->where('progression.achievements.0.can_claim', false)
+                    ->where('progression.claimed_rewards.0.achievement_key', 'first_steps')
+                    ->where('progression.reward_options.titles.0.key', 'first_steps')
+                    ->where('progression.reward_options.titles.0.label', 'Trailmarked')
+                    ->missing('progression.reward_options.badges')
+                    ->missing('progression.reward_options.frames')
+                    ->where('progression.reward_loadout.title_claim_key', 'first_steps')
+                    ->missing('progression.reward_loadout.badge_claim_key')
+                    ->missing('progression.reward_loadout.frame_claim_key')
+                );
+
+            $this->actingAs($user)
+                ->put(route('evergather.rewards.loadout.update'), [
+                    'title_claim_key' => null,
+                ])
+                ->assertRedirect(route('evergather.index'))
+                ->assertSessionHas('success', 'Reward loadout updated.')
+                ->assertSessionHas('connected_realms_result.type', 'reward_loadout');
+
+            $player->refresh();
+
+            $this->assertNull($player->title);
+            $this->assertNull($player->reward_loadout['title_claim_key']);
+            $this->assertArrayNotHasKey('badge_claim_key', $player->reward_loadout);
+            $this->assertArrayNotHasKey('frame_claim_key', $player->reward_loadout);
+
+            $this->actingAs($user)
+                ->from(route('evergather.index'))
+                ->put(route('evergather.rewards.loadout.update'), [
+                    'title_claim_key' => 'account_level_100',
+                ])
+                ->assertRedirect(route('evergather.index'))
+                ->assertSessionHasErrors('title_claim_key');
         } finally {
             Carbon::setTestNow();
         }
@@ -611,9 +721,28 @@ class ConnectedRealmsGatheringTest extends TestCase
             }
         }
 
+        $purposes = app(ItemPurposeService::class);
+
+        foreach ($producedItems as $itemKey => $sources) {
+            $itemName = array_key_first($itemNames[$itemKey]);
+            $purpose = $purposes->requisitionFor([
+                'item_key' => $itemKey,
+                'item_name' => $itemName,
+            ]);
+
+            foreach ($purpose['requirements'] as $item) {
+                $this->recordConsumedItem($consumedItems, $itemNames, $item, "requisition:{$purpose['key']}");
+            }
+        }
+
         $missingSources = collect($consumedItems)
             ->keys()
             ->diff(collect($producedItems)->keys())
+            ->values()
+            ->all();
+        $missingUses = collect($producedItems)
+            ->keys()
+            ->diff(collect($consumedItems)->keys())
             ->values()
             ->all();
 
@@ -630,8 +759,54 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->all();
 
         $this->assertSame([], $missingSources);
+        $this->assertSame([], $missingUses);
         $this->assertSame([], $conflictingNames);
         $this->assertSame([], $placeholderNames);
+    }
+
+    public function test_owned_orphan_items_unlock_meaningful_requisition_jobs(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)->get(route('evergather.index'))->assertOk();
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+
+        ConnectedRealmsInventoryStack::query()->create([
+            'player_id' => $player->id,
+            'item_key' => 'brine_shrimp',
+            'item_name' => 'Brine Shrimp',
+            'rarity' => 'common',
+            'quantity' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('evergather.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('jobs', 444)
+                ->where('jobs.443.key', 'item_requisition_brine_shrimp')
+                ->where('jobs.443.label', 'Brine Shrimp Field Sample')
+                ->where('jobs.443.category', 'Field Requisitions')
+                ->where('jobs.443.can_complete', true)
+                ->where('item_guide.summary.items_without_sinks', 0)
+            );
+
+        $this->actingAs($user)
+            ->post(route('evergather.jobs.store'), ['job' => 'item_requisition_brine_shrimp'])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHas('success', 'Brine Shrimp Field Sample completed.');
+
+        $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'brine_shrimp',
+        ]);
+        $this->assertDatabaseHas('connected_realms_job_completions', [
+            'player_id' => $player->id,
+            'job_key' => 'item_requisition_brine_shrimp',
+            'job_name' => 'Brine Shrimp Field Sample',
+            'category' => 'Field Requisitions',
+        ]);
     }
 
     public function test_locked_gathering_action_requires_skill_level(): void

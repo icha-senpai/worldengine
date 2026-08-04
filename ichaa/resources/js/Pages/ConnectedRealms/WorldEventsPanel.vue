@@ -8,22 +8,27 @@
         </div>
 
         <div class="surface-section__body">
-            <div class="flex flex-wrap gap-2">
-                <button
-                    v-for="group in eventGroups"
-                    :key="group.key"
-                    type="button"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                    :class="{ 'border-focus/70 bg-focus/10 text-primary': selectedGroup === group.key }"
-                    @click="selectedGroup = group.key"
-                >
-                    {{ group.label }} · {{ group.events.length }}
-                </button>
-            </div>
-
-            <div class="mt-4 grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
+            <div class="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
                 <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-                    <p class="text-sm font-ui text-primary">{{ activeGroup.label }}</p>
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-sm font-ui text-primary">Event Circuit</p>
+                        <span class="tag">{{ activeGroup.events.length }}</span>
+                    </div>
+
+                    <div class="mt-4 grid gap-2">
+                        <button
+                            v-for="group in eventGroups"
+                            :key="group.key"
+                            type="button"
+                            class="grid gap-1 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedGroup === group.key }"
+                            @click="selectedGroup = group.key"
+                        >
+                            <span class="text-xs font-ui text-primary">{{ group.label }}</span>
+                            <span class="text-[11px] text-muted-3">{{ group.events.length }} events</span>
+                        </button>
+                    </div>
+
                     <div class="mt-3 grid gap-2 text-xs">
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-muted-2">Events</span>
@@ -44,11 +49,21 @@
                     </div>
                 </div>
 
-                <div class="grid gap-3">
+                <div class="grid content-start gap-3">
+                    <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-ui text-primary">{{ activeGroup.label }}</p>
+                                <p class="mt-1 text-xs text-muted-3">{{ activeGroup.events.length }} events · +{{ activeGroup.experience }} XP pool</p>
+                            </div>
+                            <span class="tag">+{{ activeGroup.gold }} gold</span>
+                        </div>
+                    </div>
+
                     <article
                         v-for="(event, index) in activeGroup.events"
                         :key="event.key"
-                        class="grid gap-3 rounded-md border px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                        class="grid min-h-32 items-start gap-3 rounded-md border px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_10rem]"
                         :class="selectedGroup === 'active' ? 'border-success/40 bg-success/10' : 'border-border bg-surface-2'"
                     >
                         <div class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary">
