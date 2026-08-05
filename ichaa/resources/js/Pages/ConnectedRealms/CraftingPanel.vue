@@ -128,7 +128,7 @@
                                 :disabled="form.processing || !recipe.can_craft"
                                 @click="craft(recipe.key)"
                             >
-                                Craft
+                                {{ runningRecipe === recipe.key ? 'Crafting...' : 'Craft' }}
                             </button>
                         </div>
                     </article>
@@ -178,6 +178,7 @@ const selectedFilter = ref('All')
 const selectedBoard = ref('ready')
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
+const runningRecipe = ref('')
 
 const craftableCount = computed(() => props.recipes.filter((recipe) => recipe.can_craft).length)
 const filters = computed(() => ['All', ...new Set(props.recipes.map((recipe) => recipe.category))].map((filter) => ({
@@ -278,6 +279,12 @@ function craft(recipe) {
     form.post(route('evergather.crafting.store'), {
         preserveScroll: true,
         only: craftingReloadProps,
+        onStart: () => {
+            runningRecipe.value = recipe
+        },
+        onFinish: () => {
+            runningRecipe.value = ''
+        },
     })
 }
 </script>

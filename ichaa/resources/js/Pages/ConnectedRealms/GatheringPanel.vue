@@ -133,6 +133,7 @@
 
                         <span class="text-left md:text-right">
                             <span v-if="!action.is_unlocked" class="block text-xs text-muted-3">Level {{ action.skill_level }} / {{ action.required_level }}</span>
+                            <span v-else-if="runningAction === action.key" class="block text-sm font-ui text-focus">Starting...</span>
                             <span v-else-if="canActNow" class="block text-sm font-ui text-success">Start</span>
                             <span v-else class="block text-sm font-ui text-muted-3">{{ cooldownLabel }}</span>
                         </span>
@@ -188,6 +189,7 @@ const now = ref(Date.now())
 const autoRepeatEnabled = ref(false)
 const repeatActionKey = ref('')
 const autoRepeatGuardUntil = ref(0)
+const runningAction = ref('')
 let cooldownTimer = null
 const form = useForm({
     action: null,
@@ -296,6 +298,12 @@ function submitAction(action) {
     form.post(route('evergather.actions.store'), {
         preserveScroll: true,
         only: actionReloadProps,
+        onStart: () => {
+            runningAction.value = action
+        },
+        onFinish: () => {
+            runningAction.value = ''
+        },
     })
 }
 

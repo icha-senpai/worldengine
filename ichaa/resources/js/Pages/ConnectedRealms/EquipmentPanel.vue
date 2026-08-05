@@ -170,7 +170,7 @@
                                 :disabled="rarityForm.processing || !entry.upgrade.can_upgrade"
                                 @click="attemptRarityUpgrade(entry.tool.slot)"
                             >
-                                {{ entry.upgrade.is_max_rarity ? 'Maxed' : entry.upgrade.can_upgrade ? 'Attempt' : entry.upgrade.status }}
+                                {{ runningEquipmentAction === equipmentActionKey('rarity', entry.tool.slot) ? 'Attempting...' : entry.upgrade.is_max_rarity ? 'Maxed' : entry.upgrade.can_upgrade ? 'Attempt' : entry.upgrade.status }}
                             </button>
                             <button
                                 v-if="entry.tier"
@@ -179,7 +179,7 @@
                                 :disabled="tierForm.processing || !entry.tier.can_upgrade"
                                 @click="attemptTierUpgrade(entry.tool.slot)"
                             >
-                                {{ entry.tier.is_max_tier ? 'Max Tier' : entry.tier.can_upgrade ? 'Tier Up' : entry.tier.status }}
+                                {{ runningEquipmentAction === equipmentActionKey('tier', entry.tool.slot) ? 'Upgrading...' : entry.tier.is_max_tier ? 'Max Tier' : entry.tier.can_upgrade ? 'Tier Up' : entry.tier.status }}
                             </button>
                             <button
                                 type="button"
@@ -187,7 +187,7 @@
                                 :disabled="inventoryForm.processing || entry.tool.origin === 'starter'"
                                 @click="unequipTool(entry.tool.slot)"
                             >
-                                {{ entry.tool.origin === 'starter' ? 'Field Kit' : 'Unequip' }}
+                                {{ runningEquipmentAction === equipmentActionKey('unequip', entry.tool.slot) ? 'Unequipping...' : entry.tool.origin === 'starter' ? 'Field Kit' : 'Unequip' }}
                             </button>
                         </div>
                     </article>
@@ -236,7 +236,7 @@
                             :disabled="inventoryForm.processing"
                             @click="equipTool(tool.tool_id)"
                         >
-                            Equip
+                            {{ runningEquipmentAction === equipmentActionKey('equip', tool.tool_id) ? 'Equipping...' : 'Equip' }}
                         </button>
                     </article>
                 </div>
@@ -270,6 +270,7 @@ const props = defineProps({
 })
 
 const selectedCategory = ref('All')
+const runningEquipmentAction = ref('')
 const totalExperience = computed(() => props.equipment.reduce((total, tool) => total + tool.experience_bonus, 0))
 const totalYield = computed(() => props.equipment.reduce((total, tool) => total + tool.yield_bonus, 0))
 const rarityForm = useForm({
@@ -312,6 +313,12 @@ function attemptRarityUpgrade(slot) {
     rarityForm.post(route('evergather.tools.rarity-upgrades.store'), {
         preserveScroll: true,
         only: equipmentReloadProps,
+        onStart: () => {
+            runningEquipmentAction.value = equipmentActionKey('rarity', slot)
+        },
+        onFinish: () => {
+            runningEquipmentAction.value = ''
+        },
     })
 }
 
@@ -320,6 +327,12 @@ function attemptTierUpgrade(slot) {
     tierForm.post(route('evergather.tools.tier-upgrades.store'), {
         preserveScroll: true,
         only: equipmentReloadProps,
+        onStart: () => {
+            runningEquipmentAction.value = equipmentActionKey('tier', slot)
+        },
+        onFinish: () => {
+            runningEquipmentAction.value = ''
+        },
     })
 }
 
@@ -329,6 +342,12 @@ function equipTool(toolId) {
     inventoryForm.post(route('evergather.tools.equipment.store'), {
         preserveScroll: true,
         only: equipmentReloadProps,
+        onStart: () => {
+            runningEquipmentAction.value = equipmentActionKey('equip', toolId)
+        },
+        onFinish: () => {
+            runningEquipmentAction.value = ''
+        },
     })
 }
 
@@ -338,6 +357,16 @@ function unequipTool(slot) {
     inventoryForm.delete(route('evergather.tools.equipment.destroy'), {
         preserveScroll: true,
         only: equipmentReloadProps,
+        onStart: () => {
+            runningEquipmentAction.value = equipmentActionKey('unequip', slot)
+        },
+        onFinish: () => {
+            runningEquipmentAction.value = ''
+        },
     })
+}
+
+function equipmentActionKey(action, value) {
+    return `${action}:${value}`
 }
 </script>

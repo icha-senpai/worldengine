@@ -42,18 +42,27 @@ class ToolCatalogService
      */
     public function tierPath(): array
     {
-        return [
-            ['name_mark' => 'Amberbound', 'rarity' => 'uncommon', 'level' => 1, 'xp' => 44, 'experience_bonus' => 9, 'yield_bonus' => 2, 'gold_cost' => 35, 'extra' => ['item_key' => 'amber_sap', 'item_name' => 'Amber Sap', 'quantity' => 1]],
-            ['name_mark' => 'Prism-Sighted', 'rarity' => 'rare', 'level' => 20, 'xp' => 86, 'experience_bonus' => 17, 'yield_bonus' => 3, 'gold_cost' => 90, 'extra' => ['item_key' => 'prism_lens', 'item_name' => 'Prism Lens', 'quantity' => 1]],
-            ['name_mark' => 'Steelbound', 'rarity' => 'rare', 'level' => 25, 'xp' => 98, 'experience_bonus' => 19, 'yield_bonus' => 3, 'gold_cost' => 120, 'extra' => null],
-            ['name_mark' => 'Moon-Graven', 'rarity' => 'rare', 'level' => 30, 'xp' => 112, 'experience_bonus' => 22, 'yield_bonus' => 4, 'gold_cost' => 160, 'extra' => null],
-            ['name_mark' => 'Stormglass', 'rarity' => 'epic', 'level' => 35, 'xp' => 124, 'experience_bonus' => 24, 'yield_bonus' => 4, 'gold_cost' => 210, 'extra' => null],
-            ['name_mark' => 'Glyphline', 'rarity' => 'epic', 'level' => 40, 'xp' => 132, 'experience_bonus' => 26, 'yield_bonus' => 5, 'gold_cost' => 260, 'extra' => null],
-            ['name_mark' => 'Crownsteel', 'rarity' => 'epic', 'level' => 45, 'xp' => 140, 'experience_bonus' => 27, 'yield_bonus' => 5, 'gold_cost' => 330, 'extra' => null],
-            ['name_mark' => 'Star-Metal', 'rarity' => 'epic', 'level' => 50, 'xp' => 146, 'experience_bonus' => 28, 'yield_bonus' => 5, 'gold_cost' => 420, 'extra' => ['item_key' => 'star_metal_ingot', 'item_name' => 'Star Metal Ingot', 'quantity' => 1]],
-            ['name_mark' => 'Mythrite', 'rarity' => 'epic', 'level' => 75, 'xp' => 220, 'experience_bonus' => 42, 'yield_bonus' => 7, 'gold_cost' => 780, 'extra' => null],
-            ['name_mark' => 'Realmwake', 'rarity' => 'legendary', 'level' => 100, 'xp' => 340, 'experience_bonus' => 65, 'yield_bonus' => 10, 'gold_cost' => 1400, 'extra' => null],
+        $stats = [
+            'starter' => ['xp' => 44, 'experience_bonus' => 9, 'yield_bonus' => 2, 'gold_cost' => 35, 'extra' => ['item_key' => 'amber_sap', 'item_name' => 'Amber Sap', 'quantity' => 1]],
+            'local' => ['xp' => 58, 'experience_bonus' => 12, 'yield_bonus' => 2, 'gold_cost' => 55, 'extra' => ['item_key' => 'sunfield_grain', 'item_name' => 'Sunfield Grain', 'quantity' => 2]],
+            'apprentice' => ['xp' => 72, 'experience_bonus' => 15, 'yield_bonus' => 3, 'gold_cost' => 75, 'extra' => ['item_key' => 'minor_ward_oil', 'item_name' => 'Minor Ward Oil', 'quantity' => 1]],
+            'guild' => ['xp' => 86, 'experience_bonus' => 17, 'yield_bonus' => 3, 'gold_cost' => 90, 'extra' => ['item_key' => 'prism_lens', 'item_name' => 'Prism Lens', 'quantity' => 1]],
+            'runed' => ['xp' => 112, 'experience_bonus' => 22, 'yield_bonus' => 4, 'gold_cost' => 160, 'extra' => null],
+            'storm' => ['xp' => 132, 'experience_bonus' => 26, 'yield_bonus' => 5, 'gold_cost' => 260, 'extra' => null],
+            'elite' => ['xp' => 146, 'experience_bonus' => 28, 'yield_bonus' => 5, 'gold_cost' => 420, 'extra' => null],
+            'elder' => ['xp' => 180, 'experience_bonus' => 35, 'yield_bonus' => 6, 'gold_cost' => 600, 'extra' => null],
+            'mythic' => ['xp' => 240, 'experience_bonus' => 46, 'yield_bonus' => 8, 'gold_cost' => 900, 'extra' => null],
+            'evergather' => ['xp' => 340, 'experience_bonus' => 65, 'yield_bonus' => 10, 'gold_cost' => 1400, 'extra' => null],
         ];
+
+        return collect(EvergatherTierCatalog::tiers())
+            ->map(fn (array $tier): array => [
+                'name_mark' => $tier['mark'],
+                'rarity' => $tier['rarity'],
+                'level' => $tier['level'],
+                ...$stats[$tier['key_slug']],
+            ])
+            ->all();
     }
 
     /**
@@ -62,16 +71,6 @@ class ToolCatalogService
      */
     public function tierToolName(array $family, array $tier): string
     {
-        $tierRole = match ($tier['name_mark']) {
-            'Mythrite' => 'Deepreach',
-            'Realmwake' => 'Crownwake',
-            default => null,
-        };
-
-        if ($tierRole !== null) {
-            return "{$tier['name_mark']} {$tierRole} {$family['line']} {$family['noun']}";
-        }
-
         return "{$tier['name_mark']} {$family['line']} {$family['noun']}";
     }
 
@@ -140,7 +139,7 @@ class ToolCatalogService
                 ['item_key' => 'prism_lens', 'item_name' => 'Prism Lens', 'quantity' => 1],
             ],
             'epic' => [
-                ['item_key' => 'star_metal_ingot', 'item_name' => 'Star Metal Ingot', 'quantity' => 1],
+                ['item_key' => 'highguild_ingot', 'item_name' => 'Highguild Ingot', 'quantity' => 1],
                 ['item_key' => 'arcane_focus', 'item_name' => 'Arcane Focus', 'quantity' => 1],
             ],
             default => [],

@@ -277,17 +277,53 @@
 
             <SkillActivitiesPanel v-if="activePanel === 'gather' && activeSubPanel === 'activities'" class="xl:col-span-2" :activities="skill_activities" :player="player" :search-term="searchQuery" />
 
-            <EquipmentPanel v-if="activePanel === 'craft' && activeSubPanel === 'equipment'" class="xl:col-span-2" :equipment="equipment" :tool-inventory="tool_inventory" :tool-rarity-upgrades="tool_rarity_upgrades" :tool-tier-upgrades="tool_tier_upgrades" />
+            <Deferred v-if="activePanel === 'craft' && activeSubPanel === 'equipment'" :data="['equipment', 'tool_inventory', 'tool_rarity_upgrades', 'tool_tier_upgrades']">
+                <EquipmentPanel class="xl:col-span-2" :equipment="equipment" :tool-inventory="tool_inventory" :tool-rarity-upgrades="tool_rarity_upgrades" :tool-tier-upgrades="tool_tier_upgrades" />
 
-            <CraftingPanel v-if="activePanel === 'craft' && activeSubPanel === 'recipes'" class="xl:col-span-2" :recipes="crafting_recipes" :search-term="searchQuery" />
+                <template #fallback>
+                    <DeferredPanelSkeleton title="Equipment" subtitle="Loading equipped tools and upgrade paths..." />
+                </template>
+            </Deferred>
 
-            <JobsPanel v-if="activePanel === 'craft' && activeSubPanel === 'jobs'" class="xl:col-span-2" :jobs="jobs" :search-term="searchQuery" />
+            <Deferred v-if="activePanel === 'craft' && activeSubPanel === 'recipes'" data="crafting_recipes">
+                <CraftingPanel class="xl:col-span-2" :recipes="crafting_recipes" :search-term="searchQuery" />
 
-            <ExpeditionsPanel v-if="activePanel === 'craft' && activeSubPanel === 'expeditions'" class="xl:col-span-2" :expeditions="expeditions" :search-term="searchQuery" />
+                <template #fallback>
+                    <DeferredPanelSkeleton title="Recipes" subtitle="Loading craftable recipes..." />
+                </template>
+            </Deferred>
 
-            <MarketplacePanel v-if="activePanel === 'trade' && activeSubPanel === 'marketplace'" class="xl:col-span-2" :marketplace="marketplace" :search-term="searchQuery" />
+            <Deferred v-if="activePanel === 'craft' && activeSubPanel === 'jobs'" data="jobs">
+                <JobsPanel class="xl:col-span-2" :jobs="jobs" :search-term="searchQuery" />
 
-            <ShopPanel v-if="activePanel === 'trade' && activeSubPanel === 'shop'" class="xl:col-span-2" :shop="shop" :search-term="searchQuery" />
+                <template #fallback>
+                    <DeferredPanelSkeleton title="Jobs" subtitle="Loading commission boards..." />
+                </template>
+            </Deferred>
+
+            <Deferred v-if="activePanel === 'craft' && activeSubPanel === 'expeditions'" data="expeditions">
+                <ExpeditionsPanel class="xl:col-span-2" :expeditions="expeditions" :search-term="searchQuery" />
+
+                <template #fallback>
+                    <DeferredPanelSkeleton title="Expeditions" subtitle="Loading route boards..." />
+                </template>
+            </Deferred>
+
+            <Deferred v-if="activePanel === 'trade' && activeSubPanel === 'marketplace'" data="marketplace">
+                <MarketplacePanel class="xl:col-span-2" :marketplace="marketplace" :search-term="searchQuery" />
+
+                <template #fallback>
+                    <DeferredPanelSkeleton title="Marketplace" subtitle="Loading listings and market signals..." />
+                </template>
+            </Deferred>
+
+            <Deferred v-if="activePanel === 'trade' && activeSubPanel === 'shop'" data="shop">
+                <ShopPanel class="xl:col-span-2" :shop="shop" :search-term="searchQuery" />
+
+                <template #fallback>
+                    <DeferredPanelSkeleton title="Shop" subtitle="Loading vendor offers..." />
+                </template>
+            </Deferred>
 
             <Deferred v-if="activePanel === 'progress' && activeSubPanel === 'events'" data="world_events">
                 <WorldEventsPanel class="xl:col-span-2" :world-events="world_events" />
@@ -305,7 +341,13 @@
                 </template>
             </Deferred>
 
-            <SkillsPanel v-if="activePanel === 'progress' && activeSubPanel === 'skills'" class="xl:col-span-2" :skills="skills" :catalog="skill_catalog" :search-term="searchQuery" />
+            <Deferred v-if="activePanel === 'progress' && activeSubPanel === 'skills'" :data="['skills', 'skill_catalog']">
+                <SkillsPanel class="xl:col-span-2" :skills="skills" :catalog="skill_catalog" :search-term="searchQuery" />
+
+                <template #fallback>
+                    <DeferredPanelSkeleton title="Skills" subtitle="Loading skill trees and unlock paths..." />
+                </template>
+            </Deferred>
 
             <Deferred v-if="activePanel === 'trade' && activeSubPanel === 'inventory'" data="item_guide">
                 <section class="surface-section xl:col-span-2">
@@ -457,7 +499,8 @@
                 </template>
             </Deferred>
 
-            <section v-if="activePanel === 'progress' && activeSubPanel === 'recent'" class="surface-section xl:col-span-2">
+            <Deferred v-if="activePanel === 'progress' && activeSubPanel === 'recent'" data="recent_actions">
+                <section class="surface-section xl:col-span-2">
                 <div class="surface-section__header">
                     <div class="surface-section__copy">
                         <span class="surface-section__title">Recent Actions</span>
@@ -516,13 +559,18 @@
                         </p>
                     </div>
                 </div>
-            </section>
+                </section>
+
+                <template #fallback>
+                    <DeferredPanelSkeleton title="Recent Actions" subtitle="Loading the action ledger..." />
+                </template>
+            </Deferred>
         </div>
     </AuthenticatedLayout>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { Deferred, router, useForm, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import CraftingPanel from './CraftingPanel.vue'
@@ -570,15 +618,28 @@ const props = defineProps({
     },
     skills: {
         type: Array,
-        required: true,
+        default: () => [],
     },
     skill_catalog: {
         type: Object,
-        required: true,
+        default: () => ({
+            groups: [],
+            pacing: {
+                max_level: 100,
+                estimated_hours_to_level_100: 0,
+                level_100_experience: 0,
+                calibrated_experience_per_hour: 0,
+                target_hours_range: [0, 0],
+                category_targets: {},
+                major_action_goal_range: [0, 0],
+            },
+        }),
     },
     item_catalog: {
         type: Object,
-        required: true,
+        default: () => ({
+            rarities: {},
+        }),
     },
     item_guide: {
         type: Object,
@@ -594,43 +655,64 @@ const props = defineProps({
     },
     inventory: {
         type: Array,
-        required: true,
+        default: () => [],
     },
     equipment: {
         type: Array,
-        required: true,
+        default: () => [],
     },
     tool_inventory: {
         type: Array,
-        required: true,
+        default: () => [],
     },
     tool_rarity_upgrades: {
         type: Object,
-        required: true,
+        default: () => ({
+            options: [],
+            ready_count: 0,
+        }),
     },
     tool_tier_upgrades: {
         type: Object,
-        required: true,
+        default: () => ({
+            options: [],
+            ready_count: 0,
+        }),
     },
     crafting_recipes: {
         type: Array,
-        required: true,
+        default: () => [],
     },
     jobs: {
         type: Array,
-        required: true,
+        default: () => [],
     },
     expeditions: {
         type: Array,
-        required: true,
+        default: () => [],
     },
     marketplace: {
         type: Object,
-        required: true,
+        default: () => ({
+            sellable_inventory: [],
+            sellable_tools: [],
+            active_listings: [],
+            my_listings: [],
+            recent_transactions: [],
+            market_board: {
+                rows: [],
+            },
+            npc_vendor: {
+                name: 'Ledger Steward',
+                description: '',
+            },
+        }),
     },
     shop: {
         type: Object,
-        required: true,
+        default: () => ({
+            offers: [],
+        }),
     },
     progression: {
         type: Object,
@@ -646,7 +728,7 @@ const props = defineProps({
     },
     recent_actions: {
         type: Array,
-        required: true,
+        default: () => [],
     },
     summary: {
         type: Object,
@@ -684,18 +766,30 @@ const defaultActiveSubPanels = {
     trade: 'marketplace',
     progress: 'skills',
 }
-const deferredPropsBySubPanel = {
+const refreshPropsBySubPanel = {
+    actions: ['actions'],
+    activities: ['skill_activities'],
+    equipment: ['equipment', 'tool_inventory', 'tool_rarity_upgrades', 'tool_tier_upgrades'],
+    recipes: ['crafting_recipes'],
+    jobs: ['jobs'],
+    expeditions: ['expeditions'],
+    marketplace: ['marketplace'],
+    shop: ['shop'],
     inventory: ['item_guide'],
+    skills: ['skills', 'skill_catalog', 'progression', 'summary'],
     events: ['world_events'],
     leaderboards: ['leaderboards'],
+    recent: ['recent_actions', 'summary'],
+    progression: ['progression', 'summary'],
 }
 const savedNavigationState = readSavedNavigationState()
 const page = usePage()
-const warmingDeferredProps = new Set()
+const warmingProps = new Set()
 
 const activePanel = ref(savedNavigationState.activePanel)
 const activeSubPanels = ref(savedNavigationState.activeSubPanels)
 const searchQuery = ref(savedNavigationState.searchQuery)
+const staleProps = ref([])
 const selectedInventoryCategory = ref('all')
 const selectedInventoryKey = ref('')
 const repeatProcessing = ref(false)
@@ -722,9 +816,9 @@ const actionLabels = computed(() => Object.fromEntries(
 const workspaceTabs = computed(() => [
     { key: 'overview', label: 'Overview', count: props.player.can_act_now ? 'Ready' : 'Wait' },
     { key: 'gather', label: 'Gather', count: props.actions.length + props.skill_activities.length },
-    { key: 'craft', label: 'Craft', count: props.crafting_recipes.length + props.jobs.length + props.expeditions.length },
-    { key: 'trade', label: 'Trade', count: props.shop.offers.length + props.marketplace.active_listings.length },
-    { key: 'progress', label: 'Progress', count: props.skills.length },
+    { key: 'craft', label: 'Craft', count: workspacePanelCount('craft', props.crafting_recipes.length + props.jobs.length + props.expeditions.length) },
+    { key: 'trade', label: 'Trade', count: workspacePanelCount('trade', props.shop.offers.length + props.marketplace.active_listings.length) },
+    { key: 'progress', label: 'Progress', count: workspacePanelCount('progress', props.skills.length) },
 ])
 
 const workspaceSubTabs = computed(() => ({
@@ -739,23 +833,23 @@ const workspaceSubTabs = computed(() => ({
         ...resultSubTab(),
     ],
     craft: [
-        { key: 'equipment', label: 'Equipment', count: props.equipment.length },
-        { key: 'recipes', label: 'Recipes', count: props.crafting_recipes.length },
-        { key: 'jobs', label: 'Jobs', count: props.jobs.length },
-        { key: 'expeditions', label: 'Expeditions', count: props.expeditions.length },
+        { key: 'equipment', label: 'Equipment', count: subPanelCount('equipment', props.equipment.length) },
+        { key: 'recipes', label: 'Recipes', count: subPanelCount('recipes', props.crafting_recipes.length) },
+        { key: 'jobs', label: 'Jobs', count: subPanelCount('jobs', props.jobs.length) },
+        { key: 'expeditions', label: 'Expeditions', count: subPanelCount('expeditions', props.expeditions.length) },
         ...resultSubTab(),
     ],
     trade: [
-        { key: 'marketplace', label: 'Marketplace', count: props.marketplace.active_listings.length },
-        { key: 'shop', label: 'Shop', count: props.shop.offers.length },
-        { key: 'inventory', label: 'Inventory', count: props.summary.inventory_quantity },
+        { key: 'marketplace', label: 'Marketplace', count: subPanelCount('marketplace', props.marketplace.active_listings.length) },
+        { key: 'shop', label: 'Shop', count: subPanelCount('shop', props.shop.offers.length) },
+        { key: 'inventory', label: 'Inventory', count: subPanelCount('inventory', props.summary.inventory_quantity) },
         ...resultSubTab(),
     ],
     progress: [
-        { key: 'skills', label: 'Skills', count: props.skills.length },
-        { key: 'events', label: 'World Events', count: deferredCount('world_events', props.world_events.active.length + props.world_events.upcoming.length) },
-        { key: 'leaderboards', label: 'Ranks', count: deferredCount('leaderboards', props.leaderboards.groups.reduce((total, group) => total + group.count, 0)) },
-        { key: 'recent', label: 'Recent', count: props.summary.action_count },
+        { key: 'skills', label: 'Skills', count: subPanelCount('skills', props.skills.length) },
+        { key: 'events', label: 'World Events', count: subPanelCount('events', props.world_events.active.length + props.world_events.upcoming.length) },
+        { key: 'leaderboards', label: 'Ranks', count: subPanelCount('leaderboards', props.leaderboards.groups.reduce((total, group) => total + group.count, 0)) },
+        { key: 'recent', label: 'Recent', count: subPanelCount('recent', props.summary.action_count) },
     ],
 }))
 
@@ -804,6 +898,14 @@ const avatarPaletteClass = computed(() => ({
 
 watch([activePanel, activeSubPanels, searchQuery], persistNavigationState, {
     deep: true,
+})
+
+watch(() => props.last_result, (result) => {
+    markPropsStale(propsInvalidatedByResult(result))
+})
+
+onMounted(() => {
+    warmSubPanel(activeSubPanel.value)
 })
 
 function actionLabel(action) {
@@ -979,7 +1081,11 @@ function selectWorkspaceTab(panel) {
 
     if (!activeWorkspaceSubTabs.value.some((tab) => tab.key === activeSubPanel.value)) {
         selectSubPanel(activeWorkspaceSubTabs.value[0]?.key)
+
+        return
     }
+
+    warmSubPanel(activeSubPanel.value)
 }
 
 function selectSubPanel(panel) {
@@ -995,29 +1101,207 @@ function selectSubPanel(panel) {
     }
 }
 
-function deferredCount(prop, count) {
-    return deferredPropLoaded(prop) ? count : 'Load'
+function subPanelCount(panel, count) {
+    if (subPanelStale(panel)) {
+        return 'Refresh'
+    }
+
+    const unloadedDeferredProp = (refreshPropsBySubPanel[panel] ?? []).find((prop) => !propLoaded(prop))
+
+    return unloadedDeferredProp ? 'Load' : count
 }
 
-function deferredPropLoaded(prop) {
+function workspacePanelCount(panel, count) {
+    const panelProps = {
+        craft: ['equipment', 'tool_inventory', 'tool_rarity_upgrades', 'tool_tier_upgrades', 'crafting_recipes', 'jobs', 'expeditions'],
+        trade: ['marketplace', 'shop'],
+        progress: ['skills', 'skill_catalog'],
+    }[panel] ?? []
+
+    if (panelProps.some((prop) => propStale(prop))) {
+        return 'Refresh'
+    }
+
+    return panelProps.some((prop) => !propLoaded(prop)) ? 'Load' : count
+}
+
+function propLoaded(prop) {
     return page.props[prop] !== undefined
 }
 
 function warmSubPanel(panel) {
-    const propsToLoad = (deferredPropsBySubPanel[panel] ?? [])
-        .filter((prop) => !deferredPropLoaded(prop) && !warmingDeferredProps.has(prop))
+    const propsToLoad = (refreshPropsBySubPanel[panel] ?? [])
+        .filter((prop) => (!propLoaded(prop) || propStale(prop)) && !warmingProps.has(prop))
 
     if (!propsToLoad.length) {
         return
     }
 
-    propsToLoad.forEach((prop) => warmingDeferredProps.add(prop))
+    propsToLoad.forEach((prop) => warmingProps.add(prop))
 
     router.reload({
         only: propsToLoad,
         preserveScroll: true,
-        onFinish: () => propsToLoad.forEach((prop) => warmingDeferredProps.delete(prop)),
+        onFinish: () => {
+            propsToLoad.forEach((prop) => warmingProps.delete(prop))
+            clearPropsStale(propsToLoad)
+        },
     })
+}
+
+function propsInvalidatedByResult(result) {
+    if (!result) {
+        return []
+    }
+
+    if (result.action && result.type !== 'tool_equip' && result.type !== 'tool_unequip') {
+        return inventoryChangeProps()
+    }
+
+    if (!result.type) {
+        return []
+    }
+
+    const invalidatedProps = {
+        achievement_claim: [],
+        crafting: [
+            'jobs',
+            'expeditions',
+            'marketplace',
+            'shop',
+            'equipment',
+            'tool_inventory',
+            'tool_rarity_upgrades',
+            'tool_tier_upgrades',
+            'skills',
+            'item_guide',
+        ],
+        expedition: [
+            'crafting_recipes',
+            'jobs',
+            'marketplace',
+            'shop',
+            'skills',
+            'item_guide',
+        ],
+        job: [
+            'crafting_recipes',
+            'expeditions',
+            'marketplace',
+            'shop',
+            'skills',
+            'item_guide',
+        ],
+        market_cancel: [
+            'tool_inventory',
+            'item_guide',
+        ],
+        market_listing: [
+            'tool_inventory',
+            'item_guide',
+        ],
+        market_purchase: [
+            'crafting_recipes',
+            'jobs',
+            'expeditions',
+            'shop',
+            'equipment',
+            'tool_inventory',
+            'tool_rarity_upgrades',
+            'tool_tier_upgrades',
+            'item_guide',
+        ],
+        npc_sale: [
+            'crafting_recipes',
+            'jobs',
+            'expeditions',
+            'shop',
+            'item_guide',
+        ],
+        reward_loadout: [],
+        shop: [
+            'crafting_recipes',
+            'jobs',
+            'expeditions',
+            'marketplace',
+            'equipment',
+            'tool_inventory',
+            'tool_rarity_upgrades',
+            'tool_tier_upgrades',
+            'item_guide',
+        ],
+        skill_activity: inventoryChangeProps(),
+        tool_equip: [
+            'actions',
+            'skill_activities',
+            'shop',
+            'marketplace',
+            'item_guide',
+        ],
+        tool_rarity_upgrade: [
+            'actions',
+            'skill_activities',
+            'shop',
+            'marketplace',
+            'skills',
+            'item_guide',
+        ],
+        tool_tier_upgrade: [
+            'actions',
+            'skill_activities',
+            'shop',
+            'marketplace',
+            'skills',
+            'item_guide',
+        ],
+        tool_unequip: [
+            'actions',
+            'skill_activities',
+            'shop',
+            'marketplace',
+            'item_guide',
+        ],
+    }[result.type] ?? []
+
+    return uniqueProps(invalidatedProps)
+}
+
+function inventoryChangeProps() {
+    return [
+        'crafting_recipes',
+        'jobs',
+        'expeditions',
+        'marketplace',
+        'shop',
+        'skills',
+        'item_guide',
+    ]
+}
+
+function markPropsStale(propsToMark) {
+    const props = uniqueProps(propsToMark)
+
+    if (!props.length) {
+        return
+    }
+
+    staleProps.value = uniqueProps([...staleProps.value, ...props])
+}
+
+function clearPropsStale(propsToClear) {
+    staleProps.value = staleProps.value.filter((prop) => !propsToClear.includes(prop))
+}
+
+function propStale(prop) {
+    return staleProps.value.includes(prop)
+}
+
+function subPanelStale(panel) {
+    return (refreshPropsBySubPanel[panel] ?? []).some((prop) => propStale(prop))
+}
+
+function uniqueProps(props) {
+    return [...new Set((props ?? []).filter(Boolean))]
 }
 
 function resultSubTab() {

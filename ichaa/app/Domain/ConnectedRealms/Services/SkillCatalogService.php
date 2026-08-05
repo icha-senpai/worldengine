@@ -148,7 +148,7 @@ class SkillCatalogService
             'category' => 'Processing',
             'role' => 'Gems into jewels',
             'description' => 'Cut gems, fossils, lenses, and magical stones for crafting and enchantment.',
-            'unlocks' => [1 => 'Rough cuts', 10 => 'Gem polishing', 25 => 'Socket stones', 50 => 'Prismatic cuts', 75 => 'Starfacet work', 100 => 'Facet savant'],
+            'unlocks' => [1 => 'Rough cuts', 10 => 'Gem polishing', 25 => 'Socket stones', 50 => 'Highguild cuts', 75 => 'Starfacet work', 100 => 'Facet savant'],
         ],
         'weaving' => [
             'label' => 'Weaving',
@@ -518,15 +518,16 @@ class SkillCatalogService
      */
     private function unlocksFor(string $skill, array $definition): array
     {
-        $unlocks = $definition['unlocks'];
+        $unlocks = [];
 
-        foreach ($this->earlyUnlocksFor($skill, $definition) as $level => $label) {
-            if (! array_key_exists($level, $unlocks)) {
-                $unlocks[$level] = $label;
-            }
+        foreach (EvergatherTierCatalog::tiers() as $tier) {
+            $level = $tier['level'];
+            $label = $definition['unlocks'][$level]
+                ?? $this->earlyUnlocksFor($skill, $definition)[$level]
+                ?? $this->canonicalUnlockLabel($definition, $tier);
+
+            $unlocks[$level] = "{$tier['mark']}: {$label}";
         }
-
-        ksort($unlocks);
 
         return $unlocks;
     }
@@ -605,6 +606,25 @@ class SkillCatalogService
                     15 => "{$label} specialist routes",
                     20 => "{$label} board commissions",
                 ],
+        };
+    }
+
+    /**
+     * @param  array{label: string, type: string, category: string}  $definition
+     * @param  array{mark: string, key_slug: string}  $tier
+     */
+    private function canonicalUnlockLabel(array $definition, array $tier): string
+    {
+        $label = $definition['label'] ?? 'Skill';
+
+        return match ($tier['key_slug']) {
+            'local' => "{$label} local board",
+            'guild' => "{$label} guild board",
+            'runed' => "{$label} runed orders",
+            'storm' => "{$label} storm requests",
+            'elder' => "{$label} elder writs",
+            'mythic' => "{$label} mythic claims",
+            default => "{$label} ".str($tier['key_slug'])->headline()->lower()->toString(),
         };
     }
 

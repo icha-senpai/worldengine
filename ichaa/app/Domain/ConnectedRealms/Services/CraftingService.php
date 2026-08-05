@@ -654,10 +654,10 @@ class CraftingService
                 ['item_key' => 'iron_bar', 'item_name' => 'Iron Bar', 'quantity' => 2],
                 ['item_key' => 'coal_chunk', 'item_name' => 'Coal Chunk', 'quantity' => 3],
             ], [['item_key' => 'steel_ingot', 'item_name' => 'Steel Ingot', 'rarity' => 'uncommon', 'quantity' => 1]], 'Processing'),
-            'star_metal_ingot' => self::itemRecipe('Star Metal Ingot', 'smelting', 45, 118, [
-                ['item_key' => 'star_metal_ore', 'item_name' => 'Star Metal Ore', 'quantity' => 2],
+            'highguild_ingot' => self::itemRecipe('Highguild Ingot', 'smelting', 45, 118, [
+                ['item_key' => 'highguild_ore', 'item_name' => 'Highguild Ore', 'quantity' => 2],
                 ['item_key' => 'void_coal', 'item_name' => 'Void Coal', 'quantity' => 2],
-            ], [['item_key' => 'star_metal_ingot', 'item_name' => 'Star Metal Ingot', 'rarity' => 'epic', 'quantity' => 1]], 'Processing'),
+            ], [['item_key' => 'highguild_ingot', 'item_name' => 'Highguild Ingot', 'rarity' => 'epic', 'quantity' => 1]], 'Processing'),
             'resin_plank' => self::itemRecipe('Resin Plank', 'milling', 1, 26, [
                 ['item_key' => 'ashwood_log', 'item_name' => 'Ashwood Log', 'quantity' => 2],
                 ['item_key' => 'amber_sap', 'item_name' => 'Amber Sap', 'quantity' => 1],
@@ -821,12 +821,10 @@ class CraftingService
             'trading' => ['category' => 'Social', 'ingredient_skill' => 'farming'],
         ];
         $tiers = [
-            ['level' => 20, 'prefix' => 'Silverbank', 'rarity' => 'uncommon', 'experience' => 74],
-            ['level' => 25, 'prefix' => 'Sablecross', 'rarity' => 'uncommon', 'experience' => 88],
+            ['level' => 20, 'prefix' => 'Hearthsign', 'rarity' => 'uncommon', 'experience' => 74],
             ['level' => 30, 'prefix' => 'Runebound', 'rarity' => 'rare', 'experience' => 106],
-            ['level' => 35, 'prefix' => 'Moonwake', 'rarity' => 'rare', 'experience' => 128],
-            ['level' => 40, 'prefix' => 'Stormglass', 'rarity' => 'epic', 'experience' => 154],
-            ['level' => 45, 'prefix' => 'Starline', 'rarity' => 'epic', 'experience' => 182],
+            ['level' => 40, 'prefix' => 'Stormglass', 'rarity' => 'rare', 'experience' => 154],
+            ['level' => 50, 'prefix' => 'Highguild', 'rarity' => 'rare', 'experience' => 190],
         ];
         $recipes = [];
 
@@ -841,9 +839,9 @@ class CraftingService
                     $tier['experience'],
                     [
                         [
-                            'item_key' => self::midgameResourceKey($family['ingredient_skill'], min($level, 40)),
+                            'item_key' => self::midgameResourceKey($family['ingredient_skill'], $level),
                             'item_name' => GeneratedItemNameService::midgameGatheringResourceName($family['ingredient_skill'], $level),
-                            'quantity' => $level >= 35 ? 3 : 2,
+                            'quantity' => $level >= 40 ? 3 : 2,
                         ],
                     ],
                     [
@@ -889,11 +887,8 @@ class CraftingService
             'trading' => ['noun' => 'Charter', 'category' => 'Social', 'ingredient_skill' => 'farming', 'ingredient' => 'seed'],
         ];
         $tiers = [
-            ['level' => 55, 'prefix' => 'Runebound', 'rarity' => 'rare', 'experience' => 150],
-            ['level' => 65, 'prefix' => 'Elderwake', 'rarity' => 'rare', 'experience' => 190],
-            ['level' => 75, 'prefix' => 'Mythgate', 'rarity' => 'epic', 'experience' => 245],
-            ['level' => 85, 'prefix' => 'Astral', 'rarity' => 'epic', 'experience' => 310],
-            ['level' => 95, 'prefix' => 'Prismatic', 'rarity' => 'legendary', 'experience' => 395],
+            ['level' => 65, 'prefix' => 'Elderwake', 'rarity' => 'epic', 'experience' => 190],
+            ['level' => 80, 'prefix' => 'Mythgate', 'rarity' => 'epic', 'experience' => 310],
             ['level' => 100, 'prefix' => 'Crownmark', 'rarity' => 'legendary', 'experience' => 520],
         ];
         $recipes = [];
@@ -911,7 +906,7 @@ class CraftingService
                         [
                             'item_key' => self::endgameResourceKey($family['ingredient_skill'], $tier['prefix'], $family['ingredient'], $level),
                             'item_name' => GeneratedItemNameService::endgameGatheringResourceName($family['ingredient_skill'], $family['ingredient'], $tier['prefix']),
-                            'quantity' => $level >= 95 ? 4 : 3,
+                            'quantity' => $level >= 100 ? 4 : 3,
                         ],
                     ],
                     [
@@ -984,7 +979,7 @@ class CraftingService
      */
     private static function craftedToolWorkIngredient(string $skill, int $level): array
     {
-        if ($level < 50) {
+        if ($level < 65) {
             return [
                 'item_key' => self::midgameRecipeOutputKey($skill, $level),
                 'item_name' => self::midgameRecipeOutputName($skill, $level),

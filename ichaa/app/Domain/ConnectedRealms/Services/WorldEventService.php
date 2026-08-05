@@ -29,7 +29,7 @@ class WorldEventService
             'ends_at' => '2026-08-04T00:00:00-05:00',
             'description' => 'Star-metal sparks through the quarry seams and turns careful ore work into better toolmaking runs.',
             'bonus' => ['experience' => 2, 'yield' => 1, 'gold' => 0],
-            'reward' => 'Star Metal Ingot chances from late quarry and forge paths.',
+            'reward' => 'Highguild Ingot chances from late quarry and forge paths.',
         ],
         'wardens_muster' => [
             'label' => 'Warden\'s Muster',

@@ -77,7 +77,7 @@
                                 class="app-btn app-btn--primary app-btn--sm"
                                 :disabled="loadoutForm.processing || !progression.claimed_rewards.length"
                             >
-                                Equip Title
+                                {{ loadoutForm.processing ? 'Equipping...' : 'Equip Title' }}
                             </button>
                         </form>
                     </div>
@@ -104,7 +104,7 @@
                             :disabled="claimForm.processing"
                             @click="claimAchievement(focusAchievement.key)"
                         >
-                            Claim Reward
+                            {{ runningAchievement === focusAchievement.key ? 'Claiming...' : 'Claim Reward' }}
                         </button>
                     </div>
                 </div>
@@ -210,7 +210,7 @@
                                     :disabled="claimForm.processing || !achievement.can_claim"
                                     @click="claimAchievement(achievement.key)"
                                 >
-                                    {{ achievement.claimed ? 'Claimed' : achievement.can_claim ? 'Claim' : 'Locked' }}
+                                    {{ runningAchievement === achievement.key ? 'Claiming...' : achievement.claimed ? 'Claimed' : achievement.can_claim ? 'Claim' : 'Locked' }}
                                 </button>
                             </div>
                         </article>
@@ -265,6 +265,7 @@ const selectedCategory = ref('all')
 const selectedBoard = ref('ready')
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
+const runningAchievement = ref('')
 const claimForm = useForm({
     achievement: '',
 })
@@ -416,6 +417,12 @@ function claimAchievement(achievement) {
     claimForm.post(route('evergather.achievements.claims.store'), {
         preserveScroll: true,
         only: achievementReloadProps,
+        onStart: () => {
+            runningAchievement.value = achievement
+        },
+        onFinish: () => {
+            runningAchievement.value = ''
+        },
     })
 }
 

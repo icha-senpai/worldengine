@@ -132,50 +132,6 @@ class JobContractService
         'token_exchange' => ['label' => 'Token Exchange', 'category' => 'Social', 'skill' => 'trading', 'level' => 8, 'experience' => 58, 'gold' => 48, 'item_key' => 'market_token', 'item_name' => 'Market Token', 'quantity' => 1],
     ];
 
-    /**
-     * @var array<string, array<int, string>>
-     */
-    private const JOB_TITLES = [
-        'fishing' => [15 => 'River Market Icebox', 20 => 'Netmender Supply Crate', 25 => 'Reef Eel Tally', 30 => 'Moonpool Bait Ledger', 35 => 'Deepwater Catch Hold', 40 => 'Pearlscale Fishery Claim', 45 => 'Stormdock Provision Lot', 50 => 'Tidewarden Reef Order', 75 => 'Leviathan Wake Bounty', 100 => 'Evergather Tide Tribute'],
-        'mining' => [15 => 'Copper Vein Assay', 20 => 'Coalhouse Stock Writ', 25 => 'Cobalt Claim Ledger', 30 => 'Gem Pocket Survey', 35 => 'Deep Quarry Delivery', 40 => 'Runebound Ore Inspection', 45 => 'Foundry Reserve Haul', 50 => 'Mountainheart Assay', 75 => 'Starmetal Claim Warrant', 100 => 'Crownspire Ore Tribute'],
-        'woodcutting' => [15 => 'Hardwood Camp Quota', 20 => 'Resin Tap Ledger', 25 => 'Heartwood Survey Order', 30 => 'Bridge Beam Requisition', 35 => 'Grovekeeper Timber Lot', 40 => 'Stormfall Lumber Claim', 45 => 'Ancient Bark Harvest', 50 => 'Living Timber Writ', 75 => 'Elder Grove Stewardship', 100 => 'Worldroot Timber Tribute'],
-        'foraging' => [15 => 'Herbalist Field Satchel', 20 => 'Mushroom Ring Survey', 25 => 'Silk Moss Parcel', 30 => 'Bitterroot Remedy Cache', 35 => 'Mooncap Grove Tally', 40 => 'Rare Bloom Preservation', 45 => 'Alchemist Wild Stock', 50 => 'Dawnpetal Reserve Order', 75 => 'Moonlit Orchid Warrant', 100 => 'Wildskeeper Seed Tribute'],
-        'hunting' => [15 => 'Trail Trap Recovery', 20 => 'Hide Camp Muster', 25 => 'Fang Trophy Tally', 30 => 'Ridge Stalker Parcel', 35 => 'Monster Hide Delivery', 40 => 'Great Beast Tracking Writ', 45 => 'Hunter Lodge Reserve', 50 => 'Apex Spoor Dossier', 75 => 'Crownbeast Trophy Warrant', 100 => 'First Hunt Tribute'],
-        'farming' => [15 => 'Bean Row Harvest', 20 => 'Herb Bed Ledger', 25 => 'Dusk Wheat Parcel', 30 => 'Orchard Market Cart', 35 => 'Greenhouse Yield Order', 40 => 'Seasonal Seed Audit', 45 => 'Sunfield Granary Lot', 50 => 'Sunfield Reserve Granary', 75 => 'Everdawn Crop Warrant', 100 => 'Evergarden Bounty'],
-        'excavation' => [15 => 'Relic Grid Report', 20 => 'Bone Bed Recovery', 25 => 'Ancient Tablet Claim', 30 => 'Buried Mechanism Cache', 35 => 'Ruin Chamber Ledger', 40 => 'Lost Archive Parcel', 45 => 'Sanctum Dust Survey', 50 => 'Deep Archive Claim', 75 => 'First Age Relic Warrant', 100 => 'First Age Reliquary'],
-        'smelting' => [15 => 'Iron Furnace Batch', 20 => 'Coal Blend Ledger', 25 => 'Cobalt Bar Quota', 30 => 'Alloy Heat Order', 35 => 'Runebound Ingot Pour', 40 => 'Foundry Night Shift', 45 => 'Prismatic Flux Batch', 50 => 'Master Furnace Charge', 75 => 'Starmetal Refinement Warrant', 100 => 'Worldforge Pour'],
-        'milling' => [15 => 'Ashwood Plank Haul', 20 => 'Bark Sheet Quota', 25 => 'Resin Board Ledger', 30 => 'Bridge Beam Batch', 35 => 'Precision Dowel Order', 40 => 'Heartwood Stock Measure', 45 => 'Living Timber Cut List', 50 => 'Oathhall Beam Requisition', 75 => 'Elderwood Mill Warrant', 100 => 'Worldroot Saw Order'],
-        'tanning' => [15 => 'Cured Hide Parcel', 20 => 'Leather Strip Quota', 25 => 'Scale Backing Order', 30 => 'Harness Stock Ledger', 35 => 'Monster Hide Cure', 40 => 'Reinforced Leather Fit', 45 => 'Sinew Binding Lot', 50 => 'Beastguard Stock Writ', 75 => 'Apex Leather Warrant', 100 => 'Apex Leather Tribute'],
-        'cutting' => [15 => 'Polished Gem Packet', 20 => 'Socket Stone Ledger', 25 => 'Quartz Lens Order', 30 => 'Prismatic Facet Brief', 35 => 'Geode Appraisal Lot', 40 => 'Focus Cut Register', 45 => 'Starfacet Gem Claim', 50 => 'Crown Facet Register', 75 => 'Starfacet Warrant', 100 => 'First Light Jewel'],
-        'weaving' => [15 => 'Fiber Thread Bundle', 20 => 'Reed Cloth Quota', 25 => 'Canvas Reinforcement Lot', 30 => 'Silk Loom Ledger', 35 => 'Spellthread Spool Order', 40 => 'Banner Cloth Requisition', 45 => 'Moonweave Bolt', 50 => 'Moonweave Loomhouse Claim', 75 => 'Astral Thread Warrant', 100 => 'Crown Loom Tribute'],
-        'smithing' => [15 => 'Iron Fittings Order', 20 => 'Toolhead Forge Ticket', 25 => 'Steel Frame Request', 30 => 'Armor Rivet Lot', 35 => 'Runed Pick Head', 40 => 'Masterwork Anvil Brief', 45 => 'Crown Tool Commission', 50 => 'Warplate Assembly Writ', 75 => 'Meteor Gear Warrant', 100 => 'Anvil Saint Mandate'],
-        'carpentry' => [15 => 'Handlewright Lot', 20 => 'Bow Stave Request', 25 => 'Strong Frame Ledger', 30 => 'Cratewright Delivery', 35 => 'Expedition Timber Kit', 40 => 'Oathhall Joinery Brief', 45 => 'Living Wood Handle', 50 => 'Master Carpenter Writ', 75 => 'Heartwood Frame Warrant', 100 => 'Worldroot Joinery Mandate'],
-        'cooking' => [15 => 'Ration Kettle Order', 20 => 'Harbor Soup Shift', 25 => 'Skill Meal Platter', 30 => 'Hunter Feast Ledger', 35 => 'Raid Pantry Refill', 40 => 'Dusk Feast Request', 45 => 'Festival Kitchen Brief', 50 => 'Oathhall Banquet Order', 75 => 'Starfeast Cuisine Warrant', 100 => 'Realm Chef Banquet'],
-        'alchemy' => [15 => 'Field Tonic Crate', 20 => 'Ward Oil Ledger', 25 => 'Combat Draught Parcel', 30 => 'Catalyst Vial Brief', 35 => 'Bitterroot Remedy Order', 40 => 'Prismatic Reagent Vessel', 45 => 'Transmutation Vessel', 50 => 'Grand Still Requisition', 75 => 'Dreamroot Elixir Warrant', 100 => 'Grand Alchemist Mandate'],
-        'tailoring' => [15 => 'Field Wrap Bundle', 20 => 'Satchel Stitch Order', 25 => 'Robe Panel Ledger', 30 => 'Sailcloth Delivery', 35 => 'Banner Hem Brief', 40 => 'Spellcloth Garment Lot', 45 => 'Court Outfit Request', 50 => 'Court Regalia Parcel', 75 => 'Astral Vestment Warrant', 100 => 'Couture Master Mandate'],
-        'leatherworking' => [15 => 'Pouchmaker Parcel', 20 => 'Tool Belt Order', 25 => 'Leather Armor Fit', 30 => 'Travel Harness Ledger', 35 => 'Monster Gear Brief', 40 => 'Saddle Stock Request', 45 => 'Rugged Kit Fit', 50 => 'Beastguard Harness Writ', 75 => 'Apex Hide Warrant', 100 => 'Hide Artisan Mandate'],
-        'engineering' => [15 => 'Clockwork Spring Packet', 20 => 'Trapline Mechanism Order', 25 => 'Gadget Bench Brief', 30 => 'Siege Gear Ledger', 35 => 'Arcane Engine Coupling', 40 => 'Precision Trigger Lot', 45 => 'Survey Device Calibration', 50 => 'Workshop Prototype Writ', 75 => 'Astral Engine Warrant', 100 => 'Chief Engineer Mandate'],
-        'enchanting' => [15 => 'Minor Ward Oil Request', 20 => 'Charm Infusion Ledger', 25 => 'Socket Rune Brief', 30 => 'Trait Binding Parcel', 35 => 'Relic Wake Draft', 40 => 'Major Enchantment Order', 45 => 'Prismatic Rune Claim', 50 => 'Arcane Seal Requisition', 75 => 'Astral Binding Warrant', 100 => 'Arcane Binder Mandate'],
-        'jewelcrafting' => [15 => 'Copper Bezel Parcel', 20 => 'Silver Ring Request', 25 => 'Socket Trinket Ledger', 30 => 'Amulet Frame Brief', 35 => 'Focus Lens Parcel', 40 => 'Gem Sovereign Trial', 45 => 'Crown Bead Intake', 50 => 'Prismatic Lens Ledger', 75 => 'Starfacet Jewelry Warrant', 100 => 'Gem Sovereign Mandate'],
-        'boatbuilding' => [15 => 'Skiff Rib Delivery', 20 => 'Reed Float Order', 25 => 'Cargo Hull Ledger', 30 => 'Sail Frame Brief', 35 => 'Dockwright Timber Lot', 40 => 'Expedition Hull Request', 45 => 'Fleet Cargo Refit', 50 => 'Harbor Master Writ', 75 => 'Stormfleet Warrant', 100 => 'Shipwright Mandate'],
-        'furniture' => [15 => 'Ashwood Stool Delivery', 20 => 'Tablemaker Work Slip', 25 => 'Display Stand Ledger', 30 => 'Trophy Hall Brief', 35 => 'Oathhall Fixture Parcel', 40 => 'Prestige Set Fitting', 45 => 'Carved Crate Request', 50 => 'Hall Architect Writ', 75 => 'Royal Suite Warrant', 100 => 'Grand Hall Mandate'],
-        'construction' => [15 => 'Trail Signpost Crew', 20 => 'Station Repair Writ', 25 => 'Workshop Frame Ledger', 30 => 'Fortification Timber Lot', 35 => 'Bridge Scaffold Request', 40 => 'Oathhall Foundation Brief', 45 => 'Watchtower Stone Order', 50 => 'Settlement Works Writ', 75 => 'Citadel Wall Warrant', 100 => 'Realm Builder Mandate'],
-        'combat' => [15 => 'Guard Patrol Muster', 20 => 'Training Yard Drill', 25 => 'Iron Line Brief', 30 => 'Outrider Clash Report', 35 => 'Champion Trial Notice', 40 => 'Raid Vanguard Order', 45 => 'Warcamp Readiness Writ', 50 => 'Vanguard Tactics Mandate', 75 => 'Realm Champion Warrant', 100 => 'Realm Champion Challenge'],
-        'slayer' => [15 => 'Fang Study Notice', 20 => 'Marked Trophy Claim', 25 => 'Beast Weakness Dossier', 30 => 'Monster Bounty Ledger', 35 => 'Stalker Den Report', 40 => 'Nightfang Mark Writ', 45 => 'Great Beast Warrant', 50 => 'Nightfang Hunt Brief', 75 => 'Crownbeast Hunt Warrant', 100 => 'Monster Bane Challenge'],
-        'defense' => [15 => 'Shieldline Formation Drill', 20 => 'Field Repair Roster', 25 => 'Armor Mastery Brief', 30 => 'Party Guard Muster', 35 => 'Bulwark Supply Ledger', 40 => 'Dungeon Guard Writ', 45 => 'Wallbreaker Hold Order', 50 => 'Unbroken Line Mandate', 75 => 'Citadel Bulwark Warrant', 100 => 'Unbroken Wall Challenge'],
-        'healing' => [15 => 'Triage Shift Notice', 20 => 'Sap Tonic Parcel', 25 => 'Group Recovery Roster', 30 => 'Expedition Medic Kit', 35 => 'Stabilizer Vial Ledger', 40 => 'Field Hospital Roster', 45 => 'Revival Rite Brief', 50 => 'Lifewarden Supply Writ', 75 => 'Lifewarden Renewal Warrant', 100 => 'Life Warden Challenge'],
-        'magic' => [15 => 'Rune Script Watch', 20 => 'Ward Circle Ledger', 25 => 'Elemental Focus Brief', 30 => 'Ritual Night Roster', 35 => 'Arcane Storm Report', 40 => 'Sealed Rune Reading', 45 => 'Spellguard Requisition', 50 => 'Archmage Trial Writ', 75 => 'Astral Rite Warrant', 100 => 'Archmage Challenge'],
-        'ranged' => [15 => 'Bow Sighting Order', 20 => 'Arrow Stock Ledger', 25 => 'Special Shot Brief', 30 => 'Siege Range Roster', 35 => 'Trail Bow Refit', 40 => 'Trick Shot Notice', 45 => 'Skywatcher Quiver Lot', 50 => 'Marksman Trial Writ', 75 => 'Stormshot Warrant', 100 => 'Sky Archer Challenge'],
-        'exploration' => [15 => 'Sketch Route Survey', 20 => 'Regional Path Ledger', 25 => 'Hidden Room Report', 30 => 'Distant Trail Cache', 35 => 'Ancient Gate Reading', 40 => 'Scoutmaster Route Brief', 45 => 'Frontier Map Proof', 50 => 'Worldwalker Waybill', 75 => 'Ancient Gate Warrant', 100 => 'Worldwalker Mandate'],
-        'dungeoneering' => [15 => 'Room Check Notice', 20 => 'Trap Read Ledger', 25 => 'Party Route Dossier', 30 => 'Boss Room Supply List', 35 => 'Dungeon Resource Audit', 40 => 'Deep Chamber Brief', 45 => 'Vault Key Report', 50 => 'Labyrinth Route Writ', 75 => 'Deep Chamber Warrant', 100 => 'Deep Warden Mandate'],
-        'sailing' => [15 => 'Dock Rope Delivery', 20 => 'Coastal Trip Ledger', 25 => 'Cargo Run Manifest', 30 => 'Fleet Support Order', 35 => 'Stormglass Sea Chart', 40 => 'Harbor Signal Brief', 45 => 'Tide Captain Supply Lot', 50 => 'Expedition Sail Writ', 75 => 'Stormroute Warrant', 100 => 'Tide Captain Mandate'],
-        'survival' => [15 => 'Flatbread Cache Order', 20 => 'Weather Read Report', 25 => 'Long Trip Supply List', 30 => 'Hazard Kit Parcel', 35 => 'Hostile Region Brief', 40 => 'Campcraft Ledger', 45 => 'Last Light Cache', 50 => 'Wild March Writ', 75 => 'Hostile Wilds Warrant', 100 => 'Last Light Mandate'],
-        'cartography' => [15 => 'Survey Note Exchange', 20 => 'Route Map Ledger', 25 => 'Dungeon Chart Brief', 30 => 'Region Atlas Proof', 35 => 'Secret Road Survey', 40 => 'Surveyor Mark Parcel', 45 => 'Starmapper Grid Report', 50 => 'Navigator Archive Writ', 75 => 'Secret Atlas Warrant', 100 => 'Star Mapper Mandate'],
-        'reputation' => [15 => 'Barter Note Errand', 20 => 'Faction Favor Ledger', 25 => 'Regional Rate Petition', 30 => 'Trusted Access Notice', 35 => 'Council Gift Parcel', 40 => 'Title Claim Brief', 45 => 'Envoy Introduction Writ', 50 => 'Realm Favor Mandate', 75 => 'Council Seat Warrant', 100 => 'Realm Envoy Mandate'],
-        'leadership' => [15 => 'Crate Muster Notice', 20 => 'Party Call Roster', 25 => 'Oathhall Task Ledger', 30 => 'Raid Supply Brief', 35 => 'Banner Drill Order', 40 => 'Regional Campaign Writ', 45 => 'Command Tent Roster', 50 => 'War Table Mandate', 75 => 'Campaign Standard Warrant', 100 => 'Bannerlord Mandate'],
-        'trading' => [15 => 'Market Token Exchange', 20 => 'Bulk Listing Ledger', 25 => 'Work Order Packet', 30 => 'Storefront Stock Brief', 35 => 'Trade Route Manifest', 40 => 'Regional Arbitrage Writ', 45 => 'Merchant Seal Counter', 50 => 'Market Ledger Mandate', 75 => 'Royal Exchange Warrant', 100 => 'Market Sovereign Mandate'],
-    ];
-
     public function __construct(private ConnectedRealmsPlayerService $players, private ItemCatalogService $items, private ItemPurposeService $purposes) {}
 
     /**
@@ -501,7 +457,7 @@ class JobContractService
         $jobs = [];
 
         foreach (SkillCatalogService::keys() as $skill) {
-            foreach ([15, 20, 30, 35, 40, 45] as $level) {
+            foreach ([20, 30, 40, 50] as $level) {
                 $jobs["{$skill}_midgame_contract_{$level}"] = self::job(
                     self::jobTitleFor($skill, $level),
                     self::jobCategoryForLevel($level),
@@ -525,7 +481,7 @@ class JobContractService
         $jobs = [];
 
         foreach (SkillCatalogService::keys() as $skill) {
-            foreach ([25, 50, 75, 100] as $level) {
+            foreach ([65, 80, 100] as $level) {
                 $jobs["{$skill}_mastery_contract_{$level}"] = self::job(
                     self::jobTitleFor($skill, $level),
                     self::jobCategoryForLevel($level),
@@ -546,13 +502,13 @@ class JobContractService
      */
     private static function midgameRequirementFor(string $skill, int $level): array
     {
-        $effectiveLevel = max(20, min(40, $level));
+        $effectiveLevel = max(20, min(50, $level));
 
         return match ($skill) {
             'fishing', 'mining', 'woodcutting', 'foraging', 'hunting', 'farming', 'excavation' => [
                 'item_key' => self::midgameGatheringResourceKey($skill, $effectiveLevel),
                 'item_name' => self::midgameGatheringResourceName($skill, $effectiveLevel),
-                'quantity' => $level >= 35 ? 3 : 2,
+                'quantity' => $level >= 40 ? 3 : 2,
             ],
             'combat' => self::midgameCraftedRequirement('smithing', $effectiveLevel),
             'slayer' => self::midgameCraftedRequirement('leatherworking', $effectiveLevel),
@@ -589,18 +545,17 @@ class JobContractService
 
     private static function jobTitleFor(string $skill, int $level): string
     {
-        if (isset(self::JOB_TITLES[$skill][$level])) {
-            return self::JOB_TITLES[$skill][$level];
-        }
-
+        $mark = EvergatherTierCatalog::markForLevel($level);
         $label = str($skill)->headline()->toString();
 
         return match (true) {
-            $level >= 100 => "{$label} Grand Mandate",
-            $level >= 75 => "{$label} Apex Claim",
-            $level >= 50 => "{$label} Masterwork Writ",
-            $level >= 35 => "{$label} Board Parcel",
-            default => "{$label} Posting",
+            $level >= 100 => "{$mark} {$label} Mandate",
+            $level >= 80 => "{$mark} {$label} Claim",
+            $level >= 65 => "{$mark} {$label} Writ",
+            $level >= 50 => "{$mark} {$label} Commission",
+            $level >= 40 => "{$mark} {$label} Request",
+            $level >= 30 => "{$mark} {$label} Order",
+            default => "{$mark} {$label} Posting",
         };
     }
 
@@ -608,10 +563,12 @@ class JobContractService
     {
         return match (true) {
             $level >= 100 => 'Realm Mandates',
-            $level >= 75 => 'Apex Claims',
-            $level >= 50 => 'Masterwork Writs',
-            $level >= 35 => 'Expert Requests',
-            $level >= 25 => 'Specialist Orders',
+            $level >= 80 => 'Mythgate Claims',
+            $level >= 65 => 'Elderwake Writs',
+            $level >= 50 => 'Highguild Commissions',
+            $level >= 40 => 'Stormglass Requests',
+            $level >= 30 => 'Runebound Orders',
+            $level >= 20 => 'Hearthsign Postings',
             default => 'Posted Commissions',
         };
     }
@@ -621,7 +578,7 @@ class JobContractService
      */
     private static function endgameRequirementFor(string $skill, int $level): array
     {
-        if ($level < 75) {
+        if ($level < 65) {
             return match ($skill) {
                 'fishing' => ['item_key' => 'reef_eel', 'item_name' => 'Reef Eel', 'quantity' => 2],
                 'mining' => ['item_key' => 'cobalt_ore', 'item_name' => 'Cobalt Ore', 'quantity' => 2],
@@ -634,14 +591,14 @@ class JobContractService
                 'exploration', 'dungeoneering', 'sailing', 'survival', 'cartography' => ['item_key' => 'dungeon_chart', 'item_name' => 'Dungeon Chart', 'quantity' => 1],
                 'reputation', 'leadership', 'trading' => ['item_key' => 'merchant_seal', 'item_name' => 'Merchant Seal', 'quantity' => 1],
                 default => [
-                    'item_key' => self::endgameCraftOutputKey($skill, 55),
-                    'item_name' => self::endgameCraftOutputName($skill, 55),
+                    'item_key' => self::midgameCraftOutputKey($skill, 50),
+                    'item_name' => self::midgameCraftOutputName($skill, 50),
                     'quantity' => 1,
                 ],
             };
         }
 
-        $effectiveLevel = $level >= 100 ? 100 : 75;
+        $effectiveLevel = $level >= 100 ? 100 : ($level >= 80 ? 80 : 65);
 
         return match ($skill) {
             'fishing', 'mining', 'woodcutting', 'foraging', 'hunting', 'farming', 'excavation' => [
@@ -681,7 +638,7 @@ class JobContractService
         return [
             'item_key' => self::midgameCraftOutputKey($skill, $level),
             'item_name' => self::midgameCraftOutputName($skill, $level),
-            'quantity' => $level >= 35 ? 2 : 1,
+            'quantity' => $level >= 40 ? 2 : 1,
         ];
     }
 
@@ -717,7 +674,7 @@ class JobContractService
 
     private static function endgameGatheringResourceKey(string $skill, int $level): string
     {
-        $prefix = $level >= 100 ? 'Crownmark' : 'Mythgate';
+        $prefix = EvergatherTierCatalog::markForLevel($level);
         $resource = match ($skill) {
             'fishing' => 'fish',
             'mining' => 'ore',
@@ -733,14 +690,7 @@ class JobContractService
 
     private static function endgameGatheringResourceName(string $skill, int $level): string
     {
-        $prefix = match (true) {
-            $level >= 100 => 'Crownmark',
-            $level >= 95 => 'Prismatic',
-            $level >= 85 => 'Astral',
-            $level >= 75 => 'Mythgate',
-            $level >= 65 => 'Elderwake',
-            default => 'Runebound',
-        };
+        $prefix = EvergatherTierCatalog::markForLevel($level);
         $resource = match ($skill) {
             'fishing' => 'fish',
             'mining' => 'ore',

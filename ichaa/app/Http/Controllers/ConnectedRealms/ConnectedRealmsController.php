@@ -44,14 +44,45 @@ class ConnectedRealmsController extends Controller
     public function index(Request $request, ConnectedRealmsPlayerService $players, GatheringActionService $gathering, SkillActivityService $activities, CraftingService $crafting, JobContractService $jobs, ExpeditionService $expeditions, MarketplaceService $marketplace, ProgressionService $progression, WorldEventService $worldEvents, ShopService $shop, ToolRarityUpgradeService $toolUpgrades, ToolTierUpgradeService $toolTierUpgrades, ConnectedRealmsLeaderboardService $leaderboards): Response
     {
         $props = $players->profileForUser($request->user(), $gathering, $activities, $crafting, $jobs, $expeditions, $marketplace, $progression, $worldEvents, $shop, $toolUpgrades, $toolTierUpgrades);
-        $props['item_guide'] = Inertia::defer($props['item_guide'], 'evergather-inventory');
-        $props['world_events'] = Inertia::defer($props['world_events'], 'evergather-events');
-        $props['leaderboards'] = Inertia::defer(fn (): array => $leaderboards->snapshot(), 'evergather-ranks');
+
+        foreach ($this->onDemandProps() as $prop) {
+            $props[$prop] = Inertia::optional($props[$prop]);
+        }
+
+        $props['leaderboards'] = Inertia::optional(fn (): array => $leaderboards->snapshot());
 
         return $this->page('ConnectedRealms/Index', [
             ...$props,
             'last_result' => $request->session()->get('connected_realms_result'),
         ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function onDemandProps(): array
+    {
+        return [
+            'inventory',
+            'equipment',
+            'tool_inventory',
+            'tool_rarity_upgrades',
+            'tool_tier_upgrades',
+            'crafting_recipes',
+            'jobs',
+            'expeditions',
+            'marketplace',
+            'shop',
+            'skills',
+            'skill_catalog',
+            'item_catalog',
+            'item_guide',
+            'recent_actions',
+            'recent_crafts',
+            'recent_jobs',
+            'recent_expeditions',
+            'world_events',
+        ];
     }
 
     public function updateCharacter(UpdateCharacterRequest $request, ConnectedRealmsPlayerService $players): RedirectResponse

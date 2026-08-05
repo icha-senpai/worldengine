@@ -128,7 +128,7 @@
                                 :disabled="form.processing || !expedition.can_start"
                                 @click="run(expedition.key)"
                             >
-                                Run
+                                {{ runningExpedition === expedition.key ? 'Running...' : 'Run' }}
                             </button>
                         </div>
                     </article>
@@ -178,6 +178,7 @@ const selectedFilter = ref('All')
 const selectedBoard = ref('ready')
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
+const runningExpedition = ref(null)
 
 const readyCount = computed(() => props.expeditions.filter((expedition) => expedition.can_start).length)
 const filters = computed(() => ['All', ...new Set(props.expeditions.map((expedition) => expedition.skill_label))].map((filter) => ({
@@ -278,6 +279,12 @@ function run(expedition) {
     form.post(route('evergather.expeditions.store'), {
         preserveScroll: true,
         only: expeditionReloadProps,
+        onStart: () => {
+            runningExpedition.value = expedition
+        },
+        onFinish: () => {
+            runningExpedition.value = null
+        },
     })
 }
 </script>

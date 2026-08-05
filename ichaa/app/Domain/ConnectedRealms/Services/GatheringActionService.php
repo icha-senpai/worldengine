@@ -481,7 +481,7 @@ class GatheringActionService
             'experience' => ['min' => 88, 'max' => 134],
             'gold' => ['min' => 12, 'max' => 25],
             'loot' => [
-                ['key' => 'star_metal_ore', 'name' => 'Star Metal Ore', 'rarity' => 'epic', 'min' => 1, 'max' => 2],
+                ['key' => 'highguild_ore', 'name' => 'Highguild Ore', 'rarity' => 'epic', 'min' => 1, 'max' => 2],
                 ['key' => 'void_coal', 'name' => 'Void Coal', 'rarity' => 'rare', 'min' => 1, 'max' => 3],
             ],
         ],
@@ -839,20 +839,19 @@ class GatheringActionService
     private static function midgameActions(): array
     {
         $families = [
-            'fishing' => ['label' => 'Fishing', 'activities' => ['Lantern Shoal Cast', 'Crab Pot Lift', 'Codline Drift', 'Stormfin Trawl', 'Glassfin Sounding'], 'traces' => ['Lantern Scale Reading', 'Sable Shell Ledger', 'Moonwake Gill Mark', 'Stormfin Wake Note', 'Glassfin Tide Rubbing'], 'resource' => 'fish', 'names' => ['Lantern Tuna', 'Sable Crab', 'Moonwake Cod', 'Stormfin Pike', 'Glassfin Ray']],
-            'mining' => ['label' => 'Mining', 'activities' => ['Silverbank Surface Assay', 'Cobalt Face Survey', 'Runevein Iron Split', 'Basalt Core Cut', 'Crystal Flux Tap'], 'traces' => ['Silverbank Ore Stamp', 'Sablecross Vein Shaving', 'Runebound Pick Mark', 'Moonwake Basalt Dust', 'Stormglass Flux Glint'], 'resource' => 'ore', 'names' => ['Silver Ore', 'Sable Cobalt Veinstone', 'Runevein Iron Ore', 'Basalt Core', 'Crystalized Flux']],
-            'woodcutting' => ['label' => 'Woodcutting', 'activities' => ['Silverbough Limb Mark', 'Cedarheart Stand Cut', 'Runevein Branch Pull', 'Ironwood Crown Trim', 'Amberheart Resin Notch'], 'traces' => ['Silverbough Ring Slip', 'Cedarheart Bark Reading', 'Runebound Branch Scar', 'Ironwood Grain Rubbing', 'Amberheart Sap Map'], 'resource' => 'log', 'names' => ['Silverbough Log', 'Cedarheart Log', 'Runevein Branch', 'Ironwood Log', 'Amberheart Log']],
-            'foraging' => ['label' => 'Foraging', 'activities' => ['Silverleaf Verge Pick', 'Sablecap Ring Walk', 'Bitterroot Fen Pull', 'Moonspike Bed Survey', 'Stormbloom Rain Cut'], 'traces' => ['Silverleaf Pressing', 'Sablecap Spore Fold', 'Runebound Root Rubbing', 'Moonspike Thorn Note', 'Stormbloom Petal Press'], 'resource' => 'herb', 'names' => ['Silverleaf Herb', 'Sablecap Mushroom', 'Runebound Bitterroot', 'Moonspike Herb', 'Stormbloom']],
-            'hunting' => ['label' => 'Hunting', 'activities' => ['Stag Track Line', 'Ridgeback Snare Check', 'Runebound Sinew Field', 'Direwolf Spoor Cut', 'Stormclaw Bone Hunt'], 'traces' => ['Stag Hoof Casting', 'Ridgeback Trail Scratch', 'Runebound Sinew Tag', 'Direwolf Fur Snag', 'Stormclaw Tooth Score'], 'resource' => 'hide', 'names' => ['Stag Hide', 'Ridgeback Meat', 'Runebound Sinew', 'Direwolf Hide', 'Stormclaw Bone']],
-            'farming' => ['label' => 'Farming', 'activities' => ['Silvergrain Row Harvest', 'Sable Bean Trellis', 'Runeweft Flax Pull', 'Moonroot Bed Turn', 'Stormfruit Orchard Watch'], 'traces' => ['Silvergrain Husk Note', 'Sable Bean Pod Tag', 'Runeweft Fiber Twist', 'Moonroot Soil Reading', 'Stormfruit Seed Press'], 'resource' => 'crop', 'names' => ['Silvergrain', 'Sable Bean', 'Runeweft Flax', 'Moonroot Crop', 'Stormfruit']],
-            'excavation' => ['label' => 'Excavation', 'activities' => ['Silver Relic Grid', 'Sable Pottery Sift', 'Rune-Etched Tablet Lift', 'Moon Gate Rubble Cut', 'Storm Vault Dust Line'], 'traces' => ['Silver Relic Rubbing', 'Sable Pottery Stamp', 'Rune Tablet Dust', 'Moon Gate Chalk Mark', 'Storm Vault Seal Dust'], 'resource' => 'relic', 'names' => ['Silver Relic Shard', 'Sable Pottery', 'Rune-Etched Tablet', 'Moon Gate Fragment', 'Storm Vault Relic']],
+            'fishing' => ['label' => 'Fishing', 'activities' => ['Hearthsign Harbor Shoal Cast', 'Runebound Crab Pot Lift', 'Stormglass Trawl', 'Highguild Ray Sounding'], 'traces' => ['Hearthsign Scale Reading', 'Runebound Shell Ledger', 'Stormglass Wake Note', 'Highguild Tide Rubbing'], 'resource' => 'fish'],
+            'mining' => ['label' => 'Mining', 'activities' => ['Hearthsign Surface Assay', 'Runebound Iron Split', 'Stormglass Flux Tap', 'Highguild Core Cut'], 'traces' => ['Hearthsign Ore Stamp', 'Runebound Pick Mark', 'Stormglass Flux Glint', 'Highguild Core Dust'], 'resource' => 'ore'],
+            'woodcutting' => ['label' => 'Woodcutting', 'activities' => ['Hearthsign Limb Mark', 'Runebound Branch Pull', 'Stormglass Ironwood Trim', 'Highguild Amberheart Notch'], 'traces' => ['Hearthsign Ring Slip', 'Runebound Branch Scar', 'Stormglass Grain Rubbing', 'Highguild Sap Map'], 'resource' => 'log'],
+            'foraging' => ['label' => 'Foraging', 'activities' => ['Hearthsign Verge Pick', 'Runebound Bitterroot Pull', 'Stormglass Bloom Cut', 'Highguild Orchid Survey'], 'traces' => ['Hearthsign Herb Pressing', 'Runebound Root Rubbing', 'Stormglass Petal Press', 'Highguild Orchid Note'], 'resource' => 'herb'],
+            'hunting' => ['label' => 'Hunting', 'activities' => ['Hearthsign Track Line', 'Runebound Sinew Field', 'Stormglass Bone Hunt', 'Highguild Trophy Pursuit'], 'traces' => ['Hearthsign Hoof Casting', 'Runebound Sinew Tag', 'Stormglass Tooth Score', 'Highguild Trophy Tag'], 'resource' => 'hide'],
+            'farming' => ['label' => 'Farming', 'activities' => ['Hearthsign Row Harvest', 'Runebound Flax Pull', 'Stormglass Crop Turn', 'Highguild Fruit Watch'], 'traces' => ['Hearthsign Husk Note', 'Runebound Fiber Twist', 'Stormglass Soil Reading', 'Highguild Seed Press'], 'resource' => 'crop'],
+            'excavation' => ['label' => 'Excavation', 'activities' => ['Hearthsign Field Relic Grid', 'Runebound Tablet Lift', 'Stormglass Gate Rubble Cut', 'Highguild Vault Dust Line'], 'traces' => ['Hearthsign Relic Rubbing', 'Runebound Tablet Dust', 'Stormglass Gate Mark', 'Highguild Vault Dust'], 'resource' => 'relic'],
         ];
         $tiers = [
-            ['level' => 20, 'prefix' => 'Silver', 'site' => 'Silverbank', 'rarity' => 'uncommon', 'experience' => [52, 78], 'gold' => [6, 14], 'cooldown' => 130],
-            ['level' => 25, 'prefix' => 'Sable', 'site' => 'Sablecross', 'rarity' => 'uncommon', 'experience' => [60, 90], 'gold' => [7, 16], 'cooldown' => 145],
-            ['level' => 30, 'prefix' => 'Runebound', 'site' => 'Runebound', 'rarity' => 'rare', 'experience' => [70, 104], 'gold' => [8, 18], 'cooldown' => 160],
-            ['level' => 35, 'prefix' => 'Moon', 'site' => 'Moonwake', 'rarity' => 'rare', 'experience' => [82, 122], 'gold' => [10, 22], 'cooldown' => 175],
-            ['level' => 40, 'prefix' => 'Stormglass', 'site' => 'Stormglass', 'rarity' => 'epic', 'experience' => [96, 144], 'gold' => [12, 26], 'cooldown' => 195],
+            ['level' => 20, 'site' => 'Hearthsign', 'rarity' => 'uncommon', 'experience' => [52, 78], 'gold' => [6, 14], 'cooldown' => 130],
+            ['level' => 30, 'site' => 'Runebound', 'rarity' => 'rare', 'experience' => [70, 104], 'gold' => [8, 18], 'cooldown' => 160],
+            ['level' => 40, 'site' => 'Stormglass', 'rarity' => 'rare', 'experience' => [96, 144], 'gold' => [12, 26], 'cooldown' => 195],
+            ['level' => 50, 'site' => 'Highguild', 'rarity' => 'rare', 'experience' => [118, 170], 'gold' => [16, 34], 'cooldown' => 230],
         ];
         $actions = [];
 
@@ -870,7 +869,7 @@ class GatheringActionService
                     'gold' => ['min' => $tier['gold'][0], 'max' => $tier['gold'][1]],
                     'loot' => [
                         ['key' => self::midgameResourceKey($skill, $level), 'name' => $itemName, 'rarity' => $tier['rarity'], 'min' => 2, 'max' => 5],
-                        ['key' => self::midgameResourceKey($skill, $level).'_trace', 'name' => $family['traces'][$index], 'rarity' => $level >= 35 ? 'rare' : 'uncommon', 'min' => 0, 'max' => 1],
+                        ['key' => self::midgameResourceKey($skill, $level).'_trace', 'name' => $family['traces'][$index], 'rarity' => $level >= 30 ? 'rare' : 'uncommon', 'min' => 0, 'max' => 1],
                     ],
                 ];
             }
@@ -887,8 +886,8 @@ class GatheringActionService
         $families = [
             'fishing' => [
                 'label' => 'Fishing',
-                'activities' => ['Kelp Trench Haul', 'Gyre Line Cast', 'Leviathan Wake Drift', 'Abyss Reef Sounding', 'Everdawn Current Pull', 'Leviathan Throne Drop'],
-                'locations' => ['Sable Kelp Trench', 'Stormglass Gyre', 'Moon Leviathan Wake', 'Abyss Crown Reef', 'Everdawn Current', 'Leviathan Throne'],
+                'activities' => ['Elderwake Kelp Trench Haul', 'Mythgate Leviathan Drift', 'Crownmark Throne Drop'],
+                'locations' => ['Elderwake Kelp Trench', 'Mythgate Leviathan Wake', 'Crownmark Leviathan Throne'],
                 'loot' => [
                     ['key' => 'fish', 'name' => 'Deepcurrent Fish'],
                     ['key' => 'scale', 'name' => 'Leviathan Scale'],
@@ -897,38 +896,38 @@ class GatheringActionService
             ],
             'mining' => [
                 'label' => 'Mining',
-                'activities' => ['Mythrite Shelf Cut', 'Elder Basalt Strike', 'Voidglass Fault Probe', 'Astral Geode Split', 'Prismatic Lode Assay', 'Worldcore Coal Tap'],
-                'locations' => ['Mythrite Shelf', 'Elder Basalt Vein', 'Voidglass Fault', 'Astral Geode Hollow', 'Prismatic Lode', 'Worldcore Seam'],
+                'activities' => ['Elderwake Geode Split', 'Mythgate Shelf Cut', 'Crownmark Coal Tap'],
+                'locations' => ['Elderwake Geode Hollow', 'Mythgate Shelf', 'Crownmark Coal Face'],
                 'loot' => [
-                    ['key' => 'ore', 'name' => 'Mythrite Ore'],
-                    ['key' => 'geode', 'name' => 'Astral Geode'],
-                    ['key' => 'coal', 'name' => 'Worldcore Coal'],
+                    ['key' => 'ore', 'name' => 'Mythgate Ore'],
+                    ['key' => 'geode', 'name' => 'Elderwake Geode'],
+                    ['key' => 'coal', 'name' => 'Crownmark Coal'],
                 ],
             ],
             'woodcutting' => [
                 'label' => 'Woodcutting',
-                'activities' => ['Elder Resin Tapline', 'Mythwood Crown Cut', 'Moonroot Canopy Trim', 'Astral Bark Peel', 'Prismatic Heartgrove Mark', 'Worldtree Bough Claim'],
-                'locations' => ['Elder Resinline', 'Mythwood Rise', 'Moonroot Canopy', 'Astral Bark Stand', 'Prismatic Heartgrove', 'Worldtree Bough'],
+                'activities' => ['Elderwake Resin Tapline', 'Mythgate Crown Cut', 'Crownmark Bough Claim'],
+                'locations' => ['Elderwake Resinline', 'Mythgate Rise', 'Crownmark Bough'],
                 'loot' => [
-                    ['key' => 'log', 'name' => 'Mythwood Log'],
-                    ['key' => 'resin', 'name' => 'Astral Resin'],
-                    ['key' => 'branch', 'name' => 'Worldtree Branch'],
+                    ['key' => 'log', 'name' => 'Mythgate Log'],
+                    ['key' => 'resin', 'name' => 'Elderwake Resin'],
+                    ['key' => 'branch', 'name' => 'Crownmark Branch'],
                 ],
             ],
             'foraging' => [
                 'label' => 'Foraging',
-                'activities' => ['Silverdew Bloom Walk', 'Lunar Herb Basin Pick', 'Dreamroot Hollow Pull', 'Astral Bloom Survey', 'Prismatic Spore Ring Cut', 'Evergarden Seed Verge'],
-                'locations' => ['Silverdew Basin', 'Lunar Herb Basin', 'Dreamroot Hollow', 'Astral Bloom Field', 'Prismatic Spore Ring', 'Evergarden Verge'],
+                'activities' => ['Elderwake Bloom Walk', 'Mythgate Spore Ring Cut', 'Crownmark Seed Verge'],
+                'locations' => ['Elderwake Bloom Field', 'Mythgate Spore Ring', 'Crownmark Seed Verge'],
                 'loot' => [
-                    ['key' => 'bloom', 'name' => 'Astral Bloom'],
-                    ['key' => 'root', 'name' => 'Dreamroot'],
-                    ['key' => 'spore', 'name' => 'Prismatic Spore'],
+                    ['key' => 'bloom', 'name' => 'Elderwake Bloom'],
+                    ['key' => 'root', 'name' => 'Runebound Root'],
+                    ['key' => 'spore', 'name' => 'Mythgate Spore'],
                 ],
             ],
             'hunting' => [
                 'label' => 'Hunting',
-                'activities' => ['Greatbeast Trail Sign', 'Moonfang Range Stalk', 'Astral Den Watch', 'Primal Hide Grounding', 'Crownbeast Steppe Pursuit', 'Apex Sovereign Claim'],
-                'locations' => ['Greatbeast Trail', 'Moonfang Range', 'Astral Den', 'Primal Hide Grounds', 'Crownbeast Steppe', 'Apex Sovereign Range'],
+                'activities' => ['Elderwake Greatbeast Trail', 'Mythgate Crownbeast Pursuit', 'Crownmark Apex Claim'],
+                'locations' => ['Elderwake Greatbeast Trail', 'Mythgate Crownbeast Steppe', 'Crownmark Apex Range'],
                 'loot' => [
                     ['key' => 'hide', 'name' => 'Primal Hide'],
                     ['key' => 'claw', 'name' => 'Apex Claw'],
@@ -937,31 +936,28 @@ class GatheringActionService
             ],
             'farming' => [
                 'label' => 'Farming',
-                'activities' => ['Moon Grain Terrace Cut', 'Spirit Orchard Graft', 'Astral Greenhouse Turn', 'Prismatic Seed Row', 'Everdawn Crop Ring', 'Worldseed Conservatory Watch'],
-                'locations' => ['Moon Grain Terrace', 'Spirit Orchard', 'Astral Greenhouse', 'Prismatic Seed Row', 'Everdawn Crop Ring', 'Worldseed Conservatory'],
+                'activities' => ['Elderwake Grain Terrace Cut', 'Mythgate Seed Row', 'Crownmark Fruit Conservatory'],
+                'locations' => ['Elderwake Grain Terrace', 'Mythgate Seed Row', 'Crownmark Fruit Conservatory'],
                 'loot' => [
-                    ['key' => 'grain', 'name' => 'Moon Grain'],
-                    ['key' => 'seed', 'name' => 'Worldseed'],
-                    ['key' => 'fruit', 'name' => 'Everdawn Fruit'],
+                    ['key' => 'grain', 'name' => 'Moonwake Grain'],
+                    ['key' => 'seed', 'name' => 'Crownmark Seed'],
+                    ['key' => 'fruit', 'name' => 'Crownmark Fruit'],
                 ],
             ],
             'excavation' => [
                 'label' => 'Excavation',
-                'activities' => ['Archive Grid Brush', 'Astral Reliquary Sift', 'Gatekeeper Tomb Reading', 'Prismatic Ruin Core', 'Elder Rune Vault Lift', 'First Realm Dig Line'],
-                'locations' => ['Sealed Archive Grid', 'Astral Reliquary', 'Gatekeeper Tomb', 'Prismatic Ruin Core', 'Elder Rune Vault', 'First Realm Dig'],
+                'activities' => ['Elderwake Reliquary Sift', 'Mythgate Tablet Reading', 'Crownmark Rune Vault Lift'],
+                'locations' => ['Elderwake Reliquary', 'Mythgate Tablet Vault', 'Crownmark Rune Vault'],
                 'loot' => [
-                    ['key' => 'relic', 'name' => 'Elder Relic'],
-                    ['key' => 'rune', 'name' => 'First Realm Rune'],
-                    ['key' => 'tablet', 'name' => 'Prismatic Tablet'],
+                    ['key' => 'relic', 'name' => 'Elderwake Relic'],
+                    ['key' => 'rune', 'name' => 'Crownmark Rune'],
+                    ['key' => 'tablet', 'name' => 'Mythgate Tablet'],
                 ],
             ],
         ];
         $tiers = [
-            ['level' => 55, 'prefix' => 'Runebound', 'rarity' => 'rare', 'experience' => [118, 170], 'gold' => [16, 34], 'cooldown' => 210],
-            ['level' => 65, 'prefix' => 'Elderwake', 'rarity' => 'rare', 'experience' => [148, 212], 'gold' => [20, 42], 'cooldown' => 240],
-            ['level' => 75, 'prefix' => 'Mythgate', 'rarity' => 'epic', 'experience' => [186, 268], 'gold' => [26, 54], 'cooldown' => 275],
-            ['level' => 85, 'prefix' => 'Astral', 'rarity' => 'epic', 'experience' => [232, 336], 'gold' => [34, 68], 'cooldown' => 315],
-            ['level' => 95, 'prefix' => 'Prismatic', 'rarity' => 'legendary', 'experience' => [292, 420], 'gold' => [44, 86], 'cooldown' => 360],
+            ['level' => 65, 'prefix' => 'Elderwake', 'rarity' => 'epic', 'experience' => [148, 212], 'gold' => [20, 42], 'cooldown' => 240],
+            ['level' => 80, 'prefix' => 'Mythgate', 'rarity' => 'epic', 'experience' => [210, 300], 'gold' => [30, 60], 'cooldown' => 300],
             ['level' => 100, 'prefix' => 'Crownmark', 'rarity' => 'legendary', 'experience' => [360, 520], 'gold' => [58, 110], 'cooldown' => 420],
         ];
         $actions = [];
@@ -1007,7 +1003,7 @@ class GatheringActionService
                 return [
                     'key' => $itemKey,
                     'name' => GeneratedItemNameService::endgameGatheringResourceName($skill, $item['key'], $prefix),
-                    'rarity' => $index === 0 ? $rarity : ($level >= 95 ? 'legendary' : 'epic'),
+                    'rarity' => $index === 0 ? $rarity : ($level >= 100 ? 'legendary' : 'epic'),
                     'min' => $index === 0 ? 2 : 0,
                     'max' => $index === 0 ? 5 : 1,
                 ];

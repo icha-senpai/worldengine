@@ -143,7 +143,7 @@
                                     :disabled="form.processing || !offer.can_buy"
                                     @click="buy(offer.key)"
                                 >
-                                    {{ offer.is_equipped ? 'Equipped' : offer.is_downgrade ? 'Owned' : 'Buy' }}
+                                    {{ runningOffer === offer.key ? 'Buying...' : offer.is_equipped ? 'Equipped' : offer.is_downgrade ? 'Owned' : 'Buy' }}
                                 </button>
                             </div>
                         </article>
@@ -191,6 +191,7 @@ const selectedFilter = ref('Tools')
 const selectedBoard = ref('buyable')
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
+const runningOffer = ref('')
 const form = useForm({
     offer: null,
 })
@@ -299,6 +300,12 @@ function buy(offer) {
     form.post(route('evergather.shop.purchases.store'), {
         preserveScroll: true,
         only: shopReloadProps,
+        onStart: () => {
+            runningOffer.value = offer
+        },
+        onFinish: () => {
+            runningOffer.value = ''
+        },
     })
 }
 </script>

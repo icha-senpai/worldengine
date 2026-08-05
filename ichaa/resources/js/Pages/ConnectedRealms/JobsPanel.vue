@@ -128,7 +128,7 @@
                                 :disabled="form.processing || !job.can_complete"
                                 @click="complete(job.key)"
                             >
-                                Turn In
+                                {{ runningJob === job.key ? 'Turning In...' : 'Turn In' }}
                             </button>
                         </div>
                     </article>
@@ -178,6 +178,7 @@ const selectedFilter = ref('All')
 const selectedBoard = ref('ready')
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
+const runningJob = ref('')
 
 const readyCount = computed(() => props.jobs.filter((job) => job.can_complete).length)
 const filters = computed(() => ['All', ...new Set(props.jobs.map((job) => job.category))].map((filter) => ({
@@ -273,6 +274,12 @@ function complete(job) {
     form.post(route('evergather.jobs.store'), {
         preserveScroll: true,
         only: jobReloadProps,
+        onStart: () => {
+            runningJob.value = job
+        },
+        onFinish: () => {
+            runningJob.value = ''
+        },
     })
 }
 </script>

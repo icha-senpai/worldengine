@@ -35,15 +35,16 @@ class ShopService
      * @var list<array{tier: string, name_mark: string, price: int, required_level: int, experience: int, yield: int}>
      */
     private const TOOL_TIERS = [
-        ['tier' => 'uncommon', 'name_mark' => 'Amberbound', 'price' => 80, 'required_level' => 1, 'experience' => 9, 'yield' => 2],
-        ['tier' => 'rare', 'name_mark' => 'Prism-Sighted', 'price' => 260, 'required_level' => 15, 'experience' => 16, 'yield' => 3],
-        ['tier' => 'rare', 'name_mark' => 'Moon-Graven', 'price' => 430, 'required_level' => 25, 'experience' => 21, 'yield' => 4],
-        ['tier' => 'epic', 'name_mark' => 'Glyphline', 'price' => 620, 'required_level' => 35, 'experience' => 24, 'yield' => 4],
-        ['tier' => 'epic', 'name_mark' => 'Star-Metal', 'price' => 760, 'required_level' => 40, 'experience' => 25, 'yield' => 4],
-        ['tier' => 'epic', 'name_mark' => 'Crownsteel', 'price' => 980, 'required_level' => 45, 'experience' => 29, 'yield' => 5],
-        ['tier' => 'legendary', 'name_mark' => 'Realmwake', 'price' => 1900, 'required_level' => 70, 'experience' => 38, 'yield' => 6],
-        ['tier' => 'legendary', 'name_mark' => 'Mythrite', 'price' => 3400, 'required_level' => 85, 'experience' => 52, 'yield' => 8],
-        ['tier' => 'legendary', 'name_mark' => 'Everdawn', 'price' => 5200, 'required_level' => 100, 'experience' => 70, 'yield' => 11],
+        ['tier' => 'common', 'name_mark' => 'Candlemark', 'price' => 80, 'required_level' => 1, 'experience' => 9, 'yield' => 2],
+        ['tier' => 'common', 'name_mark' => 'Wayside', 'price' => 140, 'required_level' => 5, 'experience' => 12, 'yield' => 2],
+        ['tier' => 'uncommon', 'name_mark' => 'Moonwake', 'price' => 210, 'required_level' => 10, 'experience' => 15, 'yield' => 3],
+        ['tier' => 'uncommon', 'name_mark' => 'Hearthsign', 'price' => 300, 'required_level' => 20, 'experience' => 17, 'yield' => 3],
+        ['tier' => 'rare', 'name_mark' => 'Runebound', 'price' => 430, 'required_level' => 30, 'experience' => 22, 'yield' => 4],
+        ['tier' => 'rare', 'name_mark' => 'Stormglass', 'price' => 620, 'required_level' => 40, 'experience' => 26, 'yield' => 5],
+        ['tier' => 'rare', 'name_mark' => 'Highguild', 'price' => 760, 'required_level' => 50, 'experience' => 28, 'yield' => 5],
+        ['tier' => 'epic', 'name_mark' => 'Elderwake', 'price' => 1400, 'required_level' => 65, 'experience' => 35, 'yield' => 6],
+        ['tier' => 'epic', 'name_mark' => 'Mythgate', 'price' => 2400, 'required_level' => 80, 'experience' => 46, 'yield' => 8],
+        ['tier' => 'legendary', 'name_mark' => 'Crownmark', 'price' => 5200, 'required_level' => 100, 'experience' => 70, 'yield' => 11],
     ];
 
     /**

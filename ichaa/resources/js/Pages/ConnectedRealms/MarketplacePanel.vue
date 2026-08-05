@@ -156,7 +156,7 @@
                         class="app-btn app-btn--primary app-btn--sm mt-4"
                         :disabled="listingForm.processing || !selectedListingEntry"
                     >
-                        List
+                        {{ runningMarketplaceAction === 'list' ? 'Listing...' : 'List' }}
                     </button>
                 </form>
 
@@ -222,7 +222,7 @@
                         class="app-btn app-btn--primary app-btn--sm mt-4"
                         :disabled="vendorForm.processing || !vendorForm.item_key"
                     >
-                        Sell to NPC
+                        {{ runningMarketplaceAction === 'vendor' ? 'Selling...' : 'Sell to NPC' }}
                     </button>
                 </form>
 
@@ -324,7 +324,7 @@
                                 :disabled="actionForm.processing"
                                 @click="cancelListing(listing.id)"
                             >
-                                Cancel
+                                {{ runningMarketplaceAction === marketplaceActionKey('cancel', listing.id) ? 'Cancelling...' : 'Cancel' }}
                             </button>
                             <button
                                 v-else
@@ -333,7 +333,7 @@
                                 :disabled="actionForm.processing || !listing.can_buy"
                                 @click="buyListing(listing.id)"
                             >
-                                Buy
+                                {{ runningMarketplaceAction === marketplaceActionKey('buy', listing.id) ? 'Buying...' : 'Buy' }}
                             </button>
                         </div>
                     </article>
@@ -368,6 +368,7 @@ const props = defineProps({
 })
 
 const activeBoard = ref('listings')
+const runningMarketplaceAction = ref('')
 const listingForm = useForm({
     listing_type: 'item',
     item_key: '',
@@ -443,7 +444,13 @@ function submitListing() {
     listingForm.post(route('evergather.marketplace.listings.store'), {
         preserveScroll: true,
         only: marketplaceReloadProps,
+        onStart: () => {
+            runningMarketplaceAction.value = 'list'
+        },
         onSuccess: () => listingForm.reset(),
+        onFinish: () => {
+            runningMarketplaceAction.value = ''
+        },
     })
 }
 
@@ -451,7 +458,13 @@ function sellToNpc() {
     vendorForm.post(route('evergather.marketplace.vendor-sales.store'), {
         preserveScroll: true,
         only: marketplaceReloadProps,
+        onStart: () => {
+            runningMarketplaceAction.value = 'vendor'
+        },
         onSuccess: () => vendorForm.reset(),
+        onFinish: () => {
+            runningMarketplaceAction.value = ''
+        },
     })
 }
 
@@ -459,6 +472,12 @@ function buyListing(listing) {
     actionForm.post(route('evergather.marketplace.listings.buy', listing), {
         preserveScroll: true,
         only: marketplaceReloadProps,
+        onStart: () => {
+            runningMarketplaceAction.value = marketplaceActionKey('buy', listing)
+        },
+        onFinish: () => {
+            runningMarketplaceAction.value = ''
+        },
     })
 }
 
@@ -466,6 +485,16 @@ function cancelListing(listing) {
     actionForm.delete(route('evergather.marketplace.listings.destroy', listing), {
         preserveScroll: true,
         only: marketplaceReloadProps,
+        onStart: () => {
+            runningMarketplaceAction.value = marketplaceActionKey('cancel', listing)
+        },
+        onFinish: () => {
+            runningMarketplaceAction.value = ''
+        },
     })
+}
+
+function marketplaceActionKey(action, value) {
+    return `${action}:${value}`
 }
 </script>
