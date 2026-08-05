@@ -16,6 +16,7 @@ class ToolEffectService
         'rare' => ['rank' => 3, 'label' => 'Oath-Sealed', 'cooldown' => 2, 'critical' => 4, 'preservation' => 2, 'market' => 18],
         'epic' => ['rank' => 4, 'label' => 'Runebound', 'cooldown' => 4, 'critical' => 7, 'preservation' => 4, 'market' => 34],
         'legendary' => ['rank' => 5, 'label' => 'Realm-Forged', 'cooldown' => 7, 'critical' => 11, 'preservation' => 7, 'market' => 60],
+        'mythic' => ['rank' => 6, 'label' => 'Crownbound', 'cooldown' => 10, 'critical' => 16, 'preservation' => 10, 'market' => 100],
     ];
 
     /**

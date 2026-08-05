@@ -142,17 +142,13 @@ class GeneratedItemNameService
 
     private static function canonicalLevelFor(int $level, int $minimumLevel, int $maximumLevel): int
     {
-        $selected = $minimumLevel;
-
         foreach (EvergatherTierCatalog::tiersBetween($minimumLevel, $maximumLevel) as $tier) {
-            if ($tier['level'] > $level) {
-                break;
+            if ($tier['level'] >= $level) {
+                return $tier['level'];
             }
-
-            $selected = $tier['level'];
         }
 
-        return $selected;
+        return $maximumLevel;
     }
 
     private static function prefixedName(string $prefix, string $name): string

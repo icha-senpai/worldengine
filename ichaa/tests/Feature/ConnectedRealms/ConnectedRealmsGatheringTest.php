@@ -4,6 +4,7 @@ namespace Tests\Feature\ConnectedRealms;
 
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsAchievementClaim;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsActionLog;
+use App\Domain\ConnectedRealms\Models\ConnectedRealmsContentEntry;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsCraftingLog;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsEquipmentSlot;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsExpeditionRun;
@@ -15,7 +16,9 @@ use App\Domain\ConnectedRealms\Models\ConnectedRealmsPlayer;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsPlayerSkill;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsTool;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsVendorSale;
+use App\Domain\ConnectedRealms\Services\ConnectedRealmsContentService;
 use App\Domain\ConnectedRealms\Services\CraftingService;
+use App\Domain\ConnectedRealms\Services\EvergatherTierCatalog;
 use App\Domain\ConnectedRealms\Services\ExpeditionService;
 use App\Domain\ConnectedRealms\Services\GatheringActionService;
 use App\Domain\ConnectedRealms\Services\ItemCatalogService;
@@ -30,6 +33,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 use ReflectionMethod;
+use ReflectionProperty;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -64,9 +68,9 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('actions.0.loot_preview.0.weight', 0.2)
                 ->where('actions.0.loot_preview.0.item_class', 'resource')
                 ->where('actions.0.is_unlocked', true)
-                ->where('actions.7.required_level', 3)
+                ->where('actions.7.required_level', 5)
                 ->where('actions.7.is_unlocked', false)
-                ->where('actions.28.required_level', 15)
+                ->where('actions.28.required_level', 20)
                 ->has('skill_activities', 310)
                 ->where('skill_activities.0.key', 'smelting_starter_activity_1')
                 ->where('skill_activities.0.band', '1-30')
@@ -80,7 +84,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('progression.skill_count', 38)
                 ->where('progression.active_skill_count', 0)
                 ->where('progression.pacing.estimated_hours_to_level_100', 106.3)
-                ->has('progression.achievements', 295)
+                ->has('progression.achievements', 451)
                 ->where('progression.achievements.0.key', 'first_steps')
                 ->where('progression.achievements.0.category', 'Gathering')
                 ->where('progression.achievements.0.category_key', 'gathering')
@@ -88,14 +92,14 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('progression.achievements.8.key', 'ready_toolbelt')
                 ->where('progression.achievements.8.category', 'Equipment')
                 ->where('progression.achievements.8.unlocked', true)
-                ->where('progression.achievements.66.key', 'account_level_100')
-                ->where('progression.achievements.66.level', 100)
-                ->where('progression.achievements.66.unlocked', false)
-                ->where('progression.achievements.72.key', 'skill_milestone_fishing_100')
-                ->where('progression.achievements.72.category', 'Gathering Milestones')
-                ->where('progression.achievements.72.skill', 'fishing')
-                ->where('progression.achievements.72.level', 100)
-                ->where('progression.achievements.72.unlocked', false)
+                ->where('progression.achievements', fn ($achievements): bool => collect($achievements)->contains(fn (array $achievement): bool => $achievement['key'] === 'account_level_100'
+                    && $achievement['level'] === 100
+                    && $achievement['unlocked'] === false)
+                    && collect($achievements)->contains(fn (array $achievement): bool => $achievement['key'] === 'skill_milestone_fishing_100'
+                        && $achievement['category'] === 'Gathering Milestones'
+                        && $achievement['skill'] === 'fishing'
+                        && $achievement['level'] === 100
+                        && $achievement['unlocked'] === false))
                 ->where('progression.stats.total_activity', 0)
                 ->where('progression.stats.trade_activity', 0)
                 ->where('summary.craft_count', 0)
@@ -135,7 +139,8 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->where('skills.0.unlocks.1.level', 5)
                     ->has('skill_catalog.groups')
                     ->where('item_catalog.rarities.common.quality', 'standard')
-                    ->where('item_catalog.rarities.legendary.quality', 'masterwork')
+                    ->where('item_catalog.rarities.legendary.quality', 'peerless')
+                    ->where('item_catalog.rarities.mythic.quality', 'masterwork')
                     ->where('skill_catalog.pacing.level_100_experience', 170000)
                     ->where('skill_catalog.pacing.target_hours_range.0', 25)
                     ->where('skill_catalog.pacing.target_hours_range.1', 200)
@@ -585,14 +590,15 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         $this->assertCount(38, SkillCatalogService::keys());
         $this->assertSame(1, $catalog->levelForExperience(0));
-        $this->assertSame(1, $catalog->levelForExperience(199));
-        $this->assertSame(2, $catalog->levelForExperience(200));
+        $this->assertSame(4, $catalog->levelForExperience(449));
+        $this->assertSame(5, $catalog->levelForExperience(450));
+        $this->assertSame(1100, $catalog->experienceForLevel(10));
         $this->assertSame(2500, $catalog->experienceForLevel(20));
+        $this->assertSame(5200, $catalog->experienceForLevel(30));
         $this->assertSame(9000, $catalog->experienceForLevel(40));
-        $this->assertSame(26000, $catalog->experienceForLevel(60));
-        $this->assertSame(52000, $catalog->experienceForLevel(75));
-        $this->assertSame(95000, $catalog->experienceForLevel(90));
-        $this->assertSame(150000, $catalog->experienceForLevel(99));
+        $this->assertSame(15500, $catalog->experienceForLevel(50));
+        $this->assertSame(35000, $catalog->experienceForLevel(65));
+        $this->assertSame(70000, $catalog->experienceForLevel(80));
         $this->assertSame(99, $catalog->levelForExperience(169999));
         $this->assertSame(100, $catalog->levelForExperience(170000));
         $this->assertNull($catalog->nextLevelExperience(100));
@@ -607,13 +613,15 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame([3000, 5000], $pacing['major_action_goal_range']);
         $this->assertSame(20000, $pacing['brutal_repetition_threshold']);
         $this->assertSame([
-            ['from_level' => 1, 'to_level' => 20, 'target_hours_range' => [1, 2]],
-            ['from_level' => 20, 'to_level' => 40, 'target_hours_range' => [3, 5]],
-            ['from_level' => 40, 'to_level' => 60, 'target_hours_range' => [8, 12]],
-            ['from_level' => 60, 'to_level' => 75, 'target_hours_range' => [12, 18]],
-            ['from_level' => 75, 'to_level' => 90, 'target_hours_range' => [20, 30]],
-            ['from_level' => 90, 'to_level' => 99, 'target_hours_range' => [20, 35]],
-            ['from_level' => 99, 'to_level' => 100, 'target_hours_range' => [5, 15]],
+            ['from_level' => 1, 'to_level' => 5, 'target_hours_range' => [1, 2]],
+            ['from_level' => 5, 'to_level' => 10, 'target_hours_range' => [2, 4]],
+            ['from_level' => 10, 'to_level' => 20, 'target_hours_range' => [4, 7]],
+            ['from_level' => 20, 'to_level' => 30, 'target_hours_range' => [6, 10]],
+            ['from_level' => 30, 'to_level' => 40, 'target_hours_range' => [8, 12]],
+            ['from_level' => 40, 'to_level' => 50, 'target_hours_range' => [10, 16]],
+            ['from_level' => 50, 'to_level' => 65, 'target_hours_range' => [15, 24]],
+            ['from_level' => 65, 'to_level' => 80, 'target_hours_range' => [22, 34]],
+            ['from_level' => 80, 'to_level' => 100, 'target_hours_range' => [35, 55]],
         ], $pacing['level_band_targets']);
     }
 
@@ -638,10 +646,10 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('progression.mastered_skill_count', 1)
-                ->where('progression.achievements.67.key', 'skill_milestone_fishing_5')
-                ->where('progression.achievements.67.unlocked', true)
-                ->where('progression.achievements.72.key', 'skill_milestone_fishing_100')
-                ->where('progression.achievements.72.unlocked', true)
+                ->where('progression.achievements', fn ($achievements): bool => collect($achievements)->contains(fn (array $achievement): bool => $achievement['key'] === 'skill_milestone_fishing_5'
+                    && $achievement['unlocked'] === true)
+                    && collect($achievements)->contains(fn (array $achievement): bool => $achievement['key'] === 'skill_milestone_fishing_100'
+                        && $achievement['unlocked'] === true))
             );
     }
 
@@ -715,7 +723,7 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         $this->assertCatalogSkillsReachLevel($craftedToolsBySkill, $allSkills);
 
-        $this->assertCatalogSkillsIncludeLevels($actions, $gatheringSkills, [20, 30, 40, 50, 65, 80, 100]);
+        $this->assertCatalogSkillsIncludeLevels($actions, $gatheringSkills, [1, 5, 10, 20, 30, 40, 50, 65, 80, 100]);
         $this->assertCatalogSkillsIncludeLevels($activities, $activitySkills, [1, 5, 10, 20, 30, 40, 50, 65, 80, 100]);
         $this->assertCatalogSkillsIncludeLevels($recipes, $recipeSkills, [20, 30, 40, 50, 65, 80, 100]);
         $this->assertCatalogSkillsIncludeLevels($jobs, SkillCatalogService::keys(), [20, 30, 40, 50, 65, 80, 100]);
@@ -726,6 +734,112 @@ class ConnectedRealmsGatheringTest extends TestCase
             $allSkills,
             [1, 5, 10, 20, 30, 40, 50, 65, 80, 100],
         );
+    }
+
+    public function test_evergather_content_unlocks_follow_the_ten_tier_ladder(): void
+    {
+        $tierLevels = EvergatherTierCatalog::levels();
+        $catalogs = [
+            'gathering actions' => GatheringActionService::baseActionDefinitions(),
+            'skill activities' => SkillActivityService::baseActivities(),
+            'crafting recipes' => CraftingService::baseRecipes(),
+            'job contracts' => JobContractService::baseJobs(),
+            'expeditions' => ExpeditionService::baseExpeditions(),
+            'shop offers' => ShopService::baseOffers(),
+        ];
+
+        foreach ($catalogs as $label => $catalog) {
+            $invalid = collect($catalog)
+                ->filter(fn (array $entry): bool => ! in_array((int) ($entry['required_level'] ?? 1), $tierLevels, true))
+                ->keys()
+                ->values()
+                ->all();
+
+            $this->assertSame([], $invalid, "{$label} contains non-tier required levels.");
+            $this->assertCatalogIncludesProgressionPhases($catalog, $label);
+        }
+
+        $this->assertSame($tierLevels, collect(app(ToolCatalogService::class)->baseTierPath())->pluck('level')->all());
+        $this->assertSame(range(1, 10), collect(EvergatherTierCatalog::baseTiers())->pluck('item_tier')->all());
+        $this->assertSame(range(1, 10), collect(app(ToolCatalogService::class)->baseTierPath())->pluck('item_tier')->all());
+
+        $invalidExpeditionBands = collect(ExpeditionService::baseExpeditions())
+            ->filter(function (array $expedition): bool {
+                $requiredLevel = (int) ($expedition['required_level'] ?? 1);
+
+                return ($expedition['level_band'] ?? null) !== EvergatherTierCatalog::tierForLevel($requiredLevel)['band']
+                    || ($expedition['progression_phase'] ?? null) !== EvergatherTierCatalog::progressionPhaseForLevel($requiredLevel);
+            })
+            ->keys()
+            ->values()
+            ->all();
+
+        $this->assertSame([], $invalidExpeditionBands);
+    }
+
+    public function test_database_content_required_levels_snap_to_the_ten_tier_ladder(): void
+    {
+        ConnectedRealmsContentService::forgetSurface('expeditions');
+        $this->resetPrivateStaticProperty(ExpeditionService::class, 'expeditionCache');
+
+        try {
+            ConnectedRealmsContentEntry::query()->create([
+                'surface' => 'expeditions',
+                'entry_key' => 'deep_sanctum_clear',
+                'label' => 'Deep Sanctum Clear',
+                'category' => 'Buried Gate Core',
+                'required_level' => 25,
+                'enabled' => true,
+                'sort_order' => 0,
+                'payload' => [
+                    'label' => 'Deep Sanctum Clear',
+                    'region' => 'Buried Gate Core',
+                    'skill' => 'dungeoneering',
+                    'experience' => 104,
+                    'gold' => 94,
+                    'supplies' => [
+                        ['item_key' => 'dungeon_chart', 'item_name' => 'Dungeon Chart', 'quantity' => 1],
+                    ],
+                    'rewards' => [
+                        ['item_key' => 'gate_core', 'item_name' => 'Gate Core', 'rarity' => 'epic', 'quantity' => 1],
+                    ],
+                ],
+            ]);
+
+            $expeditions = $this->privateStaticCatalog(ExpeditionService::class, 'expeditions');
+            $entry = $expeditions['deep_sanctum_clear'];
+
+            $this->assertSame(30, $entry['required_level']);
+            $this->assertSame('30-50', $entry['level_band']);
+            $this->assertSame('Mid', $entry['progression_phase']);
+        } finally {
+            ConnectedRealmsContentService::forgetSurface('expeditions');
+            $this->resetPrivateStaticProperty(ExpeditionService::class, 'expeditionCache');
+        }
+    }
+
+    public function test_evergather_skill_unlocks_follow_the_ten_tier_ladder(): void
+    {
+        ConnectedRealmsContentService::forgetSurface('tiers');
+        ConnectedRealmsContentService::forgetSurface('skill_definitions');
+
+        $tierLevels = collect(EvergatherTierCatalog::tiers())->pluck('level')->all();
+        $tierMarksByLevel = collect(EvergatherTierCatalog::tiers())->mapWithKeys(fn (array $tier): array => [$tier['level'] => $tier['mark']]);
+        $catalog = app(SkillCatalogService::class);
+
+        foreach ($catalog->baseDefinitions() as $skill => $definition) {
+            $this->assertSame($tierLevels, array_keys($definition['unlocks']), "{$skill} base unlocks do not match the tier ladder.");
+            $this->assertArrayNotHasKey(25, $definition['unlocks']);
+            $this->assertArrayNotHasKey(75, $definition['unlocks']);
+        }
+
+        foreach ($catalog->all() as $skill) {
+            $this->assertSame($tierLevels, array_keys($skill['unlocks']), "{$skill['key']} unlocks do not match the tier ladder.");
+
+            foreach ($skill['unlocks'] as $level => $unlock) {
+                $this->assertStringStartsWith("{$tierMarksByLevel->get($level)}: ", $unlock);
+            }
+        }
     }
 
     public function test_evergather_generated_job_names_are_board_ready(): void
@@ -913,6 +1027,13 @@ class ConnectedRealmsGatheringTest extends TestCase
         $producedItems = [];
         $consumedItems = [];
         $itemNames = [];
+        $tierLevels = EvergatherTierCatalog::levels();
+        $offTierPurposeSinks = [];
+        $invalidRecipeTiers = collect($catalogs['recipes'])
+            ->filter(fn (array $recipe): bool => (int) ($recipe['craft_tier'] ?? 0) !== EvergatherTierCatalog::itemTierForLevel((int) ($recipe['required_level'] ?? 1)))
+            ->keys()
+            ->values()
+            ->all();
 
         foreach ($tools->families() as $family) {
             $this->recordCatalogItemName($itemNames, [
@@ -965,7 +1086,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             }
         }
 
-        foreach (['common', 'uncommon', 'rare', 'epic'] as $rarity) {
+        foreach (['common', 'uncommon', 'rare', 'epic', 'legendary'] as $rarity) {
             foreach ($tools->rarityMaterials($rarity) as $item) {
                 $this->recordConsumedItem($consumedItems, $itemNames, $item, "tool_rarity:{$rarity}");
             }
@@ -983,10 +1104,27 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         foreach ($producedItems as $itemKey => $sources) {
             $itemName = array_key_first($itemNames[$itemKey]);
+            $vendorSink = $purposes->vendorSinkFor([
+                'item_key' => $itemKey,
+                'item_name' => $itemName,
+            ]);
             $purpose = $purposes->requisitionFor([
                 'item_key' => $itemKey,
                 'item_name' => $itemName,
             ]);
+
+            if (! in_array($vendorSink['required_level'], $tierLevels, true)) {
+                $offTierPurposeSinks["vendor:{$itemKey}"] = $vendorSink['required_level'];
+            }
+
+            if (! in_array($purpose['required_level'], $tierLevels, true)) {
+                $offTierPurposeSinks["requisition:{$itemKey}"] = $purpose['required_level'];
+            }
+
+            $this->recordConsumedItem($consumedItems, $itemNames, [
+                'item_key' => $itemKey,
+                'item_name' => $itemName,
+            ], 'vendor:ledger_steward');
 
             foreach ($purpose['requirements'] as $item) {
                 $this->recordConsumedItem($consumedItems, $itemNames, $item, "requisition:{$purpose['key']}");
@@ -1027,6 +1165,11 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->map(fn (array $keys): array => array_values(array_unique($keys)))
             ->filter(fn (array $keys): bool => count($keys) > 1)
             ->all();
+        $singleSinkItems = collect($producedItems)
+            ->filter(fn (array $sources, string $itemKey): bool => count(array_unique($consumedItems[$itemKey] ?? [])) < 2)
+            ->keys()
+            ->values()
+            ->all();
         $itemCatalog = app(ItemCatalogService::class);
         $unclassifiedItems = collect($itemNames)
             ->map(function (array $names, string $itemKey) use ($itemCatalog): array {
@@ -1043,13 +1186,31 @@ class ConnectedRealmsGatheringTest extends TestCase
             })
             ->filter(fn (array $payload): bool => $payload['item_class'] === 'misc' || $payload['material_family'] === 'General')
             ->all();
+        $invalidItemTiers = collect($itemNames)
+            ->map(function (array $names, string $itemKey) use ($itemCatalog): array {
+                $payload = $itemCatalog->enrich([
+                    'item_key' => $itemKey,
+                    'item_name' => array_key_first($names),
+                ]);
+
+                return [
+                    'item_name' => $payload['item_name'],
+                    'item_tier' => $payload['item_tier'] ?? null,
+                ];
+            })
+            ->filter(fn (array $payload): bool => ! is_int($payload['item_tier']) || $payload['item_tier'] < 1 || $payload['item_tier'] > 10)
+            ->all();
 
         $this->assertSame([], $missingSources);
         $this->assertSame([], $missingUses);
         $this->assertSame([], $conflictingNames);
         $this->assertSame([], $placeholderNames);
         $this->assertSame([], $duplicateDisplayNames);
+        $this->assertSame([], $singleSinkItems);
+        $this->assertSame([], $offTierPurposeSinks);
         $this->assertSame([], $unclassifiedItems);
+        $this->assertSame([], $invalidRecipeTiers);
+        $this->assertSame([], $invalidItemTiers);
     }
 
     public function test_owned_orphan_items_unlock_meaningful_requisition_jobs(): void
@@ -1081,6 +1242,15 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->where('jobs.329.category', 'Field Requisitions')
                     ->where('jobs.329.can_complete', true)
                     ->where('item_guide.summary.items_without_sinks', 0)
+                    ->where('item_guide.items', fn ($items): bool => collect($items)->contains(function (array $item): bool {
+                        $sinkTypes = collect($item['sinks'] ?? [])->pluck('type');
+
+                        return $item['item_key'] === 'brine_shrimp'
+                            && $item['sink_count'] >= 2
+                            && ($item['best_sink']['type'] ?? null) === 'Oathhall Claim'
+                            && $sinkTypes->contains('NPC Vendor')
+                            && $sinkTypes->contains('Oathhall Claim');
+                    }))
                 )
             );
 
@@ -2142,7 +2312,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->firstOrFail();
 
         $tool->forceFill([
-            'rarity' => 'legendary',
+            'rarity' => 'mythic',
             'rarity_progress' => 0,
         ])->save();
 
@@ -2157,7 +2327,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $tool->refresh();
         $player->refresh();
 
-        $this->assertSame('legendary', $tool->rarity);
+        $this->assertSame('mythic', $tool->rarity);
         $this->assertSame(0, $tool->rarity_upgrade_attempts);
         $this->assertSame(10000, $player->gold);
     }
@@ -2220,6 +2390,12 @@ class ConnectedRealmsGatheringTest extends TestCase
         $reflection = new ReflectionMethod($class, $method);
 
         return $reflection->invoke(null);
+    }
+
+    private function resetPrivateStaticProperty(string $class, string $property): void
+    {
+        $reflection = new ReflectionProperty($class, $property);
+        $reflection->setValue(null, null);
     }
 
     /**
@@ -2402,6 +2578,21 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->all();
 
         $this->assertSame([], $missing);
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>|array<int, array<string, mixed>>  $catalog
+     */
+    private function assertCatalogIncludesProgressionPhases(array $catalog, string $label): void
+    {
+        $phases = collect($catalog)
+            ->map(fn (array $entry): string => EvergatherTierCatalog::progressionPhaseForLevel((int) ($entry['required_level'] ?? 1)))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        $this->assertSame(['Early', 'Endgame', 'Mid'], $phases, "{$label} does not cover Early, Mid, and Endgame tiers.");
     }
 
     /**

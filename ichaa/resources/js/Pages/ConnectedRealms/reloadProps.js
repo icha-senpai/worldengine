@@ -4,7 +4,6 @@ const baseActionProps = [
     'recent_actions',
     'summary',
     'last_result',
-    'progression',
 ]
 
 export const actionReloadProps = [
@@ -24,7 +23,6 @@ export const craftingReloadProps = [
     'recent_crafts',
     'summary',
     'last_result',
-    'progression',
 ]
 
 export const jobReloadProps = [
@@ -34,7 +32,6 @@ export const jobReloadProps = [
     'recent_jobs',
     'summary',
     'last_result',
-    'progression',
 ]
 
 export const expeditionReloadProps = [
@@ -44,7 +41,6 @@ export const expeditionReloadProps = [
     'recent_expeditions',
     'summary',
     'last_result',
-    'progression',
 ]
 
 export const shopReloadProps = [

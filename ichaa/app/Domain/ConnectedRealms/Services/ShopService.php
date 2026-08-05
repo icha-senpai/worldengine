@@ -43,8 +43,8 @@ class ShopService
         ['tier' => 'rare', 'name_mark' => 'Stormglass', 'price' => 620, 'required_level' => 40, 'experience' => 26, 'yield' => 5],
         ['tier' => 'rare', 'name_mark' => 'Highguild', 'price' => 760, 'required_level' => 50, 'experience' => 28, 'yield' => 5],
         ['tier' => 'epic', 'name_mark' => 'Elderwake', 'price' => 1400, 'required_level' => 65, 'experience' => 35, 'yield' => 6],
-        ['tier' => 'epic', 'name_mark' => 'Mythgate', 'price' => 2400, 'required_level' => 80, 'experience' => 46, 'yield' => 8],
-        ['tier' => 'legendary', 'name_mark' => 'Crownmark', 'price' => 5200, 'required_level' => 100, 'experience' => 70, 'yield' => 11],
+        ['tier' => 'legendary', 'name_mark' => 'Mythgate', 'price' => 2400, 'required_level' => 80, 'experience' => 46, 'yield' => 8],
+        ['tier' => 'mythic', 'name_mark' => 'Crownmark', 'price' => 5200, 'required_level' => 100, 'experience' => 70, 'yield' => 11],
     ];
 
     /**
@@ -223,6 +223,18 @@ class ShopService
             return self::$offerCache;
         }
 
+        self::$offerCache = self::normalizeRequiredLevels(
+            app(ConnectedRealmsContentService::class)->apply('shop_offers', self::baseOffers()),
+        );
+
+        return self::$offerCache;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public static function baseOffers(): array
+    {
         $offers = [];
 
         $tools = new ToolCatalogService;
@@ -264,9 +276,21 @@ class ShopService
             ];
         }
 
-        self::$offerCache = $offers;
+        return self::normalizeRequiredLevels($offers);
+    }
 
-        return self::$offerCache;
+    /**
+     * @param  array<string, array<string, mixed>>  $offers
+     * @return array<string, array<string, mixed>>
+     */
+    private static function normalizeRequiredLevels(array $offers): array
+    {
+        return collect($offers)
+            ->map(fn (array $offer): array => [
+                ...$offer,
+                'required_level' => EvergatherTierCatalog::nextTierLevelFor((int) ($offer['required_level'] ?? 1)),
+            ])
+            ->all();
     }
 
     /**

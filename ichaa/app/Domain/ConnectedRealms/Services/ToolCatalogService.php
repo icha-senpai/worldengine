@@ -9,6 +9,14 @@ class ToolCatalogService
      */
     public function families(): array
     {
+        return app(ConnectedRealmsContentService::class)->apply('tool_families', $this->baseFamilies());
+    }
+
+    /**
+     * @return array<string, array{label: string, noun: string, line: string, slot: string, skill: string, craft: string, base: string, base_name: string, starter_item_key?: string, starter_item_name?: string}>
+     */
+    public function baseFamilies(): array
+    {
         $families = [
             'fishing' => ['label' => 'Fishing', 'noun' => 'Rod', 'line' => 'Tidehook', 'slot' => 'tool_fishing', 'skill' => 'fishing', 'craft' => 'carpentry', 'base' => 'ashwood_plank', 'base_name' => 'Ashwood Plank', 'starter_item_key' => 'reed_rod', 'starter_item_name' => 'Reed Rod'],
             'mining' => ['label' => 'Mining', 'noun' => 'Pickaxe', 'line' => 'Stonebite', 'slot' => 'tool_mining', 'skill' => 'mining', 'craft' => 'smithing', 'base' => 'iron_bar', 'base_name' => 'Iron Bar', 'starter_item_key' => 'worn_pickaxe', 'starter_item_name' => 'Worn Pickaxe'],
@@ -38,9 +46,30 @@ class ToolCatalogService
     }
 
     /**
-     * @return list<array{name_mark: string, rarity: string, level: int, xp: int, experience_bonus: int, yield_bonus: int, gold_cost: int, extra: array{item_key: string, item_name: string, quantity: int}|null}>
+     * @return list<array{name_mark: string, rarity: string, level: int, item_tier: int, xp: int, experience_bonus: int, yield_bonus: int, gold_cost: int, extra: array{item_key: string, item_name: string, quantity: int}|null}>
      */
     public function tierPath(): array
+    {
+        return app(ConnectedRealmsContentService::class)->applyList(
+            'tool_tiers',
+            $this->tierPathFor(EvergatherTierCatalog::tiers()),
+            'name_mark',
+        );
+    }
+
+    /**
+     * @return list<array{name_mark: string, rarity: string, level: int, item_tier: int, xp: int, experience_bonus: int, yield_bonus: int, gold_cost: int, extra: array{item_key: string, item_name: string, quantity: int}|null}>
+     */
+    public function baseTierPath(): array
+    {
+        return $this->tierPathFor(EvergatherTierCatalog::baseTiers());
+    }
+
+    /**
+     * @param  list<array{level: int, item_tier: int, key_slug: string, mark: string, rarity: string}>  $tiers
+     * @return list<array{name_mark: string, rarity: string, level: int, item_tier: int, xp: int, experience_bonus: int, yield_bonus: int, gold_cost: int, extra: array{item_key: string, item_name: string, quantity: int}|null}>
+     */
+    private function tierPathFor(array $tiers): array
     {
         $stats = [
             'starter' => ['xp' => 44, 'experience_bonus' => 9, 'yield_bonus' => 2, 'gold_cost' => 35, 'extra' => ['item_key' => 'amber_sap', 'item_name' => 'Amber Sap', 'quantity' => 1]],
@@ -55,11 +84,12 @@ class ToolCatalogService
             'evergather' => ['xp' => 340, 'experience_bonus' => 65, 'yield_bonus' => 10, 'gold_cost' => 1400, 'extra' => null],
         ];
 
-        return collect(EvergatherTierCatalog::tiers())
+        return collect($tiers)
             ->map(fn (array $tier): array => [
                 'name_mark' => $tier['mark'],
                 'rarity' => $tier['rarity'],
                 'level' => $tier['level'],
+                'item_tier' => (int) $tier['item_tier'],
                 ...$stats[$tier['key_slug']],
             ])
             ->all();
@@ -141,6 +171,10 @@ class ToolCatalogService
             'epic' => [
                 ['item_key' => 'highguild_ingot', 'item_name' => 'Highguild Ingot', 'quantity' => 1],
                 ['item_key' => 'arcane_focus', 'item_name' => 'Arcane Focus', 'quantity' => 1],
+            ],
+            'legendary' => [
+                ['item_key' => 'gate_core', 'item_name' => 'Gate Core', 'quantity' => 1],
+                ['item_key' => 'secret_atlas_leaf', 'item_name' => 'Secret Atlas Leaf', 'quantity' => 1],
             ],
             default => [],
         };

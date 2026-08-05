@@ -1174,6 +1174,7 @@ function propsInvalidatedByResult(result) {
             'tool_rarity_upgrades',
             'tool_tier_upgrades',
             'skills',
+            'progression',
             'item_guide',
         ],
         expedition: [
@@ -1182,6 +1183,7 @@ function propsInvalidatedByResult(result) {
             'marketplace',
             'shop',
             'skills',
+            'progression',
             'item_guide',
         ],
         job: [
@@ -1190,6 +1192,7 @@ function propsInvalidatedByResult(result) {
             'marketplace',
             'shop',
             'skills',
+            'progression',
             'item_guide',
         ],
         market_cancel: [
@@ -1274,6 +1277,7 @@ function inventoryChangeProps() {
         'marketplace',
         'shop',
         'skills',
+        'progression',
         'item_guide',
     ]
 }

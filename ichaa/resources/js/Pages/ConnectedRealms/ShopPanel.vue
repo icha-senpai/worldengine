@@ -204,7 +204,7 @@ const offerGroups = computed(() => ['Tools', 'Materials', 'Commissions'].map((ke
         label: key,
         count: offers.length,
         buyable: offers.filter((offer) => offer.can_buy).length,
-        rare: offers.filter((offer) => ['rare', 'epic', 'legendary'].includes(offer.rarity)).length,
+        rare: offers.filter((offer) => ['rare', 'epic', 'legendary', 'mythic'].includes(offer.rarity)).length,
         highestPrice: Math.max(0, ...offers.map((offer) => offer.price)),
     }
 }))

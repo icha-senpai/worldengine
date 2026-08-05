@@ -67,6 +67,25 @@ class ItemPurposeService
 
     /**
      * @param  array<string, mixed>  $item
+     * @return array{type: string, label: string, required_level: int, context: string}
+     */
+    public function vendorSinkFor(array $item): array
+    {
+        $payload = $this->items->enrich([
+            ...$item,
+            'quantity' => 1,
+        ]);
+
+        return [
+            'type' => 'NPC Vendor',
+            'label' => 'Sell '.$payload['item_name'],
+            'required_level' => EvergatherTierCatalog::nextTierLevelFor(1),
+            'context' => 'Ledger Steward',
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
      */
     private function labelFor(array $item): string
     {
@@ -75,9 +94,10 @@ class ItemPurposeService
         $suffix = match ((string) $item['item_class']) {
             'resource' => 'Field Sample',
             'material' => 'Workshop Reserve',
+            'cargo' => 'Cargo Delivery',
             'consumable' => 'Supply Crate',
             'equipment', 'tool', 'trinket' => 'Appraisal',
-            'housing', 'structure' => 'Settlement Order',
+            'housing', 'settlement_good', 'structure' => 'Settlement Order',
             default => 'Market Appraisal',
         };
 
@@ -94,9 +114,10 @@ class ItemPurposeService
         return match ((string) $item['item_class']) {
             'resource' => "{$family} stock can be turned in as a field sample for guild standing, gold, and skill progress.",
             'material' => "{$family} stock feeds workshop reserves when it is not already claimed by a recipe or upgrade.",
+            'cargo' => "{$family} shipments can be delivered through the market floor when they are not claimed by expeditions or contracts.",
             'consumable' => "{$family} supplies can be requisitioned into expedition stores for gold and progression.",
             'equipment', 'tool', 'trinket' => "{$family} pieces can be appraised by the guild when they are not better used as equipment.",
-            'housing', 'structure' => "{$family} pieces can be routed into settlement work orders.",
+            'housing', 'settlement_good', 'structure' => "{$family} pieces can be routed into settlement work orders.",
             default => "{$family} goods can be converted through the guild ledger instead of sitting idle.",
         };
     }
@@ -109,9 +130,10 @@ class ItemPurposeService
         return match ((string) $item['item_class']) {
             'resource' => 'Field Requisitions',
             'material' => 'Workshop Requisitions',
+            'cargo' => 'Cargo Requisitions',
             'consumable' => 'Supply Requisitions',
             'equipment', 'tool', 'trinket' => 'Appraisals',
-            'housing', 'structure' => 'Settlement Requisitions',
+            'housing', 'settlement_good', 'structure' => 'Settlement Requisitions',
             default => 'Market Appraisals',
         };
     }
@@ -152,13 +174,14 @@ class ItemPurposeService
      */
     private function requiredLevelFor(array $item): int
     {
-        return match ((string) $item['rarity']) {
-            'legendary' => 75,
-            'epic' => 50,
-            'rare' => 25,
+        return EvergatherTierCatalog::nextTierLevelFor(match ((string) $item['rarity']) {
+            'mythic' => 100,
+            'legendary' => 80,
+            'epic' => 65,
+            'rare' => 30,
             'uncommon' => 10,
             default => 1,
-        };
+        });
     }
 
     /**

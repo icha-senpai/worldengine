@@ -468,7 +468,19 @@ class CraftingService
             return self::$recipeCache;
         }
 
-        self::$recipeCache = [
+        self::$recipeCache = self::normalizeRequiredLevels(
+            app(ConnectedRealmsContentService::class)->apply('crafting_recipes', self::baseRecipes()),
+        );
+
+        return self::$recipeCache;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public static function baseRecipes(): array
+    {
+        return [
             ...self::RECIPES,
             ...self::earlyRecipes(),
             ...self::expandedRecipes(),
@@ -476,8 +488,6 @@ class CraftingService
             ...self::endgameRecipes(),
             ...self::toolRecipes(),
         ];
-
-        return self::$recipeCache;
     }
 
     /**
@@ -486,154 +496,154 @@ class CraftingService
     private static function earlyRecipes(): array
     {
         return [
-            'banked_coal_blend' => self::itemRecipe('Banked Coal Blend', 'smelting', 3, 30, [
+            'banked_coal_blend' => self::itemRecipe('Banked Coal Blend', 'smelting', 5, 30, [
                 ['item_key' => 'coal_chunk', 'item_name' => 'Coal Chunk', 'quantity' => 2],
                 ['item_key' => 'chalkstone', 'item_name' => 'Chalkstone', 'quantity' => 1],
             ], [['item_key' => 'banked_coal_blend', 'item_name' => 'Banked Coal Blend', 'rarity' => 'common', 'quantity' => 1]], 'Processing'),
-            'copper_nails' => self::itemRecipe('Copper Nails', 'smelting', 8, 42, [
+            'copper_nails' => self::itemRecipe('Copper Nails', 'smelting', 10, 42, [
                 ['item_key' => 'copper_ore', 'item_name' => 'Copper Ore', 'quantity' => 3],
                 ['item_key' => 'coal_chunk', 'item_name' => 'Coal Chunk', 'quantity' => 1],
             ], [['item_key' => 'copper_nails', 'item_name' => 'Copper Nails', 'rarity' => 'common', 'quantity' => 4]], 'Processing'),
-            'whisperbark_sheet' => self::itemRecipe('Whisperbark Sheet', 'milling', 3, 28, [
+            'whisperbark_sheet' => self::itemRecipe('Whisperbark Sheet', 'milling', 5, 28, [
                 ['item_key' => 'whisperbark', 'item_name' => 'Whisperbark', 'quantity' => 3],
             ], [['item_key' => 'whisperbark_sheet', 'item_name' => 'Whisperbark Sheet', 'rarity' => 'common', 'quantity' => 1]], 'Processing'),
-            'ashwood_dowel' => self::itemRecipe('Ashwood Dowel', 'milling', 8, 40, [
+            'ashwood_dowel' => self::itemRecipe('Ashwood Dowel', 'milling', 10, 40, [
                 ['item_key' => 'branch_bundle', 'item_name' => 'Branch Bundle', 'quantity' => 3],
                 ['item_key' => 'ashwood_log', 'item_name' => 'Ashwood Log', 'quantity' => 1],
             ], [['item_key' => 'ashwood_dowel', 'item_name' => 'Ashwood Dowel', 'rarity' => 'common', 'quantity' => 2]], 'Processing'),
-            'soft_leather_strip' => self::itemRecipe('Soft Leather Strip', 'tanning', 3, 30, [
+            'soft_leather_strip' => self::itemRecipe('Soft Leather Strip', 'tanning', 5, 30, [
                 ['item_key' => 'soft_hide', 'item_name' => 'Soft Hide', 'quantity' => 2],
                 ['item_key' => 'bitterroot', 'item_name' => 'Bitterroot', 'quantity' => 1],
             ], [['item_key' => 'soft_leather_strip', 'item_name' => 'Soft Leather Strip', 'rarity' => 'common', 'quantity' => 2]], 'Processing'),
-            'scale_lining' => self::itemRecipe('Scale Lining', 'tanning', 8, 44, [
+            'scale_lining' => self::itemRecipe('Scale Lining', 'tanning', 10, 44, [
                 ['item_key' => 'bright_scale', 'item_name' => 'Bright Scale', 'quantity' => 2],
                 ['item_key' => 'soft_leather_strip', 'item_name' => 'Soft Leather Strip', 'quantity' => 1],
             ], [['item_key' => 'scale_lining', 'item_name' => 'Scale Lining', 'rarity' => 'uncommon', 'quantity' => 1]], 'Processing'),
-            'chipped_gemstone' => self::itemRecipe('Chipped Gemstone', 'cutting', 3, 32, [
+            'chipped_gemstone' => self::itemRecipe('Chipped Gemstone', 'cutting', 5, 32, [
                 ['item_key' => 'rough_gem', 'item_name' => 'Rough Gem', 'quantity' => 1],
                 ['item_key' => 'flint_chip', 'item_name' => 'Flint Chip', 'quantity' => 1],
             ], [['item_key' => 'chipped_gemstone', 'item_name' => 'Chipped Gemstone', 'rarity' => 'common', 'quantity' => 1]], 'Processing'),
-            'amber_bead_string' => self::itemRecipe('Amber Bead String', 'cutting', 8, 46, [
+            'amber_bead_string' => self::itemRecipe('Amber Bead String', 'cutting', 10, 46, [
                 ['item_key' => 'amber_bead', 'item_name' => 'Amber Bead', 'quantity' => 1],
                 ['item_key' => 'fiber_thread', 'item_name' => 'Fiber Thread', 'quantity' => 1],
             ], [['item_key' => 'amber_bead_string', 'item_name' => 'Amber Bead String', 'rarity' => 'uncommon', 'quantity' => 1]], 'Processing'),
-            'reed_cloth' => self::itemRecipe('Reed Cloth', 'weaving', 3, 28, [
+            'reed_cloth' => self::itemRecipe('Reed Cloth', 'weaving', 5, 28, [
                 ['item_key' => 'reed_stem', 'item_name' => 'Reed Stem', 'quantity' => 3],
                 ['item_key' => 'wild_fiber', 'item_name' => 'Wild Fiber', 'quantity' => 1],
             ], [['item_key' => 'reed_cloth', 'item_name' => 'Reed Cloth', 'rarity' => 'common', 'quantity' => 1]], 'Processing'),
-            'twined_cord' => self::itemRecipe('Twined Cord', 'weaving', 8, 38, [
+            'twined_cord' => self::itemRecipe('Twined Cord', 'weaving', 10, 38, [
                 ['item_key' => 'wild_fiber', 'item_name' => 'Wild Fiber', 'quantity' => 2],
                 ['item_key' => 'reed_stem', 'item_name' => 'Reed Stem', 'quantity' => 2],
             ], [['item_key' => 'twined_cord', 'item_name' => 'Twined Cord', 'rarity' => 'common', 'quantity' => 2]], 'Processing'),
-            'iron_fittings' => self::itemRecipe('Iron Fittings', 'smithing', 3, 36, [
+            'iron_fittings' => self::itemRecipe('Iron Fittings', 'smithing', 5, 36, [
                 ['item_key' => 'iron_bar', 'item_name' => 'Iron Bar', 'quantity' => 1],
                 ['item_key' => 'coal_chunk', 'item_name' => 'Coal Chunk', 'quantity' => 1],
             ], [['item_key' => 'iron_fittings', 'item_name' => 'Iron Fittings', 'rarity' => 'common', 'quantity' => 2]], 'Crafting'),
-            'training_blade' => self::itemRecipe('Training Blade', 'smithing', 8, 52, [
+            'training_blade' => self::itemRecipe('Training Blade', 'smithing', 10, 52, [
                 ['item_key' => 'iron_fittings', 'item_name' => 'Iron Fittings', 'quantity' => 1],
                 ['item_key' => 'soft_leather_strip', 'item_name' => 'Soft Leather Strip', 'quantity' => 1],
             ], [['item_key' => 'training_blade', 'item_name' => 'Training Blade', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'ashwood_handle' => self::itemRecipe('Ashwood Handle', 'carpentry', 3, 32, [
+            'ashwood_handle' => self::itemRecipe('Ashwood Handle', 'carpentry', 5, 32, [
                 ['item_key' => 'ashwood_dowel', 'item_name' => 'Ashwood Dowel', 'quantity' => 1],
                 ['item_key' => 'whisperbark', 'item_name' => 'Whisperbark', 'quantity' => 1],
             ], [['item_key' => 'ashwood_handle', 'item_name' => 'Ashwood Handle', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'marker_stake' => self::itemRecipe('Marker Stake', 'carpentry', 8, 46, [
+            'marker_stake' => self::itemRecipe('Marker Stake', 'carpentry', 10, 46, [
                 ['item_key' => 'ashwood_dowel', 'item_name' => 'Ashwood Dowel', 'quantity' => 1],
                 ['item_key' => 'survey_marker', 'item_name' => 'Survey Marker', 'quantity' => 1],
             ], [['item_key' => 'marker_stake', 'item_name' => 'Marker Stake', 'rarity' => 'common', 'quantity' => 2]], 'Crafting'),
-            'brine_soup' => self::itemRecipe('Brine Soup', 'cooking', 3, 34, [
+            'brine_soup' => self::itemRecipe('Brine Soup', 'cooking', 5, 34, [
                 ['item_key' => 'tide_snail', 'item_name' => 'Tide Snail', 'quantity' => 2],
                 ['item_key' => 'kelp_frond', 'item_name' => 'Kelp Frond', 'quantity' => 1],
             ], [['item_key' => 'brine_soup', 'item_name' => 'Brine Soup', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'grain_flatbread' => self::itemRecipe('Grain Flatbread', 'cooking', 8, 44, [
+            'grain_flatbread' => self::itemRecipe('Grain Flatbread', 'cooking', 10, 44, [
                 ['item_key' => 'sunfield_grain', 'item_name' => 'Sunfield Grain', 'quantity' => 2],
                 ['item_key' => 'field_bean', 'item_name' => 'Field Bean', 'quantity' => 1],
             ], [['item_key' => 'grain_flatbread', 'item_name' => 'Grain Flatbread', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'bitterroot_paste' => self::itemRecipe('Bitterroot Paste', 'alchemy', 3, 34, [
+            'bitterroot_paste' => self::itemRecipe('Bitterroot Paste', 'alchemy', 5, 34, [
                 ['item_key' => 'bitterroot', 'item_name' => 'Bitterroot', 'quantity' => 2],
                 ['item_key' => 'nettle_leaf', 'item_name' => 'Nettle Leaf', 'quantity' => 1],
             ], [['item_key' => 'bitterroot_paste', 'item_name' => 'Bitterroot Paste', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'sap_tonic' => self::itemRecipe('Sap Tonic', 'alchemy', 8, 48, [
+            'sap_tonic' => self::itemRecipe('Sap Tonic', 'alchemy', 10, 48, [
                 ['item_key' => 'amber_sap', 'item_name' => 'Amber Sap', 'quantity' => 1],
                 ['item_key' => 'marrowroot', 'item_name' => 'Marrowroot', 'quantity' => 2],
             ], [['item_key' => 'sap_tonic', 'item_name' => 'Sap Tonic', 'rarity' => 'uncommon', 'quantity' => 1]], 'Crafting'),
-            'field_wraps' => self::itemRecipe('Field Wraps', 'tailoring', 3, 32, [
+            'field_wraps' => self::itemRecipe('Field Wraps', 'tailoring', 5, 32, [
                 ['item_key' => 'reed_cloth', 'item_name' => 'Reed Cloth', 'quantity' => 1],
                 ['item_key' => 'fiber_thread', 'item_name' => 'Fiber Thread', 'quantity' => 1],
             ], [['item_key' => 'field_wraps', 'item_name' => 'Field Wraps', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'foragers_pouch' => self::itemRecipe("Forager's Pouch", 'tailoring', 8, 46, [
+            'foragers_pouch' => self::itemRecipe("Forager's Pouch", 'tailoring', 10, 46, [
                 ['item_key' => 'reed_cloth', 'item_name' => 'Reed Cloth', 'quantity' => 1],
                 ['item_key' => 'twined_cord', 'item_name' => 'Twined Cord', 'quantity' => 1],
             ], [['item_key' => 'foragers_pouch', 'item_name' => "Forager's Pouch", 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'sinew_binding' => self::itemRecipe('Sinew Binding', 'leatherworking', 3, 34, [
+            'sinew_binding' => self::itemRecipe('Sinew Binding', 'leatherworking', 5, 34, [
                 ['item_key' => 'braided_sinew', 'item_name' => 'Braided Sinew', 'quantity' => 1],
                 ['item_key' => 'soft_leather_strip', 'item_name' => 'Soft Leather Strip', 'quantity' => 1],
             ], [['item_key' => 'sinew_binding', 'item_name' => 'Sinew Binding', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'trail_boots' => self::itemRecipe('Trail Boots', 'leatherworking', 8, 48, [
+            'trail_boots' => self::itemRecipe('Trail Boots', 'leatherworking', 10, 48, [
                 ['item_key' => 'cured_leather', 'item_name' => 'Cured Leather', 'quantity' => 1],
                 ['item_key' => 'soft_leather_strip', 'item_name' => 'Soft Leather Strip', 'quantity' => 1],
             ], [['item_key' => 'trail_boots', 'item_name' => 'Trail Boots', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'wound_spring' => self::itemRecipe('Wound Spring', 'engineering', 3, 38, [
+            'wound_spring' => self::itemRecipe('Wound Spring', 'engineering', 5, 38, [
                 ['item_key' => 'iron_bar', 'item_name' => 'Iron Bar', 'quantity' => 1],
                 ['item_key' => 'flint_chip', 'item_name' => 'Flint Chip', 'quantity' => 1],
             ], [['item_key' => 'clockwork_spring', 'item_name' => 'Clockwork Spring', 'rarity' => 'uncommon', 'quantity' => 1]], 'Crafting'),
-            'snare_trigger' => self::itemRecipe('Snare Trigger', 'engineering', 8, 54, [
+            'snare_trigger' => self::itemRecipe('Snare Trigger', 'engineering', 10, 54, [
                 ['item_key' => 'clockwork_spring', 'item_name' => 'Clockwork Spring', 'quantity' => 1],
                 ['item_key' => 'twined_cord', 'item_name' => 'Twined Cord', 'quantity' => 1],
             ], [['item_key' => 'snare_trigger', 'item_name' => 'Snare Trigger', 'rarity' => 'uncommon', 'quantity' => 1]], 'Crafting'),
-            'minor_ward_oil' => self::itemRecipe('Minor Ward Oil', 'enchanting', 3, 40, [
+            'minor_ward_oil' => self::itemRecipe('Minor Ward Oil', 'enchanting', 5, 40, [
                 ['item_key' => 'sealed_rune_chip', 'item_name' => 'Sealed Rune Chip', 'quantity' => 1],
                 ['item_key' => 'pressed_oil', 'item_name' => 'Pressed Oil', 'quantity' => 1],
             ], [['item_key' => 'minor_ward_oil', 'item_name' => 'Minor Ward Oil', 'rarity' => 'uncommon', 'quantity' => 1]], 'Crafting'),
-            'rune_thread' => self::itemRecipe('Rune Thread', 'enchanting', 8, 56, [
+            'rune_thread' => self::itemRecipe('Rune Thread', 'enchanting', 10, 56, [
                 ['item_key' => 'sealed_rune_chip', 'item_name' => 'Sealed Rune Chip', 'quantity' => 1],
                 ['item_key' => 'fiber_thread', 'item_name' => 'Fiber Thread', 'quantity' => 1],
             ], [['item_key' => 'rune_thread', 'item_name' => 'Rune Thread', 'rarity' => 'uncommon', 'quantity' => 1]], 'Crafting'),
-            'copper_setting' => self::itemRecipe('Copper Setting', 'jewelcrafting', 3, 36, [
+            'copper_setting' => self::itemRecipe('Copper Setting', 'jewelcrafting', 5, 36, [
                 ['item_key' => 'copper_nails', 'item_name' => 'Copper Nails', 'quantity' => 1],
                 ['item_key' => 'chipped_gemstone', 'item_name' => 'Chipped Gemstone', 'quantity' => 1],
             ], [['item_key' => 'copper_setting', 'item_name' => 'Copper Setting', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'scale_brooch' => self::itemRecipe('Scale Brooch', 'jewelcrafting', 8, 52, [
+            'scale_brooch' => self::itemRecipe('Scale Brooch', 'jewelcrafting', 10, 52, [
                 ['item_key' => 'bright_scale', 'item_name' => 'Bright Scale', 'quantity' => 1],
                 ['item_key' => 'copper_setting', 'item_name' => 'Copper Setting', 'quantity' => 1],
             ], [['item_key' => 'scale_brooch', 'item_name' => 'Scale Brooch', 'rarity' => 'uncommon', 'quantity' => 1]], 'Crafting'),
-            'reed_float' => self::itemRecipe('Reed Float', 'boatbuilding', 3, 34, [
+            'reed_float' => self::itemRecipe('Reed Float', 'boatbuilding', 5, 34, [
                 ['item_key' => 'reed_stem', 'item_name' => 'Reed Stem', 'quantity' => 3],
                 ['item_key' => 'twined_cord', 'item_name' => 'Twined Cord', 'quantity' => 1],
             ], [['item_key' => 'reed_float', 'item_name' => 'Reed Float', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'dock_rope' => self::itemRecipe('Dock Rope', 'boatbuilding', 8, 48, [
+            'dock_rope' => self::itemRecipe('Dock Rope', 'boatbuilding', 10, 48, [
                 ['item_key' => 'twined_cord', 'item_name' => 'Twined Cord', 'quantity' => 2],
                 ['item_key' => 'whisperbark_sheet', 'item_name' => 'Whisperbark Sheet', 'quantity' => 1],
             ], [['item_key' => 'dock_rope', 'item_name' => 'Dock Rope', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'ashwood_stool' => self::itemRecipe('Ashwood Stool', 'furniture', 3, 34, [
+            'ashwood_stool' => self::itemRecipe('Ashwood Stool', 'furniture', 5, 34, [
                 ['item_key' => 'ashwood_plank', 'item_name' => 'Ashwood Plank', 'quantity' => 1],
                 ['item_key' => 'copper_nails', 'item_name' => 'Copper Nails', 'quantity' => 1],
             ], [['item_key' => 'ashwood_stool', 'item_name' => 'Ashwood Stool', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'supply_crate' => self::itemRecipe('Supply Crate', 'furniture', 8, 48, [
+            'supply_crate' => self::itemRecipe('Supply Crate', 'furniture', 10, 48, [
                 ['item_key' => 'ashwood_plank', 'item_name' => 'Ashwood Plank', 'quantity' => 1],
                 ['item_key' => 'whisperbark_sheet', 'item_name' => 'Whisperbark Sheet', 'quantity' => 1],
             ], [['item_key' => 'supply_crate', 'item_name' => 'Supply Crate', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'trail_signpost' => self::itemRecipe('Trail Signpost', 'construction', 3, 38, [
+            'trail_signpost' => self::itemRecipe('Trail Signpost', 'construction', 5, 38, [
                 ['item_key' => 'marker_stake', 'item_name' => 'Marker Stake', 'quantity' => 1],
                 ['item_key' => 'copper_nails', 'item_name' => 'Copper Nails', 'quantity' => 1],
             ], [['item_key' => 'trail_signpost', 'item_name' => 'Trail Signpost', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'field_repair_kit' => self::itemRecipe('Field Repair Kit', 'construction', 8, 54, [
+            'field_repair_kit' => self::itemRecipe('Field Repair Kit', 'construction', 10, 54, [
                 ['item_key' => 'iron_fittings', 'item_name' => 'Iron Fittings', 'quantity' => 1],
                 ['item_key' => 'ashwood_handle', 'item_name' => 'Ashwood Handle', 'quantity' => 1],
             ], [['item_key' => 'field_repair_kit', 'item_name' => 'Field Repair Kit', 'rarity' => 'common', 'quantity' => 1]], 'Crafting'),
-            'sketch_map' => self::itemRecipe('Sketch Map', 'cartography', 3, 36, [
+            'sketch_map' => self::itemRecipe('Sketch Map', 'cartography', 5, 36, [
                 ['item_key' => 'whisperbark_sheet', 'item_name' => 'Whisperbark Sheet', 'quantity' => 1],
                 ['item_key' => 'coal_chunk', 'item_name' => 'Coal Chunk', 'quantity' => 1],
             ], [['item_key' => 'sketch_map', 'item_name' => 'Sketch Map', 'rarity' => 'common', 'quantity' => 1]], 'World'),
-            'resource_note' => self::itemRecipe('Chamber Survey Note', 'cartography', 8, 50, [
+            'resource_note' => self::itemRecipe('Chamber Survey Note', 'cartography', 10, 50, [
                 ['item_key' => 'sketch_map', 'item_name' => 'Sketch Map', 'quantity' => 1],
                 ['item_key' => 'survey_marker', 'item_name' => 'Survey Marker', 'quantity' => 1],
             ], [['item_key' => 'resource_note', 'item_name' => 'Chamber Survey Note', 'rarity' => 'common', 'quantity' => 1]], 'World'),
-            'barter_note' => self::itemRecipe('Barter Note', 'trading', 3, 34, [
+            'barter_note' => self::itemRecipe('Barter Note', 'trading', 5, 34, [
                 ['item_key' => 'whisperbark_sheet', 'item_name' => 'Whisperbark Sheet', 'quantity' => 1],
                 ['item_key' => 'sunfield_grain', 'item_name' => 'Sunfield Grain', 'quantity' => 1],
             ], [['item_key' => 'barter_note', 'item_name' => 'Barter Note', 'rarity' => 'common', 'quantity' => 1]], 'Social'),
-            'market_token' => self::itemRecipe('Market Token', 'trading', 8, 48, [
+            'market_token' => self::itemRecipe('Market Token', 'trading', 10, 48, [
                 ['item_key' => 'barter_note', 'item_name' => 'Barter Note', 'quantity' => 1],
                 ['item_key' => 'copper_setting', 'item_name' => 'Copper Setting', 'quantity' => 1],
             ], [['item_key' => 'market_token', 'item_name' => 'Market Token', 'rarity' => 'uncommon', 'quantity' => 1]], 'Social'),
@@ -650,11 +660,11 @@ class CraftingService
                 ['item_key' => 'coal_chunk', 'item_name' => 'Coal Chunk', 'quantity' => 2],
                 ['item_key' => 'copper_ore', 'item_name' => 'Copper Ore', 'quantity' => 2],
             ], [['item_key' => 'copper_bar', 'item_name' => 'Copper Bar', 'rarity' => 'common', 'quantity' => 1]], 'Processing'),
-            'steel_ingot' => self::itemRecipe('Steel Ingot', 'smelting', 15, 58, [
+            'steel_ingot' => self::itemRecipe('Steel Ingot', 'smelting', 20, 58, [
                 ['item_key' => 'iron_bar', 'item_name' => 'Iron Bar', 'quantity' => 2],
                 ['item_key' => 'coal_chunk', 'item_name' => 'Coal Chunk', 'quantity' => 3],
             ], [['item_key' => 'steel_ingot', 'item_name' => 'Steel Ingot', 'rarity' => 'uncommon', 'quantity' => 1]], 'Processing'),
-            'highguild_ingot' => self::itemRecipe('Highguild Ingot', 'smelting', 45, 118, [
+            'highguild_ingot' => self::itemRecipe('Highguild Ingot', 'smelting', 50, 118, [
                 ['item_key' => 'highguild_ore', 'item_name' => 'Highguild Ore', 'quantity' => 2],
                 ['item_key' => 'void_coal', 'item_name' => 'Void Coal', 'quantity' => 2],
             ], [['item_key' => 'highguild_ingot', 'item_name' => 'Highguild Ingot', 'rarity' => 'epic', 'quantity' => 1]], 'Processing'),
@@ -662,27 +672,27 @@ class CraftingService
                 ['item_key' => 'ashwood_log', 'item_name' => 'Ashwood Log', 'quantity' => 2],
                 ['item_key' => 'amber_sap', 'item_name' => 'Amber Sap', 'quantity' => 1],
             ], [['item_key' => 'resin_plank', 'item_name' => 'Resin Plank', 'rarity' => 'uncommon', 'quantity' => 1]], 'Processing'),
-            'heartwood_beam' => self::itemRecipe('Heartwood Beam', 'milling', 45, 112, [
+            'heartwood_beam' => self::itemRecipe('Heartwood Beam', 'milling', 50, 112, [
                 ['item_key' => 'heartwood_log', 'item_name' => 'Heartwood Log', 'quantity' => 2],
                 ['item_key' => 'amber_resin', 'item_name' => 'Amber Resin', 'quantity' => 2],
             ], [['item_key' => 'heartwood_beam', 'item_name' => 'Heartwood Beam', 'rarity' => 'rare', 'quantity' => 1]], 'Processing'),
-            'reinforced_leather' => self::itemRecipe('Reinforced Leather', 'tanning', 15, 54, [
+            'reinforced_leather' => self::itemRecipe('Reinforced Leather', 'tanning', 20, 54, [
                 ['item_key' => 'cured_leather', 'item_name' => 'Cured Leather', 'quantity' => 2],
                 ['item_key' => 'braided_sinew', 'item_name' => 'Braided Sinew', 'quantity' => 2],
             ], [['item_key' => 'reinforced_leather', 'item_name' => 'Reinforced Leather', 'rarity' => 'uncommon', 'quantity' => 1]], 'Processing'),
-            'monster_hide_panel' => self::itemRecipe('Monster Hide Panel', 'tanning', 45, 108, [
+            'monster_hide_panel' => self::itemRecipe('Monster Hide Panel', 'tanning', 50, 108, [
                 ['item_key' => 'monster_hide', 'item_name' => 'Monster Hide', 'quantity' => 1],
                 ['item_key' => 'battle_sinew', 'item_name' => 'Battle Sinew', 'quantity' => 2],
             ], [['item_key' => 'monster_hide_panel', 'item_name' => 'Monster Hide Panel', 'rarity' => 'rare', 'quantity' => 1]], 'Processing'),
-            'prism_lens' => self::itemRecipe('Prism Lens', 'cutting', 15, 62, [
+            'prism_lens' => self::itemRecipe('Prism Lens', 'cutting', 20, 62, [
                 ['item_key' => 'prism_geode', 'item_name' => 'Prism Geode', 'quantity' => 1],
                 ['item_key' => 'polished_gem', 'item_name' => 'Polished Gem', 'quantity' => 1],
             ], [['item_key' => 'prism_lens', 'item_name' => 'Prism Lens', 'rarity' => 'rare', 'quantity' => 1]], 'Processing'),
-            'silk_bolt' => self::itemRecipe('Silk Bolt', 'weaving', 15, 52, [
+            'silk_bolt' => self::itemRecipe('Silk Bolt', 'weaving', 20, 52, [
                 ['item_key' => 'silk_moss', 'item_name' => 'Silk Moss', 'quantity' => 3],
                 ['item_key' => 'fiber_thread', 'item_name' => 'Fiber Thread', 'quantity' => 1],
             ], [['item_key' => 'silk_bolt', 'item_name' => 'Silk Bolt', 'rarity' => 'uncommon', 'quantity' => 1]], 'Processing'),
-            'spellthread' => self::itemRecipe('Spellthread', 'weaving', 45, 106, [
+            'spellthread' => self::itemRecipe('Spellthread', 'weaving', 50, 106, [
                 ['item_key' => 'spirit_orchid', 'item_name' => 'Spirit Orchid', 'quantity' => 1],
                 ['item_key' => 'dreamleaf', 'item_name' => 'Dreamleaf', 'quantity' => 2],
             ], [['item_key' => 'spellthread', 'item_name' => 'Spellthread', 'rarity' => 'epic', 'quantity' => 1]], 'Processing'),
@@ -695,12 +705,12 @@ class CraftingService
                 ['item_key' => 'reef_eel', 'item_name' => 'Reef Eel', 'quantity' => 2],
                 ['item_key' => 'pressed_oil', 'item_name' => 'Pressed Oil', 'quantity' => 1],
             ], [['item_key' => 'dusk_feast', 'item_name' => 'Dusk Feast', 'rarity' => 'rare', 'quantity' => 1]], 'Crafting'),
-            'revival_salve' => self::itemRecipe('Revival Salve', 'alchemy', 35, 96, [
+            'revival_salve' => self::itemRecipe('Revival Salve', 'alchemy', 40, 96, [
                 ['item_key' => 'lunar_bloom', 'item_name' => 'Lunar Bloom', 'quantity' => 1],
                 ['item_key' => 'field_tonic', 'item_name' => 'Field Tonic', 'quantity' => 1],
                 ['item_key' => 'pressed_oil', 'item_name' => 'Pressed Oil', 'quantity' => 1],
             ], [['item_key' => 'revival_salve', 'item_name' => 'Revival Salve', 'rarity' => 'rare', 'quantity' => 1]], 'Crafting'),
-            'reinforced_pack' => self::itemRecipe('Reinforced Pack', 'tailoring', 15, 58, [
+            'reinforced_pack' => self::itemRecipe('Reinforced Pack', 'tailoring', 20, 58, [
                 ['item_key' => 'cloth_satchel', 'item_name' => 'Cloth Satchel', 'quantity' => 1],
                 ['item_key' => 'reinforced_leather', 'item_name' => 'Reinforced Leather', 'quantity' => 1],
             ], [['item_key' => 'reinforced_pack', 'item_name' => 'Reinforced Pack', 'rarity' => 'uncommon', 'quantity' => 1]], 'Crafting'),
@@ -708,11 +718,11 @@ class CraftingService
                 ['item_key' => 'silk_bolt', 'item_name' => 'Silk Bolt', 'quantity' => 2],
                 ['item_key' => 'spellthread', 'item_name' => 'Spellthread', 'quantity' => 1],
             ], [['item_key' => 'silk_sail', 'item_name' => 'Silk Sail', 'rarity' => 'rare', 'quantity' => 1]], 'Crafting'),
-            'monster_leather_armor' => self::itemRecipe('Monster Leather Armor', 'leatherworking', 45, 118, [
+            'monster_leather_armor' => self::itemRecipe('Monster Leather Armor', 'leatherworking', 50, 118, [
                 ['item_key' => 'monster_hide_panel', 'item_name' => 'Monster Hide Panel', 'quantity' => 2],
                 ['item_key' => 'apex_claw', 'item_name' => 'Apex Claw', 'quantity' => 1],
             ], [['item_key' => 'monster_leather_armor', 'item_name' => 'Monster Leather Armor', 'rarity' => 'epic', 'quantity' => 1]], 'Crafting'),
-            'survey_compass' => self::itemRecipe('Survey Compass', 'engineering', 15, 68, [
+            'survey_compass' => self::itemRecipe('Survey Compass', 'engineering', 20, 68, [
                 ['item_key' => 'clockwork_spring', 'item_name' => 'Clockwork Spring', 'quantity' => 2],
                 ['item_key' => 'prism_lens', 'item_name' => 'Prism Lens', 'quantity' => 1],
             ], [['item_key' => 'survey_compass', 'item_name' => 'Survey Compass', 'rarity' => 'rare', 'quantity' => 1]], 'Crafting'),
@@ -724,11 +734,11 @@ class CraftingService
                 ['item_key' => 'prism_lens', 'item_name' => 'Prism Lens', 'quantity' => 1],
                 ['item_key' => 'pearl_cluster', 'item_name' => 'Pearl Cluster', 'quantity' => 1],
             ], [['item_key' => 'prism_amulet', 'item_name' => 'Prism Amulet', 'rarity' => 'rare', 'quantity' => 1]], 'Crafting'),
-            'cargo_skiff' => self::itemRecipe('Cargo Skiff', 'boatbuilding', 25, 78, [
+            'cargo_skiff' => self::itemRecipe('Cargo Skiff', 'boatbuilding', 30, 78, [
                 ['item_key' => 'skiff_rib', 'item_name' => 'Skiff Rib', 'quantity' => 2],
                 ['item_key' => 'silk_sail', 'item_name' => 'Silk Sail', 'quantity' => 1],
             ], [['item_key' => 'cargo_skiff', 'item_name' => 'Cargo Skiff', 'rarity' => 'rare', 'quantity' => 1]], 'Crafting'),
-            'guild_table' => self::itemRecipe('Oathhall Table', 'furniture', 25, 76, [
+            'guild_table' => self::itemRecipe('Oathhall Table', 'furniture', 30, 76, [
                 ['item_key' => 'heartwood_beam', 'item_name' => 'Heartwood Beam', 'quantity' => 1],
                 ['item_key' => 'trophy_stand', 'item_name' => 'Trophy Stand', 'quantity' => 1],
             ], [['item_key' => 'guild_table', 'item_name' => 'Oathhall Table', 'rarity' => 'rare', 'quantity' => 1]], 'Crafting'),
@@ -888,8 +898,8 @@ class CraftingService
         ];
         $tiers = [
             ['level' => 65, 'prefix' => 'Elderwake', 'rarity' => 'epic', 'experience' => 190],
-            ['level' => 80, 'prefix' => 'Mythgate', 'rarity' => 'epic', 'experience' => 310],
-            ['level' => 100, 'prefix' => 'Crownmark', 'rarity' => 'legendary', 'experience' => 520],
+            ['level' => 80, 'prefix' => 'Mythgate', 'rarity' => 'legendary', 'experience' => 310],
+            ['level' => 100, 'prefix' => 'Crownmark', 'rarity' => 'mythic', 'experience' => 520],
         ];
         $recipes = [];
 
@@ -932,16 +942,44 @@ class CraftingService
      */
     private static function itemRecipe(string $label, string $skill, int $requiredLevel, int $experience, array $ingredients, array $outputs, string $category): array
     {
+        $requiredLevel = EvergatherTierCatalog::nextTierLevelFor($requiredLevel);
+        $craftTier = EvergatherTierCatalog::itemTierForLevel($requiredLevel);
+
         return [
             'label' => $label,
             'skill' => $skill,
             'category' => $category,
             'required_level' => $requiredLevel,
+            'craft_tier' => $craftTier,
             'experience' => $experience,
             'gold_cost' => 0,
             'ingredients' => $ingredients,
-            'outputs' => $outputs,
+            'outputs' => collect($outputs)
+                ->map(fn (array $output): array => [
+                    ...$output,
+                    'item_tier' => (int) ($output['item_tier'] ?? $craftTier),
+                ])
+                ->all(),
         ];
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $recipes
+     * @return array<string, array<string, mixed>>
+     */
+    private static function normalizeRequiredLevels(array $recipes): array
+    {
+        return collect($recipes)
+            ->map(function (array $recipe): array {
+                $requiredLevel = EvergatherTierCatalog::nextTierLevelFor((int) ($recipe['required_level'] ?? 1));
+
+                return [
+                    ...$recipe,
+                    'required_level' => $requiredLevel,
+                    'craft_tier' => (int) ($recipe['craft_tier'] ?? EvergatherTierCatalog::itemTierForLevel($requiredLevel)),
+                ];
+            })
+            ->all();
     }
 
     private static function endgameRecipeOutputKey(string $skill, int $level): string

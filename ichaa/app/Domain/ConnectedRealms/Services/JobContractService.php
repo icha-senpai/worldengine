@@ -92,44 +92,44 @@ class JobContractService
      * @var array<string, array{label: string, category: string, skill: string, level: int, experience: int, gold: int, item_key: string, item_name: string, quantity: int}>
      */
     private const STARTER_JOB_LINES = [
-        'bait_bucket_order' => ['label' => 'Bait Bucket Order', 'category' => 'Gathering', 'skill' => 'fishing', 'level' => 3, 'experience' => 34, 'gold' => 24, 'item_key' => 'tide_snail', 'item_name' => 'Tide Snail', 'quantity' => 3],
-        'copper_assay' => ['label' => 'Copper Assay', 'category' => 'Gathering', 'skill' => 'mining', 'level' => 3, 'experience' => 36, 'gold' => 26, 'item_key' => 'copper_ore', 'item_name' => 'Copper Ore', 'quantity' => 3],
-        'kindling_quota' => ['label' => 'Kindling Quota', 'category' => 'Gathering', 'skill' => 'woodcutting', 'level' => 3, 'experience' => 32, 'gold' => 24, 'item_key' => 'branch_bundle', 'item_name' => 'Branch Bundle', 'quantity' => 3],
-        'seed_cache_sort' => ['label' => 'Seed Cache Sort', 'category' => 'Gathering', 'skill' => 'foraging', 'level' => 3, 'experience' => 30, 'gold' => 22, 'item_key' => 'common_seed', 'item_name' => 'Sunfield Seed Mix', 'quantity' => 3],
-        'camp_meat_delivery' => ['label' => 'Camp Meat Delivery', 'category' => 'Gathering', 'skill' => 'hunting', 'level' => 3, 'experience' => 38, 'gold' => 28, 'item_key' => 'small_game_meat', 'item_name' => 'Small Game Meat', 'quantity' => 3],
-        'bean_row_sample' => ['label' => 'Bean Row Sample', 'category' => 'Gathering', 'skill' => 'farming', 'level' => 7, 'experience' => 42, 'gold' => 30, 'item_key' => 'field_bean', 'item_name' => 'Field Bean', 'quantity' => 3],
-        'pottery_sort' => ['label' => 'Pottery Sort', 'category' => 'Gathering', 'skill' => 'excavation', 'level' => 3, 'experience' => 38, 'gold' => 28, 'item_key' => 'pottery_shard', 'item_name' => 'Pottery Shard', 'quantity' => 3],
-        'banked_forge_shift' => ['label' => 'Banked Forge Shift', 'category' => 'Processing', 'skill' => 'smelting', 'level' => 3, 'experience' => 42, 'gold' => 32, 'item_key' => 'banked_coal_blend', 'item_name' => 'Banked Coal Blend', 'quantity' => 1],
-        'bark_sheet_bundle' => ['label' => 'Bark Sheet Bundle', 'category' => 'Processing', 'skill' => 'milling', 'level' => 3, 'experience' => 38, 'gold' => 30, 'item_key' => 'whisperbark_sheet', 'item_name' => 'Whisperbark Sheet', 'quantity' => 1],
-        'leather_strip_order' => ['label' => 'Leather Strip Order', 'category' => 'Processing', 'skill' => 'tanning', 'level' => 3, 'experience' => 42, 'gold' => 32, 'item_key' => 'soft_leather_strip', 'item_name' => 'Soft Leather Strip', 'quantity' => 1],
-        'gem_chip_packet' => ['label' => 'Gem Chip Packet', 'category' => 'Processing', 'skill' => 'cutting', 'level' => 3, 'experience' => 44, 'gold' => 34, 'item_key' => 'chipped_gemstone', 'item_name' => 'Chipped Gemstone', 'quantity' => 1],
-        'reed_cloth_roll' => ['label' => 'Reed Cloth Roll', 'category' => 'Processing', 'skill' => 'weaving', 'level' => 3, 'experience' => 38, 'gold' => 30, 'item_key' => 'reed_cloth', 'item_name' => 'Reed Cloth', 'quantity' => 1],
-        'fittings_batch' => ['label' => 'Fittings Batch', 'category' => 'Workshop', 'skill' => 'smithing', 'level' => 3, 'experience' => 46, 'gold' => 36, 'item_key' => 'iron_fittings', 'item_name' => 'Iron Fittings', 'quantity' => 1],
-        'handle_lot' => ['label' => 'Handle Lot', 'category' => 'Workshop', 'skill' => 'carpentry', 'level' => 3, 'experience' => 42, 'gold' => 34, 'item_key' => 'ashwood_handle', 'item_name' => 'Ashwood Handle', 'quantity' => 1],
-        'soup_kettle' => ['label' => 'Soup Kettle', 'category' => 'Provisioning', 'skill' => 'cooking', 'level' => 3, 'experience' => 44, 'gold' => 34, 'item_key' => 'brine_soup', 'item_name' => 'Brine Soup', 'quantity' => 1],
-        'paste_vials' => ['label' => 'Paste Vials', 'category' => 'Support', 'skill' => 'alchemy', 'level' => 3, 'experience' => 46, 'gold' => 36, 'item_key' => 'bitterroot_paste', 'item_name' => 'Bitterroot Paste', 'quantity' => 1],
-        'wrap_bundle' => ['label' => 'Wrap Bundle', 'category' => 'Workshop', 'skill' => 'tailoring', 'level' => 3, 'experience' => 42, 'gold' => 34, 'item_key' => 'field_wraps', 'item_name' => 'Field Wraps', 'quantity' => 1],
-        'binding_order' => ['label' => 'Binding Order', 'category' => 'Workshop', 'skill' => 'leatherworking', 'level' => 3, 'experience' => 44, 'gold' => 34, 'item_key' => 'sinew_binding', 'item_name' => 'Sinew Binding', 'quantity' => 1],
-        'spring_calibration' => ['label' => 'Spring Calibration', 'category' => 'Workshop', 'skill' => 'engineering', 'level' => 3, 'experience' => 48, 'gold' => 38, 'item_key' => 'clockwork_spring', 'item_name' => 'Clockwork Spring', 'quantity' => 1],
-        'ward_oil_request' => ['label' => 'Ward Oil Request', 'category' => 'Arcane', 'skill' => 'enchanting', 'level' => 3, 'experience' => 50, 'gold' => 40, 'item_key' => 'minor_ward_oil', 'item_name' => 'Minor Ward Oil', 'quantity' => 1],
-        'copper_setting_lot' => ['label' => 'Gemsetter Copper Lot', 'category' => 'Luxury', 'skill' => 'jewelcrafting', 'level' => 3, 'experience' => 46, 'gold' => 36, 'item_key' => 'copper_setting', 'item_name' => 'Copper Setting', 'quantity' => 1],
-        'reed_float_bundle' => ['label' => 'Reed Float Bundle', 'category' => 'Settlement', 'skill' => 'boatbuilding', 'level' => 3, 'experience' => 44, 'gold' => 34, 'item_key' => 'reed_float', 'item_name' => 'Reed Float', 'quantity' => 1],
-        'stool_delivery' => ['label' => 'Stool Delivery', 'category' => 'Settlement', 'skill' => 'furniture', 'level' => 3, 'experience' => 44, 'gold' => 34, 'item_key' => 'ashwood_stool', 'item_name' => 'Ashwood Stool', 'quantity' => 1],
-        'signpost_crew' => ['label' => 'Signpost Crew', 'category' => 'Settlement', 'skill' => 'construction', 'level' => 3, 'experience' => 50, 'gold' => 40, 'item_key' => 'trail_signpost', 'item_name' => 'Trail Signpost', 'quantity' => 1],
-        'blade_drill' => ['label' => 'Blade Drill', 'category' => 'Combat', 'skill' => 'combat', 'level' => 8, 'experience' => 60, 'gold' => 48, 'item_key' => 'training_blade', 'item_name' => 'Training Blade', 'quantity' => 1],
-        'fang_study' => ['label' => 'Fang Study', 'category' => 'Combat', 'skill' => 'slayer', 'level' => 8, 'experience' => 62, 'gold' => 50, 'item_key' => 'sharp_fang', 'item_name' => 'Sharp Fang', 'quantity' => 1],
-        'repair_line' => ['label' => 'Repair Line', 'category' => 'Combat', 'skill' => 'defense', 'level' => 8, 'experience' => 60, 'gold' => 48, 'item_key' => 'field_repair_kit', 'item_name' => 'Field Repair Kit', 'quantity' => 1],
-        'sap_rounds' => ['label' => 'Sap Rounds', 'category' => 'Support', 'skill' => 'healing', 'level' => 8, 'experience' => 60, 'gold' => 48, 'item_key' => 'sap_tonic', 'item_name' => 'Sap Tonic', 'quantity' => 1],
-        'rune_thread_watch' => ['label' => 'Runespun Thread Watch', 'category' => 'Arcane', 'skill' => 'magic', 'level' => 8, 'experience' => 64, 'gold' => 52, 'item_key' => 'rune_thread', 'item_name' => 'Rune Thread', 'quantity' => 1],
-        'bow_sighting' => ['label' => 'Bow Sighting', 'category' => 'Combat', 'skill' => 'ranged', 'level' => 8, 'experience' => 60, 'gold' => 48, 'item_key' => 'trail_bow', 'item_name' => 'Trail Bow', 'quantity' => 1],
-        'sketch_route' => ['label' => 'Sketch Route', 'category' => 'World', 'skill' => 'exploration', 'level' => 3, 'experience' => 50, 'gold' => 40, 'item_key' => 'sketch_map', 'item_name' => 'Sketch Map', 'quantity' => 1],
-        'resource_room_notes' => ['label' => 'Chamber Survey Notes', 'category' => 'World', 'skill' => 'dungeoneering', 'level' => 8, 'experience' => 62, 'gold' => 50, 'item_key' => 'resource_note', 'item_name' => 'Chamber Survey Note', 'quantity' => 1],
-        'dock_rope_order' => ['label' => 'Dock Rope Order', 'category' => 'World', 'skill' => 'sailing', 'level' => 8, 'experience' => 58, 'gold' => 48, 'item_key' => 'dock_rope', 'item_name' => 'Dock Rope', 'quantity' => 1],
-        'flatbread_cache' => ['label' => 'Flatbread Cache', 'category' => 'World', 'skill' => 'survival', 'level' => 8, 'experience' => 58, 'gold' => 46, 'item_key' => 'grain_flatbread', 'item_name' => 'Grain Flatbread', 'quantity' => 1],
-        'resource_note_sale' => ['label' => 'Chamber Note Transfer', 'category' => 'World', 'skill' => 'cartography', 'level' => 8, 'experience' => 58, 'gold' => 46, 'item_key' => 'resource_note', 'item_name' => 'Chamber Survey Note', 'quantity' => 1],
-        'barter_errand' => ['label' => 'Barter Errand', 'category' => 'Social', 'skill' => 'reputation', 'level' => 3, 'experience' => 48, 'gold' => 38, 'item_key' => 'barter_note', 'item_name' => 'Barter Note', 'quantity' => 1],
-        'crate_muster' => ['label' => 'Crate Muster', 'category' => 'Social', 'skill' => 'leadership', 'level' => 8, 'experience' => 62, 'gold' => 50, 'item_key' => 'supply_crate', 'item_name' => 'Supply Crate', 'quantity' => 1],
-        'token_exchange' => ['label' => 'Token Exchange', 'category' => 'Social', 'skill' => 'trading', 'level' => 8, 'experience' => 58, 'gold' => 48, 'item_key' => 'market_token', 'item_name' => 'Market Token', 'quantity' => 1],
+        'bait_bucket_order' => ['label' => 'Bait Bucket Order', 'category' => 'Gathering', 'skill' => 'fishing', 'level' => 5, 'experience' => 34, 'gold' => 24, 'item_key' => 'tide_snail', 'item_name' => 'Tide Snail', 'quantity' => 3],
+        'copper_assay' => ['label' => 'Copper Assay', 'category' => 'Gathering', 'skill' => 'mining', 'level' => 5, 'experience' => 36, 'gold' => 26, 'item_key' => 'copper_ore', 'item_name' => 'Copper Ore', 'quantity' => 3],
+        'kindling_quota' => ['label' => 'Kindling Quota', 'category' => 'Gathering', 'skill' => 'woodcutting', 'level' => 5, 'experience' => 32, 'gold' => 24, 'item_key' => 'branch_bundle', 'item_name' => 'Branch Bundle', 'quantity' => 3],
+        'seed_cache_sort' => ['label' => 'Seed Cache Sort', 'category' => 'Gathering', 'skill' => 'foraging', 'level' => 5, 'experience' => 30, 'gold' => 22, 'item_key' => 'common_seed', 'item_name' => 'Sunfield Seed Mix', 'quantity' => 3],
+        'camp_meat_delivery' => ['label' => 'Camp Meat Delivery', 'category' => 'Gathering', 'skill' => 'hunting', 'level' => 5, 'experience' => 38, 'gold' => 28, 'item_key' => 'small_game_meat', 'item_name' => 'Small Game Meat', 'quantity' => 3],
+        'bean_row_sample' => ['label' => 'Bean Row Sample', 'category' => 'Gathering', 'skill' => 'farming', 'level' => 10, 'experience' => 42, 'gold' => 30, 'item_key' => 'field_bean', 'item_name' => 'Field Bean', 'quantity' => 3],
+        'pottery_sort' => ['label' => 'Pottery Sort', 'category' => 'Gathering', 'skill' => 'excavation', 'level' => 5, 'experience' => 38, 'gold' => 28, 'item_key' => 'pottery_shard', 'item_name' => 'Pottery Shard', 'quantity' => 3],
+        'banked_forge_shift' => ['label' => 'Banked Forge Shift', 'category' => 'Processing', 'skill' => 'smelting', 'level' => 5, 'experience' => 42, 'gold' => 32, 'item_key' => 'banked_coal_blend', 'item_name' => 'Banked Coal Blend', 'quantity' => 1],
+        'bark_sheet_bundle' => ['label' => 'Bark Sheet Bundle', 'category' => 'Processing', 'skill' => 'milling', 'level' => 5, 'experience' => 38, 'gold' => 30, 'item_key' => 'whisperbark_sheet', 'item_name' => 'Whisperbark Sheet', 'quantity' => 1],
+        'leather_strip_order' => ['label' => 'Leather Strip Order', 'category' => 'Processing', 'skill' => 'tanning', 'level' => 5, 'experience' => 42, 'gold' => 32, 'item_key' => 'soft_leather_strip', 'item_name' => 'Soft Leather Strip', 'quantity' => 1],
+        'gem_chip_packet' => ['label' => 'Gem Chip Packet', 'category' => 'Processing', 'skill' => 'cutting', 'level' => 5, 'experience' => 44, 'gold' => 34, 'item_key' => 'chipped_gemstone', 'item_name' => 'Chipped Gemstone', 'quantity' => 1],
+        'reed_cloth_roll' => ['label' => 'Reed Cloth Roll', 'category' => 'Processing', 'skill' => 'weaving', 'level' => 5, 'experience' => 38, 'gold' => 30, 'item_key' => 'reed_cloth', 'item_name' => 'Reed Cloth', 'quantity' => 1],
+        'fittings_batch' => ['label' => 'Fittings Batch', 'category' => 'Workshop', 'skill' => 'smithing', 'level' => 5, 'experience' => 46, 'gold' => 36, 'item_key' => 'iron_fittings', 'item_name' => 'Iron Fittings', 'quantity' => 1],
+        'handle_lot' => ['label' => 'Handle Lot', 'category' => 'Workshop', 'skill' => 'carpentry', 'level' => 5, 'experience' => 42, 'gold' => 34, 'item_key' => 'ashwood_handle', 'item_name' => 'Ashwood Handle', 'quantity' => 1],
+        'soup_kettle' => ['label' => 'Soup Kettle', 'category' => 'Provisioning', 'skill' => 'cooking', 'level' => 5, 'experience' => 44, 'gold' => 34, 'item_key' => 'brine_soup', 'item_name' => 'Brine Soup', 'quantity' => 1],
+        'paste_vials' => ['label' => 'Paste Vials', 'category' => 'Support', 'skill' => 'alchemy', 'level' => 5, 'experience' => 46, 'gold' => 36, 'item_key' => 'bitterroot_paste', 'item_name' => 'Bitterroot Paste', 'quantity' => 1],
+        'wrap_bundle' => ['label' => 'Wrap Bundle', 'category' => 'Workshop', 'skill' => 'tailoring', 'level' => 5, 'experience' => 42, 'gold' => 34, 'item_key' => 'field_wraps', 'item_name' => 'Field Wraps', 'quantity' => 1],
+        'binding_order' => ['label' => 'Binding Order', 'category' => 'Workshop', 'skill' => 'leatherworking', 'level' => 5, 'experience' => 44, 'gold' => 34, 'item_key' => 'sinew_binding', 'item_name' => 'Sinew Binding', 'quantity' => 1],
+        'spring_calibration' => ['label' => 'Spring Calibration', 'category' => 'Workshop', 'skill' => 'engineering', 'level' => 5, 'experience' => 48, 'gold' => 38, 'item_key' => 'clockwork_spring', 'item_name' => 'Clockwork Spring', 'quantity' => 1],
+        'ward_oil_request' => ['label' => 'Ward Oil Request', 'category' => 'Arcane', 'skill' => 'enchanting', 'level' => 5, 'experience' => 50, 'gold' => 40, 'item_key' => 'minor_ward_oil', 'item_name' => 'Minor Ward Oil', 'quantity' => 1],
+        'copper_setting_lot' => ['label' => 'Gemsetter Copper Lot', 'category' => 'Luxury', 'skill' => 'jewelcrafting', 'level' => 5, 'experience' => 46, 'gold' => 36, 'item_key' => 'copper_setting', 'item_name' => 'Copper Setting', 'quantity' => 1],
+        'reed_float_bundle' => ['label' => 'Reed Float Bundle', 'category' => 'Settlement', 'skill' => 'boatbuilding', 'level' => 5, 'experience' => 44, 'gold' => 34, 'item_key' => 'reed_float', 'item_name' => 'Reed Float', 'quantity' => 1],
+        'stool_delivery' => ['label' => 'Stool Delivery', 'category' => 'Settlement', 'skill' => 'furniture', 'level' => 5, 'experience' => 44, 'gold' => 34, 'item_key' => 'ashwood_stool', 'item_name' => 'Ashwood Stool', 'quantity' => 1],
+        'signpost_crew' => ['label' => 'Signpost Crew', 'category' => 'Settlement', 'skill' => 'construction', 'level' => 5, 'experience' => 50, 'gold' => 40, 'item_key' => 'trail_signpost', 'item_name' => 'Trail Signpost', 'quantity' => 1],
+        'blade_drill' => ['label' => 'Blade Drill', 'category' => 'Combat', 'skill' => 'combat', 'level' => 10, 'experience' => 60, 'gold' => 48, 'item_key' => 'training_blade', 'item_name' => 'Training Blade', 'quantity' => 1],
+        'fang_study' => ['label' => 'Fang Study', 'category' => 'Combat', 'skill' => 'slayer', 'level' => 10, 'experience' => 62, 'gold' => 50, 'item_key' => 'sharp_fang', 'item_name' => 'Sharp Fang', 'quantity' => 1],
+        'repair_line' => ['label' => 'Repair Line', 'category' => 'Combat', 'skill' => 'defense', 'level' => 10, 'experience' => 60, 'gold' => 48, 'item_key' => 'field_repair_kit', 'item_name' => 'Field Repair Kit', 'quantity' => 1],
+        'sap_rounds' => ['label' => 'Sap Rounds', 'category' => 'Support', 'skill' => 'healing', 'level' => 10, 'experience' => 60, 'gold' => 48, 'item_key' => 'sap_tonic', 'item_name' => 'Sap Tonic', 'quantity' => 1],
+        'rune_thread_watch' => ['label' => 'Runespun Thread Watch', 'category' => 'Arcane', 'skill' => 'magic', 'level' => 10, 'experience' => 64, 'gold' => 52, 'item_key' => 'rune_thread', 'item_name' => 'Rune Thread', 'quantity' => 1],
+        'bow_sighting' => ['label' => 'Bow Sighting', 'category' => 'Combat', 'skill' => 'ranged', 'level' => 10, 'experience' => 60, 'gold' => 48, 'item_key' => 'trail_bow', 'item_name' => 'Trail Bow', 'quantity' => 1],
+        'sketch_route' => ['label' => 'Sketch Route', 'category' => 'World', 'skill' => 'exploration', 'level' => 5, 'experience' => 50, 'gold' => 40, 'item_key' => 'sketch_map', 'item_name' => 'Sketch Map', 'quantity' => 1],
+        'resource_room_notes' => ['label' => 'Chamber Survey Notes', 'category' => 'World', 'skill' => 'dungeoneering', 'level' => 10, 'experience' => 62, 'gold' => 50, 'item_key' => 'resource_note', 'item_name' => 'Chamber Survey Note', 'quantity' => 1],
+        'dock_rope_order' => ['label' => 'Dock Rope Order', 'category' => 'World', 'skill' => 'sailing', 'level' => 10, 'experience' => 58, 'gold' => 48, 'item_key' => 'dock_rope', 'item_name' => 'Dock Rope', 'quantity' => 1],
+        'flatbread_cache' => ['label' => 'Flatbread Cache', 'category' => 'World', 'skill' => 'survival', 'level' => 10, 'experience' => 58, 'gold' => 46, 'item_key' => 'grain_flatbread', 'item_name' => 'Grain Flatbread', 'quantity' => 1],
+        'resource_note_sale' => ['label' => 'Chamber Note Transfer', 'category' => 'World', 'skill' => 'cartography', 'level' => 10, 'experience' => 58, 'gold' => 46, 'item_key' => 'resource_note', 'item_name' => 'Chamber Survey Note', 'quantity' => 1],
+        'barter_errand' => ['label' => 'Barter Errand', 'category' => 'Social', 'skill' => 'reputation', 'level' => 5, 'experience' => 48, 'gold' => 38, 'item_key' => 'barter_note', 'item_name' => 'Barter Note', 'quantity' => 1],
+        'crate_muster' => ['label' => 'Crate Muster', 'category' => 'Social', 'skill' => 'leadership', 'level' => 10, 'experience' => 62, 'gold' => 50, 'item_key' => 'supply_crate', 'item_name' => 'Supply Crate', 'quantity' => 1],
+        'token_exchange' => ['label' => 'Token Exchange', 'category' => 'Social', 'skill' => 'trading', 'level' => 10, 'experience' => 58, 'gold' => 48, 'item_key' => 'market_token', 'item_name' => 'Market Token', 'quantity' => 1],
     ];
 
     public function __construct(private ConnectedRealmsPlayerService $players, private ItemCatalogService $items, private ItemPurposeService $purposes) {}
@@ -297,15 +297,25 @@ class JobContractService
             return self::$jobCache;
         }
 
-        self::$jobCache = [
+        self::$jobCache = self::normalizeRequiredLevels(
+            app(ConnectedRealmsContentService::class)->apply('job_contracts', self::baseJobs()),
+        );
+
+        return self::$jobCache;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public static function baseJobs(): array
+    {
+        return self::normalizeRequiredLevels([
             ...self::JOBS,
             ...self::starterJobs(),
             ...self::expandedJobs(),
             ...self::midgameJobs(),
             ...self::endgameJobs(),
-        ];
-
-        return self::$jobCache;
+        ]);
     }
 
     /**
@@ -532,7 +542,7 @@ class JobContractService
             'label' => $label,
             'category' => $category,
             'skill' => $skill,
-            'required_level' => $requiredLevel,
+            'required_level' => EvergatherTierCatalog::nextTierLevelFor($requiredLevel),
             'experience' => $experience,
             'gold' => $gold,
             'requirements' => $requirements,
@@ -541,6 +551,20 @@ class JobContractService
                 ['type' => 'experience', 'label' => str($skill)->headline()->toString().' XP', 'quantity' => $experience],
             ],
         ];
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $jobs
+     * @return array<string, array<string, mixed>>
+     */
+    private static function normalizeRequiredLevels(array $jobs): array
+    {
+        return collect($jobs)
+            ->map(fn (array $job): array => [
+                ...$job,
+                'required_level' => EvergatherTierCatalog::nextTierLevelFor((int) ($job['required_level'] ?? 1)),
+            ])
+            ->all();
     }
 
     private static function jobTitleFor(string $skill, int $level): string

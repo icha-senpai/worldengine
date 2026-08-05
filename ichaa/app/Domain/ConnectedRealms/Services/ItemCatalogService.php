@@ -9,7 +9,8 @@ class ItemCatalogService
         'uncommon' => ['quality' => 'fine', 'quality_score' => 55, 'value_multiplier' => 2, 'stack_limit' => 80],
         'rare' => ['quality' => 'superior', 'quality_score' => 70, 'value_multiplier' => 4, 'stack_limit' => 50],
         'epic' => ['quality' => 'exceptional', 'quality_score' => 85, 'value_multiplier' => 8, 'stack_limit' => 25],
-        'legendary' => ['quality' => 'masterwork', 'quality_score' => 100, 'value_multiplier' => 16, 'stack_limit' => 10],
+        'legendary' => ['quality' => 'peerless', 'quality_score' => 100, 'value_multiplier' => 16, 'stack_limit' => 10],
+        'mythic' => ['quality' => 'masterwork', 'quality_score' => 120, 'value_multiplier' => 32, 'stack_limit' => 5],
     ];
 
     /**
@@ -189,22 +190,22 @@ class ItemCatalogService
         'lure' => ['item_class' => 'tooling', 'material_family' => 'Fishing Tool', 'weight' => 0.15, 'base_value' => 20, 'tags' => ['tooling', 'fishing']],
         'handle' => ['item_class' => 'material', 'material_family' => 'Tool Component', 'weight' => 0.35, 'base_value' => 10, 'tags' => ['tooling', 'component']],
         'stake' => ['item_class' => 'tooling', 'material_family' => 'Survey Tool', 'weight' => 0.45, 'base_value' => 8, 'tags' => ['survey', 'construction']],
-        'scaffold' => ['item_class' => 'structure', 'material_family' => 'Construction', 'weight' => 6.0, 'base_value' => 28, 'tags' => ['construction', 'settlement']],
-        'frame' => ['item_class' => 'structure', 'material_family' => 'Construction', 'weight' => 8.0, 'base_value' => 55, 'tags' => ['construction', 'settlement']],
+        'scaffold' => ['item_class' => 'settlement_good', 'material_family' => 'Construction', 'weight' => 6.0, 'base_value' => 28, 'tags' => ['construction', 'settlement']],
+        'frame' => ['item_class' => 'settlement_good', 'material_family' => 'Construction', 'weight' => 8.0, 'base_value' => 55, 'tags' => ['construction', 'settlement']],
         'kit' => ['item_class' => 'tooling', 'material_family' => 'Kit', 'weight' => 1.2, 'base_value' => 20, 'tags' => ['kit', 'support']],
-        'signpost' => ['item_class' => 'structure', 'material_family' => 'Construction', 'weight' => 2.2, 'base_value' => 18, 'tags' => ['construction', 'route']],
-        'skiff' => ['item_class' => 'structure', 'material_family' => 'Boat Part', 'weight' => 5.0, 'base_value' => 30, 'tags' => ['boat', 'sailing']],
-        'hull' => ['item_class' => 'structure', 'material_family' => 'Boat Part', 'weight' => 5.0, 'base_value' => 55, 'tags' => ['boat', 'sailing']],
-        'rib' => ['item_class' => 'structure', 'material_family' => 'Boat Part', 'weight' => 1.2, 'base_value' => 20, 'tags' => ['boat', 'sailing']],
-        'float' => ['item_class' => 'structure', 'material_family' => 'Boat Part', 'weight' => 1.0, 'base_value' => 14, 'tags' => ['boat', 'sailing']],
+        'signpost' => ['item_class' => 'settlement_good', 'material_family' => 'Construction', 'weight' => 2.2, 'base_value' => 18, 'tags' => ['construction', 'route']],
+        'skiff' => ['item_class' => 'settlement_good', 'material_family' => 'Boat Part', 'weight' => 5.0, 'base_value' => 30, 'tags' => ['boat', 'sailing']],
+        'hull' => ['item_class' => 'settlement_good', 'material_family' => 'Boat Part', 'weight' => 5.0, 'base_value' => 55, 'tags' => ['boat', 'sailing']],
+        'rib' => ['item_class' => 'settlement_good', 'material_family' => 'Boat Part', 'weight' => 1.2, 'base_value' => 20, 'tags' => ['boat', 'sailing']],
+        'float' => ['item_class' => 'settlement_good', 'material_family' => 'Boat Part', 'weight' => 1.0, 'base_value' => 14, 'tags' => ['boat', 'sailing']],
         'rope' => ['item_class' => 'material', 'material_family' => 'Cord', 'weight' => 0.9, 'base_value' => 12, 'tags' => ['boat', 'cord']],
-        'sail' => ['item_class' => 'structure', 'material_family' => 'Boat Part', 'weight' => 2.0, 'base_value' => 42, 'tags' => ['boat', 'tailoring']],
-        'table' => ['item_class' => 'housing', 'material_family' => 'Furniture', 'weight' => 7.0, 'base_value' => 50, 'tags' => ['furniture', 'housing']],
-        'hall set' => ['item_class' => 'housing', 'material_family' => 'Furniture', 'weight' => 9.0, 'base_value' => 80, 'tags' => ['furniture', 'housing', 'prestige']],
-        'fixture' => ['item_class' => 'housing', 'material_family' => 'Furniture', 'weight' => 2.0, 'base_value' => 32, 'tags' => ['furniture', 'housing']],
-        'stool' => ['item_class' => 'housing', 'material_family' => 'Furniture', 'weight' => 3.0, 'base_value' => 18, 'tags' => ['furniture', 'housing']],
-        'crate' => ['item_class' => 'housing', 'material_family' => 'Furniture', 'weight' => 4.0, 'base_value' => 20, 'tags' => ['furniture', 'storage']],
-        'stand' => ['item_class' => 'housing', 'material_family' => 'Furniture', 'weight' => 3.5, 'base_value' => 24, 'tags' => ['furniture', 'housing']],
+        'sail' => ['item_class' => 'settlement_good', 'material_family' => 'Boat Part', 'weight' => 2.0, 'base_value' => 42, 'tags' => ['boat', 'tailoring']],
+        'table' => ['item_class' => 'settlement_good', 'material_family' => 'Furniture', 'weight' => 7.0, 'base_value' => 50, 'tags' => ['furniture', 'housing']],
+        'hall set' => ['item_class' => 'settlement_good', 'material_family' => 'Furniture', 'weight' => 9.0, 'base_value' => 80, 'tags' => ['furniture', 'housing', 'prestige']],
+        'fixture' => ['item_class' => 'settlement_good', 'material_family' => 'Furniture', 'weight' => 2.0, 'base_value' => 32, 'tags' => ['furniture', 'housing']],
+        'stool' => ['item_class' => 'settlement_good', 'material_family' => 'Furniture', 'weight' => 3.0, 'base_value' => 18, 'tags' => ['furniture', 'housing']],
+        'crate' => ['item_class' => 'settlement_good', 'material_family' => 'Furniture', 'weight' => 4.0, 'base_value' => 20, 'tags' => ['furniture', 'storage']],
+        'stand' => ['item_class' => 'settlement_good', 'material_family' => 'Furniture', 'weight' => 3.5, 'base_value' => 24, 'tags' => ['furniture', 'housing']],
     ];
 
     /**
@@ -221,12 +222,15 @@ class ItemCatalogService
         $rule = $this->ruleFor($itemKey, $itemName);
         $weight = (float) ($item['weight'] ?? $rule['weight']);
         $unitValue = (int) round(((int) ($item['vendor_value'] ?? $rule['base_value'])) * $profile['value_multiplier']);
+        $itemTier = $this->itemTierFor($item, $itemName, $rarity);
 
         return [
             ...$item,
             'item_key' => $itemKey,
             'item_name' => $itemName,
             'rarity' => $rarity,
+            'item_tier' => $itemTier,
+            'tier_label' => "T{$itemTier}",
             'quality' => $item['quality'] ?? $profile['quality'],
             'quality_score' => (int) ($item['quality_score'] ?? $profile['quality_score']),
             'item_class' => $item['item_class'] ?? $rule['item_class'],
@@ -246,6 +250,7 @@ class ItemCatalogService
                 ...($rule['tags'] ?? []),
                 $rarity,
                 $item['item_class'] ?? $rule['item_class'],
+                "tier_{$itemTier}",
             ])),
         ];
     }
@@ -277,12 +282,23 @@ class ItemCatalogService
     {
         $keyNeedle = $this->normalizeRuleNeedle($itemKey);
         $nameNeedle = $this->normalizeRuleNeedle($itemName);
+        $needle = trim($keyNeedle.' '.$nameNeedle);
+
+        if (preg_match('/\b(cargo|package|shipment|consignment|supply crate|goods cache|expedition cache)\b/', $needle) === 1) {
+            return [
+                'item_class' => 'cargo',
+                'material_family' => 'Cargo',
+                'weight' => 3.0,
+                'base_value' => 28,
+                'tags' => ['cargo', 'package', 'trade'],
+            ];
+        }
 
         if (str_contains($keyNeedle, 'slag glass') || str_contains($nameNeedle, 'slagglass')) {
             return self::KEY_RULES['slag_glass'];
         }
 
-        foreach (self::KEY_RULES as $fragment => $rule) {
+        foreach ($this->keyRules() as $fragment => $rule) {
             $ruleNeedle = $this->normalizeRuleNeedle($fragment);
 
             if ($this->matchesRuleSuffix($keyNeedle, $ruleNeedle) || $this->matchesRuleSuffix($nameNeedle, $ruleNeedle)) {
@@ -290,9 +306,7 @@ class ItemCatalogService
             }
         }
 
-        $needle = trim($keyNeedle.' '.$nameNeedle);
-
-        foreach (self::KEY_RULES as $fragment => $rule) {
+        foreach ($this->keyRules() as $fragment => $rule) {
             if (str_contains($needle, $this->normalizeRuleNeedle($fragment))) {
                 return $rule;
             }
@@ -315,6 +329,22 @@ class ItemCatalogService
             ->squish();
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function baseKeyRules(): array
+    {
+        return self::KEY_RULES;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function keyRules(): array
+    {
+        return app(ConnectedRealmsContentService::class)->apply('item_rules', self::KEY_RULES);
+    }
+
     private function matchesRuleSuffix(string $needle, string $ruleNeedle): bool
     {
         return $needle === $ruleNeedle || str_ends_with($needle, ' '.$ruleNeedle);
@@ -329,11 +359,44 @@ class ItemCatalogService
     {
         $multiplier = match ($itemClass) {
             'armor', 'equipment', 'tool', 'trinket' => 12,
-            'consumable', 'housing', 'structure', 'tooling' => 10,
+            'cargo', 'consumable', 'housing', 'settlement_good', 'structure', 'tooling' => 10,
             'material' => 8,
             default => 6,
         };
 
         return max($this->npcBuyPrice($unitValue), $unitValue * $multiplier);
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function itemTierFor(array $item, string $itemName, string $rarity): int
+    {
+        foreach (['item_tier', 'craft_tier'] as $key) {
+            if (is_numeric($item[$key] ?? null)) {
+                return max(1, min(10, (int) $item[$key]));
+            }
+        }
+
+        foreach (['required_level', 'tier_level'] as $key) {
+            if (is_numeric($item[$key] ?? null)) {
+                return EvergatherTierCatalog::itemTierForLevel((int) $item[$key]);
+            }
+        }
+
+        foreach (EvergatherTierCatalog::tiers() as $tier) {
+            if (preg_match('/\b'.preg_quote($tier['mark'], '/').'\b/i', $itemName) === 1) {
+                return (int) $tier['item_tier'];
+            }
+        }
+
+        return match ($rarity) {
+            'mythic' => 10,
+            'legendary' => 9,
+            'epic' => 8,
+            'rare' => 5,
+            'uncommon' => 3,
+            default => 1,
+        };
     }
 }

@@ -69,7 +69,7 @@ class ProgressionService
             'active_skill_count' => $activeSkills,
             'mastered_skill_count' => $masteredSkills,
             'pacing' => $this->catalog->pacing(),
-            'achievements' => $this->applyAchievementClaims([
+            'achievements' => $this->applyAchievementClaims($this->contentAchievements([
                 $this->achievement('first_steps', 'First Steps', 'Complete any gathering action.', $actionCount >= 1, 'Gathering'),
                 $this->achievement('working_hands', 'Working Hands', 'Complete a crafting recipe.', $craftCount >= 1, 'Crafting'),
                 $this->achievement('contract_hand', 'Commission Hand', 'Turn in a board commission.', $jobCount >= 1, 'Jobs'),
@@ -77,14 +77,14 @@ class ProgressionService
                 $this->achievement('market_voice', 'Market Voice', 'List or buy through the marketplace.', $marketActivityCount >= 1, 'Trade'),
                 $this->achievement('full_pockets', 'Full Pockets', 'Hold at least 100 gold.', $player->gold >= 100, 'Wealth'),
                 $this->achievement('packed_satchel', 'Packed Satchel', 'Hold at least 25 inventory items.', $inventoryQuantity >= 25, 'Inventory'),
-                $this->achievement('skill_spark', 'Skill Spark', 'Reach level 2 in any skill.', $highestSkillLevel >= 2, 'Skills'),
+                $this->achievement('skill_spark', 'Skill Spark', 'Earn XP in any skill.', $activeSkills >= 1, 'Skills'),
                 $this->achievement('ready_toolbelt', 'Ready Toolbelt', 'Own a full field toolbelt.', $equipmentCount >= 7, 'Equipment'),
                 $this->achievement('steady_hands', 'Steady Hands', 'Complete 10 gathering actions.', $actionCount >= 10, 'Gathering'),
                 $this->achievement('route_runner', 'Route Runner', 'Complete 50 gathering actions.', $actionCount >= 50, 'Gathering'),
                 $this->achievement('field_legend', 'Field Legend', 'Complete 250 gathering actions.', $actionCount >= 250, 'Gathering'),
                 $this->achievement('gathering_circle', 'Gathering Circle', 'Earn XP in three gathering skills.', $activeSkillsInCategory('Gathering') >= 3, 'Gathering'),
                 $this->achievement('wilds_initiate', 'Wilds Initiate', 'Reach level 5 in any gathering skill.', $highestCategoryLevel('Gathering') >= 5, 'Gathering'),
-                $this->achievement('wilds_specialist', 'Wilds Specialist', 'Reach level 25 in any gathering skill.', $highestCategoryLevel('Gathering') >= 25, 'Gathering'),
+                $this->achievement('wilds_specialist', 'Wilds Specialist', 'Reach level 30 in any gathering skill.', $highestCategoryLevel('Gathering') >= 30, 'Gathering'),
                 $this->achievement('bench_warm', 'Bench Warm', 'Complete 5 crafting recipes.', $craftCount >= 5, 'Crafting'),
                 $this->achievement('workshop_shift', 'Workshop Shift', 'Complete 25 crafting recipes.', $craftCount >= 25, 'Crafting'),
                 $this->achievement('artisan_season', 'Artisan Season', 'Complete 100 crafting recipes.', $craftCount >= 100, 'Crafting'),
@@ -98,7 +98,7 @@ class ProgressionService
                 $this->achievement('far_runner', 'Far Runner', 'Resolve 25 expeditions.', $expeditionCount >= 25, 'Exploration'),
                 $this->achievement('worldwalker', 'Worldwalker', 'Resolve 100 expeditions.', $expeditionCount >= 100, 'Exploration'),
                 $this->achievement('world_skill_spark', 'World Skill Spark', 'Earn XP in two world skills.', $activeSkillsInCategory('World') >= 2, 'Exploration'),
-                $this->achievement('trail_authority', 'Trail Authority', 'Reach level 25 in any world skill.', $highestCategoryLevel('World') >= 25, 'Exploration'),
+                $this->achievement('trail_authority', 'Trail Authority', 'Reach level 30 in any world skill.', $highestCategoryLevel('World') >= 30, 'Exploration'),
                 $this->achievement('vendor_regular', 'Vendor Regular', 'Sell inventory to the NPC market-floor vendor.', $vendorSaleCount >= 1, 'Trade'),
                 $this->achievement('ledger_friend', 'Ledger Friend', 'Sell to the NPC vendor 10 times.', $vendorSaleCount >= 10, 'Trade'),
                 $this->achievement('market_stall', 'Market Stall', 'Create 5 player market listings.', $marketListingCount >= 5, 'Trade'),
@@ -110,12 +110,12 @@ class ProgressionService
                 $this->achievement('quartermaster', 'Quartermaster', 'Hold at least 100 inventory items.', $inventoryQuantity >= 100, 'Inventory'),
                 $this->achievement('warehouse_mind', 'Warehouse Mind', 'Hold at least 250 inventory items.', $inventoryQuantity >= 250, 'Inventory'),
                 $this->achievement('collector_shelf', 'Collector Shelf', 'Hold 10 unique inventory stacks.', $inventoryStacks->count() >= 10, 'Inventory'),
-                $this->achievement('rare_keeper', 'Rare Keeper', 'Hold an uncommon or better item stack.', $inventoryStacks->contains(fn ($stack): bool => in_array($stack->rarity, ['uncommon', 'rare', 'epic', 'legendary'], true)), 'Inventory'),
+                $this->achievement('rare_keeper', 'Rare Keeper', 'Hold an uncommon or better item stack.', $inventoryStacks->contains(fn ($stack): bool => in_array($stack->rarity, ['uncommon', 'rare', 'epic', 'legendary', 'mythic'], true)), 'Inventory'),
                 $this->achievement('apprentice_spark', 'Kindled Spark', 'Reach level 5 in any skill.', $highestSkillLevel >= 5, 'Skills'),
                 $this->achievement('journeyman_spark', 'Journeyman Spark', 'Reach level 10 in any skill.', $highestSkillLevel >= 10, 'Skills'),
-                $this->achievement('expert_spark', 'Expert Spark', 'Reach level 25 in any skill.', $highestSkillLevel >= 25, 'Skills'),
+                $this->achievement('expert_spark', 'Expert Spark', 'Reach level 30 in any skill.', $highestSkillLevel >= 30, 'Skills'),
                 $this->achievement('master_spark', 'Master Spark', 'Reach level 50 in any skill.', $highestSkillLevel >= 50, 'Skills'),
-                $this->achievement('legend_spark', 'Legend Spark', 'Reach level 75 in any skill.', $highestSkillLevel >= 75, 'Skills'),
+                $this->achievement('legend_spark', 'Legend Spark', 'Reach level 80 in any skill.', $highestSkillLevel >= 80, 'Skills'),
                 $this->achievement('level_100_oath', 'Level 100 Oath', 'Reach level 100 in any skill.', $highestSkillLevel >= SkillCatalogService::MAX_LEVEL, 'Mastery'),
                 $this->achievement('broad_training', 'Broad Training', 'Earn XP in 5 different skills.', $activeSkills >= 5, 'Skills'),
                 $this->achievement('polymath_path', 'Polymath Path', 'Earn XP in 10 different skills.', $activeSkills >= 10, 'Skills'),
@@ -124,7 +124,7 @@ class ProgressionService
                 $this->achievement('mastery_circle', 'Mastery Circle', 'Reach level 50 in five skills.', $skillsAtLevel(50) >= 5, 'Mastery'),
                 $this->achievement('realm_mastery', 'Realm Mastery', 'Master five level 100 skills.', $masteredSkills >= 5, 'Mastery'),
                 $this->achievement('combat_recruit', 'Combat Recruit', 'Reach level 5 in any combat skill.', $highestCategoryLevel('Combat') >= 5, 'Combat'),
-                $this->achievement('threat_breaker', 'Threat Breaker', 'Reach level 25 in any combat skill.', $highestCategoryLevel('Combat') >= 25, 'Combat'),
+                $this->achievement('threat_breaker', 'Threat Breaker', 'Reach level 30 in any combat skill.', $highestCategoryLevel('Combat') >= 30, 'Combat'),
                 $this->achievement('battle_company', 'Battle Company', 'Earn XP in three combat skills.', $activeSkillsInCategory('Combat') >= 3, 'Combat'),
                 $this->achievement('hunter_edge', 'Hunter Edge', 'Reach level 10 in Hunting, Combat, or Slayer.', $highestNamedSkillLevel(['hunting', 'combat', 'slayer']) >= 10, 'Combat'),
                 $this->achievement('social_foothold', 'Social Foothold', 'Earn XP in Reputation, Leadership, or Trading.', $activeSkillsInCategory('Social') >= 1, 'Social'),
@@ -133,7 +133,7 @@ class ProgressionService
                 $this->achievement('realm_veteran', 'Realm Veteran', 'Complete 250 total actions, crafts, jobs, or expeditions.', $totalActivityCount >= 250, 'Account'),
                 ...$this->accountMilestoneAchievements($accountLevel),
                 ...$this->skillMilestoneAchievements($skillLevels),
-            ], $achievementClaims),
+            ]), $achievementClaims),
             'claimed_rewards' => $achievementClaims
                 ->map(fn (ConnectedRealmsAchievementClaim $claim): array => [
                     'achievement_key' => $claim->achievement_key,
@@ -310,6 +310,19 @@ class ProgressionService
 
     /**
      * @param  list<array<string, mixed>>  $achievements
+     * @return list<array<string, mixed>>
+     */
+    private function contentAchievements(array $achievements): array
+    {
+        $keyed = collect($achievements)
+            ->mapWithKeys(fn (array $achievement): array => [$achievement['key'] => $achievement])
+            ->all();
+
+        return array_values(app(ConnectedRealmsContentService::class)->apply('achievements', $keyed));
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $achievements
      * @param  Collection<int, ConnectedRealmsAchievementClaim>  $claims
      * @return list<array<string, mixed>>
      */
@@ -437,7 +450,7 @@ class ProgressionService
      */
     private function achievementReward(string $key, string $label, string $category): array
     {
-        $level = (int) (preg_match('/_(100|75|50|25|10|5)$/', $key, $matches) === 1 ? $matches[1] : 0);
+        $level = (int) (preg_match('/_(100|80|65|50|40|30|20|10|5|1)$/', $key, $matches) === 1 ? $matches[1] : 0);
         $categoryKey = str($category)->slug('_')->toString();
 
         return [
@@ -460,9 +473,11 @@ class ProgressionService
                 },
             'gold' => match (true) {
                 $level >= 100 => 1000,
-                $level >= 75 => 650,
+                $level >= 80 => 650,
+                $level >= 65 => 500,
                 $level >= 50 => 400,
-                $level >= 25 => 180,
+                $level >= 30 => 180,
+                $level >= 20 => 120,
                 $level >= 10 => 80,
                 $level >= 5 => 35,
                 default => 15,
@@ -500,7 +515,7 @@ class ProgressionService
      */
     private function accountMilestoneAchievements(int $accountLevel): array
     {
-        return collect([5, 10, 25, 50, 75, 100])
+        return collect(EvergatherTierCatalog::levels())
             ->map(fn (int $level): array => [
                 ...$this->achievement(
                     "account_level_{$level}",
@@ -526,7 +541,7 @@ class ProgressionService
                 $definition = $this->catalog->definition($skill);
                 $currentLevel = (int) ($skillLevels->get($skill) ?? 1);
 
-                return collect([5, 10, 25, 50, 75, SkillCatalogService::MAX_LEVEL])
+                return collect(EvergatherTierCatalog::levels())
                     ->map(fn (int $level): array => [
                         ...$this->achievement(
                             "skill_milestone_{$skill}_{$level}",

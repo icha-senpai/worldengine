@@ -253,6 +253,18 @@ class SkillActivityService
             return self::$activityCache;
         }
 
+        self::$activityCache = self::normalizeRequiredLevels(
+            app(ConnectedRealmsContentService::class)->apply('skill_activities', self::baseActivities()),
+        );
+
+        return self::$activityCache;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public static function baseActivities(): array
+    {
         $skillDefinitions = collect(app(SkillCatalogService::class)->all())->keyBy('key');
         $activities = [];
 
@@ -265,14 +277,26 @@ class SkillActivityService
             }
         }
 
-        self::$activityCache = $activities;
+        return self::normalizeRequiredLevels($activities);
+    }
 
-        return self::$activityCache;
+    /**
+     * @param  array<string, array<string, mixed>>  $activities
+     * @return array<string, array<string, mixed>>
+     */
+    private static function normalizeRequiredLevels(array $activities): array
+    {
+        return collect($activities)
+            ->map(fn (array $activity): array => [
+                ...$activity,
+                'required_level' => EvergatherTierCatalog::nextTierLevelFor((int) ($activity['required_level'] ?? 1)),
+            ])
+            ->all();
     }
 
     /**
      * @param  array{track: string, theme: string, activities: list<string>, location: string, rewards: list<array{key: string, name: string}>}  $family
-     * @param  array{level: int, band: string, key_slug: string, mark: string, station: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}  $tier
+     * @param  array{level: int, item_tier: int, band: string, key_slug: string, mark: string, station: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}  $tier
      * @return array<string, mixed>
      */
     private static function activity(string $skill, string $category, array $family, array $tier): array
@@ -299,13 +323,15 @@ class SkillActivityService
                     'item_key' => str("{$skill} {$tier['mark']} {$primaryReward['key']} {$tier['level']}")->slug('_')->toString(),
                     'item_name' => self::activityRewardName($primaryReward['name'], $tier, 0),
                     'rarity' => $tier['rarity'],
+                    'item_tier' => (int) $tier['item_tier'],
                     'quantity' => $tier['level'] >= 50 ? 2 : 1,
                     'chance' => 100,
                 ],
                 [
                     'item_key' => str("{$skill} {$tier['mark']} {$secondaryReward['key']} {$tier['level']}")->slug('_')->toString(),
                     'item_name' => self::activityRewardName($secondaryReward['name'], $tier, 1),
-                    'rarity' => $tier['level'] >= 80 ? 'epic' : ($tier['level'] >= 30 ? 'rare' : 'uncommon'),
+                    'rarity' => $tier['level'] >= 80 ? $tier['rarity'] : ($tier['level'] >= 30 ? 'rare' : 'uncommon'),
+                    'item_tier' => (int) $tier['item_tier'],
                     'quantity' => 1,
                     'chance' => $tier['level'] >= 80 ? 55 : 70,
                 ],

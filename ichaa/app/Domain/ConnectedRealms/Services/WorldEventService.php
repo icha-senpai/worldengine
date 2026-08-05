@@ -27,7 +27,7 @@ class WorldEventService
             'skills' => ['mining', 'smelting', 'smithing'],
             'starts_at' => '2026-08-03T00:00:00-05:00',
             'ends_at' => '2026-08-04T00:00:00-05:00',
-            'description' => 'Star-metal sparks through the quarry seams and turns careful ore work into better toolmaking runs.',
+            'description' => 'Highguild sparks through the quarry seams and turns careful ore work into better toolmaking runs.',
             'bonus' => ['experience' => 2, 'yield' => 1, 'gold' => 0],
             'reward' => 'Highguild Ingot chances from late quarry and forge paths.',
         ],
@@ -122,7 +122,7 @@ class WorldEventService
      */
     public function calendar(): array
     {
-        $events = collect(self::EVENTS)
+        $events = collect(self::events())
             ->map(fn (array $event, string $key): array => [
                 'key' => $key,
                 'label' => $event['label'],
@@ -170,7 +170,7 @@ class WorldEventService
      */
     public function bonusForSkill(string $skill, string $context): ?array
     {
-        foreach (self::EVENTS as $key => $event) {
+        foreach (self::events() as $key => $event) {
             if ($event['status'] === 'active' && in_array($skill, $event['skills'], true)) {
                 return [
                     'key' => $key,
@@ -184,5 +184,21 @@ class WorldEventService
         }
 
         return null;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public static function baseEvents(): array
+    {
+        return self::EVENTS;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private static function events(): array
+    {
+        return app(ConnectedRealmsContentService::class)->apply('world_events', self::EVENTS);
     }
 }

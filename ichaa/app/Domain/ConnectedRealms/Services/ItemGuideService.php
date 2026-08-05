@@ -194,7 +194,7 @@ class ItemGuideService
      */
     private function addToolUpgradeSinks(array &$items): void
     {
-        foreach (['common', 'uncommon', 'rare', 'epic'] as $rarity) {
+        foreach (['common', 'uncommon', 'rare', 'epic', 'legendary'] as $rarity) {
             foreach ($this->tools->rarityMaterials($rarity) as $item) {
                 $this->addSink(
                     $items,
@@ -229,16 +229,19 @@ class ItemGuideService
     private function addPurposeSinks(array &$items): void
     {
         foreach ($items as $key => $record) {
-            if ($record['sinks'] !== []) {
-                continue;
+            foreach ([
+                $this->purposes->requisitionFor($record['item'])['sink'],
+                $this->purposes->vendorSinkFor($record['item']),
+            ] as $sink) {
+                if (! in_array($sink, $items[$key]['sinks'], true)) {
+                    $items[$key]['sinks'][] = $sink;
+                }
             }
-
-            $items[$key]['sinks'][] = $this->purposes->requisitionFor($record['item'])['sink'];
         }
     }
 
     /**
-     * @return array{type: string, label: string, required_level: int, context: string}
+     * @return array{type: string, label: string, required_level: int, item_tier: int, context: string}
      */
     private function guideRow(string $type, string $label, int $requiredLevel, string $context): array
     {
@@ -246,6 +249,7 @@ class ItemGuideService
             'type' => $type,
             'label' => $label,
             'required_level' => $requiredLevel,
+            'item_tier' => EvergatherTierCatalog::itemTierForLevel($requiredLevel),
             'context' => $context,
         ];
     }

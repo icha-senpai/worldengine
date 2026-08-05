@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class ToolTierUpgradeService
 {
-    private const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+    private const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
 
     public function __construct(
         private ConnectedRealmsPlayerService $players,

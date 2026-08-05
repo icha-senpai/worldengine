@@ -66,7 +66,7 @@ class ExpeditionService
             'label' => 'Shoreline Patrol',
             'region' => 'Moonwake Coast',
             'skill' => 'exploration',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 58,
             'gold' => 40,
             'supplies' => [
@@ -82,7 +82,7 @@ class ExpeditionService
             'label' => 'Watchtower Walk',
             'region' => 'Old Gate Ruins',
             'skill' => 'dungeoneering',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 62,
             'gold' => 44,
             'supplies' => [
@@ -98,7 +98,7 @@ class ExpeditionService
             'label' => 'Harbor Practice',
             'region' => 'Moonwake Harbor',
             'skill' => 'sailing',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 56,
             'gold' => 42,
             'supplies' => [
@@ -114,7 +114,7 @@ class ExpeditionService
             'label' => 'Ashcamp Provision Cart',
             'region' => 'Briarwake Camps',
             'skill' => 'survival',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 56,
             'gold' => 42,
             'supplies' => [
@@ -130,7 +130,7 @@ class ExpeditionService
             'label' => 'Training Ring',
             'region' => 'Moonwake Yard',
             'skill' => 'combat',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 66,
             'gold' => 52,
             'supplies' => [
@@ -146,7 +146,7 @@ class ExpeditionService
             'label' => 'Minor Mark',
             'region' => 'Briarwake Run',
             'skill' => 'slayer',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 68,
             'gold' => 54,
             'supplies' => [
@@ -162,7 +162,7 @@ class ExpeditionService
             'label' => 'Shield Watch',
             'region' => 'Old Gate Front',
             'skill' => 'defense',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 64,
             'gold' => 50,
             'supplies' => [
@@ -177,7 +177,7 @@ class ExpeditionService
             'label' => 'Medic Round',
             'region' => 'Moonwake Infirmary',
             'skill' => 'healing',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 64,
             'gold' => 50,
             'supplies' => [
@@ -192,7 +192,7 @@ class ExpeditionService
             'label' => 'Warded Clearing',
             'region' => 'Glimmerfen Verge',
             'skill' => 'magic',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 68,
             'gold' => 54,
             'supplies' => [
@@ -207,7 +207,7 @@ class ExpeditionService
             'label' => 'Range Walk',
             'region' => 'Lantern Shoals',
             'skill' => 'ranged',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 64,
             'gold' => 50,
             'supplies' => [
@@ -223,7 +223,7 @@ class ExpeditionService
             'label' => 'Notice Delivery',
             'region' => 'Regional Notice Board',
             'skill' => 'reputation',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 58,
             'gold' => 46,
             'supplies' => [
@@ -237,7 +237,7 @@ class ExpeditionService
             'label' => 'Crew Call',
             'region' => 'Oathhall Yard',
             'skill' => 'leadership',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 64,
             'gold' => 52,
             'supplies' => [
@@ -252,7 +252,7 @@ class ExpeditionService
             'label' => 'Harbor Price Walk',
             'region' => 'Moonwake Exchange',
             'skill' => 'trading',
-            'required_level' => 3,
+            'required_level' => 5,
             'experience' => 58,
             'gold' => 46,
             'supplies' => [
@@ -308,6 +308,8 @@ class ExpeditionService
                     'skill' => $expedition['skill'],
                     'skill_label' => str($expedition['skill'])->headline()->toString(),
                     'required_level' => $requiredLevel,
+                    'level_band' => $expedition['level_band'] ?? EvergatherTierCatalog::tierForLevel($requiredLevel)['band'],
+                    'progression_phase' => $expedition['progression_phase'] ?? EvergatherTierCatalog::progressionPhaseForLevel($requiredLevel),
                     'skill_level' => $skillLevel,
                     'is_unlocked' => $skillLevel >= $requiredLevel,
                     'experience' => $expedition['experience'],
@@ -438,15 +440,25 @@ class ExpeditionService
             return self::$expeditionCache;
         }
 
-        self::$expeditionCache = [
+        self::$expeditionCache = self::normalizeExpeditions(
+            app(ConnectedRealmsContentService::class)->apply('expeditions', self::baseExpeditions()),
+        );
+
+        return self::$expeditionCache;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public static function baseExpeditions(): array
+    {
+        return self::normalizeExpeditions([
             ...self::EXPEDITIONS,
             ...self::STARTER_EXPEDITIONS,
             ...self::expandedExpeditions(),
             ...self::midgameExpeditions(),
             ...self::endgameExpeditions(),
-        ];
-
-        return self::$expeditionCache;
+        ]);
     }
 
     /**
@@ -482,14 +494,14 @@ class ExpeditionService
             ], [
                 ['item_key' => 'secret_atlas_leaf', 'item_name' => 'Secret Atlas Leaf', 'rarity' => 'epic', 'quantity' => 1],
             ]),
-            'deep_sanctum_clear' => self::expedition('Deep Sanctum Clear', 'Buried Gate Core', 'dungeoneering', 25, 104, 94, [
+            'deep_sanctum_clear' => self::expedition('Deep Sanctum Clear', 'Buried Gate Core', 'dungeoneering', 30, 104, 94, [
                 ['item_key' => 'dungeon_chart', 'item_name' => 'Dungeon Chart', 'quantity' => 1],
                 ['item_key' => 'revival_salve', 'item_name' => 'Revival Salve', 'quantity' => 1],
             ], [
                 ['item_key' => 'gate_core', 'item_name' => 'Gate Core', 'rarity' => 'epic', 'quantity' => 1],
                 ['item_key' => 'rune_slate', 'item_name' => 'Rune Slate', 'rarity' => 'rare', 'quantity' => 1],
             ]),
-            'storm_fleet_supply' => self::expedition('Storm Fleet Supply', 'Stormward Sea', 'sailing', 25, 98, 92, [
+            'storm_fleet_supply' => self::expedition('Storm Fleet Supply', 'Stormward Sea', 'sailing', 30, 98, 92, [
                 ['item_key' => 'cargo_skiff', 'item_name' => 'Cargo Skiff', 'quantity' => 1],
                 ['item_key' => 'silk_sail', 'item_name' => 'Silk Sail', 'quantity' => 1],
             ], [
@@ -508,7 +520,7 @@ class ExpeditionService
             ], [
                 ['item_key' => 'council_token', 'item_name' => 'Council Token', 'rarity' => 'rare', 'quantity' => 1],
             ]),
-            'raid_supply_push' => self::expedition('Raid Supply Push', 'Old Gate Front', 'leadership', 25, 108, 100, [
+            'raid_supply_push' => self::expedition('Raid Supply Push', 'Old Gate Front', 'leadership', 30, 108, 100, [
                 ['item_key' => 'watchtower_frame', 'item_name' => 'Watchtower Frame', 'quantity' => 1],
                 ['item_key' => 'dusk_feast', 'item_name' => 'Dusk Feast', 'quantity' => 1],
             ], [
@@ -597,8 +609,8 @@ class ExpeditionService
         ];
         $tiers = [
             ['level' => 65, 'mark' => 'Elderwake', 'rarity' => 'epic', 'experience' => 260, 'gold' => 220],
-            ['level' => 80, 'mark' => 'Mythgate', 'rarity' => 'epic', 'experience' => 360, 'gold' => 300],
-            ['level' => 100, 'mark' => 'Crownmark', 'rarity' => 'legendary', 'experience' => 520, 'gold' => 440],
+            ['level' => 80, 'mark' => 'Mythgate', 'rarity' => 'legendary', 'experience' => 360, 'gold' => 300],
+            ['level' => 100, 'mark' => 'Crownmark', 'rarity' => 'mythic', 'experience' => 520, 'gold' => 440],
         ];
         $expeditions = [];
 
@@ -637,16 +649,42 @@ class ExpeditionService
      */
     private static function expedition(string $label, string $region, string $skill, int $requiredLevel, int $experience, int $gold, array $supplies, array $rewards): array
     {
+        $requiredLevel = EvergatherTierCatalog::nextTierLevelFor($requiredLevel);
+
         return [
             'label' => $label,
             'region' => $region,
             'skill' => $skill,
             'required_level' => $requiredLevel,
+            'item_tier' => EvergatherTierCatalog::itemTierForLevel($requiredLevel),
+            'level_band' => EvergatherTierCatalog::tierForLevel($requiredLevel)['band'],
+            'progression_phase' => EvergatherTierCatalog::progressionPhaseForLevel($requiredLevel),
             'experience' => $experience,
             'gold' => $gold,
             'supplies' => $supplies,
             'rewards' => $rewards,
         ];
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $expeditions
+     * @return array<string, array<string, mixed>>
+     */
+    private static function normalizeExpeditions(array $expeditions): array
+    {
+        return collect($expeditions)
+            ->map(function (array $expedition): array {
+                $requiredLevel = EvergatherTierCatalog::nextTierLevelFor((int) ($expedition['required_level'] ?? 1));
+
+                return [
+                    ...$expedition,
+                    'required_level' => $requiredLevel,
+                    'item_tier' => EvergatherTierCatalog::itemTierForLevel($requiredLevel),
+                    'level_band' => EvergatherTierCatalog::tierForLevel($requiredLevel)['band'],
+                    'progression_phase' => EvergatherTierCatalog::progressionPhaseForLevel($requiredLevel),
+                ];
+            })
+            ->all();
     }
 
     /**

@@ -765,6 +765,7 @@ const adminTools = computed(() => ({
     matches: ['/admin'],
     children: [
         { key: 'admin-users', label: 'Users', href: route('admin.users.index'), matches: ['/admin/users'] },
+        { key: 'admin-evergather-content', label: 'Evergather Content', href: route('admin.evergather-content.index'), matches: ['/admin/evergather/content'] },
         { key: 'admin-revisions', label: 'Revisions', href: route('admin.revisions.index'), matches: ['/admin/revisions'] },
     ],
 }))

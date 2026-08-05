@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ConnectedRealmsContentController as AdminConnectedRealmsContentController;
 use App\Http\Controllers\Admin\RevisionController as AdminRevisionController;
 use App\Http\Controllers\Admin\UserAccessController as AdminUserAccessController;
 use App\Http\Controllers\Bitcraft\BitcraftActivityController;
@@ -149,6 +150,10 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
         Route::get('revisions/compare', [AdminRevisionController::class, 'compare'])->name('revisions.compare');
         Route::get('revisions/{revision}', [AdminRevisionController::class, 'show'])->name('revisions.show');
         Route::post('revisions/{revision}/restore', [AdminRevisionController::class, 'restore'])->name('revisions.restore');
+
+        Route::get('evergather/content', [AdminConnectedRealmsContentController::class, 'index'])->name('evergather-content.index');
+        Route::post('evergather/content', [AdminConnectedRealmsContentController::class, 'store'])->name('evergather-content.store');
+        Route::put('evergather/content/{entry}', [AdminConnectedRealmsContentController::class, 'update'])->name('evergather-content.update');
 
     });
 

@@ -135,7 +135,7 @@ class GatheringActionService
             'label' => 'Tidal Pools',
             'skill' => 'fishing',
             'location' => 'Moonwake Tide Pools',
-            'required_level' => 3,
+            'required_level' => 5,
             'cooldown_seconds' => 70,
             'experience' => ['min' => 24, 'max' => 38],
             'gold' => ['min' => 2, 'max' => 7],
@@ -149,7 +149,7 @@ class GatheringActionService
             'label' => 'Creek Traps',
             'skill' => 'fishing',
             'location' => 'Glassrun Creek',
-            'required_level' => 7,
+            'required_level' => 10,
             'cooldown_seconds' => 82,
             'experience' => ['min' => 30, 'max' => 46],
             'gold' => ['min' => 3, 'max' => 8],
@@ -163,7 +163,7 @@ class GatheringActionService
             'label' => 'Shoal Cast',
             'skill' => 'fishing',
             'location' => 'Lantern Shoals',
-            'required_level' => 11,
+            'required_level' => 20,
             'cooldown_seconds' => 94,
             'experience' => ['min' => 36, 'max' => 54],
             'gold' => ['min' => 4, 'max' => 9],
@@ -177,7 +177,7 @@ class GatheringActionService
             'label' => 'Surface Coal',
             'skill' => 'mining',
             'location' => 'Blackcap Slope',
-            'required_level' => 3,
+            'required_level' => 5,
             'cooldown_seconds' => 84,
             'experience' => ['min' => 26, 'max' => 42],
             'gold' => ['min' => 2, 'max' => 7],
@@ -191,7 +191,7 @@ class GatheringActionService
             'label' => 'Clay Pit',
             'skill' => 'mining',
             'location' => 'Redbank Cut',
-            'required_level' => 7,
+            'required_level' => 10,
             'cooldown_seconds' => 96,
             'experience' => ['min' => 34, 'max' => 50],
             'gold' => ['min' => 3, 'max' => 8],
@@ -205,7 +205,7 @@ class GatheringActionService
             'label' => 'Quarry Survey',
             'skill' => 'mining',
             'location' => 'Emberdeep Bench',
-            'required_level' => 11,
+            'required_level' => 20,
             'cooldown_seconds' => 108,
             'experience' => ['min' => 40, 'max' => 58],
             'gold' => ['min' => 4, 'max' => 10],
@@ -219,7 +219,7 @@ class GatheringActionService
             'label' => 'Fallen Branches',
             'skill' => 'woodcutting',
             'location' => 'Whisperbough Edge',
-            'required_level' => 3,
+            'required_level' => 5,
             'cooldown_seconds' => 74,
             'experience' => ['min' => 22, 'max' => 36],
             'gold' => ['min' => 2, 'max' => 6],
@@ -233,7 +233,7 @@ class GatheringActionService
             'label' => 'Bark Strip',
             'skill' => 'woodcutting',
             'location' => 'Old Trailfall',
-            'required_level' => 7,
+            'required_level' => 10,
             'cooldown_seconds' => 88,
             'experience' => ['min' => 30, 'max' => 46],
             'gold' => ['min' => 3, 'max' => 8],
@@ -247,7 +247,7 @@ class GatheringActionService
             'label' => 'Sap Tap',
             'skill' => 'woodcutting',
             'location' => 'Amberroot Tapline',
-            'required_level' => 11,
+            'required_level' => 20,
             'cooldown_seconds' => 102,
             'experience' => ['min' => 36, 'max' => 54],
             'gold' => ['min' => 4, 'max' => 9],
@@ -261,7 +261,7 @@ class GatheringActionService
             'label' => 'Wild Seed Bed',
             'skill' => 'foraging',
             'location' => 'Glimmerfen Verge',
-            'required_level' => 3,
+            'required_level' => 5,
             'cooldown_seconds' => 62,
             'experience' => ['min' => 20, 'max' => 34],
             'gold' => ['min' => 1, 'max' => 6],
@@ -275,7 +275,7 @@ class GatheringActionService
             'label' => 'Mushroom Ring',
             'skill' => 'foraging',
             'location' => 'Dewcap Hollow',
-            'required_level' => 7,
+            'required_level' => 10,
             'cooldown_seconds' => 78,
             'experience' => ['min' => 28, 'max' => 44],
             'gold' => ['min' => 2, 'max' => 7],
@@ -289,7 +289,7 @@ class GatheringActionService
             'label' => 'Root Patch',
             'skill' => 'foraging',
             'location' => 'Marrowfen Patch',
-            'required_level' => 11,
+            'required_level' => 20,
             'cooldown_seconds' => 90,
             'experience' => ['min' => 34, 'max' => 52],
             'gold' => ['min' => 3, 'max' => 8],
@@ -303,7 +303,7 @@ class GatheringActionService
             'label' => 'Snare Line',
             'skill' => 'hunting',
             'location' => 'Briarwake Verge',
-            'required_level' => 3,
+            'required_level' => 5,
             'cooldown_seconds' => 88,
             'experience' => ['min' => 28, 'max' => 44],
             'gold' => ['min' => 2, 'max' => 7],
@@ -317,7 +317,7 @@ class GatheringActionService
             'label' => 'Burrow Watch',
             'skill' => 'hunting',
             'location' => 'Redgrass Burrows',
-            'required_level' => 7,
+            'required_level' => 10,
             'cooldown_seconds' => 104,
             'experience' => ['min' => 36, 'max' => 54],
             'gold' => ['min' => 3, 'max' => 9],
@@ -331,7 +331,7 @@ class GatheringActionService
             'label' => 'Trail Tracking',
             'skill' => 'hunting',
             'location' => 'Briarwake Ridge',
-            'required_level' => 11,
+            'required_level' => 20,
             'cooldown_seconds' => 116,
             'experience' => ['min' => 42, 'max' => 60],
             'gold' => ['min' => 4, 'max' => 11],
@@ -345,7 +345,7 @@ class GatheringActionService
             'label' => 'Seed Sorting',
             'skill' => 'farming',
             'location' => 'Sunfield Shed',
-            'required_level' => 3,
+            'required_level' => 5,
             'cooldown_seconds' => 86,
             'experience' => ['min' => 24, 'max' => 40],
             'gold' => ['min' => 1, 'max' => 6],
@@ -359,7 +359,7 @@ class GatheringActionService
             'label' => 'Bean Rows',
             'skill' => 'farming',
             'location' => 'East Sunfield',
-            'required_level' => 7,
+            'required_level' => 10,
             'cooldown_seconds' => 100,
             'experience' => ['min' => 32, 'max' => 48],
             'gold' => ['min' => 2, 'max' => 8],
@@ -373,7 +373,7 @@ class GatheringActionService
             'label' => 'Herb Bed',
             'skill' => 'farming',
             'location' => 'Mooncap Furrows',
-            'required_level' => 11,
+            'required_level' => 20,
             'cooldown_seconds' => 112,
             'experience' => ['min' => 38, 'max' => 56],
             'gold' => ['min' => 3, 'max' => 9],
@@ -387,7 +387,7 @@ class GatheringActionService
             'label' => 'Clay Sifting',
             'skill' => 'excavation',
             'location' => 'Old Gate Wash',
-            'required_level' => 3,
+            'required_level' => 5,
             'cooldown_seconds' => 92,
             'experience' => ['min' => 30, 'max' => 46],
             'gold' => ['min' => 2, 'max' => 7],
@@ -401,7 +401,7 @@ class GatheringActionService
             'label' => 'Bone Bed',
             'skill' => 'excavation',
             'location' => 'Mossgrave Shelf',
-            'required_level' => 7,
+            'required_level' => 10,
             'cooldown_seconds' => 110,
             'experience' => ['min' => 38, 'max' => 56],
             'gold' => ['min' => 3, 'max' => 9],
@@ -415,7 +415,7 @@ class GatheringActionService
             'label' => 'Marker Survey',
             'skill' => 'excavation',
             'location' => 'Old Gate Transect',
-            'required_level' => 11,
+            'required_level' => 20,
             'cooldown_seconds' => 124,
             'experience' => ['min' => 44, 'max' => 64],
             'gold' => ['min' => 4, 'max' => 11],
@@ -435,7 +435,7 @@ class GatheringActionService
             'label' => 'Reef Net',
             'skill' => 'fishing',
             'location' => 'Pearlglass Reef',
-            'required_level' => 15,
+            'required_level' => 20,
             'cooldown_seconds' => 115,
             'experience' => ['min' => 42, 'max' => 64],
             'gold' => ['min' => 5, 'max' => 11],
@@ -449,7 +449,7 @@ class GatheringActionService
             'label' => 'Abyssal Line',
             'skill' => 'fishing',
             'location' => 'Leviathan Drop',
-            'required_level' => 45,
+            'required_level' => 50,
             'cooldown_seconds' => 180,
             'experience' => ['min' => 82, 'max' => 126],
             'gold' => ['min' => 10, 'max' => 22],
@@ -462,7 +462,7 @@ class GatheringActionService
             'label' => 'Crystal Vein',
             'skill' => 'mining',
             'location' => 'Azure Faultline',
-            'required_level' => 15,
+            'required_level' => 20,
             'cooldown_seconds' => 125,
             'experience' => ['min' => 46, 'max' => 70],
             'gold' => ['min' => 5, 'max' => 12],
@@ -476,7 +476,7 @@ class GatheringActionService
             'label' => 'Starfall Lode',
             'skill' => 'mining',
             'location' => 'Meteor Scar',
-            'required_level' => 45,
+            'required_level' => 50,
             'cooldown_seconds' => 190,
             'experience' => ['min' => 88, 'max' => 134],
             'gold' => ['min' => 12, 'max' => 25],
@@ -489,7 +489,7 @@ class GatheringActionService
             'label' => 'Resinwood Grove',
             'skill' => 'woodcutting',
             'location' => 'Amberroot Slope',
-            'required_level' => 15,
+            'required_level' => 20,
             'cooldown_seconds' => 120,
             'experience' => ['min' => 40, 'max' => 62],
             'gold' => ['min' => 4, 'max' => 10],
@@ -503,7 +503,7 @@ class GatheringActionService
             'label' => 'Heartwood Canopy',
             'skill' => 'woodcutting',
             'location' => 'Oldgreen Crown',
-            'required_level' => 45,
+            'required_level' => 50,
             'cooldown_seconds' => 178,
             'experience' => ['min' => 80, 'max' => 122],
             'gold' => ['min' => 10, 'max' => 20],
@@ -516,7 +516,7 @@ class GatheringActionService
             'label' => 'Glassmire Herb Survey',
             'skill' => 'foraging',
             'location' => 'Glassmire Basin',
-            'required_level' => 15,
+            'required_level' => 20,
             'cooldown_seconds' => 110,
             'experience' => ['min' => 38, 'max' => 58],
             'gold' => ['min' => 4, 'max' => 10],
@@ -530,7 +530,7 @@ class GatheringActionService
             'label' => 'Spirit Orchid Walk',
             'skill' => 'foraging',
             'location' => 'Moonlit Hollow',
-            'required_level' => 45,
+            'required_level' => 50,
             'cooldown_seconds' => 170,
             'experience' => ['min' => 76, 'max' => 116],
             'gold' => ['min' => 9, 'max' => 18],
@@ -543,7 +543,7 @@ class GatheringActionService
             'label' => 'Monster Track',
             'skill' => 'hunting',
             'location' => 'Redfang Break',
-            'required_level' => 15,
+            'required_level' => 20,
             'cooldown_seconds' => 135,
             'experience' => ['min' => 48, 'max' => 72],
             'gold' => ['min' => 6, 'max' => 14],
@@ -557,7 +557,7 @@ class GatheringActionService
             'label' => 'Apex Pursuit',
             'skill' => 'hunting',
             'location' => 'Crownbeast Range',
-            'required_level' => 45,
+            'required_level' => 50,
             'cooldown_seconds' => 195,
             'experience' => ['min' => 92, 'max' => 140],
             'gold' => ['min' => 14, 'max' => 30],
@@ -570,7 +570,7 @@ class GatheringActionService
             'label' => 'Greenhouse Cycle',
             'skill' => 'farming',
             'location' => 'Verdant Glasshouse',
-            'required_level' => 15,
+            'required_level' => 20,
             'cooldown_seconds' => 130,
             'experience' => ['min' => 44, 'max' => 66],
             'gold' => ['min' => 4, 'max' => 11],
@@ -584,7 +584,7 @@ class GatheringActionService
             'label' => 'Spirit Fruit Harvest',
             'skill' => 'farming',
             'location' => 'Seasonal Orchard',
-            'required_level' => 45,
+            'required_level' => 50,
             'cooldown_seconds' => 185,
             'experience' => ['min' => 84, 'max' => 128],
             'gold' => ['min' => 10, 'max' => 22],
@@ -597,7 +597,7 @@ class GatheringActionService
             'label' => 'Relic Grid',
             'skill' => 'excavation',
             'location' => 'Sunken Archive',
-            'required_level' => 15,
+            'required_level' => 20,
             'cooldown_seconds' => 140,
             'experience' => ['min' => 50, 'max' => 76],
             'gold' => ['min' => 5, 'max' => 13],
@@ -611,7 +611,7 @@ class GatheringActionService
             'label' => 'Gate Sanctum',
             'skill' => 'excavation',
             'location' => 'Buried Gate Core',
-            'required_level' => 45,
+            'required_level' => 50,
             'cooldown_seconds' => 205,
             'experience' => ['min' => 96, 'max' => 146],
             'gold' => ['min' => 12, 'max' => 28],
@@ -822,15 +822,39 @@ class GatheringActionService
             return self::$actionDefinitionCache;
         }
 
-        self::$actionDefinitionCache = [
+        self::$actionDefinitionCache = self::normalizeRequiredLevels(
+            app(ConnectedRealmsContentService::class)->apply('gathering_actions', self::baseActionDefinitions()),
+        );
+
+        return self::$actionDefinitionCache;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public static function baseActionDefinitions(): array
+    {
+        return self::normalizeRequiredLevels([
             ...self::ACTIONS,
             ...self::EARLY_ACTIONS,
             ...self::ADVANCED_ACTIONS,
             ...self::midgameActions(),
             ...self::endgameActions(),
-        ];
+        ]);
+    }
 
-        return self::$actionDefinitionCache;
+    /**
+     * @param  array<string, array<string, mixed>>  $definitions
+     * @return array<string, array<string, mixed>>
+     */
+    private static function normalizeRequiredLevels(array $definitions): array
+    {
+        return collect($definitions)
+            ->map(fn (array $definition): array => [
+                ...$definition,
+                'required_level' => EvergatherTierCatalog::nextTierLevelFor((int) ($definition['required_level'] ?? 1)),
+            ])
+            ->all();
     }
 
     /**
@@ -957,8 +981,8 @@ class GatheringActionService
         ];
         $tiers = [
             ['level' => 65, 'prefix' => 'Elderwake', 'rarity' => 'epic', 'experience' => [148, 212], 'gold' => [20, 42], 'cooldown' => 240],
-            ['level' => 80, 'prefix' => 'Mythgate', 'rarity' => 'epic', 'experience' => [210, 300], 'gold' => [30, 60], 'cooldown' => 300],
-            ['level' => 100, 'prefix' => 'Crownmark', 'rarity' => 'legendary', 'experience' => [360, 520], 'gold' => [58, 110], 'cooldown' => 420],
+            ['level' => 80, 'prefix' => 'Mythgate', 'rarity' => 'legendary', 'experience' => [210, 300], 'gold' => [30, 60], 'cooldown' => 300],
+            ['level' => 100, 'prefix' => 'Crownmark', 'rarity' => 'mythic', 'experience' => [360, 520], 'gold' => [58, 110], 'cooldown' => 420],
         ];
         $actions = [];
 
@@ -1003,7 +1027,7 @@ class GatheringActionService
                 return [
                     'key' => $itemKey,
                     'name' => GeneratedItemNameService::endgameGatheringResourceName($skill, $item['key'], $prefix),
-                    'rarity' => $index === 0 ? $rarity : ($level >= 100 ? 'legendary' : 'epic'),
+                    'rarity' => $index === 0 ? $rarity : ($level >= 100 ? 'mythic' : ($level >= 80 ? 'legendary' : 'epic')),
                     'min' => $index === 0 ? 2 : 0,
                     'max' => $index === 0 ? 5 : 1,
                 ];

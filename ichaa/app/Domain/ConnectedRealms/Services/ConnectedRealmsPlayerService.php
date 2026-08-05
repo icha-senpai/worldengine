@@ -224,6 +224,7 @@ class ConnectedRealmsPlayerService
             return $player;
         };
         $totalExperience = fn (): int => (int) $loadedPlayer()->skills->sum('experience');
+        $accountLevel = fn (): int => max(1, intdiv($totalExperience(), 250) + 1);
         $inventoryQuantity = fn (): int => (int) $loadedPlayer()->inventoryStacks->sum('quantity');
         $inventoryWeight = fn (): float => (float) $loadedPlayer()->inventoryStacks->sum(fn (ConnectedRealmsInventoryStack $stack): float => $this->items->enrich([
             'item_key' => $stack->item_key,
@@ -444,7 +445,7 @@ class ConnectedRealmsPlayerService
                 'total_experience' => $totalExperience(),
                 'inventory_quantity' => $inventoryQuantity(),
                 'inventory_weight' => round($inventoryWeight(), 2),
-                'account_level' => $progressionSnapshot()['account_level'],
+                'account_level' => $accountLevel(),
                 'known_skills' => $loadedPlayer()->skills->count(),
                 'action_count' => $loadedPlayer()->actionLogs()->count(),
                 'craft_count' => $loadedPlayer()->craftingLogs()->count(),

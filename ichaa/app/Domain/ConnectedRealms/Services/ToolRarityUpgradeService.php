@@ -19,6 +19,7 @@ class ToolRarityUpgradeService
         'uncommon' => ['target' => 'rare', 'success_chance' => 22, 'progress_min' => 8, 'progress_max' => 22, 'gold_cost' => 110],
         'rare' => ['target' => 'epic', 'success_chance' => 12, 'progress_min' => 5, 'progress_max' => 16, 'gold_cost' => 260],
         'epic' => ['target' => 'legendary', 'success_chance' => 6, 'progress_min' => 3, 'progress_max' => 10, 'gold_cost' => 620],
+        'legendary' => ['target' => 'mythic', 'success_chance' => 3, 'progress_min' => 2, 'progress_max' => 7, 'gold_cost' => 1400],
     ];
 
     /**
@@ -30,6 +31,7 @@ class ToolRarityUpgradeService
         'rare' => ['experience' => 7, 'yield' => 1],
         'epic' => ['experience' => 14, 'yield' => 2],
         'legendary' => ['experience' => 24, 'yield' => 3],
+        'mythic' => ['experience' => 38, 'yield' => 5],
     ];
 
     public function __construct(private ConnectedRealmsPlayerService $players, private ToolCatalogService $tools, private ItemCatalogService $items) {}
@@ -221,9 +223,6 @@ class ToolRarityUpgradeService
         ];
     }
 
-    /**
-     * @param  array{target: string, success_chance: int, progress_min: int, progress_max: int, gold_cost: int}|null  $rule
-     */
     /**
      * @param  array{target: string, success_chance: int, progress_min: int, progress_max: int, gold_cost: int}|null  $rule
      */
