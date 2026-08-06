@@ -477,7 +477,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             $player->refresh();
 
             $this->assertSame($goldBeforeClaim + 15, $player->gold);
-            $this->assertSame('Trailmarked', $player->title);
+            $this->assertSame('Kilroy Was First', $player->title);
             $this->assertSame('first_steps', $player->reward_loadout['title_claim_key']);
             $this->assertArrayNotHasKey('badge_claim_key', $player->reward_loadout);
             $this->assertArrayNotHasKey('frame_claim_key', $player->reward_loadout);
@@ -492,7 +492,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('achievement_key', 'first_steps')
                 ->firstOrFail();
 
-            $this->assertSame('Trailmarked', $claim->reward['title']);
+            $this->assertSame('Kilroy Was First', $claim->reward['title']);
             $this->assertSame(15, $claim->reward['gold']);
             $this->assertArrayNotHasKey('profile_badge', $claim->reward);
             $this->assertArrayNotHasKey('profile_frame', $claim->reward);
@@ -510,7 +510,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->get(route('evergather.index'))
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
-                    ->where('player.reward_loadout.title_label', 'Trailmarked')
+                    ->where('player.reward_loadout.title_label', 'Kilroy Was First')
                     ->missing('player.reward_loadout.badge_label')
                     ->missing('player.reward_loadout.badge_mark')
                     ->missing('player.reward_loadout.badge_tone')
@@ -523,7 +523,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->where('progression.achievements.0.can_claim', false)
                     ->where('progression.claimed_rewards.0.achievement_key', 'first_steps')
                     ->where('progression.reward_options.titles.0.key', 'first_steps')
-                    ->where('progression.reward_options.titles.0.label', 'Trailmarked')
+                    ->where('progression.reward_options.titles.0.label', 'Kilroy Was First')
                     ->missing('progression.reward_options.badges')
                     ->missing('progression.reward_options.frames')
                     ->where('progression.reward_loadout.title_claim_key', 'first_steps')
@@ -556,6 +556,63 @@ class ConnectedRealmsGatheringTest extends TestCase
         } finally {
             Carbon::setTestNow();
         }
+    }
+
+    public function test_default_achievement_reward_titles_are_unique(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)
+            ->get(route('evergather.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('progression.achievements', function ($achievements): bool {
+                    $titles = collect($achievements)
+                        ->map(fn (array $achievement): ?string => $achievement['reward']['title'] ?? null)
+                        ->filter()
+                        ->values();
+                    $duplicateTitles = $titles
+                        ->duplicatesStrict()
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    $this->assertSame([], $duplicateTitles);
+                    $this->assertTrue($titles->contains('Kilroy Was First'));
+                    $this->assertTrue($titles->contains('Fishing Final Boss Tidecast'));
+                    $this->assertTrue($titles->contains('Account Dancing Baby Detour'));
+
+                    $catalog = app(SkillCatalogService::class);
+                    $skillTitleSuffixes = collect($achievements)
+                        ->filter(fn (array $achievement): bool => preg_match('/^skill_milestone_([a-z_]+)_\d+$/', $achievement['key']) === 1)
+                        ->map(function (array $achievement) use ($catalog): string {
+                            preg_match('/^skill_milestone_([a-z_]+)_\d+$/', $achievement['key'], $matches);
+                            $subject = $catalog->definition($matches[1])['label'];
+
+                            return str($achievement['reward']['title'])->after("{$subject} ")->toString();
+                        })
+                        ->values();
+                    $duplicateSkillTitleSuffixes = $skillTitleSuffixes
+                        ->duplicatesStrict()
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    $this->assertSame([], $duplicateSkillTitleSuffixes);
+
+                    $levelOneSkillTitleEndings = collect($achievements)
+                        ->filter(fn (array $achievement): bool => preg_match('/^skill_milestone_([a-z_]+)_1$/', $achievement['key']) === 1)
+                        ->map(fn (array $achievement): string => str($achievement['reward']['title'])->afterLast(' ')->toString())
+                        ->values();
+
+                    $this->assertSame(
+                        $levelOneSkillTitleEndings->all(),
+                        $levelOneSkillTitleEndings->uniqueStrict()->values()->all()
+                    );
+
+                    return true;
+                })
+            );
     }
 
     public function test_skill_activity_awards_items_experience_gold_and_sets_cooldown(): void

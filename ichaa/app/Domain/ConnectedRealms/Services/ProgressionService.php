@@ -10,6 +10,149 @@ use Illuminate\Validation\ValidationException;
 
 class ProgressionService
 {
+    /**
+     * @var array<string, string>
+     */
+    private const ACHIEVEMENT_TITLES = [
+        'first_steps' => 'Kilroy Was First',
+        'working_hands' => 'Make It Workbench',
+        'contract_hand' => 'Quest Accepted IRL',
+        'pathfinder' => 'Where In The Realm',
+        'market_voice' => 'Stonks Whisperer',
+        'full_pockets' => 'Cha Ching Mode',
+        'packed_satchel' => 'Bag Of Holding Energy',
+        'skill_spark' => 'I Know Kung Fu-ish',
+        'ready_toolbelt' => 'Inspector Gadget Belt',
+        'steady_hands' => 'Steady Cam Main',
+        'route_runner' => 'Forest Route Runner',
+        'field_legend' => 'Built Different Fieldhand',
+        'gathering_circle' => 'Captain Planet Party',
+        'wilds_initiate' => 'Survivor Buff Holder',
+        'wilds_specialist' => 'Nature Documentary Protagonist',
+        'bench_warm' => 'Easy Bake Bench',
+        'workshop_shift' => 'Bob Built This',
+        'artisan_season' => 'Project Runway Arc',
+        'profession_sampler' => 'Sampler Platter Any Percent',
+        'apprentice_artisan' => 'Padawan At The Bench',
+        'master_artisan' => 'This Is The Waymaker',
+        'reliable_hand' => 'Side Quest Certified',
+        'guild_worker' => 'Nine To Five Guildie',
+        'contract_legend' => 'Legendary Task Rabbit',
+        'caravaner' => 'Oregon Trail Survivor',
+        'far_runner' => 'Fast Travel Denied',
+        'worldwalker' => 'Blue Box Walkabout',
+        'world_skill_spark' => 'Magic School Bus Passport',
+        'trail_authority' => 'Gandalf Says Pass',
+        'vendor_regular' => 'NPC Friendship Ending',
+        'ledger_friend' => 'Tom Nook Ledger',
+        'market_stall' => 'Bazaar Bizarre',
+        'buyer_eye' => 'Price Is Right Clicker',
+        'trade_regular' => 'Wolf Of Wayside Street',
+        'coin_chest' => 'Scrooge Vault Subscriber',
+        'treasury_key' => 'Loot Crate Locksmith',
+        'realm_fortune' => 'Money Printer Lore',
+        'quartermaster' => 'Inventory Tetris Captain',
+        'warehouse_mind' => 'Spreadsheet Overlord',
+        'collector_shelf' => 'Shelfie Curator',
+        'rare_keeper' => 'Shiny Loot Spotter',
+        'apprentice_spark' => 'Karate Kid Spark',
+        'journeyman_spark' => 'Training Montage Enjoyer',
+        'expert_spark' => 'Neo Dodges Tutorials',
+        'master_spark' => 'Ultra Instinct Student',
+        'legend_spark' => 'Main Character Patch',
+        'level_100_oath' => 'Prestige Mode Oath',
+        'broad_training' => 'Skill Tree Tourist',
+        'polymath_path' => 'Wiki Rabbit Hole Runner',
+        'full_slate' => 'Completionist Brain',
+        'skill_quiver' => 'Five Stack Flex',
+        'mastery_circle' => 'Council Of Capes',
+        'realm_mastery' => 'End Credits Walker',
+        'combat_recruit' => 'Tutorial Boss Bonker',
+        'threat_breaker' => 'Boss Fight Skip',
+        'battle_company' => 'Assemble Button Holder',
+        'hunter_edge' => 'Contract Board Witcher',
+        'social_foothold' => 'Group Chat Diplomat',
+        'known_name' => 'Blue Check Bard',
+        'realm_regular' => 'Daily Login Devotee',
+        'realm_veteran' => 'Patch Notes Veteran',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    private const ACCOUNT_TIER_TITLES = [
+        1 => 'Account Kilroy Check-In',
+        5 => 'Account Dancing Baby Detour',
+        10 => 'Account All Your Login',
+        20 => 'Account Leeroy Ledger',
+        30 => 'Account Such Wow Era',
+        40 => 'Account Rainbow Upload',
+        50 => 'Account Six Second Loop',
+        65 => 'Account Galaxy Receipt',
+        80 => 'Account Emergency Meeting',
+        100 => 'Account Final Boss Crown',
+    ];
+
+    /**
+     * @var array<string, string>
+     */
+    private const SKILL_TITLE_THEMES = [
+        'fishing' => 'Tidecast',
+        'mining' => 'Orepost',
+        'woodcutting' => 'Logjam',
+        'foraging' => 'Mushroomcore',
+        'hunting' => 'Trackstack',
+        'farming' => 'Cropdrop',
+        'excavation' => 'Digsite',
+        'smelting' => 'Furnaceposting',
+        'milling' => 'Sawline',
+        'tanning' => 'Hidecycle',
+        'cutting' => 'Facetflex',
+        'weaving' => 'Loomscroll',
+        'smithing' => 'Anvilwave',
+        'carpentry' => 'Plankcraft',
+        'cooking' => 'Snackhack',
+        'alchemy' => 'Potionposting',
+        'tailoring' => 'Threadflex',
+        'leatherworking' => 'Strapstack',
+        'engineering' => 'Gadgetmaxx',
+        'enchanting' => 'Runeglitch',
+        'jewelcrafting' => 'Gemscroll',
+        'boatbuilding' => 'Hullposting',
+        'furniture' => 'Chaircore',
+        'construction' => 'Buildmode',
+        'combat' => 'Bonkline',
+        'slayer' => 'Markhunt',
+        'defense' => 'Blockstack',
+        'healing' => 'Healwave',
+        'magic' => 'Spellpost',
+        'ranged' => 'Aimclick',
+        'exploration' => 'Mapquester',
+        'dungeoneering' => 'Roomcheck',
+        'sailing' => 'Dockwalk',
+        'survival' => 'Campmode',
+        'cartography' => 'Chartposting',
+        'reputation' => 'Cloutcraft',
+        'leadership' => 'Squadping',
+        'trading' => 'Stonksmith',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    private const TIER_TITLE_BEATS = [
+        1 => 'Kilroy',
+        5 => 'Shuffle',
+        10 => 'Base Claim',
+        20 => 'Leeroy',
+        30 => 'Such Wow',
+        40 => 'Rainbow Trail',
+        50 => 'Vine Loop',
+        65 => 'Galaxy Brain',
+        80 => 'Emergency Meeting',
+        100 => 'Final Boss',
+    ];
+
     public function __construct(private SkillCatalogService $catalog) {}
 
     /**
@@ -304,7 +447,7 @@ class ProgressionService
             'can_claim' => $unlocked,
             'category' => $category,
             'category_key' => str($category)->slug('_')->toString(),
-            'reward' => $this->achievementReward($key, $label, $category),
+            'reward' => $this->achievementReward($key, $label),
         ];
     }
 
@@ -448,29 +591,12 @@ class ProgressionService
     /**
      * @return array{title: string, gold: int}
      */
-    private function achievementReward(string $key, string $label, string $category): array
+    private function achievementReward(string $key, string $label): array
     {
         $level = (int) (preg_match('/_(100|80|65|50|40|30|20|10|5|1)$/', $key, $matches) === 1 ? $matches[1] : 0);
-        $categoryKey = str($category)->slug('_')->toString();
 
         return [
-            'title' => $level >= 100
-                ? "{$label} Crown"
-                : match ($categoryKey) {
-                    'gathering', 'gathering_milestones' => 'Trailmarked',
-                    'crafting', 'crafting_milestones', 'processing_milestones' => 'Workshop Hand',
-                    'jobs' => 'Board Hand',
-                    'exploration', 'world_milestones' => 'Pathfinder',
-                    'wealth' => 'Coinbound',
-                    'inventory' => 'Quartermaster',
-                    'skills', 'account' => 'Realm Regular',
-                    'trade' => 'Ledger Notch',
-                    'equipment' => 'Toolbelt Mark',
-                    'mastery' => 'Mastery Sigil',
-                    'combat' => 'Warden Mark',
-                    'social' => 'Council Favor',
-                    default => $label,
-                },
+            'title' => $this->achievementTitle($key, $label, $level),
             'gold' => match (true) {
                 $level >= 100 => 1000,
                 $level >= 80 => 650,
@@ -483,6 +609,47 @@ class ProgressionService
                 default => 15,
             },
         ];
+    }
+
+    private function achievementTitle(string $key, string $label, int $level): string
+    {
+        if (array_key_exists($key, self::ACHIEVEMENT_TITLES)) {
+            return self::ACHIEVEMENT_TITLES[$key];
+        }
+
+        if (preg_match('/^account_level_(\d+)$/', $key, $matches) === 1) {
+            return self::ACCOUNT_TIER_TITLES[(int) $matches[1]]
+                ?? $this->fallbackTieredAchievementTitle('Account', (int) $matches[1]);
+        }
+
+        if (preg_match('/^skill_milestone_([a-z_]+)_(\d+)$/', $key, $matches) === 1) {
+            return $this->skillTieredAchievementTitle(
+                $matches[1],
+                $this->catalog->definition($matches[1])['label'],
+                (int) $matches[2],
+            );
+        }
+
+        if ($level > 0) {
+            return $this->fallbackTieredAchievementTitle($label, $level);
+        }
+
+        return "{$label} Unlockable Oddity";
+    }
+
+    private function skillTieredAchievementTitle(string $skill, string $subject, int $level): string
+    {
+        $theme = self::SKILL_TITLE_THEMES[$skill] ?? str($skill)->studly()->toString();
+        $beat = self::TIER_TITLE_BEATS[$level] ?? EvergatherTierCatalog::markForLevel($level);
+
+        return "{$subject} {$beat} {$theme}";
+    }
+
+    private function fallbackTieredAchievementTitle(string $subject, int $level): string
+    {
+        $motif = self::TIER_TITLE_BEATS[$level] ?? EvergatherTierCatalog::markForLevel($level);
+
+        return "{$subject} {$motif}";
     }
 
     /**
