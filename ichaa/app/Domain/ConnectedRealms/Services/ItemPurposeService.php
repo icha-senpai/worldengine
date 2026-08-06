@@ -6,6 +6,16 @@ class ItemPurposeService
 {
     public function __construct(private ItemCatalogService $items) {}
 
+    /**
+     * @var array<string, array<string, mixed>>
+     */
+    private array $requisitionCache = [];
+
+    /**
+     * @var array<string, array{type: string, label: string, required_level: int, context: string}>
+     */
+    private array $vendorSinkCache = [];
+
     public function requisitionJobKey(string $itemKey): string
     {
         return 'item_requisition_'.str($itemKey)->slug('_')->toString();
@@ -26,6 +36,12 @@ class ItemPurposeService
      */
     public function requisitionFor(array $item): array
     {
+        $cacheKey = $this->itemCacheKey($item);
+
+        if (array_key_exists($cacheKey, $this->requisitionCache)) {
+            return $this->requisitionCache[$cacheKey];
+        }
+
         $payload = $this->items->enrich([
             ...$item,
             'quantity' => 1,
@@ -38,7 +54,7 @@ class ItemPurposeService
         $gold = $this->goldFor($payload);
         $experience = $this->experienceFor($payload, $requiredLevel);
 
-        return [
+        return $this->requisitionCache[$cacheKey] = [
             'key' => $this->requisitionJobKey($itemKey),
             'label' => $label,
             'category' => $this->categoryFor($payload),
@@ -71,14 +87,18 @@ class ItemPurposeService
      */
     public function vendorSinkFor(array $item): array
     {
-        $payload = $this->items->enrich([
-            ...$item,
-            'quantity' => 1,
-        ]);
+        $cacheKey = $this->vendorCacheKey($item);
 
-        return [
+        if (array_key_exists($cacheKey, $this->vendorSinkCache)) {
+            return $this->vendorSinkCache[$cacheKey];
+        }
+
+        $itemKey = (string) ($item['item_key'] ?? $item['key'] ?? '');
+        $itemName = (string) ($item['item_name'] ?? $item['name'] ?? str($itemKey)->headline()->toString());
+
+        return $this->vendorSinkCache[$cacheKey] = [
             'type' => 'NPC Vendor',
-            'label' => 'Sell '.$payload['item_name'],
+            'label' => 'Sell '.$itemName,
             'required_level' => EvergatherTierCatalog::nextTierLevelFor(1),
             'context' => 'Ledger Steward',
         ];
@@ -198,5 +218,31 @@ class ItemPurposeService
     private function experienceFor(array $item, int $requiredLevel): int
     {
         return max(18, (int) ceil(((int) $item['quality_score'] / 2) + $requiredLevel));
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function itemCacheKey(array $item): string
+    {
+        return md5(json_encode([
+            'item_key' => $item['item_key'] ?? $item['key'] ?? '',
+            'item_name' => $item['item_name'] ?? $item['name'] ?? '',
+            'rarity' => $item['rarity'] ?? 'common',
+            'item_class' => $item['item_class'] ?? null,
+            'material_family' => $item['material_family'] ?? null,
+            'quality_score' => $item['quality_score'] ?? null,
+            'vendor_value' => $item['vendor_value'] ?? null,
+            'npc_buy_price' => $item['npc_buy_price'] ?? null,
+            'tags' => $item['tags'] ?? null,
+        ]));
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function vendorCacheKey(array $item): string
+    {
+        return (string) ($item['item_key'] ?? $item['key'] ?? $item['item_name'] ?? $item['name'] ?? '');
     }
 }

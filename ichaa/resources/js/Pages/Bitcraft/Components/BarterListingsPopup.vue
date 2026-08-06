@@ -20,8 +20,21 @@
             </button>
         </template>
 
-        <div v-if="listings.length" class="index-surface index-surface--nested">
-            <div v-for="listing in listings" :key="listing.entityId" class="index-record">
+        <div class="mb-4 flex flex-wrap gap-2 border-b border-border pb-4">
+            <button
+                v-for="option in sortOptions"
+                :key="`sort-${option.value}`"
+                type="button"
+                class="tag transition-colors hover:text-focus"
+                :class="{ 'border-[rgb(var(--accent-cyan-rgb)/0.55)] text-focus': sortKey === option.value }"
+                @click="setSort(option.value)"
+            >
+                {{ sortButtonLabel(option) }}
+            </button>
+        </div>
+
+        <div v-if="sortedListings.length" class="index-surface index-surface--nested">
+            <div v-for="listing in sortedListings" :key="listing.entityId" class="index-record">
                 <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-start">
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">
@@ -74,6 +87,8 @@
                         </span>
                         <span>Quantity</span>
                         <span class="text-right text-primary">{{ formatCount(listing.quantity) }}</span>
+                        <span>Line total</span>
+                        <span class="text-right text-primary">{{ formatTotal(listing) }}</span>
                     </div>
                 </div>
             </div>
@@ -86,7 +101,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import PopupCard from '@/Components/ui/PopupCard.vue'
 
 const props = defineProps({
@@ -101,6 +116,15 @@ const props = defineProps({
 })
 
 defineEmits(['close', 'update:side'])
+
+const sortOptions = [
+    { value: 'price', label: 'Price' },
+    { value: 'quantity', label: 'Qty' },
+    { value: 'lineTotal', label: 'Line total' },
+]
+
+const sortKey = ref('price')
+const sortDirection = ref('desc')
 
 const subtitle = computed(() => {
     const parts = [`${props.listings.length} listing${props.listings.length === 1 ? '' : 's'}`]
@@ -117,6 +141,25 @@ const subtitle = computed(() => {
 
     return parts.join(' · ')
 })
+
+const sortedListings = computed(() => [...props.listings].sort((first, second) => {
+    const firstValue = sortValue(first)
+    const secondValue = sortValue(second)
+
+    if (firstValue === null && secondValue === null) {
+        return String(first.itemName ?? '').localeCompare(String(second.itemName ?? ''))
+    }
+
+    if (firstValue === null) {
+        return 1
+    }
+
+    if (secondValue === null) {
+        return -1
+    }
+
+    return sortDirection.value === 'desc' ? secondValue - firstValue : firstValue - secondValue
+}))
 
 const formatCoins = (value) => {
     if (value === null || value === undefined || value === '') {
@@ -142,9 +185,57 @@ const formatCount = (value) => {
     return Number.isFinite(number) ? number.toLocaleString() : String(value)
 }
 
+const formatTotal = (listing) => {
+    const total = lineTotal(listing)
+
+    return total === null ? '-' : formatCoins(total)
+}
+
 const formatCoordinate = (value) => {
     const number = Number(value)
 
     return Number.isFinite(number) ? Math.round(number / 3).toLocaleString() : value
+}
+
+const lineTotal = (listing) => {
+    const price = numericValue(listing.price)
+    const quantity = numericValue(listing.quantity)
+
+    return price !== null && quantity !== null ? price * quantity : null
+}
+
+const numericValue = (value) => {
+    const number = Number(value)
+
+    return Number.isFinite(number) ? number : null
+}
+
+const setSort = (key) => {
+    if (sortKey.value === key) {
+        sortDirection.value = sortDirection.value === 'desc' ? 'asc' : 'desc'
+
+        return
+    }
+
+    sortKey.value = key
+    sortDirection.value = 'desc'
+}
+
+const sortButtonLabel = (option) => {
+    const direction = sortKey.value === option.value && sortDirection.value === 'asc' ? 'low' : 'high'
+
+    return `${option.label} ${direction}`
+}
+
+const sortValue = (listing) => {
+    if (sortKey.value === 'quantity') {
+        return numericValue(listing.quantity)
+    }
+
+    if (sortKey.value === 'lineTotal') {
+        return lineTotal(listing)
+    }
+
+    return numericValue(listing.price)
 }
 </script>

@@ -31,22 +31,39 @@
                     </div>
 
                     <div class="mt-4 grid gap-2">
-                        <button
+                        <template
                             v-for="filter in filters"
                             :key="filter.key"
-                            type="button"
-                            class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
-                            :class="{ 'border-focus/70 bg-focus/10': selectedFilter === filter.key }"
-                            @click="selectedFilter = filter.key"
                         >
-                            <span class="flex min-w-0 items-center justify-between gap-2">
-                                <span class="truncate text-xs font-ui text-primary">{{ filter.label }}</span>
-                                <span class="text-[11px] text-muted-3">{{ filter.count }}</span>
-                            </span>
-                            <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
-                                <span class="block h-full rounded-full bg-focus" :style="{ width: `${filterProgress(filter)}%` }" />
-                            </span>
-                        </button>
+                            <button
+                                type="button"
+                                class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                                :class="{ 'border-focus/70 bg-focus/10': selectedFilter === filter.key }"
+                                @click="selectCategory(filter.key)"
+                            >
+                                <span class="flex min-w-0 items-center justify-between gap-2">
+                                    <span class="truncate text-xs font-ui text-primary">{{ filter.label }}</span>
+                                    <span class="text-[11px] text-muted-3">{{ filter.count }}</span>
+                                </span>
+                                <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                                    <span class="block h-full rounded-full bg-focus" :style="{ width: `${filterProgress(filter)}%` }" />
+                                </span>
+                            </button>
+
+                            <div v-if="showSkillFiltersFor(filter)" class="ml-3 grid gap-1.5 border-l border-border pl-3">
+                                <button
+                                    v-for="skillFilter in nestedSkillFilters"
+                                    :key="skillFilter.key"
+                                    type="button"
+                                    class="flex min-w-0 items-center justify-between gap-2 rounded-md border border-transparent px-3 py-1.5 text-left transition hover:border-focus/50 hover:bg-focus/5"
+                                    :class="{ 'border-focus/60 bg-focus/10': selectedSkillFilter === skillFilter.key }"
+                                    @click="selectedSkillFilter = skillFilter.key"
+                                >
+                                    <span class="min-w-0 truncate text-xs text-primary">{{ skillFilter.label }}</span>
+                                    <span class="text-[11px] text-muted-3">{{ skillFilter.count }}</span>
+                                </button>
+                            </div>
+                        </template>
                     </div>
 
                     <div class="mt-3 grid gap-2 text-xs">
@@ -70,7 +87,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             <div>
                                 <p class="text-sm font-ui text-primary">{{ activeBoard.label }}</p>
-                                <p class="mt-1 text-xs text-muted-3">{{ activeFilter.label }} · {{ visibleRecipes.length }} visible</p>
+                                <p class="mt-1 text-xs text-muted-3">{{ activeScopeLabel }} · {{ visibleRecipes.length }} visible</p>
                             </div>
                             <span class="tag">{{ visibleExperience }} XP</span>
                         </div>
@@ -175,6 +192,7 @@ const form = useForm({
     recipe: null,
 })
 const selectedFilter = ref('All')
+const selectedSkillFilter = ref('All')
 const selectedBoard = ref('ready')
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
@@ -187,8 +205,26 @@ const filters = computed(() => ['All', ...new Set(props.recipes.map((recipe) => 
     count: props.recipes.filter((recipe) => filter === 'All' || recipe.category === filter).length,
 })))
 const activeFilter = computed(() => filters.value.find((filter) => filter.key === selectedFilter.value) ?? filters.value[0])
+const categoryRecipes = computed(() => props.recipes
+    .filter((recipe) => selectedFilter.value === 'All' || recipe.category === selectedFilter.value))
+const skillFilters = computed(() => ['All', ...new Set(categoryRecipes.value.map((recipe) => recipe.skill_label))].map((filter) => ({
+    key: filter,
+    label: filter === 'All' ? 'All Skills' : filter,
+    count: categoryRecipes.value.filter((recipe) => filter === 'All' || recipe.skill_label === filter).length,
+})))
+const nestedSkillFilters = computed(() => skillFilters.value.filter((filter) => filter.key !== 'All'))
+const activeSkillFilter = computed(() => skillFilters.value.find((filter) => filter.key === selectedSkillFilter.value) ?? skillFilters.value[0])
+const showSkillFilters = computed(() => selectedFilter.value !== 'All' && skillFilters.value.length > 2)
+const activeScopeLabel = computed(() => {
+    if (!showSkillFilters.value || selectedSkillFilter.value === 'All') {
+        return activeFilter.value.label
+    }
+
+    return `${activeFilter.value.label} - ${activeSkillFilter.value.label}`
+})
 const filteredRecipes = computed(() => props.recipes
     .filter((recipe) => selectedFilter.value === 'All' || recipe.category === selectedFilter.value)
+    .filter((recipe) => selectedSkillFilter.value === 'All' || recipe.skill_label === selectedSkillFilter.value)
     .filter((recipe) => searchMatches(recipe, props.searchTerm)))
 const readyRecipes = computed(() => filteredRecipes.value.filter((recipe) => recipe.can_craft))
 const prepareRecipes = computed(() => filteredRecipes.value.filter((recipe) => recipe.is_unlocked && !recipe.can_craft))
@@ -199,7 +235,7 @@ const craftBoards = computed(() => [
         count: readyRecipes.value.length,
         unit: 'recipes',
         entries: readyRecipes.value,
-        description: `${activeFilter.value.label} recipes you can craft now.`,
+        description: `${activeScopeLabel.value} recipes you can craft now.`,
     },
     {
         key: 'prepare',
@@ -223,7 +259,17 @@ const emptyBoardMessage = computed(() => {
     return 'No recipes match.'
 })
 
-watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
+watch(selectedFilter, () => {
+    selectedSkillFilter.value = 'All'
+})
+
+watch(skillFilters, () => {
+    if (!skillFilters.value.some((filter) => filter.key === selectedSkillFilter.value)) {
+        selectedSkillFilter.value = 'All'
+    }
+})
+
+watch([selectedBoard, selectedFilter, selectedSkillFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
 
@@ -272,6 +318,15 @@ function filterProgress(filter) {
     const readyCount = props.recipes.filter((recipe) => (filter.key === 'All' || recipe.category === filter.key) && recipe.can_craft).length
 
     return Math.round((readyCount / filter.count) * 100)
+}
+
+function showSkillFiltersFor(filter) {
+    return showSkillFilters.value && selectedFilter.value === filter.key
+}
+
+function selectCategory(category) {
+    selectedFilter.value = category
+    selectedSkillFilter.value = 'All'
 }
 
 function craft(recipe) {

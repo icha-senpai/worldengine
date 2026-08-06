@@ -12,8 +12,6 @@ use Illuminate\Validation\ValidationException;
 
 class ToolTierUpgradeService
 {
-    private const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
-
     public function __construct(
         private ConnectedRealmsPlayerService $players,
         private ToolCatalogService $tools,
@@ -103,6 +101,7 @@ class ToolTierUpgradeService
             $itemName = $this->tools->tierToolName($family, $tier);
             $itemKey = $this->tools->tierToolKey($family, $tier);
             $previousName = $tool->item_name;
+            $rarityCap = $this->tools->maxRarityForTierLevel((int) $tier['level']);
 
             $player->forceFill([
                 'gold' => $player->gold - $tier['gold_cost'],
@@ -111,7 +110,6 @@ class ToolTierUpgradeService
             $tool->forceFill([
                 'item_key' => $itemKey,
                 'item_name' => $itemName,
-                'rarity' => $this->higherRarity($tool->rarity, $tier['rarity']),
                 'bonuses' => [
                     'skill' => $family['skill'],
                     'experience' => max((int) ($tool->bonuses['experience'] ?? 0), (int) $tier['experience_bonus']),
@@ -136,6 +134,7 @@ class ToolTierUpgradeService
                 'item_name' => $tool->item_name,
                 'previous_item_name' => $previousName,
                 'rarity' => $tool->rarity,
+                'rarity_cap' => $rarityCap,
                 'tier_level' => $tool->tier_level,
                 'skill' => $family['craft'],
                 'skill_label' => str($family['craft'])->headline()->toString(),
@@ -189,7 +188,7 @@ class ToolTierUpgradeService
             'current_tier_level' => $tool->tier_level,
             'next_item_name' => $this->tools->tierToolName($family, $tier),
             'target_tier_level' => $tier['level'],
-            'target_rarity' => $tier['rarity'],
+            'target_rarity' => $this->tools->maxRarityForTierLevel((int) $tier['level']),
             'craft_skill' => $family['craft'],
             'craft_skill_label' => str($family['craft'])->headline()->toString(),
             'craft_skill_level' => $craftLevel,
@@ -260,13 +259,6 @@ class ToolTierUpgradeService
 
         return collect($ingredients)
             ->every(fn (array $ingredient): bool => (int) ($quantities[$ingredient['item_key']] ?? 0) >= $ingredient['quantity']);
-    }
-
-    private function higherRarity(string $current, string $target): string
-    {
-        return array_search($current, self::RARITY_ORDER, true) >= array_search($target, self::RARITY_ORDER, true)
-            ? $current
-            : $target;
     }
 
     /**

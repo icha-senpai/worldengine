@@ -24,6 +24,31 @@ class ConnectedRealmsPlayerService
     private array $starterEquipmentEnsuredFor = [];
 
     /**
+     * @var array<string, ConnectedRealmsEquipmentSlot|null>
+     */
+    private array $equipmentForSkillCache = [];
+
+    /**
+     * @var array<string, int>
+     */
+    private array $skillLevelCache = [];
+
+    /**
+     * @var array<string, array<string, mixed>>
+     */
+    private array $toolPayloadCache = [];
+
+    /**
+     * @var array<string, array<string, mixed>>
+     */
+    private array $toolInstancePayloadCache = [];
+
+    /**
+     * @var array<string, array{label: string|null, category: string|null}>
+     */
+    private array $toolSkillMetaCache = [];
+
+    /**
      * @var array<string, string>
      */
     private const SPECIES = [
@@ -226,12 +251,6 @@ class ConnectedRealmsPlayerService
         $totalExperience = fn (): int => (int) $loadedPlayer()->skills->sum('experience');
         $accountLevel = fn (): int => max(1, intdiv($totalExperience(), 250) + 1);
         $inventoryQuantity = fn (): int => (int) $loadedPlayer()->inventoryStacks->sum('quantity');
-        $inventoryWeight = fn (): float => (float) $loadedPlayer()->inventoryStacks->sum(fn (ConnectedRealmsInventoryStack $stack): float => $this->items->enrich([
-            'item_key' => $stack->item_key,
-            'item_name' => $stack->item_name,
-            'rarity' => $stack->rarity,
-            'quantity' => $stack->quantity,
-        ])['total_weight']);
         $equipmentBySkill = fn () => $loadedPlayer()->equipmentSlots
             ->keyBy(fn (ConnectedRealmsEquipmentSlot $slot): string => (string) ($slot->bonuses['skill'] ?? $slot->slot));
         $progressionSnapshot = function () use ($loadedPlayer, $progression, $totalExperience, $inventoryQuantity): array {
@@ -336,6 +355,7 @@ class ConnectedRealmsPlayerService
 
             return $rows;
         };
+        $inventoryWeight = fn (): float => (float) collect($inventorySnapshot())->sum('total_weight');
         $activityIndex = fn (): array => $this->activityIndex($actions(), $skillActivities(), $craftingRecipes(), $jobContracts(), $expeditionRoutes());
 
         return [
@@ -480,17 +500,23 @@ class ConnectedRealmsPlayerService
     {
         $this->ensureStarterEquipment($player);
 
+        $cacheKey = $player->id.':'.$skill.':'.($player->relationLoaded('equipmentSlots') ? 'loaded' : 'query');
+
+        if (array_key_exists($cacheKey, $this->equipmentForSkillCache)) {
+            return $this->equipmentForSkillCache[$cacheKey];
+        }
+
         $slot = $this->tools->familyForSkill($skill)['slot'] ?? null;
 
         if ($slot === null) {
-            return null;
+            return $this->equipmentForSkillCache[$cacheKey] = null;
         }
 
         if ($player->relationLoaded('equipmentSlots')) {
-            return $player->equipmentSlots->firstWhere('slot', $slot);
+            return $this->equipmentForSkillCache[$cacheKey] = $player->equipmentSlots->firstWhere('slot', $slot);
         }
 
-        return $player->equipmentSlots()
+        return $this->equipmentForSkillCache[$cacheKey] = $player->equipmentSlots()
             ->where('slot', $slot)
             ->first();
     }
@@ -555,6 +581,7 @@ class ConnectedRealmsPlayerService
             'tier_level' => max(1, $tierLevel),
         ]);
         $equipment->save();
+        $this->forgetPlayerEquipmentCache($player->id);
 
         return $equipment;
     }
@@ -633,6 +660,7 @@ class ConnectedRealmsPlayerService
             'rarity_upgrade_attempts' => $tool->rarity_upgrade_attempts,
         ]);
         $equipment->save();
+        $this->forgetPlayerEquipmentCache($equipment->player_id);
 
         return $equipment;
     }
@@ -666,6 +694,7 @@ class ConnectedRealmsPlayerService
         ]);
 
         $equipment->forceFill(['tool_id' => $tool->id])->save();
+        $this->forgetPlayerEquipmentCache($equipment->player_id);
 
         return $tool;
     }
@@ -677,6 +706,12 @@ class ConnectedRealmsPlayerService
     {
         if ($slot === null) {
             return null;
+        }
+
+        $cacheKey = $this->equipmentSlotPayloadCacheKey($slot);
+
+        if (array_key_exists($cacheKey, $this->toolPayloadCache)) {
+            return $this->toolPayloadCache[$cacheKey];
         }
 
         $skill = $slot->bonuses['skill'] ?? null;
@@ -707,7 +742,7 @@ class ConnectedRealmsPlayerService
 
         $effects = $this->toolEffects->payloadForEquipment($slot);
 
-        return [
+        return $this->toolPayloadCache[$cacheKey] = [
             ...$payload,
             'tool_effects' => $effects,
             'signature_trait' => $effects['signature_trait'],
@@ -721,6 +756,12 @@ class ConnectedRealmsPlayerService
      */
     public function toolInstancePayload(ConnectedRealmsTool $tool): array
     {
+        $cacheKey = $this->toolInstancePayloadCacheKey($tool);
+
+        if (array_key_exists($cacheKey, $this->toolInstancePayloadCache)) {
+            return $this->toolInstancePayloadCache[$cacheKey];
+        }
+
         $skillMeta = $this->toolSkillMeta($tool->skill);
 
         $payload = $this->items->enrich([
@@ -759,7 +800,7 @@ class ConnectedRealmsPlayerService
         $floor = $this->toolMarketFloor($payload);
         $ceiling = $floor * 8;
 
-        return [
+        return $this->toolInstancePayloadCache[$cacheKey] = [
             ...$payload,
             'market_floor_price' => $floor,
             'market_ceiling_price' => $ceiling,
@@ -784,16 +825,23 @@ class ConnectedRealmsPlayerService
         $record->experience += $experience;
         $record->level = $this->catalog->levelForExperience($record->experience);
         $record->save();
+        $this->forgetSkillLevelCache($player->id, $skill);
 
         return $record;
     }
 
     public function currentSkillLevel(ConnectedRealmsPlayer $player, string $skill): int
     {
+        $cacheKey = $player->id.':'.$skill.':'.($player->relationLoaded('skills') ? 'loaded' : 'query');
+
+        if (array_key_exists($cacheKey, $this->skillLevelCache)) {
+            return $this->skillLevelCache[$cacheKey];
+        }
+
         if ($player->relationLoaded('skills')) {
             $experience = (int) ($player->skills->firstWhere('skill', $skill)?->experience ?? 0);
 
-            return $this->catalog->levelForExperience($experience);
+            return $this->skillLevelCache[$cacheKey] = $this->catalog->levelForExperience($experience);
         }
 
         $experience = (int) ConnectedRealmsPlayerSkill::query()
@@ -801,7 +849,7 @@ class ConnectedRealmsPlayerService
             ->where('skill', $skill)
             ->value('experience');
 
-        return $this->catalog->levelForExperience($experience);
+        return $this->skillLevelCache[$cacheKey] = $this->catalog->levelForExperience($experience);
     }
 
     /**
@@ -986,12 +1034,78 @@ class ConnectedRealmsPlayerService
             ];
         }
 
+        if (array_key_exists($skill, $this->toolSkillMetaCache)) {
+            return $this->toolSkillMetaCache[$skill];
+        }
+
         $definition = $this->catalog->definition($skill);
 
-        return [
+        return $this->toolSkillMetaCache[$skill] = [
             'label' => $definition['label'],
             'category' => $definition['category'],
         ];
+    }
+
+    private function equipmentSlotPayloadCacheKey(ConnectedRealmsEquipmentSlot $slot): string
+    {
+        return md5(json_encode([
+            'id' => $slot->id,
+            'tool_id' => $slot->tool_id,
+            'slot' => $slot->slot,
+            'item_key' => $slot->item_key,
+            'item_name' => $slot->item_name,
+            'rarity' => $slot->rarity,
+            'durability' => $slot->durability,
+            'bonuses' => $slot->bonuses,
+            'rarity_progress' => $slot->rarity_progress,
+            'origin' => $slot->origin,
+            'maker_name' => $slot->maker_name,
+            'tier_level' => $slot->tier_level,
+            'upgrade_count' => $slot->upgrade_count,
+            'tier_upgrade_count' => $slot->tool?->tier_upgrade_count,
+            'rarity_upgrade_attempts' => $slot->rarity_upgrade_attempts,
+            'updated_at' => optional($slot->updated_at)->getTimestamp(),
+        ]));
+    }
+
+    private function toolInstancePayloadCacheKey(ConnectedRealmsTool $tool): string
+    {
+        return md5(json_encode([
+            'id' => $tool->id,
+            'slot' => $tool->slot,
+            'skill' => $tool->skill,
+            'item_key' => $tool->item_key,
+            'item_name' => $tool->item_name,
+            'rarity' => $tool->rarity,
+            'durability' => $tool->durability,
+            'bonuses' => $tool->bonuses,
+            'rarity_progress' => $tool->rarity_progress,
+            'origin' => $tool->origin,
+            'status' => $tool->status,
+            'maker_name' => $tool->maker_name,
+            'tier_level' => $tool->tier_level,
+            'upgrade_count' => $tool->upgrade_count,
+            'tier_upgrade_count' => $tool->tier_upgrade_count,
+            'rarity_upgrade_attempts' => $tool->rarity_upgrade_attempts,
+            'updated_at' => optional($tool->updated_at)->getTimestamp(),
+        ]));
+    }
+
+    private function forgetPlayerEquipmentCache(int $playerId): void
+    {
+        $this->equipmentForSkillCache = array_filter(
+            $this->equipmentForSkillCache,
+            fn (mixed $slot, string $cacheKey): bool => ! str_starts_with($cacheKey, $playerId.':'),
+            ARRAY_FILTER_USE_BOTH,
+        );
+        $this->toolPayloadCache = [];
+        $this->toolInstancePayloadCache = [];
+    }
+
+    private function forgetSkillLevelCache(int $playerId, string $skill): void
+    {
+        unset($this->skillLevelCache[$playerId.':'.$skill.':loaded']);
+        unset($this->skillLevelCache[$playerId.':'.$skill.':query']);
     }
 
     /**

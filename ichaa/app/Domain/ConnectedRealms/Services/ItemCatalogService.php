@@ -209,6 +209,26 @@ class ItemCatalogService
     ];
 
     /**
+     * @var array<string, array<string, mixed>>|null
+     */
+    private ?array $keyRulesCache = null;
+
+    /**
+     * @var list<array{needle: string, rule: array<string, mixed>}>|null
+     */
+    private ?array $normalizedKeyRulesCache = null;
+
+    /**
+     * @var array<string, array<string, mixed>>
+     */
+    private array $ruleMatchCache = [];
+
+    /**
+     * @var list<array{needle: string, item_tier: int}>|null
+     */
+    private ?array $tierMarksCache = null;
+
+    /**
      * @param  array<string, mixed>  $item
      * @return array<string, mixed>
      */
@@ -223,6 +243,9 @@ class ItemCatalogService
         $weight = (float) ($item['weight'] ?? $rule['weight']);
         $unitValue = (int) round(((int) ($item['vendor_value'] ?? $rule['base_value'])) * $profile['value_multiplier']);
         $itemTier = $this->itemTierFor($item, $itemName, $rarity);
+        $itemClass = (string) ($item['item_class'] ?? $rule['item_class']);
+        $npcBuyPrice = $this->npcBuyPrice($unitValue);
+        $marketCeilingPrice = $this->marketCeilingPrice($unitValue, $itemClass);
 
         return [
             ...$item,
@@ -233,23 +256,23 @@ class ItemCatalogService
             'tier_label' => "T{$itemTier}",
             'quality' => $item['quality'] ?? $profile['quality'],
             'quality_score' => (int) ($item['quality_score'] ?? $profile['quality_score']),
-            'item_class' => $item['item_class'] ?? $rule['item_class'],
+            'item_class' => $itemClass,
             'material_family' => $item['material_family'] ?? $rule['material_family'],
             'weight' => round($weight, 2),
             'total_weight' => round($weight * max(1, $quantity), 2),
             'vendor_value' => $unitValue,
             'total_vendor_value' => $unitValue * max(1, $quantity),
-            'npc_buy_price' => $this->npcBuyPrice($unitValue),
-            'total_npc_buy_price' => $this->npcBuyPrice($unitValue) * max(1, $quantity),
-            'market_floor_price' => $this->npcBuyPrice($unitValue),
-            'market_ceiling_price' => $this->marketCeilingPrice($unitValue, $item['item_class'] ?? $rule['item_class']),
-            'market_price_band' => $this->npcBuyPrice($unitValue).'-'.$this->marketCeilingPrice($unitValue, $item['item_class'] ?? $rule['item_class']).'g',
+            'npc_buy_price' => $npcBuyPrice,
+            'total_npc_buy_price' => $npcBuyPrice * max(1, $quantity),
+            'market_floor_price' => $npcBuyPrice,
+            'market_ceiling_price' => $marketCeilingPrice,
+            'market_price_band' => $npcBuyPrice.'-'.$marketCeilingPrice.'g',
             'stack_limit' => (int) ($item['stack_limit'] ?? $profile['stack_limit']),
             'tradeable' => (bool) ($item['tradeable'] ?? true),
             'tags' => array_values(array_unique([
                 ...($rule['tags'] ?? []),
                 $rarity,
-                $item['item_class'] ?? $rule['item_class'],
+                $itemClass,
                 "tier_{$itemTier}",
             ])),
         ];
@@ -280,12 +303,18 @@ class ItemCatalogService
      */
     private function ruleFor(string $itemKey, string $itemName): array
     {
+        $cacheKey = $itemKey."\0".$itemName;
+
+        if (array_key_exists($cacheKey, $this->ruleMatchCache)) {
+            return $this->ruleMatchCache[$cacheKey];
+        }
+
         $keyNeedle = $this->normalizeRuleNeedle($itemKey);
         $nameNeedle = $this->normalizeRuleNeedle($itemName);
         $needle = trim($keyNeedle.' '.$nameNeedle);
 
         if (preg_match('/\b(cargo|package|shipment|consignment|supply crate|goods cache|expedition cache)\b/', $needle) === 1) {
-            return [
+            return $this->ruleMatchCache[$cacheKey] = [
                 'item_class' => 'cargo',
                 'material_family' => 'Cargo',
                 'weight' => 3.0,
@@ -295,24 +324,24 @@ class ItemCatalogService
         }
 
         if (str_contains($keyNeedle, 'slag glass') || str_contains($nameNeedle, 'slagglass')) {
-            return self::KEY_RULES['slag_glass'];
+            return $this->ruleMatchCache[$cacheKey] = $this->keyRules()['slag_glass'] ?? self::KEY_RULES['slag_glass'];
         }
 
-        foreach ($this->keyRules() as $fragment => $rule) {
-            $ruleNeedle = $this->normalizeRuleNeedle($fragment);
+        foreach ($this->normalizedKeyRules() as $entry) {
+            $ruleNeedle = $entry['needle'];
 
             if ($this->matchesRuleSuffix($keyNeedle, $ruleNeedle) || $this->matchesRuleSuffix($nameNeedle, $ruleNeedle)) {
-                return $rule;
+                return $this->ruleMatchCache[$cacheKey] = $entry['rule'];
             }
         }
 
-        foreach ($this->keyRules() as $fragment => $rule) {
-            if (str_contains($needle, $this->normalizeRuleNeedle($fragment))) {
-                return $rule;
+        foreach ($this->normalizedKeyRules() as $entry) {
+            if (str_contains($needle, $entry['needle'])) {
+                return $this->ruleMatchCache[$cacheKey] = $entry['rule'];
             }
         }
 
-        return [
+        return $this->ruleMatchCache[$cacheKey] = [
             'item_class' => 'misc',
             'material_family' => 'General',
             'weight' => 0.5,
@@ -342,7 +371,33 @@ class ItemCatalogService
      */
     private function keyRules(): array
     {
-        return app(ConnectedRealmsContentService::class)->apply('item_rules', self::KEY_RULES);
+        if ($this->keyRulesCache !== null) {
+            return $this->keyRulesCache;
+        }
+
+        $this->keyRulesCache = app(ConnectedRealmsContentService::class)->apply('item_rules', self::KEY_RULES);
+
+        return $this->keyRulesCache;
+    }
+
+    /**
+     * @return list<array{needle: string, rule: array<string, mixed>}>
+     */
+    private function normalizedKeyRules(): array
+    {
+        if ($this->normalizedKeyRulesCache !== null) {
+            return $this->normalizedKeyRulesCache;
+        }
+
+        $this->normalizedKeyRulesCache = collect($this->keyRules())
+            ->map(fn (array $rule, string $fragment): array => [
+                'needle' => $this->normalizeRuleNeedle($fragment),
+                'rule' => $rule,
+            ])
+            ->values()
+            ->all();
+
+        return $this->normalizedKeyRulesCache;
     }
 
     private function matchesRuleSuffix(string $needle, string $ruleNeedle): bool
@@ -384,9 +439,11 @@ class ItemCatalogService
             }
         }
 
-        foreach (EvergatherTierCatalog::tiers() as $tier) {
-            if (preg_match('/\b'.preg_quote($tier['mark'], '/').'\b/i', $itemName) === 1) {
-                return (int) $tier['item_tier'];
+        $itemNameNeedle = $this->normalizeRuleNeedle($itemName);
+
+        foreach ($this->tierMarks() as $tier) {
+            if (str_contains($itemNameNeedle, $tier['needle'])) {
+                return $tier['item_tier'];
             }
         }
 
@@ -398,5 +455,25 @@ class ItemCatalogService
             'uncommon' => 3,
             default => 1,
         };
+    }
+
+    /**
+     * @return list<array{needle: string, item_tier: int}>
+     */
+    private function tierMarks(): array
+    {
+        if ($this->tierMarksCache !== null) {
+            return $this->tierMarksCache;
+        }
+
+        $this->tierMarksCache = collect(EvergatherTierCatalog::tiers())
+            ->map(fn (array $tier): array => [
+                'needle' => $this->normalizeRuleNeedle((string) $tier['mark']),
+                'item_tier' => (int) $tier['item_tier'],
+            ])
+            ->values()
+            ->all();
+
+        return $this->tierMarksCache;
     }
 }

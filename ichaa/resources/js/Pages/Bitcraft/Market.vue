@@ -385,8 +385,8 @@ const form = reactive({
 const activeBarterItemId = ref(String(props.filters.itemId ?? ''))
 const activeBarterItemKind = ref(String(props.filters.itemKind ?? ''))
 const activeBarterSide = ref(props.filters.side ?? '')
-const activeBarterPopupOpen = ref(Boolean(props.filters.itemId))
-const activeMarketPopupOpen = ref(Boolean(props.market.orderBook))
+const activeBarterPopupOpen = ref(false)
+const activeMarketPopupOpen = ref(false)
 const localMarketOrderBook = ref(null)
 const prefetchedOrderBooks = ref(new Map())
 const prefetchingOrderBooks = ref(new Set())
@@ -490,7 +490,7 @@ watch(() => props.filters, (filters) => {
     activeBarterItemId.value = String(filters.itemId ?? '')
     activeBarterItemKind.value = String(filters.itemKind ?? '')
     activeBarterSide.value = filters.side ?? ''
-    activeBarterPopupOpen.value = Boolean(filters.itemId)
+    activeBarterPopupOpen.value = false
 
     nextTick(() => {
         syncingFilters.value = false
@@ -499,13 +499,6 @@ watch(() => props.filters, (filters) => {
 
 watch(() => props.market.orderBook, (orderBook) => {
     localMarketOrderBook.value = null
-
-    if (orderBook) {
-        activeMarketPopupOpen.value = true
-
-        return
-    }
-
     activeMarketPopupOpen.value = false
 }, { immediate: true })
 
@@ -670,8 +663,7 @@ const openBarterItem = (item, side) => {
     setSide(side, item)
 }
 
-const openMarketItem = (item, side) => {
-    const params = marketItemParams(item, side)
+const openMarketItem = async (item) => {
     const cachedOrderBook = prefetchedOrderBooks.value.get(orderBookCacheKey(orderBookLookupParams(item)))
 
     if (cachedOrderBook) {
@@ -687,7 +679,7 @@ const openMarketItem = (item, side) => {
         return
     }
 
-    visitTool(route(props.tool.routeName ?? 'bitcraft.market', params), {})
+    await loadMarketOrderBook(item)
 }
 
 const prefetchMarketOrderBooks = () => {
@@ -737,6 +729,40 @@ const prefetchMarketOrderBook = async (item) => {
         const prefetching = new Set(prefetchingOrderBooks.value)
         prefetching.delete(key)
         prefetchingOrderBooks.value = prefetching
+    }
+}
+
+const loadMarketOrderBook = async (item) => {
+    const params = orderBookLookupParams(item)
+    const key = orderBookCacheKey(params)
+
+    searching.value = true
+
+    try {
+        const response = await fetch(route('bitcraft.market.order-book', params), {
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+
+        if (!response.ok) {
+            return
+        }
+
+        const payload = await response.json()
+
+        if (!payload.orderBook) {
+            return
+        }
+
+        const orderBooks = new Map(prefetchedOrderBooks.value)
+        orderBooks.set(key, payload.orderBook)
+        prefetchedOrderBooks.value = orderBooks
+        localMarketOrderBook.value = payload.orderBook
+        activeMarketPopupOpen.value = true
+    } finally {
+        searching.value = false
     }
 }
 

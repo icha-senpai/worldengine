@@ -84,21 +84,22 @@ class ItemGuideService
                     ...$record['item'],
                     'quantity' => max(1, (int) $record['owned_quantity']),
                 ]);
-                $purpose = $record['sinks'][0] ?? $this->purposes->requisitionFor($payload)['sink'];
+                $requisition = $this->purposes->requisitionFor($payload);
+                $purpose = $record['sinks'][0] ?? $requisition['sink'];
 
                 return [
                     ...$payload,
-                    'purpose' => $this->purposes->requisitionFor($payload)['purpose'],
+                    'purpose' => $requisition['purpose'],
                     'purpose_context' => (string) $purpose['context'],
                     'owned_quantity' => (int) $record['owned_quantity'],
-                    'source_count' => count($record['sources']),
-                    'sink_count' => count($record['sinks']),
-                    'sources' => array_slice($record['sources'], 0, 8),
-                    'sinks' => array_slice($record['sinks'], 0, 8),
+                    'source_count' => (int) $record['source_count'],
+                    'sink_count' => (int) $record['sink_count'],
+                    'sources' => $record['sources'],
+                    'sinks' => $record['sinks'],
                     'best_source' => $record['sources'][0] ?? null,
                     'best_sink' => $record['sinks'][0] ?? null,
-                    'has_use' => $record['sinks'] !== [],
-                    'has_source' => $record['sources'] !== [],
+                    'has_use' => (int) $record['sink_count'] > 0,
+                    'has_source' => (int) $record['source_count'] > 0,
                 ];
             })
             ->sortBy([
@@ -150,8 +151,11 @@ class ItemGuideService
                 'rarity' => (string) ($item['rarity'] ?? 'common'),
             ],
             'owned_quantity' => 0,
+            'source_count' => 0,
+            'sink_count' => 0,
             'sources' => [],
             'sinks' => [],
+            'sink_keys' => [],
         ];
 
         $items[$key]['owned_quantity'] += $ownedQuantity;
@@ -167,7 +171,11 @@ class ItemGuideService
         $key = $this->itemKey($item);
 
         if ($key !== '') {
-            $items[$key]['sources'][] = $this->guideRow($type, $label, $requiredLevel, $context);
+            $items[$key]['source_count']++;
+
+            if (count($items[$key]['sources']) < 8) {
+                $items[$key]['sources'][] = $this->guideRow($type, $label, $requiredLevel, $context);
+            }
         }
     }
 
@@ -183,9 +191,7 @@ class ItemGuideService
         if ($key !== '') {
             $row = $this->guideRow($type, $label, $requiredLevel, $context);
 
-            if (! in_array($row, $items[$key]['sinks'], true)) {
-                $items[$key]['sinks'][] = $row;
-            }
+            $this->appendSink($items[$key], $row);
         }
     }
 
@@ -229,14 +235,39 @@ class ItemGuideService
     private function addPurposeSinks(array &$items): void
     {
         foreach ($items as $key => $record) {
+            $requisition = $this->purposes->requisitionFor($record['item']);
+
             foreach ([
-                $this->purposes->requisitionFor($record['item'])['sink'],
+                $requisition['sink'],
                 $this->purposes->vendorSinkFor($record['item']),
             ] as $sink) {
-                if (! in_array($sink, $items[$key]['sinks'], true)) {
-                    $items[$key]['sinks'][] = $sink;
-                }
+                $this->appendSink($items[$key], $sink);
             }
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $record
+     * @param  array<string, mixed>  $sink
+     */
+    private function appendSink(array &$record, array $sink): void
+    {
+        $sinkKey = implode('|', [
+            (string) ($sink['type'] ?? ''),
+            (string) ($sink['label'] ?? ''),
+            (string) ($sink['required_level'] ?? ''),
+            (string) ($sink['context'] ?? ''),
+        ]);
+
+        if (isset($record['sink_keys'][$sinkKey])) {
+            return;
+        }
+
+        $record['sink_keys'][$sinkKey] = true;
+        $record['sink_count']++;
+
+        if (count($record['sinks']) < 8) {
+            $record['sinks'][] = $sink;
         }
     }
 

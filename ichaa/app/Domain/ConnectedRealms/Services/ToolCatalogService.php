@@ -5,11 +5,32 @@ namespace App\Domain\ConnectedRealms\Services;
 class ToolCatalogService
 {
     /**
+     * @var list<string>
+     */
+    private const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
+
+    /**
+     * @var array<string, array<string, mixed>>|null
+     */
+    private ?array $familiesCache = null;
+
+    /**
+     * @var list<array<string, mixed>>|null
+     */
+    private ?array $tierPathCache = null;
+
+    /**
      * @return array<string, array{label: string, noun: string, line: string, slot: string, skill: string, craft: string, base: string, base_name: string, starter_item_key?: string, starter_item_name?: string}>
      */
     public function families(): array
     {
-        return app(ConnectedRealmsContentService::class)->apply('tool_families', $this->baseFamilies());
+        if ($this->familiesCache !== null) {
+            return $this->familiesCache;
+        }
+
+        $this->familiesCache = app(ConnectedRealmsContentService::class)->apply('tool_families', $this->baseFamilies());
+
+        return $this->familiesCache;
     }
 
     /**
@@ -50,11 +71,17 @@ class ToolCatalogService
      */
     public function tierPath(): array
     {
-        return app(ConnectedRealmsContentService::class)->applyList(
+        if ($this->tierPathCache !== null) {
+            return $this->tierPathCache;
+        }
+
+        $this->tierPathCache = app(ConnectedRealmsContentService::class)->applyList(
             'tool_tiers',
             $this->tierPathFor(EvergatherTierCatalog::tiers()),
             'name_mark',
         );
+
+        return $this->tierPathCache;
     }
 
     /**
@@ -122,6 +149,41 @@ class ToolCatalogService
 
         return collect($this->tierPath())
             ->first(fn (array $tier): bool => $tier['level'] > $effectiveLevel);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function rarities(): array
+    {
+        return self::RARITY_ORDER;
+    }
+
+    public function nextRarity(string $rarity): ?string
+    {
+        $rank = $this->rarityRank($rarity);
+
+        return self::RARITY_ORDER[$rank + 1] ?? null;
+    }
+
+    public function rarityRank(string $rarity): int
+    {
+        $rank = array_search($rarity, self::RARITY_ORDER, true);
+
+        return $rank === false ? 0 : (int) $rank;
+    }
+
+    public function maxRarityForTierLevel(int $tierLevel): string
+    {
+        $itemTier = $tierLevel <= 0 ? 1 : EvergatherTierCatalog::itemTierForLevel($tierLevel);
+        $rank = max(0, min(count(self::RARITY_ORDER) - 1, $itemTier - 1));
+
+        return self::RARITY_ORDER[$rank];
+    }
+
+    public function rarityAllowedAtTier(string $rarity, int $tierLevel): bool
+    {
+        return $this->rarityRank($rarity) <= $this->rarityRank($this->maxRarityForTierLevel($tierLevel));
     }
 
     /**

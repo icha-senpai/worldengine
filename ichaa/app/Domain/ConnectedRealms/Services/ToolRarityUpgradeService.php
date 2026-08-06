@@ -99,11 +99,20 @@ class ToolRarityUpgradeService
             }
 
             $materials = $this->tools->rarityMaterials($tool->rarity);
-            $consumed = $this->consumeIngredients($player, $materials);
             $craftLevel = $family === null ? 1 : $this->players->currentSkillLevel($player, $family['craft']);
             $successChance = min(75, $rule['success_chance'] + $this->successBonus($craftLevel));
             $progressMin = $rule['progress_min'] + $this->progressBonus($craftLevel);
             $progressMax = $rule['progress_max'] + $this->progressBonus($craftLevel);
+            $targetRarity = $rule['target'];
+            $rarityCap = $this->tools->maxRarityForTierLevel((int) $tool->tier_level);
+
+            if (! $this->tools->rarityAllowedAtTier($targetRarity, (int) $tool->tier_level)) {
+                throw ValidationException::withMessages([
+                    'slot' => "Tier up {$tool->item_name} before rolling {$targetRarity} rarity.",
+                ]);
+            }
+
+            $consumed = $this->consumeIngredients($player, $materials);
 
             $player->forceFill([
                 'gold' => $player->gold - $rule['gold_cost'],
@@ -117,7 +126,6 @@ class ToolRarityUpgradeService
                 : min(100, (int) $tool->rarity_progress + $progressGain);
             $succeeded = $criticalSuccess || $progressAfterAttempt >= 100;
             $previousRarity = $tool->rarity;
-            $targetRarity = $rule['target'];
 
             $tool->forceFill([
                 'rarity_upgrade_attempts' => (int) $tool->rarity_upgrade_attempts + 1,
@@ -154,6 +162,7 @@ class ToolRarityUpgradeService
                 'previous_rarity' => $previousRarity,
                 'rarity' => $tool->rarity,
                 'target_rarity' => $targetRarity,
+                'rarity_cap' => $rarityCap,
                 'success' => $succeeded,
                 'critical_success' => $criticalSuccess,
                 'roll' => $roll,
@@ -184,13 +193,17 @@ class ToolRarityUpgradeService
         $hasMaterials = $this->hasIngredients($player, $materials);
         $successChance = $rule === null ? 0 : min(75, $rule['success_chance'] + $this->successBonus($craftLevel));
         $progressBonus = $this->progressBonus($craftLevel);
+        $targetRarity = $rule['target'] ?? null;
+        $rarityCap = $this->tools->maxRarityForTierLevel((int) $tool->tier_level);
+        $isTierCapped = $targetRarity !== null && ! $this->tools->rarityAllowedAtTier($targetRarity, (int) $tool->tier_level);
 
         return [
             'slot' => $tool->slot,
             'item_key' => $tool->item_key,
             'item_name' => $tool->item_name,
             'current_rarity' => $tool->rarity,
-            'target_rarity' => $rule['target'] ?? null,
+            'target_rarity' => $targetRarity,
+            'rarity_cap' => $rarityCap,
             'rarity_progress' => $progress,
             'success_chance' => $successChance,
             'base_success_chance' => $rule['success_chance'] ?? 0,
@@ -201,9 +214,10 @@ class ToolRarityUpgradeService
             'craft_skill_label' => isset($family['craft']) ? str($family['craft'])->headline()->toString() : null,
             'craft_skill_level' => $craftLevel,
             'materials' => $this->items->enrichMany($materials),
-            'can_upgrade' => $rule !== null && $player->gold >= $rule['gold_cost'] && $hasMaterials,
+            'can_upgrade' => $rule !== null && ! $isTierCapped && $player->gold >= $rule['gold_cost'] && $hasMaterials,
             'is_max_rarity' => $rule === null,
-            'status' => $this->statusLabel($rule, (int) $player->gold, $hasMaterials),
+            'is_tier_capped' => $isTierCapped,
+            'status' => $this->statusLabel($rule, (int) $player->gold, $hasMaterials, $isTierCapped, $targetRarity),
         ];
     }
 
@@ -226,10 +240,14 @@ class ToolRarityUpgradeService
     /**
      * @param  array{target: string, success_chance: int, progress_min: int, progress_max: int, gold_cost: int}|null  $rule
      */
-    private function statusLabel(?array $rule, int $playerGold, bool $hasMaterials): string
+    private function statusLabel(?array $rule, int $playerGold, bool $hasMaterials, bool $isTierCapped, ?string $targetRarity): string
     {
         if ($rule === null) {
             return 'Max rarity';
+        }
+
+        if ($isTierCapped) {
+            return "Tier up for {$targetRarity}";
         }
 
         if ($playerGold < $rule['gold_cost']) {

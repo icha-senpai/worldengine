@@ -51,7 +51,12 @@ class ConnectedRealmsContentService
         unset(self::$effectiveDefinitionCache[$surface]);
 
         if ($surface === 'tiers') {
+            EvergatherTierCatalog::forgetCache();
             self::$effectiveDefinitionCache = [];
+        }
+
+        if ($surface === 'skill_definitions') {
+            SkillCatalogService::forgetCache();
         }
     }
 

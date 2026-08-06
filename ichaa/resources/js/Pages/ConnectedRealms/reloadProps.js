@@ -8,12 +8,10 @@ const baseActionProps = [
 
 export const actionReloadProps = [
     ...baseActionProps,
-    'actions',
 ]
 
 export const activityReloadProps = [
     ...baseActionProps,
-    'skill_activities',
 ]
 
 export const craftingReloadProps = [

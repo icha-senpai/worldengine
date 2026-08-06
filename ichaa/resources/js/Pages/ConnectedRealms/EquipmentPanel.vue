@@ -118,6 +118,8 @@
                                 </div>
                                 <div class="mt-2 flex flex-wrap gap-2">
                                     <span v-if="entry.upgrade.target_rarity" class="tag capitalize">{{ entry.upgrade.current_rarity }} to {{ entry.upgrade.target_rarity }}</span>
+                                    <span v-if="entry.upgrade.rarity_cap && !entry.upgrade.is_max_rarity" class="tag capitalize">cap {{ entry.upgrade.rarity_cap }}</span>
+                                    <span v-if="entry.upgrade.is_tier_capped" class="tag">{{ entry.upgrade.status }}</span>
                                     <span v-if="!entry.upgrade.is_max_rarity" class="tag">{{ entry.upgrade.success_chance }}% hit</span>
                                     <span v-if="!entry.upgrade.is_max_rarity" class="tag">{{ entry.upgrade.progress_gain_min }}-{{ entry.upgrade.progress_gain_max }} progress</span>
                                     <span v-if="!entry.upgrade.is_max_rarity" class="tag">{{ entry.upgrade.gold_cost }}g</span>

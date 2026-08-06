@@ -373,11 +373,47 @@ class SkillCatalogService
     ];
 
     /**
+     * @var array<string, array<string, mixed>>|null
+     */
+    private ?array $baseDefinitionsCache = null;
+
+    /**
+     * @var array<string, array<string, mixed>>|null
+     */
+    private ?array $definitionsCache = null;
+
+    /**
+     * @var array<string, array<string, mixed>>
+     */
+    private array $definitionCache = [];
+
+    /**
+     * @var list<array<string, mixed>>|null
+     */
+    private ?array $allCache = null;
+
+    /**
+     * @var list<string>|null
+     */
+    private static ?array $keysCache = null;
+
+    public static function forgetCache(): void
+    {
+        self::$keysCache = null;
+    }
+
+    /**
      * @return list<string>
      */
     public static function keys(): array
     {
-        return array_keys(app(self::class)->definitions());
+        if (self::$keysCache !== null) {
+            return self::$keysCache;
+        }
+
+        self::$keysCache = array_keys(app(self::class)->definitions());
+
+        return self::$keysCache;
     }
 
     /**
@@ -385,6 +421,10 @@ class SkillCatalogService
      */
     public function definition(string $skill): array
     {
+        if (array_key_exists($skill, $this->definitionCache)) {
+            return $this->definitionCache[$skill];
+        }
+
         $definition = $this->definitions()[$skill] ?? [
             'label' => str($skill)->headline()->toString(),
             'type' => 'skill',
@@ -397,10 +437,12 @@ class SkillCatalogService
         $definition['unlocks'] = $this->markedUnlocksFor($skill, $definition);
         $definition['target_hours_range'] = $this->targetHoursRangeFor($definition['category']);
 
-        return [
+        $this->definitionCache[$skill] = [
             'key' => $skill,
             ...$definition,
         ];
+
+        return $this->definitionCache[$skill];
     }
 
     /**
@@ -408,13 +450,19 @@ class SkillCatalogService
      */
     public function all(): array
     {
-        return collect(array_keys($this->definitions()))
+        if ($this->allCache !== null) {
+            return $this->allCache;
+        }
+
+        $this->allCache = collect(array_keys($this->definitions()))
             ->map(fn (string $key): array => [
                 ...$this->definition($key),
                 'max_level' => self::MAX_LEVEL,
             ])
             ->values()
             ->all();
+
+        return $this->allCache;
     }
 
     /**
@@ -522,11 +570,17 @@ class SkillCatalogService
      */
     public function baseDefinitions(): array
     {
-        return collect(self::DEFINITIONS)
+        if ($this->baseDefinitionsCache !== null) {
+            return $this->baseDefinitionsCache;
+        }
+
+        $this->baseDefinitionsCache = collect(self::DEFINITIONS)
             ->mapWithKeys(fn (array $definition, string $skill): array => [
                 $skill => $this->withTierUnlocks($skill, $definition),
             ])
             ->all();
+
+        return $this->baseDefinitionsCache;
     }
 
     /**
@@ -546,7 +600,13 @@ class SkillCatalogService
      */
     private function definitions(): array
     {
-        return app(ConnectedRealmsContentService::class)->apply('skill_definitions', $this->baseDefinitions());
+        if ($this->definitionsCache !== null) {
+            return $this->definitionsCache;
+        }
+
+        $this->definitionsCache = app(ConnectedRealmsContentService::class)->apply('skill_definitions', $this->baseDefinitions());
+
+        return $this->definitionsCache;
     }
 
     /**

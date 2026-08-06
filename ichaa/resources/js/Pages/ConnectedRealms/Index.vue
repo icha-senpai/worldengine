@@ -1155,7 +1155,10 @@ function propsInvalidatedByResult(result) {
     }
 
     if (result.action && result.type !== 'tool_equip' && result.type !== 'tool_unequip') {
-        return inventoryChangeProps()
+        return [
+            ...inventoryChangeProps(),
+            'actions',
+        ]
     }
 
     if (!result.type) {
@@ -1233,7 +1236,10 @@ function propsInvalidatedByResult(result) {
             'tool_tier_upgrades',
             'item_guide',
         ],
-        skill_activity: inventoryChangeProps(),
+        skill_activity: [
+            ...inventoryChangeProps(),
+            'skill_activities',
+        ],
         tool_equip: [
             'actions',
             'skill_activities',

@@ -156,6 +156,9 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->has('tool_rarity_upgrades.options', 38)
                     ->where('tool_rarity_upgrades.options.0.current_rarity', 'common')
                     ->where('tool_rarity_upgrades.options.0.target_rarity', 'uncommon')
+                    ->where('tool_rarity_upgrades.options.0.rarity_cap', 'common')
+                    ->where('tool_rarity_upgrades.options.0.is_tier_capped', true)
+                    ->where('tool_rarity_upgrades.options.0.status', 'Tier up for uncommon')
                     ->where('tool_rarity_upgrades.options.0.success_chance', 35)
                     ->where('tool_rarity_upgrades.options.0.gold_cost', 45)
                     ->where('tool_rarity_upgrades.options.0.materials.0.item_key', 'amber_sap')
@@ -242,6 +245,21 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->missing('jobs')
                     ->missing('expeditions')
                     ->missing('shop')
+                    ->missing('leaderboards')
+                )
+                ->reloadOnly(['player', 'inventory', 'recent_actions', 'summary', 'last_result'], fn (Assert $reload) => $reload
+                    ->where('player.display_name', $user->name)
+                    ->has('inventory')
+                    ->has('recent_actions')
+                    ->has('summary')
+                    ->missing('actions')
+                    ->missing('skill_activities')
+                    ->missing('crafting_recipes')
+                    ->missing('jobs')
+                    ->missing('expeditions')
+                    ->missing('shop')
+                    ->missing('progression')
+                    ->missing('item_guide')
                     ->missing('leaderboards')
                 )
                 ->reloadOnly(['player', 'inventory', 'crafting_recipes', 'recent_crafts', 'summary', 'last_result', 'progression'], fn (Assert $reload) => $reload
@@ -2117,6 +2135,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame($toolId, $tool->id);
         $this->assertSame('candlemark_stonebite_pickaxe', $tool->item_key);
         $this->assertSame('Candlemark Stonebite Pickaxe', $tool->item_name);
+        $this->assertSame('common', $tool->rarity);
         $this->assertSame('upgraded', $tool->origin);
         $this->assertSame(1, $tool->tier_level);
         $this->assertSame(1, $tool->tier_upgrade_count);
@@ -2256,8 +2275,12 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->firstOrFail();
 
         $tool->forceFill([
+            'item_key' => 'wayside_stonebite_pickaxe',
+            'item_name' => 'Wayside Stonebite Pickaxe',
             'rarity' => 'common',
             'rarity_progress' => 99,
+            'origin' => 'upgraded',
+            'tier_level' => 5,
             'upgrade_count' => 0,
             'rarity_upgrade_attempts' => 0,
             'bonuses' => ['skill' => 'mining', 'experience' => 4, 'yield' => 1],
@@ -2287,7 +2310,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $tool->refresh();
         $player->refresh();
 
-        $this->assertSame('worn_pickaxe', $tool->item_key);
+        $this->assertSame('wayside_stonebite_pickaxe', $tool->item_key);
         $this->assertSame('uncommon', $tool->rarity);
         $this->assertSame(0, $tool->rarity_progress);
         $this->assertSame(1, $tool->upgrade_count);
@@ -2295,6 +2318,57 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame(7, $tool->bonuses['experience']);
         $this->assertSame(1, $tool->bonuses['yield']);
         $this->assertSame(955, $player->gold);
+    }
+
+    public function test_tool_rarity_upgrade_respects_current_tier_cap(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)->get(route('evergather.index'))->assertOk();
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+        $player->forceFill(['gold' => 1000])->save();
+
+        $tool = ConnectedRealmsEquipmentSlot::query()
+            ->where('player_id', $player->id)
+            ->where('slot', 'tool_mining')
+            ->firstOrFail();
+
+        $tool->forceFill([
+            'rarity' => 'common',
+            'rarity_progress' => 99,
+            'tier_level' => 0,
+            'bonuses' => ['skill' => 'mining', 'experience' => 4, 'yield' => 1],
+        ])->save();
+
+        ConnectedRealmsInventoryStack::query()->create([
+            'player_id' => $player->id,
+            'item_key' => 'amber_sap',
+            'item_name' => 'Amber Sap',
+            'rarity' => 'common',
+            'quantity' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('evergather.index'))
+            ->post(route('evergather.tools.rarity-upgrades.store'), [
+                'slot' => 'tool_mining',
+            ])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHasErrors('slot');
+
+        $tool->refresh();
+        $player->refresh();
+
+        $this->assertSame('common', $tool->rarity);
+        $this->assertSame(99, $tool->rarity_progress);
+        $this->assertSame(0, $tool->rarity_upgrade_attempts);
+        $this->assertSame(1000, $player->gold);
+        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'amber_sap',
+            'quantity' => 1,
+        ]);
     }
 
     public function test_tool_rarity_upgrade_refuses_max_rarity_tools(): void

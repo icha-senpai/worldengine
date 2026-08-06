@@ -21,11 +21,33 @@ class EvergatherTierCatalog
     ];
 
     /**
+     * @var list<array<string, mixed>>|null
+     */
+    private static ?array $tiersCache = null;
+
+    /**
+     * @var list<int>|null
+     */
+    private static ?array $levelsCache = null;
+
+    public static function forgetCache(): void
+    {
+        self::$tiersCache = null;
+        self::$levelsCache = null;
+    }
+
+    /**
      * @return list<array{level: int, item_tier: int, band: string, key_slug: string, mark: string, station: string, rarity: string, experience: array{int, int}, gold: array{int, int}, cooldown: int}>
      */
     public static function tiers(): array
     {
-        return app(ConnectedRealmsContentService::class)->applyList('tiers', self::baseTiers());
+        if (self::$tiersCache !== null) {
+            return self::$tiersCache;
+        }
+
+        self::$tiersCache = app(ConnectedRealmsContentService::class)->applyList('tiers', self::baseTiers());
+
+        return self::$tiersCache;
     }
 
     /**
@@ -52,9 +74,15 @@ class EvergatherTierCatalog
      */
     public static function levels(): array
     {
-        return collect(self::tiers())
+        if (self::$levelsCache !== null) {
+            return self::$levelsCache;
+        }
+
+        self::$levelsCache = collect(self::tiers())
             ->pluck('level')
             ->all();
+
+        return self::$levelsCache;
     }
 
     public static function isTierLevel(int $level): bool
@@ -64,13 +92,15 @@ class EvergatherTierCatalog
 
     public static function nextTierLevelFor(int $level): int
     {
-        foreach (self::tiers() as $tier) {
+        $tiers = self::tiers();
+
+        foreach ($tiers as $tier) {
             if ($tier['level'] >= $level) {
                 return $tier['level'];
             }
         }
 
-        return self::tiers()[array_key_last(self::tiers())]['level'];
+        return $tiers[array_key_last($tiers)]['level'];
     }
 
     public static function progressionPhaseForLevel(int $level): string
