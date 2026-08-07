@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Domain\ConnectedRealms\Services\AchievementTitleCatalog;
 use App\Domain\ConnectedRealms\Services\ConnectedRealmsLeaderboardService;
 use App\Domain\ConnectedRealms\Services\CraftingService;
+use App\Domain\ConnectedRealms\Services\EvergatherTierCatalog;
 use App\Domain\ConnectedRealms\Services\ExpeditionService;
 use App\Domain\ConnectedRealms\Services\GatheringActionService;
 use App\Domain\ConnectedRealms\Services\JobContractService;
@@ -72,7 +74,7 @@ function table(array $headers, array $rows): array
 
 /**
  * @param  list<array<string, mixed>>  $items
- * @param  array<string, array{name: string, roles: array<string, true>, sources: array<string, true>}>  $itemIndex
+ * @param  array<string, array{names: array<string, true>, roles: array<string, true>, sources: array<string, true>}>  $itemIndex
  */
 function recordItems(array &$itemIndex, array $items, string $role, string $source): void
 {
@@ -84,7 +86,8 @@ function recordItems(array &$itemIndex, array $items, string $role, string $sour
             continue;
         }
 
-        $itemIndex[$key] ??= ['name' => $name, 'roles' => [], 'sources' => []];
+        $itemIndex[$key] ??= ['names' => [], 'roles' => [], 'sources' => []];
+        $itemIndex[$key]['names'][$name] = true;
         $itemIndex[$key]['roles'][$role] = true;
         $itemIndex[$key]['sources'][$source] = true;
     }
@@ -116,32 +119,57 @@ function recordLabel(array &$labelIndex, string $surface, mixed $label, string $
 
 function normalizedGeneratedName(string $name): string
 {
-    $tierWords = [
-        'Candleline',
-        'Candlemark',
-        'Wayside',
-        'Moonwake',
-        'Hearthsign',
-        'Runebound',
-        'Stormglass',
-        'Highguild',
-        'Highguard',
-        'Elderwake',
-        'Mythgate',
-        'Crownmark',
-        'Crownline',
-        'Silverbank',
-        'Sablecross',
-        'Starline',
-        'Astral',
-        'Prismatic',
-        'Mythrite',
-        'Realmwake',
-    ];
+    $tierWords = tierWords();
     $normalized = preg_replace('/\b(?:'.implode('|', $tierWords).')\b/', '', $name) ?? $name;
     $normalized = preg_replace('/\s+/', ' ', trim($normalized)) ?? trim($normalized);
 
     return str($normalized)->lower()->toString();
+}
+
+/**
+ * @return list<string>
+ */
+function tierWords(): array
+{
+    return collect(EvergatherTierCatalog::tiers())
+        ->map(fn (array $tier): string => $tier['mark'])
+        ->merge(['Candleline', 'Highguard', 'Crownline', 'Silverbank', 'Sablecross', 'Starline', 'Astral', 'Prismatic', 'Mythrite', 'Realmwake'])
+        ->unique()
+        ->values()
+        ->all();
+}
+
+function normalizedSkeleton(string $name): string
+{
+    $withoutTiers = normalizedGeneratedName($name);
+    $skeleton = preg_replace('/\b[a-z][a-z-]*\b/', '{word}', $withoutTiers) ?? $withoutTiers;
+
+    return preg_replace('/\s+/', ' ', trim($skeleton)) ?? trim($skeleton);
+}
+
+/**
+ * @param  list<string>  $names
+ * @return list<array{string, string, int, string}>
+ */
+function doubleTierRows(array $names): array
+{
+    $tierWords = tierWords();
+
+    return collect($names)
+        ->map(function (string $name) use ($tierWords): ?array {
+            $matches = collect($tierWords)
+                ->filter(fn (string $word): bool => preg_match('/\b'.preg_quote($word, '/').'\b/i', $name) === 1)
+                ->values();
+
+            if ($matches->count() <= 1) {
+                return null;
+            }
+
+            return [$name, $matches->join(', '), $matches->count(), normalizedGeneratedName($name)];
+        })
+        ->filter()
+        ->values()
+        ->all();
 }
 
 $skills = app(SkillCatalogService::class)->all();
@@ -162,6 +190,9 @@ $worldEvents = collect(app(WorldEventService::class)->calendar())
 $leaderboards = privateConstantList(ConnectedRealmsLeaderboardService::class, 'BOARD_DEFINITIONS');
 $toolGrades = privateConstantList(ToolEffectService::class, 'RARITY_EFFECTS');
 $toolTraits = privateConstantList(ToolEffectService::class, 'SKILL_TRAITS');
+$baseAchievementTitles = privateConstantList(AchievementTitleCatalog::class, 'BASE_TITLES');
+$accountAchievementTitles = privateConstantList(AchievementTitleCatalog::class, 'ACCOUNT_TITLES');
+$skillAchievementTitles = privateConstantList(AchievementTitleCatalog::class, 'SKILL_TITLES');
 $itemIndex = [];
 $labelIndex = [];
 
@@ -205,6 +236,20 @@ foreach ($leaderboards as $board) {
     recordLabel($labelIndex, 'leaderboards', $board['label'] ?? null, (string) $board['key']);
 }
 
+foreach ($baseAchievementTitles as $key => $title) {
+    recordLabel($labelIndex, 'achievement reward titles', $title, (string) $key);
+}
+
+foreach ($accountAchievementTitles as $level => $title) {
+    recordLabel($labelIndex, 'achievement reward titles', $title, "account_level_{$level}");
+}
+
+foreach ($skillAchievementTitles as $skill => $titles) {
+    foreach ($titles as $level => $title) {
+        recordLabel($labelIndex, 'achievement reward titles', $title, "skill_milestone_{$skill}_{$level}");
+    }
+}
+
 $duplicateLabelRows = collect($labelIndex)
     ->flatMap(fn (array $labels, string $surface) => collect($labels)
         ->filter(fn (array $sources): bool => count($sources) > 1)
@@ -215,13 +260,40 @@ $duplicateLabelRows = collect($labelIndex)
 
 $prefixSwapSurfaces = [
     'gathering actions' => collect($actions)->pluck('label')->all(),
+    'gathering loot' => collect($actions)
+        ->flatMap(fn (array $action): array => collect($action['loot'])->pluck('name')->all())
+        ->all(),
     'skill activities' => collect($activities)->pluck('label')->all(),
     'activity loot' => collect($activities)
         ->flatMap(fn (array $activity): array => collect($activity['loot'])->pluck('item_name')->all())
         ->all(),
+    'recipe labels' => collect($recipes)->pluck('label')->all(),
+    'recipe outputs' => collect($recipes)
+        ->flatMap(fn (array $recipe): array => collect($recipe['outputs'])->pluck('item_name')->all())
+        ->all(),
+    'recipe ingredients' => collect($recipes)
+        ->flatMap(fn (array $recipe): array => collect($recipe['ingredients'])->pluck('item_name')->all())
+        ->all(),
     'jobs' => collect($jobs)->pluck('label')->all(),
+    'job requirements' => collect($jobs)
+        ->flatMap(fn (array $job): array => collect($job['requirements'])->pluck('item_name')->all())
+        ->all(),
     'expeditions' => collect($expeditions)->pluck('label')->all(),
+    'expedition supplies' => collect($expeditions)
+        ->flatMap(fn (array $expedition): array => collect($expedition['supplies'])->pluck('item_name')->all())
+        ->all(),
+    'expedition rewards' => collect($expeditions)
+        ->flatMap(fn (array $expedition): array => collect($expedition['rewards'])->pluck('item_name')->all())
+        ->all(),
     'shop offers' => collect($shopOffers)->pluck('label')->all(),
+    'shop items' => collect($shopOffers)->pluck('item_name')->all(),
+    'tool names' => collect($toolFamilies)
+        ->flatMap(fn (array $family): array => collect($toolTiers)
+            ->map(fn (array $tier): string => $tools->tierToolName($family, $tier))
+            ->all())
+        ->values()
+        ->all(),
+    'achievement reward titles' => collect($labelIndex['achievement reward titles'] ?? [])->keys()->all(),
     'skill unlocks' => collect($skills)
         ->flatMap(fn (array $skill): array => collect($skill['unlocks'])
             ->map(fn (string $unlock): string => $unlock)
@@ -243,6 +315,62 @@ $prefixSwapRows = collect($prefixSwapSurfaces)
     ->values()
     ->all();
 
+$allNames = collect($labelIndex)
+    ->flatMap(fn (array $labels): array => array_keys($labels))
+    ->merge(collect($prefixSwapSurfaces)->flatten())
+    ->filter(fn (mixed $name): bool => is_string($name) && trim($name) !== '')
+    ->unique()
+    ->values();
+$doubleTierReviewRows = doubleTierRows($allNames->all());
+$skeletonRows = $allNames
+    ->groupBy(fn (string $name): string => normalizedSkeleton($name))
+    ->filter(fn ($group, string $skeleton): bool => $skeleton !== '' && $group->unique()->count() >= 8)
+    ->map(fn ($group, string $skeleton): array => [$skeleton, $group->unique()->count(), $group->unique()->take(20)->join(', ')])
+    ->values()
+    ->all();
+$finalNounRows = $allNames
+    ->map(fn (string $name): string => str($name)->afterLast(' ')->lower()->toString())
+    ->filter()
+    ->countBy()
+    ->filter(fn (int $count): bool => $count >= 12)
+    ->sortDesc()
+    ->map(fn (int $count, string $noun): array => [$noun, $count])
+    ->values()
+    ->all();
+$phraseRows = $allNames
+    ->flatMap(function (string $name): array {
+        $words = preg_split('/\s+/', str($name)->lower()->replaceMatches('/[^a-z0-9 -]/', '')->toString()) ?: [];
+        $phrases = [];
+
+        foreach ([2, 3] as $size) {
+            for ($index = 0; $index <= count($words) - $size; $index++) {
+                $phrase = implode(' ', array_slice($words, $index, $size));
+
+                if (trim($phrase) !== '') {
+                    $phrases[] = $phrase;
+                }
+            }
+        }
+
+        return $phrases;
+    })
+    ->countBy()
+    ->filter(fn (int $count): bool => $count >= 10)
+    ->sortDesc()
+    ->map(fn (int $count, string $phrase): array => [$phrase, $count])
+    ->values()
+    ->all();
+$itemNameConflictRows = collect($itemIndex)
+    ->filter(fn (array $item): bool => count($item['names']) > 1)
+    ->map(fn (array $item, string $key): array => [$key, implode(', ', array_keys($item['names'])), implode(', ', array_keys($item['sources']))])
+    ->values()
+    ->all();
+$fallbackNameRows = $allNames
+    ->filter(fn (string $name): bool => str_contains($name, 'Custom ') || str_contains($name, 'Reward Title'))
+    ->map(fn (string $name): array => [$name])
+    ->values()
+    ->all();
+
 $lines = [
     '# Evergather Naming Catalog',
     '',
@@ -260,6 +388,7 @@ $lines = [
         ['Skills', count($skills)],
         ['Tool families', count($toolFamilies)],
         ['Tool tier names', count($toolFamilies) * count($toolTiers)],
+        ['Achievement reward titles', count($baseAchievementTitles) + count($accountAchievementTitles) + collect($skillAchievementTitles)->flatten(1)->count()],
         ['Gathering actions', count($actions)],
         ['Skill activities', count($activities)],
         ['Recipes', count($recipes)],
@@ -428,13 +557,41 @@ $lines = [
         ->map(fn (array $trait, string $skill): array => [$skill, $trait['signature'], $trait['discipline']])
         ->values()
         ->all()),
+    '## Achievement Reward Titles',
+    '',
+    ...table(['Key', 'Title'], [
+        ...collect($baseAchievementTitles)->map(fn (string $title, string $key): array => [$key, $title])->values()->all(),
+        ...collect($accountAchievementTitles)->map(fn (string $title, int $level): array => ["account_level_{$level}", $title])->values()->all(),
+        ...collect($skillAchievementTitles)
+            ->flatMap(fn (array $titles, string $skill): array => collect($titles)->map(fn (string $title, int $level): array => ["skill_milestone_{$skill}_{$level}", $title])->all())
+            ->values()
+            ->all(),
+    ]),
+    '## Double Tier Word Review',
+    '',
+    ...table(['Name', 'Tier words', 'Count', 'Normalized'], $doubleTierReviewRows === [] ? [['None', 'None', 0, 'No names with multiple tier words found.']] : $doubleTierReviewRows),
+    '## Repeated Skeleton Review',
+    '',
+    ...table(['Skeleton', 'Count', 'Examples'], $skeletonRows === [] ? [['None', 0, 'No repeated skeletons above threshold.']] : $skeletonRows),
+    '## Frequent Final Nouns',
+    '',
+    ...table(['Final noun', 'Count'], $finalNounRows === [] ? [['None', 0]] : $finalNounRows),
+    '## Frequent Phrases',
+    '',
+    ...table(['Phrase', 'Count'], $phraseRows === [] ? [['None', 0]] : $phraseRows),
+    '## Item Key Name Conflicts',
+    '',
+    ...table(['Item key', 'Display names', 'Sources'], $itemNameConflictRows === [] ? [['None', 'None', 'No item keys with multiple display names found.']] : $itemNameConflictRows),
+    '## Fallback Name Review',
+    '',
+    ...table(['Name'], $fallbackNameRows === [] ? [['No fallback-generated names found on tracked naming surfaces.']] : $fallbackNameRows),
     '## Item Name Index',
     '',
     ...table(['Item key', 'Display name', 'Roles', 'Sources'], collect($itemIndex)
         ->sortKeys()
         ->map(fn (array $item, string $key): array => [
             $key,
-            $item['name'],
+            implode(', ', array_keys($item['names'])),
             implode(', ', array_keys($item['roles'])),
             implode(', ', array_keys($item['sources'])),
         ])

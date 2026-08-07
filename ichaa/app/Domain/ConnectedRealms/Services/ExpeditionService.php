@@ -574,7 +574,7 @@ class ExpeditionService
                     [
                         [
                             'item_key' => "{$definition['reward']}_{$level}",
-                            'item_name' => "{$tier['mark']} Expedition ".self::rewardDisplayName($definition['reward']),
+                            'item_name' => self::expeditionRewardName($definition['labels'][$level], self::rewardDisplayName($definition['reward'])),
                             'rarity' => $tier['rarity'],
                             'quantity' => 1,
                         ],
@@ -630,7 +630,7 @@ class ExpeditionService
                     [
                         [
                             'item_key' => "{$definition['reward']}_{$level}",
-                            'item_name' => "{$tier['mark']} Expedition ".self::rewardDisplayName($definition['reward']),
+                            'item_name' => self::expeditionRewardName($definition['labels'][$level], self::rewardDisplayName($definition['reward'])),
                             'rarity' => $tier['rarity'],
                             'quantity' => 1,
                         ],
@@ -754,5 +754,10 @@ class ExpeditionService
             'sovereign_ledger' => 'Sovereign Exchange Ledger',
             default => str($reward)->headline()->toString(),
         };
+    }
+
+    private static function expeditionRewardName(string $expeditionLabel, string $rewardName): string
+    {
+        return "{$expeditionLabel} {$rewardName}";
     }
 }

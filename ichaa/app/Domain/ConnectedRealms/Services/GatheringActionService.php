@@ -804,7 +804,7 @@ class GatheringActionService
     {
         $override = config('connected_realms.action_cooldown_seconds');
 
-        if (is_numeric($override) && (int) $override > 0) {
+        if (is_numeric($override) && (int) $override >= 0) {
             return (int) $override;
         }
 

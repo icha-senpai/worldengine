@@ -468,14 +468,15 @@ class JobContractService
 
         foreach (SkillCatalogService::keys() as $skill) {
             foreach ([20, 30, 40, 50] as $level) {
+                $requirement = self::midgameRequirementFor($skill, $level);
                 $jobs["{$skill}_midgame_contract_{$level}"] = self::job(
-                    self::jobTitleFor($skill, $level),
+                    self::jobTitleFor($skill, $level, $requirement),
                     self::jobCategoryForLevel($level),
                     $skill,
                     $level,
                     55 + ($level * 5),
                     45 + ($level * 4),
-                    [self::midgameRequirementFor($skill, $level)],
+                    [$requirement],
                 );
             }
         }
@@ -492,14 +493,15 @@ class JobContractService
 
         foreach (SkillCatalogService::keys() as $skill) {
             foreach ([65, 80, 100] as $level) {
+                $requirement = self::endgameRequirementFor($skill, $level);
                 $jobs["{$skill}_mastery_contract_{$level}"] = self::job(
-                    self::jobTitleFor($skill, $level),
+                    self::jobTitleFor($skill, $level, $requirement),
                     self::jobCategoryForLevel($level),
                     $skill,
                     $level,
                     80 + ($level * 7),
                     70 + ($level * 5),
-                    [self::endgameRequirementFor($skill, $level)],
+                    [$requirement],
                 );
             }
         }
@@ -567,20 +569,67 @@ class JobContractService
             ->all();
     }
 
-    private static function jobTitleFor(string $skill, int $level): string
+    /**
+     * @param  array{item_key: string, item_name: string, quantity: int}  $requirement
+     */
+    private static function jobTitleFor(string $skill, int $level, array $requirement): string
     {
-        $mark = EvergatherTierCatalog::markForLevel($level);
-        $label = str($skill)->headline()->toString();
+        $itemName = $requirement['item_name'];
+        $client = self::jobClientFor($skill);
 
         return match (true) {
-            $level >= 100 => "{$mark} {$label} Mandate",
-            $level >= 80 => "{$mark} {$label} Claim",
-            $level >= 65 => "{$mark} {$label} Writ",
-            $level >= 50 => "{$mark} {$label} Commission",
-            $level >= 40 => "{$mark} {$label} Request",
-            $level >= 30 => "{$mark} {$label} Order",
-            default => "{$mark} {$label} Posting",
+            $level >= 100 => "{$client} Names {$itemName} for the First Hall",
+            $level >= 80 => "{$itemName} for {$client} Gate Muster",
+            $level >= 65 => "{$client} Needs {$itemName} at Oldhall",
+            $level >= 50 => "{$itemName} for {$client} Highroad Stores",
+            $level >= 40 => "{$client} Calls for {$itemName}",
+            $level >= 30 => "{$itemName} Delivery to {$client}",
+            default => "{$client} Board: {$itemName}",
         };
+    }
+
+    private static function jobClientFor(string $skill): string
+    {
+        return [
+            'fishing' => 'Saltmere Kitchens',
+            'mining' => 'West Gate Smiths',
+            'woodcutting' => 'Drydock Yard',
+            'foraging' => 'Briarwatch Herbalists',
+            'hunting' => 'Trailwarden Lodge',
+            'farming' => 'Sunfield Granary',
+            'excavation' => 'Lower Vault Office',
+            'smelting' => 'Emberdeep Forge',
+            'milling' => 'Whisperbough Mill',
+            'tanning' => 'Briarwake Tannery',
+            'cutting' => 'Gemcutter Row',
+            'weaving' => 'Sunfield Loomhall',
+            'smithing' => 'Moonwake Anvil Yard',
+            'carpentry' => 'Oathhall Joiners',
+            'cooking' => 'Hearthline Cooks',
+            'alchemy' => 'Glimmerfen Stillroom',
+            'tailoring' => 'Sunfield Stitchery',
+            'leatherworking' => 'Strap Bench',
+            'engineering' => 'Clockwork Yard',
+            'enchanting' => 'Moon Ward Annex',
+            'jewelcrafting' => 'Gem Setting Office',
+            'boatbuilding' => 'Moonwake Drydock',
+            'furniture' => 'Hallwright Table',
+            'construction' => 'Settlement Frame Crew',
+            'combat' => 'Training Ring',
+            'slayer' => 'Bounty Board',
+            'defense' => 'Old Gate Shieldline',
+            'healing' => 'Moonwake Infirmary',
+            'magic' => 'Moon Ward Circle',
+            'ranged' => 'High Perch Range',
+            'exploration' => 'Hidden Mile Scouts',
+            'dungeoneering' => 'Lower Vault Delvers',
+            'sailing' => 'Stormbreak Harbor',
+            'survival' => 'Cold Camp Quartermaster',
+            'cartography' => 'Surveyor Ridge',
+            'reputation' => 'Regional Council',
+            'leadership' => 'Muster Yard',
+            'trading' => 'Crossroads Brokerage',
+        ][$skill] ?? 'Regional Board';
     }
 
     private static function jobCategoryForLevel(int $level): string

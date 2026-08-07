@@ -249,7 +249,7 @@ const cooldownLabel = computed(() => {
         return 'Ready'
     }
 
-    const totalSeconds = Math.ceil(cooldownRemainingMs.value / 1000)
+    const totalSeconds = Math.max(1, Math.floor(cooldownRemainingMs.value / 1000))
     const minutes = Math.floor(totalSeconds / 60)
     const seconds = totalSeconds % 60
 

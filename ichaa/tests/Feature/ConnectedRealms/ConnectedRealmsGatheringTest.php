@@ -163,7 +163,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->where('tool_rarity_upgrades.options.0.gold_cost', 45)
                     ->where('tool_rarity_upgrades.options.0.materials.0.item_key', 'amber_sap')
                     ->has('tool_tier_upgrades.options', 38)
-                    ->where('tool_tier_upgrades.options.0.next_item_name', 'Candlemark Mooncap Alembic')
+                    ->where('tool_tier_upgrades.options.0.next_item_name', 'Workshop Mooncap Alembic')
                     ->where('tool_tier_upgrades.options.0.gold_cost', 35)
                 )
                 ->reloadOnly(['crafting_recipes'], fn (Assert $page) => $page
@@ -452,6 +452,44 @@ class ConnectedRealmsGatheringTest extends TestCase
         }
     }
 
+    public function test_zero_action_cooldown_override_leaves_actions_immediately_available(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+        $now = Carbon::parse('2026-08-03 12:00:00');
+        $previousCooldownOverride = config('connected_realms.action_cooldown_seconds');
+
+        config(['connected_realms.action_cooldown_seconds' => 0]);
+        Carbon::setTestNow($now);
+
+        try {
+            $this->actingAs($user)
+                ->post(route('evergather.actions.store'), ['action' => 'fish'])
+                ->assertRedirect(route('evergather.index'));
+
+            $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+
+            $this->assertFalse($player->next_action_at->isFuture());
+            $this->assertTrue($player->next_action_at->equalTo($now));
+
+            $this->actingAs($user)
+                ->post(route('evergather.activities.store'), ['activity' => 'combat_starter_activity_1'])
+                ->assertRedirect(route('evergather.index'))
+                ->assertSessionHas('connected_realms_result.type', 'skill_activity');
+
+            $this->actingAs($user)
+                ->get(route('evergather.index'))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('player.can_act_now', true)
+                );
+
+            $this->assertSame(2, ConnectedRealmsActionLog::query()->where('player_id', $player->id)->count());
+        } finally {
+            Carbon::setTestNow();
+            config(['connected_realms.action_cooldown_seconds' => $previousCooldownOverride]);
+        }
+    }
+
     public function test_unlocked_achievement_rewards_can_be_claimed_once(): void
     {
         $user = $this->verifiedUserWithConnectedRealmsAccess();
@@ -477,7 +515,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             $player->refresh();
 
             $this->assertSame($goldBeforeClaim + 15, $player->gold);
-            $this->assertSame('Kilroy Was First', $player->title);
+            $this->assertSame('Trailhand', $player->title);
             $this->assertSame('first_steps', $player->reward_loadout['title_claim_key']);
             $this->assertArrayNotHasKey('badge_claim_key', $player->reward_loadout);
             $this->assertArrayNotHasKey('frame_claim_key', $player->reward_loadout);
@@ -492,7 +530,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('achievement_key', 'first_steps')
                 ->firstOrFail();
 
-            $this->assertSame('Kilroy Was First', $claim->reward['title']);
+            $this->assertSame('Trailhand', $claim->reward['title']);
             $this->assertSame(15, $claim->reward['gold']);
             $this->assertArrayNotHasKey('profile_badge', $claim->reward);
             $this->assertArrayNotHasKey('profile_frame', $claim->reward);
@@ -510,7 +548,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->get(route('evergather.index'))
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
-                    ->where('player.reward_loadout.title_label', 'Kilroy Was First')
+                    ->where('player.reward_loadout.title_label', 'Trailhand')
                     ->missing('player.reward_loadout.badge_label')
                     ->missing('player.reward_loadout.badge_mark')
                     ->missing('player.reward_loadout.badge_tone')
@@ -521,9 +559,10 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->where('progression.achievements.0.key', 'first_steps')
                     ->where('progression.achievements.0.claimed', true)
                     ->where('progression.achievements.0.can_claim', false)
+                    ->where('progression.achievements.0.reward.title', 'Trailhand')
                     ->where('progression.claimed_rewards.0.achievement_key', 'first_steps')
                     ->where('progression.reward_options.titles.0.key', 'first_steps')
-                    ->where('progression.reward_options.titles.0.label', 'Kilroy Was First')
+                    ->where('progression.reward_options.titles.0.label', 'Trailhand')
                     ->missing('progression.reward_options.badges')
                     ->missing('progression.reward_options.frames')
                     ->where('progression.reward_loadout.title_claim_key', 'first_steps')
@@ -578,31 +617,15 @@ class ConnectedRealmsGatheringTest extends TestCase
                         ->all();
 
                     $this->assertSame([], $duplicateTitles);
-                    $this->assertTrue($titles->contains('Kilroy Was First'));
-                    $this->assertTrue($titles->contains('Fishing Final Boss Tidecast'));
-                    $this->assertTrue($titles->contains('Account Dancing Baby Detour'));
-
-                    $catalog = app(SkillCatalogService::class);
-                    $skillTitleSuffixes = collect($achievements)
-                        ->filter(fn (array $achievement): bool => preg_match('/^skill_milestone_([a-z_]+)_\d+$/', $achievement['key']) === 1)
-                        ->map(function (array $achievement) use ($catalog): string {
-                            preg_match('/^skill_milestone_([a-z_]+)_\d+$/', $achievement['key'], $matches);
-                            $subject = $catalog->definition($matches[1])['label'];
-
-                            return str($achievement['reward']['title'])->after("{$subject} ")->toString();
-                        })
-                        ->values();
-                    $duplicateSkillTitleSuffixes = $skillTitleSuffixes
-                        ->duplicatesStrict()
-                        ->unique()
-                        ->values()
-                        ->all();
-
-                    $this->assertSame([], $duplicateSkillTitleSuffixes);
+                    $this->assertTrue($titles->contains('Trailhand'));
+                    $this->assertTrue($titles->contains('First Tide Angler'));
+                    $this->assertTrue($titles->contains('First Ledger Line'));
+                    $this->assertFalse($titles->contains('Unlockable Oddity'));
+                    $this->assertFalse($titles->contains('Fishing Final Boss Tidecast'));
 
                     $levelOneSkillTitleEndings = collect($achievements)
                         ->filter(fn (array $achievement): bool => preg_match('/^skill_milestone_([a-z_]+)_1$/', $achievement['key']) === 1)
-                        ->map(fn (array $achievement): string => str($achievement['reward']['title'])->afterLast(' ')->toString())
+                        ->map(fn (array $achievement): string => $achievement['reward']['title'])
                         ->values();
 
                     $this->assertSame(
@@ -612,6 +635,44 @@ class ConnectedRealmsGatheringTest extends TestCase
 
                     return true;
                 })
+            );
+    }
+
+    public function test_legacy_claimed_achievement_title_snapshot_stays_immutable(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)
+            ->post(route('evergather.actions.store'), ['action' => 'fish'])
+            ->assertRedirect(route('evergather.index'));
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+
+        ConnectedRealmsAchievementClaim::query()->create([
+            'player_id' => $player->id,
+            'achievement_key' => 'first_steps',
+            'achievement_label' => 'First Steps',
+            'category' => 'Gathering',
+            'reward' => ['title' => 'Legacy River Starter', 'gold' => 15],
+            'claimed_at' => now(),
+        ]);
+
+        $player->forceFill([
+            'title' => 'Legacy River Starter',
+            'reward_loadout' => ['title_claim_key' => 'first_steps'],
+        ])->save();
+
+        $this->actingAs($user)
+            ->get(route('evergather.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('player.reward_loadout.title_label', 'Legacy River Starter')
+                ->where('progression.achievements.0.key', 'first_steps')
+                ->where('progression.achievements.0.claimed', true)
+                ->where('progression.achievements.0.reward.title', 'Legacy River Starter')
+                ->where('progression.reward_options.titles.0.key', 'first_steps')
+                ->where('progression.reward_options.titles.0.label', 'Legacy River Starter')
+                ->where('progression.reward_loadout.title_label', 'Legacy River Starter')
             );
     }
 
@@ -930,9 +991,9 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->all();
 
         $this->assertSame([], $placeholderLabels);
-        $this->assertSame('Hearthsign Fishing Posting', $jobs->get('fishing_midgame_contract_20')['label']);
-        $this->assertSame('Crownmark Fishing Mandate', $jobs->get('fishing_mastery_contract_100')['label']);
-        $this->assertSame('Crownmark Trading Mandate', $jobs->get('trading_mastery_contract_100')['label']);
+        $this->assertSame('Saltmere Kitchens Board: Harbor Tuna', $jobs->get('fishing_midgame_contract_20')['label']);
+        $this->assertSame('Saltmere Kitchens Names Thronewater Eel for the First Hall', $jobs->get('fishing_mastery_contract_100')['label']);
+        $this->assertSame('Crossroads Brokerage Names First Concord Charter for the First Hall', $jobs->get('trading_mastery_contract_100')['label']);
         $this->assertSame('Realm Mandates', $jobs->get('fishing_mastery_contract_100')['category']);
     }
 
@@ -956,8 +1017,8 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame([], $placeholderLabels);
         $this->assertSame([], $placeholderLoot);
         $this->assertSame('Candlemark Guard Cut', $activities->get('combat_starter_activity_1')['label']);
-        $this->assertSame('Candlemark Sparring Notch Sample', $activities->get('combat_starter_activity_1')['loot'][0]['item_name']);
-        $this->assertSame('Crownmark Sparring Notch Crownpiece', $activities->get('combat_evergather_activity_100')['loot'][0]['item_name']);
+        $this->assertSame('Candlemark Guard Cut Sparring Notch', $activities->get('combat_starter_activity_1')['loot'][0]['item_name']);
+        $this->assertSame('Crownmark Realm Champion Bout Sparring Notch', $activities->get('combat_evergather_activity_100')['loot'][0]['item_name']);
     }
 
     public function test_evergather_gathering_action_labels_are_distinct(): void
@@ -1603,7 +1664,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->actingAs($user)
             ->post(route('evergather.crafting.store'), ['recipe' => 'candlemark_stonebite_pickaxe_craft'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Candlemark Stonebite Pickaxe crafted.');
+            ->assertSessionHas('success', 'Workshop Stonebite Pickaxe crafted.');
 
         $this->assertDatabaseHas('connected_realms_equipment_slots', [
             'player_id' => $player->id,
@@ -1630,7 +1691,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->actingAs($user)
             ->post(route('evergather.shop.purchases.store'), ['offer' => 'candlemark_stonebite_pickaxe'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Candlemark Stonebite Pickaxe purchased.');
+            ->assertSessionHas('success', 'Workshop Stonebite Pickaxe purchased.');
 
         $player->refresh();
 
@@ -1647,7 +1708,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertTrue($shopOffer['is_equipped']);
         $this->assertFalse($shopOffer['can_buy']);
         $this->assertSame('Already equipped', $shopOffer['ownership_status']);
-        $this->assertSame('Candlemark Stonebite Pickaxe', $shopOffer['current_tool']['item_name']);
+        $this->assertSame('Workshop Stonebite Pickaxe', $shopOffer['current_tool']['item_name']);
 
         $player->forceFill(['gold' => 100])->save();
 
@@ -2182,7 +2243,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->assertRedirect(route('evergather.index'))
             ->assertSessionHas('connected_realms_result.type', 'tool_tier_upgrade')
             ->assertSessionHas('connected_realms_result.previous_item_name', 'Worn Pickaxe')
-            ->assertSessionHas('connected_realms_result.item_name', 'Candlemark Stonebite Pickaxe');
+            ->assertSessionHas('connected_realms_result.item_name', 'Workshop Stonebite Pickaxe');
 
         $equipment->refresh();
         $player->refresh();
@@ -2191,7 +2252,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame($toolId, $equipment->tool_id);
         $this->assertSame($toolId, $tool->id);
         $this->assertSame('candlemark_stonebite_pickaxe', $tool->item_key);
-        $this->assertSame('Candlemark Stonebite Pickaxe', $tool->item_name);
+        $this->assertSame('Workshop Stonebite Pickaxe', $tool->item_name);
         $this->assertSame('common', $tool->rarity);
         $this->assertSame('upgraded', $tool->origin);
         $this->assertSame(1, $tool->tier_level);

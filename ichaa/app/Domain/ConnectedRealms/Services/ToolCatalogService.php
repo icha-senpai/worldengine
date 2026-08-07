@@ -10,6 +10,22 @@ class ToolCatalogService
     private const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
 
     /**
+     * @var array<string, string>
+     */
+    private const TOOL_MODEL_PREFIXES = [
+        'starter' => 'Workshop',
+        'local' => 'Roadside',
+        'apprentice' => 'Bench-Made',
+        'guild' => 'Guildhall',
+        'runed' => 'Inscribed',
+        'storm' => 'Weatherproof',
+        'elite' => 'Highroad',
+        'elder' => 'Oldhall',
+        'mythic' => 'Gatewright',
+        'evergather' => 'Firsthall',
+    ];
+
+    /**
      * @var array<string, array<string, mixed>>|null
      */
     private ?array $familiesCache = null;
@@ -128,7 +144,9 @@ class ToolCatalogService
      */
     public function tierToolName(array $family, array $tier): string
     {
-        return "{$tier['name_mark']} {$family['line']} {$family['noun']}";
+        $model = $this->toolModelPrefixFor((string) $tier['name_mark']);
+
+        return "{$model} {$family['line']} {$family['noun']}";
     }
 
     /**
@@ -137,7 +155,27 @@ class ToolCatalogService
      */
     public function tierToolKey(array $family, array $tier): string
     {
-        return str($this->tierToolName($family, $tier))->slug('_')->toString();
+        return str($this->legacyTierToolName($family, $tier))->slug('_')->toString();
+    }
+
+    /**
+     * @param  array<string, mixed>  $family
+     * @param  array<string, mixed>  $tier
+     */
+    private function legacyTierToolName(array $family, array $tier): string
+    {
+        return "{$tier['name_mark']} {$family['line']} {$family['noun']}";
+    }
+
+    private function toolModelPrefixFor(string $mark): string
+    {
+        foreach (EvergatherTierCatalog::tiers() as $tier) {
+            if (strcasecmp((string) $tier['mark'], $mark) === 0) {
+                return self::TOOL_MODEL_PREFIXES[$tier['key_slug']] ?? self::TOOL_MODEL_PREFIXES['starter'];
+            }
+        }
+
+        return self::TOOL_MODEL_PREFIXES['starter'];
     }
 
     /**

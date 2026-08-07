@@ -22,10 +22,10 @@ class ConnectedRealmsSimulationTest extends TestCase
         $this->assertArrayHasKey('kye', $summary['personas']);
         $this->assertGreaterThan(20, $summary['personas']['rico']['actions_completed']);
         $this->assertGreaterThan(20, $summary['personas']['kye']['actions_completed']);
-        $this->assertContains('Candlemark Tidehook Rod', $summary['personas']['rico']['tools_bought']);
-        $this->assertContains('Candlemark Seedwake Cultivator', $summary['personas']['rico']['tools_bought']);
-        $this->assertContains('Candlemark Snarefang Trap Kit', $summary['personas']['kye']['tools_bought']);
-        $this->assertContains('Candlemark Mosskeeper Satchel', $summary['personas']['kye']['tools_bought']);
+        $this->assertContains('Workshop Tidehook Rod', $summary['personas']['rico']['tools_bought']);
+        $this->assertContains('Workshop Seedwake Cultivator', $summary['personas']['rico']['tools_bought']);
+        $this->assertContains('Workshop Snarefang Trap Kit', $summary['personas']['kye']['tools_bought']);
+        $this->assertContains('Workshop Mosskeeper Satchel', $summary['personas']['kye']['tools_bought']);
         $this->assertGreaterThanOrEqual(3, count($summary['personas']['rico']['active_listings']));
         $this->assertGreaterThanOrEqual(3, count($summary['personas']['kye']['active_listings']));
 

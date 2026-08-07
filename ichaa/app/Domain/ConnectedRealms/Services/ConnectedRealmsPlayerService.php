@@ -224,54 +224,107 @@ class ConnectedRealmsPlayerService
     public function profileForUser(User $user, GatheringActionService $gathering, SkillActivityService $activities, CraftingService $crafting, JobContractService $jobs, ExpeditionService $expeditions, MarketplaceService $marketplace, ProgressionService $progression, WorldEventService $worldEvents, ShopService $shop, ToolRarityUpgradeService $toolUpgrades, ToolTierUpgradeService $toolTierUpgrades): array
     {
         $basePlayer = $this->playerForUser($user);
-        $loadedPlayer = function () use ($basePlayer): ConnectedRealmsPlayer {
-            static $player = null;
+        $relationLoaders = [
+            'skills' => fn ($query) => $query->orderBy('skill'),
+            'equipmentSlots' => fn ($query) => $query->with('tool')->orderBy('slot'),
+            'tools' => fn ($query) => $query->orderBy('status')->orderBy('item_name'),
+            'inventoryStacks' => fn ($query) => $query->orderBy('item_name'),
+            'craftingLogs' => fn ($query) => $query->latest()->limit(6),
+            'jobCompletions' => fn ($query) => $query->latest()->limit(6),
+            'expeditionRuns' => fn ($query) => $query->latest()->limit(6),
+            'actionLogs' => fn ($query) => $query->latest()->limit(8),
+            'achievementClaims' => fn ($query) => $query->latest('claimed_at'),
+        ];
+        $playerWith = function (array $relations = []) use ($basePlayer, $relationLoaders): ConnectedRealmsPlayer {
+            static $players = [];
 
-            if ($player instanceof ConnectedRealmsPlayer) {
-                return $player;
+            $relations = collect($relations)
+                ->unique()
+                ->sort()
+                ->values()
+                ->all();
+            $cacheKey = implode('|', $relations);
+
+            if (isset($players[$cacheKey])) {
+                return $players[$cacheKey];
             }
 
-            $player = ConnectedRealmsPlayer::query()
-                ->whereKey($basePlayer->id)
-                ->with([
-                    'skills' => fn ($query) => $query->orderBy('skill'),
-                    'equipmentSlots' => fn ($query) => $query->with('tool')->orderBy('slot'),
-                    'tools' => fn ($query) => $query->orderBy('status')->orderBy('item_name'),
-                    'inventoryStacks' => fn ($query) => $query->orderBy('item_name'),
-                    'craftingLogs' => fn ($query) => $query->latest()->limit(6),
-                    'jobCompletions' => fn ($query) => $query->latest()->limit(6),
-                    'expeditionRuns' => fn ($query) => $query->latest()->limit(6),
-                    'actionLogs' => fn ($query) => $query->latest()->limit(8),
-                    'achievementClaims' => fn ($query) => $query->latest('claimed_at'),
-                ])
-                ->firstOrFail();
+            $query = ConnectedRealmsPlayer::query()->whereKey($basePlayer->id);
+            $with = collect($relations)
+                ->mapWithKeys(fn (string $relation): array => [$relation => $relationLoaders[$relation]])
+                ->all();
 
-            return $player;
+            if ($with !== []) {
+                $query->with($with);
+            }
+
+            return $players[$cacheKey] = $query->firstOrFail();
         };
-        $totalExperience = fn (): int => (int) $loadedPlayer()->skills->sum('experience');
+        $profilePlayer = fn (): ConnectedRealmsPlayer => $playerWith(['achievementClaims']);
+        $totalExperience = function () use ($basePlayer): int {
+            static $total = null;
+
+            if ($total !== null) {
+                return $total;
+            }
+
+            return $total = (int) ConnectedRealmsPlayerSkill::query()
+                ->where('player_id', $basePlayer->id)
+                ->sum('experience');
+        };
         $accountLevel = fn (): int => max(1, intdiv($totalExperience(), 250) + 1);
-        $inventoryQuantity = fn (): int => (int) $loadedPlayer()->inventoryStacks->sum('quantity');
-        $equipmentBySkill = fn () => $loadedPlayer()->equipmentSlots
+        $inventoryMetrics = function () use ($basePlayer): array {
+            static $metrics = null;
+
+            if (is_array($metrics)) {
+                return $metrics;
+            }
+
+            $metrics = [
+                'quantity' => 0,
+                'weight' => 0.0,
+            ];
+
+            ConnectedRealmsInventoryStack::query()
+                ->where('player_id', $basePlayer->id)
+                ->get(['item_key', 'item_name', 'rarity', 'quantity'])
+                ->each(function (ConnectedRealmsInventoryStack $stack) use (&$metrics): void {
+                    $quantity = (int) $stack->quantity;
+                    $item = $this->items->enrich([
+                        'item_key' => $stack->item_key,
+                        'item_name' => $stack->item_name,
+                        'rarity' => $stack->rarity,
+                        'quantity' => $quantity,
+                    ]);
+
+                    $metrics['quantity'] += $quantity;
+                    $metrics['weight'] += (float) ($item['total_weight'] ?? 0);
+                });
+
+            return $metrics;
+        };
+        $inventoryQuantity = fn (): int => (int) $inventoryMetrics()['quantity'];
+        $equipmentBySkill = fn () => $playerWith(['equipmentSlots'])->equipmentSlots
             ->keyBy(fn (ConnectedRealmsEquipmentSlot $slot): string => (string) ($slot->bonuses['skill'] ?? $slot->slot));
-        $progressionSnapshot = function () use ($loadedPlayer, $progression, $totalExperience, $inventoryQuantity): array {
+        $progressionSnapshot = function () use ($playerWith, $progression, $totalExperience, $inventoryQuantity): array {
             static $snapshot = null;
 
             if (is_array($snapshot)) {
                 return $snapshot;
             }
 
-            $snapshot = $progression->snapshotFor($loadedPlayer(), $totalExperience(), $inventoryQuantity());
+            $snapshot = $progression->snapshotFor($playerWith(['achievementClaims', 'equipmentSlots', 'inventoryStacks', 'skills']), $totalExperience(), $inventoryQuantity());
 
             return $snapshot;
         };
-        $actions = function () use ($loadedPlayer, $gathering, $equipmentBySkill): array {
+        $actions = function () use ($playerWith, $gathering, $equipmentBySkill): array {
             static $rows = null;
 
             if (is_array($rows)) {
                 return $rows;
             }
 
-            $rows = collect($gathering->availableActionsFor($loadedPlayer()))
+            $rows = collect($gathering->availableActionsFor($playerWith(['skills'])))
                 ->map(fn (array $action): array => [
                     ...$action,
                     'equipped_tool' => $this->toolPayload($equipmentBySkill()->get($action['skill'])),
@@ -281,69 +334,69 @@ class ConnectedRealmsPlayerService
 
             return $rows;
         };
-        $skillActivities = function () use ($loadedPlayer, $activities): array {
+        $skillActivities = function () use ($playerWith, $activities): array {
             static $rows = null;
 
             if (is_array($rows)) {
                 return $rows;
             }
 
-            $rows = $activities->availableActivitiesFor($loadedPlayer());
+            $rows = $activities->availableActivitiesFor($playerWith(['equipmentSlots', 'skills']));
 
             return $rows;
         };
-        $craftingRecipes = function () use ($loadedPlayer, $crafting): array {
+        $craftingRecipes = function () use ($playerWith, $crafting): array {
             static $rows = null;
 
             if (is_array($rows)) {
                 return $rows;
             }
 
-            $rows = $crafting->availableRecipesFor($loadedPlayer());
+            $rows = $crafting->availableRecipesFor($playerWith(['inventoryStacks', 'skills']));
 
             return $rows;
         };
-        $jobContracts = function () use ($loadedPlayer, $jobs): array {
+        $jobContracts = function () use ($playerWith, $jobs): array {
             static $rows = null;
 
             if (is_array($rows)) {
                 return $rows;
             }
 
-            $rows = $jobs->availableJobsFor($loadedPlayer());
+            $rows = $jobs->availableJobsFor($playerWith(['inventoryStacks', 'skills']));
 
             return $rows;
         };
-        $expeditionRoutes = function () use ($loadedPlayer, $expeditions): array {
+        $expeditionRoutes = function () use ($playerWith, $expeditions): array {
             static $rows = null;
 
             if (is_array($rows)) {
                 return $rows;
             }
 
-            $rows = $expeditions->availableExpeditionsFor($loadedPlayer());
+            $rows = $expeditions->availableExpeditionsFor($playerWith(['inventoryStacks', 'skills']));
 
             return $rows;
         };
-        $marketplaceSnapshot = function () use ($loadedPlayer, $marketplace): array {
+        $marketplaceSnapshot = function () use ($playerWith, $marketplace): array {
             static $snapshot = null;
 
             if (is_array($snapshot)) {
                 return $snapshot;
             }
 
-            $snapshot = $marketplace->snapshotFor($loadedPlayer());
+            $snapshot = $marketplace->snapshotFor($playerWith(['inventoryStacks']));
 
             return $snapshot;
         };
-        $inventorySnapshot = function () use ($loadedPlayer): array {
+        $inventorySnapshot = function () use ($playerWith): array {
             static $rows = null;
 
             if (is_array($rows)) {
                 return $rows;
             }
 
-            $rows = $loadedPlayer()->inventoryStacks
+            $rows = $playerWith(['inventoryStacks'])->inventoryStacks
                 ->map(fn (ConnectedRealmsInventoryStack $stack): array => $this->items->enrich([
                     'item_key' => $stack->item_key,
                     'item_name' => $stack->item_name,
@@ -355,46 +408,50 @@ class ConnectedRealmsPlayerService
 
             return $rows;
         };
-        $inventoryWeight = fn (): float => (float) collect($inventorySnapshot())->sum('total_weight');
+        $inventoryWeight = fn (): float => (float) $inventoryMetrics()['weight'];
         $activityIndex = fn (): array => $this->activityIndex($actions(), $skillActivities(), $craftingRecipes(), $jobContracts(), $expeditionRoutes());
 
         return [
-            'player' => fn (): array => [
-                'id' => $loadedPlayer()->id,
-                'display_name' => $loadedPlayer()->display_name,
-                'title' => $loadedPlayer()->title,
-                'species' => $loadedPlayer()->species,
-                'species_label' => self::SPECIES[$loadedPlayer()->species] ?? str($loadedPlayer()->species)->headline()->toString(),
-                'pronouns' => $loadedPlayer()->pronouns,
-                'home_region' => $loadedPlayer()->home_region,
-                'home_region_label' => self::HOME_REGIONS[$loadedPlayer()->home_region] ?? str($loadedPlayer()->home_region)->headline()->toString(),
-                'appearance' => $this->normalizedAppearance($loadedPlayer()->appearance),
-                'reward_loadout' => $this->rewardLoadoutPayload($loadedPlayer()->reward_loadout, $loadedPlayer()->achievementClaims),
-                'gold' => $loadedPlayer()->gold,
-                'last_action_at' => optional($loadedPlayer()->last_action_at)->toIso8601String(),
-                'next_action_at' => optional($loadedPlayer()->next_action_at)->toIso8601String(),
-                'can_act_now' => $loadedPlayer()->next_action_at === null || $loadedPlayer()->next_action_at->isPast(),
-            ],
+            'player' => function () use ($profilePlayer): array {
+                $player = $profilePlayer();
+
+                return [
+                    'id' => $player->id,
+                    'display_name' => $player->display_name,
+                    'title' => $player->title,
+                    'species' => $player->species,
+                    'species_label' => self::SPECIES[$player->species] ?? str($player->species)->headline()->toString(),
+                    'pronouns' => $player->pronouns,
+                    'home_region' => $player->home_region,
+                    'home_region_label' => self::HOME_REGIONS[$player->home_region] ?? str($player->home_region)->headline()->toString(),
+                    'appearance' => $this->normalizedAppearance($player->appearance),
+                    'reward_loadout' => $this->rewardLoadoutPayload($player->reward_loadout, $player->achievementClaims),
+                    'gold' => $player->gold,
+                    'last_action_at' => optional($player->last_action_at)->toIso8601String(),
+                    'next_action_at' => optional($player->next_action_at)->toIso8601String(),
+                    'can_act_now' => $player->next_action_at === null || ! $player->next_action_at->isFuture(),
+                ];
+            },
             'character_options' => fn (): array => $this->characterOptions(),
             'actions' => $actions,
             'skill_activities' => $skillActivities,
-            'equipment' => fn (): array => $loadedPlayer()->equipmentSlots
+            'equipment' => fn (): array => $playerWith(['equipmentSlots'])->equipmentSlots
                 ->map(fn (ConnectedRealmsEquipmentSlot $slot): array => $this->toolPayload($slot))
                 ->values()
                 ->all(),
-            'tool_inventory' => fn (): array => $loadedPlayer()->tools
+            'tool_inventory' => fn (): array => $playerWith(['tools'])->tools
                 ->map(fn (ConnectedRealmsTool $tool): array => $this->toolInstancePayload($tool))
                 ->values()
                 ->all(),
-            'tool_rarity_upgrades' => fn (): array => $toolUpgrades->snapshotFor($loadedPlayer()),
-            'tool_tier_upgrades' => fn (): array => $toolTierUpgrades->snapshotFor($loadedPlayer()),
+            'tool_rarity_upgrades' => fn (): array => $toolUpgrades->snapshotFor($playerWith(['equipmentSlots', 'inventoryStacks', 'skills'])),
+            'tool_tier_upgrades' => fn (): array => $toolTierUpgrades->snapshotFor($playerWith(['equipmentSlots', 'inventoryStacks', 'skills'])),
             'crafting_recipes' => $craftingRecipes,
             'jobs' => $jobContracts,
             'expeditions' => $expeditionRoutes,
             'marketplace' => $marketplaceSnapshot,
-            'shop' => fn (): array => $shop->snapshotFor($loadedPlayer()),
+            'shop' => fn (): array => $shop->snapshotFor($playerWith(['equipmentSlots', 'skills'])),
             'progression' => $progressionSnapshot,
-            'skills' => fn (): array => $this->skillRowsForPlayer($loadedPlayer(), $activityIndex()),
+            'skills' => fn (): array => $this->skillRowsForPlayer($playerWith(['skills']), $activityIndex()),
             'skill_catalog' => fn (): array => [
                 'groups' => $this->catalog->groupedCatalog(),
                 'pacing' => $this->catalog->pacing(),
@@ -402,9 +459,9 @@ class ConnectedRealmsPlayerService
             'item_catalog' => fn (): array => [
                 'rarities' => $this->items->rarityProfiles(),
             ],
-            'item_guide' => fn (): array => $this->itemGuide->snapshot($inventorySnapshot(), $actions(), $skillActivities(), $craftingRecipes(), $jobContracts(), $expeditionRoutes(), $shop->snapshotFor($loadedPlayer()), $marketplaceSnapshot()),
+            'item_guide' => fn (): array => $this->itemGuide->snapshot($inventorySnapshot(), $actions(), $skillActivities(), $craftingRecipes(), $jobContracts(), $expeditionRoutes(), $shop->snapshotFor($playerWith(['equipmentSlots', 'skills'])), $marketplaceSnapshot()),
             'inventory' => $inventorySnapshot,
-            'recent_actions' => fn (): array => $loadedPlayer()->actionLogs
+            'recent_actions' => fn (): array => $playerWith(['actionLogs'])->actionLogs
                 ->map(fn (ConnectedRealmsActionLog $log): array => [
                     'id' => $log->id,
                     'action' => $log->action,
@@ -423,7 +480,7 @@ class ConnectedRealmsPlayerService
                 ])
                 ->values()
                 ->all(),
-            'recent_crafts' => fn (): array => $loadedPlayer()->craftingLogs
+            'recent_crafts' => fn (): array => $playerWith(['craftingLogs'])->craftingLogs
                 ->map(fn (ConnectedRealmsCraftingLog $log): array => [
                     'id' => $log->id,
                     'recipe_key' => $log->recipe_key,
@@ -436,7 +493,7 @@ class ConnectedRealmsPlayerService
                 ])
                 ->values()
                 ->all(),
-            'recent_jobs' => fn (): array => $loadedPlayer()->jobCompletions
+            'recent_jobs' => fn (): array => $playerWith(['jobCompletions'])->jobCompletions
                 ->map(fn (ConnectedRealmsJobCompletion $completion): array => [
                     'id' => $completion->id,
                     'job_key' => $completion->job_key,
@@ -448,7 +505,7 @@ class ConnectedRealmsPlayerService
                 ])
                 ->values()
                 ->all(),
-            'recent_expeditions' => fn (): array => $loadedPlayer()->expeditionRuns
+            'recent_expeditions' => fn (): array => $playerWith(['expeditionRuns'])->expeditionRuns
                 ->map(fn (ConnectedRealmsExpeditionRun $run): array => [
                     'id' => $run->id,
                     'expedition_key' => $run->expedition_key,
@@ -466,11 +523,11 @@ class ConnectedRealmsPlayerService
                 'inventory_quantity' => $inventoryQuantity(),
                 'inventory_weight' => round($inventoryWeight(), 2),
                 'account_level' => $accountLevel(),
-                'known_skills' => $loadedPlayer()->skills->count(),
-                'action_count' => $loadedPlayer()->actionLogs()->count(),
-                'craft_count' => $loadedPlayer()->craftingLogs()->count(),
-                'job_count' => $loadedPlayer()->jobCompletions()->count(),
-                'expedition_count' => $loadedPlayer()->expeditionRuns()->count(),
+                'known_skills' => ConnectedRealmsPlayerSkill::query()->where('player_id', $basePlayer->id)->count(),
+                'action_count' => ConnectedRealmsActionLog::query()->where('player_id', $basePlayer->id)->count(),
+                'craft_count' => ConnectedRealmsCraftingLog::query()->where('player_id', $basePlayer->id)->count(),
+                'job_count' => ConnectedRealmsJobCompletion::query()->where('player_id', $basePlayer->id)->count(),
+                'expedition_count' => ConnectedRealmsExpeditionRun::query()->where('player_id', $basePlayer->id)->count(),
                 'shop_offer_count' => count(ShopService::offerKeys()),
             ],
             'world_events' => fn (): array => $worldEvents->calendar(),

@@ -1,7 +1,5 @@
 const baseActionProps = [
     'player',
-    'inventory',
-    'recent_actions',
     'summary',
     'last_result',
 ]

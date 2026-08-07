@@ -2,15 +2,17 @@
 
 > **Status: Active development**
 >
-> Dataverse is back in active development. The Laravel + Vue + PostgreSQL app is the live worldbuilding workspace again, with backend, frontend, and browser test coverage expanding alongside feature work.
+> Dataverse is in active development as the local Datacrypt workspace. The Laravel + Vue + PostgreSQL app now carries three active product surfaces: the World Engine for structured AU/worldbuilding data, Bitcraft companion tools, and Evergather/Connected Realms RPG progression. Backend, frontend, and browser coverage are expanding alongside feature work.
 
 ---
 
 ## What This Is
 
-A custom Laravel 13 / Inertia v3 / Vue 3 / PostgreSQL application for managing a 20+ universe crossover fiction AU. It is built to replace sprawling notes with a structured, queryable backend that can support creative workflows, cross-domain search, and AI-assisted exploration on top of clean domain data.
+A custom Laravel 13 / Inertia v3 / Vue 3 / PostgreSQL application for Datacrypt: a private command center for structured worldbuilding, game-adjacent tools, and experimental RPG systems. The core World Engine manages a 20+ universe crossover fiction AU with queryable domain data, cross-domain search, media references, authoring workflows, and AI/MCP-ready catalogs.
 
-The schema design is still one of the strongest parts of the project, but the application itself is no longer just a parked artifact. The current focus is shipping the actual authoring and reference-management experience on top of that foundation.
+Alongside that foundation, Dataverse now includes Bitcraft companion surfaces for market, barter, crafting, live companion, tracker, and OBS workflows, plus Evergather/Connected Realms as a first-party progression game layer with ten-tier unlocks, skills, crafting, jobs, expeditions, tools, achievements, titles, events, and admin-tunable content.
+
+The project is no longer a parked schema experiment. The current focus is making those surfaces fast, coherent, and easy to expand while keeping the data model explicit and testable.
 
 ---
 
@@ -26,10 +28,10 @@ The schema design is still one of the strongest parts of the project, but the ap
 
 ## Domain Structure
 
-The World Engine is organized around explicit domains, each with its own `app/Domain/` and matching `app/Http/Controllers/` area where the surface needs controllers. Bitcraft tooling is active alongside the core worldbuilding domains.
+The World Engine is organized around explicit domains, each with its own `app/Domain/` and matching `app/Http/Controllers/` area where the surface needs controllers. Bitcraft tooling and Evergather are active alongside the core worldbuilding domains inside Datacrypt.
 
 | Domain | Tables | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | **Identity** | entities, entity_aliases, entity_notes, entity_questions | Core entity model — characters, locations, factions, objects, concepts, and 20+ other types |
 | **Connections** | relationships, group_relationships, faction_memberships | How entities relate to each other — dyadic, group, and institutional |
 | **Organization** | collections, glossary | Grouping and terminology management |
@@ -39,15 +41,16 @@ The World Engine is organized around explicit domains, each with its own `app/Do
 | **Intelligence** | knowledge_states, secrets, perception_states | Who knows what, what's hidden, and perception vs. reality gaps |
 | **Production** | writing_pipeline, session_log, meta, contradictions_and_conflicts | Actual writing workflow — scenes, drafts, author notes, session tracking |
 | **System** | settings | Global config |
-| **Bitcraft** | bitcraft_widget_profiles plus external Bitjita/SpacetimeDB data | Market, barter, crafting, and OBS widget tooling |
+| **Bitcraft** | bitcraft_widget_profiles plus external Bitjita/SpacetimeDB data | Market, barter, crafting, live companion, and OBS widget tooling |
+| **ConnectedRealms** | connected_realms_* tables plus admin content overrides | Evergather RPG progression, skills, gathering, crafting, market, tools, jobs, expeditions, achievements |
 
-The migration set targets PostgreSQL and includes generated search vectors, JSONB document fields, soft-delete/restore flows, API revision tracking, OAuth tables, media references, and Bitcraft widget profiles.
+The migration set targets PostgreSQL and includes generated search vectors, JSONB document fields, soft-delete/restore flows, API revision tracking, OAuth tables, media references, Bitcraft widget profiles, and Evergather player/progression tables.
 
 ---
 
 ## Current App Surface
 
-The app now has live page stacks across the main domains, including Identity, Connections, Organization, Lore, Temporal, Intelligence, Production, Search, Profile, World, System/admin surfaces, and Bitcraft tools.
+The app now has live page stacks across the main domains, including Identity, Connections, Organization, Lore, Temporal, Intelligence, Production, Search, Profile, World, System/admin surfaces, Bitcraft tools, and Evergather.
 
 ### Active UI areas
 
@@ -60,7 +63,8 @@ The app now has live page stacks across the main domains, including Identity, Co
 - **Production** — pipeline, meta, session logs.
 - **World** — power interactions, travel routes, containment, location control.
 - **System** — search, media library, trash/restore, revisions, Notion sync records.
-- **Bitcraft** — market finder, barter stalls, crafting calculator, EXP tracker, inventory tracker, task tracker.
+- **Bitcraft** — market finder with region-aware order books, barter stalls, crafting calculator with recipe trees and alternatives, live companion, EXP tracker, inventory tracker, task tracker, setup pages, and public OBS widget routes.
+- **Evergather** — cross-skill RPG workspace with character setup, ten-tier progression, gathering actions, skill activities, crafting recipes, jobs, expeditions, marketplace/vendor flows, shop offers, equipment, tool rarity/tier upgrades, achievements, title loadouts, world events, item guide, leaderboards, and an admin content-tuning panel.
 - **API/MCP** — authenticated `/api/v1` resource and action endpoints, media upload/replace, revision-aware mutations, Dataverse MCP catalog/tools, and read-only Bitcraft MCP tools.
 
 Most create/edit/show/index pages are scaffold-backed, which keeps cross-domain behavior consistent and makes contract drift easier to catch in tests.
@@ -69,19 +73,32 @@ Most create/edit/show/index pages are scaffold-backed, which keeps cross-domain 
 
 ## Key Architecture Decisions
 
-### Admin-gated Datacrypt Access
-Authenticated app routes under `/datacrypt` require `auth`, `verified`, and the local `EnsureAdmin` middleware. User roles are provided through Spatie permission; the current app gate is intentionally simple: admins enter Datacrypt, non-admins are redirected home.
+### Area-gated Datacrypt Access
+
+Authenticated app routes under `/datacrypt` require `auth` and `verified`, then use area-level role gates for each surface. Bitcraft routes require Bitcraft access, Evergather routes require Connected Realms access, World Engine routes require World Engine access, and `/datacrypt/admin/*` routes require Admin access. User access is managed through Spatie permission and the admin user-management screen.
+
+### Bitcraft Companion and Tooling
+
+Bitcraft tools share controller payload builders between web, API, and MCP where possible. Market and barter tooling use `BitjitaClient`; crafting prefers local SpacetimeDB static data from `storage/app/bitcraft/spacetime-static.json` when present and falls back to live Bitjita data. Public OBS widget routes for activity, inventory, and tasks stay bare under `/datacrypt/bitcraft/*`, while authenticated setup pages live under `/datacrypt/bitcraft/*/setup`.
+
+### Evergather RPG Systems
+
+Evergather lives under the ConnectedRealms domain and uses Laravel/Inertia/Vue panels backed by explicit services for player state, actions, activities, crafting, jobs, expeditions, market, shop, tools, progression, events, and leaderboards. Progression is aligned around the ten default tiers: `starter`, `local`, `apprentice`, `guild`, `runed`, `storm`, `elite`, `elder`, `mythic`, and `evergather`, with human-facing marks from Candlemark through Crownmark. Heavy props are optional/deferred and action reloads stay lean so repeated actions do not pull every panel on each click.
 
 ### Managed Media References
+
 Dataverse keeps media as first-class `media_references` records with explicit attachment targets, managed uploads, external links, media-library pages, and API/MCP upload and replace flows. Check the local media code before assuming a generic package attachment pattern.
 
 ### Rich Documents Where The Surface Supports Them
+
 Tiptap-backed rich document fields are active in shared scaffold forms and several custom pages. JSON scaffold fields must declare explicit behavior metadata such as `jsonMode`, and rich-document empty-state behavior should be handled deliberately instead of inferred from field names.
 
 ### No Eloquent magic, explicit everything
+
 All relationships are explicitly typed. No dynamic properties relied on. Casts are declared. Scopes are named. The goal was code that could be read six months later without archaeology.
 
 ### Shared Catalogs Before One-Off Maps
+
 Web, API, and MCP surfaces have shared catalogs and registries. Before adding a new resource path or tool surface, check `ResourcePageBuilder`, `DataverseWebResourceRegistry`, `TopLevelModeledResourceCatalog`, `ApiResourceRegistry`, and `DataverseMcpCatalog`.
 
 ---
@@ -89,6 +106,7 @@ Web, API, and MCP surfaces have shared catalogs and registries. Before adding a 
 ## Hard-Won Lessons
 
 ### PostgreSQL generated columns block type changes
+
 `search_vector` columns are `GENERATED ALWAYS AS ... STORED` tsvector columns that depend on other columns. If you try to `ALTER COLUMN content TYPE TEXT`, Postgres refuses because the generated column depends on it. The fix:
 
 ```sql
@@ -108,12 +126,14 @@ CREATE INDEX entity_notes_search_vector_idx ON entity_notes USING gin(search_vec
 This pattern applies to any table with a `search_vector` generated column when you need to change a source column's type.
 
 ### Laravel route parameter inflection
+
 Laravel's router auto-inflects singular resource names. Two specific traps in this project:
 
 - `meta` → Laravel pluralizes to `metum` (treats it as Latin). Fix: `.parameters(['meta' => 'meta'])` on the resource route.
 - `pipeline` → parameter name defaults to `pipeline` but must be explicitly set to match controller method signatures. Fix: `.parameters(['pipeline' => 'pipeline'])`.
 
 ### Vue 3 inline component objects don't auto-register in `<script setup>`
+
 Defining a component as a plain object inside `<script setup>` and using it in the template does not work:
 
 ```js
@@ -127,6 +147,7 @@ const FieldRow = {
 The template renders nothing. Either import a real `.vue` file or replace with direct HTML. We replaced with direct HTML.
 
 ### Inertia form state with `useForm`
+
 `form.isDirty` works correctly for detecting unsaved changes. `form.reset()` after a successful submission restores the form to its initial values — but only if you pass the data object to `useForm()` at declaration time, not as a computed. Pre-populate with `props.item.field ?? ''` directly in the `useForm({})` call.
 
 ---
@@ -134,15 +155,19 @@ The template renders nothing. Either import a real `.vue` file or replace with d
 ## Database Schema Highlights
 
 ### Entity type system
+
 Entities use a single `entity_type` string column with 20+ valid values grouped into categories (people, places, groups, supernatural, objects, concepts, events, etc.). This avoids a polymorphic table explosion while still allowing type-specific behavior at the application layer via computed properties and conditional UI sections.
 
 ### JSONB arrays for lightweight relations
+
 Several tables use `jsonb` arrays for ID lists (`known_by_entity_ids`, `speakers_entity_ids`, `influenced_entity_ids`) instead of pivot tables, for cases where the relation is a simple set membership without additional attributes. These have GIN indexes for containment queries.
 
 ### Power interaction ordering
+
 The `power_interactions` table enforces that `entity_a_id < entity_b_id` at the application layer to prevent duplicate inverse pairs. This is a soft constraint — the DB doesn't enforce it, the service layer does.
 
 ### search_vector on every major table
+
 Full-text search via PostgreSQL's `tsvector` generated columns with weighted fields (title/name at weight A, type fields at B, notes at C/D). Single `SearchController` can query across all domains.
 
 ---

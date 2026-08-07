@@ -328,7 +328,7 @@ class SkillCatalogService
             'category' => 'World',
             'role' => 'Boats, coasts, sea expeditions',
             'description' => 'Navigate coasts, move cargo, support fleets, and unlock waterborne expeditions.',
-            'unlocks' => [1 => 'Dock work', 5 => 'Sailing field notes', 10 => 'Coastal trips', 20 => 'Sailing wayfinder commissions', 30 => 'Cargo manifests', 40 => 'Sailing stormglass routes', 50 => 'Fleet support', 65 => 'Sailing elder waymarks', 80 => 'Stormglass sea charts', 100 => 'Tide captain'],
+            'unlocks' => [1 => 'Dock work', 5 => 'Sailing field notes', 10 => 'Coastal trips', 20 => 'Sailing wayfinder commissions', 30 => 'Cargo manifests', 40 => 'Stormbreak routes', 50 => 'Fleet support', 65 => 'Old sea waymarks', 80 => 'Open-sea charts', 100 => 'Tide captain'],
         ],
         'survival' => [
             'label' => 'Survival',

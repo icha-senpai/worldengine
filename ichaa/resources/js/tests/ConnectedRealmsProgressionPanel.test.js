@@ -93,7 +93,7 @@ function progressionFixture() {
                 claimed: false,
                 can_claim: true,
                 reward: {
-                    title: 'Kilroy Was First',
+                    title: 'Trailhand',
                     gold: 15,
                 },
             },
