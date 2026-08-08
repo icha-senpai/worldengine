@@ -45,6 +45,8 @@ class BitcraftApiMcpToolTest extends TestCase
             ->assertJsonPath('data.filters.q', 'Pickaxe')
             ->assertJsonPath('data.market.items.0.name', 'Astralite Pickaxe')
             ->assertJsonPath('data.market.orderBook.item.name', 'Astralite Pickaxe')
+            ->assertJsonPath('data.market.orderBook.packageInfo.cargoName', 'Astralite Pickaxe Package')
+            ->assertJsonPath('data.market.orderBook.packageSellOrders.0.price', '95000')
             ->assertJsonPath('meta.tool', 'market');
     }
 
@@ -89,6 +91,7 @@ class BitcraftApiMcpToolTest extends TestCase
         ])->assertOk()->assertStructuredContent(function ($json) {
             $json->where('status', 200)
                 ->where('body.data.market.orderBook.item.name', 'Astralite Pickaxe')
+                ->where('body.data.market.orderBook.packageInfo.ratio', 100)
                 ->etc();
         });
 
@@ -144,6 +147,25 @@ class BitcraftApiMcpToolTest extends TestCase
                     'regionName' => 'Solmere',
                 ]],
                 'buyOrders' => [],
+                'packageInfo' => [
+                    'cargoId' => '150006',
+                    'cargoName' => 'Astralite Pickaxe Package',
+                    'cargoIconAssetName' => 'GeneratedIcons/Cargo/Package',
+                    'itemId' => '1421716234',
+                    'itemName' => 'Astralite Pickaxe',
+                    'itemIconAssetName' => 'GeneratedIcons/Items/Pickaxe',
+                    'ratio' => 100,
+                ],
+                'packageSellOrders' => [[
+                    'entityId' => 'package-sell-1',
+                    'ownerUsername' => 'Package Seller',
+                    'claimEntityId' => '288230376165363891',
+                    'claimName' => 'Jita',
+                    'priceThreshold' => '95000',
+                    'quantity' => '2',
+                    'regionName' => 'Solmere',
+                ]],
+                'packageBuyOrders' => [],
                 'stats' => [],
             ]),
             'https://bitjita.com/api/market*' => Http::response([

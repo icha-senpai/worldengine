@@ -53,6 +53,7 @@ class BitcraftToolTest extends TestCase
                     'tag' => 'Miner Tool',
                     'tier' => 5,
                     'rarityStr' => 'Rare',
+                    'iconAssetName' => 'GeneratedIcons/Items/Pickaxe',
                 ],
                 'sellOrders' => [[
                     'entityId' => 'order-1',
@@ -63,7 +64,25 @@ class BitcraftToolTest extends TestCase
                     'quantity' => '4',
                     'regionName' => 'Solace',
                 ]],
-                'buyOrders' => [],
+                'buyOrders' => [[
+                    'entityId' => 'buy-1',
+                    'ownerUsername' => 'Solmere Buyer',
+                    'claimEntityId' => '288230376165363891',
+                    'claimName' => 'Jita',
+                    'priceThreshold' => '900',
+                    'quantity' => '4',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ], [
+                    'entityId' => 'buy-2',
+                    'ownerUsername' => 'Wrong Buyer',
+                    'claimEntityId' => '288230376165363892',
+                    'claimName' => 'Far Market',
+                    'priceThreshold' => '1500',
+                    'quantity' => '2',
+                    'regionId' => 12,
+                    'regionName' => 'Elyndor',
+                ]],
                 'stats' => [
                     'lowestSell' => 1200,
                     'highestBuy' => null,
@@ -197,7 +216,7 @@ class BitcraftToolTest extends TestCase
 
         Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
             && str_contains($request->url(), 'claimEntityId=288230376165363891')
-            && str_contains($request->url(), 'hasOrders=1'));
+            && str_contains($request->url(), 'hasOrders=true'));
         Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims')
             && str_contains($request->url(), 'q=Jita'));
         Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market/item/1421716234')
@@ -207,6 +226,67 @@ class BitcraftToolTest extends TestCase
         Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/claims/288230376165363891/buildings');
         Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/claims/288230376165363891/inventories');
         Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/logs/storage'));
+    }
+
+    public function test_market_finder_global_buy_order_search_uses_filtered_market_results_without_intelligence_prefetch(): void
+    {
+        Http::fake(function (Request $request) {
+            if ($request->url() === 'https://bitjita.com/api/regions') {
+                return Http::response([]);
+            }
+
+            if (str_contains($request->url(), 'hasBuyOrders=true')) {
+                return Http::response([
+                    'data' => [
+                        'items' => [[
+                            'id' => 1421716234,
+                            'name' => 'Astralite Pickaxe',
+                            'category' => 'Miner Tool',
+                            'tier' => 5,
+                            'rarityStr' => 'Rare',
+                            'sellOrders' => 0,
+                            'buyOrders' => 2,
+                            'stats' => [
+                                'lowestSellPrice' => null,
+                                'highestBuyPrice' => 900,
+                                'buyOrderCount' => 2,
+                                'buyOrderQuantity' => 8,
+                            ],
+                        ]],
+                        'categories' => ['Miner Tool'],
+                        'metrics' => ['totalItems' => 1],
+                    ],
+                ]);
+            }
+
+            return Http::response([], 404);
+        });
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.market', [
+                'q' => 'Astralite',
+                'hasBuyOrders' => 1,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Market')
+                ->where('filters.q', 'Astralite')
+                ->where('filters.hasBuyOrders', true)
+                ->has('market.items', 1)
+                ->where('market.items.0.name', 'Astralite Pickaxe')
+                ->where('market.items.0.lowestSellPrice', null)
+                ->where('market.items.0.highestBuyPrice', 900)
+                ->missing('market.intelligence')
+            );
+
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
+            && str_contains($request->url(), 'q=Astralite')
+            && str_contains($request->url(), 'hasBuyOrders=true'));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
+            && str_contains($request->url(), 'q=Astralite')
+            && ! str_contains($request->url(), 'hasBuyOrders='));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market/item/1421716234'));
     }
 
     public function test_market_finder_filters_returned_items_by_order_counts(): void
@@ -272,9 +352,9 @@ class BitcraftToolTest extends TestCase
             );
 
         Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
-            && str_contains($request->url(), 'hasSellOrders=1'));
+            && str_contains($request->url(), 'hasSellOrders=true'));
         Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
-            && str_contains($request->url(), 'hasBuyOrders=1'));
+            && str_contains($request->url(), 'hasBuyOrders=true'));
     }
 
     public function test_market_finder_can_show_region_buy_order_items(): void
@@ -284,45 +364,126 @@ class BitcraftToolTest extends TestCase
                 'regionId' => 8,
                 'regionName' => 'Solmere',
             ]]),
-            'https://bitjita.com/api/market*' => Http::response([
-                'data' => [
-                    'items' => [
-                        [
-                            'id' => 1421716234,
-                            'name' => 'Astralite Pickaxe',
-                            'category' => 'Miner Tool',
-                            'sellOrders' => 3,
-                            'buyOrders' => 0,
-                            'stats' => [
-                                'lowestSellPrice' => 1200,
-                                'highestBuyPrice' => null,
-                            ],
-                        ],
-                        [
-                            'id' => 1421716235,
-                            'name' => 'Astralite Hammer',
-                            'category' => 'Smith Tool',
-                            'sellOrders' => 0,
-                            'buyOrders' => 4,
-                            'stats' => [
-                                'lowestSellPrice' => null,
-                                'highestBuyPrice' => 950,
-                            ],
-                        ],
-                        [
-                            'id' => 1421716236,
-                            'name' => 'Astralite Saw',
-                            'category' => 'Carpentry Tool',
-                            'sellOrders' => 1,
-                            'buyOrders' => 2,
-                            'stats' => [
-                                'lowestSellPrice' => 1100,
-                                'highestBuyPrice' => 800,
-                            ],
-                        ],
+            'https://bitjita.com/api/claims?*' => Http::response([
+                'claims' => [
+                    [
+                        'entityId' => '100',
+                        'name' => 'Jita',
+                        'regionId' => 8,
+                        'regionName' => 'Solmere',
                     ],
-                    'categories' => ['Miner Tool', 'Smith Tool', 'Carpentry Tool'],
+                    [
+                        'entityId' => '200',
+                        'name' => 'Omashu',
+                        'regionId' => 8,
+                        'regionName' => 'Solmere',
+                    ],
                 ],
+                'count' => 2,
+            ]),
+            'https://bitjita.com/api/claims/100/buildings' => Http::response([
+                'buildings' => [[
+                    'entityId' => 'market-100',
+                    'buildingName' => 'Market',
+                    'tradeOrders' => 4,
+                ]],
+            ]),
+            'https://bitjita.com/api/claims/200/buildings' => Http::response([
+                'buildings' => [[
+                    'entityId' => 'market-200',
+                    'buildingName' => 'Market',
+                    'tradeOrders' => 2,
+                ]],
+            ]),
+            'https://bitjita.com/api/claims/100/market/listings*' => Http::response([
+                'listings' => [
+                    [
+                        'entityId' => 'buy-100-hammer-high',
+                        'side' => 'buy',
+                        'claimEntityId' => '100',
+                        'claimName' => 'Jita',
+                        'itemId' => 1421716235,
+                        'itemType' => 0,
+                        'itemName' => 'Astralite Hammer',
+                        'itemTag' => 'Smith Tool',
+                        'itemTier' => 5,
+                        'itemRarityStr' => 'Rare',
+                        'price' => '950',
+                        'quantity' => '4',
+                        'regionId' => 8,
+                        'regionName' => 'Solmere',
+                    ],
+                    [
+                        'entityId' => 'buy-100-hammer-low',
+                        'side' => 'buy',
+                        'claimEntityId' => '100',
+                        'claimName' => 'Jita',
+                        'itemId' => 1421716235,
+                        'itemType' => 0,
+                        'itemName' => 'Astralite Hammer',
+                        'itemTag' => 'Smith Tool',
+                        'itemTier' => 5,
+                        'itemRarityStr' => 'Rare',
+                        'price' => '700',
+                        'quantity' => '20',
+                        'regionId' => 8,
+                        'regionName' => 'Solmere',
+                    ],
+                    [
+                        'entityId' => 'sell-100-hammer',
+                        'side' => 'sell',
+                        'claimEntityId' => '100',
+                        'claimName' => 'Jita',
+                        'itemId' => 1421716235,
+                        'itemType' => 0,
+                        'itemName' => 'Astralite Hammer',
+                        'itemTag' => 'Smith Tool',
+                        'itemTier' => 5,
+                        'itemRarityStr' => 'Rare',
+                        'price' => '600',
+                        'quantity' => '5',
+                        'regionId' => 8,
+                        'regionName' => 'Solmere',
+                    ],
+                ],
+                'count' => 2,
+                'totalPages' => 1,
+            ]),
+            'https://bitjita.com/api/claims/200/market/listings*' => Http::response([
+                'listings' => [
+                    [
+                        'entityId' => 'buy-200-saw',
+                        'side' => 'buy',
+                        'claimEntityId' => '200',
+                        'claimName' => 'Omashu',
+                        'itemId' => 1421716236,
+                        'itemType' => 0,
+                        'itemName' => 'Astralite Saw',
+                        'itemTag' => 'Carpentry Tool',
+                        'itemTier' => 5,
+                        'itemRarityStr' => 'Rare',
+                        'price' => '800',
+                        'quantity' => '2',
+                        'regionId' => 8,
+                        'regionName' => 'Solmere',
+                    ],
+                    [
+                        'entityId' => 'sell-200-pickaxe',
+                        'side' => 'sell',
+                        'claimEntityId' => '200',
+                        'claimName' => 'Omashu',
+                        'itemId' => 1421716234,
+                        'itemType' => 0,
+                        'itemName' => 'Astralite Pickaxe',
+                        'itemTag' => 'Miner Tool',
+                        'price' => '1200',
+                        'quantity' => '3',
+                        'regionId' => 8,
+                        'regionName' => 'Solmere',
+                    ],
+                ],
+                'count' => 2,
+                'totalPages' => 1,
             ]),
         ]);
 
@@ -338,20 +499,118 @@ class BitcraftToolTest extends TestCase
                 ->where('filters.region', 'Solmere')
                 ->where('filters.regionId', '8')
                 ->where('filters.hasBuyOrders', true)
-                ->has('market.claims', 0)
+                ->has('market.claims', 2)
+                ->has('market.listings', 3)
                 ->has('market.items', 2)
                 ->where('market.items.0.name', 'Astralite Hammer')
-                ->where('market.items.0.buyOrderCount', 4)
+                ->where('market.items.0.buyOrderCount', 2)
+                ->where('market.items.0.buyOrderQuantity', 24)
                 ->where('market.items.0.highestBuyPrice', 950)
+                ->where('market.items.0.highestBuyQuantity', 4)
+                ->where('market.items.0.highestBuyLineTotal', 3800)
+                ->where('market.items.0.lowestBuyPrice', 700)
+                ->where('market.items.0.lowestBuyQuantity', 20)
+                ->where('market.items.0.lowestBuyLineTotal', 14000)
                 ->where('market.items.1.name', 'Astralite Saw')
-                ->where('market.items.1.buyOrderCount', 2)
+                ->where('market.items.1.buyOrderCount', 1)
+                ->where('market.items.1.buyOrderQuantity', 2)
+                ->missing('market.intelligence')
             );
 
-        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims?')
             && str_contains($request->url(), 'regionId=8')
-            && str_contains($request->url(), 'hasBuyOrders=1'));
-        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims?'));
-        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), '/buildings'));
+        );
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims/100/market/listings?')
+            && str_contains($request->url(), 'side=buy'));
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims/200/market/listings?')
+            && str_contains($request->url(), 'side=buy'));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?'));
+    }
+
+    public function test_market_finder_region_item_search_uses_claim_listings_without_order_filters(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/regions' => Http::response([[
+                'regionId' => 8,
+                'regionName' => 'Solmere',
+            ]]),
+            'https://bitjita.com/api/claims?page=1*regionId=8*' => Http::response([
+                'claims' => [[
+                    'entityId' => '100',
+                    'name' => 'Jita',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ]],
+                'count' => 1,
+                'totalPages' => 1,
+            ]),
+            'https://bitjita.com/api/claims/100/buildings' => Http::response([
+                'buildings' => [[
+                    'entityId' => 'market-100',
+                    'buildingName' => 'Market',
+                    'tradeOrders' => 2,
+                ]],
+            ]),
+            'https://bitjita.com/api/claims/100/market/listings*' => Http::response([
+                'listings' => [[
+                    'entityId' => 'sell-100-hammer',
+                    'side' => 'sell',
+                    'claimEntityId' => '100',
+                    'claimName' => 'Jita',
+                    'itemId' => 1421716235,
+                    'itemType' => 0,
+                    'itemName' => 'Astralite Hammer',
+                    'itemTag' => 'Smith Tool',
+                    'price' => '1100',
+                    'quantity' => '3',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ], [
+                    'entityId' => 'buy-100-hammer',
+                    'side' => 'buy',
+                    'claimEntityId' => '100',
+                    'claimName' => 'Jita',
+                    'itemId' => 1421716235,
+                    'itemType' => 0,
+                    'itemName' => 'Astralite Hammer',
+                    'itemTag' => 'Smith Tool',
+                    'price' => '900',
+                    'quantity' => '6',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ]],
+                'count' => 2,
+                'totalPages' => 1,
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.market', [
+                'q' => 'Astralite',
+                'region' => 'Solmere',
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Market')
+                ->where('filters.q', 'Astralite')
+                ->where('filters.regionId', '8')
+                ->has('market.claims', 1)
+                ->has('market.listings', 2)
+                ->has('market.items', 1)
+                ->where('market.items.0.name', 'Astralite Hammer')
+                ->where('market.items.0.sellOrderCount', 1)
+                ->where('market.items.0.buyOrderCount', 1)
+                ->where('market.items.0.lowestSellPrice', 1100)
+                ->where('market.items.0.highestBuyPrice', 900)
+                ->missing('market.intelligence')
+            );
+
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims?')
+            && str_contains($request->url(), 'regionId=8'));
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims/100/market/listings?')
+            && ! str_contains($request->url(), 'side='));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?'));
     }
 
     public function test_market_finder_combines_item_and_region_searches(): void
@@ -362,8 +621,41 @@ class BitcraftToolTest extends TestCase
                 'regionName' => 'Solmere',
             ]]),
             'https://bitjita.com/api/claims?page=1*regionId=8*' => Http::response([
-                'claims' => [],
-                'count' => 0,
+                'claims' => [[
+                    'entityId' => '288230376165363891',
+                    'name' => 'Jita',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ]],
+                'count' => 1,
+                'totalPages' => 1,
+            ]),
+            'https://bitjita.com/api/claims/288230376165363891/buildings' => Http::response([
+                'buildings' => [[
+                    'entityId' => 'market-1',
+                    'buildingName' => 'Market',
+                    'tradeOrders' => 1,
+                ]],
+            ]),
+            'https://bitjita.com/api/claims/288230376165363891/market/listings*' => Http::response([
+                'listings' => [[
+                    'entityId' => 'listing-1',
+                    'side' => 'sell',
+                    'claimEntityId' => '288230376165363891',
+                    'claimName' => 'Jita',
+                    'itemId' => 1421716234,
+                    'itemType' => 0,
+                    'itemName' => 'Astralite Pickaxe',
+                    'itemTag' => 'Miner Tool',
+                    'itemTier' => 5,
+                    'itemRarityStr' => 'Rare',
+                    'price' => '1200',
+                    'quantity' => '4',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ]],
+                'count' => 1,
+                'totalPages' => 1,
             ]),
             'https://bitjita.com/api/market/item/1421716234*' => Http::response([
                 'item' => [
@@ -372,6 +664,7 @@ class BitcraftToolTest extends TestCase
                     'tag' => 'Miner Tool',
                     'tier' => 5,
                     'rarityStr' => 'Rare',
+                    'iconAssetName' => 'GeneratedIcons/Items/Pickaxe',
                 ],
                 'sellOrders' => [[
                     'entityId' => 'order-1',
@@ -439,22 +732,15 @@ class BitcraftToolTest extends TestCase
                 ->where('filters.regionId', '8')
                 ->has('market.items', 1)
                 ->where('market.items.0.name', 'Astralite Pickaxe')
-                ->where('market.orderBook.item.name', 'Astralite Pickaxe')
-                ->has('market.orderBook.sellOrders', 1)
-                ->where('market.orderBook.sellOrders.0.regionName', 'Solmere')
-                ->has('market.orderBook.buyOrders', 0)
-                ->where('market.orderBook.stats.lowestSell', 1200)
-                ->where('market.orderBook.stats.highestBuy', null)
+                ->where('market.orderBook', null)
             );
 
-        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
-            && str_contains($request->url(), 'q=Astralite')
-            && str_contains($request->url(), 'regionId=8')
-            && str_contains($request->url(), 'hasOrders=1'));
-        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market/item/1421716234?')
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims?')
             && str_contains($request->url(), 'regionId=8'));
-        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims?'));
-        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), '/buildings'));
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims/288230376165363891/market/listings?')
+            && str_contains($request->url(), 'itemId=1421716234'));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market/item/1421716234?'));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?'));
     }
 
     public function test_market_order_book_prefetch_returns_region_filtered_orders(): void
@@ -471,6 +757,7 @@ class BitcraftToolTest extends TestCase
                     'tag' => 'Miner Tool',
                     'tier' => 5,
                     'rarityStr' => 'Rare',
+                    'iconAssetName' => 'GeneratedIcons/Items/Pickaxe',
                 ],
                 'sellOrders' => [[
                     'entityId' => 'order-1',
@@ -491,7 +778,63 @@ class BitcraftToolTest extends TestCase
                     'regionId' => 12,
                     'regionName' => 'Elyndor',
                 ]],
-                'buyOrders' => [],
+                'buyOrders' => [[
+                    'entityId' => 'buy-1',
+                    'ownerUsername' => 'Solmere Buyer',
+                    'claimEntityId' => '288230376165363891',
+                    'claimName' => 'Jita',
+                    'priceThreshold' => '900',
+                    'quantity' => '4',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ], [
+                    'entityId' => 'buy-2',
+                    'ownerUsername' => 'Wrong Buyer',
+                    'claimEntityId' => '288230376165363892',
+                    'claimName' => 'Far Market',
+                    'priceThreshold' => '1500',
+                    'quantity' => '2',
+                    'regionId' => 12,
+                    'regionName' => 'Elyndor',
+                ]],
+                'packageInfo' => [
+                    'cargoId' => '150006',
+                    'cargoName' => 'Astralite Pickaxe Package',
+                    'cargoIconAssetName' => 'GeneratedIcons/Cargo/Package',
+                    'itemId' => '1421716234',
+                    'itemName' => 'Astralite Pickaxe',
+                    'itemIconAssetName' => 'GeneratedIcons/Items/Pickaxe',
+                    'ratio' => 100,
+                ],
+                'packageSellOrders' => [[
+                    'entityId' => 'package-sell-1',
+                    'ownerUsername' => 'Package Seller',
+                    'claimEntityId' => '288230376165363891',
+                    'claimName' => 'Jita',
+                    'priceThreshold' => '95000',
+                    'quantity' => '2',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ], [
+                    'entityId' => 'package-sell-2',
+                    'ownerUsername' => 'Wrong Package',
+                    'claimEntityId' => '288230376165363892',
+                    'claimName' => 'Far Package Market',
+                    'priceThreshold' => '85000',
+                    'quantity' => '1',
+                    'regionId' => 12,
+                    'regionName' => 'Elyndor',
+                ]],
+                'packageBuyOrders' => [[
+                    'entityId' => 'package-buy-1',
+                    'ownerUsername' => 'Package Buyer',
+                    'claimEntityId' => '288230376165363893',
+                    'claimName' => 'Jita Buyers',
+                    'priceThreshold' => '90000',
+                    'quantity' => '3',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ]],
             ]),
         ]);
 
@@ -504,14 +847,80 @@ class BitcraftToolTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('orderBook.item.name', 'Astralite Pickaxe')
+            ->assertJsonPath('orderBook.item.iconAssetName', 'GeneratedIcons/Items/Pickaxe')
             ->assertJsonCount(1, 'orderBook.sellOrders')
             ->assertJsonPath('orderBook.sellOrders.0.regionName', 'Solmere')
-            ->assertJsonCount(0, 'orderBook.buyOrders')
+            ->assertJsonCount(1, 'orderBook.buyOrders')
+            ->assertJsonPath('orderBook.stats.lowestSell', 1200)
+            ->assertJsonPath('orderBook.stats.highestBuy', 900)
+            ->assertJsonPath('orderBook.stats.highestBuyQuantity', 4)
+            ->assertJsonPath('orderBook.stats.highestBuyLineTotal', 3600)
+            ->assertJsonPath('orderBook.packageInfo.cargoName', 'Astralite Pickaxe Package')
+            ->assertJsonPath('orderBook.packageInfo.ratio', 100)
+            ->assertJsonCount(1, 'orderBook.packageSellOrders')
+            ->assertJsonPath('orderBook.packageSellOrders.0.claimName', 'Jita')
+            ->assertJsonPath('orderBook.packageSellOrders.0.price', '95000')
+            ->assertJsonCount(1, 'orderBook.packageBuyOrders')
+            ->assertJsonPath('orderBook.packageBuyOrders.0.regionName', 'Solmere')
             ->assertJsonPath('cache.sources.1.label', 'Order book')
             ->assertJsonPath('error', null);
 
         Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market/item/1421716234?')
             && str_contains($request->url(), 'regionId=8'));
+    }
+
+    public function test_market_order_book_stats_use_package_orders_when_regular_orders_are_empty(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/regions' => Http::response([]),
+            'https://bitjita.com/api/market/cargo/1756386262*' => Http::response([
+                'item' => [
+                    'id' => '1756386262',
+                    'name' => 'Abyssal Gladius Filet Package',
+                    'tag' => 'Package',
+                    'tier' => 9,
+                    'rarityStr' => 'Common',
+                ],
+                'sellOrders' => [],
+                'buyOrders' => [],
+                'packageSellOrders' => [[
+                    'entityId' => 'package-sell-1',
+                    'ownerUsername' => 'Package Seller',
+                    'claimEntityId' => '288230376165363891',
+                    'claimName' => 'Jita',
+                    'priceThreshold' => '15000',
+                    'quantity' => '2',
+                ]],
+                'packageBuyOrders' => [[
+                    'entityId' => 'package-buy-1',
+                    'ownerUsername' => 'Package Buyer',
+                    'claimEntityId' => '288230376165363891',
+                    'claimName' => 'Jita',
+                    'priceThreshold' => '9000',
+                    'quantity' => '4',
+                ]],
+                'stats' => [
+                    'lowestSell' => null,
+                    'highestBuy' => null,
+                ],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.market.order-book', [
+                'itemId' => 1756386262,
+                'itemKind' => 'cargo',
+            ]));
+
+        $response->assertOk()
+            ->assertJsonCount(0, 'orderBook.sellOrders')
+            ->assertJsonCount(0, 'orderBook.buyOrders')
+            ->assertJsonCount(1, 'orderBook.packageSellOrders')
+            ->assertJsonCount(1, 'orderBook.packageBuyOrders')
+            ->assertJsonPath('orderBook.stats.lowestSell', 15000)
+            ->assertJsonPath('orderBook.stats.highestBuy', 9000)
+            ->assertJsonPath('orderBook.stats.highestBuyQuantity', 4)
+            ->assertJsonPath('orderBook.stats.highestBuyLineTotal', 36000);
     }
 
     public function test_barter_stall_finder_filters_region_claim_search_to_claims_with_barter_stations(): void
@@ -556,7 +965,41 @@ class BitcraftToolTest extends TestCase
                     'nickname' => 'Omashu Tools',
                     'claimName' => 'Omashu',
                     'orderCount' => 30,
-                    'orders' => [],
+                    'orders' => [[
+                        'entityId' => 'stall-order-1',
+                        'remainingStock' => 4,
+                        'offerItems' => [[
+                            'itemId' => 1421716234,
+                            'itemName' => 'Astralite Pickaxe',
+                            'iconAssetName' => 'GeneratedIcons/Items/Pickaxe',
+                            'quantity' => 1,
+                        ]],
+                        'requiredItems' => [[
+                            'itemId' => 1,
+                            'itemName' => 'Hex Coin',
+                            'iconAssetName' => 'Items/HexCoin[,3,10,500]',
+                            'quantity' => 1200,
+                        ]],
+                        'offerCargo' => [],
+                        'requiredCargo' => [],
+                    ], [
+                        'entityId' => 'stall-order-2',
+                        'remainingStock' => 7,
+                        'offerItems' => [[
+                            'itemId' => 1,
+                            'itemName' => 'Hex Coin',
+                            'iconAssetName' => 'Items/HexCoin[,3,10,500]',
+                            'quantity' => 900,
+                        ]],
+                        'requiredItems' => [[
+                            'itemId' => 1421716235,
+                            'itemName' => 'Astralite Hammer',
+                            'iconAssetName' => 'GeneratedIcons/Items/Hammer',
+                            'quantity' => 1,
+                        ]],
+                        'offerCargo' => [],
+                        'requiredCargo' => [],
+                    ]],
                 ], [
                     'entityId' => '864691128500984099',
                     'ownerName' => 'Cabbage Man',
@@ -595,7 +1038,13 @@ class BitcraftToolTest extends TestCase
                 ->where('market.claims.0.tradeOrderCount', 30)
                 ->has('market.tradeBuildings', 1)
                 ->where('market.tradeBuildings.0.buildingNickname', 'Omashu Tools')
-                ->has('market.items', 0)
+                ->has('market.items', 2)
+                ->where('market.items.0.name', 'Astralite Pickaxe')
+                ->where('market.items.0.sellOrderCount', 1)
+                ->where('market.items.0.lowestSellPrice', 1200)
+                ->where('market.items.1.name', 'Astralite Hammer')
+                ->where('market.items.1.buyOrderCount', 1)
+                ->where('market.items.1.highestBuyPrice', 900)
                 ->has('market.listings', 0)
             );
 
@@ -691,13 +1140,94 @@ class BitcraftToolTest extends TestCase
                 ->where('market.items.0.name', 'Astralite Pickaxe')
                 ->where('market.items.0.lowestSellPrice', 1200)
                 ->where('market.items.0.sellOrderCount', 1)
-                ->has('market.listings', 1)
-                ->where('market.listings.0.source', 'stall-order')
-                ->where('market.listings.0.side', 'sell')
-                ->where('market.listings.0.stall.name', 'Astra Tools')
-                ->where('market.listings.0.price', 1200)
-                ->where('market.listings.0.bundlePrice', 1200)
-                ->where('market.listings.0.requiredSummary', '1,200x Hex Coin')
+                ->has('market.listings', 0)
+                ->has('market.claims', 1)
+                ->where('market.claims.0.name', 'Omashu')
+            );
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/stalls?page=1&limit=100');
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market'));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims?'));
+        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), '/buildings'));
+    }
+
+    public function test_barter_stall_finder_can_populate_all_order_items_without_region_or_item_search(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/regions' => Http::response([]),
+            'https://bitjita.com/api/stalls?page=1&limit=100' => Http::response([
+                'stalls' => [[
+                    'entityId' => '864691128500984069',
+                    'ownerName' => 'Astra',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                    'nickname' => 'Astra Tools',
+                    'claimName' => 'Omashu',
+                    'locationX' => 1200,
+                    'locationZ' => 1500,
+                    'orderCount' => 2,
+                    'orders' => [[
+                        'entityId' => 'stall-order-1',
+                        'remainingStock' => 4,
+                        'offerItems' => [[
+                            'itemId' => 1421716234,
+                            'itemName' => 'Astralite Pickaxe',
+                            'iconAssetName' => 'GeneratedIcons/Items/Pickaxe',
+                            'quantity' => 1,
+                        ]],
+                        'requiredItems' => [[
+                            'itemId' => 1,
+                            'itemName' => 'Hex Coin',
+                            'iconAssetName' => 'Items/HexCoin[,3,10,500]',
+                            'quantity' => 1200,
+                        ]],
+                        'offerCargo' => [],
+                        'requiredCargo' => [],
+                    ], [
+                        'entityId' => 'stall-order-2',
+                        'remainingStock' => 6,
+                        'offerItems' => [[
+                            'itemId' => 1,
+                            'itemName' => 'Hex Coin',
+                            'iconAssetName' => 'Items/HexCoin[,3,10,500]',
+                            'quantity' => 900,
+                        ]],
+                        'requiredItems' => [[
+                            'itemId' => 1421716235,
+                            'itemName' => 'Astralite Hammer',
+                            'iconAssetName' => 'GeneratedIcons/Items/Hammer',
+                            'quantity' => 1,
+                        ]],
+                        'offerCargo' => [],
+                        'requiredCargo' => [],
+                    ]],
+                ]],
+                'totalStalls' => 1,
+                'totalOrders' => 2,
+                'page' => 1,
+                'totalPages' => 1,
+                'limit' => 100,
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.barter-stalls', [
+                'hasOrders' => 1,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Market')
+                ->where('tool.key', 'barter-stalls')
+                ->where('filters.hasOrders', true)
+                ->has('market.items', 2)
+                ->where('market.items.0.name', 'Astralite Pickaxe')
+                ->where('market.items.0.sellOrderCount', 1)
+                ->where('market.items.0.lowestSellPrice', 1200)
+                ->where('market.items.1.name', 'Astralite Hammer')
+                ->where('market.items.1.buyOrderCount', 1)
+                ->where('market.items.1.highestBuyPrice', 900)
+                ->has('market.listings', 0)
                 ->has('market.claims', 1)
                 ->where('market.claims.0.name', 'Omashu')
             );
@@ -796,12 +1326,7 @@ class BitcraftToolTest extends TestCase
                 ->has('market.items', 1)
                 ->where('market.items.0.name', 'Astralite Pickaxe')
                 ->where('market.items.0.sellOrderCount', 1)
-                ->has('market.listings', 1)
-                ->where('market.listings.0.claimName', 'Omashu')
-                ->where('market.listings.0.source', 'stall-order')
-                ->where('market.listings.0.stall.name', 'Astra Tools')
-                ->where('market.listings.0.price', 1200)
-                ->where('market.listings.0.quantity', 4)
+                ->has('market.listings', 0)
             );
 
         Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/stalls?page=1&limit=100');
@@ -809,6 +1334,77 @@ class BitcraftToolTest extends TestCase
         Http::assertNotSent(fn (Request $request) => str_contains($request->url(), '/inventories'));
         Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims/288230376165363891/market/listings'));
         Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market'));
+    }
+
+    public function test_barter_stall_listing_prefetch_returns_item_stall_order_details(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/regions' => Http::response([[
+                'regionId' => 8,
+                'regionName' => 'Solmere',
+            ]]),
+            'https://bitjita.com/api/stalls?page=1&limit=100' => Http::response([
+                'stalls' => [[
+                    'entityId' => '864691128500984069',
+                    'ownerName' => 'Astra',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                    'nickname' => 'Astra Tools',
+                    'claimName' => 'Omashu',
+                    'locationX' => 1200,
+                    'locationZ' => 1500,
+                    'orderCount' => 1,
+                    'orders' => [[
+                        'entityId' => 'stall-order-1',
+                        'remainingStock' => 4,
+                        'offerItems' => [[
+                            'itemId' => 1421716234,
+                            'itemName' => 'Astralite Pickaxe',
+                            'iconAssetName' => 'GeneratedIcons/Items/Pickaxe',
+                            'quantity' => 1,
+                        ]],
+                        'requiredItems' => [[
+                            'itemId' => 1,
+                            'itemName' => 'Hex Coin',
+                            'iconAssetName' => 'Items/HexCoin[,3,10,500]',
+                            'quantity' => 1200,
+                        ]],
+                        'offerCargo' => [],
+                        'requiredCargo' => [],
+                    ]],
+                ]],
+                'totalStalls' => 1,
+                'totalOrders' => 1,
+                'page' => 1,
+                'totalPages' => 1,
+                'limit' => 100,
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.barter-stalls.listings', [
+                'itemId' => 1421716234,
+                'itemKind' => 'item',
+                'q' => 'Astralite',
+                'region' => 'Solmere',
+            ]));
+
+        $response->assertOk()
+            ->assertJsonPath('item.name', 'Astralite Pickaxe')
+            ->assertJsonPath('listings.0.source', 'stall-order')
+            ->assertJsonPath('listings.0.side', 'sell')
+            ->assertJsonPath('listings.0.claimName', 'Omashu')
+            ->assertJsonPath('listings.0.stall.name', 'Astra Tools')
+            ->assertJsonPath('listings.0.price', 1200)
+            ->assertJsonPath('listings.0.quantity', 4)
+            ->assertJsonPath('listings.0.bundlePrice', 1200)
+            ->assertJsonPath('listings.0.requiredSummary', '1,200x Hex Coin')
+            ->assertJsonPath('cache.sources.1.label', 'Barter stalls')
+            ->assertJsonPath('error', null);
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/stalls?page=1&limit=100');
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market'));
+        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), '/inventories'));
     }
 
     public function test_barter_stall_claim_listings_come_from_stall_orders_not_marketplace_orders(): void
@@ -887,11 +1483,7 @@ class BitcraftToolTest extends TestCase
                 ->where('tool.key', 'barter-stalls')
                 ->has('market.items', 1)
                 ->where('market.items.0.name', 'Astralite Pickaxe')
-                ->has('market.listings', 1)
-                ->where('market.listings.0.itemName', 'Astralite Pickaxe')
-                ->where('market.listings.0.source', 'stall-order')
-                ->where('market.listings.0.stall.name', 'Astra Tools')
-                ->where('market.listings.0.price', 1200)
+                ->has('market.listings', 0)
             );
 
         Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/stalls?page=1&limit=100');
@@ -1145,14 +1737,7 @@ class BitcraftToolTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Bitcraft/Market')
                 ->where('tool.key', 'barter-stalls')
-                ->where('market.listings.0.stallMatchStatus', 'matched')
-                ->where('market.listings.0.source', 'stall-order')
-                ->where('market.listings.0.side', 'buy')
-                ->where('market.listings.0.stall.name', 'Astra Tools')
-                ->where('market.listings.0.stall.buildingName', 'Barter Stall')
-                ->where('market.listings.0.stall.entityId', '864691128500984069')
-                ->where('market.listings.0.price', 900)
-                ->where('market.listings.0.bundlePrice', 900)
+                ->has('market.listings', 0)
                 ->where('market.tradeBuildings.0.inventoryItems.0.name', 'Hex Coin')
                 ->where('market.tradeBuildings.0.inventoryItems.0.category', 'Item')
                 ->where('market.tradeBuildings.0.inventoryItems.0.quantity', 900)

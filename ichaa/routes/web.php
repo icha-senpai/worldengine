@@ -108,6 +108,7 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
         Route::redirect('/', '/datacrypt/bitcraft/market');
         Route::get('market', [BitcraftToolController::class, 'market'])->name('market');
         Route::get('market/order-book', [BitcraftToolController::class, 'marketOrderBook'])->name('market.order-book');
+        Route::get('barter-stalls/listings', [BitcraftToolController::class, 'barterListings'])->name('barter-stalls.listings');
         Route::get('barter-stalls', [BitcraftToolController::class, 'barterStalls'])->name('barter-stalls');
         Route::get('crafting', [BitcraftToolController::class, 'crafting'])->name('crafting');
         Route::get('crafting/branch', [BitcraftToolController::class, 'craftingBranch'])->name('crafting.branch');

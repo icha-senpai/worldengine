@@ -22,7 +22,7 @@
                 </div>
 
                 <div class="market-search-panel__stats">
-                    <span class="tag">{{ market.items.length }} item{{ market.items.length === 1 ? '' : 's' }}</span>
+                    <span class="tag">{{ explorerMarketItemCount }} item{{ explorerMarketItemCount === 1 ? '' : 's' }}</span>
                     <span class="tag">{{ market.claims.length }} claim{{ market.claims.length === 1 ? '' : 's' }}</span>
                     <span v-if="updatedAtLabel" class="tag">Updated {{ updatedAtLabel }}</span>
                     <span v-if="cacheSummary" class="tag">{{ cacheSummary }}</span>
@@ -114,15 +114,6 @@
                 <div class="market-search-panel__actions">
                     <AppButton type="submit" variant="primary" :disabled="searching">{{ searching ? 'Searching...' : 'Search' }}</AppButton>
                     <AppButton v-if="form.claimEntityId" type="button" variant="ghost" @click="clearClaim">{{ tool.clearLabel }}</AppButton>
-                    <AppButton
-                        v-if="canShowRegionBuyOrders"
-                        type="button"
-                        variant="ghost"
-                        :selected="form.hasBuyOrders && !form.hasSellOrders"
-                        @click="showRegionBuyOrders"
-                    >
-                        All Buy Orders
-                    </AppButton>
                     <AppButton type="button" variant="ghost" @click="reset">Reset</AppButton>
                 </div>
             </div>
@@ -138,51 +129,28 @@
                     <div class="surface-section__copy">
                         <h2 class="surface-section__title">{{ explorerTitle }}</h2>
                         <p class="surface-section__subtitle">
-                            {{ market.items.length }} item{{ market.items.length === 1 ? '' : 's' }} found
+                            {{ explorerMarketItemCount }} item{{ explorerMarketItemCount === 1 ? '' : 's' }} found
                             <span v-if="market.claim?.name"> at {{ market.claim.name }}</span>
                             <span v-else-if="isBarterTool && market.claims.length"> across {{ market.claims.length }} claim{{ market.claims.length === 1 ? '' : 's' }}</span>
                         </p>
                     </div>
+                    <div v-if="hasBuyOrderSortControls" class="flex flex-wrap gap-2 sm:justify-end" aria-label="Market explorer buy order sorting">
+                        <button
+                            v-for="option in regionBuySortOptions"
+                            :key="option.value"
+                            type="button"
+                            data-test="region-buy-sort"
+                            class="tag transition-colors hover:text-focus"
+                            :class="{ 'tag--warn': regionBuySortKey === option.value }"
+                            @click="setRegionBuySort(option.value)"
+                        >
+                            {{ regionBuySortLabel(option) }}
+                        </button>
+                    </div>
                 </div>
 
                 <div class="surface-section__body">
-                    <div v-if="market.items.length" class="space-y-5">
-                        <section v-if="hasRegionBuyOrderBoard" class="space-y-3 border-b border-border pb-5">
-                            <div class="flex flex-wrap items-center justify-between gap-3">
-                                <div class="min-w-0">
-                                    <h3 class="text-sm font-ui font-semibold text-primary">Region Buy Orders</h3>
-                                    <p class="mt-1 text-xs font-ui text-muted-2">
-                                        {{ formatCount(regionBuyOrderTotal) }} buy order{{ regionBuyOrderTotal === 1 ? '' : 's' }} across {{ formatCount(regionBuyOrderItems.length) }} item{{ regionBuyOrderItems.length === 1 ? '' : 's' }}
-                                        <span v-if="activeRegionLabel">in {{ activeRegionLabel }}</span>
-                                    </p>
-                                </div>
-                                <span class="tag tag--warn">buyers</span>
-                            </div>
-
-                            <div class="grid gap-2">
-                                <button
-                                    v-for="item in regionBuyOrderItems"
-                                    :key="`region-buy-${item.kind}-${item.id}`"
-                                    type="button"
-                                    class="index-record text-left transition-colors hover:border-[rgb(var(--accent-cyan-rgb)/0.35)]"
-                                    :class="{ 'border-[rgb(var(--accent-cyan-rgb)/0.5)]': selectedOrderBookItemId === String(item.id) }"
-                                    @click="openMarketItem(item, 'buy')"
-                                >
-                                    <span class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                                        <span class="min-w-0">
-                                            <span class="index-record__title prose-wrap">{{ item.name }}</span>
-                                            <span class="mt-1 block index-record__subtitle prose-wrap">{{ item.category || 'Uncategorized' }}</span>
-                                        </span>
-                                        <span class="flex flex-wrap gap-2 sm:justify-end">
-                                            <span v-if="item.tier" class="tag">Tier {{ item.tier }}</span>
-                                            <span class="tag tag--warn">{{ formatCount(item.buyOrderCount) }} buy</span>
-                                            <span class="tag">High {{ formatCoins(item.highestBuyPrice) }}</span>
-                                        </span>
-                                    </span>
-                                </button>
-                            </div>
-                        </section>
-
+                    <div v-if="explorerMarketItemCount" class="space-y-5">
                         <section
                             v-for="group in groupedMarketItems"
                             :key="group.category"
@@ -198,10 +166,13 @@
                                     v-for="item in group.items"
                                     :key="`${item.type}-${item.id}`"
                                     :id="isBarterTool ? barterItemAnchor(item) : null"
-                                    class="index-record"
+                                    data-test="market-item-card"
+                                    class="index-record market-item-card"
                                     :class="{
                                         'border-[rgb(var(--accent-cyan-rgb)/0.5)]': isSelectedExplorerItem(item),
                                     }"
+                                    @pointerenter="prefetchMarketItemStats(item)"
+                                    @focusin="prefetchMarketItemStats(item)"
                                 >
                                     <div class="flex min-h-16 gap-3">
                                         <span
@@ -224,12 +195,14 @@
                                             <p class="index-record__title prose-wrap">{{ item.name }}</p>
                                             <p class="index-record__subtitle prose-wrap">{{ item.category || 'Uncategorized' }}</p>
                                         </div>
+
                                     </div>
 
                                     <div class="mt-3 flex flex-wrap gap-2">
                                         <span v-if="item.rarity" class="tag">{{ item.rarity }}</span>
                                         <span v-if="item.tier" class="tag">Tier {{ item.tier }}</span>
                                         <span class="tag">{{ item.kind }}</span>
+                                        <span v-if="buyOrderReference(item).quantity" class="tag">{{ buyOrderReference(item).orderLabel }} qty {{ formatCount(buyOrderReference(item).quantity) }}</span>
                                     </div>
 
                                     <div class="mt-4 grid grid-cols-2 gap-2">
@@ -277,9 +250,13 @@
 
                                     <div class="mt-3 grid grid-cols-2 gap-2 text-xs font-ui text-muted-2">
                                         <span>Lowest sell</span>
-                                        <span class="text-right text-primary">{{ formatCoins(item.lowestSellPrice) }}</span>
+                                        <span class="text-right text-primary">{{ formatCoins(marketItemStats(item).lowestSellPrice) }}</span>
                                         <span>Highest buy</span>
-                                        <span class="text-right text-primary">{{ formatCoins(item.highestBuyPrice) }}</span>
+                                        <span class="text-right text-primary">{{ formatCoins(marketItemStats(item).highestBuyPrice) }}</span>
+                                        <span>{{ buyOrderReference(item).orderLabel }} quantity</span>
+                                        <span class="text-right text-primary">{{ formatOptionalCount(buyOrderReference(item).quantity) }}</span>
+                                        <span>{{ buyOrderReference(item).orderLabel }} line</span>
+                                        <span class="text-right text-primary">{{ formatCoins(buyOrderReference(item).lineTotal) }}</span>
                                     </div>
                                 </article>
                             </div>
@@ -331,24 +308,11 @@
 
         </div>
 
-        <BarterListingsPopup
-            :show="isBarterTool && activeBarterPopupOpen"
-            :item="activeBarterItem"
-            :listings="activeBarterListings"
-            :side="activeBarterSide"
-            :side-options="sideOptions"
-            :claim="market.claim"
-            :claims="market.claims"
-            :has-stall-order-listings="hasStallOrderListings"
-            @close="closeBarterPopup"
-            @update:side="setSide"
-        />
-
         <MarketOrderBookPopup
-            :show="!isBarterTool && activeMarketPopupOpen && Boolean(effectiveMarketOrderBook)"
-            :order-book="effectiveMarketOrderBook"
+            :show="activeOrderBookPopupOpen && Boolean(activeOrderBook)"
+            :order-book="activeOrderBook"
             :claim-link-href="marketClaimHref"
-            @close="closeMarketPopup"
+            @close="closeOrderBookPopup"
         />
 
     </AuthenticatedLayout>
@@ -359,11 +323,21 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
-import BarterListingsPopup from '@/Pages/Bitcraft/Components/BarterListingsPopup.vue'
 import MarketOrderBookPopup from '@/Pages/Bitcraft/Components/MarketOrderBookPopup.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
 import { bitcraftItemFrameStyle, bitjitaAssetUrl } from '@/Pages/Bitcraft/bitjitaAssets.js'
+
+const queryHasFlag = (key) => typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).has(key)
+
+const filterBoolean = (filters, key, fallback = false) => {
+    if (filters[key] !== null && filters[key] !== undefined) {
+        return filters[key]
+    }
+
+    return queryHasFlag(key) || fallback
+}
 
 const props = defineProps({
     filters: { type: Object, default: () => ({}) },
@@ -422,19 +396,23 @@ const form = reactive({
     empireEntityId: props.filters.empireEntityId ?? '',
     region: props.filters.region ?? props.filters.regionName ?? props.filters.regionId ?? '',
     side: props.filters.side ?? '',
-    hasOrders: props.filters.hasOrders ?? true,
-    hasSellOrders: props.filters.hasSellOrders ?? false,
-    hasBuyOrders: props.filters.hasBuyOrders ?? false,
+    hasOrders: filterBoolean(props.filters, 'hasOrders', true),
+    hasSellOrders: filterBoolean(props.filters, 'hasSellOrders'),
+    hasBuyOrders: filterBoolean(props.filters, 'hasBuyOrders'),
 })
 
 const activeBarterItemId = ref(String(props.filters.itemId ?? ''))
 const activeBarterItemKind = ref(String(props.filters.itemKind ?? ''))
-const activeBarterSide = ref(props.filters.side ?? '')
 const activeBarterPopupOpen = ref(false)
 const activeMarketPopupOpen = ref(false)
+const regionBuySortKey = ref('price')
+const regionBuySortDirection = ref('desc')
 const localMarketOrderBook = ref(null)
+const localBarterListings = ref(null)
 const prefetchedOrderBooks = ref(new Map())
 const prefetchingOrderBooks = ref(new Set())
+const prefetchedBarterListings = ref(new Map())
+const prefetchingBarterListings = ref(new Set())
 const brokenIconAssets = ref(new Set())
 const searching = ref(false)
 const syncingFilters = ref(false)
@@ -442,27 +420,161 @@ let debouncedSearchTimer = null
 const effectiveMarketOrderBook = computed(() => localMarketOrderBook.value ?? props.market.orderBook)
 const selectedOrderBookItemId = computed(() => String(effectiveMarketOrderBook.value?.item?.id ?? ''))
 const isBarterTool = computed(() => props.tool.key === 'barter-stalls')
-const hasStallOrderListings = computed(() => (props.market.listings ?? []).some((listing) => listing.source === 'stall-order'))
+const effectiveBarterListings = computed(() => localBarterListings.value ?? props.market.listings ?? [])
 const scrollStorageKey = computed(() => `bitcraft:${props.tool.key}:${window.location.pathname}${window.location.search}`)
 const explorerTitle = computed(() => (isBarterTool.value ? 'Barter Stall Explorer' : 'Market Explorer'))
 const activeItemSearchLabel = computed(() => form.q || form.category || '')
 const activeRegionLabel = computed(() => form.region || '')
-const canShowRegionBuyOrders = computed(() => !isBarterTool.value && Boolean(activeRegionLabel.value))
-const regionBuyOrderItems = computed(() => (props.market.items ?? [])
-    .filter((item) => Number(item.buyOrderCount ?? 0) > 0)
-    .sort((first, second) => {
-        const firstPrice = numericValue(first.highestBuyPrice) ?? -Infinity
-        const secondPrice = numericValue(second.highestBuyPrice) ?? -Infinity
+const hasBuyOrderSortControls = computed(() => !isBarterTool.value && form.hasBuyOrders && explorerMarketItemCount.value > 0)
+const regionBuySortOptions = [
+    { label: 'Buy', value: 'price' },
+    { label: 'Count', value: 'count' },
+    { label: 'Quantity', value: 'quantity' },
+]
+const buyOrderSortValue = (item, key, direction = regionBuySortDirection.value) => {
+    if (key === 'quantity') {
+        return direction === 'asc'
+            ? numericValue(item.smallestBuyOrderQuantity ?? item.buyOrderQuantity)
+            : numericValue(item.largestBuyOrderQuantity ?? item.buyOrderQuantity)
+    }
 
-        if (firstPrice !== secondPrice) {
-            return secondPrice - firstPrice
+    if (key === 'count') {
+        return numericValue(item.buyOrderCount)
+    }
+
+    return direction === 'asc'
+        ? numericValue(item.lowestBuyPrice ?? item.highestBuyPrice)
+        : numericValue(item.highestBuyPrice)
+}
+const buyOrderReference = (item) => {
+    const stats = marketItemStats(item)
+
+    if (regionBuySortKey.value === 'price' && regionBuySortDirection.value === 'asc') {
+        return {
+            priceLabel: 'Low',
+            orderLabel: 'Low',
+            price: stats.lowestBuyPrice ?? stats.highestBuyPrice,
+            quantity: stats.lowestBuyQuantity ?? stats.highestBuyQuantity,
+            lineTotal: stats.lowestBuyLineTotal ?? stats.highestBuyLineTotal,
         }
+    }
 
-        return Number(second.buyOrderCount ?? 0) - Number(first.buyOrderCount ?? 0)
-    }))
-const regionBuyOrderTotal = computed(() => regionBuyOrderItems.value
-    .reduce((total, item) => total + Number(item.buyOrderCount ?? 0), 0))
-const hasRegionBuyOrderBoard = computed(() => canShowRegionBuyOrders.value && regionBuyOrderItems.value.length > 0)
+    if (regionBuySortKey.value === 'quantity') {
+        const isLow = regionBuySortDirection.value === 'asc'
+
+        return {
+            priceLabel: 'Price',
+            orderLabel: isLow ? 'Qty low' : 'Qty high',
+            price: isLow
+                ? stats.smallestBuyOrderPrice ?? stats.lowestBuyPrice ?? stats.highestBuyPrice
+                : stats.largestBuyOrderPrice ?? stats.highestBuyPrice,
+            quantity: isLow
+                ? stats.smallestBuyOrderQuantity ?? stats.lowestBuyQuantity ?? stats.highestBuyQuantity
+                : stats.largestBuyOrderQuantity ?? stats.highestBuyQuantity,
+            lineTotal: isLow
+                ? stats.smallestBuyOrderLineTotal ?? stats.lowestBuyLineTotal ?? stats.highestBuyLineTotal
+                : stats.largestBuyOrderLineTotal ?? stats.highestBuyLineTotal,
+        }
+    }
+
+    return {
+        priceLabel: 'High',
+        orderLabel: 'High',
+        price: stats.highestBuyPrice,
+        quantity: stats.highestBuyQuantity,
+        lineTotal: stats.highestBuyLineTotal,
+    }
+}
+const orderBookForItem = (item) => {
+    const cachedOrderBook = prefetchedOrderBooks.value.get(orderBookCacheKey(orderBookLookupParams(item)))
+
+    if (cachedOrderBook) {
+        return cachedOrderBook
+    }
+
+    return marketOrderBookMatches(item) ? effectiveMarketOrderBook.value : null
+}
+const marketItemStats = (item) => {
+    const stats = orderBookForItem(item)?.stats ?? {}
+
+    return {
+        ...item,
+        lowestSellPrice: item.lowestSellPrice ?? stats.lowestSell,
+        highestBuyPrice: item.highestBuyPrice ?? stats.highestBuy,
+        lowestBuyPrice: item.lowestBuyPrice ?? stats.lowestBuy,
+        sellOrderCount: item.sellOrderCount ?? stats.sellOrderCount,
+        buyOrderCount: item.buyOrderCount ?? stats.buyOrderCount,
+        highestBuyQuantity: item.highestBuyQuantity ?? stats.highestBuyQuantity,
+        highestBuyLineTotal: item.highestBuyLineTotal ?? stats.highestBuyLineTotal,
+        lowestBuyQuantity: item.lowestBuyQuantity ?? stats.lowestBuyQuantity,
+        lowestBuyLineTotal: item.lowestBuyLineTotal ?? stats.lowestBuyLineTotal,
+        largestBuyOrderPrice: item.largestBuyOrderPrice ?? stats.largestBuyOrderPrice,
+        largestBuyOrderQuantity: item.largestBuyOrderQuantity ?? stats.largestBuyOrderQuantity,
+        largestBuyOrderLineTotal: item.largestBuyOrderLineTotal ?? stats.largestBuyOrderLineTotal,
+        smallestBuyOrderPrice: item.smallestBuyOrderPrice ?? stats.smallestBuyOrderPrice,
+        smallestBuyOrderQuantity: item.smallestBuyOrderQuantity ?? stats.smallestBuyOrderQuantity,
+        smallestBuyOrderLineTotal: item.smallestBuyOrderLineTotal ?? stats.smallestBuyOrderLineTotal,
+    }
+}
+const compareBuyOrderTieBreakers = (first, second) => {
+    const firstPrice = numericValue(first.highestBuyPrice) ?? -Infinity
+    const secondPrice = numericValue(second.highestBuyPrice) ?? -Infinity
+
+    if (firstPrice !== secondPrice) {
+        return secondPrice - firstPrice
+    }
+
+    const firstQuantity = numericValue(first.buyOrderQuantity) ?? -Infinity
+    const secondQuantity = numericValue(second.buyOrderQuantity) ?? -Infinity
+
+    if (firstQuantity !== secondQuantity) {
+        return secondQuantity - firstQuantity
+    }
+
+    const firstCount = numericValue(first.buyOrderCount) ?? -Infinity
+    const secondCount = numericValue(second.buyOrderCount) ?? -Infinity
+
+    if (firstCount !== secondCount) {
+        return secondCount - firstCount
+    }
+
+    return String(first.name ?? '').localeCompare(String(second.name ?? ''))
+}
+const compareBuyOrderItems = (first, second) => {
+    const firstValue = buyOrderSortValue(first, regionBuySortKey.value)
+    const secondValue = buyOrderSortValue(second, regionBuySortKey.value)
+
+    if (firstValue === null && secondValue !== null) {
+        return 1
+    }
+
+    if (firstValue !== null && secondValue === null) {
+        return -1
+    }
+
+    if (firstValue !== null && secondValue !== null && firstValue !== secondValue) {
+        const direction = regionBuySortDirection.value === 'asc' ? 1 : -1
+
+        return (firstValue - secondValue) * direction
+    }
+
+    return compareBuyOrderTieBreakers(first, second)
+}
+const setRegionBuySort = (key) => {
+    if (regionBuySortKey.value === key) {
+        regionBuySortDirection.value = regionBuySortDirection.value === 'desc' ? 'asc' : 'desc'
+
+        return
+    }
+
+    regionBuySortKey.value = key
+    regionBuySortDirection.value = 'desc'
+}
+const regionBuySortLabel = (option) => {
+    const direction = regionBuySortKey.value === option.value ? regionBuySortDirection.value : 'desc'
+
+    return `${option.label} ${direction === 'desc' ? 'high' : 'low'}`
+}
 const explorerEmptyLabel = computed(() => {
     if (searching.value) {
         return isBarterTool.value ? 'Searching barter stalls...' : 'Searching market orders...'
@@ -488,10 +600,22 @@ const explorerEmptyLabel = computed(() => {
 
     return isBarterTool.value ? 'Search an item with an empire, region, or claim to explore barter stall listings.' : 'No market matches yet.'
 })
+const explorerMarketItems = computed(() => {
+    const items = props.market.items ?? []
+
+    if (!isBarterTool.value && form.hasBuyOrders) {
+        return [...items]
+            .filter((item) => Number(item.buyOrderCount ?? 0) > 0)
+            .sort(compareBuyOrderItems)
+    }
+
+    return items
+})
+const explorerMarketItemCount = computed(() => explorerMarketItems.value.length)
 const groupedMarketItems = computed(() => {
     const groups = new Map()
 
-    for (const item of props.market.items ?? []) {
+    for (const item of explorerMarketItems.value) {
         const category = item.category || 'Uncategorized'
 
         if (!groups.has(category)) {
@@ -515,14 +639,39 @@ const categoryOptions = computed(() => {
     return Array.from(categories).filter(Boolean).sort((first, second) => first.localeCompare(second))
 })
 const activeBarterItem = computed(() => (props.market.items ?? []).find((item) => isSelectedBarterItem(item)) ?? null)
-const activeBarterListings = computed(() => (
-    props.market.listings ?? []
-).filter((listing) => barterListingMatchesActiveItem(listing)))
-const sideOptions = [
-    { label: 'Both', value: '' },
-    { label: 'Sell', value: 'sell' },
-    { label: 'Buy', value: 'buy' },
-]
+const activeBarterOrderBook = computed(() => {
+    const item = activeBarterItem.value
+
+    if (!item) {
+        return null
+    }
+
+    const orders = effectiveBarterListings.value
+        .filter((listing) => barterListingMatchesActiveItem(listing))
+        .map(barterListingToOrder)
+    const sellOrders = orders.filter((order) => order.side === 'sell')
+    const buyOrders = orders.filter((order) => order.side === 'buy')
+
+    return {
+        item: {
+            id: item.id,
+            kind: item.kind ?? item.type ?? 'item',
+            name: item.name,
+            category: item.category,
+            tier: item.tier,
+            rarity: item.rarity,
+            iconAssetName: item.iconAssetName,
+        },
+        stats: barterOrderBookStats(sellOrders, buyOrders),
+        sellOrders,
+        buyOrders,
+        packageInfo: null,
+        packageSellOrders: [],
+        packageBuyOrders: [],
+    }
+})
+const activeOrderBook = computed(() => (isBarterTool.value ? activeBarterOrderBook.value : effectiveMarketOrderBook.value))
+const activeOrderBookPopupOpen = computed(() => (isBarterTool.value ? activeBarterPopupOpen.value : activeMarketPopupOpen.value))
 const cacheSources = computed(() => props.cache?.sources ?? [])
 const updatedAtLabel = computed(() => formatTime(props.cache?.updatedAt))
 const cacheSummary = computed(() => {
@@ -545,13 +694,15 @@ watch(() => props.filters, (filters) => {
     form.empireEntityId = filters.empireEntityId ?? ''
     form.region = filters.region ?? filters.regionName ?? filters.regionId ?? ''
     form.side = filters.side ?? ''
-    form.hasOrders = filters.hasOrders ?? true
-    form.hasSellOrders = filters.hasSellOrders ?? false
-    form.hasBuyOrders = filters.hasBuyOrders ?? false
+    form.hasOrders = filterBoolean(filters, 'hasOrders', true)
+    form.hasSellOrders = filterBoolean(filters, 'hasSellOrders')
+    form.hasBuyOrders = filterBoolean(filters, 'hasBuyOrders')
     activeBarterItemId.value = String(filters.itemId ?? '')
     activeBarterItemKind.value = String(filters.itemKind ?? '')
-    activeBarterSide.value = filters.side ?? ''
     activeBarterPopupOpen.value = false
+    localBarterListings.value = null
+    prefetchedBarterListings.value = new Map()
+    prefetchingBarterListings.value = new Set()
 
     nextTick(() => {
         syncingFilters.value = false
@@ -581,30 +732,6 @@ const cleanPayload = () => ({
     ...(form.hasBuyOrders ? { hasBuyOrders: 1 } : {}),
 })
 
-const marketItemParams = (item, orderSide = null) => {
-    const payload = {
-        ...cleanPayload(),
-        itemId: item.id,
-        itemKind: item.kind ?? 'item',
-    }
-
-    if (!isBarterTool.value && orderSide === 'sell') {
-        payload.hasSellOrders = 1
-        delete payload.hasBuyOrders
-    }
-
-    if (!isBarterTool.value && orderSide === 'buy') {
-        payload.hasBuyOrders = 1
-        delete payload.hasSellOrders
-    }
-
-    if (isBarterTool.value && orderSide) {
-        payload.side = orderSide
-    }
-
-    return payload
-}
-
 const orderBookLookupParams = (item) => ({
     ...(form.claimEntityId ? { claimEntityId: form.claimEntityId } : {}),
     ...(form.region ? { region: form.region } : {}),
@@ -615,6 +742,25 @@ const orderBookLookupParams = (item) => ({
 const orderBookCacheKey = (params) => JSON.stringify({
     claimEntityId: params.claimEntityId ?? '',
     region: params.region ?? '',
+    itemId: String(params.itemId ?? ''),
+    itemKind: params.itemKind ?? 'item',
+})
+
+const barterListingLookupParams = (item) => ({
+    ...cleanPayload(),
+    itemId: item.id,
+    itemKind: item.kind ?? 'item',
+})
+
+const barterListingsCacheKey = (params) => JSON.stringify({
+    q: params.q ?? '',
+    category: params.category ?? '',
+    claimQ: params.claimQ ?? '',
+    claimEntityId: params.claimEntityId ?? '',
+    empire: params.empire ?? '',
+    empireEntityId: params.empireEntityId ?? '',
+    region: params.region ?? '',
+    side: params.side ?? '',
     itemId: String(params.itemId ?? ''),
     itemKind: params.itemKind ?? 'item',
 })
@@ -708,13 +854,6 @@ const clearClaim = () => {
     submit()
 }
 
-const showRegionBuyOrders = () => {
-    form.hasOrders = false
-    form.hasSellOrders = false
-    form.hasBuyOrders = true
-    submit()
-}
-
 function isSelectedBarterItem(item) {
     return isBarterTool.value
         && String(item.id) === activeBarterItemId.value
@@ -727,8 +866,20 @@ function isSelectedExplorerItem(item) {
         : selectedOrderBookItemId.value === String(item.id)
 }
 
-const openBarterItem = (item, side) => {
-    setSide(side, item)
+const openBarterItem = async (item) => {
+    activeBarterItemId.value = String(item.id)
+    activeBarterItemKind.value = String(item.kind ?? item.type ?? 'item')
+
+    const cachedListings = prefetchedBarterListings.value.get(barterListingsCacheKey(barterListingLookupParams(item)))
+
+    if (cachedListings) {
+        localBarterListings.value = cachedListings
+        activeBarterPopupOpen.value = true
+
+        return
+    }
+
+    await loadBarterItemListings(item)
 }
 
 const openMarketItem = async (item) => {
@@ -750,17 +901,55 @@ const openMarketItem = async (item) => {
     await loadMarketOrderBook(item)
 }
 
-const prefetchMarketOrderBooks = () => {
-    if (isBarterTool.value || !(props.market.items ?? []).length) {
+const prefetchMarketItemStats = (item) => {
+    if (isBarterTool.value) {
+        prefetchBarterItemListings(item)
+
         return
     }
 
-    const candidates = (props.market.items ?? [])
-        .filter((item) => Number(item.sellOrderCount ?? 0) + Number(item.buyOrderCount ?? 0) > 0)
-        .slice(0, 3)
+    if (Number(item.sellOrderCount ?? 0) + Number(item.buyOrderCount ?? 0) <= 0) {
+        return
+    }
 
-    for (const item of candidates) {
-        prefetchMarketOrderBook(item)
+    prefetchMarketOrderBook(item)
+}
+
+const prefetchBarterItemListings = async (item) => {
+    if (Number(item.sellOrderCount ?? 0) + Number(item.buyOrderCount ?? 0) <= 0) {
+        return
+    }
+
+    const params = barterListingLookupParams(item)
+    const key = barterListingsCacheKey(params)
+
+    if (prefetchedBarterListings.value.has(key) || prefetchingBarterListings.value.has(key)) {
+        return
+    }
+
+    prefetchingBarterListings.value = new Set([...prefetchingBarterListings.value, key])
+
+    try {
+        const response = await fetch(route('bitcraft.barter-stalls.listings', params), {
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+
+        if (!response.ok) {
+            return
+        }
+
+        const payload = await response.json()
+        const listings = Array.isArray(payload.listings) ? payload.listings : []
+        const barterListings = new Map(prefetchedBarterListings.value)
+        barterListings.set(key, listings)
+        prefetchedBarterListings.value = barterListings
+    } finally {
+        const prefetching = new Set(prefetchingBarterListings.value)
+        prefetching.delete(key)
+        prefetchingBarterListings.value = prefetching
     }
 }
 
@@ -834,6 +1023,36 @@ const loadMarketOrderBook = async (item) => {
     }
 }
 
+const loadBarterItemListings = async (item) => {
+    const params = barterListingLookupParams(item)
+    const key = barterListingsCacheKey(params)
+
+    searching.value = true
+
+    try {
+        const response = await fetch(route('bitcraft.barter-stalls.listings', params), {
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+
+        if (!response.ok) {
+            return
+        }
+
+        const payload = await response.json()
+        const listings = Array.isArray(payload.listings) ? payload.listings : []
+        const barterListings = new Map(prefetchedBarterListings.value)
+        barterListings.set(key, listings)
+        prefetchedBarterListings.value = barterListings
+        localBarterListings.value = listings
+        activeBarterPopupOpen.value = true
+    } finally {
+        searching.value = false
+    }
+}
+
 const clearDebouncedSearch = () => {
     if (debouncedSearchTimer) {
         clearTimeout(debouncedSearchTimer)
@@ -874,32 +1093,6 @@ const scheduleDebouncedSearch = () => {
     }, 450)
 }
 
-watch(() => [props.tool.key, props.market.items, props.filters.region, props.filters.claimEntityId], () => {
-    prefetchMarketOrderBooks()
-}, { flush: 'post', immediate: true })
-
-const setSide = (side, item = null) => {
-    if (item && isBarterTool.value) {
-        activeBarterItemId.value = String(item.id)
-        activeBarterItemKind.value = String(item.kind ?? item.type ?? 'item')
-        activeBarterSide.value = side
-        activeBarterPopupOpen.value = true
-
-        return
-    }
-
-    if (isBarterTool.value) {
-        activeBarterSide.value = side
-
-        return
-    }
-
-    form.side = side
-    const params = item ? marketItemParams(item, side) : cleanPayload()
-
-    visitTool(route(props.tool.routeName ?? 'bitcraft.market', params), {})
-}
-
 const barterListingMatchesActiveItem = (listing) => {
     if (!activeBarterItemId.value) {
         return false
@@ -913,17 +1106,19 @@ const barterListingMatchesActiveItem = (listing) => {
         return false
     }
 
-    return !activeBarterSide.value || listing.side === activeBarterSide.value
+    return true
 }
 
-const closeBarterPopup = () => {
+const closeOrderBookPopup = () => {
+    if (!isBarterTool.value) {
+        activeMarketPopupOpen.value = false
+
+        return
+    }
+
     activeBarterPopupOpen.value = false
     activeBarterItemId.value = ''
     activeBarterItemKind.value = ''
-}
-
-const closeMarketPopup = () => {
-    activeMarketPopupOpen.value = false
 }
 
 const marketClaimHref = (order) => route(props.tool.routeName ?? 'bitcraft.market', {
@@ -931,6 +1126,74 @@ const marketClaimHref = (order) => route(props.tool.routeName ?? 'bitcraft.marke
     ...(order.claimName ? { claimQ: order.claimName } : {}),
     claimEntityId: order.claimEntityId,
 })
+
+const barterListingToOrder = (listing) => ({
+    entityId: listing.entityId,
+    side: listing.side,
+    price: listing.price,
+    quantity: listing.quantity,
+    claimEntityId: listing.claimEntityId,
+    claimName: listing.claimName,
+    locationName: listing.stall?.name ?? listing.claimName,
+    regionName: listing.regionName,
+    ownerUsername: listing.ownerUsername ?? listing.stall?.ownerName,
+    updatedAt: listing.updatedAt,
+    source: listing.source,
+    itemName: listing.itemName,
+    itemTier: listing.itemTier,
+    itemRarity: listing.itemRarity,
+    offerSummary: listing.offerSummary,
+    requiredSummary: listing.requiredSummary,
+    bundlePrice: listing.bundlePrice,
+    priceCurrency: listing.priceCurrency,
+    stallMatchStatus: listing.stallMatchStatus,
+    stallName: listing.stall?.name,
+    stallBuildingName: listing.stall?.buildingName,
+    stallEntityId: listing.stall?.entityId,
+    stallOwnerName: listing.stall?.ownerName,
+    stallLocationX: listing.stall?.locationX,
+    stallLocationZ: listing.stall?.locationZ,
+})
+
+const barterOrderBookStats = (sellOrders, buyOrders) => ({
+    lowestSell: minOrderValue(sellOrders, 'price'),
+    highestBuy: maxOrderValue(buyOrders, 'price'),
+    sellOrderCount: sellOrders.length,
+    buyOrderCount: buyOrders.length,
+    lastUpdated: latestOrderTimestamp([...sellOrders, ...buyOrders]),
+})
+
+const minOrderValue = (orders, key) => {
+    const values = orders.map((order) => numericValue(order[key])).filter((value) => value !== null)
+
+    return values.length ? Math.min(...values) : null
+}
+
+const maxOrderValue = (orders, key) => {
+    const values = orders.map((order) => numericValue(order[key])).filter((value) => value !== null)
+
+    return values.length ? Math.max(...values) : null
+}
+
+const latestOrderTimestamp = (orders) => {
+    let latest = null
+    let latestTime = -Infinity
+
+    for (const order of orders) {
+        if (!order.updatedAt) {
+            continue
+        }
+
+        const time = Date.parse(String(order.updatedAt).replace(' ', 'T').replace(/([+-]\d{2})$/, '$1:00'))
+
+        if (Number.isFinite(time) && time > latestTime) {
+            latest = order.updatedAt
+            latestTime = time
+        }
+    }
+
+    return latest
+}
 
 const rememberScroll = () => {
     sessionStorage.setItem(scrollStorageKey.value, String(window.scrollY))
@@ -1008,7 +1271,7 @@ const formatCoins = (value) => {
     return Number.isFinite(number) ? number.toLocaleString() : String(value)
 }
 
-const numericValue = (value) => {
+function numericValue(value) {
     const number = Number(value)
 
     return Number.isFinite(number) ? number : null
@@ -1026,6 +1289,14 @@ const formatCount = (value) => {
     }
 
     return Number.isFinite(number) ? number.toLocaleString() : String(value)
+}
+
+const formatOptionalCount = (value) => {
+    if (value === null || value === undefined || value === '') {
+        return '—'
+    }
+
+    return formatCount(value)
 }
 
 </script>
@@ -1206,6 +1477,44 @@ const formatCount = (value) => {
 
 .market-search-toggle.is-active .market-search-toggle__hint {
     color: var(--accent-cyan-2);
+}
+
+.market-item-card {
+    position: relative;
+    z-index: 0;
+    border: 1px solid rgb(var(--border-color-2-rgb) / 0.28);
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.16), rgb(var(--bg-surface-rgb) / 0.94)),
+        var(--bg-surface);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.035);
+    transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.market-item-card:hover,
+.market-item-card:focus-within {
+    z-index: 1;
+    border-color: rgb(var(--accent-cyan-rgb) / 0.56);
+    background:
+        linear-gradient(180deg, rgb(var(--bg-surface-4-rgb) / 0.24), rgb(var(--bg-surface-2-rgb) / 0.98)),
+        var(--bg-surface-2);
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.06),
+        0 14px 34px rgb(0 0 0 / 0.32),
+        0 0 0 1px rgb(var(--accent-cyan-rgb) / 0.08),
+        0 0 28px rgb(var(--accent-cyan-rgb) / 0.1);
+    transform: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .market-item-card {
+        transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .market-item-card:hover,
+    .market-item-card:focus-within {
+        transform: none;
+    }
 }
 
 .market-item-icon {

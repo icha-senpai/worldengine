@@ -395,7 +395,8 @@ class BitjitaClient
     private function filledQuery(array $query): array
     {
         return collect($query)
-            ->reject(fn ($value) => $value === null || $value === '')
+            ->reject(fn ($value) => $value === null || $value === '' || $value === false)
+            ->map(fn ($value) => $value === true ? 'true' : $value)
             ->all();
     }
 }

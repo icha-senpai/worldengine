@@ -115,382 +115,382 @@ Generated at: 2026-08-06T07:55:50+00:00
 | fishing | 5 | common | Roadside Tidehook Rod | Ashwood Plank | Sunfield Grain |
 | fishing | 10 | uncommon | Bench-Made Tidehook Rod | Ashwood Plank | Minor Ward Oil |
 | fishing | 20 | uncommon | Guildhall Tidehook Rod | Ashwood Plank | Prism Lens |
-| fishing | 30 | rare | Inscribed Tidehook Rod | Ashwood Plank |  |
-| fishing | 40 | rare | Weatherproof Tidehook Rod | Ashwood Plank |  |
-| fishing | 50 | rare | Highroad Tidehook Rod | Ashwood Plank |  |
-| fishing | 65 | epic | Oldhall Tidehook Rod | Ashwood Plank |  |
-| fishing | 80 | legendary | Gatewright Tidehook Rod | Ashwood Plank |  |
-| fishing | 100 | mythic | Firsthall Tidehook Rod | Ashwood Plank |  |
+| fishing | 30 | rare | Inscribed Tidehook Rod | Ashwood Plank ||
+| fishing | 40 | rare | Weatherproof Tidehook Rod | Ashwood Plank ||
+| fishing | 50 | rare | Highroad Tidehook Rod | Ashwood Plank ||
+| fishing | 65 | epic | Oldhall Tidehook Rod | Ashwood Plank ||
+| fishing | 80 | legendary | Gatewright Tidehook Rod | Ashwood Plank ||
+| fishing | 100 | mythic | Firsthall Tidehook Rod | Ashwood Plank ||
 | mining | 1 | common | Workshop Stonebite Pickaxe | Iron Bar | Amber Sap |
 | mining | 5 | common | Roadside Stonebite Pickaxe | Iron Bar | Sunfield Grain |
 | mining | 10 | uncommon | Bench-Made Stonebite Pickaxe | Iron Bar | Minor Ward Oil |
 | mining | 20 | uncommon | Guildhall Stonebite Pickaxe | Iron Bar | Prism Lens |
-| mining | 30 | rare | Inscribed Stonebite Pickaxe | Iron Bar |  |
-| mining | 40 | rare | Weatherproof Stonebite Pickaxe | Iron Bar |  |
-| mining | 50 | rare | Highroad Stonebite Pickaxe | Iron Bar |  |
-| mining | 65 | epic | Oldhall Stonebite Pickaxe | Iron Bar |  |
-| mining | 80 | legendary | Gatewright Stonebite Pickaxe | Iron Bar |  |
-| mining | 100 | mythic | Firsthall Stonebite Pickaxe | Iron Bar |  |
+| mining | 30 | rare | Inscribed Stonebite Pickaxe | Iron Bar ||
+| mining | 40 | rare | Weatherproof Stonebite Pickaxe | Iron Bar ||
+| mining | 50 | rare | Highroad Stonebite Pickaxe | Iron Bar ||
+| mining | 65 | epic | Oldhall Stonebite Pickaxe | Iron Bar ||
+| mining | 80 | legendary | Gatewright Stonebite Pickaxe | Iron Bar ||
+| mining | 100 | mythic | Firsthall Stonebite Pickaxe | Iron Bar ||
 | woodcutting | 1 | common | Workshop Boughsplitter Hatchet | Iron Bar | Amber Sap |
 | woodcutting | 5 | common | Roadside Boughsplitter Hatchet | Iron Bar | Sunfield Grain |
 | woodcutting | 10 | uncommon | Bench-Made Boughsplitter Hatchet | Iron Bar | Minor Ward Oil |
 | woodcutting | 20 | uncommon | Guildhall Boughsplitter Hatchet | Iron Bar | Prism Lens |
-| woodcutting | 30 | rare | Inscribed Boughsplitter Hatchet | Iron Bar |  |
-| woodcutting | 40 | rare | Weatherproof Boughsplitter Hatchet | Iron Bar |  |
-| woodcutting | 50 | rare | Highroad Boughsplitter Hatchet | Iron Bar |  |
-| woodcutting | 65 | epic | Oldhall Boughsplitter Hatchet | Iron Bar |  |
-| woodcutting | 80 | legendary | Gatewright Boughsplitter Hatchet | Iron Bar |  |
-| woodcutting | 100 | mythic | Firsthall Boughsplitter Hatchet | Iron Bar |  |
+| woodcutting | 30 | rare | Inscribed Boughsplitter Hatchet | Iron Bar ||
+| woodcutting | 40 | rare | Weatherproof Boughsplitter Hatchet | Iron Bar ||
+| woodcutting | 50 | rare | Highroad Boughsplitter Hatchet | Iron Bar ||
+| woodcutting | 65 | epic | Oldhall Boughsplitter Hatchet | Iron Bar ||
+| woodcutting | 80 | legendary | Gatewright Boughsplitter Hatchet | Iron Bar ||
+| woodcutting | 100 | mythic | Firsthall Boughsplitter Hatchet | Iron Bar ||
 | foraging | 1 | common | Workshop Mosskeeper Satchel | Fiber Thread | Amber Sap |
 | foraging | 5 | common | Roadside Mosskeeper Satchel | Fiber Thread | Sunfield Grain |
 | foraging | 10 | uncommon | Bench-Made Mosskeeper Satchel | Fiber Thread | Minor Ward Oil |
 | foraging | 20 | uncommon | Guildhall Mosskeeper Satchel | Fiber Thread | Prism Lens |
-| foraging | 30 | rare | Inscribed Mosskeeper Satchel | Fiber Thread |  |
-| foraging | 40 | rare | Weatherproof Mosskeeper Satchel | Fiber Thread |  |
-| foraging | 50 | rare | Highroad Mosskeeper Satchel | Fiber Thread |  |
-| foraging | 65 | epic | Oldhall Mosskeeper Satchel | Fiber Thread |  |
-| foraging | 80 | legendary | Gatewright Mosskeeper Satchel | Fiber Thread |  |
-| foraging | 100 | mythic | Firsthall Mosskeeper Satchel | Fiber Thread |  |
+| foraging | 30 | rare | Inscribed Mosskeeper Satchel | Fiber Thread ||
+| foraging | 40 | rare | Weatherproof Mosskeeper Satchel | Fiber Thread ||
+| foraging | 50 | rare | Highroad Mosskeeper Satchel | Fiber Thread ||
+| foraging | 65 | epic | Oldhall Mosskeeper Satchel | Fiber Thread ||
+| foraging | 80 | legendary | Gatewright Mosskeeper Satchel | Fiber Thread ||
+| foraging | 100 | mythic | Firsthall Mosskeeper Satchel | Fiber Thread ||
 | hunting | 1 | common | Workshop Snarefang Trap Kit | Cured Leather | Amber Sap |
 | hunting | 5 | common | Roadside Snarefang Trap Kit | Cured Leather | Sunfield Grain |
 | hunting | 10 | uncommon | Bench-Made Snarefang Trap Kit | Cured Leather | Minor Ward Oil |
 | hunting | 20 | uncommon | Guildhall Snarefang Trap Kit | Cured Leather | Prism Lens |
-| hunting | 30 | rare | Inscribed Snarefang Trap Kit | Cured Leather |  |
-| hunting | 40 | rare | Weatherproof Snarefang Trap Kit | Cured Leather |  |
-| hunting | 50 | rare | Highroad Snarefang Trap Kit | Cured Leather |  |
-| hunting | 65 | epic | Oldhall Snarefang Trap Kit | Cured Leather |  |
-| hunting | 80 | legendary | Gatewright Snarefang Trap Kit | Cured Leather |  |
-| hunting | 100 | mythic | Firsthall Snarefang Trap Kit | Cured Leather |  |
+| hunting | 30 | rare | Inscribed Snarefang Trap Kit | Cured Leather ||
+| hunting | 40 | rare | Weatherproof Snarefang Trap Kit | Cured Leather ||
+| hunting | 50 | rare | Highroad Snarefang Trap Kit | Cured Leather ||
+| hunting | 65 | epic | Oldhall Snarefang Trap Kit | Cured Leather ||
+| hunting | 80 | legendary | Gatewright Snarefang Trap Kit | Cured Leather ||
+| hunting | 100 | mythic | Firsthall Snarefang Trap Kit | Cured Leather ||
 | farming | 1 | common | Workshop Seedwake Cultivator | Clockwork Spring | Amber Sap |
 | farming | 5 | common | Roadside Seedwake Cultivator | Clockwork Spring | Sunfield Grain |
 | farming | 10 | uncommon | Bench-Made Seedwake Cultivator | Clockwork Spring | Minor Ward Oil |
 | farming | 20 | uncommon | Guildhall Seedwake Cultivator | Clockwork Spring | Prism Lens |
-| farming | 30 | rare | Inscribed Seedwake Cultivator | Clockwork Spring |  |
-| farming | 40 | rare | Weatherproof Seedwake Cultivator | Clockwork Spring |  |
-| farming | 50 | rare | Highroad Seedwake Cultivator | Clockwork Spring |  |
-| farming | 65 | epic | Oldhall Seedwake Cultivator | Clockwork Spring |  |
-| farming | 80 | legendary | Gatewright Seedwake Cultivator | Clockwork Spring |  |
-| farming | 100 | mythic | Firsthall Seedwake Cultivator | Clockwork Spring |  |
+| farming | 30 | rare | Inscribed Seedwake Cultivator | Clockwork Spring ||
+| farming | 40 | rare | Weatherproof Seedwake Cultivator | Clockwork Spring ||
+| farming | 50 | rare | Highroad Seedwake Cultivator | Clockwork Spring ||
+| farming | 65 | epic | Oldhall Seedwake Cultivator | Clockwork Spring ||
+| farming | 80 | legendary | Gatewright Seedwake Cultivator | Clockwork Spring ||
+| farming | 100 | mythic | Firsthall Seedwake Cultivator | Clockwork Spring ||
 | excavation | 1 | common | Workshop Relicprobe Survey Trowel | Relic Fragment | Amber Sap |
 | excavation | 5 | common | Roadside Relicprobe Survey Trowel | Relic Fragment | Sunfield Grain |
 | excavation | 10 | uncommon | Bench-Made Relicprobe Survey Trowel | Relic Fragment | Minor Ward Oil |
 | excavation | 20 | uncommon | Guildhall Relicprobe Survey Trowel | Relic Fragment | Prism Lens |
-| excavation | 30 | rare | Inscribed Relicprobe Survey Trowel | Relic Fragment |  |
-| excavation | 40 | rare | Weatherproof Relicprobe Survey Trowel | Relic Fragment |  |
-| excavation | 50 | rare | Highroad Relicprobe Survey Trowel | Relic Fragment |  |
-| excavation | 65 | epic | Oldhall Relicprobe Survey Trowel | Relic Fragment |  |
-| excavation | 80 | legendary | Gatewright Relicprobe Survey Trowel | Relic Fragment |  |
-| excavation | 100 | mythic | Firsthall Relicprobe Survey Trowel | Relic Fragment |  |
+| excavation | 30 | rare | Inscribed Relicprobe Survey Trowel | Relic Fragment ||
+| excavation | 40 | rare | Weatherproof Relicprobe Survey Trowel | Relic Fragment ||
+| excavation | 50 | rare | Highroad Relicprobe Survey Trowel | Relic Fragment ||
+| excavation | 65 | epic | Oldhall Relicprobe Survey Trowel | Relic Fragment ||
+| excavation | 80 | legendary | Gatewright Relicprobe Survey Trowel | Relic Fragment ||
+| excavation | 100 | mythic | Firsthall Relicprobe Survey Trowel | Relic Fragment ||
 | smelting | 1 | common | Workshop Coalbed Crucible | Coal Chunk | Amber Sap |
 | smelting | 5 | common | Roadside Coalbed Crucible | Coal Chunk | Sunfield Grain |
 | smelting | 10 | uncommon | Bench-Made Coalbed Crucible | Coal Chunk | Minor Ward Oil |
 | smelting | 20 | uncommon | Guildhall Coalbed Crucible | Coal Chunk | Prism Lens |
-| smelting | 30 | rare | Inscribed Coalbed Crucible | Coal Chunk |  |
-| smelting | 40 | rare | Weatherproof Coalbed Crucible | Coal Chunk |  |
-| smelting | 50 | rare | Highroad Coalbed Crucible | Coal Chunk |  |
-| smelting | 65 | epic | Oldhall Coalbed Crucible | Coal Chunk |  |
-| smelting | 80 | legendary | Gatewright Coalbed Crucible | Coal Chunk |  |
-| smelting | 100 | mythic | Firsthall Coalbed Crucible | Coal Chunk |  |
+| smelting | 30 | rare | Inscribed Coalbed Crucible | Coal Chunk ||
+| smelting | 40 | rare | Weatherproof Coalbed Crucible | Coal Chunk ||
+| smelting | 50 | rare | Highroad Coalbed Crucible | Coal Chunk ||
+| smelting | 65 | epic | Oldhall Coalbed Crucible | Coal Chunk ||
+| smelting | 80 | legendary | Gatewright Coalbed Crucible | Coal Chunk ||
+| smelting | 100 | mythic | Firsthall Coalbed Crucible | Coal Chunk ||
 | milling | 1 | common | Workshop Whisperplane Hand Plane | Ashwood Log | Amber Sap |
 | milling | 5 | common | Roadside Whisperplane Hand Plane | Ashwood Log | Sunfield Grain |
 | milling | 10 | uncommon | Bench-Made Whisperplane Hand Plane | Ashwood Log | Minor Ward Oil |
 | milling | 20 | uncommon | Guildhall Whisperplane Hand Plane | Ashwood Log | Prism Lens |
-| milling | 30 | rare | Inscribed Whisperplane Hand Plane | Ashwood Log |  |
-| milling | 40 | rare | Weatherproof Whisperplane Hand Plane | Ashwood Log |  |
-| milling | 50 | rare | Highroad Whisperplane Hand Plane | Ashwood Log |  |
-| milling | 65 | epic | Oldhall Whisperplane Hand Plane | Ashwood Log |  |
-| milling | 80 | legendary | Gatewright Whisperplane Hand Plane | Ashwood Log |  |
-| milling | 100 | mythic | Firsthall Whisperplane Hand Plane | Ashwood Log |  |
+| milling | 30 | rare | Inscribed Whisperplane Hand Plane | Ashwood Log ||
+| milling | 40 | rare | Weatherproof Whisperplane Hand Plane | Ashwood Log ||
+| milling | 50 | rare | Highroad Whisperplane Hand Plane | Ashwood Log ||
+| milling | 65 | epic | Oldhall Whisperplane Hand Plane | Ashwood Log ||
+| milling | 80 | legendary | Gatewright Whisperplane Hand Plane | Ashwood Log ||
+| milling | 100 | mythic | Firsthall Whisperplane Hand Plane | Ashwood Log ||
 | tanning | 1 | common | Workshop Briarhide Curing Rack | Soft Hide | Amber Sap |
 | tanning | 5 | common | Roadside Briarhide Curing Rack | Soft Hide | Sunfield Grain |
 | tanning | 10 | uncommon | Bench-Made Briarhide Curing Rack | Soft Hide | Minor Ward Oil |
 | tanning | 20 | uncommon | Guildhall Briarhide Curing Rack | Soft Hide | Prism Lens |
-| tanning | 30 | rare | Inscribed Briarhide Curing Rack | Soft Hide |  |
-| tanning | 40 | rare | Weatherproof Briarhide Curing Rack | Soft Hide |  |
-| tanning | 50 | rare | Highroad Briarhide Curing Rack | Soft Hide |  |
-| tanning | 65 | epic | Oldhall Briarhide Curing Rack | Soft Hide |  |
-| tanning | 80 | legendary | Gatewright Briarhide Curing Rack | Soft Hide |  |
-| tanning | 100 | mythic | Firsthall Briarhide Curing Rack | Soft Hide |  |
+| tanning | 30 | rare | Inscribed Briarhide Curing Rack | Soft Hide ||
+| tanning | 40 | rare | Weatherproof Briarhide Curing Rack | Soft Hide ||
+| tanning | 50 | rare | Highroad Briarhide Curing Rack | Soft Hide ||
+| tanning | 65 | epic | Oldhall Briarhide Curing Rack | Soft Hide ||
+| tanning | 80 | legendary | Gatewright Briarhide Curing Rack | Soft Hide ||
+| tanning | 100 | mythic | Firsthall Briarhide Curing Rack | Soft Hide ||
 | cutting | 1 | common | Workshop Prismfacet Lapidary Kit | Rough Gem | Amber Sap |
 | cutting | 5 | common | Roadside Prismfacet Lapidary Kit | Rough Gem | Sunfield Grain |
 | cutting | 10 | uncommon | Bench-Made Prismfacet Lapidary Kit | Rough Gem | Minor Ward Oil |
 | cutting | 20 | uncommon | Guildhall Prismfacet Lapidary Kit | Rough Gem | Prism Lens |
-| cutting | 30 | rare | Inscribed Prismfacet Lapidary Kit | Rough Gem |  |
-| cutting | 40 | rare | Weatherproof Prismfacet Lapidary Kit | Rough Gem |  |
-| cutting | 50 | rare | Highroad Prismfacet Lapidary Kit | Rough Gem |  |
-| cutting | 65 | epic | Oldhall Prismfacet Lapidary Kit | Rough Gem |  |
-| cutting | 80 | legendary | Gatewright Prismfacet Lapidary Kit | Rough Gem |  |
-| cutting | 100 | mythic | Firsthall Prismfacet Lapidary Kit | Rough Gem |  |
+| cutting | 30 | rare | Inscribed Prismfacet Lapidary Kit | Rough Gem ||
+| cutting | 40 | rare | Weatherproof Prismfacet Lapidary Kit | Rough Gem ||
+| cutting | 50 | rare | Highroad Prismfacet Lapidary Kit | Rough Gem ||
+| cutting | 65 | epic | Oldhall Prismfacet Lapidary Kit | Rough Gem ||
+| cutting | 80 | legendary | Gatewright Prismfacet Lapidary Kit | Rough Gem ||
+| cutting | 100 | mythic | Firsthall Prismfacet Lapidary Kit | Rough Gem ||
 | weaving | 1 | common | Workshop Sunshuttle Loom Shuttle | Fiber Thread | Amber Sap |
 | weaving | 5 | common | Roadside Sunshuttle Loom Shuttle | Fiber Thread | Sunfield Grain |
 | weaving | 10 | uncommon | Bench-Made Sunshuttle Loom Shuttle | Fiber Thread | Minor Ward Oil |
 | weaving | 20 | uncommon | Guildhall Sunshuttle Loom Shuttle | Fiber Thread | Prism Lens |
-| weaving | 30 | rare | Inscribed Sunshuttle Loom Shuttle | Fiber Thread |  |
-| weaving | 40 | rare | Weatherproof Sunshuttle Loom Shuttle | Fiber Thread |  |
-| weaving | 50 | rare | Highroad Sunshuttle Loom Shuttle | Fiber Thread |  |
-| weaving | 65 | epic | Oldhall Sunshuttle Loom Shuttle | Fiber Thread |  |
-| weaving | 80 | legendary | Gatewright Sunshuttle Loom Shuttle | Fiber Thread |  |
-| weaving | 100 | mythic | Firsthall Sunshuttle Loom Shuttle | Fiber Thread |  |
+| weaving | 30 | rare | Inscribed Sunshuttle Loom Shuttle | Fiber Thread ||
+| weaving | 40 | rare | Weatherproof Sunshuttle Loom Shuttle | Fiber Thread ||
+| weaving | 50 | rare | Highroad Sunshuttle Loom Shuttle | Fiber Thread ||
+| weaving | 65 | epic | Oldhall Sunshuttle Loom Shuttle | Fiber Thread ||
+| weaving | 80 | legendary | Gatewright Sunshuttle Loom Shuttle | Fiber Thread ||
+| weaving | 100 | mythic | Firsthall Sunshuttle Loom Shuttle | Fiber Thread ||
 | smithing | 1 | common | Workshop Ironhand Hammer | Iron Bar | Amber Sap |
 | smithing | 5 | common | Roadside Ironhand Hammer | Iron Bar | Sunfield Grain |
 | smithing | 10 | uncommon | Bench-Made Ironhand Hammer | Iron Bar | Minor Ward Oil |
 | smithing | 20 | uncommon | Guildhall Ironhand Hammer | Iron Bar | Prism Lens |
-| smithing | 30 | rare | Inscribed Ironhand Hammer | Iron Bar |  |
-| smithing | 40 | rare | Weatherproof Ironhand Hammer | Iron Bar |  |
-| smithing | 50 | rare | Highroad Ironhand Hammer | Iron Bar |  |
-| smithing | 65 | epic | Oldhall Ironhand Hammer | Iron Bar |  |
-| smithing | 80 | legendary | Gatewright Ironhand Hammer | Iron Bar |  |
-| smithing | 100 | mythic | Firsthall Ironhand Hammer | Iron Bar |  |
+| smithing | 30 | rare | Inscribed Ironhand Hammer | Iron Bar ||
+| smithing | 40 | rare | Weatherproof Ironhand Hammer | Iron Bar ||
+| smithing | 50 | rare | Highroad Ironhand Hammer | Iron Bar ||
+| smithing | 65 | epic | Oldhall Ironhand Hammer | Iron Bar ||
+| smithing | 80 | legendary | Gatewright Ironhand Hammer | Iron Bar ||
+| smithing | 100 | mythic | Firsthall Ironhand Hammer | Iron Bar ||
 | carpentry | 1 | common | Workshop Dovetail Carving Kit | Ashwood Plank | Amber Sap |
 | carpentry | 5 | common | Roadside Dovetail Carving Kit | Ashwood Plank | Sunfield Grain |
 | carpentry | 10 | uncommon | Bench-Made Dovetail Carving Kit | Ashwood Plank | Minor Ward Oil |
 | carpentry | 20 | uncommon | Guildhall Dovetail Carving Kit | Ashwood Plank | Prism Lens |
-| carpentry | 30 | rare | Inscribed Dovetail Carving Kit | Ashwood Plank |  |
-| carpentry | 40 | rare | Weatherproof Dovetail Carving Kit | Ashwood Plank |  |
-| carpentry | 50 | rare | Highroad Dovetail Carving Kit | Ashwood Plank |  |
-| carpentry | 65 | epic | Oldhall Dovetail Carving Kit | Ashwood Plank |  |
-| carpentry | 80 | legendary | Gatewright Dovetail Carving Kit | Ashwood Plank |  |
-| carpentry | 100 | mythic | Firsthall Dovetail Carving Kit | Ashwood Plank |  |
+| carpentry | 30 | rare | Inscribed Dovetail Carving Kit | Ashwood Plank ||
+| carpentry | 40 | rare | Weatherproof Dovetail Carving Kit | Ashwood Plank ||
+| carpentry | 50 | rare | Highroad Dovetail Carving Kit | Ashwood Plank ||
+| carpentry | 65 | epic | Oldhall Dovetail Carving Kit | Ashwood Plank ||
+| carpentry | 80 | legendary | Gatewright Dovetail Carving Kit | Ashwood Plank ||
+| carpentry | 100 | mythic | Firsthall Dovetail Carving Kit | Ashwood Plank ||
 | cooking | 1 | common | Workshop Hearthgrain Cook Kit | Sunfield Grain | Amber Sap |
 | cooking | 5 | common | Roadside Hearthgrain Cook Kit | Sunfield Grain | Sunfield Grain |
 | cooking | 10 | uncommon | Bench-Made Hearthgrain Cook Kit | Sunfield Grain | Minor Ward Oil |
 | cooking | 20 | uncommon | Guildhall Hearthgrain Cook Kit | Sunfield Grain | Prism Lens |
-| cooking | 30 | rare | Inscribed Hearthgrain Cook Kit | Sunfield Grain |  |
-| cooking | 40 | rare | Weatherproof Hearthgrain Cook Kit | Sunfield Grain |  |
-| cooking | 50 | rare | Highroad Hearthgrain Cook Kit | Sunfield Grain |  |
-| cooking | 65 | epic | Oldhall Hearthgrain Cook Kit | Sunfield Grain |  |
-| cooking | 80 | legendary | Gatewright Hearthgrain Cook Kit | Sunfield Grain |  |
-| cooking | 100 | mythic | Firsthall Hearthgrain Cook Kit | Sunfield Grain |  |
+| cooking | 30 | rare | Inscribed Hearthgrain Cook Kit | Sunfield Grain ||
+| cooking | 40 | rare | Weatherproof Hearthgrain Cook Kit | Sunfield Grain ||
+| cooking | 50 | rare | Highroad Hearthgrain Cook Kit | Sunfield Grain ||
+| cooking | 65 | epic | Oldhall Hearthgrain Cook Kit | Sunfield Grain ||
+| cooking | 80 | legendary | Gatewright Hearthgrain Cook Kit | Sunfield Grain ||
+| cooking | 100 | mythic | Firsthall Hearthgrain Cook Kit | Sunfield Grain ||
 | alchemy | 1 | common | Workshop Mooncap Alembic | Mooncap Mushroom | Amber Sap |
 | alchemy | 5 | common | Roadside Mooncap Alembic | Mooncap Mushroom | Sunfield Grain |
 | alchemy | 10 | uncommon | Bench-Made Mooncap Alembic | Mooncap Mushroom | Minor Ward Oil |
 | alchemy | 20 | uncommon | Guildhall Mooncap Alembic | Mooncap Mushroom | Prism Lens |
-| alchemy | 30 | rare | Inscribed Mooncap Alembic | Mooncap Mushroom |  |
-| alchemy | 40 | rare | Weatherproof Mooncap Alembic | Mooncap Mushroom |  |
-| alchemy | 50 | rare | Highroad Mooncap Alembic | Mooncap Mushroom |  |
-| alchemy | 65 | epic | Oldhall Mooncap Alembic | Mooncap Mushroom |  |
-| alchemy | 80 | legendary | Gatewright Mooncap Alembic | Mooncap Mushroom |  |
-| alchemy | 100 | mythic | Firsthall Mooncap Alembic | Mooncap Mushroom |  |
+| alchemy | 30 | rare | Inscribed Mooncap Alembic | Mooncap Mushroom ||
+| alchemy | 40 | rare | Weatherproof Mooncap Alembic | Mooncap Mushroom ||
+| alchemy | 50 | rare | Highroad Mooncap Alembic | Mooncap Mushroom ||
+| alchemy | 65 | epic | Oldhall Mooncap Alembic | Mooncap Mushroom ||
+| alchemy | 80 | legendary | Gatewright Mooncap Alembic | Mooncap Mushroom ||
+| alchemy | 100 | mythic | Firsthall Mooncap Alembic | Mooncap Mushroom ||
 | tailoring | 1 | common | Workshop Threadneedle Needle Kit | Fiber Thread | Amber Sap |
 | tailoring | 5 | common | Roadside Threadneedle Needle Kit | Fiber Thread | Sunfield Grain |
 | tailoring | 10 | uncommon | Bench-Made Threadneedle Needle Kit | Fiber Thread | Minor Ward Oil |
 | tailoring | 20 | uncommon | Guildhall Threadneedle Needle Kit | Fiber Thread | Prism Lens |
-| tailoring | 30 | rare | Inscribed Threadneedle Needle Kit | Fiber Thread |  |
-| tailoring | 40 | rare | Weatherproof Threadneedle Needle Kit | Fiber Thread |  |
-| tailoring | 50 | rare | Highroad Threadneedle Needle Kit | Fiber Thread |  |
-| tailoring | 65 | epic | Oldhall Threadneedle Needle Kit | Fiber Thread |  |
-| tailoring | 80 | legendary | Gatewright Threadneedle Needle Kit | Fiber Thread |  |
-| tailoring | 100 | mythic | Firsthall Threadneedle Needle Kit | Fiber Thread |  |
+| tailoring | 30 | rare | Inscribed Threadneedle Needle Kit | Fiber Thread ||
+| tailoring | 40 | rare | Weatherproof Threadneedle Needle Kit | Fiber Thread ||
+| tailoring | 50 | rare | Highroad Threadneedle Needle Kit | Fiber Thread ||
+| tailoring | 65 | epic | Oldhall Threadneedle Needle Kit | Fiber Thread ||
+| tailoring | 80 | legendary | Gatewright Threadneedle Needle Kit | Fiber Thread ||
+| tailoring | 100 | mythic | Firsthall Threadneedle Needle Kit | Fiber Thread ||
 | leatherworking | 1 | common | Workshop Hideworn Awl Kit | Cured Leather | Amber Sap |
 | leatherworking | 5 | common | Roadside Hideworn Awl Kit | Cured Leather | Sunfield Grain |
 | leatherworking | 10 | uncommon | Bench-Made Hideworn Awl Kit | Cured Leather | Minor Ward Oil |
 | leatherworking | 20 | uncommon | Guildhall Hideworn Awl Kit | Cured Leather | Prism Lens |
-| leatherworking | 30 | rare | Inscribed Hideworn Awl Kit | Cured Leather |  |
-| leatherworking | 40 | rare | Weatherproof Hideworn Awl Kit | Cured Leather |  |
-| leatherworking | 50 | rare | Highroad Hideworn Awl Kit | Cured Leather |  |
-| leatherworking | 65 | epic | Oldhall Hideworn Awl Kit | Cured Leather |  |
-| leatherworking | 80 | legendary | Gatewright Hideworn Awl Kit | Cured Leather |  |
-| leatherworking | 100 | mythic | Firsthall Hideworn Awl Kit | Cured Leather |  |
+| leatherworking | 30 | rare | Inscribed Hideworn Awl Kit | Cured Leather ||
+| leatherworking | 40 | rare | Weatherproof Hideworn Awl Kit | Cured Leather ||
+| leatherworking | 50 | rare | Highroad Hideworn Awl Kit | Cured Leather ||
+| leatherworking | 65 | epic | Oldhall Hideworn Awl Kit | Cured Leather ||
+| leatherworking | 80 | legendary | Gatewright Hideworn Awl Kit | Cured Leather ||
+| leatherworking | 100 | mythic | Firsthall Hideworn Awl Kit | Cured Leather ||
 | engineering | 1 | common | Workshop Clockwork Caliper Set | Clockwork Spring | Amber Sap |
 | engineering | 5 | common | Roadside Clockwork Caliper Set | Clockwork Spring | Sunfield Grain |
 | engineering | 10 | uncommon | Bench-Made Clockwork Caliper Set | Clockwork Spring | Minor Ward Oil |
 | engineering | 20 | uncommon | Guildhall Clockwork Caliper Set | Clockwork Spring | Prism Lens |
-| engineering | 30 | rare | Inscribed Clockwork Caliper Set | Clockwork Spring |  |
-| engineering | 40 | rare | Weatherproof Clockwork Caliper Set | Clockwork Spring |  |
-| engineering | 50 | rare | Highroad Clockwork Caliper Set | Clockwork Spring |  |
-| engineering | 65 | epic | Oldhall Clockwork Caliper Set | Clockwork Spring |  |
-| engineering | 80 | legendary | Gatewright Clockwork Caliper Set | Clockwork Spring |  |
-| engineering | 100 | mythic | Firsthall Clockwork Caliper Set | Clockwork Spring |  |
+| engineering | 30 | rare | Inscribed Clockwork Caliper Set | Clockwork Spring ||
+| engineering | 40 | rare | Weatherproof Clockwork Caliper Set | Clockwork Spring ||
+| engineering | 50 | rare | Highroad Clockwork Caliper Set | Clockwork Spring ||
+| engineering | 65 | epic | Oldhall Clockwork Caliper Set | Clockwork Spring ||
+| engineering | 80 | legendary | Gatewright Clockwork Caliper Set | Clockwork Spring ||
+| engineering | 100 | mythic | Firsthall Clockwork Caliper Set | Clockwork Spring ||
 | enchanting | 1 | common | Workshop Emberrune Rune Focus | Minor Ward Oil | Amber Sap |
 | enchanting | 5 | common | Roadside Emberrune Rune Focus | Minor Ward Oil | Sunfield Grain |
 | enchanting | 10 | uncommon | Bench-Made Emberrune Rune Focus | Minor Ward Oil | Minor Ward Oil |
 | enchanting | 20 | uncommon | Guildhall Emberrune Rune Focus | Minor Ward Oil | Prism Lens |
-| enchanting | 30 | rare | Inscribed Emberrune Rune Focus | Minor Ward Oil |  |
-| enchanting | 40 | rare | Weatherproof Emberrune Rune Focus | Minor Ward Oil |  |
-| enchanting | 50 | rare | Highroad Emberrune Rune Focus | Minor Ward Oil |  |
-| enchanting | 65 | epic | Oldhall Emberrune Rune Focus | Minor Ward Oil |  |
-| enchanting | 80 | legendary | Gatewright Emberrune Rune Focus | Minor Ward Oil |  |
-| enchanting | 100 | mythic | Firsthall Emberrune Rune Focus | Minor Ward Oil |  |
+| enchanting | 30 | rare | Inscribed Emberrune Rune Focus | Minor Ward Oil ||
+| enchanting | 40 | rare | Weatherproof Emberrune Rune Focus | Minor Ward Oil ||
+| enchanting | 50 | rare | Highroad Emberrune Rune Focus | Minor Ward Oil ||
+| enchanting | 65 | epic | Oldhall Emberrune Rune Focus | Minor Ward Oil ||
+| enchanting | 80 | legendary | Gatewright Emberrune Rune Focus | Minor Ward Oil ||
+| enchanting | 100 | mythic | Firsthall Emberrune Rune Focus | Minor Ward Oil ||
 | jewelcrafting | 1 | common | Workshop Beadlight Setting Kit | Polished Gem | Amber Sap |
 | jewelcrafting | 5 | common | Roadside Beadlight Setting Kit | Polished Gem | Sunfield Grain |
 | jewelcrafting | 10 | uncommon | Bench-Made Beadlight Setting Kit | Polished Gem | Minor Ward Oil |
 | jewelcrafting | 20 | uncommon | Guildhall Beadlight Setting Kit | Polished Gem | Prism Lens |
-| jewelcrafting | 30 | rare | Inscribed Beadlight Setting Kit | Polished Gem |  |
-| jewelcrafting | 40 | rare | Weatherproof Beadlight Setting Kit | Polished Gem |  |
-| jewelcrafting | 50 | rare | Highroad Beadlight Setting Kit | Polished Gem |  |
-| jewelcrafting | 65 | epic | Oldhall Beadlight Setting Kit | Polished Gem |  |
-| jewelcrafting | 80 | legendary | Gatewright Beadlight Setting Kit | Polished Gem |  |
-| jewelcrafting | 100 | mythic | Firsthall Beadlight Setting Kit | Polished Gem |  |
+| jewelcrafting | 30 | rare | Inscribed Beadlight Setting Kit | Polished Gem ||
+| jewelcrafting | 40 | rare | Weatherproof Beadlight Setting Kit | Polished Gem ||
+| jewelcrafting | 50 | rare | Highroad Beadlight Setting Kit | Polished Gem ||
+| jewelcrafting | 65 | epic | Oldhall Beadlight Setting Kit | Polished Gem ||
+| jewelcrafting | 80 | legendary | Gatewright Beadlight Setting Kit | Polished Gem ||
+| jewelcrafting | 100 | mythic | Firsthall Beadlight Setting Kit | Polished Gem ||
 | boatbuilding | 1 | common | Workshop Skiffwright Shipwright Kit | Skiff Rib | Amber Sap |
 | boatbuilding | 5 | common | Roadside Skiffwright Shipwright Kit | Skiff Rib | Sunfield Grain |
 | boatbuilding | 10 | uncommon | Bench-Made Skiffwright Shipwright Kit | Skiff Rib | Minor Ward Oil |
 | boatbuilding | 20 | uncommon | Guildhall Skiffwright Shipwright Kit | Skiff Rib | Prism Lens |
-| boatbuilding | 30 | rare | Inscribed Skiffwright Shipwright Kit | Skiff Rib |  |
-| boatbuilding | 40 | rare | Weatherproof Skiffwright Shipwright Kit | Skiff Rib |  |
-| boatbuilding | 50 | rare | Highroad Skiffwright Shipwright Kit | Skiff Rib |  |
-| boatbuilding | 65 | epic | Oldhall Skiffwright Shipwright Kit | Skiff Rib |  |
-| boatbuilding | 80 | legendary | Gatewright Skiffwright Shipwright Kit | Skiff Rib |  |
-| boatbuilding | 100 | mythic | Firsthall Skiffwright Shipwright Kit | Skiff Rib |  |
+| boatbuilding | 30 | rare | Inscribed Skiffwright Shipwright Kit | Skiff Rib ||
+| boatbuilding | 40 | rare | Weatherproof Skiffwright Shipwright Kit | Skiff Rib ||
+| boatbuilding | 50 | rare | Highroad Skiffwright Shipwright Kit | Skiff Rib ||
+| boatbuilding | 65 | epic | Oldhall Skiffwright Shipwright Kit | Skiff Rib ||
+| boatbuilding | 80 | legendary | Gatewright Skiffwright Shipwright Kit | Skiff Rib ||
+| boatbuilding | 100 | mythic | Firsthall Skiffwright Shipwright Kit | Skiff Rib ||
 | furniture | 1 | common | Workshop Hearthwood Finishing Kit | Trophy Stand | Amber Sap |
 | furniture | 5 | common | Roadside Hearthwood Finishing Kit | Trophy Stand | Sunfield Grain |
 | furniture | 10 | uncommon | Bench-Made Hearthwood Finishing Kit | Trophy Stand | Minor Ward Oil |
 | furniture | 20 | uncommon | Guildhall Hearthwood Finishing Kit | Trophy Stand | Prism Lens |
-| furniture | 30 | rare | Inscribed Hearthwood Finishing Kit | Trophy Stand |  |
-| furniture | 40 | rare | Weatherproof Hearthwood Finishing Kit | Trophy Stand |  |
-| furniture | 50 | rare | Highroad Hearthwood Finishing Kit | Trophy Stand |  |
-| furniture | 65 | epic | Oldhall Hearthwood Finishing Kit | Trophy Stand |  |
-| furniture | 80 | legendary | Gatewright Hearthwood Finishing Kit | Trophy Stand |  |
-| furniture | 100 | mythic | Firsthall Hearthwood Finishing Kit | Trophy Stand |  |
+| furniture | 30 | rare | Inscribed Hearthwood Finishing Kit | Trophy Stand ||
+| furniture | 40 | rare | Weatherproof Hearthwood Finishing Kit | Trophy Stand ||
+| furniture | 50 | rare | Highroad Hearthwood Finishing Kit | Trophy Stand ||
+| furniture | 65 | epic | Oldhall Hearthwood Finishing Kit | Trophy Stand ||
+| furniture | 80 | legendary | Gatewright Hearthwood Finishing Kit | Trophy Stand ||
+| furniture | 100 | mythic | Firsthall Hearthwood Finishing Kit | Trophy Stand ||
 | construction | 1 | common | Workshop Plumbline Builder Kit | Repair Scaffold | Amber Sap |
 | construction | 5 | common | Roadside Plumbline Builder Kit | Repair Scaffold | Sunfield Grain |
 | construction | 10 | uncommon | Bench-Made Plumbline Builder Kit | Repair Scaffold | Minor Ward Oil |
 | construction | 20 | uncommon | Guildhall Plumbline Builder Kit | Repair Scaffold | Prism Lens |
-| construction | 30 | rare | Inscribed Plumbline Builder Kit | Repair Scaffold |  |
-| construction | 40 | rare | Weatherproof Plumbline Builder Kit | Repair Scaffold |  |
-| construction | 50 | rare | Highroad Plumbline Builder Kit | Repair Scaffold |  |
-| construction | 65 | epic | Oldhall Plumbline Builder Kit | Repair Scaffold |  |
-| construction | 80 | legendary | Gatewright Plumbline Builder Kit | Repair Scaffold |  |
-| construction | 100 | mythic | Firsthall Plumbline Builder Kit | Repair Scaffold |  |
+| construction | 30 | rare | Inscribed Plumbline Builder Kit | Repair Scaffold ||
+| construction | 40 | rare | Weatherproof Plumbline Builder Kit | Repair Scaffold ||
+| construction | 50 | rare | Highroad Plumbline Builder Kit | Repair Scaffold ||
+| construction | 65 | epic | Oldhall Plumbline Builder Kit | Repair Scaffold ||
+| construction | 80 | legendary | Gatewright Plumbline Builder Kit | Repair Scaffold ||
+| construction | 100 | mythic | Firsthall Plumbline Builder Kit | Repair Scaffold ||
 | combat | 1 | common | Workshop Ironmark Blade | Iron Knife | Amber Sap |
 | combat | 5 | common | Roadside Ironmark Blade | Iron Knife | Sunfield Grain |
 | combat | 10 | uncommon | Bench-Made Ironmark Blade | Iron Knife | Minor Ward Oil |
 | combat | 20 | uncommon | Guildhall Ironmark Blade | Iron Knife | Prism Lens |
-| combat | 30 | rare | Inscribed Ironmark Blade | Iron Knife |  |
-| combat | 40 | rare | Weatherproof Ironmark Blade | Iron Knife |  |
-| combat | 50 | rare | Highroad Ironmark Blade | Iron Knife |  |
-| combat | 65 | epic | Oldhall Ironmark Blade | Iron Knife |  |
-| combat | 80 | legendary | Gatewright Ironmark Blade | Iron Knife |  |
-| combat | 100 | mythic | Firsthall Ironmark Blade | Iron Knife |  |
+| combat | 30 | rare | Inscribed Ironmark Blade | Iron Knife ||
+| combat | 40 | rare | Weatherproof Ironmark Blade | Iron Knife ||
+| combat | 50 | rare | Highroad Ironmark Blade | Iron Knife ||
+| combat | 65 | epic | Oldhall Ironmark Blade | Iron Knife ||
+| combat | 80 | legendary | Gatewright Ironmark Blade | Iron Knife ||
+| combat | 100 | mythic | Firsthall Ironmark Blade | Iron Knife ||
 | slayer | 1 | common | Workshop Redfang Bounty Kit | Marked Trophy Bone | Amber Sap |
 | slayer | 5 | common | Roadside Redfang Bounty Kit | Marked Trophy Bone | Sunfield Grain |
 | slayer | 10 | uncommon | Bench-Made Redfang Bounty Kit | Marked Trophy Bone | Minor Ward Oil |
 | slayer | 20 | uncommon | Guildhall Redfang Bounty Kit | Marked Trophy Bone | Prism Lens |
-| slayer | 30 | rare | Inscribed Redfang Bounty Kit | Marked Trophy Bone |  |
-| slayer | 40 | rare | Weatherproof Redfang Bounty Kit | Marked Trophy Bone |  |
-| slayer | 50 | rare | Highroad Redfang Bounty Kit | Marked Trophy Bone |  |
-| slayer | 65 | epic | Oldhall Redfang Bounty Kit | Marked Trophy Bone |  |
-| slayer | 80 | legendary | Gatewright Redfang Bounty Kit | Marked Trophy Bone |  |
-| slayer | 100 | mythic | Firsthall Redfang Bounty Kit | Marked Trophy Bone |  |
+| slayer | 30 | rare | Inscribed Redfang Bounty Kit | Marked Trophy Bone ||
+| slayer | 40 | rare | Weatherproof Redfang Bounty Kit | Marked Trophy Bone ||
+| slayer | 50 | rare | Highroad Redfang Bounty Kit | Marked Trophy Bone ||
+| slayer | 65 | epic | Oldhall Redfang Bounty Kit | Marked Trophy Bone ||
+| slayer | 80 | legendary | Gatewright Redfang Bounty Kit | Marked Trophy Bone ||
+| slayer | 100 | mythic | Firsthall Redfang Bounty Kit | Marked Trophy Bone ||
 | defense | 1 | common | Workshop Rivetguard Shield Kit | Iron Fittings | Amber Sap |
 | defense | 5 | common | Roadside Rivetguard Shield Kit | Iron Fittings | Sunfield Grain |
 | defense | 10 | uncommon | Bench-Made Rivetguard Shield Kit | Iron Fittings | Minor Ward Oil |
 | defense | 20 | uncommon | Guildhall Rivetguard Shield Kit | Iron Fittings | Prism Lens |
-| defense | 30 | rare | Inscribed Rivetguard Shield Kit | Iron Fittings |  |
-| defense | 40 | rare | Weatherproof Rivetguard Shield Kit | Iron Fittings |  |
-| defense | 50 | rare | Highroad Rivetguard Shield Kit | Iron Fittings |  |
-| defense | 65 | epic | Oldhall Rivetguard Shield Kit | Iron Fittings |  |
-| defense | 80 | legendary | Gatewright Rivetguard Shield Kit | Iron Fittings |  |
-| defense | 100 | mythic | Firsthall Rivetguard Shield Kit | Iron Fittings |  |
+| defense | 30 | rare | Inscribed Rivetguard Shield Kit | Iron Fittings ||
+| defense | 40 | rare | Weatherproof Rivetguard Shield Kit | Iron Fittings ||
+| defense | 50 | rare | Highroad Rivetguard Shield Kit | Iron Fittings ||
+| defense | 65 | epic | Oldhall Rivetguard Shield Kit | Iron Fittings ||
+| defense | 80 | legendary | Gatewright Rivetguard Shield Kit | Iron Fittings ||
+| defense | 100 | mythic | Firsthall Rivetguard Shield Kit | Iron Fittings ||
 | healing | 1 | common | Workshop Fieldglass Medic Kit | Field Tonic | Amber Sap |
 | healing | 5 | common | Roadside Fieldglass Medic Kit | Field Tonic | Sunfield Grain |
 | healing | 10 | uncommon | Bench-Made Fieldglass Medic Kit | Field Tonic | Minor Ward Oil |
 | healing | 20 | uncommon | Guildhall Fieldglass Medic Kit | Field Tonic | Prism Lens |
-| healing | 30 | rare | Inscribed Fieldglass Medic Kit | Field Tonic |  |
-| healing | 40 | rare | Weatherproof Fieldglass Medic Kit | Field Tonic |  |
-| healing | 50 | rare | Highroad Fieldglass Medic Kit | Field Tonic |  |
-| healing | 65 | epic | Oldhall Fieldglass Medic Kit | Field Tonic |  |
-| healing | 80 | legendary | Gatewright Fieldglass Medic Kit | Field Tonic |  |
-| healing | 100 | mythic | Firsthall Fieldglass Medic Kit | Field Tonic |  |
+| healing | 30 | rare | Inscribed Fieldglass Medic Kit | Field Tonic ||
+| healing | 40 | rare | Weatherproof Fieldglass Medic Kit | Field Tonic ||
+| healing | 50 | rare | Highroad Fieldglass Medic Kit | Field Tonic ||
+| healing | 65 | epic | Oldhall Fieldglass Medic Kit | Field Tonic ||
+| healing | 80 | legendary | Gatewright Fieldglass Medic Kit | Field Tonic ||
+| healing | 100 | mythic | Firsthall Fieldglass Medic Kit | Field Tonic ||
 | magic | 1 | common | Workshop Emberglow Spell Focus | Ember Charm | Amber Sap |
 | magic | 5 | common | Roadside Emberglow Spell Focus | Ember Charm | Sunfield Grain |
 | magic | 10 | uncommon | Bench-Made Emberglow Spell Focus | Ember Charm | Minor Ward Oil |
 | magic | 20 | uncommon | Guildhall Emberglow Spell Focus | Ember Charm | Prism Lens |
-| magic | 30 | rare | Inscribed Emberglow Spell Focus | Ember Charm |  |
-| magic | 40 | rare | Weatherproof Emberglow Spell Focus | Ember Charm |  |
-| magic | 50 | rare | Highroad Emberglow Spell Focus | Ember Charm |  |
-| magic | 65 | epic | Oldhall Emberglow Spell Focus | Ember Charm |  |
-| magic | 80 | legendary | Gatewright Emberglow Spell Focus | Ember Charm |  |
-| magic | 100 | mythic | Firsthall Emberglow Spell Focus | Ember Charm |  |
+| magic | 30 | rare | Inscribed Emberglow Spell Focus | Ember Charm ||
+| magic | 40 | rare | Weatherproof Emberglow Spell Focus | Ember Charm ||
+| magic | 50 | rare | Highroad Emberglow Spell Focus | Ember Charm ||
+| magic | 65 | epic | Oldhall Emberglow Spell Focus | Ember Charm ||
+| magic | 80 | legendary | Gatewright Emberglow Spell Focus | Ember Charm ||
+| magic | 100 | mythic | Firsthall Emberglow Spell Focus | Ember Charm ||
 | ranged | 1 | common | Workshop Trailstring Bow Kit | Trail Bow | Amber Sap |
 | ranged | 5 | common | Roadside Trailstring Bow Kit | Trail Bow | Sunfield Grain |
 | ranged | 10 | uncommon | Bench-Made Trailstring Bow Kit | Trail Bow | Minor Ward Oil |
 | ranged | 20 | uncommon | Guildhall Trailstring Bow Kit | Trail Bow | Prism Lens |
-| ranged | 30 | rare | Inscribed Trailstring Bow Kit | Trail Bow |  |
-| ranged | 40 | rare | Weatherproof Trailstring Bow Kit | Trail Bow |  |
-| ranged | 50 | rare | Highroad Trailstring Bow Kit | Trail Bow |  |
-| ranged | 65 | epic | Oldhall Trailstring Bow Kit | Trail Bow |  |
-| ranged | 80 | legendary | Gatewright Trailstring Bow Kit | Trail Bow |  |
-| ranged | 100 | mythic | Firsthall Trailstring Bow Kit | Trail Bow |  |
+| ranged | 30 | rare | Inscribed Trailstring Bow Kit | Trail Bow ||
+| ranged | 40 | rare | Weatherproof Trailstring Bow Kit | Trail Bow ||
+| ranged | 50 | rare | Highroad Trailstring Bow Kit | Trail Bow ||
+| ranged | 65 | epic | Oldhall Trailstring Bow Kit | Trail Bow ||
+| ranged | 80 | legendary | Gatewright Trailstring Bow Kit | Trail Bow ||
+| ranged | 100 | mythic | Firsthall Trailstring Bow Kit | Trail Bow ||
 | exploration | 1 | common | Workshop Wayfinder Scout Kit | Route Map | Amber Sap |
 | exploration | 5 | common | Roadside Wayfinder Scout Kit | Route Map | Sunfield Grain |
 | exploration | 10 | uncommon | Bench-Made Wayfinder Scout Kit | Route Map | Minor Ward Oil |
 | exploration | 20 | uncommon | Guildhall Wayfinder Scout Kit | Route Map | Prism Lens |
-| exploration | 30 | rare | Inscribed Wayfinder Scout Kit | Route Map |  |
-| exploration | 40 | rare | Weatherproof Wayfinder Scout Kit | Route Map |  |
-| exploration | 50 | rare | Highroad Wayfinder Scout Kit | Route Map |  |
-| exploration | 65 | epic | Oldhall Wayfinder Scout Kit | Route Map |  |
-| exploration | 80 | legendary | Gatewright Wayfinder Scout Kit | Route Map |  |
-| exploration | 100 | mythic | Firsthall Wayfinder Scout Kit | Route Map |  |
+| exploration | 30 | rare | Inscribed Wayfinder Scout Kit | Route Map ||
+| exploration | 40 | rare | Weatherproof Wayfinder Scout Kit | Route Map ||
+| exploration | 50 | rare | Highroad Wayfinder Scout Kit | Route Map ||
+| exploration | 65 | epic | Oldhall Wayfinder Scout Kit | Route Map ||
+| exploration | 80 | legendary | Gatewright Wayfinder Scout Kit | Route Map ||
+| exploration | 100 | mythic | Firsthall Wayfinder Scout Kit | Route Map ||
 | dungeoneering | 1 | common | Workshop Deepmark Delver Kit | Dungeon Chart | Amber Sap |
 | dungeoneering | 5 | common | Roadside Deepmark Delver Kit | Dungeon Chart | Sunfield Grain |
 | dungeoneering | 10 | uncommon | Bench-Made Deepmark Delver Kit | Dungeon Chart | Minor Ward Oil |
 | dungeoneering | 20 | uncommon | Guildhall Deepmark Delver Kit | Dungeon Chart | Prism Lens |
-| dungeoneering | 30 | rare | Inscribed Deepmark Delver Kit | Dungeon Chart |  |
-| dungeoneering | 40 | rare | Weatherproof Deepmark Delver Kit | Dungeon Chart |  |
-| dungeoneering | 50 | rare | Highroad Deepmark Delver Kit | Dungeon Chart |  |
-| dungeoneering | 65 | epic | Oldhall Deepmark Delver Kit | Dungeon Chart |  |
-| dungeoneering | 80 | legendary | Gatewright Deepmark Delver Kit | Dungeon Chart |  |
-| dungeoneering | 100 | mythic | Firsthall Deepmark Delver Kit | Dungeon Chart |  |
+| dungeoneering | 30 | rare | Inscribed Deepmark Delver Kit | Dungeon Chart ||
+| dungeoneering | 40 | rare | Weatherproof Deepmark Delver Kit | Dungeon Chart ||
+| dungeoneering | 50 | rare | Highroad Deepmark Delver Kit | Dungeon Chart ||
+| dungeoneering | 65 | epic | Oldhall Deepmark Delver Kit | Dungeon Chart ||
+| dungeoneering | 80 | legendary | Gatewright Deepmark Delver Kit | Dungeon Chart ||
+| dungeoneering | 100 | mythic | Firsthall Deepmark Delver Kit | Dungeon Chart ||
 | sailing | 1 | common | Workshop Tidechart Navigator Kit | Skiff Rib | Amber Sap |
 | sailing | 5 | common | Roadside Tidechart Navigator Kit | Skiff Rib | Sunfield Grain |
 | sailing | 10 | uncommon | Bench-Made Tidechart Navigator Kit | Skiff Rib | Minor Ward Oil |
 | sailing | 20 | uncommon | Guildhall Tidechart Navigator Kit | Skiff Rib | Prism Lens |
-| sailing | 30 | rare | Inscribed Tidechart Navigator Kit | Skiff Rib |  |
-| sailing | 40 | rare | Weatherproof Tidechart Navigator Kit | Skiff Rib |  |
-| sailing | 50 | rare | Highroad Tidechart Navigator Kit | Skiff Rib |  |
-| sailing | 65 | epic | Oldhall Tidechart Navigator Kit | Skiff Rib |  |
-| sailing | 80 | legendary | Gatewright Tidechart Navigator Kit | Skiff Rib |  |
-| sailing | 100 | mythic | Firsthall Tidechart Navigator Kit | Skiff Rib |  |
+| sailing | 30 | rare | Inscribed Tidechart Navigator Kit | Skiff Rib ||
+| sailing | 40 | rare | Weatherproof Tidechart Navigator Kit | Skiff Rib ||
+| sailing | 50 | rare | Highroad Tidechart Navigator Kit | Skiff Rib ||
+| sailing | 65 | epic | Oldhall Tidechart Navigator Kit | Skiff Rib ||
+| sailing | 80 | legendary | Gatewright Tidechart Navigator Kit | Skiff Rib ||
+| sailing | 100 | mythic | Firsthall Tidechart Navigator Kit | Skiff Rib ||
 | survival | 1 | common | Workshop Ashcamp Camp Kit | Hunter Ration | Amber Sap |
 | survival | 5 | common | Roadside Ashcamp Camp Kit | Hunter Ration | Sunfield Grain |
 | survival | 10 | uncommon | Bench-Made Ashcamp Camp Kit | Hunter Ration | Minor Ward Oil |
 | survival | 20 | uncommon | Guildhall Ashcamp Camp Kit | Hunter Ration | Prism Lens |
-| survival | 30 | rare | Inscribed Ashcamp Camp Kit | Hunter Ration |  |
-| survival | 40 | rare | Weatherproof Ashcamp Camp Kit | Hunter Ration |  |
-| survival | 50 | rare | Highroad Ashcamp Camp Kit | Hunter Ration |  |
-| survival | 65 | epic | Oldhall Ashcamp Camp Kit | Hunter Ration |  |
-| survival | 80 | legendary | Gatewright Ashcamp Camp Kit | Hunter Ration |  |
-| survival | 100 | mythic | Firsthall Ashcamp Camp Kit | Hunter Ration |  |
+| survival | 30 | rare | Inscribed Ashcamp Camp Kit | Hunter Ration ||
+| survival | 40 | rare | Weatherproof Ashcamp Camp Kit | Hunter Ration ||
+| survival | 50 | rare | Highroad Ashcamp Camp Kit | Hunter Ration ||
+| survival | 65 | epic | Oldhall Ashcamp Camp Kit | Hunter Ration ||
+| survival | 80 | legendary | Gatewright Ashcamp Camp Kit | Hunter Ration ||
+| survival | 100 | mythic | Firsthall Ashcamp Camp Kit | Hunter Ration ||
 | cartography | 1 | common | Workshop Ridgepath Map Case | Route Map | Amber Sap |
 | cartography | 5 | common | Roadside Ridgepath Map Case | Route Map | Sunfield Grain |
 | cartography | 10 | uncommon | Bench-Made Ridgepath Map Case | Route Map | Minor Ward Oil |
 | cartography | 20 | uncommon | Guildhall Ridgepath Map Case | Route Map | Prism Lens |
-| cartography | 30 | rare | Inscribed Ridgepath Map Case | Route Map |  |
-| cartography | 40 | rare | Weatherproof Ridgepath Map Case | Route Map |  |
-| cartography | 50 | rare | Highroad Ridgepath Map Case | Route Map |  |
-| cartography | 65 | epic | Oldhall Ridgepath Map Case | Route Map |  |
-| cartography | 80 | legendary | Gatewright Ridgepath Map Case | Route Map |  |
-| cartography | 100 | mythic | Firsthall Ridgepath Map Case | Route Map |  |
+| cartography | 30 | rare | Inscribed Ridgepath Map Case | Route Map ||
+| cartography | 40 | rare | Weatherproof Ridgepath Map Case | Route Map ||
+| cartography | 50 | rare | Highroad Ridgepath Map Case | Route Map ||
+| cartography | 65 | epic | Oldhall Ridgepath Map Case | Route Map ||
+| cartography | 80 | legendary | Gatewright Ridgepath Map Case | Route Map ||
+| cartography | 100 | mythic | Firsthall Ridgepath Map Case | Route Map ||
 | reputation | 1 | common | Workshop Councilmark Envoy Ledger | Trade Manifest | Amber Sap |
 | reputation | 5 | common | Roadside Councilmark Envoy Ledger | Trade Manifest | Sunfield Grain |
 | reputation | 10 | uncommon | Bench-Made Councilmark Envoy Ledger | Trade Manifest | Minor Ward Oil |
 | reputation | 20 | uncommon | Guildhall Councilmark Envoy Ledger | Trade Manifest | Prism Lens |
-| reputation | 30 | rare | Inscribed Councilmark Envoy Ledger | Trade Manifest |  |
-| reputation | 40 | rare | Weatherproof Councilmark Envoy Ledger | Trade Manifest |  |
-| reputation | 50 | rare | Highroad Councilmark Envoy Ledger | Trade Manifest |  |
-| reputation | 65 | epic | Oldhall Councilmark Envoy Ledger | Trade Manifest |  |
-| reputation | 80 | legendary | Gatewright Councilmark Envoy Ledger | Trade Manifest |  |
-| reputation | 100 | mythic | Firsthall Councilmark Envoy Ledger | Trade Manifest |  |
+| reputation | 30 | rare | Inscribed Councilmark Envoy Ledger | Trade Manifest ||
+| reputation | 40 | rare | Weatherproof Councilmark Envoy Ledger | Trade Manifest ||
+| reputation | 50 | rare | Highroad Councilmark Envoy Ledger | Trade Manifest ||
+| reputation | 65 | epic | Oldhall Councilmark Envoy Ledger | Trade Manifest ||
+| reputation | 80 | legendary | Gatewright Councilmark Envoy Ledger | Trade Manifest ||
+| reputation | 100 | mythic | Firsthall Councilmark Envoy Ledger | Trade Manifest ||
 | leadership | 1 | common | Workshop Warcall Command Banner | Trade Manifest | Amber Sap |
 | leadership | 5 | common | Roadside Warcall Command Banner | Trade Manifest | Sunfield Grain |
 | leadership | 10 | uncommon | Bench-Made Warcall Command Banner | Trade Manifest | Minor Ward Oil |
 | leadership | 20 | uncommon | Guildhall Warcall Command Banner | Trade Manifest | Prism Lens |
-| leadership | 30 | rare | Inscribed Warcall Command Banner | Trade Manifest |  |
-| leadership | 40 | rare | Weatherproof Warcall Command Banner | Trade Manifest |  |
-| leadership | 50 | rare | Highroad Warcall Command Banner | Trade Manifest |  |
-| leadership | 65 | epic | Oldhall Warcall Command Banner | Trade Manifest |  |
-| leadership | 80 | legendary | Gatewright Warcall Command Banner | Trade Manifest |  |
-| leadership | 100 | mythic | Firsthall Warcall Command Banner | Trade Manifest |  |
+| leadership | 30 | rare | Inscribed Warcall Command Banner | Trade Manifest ||
+| leadership | 40 | rare | Weatherproof Warcall Command Banner | Trade Manifest ||
+| leadership | 50 | rare | Highroad Warcall Command Banner | Trade Manifest ||
+| leadership | 65 | epic | Oldhall Warcall Command Banner | Trade Manifest ||
+| leadership | 80 | legendary | Gatewright Warcall Command Banner | Trade Manifest ||
+| leadership | 100 | mythic | Firsthall Warcall Command Banner | Trade Manifest ||
 | trading | 1 | common | Workshop Marketseal Ledger | Trade Manifest | Amber Sap |
 | trading | 5 | common | Roadside Marketseal Ledger | Trade Manifest | Sunfield Grain |
 | trading | 10 | uncommon | Bench-Made Marketseal Ledger | Trade Manifest | Minor Ward Oil |
 | trading | 20 | uncommon | Guildhall Marketseal Ledger | Trade Manifest | Prism Lens |
-| trading | 30 | rare | Inscribed Marketseal Ledger | Trade Manifest |  |
-| trading | 40 | rare | Weatherproof Marketseal Ledger | Trade Manifest |  |
-| trading | 50 | rare | Highroad Marketseal Ledger | Trade Manifest |  |
-| trading | 65 | epic | Oldhall Marketseal Ledger | Trade Manifest |  |
-| trading | 80 | legendary | Gatewright Marketseal Ledger | Trade Manifest |  |
-| trading | 100 | mythic | Firsthall Marketseal Ledger | Trade Manifest |  |
+| trading | 30 | rare | Inscribed Marketseal Ledger | Trade Manifest ||
+| trading | 40 | rare | Weatherproof Marketseal Ledger | Trade Manifest ||
+| trading | 50 | rare | Highroad Marketseal Ledger | Trade Manifest ||
+| trading | 65 | epic | Oldhall Marketseal Ledger | Trade Manifest ||
+| trading | 80 | legendary | Gatewright Marketseal Ledger | Trade Manifest ||
+| trading | 100 | mythic | Firsthall Marketseal Ledger | Trade Manifest ||
 
 ## Gathering Actions
 
@@ -2347,15 +2347,15 @@ Generated at: 2026-08-06T07:55:50+00:00
 | elderwake_marketseal_ledger | trading | 65 | Trading Tools | Oldhall Marketseal Ledger | Oldhall Marketseal Ledger | 1400 |
 | mythgate_marketseal_ledger | trading | 80 | Trading Tools | Gatewright Marketseal Ledger | Gatewright Marketseal Ledger | 2400 |
 | crownmark_marketseal_ledger | trading | 100 | Trading Tools | Firsthall Marketseal Ledger | Firsthall Marketseal Ledger | 5200 |
-| bundle_fishers_icebox |  | 1 | Materials | Fisher's Icebox | River Minnow | 28 |
-| bundle_ore_crate |  | 1 | Materials | Ore Crate | Iron Ore | 35 |
-| bundle_lumber_cart |  | 1 | Materials | Lumber Cart | Ashwood Log | 32 |
-| bundle_herbalist_roll |  | 1 | Materials | Herbalist Roll | Mooncap Mushroom | 34 |
-| bundle_hide_pack |  | 1 | Materials | Hide Pack | Soft Hide | 42 |
-| bundle_seed_sack |  | 1 | Materials | Seed Sack | Sunfield Grain | 34 |
-| bundle_relic_case |  | 1 | Materials | Relic Case | Relic Fragment | 55 |
-| bundle_guild_commission |  | 10 | Commissions | Oathhall Commission Kit | Trade Manifest | 120 |
-| bundle_expedition_cache |  | 20 | Commissions | Expedition Cache | Route Map | 180 |
+| bundle_fishers_icebox || 1 | Materials | Fisher's Icebox | River Minnow | 28 |
+| bundle_ore_crate || 1 | Materials | Ore Crate | Iron Ore | 35 |
+| bundle_lumber_cart || 1 | Materials | Lumber Cart | Ashwood Log | 32 |
+| bundle_herbalist_roll || 1 | Materials | Herbalist Roll | Mooncap Mushroom | 34 |
+| bundle_hide_pack || 1 | Materials | Hide Pack | Soft Hide | 42 |
+| bundle_seed_sack || 1 | Materials | Seed Sack | Sunfield Grain | 34 |
+| bundle_relic_case || 1 | Materials | Relic Case | Relic Fragment | 55 |
+| bundle_guild_commission || 10 | Commissions | Oathhall Commission Kit | Trade Manifest | 120 |
+| bundle_expedition_cache || 20 | Commissions | Expedition Cache | Route Map | 180 |
 
 ## World Events
 
