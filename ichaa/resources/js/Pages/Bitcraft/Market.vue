@@ -339,6 +339,8 @@ const filterBoolean = (filters, key, fallback = false) => {
     return queryHasFlag(key) || fallback
 }
 
+const defaultHasOrders = (tool) => tool?.key !== 'barter-stalls'
+
 const props = defineProps({
     filters: { type: Object, default: () => ({}) },
     regions: { type: Array, default: () => [] },
@@ -396,7 +398,7 @@ const form = reactive({
     empireEntityId: props.filters.empireEntityId ?? '',
     region: props.filters.region ?? props.filters.regionName ?? props.filters.regionId ?? '',
     side: props.filters.side ?? '',
-    hasOrders: filterBoolean(props.filters, 'hasOrders', true),
+    hasOrders: filterBoolean(props.filters, 'hasOrders', defaultHasOrders(props.tool)),
     hasSellOrders: filterBoolean(props.filters, 'hasSellOrders'),
     hasBuyOrders: filterBoolean(props.filters, 'hasBuyOrders'),
 })
@@ -694,7 +696,7 @@ watch(() => props.filters, (filters) => {
     form.empireEntityId = filters.empireEntityId ?? ''
     form.region = filters.region ?? filters.regionName ?? filters.regionId ?? ''
     form.side = filters.side ?? ''
-    form.hasOrders = filterBoolean(filters, 'hasOrders', true)
+    form.hasOrders = filterBoolean(filters, 'hasOrders', defaultHasOrders(props.tool))
     form.hasSellOrders = filterBoolean(filters, 'hasSellOrders')
     form.hasBuyOrders = filterBoolean(filters, 'hasBuyOrders')
     activeBarterItemId.value = String(filters.itemId ?? '')

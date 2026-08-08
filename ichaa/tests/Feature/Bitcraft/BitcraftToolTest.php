@@ -1151,6 +1151,45 @@ class BitcraftToolTest extends TestCase
         Http::assertNotSent(fn (Request $request) => str_contains($request->url(), '/buildings'));
     }
 
+    public function test_barter_stall_finder_empty_page_does_not_load_all_stalls_by_default(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/regions' => Http::response([]),
+            'https://bitjita.com/api/stalls?page=1&limit=100' => Http::response([
+                'stalls' => [[
+                    'entityId' => '864691128500984069',
+                    'ownerName' => 'Astra',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                    'nickname' => 'Astra Tools',
+                    'claimName' => 'Omashu',
+                    'orderCount' => 1,
+                    'orders' => [],
+                ]],
+                'totalStalls' => 1,
+                'totalOrders' => 1,
+                'page' => 1,
+                'totalPages' => 1,
+                'limit' => 100,
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.barter-stalls'));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Market')
+                ->where('tool.key', 'barter-stalls')
+                ->where('filters.hasOrders', null)
+                ->has('market.items', 0)
+                ->has('market.claims', 0)
+                ->has('market.listings', 0)
+            );
+
+        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/stalls?page=1&limit=100');
+    }
+
     public function test_barter_stall_finder_can_populate_all_order_items_without_region_or_item_search(): void
     {
         Http::fake([

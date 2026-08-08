@@ -353,14 +353,24 @@ class BitcraftToolController extends Controller
 
                     $selectedItem = $this->selectedMarketItem($market['items'], $filters);
                 } elseif ($tool === 'barter' && $this->shouldSearchGlobalBarter($filters)) {
-                    $barterSearch = $this->barterListingsForFilters($bitjita, $filters, $claims);
-                    $stalls = $barterSearch['stalls'];
+                    if ($this->shouldUseCachedBarterItemSummary($filters)) {
+                        $stalls = $this->normalizedStalls($bitjita);
 
-                    $market['claims'] = $this->claimsFromStalls($stalls, $claims);
-                    $market['empires'] = $empires;
-                    $market['tradeBuildings'] = $this->tradeBuildingsFromStalls($stalls);
-                    $market['listings'] = $barterSearch['listings'];
-                    $market['items'] = $this->marketItemsFromListings($market['listings']);
+                        $market['claims'] = $this->claimsFromStalls($stalls, $claims, includeTradeBuildingDetails: false);
+                        $market['empires'] = $empires;
+                        $market['tradeBuildings'] = [];
+                        $market['listings'] = [];
+                        $market['items'] = $this->filteredBarterItemSummary($bitjita, $filters);
+                    } else {
+                        $barterSearch = $this->barterListingsForFilters($bitjita, $filters, $claims);
+                        $stalls = $barterSearch['stalls'];
+
+                        $market['claims'] = $this->claimsFromStalls($stalls, $claims);
+                        $market['empires'] = $empires;
+                        $market['tradeBuildings'] = $this->tradeBuildingsFromStalls($stalls);
+                        $market['listings'] = $barterSearch['listings'];
+                        $market['items'] = $this->marketItemsFromListings($market['listings']);
+                    }
                     $market['categories'] = $this->categoriesFromMarketItems($market['items']);
                 } elseif ($tool === 'market' && $this->shouldSearchGlobalMarket($filters)) {
                     if ($this->shouldSearchRegionalMarketListings($filters)) {
@@ -680,6 +690,15 @@ class BitcraftToolController extends Controller
     {
         return collect(Arr::only($filters, ['hasOrders', 'hasSellOrders', 'hasBuyOrders']))
             ->contains(fn ($value) => $value === true);
+    }
+
+    private function shouldUseCachedBarterItemSummary(array $filters): bool
+    {
+        return $this->hasBarterOrderScope($filters)
+            && ! $this->shouldSearchBarterItems($filters)
+            && ! $this->hasBarterClaimScope($filters)
+            && $filters['claimEntityId'] === ''
+            && $filters['side'] === '';
     }
 
     private function marketSearchFilters(array $filters): array
@@ -1180,6 +1199,40 @@ class BitcraftToolController extends Controller
         );
     }
 
+    private function cachedBarterItemSummary(BitjitaClient $bitjita): array
+    {
+        return Cache::remember(
+            $bitjita->applicationCacheKey('barter-item-summary.v1'),
+            now()->addSeconds((int) config('services.bitjita.stalls_cache_seconds', 300)),
+            fn () => $this->marketItemsFromListings($this->barterStallListings(
+                $this->normalizedStalls($bitjita),
+                $this->barterItemSummaryFilters(),
+            )),
+        );
+    }
+
+    private function filteredBarterItemSummary(BitjitaClient $bitjita, array $filters): array
+    {
+        return collect($this->cachedBarterItemSummary($bitjita))
+            ->filter(fn (array $item): bool => $this->matchesMarketOrderFilters($item, $filters))
+            ->values()
+            ->all();
+    }
+
+    private function barterItemSummaryFilters(): array
+    {
+        return [
+            'q' => '',
+            'category' => '',
+            'itemId' => null,
+            'itemKind' => '',
+            'side' => '',
+            'hasOrders' => true,
+            'hasSellOrders' => null,
+            'hasBuyOrders' => null,
+        ];
+    }
+
     private function normalizeStallStacks(array $stacks, string $kind): array
     {
         return collect($stacks)
@@ -1288,7 +1341,7 @@ class BitcraftToolController extends Controller
         return true;
     }
 
-    private function claimsFromStalls(array $stalls, array $fallbackClaims = []): array
+    private function claimsFromStalls(array $stalls, array $fallbackClaims = [], bool $includeTradeBuildingDetails = true): array
     {
         $fallbackClaimsByName = collect($fallbackClaims)
             ->keyBy(fn (array $claim) => strtolower((string) data_get($claim, 'name')));
@@ -1296,7 +1349,7 @@ class BitcraftToolController extends Controller
         $claims = collect($stalls)
             ->filter(fn (array $stall) => filled($stall['claimName']))
             ->groupBy(fn (array $stall) => strtolower((string) $stall['claimName']))
-            ->map(function ($group, string $claimName) use ($fallbackClaimsByName) {
+            ->map(function ($group, string $claimName) use ($fallbackClaimsByName, $includeTradeBuildingDetails) {
                 $first = $group->first();
                 $fallback = $fallbackClaimsByName->get($claimName, []);
 
@@ -1313,7 +1366,7 @@ class BitcraftToolController extends Controller
                     'treasury' => data_get($fallback, 'treasury'),
                     'tradeBuildingCount' => $group->count(),
                     'tradeOrderCount' => $group->sum('orderCount'),
-                    'tradeBuildings' => $this->tradeBuildingsFromStalls($group->values()->all()),
+                    'tradeBuildings' => $includeTradeBuildingDetails ? $this->tradeBuildingsFromStalls($group->values()->all()) : [],
                     'tradeBuildingNames' => $group->pluck('nickname')->filter()->unique()->values()->all(),
                 ];
             })
@@ -1382,6 +1435,7 @@ class BitcraftToolController extends Controller
         return collect($stalls)
             ->flatMap(fn (array $stall) => collect(data_get($stall, 'orders', []))
                 ->flatMap(fn (array $order) => $this->barterOrderListings($stall, $order, $filters)))
+            ->filter(fn (array $listing): bool => $this->barterListingMatchesOrderScope($listing, $filters))
             ->sortBy([
                 fn (array $listing) => strtolower((string) $listing['itemName']),
                 fn (array $listing) => $listing['side'] === 'sell' ? 0 : 1,
@@ -1390,6 +1444,19 @@ class BitcraftToolController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    private function barterListingMatchesOrderScope(array $listing, array $filters): bool
+    {
+        if (($filters['hasBuyOrders'] ?? false) && ! ($filters['hasSellOrders'] ?? false)) {
+            return $listing['side'] === 'buy';
+        }
+
+        if (($filters['hasSellOrders'] ?? false) && ! ($filters['hasBuyOrders'] ?? false)) {
+            return $listing['side'] === 'sell';
+        }
+
+        return true;
     }
 
     private function marketListingsForClaims(BitjitaClient $bitjita, array $claims, array $filters): array

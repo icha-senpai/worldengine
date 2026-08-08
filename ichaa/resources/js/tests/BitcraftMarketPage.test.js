@@ -72,6 +72,33 @@ describe('Bitcraft market page popups', () => {
         expect(barterWrapper.find('[data-test="market-popup"]').exists()).toBe(false)
     })
 
+    it('keeps the empty barter page light while market keeps its order default', async () => {
+        const marketWrapper = mountPage()
+
+        await marketWrapper.find('form').trigger('submit')
+
+        expect(routerGetMock).toHaveBeenCalledWith(
+            { name: 'bitcraft.market', params: undefined },
+            { hasOrders: 1 },
+            expect.objectContaining({ preserveState: true }),
+        )
+
+        routerGetMock.mockReset()
+
+        const barterWrapper = mountPage({
+            tool: barterTool(),
+            market: marketPayload({ items: [] }),
+        })
+
+        await barterWrapper.find('form').trigger('submit')
+
+        expect(routerGetMock).toHaveBeenCalledWith(
+            { name: 'bitcraft.barter-stalls', params: undefined },
+            {},
+            expect.objectContaining({ preserveState: true }),
+        )
+    })
+
     it('opens a market popup from a clicked item without writing the item to the page URL', async () => {
         const wrapper = mountPage()
         await nextTick()
