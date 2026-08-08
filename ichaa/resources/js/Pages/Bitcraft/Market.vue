@@ -114,6 +114,15 @@
                 <div class="market-search-panel__actions">
                     <AppButton type="submit" variant="primary" :disabled="searching">{{ searching ? 'Searching...' : 'Search' }}</AppButton>
                     <AppButton v-if="form.claimEntityId" type="button" variant="ghost" @click="clearClaim">{{ tool.clearLabel }}</AppButton>
+                    <AppButton
+                        v-if="canShowRegionBuyOrders"
+                        type="button"
+                        variant="ghost"
+                        :selected="form.hasBuyOrders && !form.hasSellOrders"
+                        @click="showRegionBuyOrders"
+                    >
+                        All Buy Orders
+                    </AppButton>
                     <AppButton type="button" variant="ghost" @click="reset">Reset</AppButton>
                 </div>
             </div>
@@ -138,6 +147,42 @@
 
                 <div class="surface-section__body">
                     <div v-if="market.items.length" class="space-y-5">
+                        <section v-if="hasRegionBuyOrderBoard" class="space-y-3 border-b border-border pb-5">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <h3 class="text-sm font-ui font-semibold text-primary">Region Buy Orders</h3>
+                                    <p class="mt-1 text-xs font-ui text-muted-2">
+                                        {{ formatCount(regionBuyOrderTotal) }} buy order{{ regionBuyOrderTotal === 1 ? '' : 's' }} across {{ formatCount(regionBuyOrderItems.length) }} item{{ regionBuyOrderItems.length === 1 ? '' : 's' }}
+                                        <span v-if="activeRegionLabel">in {{ activeRegionLabel }}</span>
+                                    </p>
+                                </div>
+                                <span class="tag tag--warn">buyers</span>
+                            </div>
+
+                            <div class="grid gap-2">
+                                <button
+                                    v-for="item in regionBuyOrderItems"
+                                    :key="`region-buy-${item.kind}-${item.id}`"
+                                    type="button"
+                                    class="index-record text-left transition-colors hover:border-[rgb(var(--accent-cyan-rgb)/0.35)]"
+                                    :class="{ 'border-[rgb(var(--accent-cyan-rgb)/0.5)]': selectedOrderBookItemId === String(item.id) }"
+                                    @click="openMarketItem(item, 'buy')"
+                                >
+                                    <span class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                                        <span class="min-w-0">
+                                            <span class="index-record__title prose-wrap">{{ item.name }}</span>
+                                            <span class="mt-1 block index-record__subtitle prose-wrap">{{ item.category || 'Uncategorized' }}</span>
+                                        </span>
+                                        <span class="flex flex-wrap gap-2 sm:justify-end">
+                                            <span v-if="item.tier" class="tag">Tier {{ item.tier }}</span>
+                                            <span class="tag tag--warn">{{ formatCount(item.buyOrderCount) }} buy</span>
+                                            <span class="tag">High {{ formatCoins(item.highestBuyPrice) }}</span>
+                                        </span>
+                                    </span>
+                                </button>
+                            </div>
+                        </section>
+
                         <section
                             v-for="group in groupedMarketItems"
                             :key="group.category"
@@ -402,6 +447,22 @@ const scrollStorageKey = computed(() => `bitcraft:${props.tool.key}:${window.loc
 const explorerTitle = computed(() => (isBarterTool.value ? 'Barter Stall Explorer' : 'Market Explorer'))
 const activeItemSearchLabel = computed(() => form.q || form.category || '')
 const activeRegionLabel = computed(() => form.region || '')
+const canShowRegionBuyOrders = computed(() => !isBarterTool.value && Boolean(activeRegionLabel.value))
+const regionBuyOrderItems = computed(() => (props.market.items ?? [])
+    .filter((item) => Number(item.buyOrderCount ?? 0) > 0)
+    .sort((first, second) => {
+        const firstPrice = numericValue(first.highestBuyPrice) ?? -Infinity
+        const secondPrice = numericValue(second.highestBuyPrice) ?? -Infinity
+
+        if (firstPrice !== secondPrice) {
+            return secondPrice - firstPrice
+        }
+
+        return Number(second.buyOrderCount ?? 0) - Number(first.buyOrderCount ?? 0)
+    }))
+const regionBuyOrderTotal = computed(() => regionBuyOrderItems.value
+    .reduce((total, item) => total + Number(item.buyOrderCount ?? 0), 0))
+const hasRegionBuyOrderBoard = computed(() => canShowRegionBuyOrders.value && regionBuyOrderItems.value.length > 0)
 const explorerEmptyLabel = computed(() => {
     if (searching.value) {
         return isBarterTool.value ? 'Searching barter stalls...' : 'Searching market orders...'
@@ -644,6 +705,13 @@ const selectClaim = (claim) => {
 
 const clearClaim = () => {
     form.claimEntityId = ''
+    submit()
+}
+
+const showRegionBuyOrders = () => {
+    form.hasOrders = false
+    form.hasSellOrders = false
+    form.hasBuyOrders = true
     submit()
 }
 
@@ -938,6 +1006,12 @@ const formatCoins = (value) => {
     const number = Number(value)
 
     return Number.isFinite(number) ? number.toLocaleString() : String(value)
+}
+
+const numericValue = (value) => {
+    const number = Number(value)
+
+    return Number.isFinite(number) ? number : null
 }
 
 const formatCount = (value) => {

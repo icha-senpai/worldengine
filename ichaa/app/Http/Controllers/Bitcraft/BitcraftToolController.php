@@ -481,7 +481,10 @@ class BitcraftToolController extends Controller
             && $filters['claimEntityId'] === ''
             && $filters['empire'] === ''
             && $filters['empireEntityId'] === ''
-            && ($filters['q'] !== '' || $filters['category'] !== '' || filled($filters['itemId']));
+            && ($filters['q'] !== ''
+                || $filters['category'] !== ''
+                || filled($filters['itemId'])
+                || $this->hasMarketSideOrderScope($filters));
     }
 
     private function hasUnresolvedRegion(array $filters): bool
@@ -505,11 +508,26 @@ class BitcraftToolController extends Controller
             return true;
         }
 
+        if ($this->isRegionScopedMarketItemSearch($filters)) {
+            return true;
+        }
+
         if ($this->shouldSearchClaims($filters)) {
             return false;
         }
 
+        return $this->hasMarketOrderScope($filters);
+    }
+
+    private function hasMarketOrderScope(array $filters): bool
+    {
         return collect(Arr::only($filters, ['hasOrders', 'hasSellOrders', 'hasBuyOrders']))
+            ->contains(fn ($value) => $value === true);
+    }
+
+    private function hasMarketSideOrderScope(array $filters): bool
+    {
+        return collect(Arr::only($filters, ['hasSellOrders', 'hasBuyOrders']))
             ->contains(fn ($value) => $value === true);
     }
 

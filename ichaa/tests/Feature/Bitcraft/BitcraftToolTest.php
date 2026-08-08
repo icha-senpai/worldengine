@@ -277,6 +277,83 @@ class BitcraftToolTest extends TestCase
             && str_contains($request->url(), 'hasBuyOrders=1'));
     }
 
+    public function test_market_finder_can_show_region_buy_order_items(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/regions' => Http::response([[
+                'regionId' => 8,
+                'regionName' => 'Solmere',
+            ]]),
+            'https://bitjita.com/api/market*' => Http::response([
+                'data' => [
+                    'items' => [
+                        [
+                            'id' => 1421716234,
+                            'name' => 'Astralite Pickaxe',
+                            'category' => 'Miner Tool',
+                            'sellOrders' => 3,
+                            'buyOrders' => 0,
+                            'stats' => [
+                                'lowestSellPrice' => 1200,
+                                'highestBuyPrice' => null,
+                            ],
+                        ],
+                        [
+                            'id' => 1421716235,
+                            'name' => 'Astralite Hammer',
+                            'category' => 'Smith Tool',
+                            'sellOrders' => 0,
+                            'buyOrders' => 4,
+                            'stats' => [
+                                'lowestSellPrice' => null,
+                                'highestBuyPrice' => 950,
+                            ],
+                        ],
+                        [
+                            'id' => 1421716236,
+                            'name' => 'Astralite Saw',
+                            'category' => 'Carpentry Tool',
+                            'sellOrders' => 1,
+                            'buyOrders' => 2,
+                            'stats' => [
+                                'lowestSellPrice' => 1100,
+                                'highestBuyPrice' => 800,
+                            ],
+                        ],
+                    ],
+                    'categories' => ['Miner Tool', 'Smith Tool', 'Carpentry Tool'],
+                ],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.market', [
+                'region' => 'Solmere',
+                'hasBuyOrders' => 1,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Market')
+                ->where('filters.region', 'Solmere')
+                ->where('filters.regionId', '8')
+                ->where('filters.hasBuyOrders', true)
+                ->has('market.claims', 0)
+                ->has('market.items', 2)
+                ->where('market.items.0.name', 'Astralite Hammer')
+                ->where('market.items.0.buyOrderCount', 4)
+                ->where('market.items.0.highestBuyPrice', 950)
+                ->where('market.items.1.name', 'Astralite Saw')
+                ->where('market.items.1.buyOrderCount', 2)
+            );
+
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?')
+            && str_contains($request->url(), 'regionId=8')
+            && str_contains($request->url(), 'hasBuyOrders=1'));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims?'));
+        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), '/buildings'));
+    }
+
     public function test_market_finder_combines_item_and_region_searches(): void
     {
         Http::fake([
