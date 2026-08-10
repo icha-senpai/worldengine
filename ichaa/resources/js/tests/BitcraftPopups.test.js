@@ -103,6 +103,43 @@ describe('Bitcraft popups', () => {
         expect(recordTitles(wrapper)).toContain('Package Buyer')
     })
 
+    it('shows the item icon and calculator-style badges in the order book header', () => {
+        const wrapper = mount(MarketOrderBookPopup, {
+            props: {
+                show: true,
+                claimLinkHref: () => '#',
+                orderBook: {
+                    item: {
+                        name: 'Astralite Pickaxe',
+                        category: 'Tool',
+                        tier: 5,
+                        rarity: 'Rare',
+                        iconAssetName: 'GeneratedIcons/Other/GeneratedIcons/Items/Tools/AstralitePickaxe',
+                    },
+                    stats: {},
+                    sellOrders: [],
+                    buyOrders: [],
+                },
+            },
+            global: {
+                stubs: {
+                    Link: { template: '<a><slot /></a>' },
+                    PopupCard: PopupCardStub,
+                },
+            },
+        })
+
+        const itemHeader = wrapper.find('[data-test="order-book-item"]')
+
+        expect(itemHeader.text()).toContain('Astralite Pickaxe')
+        expect(itemHeader.find('.bitcraft-rarity-badge').text()).toBe('Rare')
+        expect(itemHeader.find('.bitcraft-rarity-badge').attributes('style')).toContain('--bitcraft-rarity-border')
+        expect(itemHeader.find('.bitcraft-tier-badge').attributes('style')).toContain('--bitcraft-tier-border')
+        expect(itemHeader.find('.bitcraft-tier-badge img').attributes('src')).toBe('/bitcraft-assets/UI/Badges/badge-tier-number-5.webp')
+        expect(itemHeader.find('.bitcraft-tier-badge img').attributes('alt')).toBe('T5')
+        expect(itemHeader.find('img').attributes('src')).toBe('/bitcraft-assets/sprites/GeneratedIcons/Other/GeneratedIcons/Items/Tools/AstralitePickaxe.webp')
+    })
+
     it('shows order book summary, filters table rows, calculates buy cost, and groups regions', async () => {
         const wrapper = mount(MarketOrderBookPopup, {
             props: {

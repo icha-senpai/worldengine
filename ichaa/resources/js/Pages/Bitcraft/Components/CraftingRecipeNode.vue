@@ -51,9 +51,7 @@
                             </span>
                             <span v-if="ingredientMeta(ingredient)" class="crafting-ingredient__meta">{{ ingredientMeta(ingredient) }}</span>
                         </span>
-                        <span v-if="ingredient.tier" class="crafting-ingredient__tier bitcraft-tier-badge" :style="tierStyle(ingredient.tier)">
-                            T{{ ingredient.tier }}
-                        </span>
+                        <BitcraftTierBadge v-if="hasTier(ingredient.tier)" class="crafting-ingredient__tier" :tier="ingredient.tier" />
                         <span class="crafting-ingredient__chevron" aria-hidden="true"></span>
                     </summary>
 
@@ -87,9 +85,7 @@
                             </span>
                             <span v-if="ingredientMeta(ingredient)" class="crafting-ingredient__meta">{{ ingredientMeta(ingredient) }}</span>
                         </span>
-                        <span v-if="ingredient.tier" class="crafting-ingredient__tier bitcraft-tier-badge" :style="tierStyle(ingredient.tier)">
-                            T{{ ingredient.tier }}
-                        </span>
+                        <BitcraftTierBadge v-if="hasTier(ingredient.tier)" class="crafting-ingredient__tier" :tier="ingredient.tier" />
                         <button
                             v-if="ingredient.recipesDeferred"
                             type="button"
@@ -111,7 +107,8 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { bitcraftItemFrameStyle, bitcraftTierStyle, bitjitaAssetUrl } from '@/Pages/Bitcraft/bitjitaAssets.js'
+import BitcraftTierBadge from '@/Pages/Bitcraft/Components/BitcraftTierBadge.vue'
+import { bitcraftItemFrameStyle, bitjitaAssetUrl, hasBitcraftTier } from '@/Pages/Bitcraft/bitjitaAssets.js'
 
 defineOptions({ name: 'CraftingRecipeNode' })
 
@@ -261,8 +258,8 @@ const loadBranch = async (ingredient) => {
     }
 }
 
-const tierStyle = (tier) => bitcraftTierStyle(tier)
 const ingredientFrameStyle = (ingredient) => bitcraftItemFrameStyle(ingredient?.tier, ingredient?.rarity)
+const hasTier = (tier) => hasBitcraftTier(tier)
 
 const scaledQuantity = (quantity) => {
     const number = Number(quantity)
@@ -502,14 +499,7 @@ details > .crafting-ingredient__row {
 }
 
 .crafting-ingredient__tier {
-    border-radius: 4px;
-    background: rgb(var(--bg-surface-rgb) / 0.75);
-    color: var(--text-muted);
-    font-family: var(--font-ui);
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1;
-    padding: 5px 7px;
+    margin-left: auto;
 }
 
 .crafting-ingredient__load {
@@ -535,15 +525,6 @@ details > .crafting-ingredient__row {
     font-family: var(--font-ui);
     font-size: 12px;
     font-weight: 650;
-}
-
-.bitcraft-tier-badge {
-    border: 1px solid var(--bitcraft-tier-border, rgb(var(--border-color-rgb) / 0.7));
-    background:
-        linear-gradient(180deg, var(--bitcraft-tier-bg, rgb(var(--bg-surface-rgb) / 0.75)), rgb(var(--bg-surface-rgb) / 0.72)),
-        rgb(var(--bg-surface-rgb) / 0.75);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 12px color-mix(in srgb, var(--bitcraft-tier-accent, transparent) 24%, transparent);
-    color: var(--bitcraft-tier-text, var(--text-muted));
 }
 
 .crafting-ingredient__chevron {

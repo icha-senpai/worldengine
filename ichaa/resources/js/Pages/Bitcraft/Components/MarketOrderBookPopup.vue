@@ -14,6 +14,31 @@
             <span v-if="sortedPackageBuyOrders.length" class="tag">{{ formatCount(sortedPackageBuyOrders.length) }} package buy</span>
         </template>
 
+        <section v-if="orderBook?.item" class="market-order-item" data-test="order-book-item">
+            <span
+                class="market-order-item__icon"
+                :style="orderBookItemFrameStyle"
+                aria-hidden="true"
+            >
+                <img
+                    v-if="orderBookItemIconUrl"
+                    :src="orderBookItemIconUrl"
+                    alt=""
+                    loading="lazy"
+                    @error="hideBrokenIcon(orderBook.item.iconAssetName)"
+                >
+                <span v-else>{{ itemInitials(orderBook.item.name) }}</span>
+            </span>
+            <div class="market-order-item__copy">
+                <strong class="market-order-item__title">{{ orderBook.item.name }}</strong>
+                <div class="market-order-item__tags">
+                    <span v-if="orderBook.item.rarity" class="tag bitcraft-rarity-badge" :style="rarityStyle(orderBook.item.rarity)">{{ orderBook.item.rarity }}</span>
+                    <BitcraftTierBadge v-if="hasTier(orderBook.item.tier)" :tier="orderBook.item.tier" />
+                    <span v-if="orderBook.item.category" class="tag">{{ orderBook.item.category }}</span>
+                </div>
+            </div>
+        </section>
+
         <section class="market-summary-grid" data-test="order-book-summary">
             <div class="market-summary-card market-summary-card--sell">
                 <span class="market-summary-card__label">Best sell</span>
@@ -218,6 +243,8 @@
 import { computed, h, reactive, ref } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import PopupCard from '@/Components/ui/PopupCard.vue'
+import BitcraftTierBadge from '@/Pages/Bitcraft/Components/BitcraftTierBadge.vue'
+import { bitcraftItemFrameStyle, bitcraftRarityStyle, bitjitaAssetUrl, hasBitcraftTier } from '@/Pages/Bitcraft/bitjitaAssets.js'
 
 const props = defineProps({
     show: { type: Boolean, default: false },
@@ -236,9 +263,21 @@ const sortOptions = [
 const sortKey = ref('price')
 const sortDirection = ref('desc')
 const buyQuantity = ref('')
+const brokenIconAssets = ref(new Set())
 const sellFilters = reactive({ minQuantity: '', location: '', owner: '' })
 const buyFilters = reactive({ minQuantity: '', location: '', owner: '' })
 
+const orderBookItem = computed(() => props.orderBook?.item ?? null)
+const orderBookItemIconUrl = computed(() => {
+    const assetName = orderBookItem.value?.iconAssetName
+
+    if (!assetName || brokenIconAssets.value.has(assetName)) {
+        return null
+    }
+
+    return bitjitaAssetUrl(assetName)
+})
+const orderBookItemFrameStyle = computed(() => bitcraftItemFrameStyle(orderBookItem.value?.tier, orderBookItem.value?.rarity))
 const allSellOrders = computed(() => props.orderBook?.sellOrders ?? [])
 const allBuyOrders = computed(() => props.orderBook?.buyOrders ?? [])
 const filteredSellOrders = computed(() => filterOrders(allSellOrders.value, sellFilters))
@@ -305,6 +344,20 @@ const subtitle = computed(() => {
 
     return category ? `Real Bitjita orders · ${category}` : 'Real Bitjita orders'
 })
+
+const itemInitials = (name) => String(name ?? '?')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || '?'
+
+const hideBrokenIcon = (assetName) => {
+    brokenIconAssets.value = new Set([...brokenIconAssets.value, assetName])
+}
+
+const rarityStyle = (rarity) => bitcraftRarityStyle(rarity)
+const hasTier = (tier) => hasBitcraftTier(tier)
 
 const packageInfoLabel = computed(() => {
     const packageInfo = props.orderBook?.packageInfo
@@ -725,6 +778,72 @@ Metric.props = {
 </script>
 
 <style scoped>
+.market-order-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    border: 1px solid rgb(var(--border-color-2-rgb) / 0.2);
+    border-radius: 8px;
+    background: rgb(var(--bg-surface-rgb) / 0.72);
+    padding: 12px;
+}
+
+.market-order-item__icon {
+    position: relative;
+    display: grid;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--bitcraft-item-frame-border, rgb(var(--border-color-rgb) / 0.7));
+    border-radius: 6px;
+    background:
+        radial-gradient(circle at 35% 25%, var(--bitcraft-item-frame-bg, rgb(var(--accent-cyan-rgb) / 0.2)), transparent 42%),
+        linear-gradient(180deg, color-mix(in srgb, var(--bitcraft-item-frame-accent, transparent) 12%, transparent), transparent),
+        rgb(var(--bg-surface-rgb) / 0.92);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 12px color-mix(in srgb, var(--bitcraft-item-frame-accent, transparent) 20%, transparent);
+    color: var(--bitcraft-item-frame-text, var(--text-muted-3));
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.market-order-item__icon img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+
+.market-order-item__copy {
+    min-width: 0;
+}
+
+.market-order-item__title {
+    display: block;
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.25;
+}
+
+.market-order-item__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.bitcraft-rarity-badge {
+    border-color: var(--bitcraft-rarity-border, currentColor);
+    background:
+        linear-gradient(180deg, var(--bitcraft-rarity-bg, transparent), rgb(var(--bg-surface-rgb) / 0.7)),
+        rgb(var(--bg-surface-rgb) / 0.7);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 12px color-mix(in srgb, var(--bitcraft-rarity-accent, transparent) 22%, transparent);
+    color: var(--bitcraft-rarity-text, currentColor);
+}
+
 .market-summary-grid {
     --market-sell-color: #e9a16f;
     --market-buy-color: var(--success);

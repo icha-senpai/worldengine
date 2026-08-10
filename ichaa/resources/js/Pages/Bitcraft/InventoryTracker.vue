@@ -127,12 +127,13 @@
                     v-for="item in trackerItems"
                     :key="item.key"
                     class="inventory-tracker-widget__tracked-item"
+                    :style="itemVisualStyle(item)"
                 >
                     <div class="inventory-tracker-widget__row">
                         <div class="inventory-tracker-widget__item">
                             <p>
                                 {{ item.name }}
-                                <span v-if="itemTierLabel(item)">{{ itemTierLabel(item) }}</span>
+                                <BitcraftTierBadge v-if="hasTier(item.tier)" :tier="item.tier" />
                             </p>
                             <small>{{ itemMetaLabel(item) }}</small>
                         </div>
@@ -167,6 +168,8 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
+import BitcraftTierBadge from '@/Pages/Bitcraft/Components/BitcraftTierBadge.vue'
+import { bitcraftItemFrameStyle, hasBitcraftTier } from '@/Pages/Bitcraft/bitjitaAssets.js'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
 import WidgetPageShell from './Components/WidgetPageShell.vue'
 import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'
@@ -356,20 +359,8 @@ const remainingLabel = (item) => {
 }
 
 const formatNumber = (value) => new Intl.NumberFormat().format(Math.max(0, Math.round(Number(value) || 0)))
-const formatTierLabel = (tier) => {
-    if (tier === null || tier === undefined || tier === '') {
-        return ''
-    }
-
-    const numericTier = Number(tier)
-
-    if (!Number.isFinite(numericTier)) {
-        return ''
-    }
-
-    return `T${Math.abs(Math.trunc(numericTier))}`
-}
-const itemTierLabel = (item) => formatTierLabel(item?.tier)
+const hasTier = (tier) => hasBitcraftTier(tier)
+const itemVisualStyle = (item) => bitcraftItemFrameStyle(item?.tier, item?.rarity)
 const saveEmojiList = (emojis) => {
     form.icons = emojis.join(' ')
     saveSetup()
@@ -813,6 +804,10 @@ onBeforeUnmount(() => {
     border-top: 1px solid color-mix(in srgb, var(--tracker-border) 24%, transparent);
 }
 
+.inventory-tracker-widget__tracked-item {
+    border-left: 3px solid var(--bitcraft-item-frame-border, transparent);
+}
+
 .inventory-tracker-widget__row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -828,17 +823,6 @@ onBeforeUnmount(() => {
     font-size: calc(18px * var(--tracker-font-scale));
     font-weight: 900;
     line-height: 1.25;
-}
-
-.inventory-tracker-widget__item p span {
-    display: inline-flex;
-    align-items: center;
-    min-height: 22px;
-    padding: 0 7px;
-    border-radius: 5px;
-    background: color-mix(in srgb, var(--tracker-accent) 28%, transparent);
-    color: var(--tracker-text);
-    font-size: calc(13px * var(--tracker-font-scale));
 }
 
 .inventory-tracker-widget__item small,
@@ -878,7 +862,11 @@ onBeforeUnmount(() => {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--tracker-highlight), var(--tracker-accent));
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--bitcraft-item-frame-accent, var(--tracker-highlight)) 74%, var(--tracker-highlight)),
+        color-mix(in srgb, var(--bitcraft-item-frame-accent, var(--tracker-accent)) 72%, var(--tracker-accent))
+    );
     transition: width 320ms ease;
 }
 

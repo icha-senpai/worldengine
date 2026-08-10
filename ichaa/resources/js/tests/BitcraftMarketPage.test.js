@@ -99,6 +99,72 @@ describe('Bitcraft market page popups', () => {
         )
     })
 
+    it('uses calculator-style item icons and colored badges on market and barter cards', () => {
+        const marketWrapper = mountPage()
+        const marketCard = marketWrapper.find('[data-test="market-item-card"]')
+
+        expect(marketCard.find('.bitcraft-rarity-badge').text()).toBe('Rare')
+        expect(marketCard.find('.bitcraft-rarity-badge').attributes('style')).toContain('--bitcraft-rarity-border')
+        expect(marketCard.find('.bitcraft-tier-badge').attributes('style')).toContain('--bitcraft-tier-border')
+        expect(marketCard.find('.bitcraft-tier-badge img').attributes('src')).toBe('/bitcraft-assets/UI/Badges/badge-tier-number-5.webp')
+        expect(marketCard.find('.bitcraft-tier-badge img').attributes('alt')).toBe('T5')
+        expect(marketCard.find('.market-item-icon img').attributes('src')).toBe('/bitcraft-assets/sprites/GeneratedIcons/Other/GeneratedIcons/Items/Tools/AstralitePickaxe.webp')
+
+        const barterWrapper = mountPage({
+            tool: barterTool(),
+            market: marketPayload({
+                items: [
+                    marketItem({
+                        id: 11,
+                        name: 'Treated Plank',
+                        iconAssetName: 'GeneratedIcons/Items/PlankTreated',
+                        tier: 3,
+                        rarity: 'Uncommon',
+                    }),
+                ],
+            }),
+        })
+        const barterCard = barterWrapper.find('[data-test="market-item-card"]')
+
+        expect(barterCard.find('.bitcraft-rarity-badge').text()).toBe('Uncommon')
+        expect(barterCard.find('.bitcraft-tier-badge img').attributes('src')).toBe('/bitcraft-assets/UI/Badges/badge-tier-number-3.webp')
+        expect(barterCard.find('.bitcraft-tier-badge img').attributes('alt')).toBe('T3')
+        expect(barterCard.find('.market-item-icon img').attributes('src')).toBe('/bitcraft-assets/sprites/GeneratedIcons/Items/PlankTreated.webp')
+    })
+
+    it('renders Brico fallback tier badges for tier zero and untiered items', () => {
+        const wrapper = mountPage({
+            market: marketPayload({
+                items: [
+                    marketItem({
+                        id: 31,
+                        name: 'Tier Zero Material',
+                        tier: 0,
+                        rarity: 'Default',
+                    }),
+                    marketItem({
+                        id: 32,
+                        name: 'Untiered Material',
+                        tier: -1,
+                        rarity: 'Common',
+                    }),
+                ],
+            }),
+        })
+
+        const tierZeroCard = wrapper
+            .findAll('[data-test="market-item-card"]')
+            .find((card) => card.text().includes('Tier Zero Material'))
+        const untieredCard = wrapper
+            .findAll('[data-test="market-item-card"]')
+            .find((card) => card.text().includes('Untiered Material'))
+
+        expect(tierZeroCard.find('.bitcraft-tier-badge__text').text()).toBe('0')
+        expect(tierZeroCard.find('.bitcraft-tier-badge').attributes('style')).toContain('#413A64')
+        expect(untieredCard.find('.bitcraft-tier-badge__text').text()).toBe('-1')
+        expect(untieredCard.find('.bitcraft-tier-badge').attributes('style')).toContain('#413A64')
+    })
+
     it('opens a market popup from a clicked item without writing the item to the page URL', async () => {
         const wrapper = mountPage()
         await nextTick()
@@ -648,6 +714,9 @@ function marketItem(overrides = {}) {
         type: 'item',
         name: 'Astralite Pickaxe',
         category: 'Tool',
+        tier: 5,
+        rarity: 'Rare',
+        iconAssetName: 'GeneratedIcons/Other/GeneratedIcons/Items/Tools/AstralitePickaxe',
         sellOrderCount: 3,
         buyOrderCount: 2,
         sellOrderQuantity: 6,

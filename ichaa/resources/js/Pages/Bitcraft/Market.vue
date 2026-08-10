@@ -199,8 +199,8 @@
                                     </div>
 
                                     <div class="mt-3 flex flex-wrap gap-2">
-                                        <span v-if="item.rarity" class="tag">{{ item.rarity }}</span>
-                                        <span v-if="item.tier" class="tag">Tier {{ item.tier }}</span>
+                                        <span v-if="item.rarity" class="tag bitcraft-rarity-badge" :style="rarityStyle(item.rarity)">{{ item.rarity }}</span>
+                                        <BitcraftTierBadge v-if="hasTier(item.tier)" :tier="item.tier" />
                                         <span class="tag">{{ item.kind }}</span>
                                         <span v-if="buyOrderReference(item).quantity" class="tag">{{ buyOrderReference(item).orderLabel }} qty {{ formatCount(buyOrderReference(item).quantity) }}</span>
                                     </div>
@@ -324,9 +324,10 @@ import { router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import MarketOrderBookPopup from '@/Pages/Bitcraft/Components/MarketOrderBookPopup.vue'
+import BitcraftTierBadge from '@/Pages/Bitcraft/Components/BitcraftTierBadge.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import TextInput from '@/Components/TextInput.vue'
-import { bitcraftItemFrameStyle, bitjitaAssetUrl } from '@/Pages/Bitcraft/bitjitaAssets.js'
+import { bitcraftItemFrameStyle, bitcraftRarityStyle, bitjitaAssetUrl, hasBitcraftTier } from '@/Pages/Bitcraft/bitjitaAssets.js'
 
 const queryHasFlag = (key) => typeof window !== 'undefined'
     && new URLSearchParams(window.location.search).has(key)
@@ -820,6 +821,8 @@ const hideBrokenIcon = (assetName) => {
 }
 
 const itemFrameStyle = (item) => bitcraftItemFrameStyle(item?.tier, item?.rarity)
+const rarityStyle = (rarity) => bitcraftRarityStyle(rarity)
+const hasTier = (tier) => hasBitcraftTier(tier)
 
 const visitTool = (url, params = {}) => {
     router.get(url, params, {
@@ -1538,6 +1541,15 @@ const formatOptionalCount = (value) => {
     font-family: var(--font-ui);
     font-size: 12px;
     font-weight: 800;
+}
+
+.bitcraft-rarity-badge {
+    border-color: var(--bitcraft-rarity-border, currentColor);
+    background:
+        linear-gradient(180deg, var(--bitcraft-rarity-bg, transparent), rgb(var(--bg-surface-rgb) / 0.7)),
+        rgb(var(--bg-surface-rgb) / 0.7);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 12px color-mix(in srgb, var(--bitcraft-rarity-accent, transparent) 22%, transparent);
+    color: var(--bitcraft-rarity-text, currentColor);
 }
 
 @media (min-width: 640px) {

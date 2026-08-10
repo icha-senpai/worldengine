@@ -1,8 +1,8 @@
-const BITJITA_ASSET_ORIGIN = 'https://bitjita.com'
-
-const generatedIconPrefix = 'GeneratedIcons/'
+const BITCRAFT_LOCAL_ASSET_BASE = '/bitcraft-assets'
 
 const tierColors = {
+    '-1': '#413A64',
+    0: '#413A64',
     1: '#636A74',
     2: '#875F45',
     3: '#5C6F4D',
@@ -12,24 +12,25 @@ const tierColors = {
     7: '#947014',
     8: '#538484',
     9: '#464953',
-    10: '#97AFBF',
+    10: '#97AFBE',
 }
 
 const rarityColors = {
-    common: '#857051',
-    uncommon: '#846052',
-    rare: '#687CA2',
-    epic: '#AD7513',
-    legendary: '#106C86',
-    mythic: '#374EDE',
+    default: '#636363',
+    common: '#7b674a',
+    uncommon: '#775142',
+    rare: '#495774',
+    epic: '#8b550e',
+    legendary: '#0b5c7d',
+    mythic: '#3c32dc',
 }
 
-const rarityNames = [null, 'common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic']
+const rarityNames = ['default', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic']
 
 const colorStyle = (prefix, color) => ({
     [`--bitcraft-${prefix}-accent`]: color,
     [`--bitcraft-${prefix}-bg`]: `color-mix(in srgb, ${color} 22%, transparent)`,
-    [`--bitcraft-${prefix}-border`]: `color-mix(in srgb, ${color} 70%, transparent)`,
+    [`--bitcraft-${prefix}-border`]: color,
     [`--bitcraft-${prefix}-text`]: `color-mix(in srgb, ${color} 62%, white)`,
 })
 
@@ -39,15 +40,23 @@ const tierColor = (tier) => {
     return tierColors[tierNumber] ?? null
 }
 
+export const hasBitcraftTier = (tier) => tier !== null
+    && tier !== undefined
+    && tier !== ''
+    && Number.isFinite(Number(tier))
+
 const rarityColor = (rarity) => {
-    const rarityKey = Number.isFinite(Number(rarity))
-        ? rarityNames[Math.trunc(Number(rarity))]
-        : String(rarity ?? '').trim().toLowerCase()
+    const rawRarity = typeof rarity === 'object' && rarity !== null
+        ? rarity.tag
+        : rarity
+    const rarityKey = Number.isFinite(Number(rawRarity))
+        ? rarityNames[Math.trunc(Number(rawRarity))]
+        : String(rawRarity ?? '').trim().toLowerCase()
 
     return rarityColors[rarityKey] ?? null
 }
 
-export const bitjitaAssetUrl = (assetName) => {
+export const bitcraftAssetUrl = (assetName, quantity = null) => {
     if (typeof assetName !== 'string') {
         return null
     }
@@ -62,24 +71,44 @@ export const bitjitaAssetUrl = (assetName) => {
         return path
     }
 
-    path = path.replace(/^\/+/, '')
-
-    const generatedIconIndex = path.lastIndexOf(generatedIconPrefix)
-
-    if (generatedIconIndex >= 0) {
-        path = path.slice(generatedIconIndex)
+    if (path.startsWith('/')) {
+        return path
     }
 
-    if (!path.startsWith(generatedIconPrefix) || /[\[\]\uE000-\uFFFF]/u.test(path)) {
+    if (/[\uE000-\uFFFF]/u.test(path)) {
         return null
     }
+
+    const bracketMatch = path.match(/^([/\w-]+)(\[(,\d+)+])$/)
+
+    if (bracketMatch) {
+        const baseName = bracketMatch[1]
+        const quantities = bracketMatch[2]
+            .split(',')
+            .map((value) => Number.parseInt(value, 10))
+            .filter(Number.isFinite)
+            .sort((left, right) => left - right)
+
+        if (quantity && quantities.length) {
+            const selectedQuantity = quantities.reduce((selected, value) => (
+                Number(quantity) >= value ? value : selected
+            ), quantities[0])
+            path = `${baseName}${selectedQuantity}`
+        } else {
+            path = baseName
+        }
+    }
+
+    path = path.replace(/^\/+/, '')
 
     if (!/\.(webp|png|jpe?g|gif|svg)$/i.test(path)) {
         path = `${path}.webp`
     }
 
-    return `${BITJITA_ASSET_ORIGIN}/${path.split('/').map(encodeURIComponent).join('/')}`
+    return `${BITCRAFT_LOCAL_ASSET_BASE}/sprites/${path.split('/').map(encodeURIComponent).join('/')}`
 }
+
+export const bitjitaAssetUrl = bitcraftAssetUrl
 
 export const bitcraftTierStyle = (tier) => {
     const color = tierColor(tier)
@@ -90,6 +119,23 @@ export const bitcraftTierStyle = (tier) => {
 
     return colorStyle('tier', color)
 }
+
+export const bitcraftTierBadgeUrl = (tier) => {
+    const tierNumber = Math.trunc(Number(tier))
+
+    if (tierNumber < 1 || tierNumber > 10) {
+        return null
+    }
+
+    return `${BITCRAFT_LOCAL_ASSET_BASE}/UI/Badges/badge-tier-number-${tierNumber}.webp`
+}
+
+export const bitcraftTierBadgeContainerUrl = () => `${BITCRAFT_LOCAL_ASSET_BASE}/UI/Badges/badge-tier-container.webp`
+
+export const bitcraftTierBadgeStyle = (tier) => ({
+    ...bitcraftTierStyle(tier),
+    '--bitcraft-tier-badge-mask': `url('${bitcraftTierBadgeContainerUrl()}')`,
+})
 
 export const bitcraftRarityStyle = (rarity) => {
     const color = rarityColor(rarity)

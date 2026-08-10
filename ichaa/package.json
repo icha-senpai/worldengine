@@ -4,6 +4,7 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
+        "bitcraft:sync-assets": "node scripts/sync-bitcraft-brico-assets.mjs",
         "test": "node ./node_modules/vitest/vitest.mjs run",
         "test:watch": "node ./node_modules/vitest/vitest.mjs",
         "test:e2e": "npm run build && node ./node_modules/playwright/cli.js test",

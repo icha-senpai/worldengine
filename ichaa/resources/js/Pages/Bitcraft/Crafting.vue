@@ -61,9 +61,7 @@
                                 <span class="mt-2 flex flex-wrap gap-2">
                                     <span class="tag">{{ item.kind === 'cargo' ? 'Cargo' : 'Item' }}</span>
                                     <span v-if="item.category" class="tag">{{ item.category }}</span>
-                                    <span v-if="item.tier" class="tag bitcraft-tier-badge" :style="tierStyle(item.tier)">
-                                        Tier {{ item.tier }}
-                                    </span>
+                                    <BitcraftTierBadge v-if="hasTier(item.tier)" :tier="item.tier" />
                                     <span v-if="item.rarity" class="tag bitcraft-rarity-badge" :style="rarityStyle(item.rarity)">
                                         {{ item.rarity }}
                                     </span>
@@ -96,9 +94,7 @@
                             <p class="surface-section__subtitle">
                                 <span>{{ detail.item.kind === 'cargo' ? 'Cargo' : 'Item' }}</span>
                                 <span v-if="detail.item.category"> · {{ detail.item.category }}</span>
-                                <span v-if="detail.item.tier" class="crafting-detail-tier bitcraft-tier-badge" :style="tierStyle(detail.item.tier)">
-                                    T{{ detail.item.tier }}
-                                </span>
+                                <BitcraftTierBadge v-if="hasTier(detail.item.tier)" class="crafting-detail-tier" :tier="detail.item.tier" />
                                 <span v-if="detail.item.rarity" class="crafting-detail-rarity bitcraft-rarity-badge" :style="rarityStyle(detail.item.rarity)">
                                     {{ detail.item.rarity }}
                                 </span>
@@ -138,7 +134,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
 import TextInput from '@/Components/TextInput.vue'
 import CraftingRecipeTree from '@/Pages/Bitcraft/Components/CraftingRecipeTree.vue'
-import { bitcraftItemFrameStyle, bitcraftRarityStyle, bitcraftTierStyle, bitjitaAssetUrl } from '@/Pages/Bitcraft/bitjitaAssets.js'
+import BitcraftTierBadge from '@/Pages/Bitcraft/Components/BitcraftTierBadge.vue'
+import { bitcraftItemFrameStyle, bitcraftRarityStyle, bitjitaAssetUrl, hasBitcraftTier } from '@/Pages/Bitcraft/bitjitaAssets.js'
 
 const props = defineProps({
     filters: { type: Object, default: () => ({}) },
@@ -265,9 +262,9 @@ const hideBrokenIcon = (assetName) => {
     brokenIconAssets.value = new Set([...brokenIconAssets.value, assetName])
 }
 
-const tierStyle = (tier) => bitcraftTierStyle(tier)
 const rarityStyle = (rarity) => bitcraftRarityStyle(rarity)
 const itemFrameStyle = (item) => bitcraftItemFrameStyle(item?.tier, item?.rarity)
+const hasTier = (tier) => hasBitcraftTier(tier)
 </script>
 
 <style scoped>
@@ -318,15 +315,8 @@ const itemFrameStyle = (item) => bitcraftItemFrameStyle(item?.tier, item?.rarity
 }
 
 .crafting-detail-tier {
-    display: inline-flex;
-    align-items: center;
     margin-left: 6px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 800;
-    line-height: 1;
-    padding: 3px 6px;
-    vertical-align: 1px;
+    vertical-align: -3px;
 }
 
 .crafting-detail-rarity {
@@ -339,15 +329,6 @@ const itemFrameStyle = (item) => bitcraftItemFrameStyle(item?.tier, item?.rarity
     line-height: 1;
     padding: 3px 6px;
     vertical-align: 1px;
-}
-
-.bitcraft-tier-badge {
-    border-color: var(--bitcraft-tier-border, currentColor);
-    background:
-        linear-gradient(180deg, var(--bitcraft-tier-bg, transparent), rgb(var(--bg-surface-rgb) / 0.7)),
-        rgb(var(--bg-surface-rgb) / 0.7);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 12px color-mix(in srgb, var(--bitcraft-tier-accent, transparent) 22%, transparent);
-    color: var(--bitcraft-tier-text, currentColor);
 }
 
 .bitcraft-rarity-badge {
