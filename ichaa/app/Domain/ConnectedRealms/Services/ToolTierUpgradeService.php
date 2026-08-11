@@ -16,6 +16,7 @@ class ToolTierUpgradeService
         private ConnectedRealmsPlayerService $players,
         private ToolCatalogService $tools,
         private ItemCatalogService $items,
+        private GoldFlowLedgerService $goldFlows,
     ) {}
 
     /**
@@ -124,6 +125,16 @@ class ToolTierUpgradeService
 
             $this->players->syncEquipmentSlotFromTool($equipment, $tool);
             $this->players->awardSkillExperience($player, $family['craft'], (int) $tier['xp']);
+            $this->goldFlows->recordDestroyed($player, 'tool_tier_upgrade', (int) $tier['gold_cost'], 'tool_lifecycle', $tool, [
+                'tool_id' => (int) $tool->id,
+                'previous_item_name' => $previousName,
+                'item_key' => $tool->item_key,
+                'item_name' => $tool->item_name,
+                'skill' => $family['skill'],
+                'craft_skill' => $family['craft'],
+                'tier_level' => (int) $tool->tier_level,
+                'items_consumed' => $consumed,
+            ]);
 
             return [
                 'type' => 'tool_tier_upgrade',

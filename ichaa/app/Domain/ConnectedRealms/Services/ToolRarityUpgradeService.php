@@ -34,7 +34,12 @@ class ToolRarityUpgradeService
         'mythic' => ['experience' => 38, 'yield' => 5],
     ];
 
-    public function __construct(private ConnectedRealmsPlayerService $players, private ToolCatalogService $tools, private ItemCatalogService $items) {}
+    public function __construct(
+        private ConnectedRealmsPlayerService $players,
+        private ToolCatalogService $tools,
+        private ItemCatalogService $items,
+        private GoldFlowLedgerService $goldFlows,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -151,6 +156,17 @@ class ToolRarityUpgradeService
                 'upgrade_count' => $tool->upgrade_count,
                 'rarity_upgrade_attempts' => $tool->rarity_upgrade_attempts,
             ])->save();
+            $this->goldFlows->recordDestroyed($player, 'tool_rarity_upgrade', (int) $rule['gold_cost'], 'tool_lifecycle', $toolInstance, [
+                'tool_id' => (int) $toolInstance->id,
+                'item_key' => $tool->item_key,
+                'item_name' => $tool->item_name,
+                'skill' => $tool->slot,
+                'previous_rarity' => $previousRarity,
+                'target_rarity' => $targetRarity,
+                'success' => $succeeded,
+                'critical_success' => $criticalSuccess,
+                'materials_spent' => $consumed,
+            ]);
 
             return [
                 'type' => 'tool_rarity_upgrade',

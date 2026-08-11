@@ -8,6 +8,7 @@ use App\Domain\ConnectedRealms\Models\ConnectedRealmsContentEntry;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsCraftingLog;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsEquipmentSlot;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsExpeditionRun;
+use App\Domain\ConnectedRealms\Models\ConnectedRealmsGoldFlow;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsInventoryStack;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsJobCompletion;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsMarketListing;
@@ -18,6 +19,7 @@ use App\Domain\ConnectedRealms\Models\ConnectedRealmsTool;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsVendorSale;
 use App\Domain\ConnectedRealms\Services\ConnectedRealmsContentService;
 use App\Domain\ConnectedRealms\Services\CraftingService;
+use App\Domain\ConnectedRealms\Services\EconomyAuditService;
 use App\Domain\ConnectedRealms\Services\EvergatherTierCatalog;
 use App\Domain\ConnectedRealms\Services\ExpeditionService;
 use App\Domain\ConnectedRealms\Services\GatheringActionService;
@@ -191,7 +193,9 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->reloadOnly(['item_guide', 'world_events', 'leaderboards'], fn (Assert $page) => $page
                     ->where('item_guide.summary.tracked_items', fn (int $count): bool => $count > 1000)
                     ->where('item_guide.summary.items_with_sources', fn (int $count): bool => $count > 1000)
-                    ->where('item_guide.summary.items_without_sinks', 0)
+                    ->where('item_guide.summary.items_with_sinks', fn (int $count): bool => $count > 0)
+                    ->where('item_guide.summary.items_without_sinks', fn (int $count): bool => $count > 0)
+                    ->where('item_guide.summary.items_with_fallback_sinks', fn (int $count): bool => $count > 1000)
                     ->has('item_guide.categories')
                     ->has('world_events.active', 3)
                     ->where('world_events.active.0.key', 'meteorfall')
@@ -423,7 +427,15 @@ class ConnectedRealmsGatheringTest extends TestCase
                 'player_id' => $player->id,
                 'slot' => 'tool_fishing',
                 'item_key' => 'reed_rod',
+                'durability' => 99,
             ]);
+            $equipment = ConnectedRealmsEquipmentSlot::query()
+                ->where('player_id', $player->id)
+                ->where('slot', 'tool_fishing')
+                ->firstOrFail();
+            $tool = ConnectedRealmsTool::query()->findOrFail($equipment->tool_id);
+
+            $this->assertSame(99, $tool->durability);
 
             $this->assertDatabaseHas('connected_realms_inventory_stacks', [
                 'player_id' => $player->id,
@@ -712,11 +724,85 @@ class ConnectedRealmsGatheringTest extends TestCase
 
             $this->assertDatabaseHas('connected_realms_inventory_stacks', [
                 'player_id' => $player->id,
-                'item_key' => 'combat_candlemark_combat_badge_1',
+                'item_key' => 'activity_trinket_commendation_common_tier_1',
             ]);
+
+            $equipment = ConnectedRealmsEquipmentSlot::query()
+                ->where('player_id', $player->id)
+                ->where('slot', 'tool_combat')
+                ->firstOrFail();
+            $tool = ConnectedRealmsTool::query()->findOrFail($equipment->tool_id);
+
+            $this->assertSame(99, $equipment->durability);
+            $this->assertSame(99, $tool->durability);
         } finally {
             Carbon::setTestNow();
         }
+    }
+
+    public function test_broken_equipped_tools_stop_providing_action_bonuses(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+        $player = ConnectedRealmsPlayer::query()->create([
+            'user_id' => $user->id,
+            'display_name' => 'Broken Tool Tester',
+            'species' => 'human',
+            'gold' => 0,
+        ]);
+        $bonuses = ['skill' => 'mining', 'experience' => 500, 'yield' => 500];
+
+        $tool = ConnectedRealmsTool::query()->create([
+            'player_id' => $player->id,
+            'slot' => 'tool_mining',
+            'skill' => 'mining',
+            'item_key' => 'broken_audit_pickaxe',
+            'item_name' => 'Broken Audit Pickaxe',
+            'rarity' => 'rare',
+            'durability' => 0,
+            'bonuses' => $bonuses,
+            'origin' => 'crafted',
+            'status' => ConnectedRealmsTool::STATUS_EQUIPPED,
+            'tier_level' => 20,
+        ]);
+        $equipment = ConnectedRealmsEquipmentSlot::query()->create([
+            'player_id' => $player->id,
+            'tool_id' => $tool->id,
+            'slot' => 'tool_mining',
+            'item_key' => $tool->item_key,
+            'item_name' => $tool->item_name,
+            'rarity' => $tool->rarity,
+            'durability' => 0,
+            'bonuses' => $bonuses,
+            'origin' => 'crafted',
+            'tier_level' => 20,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('evergather.actions.store'), ['action' => 'mine'])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHas('connected_realms_result', function (array $result): bool {
+                return $result['tool']['is_broken'] === true
+                    && $result['tool']['durability'] === 0
+                    && $result['tool']['experience_bonus'] === 0
+                    && $result['tool']['yield_bonus'] === 0
+                    && $result['tool']['tool_effects']['modifiers']['critical_chance'] === 0;
+            });
+
+        $equipment->refresh();
+        $tool->refresh();
+
+        $skill = ConnectedRealmsPlayerSkill::query()
+            ->where('player_id', $player->id)
+            ->where('skill', 'mining')
+            ->firstOrFail();
+        $largestAward = ConnectedRealmsInventoryStack::query()
+            ->where('player_id', $player->id)
+            ->max('quantity');
+
+        $this->assertSame(0, $equipment->durability);
+        $this->assertSame(0, $tool->durability);
+        $this->assertLessThan(500, $skill->experience);
+        $this->assertLessThan(500, $largestAward);
     }
 
     public function test_skill_catalog_has_level_100_progression_targets_for_all_leveling_tracks(): void
@@ -1017,8 +1103,8 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame([], $placeholderLabels);
         $this->assertSame([], $placeholderLoot);
         $this->assertSame('Candlemark Guard Cut', $activities->get('combat_starter_activity_1')['label']);
-        $this->assertSame('Candlemark Guard Cut Sparring Notch', $activities->get('combat_starter_activity_1')['loot'][0]['item_name']);
-        $this->assertSame('Crownmark Realm Champion Bout Sparring Notch', $activities->get('combat_evergather_activity_100')['loot'][0]['item_name']);
+        $this->assertSame('Tier 1 Common Commendation Trinket', $activities->get('combat_starter_activity_1')['loot'][0]['item_name']);
+        $this->assertSame('Tier 10 Mythic Commendation Trinket', $activities->get('combat_evergather_activity_100')['loot'][0]['item_name']);
     }
 
     public function test_evergather_gathering_action_labels_are_distinct(): void
@@ -1069,8 +1155,6 @@ class ConnectedRealmsGatheringTest extends TestCase
         $surfaces = [
             'gathering_actions' => collect($catalogs['actions'])->pluck('label'),
             'skill_activities' => collect($catalogs['activities'])->pluck('label'),
-            'activity_loot' => collect($catalogs['activities'])
-                ->flatMap(fn (array $activity): array => collect($activity['loot'])->pluck('item_name')->all()),
             'jobs' => collect($catalogs['jobs'])->pluck('label'),
             'expeditions' => collect($catalogs['expeditions'])->pluck('label'),
             'skill_unlocks' => collect(app(SkillCatalogService::class)->all())
@@ -1236,34 +1320,15 @@ class ConnectedRealmsGatheringTest extends TestCase
             }
         }
 
-        $purposes = app(ItemPurposeService::class);
-
         foreach ($producedItems as $itemKey => $sources) {
             $itemName = array_key_first($itemNames[$itemKey]);
-            $vendorSink = $purposes->vendorSinkFor([
-                'item_key' => $itemKey,
-                'item_name' => $itemName,
-            ]);
-            $purpose = $purposes->requisitionFor([
+            $vendorSink = app(ItemPurposeService::class)->vendorSinkFor([
                 'item_key' => $itemKey,
                 'item_name' => $itemName,
             ]);
 
             if (! in_array($vendorSink['required_level'], $tierLevels, true)) {
                 $offTierPurposeSinks["vendor:{$itemKey}"] = $vendorSink['required_level'];
-            }
-
-            if (! in_array($purpose['required_level'], $tierLevels, true)) {
-                $offTierPurposeSinks["requisition:{$itemKey}"] = $purpose['required_level'];
-            }
-
-            $this->recordConsumedItem($consumedItems, $itemNames, [
-                'item_key' => $itemKey,
-                'item_name' => $itemName,
-            ], 'vendor:ledger_steward');
-
-            foreach ($purpose['requirements'] as $item) {
-                $this->recordConsumedItem($consumedItems, $itemNames, $item, "requisition:{$purpose['key']}");
             }
         }
 
@@ -1338,18 +1403,26 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->all();
 
         $this->assertSame([], $missingSources);
-        $this->assertSame([], $missingUses);
+        $this->assertNotSame([], $missingUses);
         $this->assertSame([], $conflictingNames);
         $this->assertSame([], $placeholderNames);
         $this->assertSame([], $duplicateDisplayNames);
-        $this->assertSame([], $singleSinkItems);
+        $this->assertNotSame([], $singleSinkItems);
         $this->assertSame([], $offTierPurposeSinks);
         $this->assertSame([], $unclassifiedItems);
         $this->assertSame([], $invalidRecipeTiers);
         $this->assertSame([], $invalidItemTiers);
     }
 
-    public function test_owned_orphan_items_unlock_meaningful_requisition_jobs(): void
+    public function test_evergather_shop_offers_cannot_be_immediately_liquidated_for_profit(): void
+    {
+        $violations = app(EconomyAuditService::class)->export()['violations'];
+
+        $this->assertSame([], $violations['shop_liquidation_paths']);
+        $this->assertSame([], $violations['shop_job_paths']);
+    }
+
+    public function test_owned_orphan_items_do_not_unlock_unbounded_requisition_jobs(): void
     {
         $user = $this->verifiedUserWithConnectedRealmsAccess();
 
@@ -1359,8 +1432,8 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'brine_shrimp',
-            'item_name' => 'Brine Shrimp',
+            'item_key' => 'audit_orphan_pebble',
+            'item_name' => 'Audit Orphan Pebble',
             'rarity' => 'common',
             'quantity' => 1,
         ]);
@@ -1372,38 +1445,42 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->missing('jobs')
                 ->missing('item_guide')
                 ->reloadOnly(['jobs', 'item_guide'], fn (Assert $deferred) => $deferred
-                    ->has('jobs', 330)
-                    ->where('jobs.329.key', 'item_requisition_brine_shrimp')
-                    ->where('jobs.329.label', 'Brine Shrimp Field Sample')
-                    ->where('jobs.329.category', 'Field Requisitions')
-                    ->where('jobs.329.can_complete', true)
-                    ->where('item_guide.summary.items_without_sinks', 0)
+                    ->has('jobs', 329)
+                    ->where('jobs', fn ($jobs): bool => ! collect($jobs)->contains(fn (array $job): bool => $job['key'] === 'item_requisition_audit_orphan_pebble'))
+                    ->where('jobs', fn ($jobs): bool => collect($jobs)->contains(fn (array $job): bool => $job['key'] === 'pier_provisions'
+                        && $job['rotation'] === 'daily'
+                        && $job['completion_cap'] === 3
+                        && $job['completed_in_rotation'] === 0
+                        && $job['remaining_completions'] === 3
+                        && $job['is_demand_available'] === true))
+                    ->where('item_guide.summary.items_without_sinks', fn (int $count): bool => $count > 0)
                     ->where('item_guide.items', fn ($items): bool => collect($items)->contains(function (array $item): bool {
                         $sinkTypes = collect($item['sinks'] ?? [])->pluck('type');
+                        $fallbackTypes = collect($item['fallback_sinks'] ?? [])->pluck('type');
 
-                        return $item['item_key'] === 'brine_shrimp'
-                            && $item['sink_count'] >= 2
-                            && ($item['best_sink']['type'] ?? null) === 'Oathhall Claim'
-                            && $sinkTypes->contains('NPC Vendor')
-                            && $sinkTypes->contains('Oathhall Claim');
+                        return $item['item_key'] === 'audit_orphan_pebble'
+                            && $item['sink_count'] === 0
+                            && $item['fallback_sink_count'] === 1
+                            && $item['best_sink'] === null
+                            && $sinkTypes->doesntContain('Oathhall Claim')
+                            && $fallbackTypes->contains('NPC Vendor');
                     }))
                 )
             );
 
         $this->actingAs($user)
-            ->post(route('evergather.jobs.store'), ['job' => 'item_requisition_brine_shrimp'])
+            ->post(route('evergather.jobs.store'), ['job' => 'item_requisition_audit_orphan_pebble'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Brine Shrimp Field Sample completed.');
+            ->assertSessionHasErrors('job');
 
-        $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
+        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'brine_shrimp',
+            'item_key' => 'audit_orphan_pebble',
+            'quantity' => 1,
         ]);
-        $this->assertDatabaseHas('connected_realms_job_completions', [
+        $this->assertDatabaseMissing('connected_realms_job_completions', [
             'player_id' => $player->id,
-            'job_key' => 'item_requisition_brine_shrimp',
-            'job_name' => 'Brine Shrimp Field Sample',
-            'category' => 'Field Requisitions',
+            'job_key' => 'item_requisition_audit_orphan_pebble',
         ]);
     }
 
@@ -1638,6 +1715,143 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame(1, ConnectedRealmsCraftingLog::query()->where('player_id', $player->id)->count());
     }
 
+    public function test_crafting_tool_preserves_material_and_loses_durability_when_effect_applies(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+        $player = ConnectedRealmsPlayer::query()->create([
+            'user_id' => $user->id,
+            'display_name' => 'Careful Smelter',
+            'species' => 'human',
+            'gold' => 0,
+        ]);
+        $tool = ConnectedRealmsTool::query()->create([
+            'player_id' => $player->id,
+            'slot' => 'tool_smelting',
+            'skill' => 'smelting',
+            'item_key' => 'rare_coalbed_crucible',
+            'item_name' => 'Rare Coalbed Crucible',
+            'rarity' => 'rare',
+            'durability' => 100,
+            'bonuses' => ['skill' => 'smelting', 'experience' => 0, 'yield' => 0],
+            'origin' => 'crafted',
+            'status' => ConnectedRealmsTool::STATUS_EQUIPPED,
+            'tier_level' => 1,
+        ]);
+        $equipment = ConnectedRealmsEquipmentSlot::query()->create([
+            'player_id' => $player->id,
+            'tool_id' => $tool->id,
+            'slot' => 'tool_smelting',
+            'item_key' => $tool->item_key,
+            'item_name' => $tool->item_name,
+            'rarity' => $tool->rarity,
+            'durability' => 100,
+            'bonuses' => $tool->bonuses,
+            'origin' => 'crafted',
+            'tier_level' => 1,
+        ]);
+
+        ConnectedRealmsInventoryStack::query()->create([
+            'player_id' => $player->id,
+            'item_key' => 'iron_ore',
+            'item_name' => 'Iron Ore',
+            'rarity' => 'common',
+            'quantity' => 4,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('evergather.crafting.store'), ['recipe' => 'iron_bar'])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHas('success', 'Iron Bar crafted.')
+            ->assertSessionHas('connected_realms_result.materials_preserved.0.item_key', 'iron_ore')
+            ->assertSessionHas('connected_realms_result.materials_preserved.0.quantity', 1);
+
+        $equipment->refresh();
+        $tool->refresh();
+        $log = ConnectedRealmsCraftingLog::query()
+            ->where('player_id', $player->id)
+            ->firstOrFail();
+
+        $this->assertSame(99, $equipment->durability);
+        $this->assertSame(99, $tool->durability);
+        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'iron_ore',
+            'quantity' => 1,
+        ]);
+        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'iron_bar',
+            'quantity' => 1,
+        ]);
+        $this->assertSame(1, $log->items_consumed[0]['preserved_quantity']);
+        $this->assertSame(3, $log->items_consumed[0]['net_quantity']);
+    }
+
+    public function test_crafting_preservation_cannot_make_single_unit_recipe_free(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+        $player = ConnectedRealmsPlayer::query()->create([
+            'user_id' => $user->id,
+            'display_name' => 'Careful Cutter',
+            'species' => 'human',
+            'gold' => 0,
+        ]);
+        $tool = ConnectedRealmsTool::query()->create([
+            'player_id' => $player->id,
+            'slot' => 'tool_cutting',
+            'skill' => 'cutting',
+            'item_key' => 'rare_prismfacet_lapidary_kit',
+            'item_name' => 'Rare Prismfacet Lapidary Kit',
+            'rarity' => 'rare',
+            'durability' => 100,
+            'bonuses' => ['skill' => 'cutting', 'experience' => 0, 'yield' => 0],
+            'origin' => 'crafted',
+            'status' => ConnectedRealmsTool::STATUS_EQUIPPED,
+            'tier_level' => 1,
+        ]);
+        $equipment = ConnectedRealmsEquipmentSlot::query()->create([
+            'player_id' => $player->id,
+            'tool_id' => $tool->id,
+            'slot' => 'tool_cutting',
+            'item_key' => $tool->item_key,
+            'item_name' => $tool->item_name,
+            'rarity' => $tool->rarity,
+            'durability' => 100,
+            'bonuses' => $tool->bonuses,
+            'origin' => 'crafted',
+            'tier_level' => 1,
+        ]);
+
+        ConnectedRealmsInventoryStack::query()->create([
+            'player_id' => $player->id,
+            'item_key' => 'rough_gem',
+            'item_name' => 'Rough Gem',
+            'rarity' => 'common',
+            'quantity' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('evergather.crafting.store'), ['recipe' => 'polished_gem'])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHas('success', 'Polished Gem crafted.')
+            ->assertSessionHas('connected_realms_result.materials_preserved', []);
+
+        $equipment->refresh();
+        $tool->refresh();
+
+        $this->assertSame(100, $equipment->durability);
+        $this->assertSame(100, $tool->durability);
+        $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'rough_gem',
+        ]);
+        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'polished_gem',
+            'quantity' => 1,
+        ]);
+    }
+
     public function test_authorized_user_can_craft_tool_upgrade_that_equips_to_slot(): void
     {
         $user = $this->verifiedUserWithConnectedRealmsAccess();
@@ -1700,6 +1914,13 @@ class ConnectedRealmsGatheringTest extends TestCase
             'player_id' => $player->id,
             'slot' => 'tool_mining',
             'item_key' => 'candlemark_stonebite_pickaxe',
+        ]);
+        $this->assertDatabaseHas('connected_realms_gold_flows', [
+            'player_id' => $player->id,
+            'flow_key' => 'shop_purchase',
+            'direction' => ConnectedRealmsGoldFlow::DIRECTION_DESTROYED,
+            'source_system' => 'shop',
+            'gold' => 80,
         ]);
 
         $shopOffer = collect(app(ShopService::class)->snapshotFor($player->refresh())['offers'])
@@ -1775,6 +1996,60 @@ class ConnectedRealmsGatheringTest extends TestCase
             'experience' => 35,
         ]);
         $this->assertSame(1, ConnectedRealmsJobCompletion::query()->where('player_id', $player->id)->count());
+    }
+
+    public function test_job_contracts_have_daily_player_demand_caps(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)->get(route('evergather.index'))->assertOk();
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+
+        ConnectedRealmsInventoryStack::query()->create([
+            'player_id' => $player->id,
+            'item_key' => 'grilled_minnow',
+            'item_name' => 'Grilled Minnow',
+            'rarity' => 'common',
+            'quantity' => 4,
+        ]);
+
+        foreach (range(1, 3) as $turnIn) {
+            $this->actingAs($user)
+                ->post(route('evergather.jobs.store'), ['job' => 'pier_provisions'])
+                ->assertRedirect(route('evergather.index'))
+                ->assertSessionHas('success', 'Pier Provisions completed.')
+                ->assertSessionHas('connected_realms_result.remaining_completions', 3 - $turnIn);
+        }
+
+        $this->actingAs($user)
+            ->from(route('evergather.index'))
+            ->post(route('evergather.jobs.store'), ['job' => 'pier_provisions'])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHasErrors('job');
+
+        $player->refresh();
+
+        $this->assertSame(105, $player->gold);
+        $this->assertSame(3, ConnectedRealmsJobCompletion::query()->where('player_id', $player->id)->where('job_key', 'pier_provisions')->count());
+        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'grilled_minnow',
+            'quantity' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('evergather.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->reloadOnly(['jobs'], fn (Assert $deferred) => $deferred
+                    ->where('jobs', fn ($jobs): bool => collect($jobs)->contains(fn (array $job): bool => $job['key'] === 'pier_provisions'
+                        && $job['completed_in_rotation'] === 3
+                        && $job['remaining_completions'] === 0
+                        && $job['is_demand_available'] === false
+                        && $job['can_complete'] === false))
+                )
+            );
     }
 
     public function test_job_completion_requires_required_materials(): void
@@ -1997,7 +2272,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame(1, ConnectedRealmsVendorSale::query()->where('player_id', $player->id)->count());
     }
 
-    public function test_marketplace_purchase_transfers_gold_and_items(): void
+    public function test_marketplace_purchase_transfers_items_and_sinks_market_fee(): void
     {
         $sellerUser = $this->verifiedUserWithConnectedRealmsAccess();
         $buyerUser = $this->verifiedUserWithConnectedRealmsAccess();
@@ -2033,7 +2308,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $buyer->refresh();
         $listing->refresh();
 
-        $this->assertSame(25, $seller->gold);
+        $this->assertSame(24, $seller->gold);
         $this->assertSame(20, $buyer->gold);
         $this->assertSame(ConnectedRealmsMarketListing::STATUS_SOLD, $listing->status);
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
@@ -2041,7 +2316,12 @@ class ConnectedRealmsGatheringTest extends TestCase
             'item_key' => 'ashwood_plank',
             'quantity' => 2,
         ]);
-        $this->assertSame(1, ConnectedRealmsMarketTransaction::query()->where('listing_id', $listing->id)->count());
+        $this->assertDatabaseHas('connected_realms_market_transactions', [
+            'listing_id' => $listing->id,
+            'total_price' => 20,
+            'market_fee' => 1,
+            'seller_payout' => 19,
+        ]);
     }
 
     public function test_marketplace_listing_cancellation_returns_items_to_seller(): void
@@ -2176,7 +2456,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $tool->refresh();
         $listing->refresh();
 
-        $this->assertSame(410, $seller->gold);
+        $this->assertSame(390, $seller->gold);
         $this->assertSame(200, $buyer->gold);
         $this->assertSame($buyer->id, $tool->player_id);
         $this->assertSame(ConnectedRealmsTool::STATUS_INVENTORY, $tool->status);
@@ -2187,6 +2467,8 @@ class ConnectedRealmsGatheringTest extends TestCase
             'listing_type' => ConnectedRealmsMarketListing::TYPE_TOOL,
             'tool_id' => $tool->id,
             'total_price' => 400,
+            'market_fee' => 20,
+            'seller_payout' => 380,
         ]);
     }
 
@@ -2266,6 +2548,13 @@ class ConnectedRealmsGatheringTest extends TestCase
             'player_id' => $player->id,
             'skill' => 'smithing',
             'experience' => 44,
+        ]);
+        $this->assertDatabaseHas('connected_realms_gold_flows', [
+            'player_id' => $player->id,
+            'flow_key' => 'tool_tier_upgrade',
+            'direction' => ConnectedRealmsGoldFlow::DIRECTION_DESTROYED,
+            'source_system' => 'tool_lifecycle',
+            'gold' => 35,
         ]);
     }
 
@@ -2363,6 +2652,152 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
     }
 
+    public function test_authorized_user_can_repair_equipped_tool_with_materials_and_gold(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)->get(route('evergather.index'))->assertOk();
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+        $player->forceFill(['gold' => 500])->save();
+        $equipment = ConnectedRealmsEquipmentSlot::query()
+            ->where('player_id', $player->id)
+            ->where('slot', 'tool_mining')
+            ->firstOrFail();
+        $tool = ConnectedRealmsTool::query()->findOrFail($equipment->tool_id);
+
+        $equipment->forceFill([
+            'durability' => 60,
+            'tier_level' => 20,
+        ])->save();
+        $tool->forceFill([
+            'durability' => 60,
+            'tier_level' => 20,
+        ])->save();
+
+        ConnectedRealmsInventoryStack::query()->create([
+            'player_id' => $player->id,
+            'item_key' => 'iron_bar',
+            'item_name' => 'Iron Bar',
+            'rarity' => 'common',
+            'quantity' => 2,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('evergather.tools.repairs.store'), [
+                'tool_id' => $tool->id,
+            ])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHas('success', 'Worn Pickaxe repaired.')
+            ->assertSessionHas('connected_realms_result.type', 'tool_repair')
+            ->assertSessionHas('connected_realms_result.gold_spent', 320);
+
+        $equipment->refresh();
+        $tool->refresh();
+        $player->refresh();
+
+        $this->assertSame(100, $equipment->durability);
+        $this->assertSame(100, $tool->durability);
+        $this->assertSame(180, $player->gold);
+        $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'iron_bar',
+        ]);
+        $this->assertDatabaseHas('connected_realms_gold_flows', [
+            'player_id' => $player->id,
+            'flow_key' => 'tool_repair',
+            'direction' => ConnectedRealmsGoldFlow::DIRECTION_DESTROYED,
+            'source_system' => 'tool_lifecycle',
+            'gold' => 320,
+        ]);
+    }
+
+    public function test_authorized_user_can_salvage_inventory_tool_for_lossy_materials(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)->get(route('evergather.index'))->assertOk();
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+        $tool = ConnectedRealmsTool::query()->create([
+            'player_id' => $player->id,
+            'slot' => 'tool_mining',
+            'skill' => 'mining',
+            'item_key' => 'prism_sighted_stonebite_pickaxe',
+            'item_name' => 'Hearthsign Stonebite Pickaxe',
+            'rarity' => 'rare',
+            'durability' => 42,
+            'bonuses' => ['skill' => 'mining', 'experience' => 17, 'yield' => 3],
+            'origin' => 'crafted',
+            'status' => ConnectedRealmsTool::STATUS_INVENTORY,
+            'tier_level' => 20,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('evergather.tools.salvage.store'), [
+                'tool_id' => $tool->id,
+            ])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHas('success', 'Hearthsign Stonebite Pickaxe salvaged.')
+            ->assertSessionHas('connected_realms_result.materials_awarded.0.item_key', 'iron_bar')
+            ->assertSessionHas('connected_realms_result.materials_awarded.0.quantity', 1);
+
+        $this->assertDatabaseMissing('connected_realms_tools', [
+            'id' => $tool->id,
+        ]);
+        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'iron_bar',
+            'quantity' => 1,
+        ]);
+        $this->assertSame(0, ConnectedRealmsPlayerSkill::query()->where('player_id', $player->id)->where('skill', 'smithing')->count());
+    }
+
+    public function test_authorized_user_can_retire_equipped_tool_back_to_starter_tool(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)->get(route('evergather.index'))->assertOk();
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+        $storedTool = ConnectedRealmsTool::query()->create([
+            'player_id' => $player->id,
+            'slot' => 'tool_mining',
+            'skill' => 'mining',
+            'item_key' => 'prism_sighted_stonebite_pickaxe',
+            'item_name' => 'Hearthsign Stonebite Pickaxe',
+            'rarity' => 'rare',
+            'durability' => 100,
+            'bonuses' => ['skill' => 'mining', 'experience' => 17, 'yield' => 3],
+            'origin' => 'crafted',
+            'status' => ConnectedRealmsTool::STATUS_INVENTORY,
+            'tier_level' => 20,
+        ]);
+
+        $this->actingAs($user)->post(route('evergather.tools.equipment.store'), [
+            'tool_id' => $storedTool->id,
+        ]);
+
+        $this->actingAs($user)
+            ->delete(route('evergather.tools.retirements.destroy'), [
+                'tool_id' => $storedTool->id,
+            ])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHas('success', 'Hearthsign Stonebite Pickaxe retired.')
+            ->assertSessionHas('connected_realms_result.type', 'tool_retire');
+
+        $equipment = ConnectedRealmsEquipmentSlot::query()
+            ->where('player_id', $player->id)
+            ->where('slot', 'tool_mining')
+            ->firstOrFail();
+
+        $this->assertSame('worn_pickaxe', $equipment->item_key);
+        $this->assertSame('starter', $equipment->origin);
+        $this->assertDatabaseMissing('connected_realms_tools', [
+            'id' => $storedTool->id,
+        ]);
+    }
+
     public function test_starter_tools_cannot_be_unequipped_without_replacement(): void
     {
         $user = $this->verifiedUserWithConnectedRealmsAccess();
@@ -2436,6 +2871,13 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame(7, $tool->bonuses['experience']);
         $this->assertSame(1, $tool->bonuses['yield']);
         $this->assertSame(955, $player->gold);
+        $this->assertDatabaseHas('connected_realms_gold_flows', [
+            'player_id' => $player->id,
+            'flow_key' => 'tool_rarity_upgrade',
+            'direction' => ConnectedRealmsGoldFlow::DIRECTION_DESTROYED,
+            'source_system' => 'tool_lifecycle',
+            'gold' => 45,
+        ]);
     }
 
     public function test_tool_rarity_upgrade_respects_current_tier_cap(): void

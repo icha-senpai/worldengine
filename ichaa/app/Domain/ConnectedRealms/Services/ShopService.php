@@ -11,7 +11,11 @@ use Illuminate\Validation\ValidationException;
 
 class ShopService
 {
-    public function __construct(private ConnectedRealmsPlayerService $players, private ItemCatalogService $items) {}
+    public function __construct(
+        private ConnectedRealmsPlayerService $players,
+        private ItemCatalogService $items,
+        private GoldFlowLedgerService $goldFlows,
+    ) {}
 
     /**
      * @var array<string, array<string, mixed>>|null
@@ -176,6 +180,14 @@ class ShopService
                     null,
                     $offer['required_level'],
                 );
+                $this->goldFlows->recordDestroyed($player, 'shop_purchase', (int) $offer['price'], 'shop', $tool->tool, [
+                    'offer_key' => $offerKey,
+                    'offer_label' => $offer['label'],
+                    'offer_kind' => $offer['kind'],
+                    'item_key' => $offer['item_key'],
+                    'item_name' => $offer['item_name'],
+                    'quantity' => 1,
+                ]);
 
                 return [
                     'type' => 'shop',
@@ -196,6 +208,14 @@ class ShopService
                 'quantity' => (int) $stack->quantity + $offer['quantity'],
             ]);
             $stack->save();
+            $this->goldFlows->recordDestroyed($player, 'shop_purchase', (int) $offer['price'], 'shop', $stack, [
+                'offer_key' => $offerKey,
+                'offer_label' => $offer['label'],
+                'offer_kind' => $offer['kind'],
+                'item_key' => $offer['item_key'],
+                'item_name' => $offer['item_name'],
+                'quantity' => (int) $offer['quantity'],
+            ]);
 
             $item = $this->items->enrich([
                 'item_key' => $offer['item_key'],

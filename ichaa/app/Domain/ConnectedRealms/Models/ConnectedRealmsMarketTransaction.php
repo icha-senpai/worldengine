@@ -19,6 +19,8 @@ class ConnectedRealmsMarketTransaction extends Model
         'quantity',
         'unit_price',
         'total_price',
+        'market_fee',
+        'seller_payout',
         'tool_snapshot',
     ];
 
@@ -26,6 +28,8 @@ class ConnectedRealmsMarketTransaction extends Model
         'quantity' => 'integer',
         'unit_price' => 'integer',
         'total_price' => 'integer',
+        'market_fee' => 'integer',
+        'seller_payout' => 'integer',
         'tool_snapshot' => 'array',
     ];
 

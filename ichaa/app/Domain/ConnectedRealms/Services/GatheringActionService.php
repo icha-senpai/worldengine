@@ -712,6 +712,7 @@ class GatheringActionService
             $goldAwarded = random_int($definition['gold']['min'], $definition['gold']['max']) + $toolModifiers['gold'] + max(0, (int) ($eventBonus['gold'] ?? 0));
             $itemsAwarded = $this->rollLoot($definition['loot'], $yieldBonus);
             $availableAt = now()->addSeconds($this->cooldownSecondsFor($definition, $toolModifiers['cooldown_reduction']));
+            $toolContributed = $this->toolContributedToAction($toolModifiers);
 
             $this->players->awardSkillExperience($player, $definition['skill'], $experienceAwarded);
 
@@ -734,6 +735,10 @@ class GatheringActionService
                 'last_action_at' => now(),
                 'next_action_at' => $availableAt,
             ])->save();
+
+            if ($toolContributed) {
+                $tool = $this->players->wearEquippedTool($player, $tool);
+            }
 
             $log = ConnectedRealmsActionLog::create([
                 'player_id' => $player->id,
@@ -811,6 +816,16 @@ class GatheringActionService
         $baseCooldown = (int) $definition['cooldown_seconds'];
 
         return max(1, (int) floor($baseCooldown * ((100 - min(80, max(0, $cooldownReduction))) / 100)));
+    }
+
+    /**
+     * @param  array{experience: int, yield: int, gold: int, cooldown_reduction: int, critical_chance: int, material_preservation: int}  $modifiers
+     */
+    private function toolContributedToAction(array $modifiers): bool
+    {
+        return collect($modifiers)
+            ->except('material_preservation')
+            ->some(fn (int $modifier): bool => $modifier > 0);
     }
 
     /**

@@ -15,6 +15,10 @@ export const activityReloadProps = [
 export const craftingReloadProps = [
     'player',
     'inventory',
+    'equipment',
+    'tool_inventory',
+    'tool_rarity_upgrades',
+    'tool_tier_upgrades',
     'crafting_recipes',
     'recent_crafts',
     'summary',

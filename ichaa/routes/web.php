@@ -132,6 +132,9 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
         Route::post('shop/purchases', [ConnectedRealmsController::class, 'buyShopOffer'])->name('shop.purchases.store');
         Route::post('tools/equipment', [ConnectedRealmsController::class, 'equipTool'])->name('tools.equipment.store');
         Route::delete('tools/equipment', [ConnectedRealmsController::class, 'unequipTool'])->name('tools.equipment.destroy');
+        Route::post('tools/repairs', [ConnectedRealmsController::class, 'repairTool'])->name('tools.repairs.store');
+        Route::post('tools/salvage', [ConnectedRealmsController::class, 'salvageTool'])->name('tools.salvage.store');
+        Route::delete('tools/retirements', [ConnectedRealmsController::class, 'retireTool'])->name('tools.retirements.destroy');
         Route::post('tools/rarity-upgrades', [ConnectedRealmsController::class, 'upgradeToolRarity'])->name('tools.rarity-upgrades.store');
         Route::post('tools/tier-upgrades', [ConnectedRealmsController::class, 'upgradeToolTier'])->name('tools.tier-upgrades.store');
         Route::post('marketplace/listings', [ConnectedRealmsController::class, 'listMarketItem'])->name('marketplace.listings.store');

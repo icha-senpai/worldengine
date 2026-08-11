@@ -82,6 +82,7 @@
                                 <span class="tag capitalize">{{ entry.tool.rarity }}</span>
                                 <span v-if="entry.tool.quality" class="tag capitalize">{{ entry.tool.quality }}</span>
                                 <span v-if="entry.tool.origin_label" class="tag">{{ entry.tool.origin_label }}</span>
+                                <span v-if="entry.tool.is_broken" class="tag">Broken</span>
                             </div>
                             <p class="mt-1 text-xs text-muted-2">
                                 {{ entry.tool.category }} · {{ entry.tool.slot_label }}<span v-if="entry.tool.maker_name"> · made by {{ entry.tool.maker_name }}</span>
@@ -154,6 +155,30 @@
                                     </span>
                                 </div>
                             </div>
+                            <div v-if="entry.tool.tool_lifecycle" class="mt-3 rounded-md border border-border bg-canvas px-3 py-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <p class="text-xs font-ui text-primary">Lifecycle</p>
+                                    <span class="tag">{{ entry.tool.durability }}%</span>
+                                </div>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    <span v-if="entry.tool.tool_lifecycle.repair.can_repair" class="tag">{{ entry.tool.tool_lifecycle.repair.gold_cost }}g repair</span>
+                                    <span
+                                        v-for="material in entry.tool.tool_lifecycle.repair.materials"
+                                        v-if="entry.tool.tool_lifecycle.repair.can_repair"
+                                        :key="`${entry.tool.slot}-repair-${material.item_key}`"
+                                        class="tag"
+                                    >
+                                        {{ material.quantity }} {{ material.item_name }}
+                                    </span>
+                                    <span
+                                        v-for="material in entry.tool.tool_lifecycle.salvage.materials"
+                                        :key="`${entry.tool.slot}-salvage-${material.item_key}`"
+                                        class="tag"
+                                    >
+                                        Salvage {{ material.quantity }} {{ material.item_name }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="grid content-between gap-3 md:justify-items-end">
@@ -191,6 +216,30 @@
                             >
                                 {{ runningEquipmentAction === equipmentActionKey('unequip', entry.tool.slot) ? 'Unequipping...' : entry.tool.origin === 'starter' ? 'Field Kit' : 'Unequip' }}
                             </button>
+                            <button
+                                type="button"
+                                class="app-btn app-btn--ghost app-btn--sm"
+                                :disabled="inventoryForm.processing || !entry.tool.tool_lifecycle?.repair?.can_repair"
+                                @click="repairTool(entry.tool.tool_id)"
+                            >
+                                {{ runningEquipmentAction === equipmentActionKey('repair', entry.tool.tool_id) ? 'Repairing...' : 'Repair' }}
+                            </button>
+                            <button
+                                type="button"
+                                class="app-btn app-btn--ghost app-btn--sm"
+                                :disabled="inventoryForm.processing || !entry.tool.tool_lifecycle?.salvage?.can_salvage"
+                                @click="salvageTool(entry.tool.tool_id, entry.tool.item_name)"
+                            >
+                                {{ runningEquipmentAction === equipmentActionKey('salvage', entry.tool.tool_id) ? 'Salvaging...' : 'Salvage' }}
+                            </button>
+                            <button
+                                type="button"
+                                class="app-btn app-btn--ghost app-btn--sm"
+                                :disabled="inventoryForm.processing || !entry.tool.tool_lifecycle?.can_retire"
+                                @click="retireTool(entry.tool.tool_id, entry.tool.item_name)"
+                            >
+                                {{ runningEquipmentAction === equipmentActionKey('retire', entry.tool.tool_id) ? 'Retiring...' : 'Retire' }}
+                            </button>
                         </div>
                     </article>
                 </div>
@@ -222,6 +271,7 @@
                             <p class="truncate text-sm font-ui text-primary">{{ tool.item_name }}</p>
                             <span class="tag capitalize">{{ tool.rarity }}</span>
                             <span class="tag">{{ tool.status_label }}</span>
+                            <span v-if="tool.is_broken" class="tag">Broken</span>
                         </div>
                         <p class="mt-1 text-xs text-muted-2">
                             {{ tool.slot_label }} · +{{ tool.experience_bonus }} XP · +{{ tool.yield_bonus }} yield
@@ -240,6 +290,32 @@
                         >
                             {{ runningEquipmentAction === equipmentActionKey('equip', tool.tool_id) ? 'Equipping...' : 'Equip' }}
                         </button>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                class="app-btn app-btn--ghost app-btn--sm"
+                                :disabled="inventoryForm.processing || !tool.tool_lifecycle?.repair?.can_repair"
+                                @click="repairTool(tool.tool_id)"
+                            >
+                                {{ runningEquipmentAction === equipmentActionKey('repair', tool.tool_id) ? 'Repairing...' : 'Repair' }}
+                            </button>
+                            <button
+                                type="button"
+                                class="app-btn app-btn--ghost app-btn--sm"
+                                :disabled="inventoryForm.processing || !tool.tool_lifecycle?.salvage?.can_salvage"
+                                @click="salvageTool(tool.tool_id, tool.item_name)"
+                            >
+                                {{ runningEquipmentAction === equipmentActionKey('salvage', tool.tool_id) ? 'Salvaging...' : 'Salvage' }}
+                            </button>
+                            <button
+                                type="button"
+                                class="app-btn app-btn--ghost app-btn--sm"
+                                :disabled="inventoryForm.processing || !tool.tool_lifecycle?.can_retire"
+                                @click="retireTool(tool.tool_id, tool.item_name)"
+                            >
+                                {{ runningEquipmentAction === equipmentActionKey('retire', tool.tool_id) ? 'Retiring...' : 'Retire' }}
+                            </button>
+                        </div>
                     </article>
                 </div>
             </div>
@@ -361,6 +437,59 @@ function unequipTool(slot) {
         only: equipmentReloadProps,
         onStart: () => {
             runningEquipmentAction.value = equipmentActionKey('unequip', slot)
+        },
+        onFinish: () => {
+            runningEquipmentAction.value = ''
+        },
+    })
+}
+
+function repairTool(toolId) {
+    inventoryForm.tool_id = toolId
+    inventoryForm.slot = null
+    inventoryForm.post(route('evergather.tools.repairs.store'), {
+        preserveScroll: true,
+        only: equipmentReloadProps,
+        onStart: () => {
+            runningEquipmentAction.value = equipmentActionKey('repair', toolId)
+        },
+        onFinish: () => {
+            runningEquipmentAction.value = ''
+        },
+    })
+}
+
+function salvageTool(toolId, itemName) {
+    if (!window.confirm(`Salvage ${itemName}?`)) {
+        return
+    }
+
+    inventoryForm.tool_id = toolId
+    inventoryForm.slot = null
+    inventoryForm.post(route('evergather.tools.salvage.store'), {
+        preserveScroll: true,
+        only: equipmentReloadProps,
+        onStart: () => {
+            runningEquipmentAction.value = equipmentActionKey('salvage', toolId)
+        },
+        onFinish: () => {
+            runningEquipmentAction.value = ''
+        },
+    })
+}
+
+function retireTool(toolId, itemName) {
+    if (!window.confirm(`Retire ${itemName}?`)) {
+        return
+    }
+
+    inventoryForm.tool_id = toolId
+    inventoryForm.slot = null
+    inventoryForm.delete(route('evergather.tools.retirements.destroy'), {
+        preserveScroll: true,
+        only: equipmentReloadProps,
+        onStart: () => {
+            runningEquipmentAction.value = equipmentActionKey('retire', toolId)
         },
         onFinish: () => {
             runningEquipmentAction.value = ''

@@ -281,6 +281,51 @@ class ToolCatalogService
     }
 
     /**
+     * @param  array<string, mixed>  $tool
+     * @return array{missing_durability: int, gold_cost: int, materials: list<array{item_key: string, item_name: string, quantity: int}>, can_repair: bool}
+     */
+    public function repairCost(array $tool): array
+    {
+        $missingDurability = max(0, 100 - (int) ($tool['durability'] ?? 100));
+        $skill = (string) ($tool['skill'] ?? ($tool['bonuses']['skill'] ?? ''));
+        $family = $this->familyForSkill($skill);
+        $tierLevel = max(1, (int) ($tool['tier_level'] ?? 1));
+        $itemTier = EvergatherTierCatalog::itemTierForLevel($tierLevel);
+        $materialQuantity = $missingDurability === 0 ? 0 : max(1, (int) ceil($missingDurability / 35));
+
+        return [
+            'missing_durability' => $missingDurability,
+            'gold_cost' => $missingDurability * max(1, $itemTier) * 2,
+            'materials' => $family === null || $materialQuantity === 0 ? [] : [[
+                'item_key' => $family['base'],
+                'item_name' => $family['base_name'],
+                'quantity' => $materialQuantity,
+            ]],
+            'can_repair' => $missingDurability > 0 && $family !== null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $tool
+     * @return list<array{item_key: string, item_name: string, quantity: int}>
+     */
+    public function salvageMaterials(array $tool): array
+    {
+        $skill = (string) ($tool['skill'] ?? ($tool['bonuses']['skill'] ?? ''));
+        $family = $this->familyForSkill($skill);
+
+        if ($family === null || ($tool['origin'] ?? null) === 'starter') {
+            return [];
+        }
+
+        return [[
+            'item_key' => $family['base'],
+            'item_name' => $family['base_name'],
+            'quantity' => 1,
+        ]];
+    }
+
+    /**
      * @return array<string, array{label: string, noun: string, line: string, craft: string, base: string, base_name: string, starter_item_name: string}>
      */
     private function professionalFamilies(): array

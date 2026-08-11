@@ -72,11 +72,11 @@ class ItemGuideService
         }
 
         foreach ($marketplace['active_listings'] ?? [] as $listing) {
-            $this->addSource($items, $listing, 'Player Market', (string) $listing['item_name'], 1, (string) ($listing['seller_name'] ?? 'Market'));
+            $this->addTransferRoute($items, $listing, 'Player Market', (string) $listing['item_name'], 1, (string) ($listing['seller_name'] ?? 'Market'));
         }
 
         $this->addToolUpgradeSinks($items);
-        $this->addPurposeSinks($items);
+        $this->addFallbackSinks($items);
 
         $rows = collect($items)
             ->map(function (array $record): array {
@@ -84,20 +84,28 @@ class ItemGuideService
                     ...$record['item'],
                     'quantity' => max(1, (int) $record['owned_quantity']),
                 ]);
-                $requisition = $this->purposes->requisitionFor($payload);
-                $purpose = $record['sinks'][0] ?? $requisition['sink'];
+                $purposeContext = $record['sinks'][0]
+                    ?? $record['fallback_sinks'][0]
+                    ?? $record['transfer_routes'][0]
+                    ?? ['context' => 'Unmapped'];
 
                 return [
                     ...$payload,
-                    'purpose' => $requisition['purpose'],
-                    'purpose_context' => (string) $purpose['context'],
+                    'purpose' => $this->purposeForRecord($record),
+                    'purpose_context' => (string) $purposeContext['context'],
                     'owned_quantity' => (int) $record['owned_quantity'],
                     'source_count' => (int) $record['source_count'],
                     'sink_count' => (int) $record['sink_count'],
+                    'fallback_sink_count' => (int) $record['fallback_sink_count'],
+                    'transfer_route_count' => (int) $record['transfer_route_count'],
                     'sources' => $record['sources'],
                     'sinks' => $record['sinks'],
+                    'fallback_sinks' => $record['fallback_sinks'],
+                    'transfer_routes' => $record['transfer_routes'],
                     'best_source' => $record['sources'][0] ?? null,
                     'best_sink' => $record['sinks'][0] ?? null,
+                    'best_fallback_sink' => $record['fallback_sinks'][0] ?? null,
+                    'best_transfer_route' => $record['transfer_routes'][0] ?? null,
                     'has_use' => (int) $record['sink_count'] > 0,
                     'has_source' => (int) $record['source_count'] > 0,
                 ];
@@ -117,6 +125,8 @@ class ItemGuideService
                 'items_with_sources' => $rows->where('source_count', '>', 0)->count(),
                 'items_with_sinks' => $rows->where('sink_count', '>', 0)->count(),
                 'items_without_sinks' => $rows->where('sink_count', 0)->count(),
+                'items_with_fallback_sinks' => $rows->where('fallback_sink_count', '>', 0)->count(),
+                'items_with_transfer_routes' => $rows->where('transfer_route_count', '>', 0)->count(),
             ],
             'categories' => $rows
                 ->groupBy('item_class')
@@ -153,9 +163,14 @@ class ItemGuideService
             'owned_quantity' => 0,
             'source_count' => 0,
             'sink_count' => 0,
+            'fallback_sink_count' => 0,
+            'transfer_route_count' => 0,
             'sources' => [],
             'sinks' => [],
+            'fallback_sinks' => [],
+            'transfer_routes' => [],
             'sink_keys' => [],
+            'transfer_keys' => [],
         ];
 
         $items[$key]['owned_quantity'] += $ownedQuantity;
@@ -189,9 +204,42 @@ class ItemGuideService
         $key = $this->itemKey($item);
 
         if ($key !== '') {
-            $row = $this->guideRow($type, $label, $requiredLevel, $context);
+            $row = $this->guideRow($type, $label, $requiredLevel, $context, 'primary', 'recurring');
 
             $this->appendSink($items[$key], $row);
+        }
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $items
+     * @param  array<string, mixed>  $item
+     */
+    private function addTransferRoute(array &$items, array $item, string $type, string $label, int $requiredLevel, string $context): void
+    {
+        $this->touch($items, $item);
+        $key = $this->itemKey($item);
+
+        if ($key === '') {
+            return;
+        }
+
+        $route = $this->guideRow($type, $label, $requiredLevel, $context, 'transfer', 'recurring');
+        $routeKey = implode('|', [
+            (string) $route['type'],
+            (string) $route['label'],
+            (string) $route['required_level'],
+            (string) $route['context'],
+        ]);
+
+        if (isset($items[$key]['transfer_keys'][$routeKey])) {
+            return;
+        }
+
+        $items[$key]['transfer_keys'][$routeKey] = true;
+        $items[$key]['transfer_route_count']++;
+
+        if (count($items[$key]['transfer_routes']) < 8) {
+            $items[$key]['transfer_routes'][] = $route;
         }
     }
 
@@ -232,17 +280,16 @@ class ItemGuideService
     /**
      * @param  array<string, array<string, mixed>>  $items
      */
-    private function addPurposeSinks(array &$items): void
+    private function addFallbackSinks(array &$items): void
     {
         foreach ($items as $key => $record) {
-            $requisition = $this->purposes->requisitionFor($record['item']);
+            $sink = [
+                ...$this->purposes->vendorSinkFor($record['item']),
+                'classification' => 'fallback',
+                'recurrence' => 'recurring',
+            ];
 
-            foreach ([
-                $requisition['sink'],
-                $this->purposes->vendorSinkFor($record['item']),
-            ] as $sink) {
-                $this->appendSink($items[$key], $sink);
-            }
+            $this->appendSink($items[$key], $sink);
         }
     }
 
@@ -252,7 +299,11 @@ class ItemGuideService
      */
     private function appendSink(array &$record, array $sink): void
     {
+        $classification = (string) ($sink['classification'] ?? 'primary');
+        $recurrence = (string) ($sink['recurrence'] ?? 'recurring');
         $sinkKey = implode('|', [
+            $classification,
+            $recurrence,
             (string) ($sink['type'] ?? ''),
             (string) ($sink['label'] ?? ''),
             (string) ($sink['required_level'] ?? ''),
@@ -264,6 +315,17 @@ class ItemGuideService
         }
 
         $record['sink_keys'][$sinkKey] = true;
+
+        if ($classification === 'fallback') {
+            $record['fallback_sink_count']++;
+
+            if (count($record['fallback_sinks']) < 8) {
+                $record['fallback_sinks'][] = $sink;
+            }
+
+            return;
+        }
+
         $record['sink_count']++;
 
         if (count($record['sinks']) < 8) {
@@ -272,9 +334,9 @@ class ItemGuideService
     }
 
     /**
-     * @return array{type: string, label: string, required_level: int, item_tier: int, context: string}
+     * @return array{type: string, label: string, required_level: int, item_tier: int, context: string, classification: string, recurrence: string}
      */
-    private function guideRow(string $type, string $label, int $requiredLevel, string $context): array
+    private function guideRow(string $type, string $label, int $requiredLevel, string $context, string $classification = 'primary', string $recurrence = 'recurring'): array
     {
         return [
             'type' => $type,
@@ -282,7 +344,35 @@ class ItemGuideService
             'required_level' => $requiredLevel,
             'item_tier' => EvergatherTierCatalog::itemTierForLevel($requiredLevel),
             'context' => $context,
+            'classification' => $classification,
+            'recurrence' => $recurrence,
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $record
+     */
+    private function purposeForRecord(array $record): string
+    {
+        if (($record['sinks'][0] ?? null) !== null) {
+            $sink = $record['sinks'][0];
+
+            return "Primary use: {$sink['type']} through {$sink['label']}.";
+        }
+
+        if (($record['fallback_sinks'][0] ?? null) !== null) {
+            $sink = $record['fallback_sinks'][0];
+
+            return "No primary use is mapped yet. Fallback disposal is available through {$sink['label']}.";
+        }
+
+        if (($record['transfer_routes'][0] ?? null) !== null) {
+            $route = $record['transfer_routes'][0];
+
+            return "No destruction path is mapped yet. {$route['type']} only transfers ownership.";
+        }
+
+        return 'No source, use, disposal, or transfer path is mapped yet.';
     }
 
     /**

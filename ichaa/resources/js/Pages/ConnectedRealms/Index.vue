@@ -354,7 +354,7 @@
                     <div class="surface-section__header">
                         <div class="surface-section__copy">
                             <span class="surface-section__title">Inventory Guide</span>
-                            <p class="surface-section__subtitle">{{ item_guide.summary.tracked_items }} tracked items · {{ item_guide.summary.items_with_sinks }} with known uses.</p>
+                            <p class="surface-section__subtitle">{{ item_guide.summary.tracked_items }} tracked items · {{ item_guide.summary.items_with_sinks }} with primary uses · {{ item_guide.summary.items_with_fallback_sinks }} with fallback disposal.</p>
                         </div>
                     </div>
 
@@ -467,7 +467,10 @@
                                 <p v-if="selectedInventoryItem.purpose" class="mt-2 text-xs text-muted-2">
                                     {{ selectedInventoryItem.purpose }}
                                 </p>
-                                <p v-else class="mt-2 text-xs text-muted-2">No sink mapped yet.</p>
+                                <p v-if="!selectedInventoryItem.best_sink && selectedInventoryItem.best_fallback_sink" class="mt-2 text-xs text-muted-2">
+                                    Fallback: {{ selectedInventoryItem.best_fallback_sink.label }}
+                                </p>
+                                <p v-else-if="!selectedInventoryItem.best_sink" class="mt-2 text-xs text-muted-2">No primary use mapped yet.</p>
                             </div>
 
                             <div class="mt-3 grid gap-2">
@@ -486,6 +489,20 @@
                                         class="tag"
                                     >
                                         {{ sink.type }}
+                                    </span>
+                                    <span
+                                        v-for="sink in selectedInventoryItem.fallback_sinks.slice(0, 2)"
+                                        :key="`fallback-${sink.type}-${sink.label}`"
+                                        class="tag"
+                                    >
+                                        {{ sink.type }}
+                                    </span>
+                                    <span
+                                        v-for="route in selectedInventoryItem.transfer_routes.slice(0, 2)"
+                                        :key="`transfer-${route.type}-${route.label}`"
+                                        class="tag"
+                                    >
+                                        {{ route.type }}
                                     </span>
                                 </div>
                             </div>
@@ -648,6 +665,9 @@ const props = defineProps({
                 tracked_items: 0,
                 owned_items: 0,
                 items_with_sinks: 0,
+                items_without_sinks: 0,
+                items_with_fallback_sinks: 0,
+                items_with_transfer_routes: 0,
             },
             categories: [],
             items: [],

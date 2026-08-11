@@ -327,10 +327,24 @@ class ItemCatalogService
             return $this->ruleMatchCache[$cacheKey] = $this->keyRules()['slag_glass'] ?? self::KEY_RULES['slag_glass'];
         }
 
+        $activityRule = $this->activityRewardRuleFor($itemKey);
+
+        if ($activityRule !== null) {
+            return $this->ruleMatchCache[$cacheKey] = $activityRule;
+        }
+
         foreach ($this->normalizedKeyRules() as $entry) {
             $ruleNeedle = $entry['needle'];
 
-            if ($this->matchesRuleSuffix($keyNeedle, $ruleNeedle) || $this->matchesRuleSuffix($nameNeedle, $ruleNeedle)) {
+            if ($this->matchesRuleSuffix($keyNeedle, $ruleNeedle)) {
+                return $this->ruleMatchCache[$cacheKey] = $entry['rule'];
+            }
+        }
+
+        foreach ($this->normalizedKeyRules() as $entry) {
+            $ruleNeedle = $entry['needle'];
+
+            if ($this->matchesRuleSuffix($nameNeedle, $ruleNeedle)) {
                 return $this->ruleMatchCache[$cacheKey] = $entry['rule'];
             }
         }
@@ -402,7 +416,82 @@ class ItemCatalogService
 
     private function matchesRuleSuffix(string $needle, string $ruleNeedle): bool
     {
-        return $needle === $ruleNeedle || str_ends_with($needle, ' '.$ruleNeedle);
+        return $needle === $ruleNeedle
+            || str_ends_with($needle, ' '.$ruleNeedle)
+            || preg_match('/(?:^| )'.preg_quote($ruleNeedle, '/').' [0-9]+$/', $needle) === 1;
+    }
+
+    /**
+     * @return array{item_class: string, material_family: string, weight: float, base_value: int, tags: list<string>}|null
+     */
+    private function activityRewardRuleFor(string $itemKey): ?array
+    {
+        $classes = ['settlement_good', 'consumable', 'equipment', 'material', 'resource', 'tooling', 'trinket', 'cargo', 'tool'];
+
+        foreach ($classes as $itemClass) {
+            $prefix = "activity_{$itemClass}_";
+
+            if (! str_starts_with($itemKey, $prefix)) {
+                continue;
+            }
+
+            $suffix = substr($itemKey, strlen($prefix));
+
+            if (preg_match('/^(?<family>[a-z0-9_]+)_(?:common|uncommon|rare|epic|legendary|mythic)_tier_[0-9]+$/', $suffix, $matches) !== 1) {
+                return null;
+            }
+
+            $materialFamily = str((string) $matches['family'])->replace('_', ' ')->headline()->toString();
+            $matchedRule = collect($this->keyRules())
+                ->first(fn (array $rule): bool => $rule['item_class'] === $itemClass
+                    && $this->normalizeRuleNeedle((string) $rule['material_family']) === $this->normalizeRuleNeedle($materialFamily));
+
+            return [
+                'item_class' => $itemClass,
+                'material_family' => $materialFamily,
+                'weight' => (float) ($matchedRule['weight'] ?? $this->fallbackWeightFor($itemClass)),
+                'base_value' => (int) ($matchedRule['base_value'] ?? $this->fallbackBaseValueFor($itemClass)),
+                'tags' => array_values(array_unique([
+                    ...($matchedRule['tags'] ?? []),
+                    'activity',
+                    $itemClass,
+                    $this->normalizeRuleNeedle($materialFamily),
+                ])),
+            ];
+        }
+
+        return null;
+    }
+
+    private function fallbackWeightFor(string $itemClass): float
+    {
+        return match ($itemClass) {
+            'cargo' => 3.0,
+            'equipment' => 2.0,
+            'settlement_good' => 4.0,
+            'tool' => 1.2,
+            'tooling' => 0.2,
+            'trinket' => 0.08,
+            'consumable' => 0.35,
+            'material', 'resource' => 0.5,
+            default => 0.5,
+        };
+    }
+
+    private function fallbackBaseValueFor(string $itemClass): int
+    {
+        return match ($itemClass) {
+            'equipment' => 60,
+            'settlement_good' => 40,
+            'cargo' => 28,
+            'tool' => 30,
+            'trinket' => 24,
+            'tooling' => 16,
+            'consumable' => 14,
+            'material' => 12,
+            'resource' => 8,
+            default => 5,
+        };
     }
 
     private function npcBuyPrice(int $unitValue): int
@@ -440,6 +529,11 @@ class ItemCatalogService
         }
 
         $itemNameNeedle = $this->normalizeRuleNeedle($itemName);
+        $itemKeyNeedle = $this->normalizeRuleNeedle((string) ($item['item_key'] ?? $item['key'] ?? ''));
+
+        if (preg_match('/\btier ([0-9]{1,2})\b/', trim($itemKeyNeedle.' '.$itemNameNeedle), $matches) === 1) {
+            return max(1, min(10, (int) $matches[1]));
+        }
 
         foreach ($this->tierMarks() as $tier) {
             if (str_contains($itemNameNeedle, $tier['needle'])) {

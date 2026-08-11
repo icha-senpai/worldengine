@@ -7,6 +7,21 @@ class ItemPurposeService
     public function __construct(private ItemCatalogService $items) {}
 
     /**
+     * @var list<string>
+     */
+    private const REQUISITION_ITEM_KEYS = [];
+
+    /**
+     * @var list<string>|null
+     */
+    private ?array $requisitionItemKeysCache = null;
+
+    /**
+     * @var array<string, string>|null
+     */
+    private ?array $requisitionSourceCache = null;
+
+    /**
      * @var array<string, array<string, mixed>>
      */
     private array $requisitionCache = [];
@@ -32,6 +47,75 @@ class ItemPurposeService
 
     /**
      * @param  array<string, mixed>  $item
+     */
+    public function isRequisitionEligible(array $item): bool
+    {
+        $itemKey = (string) ($item['item_key'] ?? $item['key'] ?? '');
+
+        return in_array($itemKey, $this->requisitionItemKeys(), true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function requisitionItemKeys(): array
+    {
+        if ($this->requisitionItemKeysCache !== null) {
+            return $this->requisitionItemKeysCache;
+        }
+
+        $this->requisitionItemKeysCache = array_keys($this->requisitionSources());
+
+        return $this->requisitionItemKeysCache;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function requisitionSources(): array
+    {
+        if ($this->requisitionSourceCache !== null) {
+            return $this->requisitionSourceCache;
+        }
+
+        $gatheringRewardKeys = collect(GatheringActionService::baseActionDefinitions())
+            ->flatMap(fn (array $action): array => $action['loot'] ?? [])
+            ->map(fn (array $item): mixed => $item['item_key'] ?? $item['key'] ?? null)
+            ->filter(fn (mixed $itemKey): bool => is_string($itemKey) && trim($itemKey) !== '')
+            ->all();
+        $activityRewardKeys = collect(app(ConnectedRealmsContentService::class)->apply('skill_activities', SkillActivityService::baseActivities()))
+            ->flatMap(fn (array $activity): array => $activity['loot'] ?? [])
+            ->pluck('item_key')
+            ->filter(fn (mixed $itemKey): bool => is_string($itemKey) && trim($itemKey) !== '')
+            ->all();
+        $expeditionRewardKeys = collect(app(ConnectedRealmsContentService::class)->apply('expeditions', ExpeditionService::baseExpeditions()))
+            ->flatMap(fn (array $expedition): array => $expedition['rewards'] ?? [])
+            ->pluck('item_key')
+            ->filter(fn (mixed $itemKey): bool => is_string($itemKey) && trim($itemKey) !== '')
+            ->all();
+        $craftOutputKeys = collect(CraftingService::baseRecipes())
+            ->flatMap(fn (array $recipe): array => $recipe['outputs'] ?? [])
+            ->filter(fn (array $output): bool => ! isset($output['equipment_skill']))
+            ->pluck('item_key')
+            ->filter(fn (mixed $itemKey): bool => is_string($itemKey) && trim($itemKey) !== '')
+            ->all();
+
+        $sources = collect(self::REQUISITION_ITEM_KEYS)
+            ->mapWithKeys(fn (string $itemKey): array => [$itemKey => 'manual'])
+            ->merge(collect($gatheringRewardKeys)->mapWithKeys(fn (string $itemKey): array => [$itemKey => 'gathering_reward']))
+            ->merge(collect($activityRewardKeys)->mapWithKeys(fn (string $itemKey): array => [$itemKey => 'skill_activity_reward']))
+            ->merge(collect($expeditionRewardKeys)->mapWithKeys(fn (string $itemKey): array => [$itemKey => 'expedition_reward']))
+            ->merge(collect($craftOutputKeys)->mapWithKeys(fn (string $itemKey): array => [$itemKey => 'craft_output']))
+            ->sortKeys()
+            ->all();
+
+        $this->requisitionSourceCache = $sources;
+
+        return $this->requisitionSourceCache;
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
      * @return array<string, mixed>
      */
     public function requisitionFor(array $item): array
@@ -53,6 +137,7 @@ class ItemPurposeService
         $label = $this->labelFor($payload);
         $gold = $this->goldFor($payload);
         $experience = $this->experienceFor($payload, $requiredLevel);
+        $source = $this->requisitionSources()[$itemKey] ?? 'manual';
 
         return $this->requisitionCache[$cacheKey] = [
             'key' => $this->requisitionJobKey($itemKey),
@@ -60,6 +145,9 @@ class ItemPurposeService
             'category' => $this->categoryFor($payload),
             'skill' => $skill,
             'required_level' => $requiredLevel,
+            'demand_channel' => $this->demandChannelFor($source),
+            'rotation' => 'daily',
+            'completion_cap' => $this->completionCapFor($source),
             'experience' => $experience,
             'gold' => $gold,
             'requirements' => [[
@@ -77,6 +165,7 @@ class ItemPurposeService
                 'required_level' => $requiredLevel,
                 'context' => str($skill)->headline()->toString(),
             ],
+            'world_consumer' => $this->worldConsumerFor($payload, $skill, $source),
             'purpose' => $this->purposeFor($payload),
         ];
     }
@@ -155,6 +244,51 @@ class ItemPurposeService
             'equipment', 'tool', 'trinket' => 'Appraisals',
             'housing', 'settlement_good', 'structure' => 'Settlement Requisitions',
             default => 'Market Appraisals',
+        };
+    }
+
+    private function demandChannelFor(string $source): string
+    {
+        return match ($source) {
+            'expedition_reward' => 'expedition_research',
+            'craft_output' => 'craft_commission',
+            default => 'local_procurement',
+        };
+    }
+
+    private function completionCapFor(string $source): int
+    {
+        return match ($source) {
+            'expedition_reward' => 1,
+            'gathering_reward' => 3,
+            'craft_output' => 2,
+            default => 2,
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function worldConsumerFor(array $item, string $skill, string $source): string
+    {
+        $family = (string) $item['material_family'];
+
+        if ($source === 'expedition_reward') {
+            return str($skill)->headline()->toString().' Expedition Research Desk';
+        }
+
+        if ($source === 'craft_output') {
+            return str($skill)->headline()->toString().' Craft Commission Desk';
+        }
+
+        return match ((string) $item['item_class']) {
+            'resource' => str($skill)->headline()->toString().' Field Office '.$family.' Reserve',
+            'material' => str($skill)->headline()->toString().' Workshop '.$family.' Reserve',
+            'cargo' => str($skill)->headline()->toString().' Logistics Desk',
+            'consumable' => str($skill)->headline()->toString().' Expedition Stores',
+            'equipment', 'tool', 'trinket' => str($skill)->headline()->toString().' Guild Appraisers',
+            'housing', 'settlement_good', 'structure' => str($skill)->headline()->toString().' Settlement Works',
+            default => str($skill)->headline()->toString().' Ledger Office',
         };
     }
 

@@ -14,7 +14,22 @@ use Illuminate\Validation\ValidationException;
 
 class MarketplaceService
 {
+    private const MARKET_TRANSACTION_TAX_RATE = 0.05;
+
+    private const MARKET_TRANSACTION_MIN_FEE = 1;
+
     public function __construct(private ConnectedRealmsPlayerService $players, private ItemCatalogService $items) {}
+
+    /**
+     * @return array{transaction_tax_rate: float, minimum_transaction_fee: int}
+     */
+    public static function marketPolicy(): array
+    {
+        return [
+            'transaction_tax_rate' => self::MARKET_TRANSACTION_TAX_RATE,
+            'minimum_transaction_fee' => self::MARKET_TRANSACTION_MIN_FEE,
+        ];
+    }
 
     /**
      * @return array<string, mixed>
@@ -40,6 +55,7 @@ class MarketplaceService
             ->all();
 
         return [
+            'market_policy' => self::marketPolicy(),
             'npc_vendor' => [
                 'key' => 'ledger_steward',
                 'name' => 'Ledger Steward',
@@ -229,6 +245,8 @@ class MarketplaceService
             }
 
             $totalPrice = $listing->quantity * $listing->unit_price;
+            $marketFee = $this->marketFeeFor($totalPrice);
+            $sellerPayout = $totalPrice - $marketFee;
 
             if ($buyer->gold < $totalPrice) {
                 throw ValidationException::withMessages([
@@ -245,7 +263,7 @@ class MarketplaceService
                 'gold' => $buyer->gold - $totalPrice,
             ])->save();
             $seller->forceFill([
-                'gold' => $seller->gold + $totalPrice,
+                'gold' => $seller->gold + $sellerPayout,
             ])->save();
 
             $listing->forceFill([
@@ -292,6 +310,8 @@ class MarketplaceService
                 'quantity' => $listing->quantity,
                 'unit_price' => $listing->unit_price,
                 'total_price' => $totalPrice,
+                'market_fee' => $marketFee,
+                'seller_payout' => $sellerPayout,
                 'tool_snapshot' => $toolSnapshot,
             ]);
 
@@ -306,6 +326,8 @@ class MarketplaceService
                 'transaction_id' => $transaction->id,
                 'quantity' => $listing->quantity,
                 'total_price' => $totalPrice,
+                'market_fee' => $marketFee,
+                'seller_payout' => $sellerPayout,
             ]);
         });
     }
@@ -425,6 +447,8 @@ class MarketplaceService
             'quantity' => $listing->quantity,
             'unit_price' => $listing->unit_price,
             'total_price' => $listing->quantity * $listing->unit_price,
+            'estimated_market_fee' => $this->marketFeeFor($listing->quantity * $listing->unit_price),
+            'estimated_seller_payout' => ($listing->quantity * $listing->unit_price) - $this->marketFeeFor($listing->quantity * $listing->unit_price),
             'status' => $listing->status,
             'is_mine' => $listing->seller_player_id === $viewer->id,
             'can_buy' => $listing->status === ConnectedRealmsMarketListing::STATUS_ACTIVE
@@ -535,6 +559,8 @@ class MarketplaceService
             'quantity' => $transaction->quantity,
             'unit_price' => $transaction->unit_price,
             'total_price' => $transaction->total_price,
+            'market_fee' => (int) $transaction->market_fee,
+            'seller_payout' => (int) $transaction->seller_payout,
             'seller_name' => $transaction->seller?->display_name ?? 'Unknown Player',
             'buyer_name' => $transaction->buyer?->display_name ?? 'Unknown Player',
             'tool' => $transaction->tool_snapshot,
@@ -577,6 +603,7 @@ class MarketplaceService
                     'active_listing_count' => $listingRows->count(),
                     'recent_sale_count' => $saleRows->count(),
                     'recent_volume' => (int) $saleRows->sum('total_price'),
+                    'recent_market_fees' => (int) $saleRows->sum('market_fee'),
                     'lowest_price' => $prices->min() ?? $floor,
                     'highest_price' => $prices->max() ?? $ceiling,
                     'average_price' => $average,
@@ -604,10 +631,16 @@ class MarketplaceService
                 'tracked_items' => $rows->count(),
                 'active_supply' => $rows->sum('active_supply'),
                 'recent_volume' => $rows->sum('recent_volume'),
+                'recent_market_fees' => $rows->sum('recent_market_fees'),
                 'hot_items' => $rows->where('velocity', 'Hot')->count(),
             ],
             'rows' => $rows->take(80)->all(),
         ];
+    }
+
+    private function marketFeeFor(int $totalPrice): int
+    {
+        return min($totalPrice, max(self::MARKET_TRANSACTION_MIN_FEE, (int) ceil($totalPrice * self::MARKET_TRANSACTION_TAX_RATE)));
     }
 
     private function lockedPlayerFor(User $user): ConnectedRealmsPlayer

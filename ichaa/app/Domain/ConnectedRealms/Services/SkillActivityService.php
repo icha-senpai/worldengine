@@ -145,6 +145,7 @@ class SkillActivityService
                 + max(0, (int) ($eventBonus['gold'] ?? 0));
             $itemsAwarded = $this->rollLoot($activity['loot'], $toolModifiers['yield'] + max(0, (int) ($eventBonus['yield'] ?? 0)));
             $availableAt = now()->addSeconds($this->cooldownSecondsFor($activity, $toolModifiers['cooldown_reduction']));
+            $toolContributed = $this->toolContributedToAction($toolModifiers);
 
             $this->players->awardSkillExperience($player, $activity['skill'], $experienceAwarded);
 
@@ -167,6 +168,10 @@ class SkillActivityService
                 'last_action_at' => now(),
                 'next_action_at' => $availableAt,
             ])->save();
+
+            if ($toolContributed) {
+                $tool = $this->players->wearEquippedTool($player, $tool);
+            }
 
             $log = ConnectedRealmsActionLog::create([
                 'player_id' => $player->id,
@@ -245,6 +250,16 @@ class SkillActivityService
     }
 
     /**
+     * @param  array{experience: int, yield: int, gold: int, cooldown_reduction: int, critical_chance: int, material_preservation: int}  $modifiers
+     */
+    private function toolContributedToAction(array $modifiers): bool
+    {
+        return collect($modifiers)
+            ->except('material_preservation')
+            ->some(fn (int $modifier): bool => $modifier > 0);
+    }
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     private static function activities(): array
@@ -305,6 +320,24 @@ class SkillActivityService
         $primaryReward = $family['rewards'][0];
         $secondaryReward = $family['rewards'][1];
         $label = self::activityLabelFor($family, $tier);
+        $primaryLoot = self::canonicalActivityRewardPayload(self::legacyActivityRewardPayload(
+            $skill,
+            $tier,
+            $primaryReward,
+            $label,
+            $tier['rarity'],
+            $tier['level'] >= 50 ? 2 : 1,
+            100,
+        ));
+        $secondaryLoot = self::canonicalActivityRewardPayload(self::legacyActivityRewardPayload(
+            $skill,
+            $tier,
+            $secondaryReward,
+            $label,
+            $tier['level'] >= 80 ? $tier['rarity'] : ($tier['level'] >= 30 ? 'rare' : 'uncommon'),
+            1,
+            $tier['level'] >= 80 ? 55 : 70,
+        ));
 
         return [
             'label' => $label,
@@ -320,24 +353,114 @@ class SkillActivityService
             'experience' => ['min' => $tier['experience'][0], 'max' => $tier['experience'][1]],
             'gold' => ['min' => $tier['gold'][0], 'max' => $tier['gold'][1]],
             'loot' => [
-                [
-                    'item_key' => str("{$skill} {$tier['mark']} {$primaryReward['key']} {$tier['level']}")->slug('_')->toString(),
-                    'item_name' => self::activityRewardName($label, $primaryReward['name']),
-                    'rarity' => $tier['rarity'],
-                    'item_tier' => (int) $tier['item_tier'],
-                    'quantity' => $tier['level'] >= 50 ? 2 : 1,
-                    'chance' => 100,
-                ],
-                [
-                    'item_key' => str("{$skill} {$tier['mark']} {$secondaryReward['key']} {$tier['level']}")->slug('_')->toString(),
-                    'item_name' => self::activityRewardName($label, $secondaryReward['name']),
-                    'rarity' => $tier['level'] >= 80 ? $tier['rarity'] : ($tier['level'] >= 30 ? 'rare' : 'uncommon'),
-                    'item_tier' => (int) $tier['item_tier'],
-                    'quantity' => 1,
-                    'chance' => $tier['level'] >= 80 ? 55 : 70,
-                ],
+                $primaryLoot,
+                $secondaryLoot,
             ],
         ];
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public static function legacyActivityRewardMigrationRules(): array
+    {
+        $rules = [];
+
+        foreach (self::ACTIVITY_FAMILIES as $skill => $family) {
+            foreach (EvergatherTierCatalog::tiers() as $tier) {
+                $label = self::activityLabelFor($family, $tier);
+                $primaryReward = $family['rewards'][0];
+                $secondaryReward = $family['rewards'][1];
+                $legacyRewards = [
+                    self::legacyActivityRewardPayload($skill, $tier, $primaryReward, $label, $tier['rarity'], $tier['level'] >= 50 ? 2 : 1, 100),
+                    self::legacyActivityRewardPayload($skill, $tier, $secondaryReward, $label, $tier['level'] >= 80 ? $tier['rarity'] : ($tier['level'] >= 30 ? 'rare' : 'uncommon'), 1, $tier['level'] >= 80 ? 55 : 70),
+                ];
+
+                foreach ($legacyRewards as $legacyReward) {
+                    $canonicalReward = self::canonicalActivityRewardPayload($legacyReward);
+
+                    if ($legacyReward['item_key'] === $canonicalReward['item_key']) {
+                        continue;
+                    }
+
+                    $rules[$legacyReward['item_key']] = [
+                        'item_key' => $legacyReward['item_key'],
+                        'disposition' => 'merge',
+                        'replacement_key' => $canonicalReward['item_key'],
+                        'replacement_item_name' => $canonicalReward['item_name'],
+                        'conversion_ratio' => 1.0,
+                        'rounding' => 'floor',
+                        'outcome' => 'convert',
+                        'reason' => 'Merged cosmetic skill-activity reward flavor into a canonical class, material family, rarity, and tier key.',
+                        'alias_keys' => [$legacyReward['item_key']],
+                        'gold_compensation_per_unit' => 0,
+                        'migration_version' => 'evergather-economy-rebuild-v1',
+                        'source' => 'catalog',
+                    ];
+                }
+            }
+        }
+
+        ksort($rules);
+
+        return $rules;
+    }
+
+    /**
+     * @param  array{level: int, item_tier: int, mark: string}  $tier
+     * @param  array{key: string, name: string}  $reward
+     * @return array<string, mixed>
+     */
+    private static function legacyActivityRewardPayload(string $skill, array $tier, array $reward, string $activityLabel, string $rarity, int $quantity, int $chance): array
+    {
+        return [
+            'item_key' => str("{$skill} {$tier['mark']} {$reward['key']} {$tier['level']}")->slug('_')->toString(),
+            'item_name' => self::activityRewardName($activityLabel, $reward['name']),
+            'rarity' => $rarity,
+            'item_tier' => (int) $tier['item_tier'],
+            'quantity' => $quantity,
+            'chance' => $chance,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $legacyReward
+     * @return array<string, mixed>
+     */
+    private static function canonicalActivityRewardPayload(array $legacyReward): array
+    {
+        $item = app(ItemCatalogService::class)->enrich($legacyReward);
+        $itemClass = (string) $item['item_class'];
+        $materialFamily = (string) $item['material_family'];
+        $rarity = (string) $legacyReward['rarity'];
+        $itemTier = (int) $legacyReward['item_tier'];
+
+        return [
+            ...$legacyReward,
+            'item_key' => str("activity {$itemClass} {$materialFamily} {$rarity} tier {$itemTier}")->slug('_')->toString(),
+            'item_name' => self::canonicalActivityRewardName($itemTier, $rarity, $materialFamily, $itemClass),
+            'item_class' => $itemClass,
+            'material_family' => $materialFamily,
+        ];
+    }
+
+    private static function canonicalActivityRewardName(int $itemTier, string $rarity, string $materialFamily, string $itemClass): string
+    {
+        $classLabel = str($itemClass)->replace('_', ' ')->headline()->toString();
+        $familyLabel = str($materialFamily)->headline()->toString();
+        $familyNeedle = str($familyLabel)->lower()->toString();
+        $classNeedle = str($classLabel)->lower()->toString();
+        $suffix = str_contains($familyNeedle, $classNeedle) ? '' : " {$classLabel}";
+
+        if ($itemClass === 'tool' && str_contains($familyNeedle, 'tool')) {
+            $suffix = '';
+        }
+
+        if ($itemClass === 'tooling' && str_contains($familyNeedle, 'tool')) {
+            $suffix = '';
+        }
+
+        return str("Tier {$itemTier} {$rarity} {$familyLabel}{$suffix}")->headline()->toString();
     }
 
     /**

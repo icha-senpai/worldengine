@@ -12,6 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class JobContractService
 {
+    private const DEFAULT_ROTATION = 'daily';
+
+    private const DEFAULT_COMPLETION_CAP = 3;
+
     /**
      * @var array<string, array<string, mixed>>|null
      */
@@ -102,20 +106,20 @@ class JobContractService
         'banked_forge_shift' => ['label' => 'Banked Forge Shift', 'category' => 'Processing', 'skill' => 'smelting', 'level' => 5, 'experience' => 42, 'gold' => 32, 'item_key' => 'banked_coal_blend', 'item_name' => 'Banked Coal Blend', 'quantity' => 1],
         'bark_sheet_bundle' => ['label' => 'Bark Sheet Bundle', 'category' => 'Processing', 'skill' => 'milling', 'level' => 5, 'experience' => 38, 'gold' => 30, 'item_key' => 'whisperbark_sheet', 'item_name' => 'Whisperbark Sheet', 'quantity' => 1],
         'leather_strip_order' => ['label' => 'Leather Strip Order', 'category' => 'Processing', 'skill' => 'tanning', 'level' => 5, 'experience' => 42, 'gold' => 32, 'item_key' => 'soft_leather_strip', 'item_name' => 'Soft Leather Strip', 'quantity' => 1],
-        'gem_chip_packet' => ['label' => 'Gem Chip Packet', 'category' => 'Processing', 'skill' => 'cutting', 'level' => 5, 'experience' => 44, 'gold' => 34, 'item_key' => 'chipped_gemstone', 'item_name' => 'Chipped Gemstone', 'quantity' => 1],
-        'reed_cloth_roll' => ['label' => 'Reed Cloth Roll', 'category' => 'Processing', 'skill' => 'weaving', 'level' => 5, 'experience' => 38, 'gold' => 30, 'item_key' => 'reed_cloth', 'item_name' => 'Reed Cloth', 'quantity' => 1],
+        'gem_chip_packet' => ['label' => 'Gem Chip Packet', 'category' => 'Processing', 'skill' => 'cutting', 'level' => 10, 'experience' => 44, 'gold' => 34, 'item_key' => 'chipped_gemstone', 'item_name' => 'Chipped Gemstone', 'quantity' => 1],
+        'reed_cloth_roll' => ['label' => 'Reed Cloth Roll', 'category' => 'Processing', 'skill' => 'weaving', 'level' => 10, 'experience' => 38, 'gold' => 30, 'item_key' => 'reed_cloth', 'item_name' => 'Reed Cloth', 'quantity' => 1],
         'fittings_batch' => ['label' => 'Fittings Batch', 'category' => 'Workshop', 'skill' => 'smithing', 'level' => 5, 'experience' => 46, 'gold' => 36, 'item_key' => 'iron_fittings', 'item_name' => 'Iron Fittings', 'quantity' => 1],
-        'handle_lot' => ['label' => 'Handle Lot', 'category' => 'Workshop', 'skill' => 'carpentry', 'level' => 5, 'experience' => 42, 'gold' => 34, 'item_key' => 'ashwood_handle', 'item_name' => 'Ashwood Handle', 'quantity' => 1],
+        'handle_lot' => ['label' => 'Handle Lot', 'category' => 'Workshop', 'skill' => 'carpentry', 'level' => 10, 'experience' => 42, 'gold' => 34, 'item_key' => 'ashwood_handle', 'item_name' => 'Ashwood Handle', 'quantity' => 1],
         'soup_kettle' => ['label' => 'Soup Kettle', 'category' => 'Provisioning', 'skill' => 'cooking', 'level' => 5, 'experience' => 44, 'gold' => 34, 'item_key' => 'brine_soup', 'item_name' => 'Brine Soup', 'quantity' => 1],
         'paste_vials' => ['label' => 'Paste Vials', 'category' => 'Support', 'skill' => 'alchemy', 'level' => 5, 'experience' => 46, 'gold' => 36, 'item_key' => 'bitterroot_paste', 'item_name' => 'Bitterroot Paste', 'quantity' => 1],
-        'wrap_bundle' => ['label' => 'Wrap Bundle', 'category' => 'Workshop', 'skill' => 'tailoring', 'level' => 5, 'experience' => 42, 'gold' => 34, 'item_key' => 'field_wraps', 'item_name' => 'Field Wraps', 'quantity' => 1],
+        'wrap_bundle' => ['label' => 'Wrap Bundle', 'category' => 'Workshop', 'skill' => 'tailoring', 'level' => 10, 'experience' => 42, 'gold' => 34, 'item_key' => 'field_wraps', 'item_name' => 'Field Wraps', 'quantity' => 1],
         'binding_order' => ['label' => 'Binding Order', 'category' => 'Workshop', 'skill' => 'leatherworking', 'level' => 5, 'experience' => 44, 'gold' => 34, 'item_key' => 'sinew_binding', 'item_name' => 'Sinew Binding', 'quantity' => 1],
-        'spring_calibration' => ['label' => 'Spring Calibration', 'category' => 'Workshop', 'skill' => 'engineering', 'level' => 5, 'experience' => 48, 'gold' => 38, 'item_key' => 'clockwork_spring', 'item_name' => 'Clockwork Spring', 'quantity' => 1],
-        'ward_oil_request' => ['label' => 'Ward Oil Request', 'category' => 'Arcane', 'skill' => 'enchanting', 'level' => 5, 'experience' => 50, 'gold' => 40, 'item_key' => 'minor_ward_oil', 'item_name' => 'Minor Ward Oil', 'quantity' => 1],
-        'copper_setting_lot' => ['label' => 'Gemsetter Copper Lot', 'category' => 'Luxury', 'skill' => 'jewelcrafting', 'level' => 5, 'experience' => 46, 'gold' => 36, 'item_key' => 'copper_setting', 'item_name' => 'Copper Setting', 'quantity' => 1],
-        'reed_float_bundle' => ['label' => 'Reed Float Bundle', 'category' => 'Settlement', 'skill' => 'boatbuilding', 'level' => 5, 'experience' => 44, 'gold' => 34, 'item_key' => 'reed_float', 'item_name' => 'Reed Float', 'quantity' => 1],
-        'stool_delivery' => ['label' => 'Stool Delivery', 'category' => 'Settlement', 'skill' => 'furniture', 'level' => 5, 'experience' => 44, 'gold' => 34, 'item_key' => 'ashwood_stool', 'item_name' => 'Ashwood Stool', 'quantity' => 1],
-        'signpost_crew' => ['label' => 'Signpost Crew', 'category' => 'Settlement', 'skill' => 'construction', 'level' => 5, 'experience' => 50, 'gold' => 40, 'item_key' => 'trail_signpost', 'item_name' => 'Trail Signpost', 'quantity' => 1],
+        'spring_calibration' => ['label' => 'Spring Calibration', 'category' => 'Workshop', 'skill' => 'engineering', 'level' => 10, 'experience' => 48, 'gold' => 38, 'item_key' => 'clockwork_spring', 'item_name' => 'Clockwork Spring', 'quantity' => 1],
+        'ward_oil_request' => ['label' => 'Ward Oil Request', 'category' => 'Arcane', 'skill' => 'enchanting', 'level' => 10, 'experience' => 50, 'gold' => 40, 'item_key' => 'minor_ward_oil', 'item_name' => 'Minor Ward Oil', 'quantity' => 1],
+        'copper_setting_lot' => ['label' => 'Gemsetter Copper Lot', 'category' => 'Luxury', 'skill' => 'jewelcrafting', 'level' => 10, 'experience' => 46, 'gold' => 36, 'item_key' => 'copper_setting', 'item_name' => 'Copper Setting', 'quantity' => 1],
+        'reed_float_bundle' => ['label' => 'Reed Float Bundle', 'category' => 'Settlement', 'skill' => 'boatbuilding', 'level' => 10, 'experience' => 44, 'gold' => 34, 'item_key' => 'reed_float', 'item_name' => 'Reed Float', 'quantity' => 1],
+        'stool_delivery' => ['label' => 'Stool Delivery', 'category' => 'Settlement', 'skill' => 'furniture', 'level' => 10, 'experience' => 44, 'gold' => 34, 'item_key' => 'ashwood_stool', 'item_name' => 'Ashwood Stool', 'quantity' => 1],
+        'signpost_crew' => ['label' => 'Signpost Crew', 'category' => 'Settlement', 'skill' => 'construction', 'level' => 10, 'experience' => 50, 'gold' => 40, 'item_key' => 'trail_signpost', 'item_name' => 'Trail Signpost', 'quantity' => 1],
         'blade_drill' => ['label' => 'Blade Drill', 'category' => 'Combat', 'skill' => 'combat', 'level' => 10, 'experience' => 60, 'gold' => 48, 'item_key' => 'training_blade', 'item_name' => 'Training Blade', 'quantity' => 1],
         'fang_study' => ['label' => 'Fang Study', 'category' => 'Combat', 'skill' => 'slayer', 'level' => 10, 'experience' => 62, 'gold' => 50, 'item_key' => 'sharp_fang', 'item_name' => 'Sharp Fang', 'quantity' => 1],
         'repair_line' => ['label' => 'Repair Line', 'category' => 'Combat', 'skill' => 'defense', 'level' => 10, 'experience' => 60, 'gold' => 48, 'item_key' => 'field_repair_kit', 'item_name' => 'Field Repair Kit', 'quantity' => 1],
@@ -156,11 +160,15 @@ class JobContractService
             ...self::jobs(),
             ...$this->itemRequisitionJobsFor($inventory),
         ];
+        $completionCounts = $this->completionCountsForJobs($player, array_keys($jobCatalog));
 
         return collect($jobCatalog)
-            ->map(function (array $job, string $key) use ($inventory, $player): array {
+            ->map(function (array $job, string $key) use ($inventory, $player, $completionCounts): array {
                 $requiredLevel = (int) ($job['required_level'] ?? 1);
                 $skillLevel = $this->players->currentSkillLevel($player, $job['skill']);
+                $completionCap = $this->completionCap($job);
+                $completedInRotation = (int) ($completionCounts[$key] ?? 0);
+                $remainingCompletions = max(0, $completionCap - $completedInRotation);
                 $requirements = collect($job['requirements'])
                     ->map(function (array $requirement) use ($inventory): array {
                         $ownedQuantity = (int) ($inventory->get($requirement['item_key'])?->quantity ?? 0);
@@ -185,10 +193,20 @@ class JobContractService
                     'is_unlocked' => $skillLevel >= $requiredLevel,
                     'experience' => $job['experience'],
                     'gold' => $job['gold'],
+                    'demand_channel' => (string) ($job['demand_channel'] ?? 'posted_commission'),
+                    'world_consumer' => $job['world_consumer'] ?? null,
+                    'purpose' => $job['purpose'] ?? null,
+                    'sink' => $job['sink'] ?? null,
+                    'rotation' => (string) ($job['rotation'] ?? self::DEFAULT_ROTATION),
+                    'completion_cap' => $completionCap,
+                    'completed_in_rotation' => $completedInRotation,
+                    'remaining_completions' => $remainingCompletions,
+                    'is_demand_available' => $remainingCompletions > 0,
                     'requirements' => $requirements,
                     'rewards' => $job['rewards'],
                     'can_complete' => collect($requirements)->every(fn (array $requirement): bool => $requirement['has_enough'])
-                        && $skillLevel >= $requiredLevel,
+                        && $skillLevel >= $requiredLevel
+                        && $remainingCompletions > 0,
                 ];
             })
             ->values()
@@ -221,6 +239,8 @@ class JobContractService
                     'job' => "You need level {$requiredLevel} ".str($job['skill'])->headline()->toString().' for that job.',
                 ]);
             }
+
+            $this->ensureDemandAvailable($player, $jobKey, $job);
 
             $requirementKeys = collect($job['requirements'])->pluck('item_key')->all();
             $stacks = ConnectedRealmsInventoryStack::query()
@@ -284,6 +304,7 @@ class JobContractService
                 'rewards' => $job['rewards'],
                 'experience_awarded' => $job['experience'],
                 'gold_awarded' => $job['gold'],
+                'remaining_completions' => $this->remainingCompletions($player, $jobKey, $job),
             ];
         });
     }
@@ -309,13 +330,15 @@ class JobContractService
      */
     public static function baseJobs(): array
     {
-        return self::normalizeRequiredLevels([
+        return collect(self::normalizeRequiredLevels([
             ...self::JOBS,
             ...self::starterJobs(),
             ...self::expandedJobs(),
             ...self::midgameJobs(),
             ...self::endgameJobs(),
-        ]);
+        ]))
+            ->map(fn (array $job): array => self::boundedJob($job))
+            ->all();
     }
 
     /**
@@ -325,7 +348,11 @@ class JobContractService
     private function itemRequisitionJobsFor($inventory): array
     {
         return $inventory
-            ->filter(fn (ConnectedRealmsInventoryStack $stack): bool => $stack->quantity > 0)
+            ->filter(fn (ConnectedRealmsInventoryStack $stack): bool => $stack->quantity > 0 && $this->purposes->isRequisitionEligible([
+                'item_key' => $stack->item_key,
+                'item_name' => $stack->item_name,
+                'rarity' => $stack->rarity,
+            ]))
             ->mapWithKeys(function (ConnectedRealmsInventoryStack $stack): array {
                 $job = $this->purposes->requisitionFor([
                     'item_key' => $stack->item_key,
@@ -355,6 +382,14 @@ class JobContractService
             ->first();
 
         if ($stack === null || $stack->quantity <= 0) {
+            return null;
+        }
+
+        if (! $this->purposes->isRequisitionEligible([
+            'item_key' => $stack->item_key,
+            'item_name' => $stack->item_name,
+            'rarity' => $stack->rarity,
+        ])) {
             return null;
         }
 
@@ -545,6 +580,8 @@ class JobContractService
             'category' => $category,
             'skill' => $skill,
             'required_level' => EvergatherTierCatalog::nextTierLevelFor($requiredLevel),
+            'rotation' => self::DEFAULT_ROTATION,
+            'completion_cap' => self::DEFAULT_COMPLETION_CAP,
             'experience' => $experience,
             'gold' => $gold,
             'requirements' => $requirements,
@@ -567,6 +604,76 @@ class JobContractService
                 'required_level' => EvergatherTierCatalog::nextTierLevelFor((int) ($job['required_level'] ?? 1)),
             ])
             ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $job
+     * @return array<string, mixed>
+     */
+    private static function boundedJob(array $job): array
+    {
+        return [
+            ...$job,
+            'rotation' => $job['rotation'] ?? self::DEFAULT_ROTATION,
+            'completion_cap' => (int) ($job['completion_cap'] ?? self::DEFAULT_COMPLETION_CAP),
+        ];
+    }
+
+    /**
+     * @param  list<string>  $jobKeys
+     * @return array<string, int>
+     */
+    private function completionCountsForJobs(ConnectedRealmsPlayer $player, array $jobKeys): array
+    {
+        if ($jobKeys === []) {
+            return [];
+        }
+
+        return ConnectedRealmsJobCompletion::query()
+            ->where('player_id', $player->id)
+            ->whereIn('job_key', $jobKeys)
+            ->where('created_at', '>=', now()->startOfDay())
+            ->selectRaw('job_key, count(*) as completion_count')
+            ->groupBy('job_key')
+            ->pluck('completion_count', 'job_key')
+            ->map(fn ($count): int => (int) $count)
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $job
+     */
+    private function ensureDemandAvailable(ConnectedRealmsPlayer $player, string $jobKey, array $job): void
+    {
+        if ($this->remainingCompletions($player, $jobKey, $job) > 0) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'job' => "{$job['label']} has no demand remaining in this {$job['rotation']} rotation.",
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $job
+     */
+    private function remainingCompletions(ConnectedRealmsPlayer $player, string $jobKey, array $job): int
+    {
+        $completed = (int) ConnectedRealmsJobCompletion::query()
+            ->where('player_id', $player->id)
+            ->where('job_key', $jobKey)
+            ->where('created_at', '>=', now()->startOfDay())
+            ->count();
+
+        return max(0, $this->completionCap($job) - $completed);
+    }
+
+    /**
+     * @param  array<string, mixed>  $job
+     */
+    private function completionCap(array $job): int
+    {
+        return max(1, (int) ($job['completion_cap'] ?? self::DEFAULT_COMPLETION_CAP));
     }
 
     /**

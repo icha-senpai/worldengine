@@ -29,6 +29,7 @@ use App\Http\Requests\ConnectedRealms\StoreRewardLoadoutRequest;
 use App\Http\Requests\ConnectedRealms\StoreShopPurchaseRequest;
 use App\Http\Requests\ConnectedRealms\StoreSkillActivityRequest;
 use App\Http\Requests\ConnectedRealms\StoreToolEquipRequest;
+use App\Http\Requests\ConnectedRealms\StoreToolLifecycleRequest;
 use App\Http\Requests\ConnectedRealms\StoreToolRarityUpgradeRequest;
 use App\Http\Requests\ConnectedRealms\StoreToolTierUpgradeRequest;
 use App\Http\Requests\ConnectedRealms\StoreToolUnequipRequest;
@@ -211,6 +212,36 @@ class ConnectedRealmsController extends Controller
         return redirect()
             ->route('evergather.index')
             ->with('success', "{$result['stored_tool_name']} unequipped.")
+            ->with('connected_realms_result', $result);
+    }
+
+    public function repairTool(StoreToolLifecycleRequest $request, ToolInventoryService $toolInventory): RedirectResponse
+    {
+        $result = $toolInventory->repair($request->user(), $request->toolId());
+
+        return redirect()
+            ->route('evergather.index')
+            ->with('success', "{$result['label']} repaired.")
+            ->with('connected_realms_result', $result);
+    }
+
+    public function salvageTool(StoreToolLifecycleRequest $request, ToolInventoryService $toolInventory): RedirectResponse
+    {
+        $result = $toolInventory->salvage($request->user(), $request->toolId());
+
+        return redirect()
+            ->route('evergather.index')
+            ->with('success', "{$result['label']} salvaged.")
+            ->with('connected_realms_result', $result);
+    }
+
+    public function retireTool(StoreToolLifecycleRequest $request, ToolInventoryService $toolInventory): RedirectResponse
+    {
+        $result = $toolInventory->retire($request->user(), $request->toolId());
+
+        return redirect()
+            ->route('evergather.index')
+            ->with('success', "{$result['label']} retired.")
             ->with('connected_realms_result', $result);
     }
 

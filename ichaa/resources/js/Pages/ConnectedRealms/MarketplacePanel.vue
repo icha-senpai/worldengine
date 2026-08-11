@@ -144,6 +144,14 @@
                                 <span>Stats</span>
                                 <span class="text-primary">+{{ selectedListingTool.experience_bonus }} XP · +{{ selectedListingTool.yield_bonus }} yield</span>
                             </div>
+                            <div class="mt-2 flex items-center justify-between gap-3">
+                                <span>Market tax</span>
+                                <span class="text-primary">{{ selectedListingFee }}g</span>
+                            </div>
+                            <div class="mt-2 flex items-center justify-between gap-3">
+                                <span>Seller payout</span>
+                                <span class="text-primary">{{ selectedSellerPayout }}g</span>
+                            </div>
                         </div>
                     </div>
 
@@ -279,7 +287,11 @@
                                 +{{ transaction.tool.experience_bonus }} XP · +{{ transaction.tool.yield_bonus }} yield
                             </p>
                         </div>
-                        <p class="text-sm font-ui text-primary md:text-right">{{ transaction.total_price }}g</p>
+                        <div class="text-left md:text-right">
+                            <p class="text-sm font-ui text-primary">{{ transaction.total_price }}g</p>
+                            <p class="mt-1 text-xs text-muted-2">{{ transaction.seller_payout }}g payout</p>
+                            <p class="mt-1 text-xs text-muted-3">{{ transaction.market_fee }}g tax</p>
+                        </div>
                     </article>
 
                     <p v-if="!visibleTransactions.length" class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2">
@@ -317,6 +329,7 @@
 
                         <div class="grid content-between gap-3 text-left md:text-right">
                             <p class="text-sm font-ui text-primary">{{ listing.total_price }} gold</p>
+                            <p class="text-xs text-muted-2">{{ listing.estimated_seller_payout }}g payout</p>
                             <button
                                 v-if="listing.is_mine"
                                 type="button"
@@ -402,6 +415,17 @@ const vendorSaleTotal = computed(() => {
 
     return selectedVendorItem.value.npc_buy_price * Math.max(1, Number(vendorForm.quantity || 1))
 })
+const selectedListingGross = computed(() => {
+    if (!selectedListingEntry.value) {
+        return 0
+    }
+
+    const quantity = listingForm.listing_type === 'tool' ? 1 : Math.max(1, Number(listingForm.quantity || 1))
+
+    return Math.max(0, Number(listingForm.unit_price || 0)) * quantity
+})
+const selectedListingFee = computed(() => marketFeeFor(selectedListingGross.value))
+const selectedSellerPayout = computed(() => Math.max(0, selectedListingGross.value - selectedListingFee.value))
 const boards = computed(() => [
     { key: 'listings', label: 'Listings', count: visibleActiveListings.value.length },
     { key: 'market', label: 'Market Board', count: visibleMarketRows.value.length },
@@ -496,5 +520,17 @@ function cancelListing(listing) {
 
 function marketplaceActionKey(action, value) {
     return `${action}:${value}`
+}
+
+function marketFeeFor(totalPrice) {
+    if (totalPrice <= 0) {
+        return 0
+    }
+
+    const policy = props.marketplace.market_policy ?? {}
+    const minimum = Number(policy.minimum_transaction_fee ?? 1)
+    const rate = Number(policy.transaction_tax_rate ?? 0.05)
+
+    return Math.min(totalPrice, Math.max(minimum, Math.ceil(totalPrice * rate)))
 }
 </script>

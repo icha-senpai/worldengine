@@ -578,6 +578,40 @@ class ConnectedRealmsPlayerService
             ->first();
     }
 
+    public function wearEquippedTool(ConnectedRealmsPlayer $player, ?ConnectedRealmsEquipmentSlot $equipment, int $amount = 1): ?ConnectedRealmsEquipmentSlot
+    {
+        if ($equipment === null || $amount <= 0 || (int) $equipment->durability <= 0) {
+            return $equipment;
+        }
+
+        $lockedEquipment = ConnectedRealmsEquipmentSlot::query()
+            ->where('player_id', $player->id)
+            ->whereKey($equipment->id)
+            ->lockForUpdate()
+            ->first();
+
+        if ($lockedEquipment === null || (int) $lockedEquipment->durability <= 0) {
+            return $lockedEquipment;
+        }
+
+        $durability = max(0, (int) $lockedEquipment->durability - $amount);
+        $lockedEquipment->forceFill(['durability' => $durability])->save();
+
+        if ($lockedEquipment->tool_id !== null) {
+            $tool = ConnectedRealmsTool::query()
+                ->where('player_id', $player->id)
+                ->whereKey($lockedEquipment->tool_id)
+                ->lockForUpdate()
+                ->first();
+
+            $tool?->forceFill(['durability' => $durability])->save();
+        }
+
+        $this->forgetPlayerEquipmentCache($player->id);
+
+        return $lockedEquipment->refresh();
+    }
+
     /**
      * @param  array{experience: int, yield: int, skill?: string}  $bonuses
      */
@@ -773,6 +807,7 @@ class ConnectedRealmsPlayerService
 
         $skill = $slot->bonuses['skill'] ?? null;
         $skillMeta = $this->toolSkillMeta($skill);
+        $isBroken = (int) $slot->durability <= 0;
 
         $payload = $this->items->enrich([
             'slot' => $slot->slot,
@@ -785,8 +820,9 @@ class ConnectedRealmsPlayerService
             'item_name' => $slot->item_name,
             'rarity' => $slot->rarity,
             'durability' => $slot->durability,
-            'experience_bonus' => (int) ($slot->bonuses['experience'] ?? 0),
-            'yield_bonus' => (int) ($slot->bonuses['yield'] ?? 0),
+            'is_broken' => $isBroken,
+            'experience_bonus' => $isBroken ? 0 : (int) ($slot->bonuses['experience'] ?? 0),
+            'yield_bonus' => $isBroken ? 0 : (int) ($slot->bonuses['yield'] ?? 0),
             'rarity_progress' => (int) $slot->rarity_progress,
             'origin' => $slot->origin,
             'origin_label' => str($slot->origin ?? 'starter')->headline()->toString(),
@@ -802,6 +838,7 @@ class ConnectedRealmsPlayerService
         return $this->toolPayloadCache[$cacheKey] = [
             ...$payload,
             'tool_effects' => $effects,
+            'tool_lifecycle' => $this->toolLifecyclePayload($payload),
             'signature_trait' => $effects['signature_trait'],
             'discipline' => $effects['discipline'],
             'perks' => $effects['perks'],
@@ -820,6 +857,7 @@ class ConnectedRealmsPlayerService
         }
 
         $skillMeta = $this->toolSkillMeta($tool->skill);
+        $isBroken = (int) $tool->durability <= 0;
 
         $payload = $this->items->enrich([
             'tool_id' => $tool->id,
@@ -832,8 +870,9 @@ class ConnectedRealmsPlayerService
             'item_name' => $tool->item_name,
             'rarity' => $tool->rarity,
             'durability' => $tool->durability,
-            'experience_bonus' => (int) ($tool->bonuses['experience'] ?? 0),
-            'yield_bonus' => (int) ($tool->bonuses['yield'] ?? 0),
+            'is_broken' => $isBroken,
+            'experience_bonus' => $isBroken ? 0 : (int) ($tool->bonuses['experience'] ?? 0),
+            'yield_bonus' => $isBroken ? 0 : (int) ($tool->bonuses['yield'] ?? 0),
             'rarity_progress' => (int) $tool->rarity_progress,
             'origin' => $tool->origin,
             'origin_label' => str($tool->origin ?? 'crafted')->headline()->toString(),
@@ -850,6 +889,7 @@ class ConnectedRealmsPlayerService
         $payload = [
             ...$payload,
             'tool_effects' => $effects,
+            'tool_lifecycle' => $this->toolLifecyclePayload($payload),
             'signature_trait' => $effects['signature_trait'],
             'discipline' => $effects['discipline'],
             'perks' => $effects['perks'],
@@ -863,6 +903,26 @@ class ConnectedRealmsPlayerService
             'market_ceiling_price' => $ceiling,
             'market_price_band' => "{$floor}-{$ceiling}g",
             'npc_buy_price' => max(1, (int) floor($floor * 0.65)),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $tool
+     * @return array<string, mixed>
+     */
+    private function toolLifecyclePayload(array $tool): array
+    {
+        $repair = $this->tools->repairCost($tool);
+        $salvageMaterials = $this->tools->salvageMaterials($tool);
+        $isStarter = ($tool['origin'] ?? null) === 'starter';
+
+        return [
+            'repair' => $repair,
+            'salvage' => [
+                'can_salvage' => ! $isStarter && $salvageMaterials !== [],
+                'materials' => $salvageMaterials,
+            ],
+            'can_retire' => ! $isStarter,
         ];
     }
 

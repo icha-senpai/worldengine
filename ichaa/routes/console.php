@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\ConnectedRealms\Services\ConnectedRealmsSimulationService;
+use App\Domain\ConnectedRealms\Services\EconomyAuditService;
 use App\Domain\System\Services\DemoLoreSeeder;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -54,6 +55,51 @@ Artisan::command('evergather:simulate-users {--hours=2 : Number of in-game hours
 
     return Command::SUCCESS;
 })->purpose('Simulate Rico and Kye through Evergather gameplay and list their spoils on the marketplace.');
+
+Artisan::command('evergather:economy-export {--out= : Write the deterministic JSON export to this path}', function (EconomyAuditService $audit) {
+    $json = json_encode($audit->export(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+    if ($json === false) {
+        $this->error('Failed to encode the Evergather economy export.');
+
+        return Command::FAILURE;
+    }
+
+    $out = $this->option('out');
+
+    if (blank($out)) {
+        $this->line($json);
+
+        return Command::SUCCESS;
+    }
+
+    $path = (string) $out;
+    $directory = dirname($path);
+
+    if (! is_dir($directory)) {
+        mkdir($directory, 0755, true);
+    }
+
+    file_put_contents($path, $json.PHP_EOL);
+
+    $this->info("Evergather economy export written to {$path}.");
+
+    return Command::SUCCESS;
+})->purpose('Export deterministic Evergather economy catalog counts, graph edges, prices, and guardrail violations.');
+
+Artisan::command('evergather:migrate-inventory {--force : Apply the migration instead of printing the dry-run summary}', function (EconomyAuditService $audit) {
+    $result = (bool) $this->option('force')
+        ? $audit->applyInventoryMigration()
+        : $audit->previewInventoryMigration();
+
+    $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+    if (! (bool) $this->option('force')) {
+        $this->warn('Dry run only. Re-run with --force to apply the inventory migration.');
+    }
+
+    return Command::SUCCESS;
+})->purpose('Preview or apply the idempotent Evergather inventory key migration.');
 
 $syncBitcraftCraftingSnapshot = function () {
     $token = (string) config('services.bitcraft_spacetime.auth_token');

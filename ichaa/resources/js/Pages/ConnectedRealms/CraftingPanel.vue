@@ -130,6 +130,9 @@
                                 >
                                     {{ output.quantity }} {{ output.item_name }} · {{ output.rarity }} · {{ output.total_weight }} wt
                                 </span>
+                                <span v-if="recipe.material_preservation?.can_apply" class="tag">
+                                    Preserves 1 material
+                                </span>
                             </div>
                         </div>
 

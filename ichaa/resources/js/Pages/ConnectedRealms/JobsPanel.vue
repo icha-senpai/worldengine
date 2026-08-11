@@ -92,6 +92,7 @@
                                 <span class="tag">{{ job.category }}</span>
                                 <span class="tag">{{ job.skill_label }}</span>
                                 <span class="tag">Lv {{ job.required_level }}</span>
+                                <span class="tag capitalize">{{ job.rotation }} {{ job.completed_in_rotation }} / {{ job.completion_cap }}</span>
                             </div>
                             <div class="mt-3 grid gap-2">
                                 <div
@@ -121,6 +122,8 @@
                                 <p class="text-sm font-ui text-primary">+{{ job.gold }}g</p>
                                 <p class="mt-1 text-xs text-muted-2">+{{ job.experience }} XP</p>
                                 <p v-if="!job.is_unlocked" class="mt-1 text-xs text-muted-3">Level {{ job.skill_level }} / {{ job.required_level }}</p>
+                                <p v-else-if="!job.is_demand_available" class="mt-1 text-xs text-muted-3">Demand filled</p>
+                                <p v-else class="mt-1 text-xs text-muted-3">{{ job.remaining_completions }} left</p>
                             </div>
                             <button
                                 type="button"

@@ -72,6 +72,10 @@ class ToolEffectService
             return $this->emptyPayload();
         }
 
+        if ((int) $tool->durability <= 0) {
+            return $this->emptyPayload();
+        }
+
         $skill = (string) ($tool instanceof ConnectedRealmsEquipmentSlot
             ? ($tool->bonuses['skill'] ?? str($tool->slot)->after('tool_')->toString())
             : $tool->skill);
@@ -129,6 +133,17 @@ class ToolEffectService
      */
     public function actionModifiers(ConnectedRealmsEquipmentSlot|ConnectedRealmsTool|null $tool): array
     {
+        if ($tool === null || (int) $tool->durability <= 0) {
+            return [
+                'experience' => 0,
+                'yield' => 0,
+                'gold' => 0,
+                'cooldown_reduction' => 0,
+                'critical_chance' => 0,
+                'material_preservation' => 0,
+            ];
+        }
+
         $payload = $this->payloadForEquipment($tool);
         $bonuses = $tool?->bonuses ?? [];
         $criticalChance = (int) ($payload['modifiers']['critical_chance'] ?? 0);
