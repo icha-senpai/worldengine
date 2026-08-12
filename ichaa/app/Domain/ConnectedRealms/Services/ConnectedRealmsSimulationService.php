@@ -87,12 +87,12 @@ class ConnectedRealmsSimulationService
                 'job_skills' => ['combat', 'slayer'],
                 'expedition_skills' => ['combat', 'slayer'],
                 'starter_items' => [
-                    ['item_key' => 'iron_knife', 'item_name' => 'Iron Knife', 'rarity' => 'common', 'quantity' => 2],
-                    ['item_key' => 'trail_bow', 'item_name' => 'Trail Bow', 'rarity' => 'common', 'quantity' => 2],
-                    ['item_key' => 'hunter_ration', 'item_name' => 'Hunter Ration', 'rarity' => 'common', 'quantity' => 3],
-                    ['item_key' => 'snare_trigger', 'item_name' => 'Snare Trigger', 'rarity' => 'uncommon', 'quantity' => 2],
-                    ['item_key' => 'brine_soup', 'item_name' => 'Brine Soup', 'rarity' => 'common', 'quantity' => 2],
-                    ['item_key' => 'field_repair_kit', 'item_name' => 'Field Repair Kit', 'rarity' => 'common', 'quantity' => 1],
+                    ['item_key' => 'smithing_candlemark_armament', 'item_name' => 'Candlemark Armament', 'rarity' => 'common', 'quantity' => 2],
+                    ['item_key' => 'carpentry_candlemark_joinery', 'item_name' => 'Candlemark Joinery', 'rarity' => 'common', 'quantity' => 2],
+                    ['item_key' => 'cooking_candlemark_meal', 'item_name' => 'Candlemark Meal', 'rarity' => 'common', 'quantity' => 3],
+                    ['item_key' => 'engineering_moonwake_assembly', 'item_name' => 'Moonwake Assembly', 'rarity' => 'uncommon', 'quantity' => 2],
+                    ['item_key' => 'cooking_wayside_meal', 'item_name' => 'Wayside Meal', 'rarity' => 'common', 'quantity' => 2],
+                    ['item_key' => 'construction_candlemark_frame', 'item_name' => 'Candlemark Frame', 'rarity' => 'common', 'quantity' => 1],
                 ],
             ],
         ];

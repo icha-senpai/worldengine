@@ -57,9 +57,9 @@ class EconomyAuditServiceTest extends TestCase
             'craftable_tool_variants' => 380,
             'gathering_actions' => 91,
             'skill_activities' => 310,
-            'recipes' => 594,
-            'jobs' => 329,
-            'expeditions' => 122,
+            'recipes' => 570,
+            'jobs' => 380,
+            'expeditions' => 140,
             'shop_offers' => 389,
         ], $first['catalog_counts']);
         $this->assertGreaterThan(1000, count($first['items']));
@@ -106,8 +106,8 @@ class EconomyAuditServiceTest extends TestCase
         $this->assertSame([], $first['violations']['fallback_only_items']);
         $this->assertSame([], $first['violations']['repeatable_faucets_without_recurring_sinks']);
 
-        $ironBar = collect($first['canonical_registry'])
-            ->firstWhere('item_key', 'iron_bar');
+        $starterIngot = collect($first['canonical_registry'])
+            ->firstWhere('item_key', 'smelting_candlemark_ingot');
         $craftedTool = collect($first['canonical_registry'])
             ->firstWhere('item_key', 'candlemark_boughsplitter_hatchet');
         $craftedKitTool = collect($first['canonical_registry'])
@@ -117,17 +117,17 @@ class EconomyAuditServiceTest extends TestCase
         $activityReward = collect($first['canonical_registry'])
             ->firstWhere('item_key', 'activity_material_weapon_component_common_tier_1');
         $expeditionReward = collect($first['canonical_registry'])
-            ->firstWhere('item_key', 'tideglass_shard');
+            ->firstWhere('item_key', 'expedition_exploration_tier_1_explorer_compass');
         $craftOutput = collect($first['canonical_registry'])
-            ->firstWhere('item_key', 'copper_bar');
+            ->firstWhere('item_key', 'smelting_wayside_ingot');
         $gatheringReward = collect($first['canonical_registry'])
             ->firstWhere('item_key', 'brine_shrimp');
 
-        $this->assertSame('keep', $ironBar['disposition'] ?? null);
-        $this->assertSame('active', $ironBar['status'] ?? null);
-        $this->assertNotNull($ironBar['producing_skill'] ?? null);
-        $this->assertNotNull($ironBar['consuming_skill'] ?? null);
-        $this->assertNotSame([], $ironBar['recurring_sinks'] ?? []);
+        $this->assertSame('keep', $starterIngot['disposition'] ?? null);
+        $this->assertSame('active', $starterIngot['status'] ?? null);
+        $this->assertNotNull($starterIngot['producing_skill'] ?? null);
+        $this->assertNotNull($starterIngot['consuming_skill'] ?? null);
+        $this->assertNotSame([], $starterIngot['recurring_sinks'] ?? []);
         $this->assertSame('keep', $craftedTool['disposition'] ?? null);
         $this->assertSame('active', $craftedTool['status'] ?? null);
         $this->assertContains('tool_lifecycle', collect($craftedTool['recurring_sinks'] ?? [])->pluck('system')->all());
@@ -162,17 +162,21 @@ class EconomyAuditServiceTest extends TestCase
         $this->assertTrue($loops['fishing_farming_cooking_expedition']['is_complete']);
         $this->assertSame('mine', $miningStages['raw_faucet']['route_key']);
         $this->assertSame(['iron_ore', 'coal_chunk'], $miningStages['raw_faucet']['required_items']);
-        $this->assertSame('iron_bar', $miningStages['processing_recipe']['route_key']);
+        $this->assertSame('smelting_candlemark_ingot', $miningStages['processing_recipe']['route_key']);
         $this->assertSame('mining', $miningStages['durable_tool_family']['route_key']);
         $this->assertSame('smithing', $miningStages['durable_tool_family']['craft_skill']);
         $this->assertTrue($miningStages['bounded_job_demand']['has_bounded_demand']);
         $this->assertTrue($miningStages['recurring_repair_sink']['has_required_sink_system']);
         $this->assertSame('fish', $provisioningStages['fishing_raw_faucet']['route_key']);
         $this->assertSame('farm', $provisioningStages['farming_raw_faucet']['route_key']);
-        $this->assertSame('grilled_minnow', $provisioningStages['cooked_meal_recipe']['route_key']);
-        $this->assertSame('grain_flatbread', $provisioningStages['tier_two_meal_recipe']['route_key']);
+        $this->assertSame('cooking_candlemark_meal', $provisioningStages['cooked_meal_recipe']['route_key']);
+        $this->assertSame('cooking_wayside_meal', $provisioningStages['tier_two_meal_recipe']['route_key']);
         $this->assertTrue($provisioningStages['bounded_meal_job_demand']['has_bounded_demand']);
         $this->assertTrue($provisioningStages['bounded_flatbread_job_demand']['has_bounded_demand']);
+        $this->assertSame('survival_starter_expedition', $provisioningStages['expedition_consumable_sink']['route_key']);
+        $this->assertSame(['cooking_candlemark_meal'], $provisioningStages['expedition_consumable_sink']['required_items']);
+        $this->assertSame('survival_local_expedition', $provisioningStages['tier_two_expedition_consumable_sink']['route_key']);
+        $this->assertSame(['cooking_wayside_meal'], $provisioningStages['tier_two_expedition_consumable_sink']['required_items']);
         $this->assertSame([], $pilotLoops['incomplete_loops']);
     }
 
@@ -180,9 +184,9 @@ class EconomyAuditServiceTest extends TestCase
     {
         ConnectedRealmsContentEntry::query()->create([
             'surface' => 'job_contracts',
-            'entry_key' => 'pier_provisions',
-            'label' => 'Unbounded Pier Provisions',
-            'category' => 'Provisioning',
+            'entry_key' => 'cooking_starter_contract',
+            'label' => 'Unbounded Cooking Starter Contract',
+            'category' => 'Crafting',
             'required_level' => 1,
             'rarity' => 'common',
             'enabled' => true,
@@ -206,7 +210,7 @@ class EconomyAuditServiceTest extends TestCase
 
         $this->assertFalse($provisioningLoop['is_complete']);
         $this->assertContains('fishing_farming_cooking_expedition', $pilotLoops['incomplete_loops']);
-        $this->assertSame(['grilled_minnow'], $mealDemand['missing_items']);
+        $this->assertSame(['cooking_candlemark_meal'], $mealDemand['missing_items']);
         $this->assertTrue($mealDemand['has_bounded_demand']);
         $this->assertFalse($mealDemand['is_complete']);
     }
@@ -227,7 +231,7 @@ class EconomyAuditServiceTest extends TestCase
         ]);
         ConnectedRealmsPlayerSkill::query()->create([
             'player_id' => $maxTierPlayer->id,
-            'skill' => 'mining',
+            'skill' => 'exploration',
             'level' => 100,
             'experience' => 200000,
         ]);
@@ -297,7 +301,7 @@ class EconomyAuditServiceTest extends TestCase
                 'tags' => ['audit', 'legacy'],
                 'migration' => [
                     'disposition' => 'merge',
-                    'replacement_key' => 'iron_bar',
+                    'replacement_key' => 'smelting_candlemark_ingot',
                     'conversion_ratio' => 0.5,
                     'rounding' => 'floor',
                     'reason' => 'Consolidated into the Tier 1 smithing pilot material.',
@@ -349,19 +353,19 @@ class EconomyAuditServiceTest extends TestCase
 
         $this->assertSame('merge', $registryRow['disposition'] ?? null);
         $this->assertSame('deprecated', $registryRow['status'] ?? null);
-        $this->assertSame('iron_bar', $registryRow['replacement_key'] ?? null);
+        $this->assertSame('smelting_candlemark_ingot', $registryRow['replacement_key'] ?? null);
         $this->assertSame(0.5, $registryRow['conversion_ratio'] ?? null);
         $this->assertSame(['old_audit_scrap'], $registryRow['alias_keys'] ?? null);
         $this->assertSame('database', $rule['source'] ?? null);
         $this->assertFalse($rule['requires_review'] ?? true);
         $this->assertSame('convert', $dryRunRow['action'] ?? null);
         $this->assertSame(5, $dryRunRow['old_quantity'] ?? null);
-        $this->assertSame('iron_bar', $dryRunRow['new_item_key'] ?? null);
+        $this->assertSame('smelting_candlemark_ingot', $dryRunRow['new_item_key'] ?? null);
         $this->assertSame(2, $dryRunRow['new_quantity'] ?? null);
         $this->assertSame(0.5, $dryRunRow['quantity_remainder'] ?? null);
         $this->assertSame(50, $dryRunRow['value_before'] ?? null);
-        $this->assertSame(24, $dryRunRow['value_after'] ?? null);
-        $this->assertSame(-26, $dryRunRow['value_delta'] ?? null);
+        $this->assertSame(48, $dryRunRow['value_after'] ?? null);
+        $this->assertSame(-2, $dryRunRow['value_delta'] ?? null);
         $this->assertSame(1, $first['migration_plan']['inventory_dry_run']['summary']['affected_item_count']);
         $this->assertSame(1, $first['migration_plan']['inventory_dry_run']['summary']['affected_player_count']);
 
@@ -372,7 +376,7 @@ class EconomyAuditServiceTest extends TestCase
         ]);
         $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_candlemark_ingot',
             'quantity' => 2,
         ]);
     }
@@ -468,7 +472,7 @@ class EconomyAuditServiceTest extends TestCase
         $this->assertSame(1, ConnectedRealmsInventoryMigration::query()->count());
     }
 
-    public function test_activity_reward_requisition_jobs_are_executable_and_bounded(): void
+    public function test_activity_reward_requisition_items_do_not_create_runtime_jobs(): void
     {
         $player = $this->createConnectedRealmsPlayer('Audit Requisitioner', 100);
         $itemKey = 'activity_material_weapon_component_common_tier_1';
@@ -485,42 +489,29 @@ class EconomyAuditServiceTest extends TestCase
         $jobs = app(JobContractService::class)->availableJobsFor($player->load(['inventoryStacks', 'skills']));
         $job = collect($jobs)->firstWhere('key', $jobKey);
 
-        $this->assertNotNull($job);
-        $this->assertSame('local_procurement', $job['demand_channel']);
-        $this->assertSame('daily', $job['rotation']);
-        $this->assertSame(2, $job['completion_cap']);
-        $this->assertSame(2, $job['remaining_completions']);
-        $this->assertTrue($job['is_demand_available']);
-        $this->assertTrue($job['can_complete']);
-        $this->assertSame($itemKey, $job['requirements'][0]['item_key']);
-        $this->assertNotNull($job['world_consumer']);
-        $this->assertNotNull($job['purpose']);
+        $this->assertNull($job);
 
         $service = app(JobContractService::class);
         $user = $player->user()->firstOrFail();
 
-        $service->complete($user, $jobKey);
-        $service->complete($user, $jobKey);
-
-        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
-            'player_id' => $player->id,
-            'item_key' => $itemKey,
-            'quantity' => 1,
-        ]);
-
-        $jobsAfterCap = $service->availableJobsFor($player->refresh()->load(['inventoryStacks', 'skills']));
-        $jobAfterCap = collect($jobsAfterCap)->firstWhere('key', $jobKey);
-
-        $this->assertSame(0, $jobAfterCap['remaining_completions']);
-        $this->assertFalse($jobAfterCap['is_demand_available']);
-        $this->assertFalse($jobAfterCap['can_complete']);
-
         $this->expectException(ValidationException::class);
 
-        $service->complete($user, $jobKey);
+        try {
+            $service->complete($user, $jobKey);
+        } finally {
+            $this->assertDatabaseHas('connected_realms_inventory_stacks', [
+                'player_id' => $player->id,
+                'item_key' => $itemKey,
+                'quantity' => 3,
+            ]);
+            $this->assertDatabaseMissing('connected_realms_job_completions', [
+                'player_id' => $player->id,
+                'job_key' => $jobKey,
+            ]);
+        }
     }
 
-    public function test_expedition_reward_requisitions_are_research_limited(): void
+    public function test_expedition_reward_requisitions_are_not_runtime_jobs(): void
     {
         $player = $this->createConnectedRealmsPlayer('Audit Researcher', 100);
 
@@ -532,24 +523,19 @@ class EconomyAuditServiceTest extends TestCase
         ]);
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'tideglass_shard',
-            'item_name' => 'Tideglass Shard',
-            'rarity' => 'rare',
+            'item_key' => 'expedition_exploration_tier_1_explorer_compass',
+            'item_name' => 'Candlemark Sketch Route Explorer Compass',
+            'rarity' => 'common',
             'quantity' => 2,
         ]);
 
         $job = collect(app(JobContractService::class)->availableJobsFor($player->load(['inventoryStacks', 'skills'])))
-            ->firstWhere('key', 'item_requisition_tideglass_shard');
+            ->firstWhere('key', 'item_requisition_expedition_exploration_tier_1_explorer_compass');
 
-        $this->assertNotNull($job);
-        $this->assertSame('expedition_research', $job['demand_channel']);
-        $this->assertSame(1, $job['completion_cap']);
-        $this->assertSame(1, $job['remaining_completions']);
-        $this->assertSame('Mining Expedition Research Desk', $job['world_consumer']);
-        $this->assertTrue($job['can_complete']);
+        $this->assertNull($job);
     }
 
-    public function test_crafted_output_requisitions_are_craft_commissions(): void
+    public function test_crafted_output_requisitions_are_not_runtime_jobs(): void
     {
         $player = $this->createConnectedRealmsPlayer('Audit Commissioner', 100);
 
@@ -561,23 +547,19 @@ class EconomyAuditServiceTest extends TestCase
         ]);
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'copper_bar',
-            'item_name' => 'Copper Bar',
+            'item_key' => 'smelting_wayside_ingot',
+            'item_name' => 'Wayside Ingot',
             'rarity' => 'common',
             'quantity' => 2,
         ]);
 
         $job = collect(app(JobContractService::class)->availableJobsFor($player->load(['inventoryStacks', 'skills'])))
-            ->firstWhere('key', 'item_requisition_copper_bar');
+            ->firstWhere('key', 'item_requisition_smelting_wayside_ingot');
 
-        $this->assertNotNull($job);
-        $this->assertSame('craft_commission', $job['demand_channel']);
-        $this->assertSame(2, $job['completion_cap']);
-        $this->assertSame('Mining Craft Commission Desk', $job['world_consumer']);
-        $this->assertTrue($job['can_complete']);
+        $this->assertNull($job);
     }
 
-    public function test_gathered_reward_requisitions_are_local_procurement(): void
+    public function test_gathered_reward_requisitions_are_not_runtime_jobs(): void
     {
         $player = $this->createConnectedRealmsPlayer('Audit Gatherer', 100);
 
@@ -592,11 +574,7 @@ class EconomyAuditServiceTest extends TestCase
         $job = collect(app(JobContractService::class)->availableJobsFor($player->load(['inventoryStacks', 'skills'])))
             ->firstWhere('key', 'item_requisition_brine_shrimp');
 
-        $this->assertNotNull($job);
-        $this->assertSame('local_procurement', $job['demand_channel']);
-        $this->assertSame(3, $job['completion_cap']);
-        $this->assertSame('Fishing Field Office Shellfish Reserve', $job['world_consumer']);
-        $this->assertTrue($job['can_complete']);
+        $this->assertNull($job);
     }
 
     public function test_export_summarizes_observed_gold_faucets_sinks_and_market_transfers(): void
@@ -885,9 +863,9 @@ class EconomyAuditServiceTest extends TestCase
         $this->assertSame('audit_missing_contract_item', $violations['job_inputs_unavailable_at_tier']['audit_broken_job'][0]['item_key'] ?? null);
         $this->assertContains('audit_broken_job', $violations['unbounded_job_demand']);
         $this->assertSame(5, $violations['tool_craft_salvage_paths']['audit_profitable_tool:audit_scrap_pickaxe']['craft_value'] ?? null);
-        $this->assertSame(12, $violations['tool_craft_salvage_paths']['audit_profitable_tool:audit_scrap_pickaxe']['salvage_value'] ?? null);
+        $this->assertSame(24, $violations['tool_craft_salvage_paths']['audit_profitable_tool:audit_scrap_pickaxe']['salvage_value'] ?? null);
         $this->assertSame(1, $violations['tool_purchase_salvage_paths']['audit_underpriced_pickaxe']['price'] ?? null);
-        $this->assertSame(12, $violations['tool_purchase_salvage_paths']['audit_underpriced_pickaxe']['salvage_value'] ?? null);
+        $this->assertSame(24, $violations['tool_purchase_salvage_paths']['audit_underpriced_pickaxe']['salvage_value'] ?? null);
         $this->assertSame(0, $violations['zero_input_crafting_paths']['audit_free_output_recipe']['ingredient_quantity'] ?? null);
         $this->assertSame(1, $violations['zero_input_crafting_paths']['audit_free_output_recipe']['output_count'] ?? null);
     }

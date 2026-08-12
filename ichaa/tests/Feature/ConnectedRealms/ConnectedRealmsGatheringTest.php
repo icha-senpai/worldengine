@@ -11,6 +11,7 @@ use App\Domain\ConnectedRealms\Models\ConnectedRealmsExpeditionRun;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsGoldFlow;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsInventoryStack;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsJobCompletion;
+use App\Domain\ConnectedRealms\Models\ConnectedRealmsJobContract;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsMarketListing;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsMarketTransaction;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsPlayer;
@@ -136,7 +137,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->where('skills.0.next_level_experience', 200)
                     ->where('skills.0.target_hours_range.0', 50)
                     ->where('skills.0.target_hours_range.1', 90)
-                    ->has('skills.0.activities', 21)
+                    ->has('skills.0.activities', 23)
                     ->where('skills.0.activities', fn ($activities): bool => collect($activities)->contains(fn (array $activity): bool => $activity['required_level'] > 1 && $activity['unlocked'] === false))
                     ->where('skills.0.unlocks.1.level', 5)
                     ->has('skill_catalog.groups')
@@ -163,22 +164,22 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->where('tool_rarity_upgrades.options.0.status', 'Tier up for uncommon')
                     ->where('tool_rarity_upgrades.options.0.success_chance', 35)
                     ->where('tool_rarity_upgrades.options.0.gold_cost', 45)
-                    ->where('tool_rarity_upgrades.options.0.materials.0.item_key', 'amber_sap')
+                    ->where('tool_rarity_upgrades.options.0.materials.0.item_key', 'alchemy_candlemark_tonic')
                     ->has('tool_tier_upgrades.options', 38)
                     ->where('tool_tier_upgrades.options.0.next_item_name', 'Workshop Mooncap Alembic')
                     ->where('tool_tier_upgrades.options.0.gold_cost', 35)
                 )
                 ->reloadOnly(['crafting_recipes'], fn (Assert $page) => $page
-                    ->has('crafting_recipes', 594)
-                    ->where('crafting_recipes.0.key', 'grilled_minnow')
+                    ->has('crafting_recipes', 570)
+                    ->where('crafting_recipes.0.key', 'smelting_candlemark_ingot')
                 )
                 ->reloadOnly(['jobs'], fn (Assert $page) => $page
-                    ->has('jobs', 329)
-                    ->where('jobs.0.key', 'pier_provisions')
+                    ->has('jobs', 380)
+                    ->where('jobs.0.key', 'fishing_starter_contract')
                 )
                 ->reloadOnly(['expeditions'], fn (Assert $page) => $page
-                    ->has('expeditions', 122)
-                    ->where('expeditions.0.key', 'moonwake_supply_run')
+                    ->has('expeditions', 140)
+                    ->where('expeditions.0.key', 'combat_starter_expedition')
                 )
                 ->reloadOnly(['shop'], fn (Assert $page) => $page
                     ->has('shop.offers', 389)
@@ -269,7 +270,7 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->reloadOnly(['player', 'inventory', 'crafting_recipes', 'recent_crafts', 'summary', 'last_result', 'progression'], fn (Assert $reload) => $reload
                     ->where('player.display_name', $user->name)
                     ->has('inventory')
-                    ->has('crafting_recipes', 594)
+                    ->has('crafting_recipes', 570)
                     ->has('recent_crafts')
                     ->has('summary')
                     ->has('progression')
@@ -296,8 +297,8 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
-            'item_name' => 'Iron Bar',
+            'item_key' => 'smelting_candlemark_ingot',
+            'item_name' => 'Candlemark Ingot',
             'rarity' => 'common',
             'quantity' => 5,
         ]);
@@ -306,29 +307,29 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->get(route('evergather.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('summary.inventory_weight', 5)
+                ->where('summary.inventory_weight', 6.5)
                 ->missing('inventory')
                 ->missing('marketplace')
                 ->reloadOnly(['inventory', 'marketplace'], fn (Assert $reload) => $reload
-                    ->where('inventory.0.item_key', 'iron_bar')
+                    ->where('inventory.0.item_key', 'smelting_candlemark_ingot')
                     ->where('inventory.0.quality', 'standard')
                     ->where('inventory.0.quality_score', 40)
                     ->where('inventory.0.item_class', 'material')
                     ->where('inventory.0.material_family', 'Metal Bar')
-                    ->where('inventory.0.weight', 1)
-                    ->where('inventory.0.total_weight', 5)
-                    ->where('inventory.0.vendor_value', 12)
-                    ->where('inventory.0.total_vendor_value', 60)
-                    ->where('inventory.0.npc_buy_price', 4)
-                    ->where('inventory.0.total_npc_buy_price', 20)
-                    ->where('inventory.0.market_floor_price', 4)
-                    ->where('inventory.0.market_ceiling_price', 96)
-                    ->where('inventory.0.market_price_band', '4-96g')
+                    ->where('inventory.0.weight', 1.3)
+                    ->where('inventory.0.total_weight', 6.5)
+                    ->where('inventory.0.vendor_value', 24)
+                    ->where('inventory.0.total_vendor_value', 120)
+                    ->where('inventory.0.npc_buy_price', 8)
+                    ->where('inventory.0.total_npc_buy_price', 40)
+                    ->where('inventory.0.market_floor_price', 8)
+                    ->where('inventory.0.market_ceiling_price', 192)
+                    ->where('inventory.0.market_price_band', '8-192g')
                     ->where('inventory.0.tags.0', 'metal')
                     ->where('marketplace.npc_vendor.name', 'Ledger Steward')
                     ->where('marketplace.sellable_inventory.0.quality', 'standard')
-                    ->where('marketplace.sellable_inventory.0.market_price_band', '4-96g')
-                    ->where('marketplace.sellable_inventory.0.total_weight', 5)
+                    ->where('marketplace.sellable_inventory.0.market_price_band', '8-192g')
+                    ->where('marketplace.sellable_inventory.0.total_weight', 6.5)
                 )
             );
     }
@@ -942,12 +943,22 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ])
                 ->all())
             ->all();
+        $craftedItemsBySkill = collect($recipes)
+            ->filter(fn (array $recipe): bool => collect($recipe['outputs'] ?? [])
+                ->contains(fn (array $output): bool => ! isset($output['equipment_skill'])))
+            ->map(fn (array $recipe): array => [
+                'skill' => $recipe['skill'],
+                'required_level' => $recipe['required_level'] ?? 1,
+            ])
+            ->values()
+            ->all();
 
         $this->assertCatalogSkillsReachLevel($craftedToolsBySkill, $allSkills);
 
         $this->assertCatalogSkillsIncludeLevels($actions, $gatheringSkills, [1, 5, 10, 20, 30, 40, 50, 65, 80, 100]);
         $this->assertCatalogSkillsIncludeLevels($activities, $activitySkills, [1, 5, 10, 20, 30, 40, 50, 65, 80, 100]);
-        $this->assertCatalogSkillsIncludeLevels($recipes, $recipeSkills, [20, 30, 40, 50, 65, 80, 100]);
+        $this->assertCatalogSkillsIncludeLevels($recipes, $recipeSkills, EvergatherTierCatalog::levels());
+        $this->assertCatalogSkillsIncludeLevels($craftedItemsBySkill, $recipeSkills, EvergatherTierCatalog::levels());
         $this->assertCatalogSkillsIncludeLevels($jobs, SkillCatalogService::keys(), [20, 30, 40, 50, 65, 80, 100]);
         $this->assertCatalogSkillsIncludeLevels($expeditions, $expeditionSkills, [20, 30, 40, 50, 65, 80, 100]);
         $this->assertCatalogSkillsIncludeLevels($craftedToolsBySkill, $allSkills, [20, 30, 40, 50, 65, 80, 100]);
@@ -1007,20 +1018,20 @@ class ConnectedRealmsGatheringTest extends TestCase
         try {
             ConnectedRealmsContentEntry::query()->create([
                 'surface' => 'expeditions',
-                'entry_key' => 'deep_sanctum_clear',
-                'label' => 'Deep Sanctum Clear',
+                'entry_key' => 'audit_ladder_probe',
+                'label' => 'Audit Ladder Probe',
                 'category' => 'Buried Gate Core',
                 'required_level' => 25,
                 'enabled' => true,
                 'sort_order' => 0,
                 'payload' => [
-                    'label' => 'Deep Sanctum Clear',
+                    'label' => 'Audit Ladder Probe',
                     'region' => 'Buried Gate Core',
                     'skill' => 'dungeoneering',
                     'experience' => 104,
                     'gold' => 94,
                     'supplies' => [
-                        ['item_key' => 'dungeon_chart', 'item_name' => 'Dungeon Chart', 'quantity' => 1],
+                        ['item_key' => 'cartography_runebound_map', 'item_name' => 'Runebound Map', 'quantity' => 1],
                     ],
                     'rewards' => [
                         ['item_key' => 'gate_core', 'item_name' => 'Gate Core', 'rarity' => 'epic', 'quantity' => 1],
@@ -1029,7 +1040,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             ]);
 
             $expeditions = $this->privateStaticCatalog(ExpeditionService::class, 'expeditions');
-            $entry = $expeditions['deep_sanctum_clear'];
+            $entry = $expeditions['audit_ladder_probe'];
 
             $this->assertSame(30, $entry['required_level']);
             $this->assertSame('30-50', $entry['level_band']);
@@ -1067,7 +1078,7 @@ class ConnectedRealmsGatheringTest extends TestCase
     public function test_evergather_generated_job_names_are_board_ready(): void
     {
         $jobs = collect($this->privateStaticCatalog(JobContractService::class, 'jobs'))
-            ->filter(fn (array $job, string $key): bool => str_contains($key, '_contract_'));
+            ->filter(fn (array $job, string $key): bool => str_ends_with($key, '_contract'));
 
         $placeholderLabels = $jobs
             ->filter(fn (array $job): bool => preg_match('/\b(?:Contract|Commission)\s+\d+\b/', $job['label']) === 1
@@ -1077,10 +1088,32 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->all();
 
         $this->assertSame([], $placeholderLabels);
-        $this->assertSame('Saltmere Kitchens Board: Harbor Tuna', $jobs->get('fishing_midgame_contract_20')['label']);
-        $this->assertSame('Saltmere Kitchens Names Thronewater Eel for the First Hall', $jobs->get('fishing_mastery_contract_100')['label']);
-        $this->assertSame('Crossroads Brokerage Names First Concord Charter for the First Hall', $jobs->get('trading_mastery_contract_100')['label']);
-        $this->assertSame('Realm Mandates', $jobs->get('fishing_mastery_contract_100')['category']);
+        $this->assertSame(380, $jobs->count());
+        $this->assertSame([10], $jobs->countBy('skill')->unique()->values()->all());
+        $this->assertSame('Candlemark Fishing Catch', $jobs->get('fishing_starter_contract')['label']);
+        $this->assertSame('Gathering', $jobs->get('fishing_starter_contract')['category']);
+        $this->assertSame('gather', $jobs->get('fishing_starter_contract')['objective_type']);
+        $this->assertSame('Combat & Support', $jobs->get('combat_starter_contract')['category']);
+        $this->assertSame('deliver', $jobs->get('combat_starter_contract')['objective_type']);
+        $this->assertSame('Adventure', $jobs->get('exploration_starter_contract')['category']);
+        $this->assertSame('deliver', $jobs->get('exploration_starter_contract')['objective_type']);
+        $this->assertSame('Civic & Economy', $jobs->get('reputation_starter_contract')['category']);
+        $this->assertSame('deliver', $jobs->get('reputation_starter_contract')['objective_type']);
+        $this->assertSame('Crownmark Trading Operation', $jobs->get('trading_evergather_contract')['label']);
+        $this->assertSame('deliver', $jobs->get('trading_evergather_contract')['objective_type']);
+        $this->assertSame('Civic & Economy', $jobs->get('trading_evergather_contract')['category']);
+        $this->assertSame([], $jobs
+            ->whereIn('objective_type', ['menu_action_count', 'menu_run_count', 'faction_request_count', 'leadership_operation_count', 'trade_operation_count'])
+            ->keys()
+            ->values()
+            ->all());
+        $this->assertSame([], $jobs
+            ->filter(fn (array $job): bool => ($job['requirements'] ?? []) === [])
+            ->keys()
+            ->values()
+            ->all());
+        $this->assertSame('tanning_moonwake_leather', $jobs->get('tanning_apprentice_contract')['requirements'][0]['item_key']);
+        $this->assertSame(4, $jobs->get('tanning_apprentice_contract')['requirements'][0]['quantity']);
     }
 
     public function test_evergather_generated_activity_names_are_board_ready(): void
@@ -1155,7 +1188,6 @@ class ConnectedRealmsGatheringTest extends TestCase
         $surfaces = [
             'gathering_actions' => collect($catalogs['actions'])->pluck('label'),
             'skill_activities' => collect($catalogs['activities'])->pluck('label'),
-            'jobs' => collect($catalogs['jobs'])->pluck('label'),
             'expeditions' => collect($catalogs['expeditions'])->pluck('label'),
             'skill_unlocks' => collect(app(SkillCatalogService::class)->all())
                 ->flatMap(fn (array $skill): array => collect($skill['unlocks'])
@@ -1445,14 +1477,15 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->missing('jobs')
                 ->missing('item_guide')
                 ->reloadOnly(['jobs', 'item_guide'], fn (Assert $deferred) => $deferred
-                    ->has('jobs', 329)
+                    ->has('jobs', 380)
                     ->where('jobs', fn ($jobs): bool => ! collect($jobs)->contains(fn (array $job): bool => $job['key'] === 'item_requisition_audit_orphan_pebble'))
-                    ->where('jobs', fn ($jobs): bool => collect($jobs)->contains(fn (array $job): bool => $job['key'] === 'pier_provisions'
+                    ->where('jobs', fn ($jobs): bool => collect($jobs)->contains(fn (array $job): bool => $job['key'] === 'fishing_starter_contract'
                         && $job['rotation'] === 'daily'
                         && $job['completion_cap'] === 3
                         && $job['completed_in_rotation'] === 0
                         && $job['remaining_completions'] === 3
-                        && $job['is_demand_available'] === true))
+                        && $job['is_demand_available'] === true
+                        && $job['requires_acceptance'] === false))
                     ->where('item_guide.summary.items_without_sinks', fn (int $count): bool => $count > 0)
                     ->where('item_guide.items', fn ($items): bool => collect($items)->contains(function (array $item): bool {
                         $sinkTypes = collect($item['sinks'] ?? [])->pluck('type');
@@ -1572,9 +1605,9 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsCraftingLog::query()->create([
             'player_id' => $activePlayer->id,
-            'recipe_key' => 'iron_bar',
-            'recipe_name' => 'Iron Bar',
-            'skill' => 'smithing',
+            'recipe_key' => 'smelting_candlemark_ingot',
+            'recipe_name' => 'Candlemark Ingot',
+            'skill' => 'smelting',
             'items_consumed' => [],
             'items_created' => [],
             'experience_awarded' => 44,
@@ -1582,9 +1615,9 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
         ConnectedRealmsJobCompletion::query()->create([
             'player_id' => $activePlayer->id,
-            'job_key' => 'quarry_smelter',
-            'job_name' => 'Quarry Smelter',
-            'category' => 'smithing',
+            'job_key' => 'fishing_starter_contract',
+            'job_name' => 'Candlemark Fishing Catch',
+            'category' => 'Gathering',
             'items_delivered' => [],
             'rewards' => [],
             'experience_awarded' => 35,
@@ -1592,8 +1625,8 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
         ConnectedRealmsExpeditionRun::query()->create([
             'player_id' => $activePlayer->id,
-            'expedition_key' => 'moonwake_supply_run',
-            'expedition_name' => 'Moonwake Provision Walk',
+            'expedition_key' => 'exploration_starter_expedition',
+            'expedition_name' => 'Candlemark Sketch Route',
             'status' => 'completed',
             'supplies_consumed' => [],
             'items_awarded' => [],
@@ -1603,16 +1636,16 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $activePlayer->id,
-            'item_key' => 'iron_bar',
-            'item_name' => 'Iron Bar',
+            'item_key' => 'smelting_candlemark_ingot',
+            'item_name' => 'Candlemark Ingot',
             'rarity' => 'common',
             'quantity' => 7,
         ]);
 
         $listing = ConnectedRealmsMarketListing::query()->create([
             'seller_player_id' => $activePlayer->id,
-            'item_key' => 'iron_bar',
-            'item_name' => 'Iron Bar',
+            'item_key' => 'smelting_candlemark_ingot',
+            'item_name' => 'Candlemark Ingot',
             'rarity' => 'common',
             'quantity' => 2,
             'unit_price' => 9,
@@ -1623,8 +1656,8 @@ class ConnectedRealmsGatheringTest extends TestCase
             'listing_id' => $listing->id,
             'seller_player_id' => $activePlayer->id,
             'buyer_player_id' => $wealthPlayer->id,
-            'item_key' => 'iron_bar',
-            'item_name' => 'Iron Bar',
+            'item_key' => 'smelting_candlemark_ingot',
+            'item_name' => 'Candlemark Ingot',
             'rarity' => 'common',
             'quantity' => 2,
             'unit_price' => 9,
@@ -1683,33 +1716,33 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'river_minnow',
-            'item_name' => 'River Minnow',
+            'item_key' => 'sunfield_grain',
+            'item_name' => 'Sunfield Grain',
             'rarity' => 'common',
-            'quantity' => 3,
+            'quantity' => 2,
         ]);
 
         $this->actingAs($user)
-            ->post(route('evergather.crafting.store'), ['recipe' => 'grilled_minnow'])
+            ->post(route('evergather.crafting.store'), ['recipe' => 'cooking_candlemark_meal'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Grilled Minnow crafted.')
+            ->assertSessionHas('success', 'Candlemark Meal crafted.')
             ->assertSessionHas('connected_realms_result');
 
         $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'river_minnow',
+            'item_key' => 'sunfield_grain',
         ]);
 
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'grilled_minnow',
+            'item_key' => 'cooking_candlemark_meal',
             'quantity' => 1,
         ]);
 
         $this->assertDatabaseHas('connected_realms_player_skills', [
             'player_id' => $player->id,
             'skill' => 'cooking',
-            'experience' => 20,
+            'experience' => 28,
         ]);
 
         $this->assertSame(1, ConnectedRealmsCraftingLog::query()->where('player_id', $player->id)->count());
@@ -1759,9 +1792,9 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('evergather.crafting.store'), ['recipe' => 'iron_bar'])
+            ->post(route('evergather.crafting.store'), ['recipe' => 'smelting_candlemark_ingot'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Iron Bar crafted.')
+            ->assertSessionHas('success', 'Candlemark Ingot crafted.')
             ->assertSessionHas('connected_realms_result.materials_preserved.0.item_key', 'iron_ore')
             ->assertSessionHas('connected_realms_result.materials_preserved.0.quantity', 1);
 
@@ -1776,18 +1809,18 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
             'item_key' => 'iron_ore',
-            'quantity' => 1,
+            'quantity' => 3,
         ]);
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_candlemark_ingot',
             'quantity' => 1,
         ]);
         $this->assertSame(1, $log->items_consumed[0]['preserved_quantity']);
-        $this->assertSame(3, $log->items_consumed[0]['net_quantity']);
+        $this->assertSame(1, $log->items_consumed[0]['net_quantity']);
     }
 
-    public function test_crafting_preservation_cannot_make_single_unit_recipe_free(): void
+    public function test_crafting_without_preservation_bonus_does_not_preserve_materials(): void
     {
         $user = $this->verifiedUserWithConnectedRealmsAccess();
         $player = ConnectedRealmsPlayer::query()->create([
@@ -1800,9 +1833,9 @@ class ConnectedRealmsGatheringTest extends TestCase
             'player_id' => $player->id,
             'slot' => 'tool_cutting',
             'skill' => 'cutting',
-            'item_key' => 'rare_prismfacet_lapidary_kit',
-            'item_name' => 'Rare Prismfacet Lapidary Kit',
-            'rarity' => 'rare',
+            'item_key' => 'common_prismfacet_lapidary_kit',
+            'item_name' => 'Common Prismfacet Lapidary Kit',
+            'rarity' => 'common',
             'durability' => 100,
             'bonuses' => ['skill' => 'cutting', 'experience' => 0, 'yield' => 0],
             'origin' => 'crafted',
@@ -1824,16 +1857,16 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'rough_gem',
-            'item_name' => 'Rough Gem',
+            'item_key' => 'iron_ore',
+            'item_name' => 'Iron Ore',
             'rarity' => 'common',
-            'quantity' => 1,
+            'quantity' => 4,
         ]);
 
         $this->actingAs($user)
-            ->post(route('evergather.crafting.store'), ['recipe' => 'polished_gem'])
+            ->post(route('evergather.crafting.store'), ['recipe' => 'cutting_candlemark_facet'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Polished Gem crafted.')
+            ->assertSessionHas('success', 'Candlemark Facet crafted.')
             ->assertSessionHas('connected_realms_result.materials_preserved', []);
 
         $equipment->refresh();
@@ -1841,13 +1874,14 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         $this->assertSame(100, $equipment->durability);
         $this->assertSame(100, $tool->durability);
-        $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
+        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'rough_gem',
+            'item_key' => 'iron_ore',
+            'quantity' => 2,
         ]);
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'polished_gem',
+            'item_key' => 'cutting_candlemark_facet',
             'quantity' => 1,
         ]);
     }
@@ -1862,15 +1896,15 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
-            'item_name' => 'Iron Bar',
+            'item_key' => 'smelting_candlemark_ingot',
+            'item_name' => 'Candlemark Ingot',
             'rarity' => 'common',
             'quantity' => 2,
         ]);
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'amber_sap',
-            'item_name' => 'Amber Sap',
+            'item_key' => 'iron_ore',
+            'item_name' => 'Iron Ore',
             'rarity' => 'common',
             'quantity' => 1,
         ]);
@@ -1961,7 +1995,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
     }
 
-    public function test_authorized_user_can_complete_job_contract_from_inventory(): void
+    public function test_authorized_user_can_complete_item_turn_in_job(): void
     {
         $user = $this->verifiedUserWithConnectedRealmsAccess();
 
@@ -1971,31 +2005,47 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'grilled_minnow',
-            'item_name' => 'Grilled Minnow',
+            'item_key' => 'river_minnow',
+            'item_name' => 'River Minnow',
             'rarity' => 'common',
-            'quantity' => 1,
+            'quantity' => 6,
         ]);
 
         $this->actingAs($user)
-            ->post(route('evergather.jobs.store'), ['job' => 'pier_provisions'])
+            ->post(route('evergather.jobs.store'), ['job' => 'fishing_starter_contract'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Pier Provisions completed.')
-            ->assertSessionHas('connected_realms_result');
+            ->assertSessionHas('success', 'Candlemark Fishing Catch completed.')
+            ->assertSessionHas('connected_realms_result.gold_awarded', 33)
+            ->assertSessionHas('connected_realms_result.experience_awarded', 53);
 
-        $player->refresh();
-
-        $this->assertSame(35, $player->gold);
         $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'grilled_minnow',
+            'item_key' => 'river_minnow',
         ]);
-        $this->assertDatabaseHas('connected_realms_player_skills', [
+        $this->assertDatabaseHas('connected_realms_job_completions', [
             'player_id' => $player->id,
-            'skill' => 'cooking',
-            'experience' => 35,
+            'job_key' => 'fishing_starter_contract',
+            'experience_awarded' => 53,
+            'gold_awarded' => 33,
         ]);
-        $this->assertSame(1, ConnectedRealmsJobCompletion::query()->where('player_id', $player->id)->count());
+    }
+
+    public function test_job_acceptance_route_rejects_item_turn_in_jobs(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)->get(route('evergather.index'))->assertOk();
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+
+        $this->actingAs($user)
+            ->from(route('evergather.index'))
+            ->post(route('evergather.jobs.acceptances.store'), ['job' => 'fishing_starter_contract'])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHasErrors('job');
+
+        $this->assertSame(0, ConnectedRealmsJobContract::query()->where('player_id', $player->id)->count());
+        $this->assertSame(0, ConnectedRealmsJobCompletion::query()->where('player_id', $player->id)->count());
     }
 
     public function test_job_contracts_have_daily_player_demand_caps(): void
@@ -2006,47 +2056,41 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
 
-        ConnectedRealmsInventoryStack::query()->create([
-            'player_id' => $player->id,
-            'item_key' => 'grilled_minnow',
-            'item_name' => 'Grilled Minnow',
-            'rarity' => 'common',
-            'quantity' => 4,
-        ]);
-
         foreach (range(1, 3) as $turnIn) {
-            $this->actingAs($user)
-                ->post(route('evergather.jobs.store'), ['job' => 'pier_provisions'])
-                ->assertRedirect(route('evergather.index'))
-                ->assertSessionHas('success', 'Pier Provisions completed.')
-                ->assertSessionHas('connected_realms_result.remaining_completions', 3 - $turnIn);
+            ConnectedRealmsJobCompletion::query()->create([
+                'player_id' => $player->id,
+                'job_key' => 'fishing_starter_contract',
+                'job_name' => 'Candlemark Fishing Catch',
+                'category' => 'Gathering',
+                'items_delivered' => [],
+                'rewards' => [],
+                'experience_awarded' => 53,
+                'gold_awarded' => 33,
+                'created_at' => now()->subMinutes($turnIn),
+                'updated_at' => now()->subMinutes($turnIn),
+            ]);
         }
 
         $this->actingAs($user)
             ->from(route('evergather.index'))
-            ->post(route('evergather.jobs.store'), ['job' => 'pier_provisions'])
+            ->post(route('evergather.jobs.store'), ['job' => 'fishing_starter_contract'])
             ->assertRedirect(route('evergather.index'))
             ->assertSessionHasErrors('job');
 
         $player->refresh();
 
-        $this->assertSame(105, $player->gold);
-        $this->assertSame(3, ConnectedRealmsJobCompletion::query()->where('player_id', $player->id)->where('job_key', 'pier_provisions')->count());
-        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
-            'player_id' => $player->id,
-            'item_key' => 'grilled_minnow',
-            'quantity' => 1,
-        ]);
+        $this->assertSame(3, ConnectedRealmsJobCompletion::query()->where('player_id', $player->id)->where('job_key', 'fishing_starter_contract')->count());
 
         $this->actingAs($user)
             ->get(route('evergather.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->reloadOnly(['jobs'], fn (Assert $deferred) => $deferred
-                    ->where('jobs', fn ($jobs): bool => collect($jobs)->contains(fn (array $job): bool => $job['key'] === 'pier_provisions'
+                    ->where('jobs', fn ($jobs): bool => collect($jobs)->contains(fn (array $job): bool => $job['key'] === 'fishing_starter_contract'
                         && $job['completed_in_rotation'] === 3
                         && $job['remaining_completions'] === 0
                         && $job['is_demand_available'] === false
+                        && $job['requires_acceptance'] === false
                         && $job['can_complete'] === false))
                 )
             );
@@ -2060,7 +2104,7 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         $this->actingAs($user)
             ->from(route('evergather.index'))
-            ->post(route('evergather.jobs.store'), ['job' => 'quarry_smelter'])
+            ->post(route('evergather.jobs.store'), ['job' => 'fishing_starter_contract'])
             ->assertRedirect(route('evergather.index'))
             ->assertSessionHasErrors('job');
 
@@ -2079,33 +2123,33 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'grilled_minnow',
-            'item_name' => 'Grilled Minnow',
+            'item_key' => 'cartography_candlemark_map',
+            'item_name' => 'Candlemark Map',
             'rarity' => 'common',
             'quantity' => 1,
         ]);
 
         $this->actingAs($user)
-            ->post(route('evergather.expeditions.store'), ['expedition' => 'moonwake_supply_run'])
+            ->post(route('evergather.expeditions.store'), ['expedition' => 'exploration_starter_expedition'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Moonwake Provision Walk resolved.');
+            ->assertSessionHas('success', 'Candlemark Sketch Route resolved.');
 
         $player->refresh();
 
-        $this->assertSame(30, $player->gold);
+        $this->assertSame(49, $player->gold);
         $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'grilled_minnow',
+            'item_key' => 'cartography_candlemark_map',
         ]);
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'shell_charm',
+            'item_key' => 'expedition_exploration_tier_1_explorer_compass',
             'quantity' => 1,
         ]);
         $this->assertDatabaseHas('connected_realms_player_skills', [
             'player_id' => $player->id,
             'skill' => 'exploration',
-            'experience' => 45,
+            'experience' => 81,
         ]);
         $this->assertSame(1, ConnectedRealmsExpeditionRun::query()->where('player_id', $player->id)->count());
     }
@@ -2118,7 +2162,7 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         $this->actingAs($user)
             ->from(route('evergather.index'))
-            ->post(route('evergather.expeditions.store'), ['expedition' => 'emberdeep_delve'])
+            ->post(route('evergather.expeditions.store'), ['expedition' => 'combat_starter_expedition'])
             ->assertRedirect(route('evergather.index'))
             ->assertSessionHasErrors('expedition');
 
@@ -2137,31 +2181,31 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
-            'item_name' => 'Iron Bar',
+            'item_key' => 'smelting_candlemark_ingot',
+            'item_name' => 'Candlemark Ingot',
             'rarity' => 'common',
             'quantity' => 5,
         ]);
 
         $this->actingAs($user)
             ->post(route('evergather.marketplace.listings.store'), [
-                'item_key' => 'iron_bar',
+                'item_key' => 'smelting_candlemark_ingot',
                 'quantity' => 2,
                 'unit_price' => 9,
             ])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Iron Bar listed.');
+            ->assertSessionHas('success', 'Candlemark Ingot listed.');
 
         $this->assertDatabaseHas('connected_realms_market_listings', [
             'seller_player_id' => $player->id,
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_candlemark_ingot',
             'quantity' => 2,
             'unit_price' => 9,
             'status' => ConnectedRealmsMarketListing::STATUS_ACTIVE,
         ]);
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_candlemark_ingot',
             'quantity' => 3,
         ]);
     }
@@ -2176,8 +2220,8 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
-            'item_name' => 'Iron Bar',
+            'item_key' => 'smelting_candlemark_ingot',
+            'item_name' => 'Candlemark Ingot',
             'rarity' => 'common',
             'quantity' => 5,
         ]);
@@ -2185,7 +2229,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->actingAs($user)
             ->from(route('evergather.index'))
             ->post(route('evergather.marketplace.listings.store'), [
-                'item_key' => 'iron_bar',
+                'item_key' => 'smelting_candlemark_ingot',
                 'quantity' => 1,
                 'unit_price' => 1,
             ])
@@ -2195,7 +2239,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->actingAs($user)
             ->from(route('evergather.index'))
             ->post(route('evergather.marketplace.listings.store'), [
-                'item_key' => 'iron_bar',
+                'item_key' => 'smelting_candlemark_ingot',
                 'quantity' => 1,
                 'unit_price' => 2000,
             ])
@@ -2205,24 +2249,24 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame(0, ConnectedRealmsMarketListing::query()->where('seller_player_id', $player->id)->count());
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_candlemark_ingot',
             'quantity' => 5,
         ]);
 
         $this->actingAs($user)
             ->post(route('evergather.marketplace.listings.store'), [
-                'item_key' => 'iron_bar',
+                'item_key' => 'smelting_candlemark_ingot',
                 'quantity' => 1,
-                'unit_price' => 4,
+                'unit_price' => 8,
             ])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Iron Bar listed.');
+            ->assertSessionHas('success', 'Candlemark Ingot listed.');
 
         $this->assertDatabaseHas('connected_realms_market_listings', [
             'seller_player_id' => $player->id,
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_candlemark_ingot',
             'quantity' => 1,
-            'unit_price' => 4,
+            'unit_price' => 8,
             'status' => ConnectedRealmsMarketListing::STATUS_ACTIVE,
         ]);
     }
@@ -2237,37 +2281,37 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
-            'item_name' => 'Iron Bar',
+            'item_key' => 'smelting_candlemark_ingot',
+            'item_name' => 'Candlemark Ingot',
             'rarity' => 'common',
             'quantity' => 5,
         ]);
 
         $this->actingAs($user)
             ->post(route('evergather.marketplace.vendor-sales.store'), [
-                'item_key' => 'iron_bar',
+                'item_key' => 'smelting_candlemark_ingot',
                 'quantity' => 3,
             ])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Iron Bar sold to Ledger Steward.')
+            ->assertSessionHas('success', 'Candlemark Ingot sold to Ledger Steward.')
             ->assertSessionHas('connected_realms_result.type', 'npc_sale')
-            ->assertSessionHas('connected_realms_result.gold_awarded', 12);
+            ->assertSessionHas('connected_realms_result.gold_awarded', 24);
 
         $player->refresh();
 
-        $this->assertSame(12, $player->gold);
+        $this->assertSame(24, $player->gold);
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_candlemark_ingot',
             'quantity' => 2,
         ]);
         $this->assertDatabaseHas('connected_realms_vendor_sales', [
             'player_id' => $player->id,
             'vendor_name' => 'Ledger Steward',
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_candlemark_ingot',
             'quantity' => 3,
-            'unit_price' => 4,
-            'total_price' => 12,
+            'unit_price' => 8,
+            'total_price' => 24,
         ]);
         $this->assertSame(1, ConnectedRealmsVendorSale::query()->where('player_id', $player->id)->count());
     }
@@ -2291,8 +2335,8 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
         $listing = ConnectedRealmsMarketListing::query()->create([
             'seller_player_id' => $seller->id,
-            'item_key' => 'ashwood_plank',
-            'item_name' => 'Ashwood Plank',
+            'item_key' => 'smelting_candlemark_ingot',
+            'item_name' => 'Candlemark Ingot',
             'rarity' => 'common',
             'quantity' => 2,
             'unit_price' => 10,
@@ -2302,7 +2346,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->actingAs($buyerUser)
             ->post(route('evergather.marketplace.listings.buy', $listing->id))
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Ashwood Plank purchased.');
+            ->assertSessionHas('success', 'Candlemark Ingot purchased.');
 
         $seller->refresh();
         $buyer->refresh();
@@ -2313,7 +2357,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame(ConnectedRealmsMarketListing::STATUS_SOLD, $listing->status);
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $buyer->id,
-            'item_key' => 'ashwood_plank',
+            'item_key' => 'smelting_candlemark_ingot',
             'quantity' => 2,
         ]);
         $this->assertDatabaseHas('connected_realms_market_transactions', [
@@ -2335,8 +2379,8 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
         $listing = ConnectedRealmsMarketListing::query()->create([
             'seller_player_id' => $player->id,
-            'item_key' => 'field_tonic',
-            'item_name' => 'Field Tonic',
+            'item_key' => 'alchemy_candlemark_tonic',
+            'item_name' => 'Candlemark Tonic',
             'rarity' => 'uncommon',
             'quantity' => 1,
             'unit_price' => 25,
@@ -2346,14 +2390,14 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->actingAs($user)
             ->delete(route('evergather.marketplace.listings.destroy', $listing->id))
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('success', 'Field Tonic listing cancelled.');
+            ->assertSessionHas('success', 'Candlemark Tonic listing cancelled.');
 
         $listing->refresh();
 
         $this->assertSame(ConnectedRealmsMarketListing::STATUS_CANCELLED, $listing->status);
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'field_tonic',
+            'item_key' => 'alchemy_candlemark_tonic',
             'quantity' => 1,
         ]);
     }
@@ -2480,7 +2524,7 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         $this->actingAs($user)
             ->from(route('evergather.index'))
-            ->post(route('evergather.crafting.store'), ['recipe' => 'iron_bar'])
+            ->post(route('evergather.crafting.store'), ['recipe' => 'smelting_candlemark_ingot'])
             ->assertRedirect(route('evergather.index'))
             ->assertSessionHasErrors('recipe');
 
@@ -2505,15 +2549,15 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
-            'item_name' => 'Iron Bar',
+            'item_key' => 'smelting_candlemark_ingot',
+            'item_name' => 'Candlemark Ingot',
             'rarity' => 'common',
             'quantity' => 2,
         ]);
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'amber_sap',
-            'item_name' => 'Amber Sap',
+            'item_key' => 'iron_ore',
+            'item_name' => 'Iron Ore',
             'rarity' => 'common',
             'quantity' => 1,
         ]);
@@ -2542,7 +2586,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame(65, $player->gold);
         $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_candlemark_ingot',
         ]);
         $this->assertDatabaseHas('connected_realms_player_skills', [
             'player_id' => $player->id,
@@ -2677,8 +2721,8 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
-            'item_name' => 'Iron Bar',
+            'item_key' => 'smelting_hearthsign_ingot',
+            'item_name' => 'Hearthsign Ingot',
             'rarity' => 'common',
             'quantity' => 2,
         ]);
@@ -2701,7 +2745,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame(180, $player->gold);
         $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_hearthsign_ingot',
         ]);
         $this->assertDatabaseHas('connected_realms_gold_flows', [
             'player_id' => $player->id,
@@ -2739,7 +2783,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             ])
             ->assertRedirect(route('evergather.index'))
             ->assertSessionHas('success', 'Hearthsign Stonebite Pickaxe salvaged.')
-            ->assertSessionHas('connected_realms_result.materials_awarded.0.item_key', 'iron_bar')
+            ->assertSessionHas('connected_realms_result.materials_awarded.0.item_key', 'smelting_hearthsign_ingot')
             ->assertSessionHas('connected_realms_result.materials_awarded.0.quantity', 1);
 
         $this->assertDatabaseMissing('connected_realms_tools', [
@@ -2747,7 +2791,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'iron_bar',
+            'item_key' => 'smelting_hearthsign_ingot',
             'quantity' => 1,
         ]);
         $this->assertSame(0, ConnectedRealmsPlayerSkill::query()->where('player_id', $player->id)->where('skill', 'smithing')->count());
@@ -2841,8 +2885,8 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'amber_sap',
-            'item_name' => 'Amber Sap',
+            'item_key' => 'alchemy_candlemark_tonic',
+            'item_name' => 'Candlemark Tonic',
             'rarity' => 'common',
             'quantity' => 1,
         ]);
@@ -2903,8 +2947,8 @@ class ConnectedRealmsGatheringTest extends TestCase
 
         ConnectedRealmsInventoryStack::query()->create([
             'player_id' => $player->id,
-            'item_key' => 'amber_sap',
-            'item_name' => 'Amber Sap',
+            'item_key' => 'alchemy_candlemark_tonic',
+            'item_name' => 'Candlemark Tonic',
             'rarity' => 'common',
             'quantity' => 1,
         ]);
@@ -2926,7 +2970,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->assertSame(1000, $player->gold);
         $this->assertDatabaseHas('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
-            'item_key' => 'amber_sap',
+            'item_key' => 'alchemy_candlemark_tonic',
             'quantity' => 1,
         ]);
     }

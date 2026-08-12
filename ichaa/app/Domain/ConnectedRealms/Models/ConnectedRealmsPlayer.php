@@ -66,6 +66,11 @@ class ConnectedRealmsPlayer extends Model
         return $this->hasMany(ConnectedRealmsJobCompletion::class, 'player_id');
     }
 
+    public function jobContracts(): HasMany
+    {
+        return $this->hasMany(ConnectedRealmsJobContract::class, 'player_id');
+    }
+
     public function marketListings(): HasMany
     {
         return $this->hasMany(ConnectedRealmsMarketListing::class, 'seller_player_id');

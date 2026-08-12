@@ -23,6 +23,7 @@ use App\Http\Requests\ConnectedRealms\StoreAchievementClaimRequest;
 use App\Http\Requests\ConnectedRealms\StoreCraftingRequest;
 use App\Http\Requests\ConnectedRealms\StoreExpeditionRequest;
 use App\Http\Requests\ConnectedRealms\StoreGatheringActionRequest;
+use App\Http\Requests\ConnectedRealms\StoreJobAcceptanceRequest;
 use App\Http\Requests\ConnectedRealms\StoreJobCompletionRequest;
 use App\Http\Requests\ConnectedRealms\StoreMarketListingRequest;
 use App\Http\Requests\ConnectedRealms\StoreRewardLoadoutRequest;
@@ -142,6 +143,16 @@ class ConnectedRealmsController extends Controller
         return redirect()
             ->route('evergather.index')
             ->with('success', "{$result['label']} crafted.")
+            ->with('connected_realms_result', $result);
+    }
+
+    public function acceptJob(StoreJobAcceptanceRequest $request, JobContractService $jobs): RedirectResponse
+    {
+        $result = $jobs->accept($request->user(), $request->job());
+
+        return redirect()
+            ->route('evergather.index')
+            ->with('success', "{$result['label']} accepted.")
             ->with('connected_realms_result', $result);
     }
 

@@ -127,6 +127,7 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
         Route::post('achievements/claims', [ConnectedRealmsController::class, 'claimAchievement'])->name('achievements.claims.store');
         Route::put('rewards/loadout', [ConnectedRealmsController::class, 'updateRewardLoadout'])->name('rewards.loadout.update');
         Route::post('crafting', [ConnectedRealmsController::class, 'craft'])->name('crafting.store');
+        Route::post('jobs/acceptances', [ConnectedRealmsController::class, 'acceptJob'])->name('jobs.acceptances.store');
         Route::post('jobs', [ConnectedRealmsController::class, 'completeJob'])->name('jobs.store');
         Route::post('expeditions', [ConnectedRealmsController::class, 'runExpedition'])->name('expeditions.store');
         Route::post('shop/purchases', [ConnectedRealmsController::class, 'buyShopOffer'])->name('shop.purchases.store');

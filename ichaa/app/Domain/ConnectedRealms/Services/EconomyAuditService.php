@@ -747,22 +747,22 @@ class EconomyAuditService
         $loops = [
             $this->pilotLoop('mining_smithing_tool_repair', 'Mining -> smelting -> smithing/toolmaking -> tool use/repair', [
                 $this->pilotRouteStage($catalogs, 'raw_faucet', 'gathering_actions', 'mine', ['iron_ore', 'coal_chunk']),
-                $this->pilotRouteStage($catalogs, 'processing_recipe', 'crafting_recipes', 'iron_bar', ['iron_ore', 'iron_bar']),
-                $this->pilotRouteStage($catalogs, 'component_recipe', 'crafting_recipes', 'iron_fittings', ['iron_bar', 'coal_chunk', 'iron_fittings']),
-                $this->pilotToolFamilyStage($catalogs, 'durable_tool_family', 'mining', ['iron_bar']),
-                $this->pilotRouteStage($catalogs, 'bounded_job_demand', 'job_contracts', 'quarry_smelter', ['iron_bar'], true),
-                $this->pilotRouteStage($catalogs, 'bounded_component_demand', 'job_contracts', 'fittings_batch', ['iron_fittings'], true),
-                $this->pilotItemStage($itemsByKey, 'recurring_repair_sink', 'iron_bar', 'tool_repair'),
+                $this->pilotRouteStage($catalogs, 'processing_recipe', 'crafting_recipes', 'smelting_candlemark_ingot', ['iron_ore', 'smelting_candlemark_ingot']),
+                $this->pilotRouteStage($catalogs, 'component_recipe', 'crafting_recipes', 'smithing_candlemark_armament', ['iron_ore', 'smithing_candlemark_armament']),
+                $this->pilotToolFamilyStage($catalogs, 'durable_tool_family', 'mining', ['smelting_candlemark_ingot']),
+                $this->pilotRouteStage($catalogs, 'bounded_job_demand', 'job_contracts', 'mining_starter_contract', ['iron_ore'], true),
+                $this->pilotRouteStage($catalogs, 'bounded_component_demand', 'job_contracts', 'smithing_starter_contract', ['smithing_candlemark_armament'], true),
+                $this->pilotItemStage($itemsByKey, 'recurring_repair_sink', 'smelting_candlemark_ingot', 'tool_repair'),
             ]),
             $this->pilotLoop('fishing_farming_cooking_expedition', 'Fishing/farming -> cooking -> consumable use -> expedition demand', [
                 $this->pilotRouteStage($catalogs, 'fishing_raw_faucet', 'gathering_actions', 'fish', ['river_minnow']),
                 $this->pilotRouteStage($catalogs, 'farming_raw_faucet', 'gathering_actions', 'farm', ['sunfield_grain']),
-                $this->pilotRouteStage($catalogs, 'cooked_meal_recipe', 'crafting_recipes', 'grilled_minnow', ['river_minnow', 'grilled_minnow']),
-                $this->pilotRouteStage($catalogs, 'tier_two_meal_recipe', 'crafting_recipes', 'grain_flatbread', ['sunfield_grain', 'field_bean', 'grain_flatbread']),
-                $this->pilotRouteStage($catalogs, 'bounded_meal_job_demand', 'job_contracts', 'pier_provisions', ['grilled_minnow'], true),
-                $this->pilotRouteStage($catalogs, 'bounded_flatbread_job_demand', 'job_contracts', 'flatbread_cache', ['grain_flatbread'], true),
-                $this->pilotRouteStage($catalogs, 'expedition_consumable_sink', 'expeditions', 'moonwake_supply_run', ['grilled_minnow']),
-                $this->pilotRouteStage($catalogs, 'tier_two_expedition_consumable_sink', 'expeditions', 'training_ring', ['grain_flatbread']),
+                $this->pilotRouteStage($catalogs, 'cooked_meal_recipe', 'crafting_recipes', 'cooking_candlemark_meal', ['sunfield_grain', 'cooking_candlemark_meal']),
+                $this->pilotRouteStage($catalogs, 'tier_two_meal_recipe', 'crafting_recipes', 'cooking_wayside_meal', ['common_seed', 'cooking_wayside_meal']),
+                $this->pilotRouteStage($catalogs, 'bounded_meal_job_demand', 'job_contracts', 'cooking_starter_contract', ['cooking_candlemark_meal'], true),
+                $this->pilotRouteStage($catalogs, 'bounded_flatbread_job_demand', 'job_contracts', 'farming_starter_contract', ['sunfield_grain'], true),
+                $this->pilotRouteStage($catalogs, 'expedition_consumable_sink', 'expeditions', 'survival_starter_expedition', ['cooking_candlemark_meal']),
+                $this->pilotRouteStage($catalogs, 'tier_two_expedition_consumable_sink', 'expeditions', 'survival_local_expedition', ['cooking_wayside_meal']),
             ]),
         ];
 
@@ -2134,6 +2134,10 @@ class EconomyAuditService
             $item = $this->items->enrich($offer);
 
             foreach ($catalogs['job_contracts'] as $jobKey => $job) {
+                if ($this->requiresAcceptedContractProgress($job)) {
+                    continue;
+                }
+
                 $requiredQuantity = collect($job['requirements'] ?? [])
                     ->where('item_key', $offer['item_key'])
                     ->sum('quantity');
@@ -2159,6 +2163,15 @@ class EconomyAuditService
         ksort($paths);
 
         return $paths;
+    }
+
+    /**
+     * @param  array<string, mixed>  $job
+     */
+    private function requiresAcceptedContractProgress(array $job): bool
+    {
+        return ($job['demand_channel'] ?? null) === 'core_profession_contract'
+            && in_array((string) ($job['objective_type'] ?? ''), ['gather', 'process', 'craft'], true);
     }
 
     /**

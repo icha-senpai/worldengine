@@ -189,6 +189,8 @@ class SkillActivityService
                 'available_at' => $availableAt,
             ]);
 
+            app(JobContractService::class)->recordMenuProgress($player, $activity['skill'], $requiredLevel);
+
             return [
                 'type' => 'skill_activity',
                 'id' => $log->id,

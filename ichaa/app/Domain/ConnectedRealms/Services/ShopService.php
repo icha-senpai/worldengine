@@ -55,15 +55,15 @@ class ShopService
      * @var array<string, array{label: string, category: string, price: int, required_level: int, item_key: string, item_name: string, rarity: string, quantity: int}>
      */
     private const MATERIAL_OFFERS = [
-        'bundle_fishers_icebox' => ['label' => "Fisher's Icebox", 'category' => 'Materials', 'price' => 28, 'required_level' => 1, 'item_key' => 'river_minnow', 'item_name' => 'River Minnow', 'rarity' => 'common', 'quantity' => 6],
+        'bundle_fishers_icebox' => ['label' => "Fisher's Icebox", 'category' => 'Materials', 'price' => 40, 'required_level' => 1, 'item_key' => 'river_minnow', 'item_name' => 'River Minnow', 'rarity' => 'common', 'quantity' => 6],
         'bundle_ore_crate' => ['label' => 'Ore Crate', 'category' => 'Materials', 'price' => 35, 'required_level' => 1, 'item_key' => 'iron_ore', 'item_name' => 'Iron Ore', 'rarity' => 'common', 'quantity' => 6],
-        'bundle_lumber_cart' => ['label' => 'Lumber Cart', 'category' => 'Materials', 'price' => 32, 'required_level' => 1, 'item_key' => 'ashwood_log', 'item_name' => 'Ashwood Log', 'rarity' => 'common', 'quantity' => 6],
+        'bundle_lumber_cart' => ['label' => 'Lumber Cart', 'category' => 'Materials', 'price' => 40, 'required_level' => 1, 'item_key' => 'ashwood_log', 'item_name' => 'Ashwood Log', 'rarity' => 'common', 'quantity' => 6],
         'bundle_herbalist_roll' => ['label' => 'Herbalist Roll', 'category' => 'Materials', 'price' => 34, 'required_level' => 1, 'item_key' => 'mooncap_mushroom', 'item_name' => 'Mooncap Mushroom', 'rarity' => 'common', 'quantity' => 6],
         'bundle_hide_pack' => ['label' => 'Hide Pack', 'category' => 'Materials', 'price' => 42, 'required_level' => 1, 'item_key' => 'soft_hide', 'item_name' => 'Soft Hide', 'rarity' => 'common', 'quantity' => 5],
-        'bundle_seed_sack' => ['label' => 'Seed Sack', 'category' => 'Materials', 'price' => 34, 'required_level' => 1, 'item_key' => 'sunfield_grain', 'item_name' => 'Sunfield Grain', 'rarity' => 'common', 'quantity' => 7],
+        'bundle_seed_sack' => ['label' => 'Seed Sack', 'category' => 'Materials', 'price' => 40, 'required_level' => 1, 'item_key' => 'sunfield_grain', 'item_name' => 'Sunfield Grain', 'rarity' => 'common', 'quantity' => 7],
         'bundle_relic_case' => ['label' => 'Relic Case', 'category' => 'Materials', 'price' => 55, 'required_level' => 1, 'item_key' => 'relic_fragment', 'item_name' => 'Relic Fragment', 'rarity' => 'common', 'quantity' => 5],
-        'bundle_guild_commission' => ['label' => 'Oathhall Commission Kit', 'category' => 'Commissions', 'price' => 120, 'required_level' => 10, 'item_key' => 'trade_manifest', 'item_name' => 'Trade Manifest', 'rarity' => 'common', 'quantity' => 1],
-        'bundle_expedition_cache' => ['label' => 'Expedition Cache', 'category' => 'Commissions', 'price' => 180, 'required_level' => 20, 'item_key' => 'route_map', 'item_name' => 'Route Map', 'rarity' => 'common', 'quantity' => 1],
+        'bundle_guild_commission' => ['label' => 'Oathhall Commission Kit', 'category' => 'Commissions', 'price' => 120, 'required_level' => 10, 'item_key' => 'trading_moonwake_writ', 'item_name' => 'Moonwake Writ', 'rarity' => 'uncommon', 'quantity' => 1],
+        'bundle_expedition_cache' => ['label' => 'Expedition Cache', 'category' => 'Commissions', 'price' => 180, 'required_level' => 20, 'item_key' => 'cartography_hearthsign_map', 'item_name' => 'Hearthsign Map', 'rarity' => 'uncommon', 'quantity' => 1],
     ];
 
     /**

@@ -1,5 +1,6 @@
 const baseActionProps = [
     'player',
+    'jobs',
     'summary',
     'last_result',
 ]
@@ -20,6 +21,7 @@ export const craftingReloadProps = [
     'tool_rarity_upgrades',
     'tool_tier_upgrades',
     'crafting_recipes',
+    'jobs',
     'recent_crafts',
     'summary',
     'last_result',

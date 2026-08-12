@@ -95,6 +95,17 @@
                                 <span class="tag capitalize">{{ job.rotation }} {{ job.completed_in_rotation }} / {{ job.completion_cap }}</span>
                             </div>
                             <div class="mt-3 grid gap-2">
+                                <div v-if="job.requires_acceptance" class="grid gap-1 text-xs">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span class="min-w-0 truncate text-muted-2">{{ objectiveLabel(job) }}</span>
+                                        <span :class="job.progress_quantity >= job.progress_required ? 'text-success' : 'text-muted-3'">
+                                            {{ job.progress_quantity }} / {{ job.progress_required }}
+                                        </span>
+                                    </div>
+                                    <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                                        <span class="block h-full rounded-full bg-focus" :style="{ width: `${job.progress_percent ?? 0}%` }" />
+                                    </span>
+                                </div>
                                 <div
                                     v-for="requirement in job.requirements"
                                     :key="requirement.item_key"
@@ -126,12 +137,22 @@
                                 <p v-else class="mt-1 text-xs text-muted-3">{{ job.remaining_completions }} left</p>
                             </div>
                             <button
+                                v-if="job.requires_acceptance && !job.is_accepted"
+                                type="button"
+                                class="app-btn app-btn--sm"
+                                :disabled="form.processing || !job.can_accept"
+                                @click="accept(job.key)"
+                            >
+                                {{ runningJob === job.key ? 'Accepting...' : 'Accept' }}
+                            </button>
+                            <button
+                                v-else
                                 type="button"
                                 class="app-btn app-btn--sm"
                                 :disabled="form.processing || !job.can_complete"
                                 @click="complete(job.key)"
                             >
-                                {{ runningJob === job.key ? 'Turning In...' : 'Turn In' }}
+                                {{ runningJob === job.key ? 'Completing...' : completeLabel(job) }}
                             </button>
                         </div>
                     </article>
@@ -194,7 +215,7 @@ const filteredJobs = computed(() => props.jobs
     .filter((job) => selectedFilter.value === 'All' || job.category === selectedFilter.value)
     .filter((job) => searchMatches(job, props.searchTerm)))
 const readyJobs = computed(() => filteredJobs.value.filter((job) => job.can_complete))
-const prepareJobs = computed(() => filteredJobs.value.filter((job) => job.is_unlocked && !job.can_complete))
+const prepareJobs = computed(() => filteredJobs.value.filter((job) => job.is_unlocked && !job.can_complete && !job.is_accepted))
 const jobBoards = computed(() => [
     {
         key: 'ready',
@@ -202,7 +223,7 @@ const jobBoards = computed(() => [
         count: readyJobs.value.length,
         unit: 'jobs',
         entries: readyJobs.value,
-        description: `${activeFilter.value.label} turn-ins you can complete now.`,
+        description: `${activeFilter.value.label} contracts you can finish now.`,
     },
     {
         key: 'prepare',
@@ -220,7 +241,7 @@ const visibleGold = computed(() => visibleJobs.value.reduce((total, job) => tota
 const visibleExperience = computed(() => visibleJobs.value.reduce((total, job) => total + job.experience, 0))
 const emptyBoardMessage = computed(() => {
     if (selectedBoard.value === 'ready') {
-        return 'No ready jobs match. Check Prepare for missing turn-in supplies.'
+        return 'No ready jobs match. Check Active or Prepare for contract work.'
     }
 
     return 'No jobs match.'
@@ -251,6 +272,8 @@ function searchMatches(job, query) {
         job.label,
         job.category,
         job.skill_label,
+        job.objective_type,
+        job.tier_mark,
         ...(job.requirements ?? []).flatMap((item) => [
             item.item_name,
             item.rarity,
@@ -272,6 +295,20 @@ function filterProgress(filter) {
     return Math.round((readyCount / filter.count) * 100)
 }
 
+function accept(job) {
+    form.job = job
+    form.post(route('evergather.jobs.acceptances.store'), {
+        preserveScroll: true,
+        only: jobReloadProps,
+        onStart: () => {
+            runningJob.value = job
+        },
+        onFinish: () => {
+            runningJob.value = ''
+        },
+    })
+}
+
 function complete(job) {
     form.job = job
     form.post(route('evergather.jobs.store'), {
@@ -284,5 +321,20 @@ function complete(job) {
             runningJob.value = ''
         },
     })
+}
+
+function completeLabel(job) {
+    return job.requires_acceptance ? 'Complete' : 'Turn In'
+}
+
+function objectiveLabel(job) {
+    const type = (job.objective_type ?? '').replaceAll('_', ' ')
+    const itemName = job.objective?.item_name
+
+    if (itemName) {
+        return `${type}: ${itemName}`
+    }
+
+    return type || 'progress'
 }
 </script>

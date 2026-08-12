@@ -730,6 +730,8 @@ class GatheringActionService
                 $stack->save();
             }
 
+            app(JobContractService::class)->recordItemProgress($player, $definition['skill'], 'gather', $itemsAwarded, $requiredLevel);
+
             $player->forceFill([
                 'gold' => $player->gold + $goldAwarded,
                 'last_action_at' => now(),
