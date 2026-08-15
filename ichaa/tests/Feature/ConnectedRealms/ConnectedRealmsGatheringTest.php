@@ -302,15 +302,25 @@ class ConnectedRealmsGatheringTest extends TestCase
             'rarity' => 'common',
             'quantity' => 5,
         ]);
+        ConnectedRealmsInventoryStack::query()->create([
+            'player_id' => $player->id,
+            'item_key' => 'audit_empty_shell',
+            'item_name' => 'Audit Empty Shell',
+            'rarity' => 'common',
+            'quantity' => 0,
+        ]);
 
         $this->actingAs($user)
             ->get(route('evergather.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
+                ->where('summary.inventory_quantity', 5)
                 ->where('summary.inventory_weight', 6.5)
                 ->missing('inventory')
                 ->missing('marketplace')
-                ->reloadOnly(['inventory', 'marketplace'], fn (Assert $reload) => $reload
+                ->missing('item_guide')
+                ->reloadOnly(['inventory', 'marketplace', 'item_guide'], fn (Assert $reload) => $reload
+                    ->has('inventory', 1)
                     ->where('inventory.0.item_key', 'smelting_candlemark_ingot')
                     ->where('inventory.0.quality', 'standard')
                     ->where('inventory.0.quality_score', 40)
@@ -330,6 +340,10 @@ class ConnectedRealmsGatheringTest extends TestCase
                     ->where('marketplace.sellable_inventory.0.quality', 'standard')
                     ->where('marketplace.sellable_inventory.0.market_price_band', '8-192g')
                     ->where('marketplace.sellable_inventory.0.total_weight', 6.5)
+                    ->where('item_guide.summary.owned_items', 1)
+                    ->where('item_guide.summary.owned_items_with_fallback_sinks', 1)
+                    ->where('item_guide.owned.0.item_key', 'smelting_candlemark_ingot')
+                    ->where('item_guide.owned', fn ($items): bool => ! collect($items)->contains(fn (array $item): bool => $item['item_key'] === 'audit_empty_shell'))
                 )
             );
     }

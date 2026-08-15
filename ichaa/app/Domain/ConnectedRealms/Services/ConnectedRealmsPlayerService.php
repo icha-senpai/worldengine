@@ -228,7 +228,7 @@ class ConnectedRealmsPlayerService
             'skills' => fn ($query) => $query->orderBy('skill'),
             'equipmentSlots' => fn ($query) => $query->with('tool')->orderBy('slot'),
             'tools' => fn ($query) => $query->orderBy('status')->orderBy('item_name'),
-            'inventoryStacks' => fn ($query) => $query->orderBy('item_name'),
+            'inventoryStacks' => fn ($query) => $query->where('quantity', '>', 0)->orderBy('item_name'),
             'craftingLogs' => fn ($query) => $query->latest()->limit(6),
             'jobCompletions' => fn ($query) => $query->latest()->limit(6),
             'expeditionRuns' => fn ($query) => $query->latest()->limit(6),
@@ -287,6 +287,7 @@ class ConnectedRealmsPlayerService
 
             ConnectedRealmsInventoryStack::query()
                 ->where('player_id', $basePlayer->id)
+                ->where('quantity', '>', 0)
                 ->get(['item_key', 'item_name', 'rarity', 'quantity'])
                 ->each(function (ConnectedRealmsInventoryStack $stack) use (&$metrics): void {
                     $quantity = (int) $stack->quantity;
@@ -397,6 +398,7 @@ class ConnectedRealmsPlayerService
             }
 
             $rows = $playerWith(['inventoryStacks'])->inventoryStacks
+                ->filter(fn (ConnectedRealmsInventoryStack $stack): bool => (int) $stack->quantity > 0)
                 ->map(fn (ConnectedRealmsInventoryStack $stack): array => $this->items->enrich([
                     'item_key' => $stack->item_key,
                     'item_name' => $stack->item_name,

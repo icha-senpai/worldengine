@@ -354,7 +354,7 @@
                     <div class="surface-section__header">
                         <div class="surface-section__copy">
                             <span class="surface-section__title">Inventory Guide</span>
-                            <p class="surface-section__subtitle">{{ item_guide.summary.tracked_items }} tracked items · {{ item_guide.summary.items_with_sinks }} with primary uses · {{ item_guide.summary.items_with_fallback_sinks }} with fallback disposal.</p>
+                            <p class="surface-section__subtitle">{{ item_guide.summary.owned_items }} owned items · {{ item_guide.summary.owned_items_with_sinks }} with mapped uses · {{ item_guide.summary.owned_items_with_fallback_sinks }} with fallback disposal.</p>
                         </div>
                     </div>
 
@@ -664,13 +664,17 @@ const props = defineProps({
             summary: {
                 tracked_items: 0,
                 owned_items: 0,
+                owned_items_with_sinks: 0,
+                owned_items_with_fallback_sinks: 0,
                 items_with_sinks: 0,
                 items_without_sinks: 0,
                 items_with_fallback_sinks: 0,
                 items_with_transfer_routes: 0,
             },
+            owned_categories: [],
             categories: [],
             items: [],
+            owned: [],
         }),
     },
     inventory: {
@@ -810,7 +814,7 @@ const activePanel = ref(savedNavigationState.activePanel)
 const activeSubPanels = ref(savedNavigationState.activeSubPanels)
 const searchQuery = ref(savedNavigationState.searchQuery)
 const staleProps = ref([])
-const selectedInventoryCategory = ref('all')
+const selectedInventoryCategory = ref('owned')
 const selectedInventoryKey = ref('')
 const repeatProcessing = ref(false)
 const repeatDialog = ref({
@@ -882,14 +886,12 @@ const activeSubPanel = computed(() => {
         : activeWorkspaceSubTabs.value[0]?.key
 })
 const itemGuideCategories = computed(() => [
-    { key: 'all', label: 'All Items', count: props.item_guide.summary.tracked_items },
     { key: 'owned', label: 'Owned', count: props.item_guide.summary.owned_items },
-    { key: 'uses', label: 'Has Uses', count: props.item_guide.summary.items_with_sinks },
-    ...(props.item_guide.categories ?? []),
+    { key: 'uses', label: 'Has Uses', count: props.item_guide.summary.owned_items_with_sinks },
+    ...(props.item_guide.owned_categories ?? []),
 ])
-const visibleInventory = computed(() => (props.item_guide.items ?? []).filter((item) => {
-    const matchesCategory = selectedInventoryCategory.value === 'all'
-        || (selectedInventoryCategory.value === 'owned' && item.owned_quantity > 0)
+const visibleInventory = computed(() => (props.item_guide.owned ?? []).filter((item) => {
+    const matchesCategory = selectedInventoryCategory.value === 'owned'
         || (selectedInventoryCategory.value === 'uses' && item.has_use)
         || item.item_class === selectedInventoryCategory.value
 

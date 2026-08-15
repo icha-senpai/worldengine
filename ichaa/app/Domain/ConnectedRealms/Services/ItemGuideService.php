@@ -22,7 +22,13 @@ class ItemGuideService
         $items = [];
 
         foreach ($inventory as $item) {
-            $this->touch($items, $item, ownedQuantity: (int) ($item['quantity'] ?? 0));
+            $quantity = (int) ($item['quantity'] ?? 0);
+
+            if ($quantity <= 0) {
+                continue;
+            }
+
+            $this->touch($items, $item, ownedQuantity: $quantity);
         }
 
         foreach ($actions as $action) {
@@ -118,16 +124,29 @@ class ItemGuideService
             ])
             ->values();
 
+        $ownedRows = $rows->where('owned_quantity', '>', 0)->values();
+
         return [
             'summary' => [
                 'tracked_items' => $rows->count(),
                 'owned_items' => $rows->where('owned_quantity', '>', 0)->count(),
+                'owned_items_with_sinks' => $ownedRows->where('sink_count', '>', 0)->count(),
+                'owned_items_with_fallback_sinks' => $ownedRows->where('fallback_sink_count', '>', 0)->count(),
                 'items_with_sources' => $rows->where('source_count', '>', 0)->count(),
                 'items_with_sinks' => $rows->where('sink_count', '>', 0)->count(),
                 'items_without_sinks' => $rows->where('sink_count', 0)->count(),
                 'items_with_fallback_sinks' => $rows->where('fallback_sink_count', '>', 0)->count(),
                 'items_with_transfer_routes' => $rows->where('transfer_route_count', '>', 0)->count(),
             ],
+            'owned_categories' => $ownedRows
+                ->groupBy('item_class')
+                ->map(fn ($entries, string $itemClass): array => [
+                    'key' => $itemClass,
+                    'label' => str($itemClass)->headline()->toString(),
+                    'count' => $entries->count(),
+                ])
+                ->values()
+                ->all(),
             'categories' => $rows
                 ->groupBy('item_class')
                 ->map(fn ($entries, string $itemClass): array => [
@@ -138,7 +157,7 @@ class ItemGuideService
                 ->values()
                 ->all(),
             'items' => $rows->take(240)->all(),
-            'owned' => $rows->where('owned_quantity', '>', 0)->take(80)->values()->all(),
+            'owned' => $ownedRows->take(80)->all(),
         ];
     }
 
