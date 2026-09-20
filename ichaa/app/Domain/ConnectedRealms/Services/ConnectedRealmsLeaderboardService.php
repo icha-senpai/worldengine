@@ -47,7 +47,9 @@ class ConnectedRealmsLeaderboardService
         return DB::transaction(function (): array {
             $season = $this->activeSeason();
 
-            $this->refreshSeason($season);
+            if ($this->shouldRefreshSeason($season)) {
+                $this->refreshSeason($season);
+            }
 
             return $this->snapshotFromSeason($season);
         });
@@ -113,7 +115,34 @@ class ConnectedRealmsLeaderboardService
             );
 
             $this->storeEntries($board, $generatedBoards[$definition['key']] ?? []);
+            $board->touch();
         }
+    }
+
+    private function shouldRefreshSeason(ConnectedRealmsLeaderboardSeason $season): bool
+    {
+        $refreshSeconds = (int) config('connected_realms.leaderboard_refresh_seconds', 60);
+
+        if ($refreshSeconds <= 0) {
+            return true;
+        }
+
+        $boardCount = ConnectedRealmsLeaderboardBoard::query()
+            ->where('season_id', $season->id)
+            ->count();
+
+        if ($boardCount < count(self::BOARD_DEFINITIONS)) {
+            return true;
+        }
+
+        return ConnectedRealmsLeaderboardBoard::query()
+            ->where('season_id', $season->id)
+            ->where(function ($query) use ($refreshSeconds): void {
+                $query
+                    ->whereNull('updated_at')
+                    ->orWhere('updated_at', '<=', now()->subSeconds($refreshSeconds));
+            })
+            ->exists();
     }
 
     /**

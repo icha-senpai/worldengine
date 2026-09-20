@@ -587,7 +587,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Deferred, router, useForm, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import CraftingPanel from './CraftingPanel.vue'
@@ -783,6 +783,7 @@ const appearanceFields = [
 
 const navigationStorageKey = 'evergather.navigation-state'
 const defaultActivePanel = 'gather'
+const defaultInventoryCategory = 'owned'
 const defaultActiveSubPanels = {
     overview: 'character',
     gather: 'actions',
@@ -809,13 +810,14 @@ const refreshPropsBySubPanel = {
 const savedNavigationState = readSavedNavigationState()
 const page = usePage()
 const warmingProps = new Set()
+let scrollSaveFrame = null
 
 const activePanel = ref(savedNavigationState.activePanel)
 const activeSubPanels = ref(savedNavigationState.activeSubPanels)
 const searchQuery = ref(savedNavigationState.searchQuery)
 const staleProps = ref([])
-const selectedInventoryCategory = ref('owned')
-const selectedInventoryKey = ref('')
+const selectedInventoryCategory = ref(savedNavigationState.selectedInventoryCategory)
+const selectedInventoryKey = ref(savedNavigationState.selectedInventoryKey)
 const repeatProcessing = ref(false)
 const repeatDialog = ref({
     open: false,
@@ -918,7 +920,7 @@ const avatarPaletteClass = computed(() => ({
     tideglass: 'text-focus bg-focus/10',
 }[props.player.appearance.palette] ?? 'text-focus bg-focus/10'))
 
-watch([activePanel, activeSubPanels, searchQuery], persistNavigationState, {
+watch([activePanel, activeSubPanels, searchQuery, selectedInventoryCategory, selectedInventoryKey], persistNavigationState, {
     deep: true,
 })
 
@@ -928,6 +930,19 @@ watch(() => props.last_result, (result) => {
 
 onMounted(() => {
     warmSubPanel(activeSubPanel.value)
+    restoreScrollPosition()
+    window.addEventListener('scroll', queueNavigationStatePersist, { passive: true })
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('scroll', queueNavigationStatePersist)
+
+    if (scrollSaveFrame !== null) {
+        window.cancelAnimationFrame(scrollSaveFrame)
+        scrollSaveFrame = null
+    }
+
+    persistNavigationState()
 })
 
 function actionLabel(action) {
@@ -1362,6 +1377,9 @@ function readSavedNavigationState() {
         activePanel: defaultActivePanel,
         activeSubPanels: { ...defaultActiveSubPanels },
         searchQuery: '',
+        selectedInventoryCategory: defaultInventoryCategory,
+        selectedInventoryKey: '',
+        scrollY: 0,
     }
 
     if (typeof window === 'undefined') {
@@ -1386,6 +1404,9 @@ function readSavedNavigationState() {
             activePanel,
             activeSubPanels,
             searchQuery: typeof savedState.searchQuery === 'string' ? savedState.searchQuery : fallbackState.searchQuery,
+            selectedInventoryCategory: typeof savedState.selectedInventoryCategory === 'string' ? savedState.selectedInventoryCategory : fallbackState.selectedInventoryCategory,
+            selectedInventoryKey: typeof savedState.selectedInventoryKey === 'string' ? savedState.selectedInventoryKey : fallbackState.selectedInventoryKey,
+            scrollY: Number.isFinite(Number(savedState.scrollY)) ? Math.max(0, Number(savedState.scrollY)) : fallbackState.scrollY,
         }
     } catch {
         return fallbackState
@@ -1402,10 +1423,38 @@ function persistNavigationState() {
             activePanel: activePanel.value,
             activeSubPanels: activeSubPanels.value,
             searchQuery: searchQuery.value,
+            selectedInventoryCategory: selectedInventoryCategory.value,
+            selectedInventoryKey: selectedInventoryKey.value,
+            scrollY: Math.max(0, Math.round(window.scrollY ?? 0)),
         }))
     } catch {
         return
     }
+}
+
+function queueNavigationStatePersist() {
+    if (typeof window === 'undefined' || scrollSaveFrame !== null) {
+        return
+    }
+
+    scrollSaveFrame = window.requestAnimationFrame(() => {
+        scrollSaveFrame = null
+        persistNavigationState()
+    })
+}
+
+function restoreScrollPosition() {
+    if (typeof window === 'undefined' || savedNavigationState.scrollY <= 0) {
+        return
+    }
+
+    window.requestAnimationFrame(() => {
+        window.scrollTo({
+            top: savedNavigationState.scrollY,
+            left: 0,
+            behavior: 'auto',
+        })
+    })
 }
 
 function isWorkspacePanel(panel) {

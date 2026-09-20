@@ -12,6 +12,7 @@ use App\Domain\ConnectedRealms\Models\ConnectedRealmsGoldFlow;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsInventoryStack;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsJobCompletion;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsJobContract;
+use App\Domain\ConnectedRealms\Models\ConnectedRealmsLeaderboardBoard;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsMarketListing;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsMarketTransaction;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsPlayer;
@@ -19,6 +20,7 @@ use App\Domain\ConnectedRealms\Models\ConnectedRealmsPlayerSkill;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsTool;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsVendorSale;
 use App\Domain\ConnectedRealms\Services\ConnectedRealmsContentService;
+use App\Domain\ConnectedRealms\Services\ConnectedRealmsLeaderboardService;
 use App\Domain\ConnectedRealms\Services\CraftingService;
 use App\Domain\ConnectedRealms\Services\EconomyAuditService;
 use App\Domain\ConnectedRealms\Services\EvergatherTierCatalog;
@@ -1755,6 +1757,62 @@ class ConnectedRealmsGatheringTest extends TestCase
             'score' => 18,
             'score_label' => '18 gold',
         ]);
+    }
+
+    public function test_leaderboards_reuse_fresh_boards_until_refresh_window_expires(): void
+    {
+        $firstUser = $this->verifiedUserWithConnectedRealmsAccess();
+        $secondUser = $this->verifiedUserWithConnectedRealmsAccess();
+        $start = Carbon::parse('2026-09-20 12:00:00');
+        $previousRefreshSeconds = config('connected_realms.leaderboard_refresh_seconds');
+
+        config(['connected_realms.leaderboard_refresh_seconds' => 60]);
+        Carbon::setTestNow($start);
+
+        try {
+            $firstPlayer = ConnectedRealmsPlayer::query()->create([
+                'user_id' => $firstUser->id,
+                'display_name' => 'First Lead',
+                'species' => 'human',
+                'gold' => 100,
+            ]);
+            $secondPlayer = ConnectedRealmsPlayer::query()->create([
+                'user_id' => $secondUser->id,
+                'display_name' => 'Second Lead',
+                'species' => 'sylvan',
+                'gold' => 10,
+            ]);
+            $leaderboards = app(ConnectedRealmsLeaderboardService::class);
+
+            $firstSnapshot = $leaderboards->snapshot();
+            $this->assertSame('First Lead', $firstSnapshot['wealth'][0]['display_name']);
+
+            $wealthBoardRefreshedAt = ConnectedRealmsLeaderboardBoard::query()
+                ->where('key', 'wealth')
+                ->value('updated_at');
+
+            $firstPlayer->forceFill(['gold' => 1])->save();
+            $secondPlayer->forceFill(['gold' => 200])->save();
+
+            Carbon::setTestNow($start->copy()->addSeconds(30));
+
+            $freshSnapshot = $leaderboards->snapshot();
+            $this->assertSame('First Lead', $freshSnapshot['wealth'][0]['display_name']);
+            $this->assertEquals($wealthBoardRefreshedAt, ConnectedRealmsLeaderboardBoard::query()
+                ->where('key', 'wealth')
+                ->value('updated_at'));
+
+            Carbon::setTestNow($start->copy()->addSeconds(61));
+
+            $refreshedSnapshot = $leaderboards->snapshot();
+            $this->assertSame('Second Lead', $refreshedSnapshot['wealth'][0]['display_name']);
+            $this->assertNotEquals($wealthBoardRefreshedAt, ConnectedRealmsLeaderboardBoard::query()
+                ->where('key', 'wealth')
+                ->value('updated_at'));
+        } finally {
+            Carbon::setTestNow();
+            config(['connected_realms.leaderboard_refresh_seconds' => $previousRefreshSeconds]);
+        }
     }
 
     public function test_authorized_user_can_craft_basic_recipe_from_inventory(): void
