@@ -149,7 +149,7 @@ $syncBitcraftCraftingSnapshot = function () {
     if (! $process->isSuccessful()) {
         $this->error('SpacetimeDB sync failed.');
 
-        return Command::FAILURE;
+        exit(Command::FAILURE);
     }
 
     $this->info('BitCraft SpacetimeDB snapshot synced.');
