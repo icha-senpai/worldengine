@@ -166,6 +166,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { actionReloadProps } from './reloadProps'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     actions: {
@@ -186,8 +187,12 @@ const props = defineProps({
     },
 })
 
-const selectedFilter = ref('All')
-const selectedBoard = ref('ready')
+const { selectedFilter, selectedBoard } = usePersistedPanelState('evergather.gathering-board-state', {
+    selectedFilter: 'All',
+    selectedBoard: 'ready',
+}, {
+    selectedBoard: ['ready', 'next'],
+})
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
 const now = ref(Date.now())
@@ -305,6 +310,12 @@ onBeforeUnmount(() => {
 watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
+
+watch(filters, (entries) => {
+    if (!entries.some((filter) => filter.key === selectedFilter.value)) {
+        selectedFilter.value = 'All'
+    }
+}, { immediate: true })
 
 watch(() => props.actions, (actions) => {
     localActions.value = [...actions]
@@ -515,4 +526,5 @@ function searchMatches(action, query) {
         ]),
     ].filter(Boolean).join(' ').toLowerCase().includes(normalizedQuery)
 }
+
 </script>

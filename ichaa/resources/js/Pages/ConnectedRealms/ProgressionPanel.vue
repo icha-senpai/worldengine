@@ -249,6 +249,7 @@
 import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { achievementReloadProps } from './reloadProps'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     progression: {
@@ -261,8 +262,12 @@ const props = defineProps({
     },
 })
 
-const selectedCategory = ref('all')
-const selectedBoard = ref('ready')
+const { selectedCategory, selectedBoard } = usePersistedPanelState('evergather.progression-board-state', {
+    selectedCategory: 'all',
+    selectedBoard: 'ready',
+}, {
+    selectedBoard: ['ready', 'next', 'earned'],
+})
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
 const runningAchievement = ref('')
@@ -401,6 +406,12 @@ watch(() => props.progression.reward_loadout, (loadout) => {
 watch([selectedBoard, selectedCategory], () => {
     visibleLimit.value = boardPageSize
 })
+
+watch(categoryGroups, () => {
+    if (!categoryGroups.value.some((group) => group.key === selectedCategory.value)) {
+        selectedCategory.value = 'all'
+    }
+}, { immediate: true })
 
 watch([claimableAchievements, lockedAchievements], () => {
     if (!claimableAchievements.value.length && lockedAchievements.value.length && selectedBoard.value === 'ready') {

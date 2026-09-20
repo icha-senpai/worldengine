@@ -113,7 +113,8 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     leaderboards: {
@@ -122,8 +123,10 @@ const props = defineProps({
     },
 })
 
-const activeGroup = ref(props.leaderboards.groups[0]?.key ?? 'summary')
-const activeBoard = ref(props.leaderboards.groups[0]?.boards[0] ?? 'wealth')
+const { activeGroup, activeBoard } = usePersistedPanelState('evergather.leaderboards-board-state', {
+    activeGroup: props.leaderboards.groups[0]?.key ?? 'summary',
+    activeBoard: props.leaderboards.groups[0]?.boards[0] ?? 'wealth',
+})
 const boardDefinitions = computed(() => props.leaderboards.boards ?? [])
 const boardDefinitionMap = computed(() => Object.fromEntries(boardDefinitions.value.map((board) => [board.key, board])))
 const activeGroupRecord = computed(() => props.leaderboards.groups.find((group) => group.key === activeGroup.value) ?? props.leaderboards.groups[0])
@@ -139,10 +142,15 @@ const highlights = computed(() => [
 ])
 
 watch(activeGroupRecord, (group) => {
+    if (!props.leaderboards.groups.some((entry) => entry.key === activeGroup.value)) {
+        activeGroup.value = props.leaderboards.groups[0]?.key ?? 'summary'
+        group = props.leaderboards.groups[0]
+    }
+
     if (!group?.boards.includes(activeBoard.value)) {
         activeBoard.value = group?.boards[0] ?? 'wealth'
     }
-})
+}, { immediate: true })
 
 function boardCount(key) {
     return props.leaderboards[key]?.length ?? 0

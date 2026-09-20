@@ -190,6 +190,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { activityReloadProps } from './reloadProps'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     activities: {
@@ -210,9 +211,13 @@ const props = defineProps({
     },
 })
 
-const selectedSkill = ref('All')
-const selectedBand = ref('All')
-const selectedBoard = ref('ready')
+const { selectedSkill, selectedBand, selectedBoard } = usePersistedPanelState('evergather.skill-activities-board-state', {
+    selectedSkill: 'All',
+    selectedBand: 'All',
+    selectedBoard: 'ready',
+}, {
+    selectedBoard: ['ready', 'next'],
+})
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
 const now = ref(Date.now())
@@ -335,6 +340,18 @@ onBeforeUnmount(() => {
 watch([selectedBoard, selectedSkill, selectedBand, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
+
+watch(skillFilters, (filters) => {
+    if (!filters.some((filter) => filter.key === selectedSkill.value)) {
+        selectedSkill.value = 'All'
+    }
+}, { immediate: true })
+
+watch(bandFilters, (filters) => {
+    if (!filters.some((filter) => filter.key === selectedBand.value)) {
+        selectedBand.value = 'All'
+    }
+}, { immediate: true })
 
 watch(() => props.activities, (activities) => {
     localActivities.value = [...activities]
@@ -552,4 +569,5 @@ function searchMatches(activity, query) {
         ]),
     ].filter(Boolean).join(' ').toLowerCase().includes(normalizedQuery)
 }
+
 </script>

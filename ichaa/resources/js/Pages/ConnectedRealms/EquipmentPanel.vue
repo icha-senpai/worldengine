@@ -329,9 +329,10 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { equipmentReloadProps } from './reloadProps'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     equipment: {
@@ -352,7 +353,9 @@ const props = defineProps({
     },
 })
 
-const selectedCategory = ref('All')
+const { selectedCategory } = usePersistedPanelState('evergather.equipment-board-state', {
+    selectedCategory: 'All',
+})
 const runningEquipmentAction = ref('')
 const totalExperience = computed(() => props.equipment.reduce((total, tool) => total + tool.experience_bonus, 0))
 const totalYield = computed(() => props.equipment.reduce((total, tool) => total + tool.yield_bonus, 0))
@@ -380,6 +383,12 @@ const categoryFilters = computed(() => ['All', ...new Set(props.equipment.map((t
 })))
 const visibleEquipmentWithUpgrades = computed(() => equipmentWithUpgrades.value.filter((entry) => selectedCategory.value === 'All' || entry.tool.category === selectedCategory.value))
 const inventoryTools = computed(() => props.toolInventory.filter((tool) => tool.status === 'inventory'))
+
+watch(categoryFilters, () => {
+    if (!categoryFilters.value.some((filter) => filter.key === selectedCategory.value)) {
+        selectedCategory.value = 'All'
+    }
+}, { immediate: true })
 
 function filterProgress(filter) {
     if (!filter.count) {

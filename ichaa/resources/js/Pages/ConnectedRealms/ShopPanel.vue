@@ -175,6 +175,7 @@
 import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { shopReloadProps } from './reloadProps'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     shop: {
@@ -187,8 +188,12 @@ const props = defineProps({
     },
 })
 
-const selectedFilter = ref('Tools')
-const selectedBoard = ref('buyable')
+const { selectedFilter, selectedBoard } = usePersistedPanelState('evergather.shop-board-state', {
+    selectedFilter: 'Tools',
+    selectedBoard: 'buyable',
+}, {
+    selectedBoard: ['buyable', 'plan'],
+})
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
 const runningOffer = ref('')
@@ -248,6 +253,12 @@ const emptyBoardMessage = computed(() => {
 watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
+
+watch(offerGroups, () => {
+    if (!offerGroups.value.some((group) => group.key === selectedFilter.value)) {
+        selectedFilter.value = 'Tools'
+    }
+}, { immediate: true })
 
 watch([buyableOffers, usefulLockedOffers], () => {
     if (!buyableOffers.value.length && usefulLockedOffers.value.length && selectedBoard.value === 'buyable') {

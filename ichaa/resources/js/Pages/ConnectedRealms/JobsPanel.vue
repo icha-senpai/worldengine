@@ -192,6 +192,7 @@
 import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { jobReloadProps } from './reloadProps'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     jobs: {
@@ -211,8 +212,12 @@ const props = defineProps({
 const form = useForm({
     job: null,
 })
-const selectedFilter = ref('All')
-const selectedBoard = ref('ready')
+const { selectedFilter, selectedBoard } = usePersistedPanelState('evergather.jobs-board-state', {
+    selectedFilter: 'All',
+    selectedBoard: 'ready',
+}, {
+    selectedBoard: ['ready', 'prepare'],
+})
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
 const runningJob = ref('')
@@ -284,6 +289,12 @@ const emptyBoardMessage = computed(() => {
 watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
+
+watch(filters, () => {
+    if (!filters.value.some((filter) => filter.key === selectedFilter.value)) {
+        selectedFilter.value = 'All'
+    }
+}, { immediate: true })
 
 watch([readyJobs, prepareJobs], () => {
     if (!readyJobs.value.length && prepareJobs.value.length && selectedBoard.value === 'ready') {

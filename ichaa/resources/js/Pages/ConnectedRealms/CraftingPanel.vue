@@ -193,6 +193,7 @@
 import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { craftingReloadProps } from './reloadProps'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     recipes: {
@@ -216,9 +217,13 @@ const props = defineProps({
 const form = useForm({
     recipe: null,
 })
-const selectedFilter = ref('All')
-const selectedSkillFilter = ref('All')
-const selectedBoard = ref('ready')
+const { selectedFilter, selectedSkillFilter, selectedBoard } = usePersistedPanelState('evergather.crafting-board-state', {
+    selectedFilter: 'All',
+    selectedSkillFilter: 'All',
+    selectedBoard: 'ready',
+}, {
+    selectedBoard: ['ready', 'prepare'],
+})
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
 const runningRecipe = ref('')
@@ -308,6 +313,12 @@ const emptyBoardMessage = computed(() => {
 watch(selectedFilter, () => {
     selectedSkillFilter.value = 'All'
 })
+
+watch(filters, () => {
+    if (!filters.value.some((filter) => filter.key === selectedFilter.value)) {
+        selectedFilter.value = 'All'
+    }
+}, { immediate: true })
 
 watch(skillFilters, () => {
     if (!skillFilters.value.some((filter) => filter.key === selectedSkillFilter.value)) {

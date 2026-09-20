@@ -200,6 +200,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     skills: {
@@ -216,9 +217,13 @@ const props = defineProps({
     },
 })
 
-const selectedCategory = ref('')
-const selectedSkillKey = ref('')
-const selectedSkillBoard = ref('ready')
+const { selectedCategory, selectedSkillKey, selectedSkillBoard } = usePersistedPanelState('evergather.skills-board-state', {
+    selectedCategory: '',
+    selectedSkillKey: '',
+    selectedSkillBoard: 'ready',
+}, {
+    selectedSkillBoard: ['ready', 'next'],
+})
 const skillBoardPageSize = 8
 const visibleSkillLimit = ref(skillBoardPageSize)
 const groupedSkills = computed(() => props.skills.filter((skill) => searchMatches(skill, props.searchTerm)).reduce((groups, skill) => {

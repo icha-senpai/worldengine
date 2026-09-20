@@ -98,7 +98,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, watch } from 'vue'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     worldEvents: {
@@ -107,12 +108,22 @@ const props = defineProps({
     },
 })
 
-const selectedGroup = ref('active')
+const { selectedGroup } = usePersistedPanelState('evergather.world-events-board-state', {
+    selectedGroup: 'active',
+}, {
+    selectedGroup: ['active', 'upcoming'],
+})
 const eventGroups = computed(() => [
     groupFor('active', 'Active', props.worldEvents.active),
     groupFor('upcoming', 'Upcoming', props.worldEvents.upcoming),
 ])
 const activeGroup = computed(() => eventGroups.value.find((group) => group.key === selectedGroup.value) ?? eventGroups.value[0])
+
+watch(eventGroups, () => {
+    if (!eventGroups.value.some((group) => group.key === selectedGroup.value)) {
+        selectedGroup.value = 'active'
+    }
+}, { immediate: true })
 
 function groupFor(key, label, events) {
     return {

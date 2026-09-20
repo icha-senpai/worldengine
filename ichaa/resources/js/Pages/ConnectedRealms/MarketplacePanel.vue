@@ -365,9 +365,10 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { marketplaceReloadProps } from './reloadProps'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     marketplace: {
@@ -380,7 +381,11 @@ const props = defineProps({
     },
 })
 
-const activeBoard = ref('listings')
+const { activeBoard } = usePersistedPanelState('evergather.marketplace-board-state', {
+    activeBoard: 'listings',
+}, {
+    activeBoard: ['listings', 'market', 'sell', 'vendor', 'sales'],
+})
 const runningMarketplaceAction = ref('')
 const listingForm = useForm({
     listing_type: 'item',
@@ -434,6 +439,12 @@ const boards = computed(() => [
     { key: 'sales', label: 'Sales', count: visibleTransactions.value.length },
 ])
 const activeBoardRecord = computed(() => boards.value.find((board) => board.key === activeBoard.value) ?? boards.value[0])
+
+watch(boards, () => {
+    if (!boards.value.some((board) => board.key === activeBoard.value)) {
+        activeBoard.value = 'listings'
+    }
+}, { immediate: true })
 
 function searchMatches(entry, query) {
     const normalizedQuery = query.trim().toLowerCase()

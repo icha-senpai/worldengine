@@ -23,6 +23,7 @@ vi.mock('@inertiajs/vue3', async () => {
 
 describe('Connected Realms focused boards', () => {
     beforeEach(() => {
+        window.localStorage.clear()
         useFormMock.mockReset()
         useFormMock.mockImplementation((initial) => ({
             ...initial,
@@ -37,6 +38,7 @@ describe('Connected Realms focused boards', () => {
 
     afterEach(() => {
         vi.useRealTimers()
+        window.localStorage.clear()
     })
 
     it('keeps locked gathering runs out of the default ready board', async () => {
@@ -229,6 +231,43 @@ describe('Connected Realms focused boards', () => {
 
         expect(fishingFilter.text()).toContain('Lv 4')
         expect(fishingFilter.find('.bg-focus').attributes('style')).toContain('width: 64%')
+
+        wrapper.unmount()
+    })
+
+    it('restores the selected gathering skill sidebar filter from local storage', () => {
+        window.localStorage.setItem('evergather.gathering-board-state', JSON.stringify({
+            selectedFilter: 'Fishing',
+            selectedBoard: 'ready',
+        }))
+
+        const wrapper = mount(GatheringPanel, {
+            props: {
+                actions: [
+                    gatheringAction({
+                        key: 'fish',
+                        label: 'Fishing Route',
+                        skill: 'fishing',
+                        skill_label: 'Fishing',
+                    }),
+                    gatheringAction({
+                        key: 'mine',
+                        label: 'Mining Route',
+                        skill: 'mining',
+                        skill_label: 'Mining',
+                    }),
+                ],
+                player: {
+                    can_act_now: true,
+                    next_action_at: null,
+                },
+                searchTerm: '',
+            },
+            global: routeGlobal(),
+        })
+
+        expect(wrapper.text()).toContain('Fishing Route')
+        expect(wrapper.text()).not.toContain('Mining Route')
 
         wrapper.unmount()
     })
@@ -705,6 +744,44 @@ describe('Connected Realms focused boards', () => {
         wrapper.unmount()
     })
 
+    it('restores the selected skill activity sidebar filter from local storage', () => {
+        window.localStorage.setItem('evergather.skill-activities-board-state', JSON.stringify({
+            selectedSkill: 'Fishing',
+            selectedBand: 'All',
+            selectedBoard: 'ready',
+        }))
+
+        const wrapper = mount(SkillActivitiesPanel, {
+            props: {
+                activities: [
+                    skillActivity({
+                        key: 'fishing-starter',
+                        label: 'Fishing Practice',
+                        skill: 'fishing',
+                        skill_label: 'Fishing',
+                    }),
+                    skillActivity({
+                        key: 'combat-starter',
+                        label: 'Combat Practice',
+                        skill: 'combat',
+                        skill_label: 'Combat',
+                    }),
+                ],
+                player: {
+                    can_act_now: true,
+                    next_action_at: null,
+                },
+                searchTerm: '',
+            },
+            global: routeGlobal(),
+        })
+
+        expect(wrapper.text()).toContain('Fishing Practice')
+        expect(wrapper.text()).not.toContain('Combat Practice')
+
+        wrapper.unmount()
+    })
+
     it('does not show zero tool bonuses on skill activity cards', () => {
         const wrapper = mount(SkillActivitiesPanel, {
             props: {
@@ -810,6 +887,45 @@ describe('Connected Realms focused boards', () => {
 
         expect(wrapper.text()).toContain('Missing Bar')
         expect(wrapper.text()).not.toContain('Locked Forge')
+    })
+
+    it('restores the selected crafting category and skill filters from local storage', () => {
+        window.localStorage.setItem('evergather.crafting-board-state', JSON.stringify({
+            selectedFilter: 'Food',
+            selectedSkillFilter: 'Cooking',
+            selectedBoard: 'ready',
+        }))
+
+        const wrapper = mount(CraftingPanel, {
+            props: {
+                recipes: [
+                    craftingRecipe({
+                        key: 'stew',
+                        label: 'Ready Stew',
+                        category: 'Food',
+                        skill: 'cooking',
+                        skill_label: 'Cooking',
+                        can_craft: true,
+                    }),
+                    craftingRecipe({
+                        key: 'tonic',
+                        label: 'Ready Tonic',
+                        category: 'Food',
+                        skill: 'alchemy',
+                        skill_label: 'Alchemy',
+                        can_craft: true,
+                    }),
+                ],
+                player: player(),
+                searchTerm: '',
+            },
+            global: routeGlobal(),
+        })
+
+        expect(wrapper.text()).toContain('Ready Stew')
+        expect(wrapper.text()).not.toContain('Ready Tonic')
+
+        wrapper.unmount()
     })
 
     it('marks craft recipes blocked by a broken tool as repair-only', () => {
@@ -953,6 +1069,42 @@ describe('Connected Realms focused boards', () => {
         wrapper.unmount()
     })
 
+    it('restores the selected job skill filter from local storage', () => {
+        window.localStorage.setItem('evergather.jobs-board-state', JSON.stringify({
+            selectedFilter: 'Fishing',
+            selectedBoard: 'ready',
+        }))
+
+        const wrapper = mount(JobsPanel, {
+            props: {
+                jobs: [
+                    jobContract({
+                        key: 'fish-job',
+                        label: 'Fishing Delivery',
+                        skill: 'fishing',
+                        skill_label: 'Fishing',
+                        can_complete: true,
+                    }),
+                    jobContract({
+                        key: 'cook-job',
+                        label: 'Cooking Delivery',
+                        skill: 'cooking',
+                        skill_label: 'Cooking',
+                        can_complete: true,
+                    }),
+                ],
+                lastResult: null,
+                searchTerm: '',
+            },
+            global: routeGlobal(),
+        })
+
+        expect(wrapper.text()).toContain('Fishing Delivery')
+        expect(wrapper.text()).not.toContain('Cooking Delivery')
+
+        wrapper.unmount()
+    })
+
     it('updates expedition supplies locally from the latest expedition result', async () => {
         const wrapper = mount(ExpeditionsPanel, {
             props: {
@@ -990,6 +1142,42 @@ describe('Connected Realms focused boards', () => {
         wrapper.unmount()
     })
 
+    it('restores the selected expedition skill filter from local storage', () => {
+        window.localStorage.setItem('evergather.expeditions-board-state', JSON.stringify({
+            selectedFilter: 'Fishing',
+            selectedBoard: 'ready',
+        }))
+
+        const wrapper = mount(ExpeditionsPanel, {
+            props: {
+                expeditions: [
+                    expeditionRoute({
+                        key: 'fish-route',
+                        label: 'Fishing Route',
+                        skill: 'fishing',
+                        skill_label: 'Fishing',
+                        can_start: true,
+                    }),
+                    expeditionRoute({
+                        key: 'explore-route',
+                        label: 'Exploration Route',
+                        skill: 'exploration',
+                        skill_label: 'Exploration',
+                        can_start: true,
+                    }),
+                ],
+                lastResult: null,
+                searchTerm: '',
+            },
+            global: routeGlobal(),
+        })
+
+        expect(wrapper.text()).toContain('Fishing Route')
+        expect(wrapper.text()).not.toContain('Exploration Route')
+
+        wrapper.unmount()
+    })
+
     it('keeps unaffordable shop offers behind the plan board', async () => {
         const wrapper = mount(ShopPanel, {
             props: {
@@ -1010,6 +1198,55 @@ describe('Connected Realms focused boards', () => {
         await wrapper.findAll('button').find((button) => button.text().includes('Plan')).trigger('click')
 
         expect(wrapper.text()).toContain('Pricey Tool')
+    })
+
+    it('restores the selected shop offer group from local storage', () => {
+        window.localStorage.setItem('evergather.shop-board-state', JSON.stringify({
+            selectedFilter: 'Materials',
+            selectedBoard: 'buyable',
+        }))
+
+        const wrapper = mount(ShopPanel, {
+            props: {
+                shop: {
+                    offers: [
+                        shopOffer({ key: 'tool-offer', label: 'Ready Tool', category: 'Tools', kind: 'tool', can_buy: true }),
+                        shopOffer({ key: 'ore-offer', label: 'Ready Ore', category: 'Materials', kind: 'item', can_buy: true }),
+                    ],
+                },
+                searchTerm: '',
+            },
+            global: routeGlobal(),
+        })
+
+        expect(wrapper.text()).toContain('Ready Ore')
+        expect(wrapper.text()).not.toContain('Ready Tool')
+
+        wrapper.unmount()
+    })
+
+    it('restores the selected equipment category from local storage', () => {
+        window.localStorage.setItem('evergather.equipment-board-state', JSON.stringify({
+            selectedCategory: 'Crafting',
+        }))
+
+        const wrapper = mount(EquipmentPanel, {
+            props: {
+                equipment: [
+                    equipmentTool({ tool_id: 1, item_name: 'Fishing Rod', category: 'Gathering' }),
+                    equipmentTool({ tool_id: 2, item_name: 'Cooking Spoon', category: 'Crafting' }),
+                ],
+                toolInventory: [],
+                toolRarityUpgrades: { options: [], ready_count: 0 },
+                toolTierUpgrades: { options: [], ready_count: 0 },
+            },
+            global: routeGlobal(),
+        })
+
+        expect(wrapper.text()).toContain('Cooking Spoon')
+        expect(wrapper.text()).not.toContain('Fishing Rod')
+
+        wrapper.unmount()
     })
 })
 

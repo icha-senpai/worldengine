@@ -168,6 +168,7 @@
 import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { expeditionReloadProps } from './reloadProps'
+import { usePersistedPanelState } from './usePanelState'
 
 const props = defineProps({
     expeditions: {
@@ -187,8 +188,12 @@ const props = defineProps({
 const form = useForm({
     expedition: null,
 })
-const selectedFilter = ref('All')
-const selectedBoard = ref('ready')
+const { selectedFilter, selectedBoard } = usePersistedPanelState('evergather.expeditions-board-state', {
+    selectedFilter: 'All',
+    selectedBoard: 'ready',
+}, {
+    selectedBoard: ['ready', 'prepare'],
+})
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
 const runningExpedition = ref(null)
@@ -260,6 +265,12 @@ const emptyBoardMessage = computed(() => {
 watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
+
+watch(filters, () => {
+    if (!filters.value.some((filter) => filter.key === selectedFilter.value)) {
+        selectedFilter.value = 'All'
+    }
+}, { immediate: true })
 
 watch([readyExpeditions, prepareExpeditions], () => {
     if (!readyExpeditions.value.length && prepareExpeditions.value.length && selectedBoard.value === 'ready') {
