@@ -102,7 +102,7 @@ class LocationControlController extends Controller
         }
 
         return $this->page('World/LocationControl/Index', array_merge([
-            'records' => $query->get(),
+            'records' => $query->latest('id')->paginate(40)->withQueryString(),
             'filters' => $request->only(['q', 'control_type', 'resistance_level']),
             'controlTypes' => LocationControlHistory::CONTROL_TYPES,
             'resistanceLevels' => LocationControlHistory::RESISTANCE_LEVELS,

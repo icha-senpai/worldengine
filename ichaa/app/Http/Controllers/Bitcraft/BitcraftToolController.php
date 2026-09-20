@@ -1462,14 +1462,18 @@ class BitcraftToolController extends Controller
     private function marketListingsForClaims(BitjitaClient $bitjita, array $claims, array $filters): array
     {
         $side = $this->marketListingSide($filters);
+        $listingsByClaim = $bitjita->claimMarketListingsMany(
+            collect($claims)->pluck('entityId')->all(),
+            [
+                'side' => $side,
+                'itemType' => $filters['itemKind'] ?: null,
+                'itemId' => $filters['itemId'],
+            ],
+        );
 
         return collect($claims)
             ->flatMap(fn (array $claim) => $this->normalizeClaimMarketListings(
-                $bitjita->claimMarketListings((string) $claim['entityId'], [
-                    'side' => $side,
-                    'itemType' => $filters['itemKind'] ?: null,
-                    'itemId' => $filters['itemId'],
-                ]),
+                $listingsByClaim[(string) $claim['entityId']] ?? [],
                 $claim,
             ))
             ->filter(fn (array $listing) => $this->marketListingMatchesFilters($listing, $filters))

@@ -101,7 +101,7 @@ class TravelRouteController extends Controller
         }
 
         return $this->page('World/TravelRoutes/Index', array_merge([
-            'routes' => $query->get(),
+            'routes' => $query->latest('id')->paginate(40)->withQueryString(),
             'filters' => $request->only(['q', 'route_type', 'visibility']),
             'routeTypes' => TravelRoute::ROUTE_TYPES,
         ], $props));

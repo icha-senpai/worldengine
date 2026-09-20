@@ -2,7 +2,7 @@
     <div>
         <ScaffoldIndexPage
             title="Location Containment"
-            :count="containments.length"
+            :count="countRecords(containments)"
             count-label="containments"
             sync-resource="location_containment"
             :create-href="route('location-containment.create')"
@@ -10,6 +10,7 @@
             :create-close-href="route('location-containment.index')"
             create-label="New Containment"
             :items="items"
+            :pagination="containments"
             empty-title="No containment records found"
             :empty-cta-href="route('location-containment.create')"
             empty-cta-label="Create the first containment ->"
@@ -39,11 +40,11 @@ import { computed } from 'vue'
 import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreateLocationContainment from '@/Pages/World/LocationContainment/Create.vue'
-import { badge, buildMeta } from '@/Pages/scaffold/pageBuilders'
+import { asArray, badge, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
 import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
-    containments: { type: Array, default: () => [] },
+    containments: { type: [Array, Object], default: () => [] },
     filters: { type: Object, default: () => ({}) },
     containmentTypes: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
@@ -60,7 +61,7 @@ const filterFields = computed(() => [
 ])
 
 const items = computed(() =>
-    props.containments.map((containment) => ({
+    asArray(props.containments).map((containment) => ({
         id: containment.id,
         href: route('location-containment.show', containment.id),
         title: `${containment.child_location?.name ?? 'Unknown'} -> ${containment.parent_location?.name ?? 'Unknown'}`,

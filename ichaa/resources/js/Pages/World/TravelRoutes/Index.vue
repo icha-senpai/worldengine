@@ -2,7 +2,7 @@
     <div>
         <ScaffoldIndexPage
             title="Travel Routes"
-            :count="routes.length"
+            :count="countRecords(routes)"
             count-label="routes"
             sync-resource="travel_routes"
             :create-href="route('travel-routes.create')"
@@ -12,6 +12,7 @@
             :create-close-href="route('travel-routes.index')"
             create-label="New Route"
             :items="items"
+            :pagination="routes"
             empty-title="No travel routes found"
             :empty-cta-href="route('travel-routes.create')"
             :empty-cta-preserve-scroll="true"
@@ -43,11 +44,11 @@ import { computed } from 'vue'
 import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreateTravelRoute from '@/Pages/World/TravelRoutes/Create.vue'
-import { badge, buildMeta } from '@/Pages/scaffold/pageBuilders'
+import { asArray, badge, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
 import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
-    routes: { type: Array, default: () => [] },
+    routes: { type: [Array, Object], default: () => [] },
     filters: { type: Object, default: () => ({}) },
     routeTypes: { type: Array, default: () => [] },
     createDrawer: { type: Object, default: null },
@@ -66,7 +67,7 @@ const filterFields = computed(() => [
 ])
 
 const items = computed(() =>
-    props.routes.map((travelRoute) => ({
+    asArray(props.routes).map((travelRoute) => ({
         id: travelRoute.id,
         href: route('travel-routes.show', travelRoute.id),
         title: `${travelRoute.origin?.name ?? 'Unknown'} -> ${travelRoute.destination?.name ?? 'Unknown'}`,

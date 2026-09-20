@@ -23,31 +23,84 @@ class BitjitaClient
 
     public function claimMarketListings(string $claimEntityId, array $filters = []): array
     {
-        $firstPage = $this->get(
-            "api/claims/{$claimEntityId}/market/listings",
-            $this->claimMarketListingQuery($filters, 1),
-        );
-
-        $totalPages = max(1, (int) data_get($firstPage, 'totalPages', 1));
-        $listings = data_get($firstPage, 'listings', []);
-
-        for ($page = 2; $page <= $totalPages; $page++) {
-            $nextPage = $this->get(
-                "api/claims/{$claimEntityId}/market/listings",
-                $this->claimMarketListingQuery($filters, $page),
-            );
-
-            $listings = array_merge($listings, data_get($nextPage, 'listings', []));
-        }
-
-        return [
-            ...$firstPage,
-            'listings' => $listings,
-            'count' => count($listings),
+        return $this->claimMarketListingsMany([$claimEntityId], $filters)[$claimEntityId] ?? [
+            'listings' => [],
+            'count' => 0,
             'page' => 1,
             'limit' => self::CLAIM_MARKET_LISTINGS_LIMIT,
-            'totalPages' => $totalPages,
+            'totalPages' => 1,
         ];
+    }
+
+    public function claimMarketListingsMany(array $claimEntityIds, array $filters = []): array
+    {
+        $ids = collect($claimEntityIds)
+            ->map(fn (mixed $id): string => trim((string) $id))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $firstPages = $this->claimMarketListingPages($ids->all(), $filters, 1);
+        $payloads = [];
+        $remainingPageRequests = [];
+
+        foreach ($ids as $id) {
+            $firstPage = $firstPages[$id] ?? [];
+            $totalPages = max(1, (int) data_get($firstPage, 'totalPages', 1));
+
+            $payloads[$id] = [
+                'firstPage' => $firstPage,
+                'pages' => [],
+                'totalPages' => $totalPages,
+            ];
+
+            for ($page = 2; $page <= $totalPages; $page++) {
+                $remainingPageRequests[] = [
+                    'claimEntityId' => $id,
+                    'page' => $page,
+                ];
+            }
+        }
+
+        if ($remainingPageRequests !== []) {
+            $remainingPages = $this->claimMarketListingPages(
+                collect($remainingPageRequests)
+                    ->map(fn (array $request): string => $request['claimEntityId'].':'.$request['page'])
+                    ->all(),
+                $filters,
+                null,
+            );
+
+            foreach ($remainingPageRequests as $request) {
+                $id = $request['claimEntityId'];
+                $page = $request['page'];
+                $payloads[$id]['pages'][$page] = $remainingPages["{$id}:{$page}"] ?? [];
+            }
+        }
+
+        return collect($payloads)
+            ->mapWithKeys(function (array $payload, string $id): array {
+                $firstPage = $payload['firstPage'];
+                $listings = data_get($firstPage, 'listings', []);
+
+                for ($page = 2; $page <= $payload['totalPages']; $page++) {
+                    $listings = array_merge($listings, data_get($payload['pages'][$page] ?? [], 'listings', []));
+                }
+
+                return [$id => [
+                    ...$firstPage,
+                    'listings' => $listings,
+                    'count' => count($listings),
+                    'page' => 1,
+                    'limit' => self::CLAIM_MARKET_LISTINGS_LIMIT,
+                    'totalPages' => $payload['totalPages'],
+                ]];
+            })
+            ->all();
     }
 
     public function marketOrders(string $itemKind, int|string $itemId, array $filters = []): array
@@ -225,6 +278,52 @@ class BitjitaClient
         return $this->cacheKey($key);
     }
 
+    private function claimMarketListingPages(array $keys, array $filters, ?int $page): array
+    {
+        $payloads = [];
+        $missing = [];
+
+        foreach ($keys as $key) {
+            [$claimEntityId, $requestPage] = $this->claimMarketListingPageParts($key, $page);
+            $request = $this->claimMarketListingPageRequest($claimEntityId, $filters, $requestPage);
+
+            if ($request['cacheSeconds'] > 0 && Cache::has($request['cacheKey'])) {
+                $payloads[$key] = Cache::get($request['cacheKey'], []);
+
+                continue;
+            }
+
+            $missing[$key] = $request;
+        }
+
+        if ($missing === []) {
+            return $payloads;
+        }
+
+        $responses = Http::pool(
+            fn (Pool $pool) => collect($missing)
+                ->map(fn (array $request, string $key) => $this->poolRequest($pool, $key)
+                    ->get($request['path'], $request['query']))
+                ->all(),
+            concurrency: $this->poolConcurrency(),
+        );
+
+        foreach ($missing as $key => $request) {
+            /** @var Response $response */
+            $response = $responses[$key];
+            $response->throw();
+
+            $payload = $response->json() ?? [];
+            $payloads[$key] = $payload;
+
+            if ($request['cacheSeconds'] > 0) {
+                Cache::put($request['cacheKey'], $payload, now()->addSeconds($request['cacheSeconds']));
+            }
+        }
+
+        return $payloads;
+    }
+
     private function get(string $path, array $query = []): array
     {
         $query = $this->filledQuery($query);
@@ -297,6 +396,36 @@ class BitjitaClient
         ];
     }
 
+    /**
+     * @return array{path: string, query: array<string, mixed>, cacheKey: string, cacheSeconds: int}
+     */
+    private function claimMarketListingPageRequest(string $claimEntityId, array $filters, int $page): array
+    {
+        $path = "api/claims/{$claimEntityId}/market/listings";
+        $query = $this->claimMarketListingQuery($filters, $page);
+
+        return [
+            'path' => $path,
+            'query' => $this->filledQuery($query),
+            'cacheKey' => $this->getCacheKey($path, $query),
+            'cacheSeconds' => $this->cacheSecondsFor($path),
+        ];
+    }
+
+    /**
+     * @return array{0: string, 1: int}
+     */
+    private function claimMarketListingPageParts(string $key, ?int $page): array
+    {
+        if ($page !== null) {
+            return [$key, $page];
+        }
+
+        [$claimEntityId, $requestPage] = explode(':', $key, 2);
+
+        return [$claimEntityId, (int) $requestPage];
+    }
+
     private function claimsQuery(array $filters, int $page): array
     {
         return [
@@ -348,6 +477,11 @@ class BitjitaClient
         }
 
         return $request;
+    }
+
+    private function poolConcurrency(): int
+    {
+        return max(1, (int) config('services.bitjita.pool_concurrency', 8));
     }
 
     private function cacheKey(string $key): string

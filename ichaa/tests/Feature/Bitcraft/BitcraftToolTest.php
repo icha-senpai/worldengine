@@ -527,6 +527,129 @@ class BitcraftToolTest extends TestCase
         Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?'));
     }
 
+    public function test_market_finder_fetches_all_regional_claim_listing_pages(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/regions' => Http::response([[
+                'regionId' => 8,
+                'regionName' => 'Solmere',
+            ]]),
+            'https://bitjita.com/api/claims?*' => Http::response([
+                'claims' => [
+                    [
+                        'entityId' => '100',
+                        'name' => 'Jita',
+                        'regionId' => 8,
+                        'regionName' => 'Solmere',
+                    ],
+                    [
+                        'entityId' => '200',
+                        'name' => 'Omashu',
+                        'regionId' => 8,
+                        'regionName' => 'Solmere',
+                    ],
+                ],
+                'count' => 2,
+            ]),
+            'https://bitjita.com/api/claims/100/buildings' => Http::response([
+                'buildings' => [[
+                    'entityId' => 'market-100',
+                    'buildingName' => 'Market',
+                    'tradeOrders' => 2,
+                ]],
+            ]),
+            'https://bitjita.com/api/claims/200/buildings' => Http::response([
+                'buildings' => [[
+                    'entityId' => 'market-200',
+                    'buildingName' => 'Market',
+                    'tradeOrders' => 1,
+                ]],
+            ]),
+            'https://bitjita.com/api/claims/100/market/listings?page=1*' => Http::response([
+                'listings' => [[
+                    'entityId' => 'buy-100-pickaxe',
+                    'side' => 'buy',
+                    'claimEntityId' => '100',
+                    'claimName' => 'Jita',
+                    'itemId' => 1421716234,
+                    'itemType' => 0,
+                    'itemName' => 'Astralite Pickaxe',
+                    'itemTag' => 'Miner Tool',
+                    'price' => '1200',
+                    'quantity' => '3',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ]],
+                'count' => 2,
+                'totalPages' => 2,
+            ]),
+            'https://bitjita.com/api/claims/100/market/listings?page=2*' => Http::response([
+                'listings' => [[
+                    'entityId' => 'buy-100-hammer',
+                    'side' => 'buy',
+                    'claimEntityId' => '100',
+                    'claimName' => 'Jita',
+                    'itemId' => 1421716235,
+                    'itemType' => 0,
+                    'itemName' => 'Astralite Hammer',
+                    'itemTag' => 'Smith Tool',
+                    'price' => '900',
+                    'quantity' => '4',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ]],
+                'count' => 2,
+                'totalPages' => 2,
+            ]),
+            'https://bitjita.com/api/claims/200/market/listings?page=1*' => Http::response([
+                'listings' => [[
+                    'entityId' => 'buy-200-saw',
+                    'side' => 'buy',
+                    'claimEntityId' => '200',
+                    'claimName' => 'Omashu',
+                    'itemId' => 1421716236,
+                    'itemType' => 0,
+                    'itemName' => 'Astralite Saw',
+                    'itemTag' => 'Carpentry Tool',
+                    'price' => '800',
+                    'quantity' => '2',
+                    'regionId' => 8,
+                    'regionName' => 'Solmere',
+                ]],
+                'count' => 1,
+                'totalPages' => 1,
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.market', [
+                'region' => 'Solmere',
+                'hasBuyOrders' => 1,
+            ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/Market')
+                ->has('market.claims', 2)
+                ->has('market.listings', 3)
+                ->has('market.items', 3)
+                ->where('market.items.0.name', 'Astralite Pickaxe')
+                ->where('market.items.1.name', 'Astralite Hammer')
+                ->where('market.items.2.name', 'Astralite Saw')
+            );
+
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims/100/market/listings?')
+            && str_contains($request->url(), 'page=1')
+            && str_contains($request->url(), 'side=buy'));
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims/100/market/listings?')
+            && str_contains($request->url(), 'page=2')
+            && str_contains($request->url(), 'side=buy'));
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/claims/200/market/listings?')
+            && str_contains($request->url(), 'page=1')
+            && str_contains($request->url(), 'side=buy'));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/market?'));
+    }
+
     public function test_market_finder_region_item_search_uses_claim_listings_without_order_filters(): void
     {
         Http::fake([

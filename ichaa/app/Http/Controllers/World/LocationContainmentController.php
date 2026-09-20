@@ -95,7 +95,7 @@ class LocationContainmentController extends Controller
         }
 
         return $this->page('World/LocationContainment/Index', array_merge([
-            'containments' => $query->get(),
+            'containments' => $query->latest('id')->paginate(40)->withQueryString(),
             'filters' => $request->only(['q', 'containment_type']),
             'containmentTypes' => LocationContainment::CONTAINMENT_TYPES,
         ], $props));

@@ -2,7 +2,7 @@
     <div>
         <ScaffoldIndexPage
             title="Location Control"
-            :count="records.length"
+            :count="countRecords(records)"
             count-label="control records"
             sync-resource="location_control"
             :create-href="route('location-control.create')"
@@ -10,6 +10,7 @@
             :create-close-href="route('location-control.index')"
             create-label="New Control Record"
             :items="items"
+            :pagination="records"
             empty-title="No control records found"
             :empty-cta-href="route('location-control.create')"
             empty-cta-label="Create the first control record ->"
@@ -39,11 +40,11 @@ import { computed } from 'vue'
 import ScaffoldFilterBar from '@/Components/scaffold/ScaffoldFilterBar.vue'
 import ScaffoldIndexPage from '@/Components/scaffold/ScaffoldIndexPage.vue'
 import CreateLocationControl from '@/Pages/World/LocationControl/Create.vue'
-import { badge, buildMeta } from '@/Pages/scaffold/pageBuilders'
+import { asArray, badge, buildMeta, countRecords } from '@/Pages/scaffold/pageBuilders'
 import { useIndexFilters } from '@/Pages/scaffold/indexFilters'
 
 const props = defineProps({
-    records: { type: Array, default: () => [] },
+    records: { type: [Array, Object], default: () => [] },
     filters: { type: Object, default: () => ({}) },
     controlTypes: { type: Array, default: () => [] },
     resistanceLevels: { type: Array, default: () => [] },
@@ -63,7 +64,7 @@ const filterFields = computed(() => [
 ])
 
 const items = computed(() =>
-    props.records.map((record) => ({
+    asArray(props.records).map((record) => ({
         id: record.id,
         href: route('location-control.show', record.id),
         title: `${record.location?.name ?? 'Unknown'} -> ${record.controlling_entity?.name ?? 'Unknown'}`,

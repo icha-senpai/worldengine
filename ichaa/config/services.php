@@ -57,6 +57,7 @@ return [
         'claim_details_cache_seconds' => (int) env('BITJITA_CLAIM_DETAILS_CACHE_SECONDS', 300),
         'claim_buildings_cache_seconds' => (int) env('BITJITA_CLAIM_BUILDINGS_CACHE_SECONDS', 300),
         'stalls_cache_seconds' => (int) env('BITJITA_STALLS_CACHE_SECONDS', 300),
+        'pool_concurrency' => (int) env('BITJITA_POOL_CONCURRENCY', 8),
     ],
 
     'bitcraft_spacetime' => [

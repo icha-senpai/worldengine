@@ -10,6 +10,7 @@ use App\Domain\World\Models\PowerInteraction;
 use App\Domain\World\Models\PowerInteractionInstance;
 use App\Domain\World\Models\TravelRoute;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -142,8 +143,8 @@ class WorldWorkflowTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('World/LocationContainment/Index')
                 ->where('filters.containment_type', 'dimensional')
-                ->has('containments', 1)
-                ->where('containments.0.id', $matching->id)
+                ->has('containments.data', 1)
+                ->where('containments.data.0.id', $matching->id)
             );
 
         $this->actingAs($user)
@@ -237,8 +238,8 @@ class WorldWorkflowTest extends TestCase
                 ->component('World/TravelRoutes/Index')
                 ->where('filters.route_type', 'planar')
                 ->where('filters.visibility', 'secret')
-                ->has('routes', 1)
-                ->where('routes.0.id', $routes[0]->id)
+                ->has('routes.data', 1)
+                ->where('routes.data.0.id', $routes[0]->id)
             );
 
         $forward = $routes->first();
@@ -322,8 +323,8 @@ class WorldWorkflowTest extends TestCase
                 ->component('World/LocationControl/Index')
                 ->where('filters.control_type', 'occupied')
                 ->where('filters.resistance_level', 'none')
-                ->has('records', 1)
-                ->where('records.0.id', $current->id)
+                ->has('records.data', 1)
+                ->where('records.data.0.id', $current->id)
             );
 
         $this->actingAs($user)
@@ -361,6 +362,74 @@ class WorldWorkflowTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertSoftDeleted('location_control_history', ['id' => $current->id]);
+    }
+
+    public function test_world_index_surfaces_paginate_heavy_lists(): void
+    {
+        $user = $this->verifiedUser();
+        $parent = $this->spatialEntity('Pagination Parent');
+        $controller = Entity::factory()->create(['name' => 'Pagination Controller']);
+
+        $locations = Entity::factory()
+            ->count(45)
+            ->sequence(fn (Sequence $sequence) => [
+                'name' => sprintf('Pagination Location %02d', $sequence->index + 1),
+                'entity_type' => EntityType::LOCATION,
+            ])
+            ->create();
+
+        foreach ($locations as $location) {
+            LocationContainment::create([
+                'child_location_entity_id' => $location->id,
+                'parent_location_entity_id' => $parent->id,
+                'containment_type' => 'physical',
+                'is_active' => true,
+            ]);
+
+            TravelRoute::create([
+                'origin_location_entity_id' => $parent->id,
+                'destination_location_entity_id' => $location->id,
+                'route_type' => 'overland',
+                'is_active' => true,
+            ]);
+
+            LocationControlHistory::create([
+                'location_entity_id' => $location->id,
+                'controlling_entity_id' => $controller->id,
+                'control_type' => 'sovereign',
+                'is_current' => true,
+            ]);
+        }
+
+        $this->actingAs($user)
+            ->get(route('location-containment.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('containments.data', 40)
+                ->where('containments.current_page', 1)
+                ->where('containments.last_page', 2)
+                ->where('containments.total', 45)
+            );
+
+        $this->actingAs($user)
+            ->get(route('travel-routes.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('routes.data', 40)
+                ->where('routes.current_page', 1)
+                ->where('routes.last_page', 2)
+                ->where('routes.total', 45)
+            );
+
+        $this->actingAs($user)
+            ->get(route('location-control.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('records.data', 40)
+                ->where('records.current_page', 1)
+                ->where('records.last_page', 2)
+                ->where('records.total', 45)
+            );
     }
 
     private function spatialEntity(string $name): Entity
