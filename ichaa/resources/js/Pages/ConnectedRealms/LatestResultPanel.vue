@@ -217,10 +217,29 @@ const eventRows = computed(() => {
 })
 const summaryRows = computed(() => [
     metricRow('XP', props.result.experience_awarded, 'Experience gained', '+'),
+    skillProgressRow.value,
     metricRow('Gold Earned', props.result.gold_awarded, 'Gold added', '+'),
     metricRow('Gold Spent', props.result.gold_spent ?? positiveOrNull(props.result.gold_cost), 'Gold removed', '-'),
     metricRow('Trade Value', props.result.total_price, 'Marketplace value'),
 ].filter(Boolean))
+const skillProgressRow = computed(() => {
+    const progress = props.result.skill_progress
+
+    if (!progress?.level) {
+        return null
+    }
+
+    const skillLabel = progress.skill_label ?? props.result.skill_label ?? 'Skill'
+    const detail = progress.next_level_experience === null
+        ? `${formatNumber(progress.experience)} XP · max level`
+        : `${formatNumber(progress.experience_to_next_level)} XP to Lv ${Number(progress.level) + 1}`
+
+    return {
+        label: 'Skill Level',
+        value: `${skillLabel} Lv ${formatNumber(progress.level)}`,
+        detail,
+    }
+})
 const itemCount = computed(() => resultItems.value.reduce((total, item) => total + Number(item.quantity ?? 1), 0))
 const recordCount = computed(() => summaryRows.value.length + detailRows.value.length + resultItems.value.length)
 const goldDeltaLabel = computed(() => {

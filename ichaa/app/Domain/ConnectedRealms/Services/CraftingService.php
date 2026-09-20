@@ -40,8 +40,11 @@ class CraftingService
         return collect(self::recipes())
             ->map(function (array $recipe, string $key) use ($inventory, $player): array {
                 $requiredLevel = (int) ($recipe['required_level'] ?? 1);
-                $skillLevel = $this->players->currentSkillLevel($player, $recipe['skill']);
+                $skillProgress = $this->players->skillProgressFor($player, $recipe['skill']);
+                $skillLevel = $skillProgress['level'];
                 $tool = $this->players->equipmentForSkill($player, $recipe['skill']);
+                $toolPayload = $this->players->toolPayload($tool);
+                $requiresToolRepair = (bool) ($toolPayload['is_broken'] ?? false);
                 $toolModifiers = $this->toolEffects->actionModifiers($tool);
                 $ingredients = collect($recipe['ingredients'])
                     ->map(function (array $ingredient) use ($inventory): array {
@@ -60,23 +63,26 @@ class CraftingService
                     'key' => $key,
                     'label' => $recipe['label'],
                     'skill' => $recipe['skill'],
-                    'skill_label' => str($recipe['skill'])->headline()->toString(),
+                    'skill_label' => $skillProgress['skill_label'],
                     'category' => $recipe['category'] ?? 'Crafting',
                     'required_level' => $requiredLevel,
                     'skill_level' => $skillLevel,
+                    'skill_progress' => $skillProgress,
                     'is_unlocked' => $skillLevel >= $requiredLevel,
                     'experience' => $recipe['experience'],
                     'gold_cost' => $recipe['gold_cost'],
                     'ingredients' => $ingredients,
                     'outputs' => $this->items->enrichMany($recipe['outputs']),
-                    'equipped_tool' => $this->players->toolPayload($tool),
+                    'equipped_tool' => $toolPayload,
+                    'requires_tool_repair' => $requiresToolRepair,
                     'material_preservation' => [
                         'can_apply' => $this->toolCanModifyRecipe($tool, $requiredLevel) && $this->preservedMaterials($recipe['ingredients'], $toolModifiers['material_preservation']) !== [],
                         'chance' => $toolModifiers['material_preservation'],
                     ],
                     'can_craft' => collect($ingredients)->every(fn (array $ingredient): bool => $ingredient['has_enough'])
                         && $player->gold >= $recipe['gold_cost']
-                        && $skillLevel >= $requiredLevel,
+                        && $skillLevel >= $requiredLevel
+                        && ! $requiresToolRepair,
                 ];
             })
             ->values()
@@ -88,7 +94,7 @@ class CraftingService
      */
     public function craft(User $user, string $recipeKey): array
     {
-        $recipe = self::recipes()[$recipeKey] ?? null;
+        $recipe = self::recipeForKey($recipeKey);
 
         if ($recipe === null) {
             throw ValidationException::withMessages([
@@ -136,6 +142,13 @@ class CraftingService
             }
 
             $tool = $this->players->equipmentForSkill($player, $recipe['skill']);
+
+            if ($tool !== null && (int) $tool->durability <= 0) {
+                throw ValidationException::withMessages([
+                    'recipe' => 'Repair tool before crafting that recipe.',
+                ]);
+            }
+
             $toolModifiers = $this->toolEffects->actionModifiers($tool);
             $preservedMaterials = $this->toolCanModifyRecipe($tool, $requiredLevel)
                 ? $this->preservedMaterials($recipe['ingredients'], $toolModifiers['material_preservation'])
@@ -209,7 +222,9 @@ class CraftingService
                 ])->save();
             }
 
-            $this->players->awardSkillExperience($player, $recipe['skill'], $recipe['experience']);
+            $skillProgress = $this->players->skillProgressPayload(
+                $this->players->awardSkillExperience($player, $recipe['skill'], $recipe['experience']),
+            );
 
             $log = ConnectedRealmsCraftingLog::create([
                 'player_id' => $player->id,
@@ -228,7 +243,11 @@ class CraftingService
                 'recipe_key' => $recipeKey,
                 'label' => $recipe['label'],
                 'skill' => $recipe['skill'],
-                'skill_label' => str($recipe['skill'])->headline()->toString(),
+                'skill_label' => $skillProgress['skill_label'],
+                'skill_level' => $skillProgress['level'],
+                'skill_experience' => $skillProgress['experience'],
+                'next_level_experience' => $skillProgress['next_level_experience'],
+                'skill_progress' => $skillProgress,
                 'items_consumed' => $consumed,
                 'items_created' => $outputs,
                 'tool' => $this->players->toolPayload($tool),
@@ -328,6 +347,108 @@ class CraftingService
     }
 
     /**
+     * @return array<string, mixed>|null
+     */
+    private static function recipeForKey(string $recipeKey): ?array
+    {
+        if (self::$recipeCache !== null) {
+            return self::$recipeCache[$recipeKey] ?? null;
+        }
+
+        $recipe = app(ConnectedRealmsContentService::class)->definitionFor(
+            'crafting_recipes',
+            $recipeKey,
+            self::baseRecipeForKey($recipeKey),
+        );
+
+        if ($recipe === null) {
+            return null;
+        }
+
+        return self::normalizeRequiredLevels([$recipeKey => $recipe])[$recipeKey];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function baseRecipeForKey(string $recipeKey): ?array
+    {
+        foreach (self::recipeTierFamilies() as $skill => $family) {
+            foreach (EvergatherTierCatalog::tiers() as $tier) {
+                $level = (int) $tier['level'];
+                $outputName = self::tierCoverageRecipeOutputName($skill, $level);
+                $outputKey = self::tierCoverageRecipeOutputKey($skill, $level);
+
+                if ($outputKey !== $recipeKey) {
+                    continue;
+                }
+
+                $ingredient = self::tierCoverageIngredient($family['ingredient_skill'], $level);
+
+                return self::itemRecipe(
+                    $outputName,
+                    $skill,
+                    $level,
+                    self::tierCoverageExperience($tier),
+                    [[
+                        ...$ingredient,
+                        'quantity' => self::tierCoverageIngredientQuantity($level),
+                    ]],
+                    [[
+                        'item_key' => $outputKey,
+                        'item_name' => $outputName,
+                        'rarity' => $tier['rarity'],
+                        'quantity' => 1,
+                    ]],
+                    $family['category'],
+                );
+            }
+        }
+
+        $tools = new ToolCatalogService;
+
+        foreach ($tools->families() as $skill => $family) {
+            foreach ($tools->tierPath() as $tier) {
+                $itemKey = $tools->tierToolKey($family, $tier);
+
+                if ("{$itemKey}_craft" !== $recipeKey) {
+                    continue;
+                }
+
+                $itemName = $tools->tierToolName($family, $tier);
+                $extra = self::craftedToolWorkIngredient($family['craft'], $tier['level']);
+
+                return [
+                    'label' => $itemName,
+                    'skill' => $family['craft'],
+                    'category' => 'Tools',
+                    'required_level' => $tier['level'],
+                    'experience' => $tier['xp'],
+                    'gold_cost' => 0,
+                    'ingredients' => [
+                        self::craftedToolBaseIngredient($family, (int) $tier['level']),
+                        $extra,
+                    ],
+                    'outputs' => [[
+                        'item_key' => $itemKey,
+                        'item_name' => $itemName,
+                        'rarity' => $tier['rarity'],
+                        'quantity' => 1,
+                        'equipment_skill' => $skill,
+                        'durability' => $tools->maxDurabilityFor((int) $tier['level'], (string) $tier['rarity']),
+                        'bonuses' => [
+                            'experience' => $tier['experience_bonus'],
+                            'yield' => $tier['yield_bonus'],
+                        ],
+                    ]],
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     public static function baseRecipes(): array
@@ -372,7 +493,7 @@ class CraftingService
                         'rarity' => $tier['rarity'],
                         'quantity' => 1,
                         'equipment_skill' => $skill,
-                        'durability' => 100,
+                        'durability' => $tools->maxDurabilityFor((int) $tier['level'], (string) $tier['rarity']),
                         'bonuses' => [
                             'experience' => $tier['experience_bonus'],
                             'yield' => $tier['yield_bonus'],

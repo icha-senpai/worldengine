@@ -103,6 +103,9 @@ class ToolTierUpgradeService
             $itemKey = $this->tools->tierToolKey($family, $tier);
             $previousName = $tool->item_name;
             $rarityCap = $this->tools->maxRarityForTierLevel((int) $tier['level']);
+            $previousMaxDurability = $this->tools->maxDurabilityFor((int) $tool->tier_level, $tool->rarity);
+            $maxDurability = $this->tools->maxDurabilityFor((int) $tier['level'], $tool->rarity);
+            $durability = min($maxDurability, (int) $tool->durability + max(0, $maxDurability - $previousMaxDurability));
 
             $player->forceFill([
                 'gold' => $player->gold - $tier['gold_cost'],
@@ -116,6 +119,7 @@ class ToolTierUpgradeService
                     'experience' => max((int) ($tool->bonuses['experience'] ?? 0), (int) $tier['experience_bonus']),
                     'yield' => max((int) ($tool->bonuses['yield'] ?? 0), (int) $tier['yield_bonus']),
                 ],
+                'durability' => $durability,
                 'tier_level' => $tier['level'],
                 'origin' => $tool->origin === 'starter' ? 'upgraded' : $tool->origin,
                 'status' => ConnectedRealmsTool::STATUS_EQUIPPED,

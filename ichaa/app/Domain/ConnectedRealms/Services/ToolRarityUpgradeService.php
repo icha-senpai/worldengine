@@ -131,14 +131,17 @@ class ToolRarityUpgradeService
                 : min(100, (int) $tool->rarity_progress + $progressGain);
             $succeeded = $criticalSuccess || $progressAfterAttempt >= 100;
             $previousRarity = $tool->rarity;
+            $previousMaxDurability = $this->tools->maxDurabilityFor((int) $tool->tier_level, $previousRarity);
 
             $tool->forceFill([
                 'rarity_upgrade_attempts' => (int) $tool->rarity_upgrade_attempts + 1,
             ]);
 
             if ($succeeded) {
+                $maxDurability = $this->tools->maxDurabilityFor((int) $tool->tier_level, $targetRarity);
                 $tool->forceFill([
                     'rarity' => $targetRarity,
+                    'durability' => min($maxDurability, (int) $tool->durability + max(0, $maxDurability - $previousMaxDurability)),
                     'rarity_progress' => 0,
                     'bonuses' => $this->upgradedBonuses($tool->bonuses ?? [], $previousRarity, $targetRarity),
                     'upgrade_count' => (int) $tool->upgrade_count + 1,
@@ -151,6 +154,7 @@ class ToolRarityUpgradeService
 
             $toolInstance->forceFill([
                 'rarity' => $tool->rarity,
+                'durability' => $tool->durability,
                 'rarity_progress' => $tool->rarity_progress,
                 'bonuses' => $tool->bonuses,
                 'upgrade_count' => $tool->upgrade_count,

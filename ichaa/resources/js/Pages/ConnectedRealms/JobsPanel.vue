@@ -41,7 +41,7 @@
                         >
                             <span class="flex min-w-0 items-center justify-between gap-2">
                                 <span class="truncate text-xs font-ui text-primary">{{ filter.label }}</span>
-                                <span class="text-[11px] text-muted-3">{{ filter.count }}</span>
+                                <span class="text-[11px] text-muted-3">{{ filter.metaLabel }}</span>
                             </span>
                             <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
                                 <span class="block h-full rounded-full bg-focus" :style="{ width: `${filterProgress(filter)}%` }" />
@@ -63,6 +63,15 @@
                             <span class="text-primary">{{ visibleExperience }}</span>
                         </div>
                     </div>
+                    <button
+                        type="button"
+                        class="app-btn app-btn--ghost app-btn--sm mt-4 w-full"
+                        :class="{ 'border-focus/70 bg-focus/10 text-primary': autoRepeatEnabled }"
+                        :disabled="!repeatJob"
+                        @click="toggleAutoRepeatJob"
+                    >
+                        {{ autoRepeatEnabled ? 'Repeating' : 'Repeat Last' }}
+                    </button>
                 </div>
 
                 <div class="grid content-start gap-3">
@@ -140,8 +149,8 @@
                                 v-if="job.requires_acceptance && !job.is_accepted"
                                 type="button"
                                 class="app-btn app-btn--sm"
-                                :disabled="form.processing || !job.can_accept"
-                                @click="accept(job.key)"
+                                :disabled="isJobDisabled(job, 'accept')"
+                                @click="requestJob('accept', job.key)"
                             >
                                 {{ runningJob === job.key ? 'Accepting...' : 'Accept' }}
                             </button>
@@ -149,8 +158,8 @@
                                 v-else
                                 type="button"
                                 class="app-btn app-btn--sm"
-                                :disabled="form.processing || !job.can_complete"
-                                @click="complete(job.key)"
+                                :disabled="isJobDisabled(job, 'complete')"
+                                @click="requestJob('complete', job.key)"
                             >
                                 {{ runningJob === job.key ? 'Completing...' : completeLabel(job) }}
                             </button>
@@ -189,6 +198,10 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    lastResult: {
+        type: Object,
+        default: null,
+    },
     searchTerm: {
         type: String,
         default: '',
@@ -203,16 +216,37 @@ const selectedBoard = ref('ready')
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
 const runningJob = ref('')
+const repeatJob = ref(null)
+const autoRepeatEnabled = ref(false)
+const queuedJobs = ref([])
+const localJobs = ref([...props.jobs])
 
-const readyCount = computed(() => props.jobs.filter((job) => job.can_complete).length)
-const filters = computed(() => ['All', ...new Set(props.jobs.map((job) => job.category))].map((filter) => ({
-    key: filter,
-    label: filter,
-    count: props.jobs.filter((job) => filter === 'All' || job.category === filter).length,
-})))
+const readyCount = computed(() => localJobs.value.filter((job) => job.can_complete).length)
+const filters = computed(() => [
+    {
+        key: 'All',
+        label: 'All',
+        count: localJobs.value.length,
+        metaLabel: localJobs.value.length,
+        progress: localJobs.value.length ? Math.round((readyCount.value / localJobs.value.length) * 100) : 0,
+    },
+    ...[...new Set(localJobs.value.map((job) => job.skill_label))].map((skillLabel) => {
+        const jobs = localJobs.value.filter((job) => job.skill_label === skillLabel)
+        const progress = jobs[0]?.skill_progress
+        const level = progress?.level ?? jobs[0]?.skill_level ?? 1
+
+        return {
+            key: skillLabel,
+            label: skillLabel,
+            count: jobs.length,
+            metaLabel: `Lv ${level}`,
+            progress: skillProgressPercent(progress),
+        }
+    }),
+])
 const activeFilter = computed(() => filters.value.find((filter) => filter.key === selectedFilter.value) ?? filters.value[0])
-const filteredJobs = computed(() => props.jobs
-    .filter((job) => selectedFilter.value === 'All' || job.category === selectedFilter.value)
+const filteredJobs = computed(() => localJobs.value
+    .filter((job) => selectedFilter.value === 'All' || job.skill_label === selectedFilter.value)
     .filter((job) => searchMatches(job, props.searchTerm)))
 const readyJobs = computed(() => filteredJobs.value.filter((job) => job.can_complete))
 const prepareJobs = computed(() => filteredJobs.value.filter((job) => job.is_unlocked && !job.can_complete && !job.is_accepted))
@@ -261,6 +295,14 @@ watch([readyJobs, prepareJobs], () => {
     }
 }, { immediate: true })
 
+watch(() => props.jobs, (jobs) => {
+    localJobs.value = [...jobs]
+}, { deep: true })
+
+watch(() => props.lastResult, (result) => {
+    applyJobResult(result)
+}, { immediate: true })
+
 function searchMatches(job, query) {
     const normalizedQuery = query.trim().toLowerCase()
 
@@ -290,14 +332,33 @@ function filterProgress(filter) {
         return 0
     }
 
-    const readyCount = props.jobs.filter((job) => (filter.key === 'All' || job.category === filter.key) && job.can_complete).length
+    return filter.progress ?? 0
+}
 
-    return Math.round((readyCount / filter.count) * 100)
+function requestJob(action, job) {
+    repeatJob.value = { action, job }
+
+    if (form.processing) {
+        queuedJobs.value.push({ action, job })
+
+        return
+    }
+
+    submitJob(action, job)
 }
 
 function accept(job) {
+    submitJob('accept', job)
+}
+
+function complete(job) {
+    submitJob('complete', job)
+}
+
+function submitJob(action, job) {
+    repeatJob.value = { action, job }
     form.job = job
-    form.post(route('evergather.jobs.acceptances.store'), {
+    form.post(route(action === 'accept' ? 'evergather.jobs.acceptances.store' : 'evergather.jobs.store'), {
         preserveScroll: true,
         only: jobReloadProps,
         onStart: () => {
@@ -305,22 +366,175 @@ function accept(job) {
         },
         onFinish: () => {
             runningJob.value = ''
+            queueNextJob()
         },
     })
 }
 
-function complete(job) {
-    form.job = job
-    form.post(route('evergather.jobs.store'), {
-        preserveScroll: true,
-        only: jobReloadProps,
-        onStart: () => {
-            runningJob.value = job
-        },
-        onFinish: () => {
-            runningJob.value = ''
-        },
+function maybeRepeatJob() {
+    if (!autoRepeatEnabled.value || !repeatJob.value || form.processing) {
+        return
+    }
+
+    const job = localJobs.value.find((entry) => entry.key === repeatJob.value.job)
+
+    if (!job || isJobDisabled(job, repeatJob.value.action)) {
+        autoRepeatEnabled.value = false
+
+        return
+    }
+
+    submitJob(repeatJob.value.action, repeatJob.value.job)
+}
+
+function isJobDisabled(job, action) {
+    if (action === 'accept') {
+        return !job.can_accept
+    }
+
+    return !job.can_complete
+}
+
+function toggleAutoRepeatJob() {
+    autoRepeatEnabled.value = !autoRepeatEnabled.value
+
+    if (autoRepeatEnabled.value) {
+        queueNextJob()
+    }
+}
+
+function queueNextJob(delay = 0) {
+    window.setTimeout(() => {
+        if (form.processing) {
+            queueNextJob(16)
+
+            return
+        }
+
+        const queuedJob = queuedJobs.value.shift()
+
+        if (queuedJob) {
+            const job = localJobs.value.find((entry) => entry.key === queuedJob.job)
+
+            if (job && !isJobDisabled(job, queuedJob.action)) {
+                submitJob(queuedJob.action, queuedJob.job)
+            }
+
+            return
+        }
+
+        maybeRepeatJob()
+    }, delay)
+}
+
+function applyJobResult(result) {
+    if (!['job', 'job_acceptance'].includes(result?.type)) {
+        return
+    }
+
+    const deltas = result.type === 'job' ? itemDeltas([], result.items_delivered ?? []) : {}
+    const progress = result.skill_progress
+
+    localJobs.value = localJobs.value.map((job) => {
+        let nextJob = patchJobInventory(job, deltas)
+
+        if (progress && nextJob.skill === progress.skill) {
+            nextJob = {
+                ...nextJob,
+                skill_label: progress.skill_label ?? nextJob.skill_label,
+                skill_level: progress.level ?? nextJob.skill_level,
+                skill_progress: progress,
+                is_unlocked: (progress.level ?? nextJob.skill_level) >= nextJob.required_level,
+            }
+        }
+
+        if (nextJob.key === result.job_key) {
+            if (result.type === 'job_acceptance') {
+                nextJob = {
+                    ...nextJob,
+                    is_accepted: true,
+                    can_accept: false,
+                    progress_quantity: result.progress_quantity ?? nextJob.progress_quantity,
+                    progress_required: result.progress_required ?? nextJob.progress_required,
+                    progress_percent: 0,
+                }
+            } else {
+                nextJob = {
+                    ...nextJob,
+                    is_accepted: false,
+                    remaining_completions: result.remaining_completions ?? nextJob.remaining_completions,
+                    completed_in_rotation: Number(nextJob.completed_in_rotation ?? 0) + 1,
+                }
+            }
+        }
+
+        return recomputeJobReady(nextJob)
     })
+}
+
+function patchJobInventory(job, deltas) {
+    return {
+        ...job,
+        requirements: job.requirements.map((requirement) => patchOwnedItem(requirement, deltas)),
+    }
+}
+
+function recomputeJobReady(job) {
+    const hasRequirements = job.requirements.every((requirement) => requirement.has_enough)
+    const isDemandAvailable = Number(job.remaining_completions ?? 0) > 0
+    const hasProgress = Number(job.progress_quantity ?? 0) >= Number(job.progress_required ?? 1)
+
+    return {
+        ...job,
+        is_demand_available: isDemandAvailable,
+        can_accept: job.requires_acceptance && !job.is_accepted && job.is_unlocked && isDemandAvailable,
+        can_complete: (job.requires_acceptance ? (job.is_accepted && hasProgress) : true)
+            && hasRequirements
+            && job.is_unlocked
+            && isDemandAvailable,
+    }
+}
+
+function itemDeltas(addedItems, removedItems) {
+    const deltas = {}
+
+    addedItems.forEach((item) => {
+        deltas[item.item_key] = (deltas[item.item_key] ?? 0) + Number(item.quantity ?? 0)
+    })
+
+    removedItems.forEach((item) => {
+        deltas[item.item_key] = (deltas[item.item_key] ?? 0) - Number(item.quantity ?? 0)
+    })
+
+    return deltas
+}
+
+function patchOwnedItem(item, deltas) {
+    const ownedQuantity = Math.max(0, Number(item.owned_quantity ?? 0) + Number(deltas[item.item_key] ?? 0))
+
+    return {
+        ...item,
+        owned_quantity: ownedQuantity,
+        has_enough: ownedQuantity >= Number(item.quantity ?? 0),
+    }
+}
+
+function skillProgressPercent(progress) {
+    if (!progress) {
+        return 0
+    }
+
+    if (progress.next_level_experience === null) {
+        return 100
+    }
+
+    const levelSpan = Number(progress.next_level_experience) - Number(progress.current_level_experience ?? 0)
+
+    if (levelSpan <= 0) {
+        return 0
+    }
+
+    return Math.max(0, Math.min(100, Math.round((Number(progress.experience_into_level ?? 0) / levelSpan) * 100)))
 }
 
 function completeLabel(job) {

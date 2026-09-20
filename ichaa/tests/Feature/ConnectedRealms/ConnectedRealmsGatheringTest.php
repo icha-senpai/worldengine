@@ -70,6 +70,9 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->where('actions.0.loot_preview.0.quality', 'standard')
                 ->where('actions.0.loot_preview.0.weight', 0.2)
                 ->where('actions.0.loot_preview.0.item_class', 'resource')
+                ->where('actions.0.skill_progress.skill_label', 'Fishing')
+                ->where('actions.0.skill_progress.level', 1)
+                ->where('actions.0.skill_progress.next_level_experience', 200)
                 ->where('actions.0.is_unlocked', true)
                 ->where('actions.7.required_level', 5)
                 ->where('actions.7.is_unlocked', false)
@@ -421,7 +424,10 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->post(route('evergather.actions.store'), ['action' => 'fish'])
                 ->assertRedirect(route('evergather.index'))
                 ->assertSessionHas('success', 'Fishing action completed.')
-                ->assertSessionHas('connected_realms_result');
+                ->assertSessionHas('connected_realms_result.skill_label', 'Fishing')
+                ->assertSessionHas('connected_realms_result.skill_level', 1)
+                ->assertSessionHas('connected_realms_result.skill_progress.skill_label', 'Fishing')
+                ->assertSessionHas('connected_realms_result.skill_progress.level', 1);
 
             $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
 
@@ -716,7 +722,11 @@ class ConnectedRealmsGatheringTest extends TestCase
                 ->assertRedirect(route('evergather.index'))
                 ->assertSessionHas('success', 'Candlemark Guard Cut completed.')
                 ->assertSessionHas('connected_realms_result.type', 'skill_activity')
-                ->assertSessionHas('connected_realms_result.band', '1-30');
+                ->assertSessionHas('connected_realms_result.band', '1-30')
+                ->assertSessionHas('connected_realms_result.skill_label', 'Combat')
+                ->assertSessionHas('connected_realms_result.skill_level', 1)
+                ->assertSessionHas('connected_realms_result.skill_progress.skill_label', 'Combat')
+                ->assertSessionHas('connected_realms_result.skill_progress.level', 1);
 
             $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
 
@@ -755,7 +765,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         }
     }
 
-    public function test_broken_equipped_tools_stop_providing_action_bonuses(): void
+    public function test_broken_equipped_tools_block_gathering_actions(): void
     {
         $user = $this->verifiedUserWithConnectedRealmsAccess();
         $player = ConnectedRealmsPlayer::query()->create([
@@ -793,31 +803,58 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
 
         $this->actingAs($user)
+            ->from(route('evergather.index'))
             ->post(route('evergather.actions.store'), ['action' => 'mine'])
             ->assertRedirect(route('evergather.index'))
-            ->assertSessionHas('connected_realms_result', function (array $result): bool {
-                return $result['tool']['is_broken'] === true
-                    && $result['tool']['durability'] === 0
-                    && $result['tool']['experience_bonus'] === 0
-                    && $result['tool']['yield_bonus'] === 0
-                    && $result['tool']['tool_effects']['modifiers']['critical_chance'] === 0;
-            });
+            ->assertSessionHasErrors('action');
 
         $equipment->refresh();
         $tool->refresh();
 
-        $skill = ConnectedRealmsPlayerSkill::query()
-            ->where('player_id', $player->id)
-            ->where('skill', 'mining')
-            ->firstOrFail();
-        $largestAward = ConnectedRealmsInventoryStack::query()
-            ->where('player_id', $player->id)
-            ->max('quantity');
-
         $this->assertSame(0, $equipment->durability);
         $this->assertSame(0, $tool->durability);
-        $this->assertLessThan(500, $skill->experience);
-        $this->assertLessThan(500, $largestAward);
+        $this->assertSame(0, ConnectedRealmsActionLog::query()->where('player_id', $player->id)->count());
+        $this->assertFalse(ConnectedRealmsPlayerSkill::query()
+            ->where('player_id', $player->id)
+            ->where('skill', 'mining')
+            ->exists());
+        $this->assertFalse(ConnectedRealmsInventoryStack::query()
+            ->where('player_id', $player->id)
+            ->exists());
+    }
+
+    public function test_broken_equipped_tools_block_skill_activities(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)->get(route('evergather.index'))->assertOk();
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+        $equipment = ConnectedRealmsEquipmentSlot::query()
+            ->where('player_id', $player->id)
+            ->where('slot', 'tool_smelting')
+            ->firstOrFail();
+        $tool = ConnectedRealmsTool::query()->findOrFail($equipment->tool_id);
+
+        $equipment->forceFill(['durability' => 0])->save();
+        $tool->forceFill(['durability' => 0])->save();
+
+        $activity = collect(app(SkillActivityService::class)->availableActivitiesFor($player->fresh()->load(['equipmentSlots', 'skills'])))
+            ->firstWhere('key', 'smelting_starter_activity_1');
+
+        $this->assertTrue($activity['requires_tool_repair']);
+
+        $this->actingAs($user)
+            ->from(route('evergather.index'))
+            ->post(route('evergather.activities.store'), ['activity' => 'smelting_starter_activity_1'])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHasErrors('activity');
+
+        $this->assertSame(0, ConnectedRealmsActionLog::query()->where('player_id', $player->id)->count());
+        $this->assertFalse(ConnectedRealmsPlayerSkill::query()
+            ->where('player_id', $player->id)
+            ->where('skill', 'smelting')
+            ->exists());
     }
 
     public function test_skill_catalog_has_level_100_progression_targets_for_all_leveling_tracks(): void
@@ -1760,6 +1797,54 @@ class ConnectedRealmsGatheringTest extends TestCase
         ]);
 
         $this->assertSame(1, ConnectedRealmsCraftingLog::query()->where('player_id', $player->id)->count());
+    }
+
+    public function test_broken_equipped_tools_block_crafting_recipes(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)->get(route('evergather.index'))->assertOk();
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+        $equipment = ConnectedRealmsEquipmentSlot::query()
+            ->where('player_id', $player->id)
+            ->where('slot', 'tool_cooking')
+            ->firstOrFail();
+        $tool = ConnectedRealmsTool::query()->findOrFail($equipment->tool_id);
+
+        $equipment->forceFill(['durability' => 0])->save();
+        $tool->forceFill(['durability' => 0])->save();
+
+        ConnectedRealmsInventoryStack::query()->create([
+            'player_id' => $player->id,
+            'item_key' => 'sunfield_grain',
+            'item_name' => 'Sunfield Grain',
+            'rarity' => 'common',
+            'quantity' => 2,
+        ]);
+
+        $recipe = collect(app(CraftingService::class)->availableRecipesFor($player->fresh()->load(['inventoryStacks', 'skills'])))
+            ->firstWhere('key', 'cooking_candlemark_meal');
+
+        $this->assertTrue($recipe['requires_tool_repair']);
+        $this->assertFalse($recipe['can_craft']);
+
+        $this->actingAs($user)
+            ->from(route('evergather.index'))
+            ->post(route('evergather.crafting.store'), ['recipe' => 'cooking_candlemark_meal'])
+            ->assertRedirect(route('evergather.index'))
+            ->assertSessionHasErrors('recipe');
+
+        $this->assertSame(0, ConnectedRealmsCraftingLog::query()->where('player_id', $player->id)->count());
+        $this->assertDatabaseHas('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'sunfield_grain',
+            'quantity' => 2,
+        ]);
+        $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
+            'player_id' => $player->id,
+            'item_key' => 'cooking_candlemark_meal',
+        ]);
     }
 
     public function test_crafting_tool_preserves_material_and_loses_durability_when_effect_applies(): void
@@ -2717,7 +2802,7 @@ class ConnectedRealmsGatheringTest extends TestCase
         $this->actingAs($user)->get(route('evergather.index'))->assertOk();
 
         $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
-        $player->forceFill(['gold' => 500])->save();
+        $player->forceFill(['gold' => 1500])->save();
         $equipment = ConnectedRealmsEquipmentSlot::query()
             ->where('player_id', $player->id)
             ->where('slot', 'tool_mining')
@@ -2738,7 +2823,7 @@ class ConnectedRealmsGatheringTest extends TestCase
             'item_key' => 'smelting_hearthsign_ingot',
             'item_name' => 'Hearthsign Ingot',
             'rarity' => 'common',
-            'quantity' => 2,
+            'quantity' => 5,
         ]);
 
         $this->actingAs($user)
@@ -2748,15 +2833,15 @@ class ConnectedRealmsGatheringTest extends TestCase
             ->assertRedirect(route('evergather.index'))
             ->assertSessionHas('success', 'Worn Pickaxe repaired.')
             ->assertSessionHas('connected_realms_result.type', 'tool_repair')
-            ->assertSessionHas('connected_realms_result.gold_spent', 320);
+            ->assertSessionHas('connected_realms_result.gold_spent', 1280);
 
         $equipment->refresh();
         $tool->refresh();
         $player->refresh();
 
-        $this->assertSame(100, $equipment->durability);
-        $this->assertSame(100, $tool->durability);
-        $this->assertSame(180, $player->gold);
+        $this->assertSame(220, $equipment->durability);
+        $this->assertSame(220, $tool->durability);
+        $this->assertSame(220, $player->gold);
         $this->assertDatabaseMissing('connected_realms_inventory_stacks', [
             'player_id' => $player->id,
             'item_key' => 'smelting_hearthsign_ingot',
@@ -2766,8 +2851,64 @@ class ConnectedRealmsGatheringTest extends TestCase
             'flow_key' => 'tool_repair',
             'direction' => ConnectedRealmsGoldFlow::DIRECTION_DESTROYED,
             'source_system' => 'tool_lifecycle',
-            'gold' => 320,
+            'gold' => 1280,
         ]);
+    }
+
+    public function test_tool_durability_curve_rounds_to_fives_and_caps_mythic_at_one_thousand(): void
+    {
+        $tools = app(ToolCatalogService::class);
+
+        $this->assertSame([100, 135, 175, 220, 270, 330, 395, 465, 550, 640], collect(EvergatherTierCatalog::tiers())
+            ->map(fn (array $tier): int => $tools->maxDurabilityFor((int) $tier['level'], 'common'))
+            ->all());
+        $this->assertSame(1000, $tools->maxDurabilityFor(100, 'mythic'));
+
+        foreach (EvergatherTierCatalog::tiers() as $tier) {
+            foreach ($tools->rarities() as $rarity) {
+                $this->assertSame(0, $tools->maxDurabilityFor((int) $tier['level'], $rarity) % 5);
+            }
+        }
+    }
+
+    public function test_equipment_payload_marks_repair_missing_materials(): void
+    {
+        $user = $this->verifiedUserWithConnectedRealmsAccess();
+
+        $this->actingAs($user)->get(route('evergather.index'))->assertOk();
+
+        $player = ConnectedRealmsPlayer::query()->where('user_id', $user->id)->firstOrFail();
+        $player->forceFill(['gold' => 2000])->save();
+        $equipment = ConnectedRealmsEquipmentSlot::query()
+            ->where('player_id', $player->id)
+            ->where('slot', 'tool_alchemy')
+            ->firstOrFail();
+        $tool = ConnectedRealmsTool::query()->findOrFail($equipment->tool_id);
+
+        $equipment->forceFill([
+            'durability' => 0,
+            'tier_level' => 20,
+        ])->save();
+        $tool->forceFill([
+            'durability' => 0,
+            'tier_level' => 20,
+        ])->save();
+
+        $this->actingAs($user)
+            ->get(route('evergather.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->reloadOnly(['equipment'], fn (Assert $reload) => $reload
+                    ->where('equipment.0.slot', $equipment->slot)
+                    ->where('equipment.0.tool_lifecycle.repair.is_repairable', true)
+                    ->where('equipment.0.tool_lifecycle.repair.can_repair', false)
+                    ->where('equipment.0.tool_lifecycle.repair.has_gold', true)
+                    ->where('equipment.0.tool_lifecycle.repair.has_materials', false)
+                    ->where('equipment.0.tool_lifecycle.repair.missing_materials', true)
+                    ->where('equipment.0.tool_lifecycle.repair.materials.0.owned_quantity', 0)
+                    ->where('equipment.0.tool_lifecycle.repair.materials.0.has_enough', false)
+                )
+            );
     }
 
     public function test_authorized_user_can_salvage_inventory_tool_for_lossy_materials(): void

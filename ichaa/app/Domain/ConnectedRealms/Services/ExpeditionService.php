@@ -59,7 +59,8 @@ class ExpeditionService
         return collect(self::expeditions())
             ->map(function (array $expedition, string $key) use ($inventory, $player): array {
                 $requiredLevel = (int) ($expedition['required_level'] ?? 1);
-                $skillLevel = $this->players->currentSkillLevel($player, $expedition['skill']);
+                $skillProgress = $this->players->skillProgressFor($player, $expedition['skill']);
+                $skillLevel = $skillProgress['level'];
                 $supplies = collect($expedition['supplies'])
                     ->map(function (array $supply) use ($inventory): array {
                         $ownedQuantity = (int) ($inventory->get($supply['item_key'])?->quantity ?? 0);
@@ -78,12 +79,13 @@ class ExpeditionService
                     'label' => $expedition['label'],
                     'region' => $expedition['region'],
                     'skill' => $expedition['skill'],
-                    'skill_label' => str($expedition['skill'])->headline()->toString(),
+                    'skill_label' => $skillProgress['skill_label'],
                     'required_level' => $requiredLevel,
                     'item_tier' => $expedition['item_tier'],
                     'level_band' => $expedition['level_band'],
                     'progression_phase' => $expedition['progression_phase'],
                     'skill_level' => $skillLevel,
+                    'skill_progress' => $skillProgress,
                     'is_unlocked' => $skillLevel >= $requiredLevel,
                     'experience' => $expedition['experience'],
                     'gold' => $expedition['gold'],
@@ -102,7 +104,7 @@ class ExpeditionService
      */
     public function run(User $user, string $expeditionKey): array
     {
-        $expedition = self::expeditions()[$expeditionKey] ?? null;
+        $expedition = self::expeditionForKey($expeditionKey);
 
         if ($expedition === null) {
             throw ValidationException::withMessages([
@@ -176,7 +178,9 @@ class ExpeditionService
                 'gold' => $player->gold + $expedition['gold'],
             ])->save();
 
-            $this->players->awardSkillExperience($player, $expedition['skill'], $expedition['experience']);
+            $skillProgress = $this->players->skillProgressPayload(
+                $this->players->awardSkillExperience($player, $expedition['skill'], $expedition['experience']),
+            );
             app(JobContractService::class)->recordMenuProgress($player, $expedition['skill'], $requiredLevel);
 
             $run = ConnectedRealmsExpeditionRun::create([
@@ -197,6 +201,12 @@ class ExpeditionService
                 'expedition_key' => $expeditionKey,
                 'label' => $expedition['label'],
                 'region' => $expedition['region'],
+                'skill' => $expedition['skill'],
+                'skill_label' => $skillProgress['skill_label'],
+                'skill_level' => $skillProgress['level'],
+                'skill_experience' => $skillProgress['experience'],
+                'next_level_experience' => $skillProgress['next_level_experience'],
+                'skill_progress' => $skillProgress,
                 'items_awarded' => $rewards,
                 'supplies_consumed' => $supplies,
                 'experience_awarded' => $expedition['experience'],
@@ -219,6 +229,48 @@ class ExpeditionService
         );
 
         return self::$expeditionCache;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function expeditionForKey(string $expeditionKey): ?array
+    {
+        if (self::$expeditionCache !== null) {
+            return self::$expeditionCache[$expeditionKey] ?? null;
+        }
+
+        $expedition = app(ConnectedRealmsContentService::class)->definitionFor(
+            'expeditions',
+            $expeditionKey,
+            self::baseExpeditionForKey($expeditionKey),
+        );
+
+        if ($expedition === null) {
+            return null;
+        }
+
+        return self::normalizeExpeditions([$expeditionKey => $expedition])[$expeditionKey];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function baseExpeditionForKey(string $expeditionKey): ?array
+    {
+        foreach (self::ROUTE_PROFILES as $skill => $profile) {
+            foreach (EvergatherTierCatalog::tiers() as $index => $tier) {
+                if ("{$skill}_{$tier['key_slug']}_expedition" !== $expeditionKey) {
+                    continue;
+                }
+
+                return self::normalizeExpeditions([
+                    $expeditionKey => self::expedition($skill, $profile, $tier, $index),
+                ])[$expeditionKey];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -296,8 +348,9 @@ class ExpeditionService
      */
     private static function craftedSupply(string $skill, int $level, int $itemTier): array
     {
-        $output = self::craftedOutputsBySkillAndLevel()[$skill][$level]
-            ?? self::nearestCraftedOutput($skill, $level);
+        $output = array_key_exists($skill, CraftingService::recipeTierFamilies())
+            ? CraftingService::tierLadderOutputForSkill($skill, EvergatherTierCatalog::nextTierLevelFor($level))
+            : self::nearestCraftedOutput($skill, $level);
 
         return [
             'item_key' => $output['item_key'],

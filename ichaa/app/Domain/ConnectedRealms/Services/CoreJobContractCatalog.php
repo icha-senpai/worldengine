@@ -156,6 +156,96 @@ class CoreJobContractCatalog
     }
 
     /**
+     * @return array<string, mixed>|null
+     */
+    public static function contractForKey(string $contractKey): ?array
+    {
+        foreach (self::PROFILES as $skill => $profile) {
+            foreach (EvergatherTierCatalog::tiers() as $index => $tier) {
+                if ("{$skill}_{$tier['key_slug']}_contract" !== $contractKey) {
+                    continue;
+                }
+
+                $level = (int) $tier['level'];
+                $quantity = self::quantityFor($profile['schedule'], $index);
+                $objectiveType = self::runtimeObjectiveTypeFor($profile);
+                $requirement = self::targetedRequirementFor($skill, $profile, $level, $quantity);
+                $objective = self::objectiveFor($skill, $profile, $tier, $quantity, $requirement, $objectiveType, null);
+                $gold = self::goldFor($profile['schedule'], $level, $quantity);
+                $experience = self::experienceFor($profile['schedule'], $level, $quantity);
+
+                return [
+                    'label' => "{$tier['mark']} {$profile['line_label']}",
+                    'category' => $profile['category'],
+                    'skill' => $skill,
+                    'required_level' => $level,
+                    'tier' => (int) $tier['item_tier'],
+                    'tier_mark' => $tier['mark'],
+                    'archetype' => $profile['archetype'],
+                    'objective_type' => $objectiveType,
+                    'objective' => $objective,
+                    'demand_channel' => 'profession_turn_in',
+                    'demand_pool' => 'profession_contracts',
+                    'world_consumer' => $profile['consumer'],
+                    'purpose' => $profile['purpose'],
+                    'sink' => [
+                        'type' => $profile['archetype'],
+                        'label' => "{$profile['consumer']} {$tier['mark']} demand",
+                        'required_level' => $level,
+                        'context' => $profile['category'],
+                    ],
+                    'tool_material_profile' => $profile['tool_material_profile'],
+                    'rotation' => 'daily',
+                    'completion_cap' => 3,
+                    'experience' => $experience,
+                    'gold' => $gold,
+                    'requirements' => $requirement === null ? [] : [$requirement],
+                    'rewards' => [
+                        ['type' => 'gold', 'label' => 'Gold', 'quantity' => $gold],
+                        ['type' => 'experience', 'label' => str($skill)->headline()->toString().' XP', 'quantity' => $experience],
+                    ],
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array{objective_type: string}  $profile
+     * @return array{item_key: string, item_name: string, quantity: int}|null
+     */
+    private static function targetedRequirementFor(string $skill, array $profile, int $level, int $quantity): ?array
+    {
+        if ($profile['objective_type'] === 'gather') {
+            $output = self::gatheringOutputsBySkillAndLevel()[$skill][$level]
+                ?? self::nearestOutput($skill, $level, self::gatheringOutputsBySkillAndLevel());
+
+            return $output === null ? null : [
+                'item_key' => $output['item_key'],
+                'item_name' => $output['item_name'],
+                'quantity' => $quantity,
+            ];
+        }
+
+        $recipeSkill = in_array($profile['objective_type'], ['process', 'craft'], true)
+            ? $skill
+            : (self::SUPPORT_SUPPLY_SKILLS[$skill] ?? null);
+
+        if ($recipeSkill === null || ! array_key_exists($recipeSkill, CraftingService::recipeTierFamilies())) {
+            return null;
+        }
+
+        $output = CraftingService::tierLadderOutputForSkill($recipeSkill, EvergatherTierCatalog::nextTierLevelFor($level));
+
+        return [
+            'item_key' => $output['item_key'],
+            'item_name' => $output['item_name'],
+            'quantity' => $quantity,
+        ];
+    }
+
+    /**
      * @param  array{objective_type: string, schedule: string}  $profile
      * @param  array<string, array<int, array{item_key: string, item_name: string}>>  $gatheringOutputs
      * @param  array<string, array<int, array{item_key: string, item_name: string}>>  $recipeOutputs

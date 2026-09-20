@@ -326,10 +326,15 @@ class ConnectedRealmsPlayerService
             }
 
             $rows = collect($gathering->availableActionsFor($playerWith(['skills'])))
-                ->map(fn (array $action): array => [
-                    ...$action,
-                    'equipped_tool' => $this->toolPayload($equipmentBySkill()->get($action['skill'])),
-                ])
+                ->map(function (array $action) use ($equipmentBySkill): array {
+                    $tool = $this->toolPayload($equipmentBySkill()->get($action['skill']));
+
+                    return [
+                        ...$action,
+                        'equipped_tool' => $tool,
+                        'requires_tool_repair' => (bool) ($tool['is_broken'] ?? false),
+                    ];
+                })
                 ->values()
                 ->all();
 
@@ -437,14 +442,22 @@ class ConnectedRealmsPlayerService
             'character_options' => fn (): array => $this->characterOptions(),
             'actions' => $actions,
             'skill_activities' => $skillActivities,
-            'equipment' => fn (): array => $playerWith(['equipmentSlots'])->equipmentSlots
-                ->map(fn (ConnectedRealmsEquipmentSlot $slot): array => $this->toolPayload($slot))
-                ->values()
-                ->all(),
-            'tool_inventory' => fn (): array => $playerWith(['tools'])->tools
-                ->map(fn (ConnectedRealmsTool $tool): array => $this->toolInstancePayload($tool))
-                ->values()
-                ->all(),
+            'equipment' => function () use ($playerWith): array {
+                $player = $playerWith(['equipmentSlots', 'inventoryStacks']);
+
+                return $player->equipmentSlots
+                    ->map(fn (ConnectedRealmsEquipmentSlot $slot): array => $this->toolPayload($slot, $player))
+                    ->values()
+                    ->all();
+            },
+            'tool_inventory' => function () use ($playerWith): array {
+                $player = $playerWith(['tools', 'inventoryStacks']);
+
+                return $player->tools
+                    ->map(fn (ConnectedRealmsTool $tool): array => $this->toolInstancePayload($tool, $player))
+                    ->values()
+                    ->all();
+            },
             'tool_rarity_upgrades' => fn (): array => $toolUpgrades->snapshotFor($playerWith(['equipmentSlots', 'inventoryStacks', 'skills'])),
             'tool_tier_upgrades' => fn (): array => $toolTierUpgrades->snapshotFor($playerWith(['equipmentSlots', 'inventoryStacks', 'skills'])),
             'crafting_recipes' => $craftingRecipes,
@@ -620,6 +633,8 @@ class ConnectedRealmsPlayerService
     public function equipTool(ConnectedRealmsPlayer $player, string $skill, string $itemKey, string $itemName, string $rarity, int $durability, array $bonuses, string $origin = 'crafted', ?string $makerName = null, int $tierLevel = 1): ConnectedRealmsEquipmentSlot
     {
         $slot = $this->tools->familyForSkill($skill)['slot'] ?? null;
+        $tierLevel = max(1, $tierLevel);
+        $durability = $this->tools->maxDurabilityFor($tierLevel, $rarity);
 
         if ($slot === null) {
             throw new \InvalidArgumentException("{$skill} does not support an Evergather tool slot.");
@@ -654,7 +669,7 @@ class ConnectedRealmsPlayerService
             'origin' => $origin,
             'status' => ConnectedRealmsTool::STATUS_EQUIPPED,
             'maker_name' => $makerName,
-            'tier_level' => max(1, $tierLevel),
+            'tier_level' => $tierLevel,
         ]);
 
         $equipment->fill([
@@ -671,7 +686,7 @@ class ConnectedRealmsPlayerService
             'rarity_progress' => 0,
             'origin' => $origin,
             'maker_name' => $makerName,
-            'tier_level' => max(1, $tierLevel),
+            'tier_level' => $tierLevel,
         ]);
         $equipment->save();
         $this->forgetPlayerEquipmentCache($player->id);
@@ -795,7 +810,7 @@ class ConnectedRealmsPlayerService
     /**
      * @return array<string, mixed>|null
      */
-    public function toolPayload(?ConnectedRealmsEquipmentSlot $slot): ?array
+    public function toolPayload(?ConnectedRealmsEquipmentSlot $slot, ?ConnectedRealmsPlayer $player = null): ?array
     {
         if ($slot === null) {
             return null;
@@ -803,13 +818,14 @@ class ConnectedRealmsPlayerService
 
         $cacheKey = $this->equipmentSlotPayloadCacheKey($slot);
 
-        if (array_key_exists($cacheKey, $this->toolPayloadCache)) {
+        if ($player === null && array_key_exists($cacheKey, $this->toolPayloadCache)) {
             return $this->toolPayloadCache[$cacheKey];
         }
 
         $skill = $slot->bonuses['skill'] ?? null;
         $skillMeta = $this->toolSkillMeta($skill);
         $isBroken = (int) $slot->durability <= 0;
+        $maxDurability = $this->tools->maxDurabilityFor((int) $slot->tier_level, $slot->rarity);
 
         $payload = $this->items->enrich([
             'slot' => $slot->slot,
@@ -822,6 +838,8 @@ class ConnectedRealmsPlayerService
             'item_name' => $slot->item_name,
             'rarity' => $slot->rarity,
             'durability' => $slot->durability,
+            'max_durability' => $maxDurability,
+            'durability_percent' => $this->durabilityPercent((int) $slot->durability, $maxDurability),
             'is_broken' => $isBroken,
             'experience_bonus' => $isBroken ? 0 : (int) ($slot->bonuses['experience'] ?? 0),
             'yield_bonus' => $isBroken ? 0 : (int) ($slot->bonuses['yield'] ?? 0),
@@ -837,29 +855,36 @@ class ConnectedRealmsPlayerService
 
         $effects = $this->toolEffects->payloadForEquipment($slot);
 
-        return $this->toolPayloadCache[$cacheKey] = [
+        $payload = [
             ...$payload,
             'tool_effects' => $effects,
-            'tool_lifecycle' => $this->toolLifecyclePayload($payload),
+            'tool_lifecycle' => $this->toolLifecyclePayload($payload, $player),
             'signature_trait' => $effects['signature_trait'],
             'discipline' => $effects['discipline'],
             'perks' => $effects['perks'],
         ];
+
+        if ($player !== null) {
+            return $payload;
+        }
+
+        return $this->toolPayloadCache[$cacheKey] = $payload;
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function toolInstancePayload(ConnectedRealmsTool $tool): array
+    public function toolInstancePayload(ConnectedRealmsTool $tool, ?ConnectedRealmsPlayer $player = null): array
     {
         $cacheKey = $this->toolInstancePayloadCacheKey($tool);
 
-        if (array_key_exists($cacheKey, $this->toolInstancePayloadCache)) {
+        if ($player === null && array_key_exists($cacheKey, $this->toolInstancePayloadCache)) {
             return $this->toolInstancePayloadCache[$cacheKey];
         }
 
         $skillMeta = $this->toolSkillMeta($tool->skill);
         $isBroken = (int) $tool->durability <= 0;
+        $maxDurability = $this->tools->maxDurabilityFor((int) $tool->tier_level, $tool->rarity);
 
         $payload = $this->items->enrich([
             'tool_id' => $tool->id,
@@ -872,6 +897,8 @@ class ConnectedRealmsPlayerService
             'item_name' => $tool->item_name,
             'rarity' => $tool->rarity,
             'durability' => $tool->durability,
+            'max_durability' => $maxDurability,
+            'durability_percent' => $this->durabilityPercent((int) $tool->durability, $maxDurability),
             'is_broken' => $isBroken,
             'experience_bonus' => $isBroken ? 0 : (int) ($tool->bonuses['experience'] ?? 0),
             'yield_bonus' => $isBroken ? 0 : (int) ($tool->bonuses['yield'] ?? 0),
@@ -891,7 +918,7 @@ class ConnectedRealmsPlayerService
         $payload = [
             ...$payload,
             'tool_effects' => $effects,
-            'tool_lifecycle' => $this->toolLifecyclePayload($payload),
+            'tool_lifecycle' => $this->toolLifecyclePayload($payload, $player),
             'signature_trait' => $effects['signature_trait'],
             'discipline' => $effects['discipline'],
             'perks' => $effects['perks'],
@@ -899,22 +926,29 @@ class ConnectedRealmsPlayerService
         $floor = $this->toolMarketFloor($payload);
         $ceiling = $floor * 8;
 
-        return $this->toolInstancePayloadCache[$cacheKey] = [
+        $payload = [
             ...$payload,
             'market_floor_price' => $floor,
             'market_ceiling_price' => $ceiling,
             'market_price_band' => "{$floor}-{$ceiling}g",
             'npc_buy_price' => max(1, (int) floor($floor * 0.65)),
         ];
+
+        if ($player !== null) {
+            return $payload;
+        }
+
+        return $this->toolInstancePayloadCache[$cacheKey] = $payload;
     }
 
     /**
      * @param  array<string, mixed>  $tool
      * @return array<string, mixed>
      */
-    private function toolLifecyclePayload(array $tool): array
+    private function toolLifecyclePayload(array $tool, ?ConnectedRealmsPlayer $player = null): array
     {
         $repair = $this->tools->repairCost($tool);
+        $repair = $player === null ? $repair : $this->repairAvailabilityPayload($player, $repair);
         $salvageMaterials = $this->tools->salvageMaterials($tool);
         $isStarter = ($tool['origin'] ?? null) === 'starter';
 
@@ -926,6 +960,54 @@ class ConnectedRealmsPlayerService
             ],
             'can_retire' => ! $isStarter,
         ];
+    }
+
+    /**
+     * @param  array{missing_durability: int, max_durability: int, gold_cost: int, materials: list<array{item_key: string, item_name: string, quantity: int}>, can_repair: bool}  $repair
+     * @return array<string, mixed>
+     */
+    private function repairAvailabilityPayload(ConnectedRealmsPlayer $player, array $repair): array
+    {
+        $inventoryQuantities = $player->relationLoaded('inventoryStacks')
+            ? $player->inventoryStacks->pluck('quantity', 'item_key')
+            : ConnectedRealmsInventoryStack::query()
+                ->where('player_id', $player->id)
+                ->pluck('quantity', 'item_key');
+
+        $materials = collect($repair['materials'])
+            ->map(function (array $material) use ($inventoryQuantities): array {
+                $ownedQuantity = (int) ($inventoryQuantities[$material['item_key']] ?? 0);
+
+                return [
+                    ...$material,
+                    'owned_quantity' => $ownedQuantity,
+                    'has_enough' => $ownedQuantity >= (int) $material['quantity'],
+                ];
+            })
+            ->values()
+            ->all();
+        $hasMaterials = collect($materials)->every(fn (array $material): bool => (bool) $material['has_enough']);
+        $hasGold = $player->gold >= (int) $repair['gold_cost'];
+        $isRepairable = (bool) $repair['can_repair'];
+
+        return [
+            ...$repair,
+            'materials' => $materials,
+            'has_gold' => $hasGold,
+            'has_materials' => $hasMaterials,
+            'missing_materials' => ! $hasMaterials,
+            'is_repairable' => $isRepairable,
+            'can_repair' => $isRepairable && $hasGold && $hasMaterials,
+        ];
+    }
+
+    private function durabilityPercent(int $durability, int $maxDurability): int
+    {
+        if ($maxDurability <= 0) {
+            return 0;
+        }
+
+        return max(0, min(100, (int) round(($durability / $maxDurability) * 100)));
     }
 
     public function awardSkillExperience(ConnectedRealmsPlayer $player, string $skill, int $experience): ConnectedRealmsPlayerSkill
@@ -969,6 +1051,94 @@ class ConnectedRealmsPlayerService
             ->value('experience');
 
         return $this->skillLevelCache[$cacheKey] = $this->catalog->levelForExperience($experience);
+    }
+
+    /**
+     * @return array{
+     *     skill: string,
+     *     skill_label: string,
+     *     level: int,
+     *     experience: int,
+     *     current_level_experience: int,
+     *     next_level_experience: int|null,
+     *     experience_into_level: int,
+     *     experience_to_next_level: int|null,
+     *     max_level: int
+     * }
+     */
+    public function skillProgressPayload(ConnectedRealmsPlayerSkill $skill): array
+    {
+        return $this->skillProgressPayloadFromValues(
+            $skill->skill,
+            (int) $skill->level,
+            (int) $skill->experience,
+        );
+    }
+
+    /**
+     * @return array{
+     *     skill: string,
+     *     skill_label: string,
+     *     level: int,
+     *     experience: int,
+     *     current_level_experience: int,
+     *     next_level_experience: int|null,
+     *     experience_into_level: int,
+     *     experience_to_next_level: int|null,
+     *     max_level: int
+     * }
+     */
+    public function skillProgressFor(ConnectedRealmsPlayer $player, string $skill): array
+    {
+        if ($player->relationLoaded('skills')) {
+            $record = $player->skills->firstWhere('skill', $skill);
+            $experience = (int) ($record?->experience ?? 0);
+            $level = $this->catalog->levelForExperience($experience);
+
+            return $this->skillProgressPayloadFromValues($skill, $level, $experience);
+        }
+
+        $record = ConnectedRealmsPlayerSkill::query()
+            ->where('player_id', $player->id)
+            ->where('skill', $skill)
+            ->first(['skill', 'level', 'experience']);
+
+        if ($record instanceof ConnectedRealmsPlayerSkill) {
+            return $this->skillProgressPayload($record);
+        }
+
+        return $this->skillProgressPayloadFromValues($skill, 1, 0);
+    }
+
+    /**
+     * @return array{
+     *     skill: string,
+     *     skill_label: string,
+     *     level: int,
+     *     experience: int,
+     *     current_level_experience: int,
+     *     next_level_experience: int|null,
+     *     experience_into_level: int,
+     *     experience_to_next_level: int|null,
+     *     max_level: int
+     * }
+     */
+    private function skillProgressPayloadFromValues(string $skill, int $level, int $experience): array
+    {
+        $currentLevelExperience = $this->catalog->experienceForLevel($level);
+        $nextLevelExperience = $this->catalog->nextLevelExperience($level);
+
+        return [
+            'skill' => $skill,
+            'skill_label' => $this->catalog->definition($skill)['label'],
+            'level' => $level,
+            'experience' => $experience,
+            'current_level_experience' => $currentLevelExperience,
+            'next_level_experience' => $nextLevelExperience,
+            'experience_into_level' => max(0, $experience - $currentLevelExperience),
+            'experience_to_next_level' => $nextLevelExperience === null ? null : max(0, $nextLevelExperience - $experience),
+            'max_level' => SkillCatalogService::MAX_LEVEL,
+        ];
     }
 
     /**

@@ -100,11 +100,17 @@
                                     <p class="mt-1 text-xs text-muted-3">{{ perk.description }}</p>
                                 </div>
                             </div>
-                            <div class="mt-3 h-2 overflow-hidden rounded-full bg-canvas">
+                            <div
+                                class="relative mt-3 h-5 overflow-hidden rounded-full border border-border bg-canvas"
+                                :aria-label="`Durability ${durabilityBarLabel(entry.tool)}`"
+                            >
                                 <div
                                     class="h-full rounded-full bg-success"
-                                    :style="{ width: `${entry.tool.durability}%` }"
+                                    :style="{ width: `${durabilityPercent(entry.tool)}%` }"
                                 />
+                                <span class="absolute inset-0 grid place-items-center px-2 text-[11px] font-ui leading-none text-primary drop-shadow">
+                                    {{ durabilityBarLabel(entry.tool) }}
+                                </span>
                             </div>
                             <div v-if="entry.upgrade" class="mt-3">
                                 <div class="flex items-center justify-between gap-3 text-xs">
@@ -158,17 +164,16 @@
                             <div v-if="entry.tool.tool_lifecycle" class="mt-3 rounded-md border border-border bg-canvas px-3 py-3">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
                                     <p class="text-xs font-ui text-primary">Lifecycle</p>
-                                    <span class="tag">{{ entry.tool.durability }}%</span>
+                                    <span class="tag">{{ durabilityLabel(entry.tool) }}</span>
                                 </div>
                                 <div class="mt-2 flex flex-wrap gap-2">
-                                    <span v-if="entry.tool.tool_lifecycle.repair.can_repair" class="tag">{{ entry.tool.tool_lifecycle.repair.gold_cost }}g repair</span>
+                                    <span v-if="showRepairCost(entry.tool)" class="tag">{{ entry.tool.tool_lifecycle.repair.gold_cost }}g repair</span>
                                     <span
-                                        v-for="material in entry.tool.tool_lifecycle.repair.materials"
-                                        v-if="entry.tool.tool_lifecycle.repair.can_repair"
+                                        v-for="material in repairMaterials(entry.tool)"
                                         :key="`${entry.tool.slot}-repair-${material.item_key}`"
                                         class="tag"
                                     >
-                                        {{ material.quantity }} {{ material.item_name }}
+                                        {{ repairMaterialLabel(material) }}
                                     </span>
                                     <span
                                         v-for="material in entry.tool.tool_lifecycle.salvage.materials"
@@ -219,10 +224,10 @@
                             <button
                                 type="button"
                                 class="app-btn app-btn--ghost app-btn--sm"
-                                :disabled="inventoryForm.processing || !entry.tool.tool_lifecycle?.repair?.can_repair"
+                                :disabled="inventoryForm.processing || !canRepairTool(entry.tool)"
                                 @click="repairTool(entry.tool.tool_id)"
                             >
-                                {{ runningEquipmentAction === equipmentActionKey('repair', entry.tool.tool_id) ? 'Repairing...' : 'Repair' }}
+                                {{ repairActionLabel(entry.tool) }}
                             </button>
                             <button
                                 type="button"
@@ -294,10 +299,10 @@
                             <button
                                 type="button"
                                 class="app-btn app-btn--ghost app-btn--sm"
-                                :disabled="inventoryForm.processing || !tool.tool_lifecycle?.repair?.can_repair"
+                                :disabled="inventoryForm.processing || !canRepairTool(tool)"
                                 @click="repairTool(tool.tool_id)"
                             >
-                                {{ runningEquipmentAction === equipmentActionKey('repair', tool.tool_id) ? 'Repairing...' : 'Repair' }}
+                                {{ repairActionLabel(tool) }}
                             </button>
                             <button
                                 type="button"
@@ -384,6 +389,77 @@ function filterProgress(filter) {
     const upgradeReadyCount = equipmentWithUpgrades.value.filter((entry) => (filter.key === 'All' || entry.tool.category === filter.key) && (entry.upgrade?.can_upgrade || entry.tier?.can_upgrade)).length
 
     return Math.round((upgradeReadyCount / filter.count) * 100)
+}
+
+function durabilityPercent(tool) {
+    if (tool?.durability_percent !== undefined) {
+        return tool.durability_percent
+    }
+
+    const maxDurability = Number(tool?.max_durability ?? 100)
+
+    if (maxDurability <= 0) {
+        return 0
+    }
+
+    return Math.max(0, Math.min(100, Math.round((Number(tool?.durability ?? 0) / maxDurability) * 100)))
+}
+
+function durabilityLabel(tool) {
+    const maxDurability = tool?.max_durability ?? 100
+
+    return `${tool?.durability ?? 0}/${maxDurability}`
+}
+
+function durabilityBarLabel(tool) {
+    return `${durabilityLabel(tool)} · ${durabilityPercent(tool)}%`
+}
+
+function repairPayload(tool) {
+    return tool?.tool_lifecycle?.repair ?? null
+}
+
+function repairMaterials(tool) {
+    return repairPayload(tool)?.materials ?? []
+}
+
+function showRepairCost(tool) {
+    const repair = repairPayload(tool)
+
+    return Boolean(repair && ((repair.is_repairable ?? repair.can_repair) || repair.missing_durability > 0))
+}
+
+function canRepairTool(tool) {
+    return Boolean(repairPayload(tool)?.can_repair)
+}
+
+function repairMaterialLabel(material) {
+    if (material.owned_quantity === undefined) {
+        return `${material.quantity} ${material.item_name}`
+    }
+
+    const neededQuantity = Number(material.quantity)
+    const ownedQuantity = Math.min(Number(material.owned_quantity), neededQuantity)
+
+    return `${ownedQuantity}/${neededQuantity} ${material.item_name}`
+}
+
+function repairActionLabel(tool) {
+    if (runningEquipmentAction.value === equipmentActionKey('repair', tool.tool_id)) {
+        return 'Repairing...'
+    }
+
+    const repair = repairPayload(tool)
+
+    if (repair?.missing_materials) {
+        return 'Need Materials'
+    }
+
+    if (repair?.has_gold === false) {
+        return `Need ${repair.gold_cost}g`
+    }
+
+    return 'Repair'
 }
 
 function attemptRarityUpgrade(slot) {

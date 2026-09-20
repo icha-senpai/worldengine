@@ -1,6 +1,5 @@
 const baseActionProps = [
     'player',
-    'jobs',
     'summary',
     'last_result',
 ]
@@ -14,35 +13,15 @@ export const activityReloadProps = [
 ]
 
 export const craftingReloadProps = [
-    'player',
-    'inventory',
-    'equipment',
-    'tool_inventory',
-    'tool_rarity_upgrades',
-    'tool_tier_upgrades',
-    'crafting_recipes',
-    'jobs',
-    'recent_crafts',
-    'summary',
-    'last_result',
+    ...baseActionProps,
 ]
 
 export const jobReloadProps = [
-    'player',
-    'inventory',
-    'jobs',
-    'recent_jobs',
-    'summary',
-    'last_result',
+    ...baseActionProps,
 ]
 
 export const expeditionReloadProps = [
-    'player',
-    'inventory',
-    'expeditions',
-    'recent_expeditions',
-    'summary',
-    'last_result',
+    ...baseActionProps,
 ]
 
 export const shopReloadProps = [
@@ -55,6 +34,8 @@ export const shopReloadProps = [
 
 export const equipmentReloadProps = [
     'player',
+    'actions',
+    'skill_activities',
     'equipment',
     'tool_inventory',
     'tool_rarity_upgrades',

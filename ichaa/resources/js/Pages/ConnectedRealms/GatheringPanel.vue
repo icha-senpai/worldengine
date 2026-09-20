@@ -41,7 +41,7 @@
                         >
                             <span class="flex min-w-0 items-center justify-between gap-2">
                                 <span class="truncate text-xs font-ui text-primary">{{ filter.label }}</span>
-                                <span class="text-[11px] text-muted-3">{{ filter.count }}</span>
+                                <span class="text-[11px] text-muted-3">{{ filter.metaLabel }}</span>
                             </span>
                             <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
                                 <span class="block h-full rounded-full bg-focus" :style="{ width: `${filterProgress(filter)}%` }" />
@@ -72,7 +72,7 @@
                         class="app-btn app-btn--ghost app-btn--sm mt-4 w-full"
                         :class="{ 'border-focus/70 bg-focus/10 text-primary': autoRepeatEnabled }"
                         :disabled="!repeatActionKey"
-                        @click="autoRepeatEnabled = !autoRepeatEnabled"
+                        @click="toggleAutoRepeatAction"
                     >
                         {{ autoRepeatEnabled ? 'Repeating' : 'Repeat Last' }}
                     </button>
@@ -94,8 +94,8 @@
                         :key="action.key"
                         type="button"
                         class="grid min-h-32 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 text-left transition hover:border-focus/60 disabled:cursor-not-allowed disabled:opacity-55 md:grid-cols-[3rem_minmax(0,1fr)_5.75rem]"
-                        :disabled="form.processing || !canActNow || !action.is_unlocked"
-                        @click="submitAction(action.key)"
+                        :disabled="isActionDisabled(action)"
+                        @click="requestAction(action.key)"
                     >
                         <span class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary">
                             #{{ index + 1 }}
@@ -110,7 +110,7 @@
                             </span>
                             <span class="mt-1 block text-xs text-muted-2">{{ action.location }}</span>
                             <span v-if="action.equipped_tool" class="mt-2 block text-xs text-muted-2">
-                                {{ action.equipped_tool.item_name }} · {{ action.equipped_tool.signature_trait }} · +{{ action.equipped_tool.experience_bonus }} XP · +{{ action.equipped_tool.yield_bonus }} yield
+                                {{ toolSummary(action.equipped_tool) }}
                             </span>
                             <span class="mt-3 flex flex-wrap gap-2">
                                 <span
@@ -133,6 +133,7 @@
 
                         <span class="text-left md:text-right">
                             <span v-if="!action.is_unlocked" class="block text-xs text-muted-3">Level {{ action.skill_level }} / {{ action.required_level }}</span>
+                            <span v-else-if="requiresToolRepair(action)" class="block text-sm font-ui text-danger">Repair Tool</span>
                             <span v-else-if="runningAction === action.key" class="block text-sm font-ui text-focus">Starting...</span>
                             <span v-else-if="canActNow" class="block text-sm font-ui text-success">Start</span>
                             <span v-else class="block text-sm font-ui text-muted-3">{{ cooldownLabel }}</span>
@@ -175,6 +176,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    lastResult: {
+        type: Object,
+        default: null,
+    },
     searchTerm: {
         type: String,
         default: '',
@@ -188,21 +193,40 @@ const visibleLimit = ref(boardPageSize)
 const now = ref(Date.now())
 const autoRepeatEnabled = ref(false)
 const repeatActionKey = ref('')
-const autoRepeatGuardUntil = ref(0)
 const runningAction = ref('')
+const queuedActions = ref([])
+const localActions = ref([...props.actions])
 let cooldownTimer = null
 const form = useForm({
     action: null,
 })
 
-const filters = computed(() => ['All', ...new Set(props.actions.map((action) => action.skill_label))].map((filter) => ({
-    key: filter,
-    label: filter,
-    count: props.actions.filter((action) => filter === 'All' || action.skill_label === filter).length,
-})))
+const filters = computed(() => [
+    {
+        key: 'All',
+        label: 'All',
+        count: localActions.value.length,
+        metaLabel: localActions.value.length,
+        progress: localActions.value.length ? Math.round((unlockedCount.value / localActions.value.length) * 100) : 0,
+    },
+    ...[...new Set(localActions.value.map((action) => action.skill_label))].map((skillLabel) => {
+        const skillActions = localActions.value.filter((action) => action.skill_label === skillLabel)
+        const progress = skillActions[0]?.skill_progress
+        const level = progress?.level ?? skillActions[0]?.skill_level ?? 1
+
+        return {
+            key: skillLabel,
+            label: skillLabel,
+            count: skillActions.length,
+            level,
+            metaLabel: `Lv ${level}`,
+            progress: skillProgressPercent(progress),
+        }
+    }),
+])
 const activeFilter = computed(() => filters.value.find((filter) => filter.key === selectedFilter.value) ?? filters.value[0])
-const unlockedCount = computed(() => props.actions.filter((action) => action.is_unlocked).length)
-const filteredActions = computed(() => props.actions.filter((action) => {
+const unlockedCount = computed(() => localActions.value.filter((action) => action.is_unlocked).length)
+const filteredActions = computed(() => localActions.value.filter((action) => {
     const matchesFilter = selectedFilter.value === 'All' || action.skill_label === selectedFilter.value
 
     if (!matchesFilter) {
@@ -211,8 +235,8 @@ const filteredActions = computed(() => props.actions.filter((action) => {
 
     return searchMatches(action, props.searchTerm)
 }))
-const readyActions = computed(() => filteredActions.value.filter((action) => action.is_unlocked))
-const lockedActions = computed(() => filteredActions.value.filter((action) => !action.is_unlocked))
+const readyActions = computed(() => sortActionsByRequiredLevel(filteredActions.value.filter((action) => action.is_unlocked)))
+const lockedActions = computed(() => sortActionsByRequiredLevel(filteredActions.value.filter((action) => !action.is_unlocked)))
 const actionBoards = computed(() => [
     {
         key: 'ready',
@@ -244,6 +268,7 @@ const cooldownRemainingMs = computed(() => {
     return Math.max(0, nextActionAt.value - now.value)
 })
 const canActNow = computed(() => props.player.can_act_now || cooldownRemainingMs.value <= 0)
+const hasInstantCooldown = computed(() => localActions.value.some((action) => Number(action.cooldown_seconds ?? 0) === 0))
 const cooldownLabel = computed(() => {
     if (canActNow.value) {
         return 'Ready'
@@ -268,7 +293,7 @@ onMounted(() => {
     cooldownTimer = window.setInterval(() => {
         now.value = Date.now()
         maybeRepeatAction()
-    }, 1000)
+    }, 250)
 })
 
 onBeforeUnmount(() => {
@@ -281,6 +306,14 @@ watch([selectedBoard, selectedFilter, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
 
+watch(() => props.actions, (actions) => {
+    localActions.value = [...actions]
+}, { deep: true })
+
+watch(() => props.lastResult, (result) => {
+    applyActionResult(result)
+}, { immediate: true })
+
 watch([readyActions, lockedActions], () => {
     if (!readyActions.value.length && lockedActions.value.length && selectedBoard.value === 'ready') {
         selectedBoard.value = 'next'
@@ -291,9 +324,22 @@ watch([readyActions, lockedActions], () => {
     }
 }, { immediate: true })
 
+function requestAction(action) {
+    repeatActionKey.value = action
+
+    if (form.processing) {
+        if (hasInstantCooldown.value) {
+            queuedActions.value.push(action)
+        }
+
+        return
+    }
+
+    submitAction(action)
+}
+
 function submitAction(action) {
     repeatActionKey.value = action
-    autoRepeatGuardUntil.value = Date.now() + 750
     form.action = action
     form.post(route('evergather.actions.store'), {
         preserveScroll: true,
@@ -303,18 +349,19 @@ function submitAction(action) {
         },
         onFinish: () => {
             runningAction.value = ''
+            queueNextAction()
         },
     })
 }
 
 function maybeRepeatAction() {
-    if (!autoRepeatEnabled.value || !repeatActionKey.value || form.processing || !canActNow.value || Date.now() < autoRepeatGuardUntil.value) {
+    if (!autoRepeatEnabled.value || !repeatActionKey.value || form.processing || !canActNow.value) {
         return
     }
 
-    const action = props.actions.find((entry) => entry.key === repeatActionKey.value)
+    const action = localActions.value.find((entry) => entry.key === repeatActionKey.value)
 
-    if (!action?.is_unlocked) {
+    if (!action?.is_unlocked || requiresToolRepair(action)) {
         autoRepeatEnabled.value = false
 
         return
@@ -323,14 +370,125 @@ function maybeRepeatAction() {
     submitAction(repeatActionKey.value)
 }
 
+function isActionDisabled(action) {
+    if (!canActNow.value || !action.is_unlocked || requiresToolRepair(action)) {
+        return true
+    }
+
+    return form.processing && !hasInstantCooldown.value
+}
+
+function requiresToolRepair(action) {
+    return Boolean(action.requires_tool_repair || action.equipped_tool?.is_broken)
+}
+
+function toggleAutoRepeatAction() {
+    autoRepeatEnabled.value = !autoRepeatEnabled.value
+
+    if (autoRepeatEnabled.value) {
+        queueNextAction()
+    }
+}
+
+function queueNextAction() {
+    window.setTimeout(() => {
+        now.value = Date.now()
+
+        const queuedAction = queuedActions.value.shift()
+
+        if (queuedAction) {
+            submitAction(queuedAction)
+
+            return
+        }
+
+        maybeRepeatAction()
+    }, 0)
+}
+
 function filterProgress(filter) {
-    if (!filter.count) {
+    return filter.progress ?? 0
+}
+
+function sortActionsByRequiredLevel(actions) {
+    return actions
+        .map((action, index) => ({ action, index }))
+        .sort((left, right) => {
+            const levelDifference = Number(left.action.required_level ?? 1) - Number(right.action.required_level ?? 1)
+
+            return levelDifference === 0 ? left.index - right.index : levelDifference
+        })
+        .map((entry) => entry.action)
+}
+
+function skillProgressPercent(progress) {
+    if (!progress) {
         return 0
     }
 
-    const readyCount = props.actions.filter((action) => (filter.key === 'All' || action.skill_label === filter.key) && action.is_unlocked).length
+    if (progress.next_level_experience === null) {
+        return 100
+    }
 
-    return Math.round((readyCount / filter.count) * 100)
+    const levelSpan = Number(progress.next_level_experience) - Number(progress.current_level_experience ?? 0)
+
+    if (levelSpan <= 0) {
+        return 0
+    }
+
+    return Math.max(0, Math.min(100, Math.round((Number(progress.experience_into_level ?? 0) / levelSpan) * 100)))
+}
+
+function toolSummary(tool) {
+    const parts = [
+        tool.item_name,
+        tool.signature_trait,
+    ].filter(Boolean)
+
+    if (tool.is_broken) {
+        return [...parts, 'Broken'].join(' · ')
+    }
+
+    const experienceBonus = Number(tool.experience_bonus ?? 0)
+    const yieldBonus = Number(tool.yield_bonus ?? 0)
+
+    if (experienceBonus > 0) {
+        parts.push(`+${experienceBonus} XP`)
+    }
+
+    if (yieldBonus > 0) {
+        parts.push(`+${yieldBonus} yield`)
+    }
+
+    if (parts.length <= 2) {
+        parts.push('No active bonuses')
+    }
+
+    return parts.join(' · ')
+}
+
+function applyActionResult(result) {
+    if (!result?.action || !result.skill_progress) {
+        return
+    }
+
+    const progress = result.skill_progress
+
+    localActions.value = localActions.value.map((action) => {
+        if (action.skill !== progress.skill) {
+            return action
+        }
+
+        const level = progress.level ?? action.skill_level
+
+        return {
+            ...action,
+            skill_label: progress.skill_label ?? action.skill_label,
+            skill_level: level,
+            skill_progress: progress,
+            is_unlocked: level >= action.required_level,
+        }
+    })
 }
 
 function searchMatches(action, query) {

@@ -4,6 +4,16 @@ namespace App\Domain\ConnectedRealms\Services;
 
 class ToolCatalogService
 {
+    private const BASE_DURABILITY = 100;
+
+    private const MAX_DURABILITY = 1000;
+
+    private const TIER_DURABILITY_MULTIPLIER = 1.125;
+
+    private const RARITY_DURABILITY_MULTIPLIER = 1.075;
+
+    private const DURABILITY_ROUNDING_INCREMENT = 5;
+
     /**
      * @var list<string>
      */
@@ -224,6 +234,25 @@ class ToolCatalogService
         return $this->rarityRank($rarity) <= $this->rarityRank($this->maxRarityForTierLevel($tierLevel));
     }
 
+    public function maxDurabilityFor(int $tierLevel, string $rarity = 'common'): int
+    {
+        $itemTier = $tierLevel <= 0 ? 1 : EvergatherTierCatalog::itemTierForLevel($tierLevel);
+        $tierRank = max(0, $itemTier - 1);
+        $rarityRank = max(0, $this->rarityRank($rarity));
+        $rawMultiplier = (self::TIER_DURABILITY_MULTIPLIER ** $tierRank)
+            * (self::RARITY_DURABILITY_MULTIPLIER ** $rarityRank);
+        $maxRawMultiplier = (self::TIER_DURABILITY_MULTIPLIER ** 9)
+            * (self::RARITY_DURABILITY_MULTIPLIER ** (count(self::RARITY_ORDER) - 1));
+        $durability = self::BASE_DURABILITY
+            + (($rawMultiplier - 1) / ($maxRawMultiplier - 1))
+            * (self::MAX_DURABILITY - self::BASE_DURABILITY);
+
+        return max(
+            self::BASE_DURABILITY,
+            (int) round($durability / self::DURABILITY_ROUNDING_INCREMENT) * self::DURABILITY_ROUNDING_INCREMENT,
+        );
+    }
+
     /**
      * @return array<string, mixed>|null
      */
@@ -284,19 +313,21 @@ class ToolCatalogService
 
     /**
      * @param  array<string, mixed>  $tool
-     * @return array{missing_durability: int, gold_cost: int, materials: list<array{item_key: string, item_name: string, quantity: int}>, can_repair: bool}
+     * @return array{missing_durability: int, max_durability: int, gold_cost: int, materials: list<array{item_key: string, item_name: string, quantity: int}>, can_repair: bool}
      */
     public function repairCost(array $tool): array
     {
-        $missingDurability = max(0, 100 - (int) ($tool['durability'] ?? 100));
         $skill = (string) ($tool['skill'] ?? ($tool['bonuses']['skill'] ?? ''));
         $family = $this->familyForSkill($skill);
         $tierLevel = max(1, (int) ($tool['tier_level'] ?? 1));
         $itemTier = EvergatherTierCatalog::itemTierForLevel($tierLevel);
+        $maxDurability = $this->maxDurabilityFor($tierLevel, (string) ($tool['rarity'] ?? 'common'));
+        $missingDurability = max(0, $maxDurability - (int) ($tool['durability'] ?? $maxDurability));
         $materialQuantity = $missingDurability === 0 ? 0 : max(1, (int) ceil($missingDurability / 35));
 
         return [
             'missing_durability' => $missingDurability,
+            'max_durability' => $maxDurability,
             'gold_cost' => $missingDurability * max(1, $itemTier) * 2,
             'materials' => $family === null || $materialQuantity === 0 ? [] : [[
                 ...$this->ladderMaterialForFamily($family, $tierLevel),

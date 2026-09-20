@@ -638,16 +638,18 @@ class GatheringActionService
         return collect(self::actionDefinitions())
             ->map(function (array $action, string $key) use ($player): array {
                 $requiredLevel = (int) ($action['required_level'] ?? 1);
-                $skillLevel = $this->players->currentSkillLevel($player, $action['skill']);
+                $skillProgress = $this->players->skillProgressFor($player, $action['skill']);
+                $skillLevel = $skillProgress['level'];
 
                 return [
                     'key' => $key,
                     'label' => $action['label'],
                     'skill' => $action['skill'],
-                    'skill_label' => str($action['skill'])->headline()->toString(),
+                    'skill_label' => $skillProgress['skill_label'],
                     'location' => $action['location'],
                     'required_level' => $requiredLevel,
                     'skill_level' => $skillLevel,
+                    'skill_progress' => $skillProgress,
                     'is_unlocked' => $skillLevel >= $requiredLevel,
                     'cooldown_seconds' => $this->cooldownSecondsFor($action),
                     'loot_preview' => collect($action['loot'])
@@ -701,6 +703,13 @@ class GatheringActionService
             }
 
             $tool = $this->players->equipmentForSkill($player, $definition['skill']);
+
+            if ($tool !== null && (int) $tool->durability <= 0) {
+                throw ValidationException::withMessages([
+                    'action' => 'Repair tool before starting that action.',
+                ]);
+            }
+
             $toolModifiers = $this->toolEffects->actionModifiers($tool);
             $eventBonus = $this->events->gatheringBonusForSkill($definition['skill']);
             $experienceBonus = $toolModifiers['experience'];
@@ -714,7 +723,9 @@ class GatheringActionService
             $availableAt = now()->addSeconds($this->cooldownSecondsFor($definition, $toolModifiers['cooldown_reduction']));
             $toolContributed = $this->toolContributedToAction($toolModifiers);
 
-            $this->players->awardSkillExperience($player, $definition['skill'], $experienceAwarded);
+            $skillProgress = $this->players->skillProgressPayload(
+                $this->players->awardSkillExperience($player, $definition['skill'], $experienceAwarded),
+            );
 
             foreach ($itemsAwarded as $item) {
                 $stack = ConnectedRealmsInventoryStack::query()->firstOrNew([
@@ -762,6 +773,11 @@ class GatheringActionService
                 'id' => $log->id,
                 'action' => $actionKey,
                 'skill' => $definition['skill'],
+                'skill_label' => $skillProgress['skill_label'],
+                'skill_level' => $skillProgress['level'],
+                'skill_experience' => $skillProgress['experience'],
+                'next_level_experience' => $skillProgress['next_level_experience'],
+                'skill_progress' => $skillProgress,
                 'label' => $definition['label'],
                 'location' => $definition['location'],
                 'tool' => $this->players->toolPayload($tool),

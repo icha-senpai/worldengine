@@ -133,6 +133,39 @@ class ConnectedRealmsContentService
     }
 
     /**
+     * @param  array<string, mixed>|null  $fallback
+     * @return array<string, mixed>|null
+     */
+    public function definitionFor(string $surface, string $entryKey, ?array $fallback): ?array
+    {
+        if ($this->cacheEffectiveDefinitions($surface) && array_key_exists($surface, self::$effectiveDefinitionCache)) {
+            return self::$effectiveDefinitionCache[$surface][$entryKey] ?? null;
+        }
+
+        try {
+            $entry = ConnectedRealmsContentEntry::query()
+                ->where('surface', $surface)
+                ->where('entry_key', $entryKey)
+                ->first();
+        } catch (QueryException) {
+            $entry = null;
+        }
+
+        if ($entry instanceof ConnectedRealmsContentEntry) {
+            if (! $entry->enabled) {
+                return null;
+            }
+
+            return $this->normalizePayloadForSurface(
+                $surface,
+                $this->payloadFor($entry, $fallback ?? []),
+            );
+        }
+
+        return $fallback;
+    }
+
+    /**
      * @param  list<array<string, mixed>>  $fallback
      * @return list<array<string, mixed>>
      */

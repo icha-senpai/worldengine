@@ -273,9 +273,9 @@
 
             <LatestResultPanel v-if="last_result && activeSubPanel === 'result'" class="xl:col-span-2" :result="last_result" />
 
-            <GatheringPanel v-if="activePanel === 'gather' && activeSubPanel === 'actions'" class="xl:col-span-2" :actions="actions" :player="player" :search-term="searchQuery" />
+            <GatheringPanel v-if="activePanel === 'gather' && activeSubPanel === 'actions'" class="xl:col-span-2" :actions="actions" :player="player" :last-result="last_result" :search-term="searchQuery" />
 
-            <SkillActivitiesPanel v-if="activePanel === 'gather' && activeSubPanel === 'activities'" class="xl:col-span-2" :activities="skill_activities" :player="player" :search-term="searchQuery" />
+            <SkillActivitiesPanel v-if="activePanel === 'gather' && activeSubPanel === 'activities'" class="xl:col-span-2" :activities="skill_activities" :player="player" :last-result="last_result" :search-term="searchQuery" />
 
             <Deferred v-if="activePanel === 'craft' && activeSubPanel === 'equipment'" :data="['equipment', 'tool_inventory', 'tool_rarity_upgrades', 'tool_tier_upgrades']">
                 <EquipmentPanel class="xl:col-span-2" :equipment="equipment" :tool-inventory="tool_inventory" :tool-rarity-upgrades="tool_rarity_upgrades" :tool-tier-upgrades="tool_tier_upgrades" />
@@ -286,7 +286,7 @@
             </Deferred>
 
             <Deferred v-if="activePanel === 'craft' && activeSubPanel === 'recipes'" data="crafting_recipes">
-                <CraftingPanel class="xl:col-span-2" :recipes="crafting_recipes" :search-term="searchQuery" />
+                <CraftingPanel class="xl:col-span-2" :recipes="crafting_recipes" :player="player" :last-result="last_result" :search-term="searchQuery" />
 
                 <template #fallback>
                     <DeferredPanelSkeleton title="Recipes" subtitle="Loading craftable recipes..." />
@@ -294,7 +294,7 @@
             </Deferred>
 
             <Deferred v-if="activePanel === 'craft' && activeSubPanel === 'jobs'" data="jobs">
-                <JobsPanel class="xl:col-span-2" :jobs="jobs" :search-term="searchQuery" />
+                <JobsPanel class="xl:col-span-2" :jobs="jobs" :last-result="last_result" :search-term="searchQuery" />
 
                 <template #fallback>
                     <DeferredPanelSkeleton title="Jobs" subtitle="Loading commission boards..." />
@@ -302,7 +302,7 @@
             </Deferred>
 
             <Deferred v-if="activePanel === 'craft' && activeSubPanel === 'expeditions'" data="expeditions">
-                <ExpeditionsPanel class="xl:col-span-2" :expeditions="expeditions" :search-term="searchQuery" />
+                <ExpeditionsPanel class="xl:col-span-2" :expeditions="expeditions" :last-result="last_result" :search-term="searchQuery" />
 
                 <template #fallback>
                     <DeferredPanelSkeleton title="Expeditions" subtitle="Loading route boards..." />

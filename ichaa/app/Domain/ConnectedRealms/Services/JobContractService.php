@@ -53,7 +53,8 @@ class JobContractService
         return collect($jobCatalog)
             ->map(function (array $job, string $key) use ($inventory, $player, $completionCounts, $activeContracts): array {
                 $requiredLevel = (int) ($job['required_level'] ?? 1);
-                $skillLevel = $this->players->currentSkillLevel($player, $job['skill']);
+                $skillProgress = $this->players->skillProgressFor($player, $job['skill']);
+                $skillLevel = $skillProgress['level'];
                 $completionCap = $this->completionCap($job);
                 $completedInRotation = (int) ($completionCounts[$key] ?? 0);
                 $remainingCompletions = max(0, $completionCap - $completedInRotation);
@@ -86,9 +87,10 @@ class JobContractService
                     'label' => $job['label'],
                     'category' => $job['category'],
                     'skill' => $job['skill'],
-                    'skill_label' => str($job['skill'])->headline()->toString(),
+                    'skill_label' => $skillProgress['skill_label'],
                     'required_level' => $requiredLevel,
                     'skill_level' => $skillLevel,
+                    'skill_progress' => $skillProgress,
                     'is_unlocked' => $isUnlocked,
                     'experience' => $job['experience'],
                     'gold' => $job['gold'],
@@ -138,7 +140,7 @@ class JobContractService
                 ->whereKey($player->id)
                 ->lockForUpdate()
                 ->firstOrFail();
-            $job = self::jobs()[$jobKey] ?? null;
+            $job = self::jobForKey($jobKey);
 
             if ($job === null) {
                 throw ValidationException::withMessages([
@@ -214,7 +216,7 @@ class JobContractService
                 ->whereKey($player->id)
                 ->lockForUpdate()
                 ->firstOrFail();
-            $job = self::jobs()[$jobKey] ?? null;
+            $job = self::jobForKey($jobKey);
 
             if ($job === null) {
                 throw ValidationException::withMessages([
@@ -291,7 +293,9 @@ class JobContractService
                 'gold' => $player->gold + $job['gold'],
             ])->save();
 
-            $this->players->awardSkillExperience($player, $job['skill'], $job['experience']);
+            $skillProgress = $this->players->skillProgressPayload(
+                $this->players->awardSkillExperience($player, $job['skill'], $job['experience']),
+            );
 
             $completion = ConnectedRealmsJobCompletion::create([
                 'player_id' => $player->id,
@@ -318,7 +322,11 @@ class JobContractService
                 'label' => $job['label'],
                 'category' => $job['category'],
                 'skill' => $job['skill'],
-                'skill_label' => str($job['skill'])->headline()->toString(),
+                'skill_label' => $skillProgress['skill_label'],
+                'skill_level' => $skillProgress['level'],
+                'skill_experience' => $skillProgress['experience'],
+                'next_level_experience' => $skillProgress['next_level_experience'],
+                'skill_progress' => $skillProgress,
                 'items_delivered' => $delivered,
                 'rewards' => $job['rewards'],
                 'experience_awarded' => $job['experience'],
@@ -413,6 +421,42 @@ class JobContractService
         );
 
         return self::$jobCache;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function jobForKey(string $jobKey): ?array
+    {
+        if (self::$jobCache !== null) {
+            return self::$jobCache[$jobKey] ?? null;
+        }
+
+        $job = app(ConnectedRealmsContentService::class)->definitionFor(
+            'job_contracts',
+            $jobKey,
+            self::baseJobForKey($jobKey),
+        );
+
+        if ($job === null) {
+            return null;
+        }
+
+        return self::normalizeRequiredLevels([$jobKey => $job])[$jobKey];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function baseJobForKey(string $jobKey): ?array
+    {
+        $job = CoreJobContractCatalog::contractForKey($jobKey);
+
+        if ($job === null) {
+            return null;
+        }
+
+        return self::boundedJob(self::normalizeRequiredLevels([$jobKey => $job])[$jobKey]);
     }
 
     /**

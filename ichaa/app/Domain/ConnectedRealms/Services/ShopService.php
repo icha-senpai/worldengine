@@ -276,7 +276,7 @@ class ShopService
                     'item_name' => $itemName,
                     'rarity' => $tier['tier'],
                     'quantity' => 1,
-                    'durability' => 100,
+                    'durability' => $tools->maxDurabilityFor((int) $tier['required_level'], (string) $tier['tier']),
                     'bonuses' => [
                         'experience' => $tier['experience'],
                         'yield' => $tier['yield'],

@@ -41,7 +41,7 @@
                         >
                             <span class="flex min-w-0 items-center justify-between gap-2">
                                 <span class="truncate text-xs font-ui text-primary">{{ filter.label }}</span>
-                                <span class="text-[11px] text-muted-3">{{ filter.count }}</span>
+                                <span class="text-[11px] text-muted-3">{{ filter.metaLabel }}</span>
                             </span>
                             <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
                                 <span class="block h-full rounded-full bg-focus" :style="{ width: `${filterProgress(filter)}%` }" />
@@ -63,6 +63,15 @@
                             <span class="text-primary">{{ visibleExperience }}</span>
                         </div>
                     </div>
+                    <button
+                        type="button"
+                        class="app-btn app-btn--ghost app-btn--sm mt-4 w-full"
+                        :class="{ 'border-focus/70 bg-focus/10 text-primary': autoRepeatEnabled }"
+                        :disabled="!repeatExpeditionKey"
+                        @click="toggleAutoRepeatExpedition"
+                    >
+                        {{ autoRepeatEnabled ? 'Repeating' : 'Repeat Last' }}
+                    </button>
                 </div>
 
                 <div class="grid content-start gap-3">
@@ -125,8 +134,8 @@
                             <button
                                 type="button"
                                 class="app-btn app-btn--sm"
-                                :disabled="form.processing || !expedition.can_start"
-                                @click="run(expedition.key)"
+                                :disabled="isExpeditionDisabled(expedition)"
+                                @click="requestExpedition(expedition.key)"
                             >
                                 {{ runningExpedition === expedition.key ? 'Running...' : 'Run' }}
                             </button>
@@ -165,6 +174,10 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    lastResult: {
+        type: Object,
+        default: null,
+    },
     searchTerm: {
         type: String,
         default: '',
@@ -179,15 +192,36 @@ const selectedBoard = ref('ready')
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
 const runningExpedition = ref(null)
+const repeatExpeditionKey = ref('')
+const autoRepeatEnabled = ref(false)
+const queuedExpeditions = ref([])
+const localExpeditions = ref([...props.expeditions])
 
-const readyCount = computed(() => props.expeditions.filter((expedition) => expedition.can_start).length)
-const filters = computed(() => ['All', ...new Set(props.expeditions.map((expedition) => expedition.skill_label))].map((filter) => ({
-    key: filter,
-    label: filter,
-    count: props.expeditions.filter((expedition) => filter === 'All' || expedition.skill_label === filter).length,
-})))
+const readyCount = computed(() => localExpeditions.value.filter((expedition) => expedition.can_start).length)
+const filters = computed(() => [
+    {
+        key: 'All',
+        label: 'All',
+        count: localExpeditions.value.length,
+        metaLabel: localExpeditions.value.length,
+        progress: localExpeditions.value.length ? Math.round((readyCount.value / localExpeditions.value.length) * 100) : 0,
+    },
+    ...[...new Set(localExpeditions.value.map((expedition) => expedition.skill_label))].map((skillLabel) => {
+        const expeditions = localExpeditions.value.filter((expedition) => expedition.skill_label === skillLabel)
+        const progress = expeditions[0]?.skill_progress
+        const level = progress?.level ?? expeditions[0]?.skill_level ?? 1
+
+        return {
+            key: skillLabel,
+            label: skillLabel,
+            count: expeditions.length,
+            metaLabel: `Lv ${level}`,
+            progress: skillProgressPercent(progress),
+        }
+    }),
+])
 const activeFilter = computed(() => filters.value.find((filter) => filter.key === selectedFilter.value) ?? filters.value[0])
-const filteredExpeditions = computed(() => props.expeditions
+const filteredExpeditions = computed(() => localExpeditions.value
     .filter((expedition) => selectedFilter.value === 'All' || expedition.skill_label === selectedFilter.value)
     .filter((expedition) => searchMatches(expedition, props.searchTerm)))
 const readyExpeditions = computed(() => filteredExpeditions.value.filter((expedition) => expedition.can_start))
@@ -237,6 +271,14 @@ watch([readyExpeditions, prepareExpeditions], () => {
     }
 }, { immediate: true })
 
+watch(() => props.expeditions, (expeditions) => {
+    localExpeditions.value = [...expeditions]
+}, { deep: true })
+
+watch(() => props.lastResult, (result) => {
+    applyExpeditionResult(result)
+}, { immediate: true })
+
 function searchMatches(expedition, query) {
     const normalizedQuery = query.trim().toLowerCase()
 
@@ -269,12 +311,23 @@ function filterProgress(filter) {
         return 0
     }
 
-    const readyCount = props.expeditions.filter((expedition) => (filter.key === 'All' || expedition.skill_label === filter.key) && expedition.can_start).length
+    return filter.progress ?? 0
+}
 
-    return Math.round((readyCount / filter.count) * 100)
+function requestExpedition(expedition) {
+    repeatExpeditionKey.value = expedition
+
+    if (form.processing) {
+        queuedExpeditions.value.push(expedition)
+
+        return
+    }
+
+    run(expedition)
 }
 
 function run(expedition) {
+    repeatExpeditionKey.value = expedition
     form.expedition = expedition
     form.post(route('evergather.expeditions.store'), {
         preserveScroll: true,
@@ -284,7 +337,134 @@ function run(expedition) {
         },
         onFinish: () => {
             runningExpedition.value = null
+            queueNextExpedition()
         },
     })
+}
+
+function maybeRepeatExpedition() {
+    if (!autoRepeatEnabled.value || !repeatExpeditionKey.value || form.processing) {
+        return
+    }
+
+    const expedition = localExpeditions.value.find((entry) => entry.key === repeatExpeditionKey.value)
+
+    if (!expedition?.can_start) {
+        autoRepeatEnabled.value = false
+
+        return
+    }
+
+    run(repeatExpeditionKey.value)
+}
+
+function isExpeditionDisabled(expedition) {
+    return !expedition.can_start
+}
+
+function toggleAutoRepeatExpedition() {
+    autoRepeatEnabled.value = !autoRepeatEnabled.value
+
+    if (autoRepeatEnabled.value) {
+        queueNextExpedition()
+    }
+}
+
+function queueNextExpedition(delay = 0) {
+    window.setTimeout(() => {
+        if (form.processing) {
+            queueNextExpedition(16)
+
+            return
+        }
+
+        const queuedExpedition = queuedExpeditions.value.shift()
+
+        if (queuedExpedition) {
+            const expedition = localExpeditions.value.find((entry) => entry.key === queuedExpedition)
+
+            if (expedition?.can_start) {
+                run(queuedExpedition)
+            }
+
+            return
+        }
+
+        maybeRepeatExpedition()
+    }, delay)
+}
+
+function applyExpeditionResult(result) {
+    if (result?.type !== 'expedition') {
+        return
+    }
+
+    const deltas = itemDeltas(result.items_awarded ?? [], result.supplies_consumed ?? [])
+    const progress = result.skill_progress
+
+    localExpeditions.value = localExpeditions.value.map((expedition) => {
+        const nextExpedition = patchExpeditionInventory(expedition, deltas)
+
+        if (progress && nextExpedition.skill === progress.skill) {
+            nextExpedition.skill_label = progress.skill_label ?? nextExpedition.skill_label
+            nextExpedition.skill_level = progress.level ?? nextExpedition.skill_level
+            nextExpedition.skill_progress = progress
+            nextExpedition.is_unlocked = nextExpedition.skill_level >= nextExpedition.required_level
+        }
+
+        nextExpedition.can_start = nextExpedition.is_unlocked
+            && nextExpedition.supplies.every((supply) => supply.has_enough)
+
+        return nextExpedition
+    })
+}
+
+function patchExpeditionInventory(expedition, deltas) {
+    return {
+        ...expedition,
+        supplies: expedition.supplies.map((supply) => patchOwnedItem(supply, deltas)),
+    }
+}
+
+function itemDeltas(addedItems, removedItems) {
+    const deltas = {}
+
+    addedItems.forEach((item) => {
+        deltas[item.item_key] = (deltas[item.item_key] ?? 0) + Number(item.quantity ?? 0)
+    })
+
+    removedItems.forEach((item) => {
+        deltas[item.item_key] = (deltas[item.item_key] ?? 0) - Number(item.quantity ?? 0)
+    })
+
+    return deltas
+}
+
+function patchOwnedItem(item, deltas) {
+    const ownedQuantity = Math.max(0, Number(item.owned_quantity ?? 0) + Number(deltas[item.item_key] ?? 0))
+
+    return {
+        ...item,
+        owned_quantity: ownedQuantity,
+        has_enough: ownedQuantity >= Number(item.quantity ?? 0),
+    }
+}
+
+function skillProgressPercent(progress) {
+    if (!progress) {
+        return 0
+    }
+
+    if (progress.next_level_experience === null) {
+        return 100
+    }
+
+    const levelSpan = Number(progress.next_level_experience) - Number(progress.current_level_experience ?? 0)
+
+    if (levelSpan <= 0) {
+        return 0
+    }
+
+    return Math.max(0, Math.min(100, Math.round((Number(progress.experience_into_level ?? 0) / levelSpan) * 100)))
 }
 </script>

@@ -3,9 +3,11 @@
 namespace App\Domain\ConnectedRealms\Services;
 
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsActionLog;
+use App\Domain\ConnectedRealms\Models\ConnectedRealmsContentEntry;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsInventoryStack;
 use App\Domain\ConnectedRealms\Models\ConnectedRealmsPlayer;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -60,7 +62,26 @@ class SkillActivityService
      */
     public static function activityKeys(): array
     {
-        return array_keys(self::activities());
+        $keys = array_fill_keys(self::baseActivityKeys(), true);
+
+        try {
+            ConnectedRealmsContentEntry::query()
+                ->where('surface', 'skill_activities')
+                ->get(['entry_key', 'enabled'])
+                ->each(function (ConnectedRealmsContentEntry $entry) use (&$keys): void {
+                    if ($entry->enabled) {
+                        $keys[$entry->entry_key] = true;
+
+                        return;
+                    }
+
+                    unset($keys[$entry->entry_key]);
+                });
+        } catch (QueryException) {
+            //
+        }
+
+        return array_keys($keys);
     }
 
     /**
@@ -71,8 +92,10 @@ class SkillActivityService
         return collect(self::activities())
             ->map(function (array $activity, string $key) use ($player): array {
                 $requiredLevel = (int) $activity['required_level'];
-                $skillLevel = $this->players->currentSkillLevel($player, $activity['skill']);
+                $skillProgress = $this->players->skillProgressFor($player, $activity['skill']);
+                $skillLevel = $skillProgress['level'];
                 $tool = $this->players->equipmentForSkill($player, $activity['skill']);
+                $toolPayload = $this->players->toolPayload($tool);
 
                 return [
                     'key' => $key,
@@ -81,18 +104,20 @@ class SkillActivityService
                     'activity_type' => $activity['activity_type'],
                     'band' => $activity['band'],
                     'skill' => $activity['skill'],
-                    'skill_label' => str($activity['skill'])->headline()->toString(),
+                    'skill_label' => $skillProgress['skill_label'],
                     'category' => $activity['category'],
                     'location' => $activity['location'],
                     'description' => $activity['description'],
                     'required_level' => $requiredLevel,
                     'skill_level' => $skillLevel,
+                    'skill_progress' => $skillProgress,
                     'is_unlocked' => $skillLevel >= $requiredLevel,
                     'cooldown_seconds' => $this->cooldownSecondsFor($activity),
                     'experience' => $activity['experience'],
                     'gold' => $activity['gold'],
                     'loot_preview' => $this->items->enrichMany($activity['loot']),
-                    'equipped_tool' => $this->players->toolPayload($tool),
+                    'equipped_tool' => $toolPayload,
+                    'requires_tool_repair' => (bool) ($toolPayload['is_broken'] ?? false),
                     'active_event' => $this->events->bonusForSkill($activity['skill'], 'activity'),
                 ];
             })
@@ -105,7 +130,7 @@ class SkillActivityService
      */
     public function perform(User $user, string $activityKey, string $platform = 'website'): array
     {
-        $activity = self::activities()[$activityKey] ?? null;
+        $activity = self::activityForKey($activityKey);
 
         if ($activity === null) {
             throw ValidationException::withMessages([
@@ -135,6 +160,13 @@ class SkillActivityService
             }
 
             $tool = $this->players->equipmentForSkill($player, $activity['skill']);
+
+            if ($tool !== null && (int) $tool->durability <= 0) {
+                throw ValidationException::withMessages([
+                    'activity' => 'Repair tool before running that activity.',
+                ]);
+            }
+
             $toolModifiers = $this->toolEffects->actionModifiers($tool);
             $eventBonus = $this->events->bonusForSkill($activity['skill'], 'activity');
             $experienceAwarded = random_int($activity['experience']['min'], $activity['experience']['max'])
@@ -147,7 +179,9 @@ class SkillActivityService
             $availableAt = now()->addSeconds($this->cooldownSecondsFor($activity, $toolModifiers['cooldown_reduction']));
             $toolContributed = $this->toolContributedToAction($toolModifiers);
 
-            $this->players->awardSkillExperience($player, $activity['skill'], $experienceAwarded);
+            $skillProgress = $this->players->skillProgressPayload(
+                $this->players->awardSkillExperience($player, $activity['skill'], $experienceAwarded),
+            );
 
             foreach ($itemsAwarded as $item) {
                 $stack = ConnectedRealmsInventoryStack::query()->firstOrNew([
@@ -199,7 +233,11 @@ class SkillActivityService
                 'track' => $activity['track'],
                 'band' => $activity['band'],
                 'skill' => $activity['skill'],
-                'skill_label' => str($activity['skill'])->headline()->toString(),
+                'skill_label' => $skillProgress['skill_label'],
+                'skill_level' => $skillProgress['level'],
+                'skill_experience' => $skillProgress['experience'],
+                'next_level_experience' => $skillProgress['next_level_experience'],
+                'skill_progress' => $skillProgress,
                 'location' => $activity['location'],
                 'tool' => $this->players->toolPayload($tool),
                 'event' => $eventBonus,
@@ -289,12 +327,103 @@ class SkillActivityService
             $category = (string) ($skillDefinitions->get($skill)['category'] ?? 'General');
 
             foreach (EvergatherTierCatalog::tiers() as $tier) {
-                $key = str("{$skill} {$tier['key_slug']} activity {$tier['level']}")->slug('_')->toString();
+                $key = self::activityKeyFor($skill, $tier);
                 $activities[$key] = self::activity($skill, $category, $family, $tier);
             }
         }
 
         return self::normalizeRequiredLevels($activities);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function baseActivityKeys(): array
+    {
+        $keys = [];
+
+        foreach (self::ACTIVITY_FAMILIES as $skill => $family) {
+            foreach (EvergatherTierCatalog::tiers() as $tier) {
+                $keys[] = self::activityKeyFor($skill, $tier);
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function activityForKey(string $activityKey): ?array
+    {
+        if (self::$activityCache !== null) {
+            return self::$activityCache[$activityKey] ?? null;
+        }
+
+        $storedEntry = null;
+
+        try {
+            $storedEntry = ConnectedRealmsContentEntry::query()
+                ->where('surface', 'skill_activities')
+                ->where('entry_key', $activityKey)
+                ->first();
+        } catch (QueryException) {
+            $storedEntry = null;
+        }
+
+        if ($storedEntry instanceof ConnectedRealmsContentEntry && ! $storedEntry->enabled) {
+            return null;
+        }
+
+        $activity = self::baseActivityForKey($activityKey);
+
+        if ($storedEntry instanceof ConnectedRealmsContentEntry) {
+            $activity = [
+                ...($activity ?? []),
+                ...($storedEntry->payload ?? []),
+                ...array_filter([
+                    'label' => $storedEntry->label,
+                    'category' => $storedEntry->category,
+                    'required_level' => $storedEntry->required_level,
+                    'rarity' => $storedEntry->rarity,
+                    'sort_order' => $storedEntry->sort_order,
+                ], fn (mixed $value): bool => $value !== null),
+            ];
+        }
+
+        if ($activity === null) {
+            return null;
+        }
+
+        return self::normalizeRequiredLevels([$activityKey => $activity])[$activityKey];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function baseActivityForKey(string $activityKey): ?array
+    {
+        foreach (self::ACTIVITY_FAMILIES as $skill => $family) {
+            foreach (EvergatherTierCatalog::tiers() as $tier) {
+                if (self::activityKeyFor($skill, $tier) !== $activityKey) {
+                    continue;
+                }
+
+                $category = (string) app(SkillCatalogService::class)->definition($skill)['category'];
+
+                return self::activity($skill, $category, $family, $tier);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array{level: int, key_slug: string}  $tier
+     */
+    private static function activityKeyFor(string $skill, array $tier): string
+    {
+        return str("{$skill} {$tier['key_slug']} activity {$tier['level']}")->slug('_')->toString();
     }
 
     /**

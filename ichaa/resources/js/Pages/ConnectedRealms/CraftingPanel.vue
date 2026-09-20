@@ -55,12 +55,17 @@
                                     v-for="skillFilter in nestedSkillFilters"
                                     :key="skillFilter.key"
                                     type="button"
-                                    class="flex min-w-0 items-center justify-between gap-2 rounded-md border border-transparent px-3 py-1.5 text-left transition hover:border-focus/50 hover:bg-focus/5"
+                                    class="grid min-w-0 gap-1.5 rounded-md border border-transparent px-3 py-1.5 text-left transition hover:border-focus/50 hover:bg-focus/5"
                                     :class="{ 'border-focus/60 bg-focus/10': selectedSkillFilter === skillFilter.key }"
                                     @click="selectedSkillFilter = skillFilter.key"
                                 >
-                                    <span class="min-w-0 truncate text-xs text-primary">{{ skillFilter.label }}</span>
-                                    <span class="text-[11px] text-muted-3">{{ skillFilter.count }}</span>
+                                    <span class="flex min-w-0 items-center justify-between gap-2">
+                                        <span class="min-w-0 truncate text-xs text-primary">{{ skillFilter.label }}</span>
+                                        <span class="text-[11px] text-muted-3">{{ skillFilter.metaLabel }}</span>
+                                    </span>
+                                    <span class="h-1 overflow-hidden rounded-full bg-surface-1">
+                                        <span class="block h-full rounded-full bg-focus" :style="{ width: `${skillFilter.progress}%` }" />
+                                    </span>
                                 </button>
                             </div>
                         </template>
@@ -80,6 +85,15 @@
                             <span class="text-primary">{{ visibleGoldCost }}g</span>
                         </div>
                     </div>
+                    <button
+                        type="button"
+                        class="app-btn app-btn--ghost app-btn--sm mt-4 w-full"
+                        :class="{ 'border-focus/70 bg-focus/10 text-primary': autoRepeatEnabled }"
+                        :disabled="!repeatRecipeKey"
+                        @click="toggleAutoRepeatRecipe"
+                    >
+                        {{ autoRepeatEnabled ? 'Repeating' : 'Repeat Last' }}
+                    </button>
                 </div>
 
                 <div class="grid content-start gap-3">
@@ -145,10 +159,10 @@
                             <button
                                 type="button"
                                 class="app-btn app-btn--sm"
-                                :disabled="form.processing || !recipe.can_craft"
-                                @click="craft(recipe.key)"
+                                :disabled="isRecipeDisabled(recipe)"
+                                @click="requestRecipe(recipe.key)"
                             >
-                                {{ runningRecipe === recipe.key ? 'Crafting...' : 'Craft' }}
+                                {{ recipeActionLabel(recipe) }}
                             </button>
                         </div>
                     </article>
@@ -185,6 +199,14 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    player: {
+        type: Object,
+        required: true,
+    },
+    lastResult: {
+        type: Object,
+        default: null,
+    },
     searchTerm: {
         type: String,
         default: '',
@@ -200,21 +222,42 @@ const selectedBoard = ref('ready')
 const boardPageSize = 12
 const visibleLimit = ref(boardPageSize)
 const runningRecipe = ref('')
+const repeatRecipeKey = ref('')
+const autoRepeatEnabled = ref(false)
+const queuedRecipes = ref([])
+const localRecipes = ref([...props.recipes])
 
-const craftableCount = computed(() => props.recipes.filter((recipe) => recipe.can_craft).length)
-const filters = computed(() => ['All', ...new Set(props.recipes.map((recipe) => recipe.category))].map((filter) => ({
+const craftableCount = computed(() => localRecipes.value.filter((recipe) => recipe.can_craft).length)
+const filters = computed(() => ['All', ...new Set(localRecipes.value.map((recipe) => recipe.category))].map((filter) => ({
     key: filter,
     label: filter,
-    count: props.recipes.filter((recipe) => filter === 'All' || recipe.category === filter).length,
+    count: localRecipes.value.filter((recipe) => filter === 'All' || recipe.category === filter).length,
 })))
 const activeFilter = computed(() => filters.value.find((filter) => filter.key === selectedFilter.value) ?? filters.value[0])
-const categoryRecipes = computed(() => props.recipes
+const categoryRecipes = computed(() => localRecipes.value
     .filter((recipe) => selectedFilter.value === 'All' || recipe.category === selectedFilter.value))
-const skillFilters = computed(() => ['All', ...new Set(categoryRecipes.value.map((recipe) => recipe.skill_label))].map((filter) => ({
-    key: filter,
-    label: filter === 'All' ? 'All Skills' : filter,
-    count: categoryRecipes.value.filter((recipe) => filter === 'All' || recipe.skill_label === filter).length,
-})))
+const skillFilters = computed(() => [
+    {
+        key: 'All',
+        label: 'All Skills',
+        count: categoryRecipes.value.length,
+        metaLabel: categoryRecipes.value.length,
+        progress: categoryRecipes.value.length ? Math.round((categoryRecipes.value.filter((recipe) => recipe.can_craft).length / categoryRecipes.value.length) * 100) : 0,
+    },
+    ...[...new Set(categoryRecipes.value.map((recipe) => recipe.skill_label))].map((skillLabel) => {
+        const recipes = categoryRecipes.value.filter((recipe) => recipe.skill_label === skillLabel)
+        const progress = recipes[0]?.skill_progress
+        const level = progress?.level ?? recipes[0]?.skill_level ?? 1
+
+        return {
+            key: skillLabel,
+            label: skillLabel,
+            count: recipes.length,
+            metaLabel: `Lv ${level}`,
+            progress: skillProgressPercent(progress),
+        }
+    }),
+])
 const nestedSkillFilters = computed(() => skillFilters.value.filter((filter) => filter.key !== 'All'))
 const activeSkillFilter = computed(() => skillFilters.value.find((filter) => filter.key === selectedSkillFilter.value) ?? skillFilters.value[0])
 const showSkillFilters = computed(() => selectedFilter.value !== 'All' && skillFilters.value.length > 2)
@@ -225,7 +268,7 @@ const activeScopeLabel = computed(() => {
 
     return `${activeFilter.value.label} - ${activeSkillFilter.value.label}`
 })
-const filteredRecipes = computed(() => props.recipes
+const filteredRecipes = computed(() => localRecipes.value
     .filter((recipe) => selectedFilter.value === 'All' || recipe.category === selectedFilter.value)
     .filter((recipe) => selectedSkillFilter.value === 'All' || recipe.skill_label === selectedSkillFilter.value)
     .filter((recipe) => searchMatches(recipe, props.searchTerm)))
@@ -286,6 +329,14 @@ watch([readyRecipes, prepareRecipes], () => {
     }
 }, { immediate: true })
 
+watch(() => props.recipes, (recipes) => {
+    localRecipes.value = [...recipes]
+}, { deep: true })
+
+watch(() => props.lastResult, (result) => {
+    applyCraftingResult(result)
+}, { immediate: true })
+
 function searchMatches(recipe, query) {
     const normalizedQuery = query.trim().toLowerCase()
 
@@ -318,7 +369,7 @@ function filterProgress(filter) {
         return 0
     }
 
-    const readyCount = props.recipes.filter((recipe) => (filter.key === 'All' || recipe.category === filter.key) && recipe.can_craft).length
+    const readyCount = localRecipes.value.filter((recipe) => (filter.key === 'All' || recipe.category === filter.key) && recipe.can_craft).length
 
     return Math.round((readyCount / filter.count) * 100)
 }
@@ -332,7 +383,20 @@ function selectCategory(category) {
     selectedSkillFilter.value = 'All'
 }
 
+function requestRecipe(recipe) {
+    repeatRecipeKey.value = recipe
+
+    if (form.processing) {
+        queuedRecipes.value.push(recipe)
+
+        return
+    }
+
+    craft(recipe)
+}
+
 function craft(recipe) {
+    repeatRecipeKey.value = recipe
     form.recipe = recipe
     form.post(route('evergather.crafting.store'), {
         preserveScroll: true,
@@ -342,7 +406,148 @@ function craft(recipe) {
         },
         onFinish: () => {
             runningRecipe.value = ''
+            queueNextRecipe()
         },
     })
+}
+
+function maybeRepeatRecipe() {
+    if (!autoRepeatEnabled.value || !repeatRecipeKey.value || form.processing) {
+        return
+    }
+
+    const recipe = localRecipes.value.find((entry) => entry.key === repeatRecipeKey.value)
+
+    if (!recipe?.can_craft) {
+        autoRepeatEnabled.value = false
+
+        return
+    }
+
+    craft(repeatRecipeKey.value)
+}
+
+function isRecipeDisabled(recipe) {
+    return !recipe.can_craft
+}
+
+function recipeActionLabel(recipe) {
+    if (requiresToolRepair(recipe)) {
+        return 'Repair Tool'
+    }
+
+    return runningRecipe.value === recipe.key ? 'Crafting...' : 'Craft'
+}
+
+function requiresToolRepair(recipe) {
+    return Boolean(recipe.requires_tool_repair || recipe.equipped_tool?.is_broken)
+}
+
+function toggleAutoRepeatRecipe() {
+    autoRepeatEnabled.value = !autoRepeatEnabled.value
+
+    if (autoRepeatEnabled.value) {
+        queueNextRecipe()
+    }
+}
+
+function queueNextRecipe(delay = 0) {
+    window.setTimeout(() => {
+        if (form.processing) {
+            queueNextRecipe(16)
+
+            return
+        }
+
+        const queuedRecipe = queuedRecipes.value.shift()
+
+        if (queuedRecipe) {
+            const recipe = localRecipes.value.find((entry) => entry.key === queuedRecipe)
+
+            if (recipe?.can_craft) {
+                craft(queuedRecipe)
+            }
+
+            return
+        }
+
+        maybeRepeatRecipe()
+    }, delay)
+}
+
+function applyCraftingResult(result) {
+    if (result?.type !== 'crafting') {
+        return
+    }
+
+    const deltas = itemDeltas(result.items_created ?? [], result.items_consumed ?? [])
+    const progress = result.skill_progress
+
+    localRecipes.value = localRecipes.value.map((recipe) => {
+        const nextRecipe = patchRecipeInventory(recipe, deltas)
+
+        if (progress && nextRecipe.skill === progress.skill) {
+            nextRecipe.skill_label = progress.skill_label ?? nextRecipe.skill_label
+            nextRecipe.skill_level = progress.level ?? nextRecipe.skill_level
+            nextRecipe.skill_progress = progress
+            nextRecipe.is_unlocked = nextRecipe.skill_level >= nextRecipe.required_level
+        }
+
+        nextRecipe.can_craft = nextRecipe.is_unlocked
+            && props.player.gold >= nextRecipe.gold_cost
+            && nextRecipe.ingredients.every((ingredient) => ingredient.has_enough)
+            && !requiresToolRepair(nextRecipe)
+
+        return nextRecipe
+    })
+}
+
+function patchRecipeInventory(recipe, deltas) {
+    return {
+        ...recipe,
+        ingredients: recipe.ingredients.map((ingredient) => patchOwnedItem(ingredient, deltas)),
+    }
+}
+
+function itemDeltas(addedItems, removedItems) {
+    const deltas = {}
+
+    addedItems.forEach((item) => {
+        deltas[item.item_key] = (deltas[item.item_key] ?? 0) + Number(item.quantity ?? 0)
+    })
+
+    removedItems.forEach((item) => {
+        deltas[item.item_key] = (deltas[item.item_key] ?? 0) - Number(item.quantity ?? 0)
+    })
+
+    return deltas
+}
+
+function patchOwnedItem(item, deltas) {
+    const ownedQuantity = Math.max(0, Number(item.owned_quantity ?? 0) + Number(deltas[item.item_key] ?? 0))
+
+    return {
+        ...item,
+        owned_quantity: ownedQuantity,
+        has_enough: ownedQuantity >= Number(item.quantity ?? 0),
+    }
+}
+
+function skillProgressPercent(progress) {
+    if (!progress) {
+        return 0
+    }
+
+    if (progress.next_level_experience === null) {
+        return 100
+    }
+
+    const levelSpan = Number(progress.next_level_experience) - Number(progress.current_level_experience ?? 0)
+
+    if (levelSpan <= 0) {
+        return 0
+    }
+
+    return Math.max(0, Math.min(100, Math.round((Number(progress.experience_into_level ?? 0) / levelSpan) * 100)))
 }
 </script>

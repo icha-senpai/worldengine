@@ -112,7 +112,7 @@ class ToolInventoryService
 
             $this->consumeLifecycleCost($player, (int) $repair['gold_cost'], $repair['materials'], 'repair');
 
-            $tool->forceFill(['durability' => 100])->save();
+            $tool->forceFill(['durability' => (int) $repair['max_durability']])->save();
             $equipment = $this->syncEquippedToolIfNeeded($tool);
             $this->goldFlows->recordDestroyed($player, 'tool_repair', (int) $repair['gold_cost'], 'tool_lifecycle', $tool, [
                 'tool_id' => (int) $tool->id,
@@ -236,6 +236,7 @@ class ToolInventoryService
             'skill' => $tool->skill,
             'durability' => (int) $tool->durability,
             'tier_level' => (int) $tool->tier_level,
+            'rarity' => $tool->rarity,
             'origin' => $tool->origin,
         ];
     }

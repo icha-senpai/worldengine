@@ -48,19 +48,19 @@
 
                     <div class="mt-4 grid gap-2">
                         <button
-                            v-for="filter in categoryFilters"
+                            v-for="filter in skillFilters"
                             :key="filter.key"
                             type="button"
                             class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
-                            :class="{ 'border-focus/70 bg-focus/10': selectedCategory === filter.key }"
-                            @click="selectedCategory = filter.key"
+                            :class="{ 'border-focus/70 bg-focus/10': selectedSkill === filter.key }"
+                            @click="selectedSkill = filter.key"
                         >
                             <span class="flex min-w-0 items-center justify-between gap-2">
                                 <span class="truncate text-xs font-ui text-primary">{{ filter.label }}</span>
-                                <span class="text-[11px] text-muted-3">{{ filter.count }}</span>
+                                <span class="text-[11px] text-muted-3">{{ filter.metaLabel }}</span>
                             </span>
                             <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
-                                <span class="block h-full rounded-full bg-focus" :style="{ width: `${categoryProgress(filter)}%` }" />
+                                <span class="block h-full rounded-full bg-focus" :style="{ width: `${skillFilterProgress(filter)}%` }" />
                             </span>
                         </button>
                     </div>
@@ -88,7 +88,7 @@
                         class="app-btn app-btn--ghost app-btn--sm mt-4 w-full"
                         :class="{ 'border-focus/70 bg-focus/10 text-primary': autoRepeatEnabled }"
                         :disabled="!repeatActivityKey"
-                        @click="autoRepeatEnabled = !autoRepeatEnabled"
+                        @click="toggleAutoRepeatActivity"
                     >
                         {{ autoRepeatEnabled ? 'Repeating' : 'Repeat Last' }}
                     </button>
@@ -99,7 +99,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             <div>
                                 <p class="text-sm font-ui text-primary">{{ activeBoard.label }}</p>
-                                <p class="mt-1 text-xs text-muted-3">{{ activeCategory.label }} · {{ selectedBand }} · {{ visibleActivities.length }} visible</p>
+                                <p class="mt-1 text-xs text-muted-3">{{ activeSkill.label }} · {{ selectedBand }} · {{ visibleActivities.length }} visible</p>
                             </div>
                             <span class="tag">{{ cooldownLabel }}</span>
                         </div>
@@ -110,8 +110,8 @@
                         :key="activity.key"
                         type="button"
                         class="grid min-h-36 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 text-left transition hover:border-focus/60 disabled:cursor-not-allowed disabled:opacity-55 md:grid-cols-[3rem_minmax(0,1fr)_6.75rem]"
-                        :disabled="form.processing || !canActNow || !activity.is_unlocked"
-                        @click="submitActivity(activity.key)"
+                        :disabled="isActivityDisabled(activity)"
+                        @click="requestActivity(activity.key)"
                     >
                         <span class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary">
                             #{{ index + 1 }}
@@ -128,7 +128,7 @@
                             <span class="mt-1 block text-xs text-muted-2">{{ activity.track }} · {{ activity.location }}</span>
                             <span class="mt-2 block text-xs text-muted-3">{{ activity.description }}</span>
                             <span v-if="activity.equipped_tool" class="mt-2 block text-xs text-muted-2">
-                                {{ activity.equipped_tool.item_name }} · {{ activity.equipped_tool.signature_trait }} · +{{ activity.equipped_tool.experience_bonus }} XP · +{{ activity.equipped_tool.yield_bonus }} yield
+                                {{ toolSummary(activity.equipped_tool) }}
                             </span>
                             <span class="mt-3 flex flex-wrap gap-2">
                                 <span
@@ -151,6 +151,7 @@
 
                         <span class="text-left md:text-right">
                             <span v-if="!activity.is_unlocked" class="block text-xs text-muted-3">Level {{ activity.skill_level }} / {{ activity.required_level }}</span>
+                            <span v-else-if="requiresToolRepair(activity)" class="block text-sm font-ui text-danger">Repair Tool</span>
                             <span v-else-if="runningActivity === activity.key" class="block text-sm font-ui text-focus">Starting...</span>
                             <span v-else-if="canActNow" class="block text-sm font-ui text-success">Start</span>
                             <span v-else class="block text-sm font-ui text-muted-3">{{ cooldownLabel }}</span>
@@ -199,13 +200,17 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    lastResult: {
+        type: Object,
+        default: null,
+    },
     searchTerm: {
         type: String,
         default: '',
     },
 })
 
-const selectedCategory = ref('All')
+const selectedSkill = ref('All')
 const selectedBand = ref('All')
 const selectedBoard = ref('ready')
 const boardPageSize = 12
@@ -213,30 +218,49 @@ const visibleLimit = ref(boardPageSize)
 const now = ref(Date.now())
 const autoRepeatEnabled = ref(false)
 const repeatActivityKey = ref('')
-const autoRepeatGuardUntil = ref(0)
 const runningActivity = ref('')
+const queuedActivities = ref([])
+const localActivities = ref([...props.activities])
 let cooldownTimer = null
 const form = useForm({
     activity: null,
 })
 
-const categoryFilters = computed(() => ['All', ...new Set(props.activities.map((activity) => activity.category))].map((filter) => ({
-    key: filter,
-    label: filter,
-    count: props.activities.filter((activity) => filter === 'All' || activity.category === filter).length,
-})))
+const skillFilters = computed(() => [
+    {
+        key: 'All',
+        label: 'All',
+        count: localActivities.value.length,
+        metaLabel: localActivities.value.length,
+        progress: localActivities.value.length ? Math.round((unlockedCount.value / localActivities.value.length) * 100) : 0,
+    },
+    ...[...new Set(localActivities.value.map((activity) => activity.skill_label))].map((skillLabel) => {
+        const skillActivities = localActivities.value.filter((activity) => activity.skill_label === skillLabel)
+        const progress = skillActivities[0]?.skill_progress
+        const level = progress?.level ?? skillActivities[0]?.skill_level ?? 1
+
+        return {
+            key: skillLabel,
+            label: skillLabel,
+            count: skillActivities.length,
+            level,
+            metaLabel: `Lv ${level}`,
+            progress: skillProgressPercent(progress),
+        }
+    }),
+])
 const bandFilters = computed(() => ['All', '1-30', '30-50', '50-80', '80-100'].map((filter) => ({
     key: filter,
     label: filter,
-    count: props.activities.filter((activity) => filter === 'All' || activity.band === filter).length,
+    count: localActivities.value.filter((activity) => filter === 'All' || activity.band === filter).length,
 })))
-const activeCategory = computed(() => categoryFilters.value.find((filter) => filter.key === selectedCategory.value) ?? categoryFilters.value[0])
-const unlockedCount = computed(() => props.activities.filter((activity) => activity.is_unlocked).length)
-const filteredActivities = computed(() => props.activities.filter((activity) => {
-    const matchesCategory = selectedCategory.value === 'All' || activity.category === selectedCategory.value
+const activeSkill = computed(() => skillFilters.value.find((filter) => filter.key === selectedSkill.value) ?? skillFilters.value[0])
+const unlockedCount = computed(() => localActivities.value.filter((activity) => activity.is_unlocked).length)
+const filteredActivities = computed(() => localActivities.value.filter((activity) => {
+    const matchesSkill = selectedSkill.value === 'All' || activity.skill_label === selectedSkill.value
     const matchesBand = selectedBand.value === 'All' || activity.band === selectedBand.value
 
-    if (!matchesCategory || !matchesBand) {
+    if (!matchesSkill || !matchesBand) {
         return false
     }
 
@@ -251,7 +275,7 @@ const activityBoards = computed(() => [
         count: readyActivities.value.length,
         unit: 'acts',
         entries: readyActivities.value,
-        description: `${activeCategory.value.label} activities you can run now.`,
+        description: `${activeSkill.value.label} activities you can run now.`,
     },
     {
         key: 'next',
@@ -299,7 +323,7 @@ onMounted(() => {
     cooldownTimer = window.setInterval(() => {
         now.value = Date.now()
         maybeRepeatActivity()
-    }, 1000)
+    }, 250)
 })
 
 onBeforeUnmount(() => {
@@ -308,9 +332,17 @@ onBeforeUnmount(() => {
     }
 })
 
-watch([selectedBoard, selectedCategory, selectedBand, () => props.searchTerm], () => {
+watch([selectedBoard, selectedSkill, selectedBand, () => props.searchTerm], () => {
     visibleLimit.value = boardPageSize
 })
+
+watch(() => props.activities, (activities) => {
+    localActivities.value = [...activities]
+}, { deep: true })
+
+watch(() => props.lastResult, (result) => {
+    applyActivityResult(result)
+}, { immediate: true })
 
 watch([readyActivities, lockedActivities], () => {
     if (!readyActivities.value.length && lockedActivities.value.length && selectedBoard.value === 'ready') {
@@ -322,30 +354,44 @@ watch([readyActivities, lockedActivities], () => {
     }
 }, { immediate: true })
 
+function requestActivity(activity) {
+    repeatActivityKey.value = activity
+
+    if (form.processing) {
+        if (activityHasInstantCooldown(activity)) {
+            queuedActivities.value.push(activity)
+        }
+
+        return
+    }
+
+    submitActivity(activity)
+}
+
 function submitActivity(activity) {
     repeatActivityKey.value = activity
-    autoRepeatGuardUntil.value = Date.now() + 750
     form.activity = activity
     form.post(route('evergather.activities.store'), {
         preserveScroll: true,
         only: activityReloadProps,
         onStart: () => {
-            runningActivity.value = activity
+            runningActivity.value = activityHasInstantCooldown(activity) ? '' : activity
         },
         onFinish: () => {
             runningActivity.value = ''
+            queueNextActivity()
         },
     })
 }
 
 function maybeRepeatActivity() {
-    if (!autoRepeatEnabled.value || !repeatActivityKey.value || form.processing || !canActNow.value || Date.now() < autoRepeatGuardUntil.value) {
+    if (!autoRepeatEnabled.value || !repeatActivityKey.value || form.processing || !canActNow.value) {
         return
     }
 
-    const activity = props.activities.find((entry) => entry.key === repeatActivityKey.value)
+    const activity = localActivities.value.find((entry) => entry.key === repeatActivityKey.value)
 
-    if (!activity?.is_unlocked) {
+    if (!activity?.is_unlocked || requiresToolRepair(activity)) {
         autoRepeatEnabled.value = false
 
         return
@@ -354,14 +400,128 @@ function maybeRepeatActivity() {
     submitActivity(repeatActivityKey.value)
 }
 
-function categoryProgress(filter) {
-    if (!filter.count) {
+function isActivityDisabled(activity) {
+    if (!canActNow.value || !activity.is_unlocked || requiresToolRepair(activity)) {
+        return true
+    }
+
+    return form.processing && !activityHasInstantCooldown(activity.key)
+}
+
+function requiresToolRepair(activity) {
+    return Boolean(activity.requires_tool_repair || activity.equipped_tool?.is_broken)
+}
+
+function toggleAutoRepeatActivity() {
+    autoRepeatEnabled.value = !autoRepeatEnabled.value
+
+    if (autoRepeatEnabled.value) {
+        queueNextActivity()
+    }
+}
+
+function queueNextActivity(delay = 0) {
+    window.setTimeout(() => {
+        now.value = Date.now()
+
+        if (form.processing) {
+            queueNextActivity(16)
+
+            return
+        }
+
+        const queuedActivity = queuedActivities.value.shift()
+
+        if (queuedActivity) {
+            submitActivity(queuedActivity)
+
+            return
+        }
+
+        maybeRepeatActivity()
+    }, delay)
+}
+
+function activityHasInstantCooldown(activity) {
+    const activityEntry = typeof activity === 'string'
+        ? localActivities.value.find((entry) => entry.key === activity)
+        : activity
+
+    return Number(activityEntry?.cooldown_seconds ?? -1) === 0
+}
+
+function skillFilterProgress(filter) {
+    return filter.progress ?? 0
+}
+
+function skillProgressPercent(progress) {
+    if (!progress) {
         return 0
     }
 
-    const readyCount = props.activities.filter((activity) => (filter.key === 'All' || activity.category === filter.key) && activity.is_unlocked).length
+    if (progress.next_level_experience === null) {
+        return 100
+    }
 
-    return Math.round((readyCount / filter.count) * 100)
+    const levelSpan = Number(progress.next_level_experience) - Number(progress.current_level_experience ?? 0)
+
+    if (levelSpan <= 0) {
+        return 0
+    }
+
+    return Math.max(0, Math.min(100, Math.round((Number(progress.experience_into_level ?? 0) / levelSpan) * 100)))
+}
+
+function applyActivityResult(result) {
+    if (result?.type !== 'skill_activity' || !result.skill_progress) {
+        return
+    }
+
+    const progress = result.skill_progress
+
+    localActivities.value = localActivities.value.map((activity) => {
+        if (activity.skill !== progress.skill) {
+            return activity
+        }
+
+        const level = progress.level ?? activity.skill_level
+
+        return {
+            ...activity,
+            skill_label: progress.skill_label ?? activity.skill_label,
+            skill_level: level,
+            skill_progress: progress,
+            is_unlocked: level >= activity.required_level,
+        }
+    })
+}
+
+function toolSummary(tool) {
+    const parts = [
+        tool.item_name,
+        tool.signature_trait,
+    ].filter(Boolean)
+
+    if (tool.is_broken) {
+        return [...parts, 'Broken'].join(' · ')
+    }
+
+    const experienceBonus = Number(tool.experience_bonus ?? 0)
+    const yieldBonus = Number(tool.yield_bonus ?? 0)
+
+    if (experienceBonus > 0) {
+        parts.push(`+${experienceBonus} XP`)
+    }
+
+    if (yieldBonus > 0) {
+        parts.push(`+${yieldBonus} yield`)
+    }
+
+    if (parts.length <= 2) {
+        parts.push('No active bonuses')
+    }
+
+    return parts.join(' · ')
 }
 
 function searchMatches(activity, query) {
