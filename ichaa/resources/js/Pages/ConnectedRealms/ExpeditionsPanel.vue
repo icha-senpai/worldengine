@@ -341,14 +341,17 @@ function run(expedition) {
     repeatExpeditionKey.value = expedition
     form.expedition = expedition
     form.post(route('evergather.expeditions.store'), {
+        async: true,
         preserveScroll: true,
         only: expeditionReloadProps,
         onStart: () => {
-            runningExpedition.value = expedition
+            runningExpedition.value = null
+        },
+        onSuccess: () => {
+            queueNextExpedition()
         },
         onFinish: () => {
             runningExpedition.value = null
-            queueNextExpedition()
         },
     })
 }
@@ -383,12 +386,6 @@ function toggleAutoRepeatExpedition() {
 
 function queueNextExpedition(delay = 0) {
     window.setTimeout(() => {
-        if (form.processing) {
-            queueNextExpedition(16)
-
-            return
-        }
-
         const queuedExpedition = queuedExpeditions.value.shift()
 
         if (queuedExpedition) {

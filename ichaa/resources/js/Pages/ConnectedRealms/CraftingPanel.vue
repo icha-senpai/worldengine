@@ -265,7 +265,7 @@ const skillFilters = computed(() => [
 ])
 const nestedSkillFilters = computed(() => skillFilters.value.filter((filter) => filter.key !== 'All'))
 const activeSkillFilter = computed(() => skillFilters.value.find((filter) => filter.key === selectedSkillFilter.value) ?? skillFilters.value[0])
-const showSkillFilters = computed(() => selectedFilter.value !== 'All' && skillFilters.value.length > 2)
+const showSkillFilters = computed(() => selectedFilter.value !== 'All' && nestedSkillFilters.value.length > 0)
 const activeScopeLabel = computed(() => {
     if (!showSkillFilters.value || selectedSkillFilter.value === 'All') {
         return activeFilter.value.label
@@ -410,14 +410,17 @@ function craft(recipe) {
     repeatRecipeKey.value = recipe
     form.recipe = recipe
     form.post(route('evergather.crafting.store'), {
+        async: true,
         preserveScroll: true,
         only: craftingReloadProps,
         onStart: () => {
-            runningRecipe.value = recipe
+            runningRecipe.value = ''
+        },
+        onSuccess: () => {
+            queueNextRecipe()
         },
         onFinish: () => {
             runningRecipe.value = ''
-            queueNextRecipe()
         },
     })
 }
@@ -464,12 +467,6 @@ function toggleAutoRepeatRecipe() {
 
 function queueNextRecipe(delay = 0) {
     window.setTimeout(() => {
-        if (form.processing) {
-            queueNextRecipe(16)
-
-            return
-        }
-
         const queuedRecipe = queuedRecipes.value.shift()
 
         if (queuedRecipe) {

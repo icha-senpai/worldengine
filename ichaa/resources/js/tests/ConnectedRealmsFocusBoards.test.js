@@ -928,6 +928,44 @@ describe('Connected Realms focused boards', () => {
         wrapper.unmount()
     })
 
+    it('shows the only recipe skill when selecting world and social categories', async () => {
+        const wrapper = mount(CraftingPanel, {
+            props: {
+                recipes: [
+                    craftingRecipe({
+                        key: 'map',
+                        label: 'Ready Map',
+                        category: 'World',
+                        skill: 'cartography',
+                        skill_label: 'Cartography',
+                        can_craft: true,
+                    }),
+                    craftingRecipe({
+                        key: 'writ',
+                        label: 'Ready Writ',
+                        category: 'Social',
+                        skill: 'trading',
+                        skill_label: 'Trading',
+                        can_craft: true,
+                    }),
+                ],
+                player: player(),
+                searchTerm: '',
+            },
+            global: routeGlobal(),
+        })
+
+        await wrapper.findAll('button').find((button) => button.text().includes('World')).trigger('click')
+
+        expect(wrapper.findAll('button').some((button) => button.text().includes('Cartography'))).toBe(true)
+
+        await wrapper.findAll('button').find((button) => button.text().includes('Social')).trigger('click')
+
+        expect(wrapper.findAll('button').some((button) => button.text().includes('Trading'))).toBe(true)
+
+        wrapper.unmount()
+    })
+
     it('marks craft recipes blocked by a broken tool as repair-only', () => {
         const wrapper = mount(CraftingPanel, {
             props: {
@@ -1023,11 +1061,60 @@ describe('Connected Realms focused boards', () => {
 
         expect(wrapper.text()).toContain('0 / 2')
 
-        form.processing = false
-        lastOptions.onFinish()
+        await lastOptions.onSuccess()
         vi.advanceTimersByTime(0)
 
         expect(post).toHaveBeenCalledTimes(1)
+
+        wrapper.unmount()
+    })
+
+    it('flushes queued recipe crafts without waiting for processing to clear', async () => {
+        vi.useFakeTimers()
+
+        let form
+        let lastOptions
+        const post = vi.fn((url, options) => {
+            form.processing = true
+            lastOptions = options
+            options.onStart()
+        })
+        useFormMock.mockImplementation((initial) => {
+            form = {
+                ...initial,
+                errors: {},
+                processing: false,
+                post,
+                delete: vi.fn(),
+            }
+
+            return form
+        })
+
+        const wrapper = mount(CraftingPanel, {
+            props: {
+                recipes: [
+                    craftingRecipe({ key: 'stew', label: 'Ready Stew', can_craft: true }),
+                ],
+                player: player(),
+                lastResult: null,
+                searchTerm: '',
+            },
+            global: routeGlobal(),
+        })
+
+        const craftButton = wrapper.findAll('button').find((button) => button.text().includes('Craft'))
+
+        await craftButton.trigger('click')
+        await craftButton.trigger('click')
+
+        expect(post).toHaveBeenCalledTimes(1)
+        expect(wrapper.text()).not.toContain('Crafting...')
+
+        await lastOptions.onSuccess()
+        vi.advanceTimersByTime(0)
+
+        expect(post).toHaveBeenCalledTimes(2)
 
         wrapper.unmount()
     })
@@ -1105,6 +1192,55 @@ describe('Connected Realms focused boards', () => {
         wrapper.unmount()
     })
 
+    it('flushes queued job turn-ins without waiting for processing to clear', async () => {
+        vi.useFakeTimers()
+
+        let form
+        let lastOptions
+        const post = vi.fn((url, options) => {
+            form.processing = true
+            lastOptions = options
+            options.onStart()
+        })
+        useFormMock.mockImplementation((initial) => {
+            form = {
+                ...initial,
+                errors: {},
+                processing: false,
+                post,
+                delete: vi.fn(),
+            }
+
+            return form
+        })
+
+        const wrapper = mount(JobsPanel, {
+            props: {
+                jobs: [
+                    jobContract({ key: 'stew-job', label: 'Stew Delivery', can_complete: true }),
+                ],
+                lastResult: null,
+                searchTerm: '',
+            },
+            global: routeGlobal(),
+        })
+
+        const turnInButton = wrapper.findAll('button').find((button) => button.text().includes('Turn In'))
+
+        await turnInButton.trigger('click')
+        await turnInButton.trigger('click')
+
+        expect(post).toHaveBeenCalledTimes(1)
+        expect(wrapper.text()).not.toContain('Completing...')
+
+        await lastOptions.onSuccess()
+        vi.advanceTimersByTime(0)
+
+        expect(post).toHaveBeenCalledTimes(2)
+
+        wrapper.unmount()
+    })
+
     it('updates expedition supplies locally from the latest expedition result', async () => {
         const wrapper = mount(ExpeditionsPanel, {
             props: {
@@ -1138,6 +1274,55 @@ describe('Connected Realms focused boards', () => {
         })
 
         expect(wrapper.text()).toContain('0 / 1')
+
+        wrapper.unmount()
+    })
+
+    it('flushes queued expedition runs without waiting for processing to clear', async () => {
+        vi.useFakeTimers()
+
+        let form
+        let lastOptions
+        const post = vi.fn((url, options) => {
+            form.processing = true
+            lastOptions = options
+            options.onStart()
+        })
+        useFormMock.mockImplementation((initial) => {
+            form = {
+                ...initial,
+                errors: {},
+                processing: false,
+                post,
+                delete: vi.fn(),
+            }
+
+            return form
+        })
+
+        const wrapper = mount(ExpeditionsPanel, {
+            props: {
+                expeditions: [
+                    expeditionRoute({ key: 'trail', label: 'Trail Route', can_start: true }),
+                ],
+                lastResult: null,
+                searchTerm: '',
+            },
+            global: routeGlobal(),
+        })
+
+        const runButton = wrapper.findAll('button').find((button) => button.text().includes('Run'))
+
+        await runButton.trigger('click')
+        await runButton.trigger('click')
+
+        expect(post).toHaveBeenCalledTimes(1)
+        expect(wrapper.text()).not.toContain('Running...')
+
+        await lastOptions.onSuccess()
+        vi.advanceTimersByTime(0)
+
+        expect(post).toHaveBeenCalledTimes(2)
 
         wrapper.unmount()
     })

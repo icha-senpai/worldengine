@@ -370,14 +370,17 @@ function submitJob(action, job) {
     repeatJob.value = { action, job }
     form.job = job
     form.post(route(action === 'accept' ? 'evergather.jobs.acceptances.store' : 'evergather.jobs.store'), {
+        async: true,
         preserveScroll: true,
         only: jobReloadProps,
         onStart: () => {
-            runningJob.value = job
+            runningJob.value = ''
+        },
+        onSuccess: () => {
+            queueNextJob()
         },
         onFinish: () => {
             runningJob.value = ''
-            queueNextJob()
         },
     })
 }
@@ -416,12 +419,6 @@ function toggleAutoRepeatJob() {
 
 function queueNextJob(delay = 0) {
     window.setTimeout(() => {
-        if (form.processing) {
-            queueNextJob(16)
-
-            return
-        }
-
         const queuedJob = queuedJobs.value.shift()
 
         if (queuedJob) {
