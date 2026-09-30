@@ -9,7 +9,8 @@
             :class="{ 'inventory-tracker-source--setup': setupVisible, 'inventory-tracker-source--in-app': setupPageVisible }"
             :style="widgetThemeStyle"
         >
-        <form v-if="setupVisible" class="inventory-tracker-setup" @submit.prevent="submitSetup(true)">
+        <WidgetSetupDrawer :show="setupVisible" title="Edit Inventory Widget" @widget-mode="openWidgetMode">
+        <form class="inventory-tracker-setup" @submit.prevent="submitSetup(true)">
             <div class="inventory-tracker-setup__grid">
                 <label>
                     <span>Title</span>
@@ -104,9 +105,9 @@
 
             <div class="inventory-tracker-setup__actions">
                 <button type="submit">Search / Update</button>
-                <button type="button" @click="openWidgetMode">Widget Mode</button>
             </div>
         </form>
+        </WidgetSetupDrawer>
 
         <section class="inventory-tracker-widget" aria-label="Live Bitcraft inventory tracker">
             <header class="inventory-tracker-widget__header">
@@ -170,6 +171,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import BitcraftTierBadge from '@/Pages/Bitcraft/Components/BitcraftTierBadge.vue'
 import { bitcraftItemFrameStyle, hasBitcraftTier } from '@/Pages/Bitcraft/bitjitaAssets.js'
+import WidgetSetupDrawer from './Components/WidgetSetupDrawer.vue'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
 import WidgetPageShell from './Components/WidgetPageShell.vue'
 import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'

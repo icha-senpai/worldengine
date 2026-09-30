@@ -14,6 +14,10 @@ class BitcraftSpacetimeStaticData
 
     private ?array $recipeIndexes = null;
 
+    private ?array $snapshotMetadata = null;
+
+    private array $databaseTableRows = [];
+
     private const RARITIES = [
         'Default',
         'Common',
@@ -23,6 +27,8 @@ class BitcraftSpacetimeStaticData
         'Legendary',
         'Mythic',
     ];
+
+    public function __construct(private BitcraftSpacetimeSnapshotStore $snapshotStore) {}
 
     public function isAvailable(): bool
     {
@@ -34,21 +40,20 @@ class BitcraftSpacetimeStaticData
             return false;
         }
 
-        return $this->snapshot() !== null;
+        return $this->databaseMetadata() !== null || $this->snapshot() !== null;
     }
 
     public function metadata(): array
     {
-        $snapshot = $this->snapshot();
+        $metadata = $this->databaseMetadata() ?? $this->fileMetadata();
 
         return [
             'enabled' => (bool) config('services.bitcraft_spacetime.enabled', true),
             'available' => $this->isAvailable(),
-            'generatedAt' => data_get($snapshot, 'generatedAt'),
-            'database' => data_get($snapshot, 'database'),
-            'tables' => collect(data_get($snapshot, 'tables', []))
-                ->map(fn (array $table): int => (int) data_get($table, 'count', count(data_get($table, 'rows', []))))
-                ->all(),
+            'generatedAt' => data_get($metadata, 'generatedAt'),
+            'database' => data_get($metadata, 'database'),
+            'storage' => data_get($metadata, 'storage'),
+            'tables' => data_get($metadata, 'tables', []),
         ];
     }
 
@@ -109,10 +114,100 @@ class BitcraftSpacetimeStaticData
         ];
     }
 
+    public function catalogForKeys(array $keys): array
+    {
+        if (! $this->isAvailable()) {
+            return [];
+        }
+
+        return collect($keys)
+            ->mapWithKeys(fn (string $key): array => isset($this->catalog()[$key])
+                ? [$key => $this->catalog()[$key]]
+                : [])
+            ->all();
+    }
+
+    public function catalogSearch(string $query, int $limit = 100): array
+    {
+        if (! $this->isAvailable()) {
+            return [];
+        }
+
+        $needle = Str::lower($query);
+
+        return collect($this->catalog())
+            ->filter(function (array $item) use ($needle): bool {
+                if ($needle === '') {
+                    return true;
+                }
+
+                return str_contains(Str::lower((string) $item['name']), $needle)
+                    || str_contains(Str::lower((string) $item['category']), $needle);
+            })
+            ->sortBy([
+                fn (array $item): string => Str::lower((string) $item['name']),
+                fn (array $item): string => (string) $item['kind'],
+            ])
+            ->take($limit)
+            ->values()
+            ->all();
+    }
+
+    public function craftingRecipesForIds(array $recipeIds): array
+    {
+        if (! $this->isAvailable()) {
+            return [];
+        }
+
+        $ids = collect($recipeIds)
+            ->map(fn (mixed $recipeId): int => (int) $recipeId)
+            ->filter(fn (int $recipeId): bool => $recipeId > 0)
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $idLookup = $ids->flip();
+
+        return collect($this->tableRows('crafting_recipe_desc'))
+            ->filter(fn (array $recipe): bool => $idLookup->has((int) data_get($recipe, 'id')))
+            ->mapWithKeys(fn (array $recipe): array => [
+                (int) data_get($recipe, 'id') => $this->craftingRecipePayload($recipe),
+            ])
+            ->all();
+    }
+
+    public function toolRateEntries(): array
+    {
+        if (! $this->isAvailable()) {
+            return [];
+        }
+
+        return collect($this->tableRows('extraction_recipe_desc'))
+            ->filter(fn (array $recipe): bool => count($this->toolRequirements($recipe)) > 0)
+            ->map(fn (array $recipe): array => $this->toolRateEntryPayload($recipe))
+            ->sortBy([
+                fn (array $entry): string => Str::lower((string) data_get($entry, 'skill.name', '')),
+                fn (array $entry): int => (int) data_get($entry, 'levelRequirement', 0),
+                fn (array $entry): string => Str::lower((string) data_get($entry, 'resource.name', '')),
+                fn (array $entry): string => Str::lower((string) data_get($entry, 'verb', '')),
+            ])
+            ->values()
+            ->all();
+    }
+
     private function snapshot(): ?array
     {
         if ($this->snapshot !== null) {
             return $this->snapshot;
+        }
+
+        $databaseSnapshot = $this->snapshotStore->currentSnapshot();
+
+        if ($databaseSnapshot !== null) {
+            return $this->snapshot = $databaseSnapshot;
         }
 
         $path = $this->snapshotPath();
@@ -183,6 +278,7 @@ class BitcraftSpacetimeStaticData
             'kind' => $kind,
             'name' => data_get($row, 'name', 'Unknown item'),
             'category' => data_get($row, 'tag', $kind === 'cargo' ? 'Cargo' : null),
+            'tag' => data_get($row, 'tag', $kind === 'cargo' ? 'Cargo' : null),
             'tier' => data_get($row, 'tier'),
             'rarity' => $this->rarityName(data_get($row, 'rarity')),
             'description' => data_get($row, 'description'),
@@ -228,6 +324,49 @@ class BitcraftSpacetimeStaticData
         ];
     }
 
+    private function toolRateEntryPayload(array $recipe): array
+    {
+        $resource = $this->resourcePayload((int) data_get($recipe, 'resource_id'));
+        $toolRequirement = $this->toolRequirements($recipe)[0] ?? [];
+        $levelRequirement = $this->levelRequirement($recipe);
+        $experience = $this->experiencePerProgress($recipe);
+        $verb = trim((string) data_get($recipe, 'verb_phrase', 'Extract'));
+        $resourceName = (string) data_get($resource, 'name', 'Unknown resource');
+
+        return [
+            'id' => (int) data_get($recipe, 'id'),
+            'resourceId' => (int) data_get($recipe, 'resource_id'),
+            'name' => trim($verb.' '.$resourceName),
+            'verb' => $verb,
+            'timeRequirement' => (float) data_get($recipe, 'time_requirement', 0),
+            'staminaRequirement' => (float) data_get($recipe, 'stamina_requirement', 0),
+            'toolDurabilityLost' => (int) data_get($recipe, 'tool_durability_lost', 0),
+            'range' => (int) data_get($recipe, 'range', 0),
+            'allowUseHands' => (bool) data_get($recipe, 'allow_use_hands', false),
+            'showInProgression' => (bool) data_get($recipe, 'show_in_progression', false),
+            'levelRequirement' => (int) ($levelRequirement['level'] ?? 0),
+            'skill' => [
+                'id' => $levelRequirement['skill_id'] ?? $experience['skill_id'] ?? null,
+                'name' => $this->skillName($levelRequirement['skill_id'] ?? $experience['skill_id'] ?? null),
+            ],
+            'tool' => [
+                'id' => $toolRequirement['tool_type'] ?? null,
+                'name' => $this->toolTypeName($toolRequirement['tool_type'] ?? null),
+                'level' => (int) ($toolRequirement['level'] ?? 0),
+                'power' => (int) ($toolRequirement['power'] ?? 0),
+            ],
+            'experiencePerProgress' => [
+                'skill_id' => $experience['skill_id'] ?? null,
+                'skillName' => $this->skillName($experience['skill_id'] ?? null),
+                'quantity' => (float) ($experience['quantity'] ?? 0),
+            ],
+            'resource' => $resource,
+            'spawnedResource' => $this->resourcePayload((int) data_get($resource, 'onDestroyYieldResourceId')),
+            'outputs' => $this->displayProbabilisticStacks($this->probabilisticExtractedStacks($recipe)),
+            'consumedItems' => $this->displayInputStacks($this->inputStacks(data_get($recipe, 'consumed_item_stacks', []))),
+        ];
+    }
+
     private function stacks(array $stacks): array
     {
         return collect($stacks)
@@ -241,7 +380,31 @@ class BitcraftSpacetimeStaticData
             ->all();
     }
 
+    private function inputStacks(array $stacks): array
+    {
+        return collect($stacks)
+            ->map(function (array $stack): array {
+                $parsed = Arr::first($this->stacks([$stack]));
+
+                return [
+                    ...($parsed ?? []),
+                    'consumption_chance' => (float) data_get($stack, 'consumption_chance', data_get($stack, '4', 1)),
+                ];
+            })
+            ->filter(fn (array $stack): bool => filled($stack['item_id'] ?? null))
+            ->values()
+            ->all();
+    }
+
     private function extractedStacks(array $recipe): array
+    {
+        return collect($this->probabilisticExtractedStacks($recipe))
+            ->map(fn (array $stack): array => Arr::only($stack, ['item_id', 'quantity', 'item_type']))
+            ->values()
+            ->all();
+    }
+
+    private function probabilisticExtractedStacks(array $recipe): array
     {
         return collect(data_get($recipe, 'extracted_item_stacks', []))
             ->map(function (array $probabilisticStack): ?array {
@@ -257,7 +420,16 @@ class BitcraftSpacetimeStaticData
                     return null;
                 }
 
-                return Arr::first($this->stacks([$stack]));
+                $parsed = Arr::first($this->stacks([$stack]));
+
+                if (! $parsed) {
+                    return null;
+                }
+
+                return [
+                    ...$parsed,
+                    'probability' => (float) data_get($probabilisticStack, 'probability', data_get($probabilisticStack, '1', 1)),
+                ];
             })
             ->filter()
             ->values()
@@ -289,9 +461,66 @@ class BitcraftSpacetimeStaticData
             ->all();
     }
 
+    private function displayProbabilisticStacks(array $stacks): array
+    {
+        return collect($this->displayStacks($stacks))
+            ->map(function (array $stack, int $index) use ($stacks): array {
+                return [
+                    ...$stack,
+                    'probability' => (float) data_get($stacks, "{$index}.probability", 1),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function displayInputStacks(array $stacks): array
+    {
+        return collect($this->displayStacks($stacks))
+            ->map(function (array $stack, int $index) use ($stacks): array {
+                return [
+                    ...$stack,
+                    'consumptionChance' => (float) data_get($stacks, "{$index}.consumption_chance", 1),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
     private function tableRows(string $table): array
     {
+        if ($this->databaseMetadata() !== null) {
+            if (! array_key_exists($table, $this->databaseTableRows)) {
+                $this->databaseTableRows[$table] = $this->snapshotStore->tableRows($table);
+            }
+
+            return $this->databaseTableRows[$table];
+        }
+
         return data_get($this->snapshot(), "tables.{$table}.rows", []);
+    }
+
+    private function databaseMetadata(): ?array
+    {
+        if ($this->snapshotMetadata !== null) {
+            return $this->snapshotMetadata;
+        }
+
+        return $this->snapshotMetadata = $this->snapshotStore->currentMetadata();
+    }
+
+    private function fileMetadata(): array
+    {
+        $snapshot = $this->snapshot();
+
+        return [
+            'generatedAt' => data_get($snapshot, 'generatedAt'),
+            'database' => data_get($snapshot, 'database'),
+            'storage' => $snapshot === null ? null : 'file',
+            'tables' => collect(data_get($snapshot, 'tables', []))
+                ->map(fn (array $table): int => (int) data_get($table, 'count', count(data_get($table, 'rows', []))))
+                ->all(),
+        ];
     }
 
     private function stackKind(mixed $type): string
@@ -313,6 +542,65 @@ class BitcraftSpacetimeStaticData
         return ($kind === 'cargo' ? 'cargo' : 'item').':'.$id;
     }
 
+    private function resourcePayload(int $resourceId): ?array
+    {
+        if ($resourceId <= 0) {
+            return null;
+        }
+
+        $resource = collect($this->tableRows('resource_desc'))->firstWhere('id', $resourceId);
+
+        if (! is_array($resource)) {
+            return null;
+        }
+
+        return [
+            'id' => (int) data_get($resource, 'id'),
+            'name' => data_get($resource, 'name', 'Unknown resource'),
+            'category' => data_get($resource, 'tag'),
+            'tier' => data_get($resource, 'tier'),
+            'rarity' => $this->rarityName(data_get($resource, 'rarity')),
+            'maxHealth' => (int) data_get($resource, 'max_health', 0),
+            'ignoreDamage' => (bool) data_get($resource, 'ignore_damage', false),
+            'showTimeLeft' => (bool) data_get($resource, 'show_time_left', false),
+            'onDestroyYieldResourceId' => (int) data_get($resource, 'on_destroy_yield_resource_id', 0),
+            'iconAssetName' => data_get($resource, 'icon_asset_name'),
+        ];
+    }
+
+    private function toolRequirements(array $recipe): array
+    {
+        return collect(data_get($recipe, 'tool_requirements', []))
+            ->map(fn (array $requirement): array => [
+                'tool_type' => data_get($requirement, 'tool_type', data_get($requirement, '0')),
+                'level' => data_get($requirement, 'level', data_get($requirement, '1')),
+                'power' => data_get($requirement, 'power', data_get($requirement, '2')),
+            ])
+            ->filter(fn (array $requirement): bool => filled($requirement['tool_type'] ?? null))
+            ->values()
+            ->all();
+    }
+
+    private function levelRequirement(array $recipe): array
+    {
+        $requirement = data_get($recipe, 'level_requirements.0', []);
+
+        return [
+            'skill_id' => data_get($requirement, 'skill_id', data_get($requirement, '0')),
+            'level' => data_get($requirement, 'level', data_get($requirement, '1')),
+        ];
+    }
+
+    private function experiencePerProgress(array $recipe): array
+    {
+        $experience = data_get($recipe, 'experience_per_progress.0', []);
+
+        return [
+            'skill_id' => data_get($experience, 'skill_id', data_get($experience, '0')),
+            'quantity' => data_get($experience, 'quantity', data_get($experience, '1', 0)),
+        ];
+    }
+
     private function skillName(mixed $skillId): ?string
     {
         if (! filled($skillId)) {
@@ -320,6 +608,15 @@ class BitcraftSpacetimeStaticData
         }
 
         return data_get(collect($this->tableRows('skill_desc'))->firstWhere('id', (int) $skillId), 'name');
+    }
+
+    private function toolTypeName(mixed $toolTypeId): ?string
+    {
+        if (! filled($toolTypeId)) {
+            return null;
+        }
+
+        return data_get(collect($this->tableRows('tool_type_desc'))->firstWhere('id', (int) $toolTypeId), 'name');
     }
 
     private function buildingRequirementName(mixed $requirement): ?string

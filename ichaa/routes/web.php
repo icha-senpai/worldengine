@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UserAccessController as AdminUserAccessController
 use App\Http\Controllers\Bitcraft\BitcraftActivityController;
 use App\Http\Controllers\Bitcraft\BitcraftInventoryTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftLiveCompanionController;
+use App\Http\Controllers\Bitcraft\BitcraftPassiveCraftTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftTaskTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftToolController;
 use App\Http\Controllers\ConnectedRealms\ConnectedRealmsController;
@@ -82,6 +83,8 @@ Route::prefix('datacrypt/bitcraft')->name('bitcraft.')->group(function () {
     Route::get('activity/snapshot', [BitcraftActivityController::class, 'snapshot'])->name('activity.snapshot');
     Route::get('inventory-tracker', [BitcraftInventoryTrackerController::class, 'show'])->name('inventory-tracker');
     Route::get('inventory-tracker/snapshot', [BitcraftInventoryTrackerController::class, 'snapshot'])->name('inventory-tracker.snapshot');
+    Route::get('passive-crafts', [BitcraftPassiveCraftTrackerController::class, 'show'])->name('passive-crafts');
+    Route::get('passive-crafts/snapshot', [BitcraftPassiveCraftTrackerController::class, 'snapshot'])->name('passive-crafts.snapshot');
     Route::get('task-tracker', [BitcraftTaskTrackerController::class, 'show'])->name('task-tracker');
 });
 
@@ -112,10 +115,12 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
         Route::get('barter-stalls', [BitcraftToolController::class, 'barterStalls'])->name('barter-stalls');
         Route::get('crafting', [BitcraftToolController::class, 'crafting'])->name('crafting');
         Route::get('crafting/branch', [BitcraftToolController::class, 'craftingBranch'])->name('crafting.branch');
+        Route::get('tool-rates', [BitcraftToolController::class, 'toolRates'])->name('tool-rates');
         Route::get('live-companion', [BitcraftLiveCompanionController::class, 'show'])->name('live-companion');
         Route::get('live-companion/snapshot', [BitcraftLiveCompanionController::class, 'snapshot'])->name('live-companion.snapshot');
         Route::get('activity/setup', [BitcraftActivityController::class, 'setup'])->name('activity.setup');
         Route::get('inventory-tracker/setup', [BitcraftInventoryTrackerController::class, 'setup'])->name('inventory-tracker.setup');
+        Route::get('passive-crafts/setup', [BitcraftPassiveCraftTrackerController::class, 'setup'])->name('passive-crafts.setup');
         Route::get('task-tracker/setup', [BitcraftTaskTrackerController::class, 'setup'])->name('task-tracker.setup');
     });
 

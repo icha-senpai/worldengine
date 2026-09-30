@@ -9,7 +9,8 @@
             :class="{ 'activity-source--setup': setupVisible, 'activity-source--in-app': setupPageVisible }"
             :style="widgetThemeStyle"
         >
-        <form v-if="setupVisible" class="activity-setup" @submit.prevent="submitSetup(true)">
+        <WidgetSetupDrawer :show="setupVisible" title="Edit EXP Widget" @widget-mode="openWidgetMode">
+        <form class="activity-setup" @submit.prevent="submitSetup(true)">
             <div class="activity-setup__grid">
                 <label>
                     <span>Title</span>
@@ -101,9 +102,9 @@
 
             <div class="activity-setup__actions">
                 <button type="submit">Search / Update</button>
-                <button type="button" @click="openWidgetMode">Widget Mode</button>
             </div>
         </form>
+        </WidgetSetupDrawer>
 
         <section class="activity-widget" aria-label="Bitcraft EXP tracker">
             <header class="activity-widget__header">
@@ -191,6 +192,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
+import WidgetSetupDrawer from './Components/WidgetSetupDrawer.vue'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
 import WidgetPageShell from './Components/WidgetPageShell.vue'
 import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'

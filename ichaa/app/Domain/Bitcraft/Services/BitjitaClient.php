@@ -268,6 +268,13 @@ class BitjitaClient
         ]);
     }
 
+    public function playerPassiveCrafts(string $playerEntityId, string $status = 'all'): array
+    {
+        return $this->get("api/players/{$playerEntityId}/passive-crafts", [
+            'status' => $status,
+        ]);
+    }
+
     public function experienceLevels(): array
     {
         return $this->get('static/experience/levels.json');

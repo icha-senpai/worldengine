@@ -737,11 +737,13 @@ const bitcraftToolChildren = computed(() => [
     { key: 'bitcraft-market', label: 'Market Finder', href: route('bitcraft.market'), matches: ['/bitcraft/market'] },
     { key: 'bitcraft-barter-stalls', label: 'Barter Stalls', href: route('bitcraft.barter-stalls'), matches: ['/bitcraft/barter-stalls'] },
     { key: 'bitcraft-crafting', label: 'Crafting Calculator', href: route('bitcraft.crafting'), matches: ['/bitcraft/crafting'] },
+    { key: 'bitcraft-tool-rates', label: 'Tool Rate Calculator', href: route('bitcraft.tool-rates'), matches: ['/bitcraft/tool-rates'] },
     page.props.features?.bitcraft?.live_companion
         ? { key: 'bitcraft-live-companion', label: 'Live Companion', href: route('bitcraft.live-companion'), matches: ['/bitcraft/live-companion'] }
         : null,
     { key: 'bitcraft-activity', label: 'EXP Tracker', href: route('bitcraft.activity.setup', { source: 'default' }), matches: ['/bitcraft/activity'] },
     { key: 'bitcraft-inventory-tracker', label: 'Inventory Tracker', href: route('bitcraft.inventory-tracker.setup', { source: 'default' }), matches: ['/bitcraft/inventory-tracker'] },
+    { key: 'bitcraft-passive-crafts', label: 'Passive Crafts', href: route('bitcraft.passive-crafts.setup', { source: 'default' }), matches: ['/bitcraft/passive-crafts'] },
     { key: 'bitcraft-task-tracker', label: 'Task Tracker', href: route('bitcraft.task-tracker.setup', { source: 'default' }), matches: ['/bitcraft/task-tracker'] },
 ].filter(Boolean))
 

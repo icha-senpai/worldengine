@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Bitcraft;
 
+use App\Domain\Bitcraft\Services\BitcraftRelayClient;
+use App\Domain\Bitcraft\Services\BitcraftSpacetimeStaticData;
 use App\Domain\Bitcraft\Services\BitjitaClient;
 use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
 use App\Http\Controllers\Bitcraft\Concerns\ScopesBitcraftWidgetProfiles;
@@ -26,19 +28,29 @@ class BitcraftInventoryTrackerController extends Controller
 
     private const TRACKED_SOURCE_KINDS = [
         'inventory',
+        'boat',
         'raft',
         'skiff',
         'clipper',
+        'ship',
         'cart',
         'wagon',
+        'bird',
+        'cervus',
         'deer',
+        'equous',
+        'horse',
         'ox',
         'goat',
         'personal cache',
     ];
 
-    public function show(Request $request, BitjitaClient $bitjita): InertiaResponse|RedirectResponse
-    {
+    public function show(
+        Request $request,
+        BitjitaClient $bitjita,
+        BitcraftRelayClient $relay,
+        BitcraftSpacetimeStaticData $spacetime,
+    ): InertiaResponse|RedirectResponse {
         $filters = $this->filters($request);
 
         if ($request->has('source') && $this->hasProfileInput($request)) {
@@ -49,7 +61,7 @@ class BitcraftInventoryTrackerController extends Controller
             }
         }
 
-        $snapshot = $this->trackerSnapshot($bitjita, $filters);
+        $snapshot = $this->trackerSnapshot($bitjita, $relay, $spacetime, $filters);
         $snapshotFilters = $filters;
 
         if (filled(data_get($snapshot, 'tracker.player.entityId'))) {
@@ -63,16 +75,24 @@ class BitcraftInventoryTrackerController extends Controller
         ]);
     }
 
-    public function setup(Request $request, BitjitaClient $bitjita): InertiaResponse|RedirectResponse
-    {
+    public function setup(
+        Request $request,
+        BitjitaClient $bitjita,
+        BitcraftRelayClient $relay,
+        BitcraftSpacetimeStaticData $spacetime,
+    ): InertiaResponse|RedirectResponse {
         $request->merge(['setup' => true]);
 
-        return $this->show($request, $bitjita);
+        return $this->show($request, $bitjita, $relay, $spacetime);
     }
 
-    public function snapshot(Request $request, BitjitaClient $bitjita): JsonResponse
-    {
-        return response()->json($this->trackerSnapshot($bitjita, $this->filters($request)));
+    public function snapshot(
+        Request $request,
+        BitjitaClient $bitjita,
+        BitcraftRelayClient $relay,
+        BitcraftSpacetimeStaticData $spacetime,
+    ): JsonResponse {
+        return response()->json($this->trackerSnapshot($bitjita, $relay, $spacetime, $this->filters($request)));
     }
 
     /**
@@ -142,20 +162,24 @@ class BitcraftInventoryTrackerController extends Controller
      * @param  array<string, mixed>  $filters
      * @return array{tracker: ?array<string, mixed>, options: array<int, array<string, mixed>>, error: ?string, sampledAt: string}
      */
-    private function trackerSnapshot(BitjitaClient $bitjita, array $filters): array
-    {
+    private function trackerSnapshot(
+        BitjitaClient $bitjita,
+        BitcraftRelayClient $relay,
+        BitcraftSpacetimeStaticData $spacetime,
+        array $filters,
+    ): array {
         try {
-            $player = $this->resolvePlayer($bitjita, (string) $filters['character']);
+            $player = $this->resolvePlayer($bitjita, $relay, (string) $filters['character']);
 
             if ($player === null) {
                 return $this->snapshotError("No Bitjita player matched '{$filters['character']}'.", []);
             }
 
-            $inventoriesPayload = $bitjita->playerInventories((string) data_get($player, 'entityId'));
+            $inventoriesPayload = $this->inventoriesPayload($bitjita, $relay, $spacetime, (string) data_get($player, 'entityId'));
 
             $catalog = $this->catalog($inventoriesPayload);
             $inventoryEntries = $this->inventoryEntries($inventoriesPayload, $catalog);
-            $options = $this->options($inventoryEntries, $catalog, $bitjita, (string) $filters['itemSearch']);
+            $options = $this->options($inventoryEntries, $catalog, $bitjita, $spacetime, (string) $filters['itemSearch']);
             $itemKeys = $filters['itemKeys'] ?? [];
             $itemKeys = is_array($itemKeys) ? $itemKeys : $this->selectedItemKeys((string) $itemKeys);
             $itemNeeds = $filters['itemNeeds'] ?? [];
@@ -324,7 +348,48 @@ class BitcraftInventoryTrackerController extends Controller
     /**
      * @return array<string, mixed>|null
      */
-    private function resolvePlayer(BitjitaClient $bitjita, string $character): ?array
+    private function resolvePlayer(BitjitaClient $bitjita, BitcraftRelayClient $relay, string $character): ?array
+    {
+        if ($relay->isEnabled()) {
+            try {
+                $player = $this->resolveRelayPlayer($relay, $character);
+
+                if ($player !== null) {
+                    return $player;
+                }
+            } catch (Throwable) {
+                //
+            }
+        }
+
+        return $this->resolveBitjitaPlayer($bitjita, $character);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function resolveRelayPlayer(BitcraftRelayClient $relay, string $character): ?array
+    {
+        if (ctype_digit($character)) {
+            return $this->relayPlayerPayload($relay->player($character));
+        }
+
+        $players = $relay->players($character);
+        $selected = collect($players)->first(
+            fn (array $player): bool => strcasecmp((string) data_get($player, 'username'), $character) === 0,
+        ) ?? collect($players)->first();
+
+        if (! $selected || blank(data_get($selected, 'entity_id'))) {
+            return null;
+        }
+
+        return $this->relayPlayerPayload($selected);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function resolveBitjitaPlayer(BitjitaClient $bitjita, string $character): ?array
     {
         if (ctype_digit($character)) {
             return data_get($bitjita->player($character), 'player');
@@ -340,6 +405,131 @@ class BitcraftInventoryTrackerController extends Controller
         }
 
         return data_get($bitjita->player((string) data_get($selected, 'entityId')), 'player');
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function relayPlayerPayload(array $player): ?array
+    {
+        if (blank(data_get($player, 'entity_id'))) {
+            return null;
+        }
+
+        return [
+            'entityId' => (string) data_get($player, 'entity_id'),
+            'username' => (string) data_get($player, 'username', 'Unknown'),
+            'signedIn' => (bool) data_get($player, 'signed_in', false),
+            'region' => data_get($player, 'region'),
+            'lastActiveTimestamp' => data_get($player, 'last_active_timestamp'),
+            'lastLoginTimestamp' => data_get($player, 'last_login_timestamp'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function inventoriesPayload(
+        BitjitaClient $bitjita,
+        BitcraftRelayClient $relay,
+        BitcraftSpacetimeStaticData $spacetime,
+        string $playerEntityId,
+    ): array {
+        if ($relay->isEnabled()) {
+            try {
+                $payload = $this->relayInventoryPayload($relay->playerInventory($playerEntityId), $spacetime);
+
+                if ($payload !== null) {
+                    return $payload;
+                }
+            } catch (Throwable) {
+                //
+            }
+        }
+
+        return $bitjita->playerInventories($playerEntityId);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function relayInventoryPayload(array $payload, BitcraftSpacetimeStaticData $spacetime): ?array
+    {
+        $inventories = data_get($payload, 'inventories');
+
+        if (! is_array($inventories)) {
+            return null;
+        }
+
+        $itemKeys = collect($inventories)
+            ->flatMap(fn (array $inventory): array => data_get($inventory, 'items', []))
+            ->map(fn (array $item): string => $this->itemKeyFromRelayItem($item))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        $catalog = $spacetime->catalogForKeys($itemKeys);
+
+        return [
+            'inventories' => collect($inventories)
+                ->map(fn (array $inventory): array => $this->relayInventory($inventory))
+                ->values()
+                ->all(),
+            'items' => collect($catalog)
+                ->filter(fn (array $item): bool => data_get($item, 'kind') === 'item')
+                ->keyBy('id')
+                ->all(),
+            'cargos' => collect($catalog)
+                ->filter(fn (array $item): bool => data_get($item, 'kind') === 'cargo')
+                ->keyBy('id')
+                ->all(),
+            'source' => 'relay',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function relayInventory(array $inventory): array
+    {
+        $name = (string) data_get($inventory, 'name', 'Inventory');
+
+        if (data_get($inventory, 'category') === 'pockets') {
+            $name = 'Inventory';
+        }
+
+        return [
+            'entityId' => (string) data_get($inventory, 'entity_id'),
+            'inventoryName' => $name,
+            'buildingName' => $name,
+            'category' => data_get($inventory, 'category'),
+            'claimName' => data_get($inventory, 'claim_name'),
+            'pockets' => collect(data_get($inventory, 'items', []))
+                ->map(fn (array $item): array => [
+                    'contents' => [
+                        'itemId' => (int) data_get($item, 'item_id'),
+                        'itemType' => $this->relayItemType(data_get($item, 'item_type')),
+                        'quantity' => (int) data_get($item, 'quantity', 0),
+                    ],
+                ])
+                ->all(),
+        ];
+    }
+
+    private function itemKeyFromRelayItem(array $item): string
+    {
+        $id = (int) data_get($item, 'item_id');
+
+        if ($id <= 0) {
+            return '';
+        }
+
+        return ($this->relayItemType(data_get($item, 'item_type')) === 1 ? 'cargo' : 'item').':'.$id;
+    }
+
+    private function relayItemType(mixed $itemType): int
+    {
+        return strtolower((string) $itemType) === 'cargo' ? 1 : 0;
     }
 
     /**
@@ -449,8 +639,13 @@ class BitcraftInventoryTrackerController extends Controller
      * @param  array<string, array<string, mixed>>  $catalog
      * @return array<int, array<string, mixed>>
      */
-    private function options(array $inventoryEntries, array $catalog, BitjitaClient $bitjita, string $search): array
-    {
+    private function options(
+        array $inventoryEntries,
+        array $catalog,
+        BitjitaClient $bitjita,
+        BitcraftSpacetimeStaticData $spacetime,
+        string $search,
+    ): array {
         $inventoryOptions = collect($inventoryEntries)
             ->groupBy('key')
             ->map(function ($entries, string $key) use ($catalog): array {
@@ -467,10 +662,16 @@ class BitcraftInventoryTrackerController extends Controller
                 ];
             });
 
-        $catalogOptions = collect([
-            ...$this->catalogEntries(data_get($bitjita->items($search), 'items', []), 'item'),
-            ...$this->catalogEntries(data_get($bitjita->cargo($search), 'cargos', []), 'cargo'),
-        ])
+        $searchCatalog = $spacetime->catalogSearch($search);
+
+        if ($searchCatalog === []) {
+            $searchCatalog = [
+                ...$this->catalogEntries(data_get($bitjita->items($search), 'items', []), 'item'),
+                ...$this->catalogEntries(data_get($bitjita->cargo($search), 'cargos', []), 'cargo'),
+            ];
+        }
+
+        $catalogOptions = collect($searchCatalog)
             ->map(fn (array $option): array => [
                 ...$option,
                 'quantity' => 0,

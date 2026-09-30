@@ -460,6 +460,14 @@ class BitcraftToolController extends Controller
         }
     }
 
+    public function toolRates(BitcraftSpacetimeStaticData $spacetime): Response
+    {
+        return $this->page('Bitcraft/ToolRates', [
+            'entries' => $spacetime->toolRateEntries(),
+            'snapshot' => $spacetime->metadata(),
+        ]);
+    }
+
     public function apiCrafting(Request $request, BitjitaClient $bitjita, BitcraftSpacetimeStaticData $spacetime): JsonResponse
     {
         ApiAuthorizer::ensure($request, 'read', '*');

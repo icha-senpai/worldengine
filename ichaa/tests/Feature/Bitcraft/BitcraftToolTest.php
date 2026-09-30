@@ -3,8 +3,10 @@
 namespace Tests\Feature\Bitcraft;
 
 use App\Domain\Bitcraft\Models\BitcraftWidgetProfile;
+use App\Domain\Bitcraft\Services\BitcraftSpacetimeSnapshotStore;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -19,6 +21,13 @@ class BitcraftToolTest extends TestCase
         parent::setUp();
 
         Cache::flush();
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
     }
 
     public function test_market_finder_uses_market_api_for_selected_claim_trades(): void
@@ -2195,6 +2204,223 @@ class BitcraftToolTest extends TestCase
             );
 
         Http::assertNothingSent();
+    }
+
+    public function test_tool_rate_calculator_uses_spacetime_resource_and_extraction_rows(): void
+    {
+        $snapshotPath = storage_path('framework/testing/bitcraft-tool-rates-static.json');
+        $generatedAt = now()->toISOString();
+
+        if (! is_dir(dirname($snapshotPath))) {
+            mkdir(dirname($snapshotPath), 0777, true);
+        }
+
+        file_put_contents($snapshotPath, json_encode([
+            'source' => 'bitcraft-spacetimedb',
+            'generatedAt' => $generatedAt,
+            'host' => 'wss://bitcraft-early-access.spacetimedb.com',
+            'database' => 'bitcraft-live-19',
+            'tables' => [
+                'item_desc' => [
+                    'count' => 2,
+                    'rows' => [[
+                        'id' => 4220030,
+                        'name' => 'T4 Lakefish Output',
+                        'description' => '',
+                        'tier' => 4,
+                        'tag' => 'Lakefish Output',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/LakeFish',
+                    ], [
+                        'id' => 4110003,
+                        'name' => 'Fine Bait',
+                        'description' => '',
+                        'tier' => 4,
+                        'tag' => 'Bait',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/Bait',
+                    ]],
+                ],
+                'extraction_recipe_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 1413437162,
+                        'resource_id' => 1696878184,
+                        'cargo_id' => 0,
+                        'discovery_triggers' => [],
+                        'required_knowledges' => [],
+                        'blocking_knowledges' => [],
+                        'time_requirement' => 1.6,
+                        'stamina_requirement' => 1.16,
+                        'tool_durability_lost' => 0,
+                        'extracted_item_stacks' => [[[0, [4220030, 1, [0, []], [1, []]]], 0.009675]],
+                        'consumed_item_stacks' => [[4110003, 2, [0, []], 0, 0.5]],
+                        'range' => 5,
+                        'tool_requirements' => [[10, 4, 1]],
+                        'allow_use_hands' => false,
+                        'level_requirements' => [[12, 43]],
+                        'experience_per_progress' => [[12, 1.82]],
+                        'verb_phrase' => 'Fish',
+                        'show_in_progression' => true,
+                    ]],
+                ],
+                'resource_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 1696878184,
+                        'name' => 'Baited School Of Azure Sphyra',
+                        'description' => '',
+                        'max_health' => 3000,
+                        'ignore_damage' => true,
+                        'on_destroy_yield_resource_id' => 0,
+                        'tier' => 4,
+                        'tag' => 'Lake Fish School',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Other/Animals/T4 Lake Fish',
+                        'show_time_left' => true,
+                    ]],
+                ],
+                'tool_type_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 10,
+                        'name' => 'Rod',
+                        'skill_id' => 12,
+                    ]],
+                ],
+                'skill_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 12,
+                        'name' => 'Fishing',
+                    ]],
+                ],
+            ],
+        ], JSON_THROW_ON_ERROR));
+
+        config([
+            'services.bitcraft_spacetime.enabled' => true,
+            'services.bitcraft_spacetime.enabled_in_tests' => true,
+            'services.bitcraft_spacetime.static_snapshot_path' => $snapshotPath,
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.tool-rates'));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/ToolRates')
+                ->where('snapshot.available', true)
+                ->where('snapshot.generatedAt', $generatedAt)
+                ->has('entries', 1)
+                ->where('entries.0.name', 'Fish Baited School Of Azure Sphyra')
+                ->where('entries.0.resource.name', 'Baited School Of Azure Sphyra')
+                ->where('entries.0.resource.maxHealth', 3000)
+                ->where('entries.0.resource.ignoreDamage', true)
+                ->where('entries.0.skill.name', 'Fishing')
+                ->where('entries.0.tool.name', 'Rod')
+                ->where('entries.0.outputs.0.name', 'T4 Lakefish Output')
+                ->where('entries.0.outputs.0.probability', 0.009675)
+                ->where('entries.0.consumedItems.0.name', 'Fine Bait')
+                ->where('entries.0.consumedItems.0.consumptionChance', 0.5)
+            );
+    }
+
+    public function test_tool_rate_calculator_uses_postgresql_spacetime_snapshot_when_available(): void
+    {
+        $generatedAt = now()->toISOString();
+
+        app(BitcraftSpacetimeSnapshotStore::class)->import([
+            'source' => 'bitcraft-spacetimedb',
+            'generatedAt' => $generatedAt,
+            'host' => 'wss://bitcraft-early-access.spacetimedb.com',
+            'database' => 'bitcraft-live-19',
+            'tables' => [
+                'item_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 4220030,
+                        'name' => 'T4 Lakefish Output',
+                        'description' => '',
+                        'tier' => 4,
+                        'tag' => 'Lakefish Output',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/LakeFish',
+                    ]],
+                ],
+                'extraction_recipe_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 1413437162,
+                        'resource_id' => 1696878184,
+                        'time_requirement' => 1.6,
+                        'stamina_requirement' => 1.16,
+                        'tool_durability_lost' => 0,
+                        'extracted_item_stacks' => [[[0, [4220030, 1, [0, []], [1, []]]], 0.009675]],
+                        'consumed_item_stacks' => [],
+                        'range' => 5,
+                        'tool_requirements' => [[10, 4, 1]],
+                        'allow_use_hands' => false,
+                        'level_requirements' => [[12, 43]],
+                        'experience_per_progress' => [[12, 1.82]],
+                        'verb_phrase' => 'Fish',
+                        'show_in_progression' => true,
+                    ]],
+                ],
+                'resource_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 1696878184,
+                        'name' => 'Baited School Of Azure Sphyra',
+                        'max_health' => 3000,
+                        'ignore_damage' => true,
+                        'on_destroy_yield_resource_id' => 0,
+                        'tier' => 4,
+                        'tag' => 'Lake Fish School',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Other/Animals/T4 Lake Fish',
+                        'show_time_left' => true,
+                    ]],
+                ],
+                'tool_type_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 10,
+                        'name' => 'Rod',
+                        'skill_id' => 12,
+                    ]],
+                ],
+                'skill_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 12,
+                        'name' => 'Fishing',
+                    ]],
+                ],
+            ],
+        ]);
+
+        config([
+            'services.bitcraft_spacetime.enabled' => true,
+            'services.bitcraft_spacetime.enabled_in_tests' => true,
+            'services.bitcraft_spacetime.static_snapshot_path' => storage_path('framework/testing/missing-spacetime-static.json'),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->get(route('bitcraft.tool-rates'));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/ToolRates')
+                ->where('snapshot.available', true)
+                ->where('snapshot.generatedAt', $generatedAt)
+                ->where('snapshot.database', 'bitcraft-live-19')
+                ->where('snapshot.tables.extraction_recipe_desc', 1)
+                ->has('entries', 1)
+                ->where('entries.0.name', 'Fish Baited School Of Azure Sphyra')
+                ->where('entries.0.resource.name', 'Baited School Of Azure Sphyra')
+                ->where('entries.0.outputs.0.name', 'T4 Lakefish Output')
+            );
     }
 
     public function test_crafting_tool_searches_cargo_and_filters_to_recipe_targets(): void
@@ -4601,6 +4827,130 @@ class BitcraftToolTest extends TestCase
         Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/players/1224979098725428189/inventories?'));
     }
 
+    public function test_inventory_tracker_uses_relay_inventory_when_enabled(): void
+    {
+        $snapshotPath = storage_path('framework/testing/bitcraft-relay-inventory-static.json');
+
+        if (! is_dir(dirname($snapshotPath))) {
+            mkdir(dirname($snapshotPath), 0777, true);
+        }
+
+        file_put_contents($snapshotPath, json_encode([
+            'source' => 'bitcraft-spacetimedb',
+            'generatedAt' => now()->toISOString(),
+            'host' => 'wss://bitcraft-early-access.spacetimedb.com',
+            'database' => 'bitcraft-live-9',
+            'tables' => [
+                'item_desc' => [
+                    'count' => 1,
+                    'rows' => [[
+                        'id' => 1516591189,
+                        'name' => 'Vibrant Janus',
+                        'description' => '',
+                        'tier' => 6,
+                        'tag' => 'Ocean Fish',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/VibrantJanus',
+                    ]],
+                ],
+                'cargo_desc' => ['count' => 0, 'rows' => []],
+                'crafting_recipe_desc' => ['count' => 0, 'rows' => []],
+                'extraction_recipe_desc' => ['count' => 0, 'rows' => []],
+            ],
+        ], JSON_THROW_ON_ERROR));
+
+        config([
+            'services.bitcraft_relay.enabled' => true,
+            'services.bitcraft_relay.enabled_in_tests' => true,
+            'services.bitcraft_spacetime.enabled' => true,
+            'services.bitcraft_spacetime.enabled_in_tests' => true,
+            'services.bitcraft_spacetime.static_snapshot_path' => $snapshotPath,
+        ]);
+
+        Http::fake([
+            'https://relay.bitcraftsync.app/player?name=icha' => Http::response([[
+                'entity_id' => '1224979098725428189',
+                'username' => 'Icha',
+                'region' => 9,
+                'signed_in' => true,
+            ]]),
+            'https://relay.bitcraftsync.app/player/1224979098725428189/inventory' => Http::response([
+                'inventories' => [
+                    [
+                        'category' => 'pockets',
+                        'entity_id' => 'pockets-1',
+                        'items' => [[
+                            'item_id' => 1516591189,
+                            'item_type' => 'Item',
+                            'quantity' => 10,
+                        ]],
+                        'name' => 'Pockets',
+                    ],
+                    [
+                        'category' => 'boat',
+                        'entity_id' => 'boat-1',
+                        'items' => [[
+                            'item_id' => 1516591189,
+                            'item_type' => 'Item',
+                            'quantity' => 13,
+                        ]],
+                        'name' => 'Icha\'s Fisherman\'s Boat',
+                    ],
+                    [
+                        'category' => 'cache',
+                        'entity_id' => 'cache-1',
+                        'items' => [[
+                            'item_id' => 1516591189,
+                            'item_type' => 'Item',
+                            'quantity' => 5,
+                        ]],
+                        'name' => 'Icha\'s Personal Cache (II)',
+                    ],
+                    [
+                        'category' => 'bank',
+                        'entity_id' => 'bank-1',
+                        'items' => [[
+                            'item_id' => 1516591189,
+                            'item_type' => 'Item',
+                            'quantity' => 999,
+                        ]],
+                        'name' => 'Town Bank',
+                    ],
+                ],
+                'player' => [
+                    'entity_id' => '1224979098725428189',
+                    'username' => 'Icha',
+                ],
+            ]),
+            'https://bitjita.com/*' => Http::response([], 500),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.inventory-tracker.snapshot', [
+                'character' => 'icha',
+                'itemKey' => 'item:1516591189',
+            ]));
+
+        $response->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.player.username', 'Icha')
+            ->assertJsonPath('tracker.item.name', 'Vibrant Janus')
+            ->assertJsonPath('tracker.quantity', 28)
+            ->assertJsonPath('tracker.sources.0.name', 'Icha\'s Fisherman\'s Boat')
+            ->assertJsonPath('tracker.sources.0.kind', 'boat')
+            ->assertJsonPath('tracker.sources.0.quantity', 13)
+            ->assertJsonPath('tracker.sources.1.name', 'Inventory')
+            ->assertJsonPath('tracker.sources.1.kind', 'inventory')
+            ->assertJsonPath('tracker.sources.1.quantity', 10)
+            ->assertJsonPath('tracker.sources.2.name', 'Icha\'s Personal Cache (II)')
+            ->assertJsonPath('tracker.sources.2.kind', 'personal cache')
+            ->assertJsonPath('tracker.sources.2.quantity', 5);
+
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/players'));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/items'));
+        Http::assertNotSent(fn (Request $request) => str_starts_with($request->url(), 'https://bitjita.com/api/cargo'));
+    }
+
     public function test_inventory_tracker_snapshot_aggregates_multiple_selected_items(): void
     {
         $this->fakeInventoryTrackerResponses();
@@ -4624,6 +4974,183 @@ class BitcraftToolTest extends TestCase
             ->assertJsonPath('tracker.items.1.quantity', 3)
             ->assertJsonPath('tracker.items.1.need', 9)
             ->assertJsonPath('tracker.items.1.remaining', 6);
+    }
+
+    public function test_inventory_tracker_tracks_new_mount_inventory_sources(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/players?q=icha' => Http::response([
+                'players' => [[
+                    'entityId' => '1224979098725428189',
+                    'username' => 'Icha',
+                ]],
+                'total' => 1,
+            ]),
+            'https://bitjita.com/api/players/1224979098725428189' => Http::response([
+                'player' => [
+                    'entityId' => '1224979098725428189',
+                    'username' => 'Icha',
+                ],
+            ]),
+            'https://bitjita.com/api/items*' => Http::response([
+                'items' => [],
+            ]),
+            'https://bitjita.com/api/cargo*' => Http::response([
+                'cargos' => [],
+            ]),
+            'https://bitjita.com/api/players/1224979098725428189/inventories' => Http::response([
+                'inventories' => [
+                    [
+                        'entityId' => 'equous-1',
+                        'inventoryName' => 'Icha\'s Equous (I)',
+                        'pockets' => [[
+                            'contents' => [
+                                'itemId' => 1516591189,
+                                'itemType' => 0,
+                                'quantity' => 8,
+                            ],
+                        ]],
+                    ],
+                    [
+                        'entityId' => 'bird-1',
+                        'inventoryName' => 'Icha\'s Bird (I)',
+                        'pockets' => [[
+                            'contents' => [
+                                'itemId' => 1516591189,
+                                'itemType' => 0,
+                                'quantity' => 5,
+                            ],
+                        ]],
+                    ],
+                    [
+                        'entityId' => 'cervus-1',
+                        'inventoryName' => 'Icha\'s Cervus (II)',
+                        'pockets' => [[
+                            'contents' => [
+                                'itemId' => 1516591189,
+                                'itemType' => 0,
+                                'quantity' => 11,
+                            ],
+                        ]],
+                    ],
+                    [
+                        'entityId' => 'bank-1',
+                        'inventoryName' => 'Town Bank',
+                        'pockets' => [[
+                            'contents' => [
+                                'itemId' => 1516591189,
+                                'itemType' => 0,
+                                'quantity' => 999,
+                            ],
+                        ]],
+                    ],
+                ],
+                'items' => [
+                    '1516591189' => [
+                        'name' => 'Vibrant Janus',
+                        'tier' => 6,
+                        'rarityStr' => 'Common',
+                        'tag' => 'Ocean Fish',
+                    ],
+                ],
+                'cargos' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.inventory-tracker.snapshot', [
+                'character' => 'icha',
+                'itemKey' => 'item:1516591189',
+            ]));
+
+        $response->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.quantity', 24)
+            ->assertJsonPath('tracker.sources.0.name', 'Icha\'s Cervus (II)')
+            ->assertJsonPath('tracker.sources.0.kind', 'cervus')
+            ->assertJsonPath('tracker.sources.0.quantity', 11)
+            ->assertJsonPath('tracker.sources.1.name', 'Icha\'s Equous (I)')
+            ->assertJsonPath('tracker.sources.1.kind', 'equous')
+            ->assertJsonPath('tracker.sources.1.quantity', 8)
+            ->assertJsonPath('tracker.sources.2.name', 'Icha\'s Bird (I)')
+            ->assertJsonPath('tracker.sources.2.kind', 'bird')
+            ->assertJsonPath('tracker.sources.2.quantity', 5);
+    }
+
+    public function test_inventory_tracker_tracks_ship_and_boat_inventory_sources(): void
+    {
+        Http::fake([
+            'https://bitjita.com/api/players?q=icha' => Http::response([
+                'players' => [[
+                    'entityId' => '1224979098725428189',
+                    'username' => 'Icha',
+                ]],
+                'total' => 1,
+            ]),
+            'https://bitjita.com/api/players/1224979098725428189' => Http::response([
+                'player' => [
+                    'entityId' => '1224979098725428189',
+                    'username' => 'Icha',
+                ],
+            ]),
+            'https://bitjita.com/api/items*' => Http::response([
+                'items' => [],
+            ]),
+            'https://bitjita.com/api/cargo*' => Http::response([
+                'cargos' => [],
+            ]),
+            'https://bitjita.com/api/players/1224979098725428189/inventories' => Http::response([
+                'inventories' => [
+                    [
+                        'entityId' => 'ship-1',
+                        'inventoryName' => 'Icha\'s Ship (Cargo)',
+                        'pockets' => [[
+                            'contents' => [
+                                'itemId' => 1516591189,
+                                'itemType' => 0,
+                                'quantity' => 21,
+                            ],
+                        ]],
+                    ],
+                    [
+                        'entityId' => 'boat-1',
+                        'inventoryName' => 'Icha\'s Fisherman\'s Boat',
+                        'pockets' => [[
+                            'contents' => [
+                                'itemId' => 1516591189,
+                                'itemType' => 0,
+                                'quantity' => 13,
+                            ],
+                        ]],
+                    ],
+                ],
+                'items' => [
+                    '1516591189' => [
+                        'name' => 'Vibrant Janus',
+                        'tier' => 6,
+                        'rarityStr' => 'Common',
+                        'tag' => 'Ocean Fish',
+                    ],
+                ],
+                'cargos' => [],
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.inventory-tracker.snapshot', [
+                'character' => 'icha',
+                'itemKey' => 'item:1516591189',
+            ]));
+
+        $response->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.quantity', 34)
+            ->assertJsonPath('tracker.sources.0.name', 'Icha\'s Ship (Cargo)')
+            ->assertJsonPath('tracker.sources.0.kind', 'ship')
+            ->assertJsonPath('tracker.sources.0.quantity', 21)
+            ->assertJsonPath('tracker.sources.1.name', 'Icha\'s Fisherman\'s Boat')
+            ->assertJsonPath('tracker.sources.1.kind', 'boat')
+            ->assertJsonPath('tracker.sources.1.quantity', 13);
     }
 
     public function test_inventory_tracker_widget_is_public_for_obs(): void
@@ -4706,6 +5233,137 @@ class BitcraftToolTest extends TestCase
                 ->where('filters.width', 480)
                 ->where('filters.panelOpacity', 90)
                 ->where('snapshot.tracker.items.0.name', 'Vibrant Janus')
+            );
+    }
+
+    public function test_passive_craft_tracker_returns_timestamped_passive_crafts(): void
+    {
+        $this->fakePassiveCraftTrackerResponses();
+
+        $response = $this->getJson(route('bitcraft.passive-crafts.snapshot', [
+            'character' => 'icha',
+        ]));
+
+        $response->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.player.username', 'Icha')
+            ->assertJsonPath('tracker.activeCount', 3)
+            ->assertJsonPath('tracker.totalQueued', 3)
+            ->assertJsonPath('tracker.totalOutputs', 3)
+            ->assertJsonPath('tracker.estimatedRemainingSeconds', 6074)
+            ->assertJsonPath('tracker.timerSource', 'bitjita')
+            ->assertJsonPath('tracker.crafts.0.name', 'Fine Flax')
+            ->assertJsonPath('tracker.crafts.0.buildingName', 'Fine Farming Station')
+            ->assertJsonPath('tracker.crafts.0.claim.name', 'Misthaven')
+            ->assertJsonPath('tracker.crafts.0.claim.region', 9)
+            ->assertJsonPath('tracker.crafts.0.claim.locationX', 26275)
+            ->assertJsonPath('tracker.crafts.0.craftCount', 1)
+            ->assertJsonPath('tracker.crafts.0.progress', 3600)
+            ->assertJsonPath('tracker.crafts.0.totalActionsRequired', 7200)
+            ->assertJsonPath('tracker.crafts.0.remainingActions', 3600)
+            ->assertJsonPath('tracker.crafts.0.progressPercent', 50)
+            ->assertJsonPath('tracker.crafts.0.timerSource', 'bitjita')
+            ->assertJsonPath('tracker.crafts.0.startedAt', '2026-09-26T15:00:00+00:00')
+            ->assertJsonPath('tracker.crafts.0.finishesAt', '2026-09-26T17:00:00+00:00')
+            ->assertJsonPath('tracker.crafts.0.outputs.0.name', 'Fine Flax')
+            ->assertJsonPath('tracker.crafts.0.outputs.0.totalQuantity', 1)
+            ->assertJsonPath('tracker.crafts.2.name', 'Fine Starbulb')
+            ->assertJsonPath('tracker.crafts.2.totalActionsRequired', 7200)
+            ->assertJsonPath('tracker.crafts.2.recipeTimeRequirement', 7200)
+            ->assertJsonPath('tracker.crafts.2.estimatedRemainingSeconds', 6074)
+            ->assertJsonPath('tracker.crafts.2.timerSource', 'bitjita')
+            ->assertJsonPath('tracker.crafts.2.startedAt', '2026-09-26T15:41:14+00:00')
+            ->assertJsonPath('tracker.crafts.2.finishesAt', '2026-09-26T17:41:14+00:00')
+            ->assertJsonPath('tracker.groups.0.name', 'Fine Flax')
+            ->assertJsonPath('tracker.groups.0.claim.name', 'Misthaven')
+            ->assertJsonPath('tracker.groups.0.totalQueued', 2)
+            ->assertJsonPath('tracker.groups.0.totalOutputQuantity', 2)
+            ->assertJsonPath('tracker.groups.0.craftsCount', 2)
+            ->assertJsonPath('tracker.groups.0.estimatedRemainingSeconds', 3600)
+            ->assertJsonPath('tracker.groups.0.timerSource', 'bitjita')
+            ->assertJsonPath('tracker.groups.1.name', 'Fine Starbulb')
+            ->assertJsonPath('tracker.groups.1.totalQueued', 1)
+            ->assertJsonPath('tracker.groups.1.totalOutputQuantity', 1)
+            ->assertJsonPath('tracker.groups.1.estimatedRemainingSeconds', 6074)
+            ->assertJsonPath('tracker.groups.1.timerSource', 'bitjita');
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/players?q=icha');
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://bitjita.com/api/players/1224979098725428189/passive-crafts?status=all');
+        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://relay.bitcraftsync.app/player/1224979098725428189/crafts?completed=false');
+    }
+
+    public function test_passive_craft_tracker_widget_is_public_for_obs(): void
+    {
+        $this->fakePassiveCraftTrackerResponses();
+
+        $response = $this->get(route('bitcraft.passive-crafts', [
+            'character' => 'icha',
+        ]));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/PassiveCraftTracker')
+                ->where('snapshot.error', null)
+                ->where('snapshot.tracker.player.username', 'Icha')
+                ->where('snapshot.tracker.crafts.0.name', 'Fine Flax')
+                ->where('snapshotUrl', route('bitcraft.passive-crafts.snapshot', [
+                    'character' => '1224979098725428189',
+                    'title' => 'Passive Crafts',
+                    'icons' => '🧵 🔨',
+                ], false))
+            );
+    }
+
+    public function test_passive_craft_tracker_source_profile_keeps_widget_url_stable(): void
+    {
+        $user = $this->createVerifiedAdminUser();
+
+        $this->actingAs($user)->get(route('bitcraft.passive-crafts', [
+            'source' => 'stream',
+            'character' => 'icha',
+            'title' => 'Workshop',
+            'icons' => '🔨',
+            'theme' => 'harbor',
+            'accentColor' => '#38bdf8',
+            'highlightColor' => '#22c55e',
+            'panelColor' => '#082f49',
+            'textColor' => '#f0f9ff',
+            'mutedColor' => '#bae6fd',
+            'borderColor' => '#0ea5e9',
+            'fontScale' => 105,
+            'width' => 480,
+            'radius' => 20,
+            'panelOpacity' => 90,
+        ]))->assertRedirect(route('bitcraft.passive-crafts', ['source' => 'stream', 'user' => $user->id]));
+
+        $settings = BitcraftWidgetProfile::query()
+            ->where('user_id', $user->id)
+            ->where('widget', 'passive-craft-tracker')
+            ->where('source', 'stream')
+            ->firstOrFail()
+            ->settings;
+
+        $this->assertSame('icha', $settings['character']);
+        $this->assertSame('Workshop', $settings['title']);
+        $this->assertSame('harbor', $settings['theme']);
+        $this->assertSame('#38bdf8', $settings['accentColor']);
+        $this->assertSame(480, $settings['width']);
+
+        $this->fakePassiveCraftTrackerResponses();
+
+        $this->get(route('bitcraft.passive-crafts', ['source' => 'stream', 'user' => $user->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Bitcraft/PassiveCraftTracker')
+                ->where('filters.user', $user->id)
+                ->where('filters.source', 'stream')
+                ->where('filters.character', 'icha')
+                ->where('filters.title', 'Workshop')
+                ->where('filters.icons', '🔨')
+                ->where('filters.theme', 'harbor')
+                ->where('filters.accentColor', '#38bdf8')
+                ->where('filters.width', 480)
+                ->where('snapshot.tracker.crafts.0.name', 'Fine Flax')
             );
     }
 
@@ -5082,6 +5740,268 @@ class BitcraftToolTest extends TestCase
                         'tag' => 'Ocean Fish',
                     ],
                 ],
+            ]),
+        ]);
+    }
+
+    private function fakePassiveCraftTrackerResponses(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-09-26 16:00:00', 'UTC'));
+
+        $snapshotPath = storage_path('framework/testing/bitcraft-passive-crafts-static.json');
+
+        if (! is_dir(dirname($snapshotPath))) {
+            mkdir(dirname($snapshotPath), 0777, true);
+        }
+
+        file_put_contents($snapshotPath, json_encode([
+            'source' => 'bitcraft-spacetimedb',
+            'generatedAt' => now()->toISOString(),
+            'host' => 'wss://bitcraft-early-access.spacetimedb.com',
+            'database' => 'bitcraft-live-9',
+            'tables' => [
+                'item_desc' => [
+                    'count' => 2,
+                    'rows' => [[
+                        'id' => 4220021,
+                        'name' => 'Fine Flax',
+                        'description' => '',
+                        'tier' => 2,
+                        'tag' => 'Fiber',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/FineFlax',
+                    ], [
+                        'id' => 4100009,
+                        'name' => 'Fine Starbulb',
+                        'description' => '',
+                        'tier' => 2,
+                        'tag' => 'Plants',
+                        'rarity' => [1, []],
+                        'icon_asset_name' => 'GeneratedIcons/Items/FineStarbulb',
+                    ]],
+                ],
+                'cargo_desc' => ['count' => 0, 'rows' => []],
+                'crafting_recipe_desc' => [
+                    'count' => 2,
+                    'rows' => [[
+                        'id' => 410007,
+                        'name' => 'Grow {0}',
+                        'time_requirement' => 7200,
+                        'crafted_item_stacks' => [[4100009, 1, [0, []], [0, 0]]],
+                        'consumed_item_stacks' => [],
+                        'building_requirement' => null,
+                        'level_requirements' => [],
+                    ], [
+                        'id' => 410008,
+                        'name' => 'Spin Fine Flax',
+                        'time_requirement' => 7200,
+                        'crafted_item_stacks' => [[4220021, 1, [0, []], [0, 0]]],
+                        'consumed_item_stacks' => [],
+                        'building_requirement' => null,
+                        'level_requirements' => [],
+                    ]],
+                ],
+                'extraction_recipe_desc' => ['count' => 0, 'rows' => []],
+            ],
+        ], JSON_THROW_ON_ERROR));
+
+        config([
+            'services.bitcraft_relay.enabled' => true,
+            'services.bitcraft_relay.enabled_in_tests' => true,
+            'services.bitcraft_spacetime.enabled' => true,
+            'services.bitcraft_spacetime.enabled_in_tests' => true,
+            'services.bitcraft_spacetime.static_snapshot_path' => $snapshotPath,
+        ]);
+
+        Http::fake([
+            'https://bitjita.com/api/players?q=icha' => Http::response([
+                'players' => [[
+                    'entityId' => '1224979098725428189',
+                    'username' => 'Icha',
+                ]],
+                'total' => 1,
+            ]),
+            'https://bitjita.com/api/players/1224979098725428189' => Http::response([
+                'player' => [
+                    'entityId' => '1224979098725428189',
+                    'username' => 'Icha',
+                ],
+            ]),
+            'https://bitjita.com/api/players/1224979098725428189/passive-crafts?status=all' => Http::response([
+                'count' => 3,
+                'craftResults' => [
+                    [
+                        'entityId' => 'craft-passive-1',
+                        'ownerEntityId' => '1224979098725428189',
+                        'recipeId' => 410008,
+                        'buildingEntityId' => 'building-1',
+                        'buildingName' => 'Fine Farming Station',
+                        'claimEntityId' => 'claim-1',
+                        'claimName' => 'Misthaven',
+                        'claimLocationX' => 26275,
+                        'claimLocationZ' => 8839,
+                        'regionId' => 9,
+                        'regionName' => 'Marowik',
+                        'timestamp' => '2026-09-26 15:00:00+00',
+                        'status' => 'processing',
+                        'slot' => 1,
+                        'recipeName' => 'Spin Fine Flax',
+                        'craftedItem' => [[
+                            'item_id' => 4220021,
+                            'item_type' => 'item',
+                            'quantity' => 1,
+                        ]],
+                    ],
+                    [
+                        'entityId' => 'craft-passive-2',
+                        'ownerEntityId' => '1224979098725428189',
+                        'recipeId' => 410008,
+                        'buildingEntityId' => 'building-3',
+                        'buildingName' => 'Fine Farming Station',
+                        'claimEntityId' => 'claim-1',
+                        'claimName' => 'Misthaven',
+                        'claimLocationX' => 26275,
+                        'claimLocationZ' => 8839,
+                        'regionId' => 9,
+                        'regionName' => 'Marowik',
+                        'timestamp' => '2026-09-26 15:00:00+00',
+                        'status' => 'processing',
+                        'slot' => 2,
+                        'recipeName' => 'Spin Fine Flax',
+                        'craftedItem' => [[
+                            'item_id' => 4220021,
+                            'item_type' => 'item',
+                            'quantity' => 1,
+                        ]],
+                    ],
+                    [
+                        'entityId' => 'craft-passive-starbulb',
+                        'ownerEntityId' => '1224979098725428189',
+                        'recipeId' => 410007,
+                        'buildingEntityId' => 'building-4',
+                        'buildingName' => 'Long Farming Field Row',
+                        'claimEntityId' => 'claim-1',
+                        'claimName' => 'Misthaven',
+                        'claimLocationX' => 26275,
+                        'claimLocationZ' => 8839,
+                        'regionId' => 9,
+                        'regionName' => 'Marowik',
+                        'timestamp' => '2026-09-26 15:41:14+00',
+                        'status' => 'processing',
+                        'slot' => 3,
+                        'recipeName' => 'Grow {0}',
+                        'craftedItem' => [[
+                            'item_id' => 4100009,
+                            'item_type' => 'item',
+                            'quantity' => 1,
+                        ]],
+                    ],
+                ],
+                'items' => [],
+                'cargos' => [],
+            ]),
+            'https://relay.bitcraftsync.app/player?name=icha' => Http::response([[
+                'entity_id' => '1224979098725428189',
+                'username' => 'Icha',
+                'region' => 9,
+                'signed_in' => true,
+            ]]),
+            'https://relay.bitcraftsync.app/player/1224979098725428189/crafts?completed=false' => Http::response([
+                'count' => 4,
+                'crafts' => [
+                    [
+                        'building_entity_id' => 'building-1',
+                        'building_name' => 'Fine Farming Station',
+                        'claim_entity_id' => 'claim-1',
+                        'completed' => false,
+                        'craft_count' => 201,
+                        'crafted_item' => [[
+                            'item_id' => 4220021,
+                            'item_type' => 'Item',
+                            'quantity' => 1,
+                        ]],
+                        'entity_id' => 'craft-passive-1',
+                        'is_passive' => true,
+                        'is_public' => true,
+                        'owner_entity_id' => '1224979098725428189',
+                        'owner_username' => 'Icha',
+                        'progress' => 32376,
+                        'recipe_id' => 410008,
+                        'total_actions_required' => 44220,
+                    ],
+                    [
+                        'building_entity_id' => 'building-3',
+                        'building_name' => 'Fine Farming Station',
+                        'claim_entity_id' => 'claim-1',
+                        'completed' => false,
+                        'craft_count' => 99,
+                        'crafted_item' => [[
+                            'item_id' => 4220021,
+                            'item_type' => 'Item',
+                            'quantity' => 1,
+                        ]],
+                        'entity_id' => 'craft-passive-2',
+                        'is_passive' => true,
+                        'is_public' => true,
+                        'owner_entity_id' => '1224979098725428189',
+                        'owner_username' => 'Icha',
+                        'progress' => 10,
+                        'recipe_id' => 410008,
+                        'total_actions_required' => 20,
+                    ],
+                    [
+                        'building_entity_id' => 'building-4',
+                        'building_name' => 'Long Farming Field Row',
+                        'claim_entity_id' => 'claim-1',
+                        'completed' => false,
+                        'craft_count' => 1,
+                        'crafted_item' => [[
+                            'item_id' => 4100009,
+                            'item_type' => 'Item',
+                            'quantity' => 1,
+                        ]],
+                        'entity_id' => 'craft-passive-starbulb',
+                        'is_passive' => true,
+                        'is_public' => true,
+                        'owner_entity_id' => '1224979098725428189',
+                        'owner_username' => 'Icha',
+                        'progress' => 0,
+                        'recipe_id' => 410007,
+                        'total_actions_required' => 1,
+                    ],
+                    [
+                        'building_entity_id' => 'building-2',
+                        'building_name' => 'Regular Workshop',
+                        'claim_entity_id' => 'claim-1',
+                        'completed' => false,
+                        'craft_count' => 1,
+                        'crafted_item' => [[
+                            'item_id' => 4220021,
+                            'item_type' => 'Item',
+                            'quantity' => 1,
+                        ]],
+                        'entity_id' => 'craft-active-1',
+                        'is_passive' => false,
+                        'is_public' => true,
+                        'owner_entity_id' => '1224979098725428189',
+                        'owner_username' => 'Icha',
+                        'progress' => 4,
+                        'recipe_id' => 410009,
+                        'total_actions_required' => 20,
+                    ],
+                ],
+                'player' => [
+                    'entity_id' => '1224979098725428189',
+                    'username' => 'Icha',
+                ],
+            ]),
+            'https://relay.bitcraftsync.app/claim/claim-1' => Http::response([
+                'entity_id' => 'claim-1',
+                'location_dimension' => 1,
+                'location_x' => 26275,
+                'location_z' => 8839,
+                'name' => 'Misthaven',
+                'region' => 9,
             ]),
         ]);
     }

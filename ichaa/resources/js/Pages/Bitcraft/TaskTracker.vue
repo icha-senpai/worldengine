@@ -9,7 +9,8 @@
             :class="{ 'task-tracker-source--setup': setupVisible, 'task-tracker-source--in-app': setupPageVisible }"
             :style="widgetThemeStyle"
         >
-        <form v-if="setupVisible" class="task-tracker-setup" @submit.prevent="submitSetup(true)">
+        <WidgetSetupDrawer :show="setupVisible" title="Edit Task Widget" @widget-mode="openWidgetMode">
+        <form class="task-tracker-setup" @submit.prevent="submitSetup(true)">
             <div class="task-tracker-setup__grid">
                 <label>
                     <span>Title</span>
@@ -78,9 +79,9 @@
 
             <div class="task-tracker-setup__actions">
                 <button type="submit">Search / Update</button>
-                <button type="button" @click="openWidgetMode">Widget Mode</button>
             </div>
         </form>
+        </WidgetSetupDrawer>
 
         <section class="task-tracker-widget" aria-label="Bitcraft task tracker">
             <header class="task-tracker-widget__header">
@@ -129,6 +130,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
+import WidgetSetupDrawer from './Components/WidgetSetupDrawer.vue'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
 import WidgetPageShell from './Components/WidgetPageShell.vue'
 import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'

@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Bitcraft\Services\BitcraftSpacetimeSnapshotStore;
 use App\Domain\ConnectedRealms\Services\ConnectedRealmsSimulationService;
 use App\Domain\ConnectedRealms\Services\EconomyAuditService;
 use App\Domain\System\Services\DemoLoreSeeder;
@@ -150,6 +151,15 @@ $syncBitcraftCraftingSnapshot = function () {
         $this->error('SpacetimeDB sync failed.');
 
         exit(Command::FAILURE);
+    }
+
+    $snapshot = json_decode(file_get_contents($outputPath), true);
+    $snapshotId = app(BitcraftSpacetimeSnapshotStore::class)->import(is_array($snapshot) ? $snapshot : []);
+
+    if ($snapshotId !== null) {
+        $this->info("Imported BitCraft SpacetimeDB snapshot #{$snapshotId} into PostgreSQL.");
+    } elseif ((bool) config('services.bitcraft_spacetime.database_cache', true)) {
+        $this->warn('Skipped PostgreSQL snapshot import because the snapshot tables are not ready.');
     }
 
     $this->info('BitCraft SpacetimeDB snapshot synced.');
