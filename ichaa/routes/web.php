@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ConnectedRealmsContentController as AdminConnecte
 use App\Http\Controllers\Admin\RevisionController as AdminRevisionController;
 use App\Http\Controllers\Admin\UserAccessController as AdminUserAccessController;
 use App\Http\Controllers\Bitcraft\BitcraftActivityController;
+use App\Http\Controllers\Bitcraft\BitcraftGuideController;
 use App\Http\Controllers\Bitcraft\BitcraftInventoryTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftLiveCompanionController;
 use App\Http\Controllers\Bitcraft\BitcraftPassiveCraftTrackerController;
@@ -109,6 +110,14 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
 
     Route::prefix('bitcraft')->name('bitcraft.')->middleware(EnsureAreaAccess::class.':'.User::ROLE_BITCRAFT)->group(function () {
         Route::redirect('/', '/datacrypt/bitcraft/market');
+        Route::get('guides', [BitcraftGuideController::class, 'index'])->name('guides.index');
+        Route::middleware(EnsureAreaAccess::class.':'.User::ROLE_ADMIN)->group(function () {
+            Route::get('guides/create', [BitcraftGuideController::class, 'create'])->name('guides.create');
+            Route::post('guides', [BitcraftGuideController::class, 'store'])->name('guides.store');
+            Route::get('guides/{guide}/edit', [BitcraftGuideController::class, 'edit'])->name('guides.edit');
+            Route::put('guides/{guide}', [BitcraftGuideController::class, 'update'])->name('guides.update');
+        });
+        Route::get('guides/{guide}', [BitcraftGuideController::class, 'show'])->name('guides.show');
         Route::get('market', [BitcraftToolController::class, 'market'])->name('market');
         Route::get('market/order-book', [BitcraftToolController::class, 'marketOrderBook'])->name('market.order-book');
         Route::get('barter-stalls/listings', [BitcraftToolController::class, 'barterListings'])->name('barter-stalls.listings');

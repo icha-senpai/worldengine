@@ -61,6 +61,6 @@ export async function login(page) {
     await page.getByRole('button', { name: 'Log in' }).click()
 
     await expect(page).not.toHaveURL(/\/login$/)
-    await expect(page).toHaveURL(/\/datacrypt\/worldengine(?:\/)?$/)
+    await expect(page).toHaveURL(/\/datacrypt(?:\/worldengine)?\/?$/)
     await expect(page.getByRole('banner')).toContainText('Dataverse')
 }

@@ -734,6 +734,7 @@ const domains = [
 ]
 
 const bitcraftToolChildren = computed(() => [
+    { key: 'bitcraft-guides', label: 'Guides', href: route('bitcraft.guides.index'), matches: ['/bitcraft/guides'] },
     { key: 'bitcraft-market', label: 'Market Finder', href: route('bitcraft.market'), matches: ['/bitcraft/market'] },
     { key: 'bitcraft-barter-stalls', label: 'Barter Stalls', href: route('bitcraft.barter-stalls'), matches: ['/bitcraft/barter-stalls'] },
     { key: 'bitcraft-crafting', label: 'Crafting Calculator', href: route('bitcraft.crafting'), matches: ['/bitcraft/crafting'] },
