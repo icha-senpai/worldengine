@@ -185,6 +185,28 @@ describe('Bitcraft market page popups', () => {
         expect(wrapper.find('[data-test="market-popup"]').exists()).toBe(true)
     })
 
+    it('shows a delayed refresh message when opening an order book is rate limited', async () => {
+        global.fetch = vi.fn(async () => ({
+            ok: false,
+            status: 429,
+            json: async () => ({ error: 'Bitjita refresh delayed. Try again shortly.' }),
+        }))
+        const wrapper = mountPage()
+        await wrapper.findAll('button').find((button) => button.text() === 'Sell 3').trigger('click')
+        await vi.waitFor(() => expect(wrapper.text()).toContain('Bitjita refresh delayed. Try again shortly.'))
+        expect(wrapper.findComponent({ name: 'MarketOrderBookPopup' }).exists()).toBe(false)
+        wrapper.unmount()
+    })
+
+    it('handles a non-JSON order book failure without clearing the page', async () => {
+        global.fetch = vi.fn(async () => ({ ok: false, json: async () => { throw new Error('Not JSON') } }))
+        const wrapper = mountPage()
+        await wrapper.findAll('button').find((button) => button.text() === 'Sell 3').trigger('click')
+        await vi.waitFor(() => expect(wrapper.text()).toContain('Order book refresh failed. Try again shortly.'))
+        expect(wrapper.find('[data-test="market-item-card"]').exists()).toBe(true)
+        wrapper.unmount()
+    })
+
     it('keeps buy-order searches focused on items that actually have buy orders', () => {
         const wrapper = mountPage({
             filters: {

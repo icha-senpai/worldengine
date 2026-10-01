@@ -119,8 +119,8 @@
             </div>
         </form>
 
-        <div v-if="error" class="mt-5 rounded-md border border-[rgb(var(--accent-pink-rgb)/0.28)] bg-[rgb(var(--accent-pink-rgb)/0.08)] px-4 py-3 text-sm text-(--accent-pink)">
-            {{ error }}
+        <div v-if="error || lookupWarning" class="mt-5 rounded-md border border-[rgb(var(--accent-pink-rgb)/0.28)] bg-[rgb(var(--accent-pink-rgb)/0.08)] px-4 py-3 text-sm text-(--accent-pink)">
+            {{ lookupWarning || error }}
         </div>
 
         <div class="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
@@ -418,6 +418,7 @@ const prefetchedBarterListings = ref(new Map())
 const prefetchingBarterListings = ref(new Set())
 const brokenIconAssets = ref(new Set())
 const searching = ref(false)
+const lookupWarning = ref(null)
 const syncingFilters = ref(false)
 let debouncedSearchTimer = null
 const effectiveMarketOrderBook = computed(() => localMarketOrderBook.value ?? props.market.orderBook)
@@ -999,6 +1000,7 @@ const loadMarketOrderBook = async (item) => {
     const key = orderBookCacheKey(params)
 
     searching.value = true
+    lookupWarning.value = null
 
     try {
         const response = await fetch(route('bitcraft.market.order-book', params), {
@@ -1008,11 +1010,12 @@ const loadMarketOrderBook = async (item) => {
             },
         })
 
+        const payload = await response.json().catch(() => ({}))
         if (!response.ok) {
+            lookupWarning.value = payload.error ?? 'Order book refresh failed. Try again shortly.'
             return
         }
-
-        const payload = await response.json()
+        if (payload.refresh?.delayed) lookupWarning.value = 'Refresh delayed. Showing previously fetched data.'
 
         if (!payload.orderBook) {
             return
@@ -1023,6 +1026,8 @@ const loadMarketOrderBook = async (item) => {
         prefetchedOrderBooks.value = orderBooks
         localMarketOrderBook.value = payload.orderBook
         activeMarketPopupOpen.value = true
+    } catch {
+        lookupWarning.value = 'Order book refresh failed. Try again shortly.'
     } finally {
         searching.value = false
     }
@@ -1033,6 +1038,7 @@ const loadBarterItemListings = async (item) => {
     const key = barterListingsCacheKey(params)
 
     searching.value = true
+    lookupWarning.value = null
 
     try {
         const response = await fetch(route('bitcraft.barter-stalls.listings', params), {
@@ -1042,17 +1048,20 @@ const loadBarterItemListings = async (item) => {
             },
         })
 
+        const payload = await response.json().catch(() => ({}))
         if (!response.ok) {
+            lookupWarning.value = payload.error ?? 'Barter listings refresh failed. Try again shortly.'
             return
         }
-
-        const payload = await response.json()
+        if (payload.refresh?.delayed) lookupWarning.value = 'Refresh delayed. Showing previously fetched data.'
         const listings = Array.isArray(payload.listings) ? payload.listings : []
         const barterListings = new Map(prefetchedBarterListings.value)
         barterListings.set(key, listings)
         prefetchedBarterListings.value = barterListings
         localBarterListings.value = listings
         activeBarterPopupOpen.value = true
+    } catch {
+        lookupWarning.value = 'Barter listings refresh failed. Try again shortly.'
     } finally {
         searching.value = false
     }

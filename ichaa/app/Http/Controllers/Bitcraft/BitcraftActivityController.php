@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bitcraft;
 
+use App\Domain\Bitcraft\Exceptions\BitjitaRefreshDelayed;
 use App\Domain\Bitcraft\Services\BitjitaClient;
 use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
 use App\Http\Controllers\Bitcraft\Concerns\ScopesBitcraftWidgetProfiles;
@@ -39,6 +40,7 @@ class BitcraftActivityController extends Controller
         }
 
         $snapshot = $this->trackerSnapshot($bitjita, $filters);
+        $snapshot['refresh'] = $bitjita->refreshStatus();
         $pollFilters = $this->pollFilters($filters);
 
         if (filled(data_get($snapshot, 'tracker.player.entityId'))) {
@@ -61,8 +63,10 @@ class BitcraftActivityController extends Controller
 
     public function snapshot(Request $request, BitjitaClient $bitjita): JsonResponse
     {
+        $snapshot = $this->trackerSnapshot($bitjita, $this->filters($request));
+
         return response()
-            ->json($this->trackerSnapshot($bitjita, $this->filters($request)))
+            ->json([...$snapshot, 'refresh' => $bitjita->refreshStatus()])
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache');
     }
@@ -178,8 +182,11 @@ class BitcraftActivityController extends Controller
                         ->all(),
                 ],
                 'error' => null,
-                'sampledAt' => now()->toIso8601String(),
+                'sampledAt' => $bitjita->refreshStatus()['updatedAt'] ?? now()->toIso8601String(),
+                'refresh' => $bitjita->refreshStatus(),
             ];
+        } catch (BitjitaRefreshDelayed $exception) {
+            return [...$this->snapshotError($exception->getMessage()), 'refresh' => $bitjita->refreshStatus()];
         } catch (Throwable $exception) {
             report($exception);
 

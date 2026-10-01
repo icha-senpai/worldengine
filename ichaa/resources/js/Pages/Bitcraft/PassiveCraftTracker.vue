@@ -67,19 +67,21 @@
                     <strong v-if="iconsLabel">{{ iconsLabel }}</strong>
                 </header>
 
+                <TrackerRefreshStatus :refresh="refreshStatus" :sampled-at="sampledAt" />
+
                 <div v-if="error" class="passive-craft-widget__error">
                     {{ error }}
                 </div>
 
-                <div v-else-if="!tracker" class="passive-craft-widget__empty">
+                <div v-if="!tracker && !error" class="passive-craft-widget__empty">
                     Loading passive crafts
                 </div>
 
-                <div v-else-if="!groups.length" class="passive-craft-widget__empty">
+                <div v-else-if="tracker && !groups.length" class="passive-craft-widget__empty">
                     No passive crafts running
                 </div>
 
-                <template v-else>
+                <template v-else-if="tracker">
                     <article
                         v-for="group in groups"
                         :key="group.key"
@@ -131,6 +133,8 @@ import { bitcraftItemFrameStyle, hasBitcraftTier } from '@/Pages/Bitcraft/bitjit
 import WidgetSetupDrawer from './Components/WidgetSetupDrawer.vue'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
 import WidgetPageShell from './Components/WidgetPageShell.vue'
+import TrackerRefreshStatus from './Components/TrackerRefreshStatus.vue'
+import { createTrackerPoller, retryAfterSeconds } from './trackerPolling'
 import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'
 
 const props = defineProps({
@@ -144,8 +148,9 @@ const STORAGE_KEY = 'bitcraft.passiveCraftTracker.lastSetup'
 
 const tracker = ref(props.snapshot.tracker)
 const error = ref(props.snapshot.error)
+const sampledAt = ref(props.snapshot.sampledAt)
+const refreshStatus = ref(props.snapshot.refresh ?? {})
 const emojiChoice = ref('')
-let pollTimer = null
 let restoredSetup = false
 
 const emojiOptions = [
@@ -402,21 +407,35 @@ const refresh = async () => {
             },
         })
 
+        if (response.status === 429) {
+            refreshStatus.value = { ...refreshStatus.value, delayed: true }
+            return retryAfterSeconds(response)
+        }
+
         if (!response.ok) {
             throw new Error(`Snapshot request failed with ${response.status}`)
         }
 
         const payload = await response.json()
-        tracker.value = payload.tracker
+        refreshStatus.value = payload.refresh ?? {}
+        if (payload.tracker) {
+            tracker.value = payload.tracker
+            sampledAt.value = payload.sampledAt
+        }
         error.value = payload.error
+        return refreshStatus.value.retryAfter ?? 0
     } catch {
         error.value = 'Tracker refresh failed. Waiting for the next Relay check.'
     }
 }
 
+const polling = createTrackerPoller(refresh, POLL_INTERVAL_MS)
+
 watch(() => props.snapshot, (snapshot) => {
     tracker.value = snapshot.tracker
     error.value = snapshot.error
+    sampledAt.value = snapshot.sampledAt
+    refreshStatus.value = snapshot.refresh ?? {}
 })
 
 watch(() => props.filters, (filters) => {
@@ -443,11 +462,11 @@ onMounted(() => {
     }
 
     saveSetup()
-    pollTimer = window.setInterval(refresh, POLL_INTERVAL_MS)
+    polling.start(refreshStatus.value.retryAfter ?? 0)
 })
 
 onBeforeUnmount(() => {
-    window.clearInterval(pollTimer)
+    polling.stop()
 })
 </script>
 

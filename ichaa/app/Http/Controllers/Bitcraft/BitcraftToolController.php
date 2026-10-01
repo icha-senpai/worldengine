@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bitcraft;
 
+use App\Domain\Bitcraft\Exceptions\BitjitaRefreshDelayed;
 use App\Domain\Bitcraft\Services\BitcraftSpacetimeStaticData;
 use App\Domain\Bitcraft\Services\BitjitaClient;
 use App\Http\Controllers\Controller;
@@ -125,9 +126,12 @@ class BitcraftToolController extends Controller
                 'item' => collect($items)->first(fn (array $item): bool => (string) $item['id'] === (string) $filters['itemId']
                     && ($filters['itemKind'] === '' || $item['kind'] === $filters['itemKind'])),
                 'listings' => $barterSearch['listings'],
-                'cache' => $this->marketCachePayload('barter-listings'),
+                'cache' => [...$this->marketCachePayload('barter-listings'), ...$bitjita->refreshStatus()],
                 'error' => null,
+                'refresh' => $bitjita->refreshStatus(),
             ]);
+        } catch (BitjitaRefreshDelayed $exception) {
+            return $this->delayedBitjitaResponse($exception, ['item' => null, 'listings' => []]);
         } catch (Throwable $exception) {
             report($exception);
 
@@ -183,9 +187,12 @@ class BitcraftToolController extends Controller
                     ),
                     $filters,
                 ),
-                'cache' => $this->marketCachePayload('order-book', true),
+                'cache' => [...$this->marketCachePayload('order-book', true), ...$bitjita->refreshStatus()],
                 'error' => null,
+                'refresh' => $bitjita->refreshStatus(),
             ]);
+        } catch (BitjitaRefreshDelayed $exception) {
+            return $this->delayedBitjitaResponse($exception, ['orderBook' => null]);
         } catch (Throwable $exception) {
             report($exception);
 
@@ -288,7 +295,7 @@ class BitcraftToolController extends Controller
             }
         } catch (Throwable $exception) {
             report($exception);
-            $error = 'Bitjita regions did not respond cleanly. Try again in a moment.';
+            $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Bitjita regions did not respond cleanly. Try again in a moment.';
         }
 
         if ($this->shouldSearchEmpire($filters)) {
@@ -306,7 +313,7 @@ class BitcraftToolController extends Controller
                 }
             } catch (Throwable $exception) {
                 report($exception);
-                $error = 'Bitjita empires did not respond cleanly. Try again in a moment.';
+                $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Bitjita empires did not respond cleanly. Try again in a moment.';
             }
         }
 
@@ -321,7 +328,7 @@ class BitcraftToolController extends Controller
                 }
             } catch (Throwable $exception) {
                 report($exception);
-                $error = 'Bitjita claim search did not respond cleanly. Try again in a moment.';
+                $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Bitjita claim search did not respond cleanly. Try again in a moment.';
             }
         }
 
@@ -406,7 +413,7 @@ class BitcraftToolController extends Controller
                 }
             } catch (Throwable $exception) {
                 report($exception);
-                $error = 'Bitjita did not respond cleanly. Try the search again in a moment.';
+                $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Bitjita did not respond cleanly. Try the search again in a moment.';
             }
         }
 
@@ -419,8 +426,9 @@ class BitcraftToolController extends Controller
             'regions' => $regions,
             'market' => $market,
             'tool' => $this->marketTool($tool),
-            'error' => $error,
-            'cache' => $this->marketCachePayload($tool, filled(data_get($market, 'orderBook'))),
+            'error' => $error ?? ($bitjita->refreshStatus()['delayed'] ? 'Refresh delayed. Showing previously fetched data.' : null),
+            'refresh' => $bitjita->refreshStatus(),
+            'cache' => [...$this->marketCachePayload($tool, filled(data_get($market, 'orderBook'))), ...$bitjita->refreshStatus()],
         ];
     }
 
@@ -448,7 +456,10 @@ class BitcraftToolController extends Controller
                 'item' => $detail['item'],
                 'recipes' => $detail['recipeTree'],
                 'error' => null,
+                'refresh' => $bitjita->refreshStatus(),
             ]);
+        } catch (BitjitaRefreshDelayed $exception) {
+            return $this->delayedBitjitaResponse($exception, ['item' => null, 'recipes' => []]);
         } catch (Throwable $exception) {
             report($exception);
 
@@ -528,7 +539,7 @@ class BitcraftToolController extends Controller
             }
         } catch (Throwable $exception) {
             report($exception);
-            $error = 'Bitjita did not respond cleanly. Try the lookup again in a moment.';
+            $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Bitjita did not respond cleanly. Try the lookup again in a moment.';
         }
 
         return [
@@ -541,8 +552,18 @@ class BitcraftToolController extends Controller
             'items' => $items,
             'detail' => $detail,
             'snapshot' => $spacetime->metadata(),
-            'error' => $error,
+            'error' => $error ?? ($bitjita->refreshStatus()['delayed'] ? 'Refresh delayed. Some recipe branches are waiting for data.' : null),
+            'refresh' => $bitjita->refreshStatus(),
         ];
+    }
+
+    private function delayedBitjitaResponse(BitjitaRefreshDelayed $exception, array $payload): JsonResponse
+    {
+        return response()->json([
+            ...$payload,
+            'error' => $exception->getMessage(),
+            'refresh' => ['delayed' => true, 'retryAfter' => $exception->retryAfter, 'updatedAt' => null],
+        ], 429)->header('Retry-After', (string) $exception->retryAfter);
     }
 
     private function craftingBranchPayload(BitjitaClient $bitjita, BitcraftSpacetimeStaticData $spacetime, int $itemId, string $itemKind): array
@@ -2140,6 +2161,8 @@ class BitcraftToolController extends Controller
                 ?? $this->craftingTargetDetail($bitjita, (string) $target['kind'], (int) $target['id']),
                 (string) $target['kind'],
             );
+        } catch (BitjitaRefreshDelayed) {
+            return ['recipes' => [], 'deferred' => true];
         } catch (Throwable) {
             return [
                 'recipes' => [],

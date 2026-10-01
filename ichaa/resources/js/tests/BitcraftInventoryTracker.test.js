@@ -19,6 +19,8 @@ describe('Bitcraft inventory tracker', () => {
     })
 
     afterEach(() => {
+        vi.useRealTimers()
+        vi.unstubAllGlobals()
         localStorage.clear()
         window.history.pushState({}, '', '/')
     })
@@ -37,6 +39,24 @@ describe('Bitcraft inventory tracker', () => {
 
         expect(trackedItems[2].find('.bitcraft-tier-badge__text').text()).toBe('-1')
         expect(trackedItems[2].attributes('style')).toContain('#413A64')
+        wrapper.unmount()
+    })
+
+    it('keeps tracked items visible when a refresh returns no data', async () => {
+        vi.useFakeTimers()
+        vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
+        vi.stubGlobal('fetch', vi.fn(async () => ({
+            ok: true,
+            status: 200,
+            json: async () => ({ tracker: null, options: [], error: 'Refresh delayed', refresh: { delayed: true, retryAfter: 60 } }),
+        })))
+        const wrapper = mountTracker({ filters: { itemKeys: 'item:10' } })
+        await vi.advanceTimersByTimeAsync(15000)
+        expect(wrapper.findAll('.inventory-tracker-widget__tracked-item')).toHaveLength(3)
+        expect(wrapper.text()).toContain('Refresh delayed')
+        await vi.advanceTimersByTimeAsync(45000)
+        expect(fetch).toHaveBeenCalledTimes(1)
+        wrapper.unmount()
     })
 })
 

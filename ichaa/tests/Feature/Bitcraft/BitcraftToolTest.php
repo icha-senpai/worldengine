@@ -4684,6 +4684,36 @@ class BitcraftToolTest extends TestCase
             );
     }
 
+    public function test_activity_tracker_preserves_timestamp_when_refresh_is_delayed(): void
+    {
+        $this->fakeActivityTrackerResponses();
+        config(['services.bitjita.requests_per_minute' => 2]);
+        $this->freezeTime();
+        $url = route('bitcraft.activity.snapshot', ['character' => '1224979098725428189']);
+        $first = $this->getJson($url)->assertOk();
+        $timestamp = $first->json('sampledAt');
+        $this->travel(15)->seconds();
+        $this->getJson($url)->assertOk()
+            ->assertJsonPath('tracker.player.entityId', '1224979098725428189')
+            ->assertJsonPath('sampledAt', $timestamp)
+            ->assertJsonPath('refresh.delayed', true)
+            ->assertJsonPath('refresh.retryAfter', 45);
+        Http::assertSentCount(2);
+    }
+
+    public function test_cold_order_book_returns_retry_after_when_shared_budget_is_exhausted(): void
+    {
+        config(['services.bitjita.requests_per_minute' => 1]);
+        Http::fake(['https://bitjita.com/api/regions' => Http::response([])]);
+        $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.market.order-book', ['itemId' => 1]))
+            ->assertStatus(429)
+            ->assertHeader('Retry-After')
+            ->assertJsonPath('refresh.delayed', true)
+            ->assertJsonPath('orderBook', null);
+        Http::assertSentCount(1);
+    }
+
     public function test_activity_tracker_source_profile_keeps_widget_url_stable(): void
     {
         $user = $this->createVerifiedAdminUser();

@@ -119,6 +119,8 @@
                 </div>
             </header>
 
+            <TrackerRefreshStatus :refresh="refreshStatus" :sampled-at="sampledAt" />
+
             <div v-if="blockingError" class="activity-widget__error">
                 {{ error }}
             </div>
@@ -195,6 +197,8 @@ import { router } from '@inertiajs/vue3'
 import WidgetSetupDrawer from './Components/WidgetSetupDrawer.vue'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
 import WidgetPageShell from './Components/WidgetPageShell.vue'
+import TrackerRefreshStatus from './Components/TrackerRefreshStatus.vue'
+import { createTrackerPoller, retryAfterSeconds } from './trackerPolling'
 import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'
 
 const props = defineProps({
@@ -214,13 +218,13 @@ const SAMPLE_STORAGE_PREFIX = 'bitcraft.activityTracker.samples.'
 const tracker = ref(props.snapshot.tracker)
 const error = ref(props.snapshot.error)
 const sampledAt = ref(props.snapshot.sampledAt)
+const refreshStatus = ref(props.snapshot.refresh ?? {})
 const samples = ref([])
 const now = ref(new Date())
 const pickerOpen = ref(false)
 const pickerElement = ref(null)
 const lastActiveSkillStats = ref([])
 const lastActiveSkillStatsAt = ref(0)
-let pollTimer = null
 let clockTimer = null
 let restoredSetup = false
 
@@ -324,23 +328,32 @@ const refresh = async () => {
             },
         })
 
+        if (response.status === 429) {
+            refreshStatus.value = { ...refreshStatus.value, delayed: true }
+            return retryAfterSeconds(response)
+        }
+
         if (!response.ok) {
             throw new Error(`Snapshot request failed with ${response.status}`)
         }
 
         const payload = await response.json()
+        refreshStatus.value = payload.refresh ?? {}
 
         if (payload.tracker) {
             tracker.value = payload.tracker
             sampledAt.value = payload.sampledAt
-            addSample(payload.tracker, payload.sampledAt)
+            if (!refreshStatus.value.delayed) addSample(payload.tracker, payload.sampledAt)
         }
 
         error.value = payload.error
+        return refreshStatus.value.retryAfter ?? 0
     } catch {
         error.value = 'Tracker refresh failed. Waiting for the next Bitjita check.'
     }
 }
+
+const polling = createTrackerPoller(refresh, POLL_INTERVAL_MS)
 
 onMounted(() => {
     const savedSetup = loadSetup()
@@ -358,7 +371,7 @@ onMounted(() => {
     saveSetup()
     samples.value = loadSamples()
     addSample(tracker.value, sampledAt.value)
-    pollTimer = window.setInterval(refresh, POLL_INTERVAL_MS)
+    polling.start(refreshStatus.value.retryAfter ?? 0)
     clockTimer = window.setInterval(() => {
         now.value = new Date()
     }, 1000)
@@ -366,7 +379,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-    window.clearInterval(pollTimer)
+    polling.stop()
     window.clearInterval(clockTimer)
     document.removeEventListener('pointerdown', closePickerOnOutsidePointer)
 })
@@ -601,6 +614,7 @@ watch(() => props.snapshot, (snapshot) => {
     tracker.value = snapshot.tracker
     error.value = snapshot.error
     sampledAt.value = snapshot.sampledAt
+    refreshStatus.value = snapshot.refresh ?? {}
     addSample(snapshot.tracker, snapshot.sampledAt)
 })
 

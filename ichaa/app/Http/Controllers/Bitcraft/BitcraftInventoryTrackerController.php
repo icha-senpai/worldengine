@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bitcraft;
 
+use App\Domain\Bitcraft\Exceptions\BitjitaRefreshDelayed;
 use App\Domain\Bitcraft\Services\BitcraftRelayClient;
 use App\Domain\Bitcraft\Services\BitcraftSpacetimeStaticData;
 use App\Domain\Bitcraft\Services\BitjitaClient;
@@ -62,6 +63,7 @@ class BitcraftInventoryTrackerController extends Controller
         }
 
         $snapshot = $this->trackerSnapshot($bitjita, $relay, $spacetime, $filters);
+        $snapshot['refresh'] = $bitjita->refreshStatus();
         $snapshotFilters = $filters;
 
         if (filled(data_get($snapshot, 'tracker.player.entityId'))) {
@@ -92,7 +94,9 @@ class BitcraftInventoryTrackerController extends Controller
         BitcraftRelayClient $relay,
         BitcraftSpacetimeStaticData $spacetime,
     ): JsonResponse {
-        return response()->json($this->trackerSnapshot($bitjita, $relay, $spacetime, $this->filters($request)));
+        $snapshot = $this->trackerSnapshot($bitjita, $relay, $spacetime, $this->filters($request));
+
+        return response()->json([...$snapshot, 'refresh' => $bitjita->refreshStatus()]);
     }
 
     /**
@@ -259,8 +263,11 @@ class BitcraftInventoryTrackerController extends Controller
                 ],
                 'options' => $options,
                 'error' => null,
-                'sampledAt' => now()->toIso8601String(),
+                'sampledAt' => $bitjita->refreshStatus()['updatedAt'] ?? now()->toIso8601String(),
+                'refresh' => $bitjita->refreshStatus(),
             ];
+        } catch (BitjitaRefreshDelayed $exception) {
+            return [...$this->snapshotError($exception->getMessage(), []), 'refresh' => $bitjita->refreshStatus()];
         } catch (Throwable $exception) {
             report($exception);
 

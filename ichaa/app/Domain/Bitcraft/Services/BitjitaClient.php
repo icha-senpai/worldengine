@@ -2,11 +2,7 @@
 
 namespace App\Domain\Bitcraft\Services;
 
-use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Http\Client\Pool;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 
 class BitjitaClient
 {
@@ -15,6 +11,13 @@ class BitjitaClient
     private const CLAIM_MARKET_LISTINGS_LIMIT = 200;
 
     private const STALLS_LIMIT = 100;
+
+    public function __construct(private BitjitaTransport $transport) {}
+
+    public function refreshStatus(): array
+    {
+        return $this->transport->refreshStatus();
+    }
 
     public function market(array $filters = []): array
     {
@@ -182,47 +185,19 @@ class BitjitaClient
             return [];
         }
 
-        $payloads = [];
-        $missing = [];
+        $requests = [];
 
         foreach ($ids as $id) {
             $path = "api/claims/{$id}/buildings";
-            $cacheSeconds = $this->cacheSecondsFor($path);
-            $cacheKey = $this->getCacheKey($path);
-
-            if ($cacheSeconds > 0 && Cache::has($cacheKey)) {
-                $payloads[$id] = Cache::get($cacheKey, []);
-
-                continue;
-            }
-
-            $missing[$id] = [
+            $requests[$id] = [
                 'path' => $path,
-                'cacheKey' => $cacheKey,
-                'cacheSeconds' => $cacheSeconds,
+                'query' => [],
+                'cacheKey' => $this->getCacheKey($path),
+                'cacheSeconds' => $this->cacheSecondsFor($path),
             ];
         }
 
-        if ($missing !== []) {
-            $responses = Http::pool(fn (Pool $pool) => collect($missing)
-                ->map(fn (array $request, string $id) => $this->poolRequest($pool, $id)->get($request['path']))
-                ->all());
-
-            foreach ($missing as $id => $request) {
-                /** @var Response $response */
-                $response = $responses[$id];
-                $response->throw();
-
-                $payload = $response->json() ?? [];
-                $payloads[$id] = $payload;
-
-                if ($request['cacheSeconds'] > 0) {
-                    Cache::put($request['cacheKey'], $payload, now()->addSeconds($request['cacheSeconds']));
-                }
-            }
-        }
-
-        return $payloads;
+        return $this->transport->getMany($requests);
     }
 
     public function items(?string $query = null): array
@@ -287,72 +262,26 @@ class BitjitaClient
 
     private function claimMarketListingPages(array $keys, array $filters, ?int $page): array
     {
-        $payloads = [];
-        $missing = [];
+        $requests = [];
 
         foreach ($keys as $key) {
             [$claimEntityId, $requestPage] = $this->claimMarketListingPageParts($key, $page);
-            $request = $this->claimMarketListingPageRequest($claimEntityId, $filters, $requestPage);
-
-            if ($request['cacheSeconds'] > 0 && Cache::has($request['cacheKey'])) {
-                $payloads[$key] = Cache::get($request['cacheKey'], []);
-
-                continue;
-            }
-
-            $missing[$key] = $request;
+            $requests[$key] = $this->claimMarketListingPageRequest($claimEntityId, $filters, $requestPage);
         }
 
-        if ($missing === []) {
-            return $payloads;
-        }
-
-        $responses = Http::pool(
-            fn (Pool $pool) => collect($missing)
-                ->map(fn (array $request, string $key) => $this->poolRequest($pool, $key)
-                    ->get($request['path'], $request['query']))
-                ->all(),
-            concurrency: $this->poolConcurrency(),
-        );
-
-        foreach ($missing as $key => $request) {
-            /** @var Response $response */
-            $response = $responses[$key];
-            $response->throw();
-
-            $payload = $response->json() ?? [];
-            $payloads[$key] = $payload;
-
-            if ($request['cacheSeconds'] > 0) {
-                Cache::put($request['cacheKey'], $payload, now()->addSeconds($request['cacheSeconds']));
-            }
-        }
-
-        return $payloads;
+        return $this->transport->getMany($requests);
     }
 
     private function get(string $path, array $query = []): array
     {
         $query = $this->filledQuery($query);
-        $cacheSeconds = $this->cacheSecondsFor($path);
 
-        if ($cacheSeconds <= 0) {
-            return $this->fetch($path, $query);
-        }
-
-        return Cache::remember(
+        return $this->transport->get(
+            $path,
+            $query,
+            $this->cacheSecondsFor($path),
             $this->getCacheKey($path, $query),
-            now()->addSeconds($cacheSeconds),
-            fn () => $this->fetch($path, $query),
         );
-    }
-
-    private function fetch(string $path, array $query = []): array
-    {
-        $response = $this->request()->get($path, $this->filledQuery($query));
-        $response->throw();
-
-        return $response->json() ?? [];
     }
 
     private function fetchStalls(): array
@@ -367,19 +296,23 @@ class BitjitaClient
 
         if ($totalPages > 1) {
             $pages = range(2, $totalPages);
-            $responses = Http::pool(fn (Pool $pool) => collect($pages)
-                ->map(fn (int $page) => $this->poolRequest($pool, (string) $page)
-                    ->get('api/stalls', [
-                        'page' => $page,
-                        'limit' => self::STALLS_LIMIT,
-                    ]))
-                ->all());
+            $path = 'api/stalls';
+            $requests = [];
 
             foreach ($pages as $page) {
-                /** @var Response $response */
-                $response = $responses[(string) $page];
-                $response->throw();
-                $stalls = array_merge($stalls, data_get($response->json() ?? [], 'stalls', []));
+                $query = ['page' => $page, 'limit' => self::STALLS_LIMIT];
+                $requests[$page] = [
+                    'path' => $path,
+                    'query' => $query,
+                    'cacheSeconds' => $this->cacheSecondsFor($path),
+                    'cacheKey' => $this->getCacheKey($path, $query),
+                ];
+            }
+
+            $payloads = $this->transport->getMany($requests);
+
+            foreach ($pages as $page) {
+                $stalls = array_merge($stalls, data_get($payloads[$page], 'stalls', []));
             }
         }
 
@@ -445,52 +378,6 @@ class BitjitaClient
         ];
     }
 
-    private function request(): PendingRequest
-    {
-        $request = Http::baseUrl(rtrim((string) config('services.bitjita.base_url'), '/'))
-            ->acceptJson()
-            ->timeout((int) config('services.bitjita.timeout', 12))
-            ->withHeaders([
-                'x-app-identifier' => (string) config('services.bitjita.app_identifier', 'Dataverse Bitcraft Tools'),
-            ]);
-
-        if (filled(config('services.bitjita.identity'))) {
-            $request = $request->withHeader('x-bitjita-identity', (string) config('services.bitjita.identity'));
-        }
-
-        if (filled(config('services.bitjita.token'))) {
-            $request = $request->withToken((string) config('services.bitjita.token'));
-        }
-
-        return $request;
-    }
-
-    private function poolRequest(Pool $pool, string $key): PendingRequest
-    {
-        $request = $pool->as($key)
-            ->baseUrl(rtrim((string) config('services.bitjita.base_url'), '/'))
-            ->acceptJson()
-            ->timeout((int) config('services.bitjita.timeout', 12))
-            ->withHeaders([
-                'x-app-identifier' => (string) config('services.bitjita.app_identifier', 'Dataverse Bitcraft Tools'),
-            ]);
-
-        if (filled(config('services.bitjita.identity'))) {
-            $request = $request->withHeader('x-bitjita-identity', (string) config('services.bitjita.identity'));
-        }
-
-        if (filled(config('services.bitjita.token'))) {
-            $request = $request->withToken((string) config('services.bitjita.token'));
-        }
-
-        return $request;
-    }
-
-    private function poolConcurrency(): int
-    {
-        return max(1, (int) config('services.bitjita.pool_concurrency', 8));
-    }
-
     private function cacheKey(string $key): string
     {
         return 'bitjita:'.md5(implode('|', [
@@ -508,6 +395,11 @@ class BitjitaClient
     private function cacheSecondsFor(string $path): int
     {
         return match (true) {
+            $path === 'api/players' => (int) config('services.bitjita.players_cache_seconds', 60),
+            preg_match('#^api/players/[^/]+$#', $path) === 1 => (int) config('services.bitjita.player_cache_seconds', 15),
+            preg_match('#^api/players/[^/]+/inventories$#', $path) === 1 => (int) config('services.bitjita.player_inventories_cache_seconds', 15),
+            preg_match('#^api/players/[^/]+/passive-crafts$#', $path) === 1 => (int) config('services.bitjita.player_passive_crafts_cache_seconds', 15),
+            $path === 'api/stalls' => (int) config('services.bitjita.stalls_cache_seconds', 300),
             $path === 'api/regions' => (int) config('services.bitjita.regions_cache_seconds', 86400),
             $path === 'api/market' => (int) config('services.bitjita.market_cache_seconds', 60),
             preg_match('#^api/market/(item|cargo)/[^/]+$#', $path) === 1 => (int) config('services.bitjita.market_orders_cache_seconds', 30),

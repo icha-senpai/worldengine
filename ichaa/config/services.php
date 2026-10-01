@@ -58,6 +58,13 @@ return [
         'claim_buildings_cache_seconds' => (int) env('BITJITA_CLAIM_BUILDINGS_CACHE_SECONDS', 300),
         'stalls_cache_seconds' => (int) env('BITJITA_STALLS_CACHE_SECONDS', 300),
         'pool_concurrency' => (int) env('BITJITA_POOL_CONCURRENCY', 8),
+        'requests_per_minute' => (int) env('BITJITA_REQUESTS_PER_MINUTE', 200),
+        'user_requests_per_minute' => (int) env('BITJITA_USER_REQUESTS_PER_MINUTE', 150),
+        'players_cache_seconds' => (int) env('BITJITA_PLAYERS_CACHE_SECONDS', 60),
+        'player_cache_seconds' => (int) env('BITJITA_PLAYER_CACHE_SECONDS', 15),
+        'player_inventories_cache_seconds' => (int) env('BITJITA_PLAYER_INVENTORIES_CACHE_SECONDS', 15),
+        'player_passive_crafts_cache_seconds' => (int) env('BITJITA_PLAYER_PASSIVE_CRAFTS_CACHE_SECONDS', 15),
+        'stale_cache_seconds' => (int) env('BITJITA_STALE_CACHE_SECONDS', 300),
     ],
 
     'bitcraft_relay' => [

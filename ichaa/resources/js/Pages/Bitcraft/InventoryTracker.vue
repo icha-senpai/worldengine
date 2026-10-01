@@ -115,15 +115,17 @@
                 <p v-if="iconsLabel">{{ iconsLabel }}</p>
             </header>
 
+            <TrackerRefreshStatus :refresh="refreshStatus" :sampled-at="sampledAt" />
+
             <div v-if="error" class="inventory-tracker-widget__error">
                 {{ error }}
             </div>
 
-            <div v-else-if="!tracker" class="inventory-tracker-widget__empty">
+            <div v-if="!tracker && !error" class="inventory-tracker-widget__empty">
                 Select item/cargo
             </div>
 
-            <template v-else>
+            <template v-else-if="tracker">
                 <article
                     v-for="item in trackerItems"
                     :key="item.key"
@@ -174,6 +176,8 @@ import { bitcraftItemFrameStyle, hasBitcraftTier } from '@/Pages/Bitcraft/bitjit
 import WidgetSetupDrawer from './Components/WidgetSetupDrawer.vue'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
 import WidgetPageShell from './Components/WidgetPageShell.vue'
+import TrackerRefreshStatus from './Components/TrackerRefreshStatus.vue'
+import { createTrackerPoller, retryAfterSeconds } from './trackerPolling'
 import { normalizeWidgetTheme, widgetThemePayload, widgetThemeStyle as resolveWidgetThemeStyle } from './widgetTheme'
 
 const props = defineProps({
@@ -188,10 +192,11 @@ const STORAGE_KEY = 'bitcraft.inventoryTracker.lastSetup'
 const tracker = ref(props.snapshot.tracker)
 const options = ref(props.snapshot.options ?? [])
 const error = ref(props.snapshot.error)
+const sampledAt = ref(props.snapshot.sampledAt)
+const refreshStatus = ref(props.snapshot.refresh ?? {})
 const pickerOpen = ref(false)
 const pickerElement = ref(null)
 const emojiChoice = ref('')
-let pollTimer = null
 const emojiOptions = [
     { value: '🐟', label: '🐟 Fish' },
     { value: '🎣', label: '🎣 Fishing' },
@@ -508,23 +513,37 @@ const refresh = async () => {
             },
         })
 
+        if (response.status === 429) {
+            refreshStatus.value = { ...refreshStatus.value, delayed: true }
+            return retryAfterSeconds(response)
+        }
+
         if (!response.ok) {
             throw new Error(`Snapshot request failed with ${response.status}`)
         }
 
         const payload = await response.json()
-        tracker.value = payload.tracker
-        options.value = payload.options ?? options.value
+        refreshStatus.value = payload.refresh ?? {}
+        if (payload.tracker) {
+            tracker.value = payload.tracker
+            sampledAt.value = payload.sampledAt
+            options.value = payload.options ?? options.value
+        }
         error.value = payload.error
+        return refreshStatus.value.retryAfter ?? 0
     } catch {
         error.value = 'Tracker refresh failed. Waiting for the next Bitjita check.'
     }
 }
 
+const polling = createTrackerPoller(refresh, POLL_INTERVAL_MS)
+
 watch(() => props.snapshot, (snapshot) => {
     tracker.value = snapshot.tracker
     options.value = snapshot.options ?? []
     error.value = snapshot.error
+    sampledAt.value = snapshot.sampledAt
+    refreshStatus.value = snapshot.refresh ?? {}
 })
 
 watch(form, saveSetup, { deep: true })
@@ -543,12 +562,12 @@ onMounted(() => {
     }
 
     saveSetup()
-    pollTimer = window.setInterval(refresh, POLL_INTERVAL_MS)
+    polling.start(refreshStatus.value.retryAfter ?? 0)
     document.addEventListener('pointerdown', closePickerOnOutsidePointer)
 })
 
 onBeforeUnmount(() => {
-    window.clearInterval(pollTimer)
+    polling.stop()
     document.removeEventListener('pointerdown', closePickerOnOutsidePointer)
 })
 </script>
