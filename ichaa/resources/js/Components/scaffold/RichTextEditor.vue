@@ -1,6 +1,7 @@
 <template>
     <div class="editor-shell">
         <RichTextToolbar :controls="controls" />
+        <slot name="tools" :editor="editor" />
         <RichTextHighlightBubble :editor="editor" :controls="controls" />
 
         <div class="editor-canvas">
@@ -37,6 +38,7 @@ const props = defineProps({
     inputId: { type: String, default: '' },
     ariaLabel: { type: String, default: '' },
     describedBy: { type: String, default: '' },
+    extensions: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -46,7 +48,7 @@ const showMediaLibrary = ref(false)
 
 const editor = useEditor({
     content: normalizeRichDocument(props.modelValue),
-    extensions: buildRichTextEditorExtensions(props.placeholder),
+    extensions: [...buildRichTextEditorExtensions(props.placeholder), ...props.extensions],
     editorProps: {
         attributes: {
             class: 'tiptap-editor__content',

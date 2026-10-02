@@ -15,6 +15,7 @@ import { richTextRenderExtensions } from '@/lib/tiptap/extensions'
 
 const props = defineProps({
     content: { type: Object, default: null },
+    extensions: { type: Array, default: () => [] },
 })
 
 const renderedHtml = computed(() => {
@@ -23,7 +24,7 @@ const renderedHtml = computed(() => {
     }
 
     try {
-        return generateHTML(props.content, richTextRenderExtensions)
+        return generateHTML(props.content, [...richTextRenderExtensions, ...props.extensions])
     } catch {
         return ''
     }

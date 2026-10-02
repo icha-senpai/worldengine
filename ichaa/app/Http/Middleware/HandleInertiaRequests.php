@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\Bitcraft\Services\BitcraftSitePlayer;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -31,6 +32,9 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            'bitcraft' => [
+                'player' => fn () => app(BitcraftSitePlayer::class)->selected($request),
+            ],
             'auth' => [
                 'user' => fn () => $request->user()
                     ? [

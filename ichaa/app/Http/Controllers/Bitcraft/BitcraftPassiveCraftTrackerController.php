@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Bitcraft;
 
+use App\Domain\Bitcraft\Services\BitcraftPlayerData;
 use App\Domain\Bitcraft\Services\BitcraftRelayClient;
 use App\Domain\Bitcraft\Services\BitcraftSpacetimeStaticData;
-use App\Domain\Bitcraft\Services\BitjitaClient;
 use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
 use App\Http\Controllers\Bitcraft\Concerns\ScopesBitcraftWidgetProfiles;
 use App\Http\Controllers\Controller;
@@ -29,7 +29,7 @@ class BitcraftPassiveCraftTrackerController extends Controller
 
     public function show(
         Request $request,
-        BitjitaClient $bitjita,
+        BitcraftPlayerData $playerData,
         BitcraftRelayClient $relay,
         BitcraftSpacetimeStaticData $spacetime,
     ): InertiaResponse|RedirectResponse {
@@ -43,8 +43,8 @@ class BitcraftPassiveCraftTrackerController extends Controller
             }
         }
 
-        $snapshot = $this->trackerSnapshot($bitjita, $relay, $spacetime, $filters);
-        $snapshot['refresh'] = $bitjita->refreshStatus();
+        $snapshot = $this->trackerSnapshot($playerData, $relay, $spacetime, $filters);
+        $snapshot['refresh'] = $playerData->refreshStatus();
         $snapshotFilters = $filters;
 
         if (filled(data_get($snapshot, 'tracker.player.entityId'))) {
@@ -60,24 +60,24 @@ class BitcraftPassiveCraftTrackerController extends Controller
 
     public function setup(
         Request $request,
-        BitjitaClient $bitjita,
+        BitcraftPlayerData $playerData,
         BitcraftRelayClient $relay,
         BitcraftSpacetimeStaticData $spacetime,
     ): InertiaResponse|RedirectResponse {
         $request->merge(['setup' => true]);
 
-        return $this->show($request, $bitjita, $relay, $spacetime);
+        return $this->show($request, $playerData, $relay, $spacetime);
     }
 
     public function snapshot(
         Request $request,
-        BitjitaClient $bitjita,
+        BitcraftPlayerData $playerData,
         BitcraftRelayClient $relay,
         BitcraftSpacetimeStaticData $spacetime,
     ): JsonResponse {
-        $snapshot = $this->trackerSnapshot($bitjita, $relay, $spacetime, $this->filters($request));
+        $snapshot = $this->trackerSnapshot($playerData, $relay, $spacetime, $this->filters($request));
 
-        return response()->json([...$snapshot, 'refresh' => $bitjita->refreshStatus()]);
+        return response()->json([...$snapshot, 'refresh' => $playerData->refreshStatus()]);
     }
 
     /**
@@ -103,7 +103,7 @@ class BitcraftPassiveCraftTrackerController extends Controller
         return [
             'user' => $userId,
             'source' => $source,
-            'character' => trim((string) ($validated['character'] ?? data_get($stored, 'character', self::DEFAULT_CHARACTER))) ?: self::DEFAULT_CHARACTER,
+            'character' => $this->bitcraftCharacter($request, $validated, $stored, self::DEFAULT_CHARACTER),
             'title' => trim((string) ($validated['title'] ?? data_get($stored, 'title', self::DEFAULT_TITLE))) ?: self::DEFAULT_TITLE,
             'icons' => $request->has('icons')
                 ? trim((string) ($validated['icons'] ?? ''))
@@ -130,27 +130,39 @@ class BitcraftPassiveCraftTrackerController extends Controller
      * @return array{tracker: ?array<string, mixed>, error: ?string, sampledAt: string}
      */
     private function trackerSnapshot(
-        BitjitaClient $bitjita,
+        BitcraftPlayerData $playerData,
         BitcraftRelayClient $relay,
         BitcraftSpacetimeStaticData $spacetime,
         array $filters,
     ): array {
         try {
-            $player = $this->resolvePlayer($bitjita, $relay, (string) $filters['character']);
+            $player = $this->resolvePlayer($playerData, $relay, (string) $filters['character']);
 
             if ($player === null) {
                 return $this->snapshotError("No BitCraft player matched '{$filters['character']}'.");
             }
 
-            $crafts = $this->bitjitaCrafts($bitjita, (string) data_get($player, 'entityId'), $spacetime);
+            $crafts = $this->apiCrafts($playerData, (string) data_get($player, 'entityId'), $spacetime);
 
-            if ($crafts === null) {
+            if ($crafts === null || ($playerData->refreshStatus()['delayed'] && $relay->isEnabled())) {
                 if (! $relay->isEnabled()) {
-                    return $this->snapshotError('Bitjita passive crafts did not respond, and BitCraft Relay is disabled.');
+                    return $this->snapshotError('Passive craft providers did not respond, and BitCraft Relay is disabled.');
                 }
 
-                $payload = $relay->playerCrafts((string) data_get($player, 'entityId'), false);
-                $crafts = $this->relayCrafts(data_get($payload, 'crafts', []), $spacetime, $relay);
+                try {
+                    $payload = $relay->playerCrafts((string) data_get($player, 'entityId'), false);
+
+                    if (! is_array(data_get($payload, 'crafts'))) {
+                        throw new \UnexpectedValueException('Invalid Relay craft response');
+                    }
+
+                    $crafts = $this->relayCrafts($payload['crafts'], $spacetime, $relay);
+                    $playerData->usingRelay();
+                } catch (Throwable $exception) {
+                    if ($crafts === null) {
+                        throw $exception;
+                    }
+                }
             }
 
             $groups = $this->craftGroups($crafts);
@@ -171,13 +183,13 @@ class BitcraftPassiveCraftTrackerController extends Controller
                     'timerSource' => data_get($longestGroup, 'timerSource'),
                 ],
                 'error' => null,
-                'sampledAt' => $bitjita->refreshStatus()['updatedAt'] ?? now()->toIso8601String(),
-                'refresh' => $bitjita->refreshStatus(),
+                'sampledAt' => $playerData->refreshStatus()['updatedAt'] ?? now()->toIso8601String(),
+                'refresh' => $playerData->refreshStatus(),
             ];
         } catch (Throwable $exception) {
             report($exception);
 
-            return $this->snapshotError('Bitjita or BitCraft Relay did not respond cleanly. The tracker will try again shortly.');
+            return $this->snapshotError('Player data or BitCraft Relay did not respond cleanly. The tracker will try again shortly.');
         }
     }
 
@@ -194,16 +206,16 @@ class BitcraftPassiveCraftTrackerController extends Controller
     /**
      * @return array<string, mixed>|null
      */
-    private function resolvePlayer(BitjitaClient $bitjita, BitcraftRelayClient $relay, string $character): ?array
+    private function resolvePlayer(BitcraftPlayerData $playerData, BitcraftRelayClient $relay, string $character): ?array
     {
         try {
-            $player = $this->resolveBitjitaPlayer($bitjita, $character);
+            $player = $this->resolveApiPlayer($playerData, $character);
 
             if ($player !== null) {
                 return $player;
             }
         } catch (Throwable) {
-            // Fall through to Relay so the widget can still render if Bitjita is temporarily stale.
+            // Relay remains available when both player API providers fail.
         }
 
         if (! $relay->isEnabled()) {
@@ -216,13 +228,13 @@ class BitcraftPassiveCraftTrackerController extends Controller
     /**
      * @return array<string, mixed>|null
      */
-    private function resolveBitjitaPlayer(BitjitaClient $bitjita, string $character): ?array
+    private function resolveApiPlayer(BitcraftPlayerData $playerData, string $character): ?array
     {
         if (ctype_digit($character)) {
-            return $this->bitjitaPlayerPayload(data_get($bitjita->player($character), 'player', []));
+            return $this->bitjitaPlayerPayload(data_get($playerData->player($character), 'player', []));
         }
 
-        $players = data_get($bitjita->players($character), 'players', []);
+        $players = data_get($playerData->players($character), 'players', []);
         $selected = collect($players)->first(
             fn (array $player): bool => strcasecmp((string) data_get($player, 'username'), $character) === 0,
         ) ?? collect($players)->first();
@@ -231,7 +243,7 @@ class BitcraftPassiveCraftTrackerController extends Controller
             return null;
         }
 
-        return $this->bitjitaPlayerPayload(data_get($bitjita->player((string) data_get($selected, 'entityId')), 'player', []));
+        return $this->bitjitaPlayerPayload(data_get($playerData->player((string) data_get($selected, 'entityId')), 'player', []));
     }
 
     /**
@@ -310,10 +322,12 @@ class BitcraftPassiveCraftTrackerController extends Controller
     /**
      * @return array<int, array<string, mixed>>|null
      */
-    private function bitjitaCrafts(BitjitaClient $bitjita, string $playerEntityId, BitcraftSpacetimeStaticData $spacetime): ?array
+    private function apiCrafts(BitcraftPlayerData $playerData, string $playerEntityId, BitcraftSpacetimeStaticData $spacetime): ?array
     {
         try {
-            $crafts = data_get($bitjita->playerPassiveCrafts($playerEntityId), 'craftResults', []);
+            $payload = $playerData->playerPassiveCrafts($playerEntityId);
+            $crafts = data_get($payload, 'craftResults', []);
+            $source = (string) data_get($payload, 'source', 'bitjita');
         } catch (Throwable) {
             return null;
         }
@@ -327,7 +341,7 @@ class BitcraftPassiveCraftTrackerController extends Controller
 
         return collect($crafts)
             ->filter(fn (array $craft): bool => ! in_array(strtolower((string) data_get($craft, 'status')), ['complete', 'completed'], true))
-            ->map(fn (array $craft): array => $this->craftPayload($craft, $catalog, [], $recipes, 'bitjita'))
+            ->map(fn (array $craft): array => $this->craftPayload($craft, $catalog, [], $recipes, $source))
             ->sortBy([
                 fn (array $craft): bool => (bool) data_get($craft, 'completed', false),
                 fn (array $craft): int => -1 * (int) data_get($craft, 'progressPercent', 0),
@@ -388,16 +402,16 @@ class BitcraftPassiveCraftTrackerController extends Controller
         $finishedAt = $startedAt !== null && $recipeTotalSeconds > 0
             ? $startedAt->addSeconds($recipeTotalSeconds)
             : null;
-        $usesBitjitaTimer = $source === 'bitjita' && $startedAt !== null && $finishedAt !== null;
+        $usesApiTimer = in_array($source, ['bitjita', 'bitjuice'], true) && $startedAt !== null && $finishedAt !== null;
 
-        if ($usesBitjitaTimer) {
+        if ($usesApiTimer) {
             $totalActions = $recipeTotalSeconds;
             $progress = min($totalActions, max(0, now()->getTimestamp() - $startedAt->getTimestamp()));
         }
 
         $remainingActions = max(0, $totalActions - $progress);
         $usesRecipeTimer = $recipeTotalSeconds > 0 && $totalActions <= 1 && $remainingActions <= 1;
-        $estimatedRemainingSeconds = $usesBitjitaTimer || ! $usesRecipeTimer
+        $estimatedRemainingSeconds = $usesApiTimer || ! $usesRecipeTimer
             ? $remainingActions
             : $recipeTotalSeconds;
         $claimEntityId = (string) data_get($craft, 'claim_entity_id', data_get($craft, 'claimEntityId'));
@@ -422,15 +436,15 @@ class BitcraftPassiveCraftTrackerController extends Controller
             'isPassive' => (bool) data_get($craft, 'is_passive', true),
             'isPublic' => (bool) data_get($craft, 'is_public', false),
             'ownerEntityId' => (string) data_get($craft, 'owner_entity_id', data_get($craft, 'ownerEntityId')),
-            'ownerUsername' => (string) data_get($craft, 'owner_username', 'Unknown'),
+            'ownerUsername' => (string) data_get($craft, 'owner_username', data_get($craft, 'ownerUsername', 'Unknown')),
             'craftCount' => $craftCount,
             'progress' => $progress,
             'totalActionsRequired' => $totalActions,
             'remainingActions' => $remainingActions,
             'recipeTimeRequirement' => $recipeTimeRequirement,
-            'estimatedTotalSeconds' => $usesRecipeTimer || $usesBitjitaTimer ? $recipeTotalSeconds : $totalActions,
+            'estimatedTotalSeconds' => $usesRecipeTimer || $usesApiTimer ? $recipeTotalSeconds : $totalActions,
             'estimatedRemainingSeconds' => $estimatedRemainingSeconds,
-            'timerSource' => $usesBitjitaTimer ? 'bitjita' : ($usesRecipeTimer ? 'recipe' : 'relay'),
+            'timerSource' => $usesApiTimer ? $source : ($usesRecipeTimer ? 'recipe' : 'relay'),
             'startedAt' => $startedAt?->toIso8601String(),
             'finishesAt' => $finishedAt?->toIso8601String(),
             'progressPercent' => $totalActions > 0 ? round(min(100, ($progress / $totalActions) * 100), 1) : 0,

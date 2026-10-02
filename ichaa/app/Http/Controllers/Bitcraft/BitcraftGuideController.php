@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Bitcraft;
 
 use App\Domain\Bitcraft\Models\BitcraftGuide;
+use App\Domain\Bitcraft\Services\BitcraftSpacetimeStaticData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Bitcraft\SaveBitcraftGuideRequest;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -57,6 +59,16 @@ class BitcraftGuideController extends Controller
     public function create(): Response
     {
         return Inertia::render('Bitcraft/Guides/Form', ['guide' => null]);
+    }
+
+    public function items(Request $request, BitcraftSpacetimeStaticData $spacetime): JsonResponse
+    {
+        $filters = $request->validate(['q' => ['nullable', 'string', 'max:255']]);
+
+        return response()->json([
+            'items' => $spacetime->catalogSearch(trim($filters['q'] ?? ''), 40),
+            'available' => $spacetime->isAvailable(),
+        ]);
     }
 
     public function store(SaveBitcraftGuideRequest $request): RedirectResponse

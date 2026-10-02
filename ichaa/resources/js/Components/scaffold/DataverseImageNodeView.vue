@@ -4,7 +4,8 @@
         class="tiptap-editor__image-node"
         :class="{ 'is-selected': selected }"
         :data-align="node.attrs.align || 'left'"
-        :style="{ width: normalizedWidth }"
+        :data-wrap="String(node.attrs.wrap === true && node.attrs.align !== 'center')"
+        :style="{ width: normalizedWidth, '--guide-wrap-width': normalizedWidth }"
         @click.stop="selectImage"
     >
         <img

@@ -47,6 +47,7 @@
                 <label>
                     <span>Character</span>
                     <input v-model.trim="form.character" type="text" maxlength="80" />
+                    <SitePlayerDefaultButton @select="form.character = $event" />
                 </label>
 
                 <label>
@@ -170,7 +171,8 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
+import SitePlayerDefaultButton from './Components/SitePlayerDefaultButton.vue'
 import BitcraftTierBadge from '@/Pages/Bitcraft/Components/BitcraftTierBadge.vue'
 import { bitcraftItemFrameStyle, hasBitcraftTier } from '@/Pages/Bitcraft/bitjitaAssets.js'
 import WidgetSetupDrawer from './Components/WidgetSetupDrawer.vue'
@@ -185,6 +187,8 @@ const props = defineProps({
     snapshot: { type: Object, default: () => ({ tracker: null, options: [], error: null, sampledAt: null }) },
     snapshotUrl: { type: String, required: true },
 })
+
+const page = usePage()
 
 const POLL_INTERVAL_MS = 15000
 const STORAGE_KEY = 'bitcraft.inventoryTracker.lastSetup'
@@ -532,7 +536,7 @@ const refresh = async () => {
         error.value = payload.error
         return refreshStatus.value.retryAfter ?? 0
     } catch {
-        error.value = 'Tracker refresh failed. Waiting for the next Bitjita check.'
+        error.value = 'Tracker refresh failed. Waiting for the next provider check.'
     }
 }
 
@@ -556,6 +560,7 @@ onMounted(() => {
 
     if (!params.has('source') && !params.has('itemKey') && !params.has('itemKeys') && savedSetup?.itemKeys?.length) {
         Object.assign(form, savedSetup)
+        if (page.props.bitcraft?.player && !params.has('character')) form.character = props.filters.character
         submitSetup(Boolean(props.filters.setup))
 
         return

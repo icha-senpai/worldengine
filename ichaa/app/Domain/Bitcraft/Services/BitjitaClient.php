@@ -255,6 +255,11 @@ class BitjitaClient
         return $this->get('static/experience/levels.json');
     }
 
+    public function crafts(): array
+    {
+        return $this->get('api/crafts');
+    }
+
     public function applicationCacheKey(string $key): string
     {
         return $this->cacheKey($key);
@@ -400,6 +405,7 @@ class BitjitaClient
             preg_match('#^api/players/[^/]+/inventories$#', $path) === 1 => (int) config('services.bitjita.player_inventories_cache_seconds', 15),
             preg_match('#^api/players/[^/]+/passive-crafts$#', $path) === 1 => (int) config('services.bitjita.player_passive_crafts_cache_seconds', 15),
             $path === 'api/stalls' => (int) config('services.bitjita.stalls_cache_seconds', 300),
+            $path === 'api/crafts' => (int) config('services.bitjita.crafts_cache_seconds', 60),
             $path === 'api/regions' => (int) config('services.bitjita.regions_cache_seconds', 86400),
             $path === 'api/market' => (int) config('services.bitjita.market_cache_seconds', 60),
             preg_match('#^api/market/(item|cargo)/[^/]+$#', $path) === 1 => (int) config('services.bitjita.market_orders_cache_seconds', 30),

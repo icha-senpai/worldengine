@@ -1,0 +1,35 @@
+- generic [active] [ref=e5] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - button [ref=e163]:
+                  - text: Dashboard
+                  - generic: Dashboard
+                - heading "Dashboard" [level=2] [ref=e165]
+                - 'button "Player: Juice. Tap for options. Juice" [ref=e166]'
+                - generic [ref=e167]: 100%
+                - generic [ref=e168]: 100%
+                - generic [ref=e169]: 100%
+                - button "Notification History" [ref=e170]
+                - button "More options" [ref=e171]
+              - generic:
+                - generic:
+                  - generic:
+                    - group:
+                      - generic [ref=e172]: Customize your dashboard
+                      - button "Add widget" [ref=e173]
+                      - button "Edit layout" [ref=e174]
+                      - button "Open Crafts" [ref=e175]
+                      - button "Market" [ref=e176]
+                      - button "Recipes" [ref=e179]
+                      - button "World Events" [ref=e180]
+                      - button "Experience" [ref=e183]
+                      - button "Stats" [ref=e184]
+                      - button "Inventory" [ref=e187]
+                      - button "Orders" [ref=e188]
+                      - button "Crafts" [ref=e191]
+                      - button "Tasks" [ref=e192]

@@ -342,7 +342,7 @@ const costToBuyDetail = computed(() => {
 const subtitle = computed(() => {
     const category = props.orderBook?.item?.category
 
-    return category ? `Real Bitjita orders · ${category}` : 'Real Bitjita orders'
+    return category ? `Market orders · ${category}` : 'Market orders'
 })
 
 const itemInitials = (name) => String(name ?? '?')

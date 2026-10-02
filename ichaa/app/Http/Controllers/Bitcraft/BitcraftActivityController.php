@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Bitcraft;
 
 use App\Domain\Bitcraft\Exceptions\BitjitaRefreshDelayed;
-use App\Domain\Bitcraft\Services\BitjitaClient;
+use App\Domain\Bitcraft\Services\BitcraftPlayerData;
 use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
 use App\Http\Controllers\Bitcraft\Concerns\ScopesBitcraftWidgetProfiles;
 use App\Http\Controllers\Controller;
@@ -27,7 +27,7 @@ class BitcraftActivityController extends Controller
 
     private const DEFAULT_ICONS = '✨ 🏆';
 
-    public function show(Request $request, BitjitaClient $bitjita): InertiaResponse|RedirectResponse
+    public function show(Request $request, BitcraftPlayerData $playerData): InertiaResponse|RedirectResponse
     {
         $filters = $this->filters($request);
 
@@ -39,8 +39,8 @@ class BitcraftActivityController extends Controller
             }
         }
 
-        $snapshot = $this->trackerSnapshot($bitjita, $filters);
-        $snapshot['refresh'] = $bitjita->refreshStatus();
+        $snapshot = $this->trackerSnapshot($playerData, $filters);
+        $snapshot['refresh'] = $playerData->refreshStatus();
         $pollFilters = $this->pollFilters($filters);
 
         if (filled(data_get($snapshot, 'tracker.player.entityId'))) {
@@ -54,19 +54,19 @@ class BitcraftActivityController extends Controller
         ]);
     }
 
-    public function setup(Request $request, BitjitaClient $bitjita): InertiaResponse|RedirectResponse
+    public function setup(Request $request, BitcraftPlayerData $playerData): InertiaResponse|RedirectResponse
     {
         $request->merge(['setup' => true]);
 
-        return $this->show($request, $bitjita);
+        return $this->show($request, $playerData);
     }
 
-    public function snapshot(Request $request, BitjitaClient $bitjita): JsonResponse
+    public function snapshot(Request $request, BitcraftPlayerData $playerData): JsonResponse
     {
-        $snapshot = $this->trackerSnapshot($bitjita, $this->filters($request));
+        $snapshot = $this->trackerSnapshot($playerData, $this->filters($request));
 
         return response()
-            ->json([...$snapshot, 'refresh' => $bitjita->refreshStatus()])
+            ->json([...$snapshot, 'refresh' => $playerData->refreshStatus()])
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache');
     }
@@ -99,7 +99,7 @@ class BitcraftActivityController extends Controller
         return [
             'user' => $userId,
             'source' => $source,
-            'character' => trim((string) ($validated['character'] ?? data_get($stored, 'character', self::DEFAULT_CHARACTER))) ?: self::DEFAULT_CHARACTER,
+            'character' => $this->bitcraftCharacter($request, $validated, $stored, self::DEFAULT_CHARACTER),
             'skill' => trim((string) ($validated['skill'] ?? data_get($stored, 'skill', self::DEFAULT_SKILL))) ?: self::DEFAULT_SKILL,
             'title' => trim((string) ($validated['title'] ?? data_get($stored, 'title', self::DEFAULT_TITLE))) ?: self::DEFAULT_TITLE,
             'icons' => $request->has('icons')
@@ -130,21 +130,21 @@ class BitcraftActivityController extends Controller
      * @param  array<string, mixed>  $filters
      * @return array{tracker: ?array<string, mixed>, error: ?string, sampledAt: string}
      */
-    private function trackerSnapshot(BitjitaClient $bitjita, array $filters): array
+    private function trackerSnapshot(BitcraftPlayerData $playerData, array $filters): array
     {
         try {
-            $player = $this->resolvePlayer($bitjita, $filters['character']);
+            $player = $this->resolvePlayer($playerData, $filters['character']);
 
             if ($player === null) {
-                return $this->snapshotError("No Bitjita player matched '{$filters['character']}'.");
+                return $this->snapshotError("No BitCraft player matched '{$filters['character']}'.");
             }
 
-            $levels = $this->normalizeLevels($bitjita->experienceLevels());
+            $levels = $this->normalizeLevels($playerData->experienceLevels());
             $skillOptions = $this->resolveSkills($player, 'all', $levels);
             $skills = $this->resolveSkills($player, $filters['skill'], $levels);
 
             if ($skills === []) {
-                return $this->snapshotError("No Bitjita skill matched '{$filters['skill']}'.");
+                return $this->snapshotError("No BitCraft skill matched '{$filters['skill']}'.");
             }
 
             $primarySkill = collect($skills)
@@ -182,28 +182,28 @@ class BitcraftActivityController extends Controller
                         ->all(),
                 ],
                 'error' => null,
-                'sampledAt' => $bitjita->refreshStatus()['updatedAt'] ?? now()->toIso8601String(),
-                'refresh' => $bitjita->refreshStatus(),
+                'sampledAt' => $playerData->refreshStatus()['updatedAt'] ?? now()->toIso8601String(),
+                'refresh' => $playerData->refreshStatus(),
             ];
         } catch (BitjitaRefreshDelayed $exception) {
-            return [...$this->snapshotError($exception->getMessage()), 'refresh' => $bitjita->refreshStatus()];
+            return [...$this->snapshotError($exception->getMessage()), 'refresh' => $playerData->refreshStatus()];
         } catch (Throwable $exception) {
             report($exception);
 
-            return $this->snapshotError('Bitjita did not respond cleanly. The tracker will try again shortly.');
+            return $this->snapshotError('Player data did not respond cleanly. The tracker will try again shortly.');
         }
     }
 
     /**
      * @return array<string, mixed>|null
      */
-    private function resolvePlayer(BitjitaClient $bitjita, string $character): ?array
+    private function resolvePlayer(BitcraftPlayerData $playerData, string $character): ?array
     {
         if (ctype_digit($character)) {
-            return data_get($bitjita->player($character), 'player');
+            return data_get($playerData->player($character), 'player');
         }
 
-        $players = data_get($bitjita->players($character), 'players', []);
+        $players = data_get($playerData->players($character), 'players', []);
         $selected = collect($players)->first(
             fn (array $player): bool => strcasecmp((string) data_get($player, 'username'), $character) === 0,
         ) ?? collect($players)->first();
@@ -212,7 +212,7 @@ class BitcraftActivityController extends Controller
             return null;
         }
 
-        return data_get($bitjita->player((string) data_get($selected, 'entityId')), 'player');
+        return data_get($playerData->player((string) data_get($selected, 'entityId')), 'player');
     }
 
     /**
@@ -317,7 +317,7 @@ class BitcraftActivityController extends Controller
     private function resolveSkillRecord($skillMap, string $skill): ?array
     {
         return ctype_digit($skill)
-            ? $skillMap->get($skill)
+            ? $skillMap->first(fn (array $entry): bool => (int) data_get($entry, 'id') === (int) $skill)
             : (
                 $skillMap->first(fn (array $entry): bool => strcasecmp((string) data_get($entry, 'name'), $skill) === 0)
                 ?? $skillMap->first(fn (array $entry): bool => strcasecmp((string) data_get($entry, 'title'), $skill) === 0)

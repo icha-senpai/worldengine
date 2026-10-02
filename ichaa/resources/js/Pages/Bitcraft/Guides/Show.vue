@@ -2,7 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AppButton from '@/Components/ui/AppButton.vue'
-import RichDocumentValue from '@/Components/scaffold/RichDocumentValue.vue'
+import GuideContent from './GuideContent.vue'
 
 defineProps({
     guide: { type: Object, required: true },
@@ -36,7 +36,7 @@ const formatDate = (value) => new Date(value).toLocaleDateString()
 
         <article class="guide-article mx-auto w-full max-w-5xl border-t border-border pt-6">
             <p v-if="guide.summary" class="mb-6 break-words text-lg text-muted-2">{{ guide.summary }}</p>
-            <RichDocumentValue :content="guide.content" />
+            <GuideContent :content="guide.content" />
         </article>
     </AuthenticatedLayout>
 </template>

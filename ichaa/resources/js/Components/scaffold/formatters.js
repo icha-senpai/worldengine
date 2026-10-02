@@ -12,6 +12,8 @@ const selfContainedRichNodes = new Set([
     'hardBreak',
     'horizontalRule',
     'image',
+    'bitcraftItem',
+    'bitcraftActivity',
 ])
 
 const nodeHasMeaningfulContent = (node) => {

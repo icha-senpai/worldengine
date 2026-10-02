@@ -4,6 +4,7 @@ namespace App\Http\Requests\Bitcraft;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Validator as ValidatorFacade;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -44,6 +45,8 @@ class SaveBitcraftGuideRequest extends FormRequest
                 return;
             }
 
+            $this->validateItemCards($this->input('content'), $validator);
+
             if (! $this->hasContent($this->input('content'))) {
                 $validator->errors()->add('content', 'Write some guide content before saving.');
             }
@@ -60,6 +63,10 @@ class SaveBitcraftGuideRequest extends FormRequest
             return true;
         }
 
+        if (in_array($node['type'] ?? null, ['bitcraftItem', 'bitcraftActivity'], true)) {
+            return true;
+        }
+
         foreach (is_array($node['content'] ?? null) ? $node['content'] : [] as $child) {
             if (is_array($child) && $this->hasContent($child)) {
                 return true;
@@ -67,5 +74,58 @@ class SaveBitcraftGuideRequest extends FormRequest
         }
 
         return false;
+    }
+
+    private function validateItemCards(array $node, Validator $validator, string $path = 'content'): void
+    {
+        if (in_array($node['type'] ?? null, ['bitcraftItem', 'bitcraftActivity'], true)) {
+            $attributes = $node['attrs'] ?? null;
+            if (! is_array($attributes)) {
+                $validator->errors()->add($path.'.attrs', 'Choose an item for this card.');
+
+                return;
+            }
+
+            $rules = ($node['type'] === 'bitcraftItem') ? [
+                'id' => ['required', 'integer', 'min:1'],
+                'kind' => ['required', Rule::in(['item', 'cargo'])],
+                'name' => ['required', 'string', 'max:255'],
+                'category' => ['nullable', 'string', 'max:255'],
+                'tier' => ['nullable', 'integer', 'min:-1', 'max:10'],
+                'rarity' => ['nullable', 'string', 'max:50'],
+                'iconAssetName' => ['nullable', 'string', 'max:255'],
+            ] : [
+                'activity' => ['required', Rule::in(['crafting', 'gathering'])],
+                'recipeId' => ['required', 'integer', 'min:1'],
+                'itemId' => ['required_if:activity,crafting', 'nullable', 'integer', 'min:1'],
+                'kind' => ['required', Rule::in(['item', 'cargo'])],
+                'name' => ['required', 'string', 'max:255'],
+                'settings' => ['required', 'array:quantity,mode,power,gatheringSpeed,skillSpeed,minutes,critChance,critMultiplier,market,region'],
+                'settings.quantity' => ['sometimes', 'integer', 'min:1', 'max:999999'],
+                'settings.mode' => ['sometimes', Rule::in(['single', 'sustained'])],
+                'settings.power' => ['sometimes', 'numeric', 'min:1', 'max:9999'],
+                'settings.gatheringSpeed' => ['sometimes', 'numeric', 'min:0', 'max:999'],
+                'settings.skillSpeed' => ['sometimes', 'numeric', 'min:0', 'max:999'],
+                'settings.minutes' => ['sometimes', 'numeric', 'min:0.1', 'max:1440'],
+                'settings.critChance' => ['sometimes', 'numeric', 'min:0', 'max:100'],
+                'settings.critMultiplier' => ['sometimes', 'numeric', 'min:1', 'max:100'],
+                'settings.market' => ['sometimes', 'boolean'],
+                'settings.region' => ['nullable', 'string', 'max:120'],
+            ];
+            $rules['align'] = ['sometimes', Rule::in(['left', 'center', 'right'])];
+            $rules['width'] = ['nullable', 'integer', 'min:25', 'max:100'];
+            $rules['wrap'] = ['sometimes', 'boolean:strict'];
+            $card = ValidatorFacade::make($attributes, $rules);
+
+            foreach ($card->errors()->messages() as $key => $messages) {
+                $validator->errors()->add($path.'.attrs.'.$key, $messages[0]);
+            }
+        }
+
+        foreach (is_array($node['content'] ?? null) ? $node['content'] : [] as $index => $child) {
+            if (is_array($child)) {
+                $this->validateItemCards($child, $validator, $path.'.content.'.$index);
+            }
+        }
     }
 }

@@ -4550,6 +4550,112 @@ class BitcraftToolTest extends TestCase
         $this->assertCount(1, $journalRequests);
     }
 
+    public function test_activity_tracker_uses_bitjuice_xp_and_local_numeric_skill_metadata(): void
+    {
+        $this->fakeActivityTrackerResponses();
+        $this->fakeBitjuiceTrackerResponses();
+
+        $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.activity.snapshot', ['character' => 'icha', 'skill' => '12']))
+            ->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.skill.id', 12)
+            ->assertJsonPath('tracker.skill.name', 'Fishing')
+            ->assertJsonPath('tracker.xp', 133354)
+            ->assertJsonPath('refresh.provider', 'bitjuice')
+            ->assertJsonPath('refresh.fallback', false);
+
+        Http::assertNotSent(fn (Request $request): bool => str_starts_with($request->url(), 'https://bitjita.com/api/players'));
+    }
+
+    public function test_activity_tracker_identifies_bitjita_fallback_when_bitjuice_is_down(): void
+    {
+        $this->fakeActivityTrackerResponses();
+        config(['services.bitjuice.enabled' => true, 'services.bitjuice.enabled_in_tests' => true]);
+        Http::fake(['https://bitjuiceapi.deeznuts.chat/*' => Http::response([], 503)]);
+
+        $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.activity.snapshot', ['character' => 'icha']))
+            ->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.xp', 285390)
+            ->assertJsonPath('refresh.provider', 'bitjita')
+            ->assertJsonPath('refresh.fallback', true)
+            ->assertJsonPath('refresh.delayed', false);
+    }
+
+    public function test_inventory_tracker_uses_bitjuice_between_relay_and_bitjita(): void
+    {
+        $this->fakeBitjuiceTrackerResponses();
+
+        $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.inventory-tracker.snapshot', [
+                'character' => 'icha', 'itemKey' => 'item:1516591189', 'need' => 20,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.quantity', 11)
+            ->assertJsonPath('tracker.remaining', 9)
+            ->assertJsonPath('refresh.provider', 'bitjuice');
+
+        Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'bitjita.com'));
+    }
+
+    public function test_passive_craft_tracker_uses_bitjuice_timers_and_filters_complete_results(): void
+    {
+        $this->fakeBitjuiceTrackerResponses();
+
+        $this->getJson(route('bitcraft.passive-crafts.snapshot', ['character' => 'icha']))
+            ->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.activeCount', 1)
+            ->assertJsonPath('tracker.estimatedRemainingSeconds', 3600)
+            ->assertJsonPath('tracker.timerSource', 'bitjuice')
+            ->assertJsonPath('tracker.crafts.0.ownerUsername', 'Icha')
+            ->assertJsonPath('refresh.provider', 'bitjuice');
+
+        Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'bitjita.com'));
+    }
+
+    public function test_passive_craft_tracker_empty_bitjuice_results_do_not_use_fallbacks(): void
+    {
+        $this->fakeBitjuiceTrackerResponses(emptyCrafts: true);
+
+        $this->getJson(route('bitcraft.passive-crafts.snapshot', ['character' => 'icha']))
+            ->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.activeCount', 0)
+            ->assertJsonPath('refresh.provider', 'bitjuice');
+
+        Http::assertNotSent(fn (Request $request): bool => ! str_contains($request->url(), 'bitjuiceapi.deeznuts.chat'));
+    }
+
+    public function test_passive_craft_tracker_prefers_fresh_relay_over_stale_api_data(): void
+    {
+        $this->fakeBitjuiceTrackerResponses(failPassiveRefresh: true);
+        config(['services.bitcraft_relay.enabled_in_tests' => true]);
+        Http::fake([
+            'https://bitjita.com/*' => Http::response([], 503),
+            'https://relay.bitcraftsync.app/player/1224979098725428189/crafts?completed=false' => Http::response([
+                'crafts' => [[
+                    'entity_id' => '864691128123456788', 'recipe_id' => 410008, 'is_passive' => true,
+                    'completed' => false, 'craft_count' => 1, 'progress' => 4200, 'total_actions_required' => 7200,
+                    'crafted_item' => [['item_id' => 1516591189, 'item_type' => 'Item', 'quantity' => 1]],
+                ]],
+            ]),
+        ]);
+        $url = route('bitcraft.passive-crafts.snapshot', ['character' => 'icha']);
+        $this->getJson($url)->assertJsonPath('refresh.provider', 'bitjuice');
+        $this->travel(30)->seconds();
+
+        $this->getJson($url)->assertOk()
+            ->assertJsonPath('error', null)
+            ->assertJsonPath('tracker.activeCount', 1)
+            ->assertJsonPath('tracker.estimatedRemainingSeconds', 3000)
+            ->assertJsonPath('refresh.provider', 'relay')
+            ->assertJsonPath('refresh.delayed', false);
+    }
+
     public function test_activity_tracker_page_resolves_player_skill_and_level_progress(): void
     {
         $this->fakeActivityTrackerResponses();
@@ -4859,6 +4965,7 @@ class BitcraftToolTest extends TestCase
 
     public function test_inventory_tracker_uses_relay_inventory_when_enabled(): void
     {
+        config(['services.bitjuice.enabled' => true, 'services.bitjuice.enabled_in_tests' => true]);
         $snapshotPath = storage_path('framework/testing/bitcraft-relay-inventory-static.json');
 
         if (! is_dir(dirname($snapshotPath))) {
@@ -5598,6 +5705,63 @@ class BitcraftToolTest extends TestCase
                 ->where('filters.mutedColor', '#b99456')
                 ->where('filters.borderColor', '#8c6531')
             );
+    }
+
+    private function fakeBitjuiceTrackerResponses(bool $emptyCrafts = false, bool $failPassiveRefresh = false): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-09-26 16:00:00', 'UTC'));
+        config([
+            'services.bitjuice.enabled' => true,
+            'services.bitjuice.enabled_in_tests' => true,
+            'services.bitcraft_relay.enabled_in_tests' => false,
+            'services.bitcraft_spacetime.enabled' => true,
+            'services.bitcraft_spacetime.enabled_in_tests' => true,
+        ]);
+        app(BitcraftSpacetimeSnapshotStore::class)->import([
+            'generatedAt' => now()->toISOString(),
+            'tables' => [
+                'skill_desc' => ['rows' => [
+                    ['id' => 1, 'name' => 'ANY'],
+                    ['id' => 12, 'name' => 'Fishing', 'title' => 'Fisher'],
+                    ['id' => 21, 'name' => 'Sailing', 'title' => 'Sailor'],
+                ]],
+                'item_desc' => ['rows' => [[
+                    'id' => 1516591189, 'name' => 'Vibrant Janus', 'tier' => 6,
+                    'rarity' => [1, []], 'tag' => 'Ocean Fish', 'icon_asset_name' => 'GeneratedIcons/Items/VibrantJanus',
+                ]]],
+                'crafting_recipe_desc' => ['rows' => [[
+                    'id' => 410008, 'name' => 'Grow {0}', 'time_requirement' => 7200,
+                    'crafted_item_stacks' => [[1516591189, 1, [0, []], [0, 0]]],
+                    'consumed_item_stacks' => [], 'level_requirements' => [], 'building_requirement' => null,
+                ]]],
+            ],
+        ]);
+        $player = [
+            'entityId' => '1224979098725428189', 'username' => 'Icha', 'signedIn' => true,
+            'experience' => [['skill_id' => 12, 'quantity' => 133354], ['skill_id' => 21, 'quantity' => 285390]],
+        ];
+        $craft = [
+            'entityId' => '864691128123456789', 'recipeId' => 410008,
+            'timestamp' => '2026-09-26T15:00:00Z', 'status' => 'processing',
+            'ownerUsername' => 'Icha', 'craftedItem' => [['item_id' => 1516591189, 'item_type' => 'item', 'quantity' => 1]],
+        ];
+        Http::preventStrayRequests();
+        $crafts = ['craftResults' => $emptyCrafts ? [] : [$craft, [...$craft, 'entityId' => '864691128123456790', 'status' => 'complete']], 'items' => []];
+        Http::fake([
+            'https://bitjuiceapi.deeznuts.chat/api/players?q=icha' => Http::response(['players' => [$player]]),
+            'https://bitjuiceapi.deeznuts.chat/api/players/1224979098725428189' => Http::response(['player' => $player]),
+            'https://bitjuiceapi.deeznuts.chat/api/players/1224979098725428189/inventories' => Http::response([
+                'inventories' => [[
+                    'entityId' => '864691128123456788', 'inventoryName' => 'Inventory',
+                    'pockets' => [['contents' => ['itemId' => 1516591189, 'itemType' => 0, 'quantity' => 11]]],
+                ]],
+                'items' => ['1516591189' => ['name' => 'Vibrant Janus', 'tier' => 6, 'rarityStr' => 'Common', 'tag' => 'Ocean Fish']],
+                'cargos' => [],
+            ]),
+            'https://bitjuiceapi.deeznuts.chat/api/players/1224979098725428189/passive-crafts' => $failPassiveRefresh
+                ? Http::sequence()->push($crafts)->push([], 503)
+                : Http::response($crafts),
+        ]);
     }
 
     private function fakeActivityTrackerResponses(): void

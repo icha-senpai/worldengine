@@ -7,8 +7,8 @@ use RuntimeException;
 
 class BitjitaRefreshDelayed extends RuntimeException implements ShouldntReport
 {
-    public function __construct(public readonly int $retryAfter)
+    public function __construct(public readonly int $retryAfter, string $provider = 'bitjita')
     {
-        parent::__construct('Bitjita refresh delayed. Try again shortly; previously fetched data remains available.');
+        parent::__construct('Refresh delayed. Try again shortly; previously fetched data remains available.');
     }
 }

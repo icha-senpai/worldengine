@@ -41,6 +41,7 @@ describe('Bitcraft popups', () => {
         })
 
         expect(recordTitles(wrapper)).toEqual(['Highest Price', 'Middle Order', 'Highest Quantity'])
+        expect(wrapper.findComponent(PopupCardStub).props('subtitle')).toBe('Market orders · Tool')
         expect(wrapper.text()).toContain('Price high')
         expect(wrapper.text()).not.toContain('Package Orders')
 

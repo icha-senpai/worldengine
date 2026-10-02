@@ -15,6 +15,7 @@
                     <label>
                         <span>Character</span>
                         <input v-model.trim="form.character" type="text" maxlength="80" />
+                        <SitePlayerDefaultButton @select="form.character = $event" />
                     </label>
 
                     <label>
@@ -127,7 +128,8 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
+import SitePlayerDefaultButton from './Components/SitePlayerDefaultButton.vue'
 import BitcraftTierBadge from '@/Pages/Bitcraft/Components/BitcraftTierBadge.vue'
 import { bitcraftItemFrameStyle, hasBitcraftTier } from '@/Pages/Bitcraft/bitjitaAssets.js'
 import WidgetSetupDrawer from './Components/WidgetSetupDrawer.vue'
@@ -142,6 +144,8 @@ const props = defineProps({
     snapshot: { type: Object, default: () => ({ tracker: null, error: null, sampledAt: null }) },
     snapshotUrl: { type: String, required: true },
 })
+
+const page = usePage()
 
 const POLL_INTERVAL_MS = 15000
 const STORAGE_KEY = 'bitcraft.passiveCraftTracker.lastSetup'
@@ -219,10 +223,10 @@ const hasTier = (tier) => hasBitcraftTier(tier)
 const itemVisualStyle = (item) => bitcraftItemFrameStyle(item?.tier, item?.rarity)
 const craftProgressPercent = (craft) => Math.max(0, Math.min(100, Number(craft?.progressPercent) || 0))
 const progressLabel = (craft) => {
-    if (craft?.timerSource === 'bitjita') {
+    if (['bitjita', 'bitjuice'].includes(craft?.timerSource)) {
         const startedAt = formatShortTime(craft.startedAt)
 
-        return startedAt ? `Started ${startedAt}` : 'Live timer from Bitjita'
+        return startedAt ? `Started ${startedAt}` : 'Live timer'
     }
 
     if (craft?.timerSource === 'recipe') {
@@ -456,6 +460,7 @@ onMounted(() => {
 
     if (!params.has('source') && !params.has('character') && savedSetup?.character) {
         Object.assign(form, savedSetup)
+        if (page.props.bitcraft?.player) form.character = props.filters.character
         submitSetup(Boolean(props.filters.setup))
 
         return

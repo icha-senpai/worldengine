@@ -3,10 +3,22 @@
 namespace App\Http\Controllers\Bitcraft\Concerns;
 
 use App\Domain\Bitcraft\Models\BitcraftWidgetProfile;
+use App\Domain\Bitcraft\Services\BitcraftSitePlayer;
 use Illuminate\Http\Request;
 
 trait ScopesBitcraftWidgetProfiles
 {
+    protected function bitcraftCharacter(Request $request, array $validated, array $stored, string $fallback): string
+    {
+        $selected = app(BitcraftSitePlayer::class)->selected($request);
+        // Setup follows the site player; standalone OBS sources retain their saved character.
+        $default = $request->boolean('setup') && $selected
+            ? $selected['entityId']
+            : data_get($stored, 'character', $selected['entityId'] ?? $fallback);
+
+        return trim((string) ($validated['character'] ?? $default)) ?: $fallback;
+    }
+
     /**
      * @param  array<string, mixed>  $validated
      */

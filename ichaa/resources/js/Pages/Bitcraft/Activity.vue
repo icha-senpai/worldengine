@@ -25,6 +25,7 @@
                 <label>
                     <span>Character</span>
                     <input v-model.trim="form.character" type="text" maxlength="80" />
+                    <SitePlayerDefaultButton @select="form.character = $event" />
                 </label>
 
                 <label>
@@ -193,7 +194,8 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
+import SitePlayerDefaultButton from './Components/SitePlayerDefaultButton.vue'
 import WidgetSetupDrawer from './Components/WidgetSetupDrawer.vue'
 import WidgetThemeControls from './Components/WidgetThemeControls.vue'
 import WidgetPageShell from './Components/WidgetPageShell.vue'
@@ -206,6 +208,8 @@ const props = defineProps({
     snapshot: { type: Object, default: () => ({ tracker: null, error: null, sampledAt: null }) },
     pollUrl: { type: String, required: true },
 })
+
+const page = usePage()
 
 const POLL_INTERVAL_MS = 10 * 1000
 const MIN_RATE_SAMPLE_MS = 60 * 1000
@@ -349,7 +353,7 @@ const refresh = async () => {
         error.value = payload.error
         return refreshStatus.value.retryAfter ?? 0
     } catch {
-        error.value = 'Tracker refresh failed. Waiting for the next Bitjita check.'
+        error.value = 'Tracker refresh failed. Waiting for the next provider check.'
     }
 }
 
@@ -363,6 +367,7 @@ onMounted(() => {
 
     if (!params.has('source') && !params.has('skillKeys') && savedSetup?.skillKeys?.length) {
         Object.assign(form, savedSetup)
+        if (page.props.bitcraft?.player && !params.has('character')) form.character = props.filters.character
         submitSetup(Boolean(props.filters.setup))
 
         return
@@ -778,7 +783,7 @@ const totalRecentXpLabel = computed(() => `${formatNumber(totalStats.value.xpDel
 const blockingError = computed(() => Boolean(error.value && !tracker.value))
 const waitingLabel = computed(() => tracker.value
     ? 'Sampling at least a minute before calculating XP/hr.'
-    : 'Waiting for Bitjita data.')
+    : 'Waiting for player data.')
 
 const skillRateLabel = (stat) => `${formatCompact(stat.hourRate)} XP/hr`
 const skillRemainingXp = (stat) => stat.targetXp

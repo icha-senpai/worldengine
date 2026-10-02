@@ -189,11 +189,11 @@ describe('Bitcraft market page popups', () => {
         global.fetch = vi.fn(async () => ({
             ok: false,
             status: 429,
-            json: async () => ({ error: 'Bitjita refresh delayed. Try again shortly.' }),
+            json: async () => ({ error: 'Refresh delayed. Try again shortly.' }),
         }))
         const wrapper = mountPage()
         await wrapper.findAll('button').find((button) => button.text() === 'Sell 3').trigger('click')
-        await vi.waitFor(() => expect(wrapper.text()).toContain('Bitjita refresh delayed. Try again shortly.'))
+        await vi.waitFor(() => expect(wrapper.text()).toContain('Refresh delayed. Try again shortly.'))
         expect(wrapper.findComponent({ name: 'MarketOrderBookPopup' }).exists()).toBe(false)
         wrapper.unmount()
     })

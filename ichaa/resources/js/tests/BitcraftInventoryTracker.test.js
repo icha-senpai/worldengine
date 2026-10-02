@@ -6,6 +6,7 @@ const { routerGetMock } = vi.hoisted(() => ({
 }))
 
 vi.mock('@inertiajs/vue3', () => ({
+    usePage: () => ({ props: {} }),
     router: {
         get: routerGetMock,
     },

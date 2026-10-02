@@ -64,7 +64,24 @@ return [
         'player_cache_seconds' => (int) env('BITJITA_PLAYER_CACHE_SECONDS', 15),
         'player_inventories_cache_seconds' => (int) env('BITJITA_PLAYER_INVENTORIES_CACHE_SECONDS', 15),
         'player_passive_crafts_cache_seconds' => (int) env('BITJITA_PLAYER_PASSIVE_CRAFTS_CACHE_SECONDS', 15),
+        'crafts_cache_seconds' => (int) env('BITJITA_CRAFTS_CACHE_SECONDS', 60),
         'stale_cache_seconds' => (int) env('BITJITA_STALE_CACHE_SECONDS', 300),
+    ],
+
+    'bitjuice' => [
+        'enabled' => (bool) env('BITJUICE_ENABLED', true),
+        'enabled_in_tests' => (bool) env('BITJUICE_ENABLED_IN_TESTS', false),
+        'base_url' => env('BITJUICE_API_BASE_URL', 'https://bitjuiceapi.deeznuts.chat'),
+        'timeout' => (int) env('BITJUICE_TIMEOUT', 5),
+        'requests_per_minute' => (int) env('BITJUICE_REQUESTS_PER_MINUTE', 200),
+        'user_requests_per_minute' => (int) env('BITJUICE_USER_REQUESTS_PER_MINUTE', 30),
+        'players_cache_seconds' => (int) env('BITJUICE_PLAYERS_CACHE_SECONDS', 60),
+        'player_cache_seconds' => (int) env('BITJUICE_PLAYER_CACHE_SECONDS', 30),
+        'inventories_cache_seconds' => (int) env('BITJUICE_INVENTORIES_CACHE_SECONDS', 60),
+        'passive_crafts_cache_seconds' => (int) env('BITJUICE_PASSIVE_CRAFTS_CACHE_SECONDS', 30),
+        'crafts_cache_seconds' => (int) env('BITJUICE_CRAFTS_CACHE_SECONDS', 60),
+        'stale_cache_seconds' => (int) env('BITJUICE_STALE_CACHE_SECONDS', 300),
+        'failure_cooldown_seconds' => (int) env('BITJUICE_FAILURE_COOLDOWN_SECONDS', 30),
     ],
 
     'bitcraft_relay' => [

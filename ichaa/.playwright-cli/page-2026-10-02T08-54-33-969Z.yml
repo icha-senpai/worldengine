@@ -1,0 +1,20 @@
+- generic [ref=e148]:
+  - dialog:
+    - group:
+      - group "Notifications Alert Volume":
+        - button "Configure Triggers Manage presets and custom alert triggers" [ref=e149]
+        - group "Volume slider. Current volume is 50%":
+          - generic "50%" [ref=e150]:
+            - slider [ref=e151]: "50"
+        - button "Test Sound" [ref=e152]
+        - button "Level up sound alerts disabled. Tap to enable.":
+          - switch "Level Up Sound Alert Play sound when a skill levels up" [ref=e153]
+        - 'button "Craft Watch Alert Sound Default: Classic Alert" [ref=e154]':
+          - button "Preview sound" [ref=e155]
+      - 'group "Inventory Inventory refresh cadence How often to re-fetch inventory snapshots (30–60 seconds) Inventory refresh slider, current 30 seconds 30s 60s Current: 30 seconds"':
+        - generic "30 s" [ref=e156]:
+          - slider [ref=e157]: "50"
+      - button "Data Source BitJita fallback disabled. Tap to enable. Requires app restart.":
+        - switch "Use BitJita (fallback) Fall back to the BitJita API instead of BitJuice. Try this if data looks wrong or stops updating. Restart the app to apply." [ref=e158]
+      - generic [ref=e159]: About Powered by BitJuice API Game data provided by the BitJuice API
+    - button "Done" [ref=e160]

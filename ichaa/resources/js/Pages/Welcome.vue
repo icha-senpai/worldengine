@@ -93,6 +93,12 @@ defineProps({
                                 Log In
                             </Link>
                         </template>
+
+                        <template v-if="$page.props.auth.user?.can_access_connected_realms">
+                            <Link :href="route('evergather.index')" class="app-btn app-btn--ghost">
+                                Evergather
+                            </Link>
+                        </template>
                     </div>
                 </div>
             </main>

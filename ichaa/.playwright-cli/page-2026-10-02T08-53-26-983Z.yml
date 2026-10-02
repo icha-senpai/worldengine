@@ -1,0 +1,20 @@
+- generic [ref=e5] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - button "Dashboard" [ref=e6]
+              - heading "Player Activity" [level=2] [ref=e34]
+              - button "Select a player to monitor Select Player" [active] [ref=e8]
+              - button "Notification History" [ref=e9]
+              - button "More options" [ref=e10]
+            - generic:
+              - generic:
+                - generic [ref=e35]: Player Overview welcome screen. Monitor player experience progression to track activity status. Player Overview Monitor player experience progression to track activity status
+                - generic [ref=e36]:
+                  - textbox "Player search field. Enter a player username to search." [disabled] [ref=e37]
+                  - textbox "Search for a player" [ref=e39]
+                - generic [ref=e40]: Search for Players
+                - generic [ref=e41]: Enter a player username to start monitoring their activity

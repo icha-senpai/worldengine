@@ -1,0 +1,78 @@
+- generic [active] [ref=e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - button "Dashboard" [ref=e6]
+              - heading "Player Activity" [level=2] [ref=e34]
+              - 'button "Player: Juice. Tap for options. Juice" [ref=e80]'
+              - generic [ref=e81]: 100%
+              - generic [ref=e82]: 100%
+              - generic [ref=e83]: 100%
+              - button "Notification History" [ref=e9]
+              - button "More options" [ref=e10]
+            - generic:
+              - generic:
+                - generic [ref=e84]: Watchlist
+                - button "Manage" [ref=e85]
+                - checkbox "Juice" [checked] [ref=e86]
+                - group:
+                  - heading "Professions section with 12 skills Professions 12" [level=2] [ref=e87]
+                  - 'group "Masonry level 100, 20% progress to level 101. Current experience: 235082143" [ref=e88]':
+                    - group "Masonry Level 100 Progress 20% 5.3M / 26.6M XP":
+                      - progressbar "20" [ref=e90]
+                  - 'group "Mining level 85, 6% progress to level 86. Current experience: 44756037" [ref=e91]':
+                    - group "Mining Level 85 Progress 6% 318.6K / 5.1M XP":
+                      - progressbar "6" [ref=e93]
+                  - 'group "Smithing level 75, 70% progress to level 76. Current experience: 16080660" [ref=e94]':
+                    - group "Smithing Level 75 Progress 70% 1.2M / 1.7M XP":
+                      - progressbar "71" [ref=e96]
+                  - 'group "Fishing level 74, 23% progress to level 75. Current experience: 13674644" [ref=e97]':
+                    - group "Fishing Level 74 Progress 23% 356.1K / 1.5M XP":
+                      - progressbar "23" [ref=e99]
+                  - 'group "Carpentry level 73, 89% progress to level 74. Current experience: 13173048" [ref=e100]':
+                    - group "Carpentry Level 73 Progress 89% 1.2M / 1.4M XP":
+                      - progressbar "89" [ref=e102]
+                  - 'group "Farming level 73, 89% progress to level 74. Current experience: 13171754" [ref=e103]':
+                    - group "Farming Level 73 Progress 89% 1.2M / 1.4M XP":
+                      - progressbar "89" [ref=e105]
+                  - 'group "Forestry level 71, 94% progress to level 72. Current experience: 10642142" [ref=e106]':
+                    - group "Forestry Level 71 Progress 94% 1.1M / 1.1M XP":
+                      - progressbar "95" [ref=e108]
+                  - 'group "Scholar level 71, 59% progress to level 72. Current experience: 10245031" [ref=e109]':
+                    - group "Scholar Level 71 Progress 59% 657.4K / 1.1M XP":
+                      - progressbar "59" [ref=e111]
+                  - 'group "Foraging level 67, 99% progress to level 68. Current experience: 6898025" [ref=e112]':
+                    - group "Foraging Level 67 Progress 99% 712.9K / 716.4K XP":
+                      - progressbar "100" [ref=e114]
+                  - 'group "Leatherworking level 63, 19% progress to level 64. Current experience: 4081867" [ref=e115]':
+                    - group "Leatherworking Level 63 Progress 19% 92.3K / 462.3K XP":
+                      - progressbar "20" [ref=e117]
+                  - 'group "Hunting level 56, 15% progress to level 57. Current experience: 1885216" [ref=e118]':
+                    - group "Hunting Level 56 Progress 15% 34.2K / 214.8K XP":
+                      - progressbar "16" [ref=e120]
+                  - 'group "Tailoring level 56, 88% progress to level 57. Current experience: 2040374" [ref=e121]':
+                    - group "Tailoring Level 56 Progress 88% 189.3K / 214.8K XP":
+                      - progressbar "88" [ref=e123]
+                  - heading "Skills section with 6 skills Skills 6" [level=2] [ref=e124]
+                  - 'group "Taming level 54, 16% progress to level 55. Current experience: 1513673" [ref=e125]':
+                    - group "Taming Level 54 Progress 16%":
+                      - progressbar "16" [ref=e127]
+                  - 'group "Cooking level 53, 45% progress to level 54. Current experience: 1401719" [ref=e128]':
+                    - group "Cooking Level 53 Progress 45%":
+                      - progressbar "45" [ref=e130]
+                  - 'group "Slayer level 53, 23% progress to level 54. Current experience: 1368543" [ref=e131]':
+                    - group "Slayer Level 53 Progress 23%":
+                      - progressbar "24" [ref=e133]
+                  - 'group "Sailing level 49, 33% progress to level 50. Current experience: 891481" [ref=e134]':
+                    - group "Sailing Level 49 Progress 33%":
+                      - progressbar "34" [ref=e136]
+                  - 'group "Construction level 48, 33% progress to level 49. Current experience: 798001" [ref=e137]':
+                    - group "Construction Level 48 Progress 33%":
+                      - progressbar "33" [ref=e139]
+                  - 'group "Merchanting level 32, 84% progress to level 33. Current experience: 142480" [ref=e140]':
+                    - group "Merchanting Level 32 Progress 84%":
+                      - progressbar "84" [ref=e142]
+            - generic [ref=e143]: Now monitoring Juice

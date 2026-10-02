@@ -86,7 +86,7 @@ const maxWidthClass = computed(() => {
 
 <template>
     <dialog
-        class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
+        class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent text-primary backdrop:bg-transparent"
         ref="dialog"
     >
         <div

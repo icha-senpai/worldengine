@@ -23,7 +23,8 @@ const timeLabel = computed(() => {
 <style scoped>
 .tracker-refresh-status {
     margin: 0;
-    color: var(--text-secondary);
+    padding: 6px 22px 0;
+    color: var(--tracker-muted, var(--text-secondary));
     font-size: 12px;
     line-height: 18px;
     overflow-wrap: anywhere;

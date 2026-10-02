@@ -18,8 +18,13 @@ export const DataverseImage = Image.extend({
                 parseHTML: (element) => element.getAttribute('data-width') || '100%',
                 renderHTML: (attributes) => ({
                     'data-width': attributes.width || '100%',
-                    style: attributes.width ? `width: ${attributes.width};` : null,
+                    style: attributes.width ? `width: ${attributes.width}; --guide-wrap-width: ${attributes.width};` : null,
                 }),
+            },
+            wrap: {
+                default: false,
+                parseHTML: (element) => element.getAttribute('data-wrap') === 'true',
+                renderHTML: (attributes) => ({ 'data-wrap': String(attributes.wrap === true && attributes.align !== 'center') }),
             },
         }
     },

@@ -6,8 +6,13 @@ import AppButton from '@/Components/ui/AppButton.vue'
 import TextInput from '@/Components/TextInput.vue'
 import TextareaInput from '@/Components/TextareaInput.vue'
 import InputError from '@/Components/InputError.vue'
-import RichDocumentValue from '@/Components/scaffold/RichDocumentValue.vue'
+import GuideContent from './GuideContent.vue'
 import { emptyRichDocument } from '@/lib/tiptap/documents'
+import GuideItemPicker from './GuideItemPicker.vue'
+import GuideActivityPicker from './GuideActivityPicker.vue'
+import GuideCardLayoutTools from './GuideCardLayoutTools.vue'
+import { guideItemExtensions } from './bitcraftItem'
+import './guideTextWrapping.css'
 
 const RichTextEditor = defineAsyncComponent(() => import('@/Components/scaffold/RichTextEditor.vue'))
 const props = defineProps({ guide: { type: Object, default: null } })
@@ -77,10 +82,18 @@ function save() {
                     </div>
                 </div>
                 <div id="guide-write-panel" v-show="mode === 'write'" role="tabpanel" aria-labelledby="guide-write-tab" :inert="form.processing || undefined">
-                    <RichTextEditor v-model="form.content" input-id="guide-content" aria-label="Guide content" described-by="guide-content-error" />
+                    <RichTextEditor v-model="form.content" :extensions="guideItemExtensions" input-id="guide-content" aria-label="Guide content" described-by="guide-content-error">
+                        <template #tools="{ editor }">
+                            <div class="flex flex-wrap gap-2 border-b border-border px-3 py-2">
+                                <GuideItemPicker :editor="editor" />
+                                <GuideActivityPicker :editor="editor" />
+                                <GuideCardLayoutTools :editor="editor" />
+                            </div>
+                        </template>
+                    </RichTextEditor>
                 </div>
                 <div id="guide-preview-panel" v-if="mode === 'preview'" class="guide-preview min-h-64 border-y border-border py-5" role="tabpanel" aria-labelledby="guide-preview-tab">
-                    <RichDocumentValue :content="form.content" />
+                    <GuideContent :content="form.content" />
                 </div>
                 <InputError id="guide-content-error" :message="contentError" class="mt-2" />
             </section>

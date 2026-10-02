@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Bitcraft;
 
 use App\Domain\Bitcraft\Exceptions\BitjitaRefreshDelayed;
+use App\Domain\Bitcraft\Services\BitcraftPlayerData;
 use App\Domain\Bitcraft\Services\BitcraftRelayClient;
 use App\Domain\Bitcraft\Services\BitcraftSpacetimeStaticData;
-use App\Domain\Bitcraft\Services\BitjitaClient;
 use App\Http\Controllers\Bitcraft\Concerns\NormalizesBitcraftWidgetTheme;
 use App\Http\Controllers\Bitcraft\Concerns\ScopesBitcraftWidgetProfiles;
 use App\Http\Controllers\Controller;
@@ -48,7 +48,7 @@ class BitcraftInventoryTrackerController extends Controller
 
     public function show(
         Request $request,
-        BitjitaClient $bitjita,
+        BitcraftPlayerData $playerData,
         BitcraftRelayClient $relay,
         BitcraftSpacetimeStaticData $spacetime,
     ): InertiaResponse|RedirectResponse {
@@ -62,8 +62,8 @@ class BitcraftInventoryTrackerController extends Controller
             }
         }
 
-        $snapshot = $this->trackerSnapshot($bitjita, $relay, $spacetime, $filters);
-        $snapshot['refresh'] = $bitjita->refreshStatus();
+        $snapshot = $this->trackerSnapshot($playerData, $relay, $spacetime, $filters);
+        $snapshot['refresh'] = $playerData->refreshStatus();
         $snapshotFilters = $filters;
 
         if (filled(data_get($snapshot, 'tracker.player.entityId'))) {
@@ -79,24 +79,24 @@ class BitcraftInventoryTrackerController extends Controller
 
     public function setup(
         Request $request,
-        BitjitaClient $bitjita,
+        BitcraftPlayerData $playerData,
         BitcraftRelayClient $relay,
         BitcraftSpacetimeStaticData $spacetime,
     ): InertiaResponse|RedirectResponse {
         $request->merge(['setup' => true]);
 
-        return $this->show($request, $bitjita, $relay, $spacetime);
+        return $this->show($request, $playerData, $relay, $spacetime);
     }
 
     public function snapshot(
         Request $request,
-        BitjitaClient $bitjita,
+        BitcraftPlayerData $playerData,
         BitcraftRelayClient $relay,
         BitcraftSpacetimeStaticData $spacetime,
     ): JsonResponse {
-        $snapshot = $this->trackerSnapshot($bitjita, $relay, $spacetime, $this->filters($request));
+        $snapshot = $this->trackerSnapshot($playerData, $relay, $spacetime, $this->filters($request));
 
-        return response()->json([...$snapshot, 'refresh' => $bitjita->refreshStatus()]);
+        return response()->json([...$snapshot, 'refresh' => $playerData->refreshStatus()]);
     }
 
     /**
@@ -132,7 +132,7 @@ class BitcraftInventoryTrackerController extends Controller
         return [
             'user' => $userId,
             'source' => $source,
-            'character' => trim((string) ($validated['character'] ?? data_get($stored, 'character', self::DEFAULT_CHARACTER))) ?: self::DEFAULT_CHARACTER,
+            'character' => $this->bitcraftCharacter($request, $validated, $stored, self::DEFAULT_CHARACTER),
             'title' => trim((string) ($validated['title'] ?? data_get($stored, 'title', self::DEFAULT_TITLE))) ?: self::DEFAULT_TITLE,
             'icons' => $request->has('icons')
                 ? trim((string) ($validated['icons'] ?? ''))
@@ -167,23 +167,23 @@ class BitcraftInventoryTrackerController extends Controller
      * @return array{tracker: ?array<string, mixed>, options: array<int, array<string, mixed>>, error: ?string, sampledAt: string}
      */
     private function trackerSnapshot(
-        BitjitaClient $bitjita,
+        BitcraftPlayerData $playerData,
         BitcraftRelayClient $relay,
         BitcraftSpacetimeStaticData $spacetime,
         array $filters,
     ): array {
         try {
-            $player = $this->resolvePlayer($bitjita, $relay, (string) $filters['character']);
+            $player = $this->resolvePlayer($playerData, $relay, (string) $filters['character']);
 
             if ($player === null) {
-                return $this->snapshotError("No Bitjita player matched '{$filters['character']}'.", []);
+                return $this->snapshotError("No BitCraft player matched '{$filters['character']}'.", []);
             }
 
-            $inventoriesPayload = $this->inventoriesPayload($bitjita, $relay, $spacetime, (string) data_get($player, 'entityId'));
+            $inventoriesPayload = $this->inventoriesPayload($playerData, $relay, $spacetime, (string) data_get($player, 'entityId'));
 
             $catalog = $this->catalog($inventoriesPayload);
             $inventoryEntries = $this->inventoryEntries($inventoriesPayload, $catalog);
-            $options = $this->options($inventoryEntries, $catalog, $bitjita, $spacetime, (string) $filters['itemSearch']);
+            $options = $this->options($inventoryEntries, $catalog, $playerData, $spacetime, (string) $filters['itemSearch']);
             $itemKeys = $filters['itemKeys'] ?? [];
             $itemKeys = is_array($itemKeys) ? $itemKeys : $this->selectedItemKeys((string) $itemKeys);
             $itemNeeds = $filters['itemNeeds'] ?? [];
@@ -235,7 +235,7 @@ class BitcraftInventoryTrackerController extends Controller
                 ->all();
 
             if ($trackedItems === []) {
-                return $this->snapshotError('The selected item is not in the current Bitjita inventory payload.', $options);
+                return $this->snapshotError('The selected item is not in the current inventory payload.', $options);
             }
             $primaryItem = $trackedItems[0];
 
@@ -263,15 +263,15 @@ class BitcraftInventoryTrackerController extends Controller
                 ],
                 'options' => $options,
                 'error' => null,
-                'sampledAt' => $bitjita->refreshStatus()['updatedAt'] ?? now()->toIso8601String(),
-                'refresh' => $bitjita->refreshStatus(),
+                'sampledAt' => $playerData->refreshStatus()['updatedAt'] ?? now()->toIso8601String(),
+                'refresh' => $playerData->refreshStatus(),
             ];
         } catch (BitjitaRefreshDelayed $exception) {
-            return [...$this->snapshotError($exception->getMessage(), []), 'refresh' => $bitjita->refreshStatus()];
+            return [...$this->snapshotError($exception->getMessage(), []), 'refresh' => $playerData->refreshStatus()];
         } catch (Throwable $exception) {
             report($exception);
 
-            return $this->snapshotError('Bitjita did not respond cleanly. The tracker will try again shortly.', []);
+            return $this->snapshotError('Player data did not respond cleanly. The tracker will try again shortly.', []);
         }
     }
 
@@ -355,7 +355,7 @@ class BitcraftInventoryTrackerController extends Controller
     /**
      * @return array<string, mixed>|null
      */
-    private function resolvePlayer(BitjitaClient $bitjita, BitcraftRelayClient $relay, string $character): ?array
+    private function resolvePlayer(BitcraftPlayerData $playerData, BitcraftRelayClient $relay, string $character): ?array
     {
         if ($relay->isEnabled()) {
             try {
@@ -369,7 +369,7 @@ class BitcraftInventoryTrackerController extends Controller
             }
         }
 
-        return $this->resolveBitjitaPlayer($bitjita, $character);
+        return $this->resolveApiPlayer($playerData, $character);
     }
 
     /**
@@ -396,13 +396,13 @@ class BitcraftInventoryTrackerController extends Controller
     /**
      * @return array<string, mixed>|null
      */
-    private function resolveBitjitaPlayer(BitjitaClient $bitjita, string $character): ?array
+    private function resolveApiPlayer(BitcraftPlayerData $playerData, string $character): ?array
     {
         if (ctype_digit($character)) {
-            return data_get($bitjita->player($character), 'player');
+            return data_get($playerData->player($character), 'player');
         }
 
-        $players = data_get($bitjita->players($character), 'players', []);
+        $players = data_get($playerData->players($character), 'players', []);
         $selected = collect($players)->first(
             fn (array $player): bool => strcasecmp((string) data_get($player, 'username'), $character) === 0,
         ) ?? collect($players)->first();
@@ -411,7 +411,7 @@ class BitcraftInventoryTrackerController extends Controller
             return null;
         }
 
-        return data_get($bitjita->player((string) data_get($selected, 'entityId')), 'player');
+        return data_get($playerData->player((string) data_get($selected, 'entityId')), 'player');
     }
 
     /**
@@ -437,7 +437,7 @@ class BitcraftInventoryTrackerController extends Controller
      * @return array<string, mixed>
      */
     private function inventoriesPayload(
-        BitjitaClient $bitjita,
+        BitcraftPlayerData $playerData,
         BitcraftRelayClient $relay,
         BitcraftSpacetimeStaticData $spacetime,
         string $playerEntityId,
@@ -447,6 +447,8 @@ class BitcraftInventoryTrackerController extends Controller
                 $payload = $this->relayInventoryPayload($relay->playerInventory($playerEntityId), $spacetime);
 
                 if ($payload !== null) {
+                    $playerData->usingRelay();
+
                     return $payload;
                 }
             } catch (Throwable) {
@@ -454,7 +456,7 @@ class BitcraftInventoryTrackerController extends Controller
             }
         }
 
-        return $bitjita->playerInventories($playerEntityId);
+        return $playerData->playerInventories($playerEntityId);
     }
 
     /**
@@ -649,7 +651,7 @@ class BitcraftInventoryTrackerController extends Controller
     private function options(
         array $inventoryEntries,
         array $catalog,
-        BitjitaClient $bitjita,
+        BitcraftPlayerData $playerData,
         BitcraftSpacetimeStaticData $spacetime,
         string $search,
     ): array {
@@ -673,8 +675,8 @@ class BitcraftInventoryTrackerController extends Controller
 
         if ($searchCatalog === []) {
             $searchCatalog = [
-                ...$this->catalogEntries(data_get($bitjita->items($search), 'items', []), 'item'),
-                ...$this->catalogEntries(data_get($bitjita->cargo($search), 'cargos', []), 'cargo'),
+                ...$this->catalogEntries(data_get($playerData->items($search), 'items', []), 'item'),
+                ...$this->catalogEntries(data_get($playerData->cargo($search), 'cargos', []), 'cargo'),
             ];
         }
 

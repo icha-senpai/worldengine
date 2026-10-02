@@ -2,6 +2,7 @@
 
 use App\Domain\Bitcraft\Services\BitcraftSpacetimeSnapshotStore;
 use App\Domain\Bitcraft\Services\BitjitaRequestBudget;
+use App\Domain\Bitcraft\Services\BitjuiceClient;
 use App\Domain\ConnectedRealms\Services\ConnectedRealmsSimulationService;
 use App\Domain\ConnectedRealms\Services\EconomyAuditService;
 use App\Domain\System\Services\DemoLoreSeeder;
@@ -21,6 +22,14 @@ Artisan::command('bitcraft:bitjita-usage', function (BitjitaRequestBudget $budge
     $this->line("Outgoing attempts today: {$usage['today']}; upstream cooldown: {$usage['retryAfter']} seconds.");
     $this->table(['Tool', 'Attempts Today'], collect($usage['byTool'])->map(fn (int $count, string $tool): array => [$tool, $count])->values()->all());
 })->purpose('Show shared Bitjita request usage and counts by tool.');
+
+Artisan::command('bitcraft:bitjuice-usage', function (BitjuiceClient $bitjuice) {
+    $usage = $bitjuice->usage();
+    $this->line("Outgoing attempts in the last 60 seconds: {$usage['lastMinute']}/{$usage['limit']}");
+    $this->line("Per-user allowance: {$usage['userLimit']}/60 seconds; anonymous widgets are grouped by IP.");
+    $this->line("Outgoing attempts today: {$usage['today']}; upstream cooldown: {$usage['retryAfter']} seconds.");
+    $this->table(['Tool', 'Attempts Today'], collect($usage['byTool'])->map(fn (int $count, string $tool): array => [$tool, $count])->values()->all());
+})->purpose('Show shared BitJuice request usage and counts by tool.');
 
 Artisan::command('dataverse:seed-demo-lore', function () {
     try {

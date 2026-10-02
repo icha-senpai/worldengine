@@ -43,6 +43,23 @@ class BitcraftSpacetimeStaticData
         return $this->databaseMetadata() !== null || $this->snapshot() !== null;
     }
 
+    public function skillMap(): array
+    {
+        if (! $this->isAvailable()) {
+            return [];
+        }
+
+        return collect($this->tableRows('skill_desc'))
+            ->filter(fn (array $skill): bool => (int) data_get($skill, 'id') > 1 && filled(data_get($skill, 'name')))
+            ->map(fn (array $skill): array => [
+                'id' => (int) $skill['id'],
+                'name' => (string) $skill['name'],
+                'title' => data_get($skill, 'title'),
+            ])
+            ->values()
+            ->all();
+    }
+
     public function metadata(): array
     {
         $metadata = $this->databaseMetadata() ?? $this->fileMetadata();
@@ -112,6 +129,19 @@ class BitcraftSpacetimeStaticData
                 ->all(),
             'marketStats' => [],
         ];
+    }
+
+    public function craftingTargets(string $query, int $limit = 40): array
+    {
+        if (! $this->isAvailable()) {
+            return [];
+        }
+
+        $indexes = $this->recipeIndexes();
+
+        return collect($this->targets($query))
+            ->filter(fn (array $item): bool => ! empty($indexes['recipesByOutputKey'][$this->targetKey($item['kind'], (int) $item['id'])]['crafting']))
+            ->take($limit)->values()->all();
     }
 
     public function catalogForKeys(array $keys): array

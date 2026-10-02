@@ -3,6 +3,7 @@
 namespace Tests\Feature\Bitcraft;
 
 use App\Domain\Bitcraft\Models\BitcraftGuide;
+use App\Domain\Bitcraft\Services\BitcraftSpacetimeStaticData;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -87,6 +88,59 @@ class BitcraftGuideTest extends TestCase
         $published = BitcraftGuide::query()->where('title', 'Published guide')->sole();
         $this->assertSame($admin->id, $published->user_id);
         $this->assertTrue($published->published_at->equalTo(now()->startOfSecond()));
+    }
+
+    public function test_item_search_is_admin_only_and_returns_bounded_catalog_results(): void
+    {
+        $this->get(route('bitcraft.guides.items'))->assertRedirect(route('login'));
+        $this->actingAs($this->reader())->get(route('bitcraft.guides.items'))->assertRedirect(route('home'));
+
+        $this->mock(BitcraftSpacetimeStaticData::class, function ($mock): void {
+            $mock->shouldReceive('catalogSearch')->once()->with('copper', 40)->andReturn([$this->itemCard()['attrs']]);
+            $mock->shouldReceive('isAvailable')->once()->andReturn(true);
+        });
+        $this->actingAs($this->createVerifiedAdminUser())
+            ->getJson(route('bitcraft.guides.items', ['q' => ' copper ']))
+            ->assertOk()->assertJsonPath('items.0.name', 'Crushed Copper Ore')->assertJsonPath('available', true);
+        $this->getJson(route('bitcraft.guides.items', ['q' => str_repeat('a', 256)]))->assertUnprocessable();
+    }
+
+    public function test_item_only_guides_can_be_saved_read_and_edited_without_losing_cards(): void
+    {
+        $content = ['type' => 'doc', 'content' => [$this->itemCard()]];
+        $this->actingAs($this->createVerifiedAdminUser())->post(route('bitcraft.guides.store'), [
+            ...$this->payload(), 'content' => $content, 'is_published' => true,
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $guide = BitcraftGuide::query()->sole();
+        $this->assertEquals($content, $guide->content);
+        $this->get(route('bitcraft.guides.edit', $guide))->assertInertia(fn (Assert $page) => $page
+            ->where('guide.content.content.0.attrs.name', 'Crushed Copper Ore')
+        );
+        $this->put(route('bitcraft.guides.update', $guide), [
+            ...$this->payload(), 'content' => $content, 'is_published' => true,
+        ])->assertSessionHasNoErrors()->assertRedirect();
+        $this->actingAs($this->reader())->get(route('bitcraft.guides.show', $guide))->assertInertia(fn (Assert $page) => $page
+            ->where('guide.content.content.0.type', 'bitcraftItem')
+            ->where('guide.content.content.0.attrs.id', 123)
+        );
+    }
+
+    public function test_malformed_item_cards_are_rejected_including_nested_cards(): void
+    {
+        $card = $this->itemCard();
+        $card['attrs']['id'] = -1;
+        $this->actingAs($this->createVerifiedAdminUser())->post(route('bitcraft.guides.store'), [
+            ...$this->payload(),
+            'content' => ['type' => 'doc', 'content' => [
+                ['type' => 'blockquote', 'content' => [$card]],
+            ]],
+        ])->assertSessionHasErrors('content.content.0.content.0.attrs.id');
+        $this->post(route('bitcraft.guides.store'), [
+            ...$this->payload(),
+            'content' => ['type' => 'doc', 'content' => [['type' => 'bitcraftItem', 'attrs' => 'invalid']]],
+        ])->assertSessionHasErrors('content.content.0.attrs');
+        $this->assertDatabaseCount('bitcraft_guides', 0);
     }
 
     public function test_admin_can_publish_edit_and_unpublish_without_replacing_the_author_or_publication_date(): void
@@ -222,5 +276,18 @@ class BitcraftGuideTest extends TestCase
             ],
             'is_published' => false,
         ];
+    }
+
+    private function itemCard(): array
+    {
+        return ['type' => 'bitcraftItem', 'attrs' => [
+            'id' => 123,
+            'kind' => 'item',
+            'name' => 'Crushed Copper Ore',
+            'category' => 'Ore',
+            'tier' => 2,
+            'rarity' => 'Common',
+            'iconAssetName' => 'Items/CrushedCopperOre',
+        ]];
     }
 }

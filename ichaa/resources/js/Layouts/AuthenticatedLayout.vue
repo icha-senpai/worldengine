@@ -265,7 +265,8 @@
         </header>
 
         <!-- DESKTOP SIDEBAR -->
-        <header class="desktop-shell-sidebar hidden md:flex">
+        <header class="desktop-shell-sidebar hidden md:flex" :class="{ 'desktop-shell-sidebar--collapsed': desktopSidebarCollapsed }">
+            <div id="desktop-sidebar-content" v-show="!desktopSidebarCollapsed" class="desktop-shell-sidebar__content" :inert="desktopSidebarCollapsed || undefined">
             <div class="desktop-shell-sidebar__brand">
                 <a :href="shellHomeHref" class="desktop-shell-sidebar__wordmark">
                     <span class="text-primary font-light">Data</span><span class="text-focus font-medium">verse</span>
@@ -471,6 +472,22 @@
                     </div>
                 </div>
             </div>
+            </div>
+            <SidebarIconRail v-if="desktopSidebarCollapsed" :items="collapsedNavItems" :footer-items="collapsedAccountItems" :current-path="currentPath" />
+            <button
+                type="button"
+                class="desktop-shell-sidebar__toggle"
+                :aria-label="desktopSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+                :title="desktopSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+                :aria-expanded="!desktopSidebarCollapsed"
+                aria-controls="desktop-sidebar-content"
+                @click="desktopSidebarCollapsed = !desktopSidebarCollapsed"
+            >
+                <span class="desktop-shell-sidebar__grip" aria-hidden="true" />
+                <svg class="desktop-shell-sidebar__toggle-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
         </header>
 
         <!-- BODY -->
@@ -507,6 +524,7 @@
                     </Transition>
                 </div>
 
+                <SitePlayerPicker v-if="canAccessBitcraft && currentPath.startsWith('/bitcraft')" />
                 <div v-if="$slots.header" class="mb-7 pb-6 border-b border-border">
                     <slot name="header" />
                 </div>
@@ -521,11 +539,14 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import { normalizeSiteTheme, siteThemeStyle } from '@/Pages/Bitcraft/widgetTheme'
+import SitePlayerPicker from '@/Pages/Bitcraft/Components/SitePlayerPicker.vue'
+import SidebarIconRail from '@/Components/SidebarIconRail.vue'
 
 const page = usePage()
 const NAV_STORAGE_KEY = 'dataverse.shellNavState'
 const savedNavState = readNavState()
 const mobileNavOpen = ref(false)
+const desktopSidebarCollapsed = ref(savedNavState.desktopSidebarCollapsed)
 const mobileWorldEngineOpen = ref(savedNavState.mobileWorldEngineOpen)
 const desktopWorldEngineOpen = ref(savedNavState.desktopWorldEngineOpen)
 const mobileBitcraftToolsOpen = ref(savedNavState.mobileBitcraftToolsOpen)
@@ -580,6 +601,7 @@ function readNavState() {
         return {
             ...defaultNavState(),
             ...saved,
+            desktopSidebarCollapsed: saved.desktopSidebarCollapsed === true,
             desktopExpandedDomainKeys: Array.isArray(saved.desktopExpandedDomainKeys) ? saved.desktopExpandedDomainKeys : [],
             mobileExpandedDomainKey: typeof saved.mobileExpandedDomainKey === 'string' ? saved.mobileExpandedDomainKey : null,
         }
@@ -590,6 +612,7 @@ function readNavState() {
 
 function defaultNavState() {
     return {
+        desktopSidebarCollapsed: false,
         mobileWorldEngineOpen: false,
         desktopWorldEngineOpen: false,
         mobileBitcraftToolsOpen: false,
@@ -606,16 +629,21 @@ const saveNavState = () => {
         return
     }
 
-    window.localStorage.setItem(NAV_STORAGE_KEY, JSON.stringify({
-        mobileWorldEngineOpen: mobileWorldEngineOpen.value,
-        desktopWorldEngineOpen: desktopWorldEngineOpen.value,
-        mobileBitcraftToolsOpen: mobileBitcraftToolsOpen.value,
-        desktopBitcraftToolsOpen: desktopBitcraftToolsOpen.value,
-        mobileAdminToolsOpen: mobileAdminToolsOpen.value,
-        desktopAdminToolsOpen: desktopAdminToolsOpen.value,
-        mobileExpandedDomainKey: mobileExpandedDomainKey.value,
-        desktopExpandedDomainKeys: desktopExpandedDomainKeys.value,
-    }))
+    try {
+        window.localStorage.setItem(NAV_STORAGE_KEY, JSON.stringify({
+            desktopSidebarCollapsed: desktopSidebarCollapsed.value,
+            mobileWorldEngineOpen: mobileWorldEngineOpen.value,
+            desktopWorldEngineOpen: desktopWorldEngineOpen.value,
+            mobileBitcraftToolsOpen: mobileBitcraftToolsOpen.value,
+            desktopBitcraftToolsOpen: desktopBitcraftToolsOpen.value,
+            mobileAdminToolsOpen: mobileAdminToolsOpen.value,
+            desktopAdminToolsOpen: desktopAdminToolsOpen.value,
+            mobileExpandedDomainKey: mobileExpandedDomainKey.value,
+            desktopExpandedDomainKeys: desktopExpandedDomainKeys.value,
+        }))
+    } catch {
+        // Navigation remains usable when browser storage is unavailable.
+    }
 }
 
 const domains = [
@@ -738,6 +766,7 @@ const bitcraftToolChildren = computed(() => [
     { key: 'bitcraft-market', label: 'Market Finder', href: route('bitcraft.market'), matches: ['/bitcraft/market'] },
     { key: 'bitcraft-barter-stalls', label: 'Barter Stalls', href: route('bitcraft.barter-stalls'), matches: ['/bitcraft/barter-stalls'] },
     { key: 'bitcraft-crafting', label: 'Crafting Calculator', href: route('bitcraft.crafting'), matches: ['/bitcraft/crafting'] },
+    { key: 'bitcraft-open-crafts', label: 'Open Crafts', href: route('bitcraft.open-crafts'), matches: ['/bitcraft/open-crafts'] },
     { key: 'bitcraft-tool-rates', label: 'Tool Rate Calculator', href: route('bitcraft.tool-rates'), matches: ['/bitcraft/tool-rates'] },
     page.props.features?.bitcraft?.live_companion
         ? { key: 'bitcraft-live-companion', label: 'Live Companion', href: route('bitcraft.live-companion'), matches: ['/bitcraft/live-companion'] }
@@ -819,6 +848,31 @@ const isBitcraftToolsActive = computed(() => isNavItemActive(bitcraftTools.value
 const isConnectedRealmsActive = computed(() => isNavItemActive(connectedRealms.value))
 const isAdminToolsActive = computed(() => isNavItemActive(adminTools.value))
 
+const collapsedNavItems = computed(() => [
+    { key: 'home', label: 'Home', icon: 'home', href: shellHomeHref.value, active: currentPath.value === '/hub' },
+    ...(canAccessWorldEngine.value ? [
+        { key: 'search', label: 'Search', icon: 'search', href: route('search'), active: currentPath.value === '/search' },
+        { key: 'trash', label: 'Trash', icon: 'trash', href: route('trash.index'), active: currentPath.value === '/trash' },
+        { key: 'worldengine', label: 'World Engine', icon: 'world', active: isWorldEngineActive.value, sections: domains.map((domain) => ({
+            key: domain.key,
+            label: domain.label,
+            links: (domain.children.length ? domain.children : [domain]).map((item) => ({ ...item, active: isNavItemActive(item) })),
+        })) },
+    ] : []),
+    ...(canAccessBitcraft.value ? [{ key: 'bitcraft', label: 'Bitcraft Tools', icon: 'craft', active: isBitcraftToolsActive.value,
+        sections: [{ key: 'tools', links: bitcraftToolChildren.value.map((item) => ({ ...item, active: isNavItemActive(item) })) }],
+    }] : []),
+    ...(canAccessConnectedRealms.value ? [{ key: 'evergather', label: 'Evergather', icon: 'gather', href: route('evergather.index'), active: isConnectedRealmsActive.value }] : []),
+    ...(canAccessAdmin.value ? [{ key: 'admin', label: 'Admin', icon: 'admin', active: isAdminToolsActive.value,
+        sections: [{ key: 'admin', links: adminTools.value.children.map((item) => ({ ...item, active: isNavItemActive(item) })) }],
+    }] : []),
+])
+
+const collapsedAccountItems = computed(() => [
+    { key: 'profile', label: 'Profile', icon: 'profile', href: route('profile.edit'), active: currentPath.value === '/profile' },
+    { key: 'logout', label: 'Log Out', icon: 'logout', href: route('logout'), method: 'post' },
+])
+
 const activeShellLabel = computed(() => {
     if (currentPath.value === '/hub') {
         return 'Datacrypt'
@@ -862,6 +916,7 @@ const toggleDesktopDomain = (domain) => {
 }
 
 watch([
+    desktopSidebarCollapsed,
     mobileWorldEngineOpen,
     desktopWorldEngineOpen,
     mobileBitcraftToolsOpen,

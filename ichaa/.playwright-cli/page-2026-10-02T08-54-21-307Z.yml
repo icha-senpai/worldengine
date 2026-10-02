@@ -1,0 +1,10 @@
+- generic [active] [ref=e5] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - menu "Popup menu":
+            - group:
+              - menuitem "Settings" [ref=e144]
+              - menuitem "Quick switch preset Notifications Default" [ref=e145]
+              - menuitem "Send Feedback" [ref=e146]

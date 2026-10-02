@@ -4,10 +4,13 @@ use App\Http\Controllers\Admin\ConnectedRealmsContentController as AdminConnecte
 use App\Http\Controllers\Admin\RevisionController as AdminRevisionController;
 use App\Http\Controllers\Admin\UserAccessController as AdminUserAccessController;
 use App\Http\Controllers\Bitcraft\BitcraftActivityController;
+use App\Http\Controllers\Bitcraft\BitcraftGuideCardController;
 use App\Http\Controllers\Bitcraft\BitcraftGuideController;
 use App\Http\Controllers\Bitcraft\BitcraftInventoryTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftLiveCompanionController;
+use App\Http\Controllers\Bitcraft\BitcraftOpenCraftsController;
 use App\Http\Controllers\Bitcraft\BitcraftPassiveCraftTrackerController;
+use App\Http\Controllers\Bitcraft\BitcraftSitePlayerController;
 use App\Http\Controllers\Bitcraft\BitcraftTaskTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftToolController;
 use App\Http\Controllers\ConnectedRealms\ConnectedRealmsController;
@@ -110,8 +113,14 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
 
     Route::prefix('bitcraft')->name('bitcraft.')->middleware(EnsureAreaAccess::class.':'.User::ROLE_BITCRAFT)->group(function () {
         Route::redirect('/', '/datacrypt/bitcraft/market');
+        Route::get('open-crafts', [BitcraftOpenCraftsController::class, 'index'])->name('open-crafts');
+        Route::get('players/search', [BitcraftSitePlayerController::class, 'search'])->middleware('throttle:30,1')->name('players.search');
+        Route::put('player', [BitcraftSitePlayerController::class, 'update'])->middleware('throttle:30,1')->name('player.update');
         Route::get('guides', [BitcraftGuideController::class, 'index'])->name('guides.index');
+        Route::get('guides/card-data', [BitcraftGuideCardController::class, 'data'])->name('guides.card-data');
         Route::middleware(EnsureAreaAccess::class.':'.User::ROLE_ADMIN)->group(function () {
+            Route::get('guides/items', [BitcraftGuideController::class, 'items'])->name('guides.items');
+            Route::get('guides/card-options', [BitcraftGuideCardController::class, 'options'])->name('guides.card-options');
             Route::get('guides/create', [BitcraftGuideController::class, 'create'])->name('guides.create');
             Route::post('guides', [BitcraftGuideController::class, 'store'])->name('guides.store');
             Route::get('guides/{guide}/edit', [BitcraftGuideController::class, 'edit'])->name('guides.edit');

@@ -88,7 +88,7 @@ class BitcraftToolController extends Controller
                     'item' => null,
                     'listings' => [],
                     'cache' => $this->marketCachePayload('barter-listings'),
-                    'error' => "No Bitjita region matched '{$filters['region']}'.",
+                    'error' => "No region matched '{$filters['region']}'.",
                 ], 422);
             }
 
@@ -110,7 +110,7 @@ class BitcraftToolController extends Controller
                         'item' => null,
                         'listings' => [],
                         'cache' => $this->marketCachePayload('barter-listings'),
-                        'error' => "No Bitjita empire matched '{$filters['empire']}'.",
+                        'error' => "No empire matched '{$filters['empire']}'.",
                     ], 422);
                 }
 
@@ -139,7 +139,7 @@ class BitcraftToolController extends Controller
                 'item' => null,
                 'listings' => [],
                 'cache' => $this->marketCachePayload('barter-listings'),
-                'error' => 'Bitjita barter stalls did not respond cleanly. Try opening this item again in a moment.',
+                'error' => 'Barter stall data is temporarily unavailable. Try opening this item again in a moment.',
             ], 502);
         }
     }
@@ -171,7 +171,7 @@ class BitcraftToolController extends Controller
                 return response()->json([
                     'orderBook' => null,
                     'cache' => $this->marketCachePayload('order-book', true),
-                    'error' => "No Bitjita region matched '{$filters['region']}'.",
+                    'error' => "No region matched '{$filters['region']}'.",
                 ], 422);
             }
 
@@ -199,7 +199,7 @@ class BitcraftToolController extends Controller
             return response()->json([
                 'orderBook' => null,
                 'cache' => $this->marketCachePayload('order-book', true),
-                'error' => 'Bitjita did not respond cleanly. Try opening this order book again in a moment.',
+                'error' => 'Market data is temporarily unavailable. Try opening this order book again in a moment.',
             ], 502);
         }
     }
@@ -291,11 +291,11 @@ class BitcraftToolController extends Controller
             $filters['regionName'] = $resolvedRegion['regionName'];
 
             if ($filters['region'] !== '' && blank($filters['regionId'])) {
-                $error = "No Bitjita region matched '{$filters['region']}'.";
+                $error = "No region matched '{$filters['region']}'.";
             }
         } catch (Throwable $exception) {
             report($exception);
-            $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Bitjita regions did not respond cleanly. Try again in a moment.';
+            $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Region data is temporarily unavailable. Try again in a moment.';
         }
 
         if ($this->shouldSearchEmpire($filters)) {
@@ -309,11 +309,11 @@ class BitcraftToolController extends Controller
                 $filters['empireName'] = $resolvedEmpire['empireName'];
 
                 if ($filters['empire'] !== '' && blank($filters['empireEntityId'])) {
-                    $error = "No Bitjita empire matched '{$filters['empire']}'.";
+                    $error = "No empire matched '{$filters['empire']}'.";
                 }
             } catch (Throwable $exception) {
                 report($exception);
-                $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Bitjita empires did not respond cleanly. Try again in a moment.';
+                $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Empire data is temporarily unavailable. Try again in a moment.';
             }
         }
 
@@ -328,7 +328,7 @@ class BitcraftToolController extends Controller
                 }
             } catch (Throwable $exception) {
                 report($exception);
-                $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Bitjita claim search did not respond cleanly. Try again in a moment.';
+                $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Claim search is temporarily unavailable. Try again in a moment.';
             }
         }
 
@@ -413,7 +413,7 @@ class BitcraftToolController extends Controller
                 }
             } catch (Throwable $exception) {
                 report($exception);
-                $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Bitjita did not respond cleanly. Try the search again in a moment.';
+                $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Market data is temporarily unavailable. Try the search again in a moment.';
             }
         }
 
@@ -466,7 +466,7 @@ class BitcraftToolController extends Controller
             return response()->json([
                 'item' => null,
                 'recipes' => [],
-                'error' => 'Bitjita did not respond cleanly. Try loading this branch again in a moment.',
+                'error' => 'Recipe data is temporarily unavailable. Try loading this branch again in a moment.',
             ], 502);
         }
     }
@@ -539,7 +539,7 @@ class BitcraftToolController extends Controller
             }
         } catch (Throwable $exception) {
             report($exception);
-            $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Bitjita did not respond cleanly. Try the lookup again in a moment.';
+            $error = $exception instanceof BitjitaRefreshDelayed ? $exception->getMessage() : 'Recipe data is temporarily unavailable. Try the lookup again in a moment.';
         }
 
         return [
