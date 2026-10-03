@@ -1,0 +1,6050 @@
+[
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 31,
+            "marketCeilingPrice": 248,
+            "npcBuyPrice": 20
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 256,
+            "marketCeilingPrice": 2048,
+            "npcBuyPrice": 166
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 121,
+            "marketCeilingPrice": 968,
+            "npcBuyPrice": 78
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 430,
+            "marketCeilingPrice": 3440,
+            "npcBuyPrice": 279
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 59,
+            "marketCeilingPrice": 472,
+            "npcBuyPrice": 38
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 284,
+            "marketCeilingPrice": 2272,
+            "npcBuyPrice": 184
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 157,
+            "marketCeilingPrice": 1256,
+            "npcBuyPrice": 102
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 466,
+            "marketCeilingPrice": 3728,
+            "npcBuyPrice": 302
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 115,
+            "marketCeilingPrice": 920,
+            "npcBuyPrice": 74
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 340,
+            "marketCeilingPrice": 2720,
+            "npcBuyPrice": 221
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 223,
+            "marketCeilingPrice": 1784,
+            "npcBuyPrice": 144
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 532,
+            "marketCeilingPrice": 4256,
+            "npcBuyPrice": 345
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 227,
+            "marketCeilingPrice": 1816,
+            "npcBuyPrice": 147
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 452,
+            "marketCeilingPrice": 3616,
+            "npcBuyPrice": 293
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 351,
+            "marketCeilingPrice": 2808,
+            "npcBuyPrice": 228
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 660,
+            "marketCeilingPrice": 5280,
+            "npcBuyPrice": 429
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 451,
+            "marketCeilingPrice": 3608,
+            "npcBuyPrice": 293
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 676,
+            "marketCeilingPrice": 5408,
+            "npcBuyPrice": 439
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 601,
+            "marketCeilingPrice": 4808,
+            "npcBuyPrice": 390
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 910,
+            "marketCeilingPrice": 7280,
+            "npcBuyPrice": 591
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 899,
+            "marketCeilingPrice": 7192,
+            "npcBuyPrice": 584
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1124,
+            "marketCeilingPrice": 8992,
+            "npcBuyPrice": 730
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1089,
+            "marketCeilingPrice": 8712,
+            "npcBuyPrice": 707
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1398,
+            "marketCeilingPrice": 11184,
+            "npcBuyPrice": 908
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 43,
+            "marketCeilingPrice": 344,
+            "npcBuyPrice": 27
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 268,
+            "marketCeilingPrice": 2144,
+            "npcBuyPrice": 174
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 153,
+            "marketCeilingPrice": 1224,
+            "npcBuyPrice": 99
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 462,
+            "marketCeilingPrice": 3696,
+            "npcBuyPrice": 300
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 71,
+            "marketCeilingPrice": 568,
+            "npcBuyPrice": 46
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 296,
+            "marketCeilingPrice": 2368,
+            "npcBuyPrice": 192
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 189,
+            "marketCeilingPrice": 1512,
+            "npcBuyPrice": 122
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 498,
+            "marketCeilingPrice": 3984,
+            "npcBuyPrice": 323
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 127,
+            "marketCeilingPrice": 1016,
+            "npcBuyPrice": 82
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 352,
+            "marketCeilingPrice": 2816,
+            "npcBuyPrice": 228
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 255,
+            "marketCeilingPrice": 2040,
+            "npcBuyPrice": 165
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 564,
+            "marketCeilingPrice": 4512,
+            "npcBuyPrice": 366
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 239,
+            "marketCeilingPrice": 1912,
+            "npcBuyPrice": 155
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 464,
+            "marketCeilingPrice": 3712,
+            "npcBuyPrice": 301
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 383,
+            "marketCeilingPrice": 3064,
+            "npcBuyPrice": 248
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 692,
+            "marketCeilingPrice": 5536,
+            "npcBuyPrice": 449
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 463,
+            "marketCeilingPrice": 3704,
+            "npcBuyPrice": 300
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 688,
+            "marketCeilingPrice": 5504,
+            "npcBuyPrice": 447
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 633,
+            "marketCeilingPrice": 5064,
+            "npcBuyPrice": 411
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 942,
+            "marketCeilingPrice": 7536,
+            "npcBuyPrice": 612
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 911,
+            "marketCeilingPrice": 7288,
+            "npcBuyPrice": 592
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1136,
+            "marketCeilingPrice": 9088,
+            "npcBuyPrice": 738
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1121,
+            "marketCeilingPrice": 8968,
+            "npcBuyPrice": 728
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1430,
+            "marketCeilingPrice": 11440,
+            "npcBuyPrice": 929
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 223,
+            "marketCeilingPrice": 1784,
+            "npcBuyPrice": 144
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 448,
+            "marketCeilingPrice": 3584,
+            "npcBuyPrice": 291
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 649,
+            "marketCeilingPrice": 5192,
+            "npcBuyPrice": 421
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 958,
+            "marketCeilingPrice": 7664,
+            "npcBuyPrice": 622
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 251,
+            "marketCeilingPrice": 2008,
+            "npcBuyPrice": 163
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 476,
+            "marketCeilingPrice": 3808,
+            "npcBuyPrice": 309
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 685,
+            "marketCeilingPrice": 5480,
+            "npcBuyPrice": 445
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 994,
+            "marketCeilingPrice": 7952,
+            "npcBuyPrice": 646
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 307,
+            "marketCeilingPrice": 2456,
+            "npcBuyPrice": 199
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 532,
+            "marketCeilingPrice": 4256,
+            "npcBuyPrice": 345
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 751,
+            "marketCeilingPrice": 6008,
+            "npcBuyPrice": 488
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 1060,
+            "marketCeilingPrice": 8480,
+            "npcBuyPrice": 689
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 419,
+            "marketCeilingPrice": 3352,
+            "npcBuyPrice": 272
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 644,
+            "marketCeilingPrice": 5152,
+            "npcBuyPrice": 418
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 879,
+            "marketCeilingPrice": 7032,
+            "npcBuyPrice": 571
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 1188,
+            "marketCeilingPrice": 9504,
+            "npcBuyPrice": 772
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 643,
+            "marketCeilingPrice": 5144,
+            "npcBuyPrice": 417
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 868,
+            "marketCeilingPrice": 6944,
+            "npcBuyPrice": 564
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1129,
+            "marketCeilingPrice": 9032,
+            "npcBuyPrice": 733
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1438,
+            "marketCeilingPrice": 11504,
+            "npcBuyPrice": 934
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1091,
+            "marketCeilingPrice": 8728,
+            "npcBuyPrice": 709
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1316,
+            "marketCeilingPrice": 10528,
+            "npcBuyPrice": 855
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1617,
+            "marketCeilingPrice": 12936,
+            "npcBuyPrice": 1051
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1926,
+            "marketCeilingPrice": 15408,
+            "npcBuyPrice": 1251
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 328,
+            "marketCeilingPrice": 2624,
+            "npcBuyPrice": 213
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 553,
+            "marketCeilingPrice": 4424,
+            "npcBuyPrice": 359
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 1048,
+            "marketCeilingPrice": 8384,
+            "npcBuyPrice": 681
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 28,
+            "market_floor_price": 9
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 1357,
+            "marketCeilingPrice": 10856,
+            "npcBuyPrice": 882
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 356,
+            "marketCeilingPrice": 2848,
+            "npcBuyPrice": 231
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 581,
+            "marketCeilingPrice": 4648,
+            "npcBuyPrice": 377
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 1084,
+            "marketCeilingPrice": 8672,
+            "npcBuyPrice": 704
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 56,
+            "market_floor_price": 19
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 1393,
+            "marketCeilingPrice": 11144,
+            "npcBuyPrice": 905
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 412,
+            "marketCeilingPrice": 3296,
+            "npcBuyPrice": 267
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 637,
+            "marketCeilingPrice": 5096,
+            "npcBuyPrice": 414
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 1150,
+            "marketCeilingPrice": 9200,
+            "npcBuyPrice": 747
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 112,
+            "market_floor_price": 39
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 1459,
+            "marketCeilingPrice": 11672,
+            "npcBuyPrice": 948
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 524,
+            "marketCeilingPrice": 4192,
+            "npcBuyPrice": 340
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 749,
+            "marketCeilingPrice": 5992,
+            "npcBuyPrice": 486
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 1278,
+            "marketCeilingPrice": 10224,
+            "npcBuyPrice": 830
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 224,
+            "market_floor_price": 78
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 1587,
+            "marketCeilingPrice": 12696,
+            "npcBuyPrice": 1031
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 748,
+            "marketCeilingPrice": 5984,
+            "npcBuyPrice": 486
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 973,
+            "marketCeilingPrice": 7784,
+            "npcBuyPrice": 632
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1528,
+            "marketCeilingPrice": 12224,
+            "npcBuyPrice": 993
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 448,
+            "market_floor_price": 156
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1837,
+            "marketCeilingPrice": 14696,
+            "npcBuyPrice": 1194
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1196,
+            "marketCeilingPrice": 9568,
+            "npcBuyPrice": 777
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1421,
+            "marketCeilingPrice": 11368,
+            "npcBuyPrice": 923
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 2016,
+            "marketCeilingPrice": 16128,
+            "npcBuyPrice": 1310
+        }
+    },
+    {
+        "skill": "fishing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 896,
+            "market_floor_price": 313
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 2325,
+            "marketCeilingPrice": 18600,
+            "npcBuyPrice": 1511
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 41,
+            "marketCeilingPrice": 328,
+            "npcBuyPrice": 26
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 266,
+            "marketCeilingPrice": 2128,
+            "npcBuyPrice": 172
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 131,
+            "marketCeilingPrice": 1048,
+            "npcBuyPrice": 85
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 440,
+            "marketCeilingPrice": 3520,
+            "npcBuyPrice": 286
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 79,
+            "marketCeilingPrice": 632,
+            "npcBuyPrice": 51
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 304,
+            "marketCeilingPrice": 2432,
+            "npcBuyPrice": 197
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 177,
+            "marketCeilingPrice": 1416,
+            "npcBuyPrice": 115
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 486,
+            "marketCeilingPrice": 3888,
+            "npcBuyPrice": 315
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 155,
+            "marketCeilingPrice": 1240,
+            "npcBuyPrice": 100
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 380,
+            "marketCeilingPrice": 3040,
+            "npcBuyPrice": 247
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 263,
+            "marketCeilingPrice": 2104,
+            "npcBuyPrice": 170
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 572,
+            "marketCeilingPrice": 4576,
+            "npcBuyPrice": 371
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 307,
+            "marketCeilingPrice": 2456,
+            "npcBuyPrice": 199
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 532,
+            "marketCeilingPrice": 4256,
+            "npcBuyPrice": 345
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 431,
+            "marketCeilingPrice": 3448,
+            "npcBuyPrice": 280
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 740,
+            "marketCeilingPrice": 5920,
+            "npcBuyPrice": 481
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 611,
+            "marketCeilingPrice": 4888,
+            "npcBuyPrice": 397
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 836,
+            "marketCeilingPrice": 6688,
+            "npcBuyPrice": 543
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 761,
+            "marketCeilingPrice": 6088,
+            "npcBuyPrice": 494
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1070,
+            "marketCeilingPrice": 8560,
+            "npcBuyPrice": 695
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1219,
+            "marketCeilingPrice": 9752,
+            "npcBuyPrice": 792
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1444,
+            "marketCeilingPrice": 11552,
+            "npcBuyPrice": 938
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1409,
+            "marketCeilingPrice": 11272,
+            "npcBuyPrice": 915
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1718,
+            "marketCeilingPrice": 13744,
+            "npcBuyPrice": 1116
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 53,
+            "marketCeilingPrice": 424,
+            "npcBuyPrice": 34
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 278,
+            "marketCeilingPrice": 2224,
+            "npcBuyPrice": 180
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 163,
+            "marketCeilingPrice": 1304,
+            "npcBuyPrice": 105
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 472,
+            "marketCeilingPrice": 3776,
+            "npcBuyPrice": 306
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 91,
+            "marketCeilingPrice": 728,
+            "npcBuyPrice": 59
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 316,
+            "marketCeilingPrice": 2528,
+            "npcBuyPrice": 205
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 209,
+            "marketCeilingPrice": 1672,
+            "npcBuyPrice": 135
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 518,
+            "marketCeilingPrice": 4144,
+            "npcBuyPrice": 336
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 167,
+            "marketCeilingPrice": 1336,
+            "npcBuyPrice": 108
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 392,
+            "marketCeilingPrice": 3136,
+            "npcBuyPrice": 254
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 295,
+            "marketCeilingPrice": 2360,
+            "npcBuyPrice": 191
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 604,
+            "marketCeilingPrice": 4832,
+            "npcBuyPrice": 392
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 319,
+            "marketCeilingPrice": 2552,
+            "npcBuyPrice": 207
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 544,
+            "marketCeilingPrice": 4352,
+            "npcBuyPrice": 353
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 463,
+            "marketCeilingPrice": 3704,
+            "npcBuyPrice": 300
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 772,
+            "marketCeilingPrice": 6176,
+            "npcBuyPrice": 501
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 623,
+            "marketCeilingPrice": 4984,
+            "npcBuyPrice": 404
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 848,
+            "marketCeilingPrice": 6784,
+            "npcBuyPrice": 551
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 793,
+            "marketCeilingPrice": 6344,
+            "npcBuyPrice": 515
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1102,
+            "marketCeilingPrice": 8816,
+            "npcBuyPrice": 716
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1231,
+            "marketCeilingPrice": 9848,
+            "npcBuyPrice": 800
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1456,
+            "marketCeilingPrice": 11648,
+            "npcBuyPrice": 946
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1441,
+            "marketCeilingPrice": 11528,
+            "npcBuyPrice": 936
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1750,
+            "marketCeilingPrice": 14000,
+            "npcBuyPrice": 1137
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 233,
+            "marketCeilingPrice": 1864,
+            "npcBuyPrice": 151
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 458,
+            "marketCeilingPrice": 3664,
+            "npcBuyPrice": 297
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 659,
+            "marketCeilingPrice": 5272,
+            "npcBuyPrice": 428
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 968,
+            "marketCeilingPrice": 7744,
+            "npcBuyPrice": 629
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 271,
+            "marketCeilingPrice": 2168,
+            "npcBuyPrice": 176
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 496,
+            "marketCeilingPrice": 3968,
+            "npcBuyPrice": 322
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 705,
+            "marketCeilingPrice": 5640,
+            "npcBuyPrice": 458
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 1014,
+            "marketCeilingPrice": 8112,
+            "npcBuyPrice": 659
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 347,
+            "marketCeilingPrice": 2776,
+            "npcBuyPrice": 225
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 572,
+            "marketCeilingPrice": 4576,
+            "npcBuyPrice": 371
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 791,
+            "marketCeilingPrice": 6328,
+            "npcBuyPrice": 514
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 1100,
+            "marketCeilingPrice": 8800,
+            "npcBuyPrice": 715
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 499,
+            "marketCeilingPrice": 3992,
+            "npcBuyPrice": 324
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 724,
+            "marketCeilingPrice": 5792,
+            "npcBuyPrice": 470
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 959,
+            "marketCeilingPrice": 7672,
+            "npcBuyPrice": 623
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 1268,
+            "marketCeilingPrice": 10144,
+            "npcBuyPrice": 824
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 803,
+            "marketCeilingPrice": 6424,
+            "npcBuyPrice": 521
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1028,
+            "marketCeilingPrice": 8224,
+            "npcBuyPrice": 668
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1289,
+            "marketCeilingPrice": 10312,
+            "npcBuyPrice": 837
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1598,
+            "marketCeilingPrice": 12784,
+            "npcBuyPrice": 1038
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1411,
+            "marketCeilingPrice": 11288,
+            "npcBuyPrice": 917
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1636,
+            "marketCeilingPrice": 13088,
+            "npcBuyPrice": 1063
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1937,
+            "marketCeilingPrice": 15496,
+            "npcBuyPrice": 1259
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 2246,
+            "marketCeilingPrice": 17968,
+            "npcBuyPrice": 1459
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 338,
+            "marketCeilingPrice": 2704,
+            "npcBuyPrice": 219
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 563,
+            "marketCeilingPrice": 4504,
+            "npcBuyPrice": 365
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 1058,
+            "marketCeilingPrice": 8464,
+            "npcBuyPrice": 687
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 38,
+            "market_floor_price": 13
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 1367,
+            "marketCeilingPrice": 10936,
+            "npcBuyPrice": 888
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 376,
+            "marketCeilingPrice": 3008,
+            "npcBuyPrice": 244
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 601,
+            "marketCeilingPrice": 4808,
+            "npcBuyPrice": 390
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 1104,
+            "marketCeilingPrice": 8832,
+            "npcBuyPrice": 717
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 76,
+            "market_floor_price": 26
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 1413,
+            "marketCeilingPrice": 11304,
+            "npcBuyPrice": 918
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 452,
+            "marketCeilingPrice": 3616,
+            "npcBuyPrice": 293
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 677,
+            "marketCeilingPrice": 5416,
+            "npcBuyPrice": 440
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 1190,
+            "marketCeilingPrice": 9520,
+            "npcBuyPrice": 773
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 152,
+            "market_floor_price": 53
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 1499,
+            "marketCeilingPrice": 11992,
+            "npcBuyPrice": 974
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 604,
+            "marketCeilingPrice": 4832,
+            "npcBuyPrice": 392
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 829,
+            "marketCeilingPrice": 6632,
+            "npcBuyPrice": 538
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 1358,
+            "marketCeilingPrice": 10864,
+            "npcBuyPrice": 882
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 304,
+            "market_floor_price": 106
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 1667,
+            "marketCeilingPrice": 13336,
+            "npcBuyPrice": 1083
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 908,
+            "marketCeilingPrice": 7264,
+            "npcBuyPrice": 590
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1133,
+            "marketCeilingPrice": 9064,
+            "npcBuyPrice": 736
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1688,
+            "marketCeilingPrice": 13504,
+            "npcBuyPrice": 1097
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 608,
+            "market_floor_price": 212
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1997,
+            "marketCeilingPrice": 15976,
+            "npcBuyPrice": 1298
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1516,
+            "marketCeilingPrice": 12128,
+            "npcBuyPrice": 985
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1741,
+            "marketCeilingPrice": 13928,
+            "npcBuyPrice": 1131
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 2336,
+            "marketCeilingPrice": 18688,
+            "npcBuyPrice": 1518
+        }
+    },
+    {
+        "skill": "smithing",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 1216,
+            "market_floor_price": 425
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 2645,
+            "marketCeilingPrice": 21160,
+            "npcBuyPrice": 1719
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 45,
+            "marketCeilingPrice": 360,
+            "npcBuyPrice": 29
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 270,
+            "marketCeilingPrice": 2160,
+            "npcBuyPrice": 175
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 135,
+            "marketCeilingPrice": 1080,
+            "npcBuyPrice": 87
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 444,
+            "marketCeilingPrice": 3552,
+            "npcBuyPrice": 288
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 87,
+            "marketCeilingPrice": 696,
+            "npcBuyPrice": 56
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 312,
+            "marketCeilingPrice": 2496,
+            "npcBuyPrice": 202
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 185,
+            "marketCeilingPrice": 1480,
+            "npcBuyPrice": 120
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 494,
+            "marketCeilingPrice": 3952,
+            "npcBuyPrice": 321
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 171,
+            "marketCeilingPrice": 1368,
+            "npcBuyPrice": 111
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 396,
+            "marketCeilingPrice": 3168,
+            "npcBuyPrice": 257
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 279,
+            "marketCeilingPrice": 2232,
+            "npcBuyPrice": 181
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 588,
+            "marketCeilingPrice": 4704,
+            "npcBuyPrice": 382
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 339,
+            "marketCeilingPrice": 2712,
+            "npcBuyPrice": 220
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 564,
+            "marketCeilingPrice": 4512,
+            "npcBuyPrice": 366
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 463,
+            "marketCeilingPrice": 3704,
+            "npcBuyPrice": 300
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 772,
+            "marketCeilingPrice": 6176,
+            "npcBuyPrice": 501
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 675,
+            "marketCeilingPrice": 5400,
+            "npcBuyPrice": 438
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 900,
+            "marketCeilingPrice": 7200,
+            "npcBuyPrice": 585
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 825,
+            "marketCeilingPrice": 6600,
+            "npcBuyPrice": 536
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1134,
+            "marketCeilingPrice": 9072,
+            "npcBuyPrice": 737
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1347,
+            "marketCeilingPrice": 10776,
+            "npcBuyPrice": 875
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1572,
+            "marketCeilingPrice": 12576,
+            "npcBuyPrice": 1021
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1537,
+            "marketCeilingPrice": 12296,
+            "npcBuyPrice": 999
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 1,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":9,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1846,
+            "marketCeilingPrice": 14768,
+            "npcBuyPrice": 1199
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 57,
+            "marketCeilingPrice": 456,
+            "npcBuyPrice": 37
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 282,
+            "marketCeilingPrice": 2256,
+            "npcBuyPrice": 183
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 167,
+            "marketCeilingPrice": 1336,
+            "npcBuyPrice": 108
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 476,
+            "marketCeilingPrice": 3808,
+            "npcBuyPrice": 309
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 99,
+            "marketCeilingPrice": 792,
+            "npcBuyPrice": 64
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 324,
+            "marketCeilingPrice": 2592,
+            "npcBuyPrice": 210
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 217,
+            "marketCeilingPrice": 1736,
+            "npcBuyPrice": 141
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 526,
+            "marketCeilingPrice": 4208,
+            "npcBuyPrice": 341
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 183,
+            "marketCeilingPrice": 1464,
+            "npcBuyPrice": 118
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 408,
+            "marketCeilingPrice": 3264,
+            "npcBuyPrice": 265
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 311,
+            "marketCeilingPrice": 2488,
+            "npcBuyPrice": 202
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 620,
+            "marketCeilingPrice": 4960,
+            "npcBuyPrice": 403
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 351,
+            "marketCeilingPrice": 2808,
+            "npcBuyPrice": 228
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 576,
+            "marketCeilingPrice": 4608,
+            "npcBuyPrice": 374
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 495,
+            "marketCeilingPrice": 3960,
+            "npcBuyPrice": 321
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 804,
+            "marketCeilingPrice": 6432,
+            "npcBuyPrice": 522
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 687,
+            "marketCeilingPrice": 5496,
+            "npcBuyPrice": 446
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 912,
+            "marketCeilingPrice": 7296,
+            "npcBuyPrice": 592
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 857,
+            "marketCeilingPrice": 6856,
+            "npcBuyPrice": 557
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1166,
+            "marketCeilingPrice": 9328,
+            "npcBuyPrice": 757
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1359,
+            "marketCeilingPrice": 10872,
+            "npcBuyPrice": 883
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1584,
+            "marketCeilingPrice": 12672,
+            "npcBuyPrice": 1029
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1569,
+            "marketCeilingPrice": 12552,
+            "npcBuyPrice": 1019
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 5,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":12,\"yield\":2}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1878,
+            "marketCeilingPrice": 15024,
+            "npcBuyPrice": 1220
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 237,
+            "marketCeilingPrice": 1896,
+            "npcBuyPrice": 154
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 462,
+            "marketCeilingPrice": 3696,
+            "npcBuyPrice": 300
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 663,
+            "marketCeilingPrice": 5304,
+            "npcBuyPrice": 430
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 972,
+            "marketCeilingPrice": 7776,
+            "npcBuyPrice": 631
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 279,
+            "marketCeilingPrice": 2232,
+            "npcBuyPrice": 181
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 504,
+            "marketCeilingPrice": 4032,
+            "npcBuyPrice": 327
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 713,
+            "marketCeilingPrice": 5704,
+            "npcBuyPrice": 463
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 1022,
+            "marketCeilingPrice": 8176,
+            "npcBuyPrice": 664
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 363,
+            "marketCeilingPrice": 2904,
+            "npcBuyPrice": 235
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 588,
+            "marketCeilingPrice": 4704,
+            "npcBuyPrice": 382
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 807,
+            "marketCeilingPrice": 6456,
+            "npcBuyPrice": 524
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 1116,
+            "marketCeilingPrice": 8928,
+            "npcBuyPrice": 725
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 531,
+            "marketCeilingPrice": 4248,
+            "npcBuyPrice": 345
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 756,
+            "marketCeilingPrice": 6048,
+            "npcBuyPrice": 491
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 991,
+            "marketCeilingPrice": 7928,
+            "npcBuyPrice": 644
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 1300,
+            "marketCeilingPrice": 10400,
+            "npcBuyPrice": 845
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 867,
+            "marketCeilingPrice": 6936,
+            "npcBuyPrice": 563
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1092,
+            "marketCeilingPrice": 8736,
+            "npcBuyPrice": 709
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1353,
+            "marketCeilingPrice": 10824,
+            "npcBuyPrice": 879
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1662,
+            "marketCeilingPrice": 13296,
+            "npcBuyPrice": 1080
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1539,
+            "marketCeilingPrice": 12312,
+            "npcBuyPrice": 1000
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1764,
+            "marketCeilingPrice": 14112,
+            "npcBuyPrice": 1146
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 2065,
+            "marketCeilingPrice": 16520,
+            "npcBuyPrice": 1342
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 65,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":35,\"yield\":6}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 2374,
+            "marketCeilingPrice": 18992,
+            "npcBuyPrice": 1543
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 342,
+            "marketCeilingPrice": 2736,
+            "npcBuyPrice": 222
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 567,
+            "marketCeilingPrice": 4536,
+            "npcBuyPrice": 368
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 1062,
+            "marketCeilingPrice": 8496,
+            "npcBuyPrice": 690
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "common",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 42,
+            "market_floor_price": 14
+        },
+        "rarityMarketPremium": 0,
+        "prices": {
+            "marketFloorPrice": 1371,
+            "marketCeilingPrice": 10968,
+            "npcBuyPrice": 891
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 384,
+            "marketCeilingPrice": 3072,
+            "npcBuyPrice": 249
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 609,
+            "marketCeilingPrice": 4872,
+            "npcBuyPrice": 395
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 1112,
+            "marketCeilingPrice": 8896,
+            "npcBuyPrice": 722
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "uncommon",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 84,
+            "market_floor_price": 29
+        },
+        "rarityMarketPremium": 8,
+        "prices": {
+            "marketFloorPrice": 1421,
+            "marketCeilingPrice": 11368,
+            "npcBuyPrice": 923
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 468,
+            "marketCeilingPrice": 3744,
+            "npcBuyPrice": 304
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 693,
+            "marketCeilingPrice": 5544,
+            "npcBuyPrice": 450
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 1206,
+            "marketCeilingPrice": 9648,
+            "npcBuyPrice": 783
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "rare",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 168,
+            "market_floor_price": 58
+        },
+        "rarityMarketPremium": 18,
+        "prices": {
+            "marketFloorPrice": 1515,
+            "marketCeilingPrice": 12120,
+            "npcBuyPrice": 984
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 636,
+            "marketCeilingPrice": 5088,
+            "npcBuyPrice": 413
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 861,
+            "marketCeilingPrice": 6888,
+            "npcBuyPrice": 559
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 1390,
+            "marketCeilingPrice": 11120,
+            "npcBuyPrice": 903
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "epic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 336,
+            "market_floor_price": 117
+        },
+        "rarityMarketPremium": 34,
+        "prices": {
+            "marketFloorPrice": 1699,
+            "marketCeilingPrice": 13592,
+            "npcBuyPrice": 1104
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 972,
+            "marketCeilingPrice": 7776,
+            "npcBuyPrice": 631
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1197,
+            "marketCeilingPrice": 9576,
+            "npcBuyPrice": 778
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 1752,
+            "marketCeilingPrice": 14016,
+            "npcBuyPrice": 1138
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "legendary",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 672,
+            "market_floor_price": 235
+        },
+        "rarityMarketPremium": 60,
+        "prices": {
+            "marketFloorPrice": 2061,
+            "marketCeilingPrice": 16488,
+            "npcBuyPrice": 1339
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1644,
+            "marketCeilingPrice": 13152,
+            "npcBuyPrice": 1068
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 0,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 1869,
+            "marketCeilingPrice": 14952,
+            "npcBuyPrice": 1214
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 0,
+            "tierUpgrades": 0,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 2464,
+            "marketCeilingPrice": 19712,
+            "npcBuyPrice": 1601
+        }
+    },
+    {
+        "skill": "magic",
+        "rarity": "mythic",
+        "tool": {
+            "tierLevel": 100,
+            "durability": 100,
+            "upgrades": 3,
+            "tierUpgrades": 3,
+            "bonuses": "{\"experience\":65,\"yield\":10}"
+        },
+        "metadata": {
+            "vendor_value": 1344,
+            "market_floor_price": 470
+        },
+        "rarityMarketPremium": 100,
+        "prices": {
+            "marketFloorPrice": 2773,
+            "marketCeilingPrice": 22184,
+            "npcBuyPrice": 1802
+        }
+    }
+]

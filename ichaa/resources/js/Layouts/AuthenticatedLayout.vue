@@ -768,6 +768,7 @@ const bitcraftToolChildren = computed(() => [
     { key: 'bitcraft-crafting', label: 'Crafting Calculator', href: route('bitcraft.crafting'), matches: ['/bitcraft/crafting'] },
     { key: 'bitcraft-open-crafts', label: 'Open Crafts', href: route('bitcraft.open-crafts'), matches: ['/bitcraft/open-crafts'] },
     { key: 'bitcraft-tool-rates', label: 'Tool Rate Calculator', href: route('bitcraft.tool-rates'), matches: ['/bitcraft/tool-rates'] },
+    { key: 'bitcraft-hunting-calculator', label: 'Hunting XP Calculator', href: route('bitcraft.hunting-calculator'), matches: ['/bitcraft/hunting-calculator'] },
     page.props.features?.bitcraft?.live_companion
         ? { key: 'bitcraft-live-companion', label: 'Live Companion', href: route('bitcraft.live-companion'), matches: ['/bitcraft/live-companion'] }
         : null,

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UserAccessController as AdminUserAccessController
 use App\Http\Controllers\Bitcraft\BitcraftActivityController;
 use App\Http\Controllers\Bitcraft\BitcraftGuideCardController;
 use App\Http\Controllers\Bitcraft\BitcraftGuideController;
+use App\Http\Controllers\Bitcraft\BitcraftHuntingCalculatorController;
 use App\Http\Controllers\Bitcraft\BitcraftInventoryTrackerController;
 use App\Http\Controllers\Bitcraft\BitcraftLiveCompanionController;
 use App\Http\Controllers\Bitcraft\BitcraftOpenCraftsController;
@@ -134,6 +135,7 @@ Route::prefix('datacrypt')->middleware(['auth', 'verified'])->group(function () 
         Route::get('crafting', [BitcraftToolController::class, 'crafting'])->name('crafting');
         Route::get('crafting/branch', [BitcraftToolController::class, 'craftingBranch'])->name('crafting.branch');
         Route::get('tool-rates', [BitcraftToolController::class, 'toolRates'])->name('tool-rates');
+        Route::get('hunting-calculator', [BitcraftHuntingCalculatorController::class, 'index'])->name('hunting-calculator');
         Route::get('live-companion', [BitcraftLiveCompanionController::class, 'show'])->name('live-companion');
         Route::get('live-companion/snapshot', [BitcraftLiveCompanionController::class, 'snapshot'])->name('live-companion.snapshot');
         Route::get('activity/setup', [BitcraftActivityController::class, 'setup'])->name('activity.setup');

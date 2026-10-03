@@ -1,0 +1,70 @@
+:is(.guide-form .tiptap-editor__content, .guide-content .ProseMirror) {
+  display: flow-root;
+  container: guide-flow / inline-size;
+}
+
+:is(.guide-form .tiptap-editor__content, .guide-content .ProseMirror)
+  > :is(
+    .guide-item-card,
+    .guide-activity-card,
+    .tiptap-editor__image-node,
+    img[data-align]
+  ) {
+  float: none;
+  clear: both;
+}
+
+:is(.guide-form .tiptap-editor__content, .guide-content .ProseMirror)
+  > :is(.tiptap-editor__image-node, img)[data-align="left"] {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+:is(.guide-form .tiptap-editor__content, .guide-content .ProseMirror)
+  > :is(.tiptap-editor__image-node, img)[data-align="right"] {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.guide-form .tiptap-editor__image-node img {
+  float: none;
+  margin: 0;
+}
+
+/* Saved inline widths give way to stacked narrow layouts. */
+:is(.guide-form .tiptap-editor__content, .guide-content .ProseMirror)
+  > :is([data-card-wrap="true"], [data-wrap="true"]) {
+  width: 100% !important;
+  margin: 0 0 16px !important;
+}
+
+:is(.guide-form .tiptap-editor__content, .guide-content .ProseMirror)
+  > :is(hr, pre, table, .tableWrapper) {
+  clear: both;
+}
+
+@container guide-flow (min-width: 640px) {
+  :is(.guide-form .tiptap-editor__content, .guide-content .ProseMirror)
+    > :is([data-card-wrap="true"], [data-wrap="true"]) {
+    width: min(var(--guide-wrap-width, 50%), calc(100% - 24px)) !important;
+    clear: none;
+  }
+
+  :is(.guide-form .tiptap-editor__content, .guide-content .ProseMirror)
+    > :is([data-card-wrap="true"], [data-wrap="true"]):is(
+      [data-card-align="left"],
+      [data-align="left"]
+    ) {
+    float: left;
+    margin-right: 24px !important;
+  }
+
+  :is(.guide-form .tiptap-editor__content, .guide-content .ProseMirror)
+    > :is([data-card-wrap="true"], [data-wrap="true"]):is(
+      [data-card-align="right"],
+      [data-align="right"]
+    ) {
+    float: right;
+    margin-left: 24px !important;
+  }
+}

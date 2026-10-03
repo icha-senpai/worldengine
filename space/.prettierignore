@@ -1,0 +1,9 @@
+node_modules
+dist
+.runtime
+src/bindings
+spacetimedb/src/content
+package-lock.json
+AGENTS.md
+CLAUDE.md
+output

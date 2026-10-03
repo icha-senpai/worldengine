@@ -1,0 +1,3436 @@
+{
+    "experience": [
+        {
+            "level": 1,
+            "experience": 0
+        },
+        {
+            "level": 2,
+            "experience": 200
+        },
+        {
+            "level": 3,
+            "experience": 283
+        },
+        {
+            "level": 4,
+            "experience": 367
+        },
+        {
+            "level": 5,
+            "experience": 450
+        },
+        {
+            "level": 6,
+            "experience": 580
+        },
+        {
+            "level": 7,
+            "experience": 710
+        },
+        {
+            "level": 8,
+            "experience": 840
+        },
+        {
+            "level": 9,
+            "experience": 970
+        },
+        {
+            "level": 10,
+            "experience": 1100
+        },
+        {
+            "level": 11,
+            "experience": 1240
+        },
+        {
+            "level": 12,
+            "experience": 1380
+        },
+        {
+            "level": 13,
+            "experience": 1520
+        },
+        {
+            "level": 14,
+            "experience": 1660
+        },
+        {
+            "level": 15,
+            "experience": 1800
+        },
+        {
+            "level": 16,
+            "experience": 1940
+        },
+        {
+            "level": 17,
+            "experience": 2080
+        },
+        {
+            "level": 18,
+            "experience": 2220
+        },
+        {
+            "level": 19,
+            "experience": 2360
+        },
+        {
+            "level": 20,
+            "experience": 2500
+        },
+        {
+            "level": 21,
+            "experience": 2770
+        },
+        {
+            "level": 22,
+            "experience": 3040
+        },
+        {
+            "level": 23,
+            "experience": 3310
+        },
+        {
+            "level": 24,
+            "experience": 3580
+        },
+        {
+            "level": 25,
+            "experience": 3850
+        },
+        {
+            "level": 26,
+            "experience": 4120
+        },
+        {
+            "level": 27,
+            "experience": 4390
+        },
+        {
+            "level": 28,
+            "experience": 4660
+        },
+        {
+            "level": 29,
+            "experience": 4930
+        },
+        {
+            "level": 30,
+            "experience": 5200
+        },
+        {
+            "level": 31,
+            "experience": 5580
+        },
+        {
+            "level": 32,
+            "experience": 5960
+        },
+        {
+            "level": 33,
+            "experience": 6340
+        },
+        {
+            "level": 34,
+            "experience": 6720
+        },
+        {
+            "level": 35,
+            "experience": 7100
+        },
+        {
+            "level": 36,
+            "experience": 7480
+        },
+        {
+            "level": 37,
+            "experience": 7860
+        },
+        {
+            "level": 38,
+            "experience": 8240
+        },
+        {
+            "level": 39,
+            "experience": 8620
+        },
+        {
+            "level": 40,
+            "experience": 9000
+        },
+        {
+            "level": 41,
+            "experience": 9650
+        },
+        {
+            "level": 42,
+            "experience": 10300
+        },
+        {
+            "level": 43,
+            "experience": 10950
+        },
+        {
+            "level": 44,
+            "experience": 11600
+        },
+        {
+            "level": 45,
+            "experience": 12250
+        },
+        {
+            "level": 46,
+            "experience": 12900
+        },
+        {
+            "level": 47,
+            "experience": 13550
+        },
+        {
+            "level": 48,
+            "experience": 14200
+        },
+        {
+            "level": 49,
+            "experience": 14850
+        },
+        {
+            "level": 50,
+            "experience": 15500
+        },
+        {
+            "level": 51,
+            "experience": 16800
+        },
+        {
+            "level": 52,
+            "experience": 18100
+        },
+        {
+            "level": 53,
+            "experience": 19400
+        },
+        {
+            "level": 54,
+            "experience": 20700
+        },
+        {
+            "level": 55,
+            "experience": 22000
+        },
+        {
+            "level": 56,
+            "experience": 23300
+        },
+        {
+            "level": 57,
+            "experience": 24600
+        },
+        {
+            "level": 58,
+            "experience": 25900
+        },
+        {
+            "level": 59,
+            "experience": 27200
+        },
+        {
+            "level": 60,
+            "experience": 28500
+        },
+        {
+            "level": 61,
+            "experience": 29800
+        },
+        {
+            "level": 62,
+            "experience": 31100
+        },
+        {
+            "level": 63,
+            "experience": 32400
+        },
+        {
+            "level": 64,
+            "experience": 33700
+        },
+        {
+            "level": 65,
+            "experience": 35000
+        },
+        {
+            "level": 66,
+            "experience": 37333
+        },
+        {
+            "level": 67,
+            "experience": 39667
+        },
+        {
+            "level": 68,
+            "experience": 42000
+        },
+        {
+            "level": 69,
+            "experience": 44333
+        },
+        {
+            "level": 70,
+            "experience": 46667
+        },
+        {
+            "level": 71,
+            "experience": 49000
+        },
+        {
+            "level": 72,
+            "experience": 51333
+        },
+        {
+            "level": 73,
+            "experience": 53667
+        },
+        {
+            "level": 74,
+            "experience": 56000
+        },
+        {
+            "level": 75,
+            "experience": 58333
+        },
+        {
+            "level": 76,
+            "experience": 60667
+        },
+        {
+            "level": 77,
+            "experience": 63000
+        },
+        {
+            "level": 78,
+            "experience": 65333
+        },
+        {
+            "level": 79,
+            "experience": 67667
+        },
+        {
+            "level": 80,
+            "experience": 70000
+        },
+        {
+            "level": 81,
+            "experience": 75000
+        },
+        {
+            "level": 82,
+            "experience": 80000
+        },
+        {
+            "level": 83,
+            "experience": 85000
+        },
+        {
+            "level": 84,
+            "experience": 90000
+        },
+        {
+            "level": 85,
+            "experience": 95000
+        },
+        {
+            "level": 86,
+            "experience": 100000
+        },
+        {
+            "level": 87,
+            "experience": 105000
+        },
+        {
+            "level": 88,
+            "experience": 110000
+        },
+        {
+            "level": 89,
+            "experience": 115000
+        },
+        {
+            "level": 90,
+            "experience": 120000
+        },
+        {
+            "level": 91,
+            "experience": 125000
+        },
+        {
+            "level": 92,
+            "experience": 130000
+        },
+        {
+            "level": 93,
+            "experience": 135000
+        },
+        {
+            "level": 94,
+            "experience": 140000
+        },
+        {
+            "level": 95,
+            "experience": 145000
+        },
+        {
+            "level": 96,
+            "experience": 150000
+        },
+        {
+            "level": 97,
+            "experience": 155000
+        },
+        {
+            "level": 98,
+            "experience": 160000
+        },
+        {
+            "level": 99,
+            "experience": 165000
+        },
+        {
+            "level": 100,
+            "experience": 170000
+        }
+    ],
+    "durability": [
+        {
+            "level": 0,
+            "rarity": "common",
+            "maximum": 100
+        },
+        {
+            "level": 0,
+            "rarity": "uncommon",
+            "maximum": 120
+        },
+        {
+            "level": 0,
+            "rarity": "rare",
+            "maximum": 145
+        },
+        {
+            "level": 0,
+            "rarity": "epic",
+            "maximum": 170
+        },
+        {
+            "level": 0,
+            "rarity": "legendary",
+            "maximum": 195
+        },
+        {
+            "level": 0,
+            "rarity": "mythic",
+            "maximum": 225
+        },
+        {
+            "level": 1,
+            "rarity": "common",
+            "maximum": 100
+        },
+        {
+            "level": 1,
+            "rarity": "uncommon",
+            "maximum": 120
+        },
+        {
+            "level": 1,
+            "rarity": "rare",
+            "maximum": 145
+        },
+        {
+            "level": 1,
+            "rarity": "epic",
+            "maximum": 170
+        },
+        {
+            "level": 1,
+            "rarity": "legendary",
+            "maximum": 195
+        },
+        {
+            "level": 1,
+            "rarity": "mythic",
+            "maximum": 225
+        },
+        {
+            "level": 2,
+            "rarity": "common",
+            "maximum": 100
+        },
+        {
+            "level": 2,
+            "rarity": "uncommon",
+            "maximum": 120
+        },
+        {
+            "level": 2,
+            "rarity": "rare",
+            "maximum": 145
+        },
+        {
+            "level": 2,
+            "rarity": "epic",
+            "maximum": 170
+        },
+        {
+            "level": 2,
+            "rarity": "legendary",
+            "maximum": 195
+        },
+        {
+            "level": 2,
+            "rarity": "mythic",
+            "maximum": 225
+        },
+        {
+            "level": 3,
+            "rarity": "common",
+            "maximum": 100
+        },
+        {
+            "level": 3,
+            "rarity": "uncommon",
+            "maximum": 120
+        },
+        {
+            "level": 3,
+            "rarity": "rare",
+            "maximum": 145
+        },
+        {
+            "level": 3,
+            "rarity": "epic",
+            "maximum": 170
+        },
+        {
+            "level": 3,
+            "rarity": "legendary",
+            "maximum": 195
+        },
+        {
+            "level": 3,
+            "rarity": "mythic",
+            "maximum": 225
+        },
+        {
+            "level": 4,
+            "rarity": "common",
+            "maximum": 100
+        },
+        {
+            "level": 4,
+            "rarity": "uncommon",
+            "maximum": 120
+        },
+        {
+            "level": 4,
+            "rarity": "rare",
+            "maximum": 145
+        },
+        {
+            "level": 4,
+            "rarity": "epic",
+            "maximum": 170
+        },
+        {
+            "level": 4,
+            "rarity": "legendary",
+            "maximum": 195
+        },
+        {
+            "level": 4,
+            "rarity": "mythic",
+            "maximum": 225
+        },
+        {
+            "level": 5,
+            "rarity": "common",
+            "maximum": 135
+        },
+        {
+            "level": 5,
+            "rarity": "uncommon",
+            "maximum": 160
+        },
+        {
+            "level": 5,
+            "rarity": "rare",
+            "maximum": 185
+        },
+        {
+            "level": 5,
+            "rarity": "epic",
+            "maximum": 215
+        },
+        {
+            "level": 5,
+            "rarity": "legendary",
+            "maximum": 245
+        },
+        {
+            "level": 5,
+            "rarity": "mythic",
+            "maximum": 275
+        },
+        {
+            "level": 6,
+            "rarity": "common",
+            "maximum": 135
+        },
+        {
+            "level": 6,
+            "rarity": "uncommon",
+            "maximum": 160
+        },
+        {
+            "level": 6,
+            "rarity": "rare",
+            "maximum": 185
+        },
+        {
+            "level": 6,
+            "rarity": "epic",
+            "maximum": 215
+        },
+        {
+            "level": 6,
+            "rarity": "legendary",
+            "maximum": 245
+        },
+        {
+            "level": 6,
+            "rarity": "mythic",
+            "maximum": 275
+        },
+        {
+            "level": 7,
+            "rarity": "common",
+            "maximum": 135
+        },
+        {
+            "level": 7,
+            "rarity": "uncommon",
+            "maximum": 160
+        },
+        {
+            "level": 7,
+            "rarity": "rare",
+            "maximum": 185
+        },
+        {
+            "level": 7,
+            "rarity": "epic",
+            "maximum": 215
+        },
+        {
+            "level": 7,
+            "rarity": "legendary",
+            "maximum": 245
+        },
+        {
+            "level": 7,
+            "rarity": "mythic",
+            "maximum": 275
+        },
+        {
+            "level": 8,
+            "rarity": "common",
+            "maximum": 135
+        },
+        {
+            "level": 8,
+            "rarity": "uncommon",
+            "maximum": 160
+        },
+        {
+            "level": 8,
+            "rarity": "rare",
+            "maximum": 185
+        },
+        {
+            "level": 8,
+            "rarity": "epic",
+            "maximum": 215
+        },
+        {
+            "level": 8,
+            "rarity": "legendary",
+            "maximum": 245
+        },
+        {
+            "level": 8,
+            "rarity": "mythic",
+            "maximum": 275
+        },
+        {
+            "level": 9,
+            "rarity": "common",
+            "maximum": 135
+        },
+        {
+            "level": 9,
+            "rarity": "uncommon",
+            "maximum": 160
+        },
+        {
+            "level": 9,
+            "rarity": "rare",
+            "maximum": 185
+        },
+        {
+            "level": 9,
+            "rarity": "epic",
+            "maximum": 215
+        },
+        {
+            "level": 9,
+            "rarity": "legendary",
+            "maximum": 245
+        },
+        {
+            "level": 9,
+            "rarity": "mythic",
+            "maximum": 275
+        },
+        {
+            "level": 10,
+            "rarity": "common",
+            "maximum": 175
+        },
+        {
+            "level": 10,
+            "rarity": "uncommon",
+            "maximum": 205
+        },
+        {
+            "level": 10,
+            "rarity": "rare",
+            "maximum": 230
+        },
+        {
+            "level": 10,
+            "rarity": "epic",
+            "maximum": 265
+        },
+        {
+            "level": 10,
+            "rarity": "legendary",
+            "maximum": 300
+        },
+        {
+            "level": 10,
+            "rarity": "mythic",
+            "maximum": 335
+        },
+        {
+            "level": 11,
+            "rarity": "common",
+            "maximum": 175
+        },
+        {
+            "level": 11,
+            "rarity": "uncommon",
+            "maximum": 205
+        },
+        {
+            "level": 11,
+            "rarity": "rare",
+            "maximum": 230
+        },
+        {
+            "level": 11,
+            "rarity": "epic",
+            "maximum": 265
+        },
+        {
+            "level": 11,
+            "rarity": "legendary",
+            "maximum": 300
+        },
+        {
+            "level": 11,
+            "rarity": "mythic",
+            "maximum": 335
+        },
+        {
+            "level": 12,
+            "rarity": "common",
+            "maximum": 175
+        },
+        {
+            "level": 12,
+            "rarity": "uncommon",
+            "maximum": 205
+        },
+        {
+            "level": 12,
+            "rarity": "rare",
+            "maximum": 230
+        },
+        {
+            "level": 12,
+            "rarity": "epic",
+            "maximum": 265
+        },
+        {
+            "level": 12,
+            "rarity": "legendary",
+            "maximum": 300
+        },
+        {
+            "level": 12,
+            "rarity": "mythic",
+            "maximum": 335
+        },
+        {
+            "level": 13,
+            "rarity": "common",
+            "maximum": 175
+        },
+        {
+            "level": 13,
+            "rarity": "uncommon",
+            "maximum": 205
+        },
+        {
+            "level": 13,
+            "rarity": "rare",
+            "maximum": 230
+        },
+        {
+            "level": 13,
+            "rarity": "epic",
+            "maximum": 265
+        },
+        {
+            "level": 13,
+            "rarity": "legendary",
+            "maximum": 300
+        },
+        {
+            "level": 13,
+            "rarity": "mythic",
+            "maximum": 335
+        },
+        {
+            "level": 14,
+            "rarity": "common",
+            "maximum": 175
+        },
+        {
+            "level": 14,
+            "rarity": "uncommon",
+            "maximum": 205
+        },
+        {
+            "level": 14,
+            "rarity": "rare",
+            "maximum": 230
+        },
+        {
+            "level": 14,
+            "rarity": "epic",
+            "maximum": 265
+        },
+        {
+            "level": 14,
+            "rarity": "legendary",
+            "maximum": 300
+        },
+        {
+            "level": 14,
+            "rarity": "mythic",
+            "maximum": 335
+        },
+        {
+            "level": 15,
+            "rarity": "common",
+            "maximum": 175
+        },
+        {
+            "level": 15,
+            "rarity": "uncommon",
+            "maximum": 205
+        },
+        {
+            "level": 15,
+            "rarity": "rare",
+            "maximum": 230
+        },
+        {
+            "level": 15,
+            "rarity": "epic",
+            "maximum": 265
+        },
+        {
+            "level": 15,
+            "rarity": "legendary",
+            "maximum": 300
+        },
+        {
+            "level": 15,
+            "rarity": "mythic",
+            "maximum": 335
+        },
+        {
+            "level": 16,
+            "rarity": "common",
+            "maximum": 175
+        },
+        {
+            "level": 16,
+            "rarity": "uncommon",
+            "maximum": 205
+        },
+        {
+            "level": 16,
+            "rarity": "rare",
+            "maximum": 230
+        },
+        {
+            "level": 16,
+            "rarity": "epic",
+            "maximum": 265
+        },
+        {
+            "level": 16,
+            "rarity": "legendary",
+            "maximum": 300
+        },
+        {
+            "level": 16,
+            "rarity": "mythic",
+            "maximum": 335
+        },
+        {
+            "level": 17,
+            "rarity": "common",
+            "maximum": 175
+        },
+        {
+            "level": 17,
+            "rarity": "uncommon",
+            "maximum": 205
+        },
+        {
+            "level": 17,
+            "rarity": "rare",
+            "maximum": 230
+        },
+        {
+            "level": 17,
+            "rarity": "epic",
+            "maximum": 265
+        },
+        {
+            "level": 17,
+            "rarity": "legendary",
+            "maximum": 300
+        },
+        {
+            "level": 17,
+            "rarity": "mythic",
+            "maximum": 335
+        },
+        {
+            "level": 18,
+            "rarity": "common",
+            "maximum": 175
+        },
+        {
+            "level": 18,
+            "rarity": "uncommon",
+            "maximum": 205
+        },
+        {
+            "level": 18,
+            "rarity": "rare",
+            "maximum": 230
+        },
+        {
+            "level": 18,
+            "rarity": "epic",
+            "maximum": 265
+        },
+        {
+            "level": 18,
+            "rarity": "legendary",
+            "maximum": 300
+        },
+        {
+            "level": 18,
+            "rarity": "mythic",
+            "maximum": 335
+        },
+        {
+            "level": 19,
+            "rarity": "common",
+            "maximum": 175
+        },
+        {
+            "level": 19,
+            "rarity": "uncommon",
+            "maximum": 205
+        },
+        {
+            "level": 19,
+            "rarity": "rare",
+            "maximum": 230
+        },
+        {
+            "level": 19,
+            "rarity": "epic",
+            "maximum": 265
+        },
+        {
+            "level": 19,
+            "rarity": "legendary",
+            "maximum": 300
+        },
+        {
+            "level": 19,
+            "rarity": "mythic",
+            "maximum": 335
+        },
+        {
+            "level": 20,
+            "rarity": "common",
+            "maximum": 220
+        },
+        {
+            "level": 20,
+            "rarity": "uncommon",
+            "maximum": 250
+        },
+        {
+            "level": 20,
+            "rarity": "rare",
+            "maximum": 285
+        },
+        {
+            "level": 20,
+            "rarity": "epic",
+            "maximum": 320
+        },
+        {
+            "level": 20,
+            "rarity": "legendary",
+            "maximum": 360
+        },
+        {
+            "level": 20,
+            "rarity": "mythic",
+            "maximum": 400
+        },
+        {
+            "level": 21,
+            "rarity": "common",
+            "maximum": 220
+        },
+        {
+            "level": 21,
+            "rarity": "uncommon",
+            "maximum": 250
+        },
+        {
+            "level": 21,
+            "rarity": "rare",
+            "maximum": 285
+        },
+        {
+            "level": 21,
+            "rarity": "epic",
+            "maximum": 320
+        },
+        {
+            "level": 21,
+            "rarity": "legendary",
+            "maximum": 360
+        },
+        {
+            "level": 21,
+            "rarity": "mythic",
+            "maximum": 400
+        },
+        {
+            "level": 22,
+            "rarity": "common",
+            "maximum": 220
+        },
+        {
+            "level": 22,
+            "rarity": "uncommon",
+            "maximum": 250
+        },
+        {
+            "level": 22,
+            "rarity": "rare",
+            "maximum": 285
+        },
+        {
+            "level": 22,
+            "rarity": "epic",
+            "maximum": 320
+        },
+        {
+            "level": 22,
+            "rarity": "legendary",
+            "maximum": 360
+        },
+        {
+            "level": 22,
+            "rarity": "mythic",
+            "maximum": 400
+        },
+        {
+            "level": 23,
+            "rarity": "common",
+            "maximum": 220
+        },
+        {
+            "level": 23,
+            "rarity": "uncommon",
+            "maximum": 250
+        },
+        {
+            "level": 23,
+            "rarity": "rare",
+            "maximum": 285
+        },
+        {
+            "level": 23,
+            "rarity": "epic",
+            "maximum": 320
+        },
+        {
+            "level": 23,
+            "rarity": "legendary",
+            "maximum": 360
+        },
+        {
+            "level": 23,
+            "rarity": "mythic",
+            "maximum": 400
+        },
+        {
+            "level": 24,
+            "rarity": "common",
+            "maximum": 220
+        },
+        {
+            "level": 24,
+            "rarity": "uncommon",
+            "maximum": 250
+        },
+        {
+            "level": 24,
+            "rarity": "rare",
+            "maximum": 285
+        },
+        {
+            "level": 24,
+            "rarity": "epic",
+            "maximum": 320
+        },
+        {
+            "level": 24,
+            "rarity": "legendary",
+            "maximum": 360
+        },
+        {
+            "level": 24,
+            "rarity": "mythic",
+            "maximum": 400
+        },
+        {
+            "level": 25,
+            "rarity": "common",
+            "maximum": 220
+        },
+        {
+            "level": 25,
+            "rarity": "uncommon",
+            "maximum": 250
+        },
+        {
+            "level": 25,
+            "rarity": "rare",
+            "maximum": 285
+        },
+        {
+            "level": 25,
+            "rarity": "epic",
+            "maximum": 320
+        },
+        {
+            "level": 25,
+            "rarity": "legendary",
+            "maximum": 360
+        },
+        {
+            "level": 25,
+            "rarity": "mythic",
+            "maximum": 400
+        },
+        {
+            "level": 26,
+            "rarity": "common",
+            "maximum": 220
+        },
+        {
+            "level": 26,
+            "rarity": "uncommon",
+            "maximum": 250
+        },
+        {
+            "level": 26,
+            "rarity": "rare",
+            "maximum": 285
+        },
+        {
+            "level": 26,
+            "rarity": "epic",
+            "maximum": 320
+        },
+        {
+            "level": 26,
+            "rarity": "legendary",
+            "maximum": 360
+        },
+        {
+            "level": 26,
+            "rarity": "mythic",
+            "maximum": 400
+        },
+        {
+            "level": 27,
+            "rarity": "common",
+            "maximum": 220
+        },
+        {
+            "level": 27,
+            "rarity": "uncommon",
+            "maximum": 250
+        },
+        {
+            "level": 27,
+            "rarity": "rare",
+            "maximum": 285
+        },
+        {
+            "level": 27,
+            "rarity": "epic",
+            "maximum": 320
+        },
+        {
+            "level": 27,
+            "rarity": "legendary",
+            "maximum": 360
+        },
+        {
+            "level": 27,
+            "rarity": "mythic",
+            "maximum": 400
+        },
+        {
+            "level": 28,
+            "rarity": "common",
+            "maximum": 220
+        },
+        {
+            "level": 28,
+            "rarity": "uncommon",
+            "maximum": 250
+        },
+        {
+            "level": 28,
+            "rarity": "rare",
+            "maximum": 285
+        },
+        {
+            "level": 28,
+            "rarity": "epic",
+            "maximum": 320
+        },
+        {
+            "level": 28,
+            "rarity": "legendary",
+            "maximum": 360
+        },
+        {
+            "level": 28,
+            "rarity": "mythic",
+            "maximum": 400
+        },
+        {
+            "level": 29,
+            "rarity": "common",
+            "maximum": 220
+        },
+        {
+            "level": 29,
+            "rarity": "uncommon",
+            "maximum": 250
+        },
+        {
+            "level": 29,
+            "rarity": "rare",
+            "maximum": 285
+        },
+        {
+            "level": 29,
+            "rarity": "epic",
+            "maximum": 320
+        },
+        {
+            "level": 29,
+            "rarity": "legendary",
+            "maximum": 360
+        },
+        {
+            "level": 29,
+            "rarity": "mythic",
+            "maximum": 400
+        },
+        {
+            "level": 30,
+            "rarity": "common",
+            "maximum": 270
+        },
+        {
+            "level": 30,
+            "rarity": "uncommon",
+            "maximum": 305
+        },
+        {
+            "level": 30,
+            "rarity": "rare",
+            "maximum": 345
+        },
+        {
+            "level": 30,
+            "rarity": "epic",
+            "maximum": 385
+        },
+        {
+            "level": 30,
+            "rarity": "legendary",
+            "maximum": 425
+        },
+        {
+            "level": 30,
+            "rarity": "mythic",
+            "maximum": 470
+        },
+        {
+            "level": 31,
+            "rarity": "common",
+            "maximum": 270
+        },
+        {
+            "level": 31,
+            "rarity": "uncommon",
+            "maximum": 305
+        },
+        {
+            "level": 31,
+            "rarity": "rare",
+            "maximum": 345
+        },
+        {
+            "level": 31,
+            "rarity": "epic",
+            "maximum": 385
+        },
+        {
+            "level": 31,
+            "rarity": "legendary",
+            "maximum": 425
+        },
+        {
+            "level": 31,
+            "rarity": "mythic",
+            "maximum": 470
+        },
+        {
+            "level": 32,
+            "rarity": "common",
+            "maximum": 270
+        },
+        {
+            "level": 32,
+            "rarity": "uncommon",
+            "maximum": 305
+        },
+        {
+            "level": 32,
+            "rarity": "rare",
+            "maximum": 345
+        },
+        {
+            "level": 32,
+            "rarity": "epic",
+            "maximum": 385
+        },
+        {
+            "level": 32,
+            "rarity": "legendary",
+            "maximum": 425
+        },
+        {
+            "level": 32,
+            "rarity": "mythic",
+            "maximum": 470
+        },
+        {
+            "level": 33,
+            "rarity": "common",
+            "maximum": 270
+        },
+        {
+            "level": 33,
+            "rarity": "uncommon",
+            "maximum": 305
+        },
+        {
+            "level": 33,
+            "rarity": "rare",
+            "maximum": 345
+        },
+        {
+            "level": 33,
+            "rarity": "epic",
+            "maximum": 385
+        },
+        {
+            "level": 33,
+            "rarity": "legendary",
+            "maximum": 425
+        },
+        {
+            "level": 33,
+            "rarity": "mythic",
+            "maximum": 470
+        },
+        {
+            "level": 34,
+            "rarity": "common",
+            "maximum": 270
+        },
+        {
+            "level": 34,
+            "rarity": "uncommon",
+            "maximum": 305
+        },
+        {
+            "level": 34,
+            "rarity": "rare",
+            "maximum": 345
+        },
+        {
+            "level": 34,
+            "rarity": "epic",
+            "maximum": 385
+        },
+        {
+            "level": 34,
+            "rarity": "legendary",
+            "maximum": 425
+        },
+        {
+            "level": 34,
+            "rarity": "mythic",
+            "maximum": 470
+        },
+        {
+            "level": 35,
+            "rarity": "common",
+            "maximum": 270
+        },
+        {
+            "level": 35,
+            "rarity": "uncommon",
+            "maximum": 305
+        },
+        {
+            "level": 35,
+            "rarity": "rare",
+            "maximum": 345
+        },
+        {
+            "level": 35,
+            "rarity": "epic",
+            "maximum": 385
+        },
+        {
+            "level": 35,
+            "rarity": "legendary",
+            "maximum": 425
+        },
+        {
+            "level": 35,
+            "rarity": "mythic",
+            "maximum": 470
+        },
+        {
+            "level": 36,
+            "rarity": "common",
+            "maximum": 270
+        },
+        {
+            "level": 36,
+            "rarity": "uncommon",
+            "maximum": 305
+        },
+        {
+            "level": 36,
+            "rarity": "rare",
+            "maximum": 345
+        },
+        {
+            "level": 36,
+            "rarity": "epic",
+            "maximum": 385
+        },
+        {
+            "level": 36,
+            "rarity": "legendary",
+            "maximum": 425
+        },
+        {
+            "level": 36,
+            "rarity": "mythic",
+            "maximum": 470
+        },
+        {
+            "level": 37,
+            "rarity": "common",
+            "maximum": 270
+        },
+        {
+            "level": 37,
+            "rarity": "uncommon",
+            "maximum": 305
+        },
+        {
+            "level": 37,
+            "rarity": "rare",
+            "maximum": 345
+        },
+        {
+            "level": 37,
+            "rarity": "epic",
+            "maximum": 385
+        },
+        {
+            "level": 37,
+            "rarity": "legendary",
+            "maximum": 425
+        },
+        {
+            "level": 37,
+            "rarity": "mythic",
+            "maximum": 470
+        },
+        {
+            "level": 38,
+            "rarity": "common",
+            "maximum": 270
+        },
+        {
+            "level": 38,
+            "rarity": "uncommon",
+            "maximum": 305
+        },
+        {
+            "level": 38,
+            "rarity": "rare",
+            "maximum": 345
+        },
+        {
+            "level": 38,
+            "rarity": "epic",
+            "maximum": 385
+        },
+        {
+            "level": 38,
+            "rarity": "legendary",
+            "maximum": 425
+        },
+        {
+            "level": 38,
+            "rarity": "mythic",
+            "maximum": 470
+        },
+        {
+            "level": 39,
+            "rarity": "common",
+            "maximum": 270
+        },
+        {
+            "level": 39,
+            "rarity": "uncommon",
+            "maximum": 305
+        },
+        {
+            "level": 39,
+            "rarity": "rare",
+            "maximum": 345
+        },
+        {
+            "level": 39,
+            "rarity": "epic",
+            "maximum": 385
+        },
+        {
+            "level": 39,
+            "rarity": "legendary",
+            "maximum": 425
+        },
+        {
+            "level": 39,
+            "rarity": "mythic",
+            "maximum": 470
+        },
+        {
+            "level": 40,
+            "rarity": "common",
+            "maximum": 330
+        },
+        {
+            "level": 40,
+            "rarity": "uncommon",
+            "maximum": 370
+        },
+        {
+            "level": 40,
+            "rarity": "rare",
+            "maximum": 410
+        },
+        {
+            "level": 40,
+            "rarity": "epic",
+            "maximum": 455
+        },
+        {
+            "level": 40,
+            "rarity": "legendary",
+            "maximum": 505
+        },
+        {
+            "level": 40,
+            "rarity": "mythic",
+            "maximum": 555
+        },
+        {
+            "level": 41,
+            "rarity": "common",
+            "maximum": 330
+        },
+        {
+            "level": 41,
+            "rarity": "uncommon",
+            "maximum": 370
+        },
+        {
+            "level": 41,
+            "rarity": "rare",
+            "maximum": 410
+        },
+        {
+            "level": 41,
+            "rarity": "epic",
+            "maximum": 455
+        },
+        {
+            "level": 41,
+            "rarity": "legendary",
+            "maximum": 505
+        },
+        {
+            "level": 41,
+            "rarity": "mythic",
+            "maximum": 555
+        },
+        {
+            "level": 42,
+            "rarity": "common",
+            "maximum": 330
+        },
+        {
+            "level": 42,
+            "rarity": "uncommon",
+            "maximum": 370
+        },
+        {
+            "level": 42,
+            "rarity": "rare",
+            "maximum": 410
+        },
+        {
+            "level": 42,
+            "rarity": "epic",
+            "maximum": 455
+        },
+        {
+            "level": 42,
+            "rarity": "legendary",
+            "maximum": 505
+        },
+        {
+            "level": 42,
+            "rarity": "mythic",
+            "maximum": 555
+        },
+        {
+            "level": 43,
+            "rarity": "common",
+            "maximum": 330
+        },
+        {
+            "level": 43,
+            "rarity": "uncommon",
+            "maximum": 370
+        },
+        {
+            "level": 43,
+            "rarity": "rare",
+            "maximum": 410
+        },
+        {
+            "level": 43,
+            "rarity": "epic",
+            "maximum": 455
+        },
+        {
+            "level": 43,
+            "rarity": "legendary",
+            "maximum": 505
+        },
+        {
+            "level": 43,
+            "rarity": "mythic",
+            "maximum": 555
+        },
+        {
+            "level": 44,
+            "rarity": "common",
+            "maximum": 330
+        },
+        {
+            "level": 44,
+            "rarity": "uncommon",
+            "maximum": 370
+        },
+        {
+            "level": 44,
+            "rarity": "rare",
+            "maximum": 410
+        },
+        {
+            "level": 44,
+            "rarity": "epic",
+            "maximum": 455
+        },
+        {
+            "level": 44,
+            "rarity": "legendary",
+            "maximum": 505
+        },
+        {
+            "level": 44,
+            "rarity": "mythic",
+            "maximum": 555
+        },
+        {
+            "level": 45,
+            "rarity": "common",
+            "maximum": 330
+        },
+        {
+            "level": 45,
+            "rarity": "uncommon",
+            "maximum": 370
+        },
+        {
+            "level": 45,
+            "rarity": "rare",
+            "maximum": 410
+        },
+        {
+            "level": 45,
+            "rarity": "epic",
+            "maximum": 455
+        },
+        {
+            "level": 45,
+            "rarity": "legendary",
+            "maximum": 505
+        },
+        {
+            "level": 45,
+            "rarity": "mythic",
+            "maximum": 555
+        },
+        {
+            "level": 46,
+            "rarity": "common",
+            "maximum": 330
+        },
+        {
+            "level": 46,
+            "rarity": "uncommon",
+            "maximum": 370
+        },
+        {
+            "level": 46,
+            "rarity": "rare",
+            "maximum": 410
+        },
+        {
+            "level": 46,
+            "rarity": "epic",
+            "maximum": 455
+        },
+        {
+            "level": 46,
+            "rarity": "legendary",
+            "maximum": 505
+        },
+        {
+            "level": 46,
+            "rarity": "mythic",
+            "maximum": 555
+        },
+        {
+            "level": 47,
+            "rarity": "common",
+            "maximum": 330
+        },
+        {
+            "level": 47,
+            "rarity": "uncommon",
+            "maximum": 370
+        },
+        {
+            "level": 47,
+            "rarity": "rare",
+            "maximum": 410
+        },
+        {
+            "level": 47,
+            "rarity": "epic",
+            "maximum": 455
+        },
+        {
+            "level": 47,
+            "rarity": "legendary",
+            "maximum": 505
+        },
+        {
+            "level": 47,
+            "rarity": "mythic",
+            "maximum": 555
+        },
+        {
+            "level": 48,
+            "rarity": "common",
+            "maximum": 330
+        },
+        {
+            "level": 48,
+            "rarity": "uncommon",
+            "maximum": 370
+        },
+        {
+            "level": 48,
+            "rarity": "rare",
+            "maximum": 410
+        },
+        {
+            "level": 48,
+            "rarity": "epic",
+            "maximum": 455
+        },
+        {
+            "level": 48,
+            "rarity": "legendary",
+            "maximum": 505
+        },
+        {
+            "level": 48,
+            "rarity": "mythic",
+            "maximum": 555
+        },
+        {
+            "level": 49,
+            "rarity": "common",
+            "maximum": 330
+        },
+        {
+            "level": 49,
+            "rarity": "uncommon",
+            "maximum": 370
+        },
+        {
+            "level": 49,
+            "rarity": "rare",
+            "maximum": 410
+        },
+        {
+            "level": 49,
+            "rarity": "epic",
+            "maximum": 455
+        },
+        {
+            "level": 49,
+            "rarity": "legendary",
+            "maximum": 505
+        },
+        {
+            "level": 49,
+            "rarity": "mythic",
+            "maximum": 555
+        },
+        {
+            "level": 50,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 50,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 50,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 50,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 50,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 50,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 51,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 51,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 51,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 51,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 51,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 51,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 52,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 52,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 52,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 52,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 52,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 52,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 53,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 53,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 53,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 53,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 53,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 53,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 54,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 54,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 54,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 54,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 54,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 54,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 55,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 55,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 55,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 55,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 55,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 55,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 56,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 56,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 56,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 56,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 56,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 56,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 57,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 57,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 57,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 57,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 57,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 57,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 58,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 58,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 58,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 58,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 58,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 58,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 59,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 59,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 59,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 59,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 59,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 59,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 60,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 60,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 60,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 60,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 60,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 60,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 61,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 61,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 61,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 61,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 61,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 61,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 62,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 62,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 62,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 62,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 62,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 62,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 63,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 63,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 63,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 63,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 63,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 63,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 64,
+            "rarity": "common",
+            "maximum": 395
+        },
+        {
+            "level": 64,
+            "rarity": "uncommon",
+            "maximum": 440
+        },
+        {
+            "level": 64,
+            "rarity": "rare",
+            "maximum": 485
+        },
+        {
+            "level": 64,
+            "rarity": "epic",
+            "maximum": 535
+        },
+        {
+            "level": 64,
+            "rarity": "legendary",
+            "maximum": 590
+        },
+        {
+            "level": 64,
+            "rarity": "mythic",
+            "maximum": 645
+        },
+        {
+            "level": 65,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 65,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 65,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 65,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 65,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 65,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 66,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 66,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 66,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 66,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 66,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 66,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 67,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 67,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 67,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 67,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 67,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 67,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 68,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 68,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 68,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 68,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 68,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 68,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 69,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 69,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 69,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 69,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 69,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 69,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 70,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 70,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 70,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 70,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 70,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 70,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 71,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 71,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 71,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 71,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 71,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 71,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 72,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 72,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 72,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 72,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 72,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 72,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 73,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 73,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 73,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 73,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 73,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 73,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 74,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 74,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 74,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 74,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 74,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 74,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 75,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 75,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 75,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 75,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 75,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 75,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 76,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 76,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 76,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 76,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 76,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 76,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 77,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 77,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 77,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 77,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 77,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 77,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 78,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 78,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 78,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 78,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 78,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 78,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 79,
+            "rarity": "common",
+            "maximum": 465
+        },
+        {
+            "level": 79,
+            "rarity": "uncommon",
+            "maximum": 515
+        },
+        {
+            "level": 79,
+            "rarity": "rare",
+            "maximum": 570
+        },
+        {
+            "level": 79,
+            "rarity": "epic",
+            "maximum": 625
+        },
+        {
+            "level": 79,
+            "rarity": "legendary",
+            "maximum": 685
+        },
+        {
+            "level": 79,
+            "rarity": "mythic",
+            "maximum": 750
+        },
+        {
+            "level": 80,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 80,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 80,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 80,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 80,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 80,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 81,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 81,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 81,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 81,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 81,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 81,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 82,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 82,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 82,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 82,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 82,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 82,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 83,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 83,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 83,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 83,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 83,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 83,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 84,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 84,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 84,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 84,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 84,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 84,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 85,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 85,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 85,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 85,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 85,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 85,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 86,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 86,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 86,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 86,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 86,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 86,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 87,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 87,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 87,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 87,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 87,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 87,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 88,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 88,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 88,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 88,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 88,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 88,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 89,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 89,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 89,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 89,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 89,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 89,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 90,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 90,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 90,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 90,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 90,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 90,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 91,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 91,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 91,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 91,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 91,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 91,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 92,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 92,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 92,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 92,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 92,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 92,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 93,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 93,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 93,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 93,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 93,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 93,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 94,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 94,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 94,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 94,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 94,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 94,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 95,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 95,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 95,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 95,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 95,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 95,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 96,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 96,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 96,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 96,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 96,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 96,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 97,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 97,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 97,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 97,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 97,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 97,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 98,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 98,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 98,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 98,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 98,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 98,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 99,
+            "rarity": "common",
+            "maximum": 550
+        },
+        {
+            "level": 99,
+            "rarity": "uncommon",
+            "maximum": 605
+        },
+        {
+            "level": 99,
+            "rarity": "rare",
+            "maximum": 665
+        },
+        {
+            "level": 99,
+            "rarity": "epic",
+            "maximum": 725
+        },
+        {
+            "level": 99,
+            "rarity": "legendary",
+            "maximum": 795
+        },
+        {
+            "level": 99,
+            "rarity": "mythic",
+            "maximum": 870
+        },
+        {
+            "level": 100,
+            "rarity": "common",
+            "maximum": 640
+        },
+        {
+            "level": 100,
+            "rarity": "uncommon",
+            "maximum": 700
+        },
+        {
+            "level": 100,
+            "rarity": "rare",
+            "maximum": 770
+        },
+        {
+            "level": 100,
+            "rarity": "epic",
+            "maximum": 840
+        },
+        {
+            "level": 100,
+            "rarity": "legendary",
+            "maximum": 915
+        },
+        {
+            "level": 100,
+            "rarity": "mythic",
+            "maximum": 1000
+        }
+    ]
+}

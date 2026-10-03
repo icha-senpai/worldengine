@@ -1,0 +1,154 @@
+{
+  "fishing": {
+    "signature": "Tidehook Memory",
+    "discipline": "Moonwake Linecraft"
+  },
+  "mining": {
+    "signature": "Seam-Sense Strike",
+    "discipline": "Emberdeep Veincraft"
+  },
+  "woodcutting": {
+    "signature": "Heartwood Reading",
+    "discipline": "Whisperbough Axecraft"
+  },
+  "foraging": {
+    "signature": "Glimmerfen Eye",
+    "discipline": "Trailwise Gathering"
+  },
+  "hunting": {
+    "signature": "Quiet Snare Pattern",
+    "discipline": "Briarwake Tracking"
+  },
+  "farming": {
+    "signature": "Seedbed Rhythm",
+    "discipline": "Sunfield Cultivation"
+  },
+  "excavation": {
+    "signature": "Relic Dust Tuning",
+    "discipline": "Old-Road Surveying"
+  },
+  "smelting": {
+    "signature": "Coalbed Heat Sense",
+    "discipline": "Forgehall Crucible Work"
+  },
+  "milling": {
+    "signature": "True-Grain Plane",
+    "discipline": "Millhouse Joinery"
+  },
+  "tanning": {
+    "signature": "Soft-Cure Timing",
+    "discipline": "Briarwake Hidework"
+  },
+  "cutting": {
+    "signature": "Facetline Focus",
+    "discipline": "Gemcutter Row Precision"
+  },
+  "weaving": {
+    "signature": "Loom-Tension Read",
+    "discipline": "Sunfield Threadwork"
+  },
+  "smithing": {
+    "signature": "Anvil Echo",
+    "discipline": "Moonwake Hammercraft"
+  },
+  "carpentry": {
+    "signature": "Joinery Bite",
+    "discipline": "Whisperbough Woodwrighting"
+  },
+  "cooking": {
+    "signature": "Hearth-Salt Balance",
+    "discipline": "Moonwake Provisioning"
+  },
+  "alchemy": {
+    "signature": "Stillroom Bloom",
+    "discipline": "Glimmerfen Reagent Work"
+  },
+  "tailoring": {
+    "signature": "Pattern-Keeper Stitch",
+    "discipline": "Sunfield Clothcraft"
+  },
+  "leatherworking": {
+    "signature": "Awlmark Binding",
+    "discipline": "Briarwake Leathercraft"
+  },
+  "engineering": {
+    "signature": "Clocktooth Alignment",
+    "discipline": "Gearwright Calibration"
+  },
+  "enchanting": {
+    "signature": "Ward-Oil Resonance",
+    "discipline": "Moon Ward Infusion"
+  },
+  "jewelcrafting": {
+    "signature": "Setting Spark",
+    "discipline": "Gemcutter Setting Work"
+  },
+  "boatbuilding": {
+    "signature": "Keelcurve Measure",
+    "discipline": "Moonwake Shipwrighting"
+  },
+  "furniture": {
+    "signature": "Varnish Depth",
+    "discipline": "Oathhall Finishwork"
+  },
+  "construction": {
+    "signature": "Loadstone Plumb",
+    "discipline": "Settlement Framecraft"
+  },
+  "combat": {
+    "signature": "Ring-Step Tempo",
+    "discipline": "Moonwake Blade Drill"
+  },
+  "slayer": {
+    "signature": "Marked Quarry Instinct",
+    "discipline": "Bounty Board Pursuit"
+  },
+  "defense": {
+    "signature": "Shieldline Anchor",
+    "discipline": "Old Gate Guardwork"
+  },
+  "healing": {
+    "signature": "Steady Hand Round",
+    "discipline": "Infirmary Fieldcare"
+  },
+  "magic": {
+    "signature": "Focus-Flare Control",
+    "discipline": "Moon Ward Channeling"
+  },
+  "ranged": {
+    "signature": "High-Perch Aim",
+    "discipline": "Range Trial Marksmanship"
+  },
+  "exploration": {
+    "signature": "Hidden Mile Sense",
+    "discipline": "Scout Route Reading"
+  },
+  "dungeoneering": {
+    "signature": "Vaultstep Caution",
+    "discipline": "Lower Vault Delving"
+  },
+  "sailing": {
+    "signature": "Stormbreak Bearing",
+    "discipline": "Channel Navigation"
+  },
+  "survival": {
+    "signature": "Cold-Camp Resolve",
+    "discipline": "Wild Circuit Endurance"
+  },
+  "cartography": {
+    "signature": "Ridge-Line Draft",
+    "discipline": "Surveyor Mapwork"
+  },
+  "reputation": {
+    "signature": "Council Seal Grace",
+    "discipline": "Faction Representation"
+  },
+  "leadership": {
+    "signature": "Muster Banner Pull",
+    "discipline": "Crew Coordination"
+  },
+  "trading": {
+    "signature": "Ledger Margin Read",
+    "discipline": "Regional Brokerage"
+  }
+}
