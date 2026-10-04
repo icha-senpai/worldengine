@@ -1,0 +1,56 @@
+{
+  "version": 4,
+  "method": "both-species-relative-length-and-weight",
+  "tiers": [
+    {
+      "rarity": "F",
+      "minimumLengthMillionths": 0,
+      "minimumWeightMillionths": 0
+    },
+    {
+      "rarity": "D",
+      "minimumLengthMillionths": 750000,
+      "minimumWeightMillionths": 421875
+    },
+    {
+      "rarity": "C",
+      "minimumLengthMillionths": 900000,
+      "minimumWeightMillionths": 729000
+    },
+    {
+      "rarity": "B",
+      "minimumLengthMillionths": 1000000,
+      "minimumWeightMillionths": 1000000
+    },
+    {
+      "rarity": "A",
+      "minimumLengthMillionths": 1150000,
+      "minimumWeightMillionths": 1520875
+    },
+    {
+      "rarity": "S",
+      "minimumLengthMillionths": 1300000,
+      "minimumWeightMillionths": 2197000
+    },
+    {
+      "rarity": "SS",
+      "minimumLengthMillionths": 1450000,
+      "minimumWeightMillionths": 3048625
+    },
+    {
+      "rarity": "SSS",
+      "minimumLengthMillionths": 1600000,
+      "minimumWeightMillionths": 4096000
+    },
+    {
+      "rarity": "UR",
+      "minimumLengthMillionths": 1750000,
+      "minimumWeightMillionths": 5359375
+    },
+    {
+      "rarity": "UUR",
+      "minimumLengthMillionths": 1850000,
+      "minimumWeightMillionths": 6331625
+    }
+  ]
+}

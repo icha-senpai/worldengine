@@ -1,0 +1,127 @@
+{
+  "version": 4,
+  "levelCap": 60,
+  "biomes": [
+    {
+      "biomeId": 1,
+      "key": "meadow-pond",
+      "name": "Meadow Pond",
+      "minimumLevel": 1,
+      "requiredPower": 0,
+      "fishWeight": 86,
+      "junkWeight": 12,
+      "treasureWeight": 2,
+      "description": "Quiet banks, garden fish, and small freshwater discoveries."
+    },
+    {
+      "biomeId": 2,
+      "key": "whispering-river",
+      "name": "Whispering River",
+      "minimumLevel": 5,
+      "requiredPower": 10,
+      "fishWeight": 83,
+      "junkWeight": 13,
+      "treasureWeight": 4,
+      "description": "Moving water, trout, powerful predators, and storm-touched fish."
+    },
+    {
+      "biomeId": 3,
+      "key": "hollow-marsh",
+      "name": "Hollow Marsh",
+      "minimumLevel": 10,
+      "requiredPower": 20,
+      "fishWeight": 77,
+      "junkWeight": 18,
+      "treasureWeight": 5,
+      "description": "Reedy pools, heavy bottom dwellers, and haunting autumn finds."
+    },
+    {
+      "biomeId": 4,
+      "key": "moonlit-lake",
+      "name": "Moonlit Lake",
+      "minimumLevel": 18,
+      "requiredPower": 35,
+      "fishWeight": 84,
+      "junkWeight": 11,
+      "treasureWeight": 5,
+      "description": "Moonlit water, luminous fish, and otherworldly visitors."
+    },
+    {
+      "biomeId": 5,
+      "key": "sunken-coast",
+      "name": "Sunken Coast",
+      "minimumLevel": 28,
+      "requiredPower": 50,
+      "fishWeight": 80,
+      "junkWeight": 13,
+      "treasureWeight": 7,
+      "description": "Reefs, tidal shallows, shellfish, and open-water giants."
+    },
+    {
+      "biomeId": 6,
+      "key": "glacial-reach",
+      "name": "Glacial Reach",
+      "minimumLevel": 40,
+      "requiredPower": 65,
+      "fishWeight": 83,
+      "junkWeight": 12,
+      "treasureWeight": 5,
+      "description": "Frozen channels, crystalline shoals, and ancient icebound fish."
+    },
+    {
+      "biomeId": 7,
+      "key": "abyssal-shelf",
+      "name": "Abyssal Shelf",
+      "minimumLevel": 55,
+      "requiredPower": 85,
+      "fishWeight": 78,
+      "junkWeight": 14,
+      "treasureWeight": 8,
+      "description": "Deep ocean trenches and volcanic vents shelter the rarest discoveries."
+    }
+  ],
+  "rods": [
+    {
+      "rodId": 1,
+      "name": "Twig Rod",
+      "power": 1,
+      "minimumLevel": 1
+    },
+    {
+      "rodId": 2,
+      "name": "River Rod",
+      "power": 10,
+      "minimumLevel": 5
+    },
+    {
+      "rodId": 3,
+      "name": "Marsh Rod",
+      "power": 20,
+      "minimumLevel": 10
+    },
+    {
+      "rodId": 4,
+      "name": "Moonwood Rod",
+      "power": 35,
+      "minimumLevel": 18
+    },
+    {
+      "rodId": 5,
+      "name": "Tide Rod",
+      "power": 50,
+      "minimumLevel": 28
+    },
+    {
+      "rodId": 6,
+      "name": "Glacial Rod",
+      "power": 65,
+      "minimumLevel": 40
+    },
+    {
+      "rodId": 7,
+      "name": "Abyssal Rod",
+      "power": 85,
+      "minimumLevel": 55
+    }
+  ]
+}

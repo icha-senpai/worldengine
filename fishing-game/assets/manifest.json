@@ -1,0 +1,2095 @@
+{
+  "version": 1,
+  "fish": [
+    {
+      "key": "anchovy",
+      "url": "/fish/anchovy.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 338,
+      "sha256": "40923ac858ac245803d0ddc52416d154fdc44ffb2534f836847493e15f4720f5"
+    },
+    {
+      "key": "ancient-iced-coelacanth",
+      "url": "/fish/ancient-iced-coelacanth.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 590,
+      "sha256": "4474e4a13cc66863e72030946a05f5461290417a14e73f4fbadc3d02be846d96"
+    },
+    {
+      "key": "ancient-sturgeon",
+      "url": "/fish/ancient-sturgeon.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 557,
+      "sha256": "2ed1283fb43f87f25b9066de80130cc8a0254edeec49a38e5cb756a6fe7c4733"
+    },
+    {
+      "key": "angelfish",
+      "url": "/fish/angelfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 476,
+      "sha256": "f82756c288eed2976522b53767b7eca61f67485948c1a4a31d816b03a47ada5b"
+    },
+    {
+      "key": "ash-trout",
+      "url": "/fish/ash-trout.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3136,
+      "sha256": "d16584ea5927d5d06f079684c8dea6ea20dc93d0b37cbe9c844d4b275faa8d8d"
+    },
+    {
+      "key": "aurora-frostfin",
+      "url": "/fish/aurora-frostfin.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 8267,
+      "sha256": "56797918eabd8c961f36fd0e5e18f38a1721b596ab9b753a156788e584e607b4"
+    },
+    {
+      "key": "aurora-fry",
+      "url": "/fish/aurora-fry.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 493,
+      "sha256": "0bd81019312515459fb5551f8764ac38a8b2c7410f1f7e9945c52f36a6aba24d"
+    },
+    {
+      "key": "basalt-blowfish",
+      "url": "/fish/basalt-blowfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3164,
+      "sha256": "c3595dfd5e30a063fb4721f3f04b507666c0aaf46e30f84ea6b9d8464adbc522"
+    },
+    {
+      "key": "bass",
+      "url": "/fish/bass.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 413,
+      "sha256": "91aa65c7111a6760216d4fe416d60d8cdacf6ca86fec50fffc24b36b1cc2d54a"
+    },
+    {
+      "key": "batfin",
+      "url": "/fish/batfin.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 9162,
+      "sha256": "4854ebd4a4262b9a79f70471917b8487b8f1c775b84bd9c4dea5f0a0ccb4acb9"
+    },
+    {
+      "key": "betta-fish",
+      "url": "/fish/betta-fish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 451,
+      "sha256": "82ba5595359895ad37f3f73c967e374e2a1d0f3ebf68f431457324ef4cc1820a"
+    },
+    {
+      "key": "big-mouth-bass",
+      "url": "/fish/big-mouth-bass.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 367,
+      "sha256": "866090fdb55a80df41ab01712d2f02ebe580fb29419eca446b0b51c5f8d0f3a8"
+    },
+    {
+      "key": "bitterling",
+      "url": "/fish/bitterling.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 388,
+      "sha256": "60562ec849fda69d48a4b8659fc8ab5ed4103d3546f7103aa51dca16b08e554b"
+    },
+    {
+      "key": "blaze-goby",
+      "url": "/fish/blaze-goby.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3075,
+      "sha256": "4bd5233f24772f487b9523dbaa38bbe6ba8ba492721d6fd5ec852420969d66fc"
+    },
+    {
+      "key": "blazing-coelacanth",
+      "url": "/fish/blazing-coelacanth.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 3297,
+      "sha256": "6ca86cbdd62e455ccb0a354a544e0bb3b982ea2d5d4feae53b5bf313171952cf"
+    },
+    {
+      "key": "blenny",
+      "url": "/fish/blenny.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 379,
+      "sha256": "148798c45b772e5b6d721f6b88f4761c2f09c962f05657147753aeb82918f8a1"
+    },
+    {
+      "key": "blobfish",
+      "url": "/fish/blobfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 422,
+      "sha256": "076b25d7ea0a11d9909cc073310512ba0fc73d4c51d4e9f5929ab378d0b73cd9"
+    },
+    {
+      "key": "blowfish",
+      "url": "/fish/blowfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 486,
+      "sha256": "33025fd523fdb34ff3c815b79f3ac49fc530f73fc31b7f84c0d3317054563fb2"
+    },
+    {
+      "key": "blue-crab",
+      "url": "/fish/blue-crab.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 757,
+      "sha256": "d5456e28c1dd48b1ca67fd6b99d1c8f68c977cef460b6387816ae10200df44c7"
+    },
+    {
+      "key": "blue-discus",
+      "url": "/fish/blue-discus.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1296,
+      "sha256": "248c08dedffb48f054b3f05ac07fdd2675a51af675b876f373342afe2134b693"
+    },
+    {
+      "key": "blue-marlin",
+      "url": "/fish/blue-marlin.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 535,
+      "sha256": "f14b80b9b5df27f59c67d21f2a29700fee0dbeb0c9bb732fbc4920771207368f"
+    },
+    {
+      "key": "blue-slimefish",
+      "url": "/fish/blue-slimefish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 1522,
+      "sha256": "fa6192a7d959dc184ded5535c2418f95613abc775396248e4f139b587cef4b96"
+    },
+    {
+      "key": "blue-tang",
+      "url": "/fish/blue-tang.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 371,
+      "sha256": "334f8b52ff079b43958c23c1bd2988aaca8001a3fb98288c89804f863547fdcd"
+    },
+    {
+      "key": "bluegill",
+      "url": "/fish/bluegill.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 504,
+      "sha256": "edc1308e2f1bcf72f6a6fe46ca8b6339e957302ce242636c6625e989a7ba34e9"
+    },
+    {
+      "key": "blueglass",
+      "url": "/fish/blueglass.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 416,
+      "sha256": "cb98958446c53dcbda7f6ebcc5defd1e8c1010676965ff3c92a716d2b52dcbd2"
+    },
+    {
+      "key": "bowfin",
+      "url": "/fish/bowfin.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 423,
+      "sha256": "7550ff2ba7690ddd0248723016397bf00a7ae536292842f4aa8066bee6d300fc"
+    },
+    {
+      "key": "bream",
+      "url": "/fish/bream.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 405,
+      "sha256": "b893890e7d3475dc3a705a00ae9217360fda2ff7c66b323c019f14dc086dcfab"
+    },
+    {
+      "key": "brook-trout",
+      "url": "/fish/brook-trout.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 479,
+      "sha256": "d8175e56786a15d521bbb0c8eb2d5e51392a3ed2b53fb9c277b5e5c31741af75"
+    },
+    {
+      "key": "brown-ray",
+      "url": "/fish/brown-ray.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 399,
+      "sha256": "fca77dccdb1c7fe905cc7b5450c29cbfd4310330d2b2725ebc1f4542b7cc8cb2"
+    },
+    {
+      "key": "brown-trout",
+      "url": "/fish/brown-trout.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 371,
+      "sha256": "a2360ad448483095ec33b75822da7c0150c9d40aa3dc6363f6d6d78e69138dc4"
+    },
+    {
+      "key": "bullhead",
+      "url": "/fish/bullhead.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 423,
+      "sha256": "7550ff2ba7690ddd0248723016397bf00a7ae536292842f4aa8066bee6d300fc"
+    },
+    {
+      "key": "burbot",
+      "url": "/fish/burbot.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 423,
+      "sha256": "7550ff2ba7690ddd0248723016397bf00a7ae536292842f4aa8066bee6d300fc"
+    },
+    {
+      "key": "burnfish",
+      "url": "/fish/burnfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3021,
+      "sha256": "eff41df1b55caced751fc3cfcc9aba308135ece181d3f1088cb3bc299758908f"
+    },
+    {
+      "key": "burning-bluegil",
+      "url": "/fish/burning-bluegil.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3169,
+      "sha256": "6f565d113bcc83c4c1697febeec1a7585483846a8f62ec4a6f030610d756ee65"
+    },
+    {
+      "key": "burning-slimefish",
+      "url": "/fish/burning-slimefish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 4169,
+      "sha256": "4dbd1d3985803823e0b3fc858143754fcf92cf6e27dd80b2d38c34671fe24c76"
+    },
+    {
+      "key": "candycorn-minnow",
+      "url": "/fish/candycorn-minnow.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 6735,
+      "sha256": "42fc90418f6afbe53dc533547b2847706a0a9b4c94524ee0f9ff9b1720ec5c06"
+    },
+    {
+      "key": "carp",
+      "url": "/fish/carp.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 415,
+      "sha256": "4454cabb5e6539a2d0585a1514151b5b3d0e95367d2a78e001d237bf2bee21a0"
+    },
+    {
+      "key": "catfish",
+      "url": "/fish/catfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 435,
+      "sha256": "764ab91264db306861b66ff404667ee84771286151bfee0f122d68892b5e750e"
+    },
+    {
+      "key": "channel-catfish",
+      "url": "/fish/channel-catfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 435,
+      "sha256": "764ab91264db306861b66ff404667ee84771286151bfee0f122d68892b5e750e"
+    },
+    {
+      "key": "chillscale-fry",
+      "url": "/fish/chillscale-fry.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 465,
+      "sha256": "971b43e2bce1e253b006353390b1e56b75da96af77f6e596ef54b1a3f527e3cb"
+    },
+    {
+      "key": "chromis",
+      "url": "/fish/chromis.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 417,
+      "sha256": "057a222f7e95bc65a162fde21e6ebc9b4c29f0520ba9a856aa4b33ba0e29aded"
+    },
+    {
+      "key": "cinder-loach",
+      "url": "/fish/cinder-loach.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3089,
+      "sha256": "ae2715e2b36bfeef302fb2413de78728f3f3912b1892d6532f681b67a21a3fed"
+    },
+    {
+      "key": "cinderling-guppy",
+      "url": "/fish/cinderling-guppy.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3126,
+      "sha256": "f1aa07be4d9ddb66a948f568d99d4cbf8bab34538b5a6c660a404938de4db6eb"
+    },
+    {
+      "key": "cinderling",
+      "url": "/fish/cinderling.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 464,
+      "sha256": "244a69f72acc949ff6c40a129f452a5711ed6469858f4265e45c3486902c2403"
+    },
+    {
+      "key": "cloudfish",
+      "url": "/fish/cloudfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 411,
+      "sha256": "c4f84305ef4eaf7aa3f70db2107ceb063d7e63794926b2404f2fcb3cda8c10a9"
+    },
+    {
+      "key": "clownfish",
+      "url": "/fish/clownfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 365,
+      "sha256": "2a977c2634bbcfb89a7af249577653e6a7ab864a69751b32914c21b8190e1e88"
+    },
+    {
+      "key": "cobweb-carp",
+      "url": "/fish/cobweb-carp.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 10333,
+      "sha256": "9e08fcd550879268bc34b92d4013909edba5c4cee1f4bd47ba27cae5b02e5ba4"
+    },
+    {
+      "key": "cod",
+      "url": "/fish/cod.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 387,
+      "sha256": "982bc96c91e0c0597e13a2a5da9bce229439393c05bc9245ebe803ae0203c0ac"
+    },
+    {
+      "key": "coelacanth",
+      "url": "/fish/coelacanth.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 570,
+      "sha256": "787a7318bdb58c24752ad39f79863e8a6fa82516d9d23de5130e140cc625ce92"
+    },
+    {
+      "key": "coldmist",
+      "url": "/fish/coldmist.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 461,
+      "sha256": "0d0304d4e4e83c75604913f1e5dd744f1333b2137ccf54e5beb218573f85bf63"
+    },
+    {
+      "key": "coral-fish",
+      "url": "/fish/coral-fish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 431,
+      "sha256": "a794a5cac6e7c148fd838c7e0b7aa721706ff34517bdece8616553cae7cdd285"
+    },
+    {
+      "key": "corecracker-carp",
+      "url": "/fish/corecracker-carp.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3087,
+      "sha256": "f5eab3753b36d2ff0f8be3e20a6cb84a82be85e891a1a1c6d094258acb18849f"
+    },
+    {
+      "key": "crackle-perch",
+      "url": "/fish/crackle-perch.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3108,
+      "sha256": "77c1d740cbdab19c4cff277ef91788287099909c84a8eeb6abb2639e974ed521"
+    },
+    {
+      "key": "crappie",
+      "url": "/fish/crappie.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 392,
+      "sha256": "a687e97a1b03f9e1b015f4a466c552f42891aa8026c0ba75052249cdcafcc970"
+    },
+    {
+      "key": "creek-chub",
+      "url": "/fish/creek-chub.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 392,
+      "sha256": "a687e97a1b03f9e1b015f4a466c552f42891aa8026c0ba75052249cdcafcc970"
+    },
+    {
+      "key": "croaker",
+      "url": "/fish/croaker.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 415,
+      "sha256": "4454cabb5e6539a2d0585a1514151b5b3d0e95367d2a78e001d237bf2bee21a0"
+    },
+    {
+      "key": "crucean-carp",
+      "url": "/fish/crucean-carp.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 405,
+      "sha256": "b893890e7d3475dc3a705a00ae9217360fda2ff7c66b323c019f14dc086dcfab"
+    },
+    {
+      "key": "crystal-eel",
+      "url": "/fish/crystal-eel.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 342,
+      "sha256": "edb40593db2d61539b30eb124d52cd58cdbb765e0a86b561316c31d24e210d67"
+    },
+    {
+      "key": "crystalstinger",
+      "url": "/fish/crystalstinger.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 372,
+      "sha256": "6fd9a65728dce87872528d57441a2bec97801fcd7e8b9cb1f31c3d30158db2d0"
+    },
+    {
+      "key": "dace",
+      "url": "/fish/dace.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 445,
+      "sha256": "55f7eb4a678bf8e99aad614f1f6de51e4f92c64af4715318419549088007bb43"
+    },
+    {
+      "key": "damselfish",
+      "url": "/fish/damselfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 343,
+      "sha256": "50a75e765232bdc2f92e35f80d3de913ef83d1f0a1d051bb71a5ee89f116fe6f"
+    },
+    {
+      "key": "deep-anglerfish",
+      "url": "/fish/deep-anglerfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 354,
+      "sha256": "d356cfec6837bd0f1444fa44d324f99cdd17b7225bf698e96d74415227f47f04"
+    },
+    {
+      "key": "deepwinter-catfish",
+      "url": "/fish/deepwinter-catfish.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 531,
+      "sha256": "e7c4cb4532dde6da2df70e35673064c94c4990470d1b933a612f9e78fd42c3ce"
+    },
+    {
+      "key": "dorado",
+      "url": "/fish/dorado.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 649,
+      "sha256": "3a99ce342d7eeb314a9e74c17ce8bdf1e2a750921a7bfff77178b80c6fc9117d"
+    },
+    {
+      "key": "dragonfish",
+      "url": "/fish/dragonfish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 2601,
+      "sha256": "8d021d8f438e6ba4defeff47a1f7aa55c6397747e714b53cc528452711e39ff6"
+    },
+    {
+      "key": "drum",
+      "url": "/fish/drum.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 387,
+      "sha256": "982bc96c91e0c0597e13a2a5da9bce229439393c05bc9245ebe803ae0203c0ac"
+    },
+    {
+      "key": "dungeness-crab",
+      "url": "/fish/dungeness-crab.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 757,
+      "sha256": "d5456e28c1dd48b1ca67fd6b99d1c8f68c977cef460b6387816ae10200df44c7"
+    },
+    {
+      "key": "duskbite",
+      "url": "/fish/duskbite.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 416,
+      "sha256": "d470e83d37a6d0f7b964ecf2c6622af9b1d0f6da8502ba8079c78932cdaaa4a5"
+    },
+    {
+      "key": "eel",
+      "url": "/fish/eel.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 436,
+      "sha256": "bb86ced829c76776a00ff5191e6acd6ff65fe538a522301b3b855f089f9353cf"
+    },
+    {
+      "key": "ember-minnow",
+      "url": "/fish/ember-minnow.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3052,
+      "sha256": "3f17c175340350220aac348d3872e0b0e6f06dfdfa82ec49a429edfe425edb5f"
+    },
+    {
+      "key": "ember-platy",
+      "url": "/fish/ember-platy.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3058,
+      "sha256": "44cc3b74518872ac14eb1eb6c76c955682dd00e77d27740c61c097c2bed39ca1"
+    },
+    {
+      "key": "fallfish",
+      "url": "/fish/fallfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 405,
+      "sha256": "b893890e7d3475dc3a705a00ae9217360fda2ff7c66b323c019f14dc086dcfab"
+    },
+    {
+      "key": "fathead-minnow",
+      "url": "/fish/fathead-minnow.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 351,
+      "sha256": "9e749515e02a33a04ce7874450a6f2ab1e692e155b71824775e928d7c361dbde"
+    },
+    {
+      "key": "fihs",
+      "url": "/fish/fihs.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 748,
+      "sha256": "2c30102063c48e1446da15cfa4422e80fb0195c60b6624ebea983c02b789b793"
+    },
+    {
+      "key": "fire-tuna",
+      "url": "/fish/fire-tuna.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 3317,
+      "sha256": "54fb9af09e4ea69c6de8d92dac333e1e835b4cee7f657730416f0686daf8593e"
+    },
+    {
+      "key": "firefish",
+      "url": "/fish/firefish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 2521,
+      "sha256": "81998b9890d7bd1f42e39e94d6787fb53e921fa68aec45dd5f9f568001e509ee"
+    },
+    {
+      "key": "fish-toy",
+      "url": "/fish/fish-toy.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1663,
+      "sha256": "14fcac56b82565dbeaddc0d4839c04da6b25353a3111aa42592ecb813e913c89"
+    },
+    {
+      "key": "flamejaw-oarfish",
+      "url": "/fish/flamejaw-oarfish.png",
+      "width": 128,
+      "height": 64,
+      "bytes": 3465,
+      "sha256": "342a5fcf02322ca6a8388a79c7247f24f06ce773a665881f14105f05b33612c5"
+    },
+    {
+      "key": "flounder",
+      "url": "/fish/flounder.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 401,
+      "sha256": "54b03f5c47aa5ad41743e6f6dccacf7c7c3c70f604d8eb5aeefd14e4f8d21cd5"
+    },
+    {
+      "key": "flowstone-muskellunge",
+      "url": "/fish/flowstone-muskellunge.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 3337,
+      "sha256": "82253b1cada868570e0a06844c6308dd006183e883015ac750beb4121a8e4c23"
+    },
+    {
+      "key": "frostbelle",
+      "url": "/fish/frostbelle.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 428,
+      "sha256": "31b0be37fae33dd4cf3fe844d78c89a40b79cbcfb516e8f7200578f715b43a87"
+    },
+    {
+      "key": "frostbite",
+      "url": "/fish/frostbite.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 529,
+      "sha256": "7da602a4e3c99574b787ba0e638eef772fae12146f52658d88c068c8c52e3301"
+    },
+    {
+      "key": "frostcloak-squid",
+      "url": "/fish/frostcloak-squid.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 321,
+      "sha256": "29e0ad626c7d3df1de2f71ac3f9fd3c096b07d803daa7f21fc2f56916f0c9331"
+    },
+    {
+      "key": "frostfang",
+      "url": "/fish/frostfang.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 565,
+      "sha256": "288c72692b74b965a77efeb588fb4a81b06b27cd568dff0cf946abc27df15af2"
+    },
+    {
+      "key": "frostfin-minnow",
+      "url": "/fish/frostfin-minnow.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 389,
+      "sha256": "c1a37a5637b249151160e166cd9257dd30e97ec0fe662d7732568f4e4e9b056b"
+    },
+    {
+      "key": "frostglass-koi",
+      "url": "/fish/frostglass-koi.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 440,
+      "sha256": "df4b6cfc962affdbe3363c9011dd5a7ae184c3002eb120c4458e936cecded34e"
+    },
+    {
+      "key": "frostjaw-bass",
+      "url": "/fish/frostjaw-bass.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 416,
+      "sha256": "d3642122b18fb4561960130781237793554be08b59ac28b9125dba743435cc19"
+    },
+    {
+      "key": "frostveil-betta",
+      "url": "/fish/frostveil-betta.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 441,
+      "sha256": "c59bcbe6fe253ae2ba3dbe94b1ae11879bb29203d8caba40322cd741a3e6e3a1"
+    },
+    {
+      "key": "frosty-nyan-fish",
+      "url": "/fish/frosty-nyan-fish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 6887,
+      "sha256": "84a587a11c25d2710f8521cc1904c308553114d92dbe655a4ab43462fa98c9e1"
+    },
+    {
+      "key": "frozen-fangling",
+      "url": "/fish/frozen-fangling.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 407,
+      "sha256": "6c0fc9b636bf0c605745bbadbe35135474a07d8b74f64736adae2812bcb9497c"
+    },
+    {
+      "key": "frozen-loach",
+      "url": "/fish/frozen-loach.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 345,
+      "sha256": "9edffb6650300d082fe5f2828dc3ce9e241df8d45cdf941dd3fcf2c6e8679b42"
+    },
+    {
+      "key": "furnace-koi",
+      "url": "/fish/furnace-koi.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3081,
+      "sha256": "74a99e24881d058cbac7ee7ed800d4fc78aee44dbb6609500aeaadf8fd28955b"
+    },
+    {
+      "key": "galaxyscale",
+      "url": "/fish/galaxyscale.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 435,
+      "sha256": "4e28355c7ab0b6e3eecd63d1304615bc535b1d83f220350cb1c5db21a9886f25"
+    },
+    {
+      "key": "gar",
+      "url": "/fish/gar.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 584,
+      "sha256": "66e4180268ae8383a1311e3510f3c396e5d7a9d9beea5ba6056f5b58a3a413f8"
+    },
+    {
+      "key": "ghost-shiner",
+      "url": "/fish/ghost-shiner.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 7734,
+      "sha256": "c6abe76866b8d53fc8664de2d5ca6ae2152fca26b49671a7de262b81a9509b91"
+    },
+    {
+      "key": "giant-catfish",
+      "url": "/fish/giant-catfish.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 535,
+      "sha256": "8acc169a8604800eaceceecad1b7789029441731b73b23e516f46a9e0aea873a"
+    },
+    {
+      "key": "giant-crab",
+      "url": "/fish/giant-crab.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 757,
+      "sha256": "d5456e28c1dd48b1ca67fd6b99d1c8f68c977cef460b6387816ae10200df44c7"
+    },
+    {
+      "key": "glaciel-sturgeon",
+      "url": "/fish/glaciel-sturgeon.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 537,
+      "sha256": "4661caa7f76000f35f0d6f667124160654cf95255c053aa5a2280093b13c4758"
+    },
+    {
+      "key": "glacier-guppy",
+      "url": "/fish/glacier-guppy.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 402,
+      "sha256": "b16f69958e5a01ab501f8b2b13d8062b524c3d728f6f4407969d2abf9c2ab565"
+    },
+    {
+      "key": "glacier-maw",
+      "url": "/fish/glacier-maw.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 535,
+      "sha256": "a300d334999df7a067ead357913b4f1b8d52ae114a2dd53f3fc553e4bd36dd7c"
+    },
+    {
+      "key": "glacier-puffer",
+      "url": "/fish/glacier-puffer.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 423,
+      "sha256": "3e02f0476dd4b1afb35c989acca3648f361364eb5a4825e5898643adfad6cc9d"
+    },
+    {
+      "key": "glimmer-eel",
+      "url": "/fish/glimmer-eel.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 357,
+      "sha256": "7570bd03ccc26de8f832c12d264f8794eee1b3dee5d20cfd784d23e862e5311a"
+    },
+    {
+      "key": "golden-shiner",
+      "url": "/fish/golden-shiner.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 327,
+      "sha256": "122531c81a9d63a948b33c51c87fe8b16db6c97cf11d4acd055eb80d902f2c8c"
+    },
+    {
+      "key": "goldfish",
+      "url": "/fish/goldfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 408,
+      "sha256": "6486897f4b0ceb5352ab1ee83543a03c10d2a7916a20ff9455d745b36ad0e2ea"
+    },
+    {
+      "key": "goliath-grouper",
+      "url": "/fish/goliath-grouper.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 629,
+      "sha256": "11ba830250e751799c66f2a5e1c94138dfc58005a5970aa8cbf072bb15c2c668"
+    },
+    {
+      "key": "great-hellfin-shark",
+      "url": "/fish/great-hellfin-shark.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 3948,
+      "sha256": "7cccce73d45a8411699e5e740befb0b887f2ea94467843b54c4d589750a9081a"
+    },
+    {
+      "key": "great-white-shark",
+      "url": "/fish/great-white-shark.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 1900,
+      "sha256": "121248ee51d078ed5045b889456a90b95e4cc45d7a1c3dddca50d4cb4303c61b"
+    },
+    {
+      "key": "green-tropic-fish",
+      "url": "/fish/green-tropic-fish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 306,
+      "sha256": "7220d215ce70f464b746c7a7a57113c925dac1140cd038b59e3594b32e7061ce"
+    },
+    {
+      "key": "grunt",
+      "url": "/fish/grunt.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 447,
+      "sha256": "e876fee0061f79ce6eee2ae675133b6e365c993111fa7169d88a6e555b117e6c"
+    },
+    {
+      "key": "gudgeon",
+      "url": "/fish/gudgeon.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 409,
+      "sha256": "4880a78530461f0cc7260bace328ba0c77561ef4c426e54a7e2eaa349ad8ce0d"
+    },
+    {
+      "key": "guppy",
+      "url": "/fish/guppy.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 427,
+      "sha256": "f18ca51ed51ed767a814bf0a86ec34b49be1e7d8baa2d2828df0d2d24d66db01"
+    },
+    {
+      "key": "haddock",
+      "url": "/fish/haddock.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 429,
+      "sha256": "4a88c1fe30b0e56cb9677f609fac14ed08deda60dc1a4389c65add4bcba5f5b9"
+    },
+    {
+      "key": "hail-pike",
+      "url": "/fish/hail-pike.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 4925,
+      "sha256": "5535c3fede280818bea3ec82ef851c32c2be74262ec5b01f5b499c6f434b38a6"
+    },
+    {
+      "key": "hailstinger",
+      "url": "/fish/hailstinger.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 388,
+      "sha256": "a323af406ce8d2a0482581ae40ba2ddfcb0a74ac32ec2ade9b5c066f5a781b3e"
+    },
+    {
+      "key": "hailstripe",
+      "url": "/fish/hailstripe.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 436,
+      "sha256": "408ae31f25a3a7ce8e51b7e653722400bd5804df22f0ffcb658dc0cf5cde6a1e"
+    },
+    {
+      "key": "hake",
+      "url": "/fish/hake.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 372,
+      "sha256": "bf02638a9c459a1735ee400f96afda69b9e11efccee59ec7f6090cac639faf3e"
+    },
+    {
+      "key": "halibut",
+      "url": "/fish/halibut.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 432,
+      "sha256": "6fc309c3ca826785c61b02406e1d7d2dd0abdf22615f62968b3457668ea785cd"
+    },
+    {
+      "key": "heated-goliath-grouper",
+      "url": "/fish/heated-goliath-grouper.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 3295,
+      "sha256": "94aa5708395c3820c2609ac741be1ea8e7daa8e8070100f08c1a90c17dc3c6b7"
+    },
+    {
+      "key": "hermit-crab",
+      "url": "/fish/hermit-crab.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1165,
+      "sha256": "ac933a8918e1a7e5a4c300d03c3f181e7e6315aa99d0b669cc96bc84833cc81a"
+    },
+    {
+      "key": "herring",
+      "url": "/fish/herring.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 351,
+      "sha256": "9e749515e02a33a04ce7874450a6f2ab1e692e155b71824775e928d7c361dbde"
+    },
+    {
+      "key": "honey-carp",
+      "url": "/fish/honey-carp.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 381,
+      "sha256": "e2b559b50bf241cbe582e51cde466b954a1be03a13c58d600c57744ac0af89aa"
+    },
+    {
+      "key": "icebarb-sturgeon",
+      "url": "/fish/icebarb-sturgeon.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 551,
+      "sha256": "5bcd9bd9c913e4ef3eb51436a6f0aac541022605008c46669b51ae04e4f5853b"
+    },
+    {
+      "key": "icechip-dace",
+      "url": "/fish/icechip-dace.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 469,
+      "sha256": "63d46b59d0ff0fc8b80604208b92a5ea19624c5da0298d5e5246b57155fda0b8"
+    },
+    {
+      "key": "icefeather-lionfish",
+      "url": "/fish/icefeather-lionfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 509,
+      "sha256": "c269dbe3a62b51c43ae004df939478b836e9af5997188ff5129df69b742d05ba"
+    },
+    {
+      "key": "icefish",
+      "url": "/fish/icefish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 3079,
+      "sha256": "826602cdef7822f2ce91773ac0d3be79fd0f4299eb1e5f466272145d28c46feb"
+    },
+    {
+      "key": "icey-blueegill",
+      "url": "/fish/icey-blueegill.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 507,
+      "sha256": "cf20e8b0cf278f224c443664ae9adbdff93662b8502c55c303e0daa0e6bbff50"
+    },
+    {
+      "key": "icicle-goby",
+      "url": "/fish/icicle-goby.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 437,
+      "sha256": "5d49d583f79f60ff3d26b70c50d0fa0c7631f82f8954a7dc8b69cc3c54e2faff"
+    },
+    {
+      "key": "icicle-seahorse",
+      "url": "/fish/icicle-seahorse.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 405,
+      "sha256": "987ffd88c083b1bad587aa90b82bdfa6d694365975bcdf04e12eb9d1fa19d04a"
+    },
+    {
+      "key": "ignis-catfish",
+      "url": "/fish/ignis-catfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3120,
+      "sha256": "71f620b4a7161f64eebb1e722cdedefce70cf9831b89de3ea32bd03a7b03ba8c"
+    },
+    {
+      "key": "jack-o-fish",
+      "url": "/fish/jack-o-fish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 8743,
+      "sha256": "1beeee78879ae97aef51b84f65ffd60a16c1f3c2f0de2c6f420ac340039a166d"
+    },
+    {
+      "key": "jellyfish",
+      "url": "/fish/jellyfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1230,
+      "sha256": "3ccbbb29cfbe6eab0c73d21baabe3166c4902a0fb909a7b351b03dfc42ca8f47"
+    },
+    {
+      "key": "kelpfin",
+      "url": "/fish/kelpfin.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 378,
+      "sha256": "576f0d8027ce16de2d3cca8c4a418a67e35e7d7f6a6e205ddae27e24e40e3129"
+    },
+    {
+      "key": "kelpscale",
+      "url": "/fish/kelpscale.png",
+      "width": 16,
+      "height": 16,
+      "bytes": 355,
+      "sha256": "68b190c6557c904b2004f4f20b9eee12cef66700aaa990006191f4da4c0c349b"
+    },
+    {
+      "key": "killifish",
+      "url": "/fish/killifish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 379,
+      "sha256": "148798c45b772e5b6d721f6b88f4761c2f09c962f05657147753aeb82918f8a1"
+    },
+    {
+      "key": "koi",
+      "url": "/fish/koi.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 427,
+      "sha256": "bb108f424dc1687a5c3cdb35a2df6bd4f374acb68a357938eca01b58a78e7019"
+    },
+    {
+      "key": "lava-dragonfish",
+      "url": "/fish/lava-dragonfish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 4986,
+      "sha256": "fc5623833afcbbd7b36ac894852f54dda11eb323bb867a18dd563c30f27a3180"
+    },
+    {
+      "key": "lava-eel",
+      "url": "/fish/lava-eel.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 348,
+      "sha256": "3fd3174cdaf1dd24b5c905a591e95661b51154cf7af5802645aac7012bc57ad1"
+    },
+    {
+      "key": "lava-shiner",
+      "url": "/fish/lava-shiner.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3131,
+      "sha256": "d09853bd8361bbadbdb9cfb8bda7be4000a454c797856a2545feb474c084c890"
+    },
+    {
+      "key": "lavafish",
+      "url": "/fish/lavafish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 5061,
+      "sha256": "3b24c8a651c8594eab04e63e27d748c6e95f2c6610b99e4f9ec28f5f7703ad55"
+    },
+    {
+      "key": "leaffish",
+      "url": "/fish/leaffish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 2082,
+      "sha256": "6566cb35eb3a7294435b2f42a1dd420cfabe2e90aba643afa0490c4344b1eb6e"
+    },
+    {
+      "key": "lightning-loach",
+      "url": "/fish/lightning-loach.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 345,
+      "sha256": "0a5d98eb398c65d180541a813aa8a56341611768700afaa91a89c3d63e70a2b0"
+    },
+    {
+      "key": "lil-blue-slimefish",
+      "url": "/fish/lil-blue-slimefish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 382,
+      "sha256": "76049a0a1b970e5ce11ad733f276771befcbc8f44be0a0706ae2164b0ef3b37d"
+    },
+    {
+      "key": "lil-green-slimefish",
+      "url": "/fish/lil-green-slimefish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 384,
+      "sha256": "7d0b6c243bb95f56c13d2206cc72db85e4c7ec60c807b88e297012d42f06c913"
+    },
+    {
+      "key": "lil-molten-slime",
+      "url": "/fish/lil-molten-slime.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3096,
+      "sha256": "8084cb77f2096fe9cae9357df3bb9b623ed0f6ae92a2824f1f90650b47c2b4d4"
+    },
+    {
+      "key": "lil-pink-slimefish",
+      "url": "/fish/lil-pink-slimefish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 381,
+      "sha256": "c541b39353936230097a50b3dcef21d2f0a8033dcb674785e13af24bcadabd26"
+    },
+    {
+      "key": "lionfish",
+      "url": "/fish/lionfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 494,
+      "sha256": "99af8743a31b09febbc0ea96811bcc71244d2593a23cf10705d7c6bbbd90691a"
+    },
+    {
+      "key": "mackerel",
+      "url": "/fish/mackerel.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 346,
+      "sha256": "9c03f0c7b4c57ec69cefd75cd0b7318eb8cb94677c09195dffb49bdd0fcc7f75"
+    },
+    {
+      "key": "magma-carp",
+      "url": "/fish/magma-carp.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 410,
+      "sha256": "fecc707527d41c4b53764606f67e52a6e2e4cbf8b31a63ebe3ee799a8c2ed6dc"
+    },
+    {
+      "key": "magma-danio",
+      "url": "/fish/magma-danio.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3097,
+      "sha256": "aece754e20b5487ab598e96a4783150651437be08a1a4a19dca1e00c267353d4"
+    },
+    {
+      "key": "magma-sardine",
+      "url": "/fish/magma-sardine.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3056,
+      "sha256": "82c1e029502f456b6596259ea751991bb4da3d9ca337f25ddee4ffe9c98ee36a"
+    },
+    {
+      "key": "manta-ray",
+      "url": "/fish/manta-ray.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 405,
+      "sha256": "a32fdc7c50c3d9182306a85b18be4fe5ae855ab5ae1a9e6ae6ecb5391ccd922b"
+    },
+    {
+      "key": "minnow",
+      "url": "/fish/minnow.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 351,
+      "sha256": "9e749515e02a33a04ce7874450a6f2ab1e692e155b71824775e928d7c361dbde"
+    },
+    {
+      "key": "molten-angelfish",
+      "url": "/fish/molten-angelfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3206,
+      "sha256": "19bc04bd588e06690e53224380f9eee65d2cbb2020c4b3d498ae7d9998b76be2"
+    },
+    {
+      "key": "molten-giant-catfish",
+      "url": "/fish/molten-giant-catfish.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 3244,
+      "sha256": "3bd5830437f52f0fcb0dc8d96e1806e3c8b854c0a362d7712a3ac53fcdf55d17"
+    },
+    {
+      "key": "molten-piranha",
+      "url": "/fish/molten-piranha.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3104,
+      "sha256": "03ae04a83e3e1c1f271e3c89724201e783cfae684a83e751a7aa23cf3993127c"
+    },
+    {
+      "key": "moon-fish",
+      "url": "/fish/moon-fish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 1842,
+      "sha256": "9d3ba6b6b1bafaa919e20af78c5810e2ce0287a6f81266b1e81f5121d6df7ca7"
+    },
+    {
+      "key": "moon-jelly",
+      "url": "/fish/moon-jelly.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1230,
+      "sha256": "3ccbbb29cfbe6eab0c73d21baabe3166c4902a0fb909a7b351b03dfc42ca8f47"
+    },
+    {
+      "key": "moonice-wrasse",
+      "url": "/fish/moonice-wrasse.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 417,
+      "sha256": "5514a7680ca31a47be958e859dfd36d078bfc0cbd6cf7b6772c8c76b2d4ec07b"
+    },
+    {
+      "key": "mosquitofish",
+      "url": "/fish/mosquitofish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 357,
+      "sha256": "5daaf419305df99a597656120750e1446da8ccbcbf021f9022f2f23a3422d3c1"
+    },
+    {
+      "key": "mudminnow",
+      "url": "/fish/mudminnow.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 357,
+      "sha256": "5daaf419305df99a597656120750e1446da8ccbcbf021f9022f2f23a3422d3c1"
+    },
+    {
+      "key": "mullet",
+      "url": "/fish/mullet.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 396,
+      "sha256": "591ccf4827c0c50beea8c0d19f44fbcd3840178bd4211d119c33915cd7487493"
+    },
+    {
+      "key": "muskellunge",
+      "url": "/fish/muskellunge.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 660,
+      "sha256": "b0277860f3fdef4f762abe332861a2d90acd3f52fec5c848306cb719b083b255"
+    },
+    {
+      "key": "mussels",
+      "url": "/fish/mussels.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1211,
+      "sha256": "e71d262c933c260b6f4a5c64311d09808394c95b45a93c6c358f43d1592c31e1"
+    },
+    {
+      "key": "nebula-minnow",
+      "url": "/fish/nebula-minnow.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 423,
+      "sha256": "bc3014e23569b282fc061f43199aaafd6f3782f95347f6d7a604eef7bc3e33b1"
+    },
+    {
+      "key": "nidalees-lost-sock",
+      "url": "/fish/nidalees-lost-sock.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1179,
+      "sha256": "db673eb2a1ddf57c0424eb117507b2c8d109713f2cb7b9bf539ba9d64d358bf2"
+    },
+    {
+      "key": "nomura-s-jellyfish",
+      "url": "/fish/nomura-s-jellyfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1230,
+      "sha256": "3ccbbb29cfbe6eab0c73d21baabe3166c4902a0fb909a7b351b03dfc42ca8f47"
+    },
+    {
+      "key": "nyan-fish",
+      "url": "/fish/nyan-fish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 7811,
+      "sha256": "fb48441956ce15eb838c68066df475df733b63b8a1f30674722d5b8f9341f5e7"
+    },
+    {
+      "key": "oarfish",
+      "url": "/fish/oarfish.png",
+      "width": 128,
+      "height": 64,
+      "bytes": 782,
+      "sha256": "f898093ec454829d28093c6141e5c86033987b790e61b2eff8a18ee162501f26"
+    },
+    {
+      "key": "octopus",
+      "url": "/fish/octopus.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 386,
+      "sha256": "2f93eb0f9ce7e8aca375914f63e9991fffcf58fd1e940057a3518e74c8834294"
+    },
+    {
+      "key": "pea-crab",
+      "url": "/fish/pea-crab.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 757,
+      "sha256": "d5456e28c1dd48b1ca67fd6b99d1c8f68c977cef460b6387816ae10200df44c7"
+    },
+    {
+      "key": "pearl-wisp",
+      "url": "/fish/pearl-wisp.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 417,
+      "sha256": "057a222f7e95bc65a162fde21e6ebc9b4c29f0520ba9a856aa4b33ba0e29aded"
+    },
+    {
+      "key": "perch",
+      "url": "/fish/perch.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 479,
+      "sha256": "d8175e56786a15d521bbb0c8eb2d5e51392a3ed2b53fb9c277b5e5c31741af75"
+    },
+    {
+      "key": "petal-koi",
+      "url": "/fish/petal-koi.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 411,
+      "sha256": "57b392a02e6ac972bb9d9b2df51d785ff6cd7fb53a9d065ad64e00afabab8e39"
+    },
+    {
+      "key": "phantom-ray",
+      "url": "/fish/phantom-ray.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 10239,
+      "sha256": "ec35c4e8e68de2b4be7d3798d104cf650c58e64c32e510d4a22722526d94b6bd"
+    },
+    {
+      "key": "pink-salmon",
+      "url": "/fish/pink-salmon.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 369,
+      "sha256": "03e8cef1231ab784a8ad1ba2444c883eaf3a5234d5f2e36ce53603734fae7558"
+    },
+    {
+      "key": "pink-slimefish",
+      "url": "/fish/pink-slimefish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 1501,
+      "sha256": "47cb3c814cb345293849adfa6e9f811313561a2ac5092f905616e22bb900c5fd"
+    },
+    {
+      "key": "plaice",
+      "url": "/fish/plaice.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 423,
+      "sha256": "7550ff2ba7690ddd0248723016397bf00a7ae536292842f4aa8066bee6d300fc"
+    },
+    {
+      "key": "polar-shiner",
+      "url": "/fish/polar-shiner.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 329,
+      "sha256": "778e99472c45e52ee380de25ffa1bdef48a50709939519a6970e70fcbb4e892d"
+    },
+    {
+      "key": "pollock",
+      "url": "/fish/pollock.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 429,
+      "sha256": "4a88c1fe30b0e56cb9677f609fac14ed08deda60dc1a4389c65add4bcba5f5b9"
+    },
+    {
+      "key": "pumpkin-koi",
+      "url": "/fish/pumpkin-koi.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 8684,
+      "sha256": "85f1c782215abd961cf3b46a869f8b4459472c4351c8c6a54453906c553b8c9b"
+    },
+    {
+      "key": "pumpkin-puffer",
+      "url": "/fish/pumpkin-puffer.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 11118,
+      "sha256": "c9f0ad1d1368ec3b69974f4fedc62d7c158329d1d62a5926a7042f71e866a500"
+    },
+    {
+      "key": "pumpkinseed",
+      "url": "/fish/pumpkinseed.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 479,
+      "sha256": "d8175e56786a15d521bbb0c8eb2d5e51392a3ed2b53fb9c277b5e5c31741af75"
+    },
+    {
+      "key": "pyro-discus",
+      "url": "/fish/pyro-discus.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3789,
+      "sha256": "80ca4747cb594cfc0a5ea87558c00516132a87596f7b022d16413f17fa0af1ef"
+    },
+    {
+      "key": "rainbow-trout",
+      "url": "/fish/rainbow-trout.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 496,
+      "sha256": "39544f0f33cba67a9e2d2b4bb247a5b7ca8edaff98cc7215d348b38b467ed5f6"
+    },
+    {
+      "key": "red-king-crab",
+      "url": "/fish/red-king-crab.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 757,
+      "sha256": "d5456e28c1dd48b1ca67fd6b99d1c8f68c977cef460b6387816ae10200df44c7"
+    },
+    {
+      "key": "red-reef-fish",
+      "url": "/fish/red-reef-fish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 315,
+      "sha256": "96cd9f10887be15af337cd3de9c389235812cc319110b27c62823d2cba7280dd"
+    },
+    {
+      "key": "rift-bitterling",
+      "url": "/fish/rift-bitterling.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3093,
+      "sha256": "7ecff47dcd6010fecaa5d2e43952d5ee97e2653670ca1c16c06c55f6577b181e"
+    },
+    {
+      "key": "roach",
+      "url": "/fish/roach.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 376,
+      "sha256": "9cbcc787a5afee8e52b78080abce232612ee57f362b7515a585c42ca534a30f2"
+    },
+    {
+      "key": "rock-bass",
+      "url": "/fish/rock-bass.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 415,
+      "sha256": "4454cabb5e6539a2d0585a1514151b5b3d0e95367d2a78e001d237bf2bee21a0"
+    },
+    {
+      "key": "rudd",
+      "url": "/fish/rudd.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 447,
+      "sha256": "66f8351e0f4d71f809cbeb753992ce3b466480376df3661b65399ad39ca7f0f3"
+    },
+    {
+      "key": "ruffe",
+      "url": "/fish/ruffe.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 432,
+      "sha256": "6fc309c3ca826785c61b02406e1d7d2dd0abdf22615f62968b3457668ea785cd"
+    },
+    {
+      "key": "runefin",
+      "url": "/fish/runefin.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 444,
+      "sha256": "ee3d29bc674071f762b3b9412dcd22bce9de63c28f6652c52e50c1c4ebb8f130"
+    },
+    {
+      "key": "sandbar-shark",
+      "url": "/fish/sandbar-shark.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 528,
+      "sha256": "2ae8e58cf9c24fdbdf5eb11fb7a84fd7580ec45f696740abe97071e3615f5022"
+    },
+    {
+      "key": "sardine",
+      "url": "/fish/sardine.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 346,
+      "sha256": "9c03f0c7b4c57ec69cefd75cd0b7318eb8cb94677c09195dffb49bdd0fcc7f75"
+    },
+    {
+      "key": "sea-turtle",
+      "url": "/fish/sea-turtle.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 725,
+      "sha256": "93bb685a2aa8786208a31c0c5ea83aaa6631b9876549b852ea11ddfdb7eb4ec4"
+    },
+    {
+      "key": "seahorse",
+      "url": "/fish/seahorse.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 389,
+      "sha256": "e92e343f22cb15979188927000896b5e719cb87fc5d56072c88164ea89904e34"
+    },
+    {
+      "key": "seared-fry",
+      "url": "/fish/seared-fry.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3154,
+      "sha256": "b95726e9ca3e56f44ae99ba2926ea0557e42bfe289646d645ece5ddbf5efde0d"
+    },
+    {
+      "key": "searfin",
+      "url": "/fish/searfin.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 402,
+      "sha256": "da2481dbc8132654bf72ff588dbac539a5fe140f7baa5b7c8c4a09c280a71638"
+    },
+    {
+      "key": "searing-bass",
+      "url": "/fish/searing-bass.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3117,
+      "sha256": "0352ebc6d98678e0a2a6a4fb63d007776dff03beb67c6ffc85d9952c75f20990"
+    },
+    {
+      "key": "shad",
+      "url": "/fish/shad.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 446,
+      "sha256": "7f88a02bb9fb6c75c054eb765e1a051f61cb56fe04bd05418985aae5e182a96f"
+    },
+    {
+      "key": "shadow-koi",
+      "url": "/fish/shadow-koi.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 416,
+      "sha256": "c62dedcb6640b3998e3832775986286370b7f69ac5232bf5e71e1ca2b5b312b8"
+    },
+    {
+      "key": "shark",
+      "url": "/fish/shark.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 511,
+      "sha256": "3b52782153bab324f2e5ad6b964d5af8d17185658318aa27771099cb55292c33"
+    },
+    {
+      "key": "shiner",
+      "url": "/fish/shiner.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 388,
+      "sha256": "60562ec849fda69d48a4b8659fc8ab5ed4103d3546f7103aa51dca16b08e554b"
+    },
+    {
+      "key": "silver-perch",
+      "url": "/fish/silver-perch.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 351,
+      "sha256": "9e749515e02a33a04ce7874450a6f2ab1e692e155b71824775e928d7c361dbde"
+    },
+    {
+      "key": "silverflake",
+      "url": "/fish/silverflake.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 405,
+      "sha256": "3d96aaa7044efa615c30366cf08a8276daf2a68e9c1c86f8e8d5f0901b961a40"
+    },
+    {
+      "key": "silverscale",
+      "url": "/fish/silverscale.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 351,
+      "sha256": "9e749515e02a33a04ce7874450a6f2ab1e692e155b71824775e928d7c361dbde"
+    },
+    {
+      "key": "skullscale",
+      "url": "/fish/skullscale.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 9805,
+      "sha256": "1e3a320815e43b50ab4fb931782a160c62bd01c9bec86dfa3675ea7cfd0df372"
+    },
+    {
+      "key": "slush-minnow",
+      "url": "/fish/slush-minnow.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 292,
+      "sha256": "8c1546896455d071e297dfbf3042cbee5de8dd2b11a940a84bc684639edac865"
+    },
+    {
+      "key": "smelt",
+      "url": "/fish/smelt.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 438,
+      "sha256": "aa06b95e7c5dbd581818b4ba3cdbfa2565307c04e3585f02ced67733471144f5"
+    },
+    {
+      "key": "snow-crab",
+      "url": "/fish/snow-crab.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 757,
+      "sha256": "d5456e28c1dd48b1ca67fd6b99d1c8f68c977cef460b6387816ae10200df44c7"
+    },
+    {
+      "key": "snow-puff",
+      "url": "/fish/snow-puff.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 403,
+      "sha256": "9bfcb8f6cf636d0f7074a3cb9f7dfb31cc27890a246e0ec48fd11852cb1fc4cb"
+    },
+    {
+      "key": "snowcap",
+      "url": "/fish/snowcap.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 458,
+      "sha256": "4dec16fed512b0171d7b78b65d8a03a3b084c34b67ee56b76fbe669c0feb9ccf"
+    },
+    {
+      "key": "snowdrift",
+      "url": "/fish/snowdrift.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 405,
+      "sha256": "bd882f988db2c235a122585878f6348a9f2647c38363454566194241fba0f71c"
+    },
+    {
+      "key": "snowflake-guppy",
+      "url": "/fish/snowflake-guppy.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 414,
+      "sha256": "389ec14fb3828f2c5cf3c91d75acb9767333336698e1cceb905e8d06adb89dae"
+    },
+    {
+      "key": "snowmantle-plaice",
+      "url": "/fish/snowmantle-plaice.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 383,
+      "sha256": "154cc1512672a9b6949800752ea3a113919fcbf6d77ce7605ea28e1addd85524"
+    },
+    {
+      "key": "snowpike",
+      "url": "/fish/snowpike.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 520,
+      "sha256": "c4aec4958291d084291bf9e7a9d7964187f43e41ea6b0f73f7e51857c5256044"
+    },
+    {
+      "key": "spottail-shiner",
+      "url": "/fish/spottail-shiner.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 422,
+      "sha256": "82b53e13626e98ffad6c2e307c433996989419b69796b3ec58fe864e1e27bf52"
+    },
+    {
+      "key": "squid",
+      "url": "/fish/squid.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 331,
+      "sha256": "fbea011fbc9739e78f543f973cf3c7c247b9e9caa55741983662d7aa56aa60c2"
+    },
+    {
+      "key": "starfish",
+      "url": "/fish/starfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1024,
+      "sha256": "9f2c14bd6903c0132c8a8c7d5843006ccc467409a06113d82c8eeb98e9ad461d"
+    },
+    {
+      "key": "stickleback",
+      "url": "/fish/stickleback.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 322,
+      "sha256": "5241ba3b0cb83b08853d1c6feeb9873232f79a825b5bd9b70028e06849847078"
+    },
+    {
+      "key": "stingray",
+      "url": "/fish/stingray.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 378,
+      "sha256": "418eb68f0917c27a60454c2f6b5184b3c2dc1114845d10e81b76595d0a24823e"
+    },
+    {
+      "key": "stone-loach",
+      "url": "/fish/stone-loach.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 409,
+      "sha256": "4880a78530461f0cc7260bace328ba0c77561ef4c426e54a7e2eaa349ad8ce0d"
+    },
+    {
+      "key": "stormscale",
+      "url": "/fish/stormscale.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 411,
+      "sha256": "378521ec6fc27f4d1aec98c7f0c11fa99675a03f22989cb324e4556a4d6f18bd"
+    },
+    {
+      "key": "sturddlefish",
+      "url": "/fish/sturddlefish.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 524,
+      "sha256": "7ff3178508a76e1c5aa8c82bc24619df24f24ca98295d57df948a03ebbe49e97"
+    },
+    {
+      "key": "suckerfish",
+      "url": "/fish/suckerfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 371,
+      "sha256": "a2360ad448483095ec33b75822da7c0150c9d40aa3dc6363f6d6d78e69138dc4"
+    },
+    {
+      "key": "sun-fish",
+      "url": "/fish/sun-fish.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 1957,
+      "sha256": "edf7d6da27fc625771406392a9e8c0799a521866f742d3a3c3b4543d17f60c3f"
+    },
+    {
+      "key": "sunfish",
+      "url": "/fish/sunfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 479,
+      "sha256": "d8175e56786a15d521bbb0c8eb2d5e51392a3ed2b53fb9c277b5e5c31741af75"
+    },
+    {
+      "key": "sunray-fish",
+      "url": "/fish/sunray-fish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 448,
+      "sha256": "d2da10d79b46235185e845c33484b3c5745281a61d906912e896428e956b6d99"
+    },
+    {
+      "key": "swordfish",
+      "url": "/fish/swordfish.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 516,
+      "sha256": "496b19d64c9ffcd0c254c9dcca2cb65e00428c79505284d8fb45d6f7a5952a24"
+    },
+    {
+      "key": "tench",
+      "url": "/fish/tench.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 392,
+      "sha256": "a687e97a1b03f9e1b015f4a466c552f42891aa8026c0ba75052249cdcafcc970"
+    },
+    {
+      "key": "thornscale",
+      "url": "/fish/thornscale.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 423,
+      "sha256": "fc3056e305ea03080d6f442027ffdec4698266d7be6d568b5618aea0f44b664a"
+    },
+    {
+      "key": "threadfin-shad",
+      "url": "/fish/threadfin-shad.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 351,
+      "sha256": "9e749515e02a33a04ce7874450a6f2ab1e692e155b71824775e928d7c361dbde"
+    },
+    {
+      "key": "tidebloom",
+      "url": "/fish/tidebloom.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 405,
+      "sha256": "d62c793eb5ab23ad5c25438b6f86ee9b88f62033ce64933553ee307fee3e3f8b"
+    },
+    {
+      "key": "tilapia",
+      "url": "/fish/tilapia.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 429,
+      "sha256": "4a88c1fe30b0e56cb9677f609fac14ed08deda60dc1a4389c65add4bcba5f5b9"
+    },
+    {
+      "key": "titanic-frost-catfish",
+      "url": "/fish/titanic-frost-catfish.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 553,
+      "sha256": "6c32f0c1fc3c7ade8903e86ef26237fb3863371be0831f9738421e13f8ec8913"
+    },
+    {
+      "key": "triggerfish",
+      "url": "/fish/triggerfish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 565,
+      "sha256": "50ae0efd9d2f7f35aa93e3d194dae1386f63dceb01102011ad194cf2b19f901f"
+    },
+    {
+      "key": "tuna",
+      "url": "/fish/tuna.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 624,
+      "sha256": "463bda0c22588dfab315ee09966e7106824770dc03f749734c09becc8ec3c240"
+    },
+    {
+      "key": "void-fish",
+      "url": "/fish/void-fish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 302,
+      "sha256": "162f55fec5c4a5cae32c0c39334d7c8f4f91572857ff958fb85e4e2065cc8fca"
+    },
+    {
+      "key": "volcanic-ray",
+      "url": "/fish/volcanic-ray.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 3093,
+      "sha256": "bb1c91211a87f7c708ebb15468df290ba07cef4f5622561fe6c396a0b7997cda"
+    },
+    {
+      "key": "volcanic-sturgeon",
+      "url": "/fish/volcanic-sturgeon.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 3228,
+      "sha256": "df9a054a4796f990708daf51fffa49eae4cc4d8d16f6ac7b88ff7d1f04e8386a"
+    },
+    {
+      "key": "walleye",
+      "url": "/fish/walleye.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 371,
+      "sha256": "a2360ad448483095ec33b75822da7c0150c9d40aa3dc6363f6d6d78e69138dc4"
+    },
+    {
+      "key": "warmouth",
+      "url": "/fish/warmouth.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 415,
+      "sha256": "4454cabb5e6539a2d0585a1514151b5b3d0e95367d2a78e001d237bf2bee21a0"
+    },
+    {
+      "key": "white-bass",
+      "url": "/fish/white-bass.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 396,
+      "sha256": "591ccf4827c0c50beea8c0d19f44fbcd3840178bd4211d119c33915cd7487493"
+    },
+    {
+      "key": "whitefish",
+      "url": "/fish/whitefish.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 396,
+      "sha256": "591ccf4827c0c50beea8c0d19f44fbcd3840178bd4211d119c33915cd7487493"
+    },
+    {
+      "key": "whiteout-shark",
+      "url": "/fish/whiteout-shark.png",
+      "width": 64,
+      "height": 32,
+      "bytes": 531,
+      "sha256": "7cf4ead2b8220f83a3c692e5eefb9bab563b5fc9a24eb3ee776da5edad916516"
+    },
+    {
+      "key": "whiting",
+      "url": "/fish/whiting.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 351,
+      "sha256": "9e749515e02a33a04ce7874450a6f2ab1e692e155b71824775e928d7c361dbde"
+    },
+    {
+      "key": "winter-sprat",
+      "url": "/fish/winter-sprat.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 301,
+      "sha256": "f7ff55eb7e9a4e5a200c889efe453a72ca0a533e6fc1c80bc997d7a6bc5cda5b"
+    },
+    {
+      "key": "wintertide-octopus",
+      "url": "/fish/wintertide-octopus.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 365,
+      "sha256": "ad3886cbb061ce1b0b27ccf7d5f29790ca44dea543d18943f5635c6388b4ee0f"
+    },
+    {
+      "key": "witchlight-betta",
+      "url": "/fish/witchlight-betta.png",
+      "width": 89,
+      "height": 82,
+      "bytes": 11223,
+      "sha256": "6776b289cc7b2242e2461d6d48230ae30da8bbba197cee11c22a2deb61d18743"
+    },
+    {
+      "key": "wrasse",
+      "url": "/fish/wrasse.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 413,
+      "sha256": "91aa65c7111a6760216d4fe416d60d8cdacf6ca86fec50fffc24b36b1cc2d54a"
+    },
+    {
+      "key": "yellow-perch",
+      "url": "/fish/yellow-perch.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 479,
+      "sha256": "d8175e56786a15d521bbb0c8eb2d5e51392a3ed2b53fb9c277b5e5c31741af75"
+    }
+  ],
+  "rankCards": [
+    {
+      "key": "A",
+      "url": "/rank-cards/A.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1685059,
+      "sha256": "145cbdd65e1b555e98c807e1f2998998d979fede0070b156b590a829800f9423"
+    },
+    {
+      "key": "B",
+      "url": "/rank-cards/B.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1675911,
+      "sha256": "9ff459f742e8e554730ae561e71f3bec259d2a0983b0bd0ffd919d1ceef352b5"
+    },
+    {
+      "key": "C",
+      "url": "/rank-cards/C.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1591714,
+      "sha256": "802db11b181a9566a9e7a6003f68e0d04ed8e43ca89defc391c875750bb7252a"
+    },
+    {
+      "key": "D",
+      "url": "/rank-cards/D.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1495392,
+      "sha256": "624f60e427548d6278a52f9044d99998b1d5b0b3113586f0a1605b2e995d59ba"
+    },
+    {
+      "key": "F",
+      "url": "/rank-cards/F.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1475185,
+      "sha256": "1e11c75014b5e8bbad92fd94f623782c449a743974f2905614ac4cffa45ddd51"
+    },
+    {
+      "key": "S",
+      "url": "/rank-cards/S.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1866927,
+      "sha256": "f3553bd6cf4a6bcd97ae2bc2c670066218c837b6142fd1cec65853c861263a9f"
+    },
+    {
+      "key": "SS",
+      "url": "/rank-cards/SS.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1761623,
+      "sha256": "9e871c63e0636f37ec1a021febb605855c54f85fcc2e8217ca37779de02d5c4a"
+    },
+    {
+      "key": "SSS",
+      "url": "/rank-cards/SSS.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1865772,
+      "sha256": "1e51afa93c8887f06f2d5092b6c79c7c1e025610568a7344ec906a40c5ef572c"
+    },
+    {
+      "key": "UR",
+      "url": "/rank-cards/UR.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 2072091,
+      "sha256": "a6d4c318c1093f15660563d56f8cbd833588ed5a7b522cde81c4d91efcb63eee"
+    },
+    {
+      "key": "UUR",
+      "url": "/rank-cards/UUR.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 2116328,
+      "sha256": "1b1c40b23703b46d09ab32d7e75c1524dc03289c41172839b0bebb935cd73212"
+    }
+  ]
+}

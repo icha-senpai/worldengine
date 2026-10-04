@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "discoveryXp": 20,
+  "status": "phase-0-and-meadow-pond-slice",
+  "species": [
+    {
+      "key": "minnow",
+      "rarity": "F",
+      "typicalLengthMm": 90,
+      "typicalWeightG": 14,
+      "baseValue": 5,
+      "encounterWeight": 225000
+    },
+    {
+      "key": "guppy",
+      "rarity": "F",
+      "typicalLengthMm": 45,
+      "typicalWeightG": 3,
+      "baseValue": 4,
+      "encounterWeight": 225000
+    },
+    {
+      "key": "bluegill",
+      "rarity": "D",
+      "typicalLengthMm": 180,
+      "typicalWeightG": 140,
+      "baseValue": 10,
+      "encounterWeight": 135000
+    },
+    {
+      "key": "carp",
+      "rarity": "D",
+      "typicalLengthMm": 430,
+      "typicalWeightG": 1700,
+      "baseValue": 12,
+      "encounterWeight": 135000
+    },
+    {
+      "key": "goldfish",
+      "rarity": "C",
+      "typicalLengthMm": 120,
+      "typicalWeightG": 70,
+      "baseValue": 18,
+      "encounterWeight": 75000
+    },
+    {
+      "key": "perch",
+      "rarity": "C",
+      "typicalLengthMm": 230,
+      "typicalWeightG": 240,
+      "baseValue": 20,
+      "encounterWeight": 75000
+    },
+    {
+      "key": "catfish",
+      "rarity": "B",
+      "typicalLengthMm": 650,
+      "typicalWeightG": 4000,
+      "baseValue": 32,
+      "encounterWeight": 75000
+    },
+    {
+      "key": "koi",
+      "rarity": "A",
+      "typicalLengthMm": 430,
+      "typicalWeightG": 1700,
+      "baseValue": 50,
+      "encounterWeight": 35000
+    }
+  ]
+}

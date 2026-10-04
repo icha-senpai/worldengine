@@ -5,10 +5,12 @@ Standalone Vue 3 + TypeScript frontend with two SpaceTimeDB 2.10 modules. BitCra
 ## Local development
 
 On Windows, double-click `start-test.cmd`, `stop-test.cmd`, or `restart-test.cmd`
-to manage the existing local database and the test frontend. The test UI is at
+to manage the existing local database and both frontends. The main app is at
+https://space.test/evergather (port 5180). The test UI is at
 http://127.0.0.1:5181/evergather and SpaceTimeDB listens on port 3100. These
-scripts use `.env.playtest.local`, preserve `.runtime/data`, and leave the main
-frontend on port 5180 alone. Starting twice reuses the running services. Logs
+scripts use `.env.local` for the main app and `.env.playtest.local` for tests,
+preserve `.runtime/data`, and leave unrelated services alone. Starting twice
+reuses the running services. Logs
 are saved in `.runtime/services`. They do not publish or reset any databases.
 
 Use Node 24 and the SpaceTimeDB 2.10 CLI. From this folder:

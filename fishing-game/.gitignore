@@ -1,0 +1,12 @@
+node_modules/
+target/
+.svelte-kit/
+build/
+.env
+.env.*
+!.env.example
+*.log
+*.wasm
+.local/
+output/playwright/
+.playwright-cli/

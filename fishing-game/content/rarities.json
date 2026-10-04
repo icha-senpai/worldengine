@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "status": "provisional-reference",
+  "tiers": [
+    {
+      "key": "F",
+      "ordinal": 0,
+      "referenceWeight": 450000
+    },
+    {
+      "key": "D",
+      "ordinal": 1,
+      "referenceWeight": 270000
+    },
+    {
+      "key": "C",
+      "ordinal": 2,
+      "referenceWeight": 150000
+    },
+    {
+      "key": "B",
+      "ordinal": 3,
+      "referenceWeight": 75000
+    },
+    {
+      "key": "A",
+      "ordinal": 4,
+      "referenceWeight": 35000
+    },
+    {
+      "key": "S",
+      "ordinal": 5,
+      "referenceWeight": 14000
+    },
+    {
+      "key": "SS",
+      "ordinal": 6,
+      "referenceWeight": 4500
+    },
+    {
+      "key": "SSS",
+      "ordinal": 7,
+      "referenceWeight": 1200
+    },
+    {
+      "key": "UR",
+      "ordinal": 8,
+      "referenceWeight": 270
+    },
+    {
+      "key": "UUR",
+      "ordinal": 9,
+      "referenceWeight": 30
+    }
+  ]
+}

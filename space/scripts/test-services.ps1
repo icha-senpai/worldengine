@@ -19,7 +19,8 @@ function Get-ServiceProcess([int]$Port, [string]$Kind) {
             } else {
                 $owned = $process.Name -eq 'node.exe' -and
                     $command.IndexOf($project, [StringComparison]::OrdinalIgnoreCase) -ge 0 -and
-                    $command -match 'vite' -and $command -match 'playtest'
+                    $command -match 'vite' -and
+                    ($Port -eq 5180 -or $command -match 'playtest')
             }
         }
         if (-not $owned) { throw "Port $Port belongs to another process ($ownerId). Leaving it alone." }
@@ -45,17 +46,19 @@ function Wait-Service([int]$Port, [string]$Kind, [string]$Url) {
 function Stop-Services {
     # Validate both ports before stopping either service.
     $frontend = @(Get-ServiceProcess 5181 'frontend')
+    $mainFrontend = @(Get-ServiceProcess 5180 'frontend')
     $database = @(Get-ServiceProcess 3100 'database')
-    foreach ($process in @($frontend) + @($database)) {
+    foreach ($process in @($frontend) + @($mainFrontend) + @($database)) {
         Stop-Process -Id $process.ProcessId -ErrorAction Stop
         Wait-Process -Id $process.ProcessId -Timeout 15 -ErrorAction SilentlyContinue
     }
-    Write-Host 'Space database and test server stopped. Database files preserved.'
+    Write-Host 'Space database and both frontend servers stopped. Database files preserved.'
 }
 
 function Start-Services {
     $database = @(Get-ServiceProcess 3100 'database')
     $frontend = @(Get-ServiceProcess 5181 'frontend')
+    $mainFrontend = @(Get-ServiceProcess 5180 'frontend')
     $cli = Join-Path $env:LOCALAPPDATA 'SpacetimeDB\bin\current\spacetimedb-cli.exe'
     $vite = Join-Path $project 'node_modules\vite\bin\vite.js'
     $node = (& node -p 'process.execPath').Trim()
@@ -71,11 +74,16 @@ function Start-Services {
         Start-Process -FilePath $cli -ArgumentList "start --listen-addr 127.0.0.1:3100 --data-dir `"$data`" --non-interactive" -WorkingDirectory $project -WindowStyle Hidden -RedirectStandardOutput "$logs\database-$stamp.log" -RedirectStandardError "$logs\database-$stamp.err.log" | Out-Null
     }
     Wait-Service 3100 'database' 'http://127.0.0.1:3100/v1/ping'
+    if (-not $mainFrontend.Count) {
+        Start-Process -FilePath $node -ArgumentList "`"$vite`" --host 127.0.0.1 --port 5180 --strictPort" -WorkingDirectory $project -WindowStyle Hidden -RedirectStandardOutput "$logs\main-frontend-$stamp.log" -RedirectStandardError "$logs\main-frontend-$stamp.err.log" | Out-Null
+    }
+    Wait-Service 5180 'frontend' 'http://127.0.0.1:5180/'
     if (-not $frontend.Count) {
         Start-Process -FilePath $node -ArgumentList "`"$vite`" --mode playtest --host 127.0.0.1 --port 5181 --strictPort" -WorkingDirectory $project -WindowStyle Hidden -RedirectStandardOutput "$logs\frontend-$stamp.log" -RedirectStandardError "$logs\frontend-$stamp.err.log" | Out-Null
     }
     Wait-Service 5181 'frontend' 'http://127.0.0.1:5181/'
     Write-Host 'Space database ready: http://127.0.0.1:3100'
+    Write-Host 'Main app ready: https://space.test/evergather (http://127.0.0.1:5180/evergather)'
     Write-Host 'Test server ready: http://127.0.0.1:5181/evergather'
     Write-Host "Logs: $logs"
 }

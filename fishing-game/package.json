@@ -1,0 +1,30 @@
+{
+  "name": "fishing-game",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "apps/web",
+    "packages/generated"
+  ],
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace @fishing-game/web --",
+    "check": "npm run check --workspace @fishing-game/web",
+    "build": "npm run build --workspace @fishing-game/web",
+    "preview": "npm run preview --workspace @fishing-game/web --",
+    "assets:manifest": "node scripts/asset-manifest.mjs",
+    "content:validate": "node content/validate.mjs",
+    "module:build": "cargo build --manifest-path spacetimedb/Cargo.toml --target wasm32-unknown-unknown --release --locked",
+    "bindings": "node scripts/generate-bindings.mjs",
+    "rust:check": "cargo check --workspace --locked",
+    "rust:test": "cargo test -p game-rules --locked",
+    "test:integration": "node scripts/run-integration.mjs",
+    "service:create": "tsx scripts/create-service.mjs"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15"
+  }
+}
