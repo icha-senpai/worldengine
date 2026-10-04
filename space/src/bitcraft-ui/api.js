@@ -1,3 +1,4 @@
+import { pageWindow } from "../../spacetimedb/src/performance";
 import { connectBitcraft, requestData } from "../bitcraft";
 import { pageState } from "./navigation";
 import { route } from "./navigation";
@@ -49,6 +50,12 @@ export async function catalog(kind, id = "", q = "") {
   return catalogs.get(key);
 }
 export async function live(resource, id = "", q = "", page = 1, options = {}) {
+  // UI pagination changes which rows we show, not the upstream response.
+  options = Object.fromEntries(
+    Object.entries(options).filter(
+      ([key]) => !["page", "scopePage", "setup"].includes(key),
+    ),
+  );
   const key = JSON.stringify([resource, id, q, page, options]);
   if (pending.has(key)) return pending.get(key);
   const work = requestData(resource, String(id), q, Number(page) || 1, options)
@@ -490,7 +497,16 @@ export async function marketPage(tool, filters) {
         filters.empireEntityId ||
         filters.claimQ
       ) {
-        const response = await scopedListings(market.claims, filters);
+        const scope = pageWindow(
+          market.claims.length,
+          Number(filters.scopePage) || 1,
+          10,
+        );
+        market.scopePagination = scope;
+        const response = await scopedListings(
+          market.claims.slice(scope.offset, scope.offset + 10),
+          filters,
+        );
         market.listings = response.listings;
         refresh = response.refresh;
         market.items = itemsFromListings(market.listings).filter((row) =>
@@ -505,46 +521,55 @@ export async function marketPage(tool, filters) {
         market.metrics = response.data.metrics ?? {};
         // Market search returns availability flags; prices and real counts live
         // in each item's order book. The shared server cache coalesces lookups.
-        if (market.items.length > 100)
-          throw new Error(
-            "This search is too broad. Enter an item name or category.",
-          );
-        market.items = await mapLimited(market.items, async (item) => {
-          const { orderBook: book } = await orderBook({
-            ...filters,
-            itemId: item.id,
-            itemKind: item.kind,
-          });
-          const stats = book.stats;
-          return {
-            ...item,
-            lowestSellPrice: stats.lowestSell,
-            highestBuyPrice: stats.highestBuy,
-            lowestBuyPrice: stats.lowestBuy,
-            sellOrderCount: stats.sellOrderCount,
-            buyOrderCount: stats.buyOrderCount,
-            sellOrderQuantity: book.sellOrders.reduce(
-              (sum, row) => sum + row.quantity,
-              0,
-            ),
-            buyOrderQuantity: book.buyOrders.reduce(
-              (sum, row) => sum + row.quantity,
-              0,
-            ),
-            ...Object.fromEntries(
-              Object.entries(stats).filter(([key]) =>
-                /Quantity|LineTotal|OrderPrice/.test(key),
+        market.categories = [
+          ...new Set(market.items.map((row) => row.category).filter(Boolean)),
+        ].sort();
+        const pagination = pageWindow(
+          market.items.length,
+          Number(filters.page) || 1,
+          20,
+        );
+        market.pagination = pagination;
+        market.items = await mapLimited(
+          market.items.slice(pagination.offset, pagination.offset + 20),
+          async (item) => {
+            const { orderBook: book } = await orderBook({
+              ...filters,
+              itemId: item.id,
+              itemKind: item.kind,
+            });
+            const stats = book.stats;
+            return {
+              ...item,
+              lowestSellPrice: stats.lowestSell,
+              highestBuyPrice: stats.highestBuy,
+              lowestBuyPrice: stats.lowestBuy,
+              sellOrderCount: stats.sellOrderCount,
+              buyOrderCount: stats.buyOrderCount,
+              sellOrderQuantity: book.sellOrders.reduce(
+                (sum, row) => sum + row.quantity,
+                0,
               ),
-            ),
-          };
-        });
+              buyOrderQuantity: book.buyOrders.reduce(
+                (sum, row) => sum + row.quantity,
+                0,
+              ),
+              ...Object.fromEntries(
+                Object.entries(stats).filter(([key]) =>
+                  /Quantity|LineTotal|OrderPrice/.test(key),
+                ),
+              ),
+            };
+          },
+        );
         if (response.error)
           throw Object.assign(new Error(response.error), { partial: true });
       }
     }
-    market.categories = [
-      ...new Set(market.items.map((row) => row.category).filter(Boolean)),
-    ].sort();
+    if (!market.categories.length)
+      market.categories = [
+        ...new Set(market.items.map((row) => row.category).filter(Boolean)),
+      ].sort();
     if (filters.claimEntityId) {
       market.claim =
         market.claims.find(
@@ -599,7 +624,7 @@ export async function marketPage(tool, filters) {
 }
 async function orderBook(filters) {
   if (filters.region && !filters.regionId) await regionsAndFilters(filters);
-  if (filters.empireEntityId)
+  if (filters.empireEntityId && !filters.claimIds)
     filters.claimIds =
       (await live("empireClaims", filters.empireEntityId)).data.claims?.map(
         (claim) => String(claim.entityId),

@@ -4,7 +4,7 @@
       <div class="surface-section__copy">
         <span class="surface-section__title">Leaderboards</span>
         <p class="surface-section__subtitle">
-          {{ totalEntries }} ranked records across
+          {{ totalEntries }} top records (up to 20 per board) across
           {{ boardDefinitions.length }} boards.
         </p>
       </div>

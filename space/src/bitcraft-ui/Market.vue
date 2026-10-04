@@ -215,7 +215,10 @@
               {{ explorerMarketItemCount }} item{{
                 explorerMarketItemCount === 1 ? "" : "s"
               }}
-              found
+              {{ market.pagination ? "shown" : "found" }}
+              <span v-if="market.pagination"
+                >of {{ market.pagination.total }} matching items</span
+              >
               <span v-if="market.claim?.name"> at {{ market.claim.name }}</span>
               <span v-else-if="isBarterTool && market.claims.length">
                 across {{ market.claims.length }} claim{{
@@ -244,6 +247,62 @@
         </div>
 
         <div class="surface-section__body">
+          <div
+            v-if="market.pagination?.pages > 1"
+            class="mb-4 flex items-center gap-3"
+            aria-label="Market result pages"
+          >
+            <button
+              class="app-btn app-btn--sm"
+              :disabled="searching || market.pagination.page <= 1"
+              @click="changeResultPage(market.pagination.page - 1)"
+            >
+              Previous
+            </button>
+            <span class="text-sm"
+              >Page {{ market.pagination.page }} of
+              {{ market.pagination.pages }} ·
+              {{ market.pagination.total }} matching items · sorting applies to
+              this page</span
+            >
+            <button
+              class="app-btn app-btn--sm"
+              :disabled="
+                searching || market.pagination.page >= market.pagination.pages
+              "
+              @click="changeResultPage(market.pagination.page + 1)"
+            >
+              Next
+            </button>
+          </div>
+          <div
+            v-if="market.scopePagination?.pages > 1"
+            class="mb-4 flex items-center gap-3"
+            aria-label="Market claim pages"
+          >
+            <button
+              class="app-btn app-btn--sm"
+              :disabled="searching || market.scopePagination.page <= 1"
+              @click="changeScopePage(market.scopePagination.page - 1)"
+            >
+              Previous claims
+            </button>
+            <span class="text-sm"
+              >Claim group {{ market.scopePagination.page }} of
+              {{ market.scopePagination.pages }} ·
+              {{ market.scopePagination.total }} matching claims</span
+            >
+            <button
+              class="app-btn app-btn--sm"
+              :disabled="
+                searching ||
+                market.scopePagination.page >= market.scopePagination.pages
+              "
+              @click="changeScopePage(market.scopePagination.page + 1)"
+            >
+              Next claims
+            </button>
+          </div>
           <div v-if="explorerMarketItemCount" class="space-y-5">
             <section
               v-for="group in groupedMarketItems"
@@ -1149,6 +1208,17 @@ const visitTool = (url, params = {}) => {
   });
 };
 
+const changeResultPage = (page) =>
+  visitTool(route(props.tool.routeName ?? "bitcraft.market"), {
+    ...cleanPayload(),
+    page,
+    scopePage: props.filters.scopePage ?? 1,
+  });
+const changeScopePage = (scopePage) =>
+  visitTool(route(props.tool.routeName ?? "bitcraft.market"), {
+    ...cleanPayload(),
+    scopePage,
+  });
 const submit = () => {
   clearDebouncedSearch();
   visitTool(route(props.tool.routeName ?? "bitcraft.market"), cleanPayload());
@@ -2025,10 +2095,9 @@ const formatOptionalCount = (value) => {
   }
 
   .market-search-panel__filters {
-    grid-template-columns: minmax(190px, 0.95fr) minmax(190px, 1fr) minmax(
-        190px,
-        1fr
-      ) minmax(150px, 0.8fr);
+    grid-template-columns:
+      minmax(190px, 0.95fr) minmax(190px, 1fr) minmax(190px, 1fr)
+      minmax(150px, 0.8fr);
   }
 
   .market-search-toggle {

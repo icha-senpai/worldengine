@@ -5,7 +5,7 @@
         <span class="surface-section__title">Equipment</span>
         <p class="surface-section__subtitle">
           {{ equipment.length }} tools equipped ·
-          {{ inventoryTools.length }} stored tools.
+          {{ storedTools.length }} stored tools.
         </p>
       </div>
     </div>
@@ -51,9 +51,10 @@
             </div>
             <div class="flex items-center justify-between gap-3">
               <span class="text-muted-2">Visible</span>
-              <span class="text-primary">{{
-                visibleEquipmentWithUpgrades.length
-              }}</span>
+              <span class="text-primary"
+                >{{ displayedEquipment.length }} /
+                {{ visibleEquipmentWithUpgrades.length }}</span
+              >
             </div>
             <div class="flex items-center justify-between gap-3">
               <span class="text-muted-2">XP Bonus</span>
@@ -65,7 +66,7 @@
             </div>
             <div class="flex items-center justify-between gap-3">
               <span class="text-muted-2">Stored Tools</span>
-              <span class="text-primary">{{ inventoryTools.length }}</span>
+              <span class="text-primary">{{ storedTools.length }}</span>
             </div>
             <div class="flex items-center justify-between gap-3">
               <span class="text-muted-2">Tier Ready</span>
@@ -87,7 +88,7 @@
           class="grid content-start gap-3"
         >
           <article
-            v-for="(entry, index) in visibleEquipmentWithUpgrades"
+            v-for="(entry, index) in displayedEquipment"
             :key="entry.tool.slot"
             class="grid min-h-44 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_9rem]"
           >
@@ -380,13 +381,23 @@
               </button>
             </div>
           </article>
+          <button
+            v-if="
+              displayedEquipment.length < visibleEquipmentWithUpgrades.length
+            "
+            type="button"
+            class="app-btn app-btn--ghost app-btn--sm justify-self-center"
+            @click="equipmentLimit += boardPageSize"
+          >
+            Show More
+          </button>
         </div>
 
         <p
           v-else
           class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
         >
-          No tools match this category.
+          No equipped tools match this category or search.
         </p>
       </div>
 
@@ -407,13 +418,13 @@
       </p>
 
       <div
-        v-if="inventoryTools.length"
+        v-if="storedTools.length"
         class="mt-4 rounded-md border border-border bg-surface-2 px-3 py-3"
       >
         <p class="text-sm font-ui text-primary">Tool Inventory</p>
         <div class="mt-3 grid gap-2 md:grid-cols-2">
           <article
-            v-for="tool in inventoryTools"
+            v-for="tool in displayedInventoryTools"
             :key="tool.tool_id"
             class="min-h-36 rounded-md border border-border bg-canvas px-3 py-3"
           >
@@ -495,7 +506,18 @@
               </button>
             </div>
           </article>
+          <button
+            v-if="displayedInventoryTools.length < inventoryTools.length"
+            type="button"
+            class="app-btn app-btn--ghost app-btn--sm justify-self-center md:col-span-2"
+            @click="inventoryLimit += boardPageSize"
+          >
+            Show More Stored Tools
+          </button>
         </div>
+        <p v-if="!inventoryTools.length" class="mt-3 text-sm text-muted-2">
+          No stored tools match this category or search.
+        </p>
       </div>
     </div>
   </section>
@@ -507,6 +529,10 @@ import { useActionForm } from "../../evergather/useActionForm";
 import { usePersistedPanelState } from "./usePanelState";
 
 const props = defineProps({
+  searchTerm: {
+    type: String,
+    default: "",
+  },
   equipment: {
     type: Array,
     required: true,
@@ -532,6 +558,9 @@ const { selectedCategory } = usePersistedPanelState(
   },
 );
 const runningEquipmentAction = ref("");
+const boardPageSize = 6;
+const equipmentLimit = ref(boardPageSize);
+const inventoryLimit = ref(boardPageSize);
 const totalExperience = computed(() =>
   props.equipment.reduce((total, tool) => total + tool.experience_bonus, 0),
 );
@@ -586,13 +615,55 @@ const categoryFilters = computed(() =>
 const visibleEquipmentWithUpgrades = computed(() =>
   equipmentWithUpgrades.value.filter(
     (entry) =>
-      selectedCategory.value === "All" ||
-      entry.tool.category === selectedCategory.value,
+      (selectedCategory.value === "All" ||
+        entry.tool.category === selectedCategory.value) &&
+      matchesTool(entry.tool),
   ),
 );
-const inventoryTools = computed(() =>
+const storedTools = computed(() =>
   props.toolInventory.filter((tool) => tool.status === "inventory"),
 );
+const inventoryTools = computed(() =>
+  storedTools.value.filter(
+    (tool) =>
+      (selectedCategory.value === "All" ||
+        tool.category === selectedCategory.value) &&
+      matchesTool(tool),
+  ),
+);
+const displayedEquipment = computed(() =>
+  visibleEquipmentWithUpgrades.value.slice(0, equipmentLimit.value),
+);
+const displayedInventoryTools = computed(() =>
+  inventoryTools.value.slice(0, inventoryLimit.value),
+);
+
+watch([selectedCategory, () => props.searchTerm], () => {
+  equipmentLimit.value = boardPageSize;
+  inventoryLimit.value = boardPageSize;
+});
+
+function matchesTool(tool) {
+  const query = props.searchTerm.trim().toLowerCase();
+  return (
+    !query ||
+    [
+      tool.item_name,
+      tool.skill,
+      tool.slot_label,
+      tool.category,
+      tool.rarity,
+      tool.origin_label,
+      tool.signature_trait,
+      tool.discipline,
+      ...(tool.perks ?? []).flatMap((perk) => [perk.label, perk.description]),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(query)
+  );
+}
 
 watch(
   categoryFilters,

@@ -11,7 +11,9 @@
     "spacetime:generate": "tsx scripts/spacetime.ts generate",
     "spacetime:publish": "tsx scripts/spacetime.ts publish",
     "test": "vitest run",
+    "typecheck:scripts": "tsc --project scripts/tsconfig.json",
     "test:server": "tsx scripts/server-test.ts",
+    "test:catalog-server": "tsx scripts/server-catalog-test.ts",
     "test:bitcraft-server": "tsx scripts/bitcraft-server-test.ts",
     "spacetime:start": "tsx scripts/spacetime.ts start",
     "spacetime:auth": "tsx scripts/spacetime.ts auth",
@@ -19,7 +21,8 @@
     "format": "prettier --write src scripts tests spacetimedb/src bitcraft/src",
     "bitcraft:admin": "tsx scripts/bitcraft-admin.ts",
     "bitcraft:providers": "tsx scripts/bitcraft-providers.ts",
-    "bitcraft:sync-assets": "node scripts/sync-bitcraft-brico-assets.mjs"
+    "bitcraft:sync-assets": "node scripts/sync-bitcraft-brico-assets.mjs",
+    "test:load": "tsx scripts/evergather-load-test.ts"
   },
   "dependencies": {
     "@lucide/vue": "^1.51.0",
@@ -59,6 +62,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@types/node": "^24.19.1",
     "@vitejs/plugin-vue": "^6.0.9",
     "prettier": "^3.9.9",
     "tsx": "^4.23.15",

@@ -66,6 +66,13 @@ async function connect(token?: string, databaseName = database) {
             "SELECT * FROM trade",
             "SELECT * FROM my_achievements",
             "SELECT * FROM listing",
+            "SELECT * FROM market_page_listings WHERE page = 1",
+            "SELECT * FROM my_market_listings",
+            "SELECT * FROM market_summary",
+            `SELECT * FROM my_catalog WHERE connection_key = '${conn.connectionId.toHexString()}'`,
+            `SELECT * FROM market_listings WHERE connection_key = '${conn.connectionId.toHexString()}'`,
+            `SELECT * FROM my_market_page WHERE connection_key = '${conn.connectionId.toHexString()}'`,
+            "SELECT * FROM top_leaderboard",
           ]),
       )
       .onConnectError((_ctx, error) => reject(error))
@@ -98,6 +105,54 @@ try {
   assert.equal([...first.db.myPlayer.iter()].length, 1);
   assert.equal([...second.db.myPlayer.iter()][0].name, "Second player");
   assert.equal([...first.db.mySkills.iter()].length, 38);
+  assert.ok(
+    [...first.db.myCatalog.iter()].length < 2000,
+    "gathering receives a scoped catalog",
+  );
+  assert.ok(
+    ![...first.db.myCatalog.iter()].some(
+      (row) => row.kind === "crafting_recipes",
+    ),
+  );
+  await first.reducers.setUiScope({
+    workspace: "craft",
+    panel: "recipes",
+    page: 1,
+  });
+  assert.equal(
+    [...first.db.myCatalog.iter()].filter(
+      (row) => row.kind === "crafting_recipes",
+    ).length,
+    570,
+  );
+  await first.reducers.setUiScope({
+    workspace: "gather",
+    panel: "actions",
+    page: 1,
+  });
+  assert.ok(
+    ![...first.db.myCatalog.iter()].some(
+      (row) => row.kind === "crafting_recipes",
+    ),
+    "leaving crafting removes its catalog",
+  );
+  await observer.reducers.setUiScope({
+    workspace: "craft",
+    panel: "recipes",
+    page: 1,
+  });
+  assert.equal(
+    [...observer.db.myCatalog.iter()].filter(
+      (row) => row.kind === "crafting_recipes",
+    ).length,
+    570,
+  );
+  assert.ok(
+    ![...first.db.myCatalog.iter()].some(
+      (row) => row.kind === "crafting_recipes",
+    ),
+    "two tabs for one character have independent catalog subscriptions",
+  );
   const appearance = JSON.stringify({
     body_style: "tall",
     palette: "ember",
@@ -167,10 +222,26 @@ try {
     [...first.db.mySkills.iter()].find((row) => row.skill === "fishing")!
       .experience > 0n,
   );
-  await assert.rejects(
-    first.reducers.performAction({ kind: "gathering_actions", key: "fish" }),
-    /cooling down/,
+  const xpBeforeRepeat = [...first.db.mySkills.iter()].find(
+    (row) => row.skill === "fishing",
+  )!.experience;
+  await first.reducers.performAction({
+    kind: "gathering_actions",
+    key: "fish",
+  });
+  assert.ok(
+    [...first.db.mySkills.iter()].find((row) => row.skill === "fishing")!
+      .experience > xpBeforeRepeat,
   );
+  assert.equal(
+    [...first.db.myPlayer.iter()][0].nextActionAt,
+    0n,
+    "consecutive gathering has no cooldown",
+  );
+  const activity = [...first.db.myCatalog.iter()].find(
+    (row) => row.kind === "gathering_actions",
+  );
+  assert.equal(JSON.parse(activity!.payload).cooldown_seconds, 0);
   const before = [...first.db.myInventory.iter()].map((row) => [
     row.key,
     row.quantity,
@@ -234,11 +305,45 @@ try {
   const listing = [...first.db.listing.iter()].find((row) =>
     row.seller.equals(first.identity!),
   )!;
+  await eventually(() =>
+    [...first.db.myMarketListings.iter()].some((row) => row.id === listing.id),
+  );
+  assert.equal(
+    [...second.db.myMarketListings.iter()].length,
+    0,
+    "own escrow is caller-only",
+  );
+  assert.ok(
+    [...first.db.myMarketListings.iter()].every((row) =>
+      row.seller.equals(first.identity!),
+    ),
+  );
+  await eventually(() =>
+    [...second.db.marketPageListings.iter()].some(
+      (row) => row.id === listing.id && row.page === 1,
+    ),
+  );
+  const publicOffer = [...second.db.marketPageListings.iter()].find(
+    (row) => row.id === listing.id,
+  )!;
+  assert.equal(
+    JSON.parse(publicOffer.metadata).item_key,
+    "river_minnow",
+    "shared page retains item metadata",
+  );
   await assert.rejects(
     second.reducers.cancelListing({ id: listing.id }),
     /not yours/,
   );
   await second.reducers.buyListing({ id: listing.id });
+  await eventually(
+    () =>
+      ![
+        ...first.db.myMarketListings.iter(),
+        ...first.db.marketPageListings.iter(),
+        ...second.db.marketPageListings.iter(),
+      ].some((row) => row.id === listing.id),
+  );
   await eventually(() =>
     [...first.db.trade.iter()].some(
       (row) =>
@@ -278,6 +383,57 @@ try {
   await first.reducers.buyShopOffer({ key: "bundle_fishers_icebox" });
   await first.reducers.completeJob({ key: "fishing_starter_contract" });
   assert.equal([...first.db.myContracts.iter()][0].completions, 1);
+  for (const skill of [
+    "smelting",
+    "milling",
+    "tanning",
+    "cutting",
+    "weaving",
+    "smithing",
+  ])
+    await first.reducers.claimAchievement({
+      key: `skill_milestone_${skill}_1`,
+    });
+  for (let repeat = 0; repeat < 3; repeat++) {
+    await first.reducers.buyShopOffer({ key: "bundle_fishers_icebox" });
+    await first.reducers.completeJob({ key: "fishing_starter_contract" });
+  }
+  assert.equal(
+    [...first.db.myContracts.iter()][0].completions,
+    4,
+    "contracts can exceed their former daily cap",
+  );
+  await first.reducers.setUiScope({
+    workspace: "gather",
+    panel: "activities",
+    page: 1,
+  });
+  const activityKey = "smelting_starter_activity_1";
+  assert.equal(
+    JSON.parse(
+      [...first.db.myCatalog.iter()].find(
+        (row) => row.key === `skill_activities:${activityKey}`,
+      )!.payload,
+    ).cooldown_seconds,
+    0,
+  );
+  const activityXp = [...first.db.mySkills.iter()].find(
+    (row) => row.skill === "smelting",
+  )!.experience;
+  for (let repeat = 0; repeat < 2; repeat++)
+    await first.reducers.performAction({
+      kind: "skill_activities",
+      key: activityKey,
+    });
+  assert.ok(
+    [...first.db.mySkills.iter()].find((row) => row.skill === "smelting")!
+      .experience > activityXp,
+  );
+  assert.equal(
+    [...first.db.myPlayer.iter()][0].nextActionAt,
+    0n,
+    "skill activities are immediately repeatable",
+  );
   await assert.rejects(
     first.reducers.updateCharacter({
       name: "First player",
@@ -299,7 +455,6 @@ try {
   ]);
   await assert.rejects(
     connect(""),
-    undefined,
     "anonymous gameplay is rejected while local play is off",
   );
   command([
@@ -347,7 +502,7 @@ try {
     ]);
   }
   console.log(
-    "PASS: private inventory, 38 skills and tools, gathering/cooldown, transactional craft rejection, caller and owner checks, achievement locking/duplicate claims, market price bands/ownership/tax/double-buy, vendor pricing, job turn-in, claimed titles, and reversible owner-controlled local play.",
+    "PASS: private inventory, 38 skills and tools, consecutive gathering without cooldown and unlimited contract completions, transactional craft rejection, caller and owner checks, achievement locking/duplicate claims, market price bands/ownership/tax/double-buy, vendor pricing, job turn-in, claimed titles, and reversible owner-controlled local play.",
   );
 } finally {
   observer?.disconnect();

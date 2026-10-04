@@ -1,28 +1,46 @@
-import { shallowRef, ref, watch } from "vue";
+import { shallowRef, ref, watch, type Ref } from "vue";
 import { DbConnection } from "./bindings/evergather";
 import { user, localPlay } from "./auth";
+import { definitionTables, panelDefinitionQueries } from "./evergather/catalog";
 export const evergather = shallowRef<DbConnection | null>(null);
 export const evergatherConnected = ref(false);
 export const evergatherError = ref("");
 export const revision = ref(0);
+export const definitionRevision = ref(0);
 export const evergatherReady = ref(false);
+export const evergatherPanelReady = ref(false);
+export const gameWorkspace = ref("gather");
+export const gamePanel = ref("actions");
+export const marketPage = ref(1);
+export function setEvergatherPanel(workspace: string, panel: string) {
+  gameWorkspace.value = workspace;
+  gamePanel.value = panel;
+}
+let initialized = false;
 let active: DbConnection | null = null;
 let generation = 0;
 const host = import.meta.env.VITE_SPACETIMEDB_HOST || "ws://127.0.0.1:3100";
 const database = import.meta.env.VITE_EVERGATHER_DATABASE || "space-evergather";
 const localTokenKey = `space:evergather:local-token:${host}:${database}`;
-export function initializeEvergather() {
+export function initializeEvergather(enabled: Ref<boolean>) {
+  if (initialized) return;
+  initialized = true;
+  let stopPanelWatch: (() => void) | undefined;
   watch(
-    user,
-    (value) => {
+    [user, enabled],
+    ([value, isEnabled]) => {
+      stopPanelWatch?.();
+      stopPanelWatch = undefined;
       const currentGeneration = ++generation;
       active?.disconnect();
       active = null;
       evergather.value = null;
       evergatherConnected.value = false;
       evergatherReady.value = false;
+      evergatherPanelReady.value = false;
       revision.value++;
-      if (!localPlay && !value?.id_token) return;
+      definitionRevision.value++;
+      if (!isEnabled || (!localPlay && !value?.id_token)) return;
       let token = value?.id_token;
       if (localPlay) {
         try {
@@ -59,9 +77,7 @@ export function initializeEvergather() {
             revision.value++;
           };
           for (const name of [
-            "catalog",
-            "listing",
-            "leaderboard",
+            "topLeaderboard",
             "trade",
             "myPlayer",
             "mySkills",
@@ -76,6 +92,138 @@ export function initializeEvergather() {
             table.onUpdate(changed);
             table.onDelete(changed);
           }
+          const definitionsChanged = () => {
+            definitionRevision.value++;
+            changed();
+          };
+          for (const name of definitionTables) {
+            const table = connection.db[name];
+            table.onInsert(definitionsChanged);
+            table.onUpdate(definitionsChanged);
+            table.onDelete(definitionsChanged);
+          }
+          const marketMetadata = new Map<string, string>();
+          const definitionHasMetadata = (row: {
+            itemKey: string;
+            rarity: string;
+            metadata: string;
+          }) =>
+            definitionTables.some(
+              (name) =>
+                connection.db[name].key.find(
+                  `item_metadata:${row.itemKey}:${row.rarity}`,
+                )?.payload === row.metadata,
+            );
+          const marketChanged = (
+            _ctx: unknown,
+            row: { itemKey: string; rarity: string; metadata: string },
+          ) => {
+            const key = `${row.itemKey}:${row.rarity}`;
+            if (marketMetadata.get(key) !== row.metadata) {
+              marketMetadata.set(key, row.metadata);
+              if (!definitionHasMetadata(row)) definitionRevision.value++;
+            }
+            changed();
+          };
+          for (const name of [
+            "marketPageListings",
+            "myMarketListings",
+          ] as const) {
+            const table = connection.db[name];
+            table.onInsert(marketChanged);
+            table.onUpdate((ctx, _old, row) => marketChanged(ctx, row));
+            table.onDelete((_ctx, row) => {
+              const remaining = [
+                ...connection.db.marketPageListings.iter(),
+                ...connection.db.myMarketListings.iter(),
+              ].some(
+                (other) =>
+                  other.itemKey === row.itemKey && other.rarity === row.rarity,
+              );
+              if (!remaining) {
+                marketMetadata.delete(`${row.itemKey}:${row.rarity}`);
+                if (!definitionHasMetadata(row)) definitionRevision.value++;
+              }
+              changed();
+            });
+          }
+          const summaryChanged = () => {
+            const summary = [...connection.db.marketSummary.iter()][0];
+            if (summary && marketPage.value > summary.pages)
+              marketPage.value = Math.max(1, summary.pages);
+            changed();
+          };
+          connection.db.marketSummary.onInsert(summaryChanged);
+          connection.db.marketSummary.onUpdate(summaryChanged);
+          connection.db.marketSummary.onDelete(summaryChanged);
+          let panelGeneration = 0;
+          let panelSubscription: { unsubscribe(): void } | undefined;
+          stopPanelWatch = watch(
+            [gameWorkspace, gamePanel, marketPage, evergatherReady],
+            async ([workspace, panel, page, ready]) => {
+              if (!ready) return;
+              const requested = ++panelGeneration;
+              evergatherPanelReady.value = false;
+              evergatherError.value = "";
+              panelSubscription?.unsubscribe();
+              panelSubscription = undefined;
+              try {
+                await connection.reducers.setUiScope({
+                  workspace,
+                  panel,
+                  page,
+                });
+                if (
+                  requested !== panelGeneration ||
+                  currentGeneration !== generation
+                )
+                  return;
+                const queries = [
+                  ...panelDefinitionQueries(workspace, panel),
+                  ...(workspace === "trade" && panel === "marketplace"
+                    ? [
+                        `SELECT * FROM market_page_listings WHERE page = ${page}`,
+                        "SELECT * FROM my_market_listings",
+                        "SELECT * FROM market_summary",
+                        "SELECT * FROM trade",
+                      ]
+                    : workspace === "progress" && panel === "leaderboards"
+                      ? ["SELECT * FROM top_leaderboard"]
+                      : []),
+                ];
+                if (!queries.length) {
+                  evergatherPanelReady.value = true;
+                  changed();
+                  return;
+                }
+                panelSubscription = connection
+                  .subscriptionBuilder()
+                  .onApplied(() => {
+                    if (
+                      requested === panelGeneration &&
+                      currentGeneration === generation
+                    ) {
+                      evergatherPanelReady.value = true;
+                      changed();
+                    }
+                  })
+                  .onError(() => {
+                    if (
+                      requested === panelGeneration &&
+                      currentGeneration === generation
+                    )
+                      evergatherError.value = "This panel could not be loaded.";
+                  })
+                  .subscribe(queries);
+              } catch {
+                if (
+                  requested === panelGeneration &&
+                  currentGeneration === generation
+                )
+                  evergatherError.value = "This panel could not be loaded.";
+              }
+            },
+          );
           connection
             .subscriptionBuilder()
             .onApplied(() => {
@@ -89,10 +237,8 @@ export function initializeEvergather() {
                 evergatherError.value = "Your game data could not be loaded.";
             })
             .subscribe([
-              "SELECT * FROM catalog",
-              "SELECT * FROM listing",
-              "SELECT * FROM leaderboard",
-              "SELECT * FROM trade",
+              "SELECT * FROM core_definitions",
+              "SELECT * FROM my_reference_catalog",
               "SELECT * FROM my_player",
               "SELECT * FROM my_skills",
               "SELECT * FROM my_inventory",

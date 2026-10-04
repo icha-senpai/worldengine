@@ -115,10 +115,6 @@ export function presentEvergather(rows, content, now = Date.now()) {
       discipline: "General Fieldcraft",
     };
     const effect = settings.rarity_effects?.[row.rarity] ?? {};
-    const cooldown = Math.min(
-      20,
-      n(effect.cooldown) + Math.floor(row.tierLevel / 20),
-    );
     const preservation = Math.min(
       24,
       n(effect.preservation) +
@@ -163,15 +159,6 @@ export function presentEvergather(rows, content, now = Date.now()) {
               label: trait.signature,
               description: `Profession bonuses while working ${trait.discipline}.`,
             },
-            ...(cooldown
-              ? [
-                  {
-                    key: "quickened_handling",
-                    label: "Quickened Handling",
-                    description: `${cooldown}% action cooldown reduction.`,
-                  },
-                ]
-              : []),
             ...(preservation
               ? [
                   {
@@ -233,6 +220,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
   const actionsFor = (kind) =>
     entries(kind).map((action) => ({
       ...action,
+      cooldown_seconds: 0,
       loot_preview: (action.loot ?? []).map((item) => describeItem(item)),
       active_event: eventRows.find(
         (event) =>
@@ -261,7 +249,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
       n(contract?.day) === Math.floor(now / 86400000)
         ? n(contract?.completions)
         : 0;
-    const remaining = Math.max(0, (job.completion_cap ?? 3) - completed);
+
     const items = requirements(job.requirements);
     const requiresAcceptance =
       job.demand_channel === "core_profession_contract";
@@ -269,26 +257,23 @@ export function presentEvergather(rows, content, now = Date.now()) {
     const completedProgress = n(contract?.progress);
     return {
       ...job,
+      rotation: "unlimited",
+      completion_cap: null,
       requirements: items,
       requires_acceptance: requiresAcceptance,
       is_accepted: contract?.active ?? false,
       completed_in_rotation: completed,
-      remaining_completions: remaining,
-      is_demand_available: remaining > 0,
+      remaining_completions: null,
+      is_demand_available: true,
       progress_required: required,
       progress_quantity: completedProgress,
       progress_percent: Math.min(
         100,
         Math.round((completedProgress / required) * 100),
       ),
-      can_accept:
-        requiresAcceptance &&
-        !contract?.active &&
-        job.is_unlocked &&
-        remaining > 0,
+      can_accept: requiresAcceptance && !contract?.active && job.is_unlocked,
       can_complete:
         job.is_unlocked &&
-        remaining > 0 &&
         allEnough(items) &&
         (!requiresAcceptance ||
           Boolean(contract?.active && completedProgress >= required)),
@@ -597,6 +582,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
       offer_key: row.kind === "shop" ? key : null,
       type,
       label: row.label,
+      event_label: details.event?.label ?? details.event_label ?? null,
       skill_label: skillName(row.skill),
       location: definition.location,
       region: definition.region,
@@ -746,13 +732,16 @@ export function presentEvergather(rows, content, now = Date.now()) {
         score_label: `${row.gold} gold`,
         score: row.gold,
       }))
-      .sort((a, b) => b.gold - a.gold),
+      .sort((a, b) => b.gold - a.gold || a.id.localeCompare(b.id))
+      .slice(0, 20),
     realm_score: ranks
       .map((row) => ({ ...row, score_label: `${row.experience} XP` }))
-      .sort((a, b) => b.experience - a.experience),
+      .sort((a, b) => b.experience - a.experience || a.id.localeCompare(b.id))
+      .slice(0, 20),
     skills: ranks
       .map((row) => ({ ...row, score_label: `${row.experience} XP` }))
-      .sort((a, b) => b.experience - a.experience),
+      .sort((a, b) => b.experience - a.experience || a.id.localeCompare(b.id))
+      .slice(0, 20),
   };
   for (const [key, definition] of Object.entries(definitions))
     ranked[`skill_${key}`] = ranks
@@ -763,13 +752,15 @@ export function presentEvergather(rows, content, now = Date.now()) {
         score: n(row.skills[key]),
         score_label: `${n(row.skills[key])} XP`,
       }))
-      .sort((a, b) => b.score - a.score);
+      .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
+      .slice(0, 20);
   const groups = [
     {
       key: "summary",
       label: "Summary",
       boards: ["wealth", "realm_score", "skills"],
-      count: ranks.length * 3,
+      count:
+        ranked.wealth.length + ranked.realm_score.length + ranked.skills.length,
     },
     ...[
       ...new Set(
@@ -806,10 +797,8 @@ export function presentEvergather(rows, content, now = Date.now()) {
           gold,
           appearance: { ...defaultAppearance, ...parse(current.appearance) },
           reward_loadout: loadout,
-          next_action_at: current.nextActionAt
-            ? new Date(n(current.nextActionAt) / 1000).toISOString()
-            : null,
-          can_act_now: n(current.nextActionAt) / 1000 <= now,
+          next_action_at: null,
+          can_act_now: true,
         }
       : null,
     character_options: settings.character_options ?? {
@@ -850,6 +839,9 @@ export function presentEvergather(rows, content, now = Date.now()) {
     progression: {
       account_level: accountLevel,
       next_account_level_experience: accountLevel * 250,
+      account_experience_into_level: totalXp - (accountLevel - 1) * 250,
+      account_level_experience_span: 250,
+      account_progress_percent: Math.floor(((totalXp % 250) / 250) * 100),
       achievements,
       claimed_rewards: claims,
       reward_options: {

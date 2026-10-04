@@ -12,6 +12,9 @@ import db, {
   result,
   contract,
   achievement,
+  catalog,
+  listing,
+  leaderboard,
 } from "./schema";
 import source from "./content/evergather.json";
 import {
@@ -23,8 +26,22 @@ import {
   type Item,
 } from "./rules";
 import { achievementUnlocked } from "./achievements";
+import {
+  definitionRows,
+  referenceRows,
+  syncCatalogReferences,
+} from "./catalog";
 import { toolPrices } from "./market";
 import type { Identity } from "spacetimedb";
+import {
+  catalogKinds,
+  referencedItems,
+  pageWindow,
+  topLeaders,
+  MAX_OWN_LISTINGS,
+  MARKET_PAGE_SIZE,
+  newestListings,
+} from "./performance";
 export default db;
 type Ctx = ReducerCtx<InferSchema<typeof db>>;
 const content = source as unknown as Record<string, Record<string, Definition>>;
@@ -52,7 +69,15 @@ function seedContent(ctx: Ctx) {
         label: String(value.label ?? value.name_mark ?? value.name ?? key),
         skill: String(value.skill ?? (kind === "skills" ? key : "")),
         requiredLevel: Number(value.required_level ?? value.level ?? 1),
-        payload: JSON.stringify(value),
+        payload: JSON.stringify({
+          ...value,
+          ...(["gathering_actions", "skill_activities"].includes(kind)
+            ? { cooldown_seconds: 0 }
+            : {}),
+          ...(kind === "job_contracts"
+            ? { completion_cap: null, rotation: "unlimited" }
+            : {}),
+        }),
       };
       if (ctx.db.catalog.key.find(row.key)) ctx.db.catalog.key.update(row);
       else ctx.db.catalog.insert(row);
@@ -63,6 +88,12 @@ function seedContent(ctx: Ctx) {
     rarity_rules: content.rarity_rules,
     rarity_materials: content.rarity_materials,
     rarity_effects: content.rarity_effects,
+    catalog_counts: Object.fromEntries(
+      Object.entries(content).map(([kind, values]) => [
+        kind,
+        Object.keys(values).length,
+      ]),
+    ),
   };
   const settings = {
     key: "presentation:settings",
@@ -106,7 +137,12 @@ function seedContent(ctx: Ctx) {
     if (ctx.db.catalog.key.find(row.key)) ctx.db.catalog.key.update(row);
     else ctx.db.catalog.insert(row);
   }
-  for (const row of ctx.db.player.iter()) refreshLeaderboard(ctx, row.owner);
+  for (const row of ctx.db.player.iter()) {
+    if (row.nextActionAt)
+      ctx.db.player.owner.update({ ...row, nextActionAt: 0n });
+    refreshLeaderboard(ctx, row.owner);
+    syncCatalogReferences(ctx, row.owner);
+  }
 }
 export const init = db.init((ctx) => {
   ctx.db.security.insert({
@@ -163,6 +199,18 @@ function authenticated(ctx: Ctx) {
 export const onConnect = db.clientConnected((ctx) => {
   if (ctx.db.security.id.find(1)!.owner.equals(ctx.sender)) return;
   authenticated(ctx);
+  if (ctx.connectionId)
+    ctx.db.uiSession.insert({
+      connectionKey: ctx.connectionId.toHexString(),
+      owner: ctx.sender,
+      workspace: "gather",
+      panel: "actions",
+      marketPage: 1,
+    });
+});
+export const onDisconnect = db.clientDisconnected((ctx) => {
+  if (ctx.connectionId)
+    ctx.db.uiSession.connectionKey.delete(ctx.connectionId.toHexString());
 });
 function character(ctx: Ctx) {
   authenticated(ctx);
@@ -316,6 +364,7 @@ function log(
       });
   }
   refreshLeaderboard(ctx, ctx.sender);
+  syncCatalogReferences(ctx);
 }
 function equipped(ctx: Ctx, name: string) {
   return [...ctx.db.tool.byOwner.filter(ctx.sender)].find(
@@ -348,7 +397,6 @@ function toolModifiers(row: Tool | undefined) {
   const bonuses = JSON.parse(row?.bonuses ?? "{}") as Record<string, number>;
   const effect = content.rarity_effects[row?.rarity ?? "common"] as unknown as {
     critical: number;
-    cooldown: number;
     preservation: number;
   };
   const history = Math.floor(
@@ -368,10 +416,6 @@ function toolModifiers(row: Tool | undefined) {
     yield: (bonuses.yield ?? 0) + Math.floor(critical / 12),
     gold: Math.floor(critical / 8),
     critical,
-    cooldown: Math.min(
-      20,
-      effect.cooldown + Math.floor((row?.tierLevel ?? 0) / 20),
-    ),
     preservation: Math.min(
       24,
       effect.preservation +
@@ -457,6 +501,7 @@ export const createCharacter = db.reducer(
       addTool(ctx, starter, skillName, 0, "starter");
     }
     refreshLeaderboard(ctx, ctx.sender);
+    syncCatalogReferences(ctx);
   },
 );
 export const updateCharacter = db.reducer(
@@ -575,10 +620,6 @@ export const acceptJob = db.reducer({ key: t.string() }, (ctx, { key }) => {
   const completions = previous?.day === day ? previous.completions : 0;
   if (previous?.active)
     throw new SenderError("This contract is already active.");
-  if (completions >= (value.completion_cap ?? 3))
-    throw new SenderError(
-      "This contract has reached its daily completion limit.",
-    );
   const row = {
     key: recordKey,
     owner: ctx.sender,
@@ -601,9 +642,6 @@ export const performAction = db.reducer(
       throw new SenderError("Choose a gathering action or activity.");
     const value = definition(ctx, kind, key);
     checkLevel(ctx, value);
-    const now = ctx.timestamp.microsSinceUnixEpoch;
-    if (current.nextActionAt > now)
-      throw new SenderError("Your next action is still cooling down.");
     const equipment = equipped(ctx, value.skill!);
     if (equipment && !equipment.durability)
       throw new SenderError("Repair your equipped tool first.");
@@ -648,27 +686,13 @@ export const performAction = db.reducer(
     ctx.db.player.owner.update({
       ...current,
       gold: current.gold + BigInt(gold),
-      nextActionAt:
-        now +
-        BigInt(
-          Math.max(
-            1,
-            Math.floor(
-              ((value.cooldown_seconds ?? 60) * (100 - bonuses.cooldown)) / 100,
-            ),
-          ),
-        ) *
-          1_000_000n,
+      nextActionAt: 0n,
     });
     if (
       equipment &&
-      [
-        bonuses.experience,
-        bonuses.yield,
-        bonuses.gold,
-        bonuses.critical,
-        bonuses.cooldown,
-      ].some((v) => v > 0)
+      [bonuses.experience, bonuses.yield, bonuses.gold, bonuses.critical].some(
+        (v) => v > 0,
+      )
     )
       ctx.db.tool.id.update({
         ...equipment,
@@ -785,6 +809,12 @@ export const listItem = db.reducer(
   { itemKey: t.string(), quantity: t.u32(), unitPrice: t.u32() },
   (ctx, args) => {
     const current = character(ctx);
+    if (
+      [...ctx.db.listing.seller.filter(ctx.sender)].length >= MAX_OWN_LISTINGS
+    )
+      throw new SenderError(
+        "Cancel or sell a listing before adding more (100 active listings per character).",
+      );
     assertQuantity(args.quantity);
     assertQuantity(args.unitPrice);
     const stack = ctx.db.inventory.key.find(ownerKey(ctx, args.itemKey));
@@ -830,6 +860,12 @@ export const listTool = db.reducer(
   { id: t.u64(), unitPrice: t.u32() },
   (ctx, args) => {
     const current = character(ctx);
+    if (
+      [...ctx.db.listing.seller.filter(ctx.sender)].length >= MAX_OWN_LISTINGS
+    )
+      throw new SenderError(
+        "Cancel or sell a listing before adding more (100 active listings per character).",
+      );
     const row = ownedTool(ctx, args.id);
     if (row.equipped || row.origin === "starter")
       throw new SenderError("Only stored, non-starter tools can be listed.");
@@ -909,6 +945,7 @@ export const buyListing = db.reducer({ id: t.u64() }, (ctx, { id }) => {
   }
   ctx.db.listing.id.delete(id);
   refreshLeaderboard(ctx, row.seller);
+  if (row.toolId) syncCatalogReferences(ctx, row.seller);
   ctx.db.trade.insert({
     id: 0n,
     sellerName: row.sellerName,
@@ -1010,10 +1047,6 @@ export const completeJob = db.reducer({ key: t.string() }, (ctx, { key }) => {
   const recordKey = ownerKey(ctx, key);
   const previous = ctx.db.contract.key.find(recordKey);
   const completions = previous?.day === day ? previous.completions : 0;
-  if (completions >= (value.completion_cap ?? 3))
-    throw new SenderError(
-      "This contract has reached its daily completion limit.",
-    );
   if (
     value.demand_channel === "core_profession_contract" &&
     (!previous?.active ||
@@ -1328,4 +1361,288 @@ export const myAchievements = db.view(
   { name: "my_achievements", public: true },
   t.array(achievement.rowType),
   (ctx) => [...ctx.db.achievement.byOwner.filter(ctx.sender)],
+);
+
+export const setUiScope = db.reducer(
+  { workspace: t.string(), panel: t.string(), page: t.u32() },
+  (ctx, args) => {
+    authenticated(ctx);
+    if (
+      !["overview", "gather", "craft", "trade", "progress"].includes(
+        args.workspace,
+      ) ||
+      args.panel.length > 30
+    )
+      throw new SenderError("Choose a game panel.");
+    if (!ctx.connectionId)
+      throw new SenderError("Open a game connection first.");
+    const row = {
+      connectionKey: ctx.connectionId.toHexString(),
+      owner: ctx.sender,
+      workspace: args.workspace,
+      panel: args.panel,
+      marketPage: Math.max(1, args.page),
+    };
+    if (ctx.db.uiSession.connectionKey.find(row.connectionKey))
+      ctx.db.uiSession.connectionKey.update(row);
+    else ctx.db.uiSession.insert(row);
+  },
+);
+export const coreDefinitions = db.anonymousView(
+  { name: "core_definitions", public: true },
+  t.array(catalog.rowType),
+  (ctx) =>
+    definitionRows(ctx, [
+      "presentation",
+      "skills",
+      "tool_families",
+      "tool_tiers",
+      "world_events",
+    ]),
+);
+export const gatheringDefinitions = db.anonymousView(
+  { name: "gathering_definitions", public: true },
+  t.array(catalog.rowType),
+  (ctx) => definitionRows(ctx, ["gathering_actions"]),
+);
+export const activityDefinitions = db.anonymousView(
+  { name: "activity_definitions", public: true },
+  t.array(catalog.rowType),
+  (ctx) => definitionRows(ctx, ["skill_activities"]),
+);
+export const recipeDefinitions = db.anonymousView(
+  { name: "recipe_definitions", public: true },
+  t.array(catalog.rowType),
+  (ctx) => definitionRows(ctx, ["crafting_recipes"]),
+);
+export const equipmentDefinitions = db.anonymousView(
+  { name: "equipment_definitions", public: true },
+  t.array(catalog.rowType),
+  (ctx) => definitionRows(ctx, ["tool_upgrades"]),
+);
+export const jobDefinitions = db.anonymousView(
+  { name: "job_definitions", public: true },
+  t.array(catalog.rowType),
+  (ctx) => definitionRows(ctx, ["job_contracts"]),
+);
+export const expeditionDefinitions = db.anonymousView(
+  { name: "expedition_definitions", public: true },
+  t.array(catalog.rowType),
+  (ctx) => definitionRows(ctx, ["expeditions"]),
+);
+export const shopDefinitions = db.anonymousView(
+  { name: "shop_definitions", public: true },
+  t.array(catalog.rowType),
+  (ctx) => definitionRows(ctx, ["shop_offers"]),
+);
+export const achievementDefinitions = db.anonymousView(
+  { name: "achievement_definitions", public: true },
+  t.array(catalog.rowType),
+  (ctx) => definitionRows(ctx, ["achievements"]),
+);
+export const inventoryGuideDefinitions = db.anonymousView(
+  { name: "inventory_guide_definitions", public: true },
+  t.array(catalog.rowType),
+  (ctx) =>
+    definitionRows(
+      ctx,
+      [
+        "gathering_actions",
+        "skill_activities",
+        "crafting_recipes",
+        "job_contracts",
+        "expeditions",
+        "shop_offers",
+        "tool_upgrades",
+      ],
+      true,
+    ),
+);
+export const myReferenceCatalog = db.view(
+  { name: "my_reference_catalog", public: true },
+  t.array(catalog.rowType),
+  (ctx) => referenceRows(ctx),
+);
+// Retained for existing clients and repeatable performance comparisons.
+export const myCatalog = db.view(
+  { name: "my_catalog", public: true },
+  t.array(
+    t.row("ScopedCatalog", {
+      ...catalog.rowType.row,
+      key: t.string(),
+      subscriptionKey: t.string().primaryKey(),
+      connectionKey: t.string(),
+    }),
+  ),
+  (ctx) =>
+    [...ctx.db.uiSession.byOwner.filter(ctx.sender)].flatMap((scope) => {
+      const kinds = catalogKinds(
+        scope?.workspace ?? "gather",
+        scope?.panel ?? "actions",
+      );
+      const selected = new Map<
+        string,
+        NonNullable<ReturnType<typeof ctx.db.catalog.key.find>>
+      >();
+      const items = new Set<string>();
+      for (const kind of kinds) {
+        for (const row of ctx.db.catalog.kind.filter(kind))
+          selected.set(row.key, row);
+        if (content[kind]) referencedItems(content[kind], items);
+      }
+      for (const row of ctx.db.inventory.byOwner.filter(ctx.sender))
+        items.add(row.itemKey);
+      for (const row of ctx.db.tool.byOwner.filter(ctx.sender))
+        items.add(row.itemKey);
+      for (const row of ctx.db.achievement.byOwner.filter(ctx.sender)) {
+        const definition = ctx.db.catalog.key.find(
+          `achievements:${row.achievementKey}`,
+        );
+        if (definition) selected.set(definition.key, definition);
+      }
+      if (scope?.workspace === "trade" && scope.panel === "inventory") {
+        for (const row of ctx.db.catalog.kind.filter("item_metadata"))
+          selected.set(row.key, row);
+      } else
+        for (const item of items)
+          for (const rarity of [
+            "common",
+            "uncommon",
+            "rare",
+            "epic",
+            "legendary",
+            "mythic",
+          ]) {
+            const row = ctx.db.catalog.key.find(
+              `item_metadata:${item}:${rarity}`,
+            );
+            if (row) selected.set(row.key, row);
+          }
+      return [...selected.values()].map((row) => ({
+        ...row,
+        subscriptionKey: `${scope.connectionKey}:${row.key}`,
+        connectionKey: scope.connectionKey,
+      }));
+    }),
+);
+export const marketListings = db.view(
+  { name: "market_listings", public: true },
+  t.array(
+    t.row("MarketListing", {
+      ...listing.rowType.row,
+      id: t.u64(),
+      subscriptionKey: t.string().primaryKey(),
+      connectionKey: t.string(),
+      metadata: t.string(),
+    }),
+  ),
+  (ctx) => {
+    const rows = [...ctx.db.listing.iter()].sort((a, b) => {
+      const left = a.createdAt.microsSinceUnixEpoch,
+        right = b.createdAt.microsSinceUnixEpoch;
+      return left === right
+        ? a.id > b.id
+          ? -1
+          : a.id < b.id
+            ? 1
+            : 0
+        : left > right
+          ? -1
+          : 1;
+    });
+    return [...ctx.db.uiSession.byOwner.filter(ctx.sender)].flatMap((scope) => {
+      const window = pageWindow(rows.length, scope.marketPage);
+      const selected = new Map(
+        rows
+          .slice(window.offset, window.offset + MARKET_PAGE_SIZE)
+          .map((row) => [row.id, row]),
+      );
+      for (const row of ctx.db.listing.seller.filter(ctx.sender))
+        selected.set(row.id, row);
+      return [...selected.values()].map((row) => ({
+        ...row,
+        subscriptionKey: `${scope.connectionKey}:${row.id}`,
+        connectionKey: scope.connectionKey,
+        metadata:
+          ctx.db.catalog.key.find(`item_metadata:${row.itemKey}:${row.rarity}`)
+            ?.payload ?? "{}",
+      }));
+    });
+  },
+);
+// Public pages are materialized once for all subscribers. Private own escrow
+// uses the seller index and never sorts/scans the rest of the market.
+const marketRow = t.row("MarketPageListing", {
+  ...listing.rowType.row,
+  id: t.u64().primaryKey(),
+  page: t.u32(),
+  metadata: t.string(),
+});
+export const marketPageListings = db.anonymousView(
+  { name: "market_page_listings", public: true },
+  t.array(marketRow),
+  (ctx) =>
+    newestListings([...ctx.db.listing.iter()]).map((row, index) => ({
+      ...row,
+      page: Math.floor(index / MARKET_PAGE_SIZE) + 1,
+      metadata:
+        ctx.db.catalog.key.find(`item_metadata:${row.itemKey}:${row.rarity}`)
+          ?.payload ?? "{}",
+    })),
+);
+export const myMarketListings = db.view(
+  { name: "my_market_listings", public: true },
+  t.array(marketRow),
+  (ctx) =>
+    [...ctx.db.listing.seller.filter(ctx.sender)].map((row) => ({
+      ...row,
+      page: 0,
+      metadata:
+        ctx.db.catalog.key.find(`item_metadata:${row.itemKey}:${row.rarity}`)
+          ?.payload ?? "{}",
+    })),
+);
+export const marketSummary = db.anonymousView(
+  { name: "market_summary", public: true },
+  t.array(
+    t.row("MarketTotals", {
+      id: t.u32().primaryKey(),
+      total: t.u32(),
+      pages: t.u32(),
+    }),
+  ),
+  (ctx) => {
+    const total = [...ctx.db.listing.iter()].length;
+    return [{ id: 0, total, pages: pageWindow(total, 1).pages }];
+  },
+);
+export const myMarketPage = db.view(
+  { name: "my_market_page", public: true },
+  t.array(
+    t.row("MarketPage", {
+      connectionKey: t.string().primaryKey(),
+      page: t.u32(),
+      pages: t.u32(),
+      total: t.u32(),
+    }),
+  ),
+  (ctx) =>
+    [...ctx.db.uiSession.byOwner.filter(ctx.sender)].map((scope) => {
+      const window = pageWindow(
+        [...ctx.db.listing.iter()].length,
+        scope.marketPage,
+      );
+      return {
+        connectionKey: scope.connectionKey,
+        page: window.page,
+        pages: window.pages,
+        total: window.total,
+      };
+    }),
+);
+export const topLeaderboard = db.view(
+  { name: "top_leaderboard", public: true },
+  t.array(leaderboard.rowType),
+  (ctx) =>
+    topLeaders([...ctx.db.leaderboard.iter()], Object.keys(content.skills)),
 );

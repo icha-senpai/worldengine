@@ -12,8 +12,12 @@ import { localPlay, user, authConfigured, authError, signIn } from "../auth";
 import {
   evergather,
   evergatherReady,
+  evergatherPanelReady,
+  setEvergatherPanel,
+  marketPage,
   evergatherError,
   revision,
+  definitionRevision,
 } from "../evergather";
 import {
   useActionForm,
@@ -25,6 +29,8 @@ import {
   presentEvergather,
   defaultAppearance,
 } from "../evergather/presentation";
+import { marketListingsFor, marketPageInfo } from "../evergather/market";
+import { definitionRowsFor } from "../evergather/catalog";
 import CraftingPanel from "../components/evergather/CraftingPanel.vue";
 import EquipmentPanel from "../components/evergather/EquipmentPanel.vue";
 import ExpeditionsPanel from "../components/evergather/ExpeditionsPanel.vue";
@@ -40,9 +46,16 @@ import SkillsPanel from "../components/evergather/SkillsPanel.vue";
 import WorldEventsPanel from "../components/evergather/WorldEventsPanel.vue";
 const catalogCache = new Map();
 const catalog = computed(() => {
-  revision.value;
+  definitionRevision.value;
   return readCatalog(
-    [...(evergather.value?.db.catalog.iter() ?? [])],
+    [
+      ...definitionRowsFor(evergather.value),
+      ...marketListingsFor(evergather.value).map((row) => ({
+        key: `item_metadata:${row.itemKey}:${row.rarity}`,
+        kind: "item_metadata",
+        payload: row.metadata,
+      })),
+    ],
     catalogCache,
   );
 });
@@ -57,10 +70,10 @@ const view = computed(() => {
       inventory: rows("myInventory"),
       tools: rows("myTools"),
       results: rows("myResults"),
-      listings: rows("listing"),
+      listings: marketListingsFor(conn),
       claims: rows("myAchievements"),
       contracts: rows("myContracts"),
-      leaders: rows("leaderboard"),
+      leaders: rows("topLeaderboard"),
       trades: rows("trade"),
     },
     catalog.value,
@@ -91,7 +104,14 @@ const props = reactive({
   crafting_recipes: computed(() => view.value.crafting_recipes),
   jobs: computed(() => view.value.jobs),
   expeditions: computed(() => view.value.expeditions),
-  marketplace: computed(() => view.value.marketplace),
+  marketplace: computed(() => {
+    revision.value;
+    const pagination = marketPageInfo(evergather.value, marketPage.value);
+    return {
+      ...view.value.marketplace,
+      pagination: pagination ?? { page: 1, pages: 1, total: 0 },
+    };
+  }),
   shop: computed(() => view.value.shop),
   progression: computed(() => view.value.progression),
   world_events: computed(() => view.value.world_events),
@@ -187,25 +207,31 @@ watch(
   },
   { immediate: true },
 );
+const catalogCount = (kind) =>
+  catalog.value.presentation?.settings?.catalog_counts?.[kind] ?? 0;
 const workspaceTabs = computed(() => [
   {
     key: "overview",
     label: "Overview",
-    count: props.player.can_act_now ? "Ready" : "Wait",
+    count: props.player?.can_act_now ? "Ready" : "Wait",
   },
   {
     key: "gather",
     label: "Gather",
-    count: props.actions.length + props.skill_activities.length,
+    count:
+      (catalog.value.presentation?.settings?.catalog_counts
+        ?.gathering_actions ?? 0) +
+      (catalog.value.presentation?.settings?.catalog_counts?.skill_activities ??
+        0),
   },
   {
     key: "craft",
     label: "Craft",
     count: workspacePanelCount(
       "craft",
-      props.crafting_recipes.length +
-        props.jobs.length +
-        props.expeditions.length,
+      catalogCount("crafting_recipes") +
+        catalogCount("job_contracts") +
+        catalogCount("expeditions"),
     ),
   },
   {
@@ -213,7 +239,7 @@ const workspaceTabs = computed(() => [
     label: "Trade",
     count: workspacePanelCount(
       "trade",
-      props.shop.offers.length + props.marketplace.active_listings.length,
+      catalogCount("shop_offers") + props.marketplace.pagination.total,
     ),
   },
   {
@@ -225,7 +251,7 @@ const workspaceTabs = computed(() => [
 
 const workspaceSubTabs = computed(() => ({
   overview: [
-    { key: "character", label: "Character", count: props.player.gold },
+    { key: "character", label: "Character", count: props.player?.gold ?? 0 },
     {
       key: "progression",
       label: "Progression",
@@ -234,11 +260,15 @@ const workspaceSubTabs = computed(() => ({
     ...resultSubTab(),
   ],
   gather: [
-    { key: "actions", label: "Actions", count: props.actions.length },
+    {
+      key: "actions",
+      label: "Actions",
+      count: catalogCount("gathering_actions"),
+    },
     {
       key: "activities",
       label: "Activities",
-      count: props.skill_activities.length,
+      count: catalogCount("skill_activities"),
     },
     ...resultSubTab(),
   ],
@@ -251,17 +281,17 @@ const workspaceSubTabs = computed(() => ({
     {
       key: "recipes",
       label: "Recipes",
-      count: subPanelCount("recipes", props.crafting_recipes.length),
+      count: subPanelCount("recipes", catalogCount("crafting_recipes")),
     },
     {
       key: "jobs",
       label: "Jobs",
-      count: subPanelCount("jobs", props.jobs.length),
+      count: subPanelCount("jobs", catalogCount("job_contracts")),
     },
     {
       key: "expeditions",
       label: "Expeditions",
-      count: subPanelCount("expeditions", props.expeditions.length),
+      count: subPanelCount("expeditions", catalogCount("expeditions")),
     },
     ...resultSubTab(),
   ],
@@ -277,7 +307,7 @@ const workspaceSubTabs = computed(() => ({
     {
       key: "shop",
       label: "Shop",
-      count: subPanelCount("shop", props.shop.offers.length),
+      count: subPanelCount("shop", catalogCount("shop_offers")),
     },
     {
       key: "inventory",
@@ -329,6 +359,11 @@ const activeSubPanel = computed(() => {
     ? savedPanel
     : activeWorkspaceSubTabs.value[0]?.key;
 });
+watch(
+  [activePanel, activeSubPanel],
+  ([workspace, panel]) => setEvergatherPanel(workspace, panel ?? ""),
+  { immediate: true },
+);
 const itemGuideCategories = computed(() => [
   { key: "owned", label: "Owned", count: props.item_guide.summary.owned_items },
   {
@@ -399,14 +434,6 @@ const avatarPaletteClass = computed(
     })[props.player.appearance.palette] ?? "text-focus bg-focus/10",
 );
 
-const actionLabels = computed(() =>
-  Object.fromEntries(
-    [...props.actions, ...props.skill_activities].map((action) => [
-      action.key,
-      action.label,
-    ]),
-  ),
-);
 const selectWorkspaceTab = (panel) => {
   if (isWorkspacePanel(panel)) activePanel.value = panel;
 };
@@ -434,9 +461,6 @@ function appearanceLabel(field, value) {
       (option) => option.key === value,
     )?.label ?? value
   );
-}
-function actionLabel(action) {
-  return actionLabels.value[action] ?? action;
 }
 const characterSaved = ref(false);
 function submitCharacter() {
@@ -545,6 +569,7 @@ function repeatLast() {
   });
 }
 function closeRepeatDialog() {
+  if (repeatDialog.value.title === "Could not repeat") actionError.value = "";
   repeatDialog.value.open = false;
   nextTick(() =>
     document
@@ -719,9 +744,21 @@ function isWorkspacePanel(panel) {
 </script>
 <template>
   <section class="page">
-    <p v-if="actionError || evergatherError" role="alert" class="notice">
-      {{ actionError || evergatherError }}
-    </p>
+    <div
+      v-if="actionError || evergatherError"
+      role="alert"
+      class="notice flex items-center justify-between gap-3"
+    >
+      <span>{{ actionError || evergatherError }}</span>
+      <button
+        v-if="actionError"
+        type="button"
+        class="app-btn app-btn--ghost app-btn--sm"
+        @click="actionError = ''"
+      >
+        Dismiss
+      </button>
+    </div>
     <div v-if="!localPlay && !user" class="login-panel">
       <h1>Evergather</h1>
       <button class="button gold" :disabled="!authConfigured" @click="signIn">
@@ -827,7 +864,7 @@ function isWorkspacePanel(panel) {
               <button
                 type="button"
                 class="app-btn app-btn--primary app-btn--sm"
-                :disabled="repeatProcessing || !last_result"
+                :disabled="actionProcessing || repeatProcessing || !last_result"
                 @click="repeatLast"
               >
                 {{ repeatButtonLabel }}
@@ -881,7 +918,15 @@ function isWorkspacePanel(panel) {
           </div>
         </div>
 
+        <p
+          v-if="!evergatherPanelReady"
+          class="surface-section p-5"
+          role="status"
+        >
+          Loading panel…
+        </p>
         <div
+          v-else
           class="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(24rem,0.75fr)]"
         >
           <section
@@ -1166,6 +1211,7 @@ function isWorkspacePanel(panel) {
               :tool-inventory="tool_inventory"
               :tool-rarity-upgrades="tool_rarity_upgrades"
               :tool-tier-upgrades="tool_tier_upgrades"
+              :search-term="searchQuery"
             />
           </template>
 
@@ -1207,6 +1253,7 @@ function isWorkspacePanel(panel) {
             <MarketplacePanel
               class="xl:col-span-2"
               :marketplace="marketplace"
+              @page="marketPage = $event"
               :search-term="searchQuery"
             />
           </template>
@@ -1591,7 +1638,7 @@ function isWorkspacePanel(panel) {
                           <p
                             class="min-w-0 truncate text-sm font-ui text-primary"
                           >
-                            {{ actionLabel(entry.action) }}
+                            {{ entry.label || entry.action }}
                           </p>
                           <span class="tag">{{ entry.platform }}</span>
                           <span

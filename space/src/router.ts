@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomePage from "./pages/HomePage.vue";
 import BitcraftPage from "./pages/BitcraftUiPage.vue";
-import EvergatherPage from "./pages/EvergatherPage.vue";
+const EvergatherPage = () => import("./pages/EvergatherPage.vue");
 import { configureNavigation } from "./bitcraft-ui/navigation";
 export const router = createRouter({
   history: createWebHistory(),

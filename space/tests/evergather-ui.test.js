@@ -70,6 +70,83 @@ function fixture() {
   };
 }
 describe("ICHAA Evergather presentation contracts", () => {
+  it.each([
+    [0, 1, 0, 0],
+    [249, 1, 249, 99],
+    [250, 2, 0, 0],
+    [479, 2, 229, 91],
+    [500, 3, 0, 0],
+  ])(
+    "measures account progress within the current level at %i XP",
+    (xp, level, earned, percent) => {
+      const rows = fixture();
+      rows.skills[0].experience = BigInt(xp);
+      expect(presentEvergather(rows, content).progression).toMatchObject({
+        account_level: level,
+        account_experience_into_level: earned,
+        account_level_experience_span: 250,
+        account_progress_percent: percent,
+      });
+    },
+  );
+
+  it("keeps committed action labels and event feedback without gathering definitions", () => {
+    const rows = fixture();
+    rows.results = [
+      {
+        id: 1n,
+        createdAt: { microsSinceUnixEpoch: 1000n, toDate: () => new Date(1) },
+        kind: "gathering_actions",
+        label: "Mining",
+        skill: "mining",
+        experience: 30n,
+        gold: 3n,
+        items: "[]",
+        details: JSON.stringify({
+          key: "mine",
+          event: { label: "Meteorfall" },
+        }),
+      },
+    ];
+    const view = presentEvergather(rows, { ...content, gathering_actions: {} });
+    expect(view.recent_actions[0]).toMatchObject({
+      label: "Mining",
+      event_label: "Meteorfall",
+    });
+  });
+  it("keeps actions ready and contracts unlimited despite legacy timers and caps", () => {
+    const rows = fixture();
+    const now = Date.now();
+    rows.player.nextActionAt = BigInt(now + 60000) * 1000n;
+    rows.contracts = [
+      {
+        jobKey: "fishing_starter_contract",
+        day: BigInt(Math.floor(now / 86400000)),
+        completions: 100,
+        active: false,
+        progress: 0,
+      },
+    ];
+    rows.inventory = [{ itemKey: "river_minnow", quantity: 100n }];
+    const view = presentEvergather(rows, content, now);
+    expect(view.player).toMatchObject({
+      next_action_at: null,
+      can_act_now: true,
+    });
+    expect(
+      [...view.actions, ...view.skill_activities].every(
+        (action) => action.cooldown_seconds === 0,
+      ),
+    ).toBe(true);
+    expect(
+      view.jobs.find((job) => job.key === "fishing_starter_contract"),
+    ).toMatchObject({
+      completion_cap: null,
+      remaining_completions: null,
+      is_demand_available: true,
+      can_complete: true,
+    });
+  });
   it("supplies all panel contracts, pacing numbers, and real skill unlock paths", () => {
     const view = presentEvergather(fixture(), content);
     expect(view.skills).toHaveLength(38);

@@ -4,13 +4,42 @@
       <div class="surface-section__copy">
         <span class="surface-section__title">Marketplace</span>
         <p class="surface-section__subtitle">
-          {{ marketplace.active_listings.length }} active listings ·
-          {{ marketplace.recent_transactions.length }} recent sales.
+          {{
+            marketplace.pagination?.total ?? marketplace.active_listings.length
+          }}
+          active listings · {{ marketplace.recent_transactions.length }} recent
+          sales.
         </p>
       </div>
     </div>
 
     <div class="surface-section__body">
+      <div
+        v-if="marketplace.pagination?.pages > 1"
+        class="mb-4 flex items-center gap-3"
+        aria-label="Marketplace pages"
+      >
+        <button
+          class="app-btn app-btn--sm"
+          :disabled="marketplace.pagination.page <= 1"
+          @click="$emit('page', marketplace.pagination.page - 1)"
+        >
+          Previous
+        </button>
+        <span class="text-sm"
+          >Page {{ marketplace.pagination.page }} of
+          {{ marketplace.pagination.pages }} · search applies to this page</span
+        >
+        <button
+          class="app-btn app-btn--sm"
+          :disabled="
+            marketplace.pagination.page >= marketplace.pagination.pages
+          "
+          @click="$emit('page', marketplace.pagination.page + 1)"
+        >
+          Next
+        </button>
+      </div>
       <div class="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
         <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
           <div class="flex items-center justify-between gap-3">
@@ -69,6 +98,7 @@
             <div class="flex flex-wrap gap-2">
               <button
                 type="button"
+                :disabled="listingForm.processing"
                 class="rounded-md border border-border bg-canvas px-3 py-2 text-xs font-ui text-muted-2"
                 :class="{
                   'border-focus/70 bg-focus/10 text-primary':
@@ -80,6 +110,7 @@
               </button>
               <button
                 type="button"
+                :disabled="listingForm.processing"
                 class="rounded-md border border-border bg-canvas px-3 py-2 text-xs font-ui text-muted-2"
                 :class="{
                   'border-focus/70 bg-focus/10 text-primary':
@@ -100,7 +131,9 @@
                 >Item</span
               >
               <select
+                ref="listingSelect"
                 v-model="listingForm.item_key"
+                :disabled="listingForm.processing"
                 class="rounded-md border-border bg-surface text-sm text-primary focus:border-focus focus:ring-focus"
               >
                 <option value="">Select item</option>
@@ -121,7 +154,9 @@
                 >Tool</span
               >
               <select
+                ref="listingSelect"
                 v-model.number="listingForm.tool_id"
+                :disabled="listingForm.processing"
                 class="rounded-md border-border bg-surface text-sm text-primary focus:border-focus focus:ring-focus"
               >
                 <option value="">Select tool</option>
@@ -148,7 +183,10 @@
                   v-model.number="listingForm.quantity"
                   type="number"
                   min="1"
-                  :disabled="listingForm.listing_type === 'tool'"
+                  :disabled="
+                    listingForm.processing ||
+                    listingForm.listing_type === 'tool'
+                  "
                   :max="selectedListingItem?.quantity ?? 999999"
                   class="rounded-md border-border bg-surface text-sm text-primary focus:border-focus focus:ring-focus"
                 />
@@ -161,6 +199,7 @@
                 >
                 <input
                   v-model.number="listingForm.unit_price"
+                  :disabled="listingForm.processing"
                   type="number"
                   :min="selectedListingEntry?.market_floor_price ?? 1"
                   :max="selectedListingEntry?.market_ceiling_price ?? 999999"
@@ -211,8 +250,16 @@
           <p v-if="listingError" class="mt-3 text-xs text-(--accent-pink)">
             {{ listingError }}
           </p>
+          <p
+            v-if="listingSuccess"
+            role="status"
+            class="mt-3 text-sm text-success"
+          >
+            {{ listingSuccess }}
+          </p>
 
           <button
+            ref="listingSubmit"
             type="submit"
             class="app-btn app-btn--primary app-btn--sm mt-4"
             :disabled="listingForm.processing || !selectedListingEntry"
@@ -240,7 +287,9 @@
                 >Item</span
               >
               <select
+                ref="vendorSelect"
                 v-model="vendorForm.item_key"
+                :disabled="vendorForm.processing"
                 class="rounded-md border-border bg-surface text-sm text-primary focus:border-focus focus:ring-focus"
               >
                 <option value="">Select item</option>
@@ -262,6 +311,7 @@
               >
               <input
                 v-model.number="vendorForm.quantity"
+                :disabled="vendorForm.processing"
                 type="number"
                 min="1"
                 :max="selectedVendorItem?.quantity ?? 999999"
@@ -295,8 +345,16 @@
           <p v-if="vendorError" class="mt-3 text-xs text-(--accent-pink)">
             {{ vendorError }}
           </p>
+          <p
+            v-if="vendorSuccess"
+            role="status"
+            class="mt-3 text-sm text-success"
+          >
+            {{ vendorSuccess }}
+          </p>
 
           <button
+            ref="vendorSubmit"
             type="submit"
             class="app-btn app-btn--primary app-btn--sm mt-4"
             :disabled="vendorForm.processing || !vendorForm.item_key"
@@ -496,7 +554,11 @@
             v-if="!visibleActiveListings.length"
             class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
           >
-            No active listings.
+            {{
+              searchTerm.trim()
+                ? "No listings on this page match your search."
+                : "No active listings."
+            }}
           </p>
         </div>
       </div>
@@ -512,10 +574,11 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useActionForm } from "../../evergather/useActionForm";
 import { usePersistedPanelState } from "./usePanelState";
 
+defineEmits(["page"]);
 const props = defineProps({
   marketplace: {
     type: Object,
@@ -537,6 +600,12 @@ const { activeBoard } = usePersistedPanelState(
   },
 );
 const runningMarketplaceAction = ref("");
+const listingSuccess = ref("");
+const vendorSuccess = ref("");
+const listingSelect = ref(null);
+const listingSubmit = ref(null);
+const vendorSelect = ref(null);
+const vendorSubmit = ref(null);
 const listingForm = useActionForm({
   listing_type: "item",
   item_key: "",
@@ -680,6 +749,51 @@ watch(
   { immediate: true },
 );
 
+// Subscription updates change stock, not the player's whole draft. Search
+// filtering must not be mistaken for an item having sold out.
+watch(
+  () => props.marketplace.sellable_inventory,
+  () => {
+    keepAvailableQuantity(listingForm);
+    keepAvailableQuantity(vendorForm);
+  },
+);
+watch([() => listingForm.item_key, () => vendorForm.item_key], () => {
+  keepAvailableQuantity(listingForm);
+  keepAvailableQuantity(vendorForm);
+});
+watch(
+  () => props.marketplace.sellable_tools,
+  () => {
+    if (
+      listingForm.tool_id &&
+      !(props.marketplace.sellable_tools ?? []).some(
+        (tool) => String(tool.tool_id) === String(listingForm.tool_id),
+      )
+    )
+      listingForm.tool_id = "";
+  },
+);
+
+function keepAvailableQuantity(form) {
+  if (!form.item_key) return;
+  const item = props.marketplace.sellable_inventory.find(
+    (item) => item.item_key === form.item_key,
+  );
+  if (!item || item.quantity <= 0) {
+    form.item_key = "";
+    return;
+  }
+  if (Number(form.quantity) > item.quantity) form.quantity = item.quantity;
+}
+
+async function restoreSubmitFocus(submit, select) {
+  await nextTick();
+  if (document.activeElement !== document.body) return;
+  const target = submit?.disabled ? select : submit;
+  target?.focus({ preventScroll: true });
+}
+
 function searchMatches(entry, query) {
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -707,6 +821,11 @@ function searchMatches(entry, query) {
 }
 
 function submitListing() {
+  const entry = selectedListingEntry.value;
+  if (!entry) return;
+  const quantity =
+    listingForm.listing_type === "tool" ? 1 : Number(listingForm.quantity);
+  const price = Number(listingForm.unit_price);
   if (listingForm.listing_type === "tool") {
     listingForm.quantity = 1;
     listingForm.item_key = "";
@@ -717,24 +836,38 @@ function submitListing() {
   listingForm.submit("list", {
     preserveScroll: true,
     onStart: () => {
+      listingSuccess.value = "";
       runningMarketplaceAction.value = "list";
     },
-    onSuccess: () => listingForm.reset(),
+    onSuccess: () => {
+      listingSuccess.value = `Listed ${quantity} ${entry.item_name} at ${price}g each. Gold arrives when another player buys the listing.`;
+      keepAvailableQuantity(listingForm);
+    },
     onFinish: () => {
       runningMarketplaceAction.value = "";
+      restoreSubmitFocus(listingSubmit.value, listingSelect.value);
     },
   });
 }
 
 function sellToNpc() {
+  const item = selectedVendorItem.value;
+  if (!item) return;
+  const quantity = Number(vendorForm.quantity);
+  const payout = item.npc_buy_price * quantity;
   vendorForm.submit("vendor", {
     preserveScroll: true,
     onStart: () => {
+      vendorSuccess.value = "";
       runningMarketplaceAction.value = "vendor";
     },
-    onSuccess: () => vendorForm.reset(),
+    onSuccess: () => {
+      vendorSuccess.value = `Sold ${quantity} ${item.item_name} for ${payout}g.`;
+      keepAvailableQuantity(vendorForm);
+    },
     onFinish: () => {
       runningMarketplaceAction.value = "";
+      restoreSubmitFocus(vendorSubmit.value, vendorSelect.value);
     },
   });
 }

@@ -19,6 +19,12 @@ export const Achievement = __t.object("Achievement", {
 });
 export type Achievement = __Infer<typeof Achievement>;
 
+export const AchievementDefinitions = __t.object("AchievementDefinitions", {});
+export type AchievementDefinitions = __Infer<typeof AchievementDefinitions>;
+
+export const ActivityDefinitions = __t.object("ActivityDefinitions", {});
+export type ActivityDefinitions = __Infer<typeof ActivityDefinitions>;
+
 export const Catalog = __t.object("Catalog", {
   key: __t.string(),
   kind: __t.string(),
@@ -28,6 +34,14 @@ export const Catalog = __t.object("Catalog", {
   payload: __t.string(),
 });
 export type Catalog = __Infer<typeof Catalog>;
+
+export const CatalogReference = __t.object("CatalogReference", {
+  key: __t.string(),
+  owner: __t.identity(),
+  kind: __t.string(),
+  definitionKey: __t.string(),
+});
+export type CatalogReference = __Infer<typeof CatalogReference>;
 
 export const Contract = __t.object("Contract", {
   key: __t.string(),
@@ -41,6 +55,18 @@ export const Contract = __t.object("Contract", {
 });
 export type Contract = __Infer<typeof Contract>;
 
+export const CoreDefinitions = __t.object("CoreDefinitions", {});
+export type CoreDefinitions = __Infer<typeof CoreDefinitions>;
+
+export const EquipmentDefinitions = __t.object("EquipmentDefinitions", {});
+export type EquipmentDefinitions = __Infer<typeof EquipmentDefinitions>;
+
+export const ExpeditionDefinitions = __t.object("ExpeditionDefinitions", {});
+export type ExpeditionDefinitions = __Infer<typeof ExpeditionDefinitions>;
+
+export const GatheringDefinitions = __t.object("GatheringDefinitions", {});
+export type GatheringDefinitions = __Infer<typeof GatheringDefinitions>;
+
 export const Inventory = __t.object("Inventory", {
   key: __t.string(),
   owner: __t.identity(),
@@ -50,6 +76,12 @@ export const Inventory = __t.object("Inventory", {
   quantity: __t.u64(),
 });
 export type Inventory = __Infer<typeof Inventory>;
+
+export const InventoryGuideDefinitions = __t.object("InventoryGuideDefinitions", {});
+export type InventoryGuideDefinitions = __Infer<typeof InventoryGuideDefinitions>;
+
+export const JobDefinitions = __t.object("JobDefinitions", {});
+export type JobDefinitions = __Infer<typeof JobDefinitions>;
 
 export const Leaderboard = __t.object("Leaderboard", {
   owner: __t.identity(),
@@ -76,8 +108,70 @@ export const Listing = __t.object("Listing", {
 });
 export type Listing = __Infer<typeof Listing>;
 
+export const MarketListing = __t.object("MarketListing", {
+  id: __t.u64(),
+  seller: __t.identity(),
+  sellerName: __t.string(),
+  itemKey: __t.string(),
+  name: __t.string(),
+  rarity: __t.string(),
+  quantity: __t.u64(),
+  unitPrice: __t.u64(),
+  createdAt: __t.timestamp(),
+  toolId: __t.u64(),
+  toolSnapshot: __t.string(),
+  subscriptionKey: __t.string(),
+  connectionKey: __t.string(),
+  metadata: __t.string(),
+});
+export type MarketListing = __Infer<typeof MarketListing>;
+
+export const MarketListings = __t.object("MarketListings", {});
+export type MarketListings = __Infer<typeof MarketListings>;
+
+export const MarketPage = __t.object("MarketPage", {
+  connectionKey: __t.string(),
+  page: __t.u32(),
+  pages: __t.u32(),
+  total: __t.u32(),
+});
+export type MarketPage = __Infer<typeof MarketPage>;
+
+export const MarketPageListing = __t.object("MarketPageListing", {
+  id: __t.u64(),
+  seller: __t.identity(),
+  sellerName: __t.string(),
+  itemKey: __t.string(),
+  name: __t.string(),
+  rarity: __t.string(),
+  quantity: __t.u64(),
+  unitPrice: __t.u64(),
+  createdAt: __t.timestamp(),
+  toolId: __t.u64(),
+  toolSnapshot: __t.string(),
+  page: __t.u32(),
+  metadata: __t.string(),
+});
+export type MarketPageListing = __Infer<typeof MarketPageListing>;
+
+export const MarketPageListings = __t.object("MarketPageListings", {});
+export type MarketPageListings = __Infer<typeof MarketPageListings>;
+
+export const MarketSummary = __t.object("MarketSummary", {});
+export type MarketSummary = __Infer<typeof MarketSummary>;
+
+export const MarketTotals = __t.object("MarketTotals", {
+  id: __t.u32(),
+  total: __t.u32(),
+  pages: __t.u32(),
+});
+export type MarketTotals = __Infer<typeof MarketTotals>;
+
 export const MyAchievements = __t.object("MyAchievements", {});
 export type MyAchievements = __Infer<typeof MyAchievements>;
+
+export const MyCatalog = __t.object("MyCatalog", {});
+export type MyCatalog = __Infer<typeof MyCatalog>;
 
 export const MyContracts = __t.object("MyContracts", {});
 export type MyContracts = __Infer<typeof MyContracts>;
@@ -85,8 +179,17 @@ export type MyContracts = __Infer<typeof MyContracts>;
 export const MyInventory = __t.object("MyInventory", {});
 export type MyInventory = __Infer<typeof MyInventory>;
 
+export const MyMarketListings = __t.object("MyMarketListings", {});
+export type MyMarketListings = __Infer<typeof MyMarketListings>;
+
+export const MyMarketPage = __t.object("MyMarketPage", {});
+export type MyMarketPage = __Infer<typeof MyMarketPage>;
+
 export const MyPlayer = __t.object("MyPlayer", {});
 export type MyPlayer = __Infer<typeof MyPlayer>;
+
+export const MyReferenceCatalog = __t.object("MyReferenceCatalog", {});
+export type MyReferenceCatalog = __Infer<typeof MyReferenceCatalog>;
 
 export const MyResults = __t.object("MyResults", {});
 export type MyResults = __Infer<typeof MyResults>;
@@ -138,6 +241,9 @@ export const Player = __t.object("Player", {
 });
 export type Player = __Infer<typeof Player>;
 
+export const RecipeDefinitions = __t.object("RecipeDefinitions", {});
+export type RecipeDefinitions = __Infer<typeof RecipeDefinitions>;
+
 export const Result = __t.object("Result", {
   id: __t.u64(),
   owner: __t.identity(),
@@ -152,6 +258,18 @@ export const Result = __t.object("Result", {
 });
 export type Result = __Infer<typeof Result>;
 
+export const ScopedCatalog = __t.object("ScopedCatalog", {
+  key: __t.string(),
+  kind: __t.string(),
+  label: __t.string(),
+  skill: __t.string(),
+  requiredLevel: __t.u32(),
+  payload: __t.string(),
+  subscriptionKey: __t.string(),
+  connectionKey: __t.string(),
+});
+export type ScopedCatalog = __Infer<typeof ScopedCatalog>;
+
 export const Security = __t.object("Security", {
   id: __t.u32(),
   owner: __t.identity(),
@@ -160,6 +278,9 @@ export const Security = __t.object("Security", {
   localPlay: __t.bool(),
 });
 export type Security = __Infer<typeof Security>;
+
+export const ShopDefinitions = __t.object("ShopDefinitions", {});
+export type ShopDefinitions = __Infer<typeof ShopDefinitions>;
 
 export const Skill = __t.object("Skill", {
   key: __t.string(),
@@ -191,6 +312,9 @@ export const Tool = __t.object("Tool", {
 });
 export type Tool = __Infer<typeof Tool>;
 
+export const TopLeaderboard = __t.object("TopLeaderboard", {});
+export type TopLeaderboard = __Infer<typeof TopLeaderboard>;
+
 export const Trade = __t.object("Trade", {
   id: __t.u64(),
   sellerName: __t.string(),
@@ -205,4 +329,21 @@ export const Trade = __t.object("Trade", {
   createdAt: __t.timestamp(),
 });
 export type Trade = __Infer<typeof Trade>;
+
+export const UiScope = __t.object("UiScope", {
+  owner: __t.identity(),
+  workspace: __t.string(),
+  panel: __t.string(),
+  marketPage: __t.u32(),
+});
+export type UiScope = __Infer<typeof UiScope>;
+
+export const UiSession = __t.object("UiSession", {
+  connectionKey: __t.string(),
+  owner: __t.identity(),
+  workspace: __t.string(),
+  panel: __t.string(),
+  marketPage: __t.u32(),
+});
+export type UiSession = __Infer<typeof UiSession>;
 

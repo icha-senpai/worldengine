@@ -49,8 +49,8 @@
             />
           </div>
           <p class="mt-2 text-xs text-muted-2">
-            {{ summary.total_experience }} /
-            {{ progression.next_account_level_experience }} XP
+            {{ progression.account_experience_into_level }} /
+            {{ progression.account_level_experience_span }} XP this level
           </p>
 
           <div class="mt-4 grid gap-2 sm:grid-cols-3">
@@ -570,20 +570,9 @@ const emptyBoardMessage = computed(() => {
   return "No achievements on this board.";
 });
 
-const accountProgress = computed(() => {
-  if (!props.progression.next_account_level_experience) {
-    return 0;
-  }
-
-  return Math.min(
-    100,
-    Math.round(
-      (props.summary.total_experience /
-        props.progression.next_account_level_experience) *
-        100,
-    ),
-  );
-});
+const accountProgress = computed(
+  () => props.progression.account_progress_percent ?? 0,
+);
 
 watch(
   () => props.progression.reward_loadout,

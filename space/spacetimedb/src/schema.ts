@@ -127,7 +127,7 @@ export const listing = table(
   { name: "listing", public: true },
   {
     id: t.u64().primaryKey().autoInc(),
-    seller: t.identity(),
+    seller: t.identity().index("btree"),
     sellerName: t.string(),
     itemKey: t.string(),
     name: t.string(),
@@ -179,7 +179,47 @@ export const trade = table(
     createdAt: t.timestamp(),
   },
 );
+// Retained for non-destructive migration of the earlier per-identity scope.
+export const uiScope = table(
+  { name: "ui_scope" },
+  {
+    owner: t.identity().primaryKey(),
+    workspace: t.string(),
+    panel: t.string(),
+    marketPage: t.u32(),
+  },
+);
+export const uiSession = table(
+  {
+    name: "ui_session",
+    indexes: [{ accessor: "byOwner", algorithm: "btree", columns: ["owner"] }],
+  },
+  {
+    connectionKey: t.string().primaryKey(),
+    owner: t.identity(),
+    workspace: t.string(),
+    panel: t.string(),
+    marketPage: t.u32(),
+  },
+);
+// Only definition membership is recorded here. Quantity and durability updates
+// must not invalidate the player's definition feed.
+export const catalogReference = table(
+  {
+    name: "catalog_reference",
+    indexes: [{ accessor: "byOwner", algorithm: "btree", columns: ["owner"] }],
+  },
+  {
+    key: t.string().primaryKey(),
+    owner: t.identity(),
+    kind: t.string(),
+    definitionKey: t.string(),
+  },
+);
 const db = schema({
+  catalogReference,
+  uiSession,
+  uiScope,
   catalog,
   security,
   player,

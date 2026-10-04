@@ -98,7 +98,7 @@ try {
     first.conn
       .subscriptionBuilder()
       .onApplied(() => resolve([...first.conn.db.publishedGuides.iter()]))
-      .onError((_ctx, error) => reject(error))
+      .onError((ctx) => reject(ctx.event))
       .subscribe(["SELECT * FROM published_guides"]);
   });
   assert.equal(guides.length, 19);
@@ -185,7 +185,7 @@ try {
           queueMicrotask(() => subscription.unsubscribe());
           resolve(result);
         })
-        .onError((_ctx, error) => reject(error))
+        .onError((ctx) => reject(ctx.event))
         .subscribe([
           "SELECT * FROM editable_guides",
           "SELECT * FROM published_guides",

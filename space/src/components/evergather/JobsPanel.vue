@@ -132,10 +132,7 @@
                 <span class="tag">{{ job.category }}</span>
                 <span class="tag">{{ job.skill_label }}</span>
                 <span class="tag">Lv {{ job.required_level }}</span>
-                <span class="tag capitalize"
-                  >{{ job.rotation }} {{ job.completed_in_rotation }} /
-                  {{ job.completion_cap }}</span
-                >
+                <span class="tag capitalize">Unlimited completions</span>
               </div>
               <div class="mt-3 grid gap-2">
                 <div v-if="job.requires_acceptance" class="grid gap-1 text-xs">
@@ -204,9 +201,7 @@
                 >
                   Demand filled
                 </p>
-                <p v-else class="mt-1 text-xs text-muted-3">
-                  {{ job.remaining_completions }} left
-                </p>
+                <p v-else class="mt-1 text-xs text-muted-3">Unlimited</p>
               </div>
               <button
                 v-if="job.requires_acceptance && !job.is_accepted"
@@ -387,7 +382,7 @@ const visibleExperience = computed(() =>
 );
 const emptyBoardMessage = computed(() => {
   if (selectedBoard.value === "ready") {
-    return "No ready jobs match. Check Active or Prepare for contract work.";
+    return "No ready jobs match. Check Prepare for contract work.";
   }
 
   return "No jobs match.";
