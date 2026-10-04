@@ -9,4 +9,5 @@ build/
 *.wasm
 .local/
 output/playwright/
+output/catch-cards/
 .playwright-cli/

@@ -1,8 +1,9 @@
 # Fishbound
 
 Rust / SpaceTimeDB authority, Serenity + Poise Discord bot, and SvelteKit companion.
-All 251 fish and all seven specified biomes are implemented and locally verified. Real Discord
-command delivery and OAuth login still need application credentials and live verification.
+All 251 fish and all seven specified biomes are implemented and locally verified.
+The ServBay/Cloudflare site is live at https://fish.ichaa.dev and the Discord bot
+connects. Command delivery and the complete OAuth login still need live verification.
 
 ## Implemented
 
@@ -16,8 +17,11 @@ command delivery and OAuth login still need application credentials and live ver
 - Junk stacks and immediate treasure rewards with economy ledger entries.
 - Website dashboard, collection, recent catches, favorites, sale preview/confirmation,
   and length/weight records that survive disposal.
+- One game shell with Camp, Tackle box, Collection, Journal, World map, Records,
+  and Compendium tabs. Lists have book pages: twelve entries on desktop and four on phones.
 - Poise handlers: /fish, /profile, /inventory, /collection, /biome, /gear, /help.
-  Fish responses attach the original sprite and rank artwork when available.
+  Fish responses attach one PNG with the fish centered on its saved rarity card.
+  Visible artwork is fitted proportionally, with crisp pixel scaling and clear rank labels.
 - Discord OAuth service, browser challenge proofs, single-use CSRF sessions,
   verified identity binding, replacement/revocation, and browser unlinking.
 - Automatic client reconnect, owner-controlled service roles, audit rows,
@@ -55,12 +59,23 @@ for local publication, service-role bootstrap, and credential configuration.
     npm run build
     npm run rust:test
     npm run rust:check
+    cargo test -p discord-bot --locked
     npm run bindings
     npm run test:integration
 
 Integration tests require the isolated loopback host on port 3127 and create
 a fresh proof database each time. No existing database is reset. Generated
 contracts come from the compiled WASM; never edit them manually.
+
+Preview the exact Discord card renderer without credentials:
+
+    cargo run -p discord-bot --example render-catch-cards --locked
+
+This writes ten example cards and a contact sheet to ignored output/catch-cards.
+
+For the configured public site and double-click start/close/restart launchers,
+see [ServBay hosting](docs/servbay-hosting.md). Register the public OAuth callback
+in Discord before signing in through the website.
 
 [Current status](docs/implementation-status.md) · [Verification](docs/verification.md)
 · [Command plan](docs/discord-commands.md) · [Design specification](docs/fishing-game-design-specification.md)

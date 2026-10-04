@@ -83,8 +83,15 @@ authorized linker. Native services reconnect after dropped database transport.
 The website reconnects and reconstructs state using its saved browser credential.
 
 ASSET_ROOT defaults to assets when running the bot from the project root.
-Sprites and rank cards are original PNG attachments; missing artwork falls back
-to the already committed text result. Assets are served by SvelteKit at /fish/*
+The bot composes the original sprite onto the saved rarity's card as one PNG
+attachment, using alpha bounds and proportional nearest-neighbor scaling.
+Original asset files stay intact. Missing artwork or failed image delivery falls
+back to the already committed text result. Preview all ten ranks without credentials:
+
+    cargo run -p discord-bot --example render-catch-cards --locked
+
+Output goes to output/catch-cards, including all-ranks-preview.png.
+Assets are served by SvelteKit at /fish/*
 and /rank-cards/*. All 251 species can be browsed at /catalog.
 
 ## Verification
@@ -92,7 +99,7 @@ and /rank-cards/*. All 251 species can be browsed at /catalog.
     npm run test:integration
     npm run check
     npm run build
-    cargo test -p game-rules -p account-link --locked
+    cargo test -p game-rules -p account-link -p discord-bot --locked
     cargo clippy --workspace --all-targets --locked -- -D warnings
     cargo clippy --manifest-path spacetimedb/Cargo.toml --target wasm32-unknown-unknown --locked -- -D warnings
 
@@ -103,5 +110,7 @@ a browser fixture only inside ignored .local; this is genuine reducer state with
 test identities, not a Discord login. Never use it as production authentication.
 
 See verification.md for current results. Real Discord delivery and OAuth consent
-need live application credentials. Production adapter choice, deployment, restore
-proof, full progression, and late-game balance are later work.
+need live verification. The configured ServBay deployment uses adapter-node 6,
+the existing Cloudflare tunnel, and a public HTTPS origin; see
+[ServBay hosting](servbay-hosting.md) for routes, launchers, and the Discord callback.
+Restore proof, full progression, and late-game balance are later work.

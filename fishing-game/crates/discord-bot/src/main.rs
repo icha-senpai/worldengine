@@ -1,3 +1,4 @@
+use discord_bot::catch_art::CatchArt;
 use game_client::{Client, Error, Snapshot, module_bindings::ServiceRole};
 use poise::serenity_prelude as serenity;
 use std::sync::Arc;
@@ -6,7 +7,7 @@ struct Data {
     game: Arc<Client>,
     website: String,
     pending: tokio::sync::Semaphore,
-    assets: std::path::PathBuf,
+    catch_art: CatchArt,
 }
 type Context<'a> = poise::Context<'a, Data, Error>;
 fn interaction_id(ctx: Context<'_>) -> Result<u64, Error> {
@@ -131,36 +132,37 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
         .iter()
         .find(|row| Some(row.species_id) == receipt.species_id)
     {
-        let sprite = ctx
+        match ctx
             .data()
-            .assets
-            .join("fish")
-            .join(format!("{}.png", species.key));
-        let rank = ctx
-            .data()
-            .assets
-            .join("rank-cards")
-            .join(format!("{}.png", receipt.rarity));
-        if let (Ok(sprite), Ok(rank)) = (
-            serenity::CreateAttachment::path(sprite).await,
-            serenity::CreateAttachment::path(rank).await,
-        ) {
-            let embed = serenity::CreateEmbed::new()
-                .title(&species.name)
-                .description(content)
-                .image(format!("attachment://{}.png", species.key))
-                .thumbnail(format!("attachment://{}.png", receipt.rarity));
-            ctx.send(
-                poise::CreateReply::default()
-                    .embed(embed)
-                    .attachment(sprite)
-                    .attachment(rank)
-                    .allowed_mentions(serenity::CreateAllowedMentions::new()),
-            )
-            .await?;
-            return Ok(());
+            .catch_art
+            .render(&species.key, &receipt.rarity)
+            .await
+        {
+            Ok(png) => {
+                let filename = format!("catch-{}-{}.png", species.key, receipt.rarity);
+                let embed = serenity::CreateEmbed::new()
+                    .title(&species.name)
+                    .description(content.clone())
+                    .image(format!("attachment://{filename}"));
+                let sent = ctx
+                    .send(
+                        poise::CreateReply::default()
+                            .embed(embed)
+                            .attachment(serenity::CreateAttachment::bytes(png, filename))
+                            .allowed_mentions(serenity::CreateAllowedMentions::new()),
+                    )
+                    .await;
+                match sent {
+                    Ok(_) => return Ok(()),
+                    Err(error) => {
+                        tracing::warn!(%error, "Catch card delivery failed; delivering the saved text result")
+                    }
+                }
+            }
+            Err(error) => {
+                tracing::warn!(%error, "Catch artwork unavailable; delivering the saved text result")
+            }
         }
-        tracing::warn!("Catch artwork unavailable; delivering the saved text result");
     }
     reply(ctx, content).await
 }
@@ -451,7 +453,7 @@ async fn main() -> Result<(), Error> {
                     game,
                     website,
                     pending: tokio::sync::Semaphore::new(32),
-                    assets: assets.into(),
+                    catch_art: CatchArt::new(assets),
                 })
             })
         })

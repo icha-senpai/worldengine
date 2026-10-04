@@ -3,7 +3,8 @@
 The owner authorized autonomous implementation after rereading the specification
 and project docs, then explicitly requested all fish and all biomes. All 251 species
 and seven biomes are implemented with level cap 60 and earned rods.
-No production deployment or real Discord registration has occurred.
+The website and account-link service are exposed through ServBay/Cloudflare at
+https://fish.ichaa.dev. The bot connects to Discord; command registration is still off.
 
 ## Settled decisions
 
@@ -42,8 +43,19 @@ Website biome travel, rod equip, and collection/catalog biome/tier/name filters.
 The catalog is a public compendium with original fish artwork and only species
 name, biome, eligible rarity, and cast rates. Size details stay on personal catches
 and collection rank guidance.
+Both pages use the fishing-camp theme: a pixel pond and dock, wooden navigation,
+parchment panels, framed sprite slots, and locally bundled Pixelify Sans/Nunito
+fonts. Decorative motion respects reduced-motion preferences.
+The shell now shows one tab at a time: Camp, Tackle box, Collection, Journal,
+World map, Records, or Compendium. Switching preserves the database connection,
+filters, and inventory selection. Hash links and browser back select views;
+/catalog opens the public Compendium directly. Lists use twelve-entry desktop
+pages or four-entry phone pages instead of stacking the whole game vertically.
 /fish defers before the database operation and renders a saved receipt with
-original fish/rank attachments. The current /profile handler shows the caller;
+one combined fish-on-rarity-card PNG. Transparent sprite margins are cropped;
+the visible fish fits a centered box without stretching or covering rank labels.
+PNG work runs on two bounded background workers; missing artwork, queue timeout,
+or upload failure falls back to the committed text result. The current /profile handler shows the caller;
 the optional other-player lookup remains part of the later launch command pass.
 
 Axum OAuth service with identify scope, HTTP-only CSRF session cookie, exact
@@ -66,9 +78,10 @@ No sibling application's server or data was changed.
 
 ## Remaining boundaries
 
-- Real Discord bot/OAuth credentials are absent. Live gateway deferral, command
-  delivery, attachment rendering, OAuth consent/callback, and credential rotation
-  remain unverified against Discord.
+- Discord credentials were supplied and the bot reached Gateway readiness.
+  The public OAuth callback must be added to the application's currently empty
+  redirect list. Live command delivery/deferral, attachment rendering, OAuth
+  consent/callback, and credential rotation remain unverified against Discord.
 - Daily, upgrade, sell command components, shop command,
   leaderboard command, and optional public-player lookup are not registered handlers yet.
   Favorite/sale domain behavior already works through the website.
