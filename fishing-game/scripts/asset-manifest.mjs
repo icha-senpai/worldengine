@@ -13,6 +13,6 @@ async function collect(folder) {
   }
   return entries;
 }
-const manifest = { version: 1, fish: await collect('fish'), rankCards: await collect('rank-cards') };
+const manifest = { version: 1, fish: await collect('fish'), rankCards: await collect('rank-cards'), items: await collect('items') };
 await writeFile(new URL('manifest.json', root), `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(`Asset manifest: ${manifest.fish.length} fish sprites, ${manifest.rankCards.length} rank cards.`);
+console.log(`Asset manifest: ${manifest.fish.length} fish sprites, ${manifest.rankCards.length} rank cards, ${manifest.items.length} item sprites.`);

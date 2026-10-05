@@ -1,9 +1,9 @@
 # Agreed Discord command plan
 
-Status: eight handlers (/fish, /daily, /profile, /inventory, /collection, /biome, /gear, /help)
+Status: nine handlers (/fish, /daily, /profile, /inventory, /collection, /biome, /gear, /shop, /help)
 are implemented. /biome accepts optional biome_id; /gear accepts optional rod_id.
-Rods are free level-earned access equipment. Collection responses summarize seven
-biomes to stay within Discord message limits; the website shows the full book. Other launch handlers remain pending. The eight current commands are registered globally and directly in the configured guild.
+Meadow Pond and the starter Twig Rod are free. Later rods and permanent biome licences are bought from the camp trader after reaching their level requirements. Collection responses summarize seven
+biomes to stay within Discord message limits; the website shows the full book. Other launch handlers remain pending. The nine current commands are registered globally and directly in the configured guild.
 The current /profile handler is caller-only; the optional player lookup follows later.
 This plan updates the original design specification's Discord command list.
 Commands use plain Discord slash syntax. The `./` spelling in chat was only to
@@ -20,9 +20,9 @@ avoid triggering another integration; it is not a bot prefix or alias.
 | `/sell` | Select catches, preview the total payout, and confirm the sale; protect favorites. |
 | `/inventory` | Show owned catches, catch IDs, favorites, and total fish kept; provide management buttons. Storage is unlimited. |
 | `/collection` | Show discoveries, missing species, and personal length/weight records. |
-| `/biome` | Show the current biome and allow selecting an unlocked destination. |
-| `/gear` | Show the loadout and allow equipping owned rods and available bait. |
-| `/shop` | Browse rods and bait and purchase through buttons or menus. |
+| `/biome` | Travel to a licensed biome when level and equipped rod power qualify. |
+| `/gear` | Show rod ownership and equip purchased rods; does not grant free gear. |
+| `/shop` | Browse the camp trader; `/shop [item_id]` previews a licence or rod with buy/cancel buttons. Bait follows later. |
 | `/leaderboard` | Show discovery/count standings and per-species length/weight records. |
 | `/help` | Explain commands, cooldowns, ranks, account linking, and getting started. |
 
@@ -71,3 +71,26 @@ commands short. Separate `/buy` and `/equip` commands are not needed for launch.
 Initially, release and salvage can be inventory actions, and achievement
 progress can be reached from profile buttons or the website. Their domain
 behavior must exist before exposing either buttons or standalone commands.
+
+## Camp trader progression (owner update)
+
+Biome licences are permanent and bought in order; each tier's licence and rod
+require the previous biome licence. Buying never equips or travels automatically.
+Both the website and `/shop` preview the server price before explicit confirmation.
+Quotes last two minutes and bind the caller, player, listing, price, and catalog
+version. Commit rechecks eligibility, wallet, and ownership; retries cannot spend
+again. The website World map can equip an owned suitable rod while travelling.
+
+| Destination | Level | Licence | Rod | Combined coins |
+|---|---:|---:|---:|---:|
+| Whispering River | 5 | 150 | 250 | 400 |
+| Hollow Marsh | 10 | 500 | 750 | 1,250 |
+| Moonlit Lake | 18 | 1,500 | 2,000 | 3,500 |
+| Sunken Coast | 28 | 4,000 | 6,000 | 10,000 |
+| Glacial Reach | 40 | 10,000 | 15,000 | 25,000 |
+| Abyssal Shelf | 55 | 25,000 | 35,000 | 60,000 |
+
+Prices are initial tuning in `content/trader.json`. Existing rods are retained;
+the one-time transition grants licences through a player's furthest selected or
+discovered biome. New players and future unlocks require purchases. Neither
+purchase nor travel changes fishing cooldown, XP, odds, collection, or records.

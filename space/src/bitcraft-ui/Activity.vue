@@ -239,6 +239,11 @@ import WidgetPageShell from "./Components/WidgetPageShell.vue";
 import TrackerRefreshStatus from "./Components/TrackerRefreshStatus.vue";
 import { createTrackerPoller, retryAfterSeconds } from "./trackerPolling";
 import {
+  activitySkillRate,
+  appendActivitySample,
+  normalizeActivitySamples,
+} from "./activitySamples";
+import {
   normalizeWidgetTheme,
   widgetThemePayload,
   widgetThemeStyle as resolveWidgetThemeStyle,
@@ -259,12 +264,9 @@ const props = defineProps({
 const page = usePage();
 
 const POLL_INTERVAL_MS = 10 * 1000;
-const MIN_RATE_SAMPLE_MS = 60 * 1000;
-const RATE_SAMPLE_MS = 5 * 60 * 1000;
-const SAMPLE_WINDOW_MS = RATE_SAMPLE_MS + MIN_RATE_SAMPLE_MS;
 const ACTIVE_STAT_GRACE_MS = 15 * 60 * 1000;
 const STORAGE_KEY = "bitcraft.activityTracker.lastSetup";
-const SAMPLE_STORAGE_PREFIX = "bitcraft.activityTracker.samples.";
+const SAMPLE_STORAGE_PREFIX = "bitcraft.activityTracker.samples.v2.";
 
 const tracker = ref(props.snapshot.tracker);
 const error = ref(props.snapshot.error);
@@ -365,27 +367,28 @@ const trackerSkills = (nextTracker) => {
     : [];
 };
 
-const addSample = (nextTracker, nextSampledAt) => {
-  if (!nextTracker) {
+const addSample = (nextTracker, nextSampledAt, sourceKey, delayed = false) => {
+  if (!nextTracker || delayed) {
     return;
   }
 
-  const sampledTime = Date.parse(nextSampledAt) || Date.now();
+  const sampledTime = Date.parse(nextSampledAt);
   const sample = {
     at: sampledTime,
+    playerId: String(nextTracker.player?.entityId ?? ""),
+    sourceKey,
     xpBySkill: Object.fromEntries(
-      trackerSkills(nextTracker).map((skill) => [
-        String(skill.id),
-        Number(skill.xp ?? 0),
-      ]),
+      trackerSkills(nextTracker)
+        .filter((skill) => skill.xpKnown !== false && skill.xp != null)
+        .map((skill) => [String(skill.id), Number(skill.xp ?? 0)]),
     ),
   };
 
-  samples.value = [...samples.value, sample]
-    .filter((item) => sampledTime - item.at <= SAMPLE_WINDOW_MS)
-    .filter(
-      (item, index, list) => index === 0 || item.at !== list[index - 1].at,
-    );
+  samples.value = appendActivitySample(samples.value, sample);
+  if (samples.value.length === 1) {
+    lastActiveSkillStats.value = [];
+    lastActiveSkillStatsAt.value = 0;
+  }
   saveSamples();
 };
 
@@ -419,8 +422,12 @@ const refresh = async () => {
     if (payload.tracker) {
       tracker.value = payload.tracker;
       sampledAt.value = payload.sampledAt;
-      if (!refreshStatus.value.delayed)
-        addSample(payload.tracker, payload.sampledAt);
+      addSample(
+        payload.tracker,
+        payload.sampledAt,
+        payload.sampleSourceKey,
+        refreshStatus.value.delayed,
+      );
     }
 
     error.value = payload.error;
@@ -455,7 +462,12 @@ onMounted(() => {
 
   saveSetup();
   samples.value = loadSamples();
-  addSample(tracker.value, sampledAt.value);
+  addSample(
+    tracker.value,
+    sampledAt.value,
+    props.snapshot.sampleSourceKey,
+    refreshStatus.value.delayed,
+  );
   polling.start(refreshStatus.value.retryAfter ?? 0);
   clockTimer = window.setInterval(() => {
     now.value = new Date();
@@ -526,29 +538,7 @@ const sampleStorageKey = () => {
   return `${SAMPLE_STORAGE_PREFIX}${url.pathname}?${url.searchParams.toString()}`;
 };
 
-const normalizeSamples = (value) => {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  const nowMs = Date.now();
-
-  return value
-    .map((sample) => ({
-      at: Number(sample?.at),
-      xpBySkill:
-        sample?.xpBySkill && typeof sample.xpBySkill === "object"
-          ? sample.xpBySkill
-          : null,
-    }))
-    .filter(
-      (sample) =>
-        Number.isFinite(sample.at) &&
-        sample.xpBySkill &&
-        nowMs - sample.at <= SAMPLE_WINDOW_MS,
-    )
-    .sort((a, b) => a.at - b.at);
-};
+const normalizeSamples = normalizeActivitySamples;
 
 const loadSamples = () => {
   const storage = browserStorage();
@@ -749,73 +739,27 @@ watch(
     error.value = snapshot.error;
     sampledAt.value = snapshot.sampledAt;
     refreshStatus.value = snapshot.refresh ?? {};
-    addSample(snapshot.tracker, snapshot.sampledAt);
+    addSample(
+      snapshot.tracker,
+      snapshot.sampledAt,
+      snapshot.sampleSourceKey,
+      refreshStatus.value.delayed,
+    );
   },
 );
 
 watch(form, saveSetup, { deep: true });
 
-const skillStats = computed(() => {
-  const usableSamples = samples.value
-    .filter((sample) => Number.isFinite(sample.at) && sample.xpBySkill)
-    .sort((a, b) => a.at - b.at);
-
-  if (usableSamples.length < 2) {
-    return skills.value.map((skill) => ({
-      skill,
-      xpDelta: 0,
-      hourRate: 0,
-      minutesSampled: 0,
-      progressPercent: Math.max(
-        0,
-        Math.min(100, Number(skill.progressPercent ?? 0)),
-      ),
-    }));
-  }
-
-  const last = usableSamples[usableSamples.length - 1];
-  const baselineSamples = usableSamples.filter((sample) => {
-    const elapsed = last.at - sample.at;
-
-    return elapsed >= MIN_RATE_SAMPLE_MS && elapsed <= RATE_SAMPLE_MS;
-  });
-  const first = baselineSamples[0];
-
-  if (!first) {
-    return skills.value.map((skill) => ({
-      skill,
-      xpDelta: 0,
-      hourRate: 0,
-      minutesSampled: 0,
-      progressPercent: Math.max(
-        0,
-        Math.min(100, Number(skill.progressPercent ?? 0)),
-      ),
-    }));
-  }
-
-  const elapsedHours = (last.at - first.at) / 3600000;
-
-  return skills.value.map((skill) => {
-    const skillId = String(skill.id);
-    const xpDelta = Math.max(
+const skillStats = computed(() =>
+  skills.value.map((skill) => ({
+    skill,
+    ...activitySkillRate(samples.value, String(skill.id)),
+    progressPercent: Math.max(
       0,
-      Number(last.xpBySkill[skillId] ?? 0) -
-        Number(first.xpBySkill[skillId] ?? 0),
-    );
-
-    return {
-      skill,
-      xpDelta,
-      hourRate: elapsedHours > 0 ? xpDelta / elapsedHours : 0,
-      minutesSampled: elapsedHours * 60,
-      progressPercent: Math.max(
-        0,
-        Math.min(100, Number(skill.progressPercent ?? 0)),
-      ),
-    };
-  });
-});
+      Math.min(100, Number(skill.progressPercent ?? 0)),
+    ),
+  })),
+);
 
 const levelXp = (level) => {
   const levelRecord = levels.value.find(

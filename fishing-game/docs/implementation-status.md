@@ -2,9 +2,9 @@
 
 The owner authorized autonomous implementation after rereading the specification
 and project docs, then explicitly requested all fish and all biomes. All 251 species
-and seven biomes are implemented with level cap 60 and earned rods.
+and seven biomes are implemented with level cap 60 and purchased access rods.
 The website and account-link service are exposed through ServBay/Cloudflare at
-https://fish.ichaa.dev. The bot connects to Discord; all eight commands are
+https://fish.ichaa.dev. The bot connects to Discord; all nine commands are
 registered globally and directly in the configured guild; the public OAuth callback is registered.
 
 ## Settled decisions
@@ -24,13 +24,14 @@ registered globally and directly in the configured guild; the public OAuth callb
 - Dockside Delivery: 100 coins daily, +250 every seventh claim, midnight UTC reset, no XP.
   Nonconsecutive stamps persist; one claim per account across servers.
 - Protect favorites; confirm spending/sales.
+- Permanent sequential biome licences and paid rods at the camp trader; keep level/power gates.
 - No trading, premium currency, durability, offline casting, or website casting.
 - Unlimited kept-fish storage; inventory size never blocks casting. Favorites and sale confirmations still apply.
 - Generate bindings from WASM; do not edit generated files.
 
 ## Implemented locally
 
-Starter account, seven level-earned rods, all seven biomes and 251 named species; categories,
+Starter account, seven level-purchased access rods, all seven biomes and 251 named species; categories,
 measurements, XP, first-discovery bonus, cooldown, compact recent history,
 private inventory, junk stacks, treasure bundle, economy ledger, personal progress,
 and public per-species length/weight record snapshots. Ranks are saved per catch,
@@ -42,10 +43,15 @@ and saved catches show their length/weight relative to the species typical size.
 
 Browser dashboard, catalog, collection, favorites, bounded sale quotes and
 confirmation, unlinking, token persistence, reconnect, and subscription refresh.
-Poise handlers for /fish, /daily, /profile, /inventory, /collection, /biome, /gear, /help.
+Poise handlers for /fish, /daily, /profile, /inventory, /collection, /biome, /gear, /shop, /help.
 /daily uses private durable stamps and eligibility, an atomic wallet/ledger grant,
 selected-adapter receipts, and recovery after reconnect. Replies are ephemeral;
 already-claimed requests show the next reset without changing any fishing stats.
+Camp trader with illustrated stall, licence/rod shelves, responsive pages, ownership
+and wallet feedback, purchase previews, confirmation, and atomic server grants.
+Private ownership views are shared by browser and adapter; `/gear` only equips
+owned rods, and every travel/cast checks its biome licence. Legacy migration
+retains rods and licences through previously reached waters exactly once.
 Website biome travel, rod equip, and collection/catalog biome/tier/name filters.
 The catalog is a public compendium with original fish artwork and only species
 name, biome, eligible rarity, and cast rates. Size details stay on personal catches
@@ -96,10 +102,10 @@ No sibling application's server or data was changed.
 ## Remaining boundaries
 
 - Discord credentials were supplied and the bot reached Gateway readiness.
-  Discord's API confirms the public OAuth callback and all eight global commands.
+  Discord's API confirms the public OAuth callback and all nine global commands.
   Live command delivery/deferral, attachment rendering, OAuth
   consent/callback, and credential rotation remain unverified against Discord.
-- Upgrade, sell command components, shop command,
+- Upgrade and sell command components,
   leaderboard command, and optional public-player lookup are not registered handlers yet.
   Favorite/sale domain behavior already works through the website.
 - Rod upgrade recipes, bait, release/salvage, achievements, bounded standings,

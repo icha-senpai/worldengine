@@ -1,10 +1,9 @@
 use crate::{
     accounts::{config, require_service},
-    inventory::ledger,
     tables::*,
 };
 use game_rules::progression::{check_interaction_freshness, level_for_xp};
-use spacetimedb::{ReducerContext, Table};
+use spacetimedb::ReducerContext;
 
 // Both transports use the same transactional access checks. Equipment changes never
 // touch next_cast_at; changing destination cannot reset the global cast cooldown.
@@ -42,24 +41,12 @@ fn change(
     if rod.power < biome.required_power {
         return Err(format!("BIOME_POWER_REQUIRED:{}", biome.required_power));
     }
-    // Rods are earned once through level progression. Claiming a milestone costs
-    // nothing, does not affect odds, and cannot duplicate an ownership reward.
     let key = u128::from(player_id) << 32 | u128::from(rod.rod_id);
     if ctx.db.owned_rod().key().find(key).is_none() {
-        ctx.db.owned_rod().insert(OwnedRod {
-            key,
-            player_id,
-            rod_id: rod.rod_id,
-            upgrade_level: 0,
-        });
-        ledger(
-            ctx,
-            player_id,
-            format!("rod-unlock:{}", rod.rod_id),
-            &format!("rod_{}", rod.rod_id),
-            1,
-            "level_unlock",
-        );
+        return Err("ROD_NOT_OWNED".into());
+    }
+    if !crate::shop::owns_licence(ctx, player_id, biome.biome_id) {
+        return Err("BIOME_LICENCE_REQUIRED".into());
     }
     player.equipped_rod_id = rod.rod_id;
     player.selected_biome_id = biome.biome_id;

@@ -23,12 +23,15 @@ export function levelProgress(xp, levels) {
 }
 export function activityTracker(player, definitions, levels, filters) {
   const skillOptions = definitions.map((skill) => {
-    const xp = Number(
-      (player.experience ?? []).find(
-        (entry) => Number(entry.skill_id ?? entry.skillId) === Number(skill.id),
-      )?.quantity ?? 0,
+    const experience = (player.experience ?? []).find(
+      (entry) => Number(entry.skill_id ?? entry.skillId) === Number(skill.id),
     );
-    return { ...skill, xp, ...levelProgress(xp, levels) };
+    const xpKnown =
+      experience?.quantity != null &&
+      Number.isFinite(Number(experience.quantity)) &&
+      Number(experience.quantity) >= 0;
+    const xp = xpKnown ? Number(experience.quantity) : 0;
+    return { ...skill, xp, xpKnown, ...levelProgress(xp, levels) };
   });
   const skills = skillOptions.filter(
     (skill) =>

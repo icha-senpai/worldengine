@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "listings": [
+    {
+      "listingId": 20,
+      "kind": "licence",
+      "targetId": 2,
+      "name": "Whispering River Licence",
+      "priceCoins": 150,
+      "minimumLevel": 5,
+      "previousBiomeId": 1,
+      "biomeId": 2
+    },
+    {
+      "listingId": 21,
+      "kind": "rod",
+      "targetId": 2,
+      "name": "River Rod",
+      "priceCoins": 250,
+      "minimumLevel": 5,
+      "previousBiomeId": 1,
+      "biomeId": 2
+    },
+    {
+      "listingId": 30,
+      "kind": "licence",
+      "targetId": 3,
+      "name": "Hollow Marsh Licence",
+      "priceCoins": 500,
+      "minimumLevel": 10,
+      "previousBiomeId": 2,
+      "biomeId": 3
+    },
+    {
+      "listingId": 31,
+      "kind": "rod",
+      "targetId": 3,
+      "name": "Marsh Rod",
+      "priceCoins": 750,
+      "minimumLevel": 10,
+      "previousBiomeId": 2,
+      "biomeId": 3
+    },
+    {
+      "listingId": 40,
+      "kind": "licence",
+      "targetId": 4,
+      "name": "Moonlit Lake Licence",
+      "priceCoins": 1500,
+      "minimumLevel": 18,
+      "previousBiomeId": 3,
+      "biomeId": 4
+    },
+    {
+      "listingId": 41,
+      "kind": "rod",
+      "targetId": 4,
+      "name": "Moonwood Rod",
+      "priceCoins": 2000,
+      "minimumLevel": 18,
+      "previousBiomeId": 3,
+      "biomeId": 4
+    },
+    {
+      "listingId": 50,
+      "kind": "licence",
+      "targetId": 5,
+      "name": "Sunken Coast Licence",
+      "priceCoins": 4000,
+      "minimumLevel": 28,
+      "previousBiomeId": 4,
+      "biomeId": 5
+    },
+    {
+      "listingId": 51,
+      "kind": "rod",
+      "targetId": 5,
+      "name": "Tide Rod",
+      "priceCoins": 6000,
+      "minimumLevel": 28,
+      "previousBiomeId": 4,
+      "biomeId": 5
+    },
+    {
+      "listingId": 60,
+      "kind": "licence",
+      "targetId": 6,
+      "name": "Glacial Reach Licence",
+      "priceCoins": 10000,
+      "minimumLevel": 40,
+      "previousBiomeId": 5,
+      "biomeId": 6
+    },
+    {
+      "listingId": 61,
+      "kind": "rod",
+      "targetId": 6,
+      "name": "Glacial Rod",
+      "priceCoins": 15000,
+      "minimumLevel": 40,
+      "previousBiomeId": 5,
+      "biomeId": 6
+    },
+    {
+      "listingId": 70,
+      "kind": "licence",
+      "targetId": 7,
+      "name": "Abyssal Shelf Licence",
+      "priceCoins": 25000,
+      "minimumLevel": 55,
+      "previousBiomeId": 6,
+      "biomeId": 7
+    },
+    {
+      "listingId": 71,
+      "kind": "rod",
+      "targetId": 7,
+      "name": "Abyssal Rod",
+      "priceCoins": 35000,
+      "minimumLevel": 55,
+      "previousBiomeId": 6,
+      "biomeId": 7
+    }
+  ]
+}

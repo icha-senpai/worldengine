@@ -6,30 +6,40 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import ActivateTraderReducer from "../activate_trader_reducer";
 import BeginLinkChallengeReducer from "../begin_link_challenge_reducer";
 import ChangeLoadoutReducer from "../change_loadout_reducer";
 import ChangeLoadoutFromDiscordReducer from "../change_loadout_from_discord_reducer";
 import CommitInventoryActionReducer from "../commit_inventory_action_reducer";
+import CommitShopFromDiscordReducer from "../commit_shop_from_discord_reducer";
+import CommitShopPurchaseReducer from "../commit_shop_purchase_reducer";
 import CompleteAccountLinkReducer from "../complete_account_link_reducer";
 import ConfigureServiceReducer from "../configure_service_reducer";
 import DailyFromDiscordReducer from "../daily_from_discord_reducer";
 import FishFromDiscordReducer from "../fish_from_discord_reducer";
 import MigrateUnlimitedInventoryReducer from "../migrate_unlimited_inventory_reducer";
 import PrepareInventoryActionReducer from "../prepare_inventory_action_reducer";
+import PrepareShopFromDiscordReducer from "../prepare_shop_from_discord_reducer";
+import PrepareShopPurchaseReducer from "../prepare_shop_purchase_reducer";
 import RebuildPlayerRecordsReducer from "../rebuild_player_records_reducer";
 import SelectDiscordPlayerReducer from "../select_discord_player_reducer";
 import UnlinkBrowserReducer from "../unlink_browser_reducer";
 
+export type ActivateTraderParams = __Infer<typeof ActivateTraderReducer>;
 export type BeginLinkChallengeParams = __Infer<typeof BeginLinkChallengeReducer>;
 export type ChangeLoadoutParams = __Infer<typeof ChangeLoadoutReducer>;
 export type ChangeLoadoutFromDiscordParams = __Infer<typeof ChangeLoadoutFromDiscordReducer>;
 export type CommitInventoryActionParams = __Infer<typeof CommitInventoryActionReducer>;
+export type CommitShopFromDiscordParams = __Infer<typeof CommitShopFromDiscordReducer>;
+export type CommitShopPurchaseParams = __Infer<typeof CommitShopPurchaseReducer>;
 export type CompleteAccountLinkParams = __Infer<typeof CompleteAccountLinkReducer>;
 export type ConfigureServiceParams = __Infer<typeof ConfigureServiceReducer>;
 export type DailyFromDiscordParams = __Infer<typeof DailyFromDiscordReducer>;
 export type FishFromDiscordParams = __Infer<typeof FishFromDiscordReducer>;
 export type MigrateUnlimitedInventoryParams = __Infer<typeof MigrateUnlimitedInventoryReducer>;
 export type PrepareInventoryActionParams = __Infer<typeof PrepareInventoryActionReducer>;
+export type PrepareShopFromDiscordParams = __Infer<typeof PrepareShopFromDiscordReducer>;
+export type PrepareShopPurchaseParams = __Infer<typeof PrepareShopPurchaseReducer>;
 export type RebuildPlayerRecordsParams = __Infer<typeof RebuildPlayerRecordsReducer>;
 export type SelectDiscordPlayerParams = __Infer<typeof SelectDiscordPlayerReducer>;
 export type UnlinkBrowserParams = __Infer<typeof UnlinkBrowserReducer>;

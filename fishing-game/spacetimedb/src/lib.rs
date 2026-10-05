@@ -7,6 +7,7 @@ mod inventory;
 mod loadout;
 mod maintenance;
 mod records;
+mod shop;
 mod tables;
 
 use spacetimedb::{ReducerContext, Table};
@@ -19,6 +20,7 @@ pub fn init(ctx: &ReducerContext) {
         identity: ctx.sender(),
     });
     content::seed(ctx);
+    shop::seed(ctx);
     ctx.db.maintenance_job().insert(MaintenanceJob {
         scheduled_id: 1,
         scheduled_at: spacetimedb::TimeDuration::from_micros(60_000_000).into(),

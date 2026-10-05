@@ -57,15 +57,21 @@ try {
   const botConn = bot.connection;
   ownerGrant(bot.identity, 'DiscordAdapter');
   ownerGrant(linker.identity, 'AccountLinker');
-  const browserQueries = ['SELECT * FROM my_profile', 'SELECT * FROM my_player', 'SELECT * FROM my_inventory',
+  const browserQueries = ['SELECT * FROM my_rods', 'SELECT * FROM my_licences', 'SELECT * FROM my_shop_quote', 'SELECT * FROM my_profile', 'SELECT * FROM my_player', 'SELECT * FROM my_inventory',
     'SELECT * FROM my_collection', 'SELECT * FROM my_recent_catches', 'SELECT * FROM my_link_challenge',
-    'SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt', 'SELECT * FROM adapter_daily_receipt'];
-  await Promise.all([subscribe(botConn, ['SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt', 'SELECT * FROM adapter_daily_receipt',
+    'SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt', 'SELECT * FROM adapter_daily_receipt', 'SELECT * FROM adapter_rods', 'SELECT * FROM adapter_licences', 'SELECT * FROM adapter_shop_quote', 'SELECT * FROM shop_listing'];
+  await Promise.all([subscribe(botConn, ['SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt', 'SELECT * FROM adapter_daily_receipt', 'SELECT * FROM adapter_rods', 'SELECT * FROM adapter_licences', 'SELECT * FROM adapter_shop_quote', 'SELECT * FROM shop_listing',
     'SELECT * FROM adapter_inventory', 'SELECT * FROM adapter_collection', 'SELECT * FROM species_definition',
     'SELECT * FROM game_config', 'SELECT * FROM biome_definition', 'SELECT * FROM rod_definition', 'SELECT * FROM species_rank_definition', 'SELECT * FROM rarity_definition',
     'SELECT * FROM angler_standing', 'SELECT * FROM legendary_find', 'SELECT * FROM species_record']), subscribe(alice.connection, browserQueries), subscribe(bob.connection, browserQueries),
     subscribe(replacement.connection, browserQueries)]);
   await checks('ordinary identities cannot grant services, cast, select accounts, or complete links', async () => {
+    await assert.rejects(bob.connection.reducers.activateTrader({ grandfatherLicences: true }), /OWNER_REQUIRED/);
+    await assert.rejects(bob.connection.reducers.prepareShopPurchase({ listingId: 20 }), /ACCOUNT_NOT_LINKED/);
+    await assert.rejects(bob.connection.reducers.commitShopPurchase({ nonce: 0n }), /ACCOUNT_NOT_LINKED/);
+    await assert.rejects(bob.connection.reducers.prepareShopFromDiscord({ discordUserId: 8001n, interactionId: snowflake(), listingId: 20 }), /SERVICE_UNAUTHORIZED/);
+    assert.equal(bob.connection.db.myRods.count(), 0n);
+    assert.equal(bob.connection.db.adapterRods.count(), 0n);
     await assert.rejects(bob.connection.reducers.configureService({ identity: bob.identity, role: { tag: 'DiscordAdapter' }, active: true }), /OWNER_REQUIRED/);
     await assert.rejects(bob.connection.reducers.rebuildPlayerRecords({ playerId: 1n }), /OWNER_REQUIRED/);
     await assert.rejects(bob.connection.reducers.migrateUnlimitedInventory({}), /OWNER_REQUIRED/);
@@ -80,7 +86,7 @@ try {
     await assert.rejects(bob.connection.reducers.changeLoadout({ biomeId: 1, rodId: 1 }), /ACCOUNT_NOT_LINKED/);
     await assert.rejects(bob.connection.reducers.changeLoadoutFromDiscord({ discordUserId: 8001n, interactionId: snowflake(), biomeId: 1, rodId: 1 }), /SERVICE_UNAUTHORIZED/);
   });
-  await checks('all 251 species, seven reachable biome gates, and seven earned rods are seeded from current content', async () => {
+  await checks('all 251 species, seven reachable biome gates, and seven rod templates plus trader offers are seeded from current content', async () => {
     const catalog = JSON.parse(await readFile('content/species.json', 'utf8'));
     const world = JSON.parse(await readFile('content/world.json', 'utf8'));
     const species = [...botConn.db.speciesDefinition.iter()];
@@ -97,6 +103,7 @@ try {
     assert.equal(species.length, 251);
     assert.equal(biomes.length, 7);
     assert.equal(rods.length, 7);
+    assert.equal(botConn.db.shopListing.count(), 12n);
     assert.equal([...botConn.db.gameConfig.iter()][0].levelCap, 60);
     assert.equal([...botConn.db.gameConfig.iter()][0].inventoryCapacity, 0, 'Fish storage is unlimited');
     for (const definition of catalog.species) {
@@ -125,7 +132,7 @@ try {
     }
   });
   await checks('raw private tables reject unrelated subscriber queries', async () => {
-    for (const table of ['player', 'player_identity', 'owned_specimen', 'command_receipt', 'daily_delivery', 'daily_receipt', 'service_principal', 'link_challenge']) {
+    for (const table of ['player', 'player_identity', 'owned_specimen', 'command_receipt', 'daily_delivery', 'daily_receipt', 'owned_rod', 'owned_biome_licence', 'shop_quote', 'trader_migration', 'service_principal', 'link_challenge']) {
       await assert.rejects(subscribe(bob.connection, [`SELECT * FROM ${table}`]));
     }
   });

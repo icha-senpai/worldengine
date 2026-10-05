@@ -34,16 +34,21 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import ActivateTraderReducer from "./activate_trader_reducer";
 import BeginLinkChallengeReducer from "./begin_link_challenge_reducer";
 import ChangeLoadoutReducer from "./change_loadout_reducer";
 import ChangeLoadoutFromDiscordReducer from "./change_loadout_from_discord_reducer";
 import CommitInventoryActionReducer from "./commit_inventory_action_reducer";
+import CommitShopFromDiscordReducer from "./commit_shop_from_discord_reducer";
+import CommitShopPurchaseReducer from "./commit_shop_purchase_reducer";
 import CompleteAccountLinkReducer from "./complete_account_link_reducer";
 import ConfigureServiceReducer from "./configure_service_reducer";
 import DailyFromDiscordReducer from "./daily_from_discord_reducer";
 import FishFromDiscordReducer from "./fish_from_discord_reducer";
 import MigrateUnlimitedInventoryReducer from "./migrate_unlimited_inventory_reducer";
 import PrepareInventoryActionReducer from "./prepare_inventory_action_reducer";
+import PrepareShopFromDiscordReducer from "./prepare_shop_from_discord_reducer";
+import PrepareShopPurchaseReducer from "./prepare_shop_purchase_reducer";
 import RebuildPlayerRecordsReducer from "./rebuild_player_records_reducer";
 import SelectDiscordPlayerReducer from "./select_discord_player_reducer";
 import UnlinkBrowserReducer from "./unlink_browser_reducer";
@@ -54,8 +59,11 @@ import UnlinkBrowserReducer from "./unlink_browser_reducer";
 import AdapterCollectionRow from "./adapter_collection_table";
 import AdapterDailyReceiptRow from "./adapter_daily_receipt_table";
 import AdapterInventoryRow from "./adapter_inventory_table";
+import AdapterLicencesRow from "./adapter_licences_table";
 import AdapterPlayerRow from "./adapter_player_table";
 import AdapterReceiptRow from "./adapter_receipt_table";
+import AdapterRodsRow from "./adapter_rods_table";
+import AdapterShopQuoteRow from "./adapter_shop_quote_table";
 import AnglerStandingRow from "./angler_standing_table";
 import BiomeDefinitionRow from "./biome_definition_table";
 import GameConfigRow from "./game_config_table";
@@ -65,14 +73,18 @@ import MyCollectionRow from "./my_collection_table";
 import MyInventoryRow from "./my_inventory_table";
 import MyItemsRow from "./my_items_table";
 import MyLedgerRow from "./my_ledger_table";
+import MyLicencesRow from "./my_licences_table";
 import MyLinkChallengeRow from "./my_link_challenge_table";
 import MyPlayerRow from "./my_player_table";
 import MyProfileRow from "./my_profile_table";
 import MyRecentCatchesRow from "./my_recent_catches_table";
+import MyRodsRow from "./my_rods_table";
 import MyServiceRow from "./my_service_table";
+import MyShopQuoteRow from "./my_shop_quote_table";
 import PublicProfileRow from "./public_profile_table";
 import RarityDefinitionRow from "./rarity_definition_table";
 import RodDefinitionRow from "./rod_definition_table";
+import ShopListingRow from "./shop_listing_table";
 import SpeciesDefinitionRow from "./species_definition_table";
 import SpeciesRankDefinitionRow from "./species_rank_definition_table";
 import SpeciesRecordRow from "./species_record_table";
@@ -158,6 +170,17 @@ const tablesSchema = __schema({
       { name: 'rod_definition_rod_id_key', constraint: 'unique', columns: ['rodId'] },
     ],
   }, RodDefinitionRow),
+  shopListing: __table({
+    name: 'shop_listing',
+    indexes: [
+      { accessor: 'listing_id', name: 'shop_listing_listing_id_idx_btree', algorithm: 'btree', columns: [
+        'listingId',
+      ] },
+    ],
+    constraints: [
+      { name: 'shop_listing_listing_id_key', constraint: 'unique', columns: ['listingId'] },
+    ],
+  }, ShopListingRow),
   speciesDefinition: __table({
     name: 'species_definition',
     indexes: [
@@ -218,6 +241,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterInventoryRow),
+  adapterLicences: __table({
+    name: 'adapter_licences',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterLicencesRow),
   adapterPlayer: __table({
     name: 'adapter_player',
     indexes: [
@@ -232,6 +262,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterReceiptRow),
+  adapterRods: __table({
+    name: 'adapter_rods',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterRodsRow),
+  adapterShopQuote: __table({
+    name: 'adapter_shop_quote',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterShopQuoteRow),
   myAction: __table({
     name: 'my_action',
     indexes: [
@@ -267,6 +311,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyLedgerRow),
+  myLicences: __table({
+    name: 'my_licences',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyLicencesRow),
   myLinkChallenge: __table({
     name: 'my_link_challenge',
     indexes: [
@@ -295,6 +346,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyRecentCatchesRow),
+  myRods: __table({
+    name: 'my_rods',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyRodsRow),
   myService: __table({
     name: 'my_service',
     indexes: [
@@ -302,20 +360,32 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyServiceRow),
+  myShopQuote: __table({
+    name: 'my_shop_quote',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyShopQuoteRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("activate_trader", ActivateTraderReducer),
   __reducerSchema("begin_link_challenge", BeginLinkChallengeReducer),
   __reducerSchema("change_loadout", ChangeLoadoutReducer),
   __reducerSchema("change_loadout_from_discord", ChangeLoadoutFromDiscordReducer),
   __reducerSchema("commit_inventory_action", CommitInventoryActionReducer),
+  __reducerSchema("commit_shop_from_discord", CommitShopFromDiscordReducer),
+  __reducerSchema("commit_shop_purchase", CommitShopPurchaseReducer),
   __reducerSchema("complete_account_link", CompleteAccountLinkReducer),
   __reducerSchema("configure_service", ConfigureServiceReducer),
   __reducerSchema("daily_from_discord", DailyFromDiscordReducer),
   __reducerSchema("fish_from_discord", FishFromDiscordReducer),
   __reducerSchema("migrate_unlimited_inventory", MigrateUnlimitedInventoryReducer),
   __reducerSchema("prepare_inventory_action", PrepareInventoryActionReducer),
+  __reducerSchema("prepare_shop_from_discord", PrepareShopFromDiscordReducer),
+  __reducerSchema("prepare_shop_purchase", PrepareShopPurchaseReducer),
   __reducerSchema("rebuild_player_records", RebuildPlayerRecordsReducer),
   __reducerSchema("select_discord_player", SelectDiscordPlayerReducer),
   __reducerSchema("unlink_browser", UnlinkBrowserReducer),
@@ -341,6 +411,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "rarity_definition": Omit<typeof tablesSchema.schemaType.tables["rarityDefinition"], "accessorName"> & { readonly accessorName: "rarity_definition" };
     /** @deprecated Use `rodDefinition` instead. This alias will be removed in the next major version. */
     readonly "rod_definition": Omit<typeof tablesSchema.schemaType.tables["rodDefinition"], "accessorName"> & { readonly accessorName: "rod_definition" };
+    /** @deprecated Use `shopListing` instead. This alias will be removed in the next major version. */
+    readonly "shop_listing": Omit<typeof tablesSchema.schemaType.tables["shopListing"], "accessorName"> & { readonly accessorName: "shop_listing" };
     /** @deprecated Use `speciesDefinition` instead. This alias will be removed in the next major version. */
     readonly "species_definition": Omit<typeof tablesSchema.schemaType.tables["speciesDefinition"], "accessorName"> & { readonly accessorName: "species_definition" };
     /** @deprecated Use `speciesRankDefinition` instead. This alias will be removed in the next major version. */
@@ -353,10 +425,16 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "adapter_daily_receipt": Omit<typeof tablesSchema.schemaType.tables["adapterDailyReceipt"], "accessorName"> & { readonly accessorName: "adapter_daily_receipt" };
     /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
     readonly "adapter_inventory": Omit<typeof tablesSchema.schemaType.tables["adapterInventory"], "accessorName"> & { readonly accessorName: "adapter_inventory" };
+    /** @deprecated Use `adapterLicences` instead. This alias will be removed in the next major version. */
+    readonly "adapter_licences": Omit<typeof tablesSchema.schemaType.tables["adapterLicences"], "accessorName"> & { readonly accessorName: "adapter_licences" };
     /** @deprecated Use `adapterPlayer` instead. This alias will be removed in the next major version. */
     readonly "adapter_player": Omit<typeof tablesSchema.schemaType.tables["adapterPlayer"], "accessorName"> & { readonly accessorName: "adapter_player" };
     /** @deprecated Use `adapterReceipt` instead. This alias will be removed in the next major version. */
     readonly "adapter_receipt": Omit<typeof tablesSchema.schemaType.tables["adapterReceipt"], "accessorName"> & { readonly accessorName: "adapter_receipt" };
+    /** @deprecated Use `adapterRods` instead. This alias will be removed in the next major version. */
+    readonly "adapter_rods": Omit<typeof tablesSchema.schemaType.tables["adapterRods"], "accessorName"> & { readonly accessorName: "adapter_rods" };
+    /** @deprecated Use `adapterShopQuote` instead. This alias will be removed in the next major version. */
+    readonly "adapter_shop_quote": Omit<typeof tablesSchema.schemaType.tables["adapterShopQuote"], "accessorName"> & { readonly accessorName: "adapter_shop_quote" };
     /** @deprecated Use `myAction` instead. This alias will be removed in the next major version. */
     readonly "my_action": Omit<typeof tablesSchema.schemaType.tables["myAction"], "accessorName"> & { readonly accessorName: "my_action" };
     /** @deprecated Use `myCollection` instead. This alias will be removed in the next major version. */
@@ -367,6 +445,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_items": Omit<typeof tablesSchema.schemaType.tables["myItems"], "accessorName"> & { readonly accessorName: "my_items" };
     /** @deprecated Use `myLedger` instead. This alias will be removed in the next major version. */
     readonly "my_ledger": Omit<typeof tablesSchema.schemaType.tables["myLedger"], "accessorName"> & { readonly accessorName: "my_ledger" };
+    /** @deprecated Use `myLicences` instead. This alias will be removed in the next major version. */
+    readonly "my_licences": Omit<typeof tablesSchema.schemaType.tables["myLicences"], "accessorName"> & { readonly accessorName: "my_licences" };
     /** @deprecated Use `myLinkChallenge` instead. This alias will be removed in the next major version. */
     readonly "my_link_challenge": Omit<typeof tablesSchema.schemaType.tables["myLinkChallenge"], "accessorName"> & { readonly accessorName: "my_link_challenge" };
     /** @deprecated Use `myPlayer` instead. This alias will be removed in the next major version. */
@@ -375,8 +455,12 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_profile": Omit<typeof tablesSchema.schemaType.tables["myProfile"], "accessorName"> & { readonly accessorName: "my_profile" };
     /** @deprecated Use `myRecentCatches` instead. This alias will be removed in the next major version. */
     readonly "my_recent_catches": Omit<typeof tablesSchema.schemaType.tables["myRecentCatches"], "accessorName"> & { readonly accessorName: "my_recent_catches" };
+    /** @deprecated Use `myRods` instead. This alias will be removed in the next major version. */
+    readonly "my_rods": Omit<typeof tablesSchema.schemaType.tables["myRods"], "accessorName"> & { readonly accessorName: "my_rods" };
     /** @deprecated Use `myService` instead. This alias will be removed in the next major version. */
     readonly "my_service": Omit<typeof tablesSchema.schemaType.tables["myService"], "accessorName"> & { readonly accessorName: "my_service" };
+    /** @deprecated Use `myShopQuote` instead. This alias will be removed in the next major version. */
+    readonly "my_shop_quote": Omit<typeof tablesSchema.schemaType.tables["myShopQuote"], "accessorName"> & { readonly accessorName: "my_shop_quote" };
   };
 };
 
@@ -402,24 +486,31 @@ const tableAccessorAliases = {
   "public_profile": "publicProfile",
   "rarity_definition": "rarityDefinition",
   "rod_definition": "rodDefinition",
+  "shop_listing": "shopListing",
   "species_definition": "speciesDefinition",
   "species_rank_definition": "speciesRankDefinition",
   "species_record": "speciesRecord",
   "adapter_collection": "adapterCollection",
   "adapter_daily_receipt": "adapterDailyReceipt",
   "adapter_inventory": "adapterInventory",
+  "adapter_licences": "adapterLicences",
   "adapter_player": "adapterPlayer",
   "adapter_receipt": "adapterReceipt",
+  "adapter_rods": "adapterRods",
+  "adapter_shop_quote": "adapterShopQuote",
   "my_action": "myAction",
   "my_collection": "myCollection",
   "my_inventory": "myInventory",
   "my_items": "myItems",
   "my_ledger": "myLedger",
+  "my_licences": "myLicences",
   "my_link_challenge": "myLinkChallenge",
   "my_player": "myPlayer",
   "my_profile": "myProfile",
   "my_recent_catches": "myRecentCatches",
+  "my_rods": "myRods",
   "my_service": "myService",
+  "my_shop_quote": "myShopQuote",
 } as const;
 
 function __withTableAccessorAliases<T extends object>(target: T, freeze = false): T {
@@ -454,6 +545,8 @@ export type DbView = __DbViewBase & {
   readonly "rarity_definition": __DbViewBase["rarityDefinition"];
   /** @deprecated Use `rodDefinition` instead. This alias will be removed in the next major version. */
   readonly "rod_definition": __DbViewBase["rodDefinition"];
+  /** @deprecated Use `shopListing` instead. This alias will be removed in the next major version. */
+  readonly "shop_listing": __DbViewBase["shopListing"];
   /** @deprecated Use `speciesDefinition` instead. This alias will be removed in the next major version. */
   readonly "species_definition": __DbViewBase["speciesDefinition"];
   /** @deprecated Use `speciesRankDefinition` instead. This alias will be removed in the next major version. */
@@ -466,10 +559,16 @@ export type DbView = __DbViewBase & {
   readonly "adapter_daily_receipt": __DbViewBase["adapterDailyReceipt"];
   /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
   readonly "adapter_inventory": __DbViewBase["adapterInventory"];
+  /** @deprecated Use `adapterLicences` instead. This alias will be removed in the next major version. */
+  readonly "adapter_licences": __DbViewBase["adapterLicences"];
   /** @deprecated Use `adapterPlayer` instead. This alias will be removed in the next major version. */
   readonly "adapter_player": __DbViewBase["adapterPlayer"];
   /** @deprecated Use `adapterReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_receipt": __DbViewBase["adapterReceipt"];
+  /** @deprecated Use `adapterRods` instead. This alias will be removed in the next major version. */
+  readonly "adapter_rods": __DbViewBase["adapterRods"];
+  /** @deprecated Use `adapterShopQuote` instead. This alias will be removed in the next major version. */
+  readonly "adapter_shop_quote": __DbViewBase["adapterShopQuote"];
   /** @deprecated Use `myAction` instead. This alias will be removed in the next major version. */
   readonly "my_action": __DbViewBase["myAction"];
   /** @deprecated Use `myCollection` instead. This alias will be removed in the next major version. */
@@ -480,6 +579,8 @@ export type DbView = __DbViewBase & {
   readonly "my_items": __DbViewBase["myItems"];
   /** @deprecated Use `myLedger` instead. This alias will be removed in the next major version. */
   readonly "my_ledger": __DbViewBase["myLedger"];
+  /** @deprecated Use `myLicences` instead. This alias will be removed in the next major version. */
+  readonly "my_licences": __DbViewBase["myLicences"];
   /** @deprecated Use `myLinkChallenge` instead. This alias will be removed in the next major version. */
   readonly "my_link_challenge": __DbViewBase["myLinkChallenge"];
   /** @deprecated Use `myPlayer` instead. This alias will be removed in the next major version. */
@@ -488,8 +589,12 @@ export type DbView = __DbViewBase & {
   readonly "my_profile": __DbViewBase["myProfile"];
   /** @deprecated Use `myRecentCatches` instead. This alias will be removed in the next major version. */
   readonly "my_recent_catches": __DbViewBase["myRecentCatches"];
+  /** @deprecated Use `myRods` instead. This alias will be removed in the next major version. */
+  readonly "my_rods": __DbViewBase["myRods"];
   /** @deprecated Use `myService` instead. This alias will be removed in the next major version. */
   readonly "my_service": __DbViewBase["myService"];
+  /** @deprecated Use `myShopQuote` instead. This alias will be removed in the next major version. */
+  readonly "my_shop_quote": __DbViewBase["myShopQuote"];
 };
 
 type __TablesBase = __QueryBuilder<typeof tablesSchema.schemaType>;
@@ -508,6 +613,8 @@ export type Tables = __TablesBase & {
   readonly "rarity_definition": __TablesBase["rarityDefinition"];
   /** @deprecated Use `rodDefinition` instead. This alias will be removed in the next major version. */
   readonly "rod_definition": __TablesBase["rodDefinition"];
+  /** @deprecated Use `shopListing` instead. This alias will be removed in the next major version. */
+  readonly "shop_listing": __TablesBase["shopListing"];
   /** @deprecated Use `speciesDefinition` instead. This alias will be removed in the next major version. */
   readonly "species_definition": __TablesBase["speciesDefinition"];
   /** @deprecated Use `speciesRankDefinition` instead. This alias will be removed in the next major version. */
@@ -520,10 +627,16 @@ export type Tables = __TablesBase & {
   readonly "adapter_daily_receipt": __TablesBase["adapterDailyReceipt"];
   /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
   readonly "adapter_inventory": __TablesBase["adapterInventory"];
+  /** @deprecated Use `adapterLicences` instead. This alias will be removed in the next major version. */
+  readonly "adapter_licences": __TablesBase["adapterLicences"];
   /** @deprecated Use `adapterPlayer` instead. This alias will be removed in the next major version. */
   readonly "adapter_player": __TablesBase["adapterPlayer"];
   /** @deprecated Use `adapterReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_receipt": __TablesBase["adapterReceipt"];
+  /** @deprecated Use `adapterRods` instead. This alias will be removed in the next major version. */
+  readonly "adapter_rods": __TablesBase["adapterRods"];
+  /** @deprecated Use `adapterShopQuote` instead. This alias will be removed in the next major version. */
+  readonly "adapter_shop_quote": __TablesBase["adapterShopQuote"];
   /** @deprecated Use `myAction` instead. This alias will be removed in the next major version. */
   readonly "my_action": __TablesBase["myAction"];
   /** @deprecated Use `myCollection` instead. This alias will be removed in the next major version. */
@@ -534,6 +647,8 @@ export type Tables = __TablesBase & {
   readonly "my_items": __TablesBase["myItems"];
   /** @deprecated Use `myLedger` instead. This alias will be removed in the next major version. */
   readonly "my_ledger": __TablesBase["myLedger"];
+  /** @deprecated Use `myLicences` instead. This alias will be removed in the next major version. */
+  readonly "my_licences": __TablesBase["myLicences"];
   /** @deprecated Use `myLinkChallenge` instead. This alias will be removed in the next major version. */
   readonly "my_link_challenge": __TablesBase["myLinkChallenge"];
   /** @deprecated Use `myPlayer` instead. This alias will be removed in the next major version. */
@@ -542,8 +657,12 @@ export type Tables = __TablesBase & {
   readonly "my_profile": __TablesBase["myProfile"];
   /** @deprecated Use `myRecentCatches` instead. This alias will be removed in the next major version. */
   readonly "my_recent_catches": __TablesBase["myRecentCatches"];
+  /** @deprecated Use `myRods` instead. This alias will be removed in the next major version. */
+  readonly "my_rods": __TablesBase["myRods"];
   /** @deprecated Use `myService` instead. This alias will be removed in the next major version. */
   readonly "my_service": __TablesBase["myService"];
+  /** @deprecated Use `myShopQuote` instead. This alias will be removed in the next major version. */
+  readonly "my_shop_quote": __TablesBase["myShopQuote"];
 };
 
 /** The tables available in this remote SpacetimeDB module. Each table reference doubles as a query builder. */

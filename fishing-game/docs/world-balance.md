@@ -12,7 +12,7 @@ All 251 supplied sprite names have active, positive encounter weights. Each spec
 | Glacial Reach | 45 | 40 | 65 | 83 / 12 / 5 |
 | Abyssal Shelf | 51 | 55 | 85 | 78 / 14 / 8 |
 
-Level cap: 60. Rods are earned free at the corresponding biome unlock level and claimed once on equip. Rod power controls access only; no luck, bait, or size modifiers apply yet. Level gates and power are checked on travel, equip, and every cast. The global 60-second cooldown survives all loadout changes.
+Level cap: 60. Twig Rod and Meadow Pond are free. Later rods and permanent biome licences are bought from the camp trader after the corresponding level gate; licences unlock in order. Prices are in content/trader.json. Rod power controls access only; no luck, bait, or size modifiers apply yet. Level gates and power are checked on travel, equip, and every cast. The global 60-second cooldown survives all loadout changes.
 
 ## Exceptional odds
 

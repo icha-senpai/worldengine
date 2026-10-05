@@ -164,6 +164,13 @@ export const MaintenanceJob = __t.object("MaintenanceJob", {
 });
 export type MaintenanceJob = __Infer<typeof MaintenanceJob>;
 
+export const OwnedBiomeLicence = __t.object("OwnedBiomeLicence", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  biomeId: __t.u32(),
+});
+export type OwnedBiomeLicence = __Infer<typeof OwnedBiomeLicence>;
+
 export const OwnedRod = __t.object("OwnedRod", {
   key: __t.u128(),
   playerId: __t.u64(),
@@ -291,6 +298,33 @@ export const ServiceSelection = __t.object("ServiceSelection", {
 });
 export type ServiceSelection = __Infer<typeof ServiceSelection>;
 
+export const ShopListing = __t.object("ShopListing", {
+  listingId: __t.u32(),
+  kind: __t.string(),
+  targetId: __t.u32(),
+  name: __t.string(),
+  priceCoins: __t.u64(),
+  minimumLevel: __t.u32(),
+  previousBiomeId: __t.u32(),
+  biomeId: __t.u32(),
+  catalogVersion: __t.u32(),
+});
+export type ShopListing = __Infer<typeof ShopListing>;
+
+export const ShopQuote = __t.object("ShopQuote", {
+  key: __t.string(),
+  identity: __t.identity(),
+  playerId: __t.u64(),
+  nonce: __t.u128(),
+  listingId: __t.u32(),
+  quotedCoins: __t.u64(),
+  catalogVersion: __t.u32(),
+  createdAt: __t.timestamp(),
+  expiresAt: __t.timestamp(),
+  consumed: __t.bool(),
+});
+export type ShopQuote = __Infer<typeof ShopQuote>;
+
 export const SpeciesDefinition = __t.object("SpeciesDefinition", {
   speciesId: __t.u32(),
   key: __t.string(),
@@ -337,4 +371,10 @@ export const SpeciesRecord = __t.object("SpeciesRecord", {
   contentVersion: __t.u32(),
 });
 export type SpeciesRecord = __Infer<typeof SpeciesRecord>;
+
+export const TraderMigration = __t.object("TraderMigration", {
+  singleton: __t.u8(),
+  grandfathered: __t.bool(),
+});
+export type TraderMigration = __Infer<typeof TraderMigration>;
 

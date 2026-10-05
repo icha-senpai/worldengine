@@ -81,6 +81,7 @@ export async function live(resource, id = "", q = "", page = 1, options = {}) {
         throw error;
       }
       return {
+        sourceKey: response.key,
         data: unwrap(JSON.parse(response.payload)),
         refresh,
         error: response.error || null,
@@ -757,6 +758,7 @@ export async function trackerSnapshot(tool, filters) {
         ),
         error: playerResponse.error || response.error,
         sampledAt: playerResponse.refresh.updatedAt ?? sampledAt,
+        sampleSourceKey: playerResponse.sourceKey,
         refresh: {
           ...playerResponse.refresh,
           delayed: playerResponse.refresh.delayed || response.refresh.delayed,

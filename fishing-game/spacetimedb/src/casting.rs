@@ -60,6 +60,9 @@ pub fn fish_from_discord(
         .biome_id()
         .find(player.selected_biome_id)
         .ok_or("BIOME_UNAVAILABLE")?;
+    if !crate::shop::owns_licence(ctx, player.player_id, biome.biome_id) {
+        return Err("BIOME_LICENCE_REQUIRED".into());
+    }
     let rod_key = u128::from(player.player_id) << 32 | u128::from(player.equipped_rod_id);
     ctx.db
         .owned_rod()

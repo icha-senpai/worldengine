@@ -7,6 +7,15 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
     if ctx.sender() != ctx.database_identity() {
         return Err("SCHEDULER_REQUIRED".into());
     }
+    for row in ctx
+        .db
+        .shop_quote()
+        .expires_at()
+        .filter(..ctx.timestamp)
+        .take(1000)
+    {
+        ctx.db.shop_quote().key().delete(row.key);
+    }
     let week = ctx.timestamp - TimeDuration::from_micros(7 * 86_400_000_000);
     let month = ctx.timestamp - TimeDuration::from_micros(30 * 86_400_000_000);
     for row in ctx

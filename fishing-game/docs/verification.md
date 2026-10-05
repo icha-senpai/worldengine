@@ -373,3 +373,43 @@ The bot replies ephemerally with committed reward, stamp progress, and a relativ
 next-reset timestamp. Direct command response delivery still requires a player
 invoking `/daily` in Discord; tests did not send Discord messages or claim any live
 player's reward. Long-duration receipt pruning remains a staging check.
+
+
+## Camp trader, paid rods, and biome licences
+
+- The content validator checks twelve unique positive-price offers, matching
+  biome/rod references, levels, and preceding biome gates. Prices are prototype
+  tuning in content/trader.json; catch probabilities remain unchanged.
+- The complete twenty-check production-module integration proof passed against
+  fishbound-proof-1791163327590-yf5ay1, including new ownership/quote privacy,
+  unauthorized shop/migration rejection, and existing fishing/daily/link/sale rules.
+- scripts/trader-proof.ts compiles a separately named fixture WASM to a fresh
+  loopback proof database. It purchases both items at every tier and reaches all
+  seven biomes, verifies no free /gear unlock, sequential licences, level/coin
+  failures, exact coin deductions, replay, stale prices, expired quotes, wrong
+  player/nonce, competing browser/Discord commits, and one ledger credit/debit
+  pair per grant. One-time legacy migration preserves reached waters and never
+  waives purchases on later reactivation. Unlink clears all personal shop views.
+- The native client proof confirms a purchase and recovers the same consumed quote
+  after reconnect without spending again. It also rejects a low-level offer.
+- Browser UI was tested using the real Trader/TraderStall components with clearly
+  labelled synthetic data. Stall entry, both shelves, price previews, cancel,
+  confirm, ownership, balance/level gates, and responsive pagination passed.
+  Screenshots in output/playwright/trader-fixture-{desktop,mobile}.png were viewed.
+  Desktop 1440px plus 768/390/320px checks showed no horizontal overflow.
+- All eighteen rules tests and four catch-card tests passed. Workspace Rust check,
+  Svelte check (zero errors/warnings), production build, formatting, and diff checks
+  passed. Live Discord button response delivery needs a player invoking /shop;
+  no live reward/purchase was executed for a player during verification.
+
+
+Live deployment verification: the migration added only the new trader catalog,
+private licences/quotes/migration marker, and scoped views. Existing player and
+owned-rod rows matched saved pre-update snapshots exactly, excluding SQL timing
+metadata. Owner activation seeded twelve offers and completed preservation once.
+Discord's API confirms nine guild/global commands, including optional /shop item_id;
+the native bot reached Gateway readiness. The public WebSocket exposes twelve
+catalog offers and no anonymous player, rods, licences, or quotes, including after
+reconnect. Public Camp/Trader navigation, live shelves, guest purchase gating, and
+1440/390/320px layouts passed; screenshots are trader-public-{camp,desktop}.png.
+Account-link readiness returned HTTP 200. No live player's coins were spent by tests.

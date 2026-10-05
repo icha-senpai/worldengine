@@ -7,11 +7,15 @@
 use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
 pub mod action_nonce_type;
+pub mod activate_trader_reducer;
 pub mod adapter_collection_table;
 pub mod adapter_daily_receipt_table;
 pub mod adapter_inventory_table;
+pub mod adapter_licences_table;
 pub mod adapter_player_table;
 pub mod adapter_receipt_table;
+pub mod adapter_rods_table;
+pub mod adapter_shop_quote_table;
 pub mod admin_audit_type;
 pub mod angler_standing_table;
 pub mod angler_standing_type;
@@ -22,6 +26,8 @@ pub mod change_loadout_from_discord_reducer;
 pub mod change_loadout_reducer;
 pub mod command_receipt_type;
 pub mod commit_inventory_action_reducer;
+pub mod commit_shop_from_discord_reducer;
+pub mod commit_shop_purchase_reducer;
 pub mod complete_account_link_reducer;
 pub mod configure_service_reducer;
 pub mod daily_delivery_type;
@@ -43,17 +49,23 @@ pub mod my_collection_table;
 pub mod my_inventory_table;
 pub mod my_items_table;
 pub mod my_ledger_table;
+pub mod my_licences_table;
 pub mod my_link_challenge_table;
 pub mod my_player_table;
 pub mod my_profile_table;
 pub mod my_recent_catches_table;
+pub mod my_rods_table;
 pub mod my_service_table;
+pub mod my_shop_quote_table;
+pub mod owned_biome_licence_type;
 pub mod owned_rod_type;
 pub mod owned_specimen_type;
 pub mod player_identity_type;
 pub mod player_species_progress_type;
 pub mod player_type;
 pub mod prepare_inventory_action_reducer;
+pub mod prepare_shop_from_discord_reducer;
+pub mod prepare_shop_purchase_reducer;
 pub mod public_profile_table;
 pub mod public_profile_type;
 pub mod rarity_definition_table;
@@ -66,20 +78,28 @@ pub mod select_discord_player_reducer;
 pub mod service_principal_type;
 pub mod service_role_type;
 pub mod service_selection_type;
+pub mod shop_listing_table;
+pub mod shop_listing_type;
+pub mod shop_quote_type;
 pub mod species_definition_table;
 pub mod species_definition_type;
 pub mod species_rank_definition_table;
 pub mod species_rank_definition_type;
 pub mod species_record_table;
 pub mod species_record_type;
+pub mod trader_migration_type;
 pub mod unlink_browser_reducer;
 
 pub use action_nonce_type::ActionNonce;
+pub use activate_trader_reducer::activate_trader;
 pub use adapter_collection_table::*;
 pub use adapter_daily_receipt_table::*;
 pub use adapter_inventory_table::*;
+pub use adapter_licences_table::*;
 pub use adapter_player_table::*;
 pub use adapter_receipt_table::*;
+pub use adapter_rods_table::*;
+pub use adapter_shop_quote_table::*;
 pub use admin_audit_type::AdminAudit;
 pub use angler_standing_table::*;
 pub use angler_standing_type::AnglerStanding;
@@ -90,6 +110,8 @@ pub use change_loadout_from_discord_reducer::change_loadout_from_discord;
 pub use change_loadout_reducer::change_loadout;
 pub use command_receipt_type::CommandReceipt;
 pub use commit_inventory_action_reducer::commit_inventory_action;
+pub use commit_shop_from_discord_reducer::commit_shop_from_discord;
+pub use commit_shop_purchase_reducer::commit_shop_purchase;
 pub use complete_account_link_reducer::complete_account_link;
 pub use configure_service_reducer::configure_service;
 pub use daily_delivery_type::DailyDelivery;
@@ -111,17 +133,23 @@ pub use my_collection_table::*;
 pub use my_inventory_table::*;
 pub use my_items_table::*;
 pub use my_ledger_table::*;
+pub use my_licences_table::*;
 pub use my_link_challenge_table::*;
 pub use my_player_table::*;
 pub use my_profile_table::*;
 pub use my_recent_catches_table::*;
+pub use my_rods_table::*;
 pub use my_service_table::*;
+pub use my_shop_quote_table::*;
+pub use owned_biome_licence_type::OwnedBiomeLicence;
 pub use owned_rod_type::OwnedRod;
 pub use owned_specimen_type::OwnedSpecimen;
 pub use player_identity_type::PlayerIdentity;
 pub use player_species_progress_type::PlayerSpeciesProgress;
 pub use player_type::Player;
 pub use prepare_inventory_action_reducer::prepare_inventory_action;
+pub use prepare_shop_from_discord_reducer::prepare_shop_from_discord;
+pub use prepare_shop_purchase_reducer::prepare_shop_purchase;
 pub use public_profile_table::*;
 pub use public_profile_type::PublicProfile;
 pub use rarity_definition_table::*;
@@ -134,12 +162,16 @@ pub use select_discord_player_reducer::select_discord_player;
 pub use service_principal_type::ServicePrincipal;
 pub use service_role_type::ServiceRole;
 pub use service_selection_type::ServiceSelection;
+pub use shop_listing_table::*;
+pub use shop_listing_type::ShopListing;
+pub use shop_quote_type::ShopQuote;
 pub use species_definition_table::*;
 pub use species_definition_type::SpeciesDefinition;
 pub use species_rank_definition_table::*;
 pub use species_rank_definition_type::SpeciesRankDefinition;
 pub use species_record_table::*;
 pub use species_record_type::SpeciesRecord;
+pub use trader_migration_type::TraderMigration;
 pub use unlink_browser_reducer::unlink_browser;
 
 #[derive(Clone, PartialEq, Debug)]
@@ -150,6 +182,9 @@ pub use unlink_browser_reducer::unlink_browser;
 /// to indicate which reducer caused the event.
 
 pub enum Reducer {
+    ActivateTrader {
+        grandfather_licences: bool,
+    },
     BeginLinkChallenge,
     ChangeLoadout {
         biome_id: Option<u32>,
@@ -162,6 +197,14 @@ pub enum Reducer {
         rod_id: Option<u32>,
     },
     CommitInventoryAction {
+        nonce: u128,
+    },
+    CommitShopFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        nonce: u128,
+    },
+    CommitShopPurchase {
         nonce: u128,
     },
     CompleteAccountLink {
@@ -192,6 +235,14 @@ pub enum Reducer {
         catch_ids: Vec<u64>,
         favorite: bool,
     },
+    PrepareShopFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        listing_id: u32,
+    },
+    PrepareShopPurchase {
+        listing_id: u32,
+    },
     RebuildPlayerRecords {
         player_id: u64,
     },
@@ -210,16 +261,21 @@ impl __sdk::InModule for Reducer {
 impl __sdk::Reducer for Reducer {
     fn reducer_name(&self) -> &'static str {
         match self {
+            Reducer::ActivateTrader { .. } => "activate_trader",
             Reducer::BeginLinkChallenge => "begin_link_challenge",
             Reducer::ChangeLoadout { .. } => "change_loadout",
             Reducer::ChangeLoadoutFromDiscord { .. } => "change_loadout_from_discord",
             Reducer::CommitInventoryAction { .. } => "commit_inventory_action",
+            Reducer::CommitShopFromDiscord { .. } => "commit_shop_from_discord",
+            Reducer::CommitShopPurchase { .. } => "commit_shop_purchase",
             Reducer::CompleteAccountLink { .. } => "complete_account_link",
             Reducer::ConfigureService { .. } => "configure_service",
             Reducer::DailyFromDiscord { .. } => "daily_from_discord",
             Reducer::FishFromDiscord { .. } => "fish_from_discord",
             Reducer::MigrateUnlimitedInventory => "migrate_unlimited_inventory",
             Reducer::PrepareInventoryAction { .. } => "prepare_inventory_action",
+            Reducer::PrepareShopFromDiscord { .. } => "prepare_shop_from_discord",
+            Reducer::PrepareShopPurchase { .. } => "prepare_shop_purchase",
             Reducer::RebuildPlayerRecords { .. } => "rebuild_player_records",
             Reducer::SelectDiscordPlayer { .. } => "select_discord_player",
             Reducer::UnlinkBrowser => "unlink_browser",
@@ -229,6 +285,11 @@ impl __sdk::Reducer for Reducer {
     #[allow(clippy::clone_on_copy)]
     fn args_bsatn(&self) -> Result<Vec<u8>, __sats::bsatn::EncodeError> {
         match self {
+            Reducer::ActivateTrader {
+                grandfather_licences,
+            } => __sats::bsatn::to_vec(&activate_trader_reducer::ActivateTraderArgs {
+                grandfather_licences: grandfather_licences.clone(),
+            }),
             Reducer::BeginLinkChallenge => {
                 __sats::bsatn::to_vec(&begin_link_challenge_reducer::BeginLinkChallengeArgs {})
             }
@@ -256,6 +317,22 @@ impl __sdk::Reducer for Reducer {
                     nonce: nonce.clone(),
                 },
             ),
+            Reducer::CommitShopFromDiscord {
+                discord_user_id,
+                interaction_id,
+                nonce,
+            } => __sats::bsatn::to_vec(
+                &commit_shop_from_discord_reducer::CommitShopFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    nonce: nonce.clone(),
+                },
+            ),
+            Reducer::CommitShopPurchase { nonce } => {
+                __sats::bsatn::to_vec(&commit_shop_purchase_reducer::CommitShopPurchaseArgs {
+                    nonce: nonce.clone(),
+                })
+            }
             Reducer::CompleteAccountLink {
                 challenge_id,
                 verified_discord_user_id,
@@ -310,6 +387,22 @@ impl __sdk::Reducer for Reducer {
                     favorite: favorite.clone(),
                 },
             ),
+            Reducer::PrepareShopFromDiscord {
+                discord_user_id,
+                interaction_id,
+                listing_id,
+            } => __sats::bsatn::to_vec(
+                &prepare_shop_from_discord_reducer::PrepareShopFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    listing_id: listing_id.clone(),
+                },
+            ),
+            Reducer::PrepareShopPurchase { listing_id } => {
+                __sats::bsatn::to_vec(&prepare_shop_purchase_reducer::PrepareShopPurchaseArgs {
+                    listing_id: listing_id.clone(),
+                })
+            }
             Reducer::RebuildPlayerRecords { player_id } => {
                 __sats::bsatn::to_vec(&rebuild_player_records_reducer::RebuildPlayerRecordsArgs {
                     player_id: player_id.clone(),
@@ -339,8 +432,11 @@ pub struct DbUpdate {
     adapter_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
     adapter_daily_receipt: __sdk::TableUpdate<DailyReceipt>,
     adapter_inventory: __sdk::TableUpdate<OwnedSpecimen>,
+    adapter_licences: __sdk::TableUpdate<OwnedBiomeLicence>,
     adapter_player: __sdk::TableUpdate<Player>,
     adapter_receipt: __sdk::TableUpdate<CommandReceipt>,
+    adapter_rods: __sdk::TableUpdate<OwnedRod>,
+    adapter_shop_quote: __sdk::TableUpdate<ShopQuote>,
     angler_standing: __sdk::TableUpdate<AnglerStanding>,
     biome_definition: __sdk::TableUpdate<BiomeDefinition>,
     game_config: __sdk::TableUpdate<GameConfig>,
@@ -350,14 +446,18 @@ pub struct DbUpdate {
     my_inventory: __sdk::TableUpdate<OwnedSpecimen>,
     my_items: __sdk::TableUpdate<ItemStack>,
     my_ledger: __sdk::TableUpdate<EconomyLedger>,
+    my_licences: __sdk::TableUpdate<OwnedBiomeLicence>,
     my_link_challenge: __sdk::TableUpdate<LinkChallenge>,
     my_player: __sdk::TableUpdate<Player>,
     my_profile: __sdk::TableUpdate<PublicProfile>,
     my_recent_catches: __sdk::TableUpdate<RecentCatch>,
+    my_rods: __sdk::TableUpdate<OwnedRod>,
     my_service: __sdk::TableUpdate<ServicePrincipal>,
+    my_shop_quote: __sdk::TableUpdate<ShopQuote>,
     public_profile: __sdk::TableUpdate<PublicProfile>,
     rarity_definition: __sdk::TableUpdate<RarityDefinition>,
     rod_definition: __sdk::TableUpdate<RodDefinition>,
+    shop_listing: __sdk::TableUpdate<ShopListing>,
     species_definition: __sdk::TableUpdate<SpeciesDefinition>,
     species_rank_definition: __sdk::TableUpdate<SpeciesRankDefinition>,
     species_record: __sdk::TableUpdate<SpeciesRecord>,
@@ -378,12 +478,21 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_inventory" => db_update
                     .adapter_inventory
                     .append(adapter_inventory_table::parse_table_update(table_update)?),
+                "adapter_licences" => db_update
+                    .adapter_licences
+                    .append(adapter_licences_table::parse_table_update(table_update)?),
                 "adapter_player" => db_update
                     .adapter_player
                     .append(adapter_player_table::parse_table_update(table_update)?),
                 "adapter_receipt" => db_update
                     .adapter_receipt
                     .append(adapter_receipt_table::parse_table_update(table_update)?),
+                "adapter_rods" => db_update
+                    .adapter_rods
+                    .append(adapter_rods_table::parse_table_update(table_update)?),
+                "adapter_shop_quote" => db_update
+                    .adapter_shop_quote
+                    .append(adapter_shop_quote_table::parse_table_update(table_update)?),
                 "angler_standing" => db_update
                     .angler_standing
                     .append(angler_standing_table::parse_table_update(table_update)?),
@@ -411,6 +520,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_ledger" => db_update
                     .my_ledger
                     .append(my_ledger_table::parse_table_update(table_update)?),
+                "my_licences" => db_update
+                    .my_licences
+                    .append(my_licences_table::parse_table_update(table_update)?),
                 "my_link_challenge" => db_update
                     .my_link_challenge
                     .append(my_link_challenge_table::parse_table_update(table_update)?),
@@ -423,9 +535,15 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_recent_catches" => db_update
                     .my_recent_catches
                     .append(my_recent_catches_table::parse_table_update(table_update)?),
+                "my_rods" => db_update
+                    .my_rods
+                    .append(my_rods_table::parse_table_update(table_update)?),
                 "my_service" => db_update
                     .my_service
                     .append(my_service_table::parse_table_update(table_update)?),
+                "my_shop_quote" => db_update
+                    .my_shop_quote
+                    .append(my_shop_quote_table::parse_table_update(table_update)?),
                 "public_profile" => db_update
                     .public_profile
                     .append(public_profile_table::parse_table_update(table_update)?),
@@ -435,6 +553,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "rod_definition" => db_update
                     .rod_definition
                     .append(rod_definition_table::parse_table_update(table_update)?),
+                "shop_listing" => db_update
+                    .shop_listing
+                    .append(shop_listing_table::parse_table_update(table_update)?),
                 "species_definition" => db_update
                     .species_definition
                     .append(species_definition_table::parse_table_update(table_update)?),
@@ -491,6 +612,9 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.rod_definition = cache
             .apply_diff_to_table::<RodDefinition>("rod_definition", &self.rod_definition)
             .with_updates_by_pk(|row| &row.rod_id);
+        diff.shop_listing = cache
+            .apply_diff_to_table::<ShopListing>("shop_listing", &self.shop_listing)
+            .with_updates_by_pk(|row| &row.listing_id);
         diff.species_definition = cache
             .apply_diff_to_table::<SpeciesDefinition>(
                 "species_definition",
@@ -516,10 +640,16 @@ impl __sdk::DbUpdate for DbUpdate {
         );
         diff.adapter_inventory = cache
             .apply_diff_to_table::<OwnedSpecimen>("adapter_inventory", &self.adapter_inventory);
+        diff.adapter_licences = cache
+            .apply_diff_to_table::<OwnedBiomeLicence>("adapter_licences", &self.adapter_licences);
         diff.adapter_player =
             cache.apply_diff_to_table::<Player>("adapter_player", &self.adapter_player);
         diff.adapter_receipt =
             cache.apply_diff_to_table::<CommandReceipt>("adapter_receipt", &self.adapter_receipt);
+        diff.adapter_rods =
+            cache.apply_diff_to_table::<OwnedRod>("adapter_rods", &self.adapter_rods);
+        diff.adapter_shop_quote =
+            cache.apply_diff_to_table::<ShopQuote>("adapter_shop_quote", &self.adapter_shop_quote);
         diff.my_action = cache.apply_diff_to_table::<ActionNonce>("my_action", &self.my_action);
         diff.my_collection = cache
             .apply_diff_to_table::<PlayerSpeciesProgress>("my_collection", &self.my_collection);
@@ -527,6 +657,8 @@ impl __sdk::DbUpdate for DbUpdate {
             cache.apply_diff_to_table::<OwnedSpecimen>("my_inventory", &self.my_inventory);
         diff.my_items = cache.apply_diff_to_table::<ItemStack>("my_items", &self.my_items);
         diff.my_ledger = cache.apply_diff_to_table::<EconomyLedger>("my_ledger", &self.my_ledger);
+        diff.my_licences =
+            cache.apply_diff_to_table::<OwnedBiomeLicence>("my_licences", &self.my_licences);
         diff.my_link_challenge = cache
             .apply_diff_to_table::<LinkChallenge>("my_link_challenge", &self.my_link_challenge);
         diff.my_player = cache.apply_diff_to_table::<Player>("my_player", &self.my_player);
@@ -534,8 +666,11 @@ impl __sdk::DbUpdate for DbUpdate {
             cache.apply_diff_to_table::<PublicProfile>("my_profile", &self.my_profile);
         diff.my_recent_catches =
             cache.apply_diff_to_table::<RecentCatch>("my_recent_catches", &self.my_recent_catches);
+        diff.my_rods = cache.apply_diff_to_table::<OwnedRod>("my_rods", &self.my_rods);
         diff.my_service =
             cache.apply_diff_to_table::<ServicePrincipal>("my_service", &self.my_service);
+        diff.my_shop_quote =
+            cache.apply_diff_to_table::<ShopQuote>("my_shop_quote", &self.my_shop_quote);
 
         diff
     }
@@ -552,11 +687,20 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_inventory" => db_update
                     .adapter_inventory
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_licences" => db_update
+                    .adapter_licences
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_player" => db_update
                     .adapter_player
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_receipt" => db_update
                     .adapter_receipt
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_rods" => db_update
+                    .adapter_rods
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_shop_quote" => db_update
+                    .adapter_shop_quote
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "angler_standing" => db_update
                     .angler_standing
@@ -585,6 +729,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_ledger" => db_update
                     .my_ledger
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_licences" => db_update
+                    .my_licences
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_link_challenge" => db_update
                     .my_link_challenge
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -597,8 +744,14 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_recent_catches" => db_update
                     .my_recent_catches
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_rods" => db_update
+                    .my_rods
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_service" => db_update
                     .my_service
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_shop_quote" => db_update
+                    .my_shop_quote
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "public_profile" => db_update
                     .public_profile
@@ -608,6 +761,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "rod_definition" => db_update
                     .rod_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "shop_listing" => db_update
+                    .shop_listing
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "species_definition" => db_update
                     .species_definition
@@ -640,11 +796,20 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_inventory" => db_update
                     .adapter_inventory
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_licences" => db_update
+                    .adapter_licences
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_player" => db_update
                     .adapter_player
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_receipt" => db_update
                     .adapter_receipt
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_rods" => db_update
+                    .adapter_rods
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_shop_quote" => db_update
+                    .adapter_shop_quote
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "angler_standing" => db_update
                     .angler_standing
@@ -673,6 +838,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_ledger" => db_update
                     .my_ledger
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_licences" => db_update
+                    .my_licences
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_link_challenge" => db_update
                     .my_link_challenge
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -685,8 +853,14 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_recent_catches" => db_update
                     .my_recent_catches
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_rods" => db_update
+                    .my_rods
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_service" => db_update
                     .my_service
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_shop_quote" => db_update
+                    .my_shop_quote
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "public_profile" => db_update
                     .public_profile
@@ -696,6 +870,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "rod_definition" => db_update
                     .rod_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "shop_listing" => db_update
+                    .shop_listing
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "species_definition" => db_update
                     .species_definition
@@ -724,8 +901,11 @@ pub struct AppliedDiff<'r> {
     adapter_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
     adapter_daily_receipt: __sdk::TableAppliedDiff<'r, DailyReceipt>,
     adapter_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
+    adapter_licences: __sdk::TableAppliedDiff<'r, OwnedBiomeLicence>,
     adapter_player: __sdk::TableAppliedDiff<'r, Player>,
     adapter_receipt: __sdk::TableAppliedDiff<'r, CommandReceipt>,
+    adapter_rods: __sdk::TableAppliedDiff<'r, OwnedRod>,
+    adapter_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
     angler_standing: __sdk::TableAppliedDiff<'r, AnglerStanding>,
     biome_definition: __sdk::TableAppliedDiff<'r, BiomeDefinition>,
     game_config: __sdk::TableAppliedDiff<'r, GameConfig>,
@@ -735,14 +915,18 @@ pub struct AppliedDiff<'r> {
     my_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
     my_items: __sdk::TableAppliedDiff<'r, ItemStack>,
     my_ledger: __sdk::TableAppliedDiff<'r, EconomyLedger>,
+    my_licences: __sdk::TableAppliedDiff<'r, OwnedBiomeLicence>,
     my_link_challenge: __sdk::TableAppliedDiff<'r, LinkChallenge>,
     my_player: __sdk::TableAppliedDiff<'r, Player>,
     my_profile: __sdk::TableAppliedDiff<'r, PublicProfile>,
     my_recent_catches: __sdk::TableAppliedDiff<'r, RecentCatch>,
+    my_rods: __sdk::TableAppliedDiff<'r, OwnedRod>,
     my_service: __sdk::TableAppliedDiff<'r, ServicePrincipal>,
+    my_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
     public_profile: __sdk::TableAppliedDiff<'r, PublicProfile>,
     rarity_definition: __sdk::TableAppliedDiff<'r, RarityDefinition>,
     rod_definition: __sdk::TableAppliedDiff<'r, RodDefinition>,
+    shop_listing: __sdk::TableAppliedDiff<'r, ShopListing>,
     species_definition: __sdk::TableAppliedDiff<'r, SpeciesDefinition>,
     species_rank_definition: __sdk::TableAppliedDiff<'r, SpeciesRankDefinition>,
     species_record: __sdk::TableAppliedDiff<'r, SpeciesRecord>,
@@ -774,6 +958,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.adapter_inventory,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<OwnedBiomeLicence>(
+            "adapter_licences",
+            &self.adapter_licences,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<Player>(
             "adapter_player",
             &self.adapter_player,
@@ -782,6 +971,12 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<CommandReceipt>(
             "adapter_receipt",
             &self.adapter_receipt,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<OwnedRod>("adapter_rods", &self.adapter_rods, event);
+        callbacks.invoke_table_row_callbacks::<ShopQuote>(
+            "adapter_shop_quote",
+            &self.adapter_shop_quote,
             event,
         );
         callbacks.invoke_table_row_callbacks::<AnglerStanding>(
@@ -813,6 +1008,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         );
         callbacks.invoke_table_row_callbacks::<ItemStack>("my_items", &self.my_items, event);
         callbacks.invoke_table_row_callbacks::<EconomyLedger>("my_ledger", &self.my_ledger, event);
+        callbacks.invoke_table_row_callbacks::<OwnedBiomeLicence>(
+            "my_licences",
+            &self.my_licences,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<LinkChallenge>(
             "my_link_challenge",
             &self.my_link_challenge,
@@ -829,9 +1029,15 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.my_recent_catches,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<OwnedRod>("my_rods", &self.my_rods, event);
         callbacks.invoke_table_row_callbacks::<ServicePrincipal>(
             "my_service",
             &self.my_service,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<ShopQuote>(
+            "my_shop_quote",
+            &self.my_shop_quote,
             event,
         );
         callbacks.invoke_table_row_callbacks::<PublicProfile>(
@@ -847,6 +1053,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<RodDefinition>(
             "rod_definition",
             &self.rod_definition,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<ShopListing>(
+            "shop_listing",
+            &self.shop_listing,
             event,
         );
         callbacks.invoke_table_row_callbacks::<SpeciesDefinition>(
@@ -1527,8 +1738,11 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_collection_table::register_table(client_cache);
         adapter_daily_receipt_table::register_table(client_cache);
         adapter_inventory_table::register_table(client_cache);
+        adapter_licences_table::register_table(client_cache);
         adapter_player_table::register_table(client_cache);
         adapter_receipt_table::register_table(client_cache);
+        adapter_rods_table::register_table(client_cache);
+        adapter_shop_quote_table::register_table(client_cache);
         angler_standing_table::register_table(client_cache);
         biome_definition_table::register_table(client_cache);
         game_config_table::register_table(client_cache);
@@ -1538,14 +1752,18 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_inventory_table::register_table(client_cache);
         my_items_table::register_table(client_cache);
         my_ledger_table::register_table(client_cache);
+        my_licences_table::register_table(client_cache);
         my_link_challenge_table::register_table(client_cache);
         my_player_table::register_table(client_cache);
         my_profile_table::register_table(client_cache);
         my_recent_catches_table::register_table(client_cache);
+        my_rods_table::register_table(client_cache);
         my_service_table::register_table(client_cache);
+        my_shop_quote_table::register_table(client_cache);
         public_profile_table::register_table(client_cache);
         rarity_definition_table::register_table(client_cache);
         rod_definition_table::register_table(client_cache);
+        shop_listing_table::register_table(client_cache);
         species_definition_table::register_table(client_cache);
         species_rank_definition_table::register_table(client_cache);
         species_record_table::register_table(client_cache);
@@ -1554,8 +1772,11 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_collection",
         "adapter_daily_receipt",
         "adapter_inventory",
+        "adapter_licences",
         "adapter_player",
         "adapter_receipt",
+        "adapter_rods",
+        "adapter_shop_quote",
         "angler_standing",
         "biome_definition",
         "game_config",
@@ -1565,14 +1786,18 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_inventory",
         "my_items",
         "my_ledger",
+        "my_licences",
         "my_link_challenge",
         "my_player",
         "my_profile",
         "my_recent_catches",
+        "my_rods",
         "my_service",
+        "my_shop_quote",
         "public_profile",
         "rarity_definition",
         "rod_definition",
+        "shop_listing",
         "species_definition",
         "species_rank_definition",
         "species_record",

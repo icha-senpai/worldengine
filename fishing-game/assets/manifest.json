@@ -2091,5 +2091,23 @@
       "bytes": 2116328,
       "sha256": "1b1c40b23703b46d09ab32d7e75c1524dc03289c41172839b0bebb935cd73212"
     }
+  ],
+  "items": [
+    {
+      "key": "rusted-tin",
+      "url": "/items/rusted-tin.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 613442,
+      "sha256": "b002b478ad090c459bb35f3350dc46d9e4ba8c2e5d62aa53c782b49cb213c098"
+    },
+    {
+      "key": "scrap",
+      "url": "/items/scrap.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 389485,
+      "sha256": "2bd33f63d4a8c0f18bb7d2bb8c56b8d704da1d1de4f5807adf8dd6ce13208944"
+    }
   ]
 }

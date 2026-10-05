@@ -94,6 +94,58 @@ async fn main() -> Result<(), Error> {
     );
     assert_eq!(left?.player.discord_user_id, 9002);
     assert_eq!(right?.player.discord_user_id, 9003);
+    let locked_offer = client
+        .shop_action(9001, "Native proof".into(), snowflake(9), Some(20), None)
+        .await;
+    assert!(locked_offer.is_err_and(|error| error.to_string().contains("SHOP_LEVEL_REQUIRED")));
+    if std::env::var("TEST_SHOP_PROOF").as_deref() == Ok("true") {
+        let quote = client
+            .shop_action(
+                9208,
+                "Native trader proof".into(),
+                snowflake(10),
+                Some(20),
+                None,
+            )
+            .await?;
+        assert_eq!(quote.quoted_coins, 150);
+        let committed = client
+            .shop_action(
+                9208,
+                "Native trader proof".into(),
+                snowflake(11),
+                None,
+                Some(quote.nonce),
+            )
+            .await?;
+        assert!(committed.consumed);
+        client.disconnect();
+        assert_eq!(
+            client
+                .shop_action(
+                    9208,
+                    "Native trader proof".into(),
+                    snowflake(12),
+                    None,
+                    Some(quote.nonce)
+                )
+                .await?,
+            committed
+        );
+        let state = client
+            .player(
+                9208,
+                "Native trader proof".into(),
+                snowflake(13),
+                None,
+                1,
+                false,
+            )
+            .await?;
+        assert_eq!(state.player.coins, 199850);
+        assert_eq!(state.licences.len(), 1);
+        assert_eq!(state.owned_rods.len(), 1);
+    }
     drop(client);
     let resumed = Client::connect(
         &uri,

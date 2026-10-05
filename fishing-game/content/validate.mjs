@@ -139,3 +139,17 @@ for (let i = 0; i < sizes.tiers.length; i++) {
   }
 }
 console.log('Species-relative length and weight thresholds valid; all 2,492 size bands are reachable.');
+
+const trader = JSON.parse(await readFile(new URL('./trader.json', import.meta.url), 'utf8'));
+assert.equal(trader.listings.length, 12);
+assert.equal(new Set(trader.listings.map(row => row.listingId)).size, trader.listings.length);
+for (const listing of trader.listings) {
+  assert(['rod', 'licence'].includes(listing.kind));
+  assert(Number.isSafeInteger(listing.priceCoins) && listing.priceCoins > 0);
+  const biome = world.biomes.find(row => row.biomeId === listing.biomeId);
+  assert(biome && listing.previousBiomeId === biome.biomeId - 1);
+  assert.equal(listing.minimumLevel, biome.minimumLevel);
+  if (listing.kind === 'licence') assert.equal(listing.targetId, biome.biomeId);
+  else assert(world.rods.some(row => row.rodId === listing.targetId && row.minimumLevel === listing.minimumLevel && row.power >= biome.requiredPower));
+}
+console.log('Trader catalog valid: six permanent licences and six purchasable rods.');

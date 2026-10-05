@@ -57,6 +57,27 @@ fn rejection(error: &Error) -> String {
     if message.contains("INTERACTION_EXPIRED") {
         return "That request expired. Use /fish for a new cast.".into();
     }
+    if message.contains("BIOME_LICENCE_REQUIRED") || message.contains("PREVIOUS_LICENCE_REQUIRED") {
+        return "Visit /shop for biome licences. Buy each water's licence before moving on.".into();
+    }
+    if message.contains("ROD_NOT_OWNED") {
+        return "Buy that rod at /shop before equipping it with /gear.".into();
+    }
+    if message.contains("INSUFFICIENT_COINS") {
+        return "You need more coins for this offer. Sell catches on the website or collect /daily.".into();
+    }
+    if message.contains("SHOP_ITEM_UNAVAILABLE") {
+        return "That item ID is unavailable. Use /shop to see the trader list.".into();
+    }
+    if message.contains("ALREADY_OWNED") {
+        return "You already own this item.".into();
+    }
+    if message.contains("SHOP_LEVEL_REQUIRED") {
+        return "Reach the item's required angler level before buying.".into();
+    }
+    if message.contains("ACTION_EXPIRED") || message.contains("QUOTE_CHANGED") {
+        return "That offer expired or changed. Use /shop to review a new offer.".into();
+    }
     if message.contains("BIOME_LEVEL_REQUIRED") || message.contains("ROD_LOCKED") {
         return "That biome or rod needs a higher angler level. Use /biome or /gear to see unlock levels.".into();
     }
@@ -359,7 +380,7 @@ async fn biome(
         .iter()
         .map(|b| {
             format!(
-                "{} {} · ID {} · level {} · power {}",
+                "{} {} · ID {} · level {} · power {} · {}",
                 if b.biome_id == result.player.selected_biome_id {
                     "→"
                 } else {
@@ -368,14 +389,24 @@ async fn biome(
                 b.name,
                 b.biome_id,
                 b.minimum_level,
-                b.required_power
+                b.required_power,
+                if b.biome_id == 1
+                    || result
+                        .licences
+                        .iter()
+                        .any(|licence| licence.biome_id == b.biome_id)
+                {
+                    "licensed"
+                } else {
+                    "licence needed"
+                }
             )
         })
         .collect();
-    reply(ctx, format!("**Biomes**\n{}\nUse /gear to equip a level-earned rod. Travel keeps your cast cooldown.", rows.join("\n"))).await
+    reply(ctx, format!("**Biomes**\n{}\nBuy a biome licence and rod at /shop, then equip with /gear. Travel keeps your cast cooldown.", rows.join("\n"))).await
 }
 
-/// List level-earned rods or claim and equip one using its ID.
+/// List rods or equip a purchased rod using its ID.
 #[poise::command(slash_command)]
 async fn gear(
     ctx: Context<'_>,
@@ -406,7 +437,7 @@ async fn gear(
         .iter()
         .map(|r| {
             format!(
-                "{} {} · ID {} · level {} · power {}",
+                "{} {} · ID {} · level {} · power {} · {}",
                 if r.rod_id == result.player.equipped_rod_id {
                     "→"
                 } else {
@@ -415,17 +446,162 @@ async fn gear(
                 r.name,
                 r.rod_id,
                 r.minimum_level,
-                r.power
+                r.power,
+                if result
+                    .owned_rods
+                    .iter()
+                    .any(|owned| owned.rod_id == r.rod_id)
+                {
+                    "owned"
+                } else {
+                    "shop purchase needed"
+                }
             )
         })
         .collect();
-    reply(ctx, format!("**Rods earned through angler levels**\n{}\nClaims are free and granted once. These rods unlock access; they do not change catch odds.", rows.join("\n"))).await
+    reply(ctx, format!("**Your fishing rods**\n{}\nBuy rods at /shop; use /gear to equip owned rods. These rods unlock access; they do not change catch odds.", rows.join("\n"))).await
+}
+
+/// Browse the camp trader or preview a licence/rod purchase by item ID.
+#[poise::command(slash_command)]
+async fn shop(
+    ctx: Context<'_>,
+    #[description = "Item ID from the trader list"] item_id: Option<u32>,
+) -> Result<(), Error> {
+    ctx.defer_ephemeral().await?;
+    if item_id.is_none() {
+        let result = snapshot(ctx, false).await?;
+        let mut listings = result.listings;
+        listings.sort_by_key(|row| row.listing_id);
+        let rows: Vec<_> = listings
+            .iter()
+            .map(|row| {
+                let owned = if row.kind == "rod" {
+                    result
+                        .owned_rods
+                        .iter()
+                        .any(|rod| rod.rod_id == row.target_id)
+                } else {
+                    result
+                        .licences
+                        .iter()
+                        .any(|licence| licence.biome_id == row.target_id)
+                };
+                format!(
+                    "**{}** · ID {} · {} coins · level {}{}",
+                    row.name,
+                    row.listing_id,
+                    row.price_coins,
+                    row.minimum_level,
+                    if owned { " · owned" } else { "" }
+                )
+            })
+            .collect();
+        return reply(ctx, format!("**The Camp Trader** · {} coins in your pouch\n{}\nUse /shop item_id to review an offer before buying. Licences are permanent; each requires the previous licence. Buy a rod, equip with /gear, then travel with /biome.\n[Visit the stall]({}/#trader)", result.player.coins, rows.join("\n"), ctx.data().website.trim_end_matches('/'))).await;
+    }
+    let quote = {
+        let _permit = ctx
+            .data()
+            .pending
+            .try_acquire()
+            .map_err(|_| "The trader is busy")?;
+        ctx.data()
+            .game
+            .shop_action(
+                ctx.author().id.get(),
+                ctx.author().name.clone(),
+                interaction_id(ctx)?,
+                item_id,
+                None,
+            )
+            .await?
+    };
+    let result = snapshot(ctx, false).await?;
+    let listing = result
+        .listings
+        .iter()
+        .find(|row| row.listing_id == quote.listing_id)
+        .ok_or("Missing trader offer")?;
+    let confirm_id = format!("shop:{}:confirm", interaction_id(ctx)?);
+    let cancel_id = format!("shop:{}:cancel", interaction_id(ctx)?);
+    let handle = ctx.send(poise::CreateReply::default()
+        .content(format!("**Buy {} for {} coins?**\nYour pouch: {} coins. This purchase is permanent; it doesn't equip or travel automatically. Offer expires <t:{}:R>.", listing.name, quote.quoted_coins, result.player.coins, quote.expires_at.to_micros_since_unix_epoch() / 1_000_000))
+        .allowed_mentions(serenity::CreateAllowedMentions::new())
+        .components(vec![serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new(&confirm_id).label(format!("Buy · {} coins", quote.quoted_coins)).style(serenity::ButtonStyle::Success),
+            serenity::CreateButton::new(&cancel_id).label("Cancel").style(serenity::ButtonStyle::Secondary),
+        ])])).await?;
+    let interaction = handle
+        .message()
+        .await?
+        .await_component_interaction(ctx)
+        .author_id(ctx.author().id)
+        .timeout(std::time::Duration::from_secs(110))
+        .filter(move |event| {
+            event.data.custom_id == confirm_id || event.data.custom_id == cancel_id
+        })
+        .await;
+    let Some(interaction) = interaction else {
+        handle
+            .edit(
+                ctx,
+                poise::CreateReply::default()
+                    .content("Offer closed. Use /shop for a fresh offer.")
+                    .components(vec![]),
+            )
+            .await?;
+        return Ok(());
+    };
+    interaction
+        .create_response(ctx, serenity::CreateInteractionResponse::Acknowledge)
+        .await?;
+    let message = if interaction.data.custom_id.ends_with(":cancel") {
+        "Purchase cancelled. Your coins are safe.".into()
+    } else {
+        let _permit = ctx
+            .data()
+            .pending
+            .try_acquire()
+            .map_err(|_| "The trader is busy")?;
+        match ctx
+            .data()
+            .game
+            .shop_action(
+                ctx.author().id.get(),
+                ctx.author().name.clone(),
+                interaction.id.get(),
+                None,
+                Some(quote.nonce),
+            )
+            .await
+        {
+            Ok(committed) if committed.consumed => format!(
+                "✓ **{} is yours!** Paid {} coins. Use /gear to equip rods and /biome to travel.",
+                listing.name, committed.quoted_coins
+            ),
+            Ok(_) => "The purchase could not be confirmed. Check /shop before trying again.".into(),
+            Err(error) => {
+                tracing::warn!(%error, "Trader purchase rejected");
+                rejection(&error)
+            }
+        }
+    };
+    handle
+        .edit(
+            ctx,
+            poise::CreateReply::default()
+                .content(message)
+                .components(vec![])
+                .allowed_mentions(serenity::CreateAllowedMentions::new()),
+        )
+        .await?;
+    Ok(())
 }
 
 /// Learn the commands and link your companion website.
 #[poise::command(slash_command)]
 async fn help(ctx: Context<'_>) -> Result<(), Error> {
-    reply(ctx, format!("**Fishbound**\n/fish — cast every 60 seconds\n/daily — Dockside Delivery and stamp bonus\n/profile — progression and wallet\n/inventory — catches and management link\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — earned rods and equipment\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, and confirm sales. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.", ctx.data().website)).await
+    reply(ctx, format!("**Fishbound**\n/fish — cast every 60 seconds\n/daily — Dockside Delivery and stamp bonus\n/profile — progression and wallet\n/inventory — catches and management link\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — equip owned rods\n/shop [item_id] — camp trader, licences and rods\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, and confirm sales. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.", ctx.data().website)).await
 }
 
 fn required(name: &str) -> Result<String, Error> {
@@ -465,6 +641,7 @@ async fn main() -> Result<(), Error> {
             commands: vec![
                 fish(),
                 daily(),
+                shop(),
                 profile(),
                 inventory(),
                 collection(),

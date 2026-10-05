@@ -5,11 +5,14 @@
   import PondScene from './PondScene.svelte';
   import Compendium from './Compendium.svelte';
   import Records from './Records.svelte';
+  import Trader from './Trader.svelte';
+  import TraderStall from './TraderStall.svelte';
   import PageTurner from './PageTurner.svelte';
-  type CampView = 'camp' | 'inventory' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium';
+  import TackleBoxItems from './TackleBoxItems.svelte';
+  type CampView = 'camp' | 'inventory' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium' | 'trader';
   let { initialView = 'camp' } = $props<{ initialView?: CampView }>();
   const tabs: { id: CampView; label: string; personal?: boolean }[] = [
-    { id: 'camp', label: 'Camp' }, { id: 'inventory', label: 'Tackle box', personal: true },
+    { id: 'camp', label: 'Camp' }, { id: 'trader', label: 'Trader' }, { id: 'inventory', label: 'Tackle box', personal: true },
     { id: 'collection', label: 'Collection', personal: true }, { id: 'journal', label: 'Journal', personal: true },
     { id: 'waters', label: 'World map' }, { id: 'records', label: 'Records' }, { id: 'compendium', label: 'Compendium' },
   ];
@@ -120,10 +123,13 @@
     <section class="welcome" aria-labelledby="welcome"><div><p class="eyebrow">A FRESH PAGE IN YOUR FISHING JOURNAL</p><h2 id="welcome">{game.player ? 'Back at the pond.' : 'Grab a rod. Make a little history.'}</h2>{#if game.player}<p>Your {currentRod?.name ?? 'rod'} is ready for {currentBiome?.name ?? 'the pond'}. Open your tackle box to manage your catches, or turn a page in your collection book.</p>{:else}<p>Use <code>/fish</code> in Discord, then link your account to open your tackle box, collection book, and personal records.</p>{/if}<p class="muted">251 species. Seven waters. Start with the 28 fish waiting in Meadow Pond.</p></div>
       <div class="login">{#if game.player}<button onclick={() => openView('inventory')}>Open tackle box →</button><button class="secondary" onclick={() => openView('collection')}>Open collection book →</button>{:else}<button disabled={!game.ready || game.busy || !env.PUBLIC_ACCOUNT_LINK_URL} onclick={link}>{game.busy ? 'Preparing…' : 'Link Discord account →'}</button><small>{!env.PUBLIC_ACCOUNT_LINK_URL ? 'Discord sign-in will be available soon.' : game.ready ? 'One account, shared between Discord and this browser.' : 'Account linking becomes available when the pond is connected.'}</small>{/if}</div>
     </section>
+    <TraderStall onclick={() => openView('trader')} />
   {/if}
+  {#if visibleView === 'trader'}<Trader {game} {pageSize} />{/if}
   {#if game.player}
     {#if visibleView === 'inventory'}
     <section aria-labelledby="inventory"><div class="section-heading"><div><p class="eyebrow">KEEP THE GOOD ONES</p><h2 id="inventory">Your tackle box <span>{game.inventory.length} fish kept</span></h2></div><button class="secondary" disabled={!selectedOwned.length || selectedOwned.length > 50 || game.busy || !game.ready} onclick={preview}>Preview sale ({selectedOwned.length})</button></div>
+      <TackleBoxItems items={game.items} />
       {#if quote}
         <div class="sale" role="status"><div><strong>Sell {quote.catchIds.length} selected {quote.catchIds.length === 1 ? 'catch' : 'catches'} for {quote.quotedCoins.toString()} coins?</strong><p>{quote.catchIds.map(id => { const fish = game.inventory.find(row => row.catchId === id); return '#' + id + ' ' + (fish ? speciesName(fish.speciesId) : '(catch changed)'); }).join(' · ')}</p><small>Discoveries and records remain. Favorites are protected. Preview expires at {time(quote.expiresAt.microsSinceUnixEpoch)}.</small></div><div class="sale-actions"><button disabled={game.busy || !game.ready || quote.expiresAt.microsSinceUnixEpoch <= BigInt(now) * 1000n} onclick={confirm}>Confirm sale · {quote.quotedCoins.toString()} coins</button><button class="secondary" onclick={() => { showQuote = false; }}>Cancel</button></div></div>
       {/if}
@@ -146,21 +152,23 @@
 
     {/if}
     {#if visibleView === 'journal'}
-    <section class="journal" aria-labelledby="journal"><div><p class="eyebrow">THE LAST FEW CASTS</p><h2 id="journal">Fishing journal</h2>{#if !game.recent.length}<p class="muted">A fresh page. Go make a little fishing history.</p>{:else}<ol>{#each game.recent.slice(0, 8) as catchResult (catchResult.recentId)}<li><span>{catchResult.outcome === 'fish' ? '🎣' : catchResult.outcome === 'junk' ? '🥫' : '🪙'}</span><div><strong>{catchResult.outcome === 'fish' ? speciesName(catchResult.speciesId) + ' · ' + catchResult.rarity + ' rank' : catchResult.outcome === 'junk' ? 'Rusted tin' : 'Treasure cache'}</strong><small>{time(catchResult.caughtAt.microsSinceUnixEpoch)}</small></div><span class="xp">+{catchResult.xpGranted.toString()} XP</span></li>{/each}</ol>{/if}</div><aside><p class="eyebrow">YOUR ITEMS</p><h2>A few useful finds</h2>{#if !game.items.length}<p class="muted">Scrap and rusted tins from your casts appear here.</p>{:else}{#each game.items as item (item.key)}<p class="item"><span>{item.item === 'scrap' ? 'Scrap' : 'Rusted tin'}</span><strong>{item.quantity.toString()}</strong></p>{/each}{/if}<p class="muted">Earn stronger rods as you level up to explore all seven biomes. Bait and upgrade recipes come later.</p></aside></section>
+    <section class="journal" aria-labelledby="journal"><div><p class="eyebrow">THE LAST FEW CASTS</p><h2 id="journal">Fishing journal</h2>{#if !game.recent.length}<p class="muted">A fresh page. Go make a little fishing history.</p>{:else}<ol>{#each game.recent.slice(0, 8) as catchResult (catchResult.recentId)}<li><span>{catchResult.outcome === 'fish' ? '🎣' : catchResult.outcome === 'junk' ? '🥫' : '🪙'}</span><div><strong>{catchResult.outcome === 'fish' ? speciesName(catchResult.speciesId) + ' · ' + catchResult.rarity + ' rank' : catchResult.outcome === 'junk' ? 'Rusted tin' : 'Treasure cache'}</strong><small>{time(catchResult.caughtAt.microsSinceUnixEpoch)}</small></div><span class="xp">+{catchResult.xpGranted.toString()} XP</span></li>{/each}</ol>{/if}</div><aside><p class="eyebrow">YOUR ITEMS</p><h2>A few useful finds</h2>{#if !game.items.length}<p class="muted">Scrap and rusted tins from your casts appear here.</p>{:else}{#each game.items as item (item.key)}<p class="item"><span>{item.item === 'scrap' ? 'Scrap' : 'Rusted tin'}</span><strong>{item.quantity.toString()}</strong></p>{/each}{/if}<p class="muted">Buy biome licences and stronger rods from the camp trader to explore all seven waters. Bait and upgrade recipes come later.</p></aside></section>
     {/if}
   {/if}
 
   {#if visibleView === 'waters' && game.biomes.length}
     <section aria-labelledby="waters"><p class="eyebrow">SEVEN WATERS, ONE JOURNEY</p><h2 id="waters">Explore the biomes</h2>
-      {#if game.player}<p class="muted">Equipped: {currentRod?.name} · power {currentRod?.power}. Rods are earned free at their unlock level. Travel keeps your cast cooldown.</p>
-        <div class="filters"><label>Equip an earned rod<select value={game.player.equippedRodId} disabled={game.busy || !game.ready} onchange={event => game.changeLoadout(undefined, Number(event.currentTarget.value))}>{#each game.rods as rod}<option value={rod.rodId} disabled={rod.minimumLevel > level || rod.power < (currentBiome?.requiredPower ?? 0)}>{rod.name} · level {rod.minimumLevel} · power {rod.power}</option>{/each}</select></label></div>
+      {#if game.player}<p class="muted">Equipped: {currentRod?.name} · power {currentRod?.power}. Buy rods and permanent biome licences from the camp trader. Travel keeps your cast cooldown.</p>
+        <div class="filters"><label>Equip an owned rod<select value={game.player.equippedRodId} disabled={game.busy || !game.ready} onchange={event => game.changeLoadout(undefined, Number(event.currentTarget.value))}>{#each game.rods as rod}<option value={rod.rodId} disabled={!game.ownedRods.some(owned => owned.rodId === rod.rodId) || rod.minimumLevel > level || rod.power < (currentBiome?.requiredPower ?? 0)}>{rod.name} · level {rod.minimumLevel} · power {rod.power}</option>{/each}</select></label></div>
       {/if}
       <div class="biome-grid">{#each game.biomes.slice((worldPage - 1) * pageSize, worldPage * pageSize) as biome (biome.biomeId)}
         {@const pool = game.species.filter(fish => fish.biomeId === biome.biomeId)}
-        {@const rod = game.rods.find(row => row.minimumLevel <= level && row.power >= biome.requiredPower)}
+        {@const rod = game.rods.find(row => row.minimumLevel <= level && row.power >= biome.requiredPower && game.ownedRods.some(owned => owned.rodId === row.rodId))}
+        {@const licensed = biome.biomeId === 1 || game.licences.some(row => row.biomeId === biome.biomeId)}
         {@const active = currentBiome?.biomeId === biome.biomeId}
         <article class:active><small>LEVEL {biome.minimumLevel} · POWER {biome.requiredPower}</small><h3>{biome.name}</h3><p>{biome.description}</p><p>{pool.length} species · {biome.fishWeight.toString()}% fish / {biome.junkWeight.toString()}% junk / {biome.treasureWeight.toString()}% treasure</p>
-          <button class="secondary" disabled={!game.player || game.busy || !game.ready || level < biome.minimumLevel || !rod || active} onclick={() => { if (rod) game.changeLoadout(biome.biomeId, currentRod && currentRod.power >= biome.requiredPower ? currentRod.rodId : rod.rodId); }}>{active ? 'Current waters' : level < biome.minimumLevel ? 'Unlock at level ' + biome.minimumLevel : 'Equip & travel'}</button>
+          <button class="secondary" disabled={!game.player || game.busy || !game.ready || level < biome.minimumLevel || !licensed || !rod || active} onclick={() => { if (rod) game.changeLoadout(biome.biomeId, currentRod && currentRod.power >= biome.requiredPower ? currentRod.rodId : rod.rodId); }}>{active ? 'Current waters' : level < biome.minimumLevel ? 'Unlock at level ' + biome.minimumLevel : !licensed ? 'Licence needed' : !rod ? 'Buy a suitable rod' : 'Equip & travel'}</button>
+          {#if game.player && (!licensed || !rod)}<button class="secondary" onclick={() => openView('trader')}>Visit camp trader →</button>{/if}
         </article>
       {/each}</div><PageTurner bind:page={worldPage} total={game.biomes.length} {pageSize} label="World map pages" />
     </section>

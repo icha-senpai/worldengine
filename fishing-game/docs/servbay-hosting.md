@@ -99,3 +99,11 @@ Dockside Delivery update: `/daily` is the eighth handler. Command registration
 refreshes the global list and the configured guild list, so direct guild visibility
 and installations in other servers share the same supported commands. The local
 module update adds private daily eligibility/receipt tables without resetting data.
+
+
+Camp trader update: nine commands now register globally and in the configured
+guild, including `/shop`. Public trader catalog/anonymous ownership views use
+the existing restricted WebSocket route. The additive migration keeps player,
+wallet, inventory, daily, and rod tables; owner activation seeds the offers and
+runs the one-time visited-water licence transition. Restart uses the existing
+tracked-process launcher and leaves ServBay/database/tunnel running.

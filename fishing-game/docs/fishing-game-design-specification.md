@@ -326,7 +326,7 @@ A rod template plus upgrade level defines effective stats. Keep formula derivati
 | Clean cast | Reduces junk weight | Category probabilities normalized after adjustment |
 | Treasure affinity | Increases treasure weight | Independent from fish-tier luck |
 
-Current access rod templates: Twig, River, Marsh, Moonwood, Tide, Glacial, and Abyssal Rod. They are earned free at levels 1, 5, 10, 18, 28, 40, and 55, claimed once when equipped. Upgrade recipes remain a later economy feature; suggested upgrade levels 0–5. Twig remains a low-cost stepping stone; specialization begins when River and Marsh are both viable choices.
+Current access rod templates: Twig, River, Marsh, Moonwood, Tide, Glacial, and Abyssal Rod. Twig is free; later rods are purchased at the camp trader at levels 5, 10, 18, 28, 40, and 55. A permanent biome licence is also required, bought in biome order. Upgrade recipes remain a later economy feature; suggested upgrade levels 0–5. Twig remains a low-cost stepping stone; specialization begins when River and Marsh are both viable choices.
 
 For each eligible tier, apply a named multiplier in basis points. Example: luck strength boosts A and above by at most 25%, leaves C/B unchanged, and slightly reduces F/D. Normalize after all adjustments. This means “25% more relative high-tier weight,” not “25 percentage points more high-tier probability.” UI wording must reflect this distinction.
 
@@ -971,3 +971,16 @@ The module atomically saves private eligibility, wallet credit, economy ledger,
 and a replay-safe receipt. Receipts expire after seven days; eligibility and stamps
 are durable. Rewards do not change catches, discoveries, records, odds, or cast
 cooldown. Initial rewards contain only coins; materials and bait remain later work.
+
+
+## Owner-approved camp trader progression
+
+The camp trader sells six permanent biome licences and six access rods. Meadow
+Pond and Twig Rod stay free. Later travel/casts require the licence, level, and
+owned equipped rod power. Equipping no longer grants rods for free. Purchases
+preview exact server prices and require confirmation before spending. Browser
+and Discord `/shop [item_id]` use the same catalog and transactional quote/commit
+rules. Ownership is account-wide; duplicate/concurrent purchases, stale prices,
+and expired quotes cannot charge twice. Purchase/travel never alters cooldown,
+XP, catch odds, discoveries, or records. Current prices and legacy-preservation
+policy are documented in discord-commands.md and content/trader.json.

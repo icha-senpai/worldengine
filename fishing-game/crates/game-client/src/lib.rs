@@ -62,6 +62,9 @@ pub struct Snapshot {
     pub species: Vec<SpeciesDefinition>,
     pub biomes: Vec<BiomeDefinition>,
     pub rods: Vec<RodDefinition>,
+    pub owned_rods: Vec<OwnedRod>,
+    pub licences: Vec<OwnedBiomeLicence>,
+    pub listings: Vec<ShopListing>,
     pub config: GameConfig,
     pub receipt: Option<CommandReceipt>,
 }
@@ -101,7 +104,7 @@ impl Client {
                 let mut queries = vec!["SELECT * FROM my_service"];
                 if role == ServiceRole::DiscordAdapter {
                     queries.extend(["SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
-                        "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
+                        "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
                 }
                 conn.subscription_builder().on_applied(move |ctx| {
                     let authorized = ctx.db.my_service().iter().any(|service| service.active && service.role == role);
@@ -246,6 +249,63 @@ impl Client {
         unreachable!("bounded transport retry")
     }
 
+    /// Serialized per-account quote/commit; waiting for Discord buttons never holds selection.
+    pub async fn shop_action(
+        &self,
+        discord_user_id: u64,
+        display_name: String,
+        interaction_id: u64,
+        listing_id: Option<u32>,
+        nonce: Option<u128>,
+    ) -> Result<ShopQuote, Error> {
+        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        for attempt in 0..2 {
+            let connection = self.active_connection().await?;
+            let result = async {
+                Self::player_once(
+                    &connection,
+                    discord_user_id,
+                    display_name.clone(),
+                    interaction_id,
+                    None,
+                    1,
+                    false,
+                )
+                .await?;
+                let (sender, receiver) = oneshot::channel();
+                if let Some(listing_id) = listing_id {
+                    connection.reducers.prepare_shop_from_discord_then(
+                        discord_user_id,
+                        interaction_id,
+                        listing_id,
+                        complete(sender),
+                    )?;
+                } else if let Some(nonce) = nonce {
+                    connection.reducers.commit_shop_from_discord_then(
+                        discord_user_id,
+                        interaction_id,
+                        nonce,
+                        complete(sender),
+                    )?;
+                } else {
+                    return Err("Missing shop intent".into());
+                }
+                receive(receiver).await?;
+                connection
+                    .db
+                    .adapter_shop_quote()
+                    .iter()
+                    .next()
+                    .ok_or_else(|| "Shop confirmation unavailable".into())
+            }
+            .await;
+            if result.is_ok() || connection.is_active() || attempt == 1 {
+                return result;
+            }
+        }
+        unreachable!("bounded transport retry")
+    }
+
     pub async fn change_loadout(
         &self,
         discord_user_id: u64,
@@ -337,6 +397,9 @@ impl Client {
             species: connection.db.species_definition().iter().collect(),
             biomes: connection.db.biome_definition().iter().collect(),
             rods: connection.db.rod_definition().iter().collect(),
+            owned_rods: connection.db.adapter_rods().iter().collect(),
+            licences: connection.db.adapter_licences().iter().collect(),
+            listings: connection.db.shop_listing().iter().collect(),
             config: connection
                 .db
                 .game_config()

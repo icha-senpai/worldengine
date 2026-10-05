@@ -380,3 +380,50 @@ pub struct DailyReceipt {
     #[index(btree)]
     pub created_at: Timestamp,
 }
+
+#[spacetimedb::table(accessor = shop_listing, public)]
+pub struct ShopListing {
+    #[primary_key]
+    pub listing_id: u32,
+    pub kind: String,
+    pub target_id: u32,
+    pub name: String,
+    pub price_coins: u64,
+    pub minimum_level: u32,
+    pub previous_biome_id: u32,
+    pub biome_id: u32,
+    pub catalog_version: u32,
+}
+
+#[spacetimedb::table(accessor = owned_biome_licence)]
+pub struct OwnedBiomeLicence {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub biome_id: u32,
+}
+
+#[spacetimedb::table(accessor = shop_quote)]
+pub struct ShopQuote {
+    #[primary_key]
+    pub key: String,
+    pub identity: Identity,
+    pub player_id: u64,
+    #[unique]
+    pub nonce: u128,
+    pub listing_id: u32,
+    pub quoted_coins: u64,
+    pub catalog_version: u32,
+    pub created_at: Timestamp,
+    #[index(btree)]
+    pub expires_at: Timestamp,
+    pub consumed: bool,
+}
+
+#[spacetimedb::table(accessor = trader_migration)]
+pub struct TraderMigration {
+    #[primary_key]
+    pub singleton: u8,
+    pub grandfathered: bool,
+}
