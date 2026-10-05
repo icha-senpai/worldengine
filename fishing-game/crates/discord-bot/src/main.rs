@@ -54,10 +54,6 @@ fn rejection(error: &Error) -> String {
     {
         return format!("Your next cast is ready <t:{}:R>.", value / 1_000_000);
     }
-    if message.contains("INVENTORY_FULL") {
-        return "Your inventory is full. Sell some unfavorited catches on the website first."
-            .into();
-    }
     if message.contains("INTERACTION_EXPIRED") {
         return "That request expired. Use /fish for a new cast.".into();
     }
@@ -94,16 +90,13 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
                 .ok_or("Missing species")?;
             let grade = game_rules::measurements::SIZE_GRADE_NAMES[receipt.size_grade as usize];
             format!(
-                "🎣 **{}** · {} rank · {}\n{:.1} cm · {:.3} kg · +{} XP\n{:.2}× typical length · {:.2}× typical weight\nCatch #{} saved. Next cast <t:{}:R>.",
+                "🎣 **{}** · {} rank · {}\n{:.1} cm · {:.3} kg · +{} XP\nNext cast <t:{}:R>.",
                 species.name,
                 receipt.rarity,
                 grade,
                 f64::from(receipt.length_mm) / 10.0,
                 receipt.weight_g as f64 / 1000.0,
                 receipt.xp_granted,
-                f64::from(receipt.length_mm) / f64::from(species.typical_length_mm),
-                receipt.weight_g as f64 / species.typical_weight_g as f64,
-                receipt.catch_id.unwrap_or_default(),
                 (receipt.caught_at.to_micros_since_unix_epoch() + 60_000_000) / 1_000_000
             )
         }
@@ -167,6 +160,63 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
     reply(ctx, content).await
 }
 
+/// Collect your Dockside Delivery. Every seventh delivery includes a coin bonus.
+#[poise::command(slash_command)]
+async fn daily(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.defer_ephemeral().await?;
+    let _permit = ctx
+        .data()
+        .pending
+        .try_acquire()
+        .map_err(|_| "The dock is busy; try again shortly")?;
+    let receipt = match ctx
+        .data()
+        .game
+        .daily(
+            ctx.author().id.get(),
+            ctx.author().name.clone(),
+            interaction_id(ctx)?,
+            ctx.guild_id().map(|id| id.get()),
+            ctx.channel_id().get(),
+        )
+        .await
+    {
+        Ok(receipt) => receipt,
+        Err(error) => {
+            tracing::warn!(%error, "Delivery rejected or unavailable");
+            let message = if error.to_string().contains("INTERACTION_EXPIRED") {
+                "That request expired. Use /daily for a new delivery.".into()
+            } else {
+                rejection(&error)
+            };
+            return reply(ctx, message).await;
+        }
+    };
+    let reward = if receipt.claimed {
+        format!(
+            "📦 **Dockside Delivery**\n**+{} coins**{}",
+            receipt.coins_granted,
+            if receipt.stamps == 7 {
+                " · includes your 250-coin stamp bonus!"
+            } else {
+                ""
+            }
+        )
+    } else {
+        "📦 **Dockside Delivery**\nYou've already collected today's delivery.".into()
+    };
+    let progress = if receipt.stamps == 7 {
+        "Stamp card: **7/7 complete**. Your next delivery starts a new card.".into()
+    } else {
+        format!(
+            "Stamp card: **{}/7** · +250 bonus coins on stamp 7.",
+            receipt.stamps
+        )
+    };
+    reply(ctx, format!("{reward}\n{progress}\nNext delivery <t:{}:R> · resets at midnight UTC.\nMissed days keep your stamps.",
+        receipt.next_delivery_at.to_micros_since_unix_epoch() / 1_000_000)).await
+}
+
 /// Show your fishing progression and website link.
 #[poise::command(slash_command)]
 async fn profile(ctx: Context<'_>) -> Result<(), Error> {
@@ -186,9 +236,9 @@ async fn profile(ctx: Context<'_>) -> Result<(), Error> {
             })
         })
         .count();
-    reply(ctx, format!("**Your Fishbound profile**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {}/{}\n[Open Fishbound]({})",
+    reply(ctx, format!("**Your Fishbound profile**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {} fish kept\n[Open Fishbound]({})",
         game_rules::progression::level_for_xp(result.player.total_xp, result.config.level_cap), result.player.total_xp, result.player.coins,
-        result.player.completed_casts, result.player.fish_count, discoveries, ordinary, result.player.kept_count, result.config.inventory_capacity, ctx.data().website)).await
+        result.player.completed_casts, result.player.fish_count, discoveries, ordinary, result.player.kept_count, ctx.data().website)).await
 }
 
 /// See your owned fish and manage favorites or sales on the website.
@@ -222,7 +272,7 @@ async fn inventory(ctx: Context<'_>) -> Result<(), Error> {
     reply(
         ctx,
         format!(
-            "**Inventory · {}/100**\n{}\n[Manage catches]({})",
+            "**Inventory · {} fish kept**\n{}\n[Manage catches]({})",
             inventory.len(),
             if rows.is_empty() {
                 "No catches yet. Try /fish.".into()
@@ -375,7 +425,7 @@ async fn gear(
 /// Learn the commands and link your companion website.
 #[poise::command(slash_command)]
 async fn help(ctx: Context<'_>) -> Result<(), Error> {
-    reply(ctx, format!("**Fishbound**\n/fish — cast every 60 seconds\n/profile — progression and wallet\n/inventory — catches and management link\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — earned rods and equipment\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, and confirm sales. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.", ctx.data().website)).await
+    reply(ctx, format!("**Fishbound**\n/fish — cast every 60 seconds\n/daily — Dockside Delivery and stamp bonus\n/profile — progression and wallet\n/inventory — catches and management link\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — earned rods and equipment\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, and confirm sales. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.", ctx.data().website)).await
 }
 
 fn required(name: &str) -> Result<String, Error> {
@@ -414,6 +464,7 @@ async fn main() -> Result<(), Error> {
         .options(poise::FrameworkOptions {
             commands: vec![
                 fish(),
+                daily(),
                 profile(),
                 inventory(),
                 collection(),
@@ -436,6 +487,7 @@ async fn main() -> Result<(), Error> {
         .setup(move |ctx, _, framework| {
             Box::pin(async move {
                 if register {
+                    poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                     if let Some(guild) = guild {
                         poise::builtins::register_in_guild(
                             ctx,
@@ -443,9 +495,6 @@ async fn main() -> Result<(), Error> {
                             serenity::GuildId::new(guild),
                         )
                         .await?;
-                    } else {
-                        poise::builtins::register_globally(ctx, &framework.options().commands)
-                            .await?;
                     }
                 }
                 tracing::info!("Discord adapter ready");

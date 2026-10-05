@@ -21,6 +21,15 @@ pub fn fish_from_discord(
     if channel_id == 0 {
         return Err("INVALID_CHANNEL".into());
     }
+    if ctx
+        .db
+        .daily_receipt()
+        .interaction_id()
+        .find(interaction_id)
+        .is_some()
+    {
+        return Err("REQUEST_CONFLICT".into());
+    }
     if let Some(receipt) = ctx
         .db
         .command_receipt()
@@ -44,9 +53,6 @@ pub fn fish_from_discord(
             "COOLDOWN_ACTIVE:{}",
             player.next_cast_at.to_micros_since_unix_epoch()
         ));
-    }
-    if player.kept_count >= rules.inventory_capacity {
-        return Err("INVENTORY_FULL".into());
     }
     let biome = ctx
         .db
@@ -110,6 +116,7 @@ pub fn fish_from_discord(
         biome_id: biome.biome_id,
         rod_id: rod.rod_id,
     };
+    let mut changed_record_holders = Vec::new();
     match category {
         0 => {
             let weights: Vec<_> = species.iter().map(|row| row.encounter_weight).collect();
@@ -208,7 +215,8 @@ pub fn fish_from_discord(
                         rules_version: rules.version,
                         content_version: crate::content::CONTENT_VERSION,
                     };
-                    if previous.is_some() {
+                    if let Some(previous) = previous {
+                        changed_record_holders.push(previous.player_id);
                         ctx.db.species_record().key().update(record);
                     } else {
                         ctx.db.species_record().insert(record);
@@ -359,7 +367,13 @@ pub fn fish_from_discord(
     for old in history.into_iter().take(overflow) {
         ctx.db.recent_catch().recent_id().delete(old.recent_id);
     }
+    changed_record_holders.push(player.player_id);
     ctx.db.player().player_id().update(player);
+    changed_record_holders.sort_unstable();
+    changed_record_holders.dedup();
+    for player_id in changed_record_holders {
+        crate::records::refresh_player(ctx, player_id)?;
+    }
     ctx.db.command_receipt().insert(receipt);
     Ok(())
 }

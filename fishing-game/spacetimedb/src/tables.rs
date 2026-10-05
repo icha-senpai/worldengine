@@ -45,6 +45,8 @@ pub struct GameConfig {
     #[primary_key]
     pub version: u32,
     pub cast_cooldown_seconds: u32,
+    /// Legacy schema field, retained for existing databases. Zero means unlimited.
+    /// Casting does not enforce this field.
     pub inventory_capacity: u32,
     pub recent_limit: u32,
     pub level_cap: u32,
@@ -294,6 +296,30 @@ pub struct PublicProfile {
     pub discoveries: u32,
 }
 
+/// Public lifetime totals only; no Discord IDs, balances, or inventory.
+#[spacetimedb::table(accessor = angler_standing, public)]
+pub struct AnglerStanding {
+    #[primary_key]
+    pub player_id: u64,
+    pub display_name: String,
+    pub discoveries: u32,
+    pub fish_count: u64,
+    pub uur_count: u64,
+    pub records_held: u32,
+}
+
+/// Each angler's first legendary discovery, retained after selling a catch.
+#[spacetimedb::table(accessor = legendary_find, public)]
+pub struct LegendaryFind {
+    #[primary_key]
+    pub key: u128,
+    pub player_id: u64,
+    pub display_name: String,
+    pub species_id: u32,
+    pub first_caught_at: Timestamp,
+    pub count: u64,
+}
+
 #[spacetimedb::table(accessor = species_definition, public)]
 pub struct SpeciesDefinition {
     #[primary_key]
@@ -328,4 +354,29 @@ pub struct SpeciesRankDefinition {
     pub encounter_weight: u64,
     pub base_xp: u64,
     pub base_value: u64,
+}
+/// Durable eligibility and lifetime stamps; history pruning never resets this row.
+#[spacetimedb::table(accessor = daily_delivery)]
+pub struct DailyDelivery {
+    #[primary_key]
+    pub player_id: u64,
+    pub last_claim_day: i64,
+    pub total_claims: u64,
+}
+
+#[spacetimedb::table(accessor = daily_receipt)]
+pub struct DailyReceipt {
+    #[primary_key]
+    pub interaction_id: u64,
+    pub player_id: u64,
+    pub discord_user_id: u64,
+    pub guild_id: Option<u64>,
+    pub channel_id: u64,
+    pub claimed: bool,
+    pub coins_granted: u64,
+    pub total_claims: u64,
+    pub stamps: u8,
+    pub next_delivery_at: Timestamp,
+    #[index(btree)]
+    pub created_at: Timestamp,
 }

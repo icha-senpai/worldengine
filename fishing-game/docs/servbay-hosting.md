@@ -53,12 +53,49 @@ redirect URI, and save:
 
     https://fish.ichaa.dev/auth/discord/callback
 
-The application's redirect list was empty when checked. The server-side callback
-and root .env are ready, but Discord will reject login until the URI is registered.
+The owner added this callback and enabled command registration. Both were
+verified through Discord's API after restarting the services.
 Do not enter the callback in Interactions Endpoint URL; this bot uses the Gateway.
 
 The bot token was verified and matches DISCORD_CLIENT_ID; the native Gateway
-reached "Discord adapter ready". DISCORD_REGISTER_COMMANDS remains false as
-configured. Set it true and restart when ready for initial command registration;
-DISCORD_GUILD_ID chooses test-guild registration, otherwise registration is global.
+reached "Discord adapter ready". DISCORD_REGISTER_COMMANDS is true. Discord's API
+confirms all seven commands registered globally: /fish, /profile, /inventory,
+/collection, /biome, /gear, and /help. After the owner reported that commands
+were not visible, DISCORD_GUILD_ID was set to The Magic Tree House's server ID.
+The restart registered the same seven commands directly to that server, verified
+through Discord's API. Existing global commands remain registered. Startup now
+refreshes the server command set; clear DISCORD_GUILD_ID for global registration.
 Live /fish delivery and the complete OAuth consent/callback still need verification.
+
+## Records projections
+
+The Records page subscribes to public angler_standing and legendary_find alongside
+species_record. Publishing the records update added these two tables without
+altering existing tables or clearing the database. For another existing Fishbound
+database, publish the current module first, then backfill with the deployment
+owner's CLI identity:
+
+    npx tsx scripts/backfill-records.ts fishbound-dev-local
+
+The script connects to the isolated loopback server on 3127, reads public player
+IDs, and calls the owner-only rebuild_player_records reducer once per player.
+Repeated backfills are safe; totals come from durable player/progress/record
+state, including fish no longer in inventory. No Discord token is needed.
+
+## Unlimited fish storage
+
+Casting has no inventory-capacity check. The old inventory_capacity column is
+retained solely for schema compatibility and is ignored by gameplay. Fresh
+databases seed it as zero. After updating an existing database, the owner can
+clear its legacy value without altering catches, rules versions, or cooldowns:
+
+    spacetime call --server http://127.0.0.1:3127 --no-config --yes fishbound-dev-local migrate_unlimited_inventory
+
+This was applied to the running database. Kept counts remain accurate for casts
+and sales; favorites, sale previews, and the 50-catch sale batch still apply.
+
+
+Dockside Delivery update: `/daily` is the eighth handler. Command registration
+refreshes the global list and the configured guild list, so direct guild visibility
+and installations in other servers share the same supported commands. The local
+module update adds private daily eligibility/receipt tables without resetting data.

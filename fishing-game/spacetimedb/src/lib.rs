@@ -2,9 +2,11 @@
 mod accounts;
 mod casting;
 mod content;
+mod daily;
 mod inventory;
 mod loadout;
 mod maintenance;
+mod records;
 mod tables;
 
 use spacetimedb::{ReducerContext, Table};

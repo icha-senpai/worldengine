@@ -80,7 +80,7 @@ pub fn seed(ctx: &ReducerContext) {
     ctx.db.game_config().insert(GameConfig {
         version: rules.version,
         cast_cooldown_seconds: rules.cast_cooldown_seconds,
-        inventory_capacity: 100,
+        inventory_capacity: 0,
         recent_limit: 100,
         level_cap: world.level_cap,
     });

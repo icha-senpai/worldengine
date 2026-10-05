@@ -1,9 +1,9 @@
 # Agreed Discord command plan
 
-Status: seven handlers (/fish, /profile, /inventory, /collection, /biome, /gear, /help)
+Status: eight handlers (/fish, /daily, /profile, /inventory, /collection, /biome, /gear, /help)
 are implemented. /biome accepts optional biome_id; /gear accepts optional rod_id.
 Rods are free level-earned access equipment. Collection responses summarize seven
-biomes to stay within Discord message limits; the website shows the full book. Other launch handlers and live Discord verification remain pending.
+biomes to stay within Discord message limits; the website shows the full book. Other launch handlers remain pending. The eight current commands are registered globally and directly in the configured guild.
 The current /profile handler is caller-only; the optional player lookup follows later.
 This plan updates the original design specification's Discord command list.
 Commands use plain Discord slash syntax. The `./` spelling in chat was only to
@@ -15,10 +15,10 @@ avoid triggering another integration; it is not a bot prefix or alias.
 |---|---|
 | `/profile [player]` | Show the player's profile, statistics, current progression, and website link. |
 | `/fish` | Cast in the selected biome, with a global one-minute cooldown, and show the authoritative saved result. |
-| `/daily` | Claim an optional daily reward; show eligibility or when the next claim is available. |
+| `/daily` | Dockside Delivery: 100 coins, plus 250 every seventh claim; show stamps and next midnight-UTC reset. |
 | `/upgrade` | Show the selected rod's upgrade cost and benefit, then confirm before spending. |
 | `/sell` | Select catches, preview the total payout, and confirm the sale; protect favorites. |
-| `/inventory` | Show owned catches, catch IDs, favorites, and remaining capacity; provide management buttons. |
+| `/inventory` | Show owned catches, catch IDs, favorites, and total fish kept; provide management buttons. Storage is unlimited. |
 | `/collection` | Show discoveries, missing species, and personal length/weight records. |
 | `/biome` | Show the current biome and allow selecting an unlocked destination. |
 | `/gear` | Show the loadout and allow equipping owned rods and available bait. |
@@ -46,8 +46,13 @@ commands short. Separate `/buy` and `/equip` commands are not needed for launch.
   SpaceTimeDB enforces it using server timestamps. Rejected casts and receipt
   replays do not start a new cooldown. No bait reduces the cooldown in V1.
 - `/daily` is an optional reward with no streak penalty, missed-day punishment,
-  or requirement to log in every day. Reward amounts and reset timing still
-  need balance decisions. Eligibility and reward grants belong in SpaceTimeDB.
+  or requirement to log in every day. Dockside Delivery grants 100 coins, plus
+  250 on every seventh lifetime claim (350 that day; 950 per seven deliveries).
+  Claims need not be consecutive: missed days preserve stamps. Resets happen
+  at midnight UTC, once per Discord account across all servers. No XP, fish,
+  discovery, record, catch-odds, or cooldown changes. Repeated commands show
+  the next reset with a Discord relative timestamp. SpaceTimeDB owns eligibility,
+  the atomic wallet/ledger grant, and replay-safe seven-day receipts.
 - `/sell` protects favorites and shows the complete proposed payout before
   confirmation. The module rechecks ownership, disposition, and favorites at
   commit; a stale selection must not silently sell a different set of catches.

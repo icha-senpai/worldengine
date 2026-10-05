@@ -66,10 +66,10 @@ that service; WEBSITE_URL must match the website Origin exactly. Public internet
 URLs require HTTPS. The localhost exception is for development.
 
 Set DISCORD_GUILD_ID for a test guild and DISCORD_REGISTER_COMMANDS=true when
-ready to register the seven implemented commands. With no guild ID, registration
-is global. The application's bot installation needs slash-command access.
+ready to register the eight implemented commands globally. A configured guild
+also receives a direct registration for immediate visibility. The application's bot installation needs slash-command access.
 There are no dot-prefix commands. The approved twelve-command launch list remains
-in discord-commands.md; seven have handlers; daily, upgrade, sell, shop, and leaderboard follow later.
+in discord-commands.md; eight have handlers; upgrade, sell, shop, and leaderboard follow later.
 
 ## Run
 

@@ -40,8 +40,11 @@ import ChangeLoadoutFromDiscordReducer from "./change_loadout_from_discord_reduc
 import CommitInventoryActionReducer from "./commit_inventory_action_reducer";
 import CompleteAccountLinkReducer from "./complete_account_link_reducer";
 import ConfigureServiceReducer from "./configure_service_reducer";
+import DailyFromDiscordReducer from "./daily_from_discord_reducer";
 import FishFromDiscordReducer from "./fish_from_discord_reducer";
+import MigrateUnlimitedInventoryReducer from "./migrate_unlimited_inventory_reducer";
 import PrepareInventoryActionReducer from "./prepare_inventory_action_reducer";
+import RebuildPlayerRecordsReducer from "./rebuild_player_records_reducer";
 import SelectDiscordPlayerReducer from "./select_discord_player_reducer";
 import UnlinkBrowserReducer from "./unlink_browser_reducer";
 
@@ -49,11 +52,14 @@ import UnlinkBrowserReducer from "./unlink_browser_reducer";
 
 // Import all table schema definitions
 import AdapterCollectionRow from "./adapter_collection_table";
+import AdapterDailyReceiptRow from "./adapter_daily_receipt_table";
 import AdapterInventoryRow from "./adapter_inventory_table";
 import AdapterPlayerRow from "./adapter_player_table";
 import AdapterReceiptRow from "./adapter_receipt_table";
+import AnglerStandingRow from "./angler_standing_table";
 import BiomeDefinitionRow from "./biome_definition_table";
 import GameConfigRow from "./game_config_table";
+import LegendaryFindRow from "./legendary_find_table";
 import MyActionRow from "./my_action_table";
 import MyCollectionRow from "./my_collection_table";
 import MyInventoryRow from "./my_inventory_table";
@@ -75,6 +81,17 @@ import SpeciesRecordRow from "./species_record_table";
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  anglerStanding: __table({
+    name: 'angler_standing',
+    indexes: [
+      { accessor: 'player_id', name: 'angler_standing_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'angler_standing_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, AnglerStandingRow),
   biomeDefinition: __table({
     name: 'biome_definition',
     indexes: [
@@ -97,6 +114,17 @@ const tablesSchema = __schema({
       { name: 'game_config_version_key', constraint: 'unique', columns: ['version'] },
     ],
   }, GameConfigRow),
+  legendaryFind: __table({
+    name: 'legendary_find',
+    indexes: [
+      { accessor: 'key', name: 'legendary_find_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+    ],
+    constraints: [
+      { name: 'legendary_find_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, LegendaryFindRow),
   publicProfile: __table({
     name: 'public_profile',
     indexes: [
@@ -176,6 +204,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterCollectionRow),
+  adapterDailyReceipt: __table({
+    name: 'adapter_daily_receipt',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterDailyReceiptRow),
   adapterInventory: __table({
     name: 'adapter_inventory',
     indexes: [
@@ -277,8 +312,11 @@ const reducersSchema = __reducers(
   __reducerSchema("commit_inventory_action", CommitInventoryActionReducer),
   __reducerSchema("complete_account_link", CompleteAccountLinkReducer),
   __reducerSchema("configure_service", ConfigureServiceReducer),
+  __reducerSchema("daily_from_discord", DailyFromDiscordReducer),
   __reducerSchema("fish_from_discord", FishFromDiscordReducer),
+  __reducerSchema("migrate_unlimited_inventory", MigrateUnlimitedInventoryReducer),
   __reducerSchema("prepare_inventory_action", PrepareInventoryActionReducer),
+  __reducerSchema("rebuild_player_records", RebuildPlayerRecordsReducer),
   __reducerSchema("select_discord_player", SelectDiscordPlayerReducer),
   __reducerSchema("unlink_browser", UnlinkBrowserReducer),
 );
@@ -289,10 +327,14 @@ const proceduresSchema = __procedures(
 
 type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "tables"> & {
   tables: typeof tablesSchema.schemaType.tables & {
+    /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
+    readonly "angler_standing": Omit<typeof tablesSchema.schemaType.tables["anglerStanding"], "accessorName"> & { readonly accessorName: "angler_standing" };
     /** @deprecated Use `biomeDefinition` instead. This alias will be removed in the next major version. */
     readonly "biome_definition": Omit<typeof tablesSchema.schemaType.tables["biomeDefinition"], "accessorName"> & { readonly accessorName: "biome_definition" };
     /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
     readonly "game_config": Omit<typeof tablesSchema.schemaType.tables["gameConfig"], "accessorName"> & { readonly accessorName: "game_config" };
+    /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
+    readonly "legendary_find": Omit<typeof tablesSchema.schemaType.tables["legendaryFind"], "accessorName"> & { readonly accessorName: "legendary_find" };
     /** @deprecated Use `publicProfile` instead. This alias will be removed in the next major version. */
     readonly "public_profile": Omit<typeof tablesSchema.schemaType.tables["publicProfile"], "accessorName"> & { readonly accessorName: "public_profile" };
     /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
@@ -307,6 +349,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "species_record": Omit<typeof tablesSchema.schemaType.tables["speciesRecord"], "accessorName"> & { readonly accessorName: "species_record" };
     /** @deprecated Use `adapterCollection` instead. This alias will be removed in the next major version. */
     readonly "adapter_collection": Omit<typeof tablesSchema.schemaType.tables["adapterCollection"], "accessorName"> & { readonly accessorName: "adapter_collection" };
+    /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
+    readonly "adapter_daily_receipt": Omit<typeof tablesSchema.schemaType.tables["adapterDailyReceipt"], "accessorName"> & { readonly accessorName: "adapter_daily_receipt" };
     /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
     readonly "adapter_inventory": Omit<typeof tablesSchema.schemaType.tables["adapterInventory"], "accessorName"> & { readonly accessorName: "adapter_inventory" };
     /** @deprecated Use `adapterPlayer` instead. This alias will be removed in the next major version. */
@@ -351,8 +395,10 @@ const REMOTE_MODULE = {
 >;
 
 const tableAccessorAliases = {
+  "angler_standing": "anglerStanding",
   "biome_definition": "biomeDefinition",
   "game_config": "gameConfig",
+  "legendary_find": "legendaryFind",
   "public_profile": "publicProfile",
   "rarity_definition": "rarityDefinition",
   "rod_definition": "rodDefinition",
@@ -360,6 +406,7 @@ const tableAccessorAliases = {
   "species_rank_definition": "speciesRankDefinition",
   "species_record": "speciesRecord",
   "adapter_collection": "adapterCollection",
+  "adapter_daily_receipt": "adapterDailyReceipt",
   "adapter_inventory": "adapterInventory",
   "adapter_player": "adapterPlayer",
   "adapter_receipt": "adapterReceipt",
@@ -393,10 +440,14 @@ function __withTableAccessorAliases<T extends object>(target: T, freeze = false)
 
 type __DbViewBase = __DbConnectionImpl<typeof REMOTE_MODULE>["db"];
 export type DbView = __DbViewBase & {
+  /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
+  readonly "angler_standing": __DbViewBase["anglerStanding"];
   /** @deprecated Use `biomeDefinition` instead. This alias will be removed in the next major version. */
   readonly "biome_definition": __DbViewBase["biomeDefinition"];
   /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
   readonly "game_config": __DbViewBase["gameConfig"];
+  /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
+  readonly "legendary_find": __DbViewBase["legendaryFind"];
   /** @deprecated Use `publicProfile` instead. This alias will be removed in the next major version. */
   readonly "public_profile": __DbViewBase["publicProfile"];
   /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
@@ -411,6 +462,8 @@ export type DbView = __DbViewBase & {
   readonly "species_record": __DbViewBase["speciesRecord"];
   /** @deprecated Use `adapterCollection` instead. This alias will be removed in the next major version. */
   readonly "adapter_collection": __DbViewBase["adapterCollection"];
+  /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
+  readonly "adapter_daily_receipt": __DbViewBase["adapterDailyReceipt"];
   /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
   readonly "adapter_inventory": __DbViewBase["adapterInventory"];
   /** @deprecated Use `adapterPlayer` instead. This alias will be removed in the next major version. */
@@ -441,10 +494,14 @@ export type DbView = __DbViewBase & {
 
 type __TablesBase = __QueryBuilder<typeof tablesSchema.schemaType>;
 export type Tables = __TablesBase & {
+  /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
+  readonly "angler_standing": __TablesBase["anglerStanding"];
   /** @deprecated Use `biomeDefinition` instead. This alias will be removed in the next major version. */
   readonly "biome_definition": __TablesBase["biomeDefinition"];
   /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
   readonly "game_config": __TablesBase["gameConfig"];
+  /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
+  readonly "legendary_find": __TablesBase["legendaryFind"];
   /** @deprecated Use `publicProfile` instead. This alias will be removed in the next major version. */
   readonly "public_profile": __TablesBase["publicProfile"];
   /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
@@ -459,6 +516,8 @@ export type Tables = __TablesBase & {
   readonly "species_record": __TablesBase["speciesRecord"];
   /** @deprecated Use `adapterCollection` instead. This alias will be removed in the next major version. */
   readonly "adapter_collection": __TablesBase["adapterCollection"];
+  /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
+  readonly "adapter_daily_receipt": __TablesBase["adapterDailyReceipt"];
   /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
   readonly "adapter_inventory": __TablesBase["adapterInventory"];
   /** @deprecated Use `adapterPlayer` instead. This alias will be removed in the next major version. */

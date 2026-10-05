@@ -100,7 +100,7 @@ impl Client {
                 let error = connected.clone();
                 let mut queries = vec!["SELECT * FROM my_service"];
                 if role == ServiceRole::DiscordAdapter {
-                    queries.extend(["SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_inventory",
+                    queries.extend(["SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
                         "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
                 }
                 conn.subscription_builder().on_applied(move |ctx| {
@@ -187,6 +187,57 @@ impl Client {
                 channel_id,
                 cast,
             )
+            .await;
+            if result.is_ok() || connection.is_active() || attempt == 1 {
+                return result;
+            }
+        }
+        unreachable!("bounded transport retry")
+    }
+
+    pub async fn daily(
+        &self,
+        discord_user_id: u64,
+        display_name: String,
+        interaction_id: u64,
+        guild_id: Option<u64>,
+        channel_id: u64,
+    ) -> Result<DailyReceipt, Error> {
+        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        for attempt in 0..2 {
+            let connection = self.active_connection().await?;
+            let result = async {
+                let snapshot = Self::player_once(
+                    &connection,
+                    discord_user_id,
+                    display_name.clone(),
+                    interaction_id,
+                    guild_id,
+                    channel_id,
+                    false,
+                )
+                .await?;
+                let (sender, receiver) = oneshot::channel();
+                connection.reducers.daily_from_discord_then(
+                    discord_user_id,
+                    interaction_id,
+                    guild_id,
+                    channel_id,
+                    complete(sender),
+                )?;
+                receive(receiver).await?;
+                connection
+                    .db
+                    .adapter_daily_receipt()
+                    .iter()
+                    .find(|row| {
+                        row.interaction_id == interaction_id
+                            && row.player_id == snapshot.player.player_id
+                    })
+                    .ok_or_else(|| {
+                        "Delivery status unavailable; retry with the same interaction ID".into()
+                    })
+            }
             .await;
             if result.is_ok() || connection.is_active() || attempt == 1 {
                 return result;

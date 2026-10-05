@@ -12,8 +12,11 @@ import ChangeLoadoutFromDiscordReducer from "../change_loadout_from_discord_redu
 import CommitInventoryActionReducer from "../commit_inventory_action_reducer";
 import CompleteAccountLinkReducer from "../complete_account_link_reducer";
 import ConfigureServiceReducer from "../configure_service_reducer";
+import DailyFromDiscordReducer from "../daily_from_discord_reducer";
 import FishFromDiscordReducer from "../fish_from_discord_reducer";
+import MigrateUnlimitedInventoryReducer from "../migrate_unlimited_inventory_reducer";
 import PrepareInventoryActionReducer from "../prepare_inventory_action_reducer";
+import RebuildPlayerRecordsReducer from "../rebuild_player_records_reducer";
 import SelectDiscordPlayerReducer from "../select_discord_player_reducer";
 import UnlinkBrowserReducer from "../unlink_browser_reducer";
 
@@ -23,8 +26,11 @@ export type ChangeLoadoutFromDiscordParams = __Infer<typeof ChangeLoadoutFromDis
 export type CommitInventoryActionParams = __Infer<typeof CommitInventoryActionReducer>;
 export type CompleteAccountLinkParams = __Infer<typeof CompleteAccountLinkReducer>;
 export type ConfigureServiceParams = __Infer<typeof ConfigureServiceReducer>;
+export type DailyFromDiscordParams = __Infer<typeof DailyFromDiscordReducer>;
 export type FishFromDiscordParams = __Infer<typeof FishFromDiscordReducer>;
+export type MigrateUnlimitedInventoryParams = __Infer<typeof MigrateUnlimitedInventoryReducer>;
 export type PrepareInventoryActionParams = __Infer<typeof PrepareInventoryActionReducer>;
+export type RebuildPlayerRecordsParams = __Infer<typeof RebuildPlayerRecordsReducer>;
 export type SelectDiscordPlayerParams = __Infer<typeof SelectDiscordPlayerReducer>;
 export type UnlinkBrowserParams = __Infer<typeof UnlinkBrowserReducer>;
 

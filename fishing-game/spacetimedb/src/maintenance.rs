@@ -11,6 +11,18 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
     let month = ctx.timestamp - TimeDuration::from_micros(30 * 86_400_000_000);
     for row in ctx
         .db
+        .daily_receipt()
+        .created_at()
+        .filter(..week)
+        .take(1000)
+    {
+        ctx.db
+            .daily_receipt()
+            .interaction_id()
+            .delete(row.interaction_id);
+    }
+    for row in ctx
+        .db
         .command_receipt()
         .caught_at()
         .filter(..week)

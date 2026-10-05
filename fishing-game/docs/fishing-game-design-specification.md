@@ -408,12 +408,12 @@ Use relative size, not absolute kilograms, so small species remain relevant. Sto
 - Every kept fish is an individually identified specimen.
 - Junk, bait, and materials are quantity stacks with unique logical `(player, item)` keys.
 - Rods are individually owned instances so future specialization remains possible.
-- Default kept-specimen capacity: 100; favorites count toward capacity.
-- Before accepting a cast, require a free specimen slot, regardless of what RNG would produce. Rejecting only after a fish roll would invite category-dependent free retries.
-- Full inventory message links to management and clearly offers sell/release actions.
+- Kept-specimen storage is unlimited. Players may keep every catch, including favorites.
+- Inventory size does not block a cast. Cooldown, identity, equipment, and biome requirements still apply.
+- Inventory displays show the number of fish kept, with pagination for browsing and explicit sell/release actions.
 - No automatic sale in V1. Later autosell must be an explicit per-player rule with protected favorites.
 
-Display capacity should be distinct from backpack capacity when introduced. Do not sell unlimited storage without measuring its memory cost.
+Future display slots are separate from unlimited fish storage. Monitor retained specimens and subscription costs as collections grow; storage is not a paid upgrade.
 
 ### 10.3 Selling, releasing, and salvaging
 
@@ -483,7 +483,7 @@ These are conceptual schemas; exact macros, indexes, and view return types must 
 
 | Table | Key | Important fields | Exposure |
 |---|---|---|---|
-| `GameRules` | `version` | cooldown, capacity, modifier caps, level cap, activation time | Selected public rules |
+| `GameRules` | `version` | cooldown, modifier caps, level cap, activation time | Selected public rules |
 | `RarityDefinition` | `tier` | ordinal, label, color token, reference weight, minimum relative length/weight in millionths | Public |
 | `SpeciesDefinition` | `species_id` | stable key, name, tier, tags, typical/min/max measurements, base XP/value, version | Public V1 |
 | `BiomeDefinition` | `biome_id` | stable key, min level/power, category weights, live flag | Public |
@@ -609,7 +609,7 @@ Every mutating player operation uses server-derived identity, bounded arguments,
 
 Discord can add thin adapter variants for biome/equipment actions later; both variants invoke the same private domain functions. Do not call one exported reducer from another as a substitute for a shared helper.
 
-Error codes are stable prefixes such as `COOLDOWN_ACTIVE`, `INVENTORY_FULL`, `BAIT_EMPTY`, `BIOME_LOCKED`, `INSUFFICIENT_COINS`, `STALE_UPGRADE`, `ACCOUNT_NOT_LINKED`, `REQUEST_CONFLICT`, and `SERVICE_UNAUTHORIZED`. Adapters map these into friendly messages. Cooldown displays should derive remaining time from authoritative state; local countdowns are estimates only.
+Error codes are stable prefixes such as `COOLDOWN_ACTIVE`, `BAIT_EMPTY`, `BIOME_LOCKED`, `INSUFFICIENT_COINS`, `STALE_UPGRADE`, `ACCOUNT_NOT_LINKED`, `REQUEST_CONFLICT`, and `SERVICE_UNAUTHORIZED`. Adapters map these into friendly messages. Cooldown displays should derive remaining time from authoritative state; local countdowns are estimates only.
 
 ## 14. Catch-resolution pipeline
 
@@ -621,7 +621,7 @@ Error codes are stable prefixes such as `COOLDOWN_ACTIVE`, `INVENTORY_FULL`, `BA
 4. Reject interactions older than the allowed acceptance window. Derive creation time from the authenticated Discord interaction snowflake; do not trust an arbitrary caller timestamp.
 5. Check player status and global cooldown using `ctx.timestamp`.
 6. Snapshot active rules, biome, owned rod, and selected bait; verify access and quantities.
-7. Check inventory capacity before RNG.
+7. Keep inventory storage unlimited; no free-slot check is needed.
 8. Build eligible category and species pools, with modifiers and checked totals.
 9. Roll exactly one category using the module context RNG.
 10. For fish: sample species and an eligible weighted physical size band; generate length and weight, derive rank from both species-relative measurements, then produce a specimen.
@@ -809,7 +809,7 @@ A cooldown is not an HTTP flood defense. The adapter and deployment perimeter ne
 
 ### 18.1 Initial retention budgets
 
-- Kept fish: bounded by inventory capacity.
+- Kept fish: retained until explicitly sold or released, with no gameplay storage cap.
 - Recent catch display: last 100 results per player.
 - Discord command receipts: seven days with old-request rejection.
 - Link challenges: ten-minute expiry with bounded active challenge count.
@@ -953,9 +953,21 @@ The first pull request should contain the workspace, compatible pinned dependenc
 | Website casting | Disabled | Product intent and cross-client abuse design |
 | Login | Discord OAuth + verified SpaceTimeDB identity linking | Working credential/revocation proof |
 | Discord crate | Choose Twilight or Serenity during scaffold | Maintainer preference, current compatibility |
-| Inventory capacity | 100 specimens | Memory measurements and collection behavior |
+| Fish storage | Unlimited specimens | Monitor retained data and subscription costs as collections grow |
 | Rod durability | None | Whether economy needs another sink |
 | Legendary availability | Aspirational, not progression-required | Launch content and long-tail simulation |
 | Leaderboard refresh | Incremental records; bounded scheduled top lists | Query cost and active-player load |
 
 The intended foundation is straightforward: the player asks to fish; one authoritative transaction decides what happened; every client learns the same result. The depth comes from species, specimens, choices, and persistent goals—not from duplicating the rules across clients.
+
+## Owner-approved Dockside Delivery (October 4, 2026)
+
+`/daily` grants 100 coins and no XP. Every seventh successful lifetime claim adds
+250 coins (350 on that delivery; 950 per completed seven-stamp card). Claims
+need not be consecutive; missed days never remove stamps. Eligibility resets at
+midnight UTC once per Discord account across servers, enforced by server time.
+Repeated requests show the next reset using a Discord relative timestamp.
+The module atomically saves private eligibility, wallet credit, economy ledger,
+and a replay-safe receipt. Receipts expire after seven days; eligibility and stamps
+are durable. Rewards do not change catches, discoveries, records, odds, or cast
+cooldown. Initial rewards contain only coins; materials and bait remain later work.

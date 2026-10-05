@@ -265,3 +265,111 @@ still needs registration and full login/live-command verification. A combined
 SpaceTimeDB help/Discord command-list lookup was rejected by automatic policy
 review; its only stated reason was "blocked by policy". It was not needed for
 the public route and runtime checks above.
+
+The owner subsequently added the public callback and set command registration
+true. After the actual restart launcher ran, a focused read-only Discord API
+check confirmed the callback matches DISCORD_REDIRECT_URI and the global command
+list contains exactly /fish, /profile, /inventory, /collection, /biome, /gear,
+and /help. The bot reached Gateway readiness again. The website and account-link
+readiness still return 200. This focused check succeeded; the earlier combined
+lookup remains recorded above. Full user OAuth consent/callback and a real
+/fish response still need an interactive player check.
+
+### Discord command visibility follow-up
+
+The owner reported no visible commands. Discord's API confirmed seven global
+commands, no guild-scoped commands, and the bot installed in exactly one server:
+The Magic Tree House. The command defaults did not restrict member permissions.
+Configured DISCORD_GUILD_ID for that server and ran restart-fishbound.cmd. The
+read-only API verifier then confirmed all seven commands registered directly in
+the guild and the native Gateway reached readiness. This uses Discord's immediate
+guild command updates; client visibility and a player invocation remain to be
+confirmed. Existing global commands were preserved.
+
+## Records book and angler leaderboards — 2026-10-04
+
+- Added public lifetime standings and first legendary discoveries as new tables;
+  existing schemas and private caller-scoped views were preserved. Both bindings
+  were regenerated from the release WASM. Record transfers refresh previous and
+  new holders in the same catch transaction; receipt replay cannot add points.
+- Svelte checks pass with zero errors/warnings; production build, workspace
+  formatting, native workspace Clippy, and WASM module Clippy pass.
+- The isolated integration runner passed 19 checks against
+  fishbound-proof-1791155958914-mciimz. Its 78 test anglers exercised 39 real
+  record transfers. Checks compare standings to durable progress/records,
+  reject unauthorized backfills, preserve scores after a sale and receipt replay,
+  confirm anonymous public subscriptions, and verify repeatable owner backfills.
+- Offline browser fixtures used synthetic data only, never written into a game
+  database. Checks covered all four categories, shared ranks, an own-position
+  outside the first page, highlighted rows, all 249 ordinary species across 21
+  pages, independent filters, catch details, legendary finds, guest/empty states,
+  keyboard tabs, and 768/390/320px widths without horizontal overflow.
+- A separate local QA server start was rejected by automatic approval review
+  with only "blocked by policy". Browser fixture verification instead loaded a
+  compiled offline bundle into a blank page; no additional service was started.
+- Updated fishbound-dev-local with the two-table additive migration, then
+  backfilled both existing anglers. Public WSS verified matching public profile
+  and standing totals (16 lifetime fish at inspection), 24 current record titles,
+  and zero legendary discoveries. New live casts were already increasing totals.
+- Public-site browser checks passed for all categories, retained filters across
+  camp views, responsive pages, both original legendary sprites, and
+  1440/768/390/320px widths. Website and bot were running after the update.
+  Screenshots: output/playwright/records-public-leaderboard.png,
+  records-public-mobile.png, records-fixture-leaderboard.png, and
+  records-fixture-mobile.png. Personal highlighting and populated Legendary
+  Finds were verified with fixtures; neither rare fish was fabricated live.
+
+## Unlimited inventory — 2026-10-04
+
+- Removed the pre-cast capacity rejection. Bot /profile and /inventory now show
+  fish kept, and the website tackle box shows its count without a denominator.
+  Favorites and confirmed sales are unchanged. Updated the design and command
+  docs to make unlimited storage the settled rule.
+- Kept the legacy inventory_capacity column for compatible updates; it is
+  ignored by casting, seeded as zero, and cleared on existing databases by an
+  owner-only, repeatable metadata migration. Existing catches are untouched.
+- `npx tsx scripts/inventory-hoarding-proof.ts` passed on the isolated
+  fishbound-proof-inventory-1791157033862 database: 100 seeded specimens grew to
+  103 through normal cast reducers. Exact counts, cooldown rejection, receipt
+  replay, and repeated metadata migration all passed. Fixture reducers are
+  appended only to a separately named proof WASM; production WASM is unchanged.
+- The full integration runner passed 19 checks on
+  fishbound-proof-1791156992175-093ibc, including owner-only migration access,
+  private views, favorites/sales, and correct record/leaderboard totals. Svelte
+  checks and the production build pass, as do native/workspace and WASM Clippy.
+- Published the production module to fishbound-dev-local without table changes
+  or database clearing, then ran migrate_unlimited_inventory as its owner.
+  Live configuration shows inventory_capacity zero and the cooldown still 60
+  seconds. Restarted the rebuilt bot and production website; the bot reached
+  Gateway readiness and all seven guild commands remain registered.
+
+## Dockside Delivery daily rewards (October 4, 2026)
+
+- All 18 pure rules tests passed, including UTC midnight eligibility, nonconsecutive
+  stamps, seven/fourteen-claim totals, and explicit arithmetic overflow handling.
+- All 20 integration checks passed against fresh loopback proof database
+  `fishbound-proof-1791159142425-j48d9u`. Simultaneous claims in different guilds
+  credited exactly 100 coins. Receipt replay and conflicting channel/command IDs,
+  expired requests, unauthorized/linker callers, and service revocation were checked.
+  Fishing XP, counters, standings, inventory, and cooldown stayed unchanged.
+- The native Rust adapter claimed, recovered the same receipt after disconnect,
+  and rejected a second grant in another guild. Existing casts, account selection,
+  and reconnect tests still passed.
+- `scripts/daily-delivery-proof.ts` builds a separately named fixture WASM and fresh
+  proof database; fixture reducers are never included in production. It verified
+  that a fifteen-day gap preserves six stamps, the seventh/fourteenth award 350,
+  the next eligible day starts at stamp one, replay/rejection creates no extra
+  ledger entry, and coin overflow rolls back wallet, receipt, and stamps atomically.
+- The four catch-card renderer tests, workspace Rust check, both formatting checks,
+  Svelte check (zero errors/warnings), production website build, and diff check passed.
+- The live database migration added only two private daily tables and one scoped
+  adapter view; existing tables and player data were retained.
+
+Discord API verification confirmed all eight commands globally and in the configured
+guild, including `/daily`. The rebuilt bot reached Gateway readiness; the public
+website and account-link readiness endpoint returned HTTP 200 after restart.
+
+The bot replies ephemerally with committed reward, stamp progress, and a relative
+next-reset timestamp. Direct command response delivery still requires a player
+invoking `/daily` in Discord; tests did not send Discord messages or claim any live
+player's reward. Long-duration receipt pruning remains a staging check.

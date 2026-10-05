@@ -78,6 +78,7 @@ pub fn ensure_player(
         fish_count: 0,
         discoveries: 0,
     });
+    crate::records::refresh_player(ctx, player.player_id)?;
     Ok(player)
 }
 

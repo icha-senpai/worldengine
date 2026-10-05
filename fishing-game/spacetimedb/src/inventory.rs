@@ -10,6 +10,25 @@ fn player_id(ctx: &ReducerContext) -> Result<u64, String> {
         .ok_or("ACCOUNT_NOT_LINKED".into())
 }
 
+/// Update legacy public configuration without altering or clearing existing tables.
+#[spacetimedb::reducer]
+pub fn migrate_unlimited_inventory(ctx: &ReducerContext) -> Result<(), String> {
+    let owner = ctx
+        .db
+        .deployment_owner()
+        .singleton()
+        .find(1)
+        .ok_or("OWNER_UNAVAILABLE")?;
+    if ctx.sender() != owner.identity {
+        return Err("OWNER_REQUIRED".into());
+    }
+    for mut rules in ctx.db.game_config().iter() {
+        rules.inventory_capacity = 0;
+        ctx.db.game_config().version().update(rules);
+    }
+    Ok(())
+}
+
 pub fn ledger(
     ctx: &ReducerContext,
     player_id: u64,

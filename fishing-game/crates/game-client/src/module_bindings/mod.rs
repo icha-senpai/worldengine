@@ -8,10 +8,13 @@ use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
 pub mod action_nonce_type;
 pub mod adapter_collection_table;
+pub mod adapter_daily_receipt_table;
 pub mod adapter_inventory_table;
 pub mod adapter_player_table;
 pub mod adapter_receipt_table;
 pub mod admin_audit_type;
+pub mod angler_standing_table;
+pub mod angler_standing_type;
 pub mod begin_link_challenge_reducer;
 pub mod biome_definition_table;
 pub mod biome_definition_type;
@@ -21,14 +24,20 @@ pub mod command_receipt_type;
 pub mod commit_inventory_action_reducer;
 pub mod complete_account_link_reducer;
 pub mod configure_service_reducer;
+pub mod daily_delivery_type;
+pub mod daily_from_discord_reducer;
+pub mod daily_receipt_type;
 pub mod deployment_owner_type;
 pub mod economy_ledger_type;
 pub mod fish_from_discord_reducer;
 pub mod game_config_table;
 pub mod game_config_type;
 pub mod item_stack_type;
+pub mod legendary_find_table;
+pub mod legendary_find_type;
 pub mod link_challenge_type;
 pub mod maintenance_job_type;
+pub mod migrate_unlimited_inventory_reducer;
 pub mod my_action_table;
 pub mod my_collection_table;
 pub mod my_inventory_table;
@@ -49,6 +58,7 @@ pub mod public_profile_table;
 pub mod public_profile_type;
 pub mod rarity_definition_table;
 pub mod rarity_definition_type;
+pub mod rebuild_player_records_reducer;
 pub mod recent_catch_type;
 pub mod rod_definition_table;
 pub mod rod_definition_type;
@@ -66,10 +76,13 @@ pub mod unlink_browser_reducer;
 
 pub use action_nonce_type::ActionNonce;
 pub use adapter_collection_table::*;
+pub use adapter_daily_receipt_table::*;
 pub use adapter_inventory_table::*;
 pub use adapter_player_table::*;
 pub use adapter_receipt_table::*;
 pub use admin_audit_type::AdminAudit;
+pub use angler_standing_table::*;
+pub use angler_standing_type::AnglerStanding;
 pub use begin_link_challenge_reducer::begin_link_challenge;
 pub use biome_definition_table::*;
 pub use biome_definition_type::BiomeDefinition;
@@ -79,14 +92,20 @@ pub use command_receipt_type::CommandReceipt;
 pub use commit_inventory_action_reducer::commit_inventory_action;
 pub use complete_account_link_reducer::complete_account_link;
 pub use configure_service_reducer::configure_service;
+pub use daily_delivery_type::DailyDelivery;
+pub use daily_from_discord_reducer::daily_from_discord;
+pub use daily_receipt_type::DailyReceipt;
 pub use deployment_owner_type::DeploymentOwner;
 pub use economy_ledger_type::EconomyLedger;
 pub use fish_from_discord_reducer::fish_from_discord;
 pub use game_config_table::*;
 pub use game_config_type::GameConfig;
 pub use item_stack_type::ItemStack;
+pub use legendary_find_table::*;
+pub use legendary_find_type::LegendaryFind;
 pub use link_challenge_type::LinkChallenge;
 pub use maintenance_job_type::MaintenanceJob;
+pub use migrate_unlimited_inventory_reducer::migrate_unlimited_inventory;
 pub use my_action_table::*;
 pub use my_collection_table::*;
 pub use my_inventory_table::*;
@@ -107,6 +126,7 @@ pub use public_profile_table::*;
 pub use public_profile_type::PublicProfile;
 pub use rarity_definition_table::*;
 pub use rarity_definition_type::RarityDefinition;
+pub use rebuild_player_records_reducer::rebuild_player_records;
 pub use recent_catch_type::RecentCatch;
 pub use rod_definition_table::*;
 pub use rod_definition_type::RodDefinition;
@@ -154,16 +174,26 @@ pub enum Reducer {
         role: ServiceRole,
         active: bool,
     },
+    DailyFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        guild_id: Option<u64>,
+        channel_id: u64,
+    },
     FishFromDiscord {
         discord_user_id: u64,
         interaction_id: u64,
         guild_id: Option<u64>,
         channel_id: u64,
     },
+    MigrateUnlimitedInventory,
     PrepareInventoryAction {
         kind: String,
         catch_ids: Vec<u64>,
         favorite: bool,
+    },
+    RebuildPlayerRecords {
+        player_id: u64,
     },
     SelectDiscordPlayer {
         discord_user_id: u64,
@@ -186,8 +216,11 @@ impl __sdk::Reducer for Reducer {
             Reducer::CommitInventoryAction { .. } => "commit_inventory_action",
             Reducer::CompleteAccountLink { .. } => "complete_account_link",
             Reducer::ConfigureService { .. } => "configure_service",
+            Reducer::DailyFromDiscord { .. } => "daily_from_discord",
             Reducer::FishFromDiscord { .. } => "fish_from_discord",
+            Reducer::MigrateUnlimitedInventory => "migrate_unlimited_inventory",
             Reducer::PrepareInventoryAction { .. } => "prepare_inventory_action",
+            Reducer::RebuildPlayerRecords { .. } => "rebuild_player_records",
             Reducer::SelectDiscordPlayer { .. } => "select_discord_player",
             Reducer::UnlinkBrowser => "unlink_browser",
             _ => unreachable!(),
@@ -241,6 +274,17 @@ impl __sdk::Reducer for Reducer {
                 role: role.clone(),
                 active: active.clone(),
             }),
+            Reducer::DailyFromDiscord {
+                discord_user_id,
+                interaction_id,
+                guild_id,
+                channel_id,
+            } => __sats::bsatn::to_vec(&daily_from_discord_reducer::DailyFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                guild_id: guild_id.clone(),
+                channel_id: channel_id.clone(),
+            }),
             Reducer::FishFromDiscord {
                 discord_user_id,
                 interaction_id,
@@ -252,6 +296,9 @@ impl __sdk::Reducer for Reducer {
                 guild_id: guild_id.clone(),
                 channel_id: channel_id.clone(),
             }),
+            Reducer::MigrateUnlimitedInventory => __sats::bsatn::to_vec(
+                &migrate_unlimited_inventory_reducer::MigrateUnlimitedInventoryArgs {},
+            ),
             Reducer::PrepareInventoryAction {
                 kind,
                 catch_ids,
@@ -263,6 +310,11 @@ impl __sdk::Reducer for Reducer {
                     favorite: favorite.clone(),
                 },
             ),
+            Reducer::RebuildPlayerRecords { player_id } => {
+                __sats::bsatn::to_vec(&rebuild_player_records_reducer::RebuildPlayerRecordsArgs {
+                    player_id: player_id.clone(),
+                })
+            }
             Reducer::SelectDiscordPlayer {
                 discord_user_id,
                 display_name,
@@ -285,11 +337,14 @@ impl __sdk::Reducer for Reducer {
 #[doc(hidden)]
 pub struct DbUpdate {
     adapter_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
+    adapter_daily_receipt: __sdk::TableUpdate<DailyReceipt>,
     adapter_inventory: __sdk::TableUpdate<OwnedSpecimen>,
     adapter_player: __sdk::TableUpdate<Player>,
     adapter_receipt: __sdk::TableUpdate<CommandReceipt>,
+    angler_standing: __sdk::TableUpdate<AnglerStanding>,
     biome_definition: __sdk::TableUpdate<BiomeDefinition>,
     game_config: __sdk::TableUpdate<GameConfig>,
+    legendary_find: __sdk::TableUpdate<LegendaryFind>,
     my_action: __sdk::TableUpdate<ActionNonce>,
     my_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
     my_inventory: __sdk::TableUpdate<OwnedSpecimen>,
@@ -317,6 +372,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_collection" => db_update
                     .adapter_collection
                     .append(adapter_collection_table::parse_table_update(table_update)?),
+                "adapter_daily_receipt" => db_update.adapter_daily_receipt.append(
+                    adapter_daily_receipt_table::parse_table_update(table_update)?,
+                ),
                 "adapter_inventory" => db_update
                     .adapter_inventory
                     .append(adapter_inventory_table::parse_table_update(table_update)?),
@@ -326,12 +384,18 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_receipt" => db_update
                     .adapter_receipt
                     .append(adapter_receipt_table::parse_table_update(table_update)?),
+                "angler_standing" => db_update
+                    .angler_standing
+                    .append(angler_standing_table::parse_table_update(table_update)?),
                 "biome_definition" => db_update
                     .biome_definition
                     .append(biome_definition_table::parse_table_update(table_update)?),
                 "game_config" => db_update
                     .game_config
                     .append(game_config_table::parse_table_update(table_update)?),
+                "legendary_find" => db_update
+                    .legendary_find
+                    .append(legendary_find_table::parse_table_update(table_update)?),
                 "my_action" => db_update
                     .my_action
                     .append(my_action_table::parse_table_update(table_update)?),
@@ -406,12 +470,18 @@ impl __sdk::DbUpdate for DbUpdate {
     ) -> AppliedDiff<'_> {
         let mut diff = AppliedDiff::default();
 
+        diff.angler_standing = cache
+            .apply_diff_to_table::<AnglerStanding>("angler_standing", &self.angler_standing)
+            .with_updates_by_pk(|row| &row.player_id);
         diff.biome_definition = cache
             .apply_diff_to_table::<BiomeDefinition>("biome_definition", &self.biome_definition)
             .with_updates_by_pk(|row| &row.biome_id);
         diff.game_config = cache
             .apply_diff_to_table::<GameConfig>("game_config", &self.game_config)
             .with_updates_by_pk(|row| &row.version);
+        diff.legendary_find = cache
+            .apply_diff_to_table::<LegendaryFind>("legendary_find", &self.legendary_find)
+            .with_updates_by_pk(|row| &row.key);
         diff.public_profile = cache
             .apply_diff_to_table::<PublicProfile>("public_profile", &self.public_profile)
             .with_updates_by_pk(|row| &row.player_id);
@@ -439,6 +509,10 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.adapter_collection = cache.apply_diff_to_table::<PlayerSpeciesProgress>(
             "adapter_collection",
             &self.adapter_collection,
+        );
+        diff.adapter_daily_receipt = cache.apply_diff_to_table::<DailyReceipt>(
+            "adapter_daily_receipt",
+            &self.adapter_daily_receipt,
         );
         diff.adapter_inventory = cache
             .apply_diff_to_table::<OwnedSpecimen>("adapter_inventory", &self.adapter_inventory);
@@ -472,6 +546,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_collection" => db_update
                     .adapter_collection
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_daily_receipt" => db_update
+                    .adapter_daily_receipt
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_inventory" => db_update
                     .adapter_inventory
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -481,11 +558,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_receipt" => db_update
                     .adapter_receipt
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "angler_standing" => db_update
+                    .angler_standing
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "biome_definition" => db_update
                     .biome_definition
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "game_config" => db_update
                     .game_config
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "legendary_find" => db_update
+                    .legendary_find
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_action" => db_update
                     .my_action
@@ -551,6 +634,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_collection" => db_update
                     .adapter_collection
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_daily_receipt" => db_update
+                    .adapter_daily_receipt
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_inventory" => db_update
                     .adapter_inventory
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -560,11 +646,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_receipt" => db_update
                     .adapter_receipt
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "angler_standing" => db_update
+                    .angler_standing
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "biome_definition" => db_update
                     .biome_definition
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "game_config" => db_update
                     .game_config
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "legendary_find" => db_update
+                    .legendary_find
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_action" => db_update
                     .my_action
@@ -630,11 +722,14 @@ impl __sdk::DbUpdate for DbUpdate {
 #[doc(hidden)]
 pub struct AppliedDiff<'r> {
     adapter_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
+    adapter_daily_receipt: __sdk::TableAppliedDiff<'r, DailyReceipt>,
     adapter_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
     adapter_player: __sdk::TableAppliedDiff<'r, Player>,
     adapter_receipt: __sdk::TableAppliedDiff<'r, CommandReceipt>,
+    angler_standing: __sdk::TableAppliedDiff<'r, AnglerStanding>,
     biome_definition: __sdk::TableAppliedDiff<'r, BiomeDefinition>,
     game_config: __sdk::TableAppliedDiff<'r, GameConfig>,
+    legendary_find: __sdk::TableAppliedDiff<'r, LegendaryFind>,
     my_action: __sdk::TableAppliedDiff<'r, ActionNonce>,
     my_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
     my_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
@@ -669,6 +764,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.adapter_collection,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<DailyReceipt>(
+            "adapter_daily_receipt",
+            &self.adapter_daily_receipt,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<OwnedSpecimen>(
             "adapter_inventory",
             &self.adapter_inventory,
@@ -684,12 +784,22 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.adapter_receipt,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<AnglerStanding>(
+            "angler_standing",
+            &self.angler_standing,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<BiomeDefinition>(
             "biome_definition",
             &self.biome_definition,
             event,
         );
         callbacks.invoke_table_row_callbacks::<GameConfig>("game_config", &self.game_config, event);
+        callbacks.invoke_table_row_callbacks::<LegendaryFind>(
+            "legendary_find",
+            &self.legendary_find,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<ActionNonce>("my_action", &self.my_action, event);
         callbacks.invoke_table_row_callbacks::<PlayerSpeciesProgress>(
             "my_collection",
@@ -1415,11 +1525,14 @@ impl __sdk::SpacetimeModule for RemoteModule {
 
     fn register_tables(client_cache: &mut __sdk::ClientCache<Self>) {
         adapter_collection_table::register_table(client_cache);
+        adapter_daily_receipt_table::register_table(client_cache);
         adapter_inventory_table::register_table(client_cache);
         adapter_player_table::register_table(client_cache);
         adapter_receipt_table::register_table(client_cache);
+        angler_standing_table::register_table(client_cache);
         biome_definition_table::register_table(client_cache);
         game_config_table::register_table(client_cache);
+        legendary_find_table::register_table(client_cache);
         my_action_table::register_table(client_cache);
         my_collection_table::register_table(client_cache);
         my_inventory_table::register_table(client_cache);
@@ -1439,11 +1552,14 @@ impl __sdk::SpacetimeModule for RemoteModule {
     }
     const ALL_TABLE_NAMES: &'static [&'static str] = &[
         "adapter_collection",
+        "adapter_daily_receipt",
         "adapter_inventory",
         "adapter_player",
         "adapter_receipt",
+        "angler_standing",
         "biome_definition",
         "game_config",
+        "legendary_find",
         "my_action",
         "my_collection",
         "my_inventory",

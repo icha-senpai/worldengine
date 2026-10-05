@@ -1,5 +1,6 @@
 //! Pure authoritative helpers. Production randomness comes from the module context.
 
+pub mod daily;
 pub mod measurements;
 pub mod progression;
 pub mod sampling;

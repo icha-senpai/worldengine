@@ -59,18 +59,24 @@ try {
   ownerGrant(linker.identity, 'AccountLinker');
   const browserQueries = ['SELECT * FROM my_profile', 'SELECT * FROM my_player', 'SELECT * FROM my_inventory',
     'SELECT * FROM my_collection', 'SELECT * FROM my_recent_catches', 'SELECT * FROM my_link_challenge',
-    'SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt'];
-  await Promise.all([subscribe(botConn, ['SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt',
+    'SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt', 'SELECT * FROM adapter_daily_receipt'];
+  await Promise.all([subscribe(botConn, ['SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt', 'SELECT * FROM adapter_daily_receipt',
     'SELECT * FROM adapter_inventory', 'SELECT * FROM adapter_collection', 'SELECT * FROM species_definition',
-    'SELECT * FROM game_config', 'SELECT * FROM biome_definition', 'SELECT * FROM rod_definition', 'SELECT * FROM species_rank_definition', 'SELECT * FROM rarity_definition']), subscribe(alice.connection, browserQueries), subscribe(bob.connection, browserQueries),
+    'SELECT * FROM game_config', 'SELECT * FROM biome_definition', 'SELECT * FROM rod_definition', 'SELECT * FROM species_rank_definition', 'SELECT * FROM rarity_definition',
+    'SELECT * FROM angler_standing', 'SELECT * FROM legendary_find', 'SELECT * FROM species_record']), subscribe(alice.connection, browserQueries), subscribe(bob.connection, browserQueries),
     subscribe(replacement.connection, browserQueries)]);
   await checks('ordinary identities cannot grant services, cast, select accounts, or complete links', async () => {
     await assert.rejects(bob.connection.reducers.configureService({ identity: bob.identity, role: { tag: 'DiscordAdapter' }, active: true }), /OWNER_REQUIRED/);
+    await assert.rejects(bob.connection.reducers.rebuildPlayerRecords({ playerId: 1n }), /OWNER_REQUIRED/);
+    await assert.rejects(bob.connection.reducers.migrateUnlimitedInventory({}), /OWNER_REQUIRED/);
     await assert.rejects(bob.connection.reducers.selectDiscordPlayer({ discordUserId: 8001n, displayName: 'Mallory', interactionId: snowflake() }), /SERVICE_UNAUTHORIZED/);
     await assert.rejects(bob.connection.reducers.fishFromDiscord({ discordUserId: 8001n, interactionId: snowflake(), channelId: 42n, guildId: 5n }), /SERVICE_UNAUTHORIZED/);
     await assert.rejects(bob.connection.reducers.completeAccountLink({ challengeId: 1n, verifiedDiscordUserId: 8001n, proof: 0n }), /SERVICE_UNAUTHORIZED/);
     assert.equal(bob.connection.db.adapterPlayer.count(), 0n);
     assert.equal(bob.connection.db.adapterReceipt.count(), 0n);
+    assert.equal(bob.connection.db.adapterDailyReceipt.count(), 0n);
+    await assert.rejects(bob.connection.reducers.dailyFromDiscord({ discordUserId: 8001n, interactionId: snowflake(), channelId: 42n, guildId: 5n }), /SERVICE_UNAUTHORIZED/);
+    await assert.rejects(linker.connection.reducers.dailyFromDiscord({ discordUserId: 8001n, interactionId: snowflake(), channelId: 42n, guildId: 5n }), /SERVICE_UNAUTHORIZED/);
     await assert.rejects(bob.connection.reducers.changeLoadout({ biomeId: 1, rodId: 1 }), /ACCOUNT_NOT_LINKED/);
     await assert.rejects(bob.connection.reducers.changeLoadoutFromDiscord({ discordUserId: 8001n, interactionId: snowflake(), biomeId: 1, rodId: 1 }), /SERVICE_UNAUTHORIZED/);
   });
@@ -92,6 +98,7 @@ try {
     assert.equal(biomes.length, 7);
     assert.equal(rods.length, 7);
     assert.equal([...botConn.db.gameConfig.iter()][0].levelCap, 60);
+    assert.equal([...botConn.db.gameConfig.iter()][0].inventoryCapacity, 0, 'Fish storage is unlimited');
     for (const definition of catalog.species) {
       const actual = species.find(row => row.speciesId === definition.speciesId)!;
       assert.equal(actual.name, definition.name);
@@ -118,7 +125,7 @@ try {
     }
   });
   await checks('raw private tables reject unrelated subscriber queries', async () => {
-    for (const table of ['player', 'player_identity', 'owned_specimen', 'command_receipt', 'service_principal', 'link_challenge']) {
+    for (const table of ['player', 'player_identity', 'owned_specimen', 'command_receipt', 'daily_delivery', 'daily_receipt', 'service_principal', 'link_challenge']) {
       await assert.rejects(subscribe(bob.connection, [`SELECT * FROM ${table}`]));
     }
   });
@@ -170,9 +177,11 @@ try {
   });
   await checks('replay recovers the same result and conflicts cannot change it', async () => {
     const receipt = [...botConn.db.adapterReceipt.iter()][0];
+    const standing = [...botConn.db.anglerStanding.iter()].find(row => row.playerId === receipt.playerId);
     await botConn.reducers.fishFromDiscord(fishArgs);
     assert.deepEqual([...botConn.db.adapterReceipt.iter()][0], receipt);
     assert.equal([...botConn.db.adapterPlayer.iter()][0].completedCasts, 1n);
+    assert.deepEqual([...botConn.db.anglerStanding.iter()].find(row => row.playerId === receipt.playerId), standing);
     await assert.rejects(botConn.reducers.fishFromDiscord({ ...fishArgs, channelId: 43n }), /REQUEST_CONFLICT/);
     assert.equal([...botConn.db.adapterPlayer.iter()][0].completedCasts, 1n);
   });
@@ -193,6 +202,44 @@ try {
     assert.equal([...botConn.db.adapterPlayer.iter()][0].completedCasts, 1n);
     await botConn.reducers.selectDiscordPlayer({ discordUserId, displayName: 'Alice', interactionId });
     await waitFor(() => [...botConn.db.adapterPlayer.iter()][0]?.discordUserId === discordUserId, 'restore Alice selection');
+  });
+  await checks('daily delivery grants once across servers, replays safely, and leaves fishing progression unchanged', async () => {
+    const discordUserId = 8099n;
+    const args = { discordUserId, interactionId: snowflake(), channelId: 42n, guildId: 5n };
+    await botConn.reducers.selectDiscordPlayer({ discordUserId, displayName: 'Delivery proof', interactionId: args.interactionId });
+    const before = [...botConn.db.adapterPlayer.iter()][0];
+    const standing = [...botConn.db.anglerStanding.iter()].find(row => row.playerId === before.playerId);
+    const results = await Promise.allSettled([
+      botConn.reducers.dailyFromDiscord(args),
+      botConn.reducers.dailyFromDiscord({ ...args, interactionId: snowflake(), guildId: 6n })
+    ]);
+    assert(results.every(result => result.status === 'fulfilled'));
+    await waitFor(() => botConn.db.adapterDailyReceipt.count() === 1n, 'daily receipt');
+    const receipt = [...botConn.db.adapterDailyReceipt.iter()][0];
+    const after = [...botConn.db.adapterPlayer.iter()][0];
+    assert.equal(after.coins, 100n);
+    assert.deepEqual({ ...after, coins: before.coins }, before);
+    assert.deepEqual([...botConn.db.anglerStanding.iter()].find(row => row.playerId === before.playerId), standing);
+    assert.equal(receipt.totalClaims, 1n);
+    assert.equal(receipt.stamps, 1);
+    assert.equal(receipt.nextDeliveryAt.microsSinceUnixEpoch % 86400000000n, 0n);
+    assert(receipt.nextDeliveryAt.microsSinceUnixEpoch > receipt.createdAt.microsSinceUnixEpoch);
+    await botConn.reducers.dailyFromDiscord(args);
+    assert.deepEqual([...botConn.db.adapterDailyReceipt.iter()][0], receipt);
+    assert.equal([...botConn.db.adapterPlayer.iter()][0].coins, 100n);
+    await assert.rejects(botConn.reducers.dailyFromDiscord({ ...args, channelId: 43n }), /REQUEST_CONFLICT/);
+    await assert.rejects(botConn.reducers.fishFromDiscord(args), /REQUEST_CONFLICT/);
+    const retry = { ...args, interactionId: snowflake(), guildId: 88n };
+    await botConn.reducers.selectDiscordPlayer({ discordUserId, displayName: 'Delivery proof', interactionId: retry.interactionId });
+    await botConn.reducers.dailyFromDiscord(retry);
+    const repeated = [...botConn.db.adapterDailyReceipt.iter()][0];
+    assert.equal(repeated.claimed, false);
+    assert.equal(repeated.coinsGranted, 0n);
+    assert.equal(repeated.totalClaims, 1n);
+    const old = ((BigInt(Date.now() - 301000) - 1420070400000n) << 22n) | sequence++;
+    await assert.rejects(botConn.reducers.dailyFromDiscord({ ...args, interactionId: old }), /INTERACTION_EXPIRED/);
+    await botConn.reducers.selectDiscordPlayer({ discordUserId: 8001n, displayName: 'Alice', interactionId });
+    await assert.rejects(botConn.reducers.dailyFromDiscord(fishArgs), /REQUEST_CONFLICT/);
   });
   await alice.connection.reducers.beginLinkChallenge({});
   await waitFor(() => alice.connection.db.myLinkChallenge.count() === 1n, 'Alice challenge');
@@ -257,7 +304,7 @@ try {
   });
   await checks('favorites block sales; confirmed sales replay safely and preserve discoveries and records', async () => {
     const manager = await connect();
-    await subscribe(manager.connection, [...browserQueries, 'SELECT * FROM my_action', 'SELECT * FROM my_items', 'SELECT * FROM my_ledger', 'SELECT * FROM species_record']);
+    await subscribe(manager.connection, [...browserQueries, 'SELECT * FROM my_action', 'SELECT * FROM my_items', 'SELECT * FROM my_ledger', 'SELECT * FROM species_record', 'SELECT * FROM angler_standing']);
     let ownerId = 0n;
     // Exercise actual context RNG without adding a privileged test-only cast reducer.
     for (let attempt = 0; attempt < 16; attempt++) {
@@ -278,6 +325,7 @@ try {
     const measuredRank = [...botConn.db.rarityDefinition.iter()].sort((a,b) => b.ordinal - a.ordinal).find(rule => BigInt(ownFish.lengthMm) * 1_000_000n >= BigInt(ownSpecies.typicalLengthMm) * rule.minimumLengthMillionths && ownFish.weightG * 1_000_000n >= ownSpecies.typicalWeightG * rule.minimumWeightMillionths)!;
     assert.equal(ownFish.rarity, measuredRank.tier);
     const progress = [...manager.connection.db.myCollection.iter()];
+    const standingBeforeSale = [...manager.connection.db.anglerStanding.iter()].find(row => row.playerId === [...manager.connection.db.myPlayer.iter()][0].playerId);
     const records = [...manager.connection.db.speciesRecord.iter()].filter(row => row.speciesId === ownFish.speciesId);
     assert.equal(records.length, 2);
     await assert.rejects(bob.connection.reducers.prepareInventoryAction({ kind: 'sell', catchIds: [ownFish.catchId], favorite: false }), /ACCOUNT_NOT_LINKED/);
@@ -303,6 +351,7 @@ try {
     assert.equal([...manager.connection.db.myPlayer.iter()][0].coins, before + quote.quotedCoins);
     assert.equal([...manager.connection.db.myPlayer.iter()][0].keptCount, 0);
     assert.deepEqual([...manager.connection.db.myCollection.iter()], progress);
+    assert.deepEqual([...manager.connection.db.anglerStanding.iter()].find(row => row.playerId === standingBeforeSale?.playerId), standingBeforeSale);
     assert.deepEqual([...manager.connection.db.speciesRecord.iter()].filter(row => row.speciesId === ownFish.speciesId), records);
     assert.equal([...manager.connection.db.myLedger.iter()].filter(row => row.reason === 'fish_sale').length, 1);
     await writeFile('.local/browser-proof.json', JSON.stringify({ uri, database, token: manager.token }), { mode: 0o600 });
@@ -325,6 +374,44 @@ try {
     await waitFor(() => showcase.connection.db.myInventory.count() === 1n, 'browser fixture');
     await writeFile('.local/browser-proof.json', JSON.stringify({ uri, database, token: showcase.token }), { mode: 0o600 });
   });
+  await checks('public lifetime standings stay accurate across casts, record transfers, and owner backfill', async () => {
+    const guest = await connect();
+    await subscribe(guest.connection, ['SELECT * FROM angler_standing', 'SELECT * FROM legendary_find', 'SELECT * FROM species_record']);
+    let transfers = 0;
+    for (let attempt = 0; attempt < 70; attempt++) {
+      const id = 9500n + BigInt(attempt);
+      const requestId = snowflake();
+      await botConn.reducers.selectDiscordPlayer({ discordUserId: id, displayName: `Record proof ${attempt + 1}`, interactionId: requestId });
+      const previous = new Map([...botConn.db.speciesRecord.iter()].map(row => [row.key, row.playerId]));
+      await botConn.reducers.fishFromDiscord({ discordUserId: id, interactionId: requestId, guildId: 5n, channelId: 42n });
+      const player = [...botConn.db.adapterPlayer.iter()][0];
+      const progress = [...botConn.db.adapterCollection.iter()];
+      const standing = [...botConn.db.anglerStanding.iter()].find(row => row.playerId === player.playerId)!;
+      assert(standing);
+      assert.equal(standing.fishCount, player.fishCount);
+      assert.equal(standing.discoveries, progress.filter(row => [...botConn.db.speciesDefinition.iter()].find(fish => fish.speciesId === row.speciesId)?.countsForOrdinaryCollectionCompletion).length);
+      assert.equal(standing.uurCount, progress.reduce((sum, row) => sum + row.rankCounts[9], 0n));
+      const records = [...botConn.db.speciesRecord.iter()];
+      transfers += records.filter(row => previous.has(row.key) && previous.get(row.key) !== row.playerId).length;
+      for (const holder of botConn.db.anglerStanding.iter()) {
+        assert.equal(holder.recordsHeld, records.filter(row => row.playerId === holder.playerId).length);
+      }
+    }
+    assert(transfers > 0, 'The actual cast sample should exercise record transfers');
+    await waitFor(() => guest.connection.db.anglerStanding.count() === botConn.db.anglerStanding.count(), 'anonymous standings');
+    assert(guest.connection.db.anglerStanding.count() > 70n);
+    assert.equal(guest.connection.db.legendaryFind.count(), 0n, 'Meadow Pond casts cannot discover the two Abyss legends');
+    const before = [...botConn.db.anglerStanding.iter()].sort((a, b) => Number(a.playerId - b.playerId));
+    for (const row of before) {
+      const rebuilt = spawnSync('spacetime', ['call', '--server', uri, '--no-config', '--yes', database, 'rebuild_player_records', row.playerId.toString()], { encoding: 'utf8', windowsHide: true });
+      assert.equal(rebuilt.status, 0, rebuilt.stderr || rebuilt.stdout);
+    }
+    // A second owner rebuild must be harmless and must retain totals from sold catches.
+    const rebuilt = spawnSync('spacetime', ['call', '--server', uri, '--no-config', '--yes', database, 'rebuild_player_records', before[0].playerId.toString()], { encoding: 'utf8', windowsHide: true });
+    assert.equal(rebuilt.status, 0, rebuilt.stderr || rebuilt.stdout);
+    assert.deepEqual([...botConn.db.anglerStanding.iter()].sort((a, b) => Number(a.playerId - b.playerId)), before);
+    console.log(`Verified ${transfers} real record transfers and ${before.length} lifetime standings.`);
+  });
   await checks('unlinking removes private browser access', async () => {
     const logout = await connect(replacement.token);
     await subscribe(logout.connection, browserQueries);
@@ -333,9 +420,14 @@ try {
     assert.equal(logout.connection.db.myRecentCatches.count(), 0n);
     await assert.rejects(logout.connection.reducers.prepareInventoryAction({ kind: 'sell', catchIds: [1n], favorite: false }), /ACCOUNT_NOT_LINKED/);
   });
+  const revokedDailyInteraction = snowflake();
+  await botConn.reducers.selectDiscordPlayer({ discordUserId: 8099n, displayName: 'Delivery proof', interactionId: revokedDailyInteraction });
+  await botConn.reducers.dailyFromDiscord({ discordUserId: 8099n, interactionId: revokedDailyInteraction, guildId: 5n, channelId: 42n });
+  assert.equal(botConn.db.adapterDailyReceipt.count(), 1n);
   await checks('revoked service role loses access and cannot create casts', async () => {
     ownerGrant(bot.identity, 'DiscordAdapter', false);
-    await waitFor(() => botConn.db.adapterPlayer.count() === 0n && botConn.db.adapterReceipt.count() === 0n, 'revoked service views');
+    await assert.rejects(botConn.reducers.dailyFromDiscord({ discordUserId: 8099n, interactionId: snowflake(), guildId: 5n, channelId: 42n }), /SERVICE_UNAUTHORIZED/);
+    await waitFor(() => botConn.db.adapterPlayer.count() === 0n && botConn.db.adapterReceipt.count() === 0n && botConn.db.adapterDailyReceipt.count() === 0n, 'revoked service views');
     await assert.rejects(botConn.reducers.fishFromDiscord({ ...fishArgs, interactionId: snowflake() }), /SERVICE_UNAUTHORIZED/);
   });
   console.log(`Integration proof complete: ${passed} checks passed against ${database}.`);

@@ -4,6 +4,7 @@
   import { Game } from './game.svelte';
   import PondScene from './PondScene.svelte';
   import Compendium from './Compendium.svelte';
+  import Records from './Records.svelte';
   import PageTurner from './PageTurner.svelte';
   type CampView = 'camp' | 'inventory' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium';
   let { initialView = 'camp' } = $props<{ initialView?: CampView }>();
@@ -18,7 +19,6 @@
   const viewLabel = $derived(tabs.find(tab => tab.id === visibleView)!.label);
   let inventoryPage = $state(1);
   let bookPage = $state(1);
-  let recordPage = $state(1);
   let worldPage = $state(1);
   let pageSize = $state(12);
   let selected = $state<bigint[]>([]);
@@ -29,14 +29,12 @@
   let linkForm: HTMLFormElement;
   let now = $state(Date.now());
   const grades = ['Tiny', 'Small', 'Typical', 'Large', 'Trophy', 'Colossal'];
-  const capacity = $derived(game.config?.inventoryCapacity ?? 100);
   const level = $derived(game.profile?.level ?? 1);
   const currentBiome = $derived(game.biomes.find(row => row.biomeId === game.player?.selectedBiomeId));
   const currentRod = $derived(game.rods.find(row => row.rodId === game.player?.equippedRodId));
   const ordinary = $derived(game.species.filter(row => row.countsForOrdinaryCollectionCompletion));
   const discoveries = $derived(game.collection.filter(row => ordinary.some(fish => fish.speciesId === row.speciesId)).length);
   const book = $derived(game.species.filter(fish => (!bookBiome || fish.biomeId === bookBiome) && (!bookTier || fish.allowedRarities.includes(bookTier)) && fish.name.toLowerCase().includes(bookQuery.trim().toLowerCase())));
-  const visibleRecords = $derived(game.records.filter(record => game.species.some(fish => fish.speciesId === record.speciesId && (!bookBiome || fish.biomeId === bookBiome))).slice(0, 20));
   const remaining = $derived(game.player ? Math.max(0, Math.ceil(Number(game.player.nextCastAt.microsSinceUnixEpoch / 1000n - BigInt(now)) / 1000)) : 0);
   const quote = $derived(showQuote && game.action?.kind === 'sell' && !game.action.consumed ? game.action : null);
   const selectedOwned = $derived(selected.filter(id => game.inventory.some(fish => fish.catchId === id && !fish.favorite)));
@@ -79,7 +77,7 @@
     const compactScreen = window.matchMedia('(max-width: 600px)');
     const resizePages = () => {
       pageSize = compactScreen.matches ? 4 : 12;
-      inventoryPage = bookPage = recordPage = worldPage = 1;
+      inventoryPage = bookPage = worldPage = 1;
     };
     resizePages();
     compactScreen.addEventListener('change', resizePages);
@@ -125,7 +123,7 @@
   {/if}
   {#if game.player}
     {#if visibleView === 'inventory'}
-    <section aria-labelledby="inventory"><div class="section-heading"><div><p class="eyebrow">KEEP THE GOOD ONES</p><h2 id="inventory">Your tackle box <span>{game.inventory.length} / {capacity}</span></h2></div><button class="secondary" disabled={!selectedOwned.length || selectedOwned.length > 50 || game.busy || !game.ready} onclick={preview}>Preview sale ({selectedOwned.length})</button></div>
+    <section aria-labelledby="inventory"><div class="section-heading"><div><p class="eyebrow">KEEP THE GOOD ONES</p><h2 id="inventory">Your tackle box <span>{game.inventory.length} fish kept</span></h2></div><button class="secondary" disabled={!selectedOwned.length || selectedOwned.length > 50 || game.busy || !game.ready} onclick={preview}>Preview sale ({selectedOwned.length})</button></div>
       {#if quote}
         <div class="sale" role="status"><div><strong>Sell {quote.catchIds.length} selected {quote.catchIds.length === 1 ? 'catch' : 'catches'} for {quote.quotedCoins.toString()} coins?</strong><p>{quote.catchIds.map(id => { const fish = game.inventory.find(row => row.catchId === id); return '#' + id + ' ' + (fish ? speciesName(fish.speciesId) : '(catch changed)'); }).join(' · ')}</p><small>Discoveries and records remain. Favorites are protected. Preview expires at {time(quote.expiresAt.microsSinceUnixEpoch)}.</small></div><div class="sale-actions"><button disabled={game.busy || !game.ready || quote.expiresAt.microsSinceUnixEpoch <= BigInt(now) * 1000n} onclick={confirm}>Confirm sale · {quote.quotedCoins.toString()} coins</button><button class="secondary" onclick={() => { showQuote = false; }}>Cancel</button></div></div>
       {/if}
@@ -167,7 +165,7 @@
       {/each}</div><PageTurner bind:page={worldPage} total={game.biomes.length} {pageSize} label="World map pages" />
     </section>
   {/if}
-  {#if visibleView === 'records' && game.species.length}<section aria-labelledby="records"><p class="eyebrow">A CATCH WORTH BRAGGING ABOUT</p><h2 id="records">Species records</h2><p class="muted">Up to 20 records from the collection's selected waters.</p><div class="record-grid">{#each visibleRecords.slice((recordPage - 1) * pageSize, recordPage * pageSize) as record (record.key)}<article><small>{speciesName(record.speciesId)} · {record.rarity} · {record.metric === 'length' ? 'LONGEST' : 'HEAVIEST'}</small><strong>{record.metric === 'length' ? (Number(record.measurement) / 10).toFixed(1) + ' cm' : (Number(record.measurement) / 1000).toFixed(3) + ' kg'}</strong><span>{record.displayName}</span></article>{/each}</div>{#if !visibleRecords.length}<p class="muted">The first record is yours to set.</p>{/if}<PageTurner bind:page={recordPage} total={visibleRecords.length} {pageSize} label="Record pages" /></section>{/if}
+  <div hidden={visibleView !== 'records'}><Records {game} {pageSize} /></div>
 
   </div>
   <div class="view-panel" role="tabpanel" id="panel-compendium" aria-labelledby="tab-compendium" tabindex="0" hidden={visibleView !== 'compendium'}><Compendium {pageSize} /></div>
@@ -237,11 +235,10 @@
   .biome-grid article::before{content:'';display:block;height:36px;margin:-20px -20px 18px;background:linear-gradient(155deg,transparent 35%,#456f58 36% 65%,transparent 66%),linear-gradient(30deg,#365c52 45%,#7b9865 46% 68%,#e8be81 69%);border-bottom:2px solid #8b7853}
   .biome-grid article:nth-child(3n)::before{filter:hue-rotate(25deg)}.biome-grid article:nth-child(4)::before{filter:hue-rotate(90deg)}.biome-grid article:nth-child(6)::before{filter:hue-rotate(140deg) saturate(.6)}.biome-grid article:nth-child(7)::before{filter:brightness(.7)}
   .biome-grid article.active{border-color:#547247;box-shadow:inset 0 0 0 2px #9eb578,3px 4px 0 #bdab7a}.biome-grid small{font-family:var(--font-game);font-size:14px;color:#75613f}.biome-grid p{font-size:12px;color:#716043;line-height:1.7}.biome-grid button{margin-top:8px}
-  .record-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}.record-grid article{border:1px solid #b89c6c;padding:18px;background:#fff0c9;box-shadow:2px 3px 0 #ceb385}.record-grid small{font-size:10px;color:#80623c}.record-grid strong{display:block;font-family:var(--font-game);font-size:28px;font-weight:500;margin:10px 0}.record-grid span{color:#88714d;font-size:11px}
   footer{border-top:1px solid #6a7950;margin-top:38px;padding:24px 0 32px;display:flex;justify-content:space-between;gap:16px;color:#b7c29d;font-size:11px}footer>div{display:flex;gap:24px;align-items:center}.text-button{color:#d8d9b1;background:transparent;border:0;font-family:var(--font-body);font-size:11px;padding:0;box-shadow:none}.text-button:hover:not(:disabled){background:transparent}
   .sr-only{position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden}
   @media(max-width:850px){main{padding:16px 18px 0}nav{gap:5px;padding:10px}.brand{font-size:24px}nav a{font-size:16px;padding:6px 8px}.connection{margin-left:auto}.camp-banner{gap:20px;padding:18px;grid-template-columns:1fr 1fr}.camp-intro{padding:0}h1{font-size:62px}.intro{font-size:16px}.cast-hint span{display:none}.book-link{font-size:16px;gap:10px}section{padding:22px}.collection-grid{grid-template-columns:1fr}.stats>div{padding:18px 16px}.stats span{font-size:14px}}
-  @media(max-width:600px){main{padding:12px 12px 0}nav{gap:2px}.brand{width:100%;margin:0 0 4px;font-size:26px}nav a{font-size:15px;padding:6px 7px}.connection{font-size:10px;padding:4px 6px}.camp-banner{grid-template-columns:1fr;padding:16px;margin:22px 0;gap:20px}.camp-intro{padding:8px}h1{font-size:clamp(38px,14vw,58px)}.camp-banner :global(.scene){min-height:210px}.cast-hint{font-size:12px}.welcome{grid-template-columns:1fr;gap:20px;padding:22px}.login{max-width:none}.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(2){border-right:0}.stats>div:nth-child(-n+2){border-bottom:2px solid #4d3829}.stats>div{padding:18px}.stats strong{font-size:34px}.section-heading{align-items:flex-start;flex-wrap:wrap}section{padding:20px;margin-top:22px}h2{font-size:28px}.catch-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.catch{padding:10px}.catch h3{font-size:19px}.fish-art{height:105px}.fish-art img{width:95px;height:80px}.fish-art>span{font-size:12px}.measure{font-size:10px}.relative-size{font-size:10px}.catch-footer{font-size:10px}.collection-entry{padding:12px;gap:10px}.collection-entry>img{width:50px;height:50px}.journal{grid-template-columns:1fr;gap:26px}.journal aside{border-left:0;border-top:1px dashed #b99a69;padding:22px 0 0}.sale-actions{flex-wrap:wrap}footer{flex-direction:column}footer>div{justify-content:space-between}.record-grid{grid-template-columns:1fr 1fr}.record-grid article{padding:12px}.record-grid strong{font-size:24px}.filters{gap:12px}.filters>div{flex:1;min-width:110px}.filters>div:last-child{flex-basis:100%}.filters input{width:100%}}
+  @media(max-width:600px){main{padding:12px 12px 0}nav{gap:2px}.brand{width:100%;margin:0 0 4px;font-size:26px}nav a{font-size:15px;padding:6px 7px}.connection{font-size:10px;padding:4px 6px}.camp-banner{grid-template-columns:1fr;padding:16px;margin:22px 0;gap:20px}.camp-intro{padding:8px}h1{font-size:clamp(38px,14vw,58px)}.camp-banner :global(.scene){min-height:210px}.cast-hint{font-size:12px}.welcome{grid-template-columns:1fr;gap:20px;padding:22px}.login{max-width:none}.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(2){border-right:0}.stats>div:nth-child(-n+2){border-bottom:2px solid #4d3829}.stats>div{padding:18px}.stats strong{font-size:34px}.section-heading{align-items:flex-start;flex-wrap:wrap}section{padding:20px;margin-top:22px}h2{font-size:28px}.catch-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.catch{padding:10px}.catch h3{font-size:19px}.fish-art{height:105px}.fish-art img{width:95px;height:80px}.fish-art>span{font-size:12px}.measure{font-size:10px}.relative-size{font-size:10px}.catch-footer{font-size:10px}.collection-entry{padding:12px;gap:10px}.collection-entry>img{width:50px;height:50px}.journal{grid-template-columns:1fr;gap:26px}.journal aside{border-left:0;border-top:1px dashed #b99a69;padding:22px 0 0}.sale-actions{flex-wrap:wrap}footer{flex-direction:column}footer>div{justify-content:space-between}.filters{gap:12px}.filters>div{flex:1;min-width:110px}.filters>div:last-child{flex-basis:100%}.filters input{width:100%}}
 
   .compact-banner{padding:14px 24px;margin:20px 0;grid-template-columns:1fr 240px;gap:20px}
   .compact-banner .camp-intro{padding:0}.compact-banner .eyebrow{margin-bottom:4px}.compact-banner h1{font-size:40px;margin:0;line-height:1.1}

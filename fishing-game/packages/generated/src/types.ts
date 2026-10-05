@@ -33,6 +33,16 @@ export const AdminAudit = __t.object("AdminAudit", {
 });
 export type AdminAudit = __Infer<typeof AdminAudit>;
 
+export const AnglerStanding = __t.object("AnglerStanding", {
+  playerId: __t.u64(),
+  displayName: __t.string(),
+  discoveries: __t.u32(),
+  fishCount: __t.u64(),
+  uurCount: __t.u64(),
+  recordsHeld: __t.u32(),
+});
+export type AnglerStanding = __Infer<typeof AnglerStanding>;
+
 export const BiomeDefinition = __t.object("BiomeDefinition", {
   biomeId: __t.u32(),
   name: __t.string(),
@@ -72,6 +82,28 @@ export const CommandReceipt = __t.object("CommandReceipt", {
 });
 export type CommandReceipt = __Infer<typeof CommandReceipt>;
 
+export const DailyDelivery = __t.object("DailyDelivery", {
+  playerId: __t.u64(),
+  lastClaimDay: __t.i64(),
+  totalClaims: __t.u64(),
+});
+export type DailyDelivery = __Infer<typeof DailyDelivery>;
+
+export const DailyReceipt = __t.object("DailyReceipt", {
+  interactionId: __t.u64(),
+  playerId: __t.u64(),
+  discordUserId: __t.u64(),
+  guildId: __t.option(__t.u64()),
+  channelId: __t.u64(),
+  claimed: __t.bool(),
+  coinsGranted: __t.u64(),
+  totalClaims: __t.u64(),
+  stamps: __t.u8(),
+  nextDeliveryAt: __t.timestamp(),
+  createdAt: __t.timestamp(),
+});
+export type DailyReceipt = __Infer<typeof DailyReceipt>;
+
 export const DeploymentOwner = __t.object("DeploymentOwner", {
   singleton: __t.u8(),
   identity: __t.identity(),
@@ -105,6 +137,16 @@ export const ItemStack = __t.object("ItemStack", {
   quantity: __t.u64(),
 });
 export type ItemStack = __Infer<typeof ItemStack>;
+
+export const LegendaryFind = __t.object("LegendaryFind", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  displayName: __t.string(),
+  speciesId: __t.u32(),
+  firstCaughtAt: __t.timestamp(),
+  count: __t.u64(),
+});
+export type LegendaryFind = __Infer<typeof LegendaryFind>;
 
 export const LinkChallenge = __t.object("LinkChallenge", {
   challengeId: __t.u64(),

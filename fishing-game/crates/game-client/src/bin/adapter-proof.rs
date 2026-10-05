@@ -45,6 +45,41 @@ async fn main() -> Result<(), Error> {
         .change_loadout(9001, "Native proof".into(), snowflake(5), Some(7), None)
         .await;
     assert!(locked.is_err_and(|error| error.to_string().contains("BIOME_LEVEL_REQUIRED")));
+    let daily_id = snowflake(6);
+    let delivery = client
+        .daily(9001, "Native proof".into(), daily_id, Some(5), 42)
+        .await?;
+    assert!(delivery.claimed);
+    assert_eq!(delivery.coins_granted, 100);
+    assert_eq!(delivery.stamps, 1);
+    client.disconnect();
+    assert_eq!(
+        client
+            .daily(9001, "Native proof".into(), daily_id, Some(5), 42)
+            .await?,
+        delivery
+    );
+    let duplicate = client
+        .daily(9001, "Native proof".into(), snowflake(7), Some(6), 42)
+        .await?;
+    assert!(!duplicate.claimed);
+    assert_eq!(duplicate.coins_granted, 0);
+    let after_delivery = client
+        .player(
+            9001,
+            "Native proof".into(),
+            snowflake(8),
+            Some(5),
+            42,
+            false,
+        )
+        .await?;
+    assert_eq!(after_delivery.player.coins, replay.player.coins + 100);
+    assert_eq!(after_delivery.player.total_xp, replay.player.total_xp);
+    assert_eq!(
+        after_delivery.player.next_cast_at,
+        replay.player.next_cast_at
+    );
     client.disconnect();
     let recovered = client
         .player(9001, "Native proof".into(), id, Some(5), 42, true)

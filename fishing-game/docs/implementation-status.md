@@ -4,7 +4,8 @@ The owner authorized autonomous implementation after rereading the specification
 and project docs, then explicitly requested all fish and all biomes. All 251 species
 and seven biomes are implemented with level cap 60 and earned rods.
 The website and account-link service are exposed through ServBay/Cloudflare at
-https://fish.ichaa.dev. The bot connects to Discord; command registration is still off.
+https://fish.ichaa.dev. The bot connects to Discord; all eight commands are
+registered globally and directly in the configured guild; the public OAuth callback is registered.
 
 ## Settled decisions
 
@@ -20,8 +21,11 @@ https://fish.ichaa.dev. The bot connects to Discord; command registration is sti
 - Nidalees Lost Sock: the one fake fish, F rank, rarest, half Fihs's chance.
 - Neither exceptional fish gates progression or ordinary collection completion.
 - Soften upper rarity odds toward months of active play; current prototype odds and analytic waits are in world-balance.md.
-- Optional daily reward without streak penalties; protect favorites; confirm spending/sales.
+- Dockside Delivery: 100 coins daily, +250 every seventh claim, midnight UTC reset, no XP.
+  Nonconsecutive stamps persist; one claim per account across servers.
+- Protect favorites; confirm spending/sales.
 - No trading, premium currency, durability, offline casting, or website casting.
+- Unlimited kept-fish storage; inventory size never blocks casting. Favorites and sale confirmations still apply.
 - Generate bindings from WASM; do not edit generated files.
 
 ## Implemented locally
@@ -38,7 +42,10 @@ and saved catches show their length/weight relative to the species typical size.
 
 Browser dashboard, catalog, collection, favorites, bounded sale quotes and
 confirmation, unlinking, token persistence, reconnect, and subscription refresh.
-Poise handlers for /fish, /profile, /inventory, /collection, /biome, /gear, /help.
+Poise handlers for /fish, /daily, /profile, /inventory, /collection, /biome, /gear, /help.
+/daily uses private durable stamps and eligibility, an atomic wallet/ledger grant,
+selected-adapter receipts, and recovery after reconnect. Replies are ephemeral;
+already-claimed requests show the next reset without changing any fishing stats.
 Website biome travel, rod equip, and collection/catalog biome/tier/name filters.
 The catalog is a public compendium with original fish artwork and only species
 name, biome, eligible rarity, and cast rates. Size details stay on personal catches
@@ -51,6 +58,16 @@ World map, Records, or Compendium. Switching preserves the database connection,
 filters, and inventory selection. Hash links and browser back select views;
 /catalog opens the public Compendium directly. Lists use twelve-entry desktop
 pages or four-entry phone pages instead of stacking the whole game vertically.
+Records is now a public parchment record book and angler bragging board. Fish
+Records lists all 249 ordinary species with independent biome/search/held-record
+filters, separate longest/heaviest holders, rarity badges, and expandable catch
+dates. Angler Leaderboards has Collectors, Most Fish Caught, Trophy Hunters, and
+Record Holders, with podiums, shared ranks for ties, paged rows, and your position.
+Legendary Finds preserves each angler's first Fihs/Sock discovery and lifetime
+count separately from ordinary completion. New public tables contain only game
+IDs, display names, lifetime totals, and discovery dates; private data stays scoped.
+Server catch transactions refresh both current and displaced record holders.
+Existing players were backfilled from durable progress, including sold catches.
 /fish defers before the database operation and renders a saved receipt with
 one combined fish-on-rarity-card PNG. Transparent sprite margins are cropped;
 the visible fish fits a centered box without stretching or covering rank labels.
@@ -79,10 +96,10 @@ No sibling application's server or data was changed.
 ## Remaining boundaries
 
 - Discord credentials were supplied and the bot reached Gateway readiness.
-  The public OAuth callback must be added to the application's currently empty
-  redirect list. Live command delivery/deferral, attachment rendering, OAuth
+  Discord's API confirms the public OAuth callback and all eight global commands.
+  Live command delivery/deferral, attachment rendering, OAuth
   consent/callback, and credential rotation remain unverified against Discord.
-- Daily, upgrade, sell command components, shop command,
+- Upgrade, sell command components, shop command,
   leaderboard command, and optional public-player lookup are not registered handlers yet.
   Favorite/sale domain behavior already works through the website.
 - Rod upgrade recipes, bait, release/salvage, achievements, bounded standings,
