@@ -34,21 +34,34 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import ActivateAchievementsReducer from "./activate_achievements_reducer";
+import ActivateCraftingReducer from "./activate_crafting_reducer";
+import ActivateRodBonusesReducer from "./activate_rod_bonuses_reducer";
 import ActivateTraderReducer from "./activate_trader_reducer";
+import BackfillPlayerAchievementsReducer from "./backfill_player_achievements_reducer";
 import BeginLinkChallengeReducer from "./begin_link_challenge_reducer";
 import ChangeLoadoutReducer from "./change_loadout_reducer";
 import ChangeLoadoutFromDiscordReducer from "./change_loadout_from_discord_reducer";
 import CommitInventoryActionReducer from "./commit_inventory_action_reducer";
+import CommitRodUpgradeReducer from "./commit_rod_upgrade_reducer";
+import CommitSaleFromDiscordReducer from "./commit_sale_from_discord_reducer";
 import CommitShopFromDiscordReducer from "./commit_shop_from_discord_reducer";
 import CommitShopPurchaseReducer from "./commit_shop_purchase_reducer";
+import CommitUpgradeFromDiscordReducer from "./commit_upgrade_from_discord_reducer";
 import CompleteAccountLinkReducer from "./complete_account_link_reducer";
 import ConfigureServiceReducer from "./configure_service_reducer";
 import DailyFromDiscordReducer from "./daily_from_discord_reducer";
+import EquipBaitReducer from "./equip_bait_reducer";
+import EquipBaitFromDiscordReducer from "./equip_bait_from_discord_reducer";
+import EquipTitleReducer from "./equip_title_reducer";
 import FishFromDiscordReducer from "./fish_from_discord_reducer";
 import MigrateUnlimitedInventoryReducer from "./migrate_unlimited_inventory_reducer";
 import PrepareInventoryActionReducer from "./prepare_inventory_action_reducer";
+import PrepareRodUpgradeReducer from "./prepare_rod_upgrade_reducer";
+import PrepareSaleFromDiscordReducer from "./prepare_sale_from_discord_reducer";
 import PrepareShopFromDiscordReducer from "./prepare_shop_from_discord_reducer";
 import PrepareShopPurchaseReducer from "./prepare_shop_purchase_reducer";
+import PrepareUpgradeFromDiscordReducer from "./prepare_upgrade_from_discord_reducer";
 import RebuildPlayerRecordsReducer from "./rebuild_player_records_reducer";
 import SelectDiscordPlayerReducer from "./select_discord_player_reducer";
 import UnlinkBrowserReducer from "./unlink_browser_reducer";
@@ -56,19 +69,34 @@ import UnlinkBrowserReducer from "./unlink_browser_reducer";
 // Import all procedure arg schemas
 
 // Import all table schema definitions
+import AchievementDefinitionRow from "./achievement_definition_table";
+import AdapterAchievementProgressRow from "./adapter_achievement_progress_table";
+import AdapterBaitLoadoutRow from "./adapter_bait_loadout_table";
+import AdapterBaitsRow from "./adapter_baits_table";
+import AdapterCastEquipmentRow from "./adapter_cast_equipment_table";
+import AdapterCastPullsRow from "./adapter_cast_pulls_table";
 import AdapterCollectionRow from "./adapter_collection_table";
 import AdapterDailyReceiptRow from "./adapter_daily_receipt_table";
 import AdapterInventoryRow from "./adapter_inventory_table";
+import AdapterItemsRow from "./adapter_items_table";
 import AdapterLicencesRow from "./adapter_licences_table";
 import AdapterPlayerRow from "./adapter_player_table";
 import AdapterReceiptRow from "./adapter_receipt_table";
 import AdapterRodsRow from "./adapter_rods_table";
+import AdapterSaleQuoteRow from "./adapter_sale_quote_table";
 import AdapterShopQuoteRow from "./adapter_shop_quote_table";
+import AdapterUpgradeQuoteRow from "./adapter_upgrade_quote_table";
 import AnglerStandingRow from "./angler_standing_table";
+import AnglerTitleRow from "./angler_title_table";
+import BaitDefinitionRow from "./bait_definition_table";
 import BiomeDefinitionRow from "./biome_definition_table";
+import EarnedAchievementRow from "./earned_achievement_table";
 import GameConfigRow from "./game_config_table";
 import LegendaryFindRow from "./legendary_find_table";
+import MyAchievementProgressRow from "./my_achievement_progress_table";
 import MyActionRow from "./my_action_table";
+import MyBaitLoadoutRow from "./my_bait_loadout_table";
+import MyBaitsRow from "./my_baits_table";
 import MyCollectionRow from "./my_collection_table";
 import MyInventoryRow from "./my_inventory_table";
 import MyItemsRow from "./my_items_table";
@@ -81,8 +109,11 @@ import MyRecentCatchesRow from "./my_recent_catches_table";
 import MyRodsRow from "./my_rods_table";
 import MyServiceRow from "./my_service_table";
 import MyShopQuoteRow from "./my_shop_quote_table";
+import MyUpgradeQuoteRow from "./my_upgrade_quote_table";
 import PublicProfileRow from "./public_profile_table";
+import QualityDefinitionRow from "./quality_definition_table";
 import RarityDefinitionRow from "./rarity_definition_table";
+import RodBonusesRow from "./rod_bonuses_table";
 import RodDefinitionRow from "./rod_definition_table";
 import ShopListingRow from "./shop_listing_table";
 import SpeciesDefinitionRow from "./species_definition_table";
@@ -93,6 +124,17 @@ import SpeciesRecordRow from "./species_record_table";
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  achievementDefinition: __table({
+    name: 'achievement_definition',
+    indexes: [
+      { accessor: 'achievement_id', name: 'achievement_definition_achievement_id_idx_btree', algorithm: 'btree', columns: [
+        'achievementId',
+      ] },
+    ],
+    constraints: [
+      { name: 'achievement_definition_achievement_id_key', constraint: 'unique', columns: ['achievementId'] },
+    ],
+  }, AchievementDefinitionRow),
   anglerStanding: __table({
     name: 'angler_standing',
     indexes: [
@@ -104,6 +146,28 @@ const tablesSchema = __schema({
       { name: 'angler_standing_player_id_key', constraint: 'unique', columns: ['playerId'] },
     ],
   }, AnglerStandingRow),
+  anglerTitle: __table({
+    name: 'angler_title',
+    indexes: [
+      { accessor: 'player_id', name: 'angler_title_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'angler_title_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, AnglerTitleRow),
+  baitDefinition: __table({
+    name: 'bait_definition',
+    indexes: [
+      { accessor: 'bait_id', name: 'bait_definition_bait_id_idx_btree', algorithm: 'btree', columns: [
+        'baitId',
+      ] },
+    ],
+    constraints: [
+      { name: 'bait_definition_bait_id_key', constraint: 'unique', columns: ['baitId'] },
+    ],
+  }, BaitDefinitionRow),
   biomeDefinition: __table({
     name: 'biome_definition',
     indexes: [
@@ -115,6 +179,20 @@ const tablesSchema = __schema({
       { name: 'biome_definition_biome_id_key', constraint: 'unique', columns: ['biomeId'] },
     ],
   }, BiomeDefinitionRow),
+  earnedAchievement: __table({
+    name: 'earned_achievement',
+    indexes: [
+      { accessor: 'key', name: 'earned_achievement_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+      { accessor: 'player_id', name: 'earned_achievement_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'earned_achievement_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, EarnedAchievementRow),
   gameConfig: __table({
     name: 'game_config',
     indexes: [
@@ -148,6 +226,17 @@ const tablesSchema = __schema({
       { name: 'public_profile_player_id_key', constraint: 'unique', columns: ['playerId'] },
     ],
   }, PublicProfileRow),
+  qualityDefinition: __table({
+    name: 'quality_definition',
+    indexes: [
+      { accessor: 'quality_level', name: 'quality_definition_quality_level_idx_btree', algorithm: 'btree', columns: [
+        'qualityLevel',
+      ] },
+    ],
+    constraints: [
+      { name: 'quality_definition_quality_level_key', constraint: 'unique', columns: ['qualityLevel'] },
+    ],
+  }, QualityDefinitionRow),
   rarityDefinition: __table({
     name: 'rarity_definition',
     indexes: [
@@ -159,6 +248,17 @@ const tablesSchema = __schema({
       { name: 'rarity_definition_ordinal_key', constraint: 'unique', columns: ['ordinal'] },
     ],
   }, RarityDefinitionRow),
+  rodBonuses: __table({
+    name: 'rod_bonuses',
+    indexes: [
+      { accessor: 'rod_id', name: 'rod_bonuses_rod_id_idx_btree', algorithm: 'btree', columns: [
+        'rodId',
+      ] },
+    ],
+    constraints: [
+      { name: 'rod_bonuses_rod_id_key', constraint: 'unique', columns: ['rodId'] },
+    ],
+  }, RodBonusesRow),
   rodDefinition: __table({
     name: 'rod_definition',
     indexes: [
@@ -220,6 +320,41 @@ const tablesSchema = __schema({
       { name: 'species_record_key_key', constraint: 'unique', columns: ['key'] },
     ],
   }, SpeciesRecordRow),
+  adapterAchievementProgress: __table({
+    name: 'adapter_achievement_progress',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterAchievementProgressRow),
+  adapterBaitLoadout: __table({
+    name: 'adapter_bait_loadout',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterBaitLoadoutRow),
+  adapterBaits: __table({
+    name: 'adapter_baits',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterBaitsRow),
+  adapterCastEquipment: __table({
+    name: 'adapter_cast_equipment',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterCastEquipmentRow),
+  adapterCastPulls: __table({
+    name: 'adapter_cast_pulls',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterCastPullsRow),
   adapterCollection: __table({
     name: 'adapter_collection',
     indexes: [
@@ -241,6 +376,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterInventoryRow),
+  adapterItems: __table({
+    name: 'adapter_items',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterItemsRow),
   adapterLicences: __table({
     name: 'adapter_licences',
     indexes: [
@@ -269,6 +411,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterRodsRow),
+  adapterSaleQuote: __table({
+    name: 'adapter_sale_quote',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterSaleQuoteRow),
   adapterShopQuote: __table({
     name: 'adapter_shop_quote',
     indexes: [
@@ -276,6 +425,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterShopQuoteRow),
+  adapterUpgradeQuote: __table({
+    name: 'adapter_upgrade_quote',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterUpgradeQuoteRow),
+  myAchievementProgress: __table({
+    name: 'my_achievement_progress',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyAchievementProgressRow),
   myAction: __table({
     name: 'my_action',
     indexes: [
@@ -283,6 +446,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyActionRow),
+  myBaitLoadout: __table({
+    name: 'my_bait_loadout',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyBaitLoadoutRow),
+  myBaits: __table({
+    name: 'my_baits',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyBaitsRow),
   myCollection: __table({
     name: 'my_collection',
     indexes: [
@@ -367,25 +544,45 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyShopQuoteRow),
+  myUpgradeQuote: __table({
+    name: 'my_upgrade_quote',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyUpgradeQuoteRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("activate_achievements", ActivateAchievementsReducer),
+  __reducerSchema("activate_crafting", ActivateCraftingReducer),
+  __reducerSchema("activate_rod_bonuses", ActivateRodBonusesReducer),
   __reducerSchema("activate_trader", ActivateTraderReducer),
+  __reducerSchema("backfill_player_achievements", BackfillPlayerAchievementsReducer),
   __reducerSchema("begin_link_challenge", BeginLinkChallengeReducer),
   __reducerSchema("change_loadout", ChangeLoadoutReducer),
   __reducerSchema("change_loadout_from_discord", ChangeLoadoutFromDiscordReducer),
   __reducerSchema("commit_inventory_action", CommitInventoryActionReducer),
+  __reducerSchema("commit_rod_upgrade", CommitRodUpgradeReducer),
+  __reducerSchema("commit_sale_from_discord", CommitSaleFromDiscordReducer),
   __reducerSchema("commit_shop_from_discord", CommitShopFromDiscordReducer),
   __reducerSchema("commit_shop_purchase", CommitShopPurchaseReducer),
+  __reducerSchema("commit_upgrade_from_discord", CommitUpgradeFromDiscordReducer),
   __reducerSchema("complete_account_link", CompleteAccountLinkReducer),
   __reducerSchema("configure_service", ConfigureServiceReducer),
   __reducerSchema("daily_from_discord", DailyFromDiscordReducer),
+  __reducerSchema("equip_bait", EquipBaitReducer),
+  __reducerSchema("equip_bait_from_discord", EquipBaitFromDiscordReducer),
+  __reducerSchema("equip_title", EquipTitleReducer),
   __reducerSchema("fish_from_discord", FishFromDiscordReducer),
   __reducerSchema("migrate_unlimited_inventory", MigrateUnlimitedInventoryReducer),
   __reducerSchema("prepare_inventory_action", PrepareInventoryActionReducer),
+  __reducerSchema("prepare_rod_upgrade", PrepareRodUpgradeReducer),
+  __reducerSchema("prepare_sale_from_discord", PrepareSaleFromDiscordReducer),
   __reducerSchema("prepare_shop_from_discord", PrepareShopFromDiscordReducer),
   __reducerSchema("prepare_shop_purchase", PrepareShopPurchaseReducer),
+  __reducerSchema("prepare_upgrade_from_discord", PrepareUpgradeFromDiscordReducer),
   __reducerSchema("rebuild_player_records", RebuildPlayerRecordsReducer),
   __reducerSchema("select_discord_player", SelectDiscordPlayerReducer),
   __reducerSchema("unlink_browser", UnlinkBrowserReducer),
@@ -397,18 +594,30 @@ const proceduresSchema = __procedures(
 
 type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "tables"> & {
   tables: typeof tablesSchema.schemaType.tables & {
+    /** @deprecated Use `achievementDefinition` instead. This alias will be removed in the next major version. */
+    readonly "achievement_definition": Omit<typeof tablesSchema.schemaType.tables["achievementDefinition"], "accessorName"> & { readonly accessorName: "achievement_definition" };
     /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
     readonly "angler_standing": Omit<typeof tablesSchema.schemaType.tables["anglerStanding"], "accessorName"> & { readonly accessorName: "angler_standing" };
+    /** @deprecated Use `anglerTitle` instead. This alias will be removed in the next major version. */
+    readonly "angler_title": Omit<typeof tablesSchema.schemaType.tables["anglerTitle"], "accessorName"> & { readonly accessorName: "angler_title" };
+    /** @deprecated Use `baitDefinition` instead. This alias will be removed in the next major version. */
+    readonly "bait_definition": Omit<typeof tablesSchema.schemaType.tables["baitDefinition"], "accessorName"> & { readonly accessorName: "bait_definition" };
     /** @deprecated Use `biomeDefinition` instead. This alias will be removed in the next major version. */
     readonly "biome_definition": Omit<typeof tablesSchema.schemaType.tables["biomeDefinition"], "accessorName"> & { readonly accessorName: "biome_definition" };
+    /** @deprecated Use `earnedAchievement` instead. This alias will be removed in the next major version. */
+    readonly "earned_achievement": Omit<typeof tablesSchema.schemaType.tables["earnedAchievement"], "accessorName"> & { readonly accessorName: "earned_achievement" };
     /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
     readonly "game_config": Omit<typeof tablesSchema.schemaType.tables["gameConfig"], "accessorName"> & { readonly accessorName: "game_config" };
     /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
     readonly "legendary_find": Omit<typeof tablesSchema.schemaType.tables["legendaryFind"], "accessorName"> & { readonly accessorName: "legendary_find" };
     /** @deprecated Use `publicProfile` instead. This alias will be removed in the next major version. */
     readonly "public_profile": Omit<typeof tablesSchema.schemaType.tables["publicProfile"], "accessorName"> & { readonly accessorName: "public_profile" };
+    /** @deprecated Use `qualityDefinition` instead. This alias will be removed in the next major version. */
+    readonly "quality_definition": Omit<typeof tablesSchema.schemaType.tables["qualityDefinition"], "accessorName"> & { readonly accessorName: "quality_definition" };
     /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
     readonly "rarity_definition": Omit<typeof tablesSchema.schemaType.tables["rarityDefinition"], "accessorName"> & { readonly accessorName: "rarity_definition" };
+    /** @deprecated Use `rodBonuses` instead. This alias will be removed in the next major version. */
+    readonly "rod_bonuses": Omit<typeof tablesSchema.schemaType.tables["rodBonuses"], "accessorName"> & { readonly accessorName: "rod_bonuses" };
     /** @deprecated Use `rodDefinition` instead. This alias will be removed in the next major version. */
     readonly "rod_definition": Omit<typeof tablesSchema.schemaType.tables["rodDefinition"], "accessorName"> & { readonly accessorName: "rod_definition" };
     /** @deprecated Use `shopListing` instead. This alias will be removed in the next major version. */
@@ -419,12 +628,24 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "species_rank_definition": Omit<typeof tablesSchema.schemaType.tables["speciesRankDefinition"], "accessorName"> & { readonly accessorName: "species_rank_definition" };
     /** @deprecated Use `speciesRecord` instead. This alias will be removed in the next major version. */
     readonly "species_record": Omit<typeof tablesSchema.schemaType.tables["speciesRecord"], "accessorName"> & { readonly accessorName: "species_record" };
+    /** @deprecated Use `adapterAchievementProgress` instead. This alias will be removed in the next major version. */
+    readonly "adapter_achievement_progress": Omit<typeof tablesSchema.schemaType.tables["adapterAchievementProgress"], "accessorName"> & { readonly accessorName: "adapter_achievement_progress" };
+    /** @deprecated Use `adapterBaitLoadout` instead. This alias will be removed in the next major version. */
+    readonly "adapter_bait_loadout": Omit<typeof tablesSchema.schemaType.tables["adapterBaitLoadout"], "accessorName"> & { readonly accessorName: "adapter_bait_loadout" };
+    /** @deprecated Use `adapterBaits` instead. This alias will be removed in the next major version. */
+    readonly "adapter_baits": Omit<typeof tablesSchema.schemaType.tables["adapterBaits"], "accessorName"> & { readonly accessorName: "adapter_baits" };
+    /** @deprecated Use `adapterCastEquipment` instead. This alias will be removed in the next major version. */
+    readonly "adapter_cast_equipment": Omit<typeof tablesSchema.schemaType.tables["adapterCastEquipment"], "accessorName"> & { readonly accessorName: "adapter_cast_equipment" };
+    /** @deprecated Use `adapterCastPulls` instead. This alias will be removed in the next major version. */
+    readonly "adapter_cast_pulls": Omit<typeof tablesSchema.schemaType.tables["adapterCastPulls"], "accessorName"> & { readonly accessorName: "adapter_cast_pulls" };
     /** @deprecated Use `adapterCollection` instead. This alias will be removed in the next major version. */
     readonly "adapter_collection": Omit<typeof tablesSchema.schemaType.tables["adapterCollection"], "accessorName"> & { readonly accessorName: "adapter_collection" };
     /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
     readonly "adapter_daily_receipt": Omit<typeof tablesSchema.schemaType.tables["adapterDailyReceipt"], "accessorName"> & { readonly accessorName: "adapter_daily_receipt" };
     /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
     readonly "adapter_inventory": Omit<typeof tablesSchema.schemaType.tables["adapterInventory"], "accessorName"> & { readonly accessorName: "adapter_inventory" };
+    /** @deprecated Use `adapterItems` instead. This alias will be removed in the next major version. */
+    readonly "adapter_items": Omit<typeof tablesSchema.schemaType.tables["adapterItems"], "accessorName"> & { readonly accessorName: "adapter_items" };
     /** @deprecated Use `adapterLicences` instead. This alias will be removed in the next major version. */
     readonly "adapter_licences": Omit<typeof tablesSchema.schemaType.tables["adapterLicences"], "accessorName"> & { readonly accessorName: "adapter_licences" };
     /** @deprecated Use `adapterPlayer` instead. This alias will be removed in the next major version. */
@@ -433,10 +654,20 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "adapter_receipt": Omit<typeof tablesSchema.schemaType.tables["adapterReceipt"], "accessorName"> & { readonly accessorName: "adapter_receipt" };
     /** @deprecated Use `adapterRods` instead. This alias will be removed in the next major version. */
     readonly "adapter_rods": Omit<typeof tablesSchema.schemaType.tables["adapterRods"], "accessorName"> & { readonly accessorName: "adapter_rods" };
+    /** @deprecated Use `adapterSaleQuote` instead. This alias will be removed in the next major version. */
+    readonly "adapter_sale_quote": Omit<typeof tablesSchema.schemaType.tables["adapterSaleQuote"], "accessorName"> & { readonly accessorName: "adapter_sale_quote" };
     /** @deprecated Use `adapterShopQuote` instead. This alias will be removed in the next major version. */
     readonly "adapter_shop_quote": Omit<typeof tablesSchema.schemaType.tables["adapterShopQuote"], "accessorName"> & { readonly accessorName: "adapter_shop_quote" };
+    /** @deprecated Use `adapterUpgradeQuote` instead. This alias will be removed in the next major version. */
+    readonly "adapter_upgrade_quote": Omit<typeof tablesSchema.schemaType.tables["adapterUpgradeQuote"], "accessorName"> & { readonly accessorName: "adapter_upgrade_quote" };
+    /** @deprecated Use `myAchievementProgress` instead. This alias will be removed in the next major version. */
+    readonly "my_achievement_progress": Omit<typeof tablesSchema.schemaType.tables["myAchievementProgress"], "accessorName"> & { readonly accessorName: "my_achievement_progress" };
     /** @deprecated Use `myAction` instead. This alias will be removed in the next major version. */
     readonly "my_action": Omit<typeof tablesSchema.schemaType.tables["myAction"], "accessorName"> & { readonly accessorName: "my_action" };
+    /** @deprecated Use `myBaitLoadout` instead. This alias will be removed in the next major version. */
+    readonly "my_bait_loadout": Omit<typeof tablesSchema.schemaType.tables["myBaitLoadout"], "accessorName"> & { readonly accessorName: "my_bait_loadout" };
+    /** @deprecated Use `myBaits` instead. This alias will be removed in the next major version. */
+    readonly "my_baits": Omit<typeof tablesSchema.schemaType.tables["myBaits"], "accessorName"> & { readonly accessorName: "my_baits" };
     /** @deprecated Use `myCollection` instead. This alias will be removed in the next major version. */
     readonly "my_collection": Omit<typeof tablesSchema.schemaType.tables["myCollection"], "accessorName"> & { readonly accessorName: "my_collection" };
     /** @deprecated Use `myInventory` instead. This alias will be removed in the next major version. */
@@ -461,6 +692,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_service": Omit<typeof tablesSchema.schemaType.tables["myService"], "accessorName"> & { readonly accessorName: "my_service" };
     /** @deprecated Use `myShopQuote` instead. This alias will be removed in the next major version. */
     readonly "my_shop_quote": Omit<typeof tablesSchema.schemaType.tables["myShopQuote"], "accessorName"> & { readonly accessorName: "my_shop_quote" };
+    /** @deprecated Use `myUpgradeQuote` instead. This alias will be removed in the next major version. */
+    readonly "my_upgrade_quote": Omit<typeof tablesSchema.schemaType.tables["myUpgradeQuote"], "accessorName"> & { readonly accessorName: "my_upgrade_quote" };
   };
 };
 
@@ -479,26 +712,43 @@ const REMOTE_MODULE = {
 >;
 
 const tableAccessorAliases = {
+  "achievement_definition": "achievementDefinition",
   "angler_standing": "anglerStanding",
+  "angler_title": "anglerTitle",
+  "bait_definition": "baitDefinition",
   "biome_definition": "biomeDefinition",
+  "earned_achievement": "earnedAchievement",
   "game_config": "gameConfig",
   "legendary_find": "legendaryFind",
   "public_profile": "publicProfile",
+  "quality_definition": "qualityDefinition",
   "rarity_definition": "rarityDefinition",
+  "rod_bonuses": "rodBonuses",
   "rod_definition": "rodDefinition",
   "shop_listing": "shopListing",
   "species_definition": "speciesDefinition",
   "species_rank_definition": "speciesRankDefinition",
   "species_record": "speciesRecord",
+  "adapter_achievement_progress": "adapterAchievementProgress",
+  "adapter_bait_loadout": "adapterBaitLoadout",
+  "adapter_baits": "adapterBaits",
+  "adapter_cast_equipment": "adapterCastEquipment",
+  "adapter_cast_pulls": "adapterCastPulls",
   "adapter_collection": "adapterCollection",
   "adapter_daily_receipt": "adapterDailyReceipt",
   "adapter_inventory": "adapterInventory",
+  "adapter_items": "adapterItems",
   "adapter_licences": "adapterLicences",
   "adapter_player": "adapterPlayer",
   "adapter_receipt": "adapterReceipt",
   "adapter_rods": "adapterRods",
+  "adapter_sale_quote": "adapterSaleQuote",
   "adapter_shop_quote": "adapterShopQuote",
+  "adapter_upgrade_quote": "adapterUpgradeQuote",
+  "my_achievement_progress": "myAchievementProgress",
   "my_action": "myAction",
+  "my_bait_loadout": "myBaitLoadout",
+  "my_baits": "myBaits",
   "my_collection": "myCollection",
   "my_inventory": "myInventory",
   "my_items": "myItems",
@@ -511,6 +761,7 @@ const tableAccessorAliases = {
   "my_rods": "myRods",
   "my_service": "myService",
   "my_shop_quote": "myShopQuote",
+  "my_upgrade_quote": "myUpgradeQuote",
 } as const;
 
 function __withTableAccessorAliases<T extends object>(target: T, freeze = false): T {
@@ -531,18 +782,30 @@ function __withTableAccessorAliases<T extends object>(target: T, freeze = false)
 
 type __DbViewBase = __DbConnectionImpl<typeof REMOTE_MODULE>["db"];
 export type DbView = __DbViewBase & {
+  /** @deprecated Use `achievementDefinition` instead. This alias will be removed in the next major version. */
+  readonly "achievement_definition": __DbViewBase["achievementDefinition"];
   /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
   readonly "angler_standing": __DbViewBase["anglerStanding"];
+  /** @deprecated Use `anglerTitle` instead. This alias will be removed in the next major version. */
+  readonly "angler_title": __DbViewBase["anglerTitle"];
+  /** @deprecated Use `baitDefinition` instead. This alias will be removed in the next major version. */
+  readonly "bait_definition": __DbViewBase["baitDefinition"];
   /** @deprecated Use `biomeDefinition` instead. This alias will be removed in the next major version. */
   readonly "biome_definition": __DbViewBase["biomeDefinition"];
+  /** @deprecated Use `earnedAchievement` instead. This alias will be removed in the next major version. */
+  readonly "earned_achievement": __DbViewBase["earnedAchievement"];
   /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
   readonly "game_config": __DbViewBase["gameConfig"];
   /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
   readonly "legendary_find": __DbViewBase["legendaryFind"];
   /** @deprecated Use `publicProfile` instead. This alias will be removed in the next major version. */
   readonly "public_profile": __DbViewBase["publicProfile"];
+  /** @deprecated Use `qualityDefinition` instead. This alias will be removed in the next major version. */
+  readonly "quality_definition": __DbViewBase["qualityDefinition"];
   /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
   readonly "rarity_definition": __DbViewBase["rarityDefinition"];
+  /** @deprecated Use `rodBonuses` instead. This alias will be removed in the next major version. */
+  readonly "rod_bonuses": __DbViewBase["rodBonuses"];
   /** @deprecated Use `rodDefinition` instead. This alias will be removed in the next major version. */
   readonly "rod_definition": __DbViewBase["rodDefinition"];
   /** @deprecated Use `shopListing` instead. This alias will be removed in the next major version. */
@@ -553,12 +816,24 @@ export type DbView = __DbViewBase & {
   readonly "species_rank_definition": __DbViewBase["speciesRankDefinition"];
   /** @deprecated Use `speciesRecord` instead. This alias will be removed in the next major version. */
   readonly "species_record": __DbViewBase["speciesRecord"];
+  /** @deprecated Use `adapterAchievementProgress` instead. This alias will be removed in the next major version. */
+  readonly "adapter_achievement_progress": __DbViewBase["adapterAchievementProgress"];
+  /** @deprecated Use `adapterBaitLoadout` instead. This alias will be removed in the next major version. */
+  readonly "adapter_bait_loadout": __DbViewBase["adapterBaitLoadout"];
+  /** @deprecated Use `adapterBaits` instead. This alias will be removed in the next major version. */
+  readonly "adapter_baits": __DbViewBase["adapterBaits"];
+  /** @deprecated Use `adapterCastEquipment` instead. This alias will be removed in the next major version. */
+  readonly "adapter_cast_equipment": __DbViewBase["adapterCastEquipment"];
+  /** @deprecated Use `adapterCastPulls` instead. This alias will be removed in the next major version. */
+  readonly "adapter_cast_pulls": __DbViewBase["adapterCastPulls"];
   /** @deprecated Use `adapterCollection` instead. This alias will be removed in the next major version. */
   readonly "adapter_collection": __DbViewBase["adapterCollection"];
   /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_daily_receipt": __DbViewBase["adapterDailyReceipt"];
   /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
   readonly "adapter_inventory": __DbViewBase["adapterInventory"];
+  /** @deprecated Use `adapterItems` instead. This alias will be removed in the next major version. */
+  readonly "adapter_items": __DbViewBase["adapterItems"];
   /** @deprecated Use `adapterLicences` instead. This alias will be removed in the next major version. */
   readonly "adapter_licences": __DbViewBase["adapterLicences"];
   /** @deprecated Use `adapterPlayer` instead. This alias will be removed in the next major version. */
@@ -567,10 +842,20 @@ export type DbView = __DbViewBase & {
   readonly "adapter_receipt": __DbViewBase["adapterReceipt"];
   /** @deprecated Use `adapterRods` instead. This alias will be removed in the next major version. */
   readonly "adapter_rods": __DbViewBase["adapterRods"];
+  /** @deprecated Use `adapterSaleQuote` instead. This alias will be removed in the next major version. */
+  readonly "adapter_sale_quote": __DbViewBase["adapterSaleQuote"];
   /** @deprecated Use `adapterShopQuote` instead. This alias will be removed in the next major version. */
   readonly "adapter_shop_quote": __DbViewBase["adapterShopQuote"];
+  /** @deprecated Use `adapterUpgradeQuote` instead. This alias will be removed in the next major version. */
+  readonly "adapter_upgrade_quote": __DbViewBase["adapterUpgradeQuote"];
+  /** @deprecated Use `myAchievementProgress` instead. This alias will be removed in the next major version. */
+  readonly "my_achievement_progress": __DbViewBase["myAchievementProgress"];
   /** @deprecated Use `myAction` instead. This alias will be removed in the next major version. */
   readonly "my_action": __DbViewBase["myAction"];
+  /** @deprecated Use `myBaitLoadout` instead. This alias will be removed in the next major version. */
+  readonly "my_bait_loadout": __DbViewBase["myBaitLoadout"];
+  /** @deprecated Use `myBaits` instead. This alias will be removed in the next major version. */
+  readonly "my_baits": __DbViewBase["myBaits"];
   /** @deprecated Use `myCollection` instead. This alias will be removed in the next major version. */
   readonly "my_collection": __DbViewBase["myCollection"];
   /** @deprecated Use `myInventory` instead. This alias will be removed in the next major version. */
@@ -595,22 +880,36 @@ export type DbView = __DbViewBase & {
   readonly "my_service": __DbViewBase["myService"];
   /** @deprecated Use `myShopQuote` instead. This alias will be removed in the next major version. */
   readonly "my_shop_quote": __DbViewBase["myShopQuote"];
+  /** @deprecated Use `myUpgradeQuote` instead. This alias will be removed in the next major version. */
+  readonly "my_upgrade_quote": __DbViewBase["myUpgradeQuote"];
 };
 
 type __TablesBase = __QueryBuilder<typeof tablesSchema.schemaType>;
 export type Tables = __TablesBase & {
+  /** @deprecated Use `achievementDefinition` instead. This alias will be removed in the next major version. */
+  readonly "achievement_definition": __TablesBase["achievementDefinition"];
   /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
   readonly "angler_standing": __TablesBase["anglerStanding"];
+  /** @deprecated Use `anglerTitle` instead. This alias will be removed in the next major version. */
+  readonly "angler_title": __TablesBase["anglerTitle"];
+  /** @deprecated Use `baitDefinition` instead. This alias will be removed in the next major version. */
+  readonly "bait_definition": __TablesBase["baitDefinition"];
   /** @deprecated Use `biomeDefinition` instead. This alias will be removed in the next major version. */
   readonly "biome_definition": __TablesBase["biomeDefinition"];
+  /** @deprecated Use `earnedAchievement` instead. This alias will be removed in the next major version. */
+  readonly "earned_achievement": __TablesBase["earnedAchievement"];
   /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
   readonly "game_config": __TablesBase["gameConfig"];
   /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
   readonly "legendary_find": __TablesBase["legendaryFind"];
   /** @deprecated Use `publicProfile` instead. This alias will be removed in the next major version. */
   readonly "public_profile": __TablesBase["publicProfile"];
+  /** @deprecated Use `qualityDefinition` instead. This alias will be removed in the next major version. */
+  readonly "quality_definition": __TablesBase["qualityDefinition"];
   /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
   readonly "rarity_definition": __TablesBase["rarityDefinition"];
+  /** @deprecated Use `rodBonuses` instead. This alias will be removed in the next major version. */
+  readonly "rod_bonuses": __TablesBase["rodBonuses"];
   /** @deprecated Use `rodDefinition` instead. This alias will be removed in the next major version. */
   readonly "rod_definition": __TablesBase["rodDefinition"];
   /** @deprecated Use `shopListing` instead. This alias will be removed in the next major version. */
@@ -621,12 +920,24 @@ export type Tables = __TablesBase & {
   readonly "species_rank_definition": __TablesBase["speciesRankDefinition"];
   /** @deprecated Use `speciesRecord` instead. This alias will be removed in the next major version. */
   readonly "species_record": __TablesBase["speciesRecord"];
+  /** @deprecated Use `adapterAchievementProgress` instead. This alias will be removed in the next major version. */
+  readonly "adapter_achievement_progress": __TablesBase["adapterAchievementProgress"];
+  /** @deprecated Use `adapterBaitLoadout` instead. This alias will be removed in the next major version. */
+  readonly "adapter_bait_loadout": __TablesBase["adapterBaitLoadout"];
+  /** @deprecated Use `adapterBaits` instead. This alias will be removed in the next major version. */
+  readonly "adapter_baits": __TablesBase["adapterBaits"];
+  /** @deprecated Use `adapterCastEquipment` instead. This alias will be removed in the next major version. */
+  readonly "adapter_cast_equipment": __TablesBase["adapterCastEquipment"];
+  /** @deprecated Use `adapterCastPulls` instead. This alias will be removed in the next major version. */
+  readonly "adapter_cast_pulls": __TablesBase["adapterCastPulls"];
   /** @deprecated Use `adapterCollection` instead. This alias will be removed in the next major version. */
   readonly "adapter_collection": __TablesBase["adapterCollection"];
   /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_daily_receipt": __TablesBase["adapterDailyReceipt"];
   /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
   readonly "adapter_inventory": __TablesBase["adapterInventory"];
+  /** @deprecated Use `adapterItems` instead. This alias will be removed in the next major version. */
+  readonly "adapter_items": __TablesBase["adapterItems"];
   /** @deprecated Use `adapterLicences` instead. This alias will be removed in the next major version. */
   readonly "adapter_licences": __TablesBase["adapterLicences"];
   /** @deprecated Use `adapterPlayer` instead. This alias will be removed in the next major version. */
@@ -635,10 +946,20 @@ export type Tables = __TablesBase & {
   readonly "adapter_receipt": __TablesBase["adapterReceipt"];
   /** @deprecated Use `adapterRods` instead. This alias will be removed in the next major version. */
   readonly "adapter_rods": __TablesBase["adapterRods"];
+  /** @deprecated Use `adapterSaleQuote` instead. This alias will be removed in the next major version. */
+  readonly "adapter_sale_quote": __TablesBase["adapterSaleQuote"];
   /** @deprecated Use `adapterShopQuote` instead. This alias will be removed in the next major version. */
   readonly "adapter_shop_quote": __TablesBase["adapterShopQuote"];
+  /** @deprecated Use `adapterUpgradeQuote` instead. This alias will be removed in the next major version. */
+  readonly "adapter_upgrade_quote": __TablesBase["adapterUpgradeQuote"];
+  /** @deprecated Use `myAchievementProgress` instead. This alias will be removed in the next major version. */
+  readonly "my_achievement_progress": __TablesBase["myAchievementProgress"];
   /** @deprecated Use `myAction` instead. This alias will be removed in the next major version. */
   readonly "my_action": __TablesBase["myAction"];
+  /** @deprecated Use `myBaitLoadout` instead. This alias will be removed in the next major version. */
+  readonly "my_bait_loadout": __TablesBase["myBaitLoadout"];
+  /** @deprecated Use `myBaits` instead. This alias will be removed in the next major version. */
+  readonly "my_baits": __TablesBase["myBaits"];
   /** @deprecated Use `myCollection` instead. This alias will be removed in the next major version. */
   readonly "my_collection": __TablesBase["myCollection"];
   /** @deprecated Use `myInventory` instead. This alias will be removed in the next major version. */
@@ -663,6 +984,8 @@ export type Tables = __TablesBase & {
   readonly "my_service": __TablesBase["myService"];
   /** @deprecated Use `myShopQuote` instead. This alias will be removed in the next major version. */
   readonly "my_shop_quote": __TablesBase["myShopQuote"];
+  /** @deprecated Use `myUpgradeQuote` instead. This alias will be removed in the next major version. */
+  readonly "my_upgrade_quote": __TablesBase["myUpgradeQuote"];
 };
 
 /** The tables available in this remote SpacetimeDB module. Each table reference doubles as a query builder. */

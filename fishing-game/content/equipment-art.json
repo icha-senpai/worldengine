@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "licences": [
+    {
+      "biomeId": 2,
+      "key": "whispering-river",
+      "name": "Whispering River Licence",
+      "spriteAsset": "/licences/whispering-river.png"
+    },
+    {
+      "biomeId": 3,
+      "key": "hollow-marsh",
+      "name": "Hollow Marsh Licence",
+      "spriteAsset": "/licences/hollow-marsh.png"
+    },
+    {
+      "biomeId": 4,
+      "key": "moonlit-lake",
+      "name": "Moonlit Lake Licence",
+      "spriteAsset": "/licences/moonlit-lake.png"
+    },
+    {
+      "biomeId": 5,
+      "key": "sunken-coast",
+      "name": "Sunken Coast Licence",
+      "spriteAsset": "/licences/sunken-coast.png"
+    },
+    {
+      "biomeId": 6,
+      "key": "glacial-reach",
+      "name": "Glacial Reach Licence",
+      "spriteAsset": "/licences/glacial-reach.png"
+    },
+    {
+      "biomeId": 7,
+      "key": "abyssal-shelf",
+      "name": "Abyssal Shelf Licence",
+      "spriteAsset": "/licences/abyssal-shelf.png"
+    }
+  ],
+  "baits": [
+    {
+      "key": "sticky-chum",
+      "name": "Sticky Chum",
+      "spriteAsset": "/baits/sticky-chum.png"
+    },
+    {
+      "key": "salvage-chum",
+      "name": "Salvage Chum",
+      "spriteAsset": "/baits/salvage-chum.png"
+    },
+    {
+      "key": "plump-worms",
+      "name": "Plump Worms",
+      "spriteAsset": "/baits/plump-worms.png"
+    },
+    {
+      "key": "river-grubs",
+      "name": "River Grubs",
+      "spriteAsset": "/baits/river-grubs.png"
+    },
+    {
+      "key": "moonlit-fireflies",
+      "name": "Moonlit Fireflies",
+      "spriteAsset": "/baits/moonlit-fireflies.png"
+    }
+  ]
+}

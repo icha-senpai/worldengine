@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "listings": [
     {
       "listingId": 20,
@@ -120,6 +120,56 @@
       "minimumLevel": 55,
       "previousBiomeId": 6,
       "biomeId": 7
+    },
+    {
+      "listingId": 101,
+      "kind": "bait",
+      "targetId": 1,
+      "name": "Sticky Chum",
+      "priceCoins": 20,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 102,
+      "kind": "bait",
+      "targetId": 2,
+      "name": "Salvage Chum",
+      "priceCoins": 50,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 103,
+      "kind": "bait",
+      "targetId": 3,
+      "name": "Plump Worms",
+      "priceCoins": 30,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 104,
+      "kind": "bait",
+      "targetId": 4,
+      "name": "River Grubs",
+      "priceCoins": 70,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 105,
+      "kind": "bait",
+      "targetId": 5,
+      "name": "Moonlit Fireflies",
+      "priceCoins": 120,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
     }
   ]
 }

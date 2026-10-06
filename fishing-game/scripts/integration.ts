@@ -61,8 +61,8 @@ try {
     'SELECT * FROM my_collection', 'SELECT * FROM my_recent_catches', 'SELECT * FROM my_link_challenge',
     'SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt', 'SELECT * FROM adapter_daily_receipt', 'SELECT * FROM adapter_rods', 'SELECT * FROM adapter_licences', 'SELECT * FROM adapter_shop_quote', 'SELECT * FROM shop_listing'];
   await Promise.all([subscribe(botConn, ['SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt', 'SELECT * FROM adapter_daily_receipt', 'SELECT * FROM adapter_rods', 'SELECT * FROM adapter_licences', 'SELECT * FROM adapter_shop_quote', 'SELECT * FROM shop_listing',
-    'SELECT * FROM adapter_inventory', 'SELECT * FROM adapter_collection', 'SELECT * FROM species_definition',
-    'SELECT * FROM game_config', 'SELECT * FROM biome_definition', 'SELECT * FROM rod_definition', 'SELECT * FROM species_rank_definition', 'SELECT * FROM rarity_definition',
+    'SELECT * FROM adapter_cast_pulls', 'SELECT * FROM adapter_inventory', 'SELECT * FROM adapter_collection', 'SELECT * FROM species_definition',
+    'SELECT * FROM game_config', 'SELECT * FROM biome_definition', 'SELECT * FROM rod_definition', 'SELECT * FROM rod_bonuses', 'SELECT * FROM species_rank_definition', 'SELECT * FROM rarity_definition',
     'SELECT * FROM angler_standing', 'SELECT * FROM legendary_find', 'SELECT * FROM species_record']), subscribe(alice.connection, browserQueries), subscribe(bob.connection, browserQueries),
     subscribe(replacement.connection, browserQueries)]);
   await checks('ordinary identities cannot grant services, cast, select accounts, or complete links', async () => {
@@ -103,7 +103,15 @@ try {
     assert.equal(species.length, 251);
     assert.equal(biomes.length, 7);
     assert.equal(rods.length, 7);
-    assert.equal(botConn.db.shopListing.count(), 12n);
+    assert.equal(botConn.db.rodBonuses.count(), 7n);
+    for (const rod of world.rods) {
+      const actual = [...botConn.db.rodBonuses.iter()].find(row => row.rodId === rod.rodId)!;
+      assert.equal(actual.luckBp, rod.luckBp);
+      assert.equal(actual.xpBonusBp, rod.xpBonusBp);
+      assert.equal(actual.spriteAsset, rod.spriteAsset);
+    }
+    await assert.rejects(bob.connection.reducers.activateRodBonuses({}), /NOT_AUTHORIZED/);
+    assert.equal(botConn.db.shopListing.count(), 17n);
     assert.equal([...botConn.db.gameConfig.iter()][0].levelCap, 60);
     assert.equal([...botConn.db.gameConfig.iter()][0].inventoryCapacity, 0, 'Fish storage is unlimited');
     for (const definition of catalog.species) {
@@ -159,27 +167,30 @@ try {
     assert.equal(player.coins, receipt.coinsGranted);
     assert.equal(player.nextCastAt.microsSinceUnixEpoch - receipt.caughtAt.microsSinceUnixEpoch, 60000000n);
     assert(['fish', 'junk', 'treasure'].includes(receipt.outcome));
-    if (receipt.outcome === 'fish') {
-      assert.equal(player.keptCount, 1);
-      assert.equal(botConn.db.adapterInventory.count(), 1n);
-      const species = [...botConn.db.speciesDefinition.iter()].find(species => species.speciesId === receipt.speciesId)!;
-      assert(receipt.lengthMm >= species.minLengthMm && receipt.lengthMm <= species.maxLengthMm);
-      assert(receipt.weightG >= species.minWeightG && receipt.weightG <= species.maxWeightG);
-      assert(species.allowedRarities.includes(receipt.rarity));
-      const specimen = [...botConn.db.adapterInventory.iter()][0];
-      assert.equal(specimen.rarity, receipt.rarity);
-      const expectedRank = [...botConn.db.rarityDefinition.iter()].sort((a,b) => b.ordinal - a.ordinal).find(rule => BigInt(receipt.lengthMm) * 1_000_000n >= BigInt(species.typicalLengthMm) * rule.minimumLengthMillionths && receipt.weightG * 1_000_000n >= species.typicalWeightG * rule.minimumWeightMillionths)!;
-      assert.equal(receipt.rarity, expectedRank.tier, 'Saved rarity must follow measured length AND weight');
-      const rank = [...botConn.db.speciesRankDefinition.iter()].find(row => row.speciesId === receipt.speciesId && row.rarity === receipt.rarity)!;
-      const bonus = [0n,0n,0n,1000n,2000n,2500n][receipt.sizeGrade];
-      assert.equal(receipt.xpGranted, rank.baseXp * (10_000n + bonus) / 10_000n + species.discoveryXp);
-      const progress = [...botConn.db.adapterCollection.iter()][0];
-      assert.equal(progress.rankCounts.length, 10);
-      assert.equal(progress.rankCounts[rank.ordinal], 1n);
-      assert.equal(progress.rankCounts.reduce((sum, count) => sum + count, 0n), progress.count);
-      let ratio = BigInt(receipt.lengthMm) * 1_000_000n / BigInt(species.typicalLengthMm);
-      ratio = ratio < 600_000n ? 600_000n : ratio > 2_000_000n ? 2_000_000n : ratio;
-      assert.equal(receipt.saleValueCoins, rank.baseValue * ratio / 1_000_000n);
+    const pulls=[...botConn.db.adapterCastPulls.iter()];
+    assert(pulls.length >= 1 && pulls.length <= 2);
+    assert.equal(receipt.xpGranted,pulls.reduce((sum,p)=>sum+p.receipt.xpGranted,0n));
+    assert.equal(player.keptCount,pulls.filter(p=>p.receipt.outcome==='fish').length);
+    assert.equal(botConn.db.adapterInventory.count(),BigInt(player.keptCount));
+    for (const pull of pulls) {
+      const result=pull.receipt;
+      if(result.outcome !== 'fish') continue;
+      const species=[...botConn.db.speciesDefinition.iter()].find(s=>s.speciesId===result.speciesId)!;
+      assert(result.lengthMm>=species.minLengthMm && result.lengthMm<=species.maxLengthMm);
+      assert(result.weightG>=species.minWeightG && result.weightG<=species.maxWeightG);
+      const specimen=[...botConn.db.adapterInventory.iter()].find(f=>f.catchId===result.catchId)!;
+      assert.equal(specimen.rarity,result.rarity);
+      const expected=[...botConn.db.rarityDefinition.iter()].sort((a,b)=>b.ordinal-a.ordinal).find(rule=>BigInt(result.lengthMm)*1_000_000n>=BigInt(species.typicalLengthMm)*rule.minimumLengthMillionths && result.weightG*1_000_000n>=species.typicalWeightG*rule.minimumWeightMillionths)!;
+      assert.equal(result.rarity,expected.tier);
+      const rank=[...botConn.db.speciesRankDefinition.iter()].find(r=>r.speciesId===result.speciesId && r.rarity===result.rarity)!;
+      const progress=[...botConn.db.adapterCollection.iter()].find(r=>r.speciesId===result.speciesId)!;
+      assert.equal(progress.rankCounts.length,10);
+      assert.equal(progress.rankCounts.reduce((sum,c)=>sum+c,0n),progress.count);
+      const first=pulls.find(p=>p.receipt.speciesId===result.speciesId)===pull;
+      assert.equal(pull.baseXp,rank.baseXp*[10000n,10000n,10000n,11000n,12000n,12500n][result.sizeGrade]/10000n+(first?species.discoveryXp:0n));
+      let ratio=BigInt(result.lengthMm)*1_000_000n/BigInt(species.typicalLengthMm);
+      ratio=ratio<600_000n?600_000n:ratio>2_000_000n?2_000_000n:ratio;
+      assert.equal(result.saleValueCoins,rank.baseValue*ratio/1_000_000n);
     }
   });
   await checks('replay recovers the same result and conflicts cannot change it', async () => {
@@ -320,7 +331,7 @@ try {
       await botConn.reducers.selectDiscordPlayer({ discordUserId: id, displayName: 'Inventory proof', interactionId: requestId });
       await botConn.reducers.fishFromDiscord({ discordUserId: id, interactionId: requestId, guildId: 5n, channelId: 42n });
       const inventory = [...botConn.db.adapterInventory.iter()];
-      if (inventory.length) { ownerId = id; break; }
+      if (inventory.length === 1) { ownerId = id; break; }
     }
     assert(ownerId > 0n, 'Context RNG produced no fish in sixteen attempts');
     await manager.connection.reducers.beginLinkChallenge({});

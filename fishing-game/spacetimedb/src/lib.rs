@@ -1,8 +1,11 @@
 //! Authoritative fishing module. Private state is exposed only by scoped views.
 mod accounts;
+mod achievements;
 mod casting;
 mod content;
+mod crafting;
 mod daily;
+mod gear;
 mod inventory;
 mod loadout;
 mod maintenance;
@@ -20,7 +23,10 @@ pub fn init(ctx: &ReducerContext) {
         identity: ctx.sender(),
     });
     content::seed(ctx);
+    gear::seed(ctx);
+    crafting::seed(ctx);
     shop::seed(ctx);
+    achievements::seed(ctx);
     ctx.db.maintenance_job().insert(MaintenanceJob {
         scheduled_id: 1,
         scheduled_at: spacetimedb::TimeDuration::from_micros(60_000_000).into(),

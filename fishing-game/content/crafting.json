@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "qualities": [
+    {
+      "qualityLevel": 0,
+      "name": "Common",
+      "powerBonus": 0,
+      "luckBp": 0,
+      "xpBonusBp": 0,
+      "tinCost": 0,
+      "scrapCost": 0
+    },
+    {
+      "qualityLevel": 1,
+      "name": "Uncommon",
+      "powerBonus": 5,
+      "luckBp": 200,
+      "xpBonusBp": 500,
+      "tinCost": 10,
+      "scrapCost": 5
+    },
+    {
+      "qualityLevel": 2,
+      "name": "Rare",
+      "powerBonus": 15,
+      "luckBp": 500,
+      "xpBonusBp": 1000,
+      "tinCost": 25,
+      "scrapCost": 15
+    },
+    {
+      "qualityLevel": 3,
+      "name": "Epic",
+      "powerBonus": 30,
+      "luckBp": 1000,
+      "xpBonusBp": 2000,
+      "tinCost": 60,
+      "scrapCost": 40
+    },
+    {
+      "qualityLevel": 4,
+      "name": "Legendary",
+      "powerBonus": 50,
+      "luckBp": 1500,
+      "xpBonusBp": 3000,
+      "tinCost": 150,
+      "scrapCost": 100
+    },
+    {
+      "qualityLevel": 5,
+      "name": "Mythic",
+      "powerBonus": 75,
+      "luckBp": 2500,
+      "xpBonusBp": 5000,
+      "tinCost": 300,
+      "scrapCost": 200
+    },
+    {
+      "qualityLevel": 6,
+      "name": "Prismatic",
+      "powerBonus": 100,
+      "luckBp": 4000,
+      "xpBonusBp": 7500,
+      "tinCost": 600,
+      "scrapCost": 400
+    }
+  ],
+  "baits": [
+    {
+      "baitId": 1,
+      "key": "sticky-chum",
+      "name": "Sticky Chum",
+      "priceCoins": 20,
+      "luckBp": 0,
+      "resourceItem": "rusted_tin",
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/sticky-chum.png"
+    },
+    {
+      "baitId": 2,
+      "key": "salvage-chum",
+      "name": "Salvage Chum",
+      "priceCoins": 50,
+      "luckBp": 0,
+      "resourceItem": "scrap",
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/salvage-chum.png"
+    },
+    {
+      "baitId": 3,
+      "key": "plump-worms",
+      "name": "Plump Worms",
+      "priceCoins": 30,
+      "luckBp": 500,
+      "resourceItem": "",
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/plump-worms.png"
+    },
+    {
+      "baitId": 4,
+      "key": "river-grubs",
+      "name": "River Grubs",
+      "priceCoins": 70,
+      "luckBp": 1000,
+      "resourceItem": "",
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/river-grubs.png"
+    },
+    {
+      "baitId": 5,
+      "key": "moonlit-fireflies",
+      "name": "Moonlit Fireflies",
+      "priceCoins": 120,
+      "luckBp": 1500,
+      "resourceItem": "",
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/moonlit-fireflies.png"
+    }
+  ]
+}

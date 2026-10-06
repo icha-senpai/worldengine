@@ -2,15 +2,15 @@
 
 The owner authorized autonomous implementation after rereading the specification
 and project docs, then explicitly requested all fish and all biomes. All 251 species
-and seven biomes are implemented with level cap 60 and purchased access rods.
+and seven biomes are implemented with level cap 60 and optional purchased rods.
 The website and account-link service are exposed through ServBay/Cloudflare at
-https://fish.ichaa.dev. The bot connects to Discord; all nine commands are
-registered globally and directly in the configured guild; the public OAuth callback is registered.
+https://fish.ichaa.dev. The bot connects to Discord; all thirteen commands are
+registered globally; matching legacy server copies are removed on startup; the public OAuth callback is registered.
 
 ## Settled decisions
 
 - SpaceTimeDB 2.10.2 authority; SvelteKit companion; Serenity 0.12.5 + Poise 0.7.0.
-- Plain slash commands; twelve-command launch plan in discord-commands.md.
+- Plain slash commands; command launch plan in discord-commands.md.
 - One global 60-second cooldown between accepted casts. Rejection/replay does not reset it.
 - All 251 sprite names become stable catalog species; preserve their spelling.
 - Owner correction: all 249 ordinary fish can be caught at every rank, F through UUR.
@@ -24,14 +24,14 @@ registered globally and directly in the configured guild; the public OAuth callb
 - Dockside Delivery: 100 coins daily, +250 every seventh claim, midnight UTC reset, no XP.
   Nonconsecutive stamps persist; one claim per account across servers.
 - Protect favorites; confirm spending/sales.
-- Permanent sequential biome licences and paid rods at the camp trader; keep level/power gates.
+- Permanent sequential biome licences and paid rods at the camp trader; keep level/licence gates; any owned rod can fish unlocked waters.
 - No trading, premium currency, durability, offline casting, or website casting.
 - Unlimited kept-fish storage; inventory size never blocks casting. Favorites and sale confirmations still apply.
 - Generate bindings from WASM; do not edit generated files.
 
 ## Implemented locally
 
-Starter account, seven level-purchased access rods, all seven biomes and 251 named species; categories,
+Starter account, seven rod families (free starter plus six level-gated purchases), all seven biomes and 251 named species; categories,
 measurements, XP, first-discovery bonus, cooldown, compact recent history,
 private inventory, junk stacks, treasure bundle, economy ledger, personal progress,
 and public per-species length/weight record snapshots. Ranks are saved per catch,
@@ -43,7 +43,7 @@ and saved catches show their length/weight relative to the species typical size.
 
 Browser dashboard, catalog, collection, favorites, bounded sale quotes and
 confirmation, unlinking, token persistence, reconnect, and subscription refresh.
-Poise handlers for /fish, /daily, /profile, /inventory, /collection, /biome, /gear, /shop, /help.
+Poise handlers for /fish, /daily, /profile, /inventory, /collection, /biome, /gear, /shop, /bait, /upgrade, /help.
 /daily uses private durable stamps and eligibility, an atomic wallet/ledger grant,
 selected-adapter receipts, and recovery after reconnect. Replies are ephemeral;
 already-claimed requests show the next reset without changing any fishing stats.
@@ -60,7 +60,7 @@ Both pages use the fishing-camp theme: a pixel pond and dock, wooden navigation,
 parchment panels, framed sprite slots, and locally bundled Pixelify Sans/Nunito
 fonts. Decorative motion respects reduced-motion preferences.
 The shell now shows one tab at a time: Camp, Tackle box, Collection, Journal,
-World map, Records, or Compendium. Switching preserves the database connection,
+World map, Trader, Records, Compendium, Achievements, or Anglers. Switching preserves the database connection,
 filters, and inventory selection. Hash links and browser back select views;
 /catalog opens the public Compendium directly. Lists use twelve-entry desktop
 pages or four-entry phone pages instead of stacking the whole game vertically.
@@ -75,11 +75,10 @@ IDs, display names, lifetime totals, and discovery dates; private data stays sco
 Server catch transactions refresh both current and displaced record holders.
 Existing players were backfilled from durable progress, including sold catches.
 /fish defers before the database operation and renders a saved receipt with
-one combined fish-on-rarity-card PNG. Transparent sprite margins are cropped;
+up to two combined fish-on-rarity-card PNGs, one per saved fish. Transparent sprite margins are cropped;
 the visible fish fits a centered box without stretching or covering rank labels.
 PNG work runs on two bounded background workers; missing artwork, queue timeout,
-or upload failure falls back to the committed text result. The current /profile handler shows the caller;
-the optional other-player lookup remains part of the later launch command pass.
+or upload failure falls back to the committed text result. /profile shows the caller or a safe public profile by game player ID.
 
 Axum OAuth service with identify scope, HTTP-only CSRF session cookie, exact
 website Origin validation, ten-minute session and module challenge, random
@@ -102,13 +101,10 @@ No sibling application's server or data was changed.
 ## Remaining boundaries
 
 - Discord credentials were supplied and the bot reached Gateway readiness.
-  Discord's API confirms the public OAuth callback and all nine global commands.
+  Discord's API confirms the public OAuth callback and all thirteen global commands.
   Live command delivery/deferral, attachment rendering, OAuth
   consent/callback, and credential rotation remain unverified against Discord.
-- Upgrade and sell command components,
-  leaderboard command, and optional public-player lookup are not registered handlers yet.
-  Favorite/sale domain behavior already works through the website.
-- Rod upgrade recipes, bait, release/salvage, achievements, bounded standings,
+- Release/salvage,
   privacy preferences, administrative correction/restore tooling, and full V1 economy
   are later milestones from the specification.
 - All species measurements, economy values, and 20 first-discovery XP are prototype tuning.
@@ -116,9 +112,34 @@ No sibling application's server or data was changed.
   Real-player progression/economy pacing still needs launch tuning.
 - Long-duration seven/thirty-day retention and backup restoration still need staging proof.
 
+## Crafting and mixed pulls shipped
+
+Five 10-use baits, permanent qualities per rod, exact confirmed tin/scrap recipes,
+maximum 92.5% bonus pulls and +85% luck. Per-pull receipts retain results and
+equipment snapshots; replay never spends twice. Website Gear and Trader flows
+and /bait /upgrade share server state. Biome power gates have been removed.
+
 ## Next milestone
 
-Supply/configure Discord application credentials using setup.md, complete the
-live Phase 0 checks, then implement the Phase 2 progression/economy pass.
-The complete catalog is active in fresh local proof databases. Existing player databases
-were not reset; migration of an existing deployment needs an explicit preservation plan.
+Confirm live Discord command/button delivery and OAuth sign-in with a real player,
+then tune economy pacing from actual play. The current live deployment was updated
+additively and fourteen gameplay tables matched preservation snapshots exactly.
+See verification.md for completed checks and remaining boundaries.
+
+## Social and command milestone shipped
+
+/sell accepts explicit catch IDs with exact two-minute server quotes and
+user-scoped confirm/cancel buttons. Website and Discord share atomic settlement;
+favorites, ownership, prices and stale selections are checked again at commit.
+/leaderboard exposes four paged standings categories with shared places for
+ties, plus optional per-species length/weight records. /profile supports public
+angler lookup by game ID without exposing other players' private state.
+
+Eighteen permanent cosmetic badges and titles are authoritative and retroactive:
+16 ordinary milestones plus separate Fihs and Sock bonus badges. The website
+has paged Achievements and public Anglers books, title selection and shareable
+profiles. Earned badges and public titles use separate additive tables; no XP,
+coins, gear, daily state or fishing odds are changed by the backfill.
+
+Live OAuth consent and Discord command/button delivery remain a real-player
+acceptance check. Isolated integration/native proofs verify server behavior.

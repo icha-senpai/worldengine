@@ -12,6 +12,17 @@
     ready: boolean;
   }
   let { game, pageSize = 12 }: { game: RecordBookData; pageSize?: number } = $props();
+  function openProfile(event: MouseEvent, playerId: bigint) {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const url = new URL(window.location.href);
+    url.searchParams.set('angler', playerId.toString());
+    url.hash = 'anglers';
+    window.history.pushState(null, '', url);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.scrollTo(0, 0);
+  }
   type Category = 'discoveries' | 'fishCount' | 'uurCount' | 'recordsHeld';
   const categories: { key: Category; name: string; unit: string; description: string; icon: string }[] = [
     { key: 'discoveries', name: 'Collectors', unit: 'species', description: 'Unique ordinary species discovered. The two legendary finds are bonus discoveries.', icon: '▤' },
@@ -74,7 +85,7 @@
     <small class="mobile-label">{label}</small>
     {#if record}
       <div class="measurement"><strong>{recordValue(record)}</strong><span class="rank-badge" data-rank={record.rarity}>{record.rarity}</span></div>
-      <span class="holder">{record.displayName}{#if record.playerId === game.player?.playerId}<em>You</em>{/if}</span>
+      <span class="holder"><a href={'?angler=' + record.playerId + '#anglers'} onclick={event => openProfile(event, record.playerId)}>{record.displayName}</a>{#if record.playerId === game.player?.playerId}<em>You</em>{/if}</span>
     {:else}<span class="unclaimed">Unclaimed</span><small>Be the first.</small>{/if}
   </div>
 {/snippet}
@@ -102,6 +113,7 @@
             {@render catchStat(row.length, 'Longest catch')}{@render catchStat(row.weight, 'Heaviest catch')}
           </summary>
           <div class="record-detail">
+            <small class="discord-record">Fish ID {row.fish.speciesId} · Discord: <code>/leaderboard species_id:{row.fish.speciesId}</code></small>
             {#each [row.length, row.weight] as record, index}
               <div><b>{index === 0 ? 'Longest' : 'Heaviest'}</b>{#if record}<p>{record.displayName} · {record.rarity} rank · {recordValue(record)}</p><small>Caught {date(record.caughtAt.microsSinceUnixEpoch)} · Catch #{record.catchId.toString()}</small>{:else}<p>This title is waiting for its first catch.</p>{/if}</div>
             {/each}
@@ -121,7 +133,7 @@
         {#each ranked.slice(0, 3) as row, index (row.angler.playerId)}
           <article class="podium" class:you={row.angler.playerId === game.player?.playerId} data-place={index + 1}>
             <span class="medal" aria-label={'Rank ' + row.rank}>{row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : '♛'}</span>
-            <strong>{row.angler.displayName}</strong>{#if row.angler.playerId === game.player?.playerId}<em>You</em>{/if}
+            <strong><a href={'?angler=' + row.angler.playerId + '#anglers'} onclick={event => openProfile(event, row.angler.playerId)}>{row.angler.displayName}</a></strong>{#if row.angler.playerId === game.player?.playerId}<em>You</em>{/if}
             <b>{number(row.angler[category])}</b><small>{category === 'discoveries' ? `of ${ordinary.length} species` : activeCategory.unit}</small><div class="plinth">#{row.rank}</div>
           </article>
         {/each}
@@ -129,7 +141,7 @@
       {#if ranked.length > 3}
         <ol class="angler-list" start={(boardPage - 1) * pageSize + 4}>
           {#each ranked.slice(3 + (boardPage - 1) * pageSize, 3 + boardPage * pageSize) as row (row.angler.playerId)}
-            <li class:you={row.angler.playerId === game.player?.playerId}><span class="position">#{row.rank}</span><strong>{row.angler.displayName}{#if row.angler.playerId === game.player?.playerId}<em>You</em>{/if}</strong><span class="score">{score(row.angler)}<small>{activeCategory.unit}</small></span></li>
+            <li class:you={row.angler.playerId === game.player?.playerId}><span class="position">#{row.rank}</span><strong><a href={'?angler=' + row.angler.playerId + '#anglers'} onclick={event => openProfile(event, row.angler.playerId)}>{row.angler.displayName}</a>{#if row.angler.playerId === game.player?.playerId}<em>You</em>{/if}</strong><span class="score">{score(row.angler)}<small>{activeCategory.unit}</small></span></li>
           {/each}
         </ol><PageTurner bind:page={boardPage} total={ranked.length - 3} {pageSize} label="Angler leaderboard pages" />
       {/if}
@@ -141,11 +153,13 @@
     <div class="legendary-heading"><span aria-hidden="true">✦</span><div><p class="eyebrow">THE ONES YOU TELL STORIES ABOUT</p><h3 id="legendary-heading">Legendary Finds</h3></div><span aria-hidden="true">✦</span></div>
     <p class="note">Two bonus discoveries. Neither is required to complete the ordinary fish book.</p>
     <div class="legend-shrines">{#each legends as fish (fish.speciesId)}{@const discoveries = finds.filter(find => find.speciesId === fish.speciesId)}<article><div class="legend-art"><img src={fish.spriteAsset} alt="" /><span>{fish.allowedRarities.join(' / ')} RANK</span></div><div><h4>{fish.name}</h4><p>{fish.key === 'fihs' ? 'The mythical fish. Second rarest in the waters.' : 'The impossible sock. Rarest catch of them all.'}</p><small>{discoveries.length ? `${discoveries.length} ${discoveries.length === 1 ? 'angler has' : 'anglers have'} found this legend.` : 'No confirmed finds yet.'}</small></div></article>{/each}</div>
-    {#if finds.length}<ul class="legend-find-list">{#each finds.slice((legendPage - 1) * pageSize, legendPage * pageSize) as find (find.key)}<li class:you={find.playerId === game.player?.playerId}><div><strong>{find.displayName}</strong>{#if find.playerId === game.player?.playerId}<em>You</em>{/if}<span>{game.species.find(fish => fish.speciesId === find.speciesId)?.name} · {number(find.count)} caught</span></div><small>First found {date(find.firstCaughtAt.microsSinceUnixEpoch)}</small></li>{/each}</ul><PageTurner bind:page={legendPage} total={finds.length} {pageSize} label="Legendary find pages" />{/if}
+    {#if finds.length}<ul class="legend-find-list">{#each finds.slice((legendPage - 1) * pageSize, legendPage * pageSize) as find (find.key)}<li class:you={find.playerId === game.player?.playerId}><div><strong><a href={'?angler=' + find.playerId + '#anglers'} onclick={event => openProfile(event, find.playerId)}>{find.displayName}</a></strong>{#if find.playerId === game.player?.playerId}<em>You</em>{/if}<span>{game.species.find(fish => fish.speciesId === find.speciesId)?.name} · {number(find.count)} caught</span></div><small>First found {date(find.firstCaughtAt.microsSinceUnixEpoch)}</small></li>{/each}</ul><PageTurner bind:page={legendPage} total={finds.length} {pageSize} label="Legendary find pages" />{/if}
   </aside>
 </section>
 
 <style>
+  .discord-record{grid-column:1/-1;color:#806b4e;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:underline;text-decoration-color:#ac966c;text-underline-offset:3px}a:hover{color:#416646}a:focus-visible{outline:3px solid #668c73;outline-offset:3px}
   .records-board{padding:30px;background:repeating-linear-gradient(0deg,#896b3410 0 1px,transparent 1px 6px),var(--paper);color:var(--ink);border:3px solid var(--wood-dark);box-shadow:inset 0 0 0 2px #fff0cb,0 6px 0 #132a25}
   .board-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:24px}.eyebrow{font-family:var(--font-game);font-size:13px;letter-spacing:.06em;color:#806440;margin:0 0 6px}h2,h3,h4{font-family:var(--font-game);font-weight:500;line-height:1.2;margin:0}h2{font-size:36px}.board-heading p:last-child{font-size:13px;color:var(--ink-muted);margin:8px 0 0}.wood-stamp{flex-shrink:0;padding:10px 15px;background:#58432f;color:#e8d2a0;border:2px solid #8c6b43;box-shadow:inset 0 0 0 2px #372c24;text-align:center;font-size:10px;letter-spacing:.08em;transform:rotate(3deg)}.wood-stamp b{font-family:var(--font-game);font-size:19px;font-weight:500}
   .book-tabs{display:flex;gap:8px;border-bottom:3px solid #705039;margin-bottom:22px}.book-tabs button{font-family:var(--font-game);font-size:21px;padding:11px 20px;border:2px solid #705039;border-bottom:0;background:#c7af80;color:#58432f}.book-tabs button[aria-selected=true]{background:#765239;color:#fff0cc;box-shadow:inset 0 0 0 2px #a78056}

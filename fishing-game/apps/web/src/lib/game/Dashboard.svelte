@@ -9,12 +9,16 @@
   import TraderStall from './TraderStall.svelte';
   import PageTurner from './PageTurner.svelte';
   import TackleBoxItems from './TackleBoxItems.svelte';
-  type CampView = 'camp' | 'inventory' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium' | 'trader';
+  import Gear from './Gear.svelte';
+  import Achievements from './Achievements.svelte';
+  import Anglers from './Anglers.svelte';
+  type CampView = 'camp' | 'inventory' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium' | 'trader' | 'achievements' | 'anglers';
   let { initialView = 'camp' } = $props<{ initialView?: CampView }>();
   const tabs: { id: CampView; label: string; personal?: boolean }[] = [
     { id: 'camp', label: 'Camp' }, { id: 'trader', label: 'Trader' }, { id: 'inventory', label: 'Tackle box', personal: true },
     { id: 'collection', label: 'Collection', personal: true }, { id: 'journal', label: 'Journal', personal: true },
     { id: 'waters', label: 'World map' }, { id: 'records', label: 'Records' }, { id: 'compendium', label: 'Compendium' },
+    { id: 'achievements', label: 'Achievements', personal: true }, { id: 'anglers', label: 'Anglers' },
   ];
   const game = new Game();
   let activeView = $state<CampView>(untrack(() => initialView));
@@ -129,10 +133,11 @@
   {#if game.player}
     {#if visibleView === 'inventory'}
     <section aria-labelledby="inventory"><div class="section-heading"><div><p class="eyebrow">KEEP THE GOOD ONES</p><h2 id="inventory">Your tackle box <span>{game.inventory.length} fish kept</span></h2></div><button class="secondary" disabled={!selectedOwned.length || selectedOwned.length > 50 || game.busy || !game.ready} onclick={preview}>Preview sale ({selectedOwned.length})</button></div>
-      <TackleBoxItems items={game.items} />
       {#if quote}
         <div class="sale" role="status"><div><strong>Sell {quote.catchIds.length} selected {quote.catchIds.length === 1 ? 'catch' : 'catches'} for {quote.quotedCoins.toString()} coins?</strong><p>{quote.catchIds.map(id => { const fish = game.inventory.find(row => row.catchId === id); return '#' + id + ' ' + (fish ? speciesName(fish.speciesId) : '(catch changed)'); }).join(' · ')}</p><small>Discoveries and records remain. Favorites are protected. Preview expires at {time(quote.expiresAt.microsSinceUnixEpoch)}.</small></div><div class="sale-actions"><button disabled={game.busy || !game.ready || quote.expiresAt.microsSinceUnixEpoch <= BigInt(now) * 1000n} onclick={confirm}>Confirm sale · {quote.quotedCoins.toString()} coins</button><button class="secondary" onclick={() => { showQuote = false; }}>Cancel</button></div></div>
       {/if}
+      <Gear {game} />
+      <TackleBoxItems items={game.items} />
       {#if !game.inventory.length}<p class="empty">Your next catch could be the keeper. Try <code>/fish</code> in Discord.</p>{:else}<div class="catch-grid">
         {#each game.inventory.slice((inventoryPage - 1) * pageSize, inventoryPage * pageSize) as fish (fish.catchId)}
           <article class="catch" class:favorite={fish.favorite}><div class="catch-tools"><label><input type="checkbox" checked={selected.includes(fish.catchId)} disabled={fish.favorite || game.busy || !game.ready} onchange={() => select(fish.catchId)} /><span class="sr-only">Select catch #{fish.catchId.toString()}</span></label><button class="star" class:active={fish.favorite} disabled={game.busy || !game.ready} onclick={() => { showQuote = false; game.favorite(fish); }} aria-label={(fish.favorite ? 'Unfavorite' : 'Favorite') + ' catch #' + fish.catchId}>{fish.favorite ? '★' : '☆'}</button></div><div class="fish-art"><img src={sprite(fish.speciesId)} alt={speciesName(fish.speciesId)} /><span>{fish.rarity} RANK</span></div><p class="grade">{grades[fish.sizeGrade]}</p><h3>{speciesName(fish.speciesId)}</h3><p class="measure">{(fish.lengthMm / 10).toFixed(1)} cm <span>·</span> {(Number(fish.weightG) / 1000).toFixed(3)} kg</p><p class="relative-size">{(fish.lengthMm / (game.species.find(row => row.speciesId === fish.speciesId)?.typicalLengthMm ?? fish.lengthMm)).toFixed(2)}× typical length<br />{(Number(fish.weightG) / Number(game.species.find(row => row.speciesId === fish.speciesId)?.typicalWeightG ?? fish.weightG)).toFixed(2)}× typical weight</p><div class="catch-footer"><span>#{fish.catchId.toString()}</span><span>{fish.saleValueCoins.toString()} coins</span></div></article>
@@ -152,28 +157,30 @@
 
     {/if}
     {#if visibleView === 'journal'}
-    <section class="journal" aria-labelledby="journal"><div><p class="eyebrow">THE LAST FEW CASTS</p><h2 id="journal">Fishing journal</h2>{#if !game.recent.length}<p class="muted">A fresh page. Go make a little fishing history.</p>{:else}<ol>{#each game.recent.slice(0, 8) as catchResult (catchResult.recentId)}<li><span>{catchResult.outcome === 'fish' ? '🎣' : catchResult.outcome === 'junk' ? '🥫' : '🪙'}</span><div><strong>{catchResult.outcome === 'fish' ? speciesName(catchResult.speciesId) + ' · ' + catchResult.rarity + ' rank' : catchResult.outcome === 'junk' ? 'Rusted tin' : 'Treasure cache'}</strong><small>{time(catchResult.caughtAt.microsSinceUnixEpoch)}</small></div><span class="xp">+{catchResult.xpGranted.toString()} XP</span></li>{/each}</ol>{/if}</div><aside><p class="eyebrow">YOUR ITEMS</p><h2>A few useful finds</h2>{#if !game.items.length}<p class="muted">Scrap and rusted tins from your casts appear here.</p>{:else}{#each game.items as item (item.key)}<p class="item"><span>{item.item === 'scrap' ? 'Scrap' : 'Rusted tin'}</span><strong>{item.quantity.toString()}</strong></p>{/each}{/if}<p class="muted">Buy biome licences and stronger rods from the camp trader to explore all seven waters. Bait and upgrade recipes come later.</p></aside></section>
+    <section class="journal" aria-labelledby="journal"><div><p class="eyebrow">THE LAST FEW CASTS</p><h2 id="journal">Fishing journal</h2>{#if !game.recent.length}<p class="muted">A fresh page. Go make a little fishing history.</p>{:else}<ol>{#each game.recent.slice(0, 8) as catchResult (catchResult.recentId)}<li><span>{catchResult.outcome === 'fish' ? '🎣' : catchResult.outcome === 'junk' ? '🥫' : '🪙'}</span><div><strong>{catchResult.outcome === 'fish' ? speciesName(catchResult.speciesId) + ' · ' + catchResult.rarity + ' rank' : catchResult.outcome === 'junk' ? 'Rusted tin' : 'Treasure cache'}</strong><small>{time(catchResult.caughtAt.microsSinceUnixEpoch)}</small></div><span class="xp">+{catchResult.xpGranted.toString()} XP</span></li>{/each}</ol>{/if}</div><aside><p class="eyebrow">YOUR ITEMS</p><h2>A few useful finds</h2>{#if !game.items.length}<p class="muted">Scrap and rusted tins from your casts appear here.</p>{:else}{#each game.items as item (item.key)}<p class="item"><span>{item.item === 'scrap' ? 'Scrap' : 'Rusted tin'}</span><strong>{item.quantity.toString()}</strong></p>{/each}{/if}<p class="muted">Buy biome licences and stronger rods from the camp trader to explore all seven waters. Buy 10-use bait at the Trader and craft rod quality in your Tackle box using tin and scrap.</p></aside></section>
     {/if}
   {/if}
 
   {#if visibleView === 'waters' && game.biomes.length}
     <section aria-labelledby="waters"><p class="eyebrow">SEVEN WATERS, ONE JOURNEY</p><h2 id="waters">Explore the biomes</h2>
-      {#if game.player}<p class="muted">Equipped: {currentRod?.name} · power {currentRod?.power}. Buy rods and permanent biome licences from the camp trader. Travel keeps your cast cooldown.</p>
-        <div class="filters"><label>Equip an owned rod<select value={game.player.equippedRodId} disabled={game.busy || !game.ready} onchange={event => game.changeLoadout(undefined, Number(event.currentTarget.value))}>{#each game.rods as rod}<option value={rod.rodId} disabled={!game.ownedRods.some(owned => owned.rodId === rod.rodId) || rod.minimumLevel > level || rod.power < (currentBiome?.requiredPower ?? 0)}>{rod.name} · level {rod.minimumLevel} · power {rod.power}</option>{/each}</select></label></div>
+      {#if game.player}<p class="muted">Equipped: {currentRod?.name} · power {game.rodStats(currentRod?.rodId ?? 0).power}. Buy rods and permanent biome licences from the camp trader. Travel keeps your cast cooldown.</p>
+        <div class="filters"><label>Equip an owned rod<select value={game.player.equippedRodId} disabled={game.busy || !game.ready} onchange={event => game.changeLoadout(undefined, Number(event.currentTarget.value))}>{#each game.rods as rod}<option value={rod.rodId} disabled={!game.ownedRods.some(owned => owned.rodId === rod.rodId) || rod.minimumLevel > level}>{rod.name} · level {rod.minimumLevel} · power {rod.power}</option>{/each}</select></label></div>
       {/if}
       <div class="biome-grid">{#each game.biomes.slice((worldPage - 1) * pageSize, worldPage * pageSize) as biome (biome.biomeId)}
         {@const pool = game.species.filter(fish => fish.biomeId === biome.biomeId)}
-        {@const rod = game.rods.find(row => row.minimumLevel <= level && row.power >= biome.requiredPower && game.ownedRods.some(owned => owned.rodId === row.rodId))}
+        {@const rod = game.rods.find(row => row.minimumLevel <= level && game.ownedRods.some(owned => owned.rodId === row.rodId))}
         {@const licensed = biome.biomeId === 1 || game.licences.some(row => row.biomeId === biome.biomeId)}
         {@const active = currentBiome?.biomeId === biome.biomeId}
-        <article class:active><small>LEVEL {biome.minimumLevel} · POWER {biome.requiredPower}</small><h3>{biome.name}</h3><p>{biome.description}</p><p>{pool.length} species · {biome.fishWeight.toString()}% fish / {biome.junkWeight.toString()}% junk / {biome.treasureWeight.toString()}% treasure</p>
-          <button class="secondary" disabled={!game.player || game.busy || !game.ready || level < biome.minimumLevel || !licensed || !rod || active} onclick={() => { if (rod) game.changeLoadout(biome.biomeId, currentRod && currentRod.power >= biome.requiredPower ? currentRod.rodId : rod.rodId); }}>{active ? 'Current waters' : level < biome.minimumLevel ? 'Unlock at level ' + biome.minimumLevel : !licensed ? 'Licence needed' : !rod ? 'Buy a suitable rod' : 'Equip & travel'}</button>
+        <article class:active><small>LEVEL {biome.minimumLevel} · LICENCE</small><h3>{biome.name}</h3><p>{biome.description}</p><p>{pool.length} species · {biome.fishWeight.toString()}% fish / {biome.junkWeight.toString()}% junk / {biome.treasureWeight.toString()}% treasure</p>
+          <button class="secondary" disabled={!game.player || game.busy || !game.ready || level < biome.minimumLevel || !licensed || !rod || active} onclick={() => game.changeLoadout(biome.biomeId)}>{active ? 'Current waters' : level < biome.minimumLevel ? 'Unlock at level ' + biome.minimumLevel : !licensed ? 'Licence needed' : !rod ? 'Rod unavailable' : 'Travel'}</button>
           {#if game.player && (!licensed || !rod)}<button class="secondary" onclick={() => openView('trader')}>Visit camp trader →</button>{/if}
         </article>
       {/each}</div><PageTurner bind:page={worldPage} total={game.biomes.length} {pageSize} label="World map pages" />
     </section>
   {/if}
   <div hidden={visibleView !== 'records'}><Records {game} {pageSize} /></div>
+  {#if game.player}<div hidden={visibleView !== 'achievements'}><Achievements {game} {pageSize} /></div>{/if}
+  <div hidden={visibleView !== 'anglers'}><Anglers {game} {pageSize} /></div>
 
   </div>
   <div class="view-panel" role="tabpanel" id="panel-compendium" aria-labelledby="tab-compendium" tabindex="0" hidden={visibleView !== 'compendium'}><Compendium {pageSize} /></div>

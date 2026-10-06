@@ -65,11 +65,14 @@ The callback must point at the Axum service. PUBLIC_ACCOUNT_LINK_URL points at
 that service; WEBSITE_URL must match the website Origin exactly. Public internet
 URLs require HTTPS. The localhost exception is for development.
 
-Set DISCORD_GUILD_ID for a test guild and DISCORD_REGISTER_COMMANDS=true when
-ready to register the nine implemented commands globally. A configured guild
-also receives a direct registration for immediate visibility. The application's bot installation needs slash-command access.
-There are no dot-prefix commands. The approved twelve-command launch list remains
-in discord-commands.md; nine have handlers; upgrade, sell, and leaderboard follow later.
+Set DISCORD_REGISTER_COMMANDS=true to register the eleven implemented commands
+globally for all installed servers. DISCORD_GUILD_ID and comma-separated
+DISCORD_GUILD_IDS identify servers where startup removes legacy guild commands
+that match a global command's name and type. Guild-only commands are preserved;
+startup creates no server copies. The application's bot installation needs
+slash-command access.
+There are no dot-prefix commands. The command launch plan remains
+in discord-commands.md; eleven have handlers, including /bait and /upgrade; sell and leaderboard follow later.
 
 ## Run
 
@@ -114,3 +117,12 @@ need live verification. The configured ServBay deployment uses adapter-node 6,
 the existing Cloudflare tunnel, and a public HTTPS origin; see
 [ServBay hosting](servbay-hosting.md) for routes, launchers, and the Discord callback.
 Restore proof, full progression, and late-game balance are later work.
+
+## Updating an existing Fishbound deployment for crafting
+
+Back up and compare player state; never reset the database. Build/generate with
+`npm run bindings`, publish the production WASM additively, then call the owner
+reducer `activate_crafting`. This activates rules 6 and catalog 2 without spending
+or granting player resources. Build the website and native clients, then restart
+with the supplied local-services launcher. Recipes and bait prices live in
+`content/crafting.json` and `content/trader.json`.

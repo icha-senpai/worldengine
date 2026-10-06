@@ -76,16 +76,42 @@ fn rejection(error: &Error) -> String {
         return "Reach the item's required angler level before buying.".into();
     }
     if message.contains("ACTION_EXPIRED") || message.contains("QUOTE_CHANGED") {
-        return "That offer expired or changed. Use /shop to review a new offer.".into();
+        return "That offer expired or changed. Use /shop, /sell or /upgrade to review a fresh offer."
+            .into();
     }
-    if message.contains("BIOME_LEVEL_REQUIRED") || message.contains("ROD_LOCKED") {
+    if message.contains("BIOME_LEVEL_REQUIRED")
+        || message.contains("BIOME_LOCKED")
+        || message.contains("ROD_LOCKED")
+    {
         return "That biome or rod needs a higher angler level. Use /biome or /gear to see unlock levels.".into();
     }
-    if message.contains("BIOME_POWER_REQUIRED") {
-        return "Equip the biome's required rod with /gear first. Return to an earlier biome before equipping a weaker rod.".into();
+    if message.contains("INSUFFICIENT_MATERIALS") {
+        return "You need more rusted tin and scrap. Resource bait at /shop helps; your next recipe is in the website Tackle Box.".into();
+    }
+    if message.contains("MAX_QUALITY") {
+        return "That rod is already Prismatic.".into();
+    }
+    if message.contains("BAIT_NOT_OWNED") {
+        return "Buy a 10-use pack at /shop before equipping bait.".into();
     }
     if message.contains("BIOME_UNAVAILABLE") || message.contains("ROD_UNAVAILABLE") {
         return "That ID is unavailable. Use /biome or /gear to see valid IDs.".into();
+    }
+    if message.contains("FAVORITE_PROTECTED") {
+        return "Favorites are protected. Unfavorite that catch on the website before selling."
+            .into();
+    }
+    if message.contains("CATCH_UNAVAILABLE") || message.contains("CATCH_NOT_OWNED") {
+        return "A selected catch is unavailable or belongs to another angler. Check /inventory and prepare a new /sell preview.".into();
+    }
+    if message.contains("DUPLICATE_CATCH") || message.contains("BATCH_INVALID") {
+        return "Choose 1–50 different catch IDs from /inventory.".into();
+    }
+    if message.contains("ACTION_CONFLICT") || message.contains("ACTION_NOT_FOUND") {
+        return "That preview was replaced or is unavailable. Use /sell, /shop or /upgrade for a fresh preview.".into();
+    }
+    if message.contains("ACTION_RATE_LIMITED") {
+        return "Give the last preview a moment, then try again.".into();
     }
     "The game could not confirm this request. Please try again shortly.".into()
 }
@@ -101,84 +127,131 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
             return reply(ctx, rejection(&error)).await;
         }
     };
-    let receipt = result.receipt.ok_or("Missing committed cast receipt")?;
-    let message = match receipt.outcome.as_str() {
-        "fish" => {
-            let species = result
-                .species
-                .iter()
-                .find(|row| Some(row.species_id) == receipt.species_id)
-                .ok_or("Missing species")?;
-            let grade = game_rules::measurements::SIZE_GRADE_NAMES[receipt.size_grade as usize];
-            format!(
-                "🎣 **{}** · {} rank · {}\n{:.1} cm · {:.3} kg · +{} XP\nNext cast <t:{}:R>.",
-                species.name,
-                receipt.rarity,
-                grade,
-                f64::from(receipt.length_mm) / 10.0,
-                receipt.weight_g as f64 / 1000.0,
-                receipt.xp_granted,
-                (receipt.caught_at.to_micros_since_unix_epoch() + 60_000_000) / 1_000_000
-            )
-        }
-        "junk" => format!(
-            "🥫 A rusted tin! +{} XP. Saved to your items.",
-            receipt.xp_granted
-        ),
-        "treasure" => format!(
-            "🪙 A treasure cache! +{} coins, +{} scrap, +{} XP.",
-            receipt.coins_granted, receipt.item_quantity, receipt.xp_granted
-        ),
-        _ => return Err("Unknown committed category".into()),
+    let receipt = result
+        .receipt
+        .as_ref()
+        .ok_or("Missing committed cast receipt")?;
+    let mut pulls: Vec<_> = result.cast_pulls.iter().collect();
+    pulls.sort_by_key(|pull| pull.key);
+    let receipts: Vec<_> = if pulls.is_empty() {
+        vec![receipt]
+    } else {
+        pulls.iter().map(|pull| &pull.receipt).collect()
     };
+    let mut response =
+        poise::CreateReply::default().allowed_mentions(serenity::CreateAllowedMentions::new());
+    let mut lines = Vec::new();
+    for (index, pull) in receipts.iter().enumerate() {
+        match pull.outcome.as_str() {
+            "fish" => {
+                let species = result
+                    .species
+                    .iter()
+                    .find(|row| Some(row.species_id) == pull.species_id)
+                    .ok_or("Missing species")?;
+                let grade = game_rules::measurements::SIZE_GRADE_NAMES[pull.size_grade as usize];
+                let description = format!(
+                    "{} rank · {}\n{:.1} cm · {:.3} kg · +{} XP",
+                    pull.rarity,
+                    grade,
+                    f64::from(pull.length_mm) / 10.0,
+                    pull.weight_g as f64 / 1000.0,
+                    pull.xp_granted
+                );
+                lines.push(format!("🎣 **{}** · {}", species.name, description));
+                match ctx
+                    .data()
+                    .catch_art
+                    .render(&species.key, &pull.rarity)
+                    .await
+                {
+                    Ok(png) => {
+                        let filename =
+                            format!("catch-{}-{}-{}.png", index + 1, species.key, pull.rarity);
+                        response = response
+                            .embed(
+                                serenity::CreateEmbed::new()
+                                    .title(&species.name)
+                                    .description(description)
+                                    .image(format!("attachment://{filename}")),
+                            )
+                            .attachment(serenity::CreateAttachment::bytes(png, filename));
+                    }
+                    Err(error) => {
+                        tracing::warn!(%error, "Catch artwork unavailable");
+                        response = response.embed(
+                            serenity::CreateEmbed::new()
+                                .title(&species.name)
+                                .description(description),
+                        );
+                    }
+                }
+            }
+            "junk" => {
+                lines.push(format!("Rusted tin · +{} XP", pull.xp_granted));
+                response = response.embed(
+                    serenity::CreateEmbed::new()
+                        .title("Rusted tin")
+                        .description(format!("+1 rusted tin · +{} XP", pull.xp_granted)),
+                );
+            }
+            "treasure" => {
+                lines.push(format!(
+                    "Treasure · +{} coins · +{} scrap · +{} XP",
+                    pull.coins_granted, pull.item_quantity, pull.xp_granted
+                ));
+                response = response.embed(
+                    serenity::CreateEmbed::new()
+                        .title("Treasure cache")
+                        .description(format!(
+                            "+{} coins · +{} scrap · +{} XP",
+                            pull.coins_granted, pull.item_quantity, pull.xp_granted
+                        )),
+                );
+            }
+            _ => return Err("Unknown committed category".into()),
+        }
+    }
     let biome = result
         .biomes
         .iter()
         .find(|row| row.biome_id == receipt.biome_id)
         .ok_or("Missing biome")?;
-    let content = format!(
-        "{message}\n{} · [Your collection]({})",
+    let mut summary = format!(
+        "{} · {} pull{} · +{} XP total",
         biome.name,
-        ctx.data().website
+        receipts.len(),
+        if receipts.len() == 1 { "" } else { "s" },
+        receipt.xp_granted
     );
-    if let Some(species) = result
-        .species
-        .iter()
-        .find(|row| Some(row.species_id) == receipt.species_id)
-    {
-        match ctx
-            .data()
-            .catch_art
-            .render(&species.key, &receipt.rarity)
-            .await
-        {
-            Ok(png) => {
-                let filename = format!("catch-{}-{}.png", species.key, receipt.rarity);
-                let embed = serenity::CreateEmbed::new()
-                    .title(&species.name)
-                    .description(content.clone())
-                    .image(format!("attachment://{filename}"));
-                let sent = ctx
-                    .send(
-                        poise::CreateReply::default()
-                            .embed(embed)
-                            .attachment(serenity::CreateAttachment::bytes(png, filename))
-                            .allowed_mentions(serenity::CreateAllowedMentions::new()),
-                    )
-                    .await;
-                match sent {
-                    Ok(_) => return Ok(()),
-                    Err(error) => {
-                        tracing::warn!(%error, "Catch card delivery failed; delivering the saved text result")
-                    }
-                }
-            }
-            Err(error) => {
-                tracing::warn!(%error, "Catch artwork unavailable; delivering the saved text result")
+    if let Some(equipment) = &result.cast_equipment {
+        if equipment.bait_id != 0 {
+            let name = result
+                .baits
+                .iter()
+                .find(|bait| bait.bait_id == equipment.bait_id)
+                .map_or("Bait", |bait| bait.name.as_str());
+            summary.push_str(&format!(
+                "\n{} · {} uses left",
+                name, equipment.bait_uses_left
+            ));
+            if !equipment.bait_item.is_empty() {
+                summary.push_str(&format!(" · +1 {}", equipment.bait_item.replace('_', " ")));
             }
         }
     }
-    reply(ctx, content).await
+    summary.push_str(&format!(
+        "\nNext cast <t:{}:R> · [Your collection]({})",
+        (receipt.caught_at.to_micros_since_unix_epoch() + 60_000_000) / 1_000_000,
+        ctx.data().website
+    ));
+    match ctx.send(response.content(&summary)).await {
+        Ok(_) => Ok(()),
+        Err(error) => {
+            tracing::warn!(%error, "Catch card delivery failed");
+            reply(ctx, format!("{}\n{}", lines.join("\n"), summary)).await
+        }
+    }
 }
 
 /// Collect your Dockside Delivery. Every seventh delivery includes a coin bonus.
@@ -240,9 +313,48 @@ async fn daily(ctx: Context<'_>) -> Result<(), Error> {
 
 /// Show your fishing progression and website link.
 #[poise::command(slash_command)]
-async fn profile(ctx: Context<'_>) -> Result<(), Error> {
+async fn profile(
+    ctx: Context<'_>,
+    #[description = "Public angler ID from /leaderboard; omit for your own profile"]
+    player_id: Option<u64>,
+) -> Result<(), Error> {
     ctx.defer_ephemeral().await?;
     let result = snapshot(ctx, false).await?;
+    let target = player_id.unwrap_or(result.player.player_id);
+    let badge_count = result
+        .earned_achievements
+        .iter()
+        .filter(|row| row.player_id == target)
+        .count();
+    let title_id = result
+        .titles
+        .iter()
+        .find(|row| row.player_id == target)
+        .map_or(0, |row| row.achievement_id);
+    let title = result
+        .achievements
+        .iter()
+        .find(|row| row.achievement_id == title_id)
+        .map_or("Angler", |row| row.title.as_str());
+    let public_link = format!(
+        "{}/?angler={target}#anglers",
+        ctx.data().website.trim_end_matches('/')
+    );
+    if target != result.player.player_id {
+        let Some(other) = result
+            .public_profiles
+            .iter()
+            .find(|row| row.player_id == target)
+        else {
+            return reply(
+                ctx,
+                "That angler ID is not in the public book. Use /leaderboard to find one.",
+            )
+            .await;
+        };
+        let standing = result.standings.iter().find(|row| row.player_id == target);
+        return reply(ctx, format!("**{} · {}**\nAngler #{} · level {}\n{} lifetime fish · {}/249 ordinary discoveries\n{} UUR catches · {} current records · {} badges\n[Public profile]({})", plain_name(&other.display_name), title, target, other.level, other.fish_count, other.discoveries, standing.map_or(0, |row| row.uur_count), standing.map_or(0, |row| row.records_held), badge_count, public_link)).await;
+    }
     let ordinary = result
         .species
         .iter()
@@ -257,9 +369,262 @@ async fn profile(ctx: Context<'_>) -> Result<(), Error> {
             })
         })
         .count();
-    reply(ctx, format!("**Your Fishbound profile**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {} fish kept\n[Open Fishbound]({})",
+    reply(ctx, format!("**Your Fishbound profile · {title}**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {} fish kept\n{badge_count} badges earned · Angler #{target}\n[Achievements and titles]({}/#achievements) · [Public profile]({public_link})",
         game_rules::progression::level_for_xp(result.player.total_xp, result.config.level_cap), result.player.total_xp, result.player.coins,
-        result.player.completed_casts, result.player.fish_count, discoveries, ordinary, result.player.kept_count, ctx.data().website)).await
+        result.player.completed_casts, result.player.fish_count, discoveries, ordinary, result.player.kept_count, ctx.data().website.trim_end_matches('/'))).await
+}
+
+fn plain_name(name: &str) -> String {
+    name.chars()
+        .filter(|c| {
+            !matches!(c, '*' | '_' | '`' | '~' | '[' | ']' | '<' | '>' | '\\') && !c.is_control()
+        })
+        .collect()
+}
+
+#[derive(Debug, Clone, Copy, poise::ChoiceParameter)]
+enum Board {
+    #[name = "Discoveries"]
+    Discoveries,
+    #[name = "Fish caught"]
+    Fish,
+    #[name = "UUR catches"]
+    Uur,
+    #[name = "Records held"]
+    Records,
+}
+
+/// Public fishing standings, or the longest and heaviest catches for a species.
+#[poise::command(slash_command)]
+async fn leaderboard(
+    ctx: Context<'_>,
+    #[description = "Standings category"] category: Option<Board>,
+    #[description = "Page number, starting at 1"] page: Option<u32>,
+    #[description = "Optional species ID for length and weight records"] species_id: Option<u32>,
+) -> Result<(), Error> {
+    ctx.defer_ephemeral().await?;
+    let result = snapshot(ctx, false).await?;
+    if let Some(id) = species_id {
+        let Some(species) = result.species.iter().find(|row| row.species_id == id) else {
+            return reply(
+                ctx,
+                "Unknown species ID. Find species and their records in the website Records book.",
+            )
+            .await;
+        };
+        let rows: Vec<_> = result
+            .records
+            .iter()
+            .filter(|row| row.species_id == id)
+            .map(|row| {
+                let size = if row.metric == "length" {
+                    format!("{:.1} cm", row.measurement as f64 / 10.0)
+                } else {
+                    format!("{:.3} kg", row.measurement as f64 / 1000.0)
+                };
+                format!(
+                    "{}: **{}** · {} rank · {} (Angler #{})",
+                    row.metric,
+                    size,
+                    row.rarity,
+                    plain_name(&row.display_name),
+                    row.player_id
+                )
+            })
+            .collect();
+        return reply(
+            ctx,
+            format!(
+                "**{} records · species #{}**\n{}\n[Records book]({}/#records)",
+                species.name,
+                id,
+                if rows.is_empty() {
+                    "No records yet.".into()
+                } else {
+                    rows.join("\n")
+                },
+                ctx.data().website.trim_end_matches('/')
+            ),
+        )
+        .await;
+    }
+    let category = category.unwrap_or(Board::Discoveries);
+    let value = |row: &game_client::module_bindings::AnglerStanding| match category {
+        Board::Discoveries => u64::from(row.discoveries),
+        Board::Fish => row.fish_count,
+        Board::Uur => row.uur_count,
+        Board::Records => u64::from(row.records_held),
+    };
+    let mut standings: Vec<_> = result
+        .standings
+        .iter()
+        .filter(|row| value(row) > 0)
+        .collect();
+    standings.sort_by_key(|row| (std::cmp::Reverse(value(row)), row.player_id));
+    let pages = standings.len().div_ceil(10).max(1);
+    let page = usize::try_from(page.unwrap_or(1))
+        .unwrap_or(1)
+        .clamp(1, pages);
+    let mut rank = 0;
+    let mut previous = None;
+    let rows: Vec<_> = standings
+        .iter()
+        .enumerate()
+        .filter_map(|(index, row)| {
+            let score = value(row);
+            if previous != Some(score) {
+                rank = index + 1;
+                previous = Some(score);
+            }
+            if index / 10 + 1 != page {
+                return None;
+            }
+            Some(format!(
+                "{}. **{}** · {} · Angler #{}",
+                rank,
+                plain_name(&row.display_name),
+                score,
+                row.player_id
+            ))
+        })
+        .collect();
+    let label = match category {
+        Board::Discoveries => "Ordinary discoveries",
+        Board::Fish => "Lifetime fish caught",
+        Board::Uur => "UUR catches",
+        Board::Records => "Current records held",
+    };
+    reply(ctx, format!("**{} · page {}/{}**\n{}\nTied scores share a place. /profile player_id opens an angler's public profile.\n[Records book]({}/#records)", label, page, pages, if rows.is_empty() { "The first place is waiting for an angler.".into() } else { rows.join("\n") }, ctx.data().website.trim_end_matches('/'))).await
+}
+
+/// Preview and confirm a sale of up to 50 catch IDs from /inventory.
+#[poise::command(slash_command)]
+async fn sell(
+    ctx: Context<'_>,
+    #[description = "Catch IDs separated by spaces or commas, e.g. 12, 13"] catch_ids: Option<
+        String,
+    >,
+) -> Result<(), Error> {
+    ctx.defer_ephemeral().await?;
+    let Some(text) = catch_ids else {
+        return reply(ctx, "Use /inventory to find catch IDs, then /sell catch_ids:12,13 to preview their exact value. Up to 50 fish per sale; favorites are protected. Nothing is sold until you confirm.").await;
+    };
+    let ids = match discord_bot::sale_ids::parse(&text) {
+        Ok(ids) => ids,
+        Err(message) => return reply(ctx, message).await,
+    };
+    let quote = {
+        let _permit = ctx
+            .data()
+            .pending
+            .try_acquire()
+            .map_err(|_| "The trader is busy")?;
+        ctx.data()
+            .game
+            .sale_action(
+                ctx.author().id.get(),
+                ctx.author().name.clone(),
+                interaction_id(ctx)?,
+                Some(ids),
+                None,
+            )
+            .await?
+    };
+    let result = snapshot(ctx, false).await?;
+    let rows: Vec<_> = quote
+        .catch_ids
+        .iter()
+        .take(5)
+        .map(|id| {
+            let fish = result.inventory.iter().find(|row| row.catch_id == *id);
+            let name = fish
+                .and_then(|fish| {
+                    result
+                        .species
+                        .iter()
+                        .find(|row| row.species_id == fish.species_id)
+                })
+                .map_or("Catch changed", |row| row.name.as_str());
+            format!(
+                "#{id} {}{}",
+                name.chars().take(32).collect::<String>(),
+                fish.map_or(String::new(), |row| format!(
+                    " · {} rank · {} coins",
+                    row.rarity, row.sale_value_coins
+                ))
+            )
+        })
+        .collect();
+    let confirm_id = format!("sell:{}:confirm", interaction_id(ctx)?);
+    let cancel_id = format!("sell:{}:cancel", interaction_id(ctx)?);
+    let handle = ctx.send(poise::CreateReply::default().content(format!("**Sell {} fish for {} coins?**\n{}{}\nCatch IDs: {}\nDiscoveries, records and badges remain. Offer expires <t:{}:R>.", quote.catch_ids.len(), quote.quoted_coins, rows.join("\n"), if quote.catch_ids.len() > 5 { "\nAdditional catches listed by ID below." } else { "" }, quote.catch_ids.iter().map(u64::to_string).collect::<Vec<_>>().join(", "), quote.expires_at.to_micros_since_unix_epoch() / 1_000_000))
+        .allowed_mentions(serenity::CreateAllowedMentions::new()).components(vec![serenity::CreateActionRow::Buttons(vec![serenity::CreateButton::new(&confirm_id).label(format!("Sell · {} coins", quote.quoted_coins)).style(serenity::ButtonStyle::Success), serenity::CreateButton::new(&cancel_id).label("Cancel").style(serenity::ButtonStyle::Secondary)])])).await?;
+    let interaction = handle
+        .message()
+        .await?
+        .await_component_interaction(ctx)
+        .author_id(ctx.author().id)
+        .timeout(std::time::Duration::from_secs(110))
+        .filter(move |event| {
+            event.data.custom_id == confirm_id || event.data.custom_id == cancel_id
+        })
+        .await;
+    let Some(interaction) = interaction else {
+        handle
+            .edit(
+                ctx,
+                poise::CreateReply::default()
+                    .content("Sale preview closed. Use /sell for a fresh preview.")
+                    .components(vec![]),
+            )
+            .await?;
+        return Ok(());
+    };
+    interaction
+        .create_response(ctx, serenity::CreateInteractionResponse::Acknowledge)
+        .await?;
+    let message = if interaction.data.custom_id.ends_with(":cancel") {
+        "Sale cancelled. Your fish are safe.".into()
+    } else {
+        let _permit = ctx
+            .data()
+            .pending
+            .try_acquire()
+            .map_err(|_| "The trader is busy")?;
+        match ctx
+            .data()
+            .game
+            .sale_action(
+                ctx.author().id.get(),
+                ctx.author().name.clone(),
+                interaction.id.get(),
+                None,
+                Some(quote.nonce),
+            )
+            .await
+        {
+            Ok(committed) if committed.consumed => format!(
+                "✓ Sold {} fish for {} coins. Your discoveries, records and badges remain.",
+                committed.catch_ids.len(),
+                committed.quoted_coins
+            ),
+            Ok(_) => "Sale could not be confirmed. Check /inventory before trying again.".into(),
+            Err(error) => {
+                tracing::warn!(%error, "Sale rejected");
+                rejection(&error)
+            }
+        }
+    };
+    handle
+        .edit(
+            ctx,
+            poise::CreateReply::default()
+                .content(message)
+                .components(vec![])
+                .allowed_mentions(serenity::CreateAllowedMentions::new()),
+        )
+        .await?;
+    Ok(())
 }
 
 /// See your owned fish and manage favorites or sales on the website.
@@ -349,7 +714,7 @@ async fn collection(ctx: Context<'_>) -> Result<(), Error> {
     .await
 }
 
-/// List biomes or travel using a biome ID. Equip the required rod first.
+/// List biomes or travel to a licensed biome using its ID.
 #[poise::command(slash_command)]
 async fn biome(
     ctx: Context<'_>,
@@ -380,7 +745,7 @@ async fn biome(
         .iter()
         .map(|b| {
             format!(
-                "{} {} · ID {} · level {} · power {} · {}",
+                "{} {} · ID {} · level {} · {}",
                 if b.biome_id == result.player.selected_biome_id {
                     "→"
                 } else {
@@ -389,7 +754,6 @@ async fn biome(
                 b.name,
                 b.biome_id,
                 b.minimum_level,
-                b.required_power,
                 if b.biome_id == 1
                     || result
                         .licences
@@ -403,7 +767,7 @@ async fn biome(
             )
         })
         .collect();
-    reply(ctx, format!("**Biomes**\n{}\nBuy a biome licence and rod at /shop, then equip with /gear. Travel keeps your cast cooldown.", rows.join("\n"))).await
+    reply(ctx, format!("**Biomes**\n{}\nBuy sequential biome licences at /shop. Any owned rod can fish licensed waters at your level. Travel keeps your cast cooldown.", rows.join("\n"))).await
 }
 
 /// List rods or equip a purchased rod using its ID.
@@ -432,37 +796,205 @@ async fn gear(
     } else {
         snapshot(ctx, false).await?
     };
-    let rows: Vec<_> = result
+    let rows: Vec<_> = result.rods.iter().map(|rod| {
+        let (quality, power, luck, xp) = rod_stats(&result, rod.rod_id);
+        let owned = result.owned_rods.iter().any(|row| row.rod_id == rod.rod_id);
+        format!("{} **{} {}** · ID {} · level {}\n{} power · {:.1}% bonus pull · +{}% luck · +{}% XP · {}", if rod.rod_id == result.player.equipped_rod_id { "→" } else { "·" }, quality, rod.name, rod.rod_id, rod.minimum_level, power, power as f64 / 2.0, luck / 100, xp / 100, if owned { "owned" } else { "shop purchase needed" })
+    }).collect();
+    reply(ctx, format!("**Your fishing rods**\n{}\n/shop buys rods · /gear equips · /upgrade crafts quality · /bait equips bait. Power can add one independent fish, junk or treasure pull. One cooldown and one bait use per cast.", rows.join("\n"))).await
+}
+
+fn rod_stats(result: &Snapshot, rod_id: u32) -> (&str, u32, u32, u32) {
+    let rod = result
         .rods
         .iter()
-        .map(|r| {
+        .find(|row| row.rod_id == rod_id)
+        .expect("valid rod");
+    let level = result
+        .owned_rods
+        .iter()
+        .find(|row| row.rod_id == rod_id)
+        .map_or(0, |row| row.upgrade_level);
+    let quality = result
+        .qualities
+        .iter()
+        .find(|row| row.quality_level == level);
+    let bonus = result.rod_bonuses.iter().find(|row| row.rod_id == rod_id);
+    (
+        quality.map_or("Common", |row| row.name.as_str()),
+        rod.power + quality.map_or(0, |row| row.power_bonus),
+        bonus.map_or(0, |row| row.luck_bp) + quality.map_or(0, |row| row.luck_bp),
+        bonus.map_or(0, |row| row.xp_bonus_bp) + quality.map_or(0, |row| row.xp_bonus_bp),
+    )
+}
+
+/// List your bait or equip a type. ID zero removes equipped bait.
+#[poise::command(slash_command)]
+async fn bait(
+    ctx: Context<'_>,
+    #[description = "Bait ID; zero to remove bait"] bait_id: Option<u32>,
+) -> Result<(), Error> {
+    ctx.defer_ephemeral().await?;
+    let result = if let Some(id) = bait_id {
+        let _permit = ctx
+            .data()
+            .pending
+            .try_acquire()
+            .map_err(|_| "The game is busy")?;
+        ctx.data()
+            .game
+            .equip_bait(
+                ctx.author().id.get(),
+                ctx.author().name.clone(),
+                interaction_id(ctx)?,
+                id,
+            )
+            .await?
+    } else {
+        snapshot(ctx, false).await?
+    };
+    let equipped = result.bait_loadout.as_ref().map_or(0, |row| row.bait_id);
+    let rows: Vec<_> = result
+        .baits
+        .iter()
+        .map(|row| {
+            let stock = result
+                .owned_baits
+                .iter()
+                .find(|stack| stack.bait_id == row.bait_id)
+                .map_or(0, |stack| stack.uses_left);
+            let effect = if row.resource_item.is_empty() {
+                format!("+{}% luck", row.luck_bp / 100)
+            } else {
+                format!("+1 {} per cast", row.resource_item.replace('_', " "))
+            };
             format!(
-                "{} {} · ID {} · level {} · power {} · {}",
-                if r.rod_id == result.player.equipped_rod_id {
-                    "→"
-                } else {
-                    "·"
-                },
-                r.name,
-                r.rod_id,
-                r.minimum_level,
-                r.power,
-                if result
-                    .owned_rods
-                    .iter()
-                    .any(|owned| owned.rod_id == r.rod_id)
-                {
-                    "owned"
-                } else {
-                    "shop purchase needed"
-                }
+                "{} **{}** · ID {} · {} uses · {}",
+                if equipped == row.bait_id { "→" } else { "·" },
+                row.name,
+                row.bait_id,
+                stock,
+                effect
             )
         })
         .collect();
-    reply(ctx, format!("**Your fishing rods**\n{}\nBuy rods at /shop; use /gear to equip owned rods. These rods unlock access; they do not change catch odds.", rows.join("\n"))).await
+    reply(ctx, format!("**Bait pouch**\n{}\n{}\nBuy 10-use packs at /shop (item IDs 101–105). One use per accepted cast; depletion removes bait automatically. /bait bait_id:0 removes bait.", rows.join("\n"), if equipped == 0 { "No bait equipped." } else { "→ Equipped bait" })).await
 }
 
-/// Browse the camp trader or preview a licence/rod purchase by item ID.
+/// Permanently craft the next quality for an owned rod. Defaults to equipped rod.
+#[poise::command(slash_command)]
+async fn upgrade(
+    ctx: Context<'_>,
+    #[description = "Owned rod ID; defaults to equipped rod"] rod_id: Option<u32>,
+) -> Result<(), Error> {
+    ctx.defer_ephemeral().await?;
+    let result = snapshot(ctx, false).await?;
+    let id = rod_id.unwrap_or(result.player.equipped_rod_id);
+    let quote = {
+        let _permit = ctx
+            .data()
+            .pending
+            .try_acquire()
+            .map_err(|_| "The workshop is busy")?;
+        ctx.data()
+            .game
+            .upgrade_action(
+                ctx.author().id.get(),
+                ctx.author().name.clone(),
+                interaction_id(ctx)?,
+                Some(id),
+                None,
+            )
+            .await?
+    };
+    let rod = result
+        .rods
+        .iter()
+        .find(|row| row.rod_id == id)
+        .ok_or("Missing rod")?;
+    let next = result
+        .qualities
+        .iter()
+        .find(|row| row.quality_level == quote.from_quality + 1)
+        .ok_or("Missing quality")?;
+    let previous = result
+        .qualities
+        .iter()
+        .find(|row| row.quality_level == quote.from_quality)
+        .ok_or("Missing quality")?;
+    let confirm_id = format!("upgrade:{}:confirm", interaction_id(ctx)?);
+    let cancel_id = format!("upgrade:{}:cancel", interaction_id(ctx)?);
+    let handle = ctx.send(poise::CreateReply::default().content(format!("**Craft {} {}?**\n{} rusted tin + {} scrap · guaranteed success\n+{} power · +{}% luck · +{}% XP over current quality. Each rod keeps its own permanent quality.\nOffer expires <t:{}:R>.", next.name, rod.name, quote.tin_cost, quote.scrap_cost, next.power_bonus - previous.power_bonus, (next.luck_bp - previous.luck_bp) / 100, (next.xp_bonus_bp - previous.xp_bonus_bp) / 100, quote.expires_at.to_micros_since_unix_epoch() / 1_000_000))
+        .allowed_mentions(serenity::CreateAllowedMentions::new())
+        .components(vec![serenity::CreateActionRow::Buttons(vec![serenity::CreateButton::new(&confirm_id).label("Craft quality").style(serenity::ButtonStyle::Success), serenity::CreateButton::new(&cancel_id).label("Cancel").style(serenity::ButtonStyle::Secondary)])])).await?;
+    let interaction = handle
+        .message()
+        .await?
+        .await_component_interaction(ctx)
+        .author_id(ctx.author().id)
+        .timeout(std::time::Duration::from_secs(110))
+        .filter(move |event| {
+            event.data.custom_id == confirm_id || event.data.custom_id == cancel_id
+        })
+        .await;
+    let Some(interaction) = interaction else {
+        handle
+            .edit(
+                ctx,
+                poise::CreateReply::default()
+                    .content("Offer closed. Use /upgrade for a fresh recipe.")
+                    .components(vec![]),
+            )
+            .await?;
+        return Ok(());
+    };
+    interaction
+        .create_response(ctx, serenity::CreateInteractionResponse::Acknowledge)
+        .await?;
+    let message = if interaction.data.custom_id.ends_with(":cancel") {
+        "Crafting cancelled. Your materials are safe.".into()
+    } else {
+        let _permit = ctx
+            .data()
+            .pending
+            .try_acquire()
+            .map_err(|_| "The workshop is busy")?;
+        match ctx
+            .data()
+            .game
+            .upgrade_action(
+                ctx.author().id.get(),
+                ctx.author().name.clone(),
+                interaction.id.get(),
+                None,
+                Some(quote.nonce),
+            )
+            .await
+        {
+            Ok(committed) if committed.consumed => format!(
+                "✓ **{} {} crafted!** Spent {} rusted tin and {} scrap. This rod keeps its quality when you switch gear.",
+                next.name, rod.name, committed.tin_cost, committed.scrap_cost
+            ),
+            Ok(_) => "Crafting could not be confirmed. Check /gear before trying again.".into(),
+            Err(error) => {
+                tracing::warn!(%error, "Upgrade rejected");
+                rejection(&error)
+            }
+        }
+    };
+    handle
+        .edit(
+            ctx,
+            poise::CreateReply::default()
+                .content(message)
+                .components(vec![])
+                .allowed_mentions(serenity::CreateAllowedMentions::new()),
+        )
+        .await?;
+    Ok(())
+}
+
+/// Browse the camp trader or preview a licence, rod or bait purchase.
 #[poise::command(slash_command)]
 async fn shop(
     ctx: Context<'_>,
@@ -481,11 +1013,13 @@ async fn shop(
                         .owned_rods
                         .iter()
                         .any(|rod| rod.rod_id == row.target_id)
-                } else {
+                } else if row.kind == "licence" {
                     result
                         .licences
                         .iter()
                         .any(|licence| licence.biome_id == row.target_id)
+                } else {
+                    false
                 };
                 format!(
                     "**{}** · ID {} · {} coins · level {}{}",
@@ -497,7 +1031,7 @@ async fn shop(
                 )
             })
             .collect();
-        return reply(ctx, format!("**The Camp Trader** · {} coins in your pouch\n{}\nUse /shop item_id to review an offer before buying. Licences are permanent; each requires the previous licence. Buy a rod, equip with /gear, then travel with /biome.\n[Visit the stall]({}/#trader)", result.player.coins, rows.join("\n"), ctx.data().website.trim_end_matches('/'))).await;
+        return reply(ctx, format!("**The Camp Trader** · {} coins in your pouch\n{}\nUse /shop item_id to review an offer before buying. Licences are permanent; each requires the previous licence. Bait packs contain 10 uses. Equip with /gear or /bait; travel with /biome.\n[Visit the stall]({}/#trader)", result.player.coins, rows.join("\n"), ctx.data().website.trim_end_matches('/'))).await;
     }
     let quote = {
         let _permit = ctx
@@ -522,15 +1056,60 @@ async fn shop(
         .iter()
         .find(|row| row.listing_id == quote.listing_id)
         .ok_or("Missing trader offer")?;
+    let details = if listing.kind == "rod" {
+        let (_, power, luck, xp) = rod_stats(&result, listing.target_id);
+        let (_, old_power, old_luck, old_xp) = rod_stats(&result, result.player.equipped_rod_id);
+        format!(
+            "Power {} · {:.1}% bonus pull · +{}% luck · +{}% XP\nVs equipped: {:+} power · {:+}% luck · {:+}% XP.",
+            power,
+            power as f64 / 2.0,
+            luck / 100,
+            xp / 100,
+            i64::from(power) - i64::from(old_power),
+            (i64::from(luck) - i64::from(old_luck)) / 100,
+            (i64::from(xp) - i64::from(old_xp)) / 100
+        )
+    } else if listing.kind == "bait" {
+        let bait = result
+            .baits
+            .iter()
+            .find(|row| row.bait_id == listing.target_id)
+            .ok_or("Missing bait")?;
+        if bait.resource_item.is_empty() {
+            format!("10 uses · +{}% luck. Equip with /bait.", bait.luck_bp / 100)
+        } else {
+            format!(
+                "10 uses · +1 {} per cast. Equip with /bait.",
+                bait.resource_item.replace('_', " ")
+            )
+        }
+    } else {
+        "A permanent licence; travel separately with /biome.".into()
+    };
     let confirm_id = format!("shop:{}:confirm", interaction_id(ctx)?);
     let cancel_id = format!("shop:{}:cancel", interaction_id(ctx)?);
-    let handle = ctx.send(poise::CreateReply::default()
-        .content(format!("**Buy {} for {} coins?**\nYour pouch: {} coins. This purchase is permanent; it doesn't equip or travel automatically. Offer expires <t:{}:R>.", listing.name, quote.quoted_coins, result.player.coins, quote.expires_at.to_micros_since_unix_epoch() / 1_000_000))
-        .allowed_mentions(serenity::CreateAllowedMentions::new())
-        .components(vec![serenity::CreateActionRow::Buttons(vec![
-            serenity::CreateButton::new(&confirm_id).label(format!("Buy · {} coins", quote.quoted_coins)).style(serenity::ButtonStyle::Success),
-            serenity::CreateButton::new(&cancel_id).label("Cancel").style(serenity::ButtonStyle::Secondary),
-        ])])).await?;
+    let handle = ctx
+        .send(
+            poise::CreateReply::default()
+                .content(format!(
+                    "**Buy {} for {} coins?**\nYour pouch: {} coins. {} Offer expires <t:{}:R>.",
+                    listing.name,
+                    quote.quoted_coins,
+                    result.player.coins,
+                    details,
+                    quote.expires_at.to_micros_since_unix_epoch() / 1_000_000
+                ))
+                .allowed_mentions(serenity::CreateAllowedMentions::new())
+                .components(vec![serenity::CreateActionRow::Buttons(vec![
+                    serenity::CreateButton::new(&confirm_id)
+                        .label(format!("Buy · {} coins", quote.quoted_coins))
+                        .style(serenity::ButtonStyle::Success),
+                    serenity::CreateButton::new(&cancel_id)
+                        .label("Cancel")
+                        .style(serenity::ButtonStyle::Secondary),
+                ])]),
+        )
+        .await?;
     let interaction = handle
         .message()
         .await?
@@ -576,7 +1155,7 @@ async fn shop(
             .await
         {
             Ok(committed) if committed.consumed => format!(
-                "✓ **{} is yours!** Paid {} coins. Use /gear to equip rods and /biome to travel.",
+                "✓ **{} is yours!** Paid {} coins. Use /gear for rods, /bait for bait and /biome to travel.",
                 listing.name, committed.quoted_coins
             ),
             Ok(_) => "The purchase could not be confirmed. Check /shop before trying again.".into(),
@@ -601,7 +1180,7 @@ async fn shop(
 /// Learn the commands and link your companion website.
 #[poise::command(slash_command)]
 async fn help(ctx: Context<'_>) -> Result<(), Error> {
-    reply(ctx, format!("**Fishbound**\n/fish — cast every 60 seconds\n/daily — Dockside Delivery and stamp bonus\n/profile — progression and wallet\n/inventory — catches and management link\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — equip owned rods\n/shop [item_id] — camp trader, licences and rods\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, and confirm sales. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.", ctx.data().website)).await
+    reply(ctx, format!("**Fishbound**\n/fish — cast every 60 seconds\n/daily — Dockside Delivery and stamp bonus\n/profile [player_id] — your progression or a public angler profile\n/inventory — catches and IDs\n/sell [catch_ids] — preview and confirm fish sales\n/leaderboard [category] [page] [species_id] — standings or species records\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — equip owned rods\n/shop [item_id] — licences, rods and bait packs\n/bait [bait_id] — equip bait; 0 removes bait\n/upgrade [rod_id] — craft permanent rod quality\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, confirm sales, and choose earned titles in Achievements. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.", ctx.data().website)).await
 }
 
 fn required(name: &str) -> Result<String, Error> {
@@ -631,11 +1210,23 @@ async fn main() -> Result<(), Error> {
     let _reconnect_watch = game.start_reconnect_watch();
     let assets = std::env::var("ASSET_ROOT").unwrap_or_else(|_| "assets".into());
     let register = std::env::var("DISCORD_REGISTER_COMMANDS").as_deref() == Ok("true");
-    let guild = std::env::var("DISCORD_GUILD_ID")
+    let mut guilds: Vec<u64> = std::env::var("DISCORD_GUILD_IDS")
+        .unwrap_or_default()
+        .split(',')
+        .map(str::trim)
+        .filter(|id| !id.is_empty())
+        .map(str::parse)
+        .collect::<Result<_, _>>()?;
+    if let Some(guild) = std::env::var("DISCORD_GUILD_ID")
         .ok()
-        .filter(|s| !s.is_empty())
-        .map(|id| id.parse::<u64>())
-        .transpose()?;
+        .filter(|id| !id.trim().is_empty())
+        .map(|id| id.trim().parse::<u64>())
+        .transpose()?
+    {
+        guilds.push(guild);
+    }
+    guilds.sort_unstable();
+    guilds.dedup();
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![
@@ -644,9 +1235,13 @@ async fn main() -> Result<(), Error> {
                 shop(),
                 profile(),
                 inventory(),
+                sell(),
+                leaderboard(),
                 collection(),
                 biome(),
                 gear(),
+                bait(),
+                upgrade(),
                 help(),
             ],
             on_error: |error| {
@@ -665,13 +1260,15 @@ async fn main() -> Result<(), Error> {
             Box::pin(async move {
                 if register {
                     poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                    if let Some(guild) = guild {
-                        poise::builtins::register_in_guild(
-                            ctx,
-                            &framework.options().commands,
-                            serenity::GuildId::new(guild),
-                        )
-                        .await?;
+                    let global_commands = serenity::Command::get_global_commands(ctx).await?;
+                    for guild in guilds {
+                        let guild_id = serenity::GuildId::new(guild);
+                        for command in guild_id.get_commands(ctx).await? {
+                            if global_commands.iter().any(|global| global.name == command.name && global.kind == command.kind) {
+                                guild_id.delete_command(ctx, command.id).await?;
+                                tracing::info!(guild, command = %command.name, "Removed duplicate server command");
+                            }
+                        }
                     }
                 }
                 tracing::info!("Discord adapter ready");

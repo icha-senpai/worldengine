@@ -13,9 +13,9 @@ const biomes = [
   [5, 'sunken-coast', 'Sunken Coast', 28, 50, 80, 13, 7, 'Reefs, tidal shallows, shellfish, and open-water giants.'],
   [6, 'glacial-reach', 'Glacial Reach', 40, 65, 83, 12, 5, 'Frozen channels, crystalline shoals, and ancient icebound fish.'],
   [7, 'abyssal-shelf', 'Abyssal Shelf', 55, 85, 78, 14, 8, 'Deep ocean trenches and volcanic vents shelter the rarest discoveries.'],
-].map(([biomeId, key, name, minimumLevel, requiredPower, fishWeight, junkWeight, treasureWeight, description]) => ({biomeId, key, name, minimumLevel, requiredPower, fishWeight, junkWeight, treasureWeight, description}));
+].map(([biomeId, key, name, minimumLevel, _oldPower, fishWeight, junkWeight, treasureWeight, description]) => ({biomeId, key, name, minimumLevel, requiredPower: 0, fishWeight, junkWeight, treasureWeight, description}));
 const rodNames = ['Twig Rod', 'River Rod', 'Marsh Rod', 'Moonwood Rod', 'Tide Rod', 'Glacial Rod', 'Abyssal Rod'];
-const rods = biomes.map((biome, index) => ({rodId: biome.biomeId, name: rodNames[index], power: Math.max(1, biome.requiredPower), minimumLevel: biome.minimumLevel}));
+const rods = biomes.map((biome, index) => ({rodId: biome.biomeId, name: rodNames[index], power: [1,10,20,35,50,65,85][index], minimumLevel: biome.minimumLevel, luckBp: [0, 500, 1000, 1500, 2000, 2500, 3000][index], xpBonusBp: [0, 500, 800, 1200, 1600, 2000, 2500][index], spriteAsset: `/rods/${rodNames[index].replace(' Rod', '').toLowerCase()}.png`}));
 const set = text => new Set(text.split(' '));
 const pond = set('angelfish betta-fish bitterling blue-discus bluegill bream carp crappie crucean-carp fathead-minnow golden-shiner goldfish guppy gudgeon honey-carp killifish koi minnow mosquitofish petal-koi pumpkinseed roach rudd shiner stickleback sunfish tench tilapia');
 const river = set('ancient-sturgeon bass big-mouth-bass brook-trout brown-trout burbot channel-catfish creek-chub dace dorado drum fallfish flowstone-muskellunge lightning-loach muskellunge perch pink-salmon rainbow-trout rock-bass ruffe shad silver-perch spottail-shiner stone-loach stormscale sturddlefish suckerfish threadfin-shad walleye white-bass yellow-perch');
@@ -106,7 +106,7 @@ catalog.version = 4;
 catalog.status = 'species-relative-size-ranks-prototype';
 await writeFile(new URL('species.json', root), JSON.stringify(catalog, null, 2) + '\n');
 await writeFile(new URL('world.json', root), JSON.stringify({version: 4, levelCap: 60, biomes, rods}, null, 2) + '\n');
-await writeFile(new URL('game-rules.json', root), JSON.stringify({version: 4, status: 'species-relative-size-ranks', castCooldownSeconds: 60}, null, 2) + '\n');
+await writeFile(new URL('game-rules.json', root), JSON.stringify({version: 6, status: 'bait-rod-quality-and-mixed-pulls', castCooldownSeconds: 60}, null, 2) + '\n');
 const lengthMinimums = [0, 750000, 900000, 1000000, 1150000, 1300000, 1450000, 1600000, 1750000, 1850000];
 const weightMinimums = [0, 421875, 729000, 1000000, 1520875, 2197000, 3048625, 4096000, 5359375, 6331625];
 await writeFile(new URL('size-rules.json', root), JSON.stringify({version: 4, method: 'both-species-relative-length-and-weight', tiers: tiers.map((rarity, i) => ({rarity, minimumLengthMillionths: lengthMinimums[i], minimumWeightMillionths: weightMinimums[i]}))}, null, 2) + '\n');

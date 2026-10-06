@@ -2,6 +2,8 @@ import { shallowRef, ref, watch, type Ref } from "vue";
 import { DbConnection } from "./bindings/evergather";
 import { user, localPlay } from "./auth";
 import { definitionTables, panelDefinitionQueries } from "./evergather/catalog";
+import { createConnectionRecovery } from "./connectionRecovery";
+import { recordPageLifecycle } from "./pageLifecycle";
 export const evergather = shallowRef<DbConnection | null>(null);
 export const evergatherConnected = ref(false);
 export const evergatherError = ref("");
@@ -9,6 +11,7 @@ export const revision = ref(0);
 export const definitionRevision = ref(0);
 export const evergatherReady = ref(false);
 export const evergatherPanelReady = ref(false);
+export const evergatherReconnecting = ref(false);
 export const gameWorkspace = ref("gather");
 export const gamePanel = ref("actions");
 export const marketPage = ref(1);
@@ -26,21 +29,38 @@ export function initializeEvergather(enabled: Ref<boolean>) {
   if (initialized) return;
   initialized = true;
   let stopPanelWatch: (() => void) | undefined;
-  watch(
-    [user, enabled],
+  let connectionPending = false;
+  const reconnectRevision = ref(0);
+  const recovery = createConnectionRecovery(
+    () => {
+      reconnectRevision.value++;
+    },
+    () =>
+      enabled.value &&
+      (localPlay || Boolean(user.value?.id_token)) &&
+      (active?.isSocketClosed || (!connectionPending && !active?.isActive)),
+  );
+  const stopConnectionWatch = watch(
+    [user, enabled, reconnectRevision],
     ([value, isEnabled]) => {
+      recovery.cancel();
       stopPanelWatch?.();
       stopPanelWatch = undefined;
       const currentGeneration = ++generation;
       active?.disconnect();
       active = null;
+      connectionPending = false;
       evergather.value = null;
       evergatherConnected.value = false;
       evergatherReady.value = false;
       evergatherPanelReady.value = false;
       revision.value++;
       definitionRevision.value++;
-      if (!isEnabled || (!localPlay && !value?.id_token)) return;
+      if (!isEnabled || (!localPlay && !value?.id_token)) {
+        recovery.reset();
+        evergatherReconnecting.value = false;
+        return;
+      }
       let token = value?.id_token;
       if (localPlay) {
         try {
@@ -51,6 +71,7 @@ export function initializeEvergather(enabled: Ref<boolean>) {
           return;
         }
       }
+      connectionPending = true;
       const conn = DbConnection.builder()
         .withUri(host)
         .withDatabaseName(database)
@@ -71,6 +92,9 @@ export function initializeEvergather(enabled: Ref<boolean>) {
             }
           }
           evergather.value = connection;
+          connectionPending = false;
+          recovery.reset();
+          recordPageLifecycle("evergather-connected");
           evergatherConnected.value = true;
           evergatherError.value = "";
           const changed = () => {
@@ -229,6 +253,7 @@ export function initializeEvergather(enabled: Ref<boolean>) {
             .onApplied(() => {
               if (currentGeneration === generation) {
                 evergatherReady.value = true;
+                evergatherReconnecting.value = false;
                 changed();
               }
             })
@@ -249,17 +274,29 @@ export function initializeEvergather(enabled: Ref<boolean>) {
             ]);
         })
         .onConnectError(() => {
-          if (currentGeneration === generation)
+          if (currentGeneration === generation) {
+            connectionPending = false;
+            evergatherReconnecting.value = true;
+            recordPageLifecycle("evergather-connect-failed");
             evergatherError.value = localPlay
               ? "Evergather could not connect. Check that the database is running and local play is enabled."
               : "Evergather could not connect. Please try signing in again.";
+            recovery.schedule();
+          }
         })
         .onDisconnect(() => {
           if (currentGeneration === generation) {
+            connectionPending = false;
+            recordPageLifecycle("evergather-disconnected");
             evergatherConnected.value = false;
             evergatherReady.value = false;
             evergather.value = null;
+            evergatherPanelReady.value = false;
+            evergatherReconnecting.value = true;
+            stopPanelWatch?.();
+            stopPanelWatch = undefined;
             revision.value++;
+            recovery.schedule();
           }
         })
         .build();
@@ -267,4 +304,11 @@ export function initializeEvergather(enabled: Ref<boolean>) {
     },
     { immediate: true },
   );
+  import.meta.hot?.dispose(() => {
+    recovery.stop();
+    stopConnectionWatch();
+    generation++;
+    stopPanelWatch?.();
+    active?.disconnect();
+  });
 }

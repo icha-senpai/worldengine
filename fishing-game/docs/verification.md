@@ -1,5 +1,27 @@
 # Implementation verification — October 3–4, 2026
 
+## Licence and bait artwork (October 5)
+
+Generated six licence and five bait icons with the built-in image tool, then
+copied the original RGBA PNGs into the asset root. All images were visually
+inspected. Decoded pixel samples confirmed transparent outer corners and solid
+subjects. The updated manifest records dimensions and SHA-256 hashes.
+
+Svelte check completed with zero errors and warnings, content validation passed,
+and the production build passed. Restarted through the existing local-service
+launcher. All eleven public image URLs returned PNGs matching the originals by
+SHA-256. Live anonymous Trader checks loaded all six licence and six existing
+rod images, retained guest purchase gating, and showed no horizontal overflow
+at 1440, 390 and 320 pixels. Screenshots are
+`outputs/playwright/trader-licences-{1440,390,320}.png`.
+
+The actual Gear component, using an isolated synthetic account, loaded the
+Plump Worms coming-soon illustration and retained its noninteractive placeholder
+at the same three widths. Screenshots are
+`outputs/playwright/bait-placeholder-{1440,390,320}.png`. Desktop and 320-pixel
+screenshots were visually inspected. Bait and quality crafting were not
+implemented, and no player rewards or purchases were executed by these checks.
+
 ## Automated checks
 
 - Content validator: 251 stable named species, ten rank cards, all seven positive
@@ -375,6 +397,60 @@ invoking `/daily` in Discord; tests did not send Discord messages or claim any l
 player's reward. Long-duration receipt pruning remains a staging check.
 
 
+## Rod artwork, equipped bonuses and tackle-box gear (October 5, 2026)
+
+Duplicate-command correction: Discord API reads confirmed the same nine command
+names/types existed globally and separately in both installed servers. The bot
+now registers only the global set; configured guild IDs identify legacy cleanup
+targets. Startup reads actual global/guild definitions and deletes only matching
+name/type copies, preserving guild-only commands. Rust check/build passed. The
+rebuilt bot removed 18 guild commands and reported ready. Subsequent API reads
+confirmed all nine global commands, zero local commands in both The Magic Tree
+House and Kyeri's Cozy Kingdom, and the existing public OAuth callback. No
+gameplay state or other applications' commands were changed. Earlier direct
+registration evidence later in this document describes historical behavior.
+
+Pond animation follow-up: Windows client-area animations were observed disabled;
+the previous pond CSS stopped when prefers-reduced-motion reported reduce. The
+browser mismatch was reproduced by emulating that preference; Opera GX itself
+was not directly inspected. PondScene now defaults to the system preference but
+provides an accessible Animate pond / Pause pond toggle, remembered in local
+browser storage. An explicit animation choice overrides the global motion rule
+only for the koi, bobber and ripples. Decorative scene art remains aria-hidden;
+the control is accessible to keyboard and screen-reader users.
+
+The live browser check verified actual changing transforms under reduced motion,
+pause, reload persistence, OS-preference changes, keyboard control and nonoverlap
+at 320/390/1440 widths. Svelte check reported zero errors/warnings and the
+production build passed. Website, linker and bot restarted successfully.
+
+Seven transparent RGBA rod PNGs were generated with built-in image_gen, copied
+to assets/rods, validated for alpha and recorded in the asset manifest. Prompts
+are in docs/rod-art-prompts.json; gameplay policy is in docs/rod-progression.md.
+
+Validation passed: 20 pure game-rules tests (including exact rod-adjusted odds in
+all seven biomes and every modifier tier), 20 production-WASM integration checks,
+the expanded trader proof (equipped Abyssal XP once including discovery; replay
+after switching to Twig retains rewards; cooldown unchanged), native Rust
+adapter/reconnect checks, Svelte check with zero warnings/errors, workspace Rust
+check and production web/native builds.
+
+An isolated fixture rendered the actual Gear, Trader and Junk & Materials Svelte
+components with synthetic account state. Browser checks covered gear placement,
+reactive rod artwork/stats, inert bait slot, current-biome power restrictions,
+equipped comparisons and widths 320/390/768/1440. Desktop/mobile screenshots were
+visually inspected. Public-site browser checks loaded all six purchasable rod
+images and correct bonuses; all seven image URLs returned HTTP 200. A real
+Discord player's private tackle box was not used for UI testing.
+
+The live additive module upgrade created only rod_bonuses, then owner activation
+seeded seven rows and inserted rules-version-5 config (60s cooldown, unlimited
+inventory, level cap 60). Preservation snapshots matched 14 gameplay tables
+exactly, including players, coins, XP, specimens, rod/licence ownership, items,
+ledger, collection, profiles, records, standings, legends, daily state and cast
+receipts. Services restarted successfully; the Discord adapter reported ready,
+public WebSocket reconnect/privacy checks passed, and commands remained present.
+
 ## Camp trader, paid rods, and biome licences
 
 - The content validator checks twelve unique positive-price offers, matching
@@ -413,3 +489,131 @@ catalog offers and no anonymous player, rods, licences, or quotes, including aft
 reconnect. Public Camp/Trader navigation, live shelves, guest purchase gating, and
 1440/390/320px layouts passed; screenshots are trader-public-{camp,desktop}.png.
 Account-link readiness returned HTTP 200. No live player's coins were spent by tests.
+
+
+## Two-server Discord command visibility (October 5)
+
+Discord returned all nine global commands and direct commands for The Magic Tree
+House, while Kyeri's Cozy Kingdom had no direct registrations. The bot was present
+in both; Cozy Kingdom's everyone role allowed application commands, channels had
+no explicit denial of that permission, and application-command permission
+responses contained no overrides. This supports a global-command/client visibility
+issue; the user's Discord picker itself was not inspected.
+
+Added comma-separated DISCORD_GUILD_IDS alongside the supported DISCORD_GUILD_ID.
+Startup trims/deduplicates the combined IDs, registers globally, and refreshes
+both configured servers. Check, build, formatting, and diff checks passed. After
+restarting the rebuilt bot, the Discord API confirmed all nine direct commands in
+both servers and the bot reached Gateway readiness. No Discord message was sent
+or gameplay state changed during these checks.
+
+
+## Bait, permanent rod quality and mixed pulls (October 5)
+
+Gameplay rules 6 and trader catalog 2 are published to fishbound-dev-local and
+served at https://fish.ichaa.dev. This update adds metadata/private tables and
+scoped views without replacing existing player schemas. Owner activation seeds
+five bait types, seven qualities and seventeen trader offers; all old biome
+power requirements become zero. Before/after snapshots matched every row and
+schema in fourteen gameplay tables: player, rods, licences, catches, discoveries,
+materials, ledger, public profile, species records, standings, legendary finds,
+daily state, daily receipts and cast receipts. No player's rewards or wallet
+were used for verification.
+
+Validation completed:
+
+- Content validation, twenty Rust rules tests and four catch-card renderer tests.
+  Rules tests cover every biome/family/quality/luck combination, positive integer
+  ticket weights, fixed normalization, exact exceptional per-pull ratios, XP
+  arithmetic and power bounds. Every supplied fish sprite fits every rank card.
+- Existing integration proof: all twenty checks pass, including account linking,
+  scoped reads, mutation authority, sale/favorite behavior, records, replay,
+  cooldown, reconnect and service revocation. First-cast assertions now validate
+  every pull and tolerate the Common Twig's actual bonus-pull chance.
+- Trader boundary proof: sequential licences, optional stronger rods, seven-biome
+  travel, exact wallet costs, replay, conflicting confirmations, stale prices,
+  expiry, privacy and one-time grandfather migration. Equipped XP applies once
+  to the combined pulls, and native purchase recovery survives reconnect.
+- scripts/crafting-proof.ts builds a separate fixture module with owner-only
+  controls in scripts/fixtures/crafting-boundary.rs; these controls are absent
+  from production WASM. It checks all six recipes, independent rod qualities,
+  guaranteed success, atomic spending, maximum quality, twenty two-pull casts,
+  resource bait once per cast, all luck baits, one charge per cast, cooldown
+  rejection, replay after gear/bait changes, depletion, XP rounding, saved fish
+  IDs, mixed categories, stale/expired quotes, disappearing materials, competing
+  browser/Discord confirmations, metadata-only activation and private-view denial.
+  Native client proof additionally purchases/equips bait, crafts quality and
+  reconnects to recover the same saved rewards without spending twice.
+- Browser QA used the actual Gear and Trader components with a clearly labelled
+  synthetic account. Six quality upgrades, individual rod permanence, combined
+  bait luck, depletion, repeated pack purchases and exact purchase previews pass.
+  Desktop 1440px and phones 390/320px have no horizontal overflow. Gear remains
+  above Junk & Materials. Screenshots are output/playwright/crafting-gear-*.png
+  and crafting-trader-*.png; inspected desktop and narrow-phone renderings.
+- Public site QA verified all three Trader shelves, five baits across responsive
+  pages, guest purchase gating, artwork loading, updated World/Compendium rules
+  and 1440/390/320px layouts. Screenshots are crafting-public-*.png. All eleven
+  licence/bait PNGs match local SHA-256 hashes and retain RGBA encoding.
+- Svelte check has zero errors/warnings; production build, native workspace checks,
+  formatting and diff whitespace checks pass. The rebuilt bot reaches Gateway
+  readiness; account linker readiness is HTTP 200. Public WebSocket fresh/reconnect
+  subscriptions expose the catalogs and no anonymous bait/loadout/upgrade state.
+- Discord API confirms eleven global commands, including /bait [bait_id] and
+  /upgrade [rod_id], with zero direct duplicate copies in both installed servers.
+
+Live Discord button delivery and a two-card response have not been invoked with
+an actual player. Those handlers compile, native transport is tested against the
+isolated server, and the real card renderer passes; tests sent no Discord messages.
+Real-player pacing and long-duration retention/restoration remain staging work.
+
+## 2026-10-05: sales, standings, public anglers and cosmetic achievements
+
+- `npm run test:integration`: all 20 trust-boundary checks pass, including
+  native reconnect, daily rewards, inventory sales, public record transfers,
+  scoped views, unlinking and revoked services.
+- `npx tsx scripts/social-proof.ts`: separate fixture WASM and fresh loopback
+  database verify exact sale quotes, confirm/replay, replay after quote expiry,
+  wrong account/nonce, duplicate and oversized batches, favorites at prepare and
+  commit, expired and changed prices, and overlapping website/Discord sales.
+  Exactly one overlapping sale succeeds and pays once.
+- The social proof exercises all 18 badges, automatic first-cast unlocks,
+  retroactive lifetime history including sold fish, independent bonus badges,
+  permanent awards and original timestamps, cosmetic-only activation/backfill,
+  earned-title selection and clearing, anonymous privacy, raw-private-table
+  denial, unlink and service revocation. Native sale transport also commits and
+  recovers the same confirmation after reconnect without a second payment.
+- `npx tsx scripts/crafting-proof.ts` passes again: recipes, mixed pulls, bait
+  charges, XP rounding, ownership, replay and browser/Discord crafting races.
+  `cargo test -p discord-bot --locked` passes all five tests, including input
+  validation and rendering every supplied sprite on every rarity card.
+- Actual Achievements/Anglers components were tested with a labelled synthetic
+  account at 1440px, 390px and 320px. Title select/clear/reactivity, name/game-ID
+  search, paging, bonus unlocks and private-data omission pass without horizontal
+  overflow. Inspected screenshots: `output/playwright/social-achievements-*.png`
+  and `social-profile-*.png`. No synthetic account was added to the live database.
+- Svelte check has zero errors/warnings and production builds pass. Additive
+  publication created only new cosmetic/sale tables and scoped views. Cosmetic
+  backfill credited the six existing players. All fourteen gameplay tables match
+  their pre-update schemas and rows exactly, including wallet, XP, inventory,
+  equipment, materials, collection, records, daily state and receipts.
+- The rebuilt bot reaches Gateway readiness. Discord API confirms thirteen
+  global handlers, including `/sell`, `/leaderboard` and `/profile [player_id]`,
+  with no direct duplicate commands in either installed guild. The real public
+  OAuth callback remains registered.
+- Public WebSocket fresh/reconnect checks expose 251 fish, seven biomes,
+  seventeen trader offers, eighteen badges and public profiles while anonymous
+  private progress, ownership, inventory and sale quotes remain empty. Unrelated
+  database routes return 404 and unrelated OAuth Origins return 403.
+- Live public browser QA verifies retroactive badge display, clickable record
+  holders and shareable game-ID profile links without document reloads, retained
+  Records/Anglers filters when switching tabs, guest achievement gating, and
+  public profiles at 1440/390/320px without horizontal overflow. Screenshots are
+  `output/playwright/social-public-profile-*.png`. The exact restart launcher
+  succeeds; the public homepage and local account-link readiness both return 200.
+
+Actual Discord command/confirmation delivery and real OAuth consent/callback
+remain unverified in this pass: no signed-in Discord browser session was
+available. A real-player login/cast/site-update check was requested from the
+owner. Isolated protocol/native proofs and registration checks do not replace
+that acceptance test. No test sent messages to Discord or spent real players'
+coins or fish.

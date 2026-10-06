@@ -41,7 +41,7 @@ async function connect(queries: string[]) {
   return connection;
 }
 try {
-  const bot = await connect(['SELECT * FROM my_service', 'SELECT * FROM adapter_player', 'SELECT * FROM adapter_rods', 'SELECT * FROM adapter_licences', 'SELECT * FROM adapter_shop_quote', 'SELECT * FROM adapter_receipt', 'SELECT * FROM shop_listing']);
+  const bot = await connect(['SELECT * FROM my_service', 'SELECT * FROM adapter_player', 'SELECT * FROM adapter_rods', 'SELECT * FROM adapter_licences', 'SELECT * FROM adapter_shop_quote', 'SELECT * FROM adapter_cast_pulls', 'SELECT * FROM adapter_receipt', 'SELECT * FROM shop_listing', 'SELECT * FROM rod_bonuses', 'SELECT * FROM species_rank_definition', 'SELECT * FROM species_definition']);
   ownerCall('configure_service', [JSON.stringify(bot.identity!.toHexString()), JSON.stringify({ discordAdapter: {} }), 'true']);
   const select = async (user: bigint) => {
     const interactionId = snowflake();
@@ -86,7 +86,7 @@ try {
   for (let biome = 3; biome <= 7; biome++) {
     await purchase(9203n, biome * 10);
     args = await select(9203n);
-    await assert.rejects(bot.reducers.changeLoadoutFromDiscord({ ...args, biomeId: biome }), /BIOME_POWER_REQUIRED/);
+    await bot.reducers.changeLoadoutFromDiscord({ ...args, biomeId: biome });
     await purchase(9203n, biome * 10 + 1);
     args = await select(9203n);
     await bot.reducers.changeLoadoutFromDiscord({ ...args, biomeId: biome, rodId: biome });
@@ -96,6 +96,20 @@ try {
   assert.equal(bot.db.adapterRods.count(), 7n);
   await bot.reducers.fishFromDiscord({ ...args, guildId: 5n, channelId: 42n });
   assert.equal([...bot.db.adapterReceipt.iter()][0].biomeId, 7);
+  const castReceipt = [...bot.db.adapterReceipt.iter()][0];
+  assert.equal(castReceipt.rodId, 7);
+  assert.equal(castReceipt.rulesVersion, 6);
+  const baseXp = [...bot.db.adapterCastPulls.iter()].reduce((sum,pull)=>sum+pull.baseXp,0n);
+  assert.equal(castReceipt.xpGranted,baseXp*12500n/10000n,'Equipped rod XP applies once to all pulls including discovery');
+  assert.equal(bot.db.rodBonuses.count(), 7n);
+  const castPlayer = [...bot.db.adapterPlayer.iter()][0];
+  await bot.reducers.changeLoadoutFromDiscord({ ...args, biomeId: 1, rodId: 1 });
+  await bot.reducers.fishFromDiscord({ ...args, guildId: 5n, channelId: 42n });
+  assert.equal([...bot.db.adapterReceipt.iter()][0].xpGranted, castReceipt.xpGranted, 'Replay after changing rod retains the original reward');
+  assert.equal([...bot.db.adapterPlayer.iter()][0].totalXp, castPlayer.totalXp);
+  assert.equal([...bot.db.adapterPlayer.iter()][0].nextCastAt.microsSinceUnixEpoch, castPlayer.nextCastAt.microsSinceUnixEpoch);
+  await assert.rejects(bot.reducers.fishFromDiscord({ ...args, interactionId: snowflake(), guildId: 5n, channelId: 42n }), /COOLDOWN_ACTIVE/);
+  console.log('PASS equipped-rod XP applies once, discovery is included, replay keeps original reward after a gear change, and cooldown is unchanged.');
   ownerCall('prepare_trader_player', ['9204', '10000000', '200000', '1']);
   const changed = await prepare(9204n, 20);
   ownerCall('change_proof_offer', ['20', '151']);
@@ -169,5 +183,5 @@ try {
   assert.equal(browser.db.myRods.count(), 0n);
   assert.equal(browser.db.myLicences.count(), 0n);
   assert.equal(browser.db.myShopQuote.count(), 0n);
-  console.log('PASS trader proof: all seven biomes require purchased gear/licences, sequential access, wallet/ledger correctness, replay, browser/Discord race, expiry, stale price, privacy, and one-time legacy migration.');
+  console.log('PASS trader proof: all seven biomes require sequential licences and levels; optional purchased rods, sequential access, wallet/ledger correctness, replay, browser/Discord race, expiry, stale price, privacy, and one-time legacy migration.');
 } finally { for (const connection of connections) connection.disconnect(); }

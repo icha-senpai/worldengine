@@ -38,9 +38,6 @@ fn change(
     if level < biome.minimum_level {
         return Err(format!("BIOME_LEVEL_REQUIRED:{}", biome.minimum_level));
     }
-    if rod.power < biome.required_power {
-        return Err(format!("BIOME_POWER_REQUIRED:{}", biome.required_power));
-    }
     let key = u128::from(player_id) << 32 | u128::from(rod.rod_id);
     if ctx.db.owned_rod().key().find(key).is_none() {
         return Err("ROD_NOT_OWNED".into());

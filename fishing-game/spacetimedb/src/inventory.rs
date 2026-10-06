@@ -1,5 +1,148 @@
 use crate::tables::*;
-use spacetimedb::{ReducerContext, Table, TimeDuration, rand::Rng};
+use spacetimedb::{ReducerContext, Table, TimeDuration, ViewContext, rand::Rng};
+
+fn sale_total(ctx: &ReducerContext, player_id: u64, ids: &[u64]) -> Result<u64, String> {
+    if ids.is_empty() || ids.len() > 50 {
+        return Err("BATCH_INVALID".into());
+    }
+    let mut sorted = ids.to_vec();
+    sorted.sort_unstable();
+    if sorted.windows(2).any(|pair| pair[0] == pair[1]) {
+        return Err("DUPLICATE_CATCH".into());
+    }
+    let mut total = 0u64;
+    for id in ids {
+        let fish = ctx
+            .db
+            .owned_specimen()
+            .catch_id()
+            .find(*id)
+            .ok_or("CATCH_UNAVAILABLE")?;
+        if fish.player_id != player_id {
+            return Err("CATCH_NOT_OWNED".into());
+        }
+        if fish.favorite {
+            return Err("FAVORITE_PROTECTED".into());
+        }
+        total = total
+            .checked_add(fish.sale_value_coins)
+            .ok_or("COIN_OVERFLOW")?;
+    }
+    Ok(total)
+}
+
+fn settle_sale(
+    ctx: &ReducerContext,
+    player_id: u64,
+    ids: &[u64],
+    quoted_coins: u64,
+    operation: String,
+) -> Result<(), String> {
+    let coins = sale_total(ctx, player_id, ids)?;
+    if coins != quoted_coins {
+        return Err("QUOTE_CHANGED".into());
+    }
+    let mut player = ctx
+        .db
+        .player()
+        .player_id()
+        .find(player_id)
+        .ok_or("PLAYER_MISSING")?;
+    player.coins = player.coins.checked_add(coins).ok_or("COIN_OVERFLOW")?;
+    player.kept_count = player
+        .kept_count
+        .checked_sub(ids.len() as u32)
+        .ok_or("COUNT_UNDERFLOW")?;
+    let delta = i64::try_from(coins).map_err(|_| "COIN_OVERFLOW")?;
+    for id in ids {
+        ctx.db.owned_specimen().catch_id().delete(*id);
+    }
+    ctx.db.player().player_id().update(player);
+    ledger(ctx, player_id, operation, "coins", delta, "fish_sale");
+    Ok(())
+}
+
+#[spacetimedb::reducer]
+pub fn prepare_sale_from_discord(
+    ctx: &ReducerContext,
+    discord_user_id: u64,
+    interaction_id: u64,
+    catch_ids: Vec<u64>,
+) -> Result<(), String> {
+    let player_id = crate::shop::adapter_player_id(ctx, discord_user_id, interaction_id)?;
+    let key = format!("{}:{player_id}", ctx.sender());
+    if ctx
+        .db
+        .sale_quote()
+        .key()
+        .find(&key)
+        .is_some_and(|old| ctx.timestamp < old.created_at + TimeDuration::from_micros(1_000_000))
+    {
+        return Err("ACTION_RATE_LIMITED".into());
+    }
+    let quoted_coins = sale_total(ctx, player_id, &catch_ids)?;
+    let quote = SaleQuote {
+        key,
+        identity: ctx.sender(),
+        player_id,
+        nonce: ctx.rng().r#gen(),
+        catch_ids,
+        quoted_coins,
+        created_at: ctx.timestamp,
+        expires_at: ctx.timestamp + TimeDuration::from_micros(120_000_000),
+        consumed: false,
+    };
+    if ctx.db.sale_quote().key().find(&quote.key).is_some() {
+        ctx.db.sale_quote().key().update(quote);
+    } else {
+        ctx.db.sale_quote().insert(quote);
+    }
+    Ok(())
+}
+
+#[spacetimedb::reducer]
+pub fn commit_sale_from_discord(
+    ctx: &ReducerContext,
+    discord_user_id: u64,
+    interaction_id: u64,
+    nonce: u128,
+) -> Result<(), String> {
+    let player_id = crate::shop::adapter_player_id(ctx, discord_user_id, interaction_id)?;
+    let mut quote = ctx
+        .db
+        .sale_quote()
+        .key()
+        .find(format!("{}:{player_id}", ctx.sender()))
+        .ok_or("ACTION_NOT_FOUND")?;
+    if quote.nonce != nonce || quote.identity != ctx.sender() || quote.player_id != player_id {
+        return Err("ACTION_CONFLICT".into());
+    }
+    if quote.consumed {
+        return Ok(());
+    }
+    if ctx.timestamp >= quote.expires_at {
+        return Err("ACTION_EXPIRED".into());
+    }
+    settle_sale(
+        ctx,
+        player_id,
+        &quote.catch_ids,
+        quote.quoted_coins,
+        format!("discord-sale:{nonce}"),
+    )?;
+    quote.consumed = true;
+    ctx.db.sale_quote().key().update(quote);
+    Ok(())
+}
+
+#[spacetimedb::view(accessor = adapter_sale_quote, public)]
+pub fn adapter_sale_quote(ctx: &ViewContext) -> Option<SaleQuote> {
+    let player_id = crate::shop::selected(ctx)?;
+    ctx.db
+        .sale_quote()
+        .key()
+        .find(format!("{}:{player_id}", ctx.sender()))
+}
 
 fn player_id(ctx: &ReducerContext) -> Result<u64, String> {
     ctx.db
@@ -164,60 +307,34 @@ pub fn commit_inventory_action(ctx: &ReducerContext, nonce: u128) -> Result<(), 
     if nonce != action.nonce {
         return Err("ACTION_CONFLICT".into());
     }
-    if ctx.timestamp >= action.expires_at {
-        return Err("ACTION_EXPIRED".into());
-    }
     if action.consumed {
         return Ok(());
     }
-    let mut player = ctx
-        .db
-        .player()
-        .player_id()
-        .find(player_id)
-        .ok_or("PLAYER_MISSING")?;
-    let mut coins = 0u64;
-    for id in &action.catch_ids {
-        let mut fish = ctx
-            .db
-            .owned_specimen()
-            .catch_id()
-            .find(*id)
-            .ok_or("CATCH_UNAVAILABLE")?;
-        if fish.player_id != player_id {
-            return Err("CATCH_NOT_OWNED".into());
-        }
-        if action.kind == "sell" {
-            if fish.favorite {
-                return Err("FAVORITE_PROTECTED".into());
+    if ctx.timestamp >= action.expires_at {
+        return Err("ACTION_EXPIRED".into());
+    }
+    if action.kind == "sell" {
+        settle_sale(
+            ctx,
+            player_id,
+            &action.catch_ids,
+            action.quoted_coins,
+            format!("web:{nonce}"),
+        )?;
+    } else {
+        for id in &action.catch_ids {
+            let mut fish = ctx
+                .db
+                .owned_specimen()
+                .catch_id()
+                .find(*id)
+                .ok_or("CATCH_UNAVAILABLE")?;
+            if fish.player_id != player_id {
+                return Err("CATCH_NOT_OWNED".into());
             }
-            coins = coins
-                .checked_add(fish.sale_value_coins)
-                .ok_or("COIN_OVERFLOW")?;
-            ctx.db.owned_specimen().catch_id().delete(*id);
-        } else {
             fish.favorite = action.favorite;
             ctx.db.owned_specimen().catch_id().update(fish);
         }
-    }
-    if action.kind == "sell" {
-        if coins != action.quoted_coins {
-            return Err("QUOTE_CHANGED".into());
-        }
-        player.coins = player.coins.checked_add(coins).ok_or("COIN_OVERFLOW")?;
-        player.kept_count = player
-            .kept_count
-            .checked_sub(action.catch_ids.len() as u32)
-            .ok_or("COUNT_UNDERFLOW")?;
-        ledger(
-            ctx,
-            player_id,
-            format!("web:{nonce}"),
-            "coins",
-            i64::try_from(coins).map_err(|_| "COIN_OVERFLOW")?,
-            "fish_sale",
-        );
-        ctx.db.player().player_id().update(player);
     }
     action.consumed = true;
     ctx.db.action_nonce().identity().update(action);

@@ -1,10 +1,10 @@
 # Agreed Discord command plan
 
-Status: nine handlers (/fish, /daily, /profile, /inventory, /collection, /biome, /gear, /shop, /help)
+Status: thirteen handlers (/fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /shop, /bait, /upgrade, /help)
 are implemented. /biome accepts optional biome_id; /gear accepts optional rod_id.
 Meadow Pond and the starter Twig Rod are free. Later rods and permanent biome licences are bought from the camp trader after reaching their level requirements. Collection responses summarize seven
-biomes to stay within Discord message limits; the website shows the full book. Other launch handlers remain pending. The nine current commands are registered globally and directly in the configured guild.
-The current /profile handler is caller-only; the optional player lookup follows later.
+biomes to stay within Discord message limits; the website shows the full book. All launch commands below are implemented. The thirteen commands are registered globally; matching legacy server copies are removed on startup.
+/profile accepts an optional public player_id from /leaderboard. Other profiles show only public progression, records, titles and badge counts; wallets and inventory remain private.
 This plan updates the original design specification's Discord command list.
 Commands use plain Discord slash syntax. The `./` spelling in chat was only to
 avoid triggering another integration; it is not a bot prefix or alias.
@@ -13,17 +13,18 @@ avoid triggering another integration; it is not a bot prefix or alias.
 
 | Command | Intended behavior |
 |---|---|
-| `/profile [player]` | Show the player's profile, statistics, current progression, and website link. |
+| `/profile [player_id]` | Own progression and wallet; optional game ID opens another angler's public profile. |
 | `/fish` | Cast in the selected biome, with a global one-minute cooldown, and show the authoritative saved result. |
 | `/daily` | Dockside Delivery: 100 coins, plus 250 every seventh claim; show stamps and next midnight-UTC reset. |
-| `/upgrade` | Show the selected rod's upgrade cost and benefit, then confirm before spending. |
-| `/sell` | Select catches, preview the total payout, and confirm the sale; protect favorites. |
+| `/upgrade [rod_id]` | Confirm the next permanent quality for an owned rod; defaults to equipped rod. |
+| `/bait [bait_id]` | List owned uses or equip bait; ID 0 removes it. |
+| `/sell [catch_ids]` | Enter 1–50 catch IDs from /inventory, separated by spaces or commas. Preview exact payout, then confirm or cancel; favorites are protected. |
 | `/inventory` | Show owned catches, catch IDs, favorites, and total fish kept; provide management buttons. Storage is unlimited. |
 | `/collection` | Show discoveries, missing species, and personal length/weight records. |
-| `/biome` | Travel to a licensed biome when level and equipped rod power qualify. |
+| `/biome` | Travel to a licensed biome when level and sequential licence qualify. |
 | `/gear` | Show rod ownership and equip purchased rods; does not grant free gear. |
-| `/shop` | Browse the camp trader; `/shop [item_id]` previews a licence or rod with buy/cancel buttons. Bait follows later. |
-| `/leaderboard` | Show discovery/count standings and per-species length/weight records. |
+| `/shop` | Browse the camp trader; `/shop [item_id]` previews a licence, rod or 10-use bait pack with buy/cancel buttons. |
+| `/leaderboard [category] [page] [species_id]` | Four global categories (discoveries, fish, UUR, records), ten anglers per page, shared places for ties. Optional species ID shows longest/heaviest records. |
 | `/help` | Explain commands, cooldowns, ranks, account linking, and getting started. |
 
 Use buttons, selects, and website links for follow-up actions where they keep
@@ -79,7 +80,7 @@ require the previous biome licence. Buying never equips or travels automatically
 Both the website and `/shop` preview the server price before explicit confirmation.
 Quotes last two minutes and bind the caller, player, listing, price, and catalog
 version. Commit rechecks eligibility, wallet, and ownership; retries cannot spend
-again. The website World map can equip an owned suitable rod while travelling.
+again. The website World map travels using the current owned rod, preserving cooldown.
 
 | Destination | Level | Licence | Rod | Combined coins |
 |---|---:|---:|---:|---:|
@@ -94,3 +95,23 @@ Prices are initial tuning in `content/trader.json`. Existing rods are retained;
 the one-time transition grants licences through a player's furthest selected or
 discovered biome. New players and future unlocks require purchases. Neither
 purchase nor travel changes fishing cooldown, XP, odds, collection, or records.
+
+Crafting guarantees success and consumes the quoted tin/scrap recipe once.
+Each rod keeps its own quality permanently. Bonus pulls independently roll the
+same biome category pool, sharing one cooldown and one bait use. `/fish` delivers
+up to two saved rarity-card attachments, one for each fish, and saved item rewards.
+No typical-size multipliers or internal catch-save IDs appear in these embeds.
+
+## Achievements and public profiles shipped
+
+The website Achievements book shows 16 ordinary milestones and two bonus badges,
+private progress, earned dates and selectable titles. /profile links to it.
+Titles and badges are cosmetic and permanent; existing players receive retroactive
+credit from lifetime counters and collection history, including sold fish.
+See [achievement catalog](achievements.md). The public Anglers book supports name
+or game-ID search, paged profiles, records and shareable profile links.
+
+Sale previews bind service identity, player, nonce and exact catch IDs for two
+minutes. Only the invoking Discord user can confirm. Commit rechecks ownership,
+favorites and the quoted total atomically; concurrent website/Discord sales pay
+once. Sale quotes are private and expired rows are pruned after a day.

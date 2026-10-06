@@ -13,12 +13,14 @@ Live Discord delivery and real OAuth authorization remain exit checks.
 - [x] OAuth code exchange, verified identity fetch, browser proof, CSRF cookie/state,
   expiry, one-use sessions, replacement/revocation, and unlinking implemented.
 - [x] Private subscriptions reject unrelated callers; reconnect restores committed state.
-- [ ] Verify actual Discord deferral, attachments, registration, and delivery retries.
+- [x] Verify registration: thirteen global commands, no duplicate server copies.
+- [ ] Verify actual Discord deferral, attachments, button delivery and retries.
 - [ ] Verify actual Discord OAuth consent/callback with application credentials.
 
-The last two checks require Discord credentials. Local OAuth HTTP fixtures and
-native/module tests cover the protocol implementation but do not count as real
-Discord verification. No commands have been registered against Discord.
+The bot credentials are configured, the public OAuth callback is registered,
+and the bot reaches Gateway readiness. The remaining checks require a real
+signed-in player to invoke Discord and complete OAuth consent. Local HTTP and
+native/module proofs do not count as that live acceptance test.
 
 See [verification](verification.md) and [setup](setup.md). Broader progression,
 production launch, restore proof, and full V1 balancing remain later work.

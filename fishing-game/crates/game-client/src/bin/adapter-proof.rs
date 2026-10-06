@@ -98,6 +98,81 @@ async fn main() -> Result<(), Error> {
         .shop_action(9001, "Native proof".into(), snowflake(9), Some(20), None)
         .await;
     assert!(locked_offer.is_err_and(|error| error.to_string().contains("SHOP_LEVEL_REQUIRED")));
+    if std::env::var("TEST_SOCIAL_PROOF").as_deref() == Ok("true") {
+        let before = client
+            .player(
+                9408,
+                "Native social proof".into(),
+                snowflake(40),
+                None,
+                1,
+                false,
+            )
+            .await?;
+        assert_eq!(before.achievements.len(), 18);
+        assert!(
+            before
+                .public_profiles
+                .iter()
+                .any(|row| row.player_id == before.player.player_id)
+        );
+        let ids = before
+            .inventory
+            .iter()
+            .map(|row| row.catch_id)
+            .collect::<Vec<_>>();
+        assert!(!ids.is_empty());
+        let quote = client
+            .sale_action(
+                9408,
+                "Native social proof".into(),
+                snowflake(41),
+                Some(ids.clone()),
+                None,
+            )
+            .await?;
+        client.disconnect();
+        let committed = client
+            .sale_action(
+                9408,
+                "Native social proof".into(),
+                snowflake(42),
+                None,
+                Some(quote.nonce),
+            )
+            .await?;
+        assert!(committed.consumed);
+        client.disconnect();
+        assert_eq!(
+            client
+                .sale_action(
+                    9408,
+                    "Native social proof".into(),
+                    snowflake(43),
+                    None,
+                    Some(quote.nonce)
+                )
+                .await?,
+            committed
+        );
+        let after = client
+            .player(
+                9408,
+                "Native social proof".into(),
+                snowflake(44),
+                None,
+                1,
+                false,
+            )
+            .await?;
+        assert_eq!(after.player.coins, before.player.coins + quote.quoted_coins);
+        assert_eq!(
+            after.player.kept_count,
+            before.player.kept_count - ids.len() as u32
+        );
+        assert_eq!(after.collection, before.collection);
+        assert_eq!(after.earned_achievements, before.earned_achievements);
+    }
     if std::env::var("TEST_SHOP_PROOF").as_deref() == Ok("true") {
         let quote = client
             .shop_action(
@@ -145,6 +220,88 @@ async fn main() -> Result<(), Error> {
         assert_eq!(state.player.coins, 199850);
         assert_eq!(state.licences.len(), 1);
         assert_eq!(state.owned_rods.len(), 1);
+    }
+    if std::env::var("TEST_CRAFTING_PROOF").as_deref() == Ok("true") {
+        let quote = client
+            .shop_action(
+                9303,
+                "Native crafting proof".into(),
+                snowflake(20),
+                Some(103),
+                None,
+            )
+            .await?;
+        client
+            .shop_action(
+                9303,
+                "Native crafting proof".into(),
+                snowflake(21),
+                None,
+                Some(quote.nonce),
+            )
+            .await?;
+        let equipped = client
+            .equip_bait(9303, "Native crafting proof".into(), snowflake(22), 3)
+            .await?;
+        assert_eq!(equipped.bait_loadout.expect("bait loadout").bait_id, 3);
+        assert_eq!(equipped.owned_baits[0].uses_left, 10);
+        let upgrade = client
+            .upgrade_action(
+                9303,
+                "Native crafting proof".into(),
+                snowflake(23),
+                Some(1),
+                None,
+            )
+            .await?;
+        assert_eq!((upgrade.tin_cost, upgrade.scrap_cost), (10, 5));
+        let committed = client
+            .upgrade_action(
+                9303,
+                "Native crafting proof".into(),
+                snowflake(24),
+                None,
+                Some(upgrade.nonce),
+            )
+            .await?;
+        assert!(committed.consumed);
+        client.disconnect();
+        assert_eq!(
+            client
+                .upgrade_action(
+                    9303,
+                    "Native crafting proof".into(),
+                    snowflake(25),
+                    None,
+                    Some(upgrade.nonce)
+                )
+                .await?,
+            committed
+        );
+        let id = snowflake(26);
+        let caught = client
+            .player(9303, "Native crafting proof".into(), id, Some(5), 42, true)
+            .await?;
+        assert_eq!(caught.owned_rods[0].upgrade_level, 1);
+        assert_eq!(caught.owned_baits[0].uses_left, 9);
+        assert!((1..=2).contains(&caught.cast_pulls.len()));
+        assert_eq!(
+            caught
+                .cast_equipment
+                .as_ref()
+                .expect("equipment snapshot")
+                .luck_bp,
+            700
+        );
+        let replay = client
+            .player(9303, "Native crafting proof".into(), id, Some(5), 42, true)
+            .await?;
+        assert_eq!(replay.cast_pulls, caught.cast_pulls);
+        assert_eq!(replay.cast_equipment, caught.cast_equipment);
+        assert_eq!(replay.owned_baits[0].uses_left, 9);
+        println!(
+            "PASS native crafting client: bait purchase/equip, exact upgrade, reconnect replay, saved pulls and one bait charge"
+        );
     }
     drop(client);
     let resumed = Client::connect(

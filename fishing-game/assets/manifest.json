@@ -2109,5 +2109,155 @@
       "bytes": 389485,
       "sha256": "2bd33f63d4a8c0f18bb7d2bb8c56b8d704da1d1de4f5807adf8dd6ce13208944"
     }
+  ],
+  "rods": [
+    {
+      "key": "abyssal",
+      "url": "/rods/abyssal.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 533444,
+      "sha256": "542da4f4d6ed9f030f8bd1806456f8e624d65dd1a624632511537fb38ec156c3"
+    },
+    {
+      "key": "glacial",
+      "url": "/rods/glacial.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 630440,
+      "sha256": "97a0a4ccb5e08f22a3543c2bfa1060ed0fb9d4189590def6d20605cc55311841"
+    },
+    {
+      "key": "marsh",
+      "url": "/rods/marsh.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 497690,
+      "sha256": "5321294c6889350926a47fa0a61f0c1e6bd24509914c19eb6d13df2079d0bcdd"
+    },
+    {
+      "key": "moonwood",
+      "url": "/rods/moonwood.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 592579,
+      "sha256": "2350e98eac333aadddeaad82baf8e8c4e99789bf4c13b638e8f30456813aa2ed"
+    },
+    {
+      "key": "river",
+      "url": "/rods/river.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 386477,
+      "sha256": "931b3876eb1d96ef190ac0ec244e6bab7ce4cb5c9e96c4d3148a993eb9b6bd95"
+    },
+    {
+      "key": "tide",
+      "url": "/rods/tide.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 482589,
+      "sha256": "e181d539131e0e16ccc90c2d6b59ffc6f9f7285063ca714d9fbae74d9dfc9b3f"
+    },
+    {
+      "key": "twig",
+      "url": "/rods/twig.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 457466,
+      "sha256": "deab754507cafdcedf169044d5b2e0f20e47e3b1b473f9439a6e8ddc321ec0b8"
+    }
+  ],
+  "licences": [
+    {
+      "key": "abyssal-shelf",
+      "url": "/licences/abyssal-shelf.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1221607,
+      "sha256": "f3d6b98b4b5a3a3dab0dd0ed8a9e12584c4c24be2500d3dce68f5d6792ba0494"
+    },
+    {
+      "key": "glacial-reach",
+      "url": "/licences/glacial-reach.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 922625,
+      "sha256": "f433fec007d28c00846a2cb070e07b029194612e406997a37887c658e1fd86e0"
+    },
+    {
+      "key": "hollow-marsh",
+      "url": "/licences/hollow-marsh.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1267502,
+      "sha256": "dd8efab0c43b6ae2940ccd0c3cfbaa0d797363dee24e9b17ff0c7d6944f09564"
+    },
+    {
+      "key": "moonlit-lake",
+      "url": "/licences/moonlit-lake.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 988035,
+      "sha256": "6dc2fcd7a86db5fd95c7b957837a05f75dc05868d4988097576b324b95adea0a"
+    },
+    {
+      "key": "sunken-coast",
+      "url": "/licences/sunken-coast.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1168056,
+      "sha256": "a7550b538fbd73db9e10b819dde95724bc28394535f4873dceb018bb20ca77cc"
+    },
+    {
+      "key": "whispering-river",
+      "url": "/licences/whispering-river.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1118416,
+      "sha256": "efd37a5d254a9b327d510c9fcf66d18e3b0fb96b218a21c41185b1a2c74c291c"
+    }
+  ],
+  "baits": [
+    {
+      "key": "moonlit-fireflies",
+      "url": "/baits/moonlit-fireflies.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 802912,
+      "sha256": "d16a5658e9a9d556a7b1d88d84e5c7d3e00d933d3aeec96ad88a8f8e9fc14581"
+    },
+    {
+      "key": "plump-worms",
+      "url": "/baits/plump-worms.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1160374,
+      "sha256": "89b9e7cbaa9bfad824153964493cfbc039df1f92c8697ca4bb813e41e4673fc9"
+    },
+    {
+      "key": "river-grubs",
+      "url": "/baits/river-grubs.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 979361,
+      "sha256": "c3613b9580dbead66cfdb3b9ef4fc441838fd205ac010c9ee45d45a875d75d57"
+    },
+    {
+      "key": "salvage-chum",
+      "url": "/baits/salvage-chum.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1074421,
+      "sha256": "3516ae835561456e10b76b6daa04cb37b6546e694cc9b3846971c6cde5523439"
+    },
+    {
+      "key": "sticky-chum",
+      "url": "/baits/sticky-chum.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1072600,
+      "sha256": "30b1c6db04e6e253cf19cc6464438cc8fb9ff78a6667ec8e9c856696a057242d"
+    }
   ]
 }

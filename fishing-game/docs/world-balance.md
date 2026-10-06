@@ -2,27 +2,27 @@
 
 All 251 supplied sprite names have active, positive encounter weights. Each species has one home biome. Stats are gameplay prototypes, not biological measurements. All 249 ordinary species can earn every rank from F through UUR through species-relative length and weight. Fihs is UUR-only; the Sock is F-only. Rank is saved on each individual catch, receipt, journal entry, and record. Species discovery still counts once; rank counts track each variant separately.
 
-| Biome | Species | Level | Rod power | Fish / junk / treasure |
+| Biome | Species | Level | Licence | Fish / junk / treasure |
 |---|---:|---:|---:|---|
-| Meadow Pond | 28 | 1 | 0 | 86 / 12 / 2 |
-| Whispering River | 31 | 5 | 10 | 83 / 13 / 4 |
-| Hollow Marsh | 22 | 10 | 20 | 77 / 18 / 5 |
-| Moonlit Lake | 22 | 18 | 35 | 84 / 11 / 5 |
-| Sunken Coast | 52 | 28 | 50 | 80 / 13 / 7 |
-| Glacial Reach | 45 | 40 | 65 | 83 / 12 / 5 |
-| Abyssal Shelf | 51 | 55 | 85 | 78 / 14 / 8 |
+| Meadow Pond | 28 | 1 | Free | 86 / 12 / 2 |
+| Whispering River | 31 | 5 | Purchased | 83 / 13 / 4 |
+| Hollow Marsh | 22 | 10 | Purchased | 77 / 18 / 5 |
+| Moonlit Lake | 22 | 18 | Purchased | 84 / 11 / 5 |
+| Sunken Coast | 52 | 28 | Purchased | 80 / 13 / 7 |
+| Glacial Reach | 45 | 40 | Purchased | 83 / 12 / 5 |
+| Abyssal Shelf | 51 | 55 | Purchased | 78 / 14 / 8 |
 
-Level cap: 60. Twig Rod and Meadow Pond are free. Later rods and permanent biome licences are bought from the camp trader after the corresponding level gate; licences unlock in order. Prices are in content/trader.json. Rod power controls access only; no luck, bait, or size modifiers apply yet. Level gates and power are checked on travel, equip, and every cast. The global 60-second cooldown survives all loadout changes.
+Level cap: 60. Twig Rod and Meadow Pond are free. Later rods and permanent biome licences are bought from the camp trader after the corresponding level gate; licences unlock in order. Prices are in content/trader.json. Biome level and purchased sequential licence control access; power grants bonus pulls. See rod-progression.md for exact rules and bonuses. Bait and permanent rod quality are active. Level, ownership and licences are checked on travel, equip and casts. The global 60-second cooldown survives all loadout changes.
 
-## Exceptional odds
+## Baseline exceptional odds (Common Twig, no bait)
 
-Each biome has 1,000,000 conditional fish tickets covering its species/rank combinations. There are 2,492 valid encounters: 249 ordinary species times ten ranks, plus the two restricted exceptions. First sample the biome category, species, and weighted physical size band. Draw integer length and correlated weight within that band, then classify the highest rank whose species-relative length and weight minimums both hold. Rank-specific XP and base value determine saved rewards, with the existing size bonuses also applied. Physical band weights preserve the approved probabilities without independently rolling the final rank. Every ordinary species has strictly decreasing encounter tickets from F to UUR. Each ordinary UUR entry in Abyssal Shelf has 256 tickets; Fihs has 128 and the Sock 64. Other biomes have adjusted minimum tickets so no ordinary species/rank catch is rarer than the Abyssal UUR reference. The reference tier table is historical, not an extra multiplier.
+Each biome has 1,000,000 conditional fish tickets covering its species/rank combinations. There are 2,492 valid encounters: 249 ordinary species times ten ranks, plus the two restricted exceptions. First sample the biome category, then a species/physical-band encounter using equipped rod luck-adjusted tickets. Draw integer length and correlated weight within that band, then classify the highest rank whose species-relative length and weight minimums both hold. Rank-specific XP and base value determine saved rewards, with the existing size bonuses also applied. Physical band weights preserve the approved probabilities without independently rolling the final rank. Every ordinary species has strictly decreasing encounter tickets from F to UUR. Each ordinary UUR entry in Abyssal Shelf has 256 tickets; Fihs has 128 and the Sock 64. Other biomes have adjusted minimum tickets so no ordinary species/rank catch is rarer than the Abyssal UUR reference. The reference tier table is historical, not an extra multiplier.
 
 | Species | Per accepted cast | Expected casts | Median casts | 95% catch by | 99% catch by | Mean days at 100 casts/day |
 |---|---:|---:|---:|---:|---:|---:|
-| Void Fish (UUR) | 0.019968% | 5,008 | 3,471 | 15,002 | 23,061 | 50.1 |
-| Fihs (UUR) | 0.009984% | 10,016 | 6,943 | 30,004 | 46,124 | 100.2 |
-| Nidalees Lost Sock (F) | 0.004992% | 20,032 | 13,885 | 60,010 | 92,249 | 200.3 |
+| Void Fish (UUR) | 0.020068% | 4,983 | 3,454 | 14,927 | 22,946 | 49.8 |
+| Fihs (UUR) | 0.010034% | 9,966 | 6,908 | 29,855 | 45,894 | 99.7 |
+| Nidalees Lost Sock (F) | 0.005017% | 19,932 | 13,816 | 59,711 | 91,790 | 199.3 |
 
 ## Species-relative size ranks
 
@@ -43,11 +43,11 @@ Version 4 classifies final integer measurements. Both minimums must hold. F mean
 
 ## Waiting-time interpretation
 
-With every ordinary species now supporting UUR, the total chance of any ordinary Abyssal UUR is 49 times its individual chance: 0.978432% per accepted cast, about one in 102 casts. A specific species at UUR still averages one in 5,008 casts. The exceptional fish odds are unchanged.
+Rates above include the Common Twig 0.5% bonus-pull chance. Each pull is independent, and at-least-one-per-cast probability is (1+q)*p-q*p*p. Graded luck favors higher physical bands; UUR, Fihs and the Sock each get exactly 1+luck times baseline per-pull odds. Full quality/bait math is in rod-progression.md. At maximum gear, Fihs averages roughly 2,813 casts and the Sock 5,625.
 
 These are geometric-distribution calculations for eligible Abyssal casts, including junk and treasure. Rejected casts do not count. There is no pity timer or deadline guarantee. At 100 eligible casts/day, Fihs averages about 3.3 months and the Sock about 6.6 months; the Sock 99th percentile is about 2.5 years. Time spent leveling/unlocking Abyssal Shelf is additional. Fewer casts/day lengthen calendar waits proportionally.
 
-The validator compares integer per-cast probability numerators across every biome: every ordinary species/rank combination is more common than Fihs, Fihs is exactly half the rarest ordinary UUR entry (all ordinary Abyssal UUR entries tie), and the Sock is exactly half Fihs. There are 249 ordinary collection entries and two bonus entries. Neither exceptional catch unlocks a biome, rod, or XP level.
+The validator compares integer per-pull probability numerators across every biome: every ordinary species/rank combination is more common than Fihs, Fihs is exactly half the rarest ordinary UUR entry per pull (all ordinary Abyssal UUR entries tie), and the Sock is exactly half Fihs per pull. Independent bonus pulls preserve these expected-catch-count ratios; at-least-one-per-cast ratios are slightly different. There are 249 ordinary collection entries and two bonus entries. Neither exceptional catch unlocks a biome, rod, or XP level.
 
 ## Content maintenance
 

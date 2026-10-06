@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { DbConnection } from "./bindings/bitcraft";
+import { recordPageLifecycle } from "./pageLifecycle";
 export const bitcraftConnected = ref(false);
 export const bitcraftError = ref("");
 let connection: DbConnection | null = null;
@@ -18,16 +19,19 @@ export function connectBitcraft(): Promise<DbConnection> {
       .onConnect((conn, _identity, token) => {
         localStorage.setItem(identityKey, token);
         bitcraftConnected.value = true;
+        recordPageLifecycle("bitcraft-connected");
         bitcraftError.value = "";
         connecting = null;
         resolve(conn);
       })
       .onConnectError((_ctx, error) => {
+        recordPageLifecycle("bitcraft-connect-failed");
         bitcraftError.value = "The live data connection is unavailable.";
         connecting = null;
         reject(error);
       })
       .onDisconnect(() => {
+        recordPageLifecycle("bitcraft-disconnected");
         bitcraftConnected.value = false;
         connecting = null;
       })

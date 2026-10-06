@@ -17,7 +17,41 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
         ctx.db.shop_quote().key().delete(row.key);
     }
     let week = ctx.timestamp - TimeDuration::from_micros(7 * 86_400_000_000);
+    let yesterday = ctx.timestamp - TimeDuration::from_micros(86_400_000_000);
+    for row in ctx
+        .db
+        .sale_quote()
+        .expires_at()
+        .filter(..yesterday)
+        .take(1000)
+    {
+        ctx.db.sale_quote().key().delete(row.key);
+    }
     let month = ctx.timestamp - TimeDuration::from_micros(30 * 86_400_000_000);
+    for row in ctx
+        .db
+        .upgrade_quote()
+        .expires_at()
+        .filter(..ctx.timestamp)
+        .take(1000)
+    {
+        ctx.db.upgrade_quote().key().delete(row.key);
+    }
+    for row in ctx.db.cast_pull().caught_at().filter(..week).take(1000) {
+        ctx.db.cast_pull().key().delete(row.key);
+    }
+    for row in ctx
+        .db
+        .cast_equipment_receipt()
+        .caught_at()
+        .filter(..week)
+        .take(1000)
+    {
+        ctx.db
+            .cast_equipment_receipt()
+            .interaction_id()
+            .delete(row.interaction_id);
+    }
     for row in ctx
         .db
         .daily_receipt()

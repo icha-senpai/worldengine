@@ -6,35 +6,66 @@
 #![allow(unused, clippy::all)]
 use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
+pub mod achievement_definition_table;
+pub mod achievement_definition_type;
+pub mod achievement_progress_type;
 pub mod action_nonce_type;
+pub mod activate_achievements_reducer;
+pub mod activate_crafting_reducer;
+pub mod activate_rod_bonuses_reducer;
 pub mod activate_trader_reducer;
+pub mod adapter_achievement_progress_table;
+pub mod adapter_bait_loadout_table;
+pub mod adapter_baits_table;
+pub mod adapter_cast_equipment_table;
+pub mod adapter_cast_pulls_table;
 pub mod adapter_collection_table;
 pub mod adapter_daily_receipt_table;
 pub mod adapter_inventory_table;
+pub mod adapter_items_table;
 pub mod adapter_licences_table;
 pub mod adapter_player_table;
 pub mod adapter_receipt_table;
 pub mod adapter_rods_table;
+pub mod adapter_sale_quote_table;
 pub mod adapter_shop_quote_table;
+pub mod adapter_upgrade_quote_table;
 pub mod admin_audit_type;
 pub mod angler_standing_table;
 pub mod angler_standing_type;
+pub mod angler_title_table;
+pub mod angler_title_type;
+pub mod backfill_player_achievements_reducer;
+pub mod bait_definition_table;
+pub mod bait_definition_type;
+pub mod bait_loadout_type;
+pub mod bait_stack_type;
 pub mod begin_link_challenge_reducer;
 pub mod biome_definition_table;
 pub mod biome_definition_type;
+pub mod cast_equipment_receipt_type;
+pub mod cast_pull_type;
 pub mod change_loadout_from_discord_reducer;
 pub mod change_loadout_reducer;
 pub mod command_receipt_type;
 pub mod commit_inventory_action_reducer;
+pub mod commit_rod_upgrade_reducer;
+pub mod commit_sale_from_discord_reducer;
 pub mod commit_shop_from_discord_reducer;
 pub mod commit_shop_purchase_reducer;
+pub mod commit_upgrade_from_discord_reducer;
 pub mod complete_account_link_reducer;
 pub mod configure_service_reducer;
 pub mod daily_delivery_type;
 pub mod daily_from_discord_reducer;
 pub mod daily_receipt_type;
 pub mod deployment_owner_type;
+pub mod earned_achievement_table;
+pub mod earned_achievement_type;
 pub mod economy_ledger_type;
+pub mod equip_bait_from_discord_reducer;
+pub mod equip_bait_reducer;
+pub mod equip_title_reducer;
 pub mod fish_from_discord_reducer;
 pub mod game_config_table;
 pub mod game_config_type;
@@ -44,7 +75,10 @@ pub mod legendary_find_type;
 pub mod link_challenge_type;
 pub mod maintenance_job_type;
 pub mod migrate_unlimited_inventory_reducer;
+pub mod my_achievement_progress_table;
 pub mod my_action_table;
+pub mod my_bait_loadout_table;
+pub mod my_baits_table;
 pub mod my_collection_table;
 pub mod my_inventory_table;
 pub mod my_items_table;
@@ -57,6 +91,7 @@ pub mod my_recent_catches_table;
 pub mod my_rods_table;
 pub mod my_service_table;
 pub mod my_shop_quote_table;
+pub mod my_upgrade_quote_table;
 pub mod owned_biome_licence_type;
 pub mod owned_rod_type;
 pub mod owned_specimen_type;
@@ -64,16 +99,24 @@ pub mod player_identity_type;
 pub mod player_species_progress_type;
 pub mod player_type;
 pub mod prepare_inventory_action_reducer;
+pub mod prepare_rod_upgrade_reducer;
+pub mod prepare_sale_from_discord_reducer;
 pub mod prepare_shop_from_discord_reducer;
 pub mod prepare_shop_purchase_reducer;
+pub mod prepare_upgrade_from_discord_reducer;
 pub mod public_profile_table;
 pub mod public_profile_type;
+pub mod quality_definition_table;
+pub mod quality_definition_type;
 pub mod rarity_definition_table;
 pub mod rarity_definition_type;
 pub mod rebuild_player_records_reducer;
 pub mod recent_catch_type;
+pub mod rod_bonuses_table;
+pub mod rod_bonuses_type;
 pub mod rod_definition_table;
 pub mod rod_definition_type;
+pub mod sale_quote_type;
 pub mod select_discord_player_reducer;
 pub mod service_principal_type;
 pub mod service_role_type;
@@ -89,36 +132,68 @@ pub mod species_record_table;
 pub mod species_record_type;
 pub mod trader_migration_type;
 pub mod unlink_browser_reducer;
+pub mod upgrade_quote_type;
 
+pub use achievement_definition_table::*;
+pub use achievement_definition_type::AchievementDefinition;
+pub use achievement_progress_type::AchievementProgress;
 pub use action_nonce_type::ActionNonce;
+pub use activate_achievements_reducer::activate_achievements;
+pub use activate_crafting_reducer::activate_crafting;
+pub use activate_rod_bonuses_reducer::activate_rod_bonuses;
 pub use activate_trader_reducer::activate_trader;
+pub use adapter_achievement_progress_table::*;
+pub use adapter_bait_loadout_table::*;
+pub use adapter_baits_table::*;
+pub use adapter_cast_equipment_table::*;
+pub use adapter_cast_pulls_table::*;
 pub use adapter_collection_table::*;
 pub use adapter_daily_receipt_table::*;
 pub use adapter_inventory_table::*;
+pub use adapter_items_table::*;
 pub use adapter_licences_table::*;
 pub use adapter_player_table::*;
 pub use adapter_receipt_table::*;
 pub use adapter_rods_table::*;
+pub use adapter_sale_quote_table::*;
 pub use adapter_shop_quote_table::*;
+pub use adapter_upgrade_quote_table::*;
 pub use admin_audit_type::AdminAudit;
 pub use angler_standing_table::*;
 pub use angler_standing_type::AnglerStanding;
+pub use angler_title_table::*;
+pub use angler_title_type::AnglerTitle;
+pub use backfill_player_achievements_reducer::backfill_player_achievements;
+pub use bait_definition_table::*;
+pub use bait_definition_type::BaitDefinition;
+pub use bait_loadout_type::BaitLoadout;
+pub use bait_stack_type::BaitStack;
 pub use begin_link_challenge_reducer::begin_link_challenge;
 pub use biome_definition_table::*;
 pub use biome_definition_type::BiomeDefinition;
+pub use cast_equipment_receipt_type::CastEquipmentReceipt;
+pub use cast_pull_type::CastPull;
 pub use change_loadout_from_discord_reducer::change_loadout_from_discord;
 pub use change_loadout_reducer::change_loadout;
 pub use command_receipt_type::CommandReceipt;
 pub use commit_inventory_action_reducer::commit_inventory_action;
+pub use commit_rod_upgrade_reducer::commit_rod_upgrade;
+pub use commit_sale_from_discord_reducer::commit_sale_from_discord;
 pub use commit_shop_from_discord_reducer::commit_shop_from_discord;
 pub use commit_shop_purchase_reducer::commit_shop_purchase;
+pub use commit_upgrade_from_discord_reducer::commit_upgrade_from_discord;
 pub use complete_account_link_reducer::complete_account_link;
 pub use configure_service_reducer::configure_service;
 pub use daily_delivery_type::DailyDelivery;
 pub use daily_from_discord_reducer::daily_from_discord;
 pub use daily_receipt_type::DailyReceipt;
 pub use deployment_owner_type::DeploymentOwner;
+pub use earned_achievement_table::*;
+pub use earned_achievement_type::EarnedAchievement;
 pub use economy_ledger_type::EconomyLedger;
+pub use equip_bait_from_discord_reducer::equip_bait_from_discord;
+pub use equip_bait_reducer::equip_bait;
+pub use equip_title_reducer::equip_title;
 pub use fish_from_discord_reducer::fish_from_discord;
 pub use game_config_table::*;
 pub use game_config_type::GameConfig;
@@ -128,7 +203,10 @@ pub use legendary_find_type::LegendaryFind;
 pub use link_challenge_type::LinkChallenge;
 pub use maintenance_job_type::MaintenanceJob;
 pub use migrate_unlimited_inventory_reducer::migrate_unlimited_inventory;
+pub use my_achievement_progress_table::*;
 pub use my_action_table::*;
+pub use my_bait_loadout_table::*;
+pub use my_baits_table::*;
 pub use my_collection_table::*;
 pub use my_inventory_table::*;
 pub use my_items_table::*;
@@ -141,6 +219,7 @@ pub use my_recent_catches_table::*;
 pub use my_rods_table::*;
 pub use my_service_table::*;
 pub use my_shop_quote_table::*;
+pub use my_upgrade_quote_table::*;
 pub use owned_biome_licence_type::OwnedBiomeLicence;
 pub use owned_rod_type::OwnedRod;
 pub use owned_specimen_type::OwnedSpecimen;
@@ -148,16 +227,24 @@ pub use player_identity_type::PlayerIdentity;
 pub use player_species_progress_type::PlayerSpeciesProgress;
 pub use player_type::Player;
 pub use prepare_inventory_action_reducer::prepare_inventory_action;
+pub use prepare_rod_upgrade_reducer::prepare_rod_upgrade;
+pub use prepare_sale_from_discord_reducer::prepare_sale_from_discord;
 pub use prepare_shop_from_discord_reducer::prepare_shop_from_discord;
 pub use prepare_shop_purchase_reducer::prepare_shop_purchase;
+pub use prepare_upgrade_from_discord_reducer::prepare_upgrade_from_discord;
 pub use public_profile_table::*;
 pub use public_profile_type::PublicProfile;
+pub use quality_definition_table::*;
+pub use quality_definition_type::QualityDefinition;
 pub use rarity_definition_table::*;
 pub use rarity_definition_type::RarityDefinition;
 pub use rebuild_player_records_reducer::rebuild_player_records;
 pub use recent_catch_type::RecentCatch;
+pub use rod_bonuses_table::*;
+pub use rod_bonuses_type::RodBonuses;
 pub use rod_definition_table::*;
 pub use rod_definition_type::RodDefinition;
+pub use sale_quote_type::SaleQuote;
 pub use select_discord_player_reducer::select_discord_player;
 pub use service_principal_type::ServicePrincipal;
 pub use service_role_type::ServiceRole;
@@ -173,6 +260,7 @@ pub use species_record_table::*;
 pub use species_record_type::SpeciesRecord;
 pub use trader_migration_type::TraderMigration;
 pub use unlink_browser_reducer::unlink_browser;
+pub use upgrade_quote_type::UpgradeQuote;
 
 #[derive(Clone, PartialEq, Debug)]
 
@@ -182,8 +270,14 @@ pub use unlink_browser_reducer::unlink_browser;
 /// to indicate which reducer caused the event.
 
 pub enum Reducer {
+    ActivateAchievements,
+    ActivateCrafting,
+    ActivateRodBonuses,
     ActivateTrader {
         grandfather_licences: bool,
+    },
+    BackfillPlayerAchievements {
+        player_id: u64,
     },
     BeginLinkChallenge,
     ChangeLoadout {
@@ -199,12 +293,25 @@ pub enum Reducer {
     CommitInventoryAction {
         nonce: u128,
     },
+    CommitRodUpgrade {
+        nonce: u128,
+    },
+    CommitSaleFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        nonce: u128,
+    },
     CommitShopFromDiscord {
         discord_user_id: u64,
         interaction_id: u64,
         nonce: u128,
     },
     CommitShopPurchase {
+        nonce: u128,
+    },
+    CommitUpgradeFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
         nonce: u128,
     },
     CompleteAccountLink {
@@ -223,6 +330,17 @@ pub enum Reducer {
         guild_id: Option<u64>,
         channel_id: u64,
     },
+    EquipBait {
+        bait_id: u32,
+    },
+    EquipBaitFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        bait_id: u32,
+    },
+    EquipTitle {
+        achievement_id: u32,
+    },
     FishFromDiscord {
         discord_user_id: u64,
         interaction_id: u64,
@@ -235,6 +353,14 @@ pub enum Reducer {
         catch_ids: Vec<u64>,
         favorite: bool,
     },
+    PrepareRodUpgrade {
+        rod_id: u32,
+    },
+    PrepareSaleFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        catch_ids: Vec<u64>,
+    },
     PrepareShopFromDiscord {
         discord_user_id: u64,
         interaction_id: u64,
@@ -242,6 +368,11 @@ pub enum Reducer {
     },
     PrepareShopPurchase {
         listing_id: u32,
+    },
+    PrepareUpgradeFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        rod_id: u32,
     },
     RebuildPlayerRecords {
         player_id: u64,
@@ -261,21 +392,34 @@ impl __sdk::InModule for Reducer {
 impl __sdk::Reducer for Reducer {
     fn reducer_name(&self) -> &'static str {
         match self {
+            Reducer::ActivateAchievements => "activate_achievements",
+            Reducer::ActivateCrafting => "activate_crafting",
+            Reducer::ActivateRodBonuses => "activate_rod_bonuses",
             Reducer::ActivateTrader { .. } => "activate_trader",
+            Reducer::BackfillPlayerAchievements { .. } => "backfill_player_achievements",
             Reducer::BeginLinkChallenge => "begin_link_challenge",
             Reducer::ChangeLoadout { .. } => "change_loadout",
             Reducer::ChangeLoadoutFromDiscord { .. } => "change_loadout_from_discord",
             Reducer::CommitInventoryAction { .. } => "commit_inventory_action",
+            Reducer::CommitRodUpgrade { .. } => "commit_rod_upgrade",
+            Reducer::CommitSaleFromDiscord { .. } => "commit_sale_from_discord",
             Reducer::CommitShopFromDiscord { .. } => "commit_shop_from_discord",
             Reducer::CommitShopPurchase { .. } => "commit_shop_purchase",
+            Reducer::CommitUpgradeFromDiscord { .. } => "commit_upgrade_from_discord",
             Reducer::CompleteAccountLink { .. } => "complete_account_link",
             Reducer::ConfigureService { .. } => "configure_service",
             Reducer::DailyFromDiscord { .. } => "daily_from_discord",
+            Reducer::EquipBait { .. } => "equip_bait",
+            Reducer::EquipBaitFromDiscord { .. } => "equip_bait_from_discord",
+            Reducer::EquipTitle { .. } => "equip_title",
             Reducer::FishFromDiscord { .. } => "fish_from_discord",
             Reducer::MigrateUnlimitedInventory => "migrate_unlimited_inventory",
             Reducer::PrepareInventoryAction { .. } => "prepare_inventory_action",
+            Reducer::PrepareRodUpgrade { .. } => "prepare_rod_upgrade",
+            Reducer::PrepareSaleFromDiscord { .. } => "prepare_sale_from_discord",
             Reducer::PrepareShopFromDiscord { .. } => "prepare_shop_from_discord",
             Reducer::PrepareShopPurchase { .. } => "prepare_shop_purchase",
+            Reducer::PrepareUpgradeFromDiscord { .. } => "prepare_upgrade_from_discord",
             Reducer::RebuildPlayerRecords { .. } => "rebuild_player_records",
             Reducer::SelectDiscordPlayer { .. } => "select_discord_player",
             Reducer::UnlinkBrowser => "unlink_browser",
@@ -285,11 +429,25 @@ impl __sdk::Reducer for Reducer {
     #[allow(clippy::clone_on_copy)]
     fn args_bsatn(&self) -> Result<Vec<u8>, __sats::bsatn::EncodeError> {
         match self {
+            Reducer::ActivateAchievements => {
+                __sats::bsatn::to_vec(&activate_achievements_reducer::ActivateAchievementsArgs {})
+            }
+            Reducer::ActivateCrafting => {
+                __sats::bsatn::to_vec(&activate_crafting_reducer::ActivateCraftingArgs {})
+            }
+            Reducer::ActivateRodBonuses => {
+                __sats::bsatn::to_vec(&activate_rod_bonuses_reducer::ActivateRodBonusesArgs {})
+            }
             Reducer::ActivateTrader {
                 grandfather_licences,
             } => __sats::bsatn::to_vec(&activate_trader_reducer::ActivateTraderArgs {
                 grandfather_licences: grandfather_licences.clone(),
             }),
+            Reducer::BackfillPlayerAchievements { player_id } => __sats::bsatn::to_vec(
+                &backfill_player_achievements_reducer::BackfillPlayerAchievementsArgs {
+                    player_id: player_id.clone(),
+                },
+            ),
             Reducer::BeginLinkChallenge => {
                 __sats::bsatn::to_vec(&begin_link_challenge_reducer::BeginLinkChallengeArgs {})
             }
@@ -317,6 +475,22 @@ impl __sdk::Reducer for Reducer {
                     nonce: nonce.clone(),
                 },
             ),
+            Reducer::CommitRodUpgrade { nonce } => {
+                __sats::bsatn::to_vec(&commit_rod_upgrade_reducer::CommitRodUpgradeArgs {
+                    nonce: nonce.clone(),
+                })
+            }
+            Reducer::CommitSaleFromDiscord {
+                discord_user_id,
+                interaction_id,
+                nonce,
+            } => __sats::bsatn::to_vec(
+                &commit_sale_from_discord_reducer::CommitSaleFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    nonce: nonce.clone(),
+                },
+            ),
             Reducer::CommitShopFromDiscord {
                 discord_user_id,
                 interaction_id,
@@ -333,6 +507,17 @@ impl __sdk::Reducer for Reducer {
                     nonce: nonce.clone(),
                 })
             }
+            Reducer::CommitUpgradeFromDiscord {
+                discord_user_id,
+                interaction_id,
+                nonce,
+            } => __sats::bsatn::to_vec(
+                &commit_upgrade_from_discord_reducer::CommitUpgradeFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    nonce: nonce.clone(),
+                },
+            ),
             Reducer::CompleteAccountLink {
                 challenge_id,
                 verified_discord_user_id,
@@ -362,6 +547,27 @@ impl __sdk::Reducer for Reducer {
                 guild_id: guild_id.clone(),
                 channel_id: channel_id.clone(),
             }),
+            Reducer::EquipBait { bait_id } => {
+                __sats::bsatn::to_vec(&equip_bait_reducer::EquipBaitArgs {
+                    bait_id: bait_id.clone(),
+                })
+            }
+            Reducer::EquipBaitFromDiscord {
+                discord_user_id,
+                interaction_id,
+                bait_id,
+            } => {
+                __sats::bsatn::to_vec(&equip_bait_from_discord_reducer::EquipBaitFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    bait_id: bait_id.clone(),
+                })
+            }
+            Reducer::EquipTitle { achievement_id } => {
+                __sats::bsatn::to_vec(&equip_title_reducer::EquipTitleArgs {
+                    achievement_id: achievement_id.clone(),
+                })
+            }
             Reducer::FishFromDiscord {
                 discord_user_id,
                 interaction_id,
@@ -387,6 +593,22 @@ impl __sdk::Reducer for Reducer {
                     favorite: favorite.clone(),
                 },
             ),
+            Reducer::PrepareRodUpgrade { rod_id } => {
+                __sats::bsatn::to_vec(&prepare_rod_upgrade_reducer::PrepareRodUpgradeArgs {
+                    rod_id: rod_id.clone(),
+                })
+            }
+            Reducer::PrepareSaleFromDiscord {
+                discord_user_id,
+                interaction_id,
+                catch_ids,
+            } => __sats::bsatn::to_vec(
+                &prepare_sale_from_discord_reducer::PrepareSaleFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    catch_ids: catch_ids.clone(),
+                },
+            ),
             Reducer::PrepareShopFromDiscord {
                 discord_user_id,
                 interaction_id,
@@ -403,6 +625,17 @@ impl __sdk::Reducer for Reducer {
                     listing_id: listing_id.clone(),
                 })
             }
+            Reducer::PrepareUpgradeFromDiscord {
+                discord_user_id,
+                interaction_id,
+                rod_id,
+            } => __sats::bsatn::to_vec(
+                &prepare_upgrade_from_discord_reducer::PrepareUpgradeFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    rod_id: rod_id.clone(),
+                },
+            ),
             Reducer::RebuildPlayerRecords { player_id } => {
                 __sats::bsatn::to_vec(&rebuild_player_records_reducer::RebuildPlayerRecordsArgs {
                     player_id: player_id.clone(),
@@ -429,19 +662,34 @@ impl __sdk::Reducer for Reducer {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub struct DbUpdate {
+    achievement_definition: __sdk::TableUpdate<AchievementDefinition>,
+    adapter_achievement_progress: __sdk::TableUpdate<AchievementProgress>,
+    adapter_bait_loadout: __sdk::TableUpdate<BaitLoadout>,
+    adapter_baits: __sdk::TableUpdate<BaitStack>,
+    adapter_cast_equipment: __sdk::TableUpdate<CastEquipmentReceipt>,
+    adapter_cast_pulls: __sdk::TableUpdate<CastPull>,
     adapter_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
     adapter_daily_receipt: __sdk::TableUpdate<DailyReceipt>,
     adapter_inventory: __sdk::TableUpdate<OwnedSpecimen>,
+    adapter_items: __sdk::TableUpdate<ItemStack>,
     adapter_licences: __sdk::TableUpdate<OwnedBiomeLicence>,
     adapter_player: __sdk::TableUpdate<Player>,
     adapter_receipt: __sdk::TableUpdate<CommandReceipt>,
     adapter_rods: __sdk::TableUpdate<OwnedRod>,
+    adapter_sale_quote: __sdk::TableUpdate<SaleQuote>,
     adapter_shop_quote: __sdk::TableUpdate<ShopQuote>,
+    adapter_upgrade_quote: __sdk::TableUpdate<UpgradeQuote>,
     angler_standing: __sdk::TableUpdate<AnglerStanding>,
+    angler_title: __sdk::TableUpdate<AnglerTitle>,
+    bait_definition: __sdk::TableUpdate<BaitDefinition>,
     biome_definition: __sdk::TableUpdate<BiomeDefinition>,
+    earned_achievement: __sdk::TableUpdate<EarnedAchievement>,
     game_config: __sdk::TableUpdate<GameConfig>,
     legendary_find: __sdk::TableUpdate<LegendaryFind>,
+    my_achievement_progress: __sdk::TableUpdate<AchievementProgress>,
     my_action: __sdk::TableUpdate<ActionNonce>,
+    my_bait_loadout: __sdk::TableUpdate<BaitLoadout>,
+    my_baits: __sdk::TableUpdate<BaitStack>,
     my_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
     my_inventory: __sdk::TableUpdate<OwnedSpecimen>,
     my_items: __sdk::TableUpdate<ItemStack>,
@@ -454,8 +702,11 @@ pub struct DbUpdate {
     my_rods: __sdk::TableUpdate<OwnedRod>,
     my_service: __sdk::TableUpdate<ServicePrincipal>,
     my_shop_quote: __sdk::TableUpdate<ShopQuote>,
+    my_upgrade_quote: __sdk::TableUpdate<UpgradeQuote>,
     public_profile: __sdk::TableUpdate<PublicProfile>,
+    quality_definition: __sdk::TableUpdate<QualityDefinition>,
     rarity_definition: __sdk::TableUpdate<RarityDefinition>,
+    rod_bonuses: __sdk::TableUpdate<RodBonuses>,
     rod_definition: __sdk::TableUpdate<RodDefinition>,
     shop_listing: __sdk::TableUpdate<ShopListing>,
     species_definition: __sdk::TableUpdate<SpeciesDefinition>,
@@ -469,6 +720,24 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
         let mut db_update = DbUpdate::default();
         for table_update in __sdk::transaction_update_iter_table_updates(raw) {
             match &table_update.table_name[..] {
+                "achievement_definition" => db_update.achievement_definition.append(
+                    achievement_definition_table::parse_table_update(table_update)?,
+                ),
+                "adapter_achievement_progress" => db_update.adapter_achievement_progress.append(
+                    adapter_achievement_progress_table::parse_table_update(table_update)?,
+                ),
+                "adapter_bait_loadout" => db_update.adapter_bait_loadout.append(
+                    adapter_bait_loadout_table::parse_table_update(table_update)?,
+                ),
+                "adapter_baits" => db_update
+                    .adapter_baits
+                    .append(adapter_baits_table::parse_table_update(table_update)?),
+                "adapter_cast_equipment" => db_update.adapter_cast_equipment.append(
+                    adapter_cast_equipment_table::parse_table_update(table_update)?,
+                ),
+                "adapter_cast_pulls" => db_update
+                    .adapter_cast_pulls
+                    .append(adapter_cast_pulls_table::parse_table_update(table_update)?),
                 "adapter_collection" => db_update
                     .adapter_collection
                     .append(adapter_collection_table::parse_table_update(table_update)?),
@@ -478,6 +747,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_inventory" => db_update
                     .adapter_inventory
                     .append(adapter_inventory_table::parse_table_update(table_update)?),
+                "adapter_items" => db_update
+                    .adapter_items
+                    .append(adapter_items_table::parse_table_update(table_update)?),
                 "adapter_licences" => db_update
                     .adapter_licences
                     .append(adapter_licences_table::parse_table_update(table_update)?),
@@ -490,24 +762,48 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_rods" => db_update
                     .adapter_rods
                     .append(adapter_rods_table::parse_table_update(table_update)?),
+                "adapter_sale_quote" => db_update
+                    .adapter_sale_quote
+                    .append(adapter_sale_quote_table::parse_table_update(table_update)?),
                 "adapter_shop_quote" => db_update
                     .adapter_shop_quote
                     .append(adapter_shop_quote_table::parse_table_update(table_update)?),
+                "adapter_upgrade_quote" => db_update.adapter_upgrade_quote.append(
+                    adapter_upgrade_quote_table::parse_table_update(table_update)?,
+                ),
                 "angler_standing" => db_update
                     .angler_standing
                     .append(angler_standing_table::parse_table_update(table_update)?),
+                "angler_title" => db_update
+                    .angler_title
+                    .append(angler_title_table::parse_table_update(table_update)?),
+                "bait_definition" => db_update
+                    .bait_definition
+                    .append(bait_definition_table::parse_table_update(table_update)?),
                 "biome_definition" => db_update
                     .biome_definition
                     .append(biome_definition_table::parse_table_update(table_update)?),
+                "earned_achievement" => db_update
+                    .earned_achievement
+                    .append(earned_achievement_table::parse_table_update(table_update)?),
                 "game_config" => db_update
                     .game_config
                     .append(game_config_table::parse_table_update(table_update)?),
                 "legendary_find" => db_update
                     .legendary_find
                     .append(legendary_find_table::parse_table_update(table_update)?),
+                "my_achievement_progress" => db_update.my_achievement_progress.append(
+                    my_achievement_progress_table::parse_table_update(table_update)?,
+                ),
                 "my_action" => db_update
                     .my_action
                     .append(my_action_table::parse_table_update(table_update)?),
+                "my_bait_loadout" => db_update
+                    .my_bait_loadout
+                    .append(my_bait_loadout_table::parse_table_update(table_update)?),
+                "my_baits" => db_update
+                    .my_baits
+                    .append(my_baits_table::parse_table_update(table_update)?),
                 "my_collection" => db_update
                     .my_collection
                     .append(my_collection_table::parse_table_update(table_update)?),
@@ -544,12 +840,21 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_shop_quote" => db_update
                     .my_shop_quote
                     .append(my_shop_quote_table::parse_table_update(table_update)?),
+                "my_upgrade_quote" => db_update
+                    .my_upgrade_quote
+                    .append(my_upgrade_quote_table::parse_table_update(table_update)?),
                 "public_profile" => db_update
                     .public_profile
                     .append(public_profile_table::parse_table_update(table_update)?),
+                "quality_definition" => db_update
+                    .quality_definition
+                    .append(quality_definition_table::parse_table_update(table_update)?),
                 "rarity_definition" => db_update
                     .rarity_definition
                     .append(rarity_definition_table::parse_table_update(table_update)?),
+                "rod_bonuses" => db_update
+                    .rod_bonuses
+                    .append(rod_bonuses_table::parse_table_update(table_update)?),
                 "rod_definition" => db_update
                     .rod_definition
                     .append(rod_definition_table::parse_table_update(table_update)?),
@@ -591,12 +896,30 @@ impl __sdk::DbUpdate for DbUpdate {
     ) -> AppliedDiff<'_> {
         let mut diff = AppliedDiff::default();
 
+        diff.achievement_definition = cache
+            .apply_diff_to_table::<AchievementDefinition>(
+                "achievement_definition",
+                &self.achievement_definition,
+            )
+            .with_updates_by_pk(|row| &row.achievement_id);
         diff.angler_standing = cache
             .apply_diff_to_table::<AnglerStanding>("angler_standing", &self.angler_standing)
             .with_updates_by_pk(|row| &row.player_id);
+        diff.angler_title = cache
+            .apply_diff_to_table::<AnglerTitle>("angler_title", &self.angler_title)
+            .with_updates_by_pk(|row| &row.player_id);
+        diff.bait_definition = cache
+            .apply_diff_to_table::<BaitDefinition>("bait_definition", &self.bait_definition)
+            .with_updates_by_pk(|row| &row.bait_id);
         diff.biome_definition = cache
             .apply_diff_to_table::<BiomeDefinition>("biome_definition", &self.biome_definition)
             .with_updates_by_pk(|row| &row.biome_id);
+        diff.earned_achievement = cache
+            .apply_diff_to_table::<EarnedAchievement>(
+                "earned_achievement",
+                &self.earned_achievement,
+            )
+            .with_updates_by_pk(|row| &row.key);
         diff.game_config = cache
             .apply_diff_to_table::<GameConfig>("game_config", &self.game_config)
             .with_updates_by_pk(|row| &row.version);
@@ -606,9 +929,18 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.public_profile = cache
             .apply_diff_to_table::<PublicProfile>("public_profile", &self.public_profile)
             .with_updates_by_pk(|row| &row.player_id);
+        diff.quality_definition = cache
+            .apply_diff_to_table::<QualityDefinition>(
+                "quality_definition",
+                &self.quality_definition,
+            )
+            .with_updates_by_pk(|row| &row.quality_level);
         diff.rarity_definition = cache
             .apply_diff_to_table::<RarityDefinition>("rarity_definition", &self.rarity_definition)
             .with_updates_by_pk(|row| &row.ordinal);
+        diff.rod_bonuses = cache
+            .apply_diff_to_table::<RodBonuses>("rod_bonuses", &self.rod_bonuses)
+            .with_updates_by_pk(|row| &row.rod_id);
         diff.rod_definition = cache
             .apply_diff_to_table::<RodDefinition>("rod_definition", &self.rod_definition)
             .with_updates_by_pk(|row| &row.rod_id);
@@ -630,6 +962,20 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.species_record = cache
             .apply_diff_to_table::<SpeciesRecord>("species_record", &self.species_record)
             .with_updates_by_pk(|row| &row.key);
+        diff.adapter_achievement_progress = cache.apply_diff_to_table::<AchievementProgress>(
+            "adapter_achievement_progress",
+            &self.adapter_achievement_progress,
+        );
+        diff.adapter_bait_loadout = cache
+            .apply_diff_to_table::<BaitLoadout>("adapter_bait_loadout", &self.adapter_bait_loadout);
+        diff.adapter_baits =
+            cache.apply_diff_to_table::<BaitStack>("adapter_baits", &self.adapter_baits);
+        diff.adapter_cast_equipment = cache.apply_diff_to_table::<CastEquipmentReceipt>(
+            "adapter_cast_equipment",
+            &self.adapter_cast_equipment,
+        );
+        diff.adapter_cast_pulls =
+            cache.apply_diff_to_table::<CastPull>("adapter_cast_pulls", &self.adapter_cast_pulls);
         diff.adapter_collection = cache.apply_diff_to_table::<PlayerSpeciesProgress>(
             "adapter_collection",
             &self.adapter_collection,
@@ -640,6 +986,8 @@ impl __sdk::DbUpdate for DbUpdate {
         );
         diff.adapter_inventory = cache
             .apply_diff_to_table::<OwnedSpecimen>("adapter_inventory", &self.adapter_inventory);
+        diff.adapter_items =
+            cache.apply_diff_to_table::<ItemStack>("adapter_items", &self.adapter_items);
         diff.adapter_licences = cache
             .apply_diff_to_table::<OwnedBiomeLicence>("adapter_licences", &self.adapter_licences);
         diff.adapter_player =
@@ -648,9 +996,22 @@ impl __sdk::DbUpdate for DbUpdate {
             cache.apply_diff_to_table::<CommandReceipt>("adapter_receipt", &self.adapter_receipt);
         diff.adapter_rods =
             cache.apply_diff_to_table::<OwnedRod>("adapter_rods", &self.adapter_rods);
+        diff.adapter_sale_quote =
+            cache.apply_diff_to_table::<SaleQuote>("adapter_sale_quote", &self.adapter_sale_quote);
         diff.adapter_shop_quote =
             cache.apply_diff_to_table::<ShopQuote>("adapter_shop_quote", &self.adapter_shop_quote);
+        diff.adapter_upgrade_quote = cache.apply_diff_to_table::<UpgradeQuote>(
+            "adapter_upgrade_quote",
+            &self.adapter_upgrade_quote,
+        );
+        diff.my_achievement_progress = cache.apply_diff_to_table::<AchievementProgress>(
+            "my_achievement_progress",
+            &self.my_achievement_progress,
+        );
         diff.my_action = cache.apply_diff_to_table::<ActionNonce>("my_action", &self.my_action);
+        diff.my_bait_loadout =
+            cache.apply_diff_to_table::<BaitLoadout>("my_bait_loadout", &self.my_bait_loadout);
+        diff.my_baits = cache.apply_diff_to_table::<BaitStack>("my_baits", &self.my_baits);
         diff.my_collection = cache
             .apply_diff_to_table::<PlayerSpeciesProgress>("my_collection", &self.my_collection);
         diff.my_inventory =
@@ -671,6 +1032,8 @@ impl __sdk::DbUpdate for DbUpdate {
             cache.apply_diff_to_table::<ServicePrincipal>("my_service", &self.my_service);
         diff.my_shop_quote =
             cache.apply_diff_to_table::<ShopQuote>("my_shop_quote", &self.my_shop_quote);
+        diff.my_upgrade_quote =
+            cache.apply_diff_to_table::<UpgradeQuote>("my_upgrade_quote", &self.my_upgrade_quote);
 
         diff
     }
@@ -678,6 +1041,24 @@ impl __sdk::DbUpdate for DbUpdate {
         let mut db_update = DbUpdate::default();
         for table_rows in raw.tables {
             match &table_rows.table[..] {
+                "achievement_definition" => db_update
+                    .achievement_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_achievement_progress" => db_update
+                    .adapter_achievement_progress
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_bait_loadout" => db_update
+                    .adapter_bait_loadout
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_baits" => db_update
+                    .adapter_baits
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_cast_equipment" => db_update
+                    .adapter_cast_equipment
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_cast_pulls" => db_update
+                    .adapter_cast_pulls
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_collection" => db_update
                     .adapter_collection
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -686,6 +1067,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_inventory" => db_update
                     .adapter_inventory
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_items" => db_update
+                    .adapter_items
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_licences" => db_update
                     .adapter_licences
@@ -699,14 +1083,29 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_rods" => db_update
                     .adapter_rods
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_sale_quote" => db_update
+                    .adapter_sale_quote
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_shop_quote" => db_update
                     .adapter_shop_quote
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_upgrade_quote" => db_update
+                    .adapter_upgrade_quote
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "angler_standing" => db_update
                     .angler_standing
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "angler_title" => db_update
+                    .angler_title
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "bait_definition" => db_update
+                    .bait_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "biome_definition" => db_update
                     .biome_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "earned_achievement" => db_update
+                    .earned_achievement
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "game_config" => db_update
                     .game_config
@@ -714,8 +1113,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "legendary_find" => db_update
                     .legendary_find
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_achievement_progress" => db_update
+                    .my_achievement_progress
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_action" => db_update
                     .my_action
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_bait_loadout" => db_update
+                    .my_bait_loadout
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_baits" => db_update
+                    .my_baits
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_collection" => db_update
                     .my_collection
@@ -753,11 +1161,20 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_shop_quote" => db_update
                     .my_shop_quote
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_upgrade_quote" => db_update
+                    .my_upgrade_quote
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "public_profile" => db_update
                     .public_profile
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "quality_definition" => db_update
+                    .quality_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "rarity_definition" => db_update
                     .rarity_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "rod_bonuses" => db_update
+                    .rod_bonuses
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "rod_definition" => db_update
                     .rod_definition
@@ -787,6 +1204,24 @@ impl __sdk::DbUpdate for DbUpdate {
         let mut db_update = DbUpdate::default();
         for table_rows in raw.tables {
             match &table_rows.table[..] {
+                "achievement_definition" => db_update
+                    .achievement_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_achievement_progress" => db_update
+                    .adapter_achievement_progress
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_bait_loadout" => db_update
+                    .adapter_bait_loadout
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_baits" => db_update
+                    .adapter_baits
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_cast_equipment" => db_update
+                    .adapter_cast_equipment
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_cast_pulls" => db_update
+                    .adapter_cast_pulls
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_collection" => db_update
                     .adapter_collection
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -795,6 +1230,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_inventory" => db_update
                     .adapter_inventory
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_items" => db_update
+                    .adapter_items
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_licences" => db_update
                     .adapter_licences
@@ -808,14 +1246,29 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_rods" => db_update
                     .adapter_rods
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_sale_quote" => db_update
+                    .adapter_sale_quote
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_shop_quote" => db_update
                     .adapter_shop_quote
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_upgrade_quote" => db_update
+                    .adapter_upgrade_quote
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "angler_standing" => db_update
                     .angler_standing
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "angler_title" => db_update
+                    .angler_title
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "bait_definition" => db_update
+                    .bait_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "biome_definition" => db_update
                     .biome_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "earned_achievement" => db_update
+                    .earned_achievement
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "game_config" => db_update
                     .game_config
@@ -823,8 +1276,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "legendary_find" => db_update
                     .legendary_find
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_achievement_progress" => db_update
+                    .my_achievement_progress
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_action" => db_update
                     .my_action
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_bait_loadout" => db_update
+                    .my_bait_loadout
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_baits" => db_update
+                    .my_baits
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_collection" => db_update
                     .my_collection
@@ -862,11 +1324,20 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_shop_quote" => db_update
                     .my_shop_quote
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_upgrade_quote" => db_update
+                    .my_upgrade_quote
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "public_profile" => db_update
                     .public_profile
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "quality_definition" => db_update
+                    .quality_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "rarity_definition" => db_update
                     .rarity_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "rod_bonuses" => db_update
+                    .rod_bonuses
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "rod_definition" => db_update
                     .rod_definition
@@ -898,19 +1369,34 @@ impl __sdk::DbUpdate for DbUpdate {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub struct AppliedDiff<'r> {
+    achievement_definition: __sdk::TableAppliedDiff<'r, AchievementDefinition>,
+    adapter_achievement_progress: __sdk::TableAppliedDiff<'r, AchievementProgress>,
+    adapter_bait_loadout: __sdk::TableAppliedDiff<'r, BaitLoadout>,
+    adapter_baits: __sdk::TableAppliedDiff<'r, BaitStack>,
+    adapter_cast_equipment: __sdk::TableAppliedDiff<'r, CastEquipmentReceipt>,
+    adapter_cast_pulls: __sdk::TableAppliedDiff<'r, CastPull>,
     adapter_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
     adapter_daily_receipt: __sdk::TableAppliedDiff<'r, DailyReceipt>,
     adapter_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
+    adapter_items: __sdk::TableAppliedDiff<'r, ItemStack>,
     adapter_licences: __sdk::TableAppliedDiff<'r, OwnedBiomeLicence>,
     adapter_player: __sdk::TableAppliedDiff<'r, Player>,
     adapter_receipt: __sdk::TableAppliedDiff<'r, CommandReceipt>,
     adapter_rods: __sdk::TableAppliedDiff<'r, OwnedRod>,
+    adapter_sale_quote: __sdk::TableAppliedDiff<'r, SaleQuote>,
     adapter_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
+    adapter_upgrade_quote: __sdk::TableAppliedDiff<'r, UpgradeQuote>,
     angler_standing: __sdk::TableAppliedDiff<'r, AnglerStanding>,
+    angler_title: __sdk::TableAppliedDiff<'r, AnglerTitle>,
+    bait_definition: __sdk::TableAppliedDiff<'r, BaitDefinition>,
     biome_definition: __sdk::TableAppliedDiff<'r, BiomeDefinition>,
+    earned_achievement: __sdk::TableAppliedDiff<'r, EarnedAchievement>,
     game_config: __sdk::TableAppliedDiff<'r, GameConfig>,
     legendary_find: __sdk::TableAppliedDiff<'r, LegendaryFind>,
+    my_achievement_progress: __sdk::TableAppliedDiff<'r, AchievementProgress>,
     my_action: __sdk::TableAppliedDiff<'r, ActionNonce>,
+    my_bait_loadout: __sdk::TableAppliedDiff<'r, BaitLoadout>,
+    my_baits: __sdk::TableAppliedDiff<'r, BaitStack>,
     my_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
     my_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
     my_items: __sdk::TableAppliedDiff<'r, ItemStack>,
@@ -923,8 +1409,11 @@ pub struct AppliedDiff<'r> {
     my_rods: __sdk::TableAppliedDiff<'r, OwnedRod>,
     my_service: __sdk::TableAppliedDiff<'r, ServicePrincipal>,
     my_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
+    my_upgrade_quote: __sdk::TableAppliedDiff<'r, UpgradeQuote>,
     public_profile: __sdk::TableAppliedDiff<'r, PublicProfile>,
+    quality_definition: __sdk::TableAppliedDiff<'r, QualityDefinition>,
     rarity_definition: __sdk::TableAppliedDiff<'r, RarityDefinition>,
+    rod_bonuses: __sdk::TableAppliedDiff<'r, RodBonuses>,
     rod_definition: __sdk::TableAppliedDiff<'r, RodDefinition>,
     shop_listing: __sdk::TableAppliedDiff<'r, ShopListing>,
     species_definition: __sdk::TableAppliedDiff<'r, SpeciesDefinition>,
@@ -943,6 +1432,36 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         event: &EventContext,
         callbacks: &mut __sdk::DbCallbacks<RemoteModule>,
     ) {
+        callbacks.invoke_table_row_callbacks::<AchievementDefinition>(
+            "achievement_definition",
+            &self.achievement_definition,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<AchievementProgress>(
+            "adapter_achievement_progress",
+            &self.adapter_achievement_progress,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<BaitLoadout>(
+            "adapter_bait_loadout",
+            &self.adapter_bait_loadout,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<BaitStack>(
+            "adapter_baits",
+            &self.adapter_baits,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<CastEquipmentReceipt>(
+            "adapter_cast_equipment",
+            &self.adapter_cast_equipment,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<CastPull>(
+            "adapter_cast_pulls",
+            &self.adapter_cast_pulls,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<PlayerSpeciesProgress>(
             "adapter_collection",
             &self.adapter_collection,
@@ -956,6 +1475,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<OwnedSpecimen>(
             "adapter_inventory",
             &self.adapter_inventory,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<ItemStack>(
+            "adapter_items",
+            &self.adapter_items,
             event,
         );
         callbacks.invoke_table_row_callbacks::<OwnedBiomeLicence>(
@@ -974,9 +1498,19 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             event,
         );
         callbacks.invoke_table_row_callbacks::<OwnedRod>("adapter_rods", &self.adapter_rods, event);
+        callbacks.invoke_table_row_callbacks::<SaleQuote>(
+            "adapter_sale_quote",
+            &self.adapter_sale_quote,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<ShopQuote>(
             "adapter_shop_quote",
             &self.adapter_shop_quote,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<UpgradeQuote>(
+            "adapter_upgrade_quote",
+            &self.adapter_upgrade_quote,
             event,
         );
         callbacks.invoke_table_row_callbacks::<AnglerStanding>(
@@ -984,9 +1518,24 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.angler_standing,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<AnglerTitle>(
+            "angler_title",
+            &self.angler_title,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<BaitDefinition>(
+            "bait_definition",
+            &self.bait_definition,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<BiomeDefinition>(
             "biome_definition",
             &self.biome_definition,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<EarnedAchievement>(
+            "earned_achievement",
+            &self.earned_achievement,
             event,
         );
         callbacks.invoke_table_row_callbacks::<GameConfig>("game_config", &self.game_config, event);
@@ -995,7 +1544,18 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.legendary_find,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<AchievementProgress>(
+            "my_achievement_progress",
+            &self.my_achievement_progress,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<ActionNonce>("my_action", &self.my_action, event);
+        callbacks.invoke_table_row_callbacks::<BaitLoadout>(
+            "my_bait_loadout",
+            &self.my_bait_loadout,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<BaitStack>("my_baits", &self.my_baits, event);
         callbacks.invoke_table_row_callbacks::<PlayerSpeciesProgress>(
             "my_collection",
             &self.my_collection,
@@ -1040,9 +1600,19 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.my_shop_quote,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<UpgradeQuote>(
+            "my_upgrade_quote",
+            &self.my_upgrade_quote,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<PublicProfile>(
             "public_profile",
             &self.public_profile,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<QualityDefinition>(
+            "quality_definition",
+            &self.quality_definition,
             event,
         );
         callbacks.invoke_table_row_callbacks::<RarityDefinition>(
@@ -1050,6 +1620,7 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.rarity_definition,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<RodBonuses>("rod_bonuses", &self.rod_bonuses, event);
         callbacks.invoke_table_row_callbacks::<RodDefinition>(
             "rod_definition",
             &self.rod_definition,
@@ -1735,19 +2306,34 @@ impl __sdk::SpacetimeModule for RemoteModule {
     type QueryBuilder = __sdk::QueryBuilder;
 
     fn register_tables(client_cache: &mut __sdk::ClientCache<Self>) {
+        achievement_definition_table::register_table(client_cache);
+        adapter_achievement_progress_table::register_table(client_cache);
+        adapter_bait_loadout_table::register_table(client_cache);
+        adapter_baits_table::register_table(client_cache);
+        adapter_cast_equipment_table::register_table(client_cache);
+        adapter_cast_pulls_table::register_table(client_cache);
         adapter_collection_table::register_table(client_cache);
         adapter_daily_receipt_table::register_table(client_cache);
         adapter_inventory_table::register_table(client_cache);
+        adapter_items_table::register_table(client_cache);
         adapter_licences_table::register_table(client_cache);
         adapter_player_table::register_table(client_cache);
         adapter_receipt_table::register_table(client_cache);
         adapter_rods_table::register_table(client_cache);
+        adapter_sale_quote_table::register_table(client_cache);
         adapter_shop_quote_table::register_table(client_cache);
+        adapter_upgrade_quote_table::register_table(client_cache);
         angler_standing_table::register_table(client_cache);
+        angler_title_table::register_table(client_cache);
+        bait_definition_table::register_table(client_cache);
         biome_definition_table::register_table(client_cache);
+        earned_achievement_table::register_table(client_cache);
         game_config_table::register_table(client_cache);
         legendary_find_table::register_table(client_cache);
+        my_achievement_progress_table::register_table(client_cache);
         my_action_table::register_table(client_cache);
+        my_bait_loadout_table::register_table(client_cache);
+        my_baits_table::register_table(client_cache);
         my_collection_table::register_table(client_cache);
         my_inventory_table::register_table(client_cache);
         my_items_table::register_table(client_cache);
@@ -1760,8 +2346,11 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_rods_table::register_table(client_cache);
         my_service_table::register_table(client_cache);
         my_shop_quote_table::register_table(client_cache);
+        my_upgrade_quote_table::register_table(client_cache);
         public_profile_table::register_table(client_cache);
+        quality_definition_table::register_table(client_cache);
         rarity_definition_table::register_table(client_cache);
+        rod_bonuses_table::register_table(client_cache);
         rod_definition_table::register_table(client_cache);
         shop_listing_table::register_table(client_cache);
         species_definition_table::register_table(client_cache);
@@ -1769,19 +2358,34 @@ impl __sdk::SpacetimeModule for RemoteModule {
         species_record_table::register_table(client_cache);
     }
     const ALL_TABLE_NAMES: &'static [&'static str] = &[
+        "achievement_definition",
+        "adapter_achievement_progress",
+        "adapter_bait_loadout",
+        "adapter_baits",
+        "adapter_cast_equipment",
+        "adapter_cast_pulls",
         "adapter_collection",
         "adapter_daily_receipt",
         "adapter_inventory",
+        "adapter_items",
         "adapter_licences",
         "adapter_player",
         "adapter_receipt",
         "adapter_rods",
+        "adapter_sale_quote",
         "adapter_shop_quote",
+        "adapter_upgrade_quote",
         "angler_standing",
+        "angler_title",
+        "bait_definition",
         "biome_definition",
+        "earned_achievement",
         "game_config",
         "legendary_find",
+        "my_achievement_progress",
         "my_action",
+        "my_bait_loadout",
+        "my_baits",
         "my_collection",
         "my_inventory",
         "my_items",
@@ -1794,8 +2398,11 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_rods",
         "my_service",
         "my_shop_quote",
+        "my_upgrade_quote",
         "public_profile",
+        "quality_definition",
         "rarity_definition",
+        "rod_bonuses",
         "rod_definition",
         "shop_listing",
         "species_definition",

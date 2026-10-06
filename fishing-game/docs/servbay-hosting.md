@@ -59,12 +59,9 @@ Do not enter the callback in Interactions Endpoint URL; this bot uses the Gatewa
 
 The bot token was verified and matches DISCORD_CLIENT_ID; the native Gateway
 reached "Discord adapter ready". DISCORD_REGISTER_COMMANDS is true. Discord's API
-confirms all seven commands registered globally: /fish, /profile, /inventory,
-/collection, /biome, /gear, and /help. After the owner reported that commands
-were not visible, DISCORD_GUILD_ID was set to The Magic Tree House's server ID.
-The restart registered the same seven commands directly to that server, verified
-through Discord's API. Existing global commands remain registered. Startup now
-refreshes the server command set; clear DISCORD_GUILD_ID for global registration.
+confirms all nine commands registered globally: /fish, /profile, /inventory,
+/collection, /biome, /gear, /help, /daily and /shop. Startup refreshes this one
+global set and cleans matching legacy guild copies in the configured servers.
 Live /fish delivery and the complete OAuth consent/callback still need verification.
 
 ## Records projections
@@ -107,3 +104,12 @@ the existing restricted WebSocket route. The additive migration keeps player,
 wallet, inventory, daily, and rod tables; owner activation seeds the offers and
 runs the one-time visited-water licence transition. Restart uses the existing
 tracked-process launcher and leaves ServBay/database/tunnel running.
+
+
+October 5 command registration correction: Earlier visibility fixes created
+direct registrations in The Magic Tree House and Kyeri's Cozy Kingdom alongside
+the global list, which produced duplicate entries in Discord. The final policy
+registers one global set only. DISCORD_GUILD_ID and DISCORD_GUILD_IDS now identify
+legacy cleanup targets, trimmed and deduplicated; startup deletes only guild
+commands whose name and type match a registered global command. Guild-only
+commands are preserved. Earlier direct-registration notes above are historical.

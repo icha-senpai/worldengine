@@ -18,7 +18,7 @@
       "key": "whispering-river",
       "name": "Whispering River",
       "minimumLevel": 5,
-      "requiredPower": 10,
+      "requiredPower": 0,
       "fishWeight": 83,
       "junkWeight": 13,
       "treasureWeight": 4,
@@ -29,7 +29,7 @@
       "key": "hollow-marsh",
       "name": "Hollow Marsh",
       "minimumLevel": 10,
-      "requiredPower": 20,
+      "requiredPower": 0,
       "fishWeight": 77,
       "junkWeight": 18,
       "treasureWeight": 5,
@@ -40,7 +40,7 @@
       "key": "moonlit-lake",
       "name": "Moonlit Lake",
       "minimumLevel": 18,
-      "requiredPower": 35,
+      "requiredPower": 0,
       "fishWeight": 84,
       "junkWeight": 11,
       "treasureWeight": 5,
@@ -51,7 +51,7 @@
       "key": "sunken-coast",
       "name": "Sunken Coast",
       "minimumLevel": 28,
-      "requiredPower": 50,
+      "requiredPower": 0,
       "fishWeight": 80,
       "junkWeight": 13,
       "treasureWeight": 7,
@@ -62,7 +62,7 @@
       "key": "glacial-reach",
       "name": "Glacial Reach",
       "minimumLevel": 40,
-      "requiredPower": 65,
+      "requiredPower": 0,
       "fishWeight": 83,
       "junkWeight": 12,
       "treasureWeight": 5,
@@ -73,7 +73,7 @@
       "key": "abyssal-shelf",
       "name": "Abyssal Shelf",
       "minimumLevel": 55,
-      "requiredPower": 85,
+      "requiredPower": 0,
       "fishWeight": 78,
       "junkWeight": 14,
       "treasureWeight": 8,
@@ -85,43 +85,64 @@
       "rodId": 1,
       "name": "Twig Rod",
       "power": 1,
-      "minimumLevel": 1
+      "minimumLevel": 1,
+      "luckBp": 0,
+      "xpBonusBp": 0,
+      "spriteAsset": "/rods/twig.png"
     },
     {
       "rodId": 2,
       "name": "River Rod",
       "power": 10,
-      "minimumLevel": 5
+      "minimumLevel": 5,
+      "luckBp": 500,
+      "xpBonusBp": 500,
+      "spriteAsset": "/rods/river.png"
     },
     {
       "rodId": 3,
       "name": "Marsh Rod",
       "power": 20,
-      "minimumLevel": 10
+      "minimumLevel": 10,
+      "luckBp": 1000,
+      "xpBonusBp": 800,
+      "spriteAsset": "/rods/marsh.png"
     },
     {
       "rodId": 4,
       "name": "Moonwood Rod",
       "power": 35,
-      "minimumLevel": 18
+      "minimumLevel": 18,
+      "luckBp": 1500,
+      "xpBonusBp": 1200,
+      "spriteAsset": "/rods/moonwood.png"
     },
     {
       "rodId": 5,
       "name": "Tide Rod",
       "power": 50,
-      "minimumLevel": 28
+      "minimumLevel": 28,
+      "luckBp": 2000,
+      "xpBonusBp": 1600,
+      "spriteAsset": "/rods/tide.png"
     },
     {
       "rodId": 6,
       "name": "Glacial Rod",
       "power": 65,
-      "minimumLevel": 40
+      "minimumLevel": 40,
+      "luckBp": 2500,
+      "xpBonusBp": 2000,
+      "spriteAsset": "/rods/glacial.png"
     },
     {
       "rodId": 7,
       "name": "Abyssal Rod",
       "power": 85,
-      "minimumLevel": 55
+      "minimumLevel": 55,
+      "luckBp": 3000,
+      "xpBonusBp": 2500,
+      "spriteAsset": "/rods/abyssal.png"
     }
   ]
 }

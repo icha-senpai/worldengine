@@ -12,17 +12,23 @@
   $effect(() => { pageSize; page = 1; });
   const species = catalog.species.map(entry => ({ ...entry, asset: manifest.fish.find(asset => asset.key === entry.spriteKey)! }));
   const fish = $derived(species.filter(entry => (!biome || entry.biomeId === biome) && (!rarity || entry.allowedRarities.includes(rarity)) && (entry.name.toLowerCase().includes(query.trim().toLowerCase()) || entry.key.includes(query.trim().toLowerCase().replaceAll(' ', '-')))));
+  const castsPerCatch = (entry: typeof catalog.species[number]) => {
+    const tickets = rarity ? entry.ranks.find(rank => rank.rarity === rarity)!.encounterWeight : entry.encounterWeight;
+    const p = tickets * world.biomes.find(b => b.biomeId === entry.biomeId)!.fishWeight / 100_000_000;
+    const q = world.rods[0].power / 200;
+    return 1 / ((1+q)*p-q*p*p);
+  };
 </script>
 
 <section aria-labelledby="compendium-heading">
   <h2 id="compendium-heading">The fish book <span>{species.length} species</span></h2>
   <div class="filters"><div class="search"><label for="catalog-search">Find a fish</label><input id="catalog-search" type="search" placeholder="Carp, koi, trout…" bind:value={query} oninput={() => page = 1} /></div><div><label for="catalog-biome">Biome</label><select id="catalog-biome" bind:value={biome} onchange={() => page = 1}><option value={0}>All waters</option>{#each world.biomes as b}<option value={b.biomeId}>{b.name}</option>{/each}</select></div><div><label for="catalog-rank">Rank</label><select id="catalog-rank" bind:value={rarity} onchange={() => page = 1}><option value="">All ranks</option>{#each tiers as tier}<option value={tier}>{tier}</option>{/each}</select></div></div>
-  <p class="count">{fish.length} matching fish. Rates are per accepted cast in each fish's biome{rarity ? ' at the selected rank' : ', across all eligible ranks'}.</p>
+  <p class="count">{fish.length} matching fish. Base rates are per accepted cast in each fish's biome{rarity ? ' at the selected rank' : ', across all eligible ranks'}, with a Common Twig Rod and no bait. Better gear and bait improve these rates.</p>
   <div class="fish">
     {#each fish.slice((page - 1) * pageSize, page * pageSize) as entry (entry.speciesId)}
       <figure data-rank={rarity || (entry.allowedRarities.length === 1 ? entry.allowedRarities[0] : '')}>
         <div class="sprite-slot"><img src={entry.asset.url} alt={entry.name} loading="lazy" width={entry.asset.width} height={entry.asset.height} /></div>
-        <figcaption><span class="fish-name">{entry.name}</span><span class="detail">{world.biomes.find(b => b.biomeId === entry.biomeId)?.name}</span><span class="rarity">{rarity || (entry.allowedRarities.length === 10 ? 'F through UUR' : entry.allowedRarities[0] + ' only')}</span><span class="detail">About 1 in {(100_000_000 / ((rarity ? entry.ranks.find(rank => rank.rarity === rarity)!.encounterWeight : entry.encounterWeight) * world.biomes.find(b => b.biomeId === entry.biomeId)!.fishWeight)).toLocaleString(undefined, { maximumFractionDigits: 1 })} casts{rarity ? ' at ' + rarity : ' across ranks'}</span></figcaption>
+        <figcaption><span class="fish-name">{entry.name}</span><span class="detail">{world.biomes.find(b => b.biomeId === entry.biomeId)?.name}</span><span class="rarity">{rarity || (entry.allowedRarities.length === 10 ? 'F through UUR' : entry.allowedRarities[0] + ' only')}</span><span class="detail">About 1 in {castsPerCatch(entry).toLocaleString(undefined, { maximumFractionDigits: 1 })} casts{rarity ? ' at ' + rarity : ' across ranks'}</span></figcaption>
       </figure>
     {/each}
     {#if !fish.length}<p class="count">No fish match these filters.</p>{/if}

@@ -1,5 +1,60 @@
 use spacetimedb::{Identity, SpacetimeType, Timestamp};
 
+#[spacetimedb::table(accessor = achievement_definition, public)]
+pub struct AchievementDefinition {
+    #[primary_key]
+    pub achievement_id: u32,
+    pub name: String,
+    pub description: String,
+    pub title: String,
+    pub target: u64,
+    pub bonus: bool,
+}
+
+#[spacetimedb::table(accessor = earned_achievement, public)]
+pub struct EarnedAchievement {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub achievement_id: u32,
+    pub completed_at: Timestamp,
+}
+
+#[spacetimedb::table(accessor = achievement_progress)]
+pub struct AchievementProgress {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub achievement_id: u32,
+    pub current: u64,
+}
+
+#[spacetimedb::table(accessor = angler_title, public)]
+pub struct AnglerTitle {
+    #[primary_key]
+    pub player_id: u64,
+    /// Zero clears the selected title.
+    pub achievement_id: u32,
+}
+
+#[spacetimedb::table(accessor = sale_quote)]
+pub struct SaleQuote {
+    #[primary_key]
+    pub key: String,
+    pub identity: Identity,
+    pub player_id: u64,
+    #[unique]
+    pub nonce: u128,
+    pub catch_ids: Vec<u64>,
+    pub quoted_coins: u64,
+    pub created_at: Timestamp,
+    #[index(btree)]
+    pub expires_at: Timestamp,
+    pub consumed: bool,
+}
+
 #[spacetimedb::table(accessor = deployment_owner)]
 pub struct DeploymentOwner {
     #[primary_key]
@@ -93,6 +148,16 @@ pub struct RodDefinition {
     pub name: String,
     pub power: u32,
     pub minimum_level: u32,
+}
+
+#[spacetimedb::table(accessor = rod_bonuses, public)]
+pub struct RodBonuses {
+    #[primary_key]
+    pub rod_id: u32,
+    pub version: u32,
+    pub luck_bp: u32,
+    pub xp_bonus_bp: u32,
+    pub sprite_asset: String,
 }
 
 #[spacetimedb::table(accessor = owned_rod)]
@@ -253,6 +318,96 @@ pub struct CommandReceipt {
     pub item_quantity: u64,
     pub biome_id: u32,
     pub rod_id: u32,
+}
+
+#[spacetimedb::table(accessor = bait_definition, public)]
+pub struct BaitDefinition {
+    #[primary_key]
+    pub bait_id: u32,
+    pub name: String,
+    pub luck_bp: u32,
+    pub resource_item: String,
+    pub uses_per_purchase: u64,
+    pub sprite_asset: String,
+}
+
+#[spacetimedb::table(accessor = quality_definition, public)]
+pub struct QualityDefinition {
+    #[primary_key]
+    pub quality_level: u8,
+    pub version: u32,
+    pub name: String,
+    pub power_bonus: u32,
+    pub luck_bp: u32,
+    pub xp_bonus_bp: u32,
+    pub tin_cost: u64,
+    pub scrap_cost: u64,
+}
+
+#[spacetimedb::table(accessor = bait_stack)]
+pub struct BaitStack {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub bait_id: u32,
+    pub uses_left: u64,
+}
+
+#[spacetimedb::table(accessor = bait_loadout)]
+pub struct BaitLoadout {
+    #[primary_key]
+    pub player_id: u64,
+    pub bait_id: u32,
+}
+
+#[spacetimedb::table(accessor = upgrade_quote)]
+pub struct UpgradeQuote {
+    #[primary_key]
+    pub key: String,
+    pub identity: Identity,
+    pub player_id: u64,
+    #[unique]
+    pub nonce: u128,
+    pub rod_id: u32,
+    pub from_quality: u8,
+    pub catalog_version: u32,
+    pub tin_cost: u64,
+    pub scrap_cost: u64,
+    pub created_at: Timestamp,
+    #[index(btree)]
+    pub expires_at: Timestamp,
+    pub consumed: bool,
+}
+
+#[spacetimedb::table(accessor = cast_pull)]
+pub struct CastPull {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub interaction_id: u64,
+    #[index(btree)]
+    pub caught_at: Timestamp,
+    pub player_id: u64,
+    pub base_xp: u64,
+    /// Per-pull rewards before applying the XP bonus to the full cast once.
+    pub receipt: CommandReceipt,
+}
+
+#[spacetimedb::table(accessor = cast_equipment_receipt)]
+pub struct CastEquipmentReceipt {
+    #[primary_key]
+    pub interaction_id: u64,
+    #[index(btree)]
+    pub caught_at: Timestamp,
+    pub player_id: u64,
+    pub quality_level: u8,
+    pub power: u32,
+    pub luck_bp: u32,
+    pub xp_bonus_bp: u32,
+    pub bait_id: u32,
+    pub bait_uses_left: u64,
+    pub bait_item: String,
 }
 
 #[spacetimedb::table(accessor = recent_catch)]

@@ -11,17 +11,22 @@ connects. Command delivery and the complete OAuth login still need live verifica
 - Every ordinary species supports F through UUR; Fihs only UUR and the Sock only F.
 - Rank comes from species-relative length and weight; both must meet the tier minimums.
 - Saved catch ranks drive XP, sale value, rank artwork, and collection rank progress.
-- Level cap 60; seven free level-earned rods; authoritative biome/equipment selection.
+- Level cap 60; free Twig Rod and six purchased rod families; authoritative biome/equipment selection.
 - Server RNG, fixed-point lengths/weights, XP and first discoveries, global 60-second cooldown.
 - Private accounts and inventory, scoped subscriptions, durable cast results, safe retries.
 - Junk stacks and immediate treasure rewards with economy ledger entries.
+- Five repeatable 10-use bait packs and permanent Common-to-Prismatic quality per rod.
+- Power can add one independent mixed pull; both pulls share cooldown and one bait use.
+- Confirmed tin/scrap crafting; biome access uses level and licences instead of power.
 - Website dashboard, collection, recent catches, favorites, sale preview/confirmation,
   and length/weight records that survive disposal.
 - One game shell with Camp, Tackle box, Collection, Journal, World map, Records,
-  and Compendium tabs. Lists have book pages: twelve entries on desktop and four on phones.
-- Poise handlers: /fish, /profile, /inventory, /collection, /biome, /gear, /help.
-  Fish responses attach one PNG with the fish centered on its saved rarity card.
+  Trader, Compendium, Achievements and Anglers tabs. Lists have book pages: twelve entries on desktop and four on phones.
+- Thirteen Poise handlers: /fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /shop, /bait, /upgrade, /help.
+  Fish responses attach a rarity-card PNG for each saved fish, including bonus pulls.
   Visible artwork is fitted proportionally, with crisp pixel scaling and clear rank labels.
+- Eighteen permanent cosmetic badges and selectable titles, with retroactive progress.
+- Public angler search/profiles and paged Discord standings; confirmed Discord sales protect favorites.
 - Discord OAuth service, browser challenge proofs, single-use CSRF sessions,
   verified identity binding, replacement/revocation, and browser unlinking.
 - Automatic client reconnect, owner-controlled service roles, audit rows,
@@ -31,7 +36,8 @@ All 251 original sprites and 10 rank cards remain in assets. Every sprite has
 its requested name and stable species ID in content/species.json. Fihs and
 Nidalees Lost Sock retain their special rank and rarity constraints; neither
 is part of ordinary collection completion. Both are live only at Abyssal Shelf.
-Fihs averages 10,016 eligible casts; the Sock 20,032. [Balance and wait math](docs/world-balance.md).
+Maximum rod quality and luck bait put Fihs around 2,813 casts and the Sock 5,625;
+waiting times depend on equipped gear. [Balance and wait math](docs/world-balance.md).
 
 ## Structure
 
@@ -62,6 +68,9 @@ for local publication, service-role bootstrap, and credential configuration.
     cargo test -p discord-bot --locked
     npm run bindings
     npm run test:integration
+    npx tsx scripts/trader-proof.ts
+    npx tsx scripts/crafting-proof.ts
+    npx tsx scripts/social-proof.ts
 
 Integration tests require the isolated loopback host on port 3127 and create
 a fresh proof database each time. No existing database is reset. Generated

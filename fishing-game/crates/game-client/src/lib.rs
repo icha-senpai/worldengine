@@ -56,12 +56,26 @@ pub struct Client {
 }
 
 pub struct Snapshot {
+    pub public_profiles: Vec<PublicProfile>,
+    pub standings: Vec<AnglerStanding>,
+    pub records: Vec<SpeciesRecord>,
+    pub achievements: Vec<AchievementDefinition>,
+    pub earned_achievements: Vec<EarnedAchievement>,
+    pub titles: Vec<AnglerTitle>,
+    pub baits: Vec<BaitDefinition>,
+    pub qualities: Vec<QualityDefinition>,
+    pub owned_baits: Vec<BaitStack>,
+    pub bait_loadout: Option<BaitLoadout>,
+    pub items: Vec<ItemStack>,
+    pub cast_pulls: Vec<CastPull>,
+    pub cast_equipment: Option<CastEquipmentReceipt>,
     pub player: Player,
     pub inventory: Vec<OwnedSpecimen>,
     pub collection: Vec<PlayerSpeciesProgress>,
     pub species: Vec<SpeciesDefinition>,
     pub biomes: Vec<BiomeDefinition>,
     pub rods: Vec<RodDefinition>,
+    pub rod_bonuses: Vec<RodBonuses>,
     pub owned_rods: Vec<OwnedRod>,
     pub licences: Vec<OwnedBiomeLicence>,
     pub listings: Vec<ShopListing>,
@@ -103,8 +117,9 @@ impl Client {
                 let error = connected.clone();
                 let mut queries = vec!["SELECT * FROM my_service"];
                 if role == ServiceRole::DiscordAdapter {
-                    queries.extend(["SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
-                        "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
+                    queries.extend(["SELECT * FROM public_profile", "SELECT * FROM angler_standing", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
+                    queries.extend(["SELECT * FROM bait_definition", "SELECT * FROM quality_definition", "SELECT * FROM adapter_baits", "SELECT * FROM adapter_bait_loadout", "SELECT * FROM adapter_items", "SELECT * FROM adapter_cast_pulls", "SELECT * FROM adapter_cast_equipment", "SELECT * FROM adapter_upgrade_quote", "SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
+                        "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_bonuses", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
                 }
                 conn.subscription_builder().on_applied(move |ctx| {
                     let authorized = ctx.db.my_service().iter().any(|service| service.active && service.role == role);
@@ -306,6 +321,62 @@ impl Client {
         unreachable!("bounded transport retry")
     }
 
+    pub async fn sale_action(
+        &self,
+        discord_user_id: u64,
+        display_name: String,
+        interaction_id: u64,
+        catch_ids: Option<Vec<u64>>,
+        nonce: Option<u128>,
+    ) -> Result<SaleQuote, Error> {
+        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        for attempt in 0..2 {
+            let connection = self.active_connection().await?;
+            let result = async {
+                Self::player_once(
+                    &connection,
+                    discord_user_id,
+                    display_name.clone(),
+                    interaction_id,
+                    None,
+                    1,
+                    false,
+                )
+                .await?;
+                let (sender, receiver) = oneshot::channel();
+                if let Some(ids) = &catch_ids {
+                    connection.reducers.prepare_sale_from_discord_then(
+                        discord_user_id,
+                        interaction_id,
+                        ids.clone(),
+                        complete(sender),
+                    )?;
+                } else if let Some(nonce) = nonce {
+                    connection.reducers.commit_sale_from_discord_then(
+                        discord_user_id,
+                        interaction_id,
+                        nonce,
+                        complete(sender),
+                    )?;
+                } else {
+                    return Err("Missing sale intent".into());
+                }
+                receive(receiver).await?;
+                connection
+                    .db
+                    .adapter_sale_quote()
+                    .iter()
+                    .next()
+                    .ok_or_else(|| "Sale confirmation unavailable".into())
+            }
+            .await;
+            if result.is_ok() || connection.is_active() || attempt == 1 {
+                return result;
+            }
+        }
+        unreachable!("bounded transport retry")
+    }
+
     pub async fn change_loadout(
         &self,
         discord_user_id: u64,
@@ -345,6 +416,101 @@ impl Client {
             false,
         )
         .await
+    }
+
+    pub async fn equip_bait(
+        &self,
+        discord_user_id: u64,
+        display_name: String,
+        interaction_id: u64,
+        bait_id: u32,
+    ) -> Result<Snapshot, Error> {
+        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        let connection = self.active_connection().await?;
+        Self::player_once(
+            &connection,
+            discord_user_id,
+            display_name.clone(),
+            interaction_id,
+            None,
+            1,
+            false,
+        )
+        .await?;
+        let (sender, receiver) = oneshot::channel();
+        connection.reducers.equip_bait_from_discord_then(
+            discord_user_id,
+            interaction_id,
+            bait_id,
+            complete(sender),
+        )?;
+        receive(receiver).await?;
+        Self::player_once(
+            &connection,
+            discord_user_id,
+            display_name,
+            interaction_id,
+            None,
+            1,
+            false,
+        )
+        .await
+    }
+
+    pub async fn upgrade_action(
+        &self,
+        discord_user_id: u64,
+        display_name: String,
+        interaction_id: u64,
+        rod_id: Option<u32>,
+        nonce: Option<u128>,
+    ) -> Result<UpgradeQuote, Error> {
+        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        for attempt in 0..2 {
+            let connection = self.active_connection().await?;
+            let result = async {
+                Self::player_once(
+                    &connection,
+                    discord_user_id,
+                    display_name.clone(),
+                    interaction_id,
+                    None,
+                    1,
+                    false,
+                )
+                .await?;
+                let (sender, receiver) = oneshot::channel();
+                if let Some(rod_id) = rod_id {
+                    connection.reducers.prepare_upgrade_from_discord_then(
+                        discord_user_id,
+                        interaction_id,
+                        rod_id,
+                        complete(sender),
+                    )?;
+                } else if let Some(nonce) = nonce {
+                    connection.reducers.commit_upgrade_from_discord_then(
+                        discord_user_id,
+                        interaction_id,
+                        nonce,
+                        complete(sender),
+                    )?;
+                } else {
+                    return Err("Missing upgrade intent".into());
+                }
+                receive(receiver).await?;
+                connection
+                    .db
+                    .adapter_upgrade_quote()
+                    .iter()
+                    .next()
+                    .ok_or_else(|| "Upgrade confirmation unavailable".into())
+            }
+            .await;
+            if result.is_ok() || connection.is_active() || attempt == 1 {
+                return result;
+            }
+        }
+        unreachable!("bounded transport retry")
     }
 
     async fn player_once(
@@ -390,6 +556,19 @@ impl Client {
             return Err("Cast status unavailable; retry with the same interaction ID".into());
         }
         Ok(Snapshot {
+            public_profiles: connection.db.public_profile().iter().collect(),
+            standings: connection.db.angler_standing().iter().collect(),
+            records: connection.db.species_record().iter().collect(),
+            achievements: connection.db.achievement_definition().iter().collect(),
+            earned_achievements: connection.db.earned_achievement().iter().collect(),
+            titles: connection.db.angler_title().iter().collect(),
+            baits: connection.db.bait_definition().iter().collect(),
+            qualities: connection.db.quality_definition().iter().collect(),
+            owned_baits: connection.db.adapter_baits().iter().collect(),
+            bait_loadout: connection.db.adapter_bait_loadout().iter().next(),
+            items: connection.db.adapter_items().iter().collect(),
+            cast_pulls: connection.db.adapter_cast_pulls().iter().collect(),
+            cast_equipment: connection.db.adapter_cast_equipment().iter().next(),
             player,
             receipt,
             inventory: connection.db.adapter_inventory().iter().collect(),
@@ -397,6 +576,7 @@ impl Client {
             species: connection.db.species_definition().iter().collect(),
             biomes: connection.db.biome_definition().iter().collect(),
             rods: connection.db.rod_definition().iter().collect(),
+            rod_bonuses: connection.db.rod_bonuses().iter().collect(),
             owned_rods: connection.db.adapter_rods().iter().collect(),
             licences: connection.db.adapter_licences().iter().collect(),
             listings: connection.db.shop_listing().iter().collect(),

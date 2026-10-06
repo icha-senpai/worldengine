@@ -12,6 +12,7 @@ import { localPlay, user, authConfigured, authError, signIn } from "../auth";
 import {
   evergather,
   evergatherReady,
+  evergatherReconnecting,
   evergatherPanelReady,
   setEvergatherPanel,
   marketPage,
@@ -768,7 +769,11 @@ function isWorkspacePanel(panel) {
     </div>
     <template v-else-if="!evergatherReady"
       ><p class="muted" role="status">
-        Loading your Evergather character…
+        {{
+          evergatherReconnecting
+            ? "Reconnecting to Evergather…"
+            : "Loading your Evergather character…"
+        }}
       </p></template
     >
     <form

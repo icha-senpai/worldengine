@@ -69,7 +69,7 @@ pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String
     } else {
         ctx.db.angler_standing().insert(row);
     }
-    Ok(())
+    crate::achievements::refresh_player(ctx, player_id)
 }
 
 /// Bounded, repeatable backfill from durable progress, including sold catches.

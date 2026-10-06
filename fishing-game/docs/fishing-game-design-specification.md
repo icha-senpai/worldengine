@@ -960,6 +960,16 @@ The first pull request should contain the workspace, compatible pinned dependenc
 
 The intended foundation is straightforward: the player asks to fish; one authoritative transaction decides what happened; every client learns the same result. The depth comes from species, specimens, choices, and persistent goals—not from duplicating the rules across clients.
 
+## Owner-approved rods and tackle-box gear (October 5, 2026)
+
+The owner-approved rod and tackle-box update is specified in
+`rod-progression.md`: seven illustrated rods improve power, relative luck and
+fishing XP monotonically; only equipped gear applies. Gear appears above Junk &
+Materials, with an equipped-rod slot and Bait — coming soon placeholder. Gameplay
+rules version 5 preserves physical rank thresholds, the global minute cooldown
+and exceptional-fish ordering. This decision overrides earlier speculative rod
+or bait defaults in this original specification.
+
 ## Owner-approved Dockside Delivery (October 4, 2026)
 
 `/daily` grants 100 coins and no XP. Every seventh successful lifetime claim adds
@@ -984,3 +994,19 @@ rules. Ownership is account-wide; duplicate/concurrent purchases, stale prices,
 and expired quotes cannot charge twice. Purchase/travel never alters cooldown,
 XP, catch odds, discoveries, or records. Current prices and legacy-preservation
 policy are documented in discord-commands.md and content/trader.json.
+
+
+### Owner-approved bait, rod quality and power override (October 5)
+
+Rules version 6 supersedes old rod-power biome gates: level and sequential
+purchased licence control access, and any owned eligible rod may fish those waters.
+Power gives 0.5 percentage points of chance per point for one independent extra
+fish/junk/treasure pull. Both pulls share the sixty-second cooldown and one bait
+charge. Each rod permanently owns Common..Prismatic quality, with confirmed,
+guaranteed-success tin/scrap recipes and no reclaim flow. Five Trader baits are
+sold in repeatable ten-use packs; resource bait adds one material per cast and
+luck bait combines with family/quality luck. Fihs/Sock exact ratios apply per
+pull and expected catch counts; two-pull at-least-one probabilities use the
+independent-trial formula. Current recipes, prices, bonuses and exact graded
+luck math are in bait-and-crafting-plan.md, rod-progression.md and content/crafting.json.
+The website Gear/Trader and /bait /upgrade are implemented and share server state.

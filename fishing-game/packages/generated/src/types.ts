@@ -10,6 +10,24 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const AchievementDefinition = __t.object("AchievementDefinition", {
+  achievementId: __t.u32(),
+  name: __t.string(),
+  description: __t.string(),
+  title: __t.string(),
+  target: __t.u64(),
+  bonus: __t.bool(),
+});
+export type AchievementDefinition = __Infer<typeof AchievementDefinition>;
+
+export const AchievementProgress = __t.object("AchievementProgress", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  achievementId: __t.u32(),
+  current: __t.u64(),
+});
+export type AchievementProgress = __Infer<typeof AchievementProgress>;
+
 export const ActionNonce = __t.object("ActionNonce", {
   identity: __t.identity(),
   playerId: __t.u64(),
@@ -43,6 +61,36 @@ export const AnglerStanding = __t.object("AnglerStanding", {
 });
 export type AnglerStanding = __Infer<typeof AnglerStanding>;
 
+export const AnglerTitle = __t.object("AnglerTitle", {
+  playerId: __t.u64(),
+  achievementId: __t.u32(),
+});
+export type AnglerTitle = __Infer<typeof AnglerTitle>;
+
+export const BaitDefinition = __t.object("BaitDefinition", {
+  baitId: __t.u32(),
+  name: __t.string(),
+  luckBp: __t.u32(),
+  resourceItem: __t.string(),
+  usesPerPurchase: __t.u64(),
+  spriteAsset: __t.string(),
+});
+export type BaitDefinition = __Infer<typeof BaitDefinition>;
+
+export const BaitLoadout = __t.object("BaitLoadout", {
+  playerId: __t.u64(),
+  baitId: __t.u32(),
+});
+export type BaitLoadout = __Infer<typeof BaitLoadout>;
+
+export const BaitStack = __t.object("BaitStack", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  baitId: __t.u32(),
+  usesLeft: __t.u64(),
+});
+export type BaitStack = __Infer<typeof BaitStack>;
+
 export const BiomeDefinition = __t.object("BiomeDefinition", {
   biomeId: __t.u32(),
   name: __t.string(),
@@ -54,6 +102,32 @@ export const BiomeDefinition = __t.object("BiomeDefinition", {
   treasureWeight: __t.u64(),
 });
 export type BiomeDefinition = __Infer<typeof BiomeDefinition>;
+
+export const CastEquipmentReceipt = __t.object("CastEquipmentReceipt", {
+  interactionId: __t.u64(),
+  caughtAt: __t.timestamp(),
+  playerId: __t.u64(),
+  qualityLevel: __t.u8(),
+  power: __t.u32(),
+  luckBp: __t.u32(),
+  xpBonusBp: __t.u32(),
+  baitId: __t.u32(),
+  baitUsesLeft: __t.u64(),
+  baitItem: __t.string(),
+});
+export type CastEquipmentReceipt = __Infer<typeof CastEquipmentReceipt>;
+
+export const CastPull = __t.object("CastPull", {
+  key: __t.u128(),
+  interactionId: __t.u64(),
+  caughtAt: __t.timestamp(),
+  playerId: __t.u64(),
+  baseXp: __t.u64(),
+  get receipt() {
+    return CommandReceipt;
+  },
+});
+export type CastPull = __Infer<typeof CastPull>;
 
 export const CommandReceipt = __t.object("CommandReceipt", {
   interactionId: __t.u64(),
@@ -109,6 +183,14 @@ export const DeploymentOwner = __t.object("DeploymentOwner", {
   identity: __t.identity(),
 });
 export type DeploymentOwner = __Infer<typeof DeploymentOwner>;
+
+export const EarnedAchievement = __t.object("EarnedAchievement", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  achievementId: __t.u32(),
+  completedAt: __t.timestamp(),
+});
+export type EarnedAchievement = __Infer<typeof EarnedAchievement>;
 
 export const EconomyLedger = __t.object("EconomyLedger", {
   ledgerId: __t.u64(),
@@ -243,6 +325,18 @@ export const PublicProfile = __t.object("PublicProfile", {
 });
 export type PublicProfile = __Infer<typeof PublicProfile>;
 
+export const QualityDefinition = __t.object("QualityDefinition", {
+  qualityLevel: __t.u8(),
+  version: __t.u32(),
+  name: __t.string(),
+  powerBonus: __t.u32(),
+  luckBp: __t.u32(),
+  xpBonusBp: __t.u32(),
+  tinCost: __t.u64(),
+  scrapCost: __t.u64(),
+});
+export type QualityDefinition = __Infer<typeof QualityDefinition>;
+
 export const RarityDefinition = __t.object("RarityDefinition", {
   ordinal: __t.u8(),
   tier: __t.string(),
@@ -267,6 +361,15 @@ export const RecentCatch = __t.object("RecentCatch", {
 });
 export type RecentCatch = __Infer<typeof RecentCatch>;
 
+export const RodBonuses = __t.object("RodBonuses", {
+  rodId: __t.u32(),
+  version: __t.u32(),
+  luckBp: __t.u32(),
+  xpBonusBp: __t.u32(),
+  spriteAsset: __t.string(),
+});
+export type RodBonuses = __Infer<typeof RodBonuses>;
+
 export const RodDefinition = __t.object("RodDefinition", {
   rodId: __t.u32(),
   name: __t.string(),
@@ -274,6 +377,19 @@ export const RodDefinition = __t.object("RodDefinition", {
   minimumLevel: __t.u32(),
 });
 export type RodDefinition = __Infer<typeof RodDefinition>;
+
+export const SaleQuote = __t.object("SaleQuote", {
+  key: __t.string(),
+  identity: __t.identity(),
+  playerId: __t.u64(),
+  nonce: __t.u128(),
+  catchIds: __t.array(__t.u64()),
+  quotedCoins: __t.u64(),
+  createdAt: __t.timestamp(),
+  expiresAt: __t.timestamp(),
+  consumed: __t.bool(),
+});
+export type SaleQuote = __Infer<typeof SaleQuote>;
 
 export const ServicePrincipal = __t.object("ServicePrincipal", {
   identity: __t.identity(),
@@ -377,4 +493,20 @@ export const TraderMigration = __t.object("TraderMigration", {
   grandfathered: __t.bool(),
 });
 export type TraderMigration = __Infer<typeof TraderMigration>;
+
+export const UpgradeQuote = __t.object("UpgradeQuote", {
+  key: __t.string(),
+  identity: __t.identity(),
+  playerId: __t.u64(),
+  nonce: __t.u128(),
+  rodId: __t.u32(),
+  fromQuality: __t.u8(),
+  catalogVersion: __t.u32(),
+  tinCost: __t.u64(),
+  scrapCost: __t.u64(),
+  createdAt: __t.timestamp(),
+  expiresAt: __t.timestamp(),
+  consumed: __t.bool(),
+});
+export type UpgradeQuote = __Infer<typeof UpgradeQuote>;
 

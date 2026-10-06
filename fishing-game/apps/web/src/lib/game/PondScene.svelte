@@ -1,8 +1,29 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   let { compact = false } = $props<{ compact?: boolean }>();
+  const preferenceKey = 'fishbound:pond-motion';
+  let preference = $state<'auto' | 'on' | 'off'>('auto');
+  let reducedMotion = $state(true);
+  const moving = $derived(preference === 'on' || (preference === 'auto' && !reducedMotion));
+  onMount(() => {
+    const media = matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => { reducedMotion = media.matches; };
+    sync();
+    try {
+      const saved = localStorage.getItem(preferenceKey);
+      if (saved === 'on' || saved === 'off') preference = saved;
+    } catch { /* The toggle still works when browser storage is unavailable. */ }
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  });
+  function toggleMotion() {
+    preference = moving ? 'off' : 'on';
+    try { localStorage.setItem(preferenceKey, preference); } catch { /* Session-only preference. */ }
+  }
 </script>
 
-<div class="scene" class:compact aria-hidden="true">
+<div class="scene" class:compact class:moving>
+  <div class="pond-art" aria-hidden="true">
   <svg viewBox="0 0 640 360" preserveAspectRatio="xMidYMid slice" shape-rendering="crispEdges">
     <rect width="640" height="360" fill="#efb777" />
     <rect y="80" width="640" height="65" fill="#f6c889" />
@@ -33,18 +54,25 @@
   <img class="swimmer koi" src="/fish/koi.png" alt="" />
   <img class="swimmer minnow" src="/fish/minnow.png" alt="" />
   <span class="scene-label">A good day to cast.</span>
+  </div>
+  <button class="motion-toggle" aria-label="Pond animation" aria-pressed={moving} onclick={toggleMotion}><span aria-hidden="true">{moving ? 'Ⅱ' : '▶'}</span> {moving ? 'Pause pond' : 'Animate pond'}</button>
 </div>
 
 <style>
   .scene{position:relative;min-height:270px;height:100%;overflow:hidden;border:4px solid var(--wood-dark);box-shadow:inset 0 0 0 3px #ffe7a6,0 5px 0 #132e29;isolation:isolate;background:#376c72}
   svg{display:block;width:100%;height:100%;position:absolute;inset:0}
   .swimmer{position:absolute;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(3px 5px 0 #163e4855)}
-  .koi{width:92px;height:70px;left:49%;top:61%;animation:drift 7s ease-in-out infinite}
+  .koi{width:92px;height:70px;left:49%;top:61%}
   .minnow{width:48px;height:38px;left:73%;top:59%;opacity:.8;transform:scaleX(-1)}
   .scene-label{position:absolute;right:14px;bottom:14px;padding:6px 10px;background:#203e37e8;color:#f4dfac;font-family:var(--font-game);font-size:16px;border:2px solid #779164}
+  .motion-toggle{position:absolute;left:14px;bottom:14px;min-height:36px;padding:6px 10px;background:#203e37e8;color:#f4dfac;font-family:var(--font-game);font-size:15px;border:2px solid #779164;cursor:pointer}
+  .motion-toggle:hover{background:#31584b}.motion-toggle:focus-visible{outline:3px solid #ffe7a6;outline-offset:3px}
   .compact{min-height:205px}.compact .koi{width:72px;height:58px}
-  @media(max-width:600px){.scene-label{font-size:13px;right:10px;bottom:10px}.koi{top:54%}}
-  .bobber,.rings{animation:bob 3s ease-in-out infinite}
+  @media(max-width:600px){.scene-label{font-size:13px;right:10px;bottom:10px}.motion-toggle{font-size:13px;left:10px;bottom:10px}.koi{top:54%}}
+  @media(max-width:360px){.scene-label{display:none}}
+  /* The user's explicit pond choice overrides the global reduced-motion rule
+     for these gentle effects only. Other UI motion still follows the system. */
+  .moving .koi{animation:drift 7s ease-in-out infinite !important}
+  .moving .bobber,.moving .rings{animation:bob 3s ease-in-out infinite !important}
   @keyframes drift{50%{transform:translate(14px,-4px)}}@keyframes bob{50%{transform:translateY(2px)}}
-  @media(prefers-reduced-motion:reduce){.koi,.bobber,.rings{animation:none}}
 </style>

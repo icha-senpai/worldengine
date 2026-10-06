@@ -3,6 +3,7 @@
 pub mod daily;
 pub mod measurements;
 pub mod progression;
+pub mod rods;
 pub mod sampling;
 
 #[cfg(test)]

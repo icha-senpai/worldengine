@@ -1,0 +1,83 @@
+{
+  "mode": "built-in image_gen",
+  "transparentBackground": true,
+  "assets": [
+    {
+      "folder": "licences",
+      "key": "whispering-river",
+      "biomeId": 2,
+      "name": "Whispering River Licence",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: An aged parchment fishing permit, rolled corners, a simple painted emblem of a winding blue river between stony banks and pine trees, green wax seal at lower right."
+    },
+    {
+      "folder": "licences",
+      "key": "hollow-marsh",
+      "biomeId": 3,
+      "name": "Hollow Marsh Licence",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: An aged parchment fishing permit, rolled corners, a simple painted emblem of misty olive marsh reeds and muddy water, bronze olive wax seal at lower right."
+    },
+    {
+      "folder": "licences",
+      "key": "moonlit-lake",
+      "biomeId": 4,
+      "name": "Moonlit Lake Licence",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: An aged parchment fishing permit, rolled corners, a simple painted emblem of a bright crescent moon reflected in a midnight-blue lake, purple silver wax seal at lower right."
+    },
+    {
+      "folder": "licences",
+      "key": "sunken-coast",
+      "biomeId": 5,
+      "name": "Sunken Coast Licence",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: An aged parchment fishing permit, rolled corners, a simple painted emblem of turquoise waves, sandy coast and weathered ruined coastal stones, coral brass wax seal at lower right."
+    },
+    {
+      "folder": "licences",
+      "key": "glacial-reach",
+      "biomeId": 6,
+      "name": "Glacial Reach Licence",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: An aged parchment fishing permit, rolled corners, a simple painted emblem of icy blue water between snowy cliffs, pale ice-blue wax seal at lower right."
+    },
+    {
+      "folder": "licences",
+      "key": "abyssal-shelf",
+      "biomeId": 7,
+      "name": "Abyssal Shelf Licence",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: An aged parchment fishing permit, rolled corners, a simple painted emblem of a deep blue and violet underwater trench plunging into darkness, violet wax seal at lower right."
+    },
+    {
+      "folder": "baits",
+      "key": "sticky-chum",
+      "biomeId": null,
+      "name": "Sticky Chum",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: An open small tan cloth bait pouch filled with amber sticky coarse chum, copper and rust-colored flecks in the mixture, neatly tied cord beneath folded rim."
+    },
+    {
+      "folder": "baits",
+      "key": "salvage-chum",
+      "biomeId": null,
+      "name": "Salvage Chum",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: An open small dark olive cloth bait pouch filled with dark coarse chum and clearly visible silver metallic scrap flecks, sturdy cord beneath folded rim."
+    },
+    {
+      "folder": "baits",
+      "key": "plump-worms",
+      "biomeId": null,
+      "name": "Plump Worms",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: A small open round weathered bait tin with rich brown soil and several plump pink red earthworms curling visibly over the rim."
+    },
+    {
+      "folder": "baits",
+      "key": "river-grubs",
+      "biomeId": null,
+      "name": "River Grubs",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: A small open woven reed bait basket with green moss and several fat cream-colored larvae with warm golden heads, clearly visible on top."
+    },
+    {
+      "folder": "baits",
+      "key": "moonlit-fireflies",
+      "biomeId": null,
+      "name": "Moonlit Fireflies",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG inventory icon, readable at 96px. Style: crisp chunky 16-bit pixel art, visible square pixels, limited palette, dark stepped outlines, warm adventurous handcrafted game feel. One centered complete object occupying about 78% of a square canvas with generous transparent margin. True transparent background. No text, letters, numbers, fake writing, labels, UI frame, background scene outside the object, people, or cropping. No smooth vector art, photorealism, or blurry painting. Subject: A small clear glass bait jar containing a few luminous pale blue and golden fireflies, silver lid with tied cord, restrained violet accents and tiny glow confined to the jar."
+    }
+  ]
+}

@@ -65,6 +65,9 @@ pub fn owns_licence(ctx: &ReducerContext, player_id: u64, biome_id: u32) -> bool
 }
 
 fn owned(ctx: &ReducerContext, player_id: u64, listing: &ShopListing) -> bool {
+    if listing.kind == "bait" {
+        return false;
+    }
     if listing.kind == "licence" {
         owns_licence(ctx, player_id, listing.target_id)
     } else {
@@ -189,6 +192,8 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
             player_id,
             biome_id: listing.target_id,
         });
+    } else if listing.kind == "bait" {
+        crate::crafting::grant_bait(ctx, player_id, listing.target_id)?;
     } else {
         ctx.db.owned_rod().insert(OwnedRod {
             key: ownership_key,
@@ -216,10 +221,10 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
     );
     quote.consumed = true;
     ctx.db.shop_quote().key().update(quote);
-    Ok(())
+    crate::achievements::refresh_player(ctx, player_id)
 }
 
-fn browser_player(ctx: &ReducerContext) -> Result<u64, String> {
+pub(crate) fn browser_player(ctx: &ReducerContext) -> Result<u64, String> {
     ctx.db
         .player_identity()
         .identity()
@@ -227,7 +232,7 @@ fn browser_player(ctx: &ReducerContext) -> Result<u64, String> {
         .map(|row| row.player_id)
         .ok_or("ACCOUNT_NOT_LINKED".into())
 }
-fn adapter_player_id(
+pub(crate) fn adapter_player_id(
     ctx: &ReducerContext,
     discord_user_id: u64,
     interaction_id: u64,
@@ -312,7 +317,7 @@ pub fn my_shop_quote(ctx: &ViewContext) -> Option<ShopQuote> {
         .key()
         .find(format!("{}:{id}", ctx.sender()))
 }
-fn selected(ctx: &ViewContext) -> Option<u64> {
+pub(crate) fn selected(ctx: &ViewContext) -> Option<u64> {
     if !service_can_read(ctx, ServiceRole::DiscordAdapter) {
         return None;
     }
