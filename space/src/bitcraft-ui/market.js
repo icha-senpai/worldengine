@@ -1,6 +1,12 @@
+import { isVisibleRegionRecord } from "../../bitcraft/src/regions";
 export const unwrap = (value) => value?.data ?? value ?? {};
 export const number = (value) =>
-  Number.isFinite(Number(value)) ? Number(value) : null;
+  value !== null &&
+  value !== undefined &&
+  value !== "" &&
+  Number.isFinite(Number(value))
+    ? Number(value)
+    : null;
 export const itemKind = (value) =>
   String(value) === "1" || value === "cargo" ? "cargo" : "item";
 export function marketItem(raw) {
@@ -62,6 +68,7 @@ export function normalizeOrderBook(raw, filters = {}) {
       }))
       .filter(
         (row) =>
+          isVisibleRegionRecord(row) &&
           (!filters.regionId ||
             String(row.regionId) === String(filters.regionId)) &&
           (!filters.claimEntityId ||
@@ -117,6 +124,7 @@ const stackKey = (item) => `${item.kind}:${item.id}`;
 export function stallClaims(stalls, fallback = []) {
   const grouped = new Map();
   for (const stall of stalls) {
+    if (!isVisibleRegionRecord(stall)) continue;
     if (!stall.claimName) continue;
     const key = String(stall.claimName).toLowerCase(),
       known = fallback.find(
@@ -146,14 +154,16 @@ export function stallClaims(stalls, fallback = []) {
 }
 export function barterRows(raw, filters = {}) {
   const payload = unwrap(raw);
-  const stalls = (payload.stalls ?? []).map((stall) => ({
-    ...stall,
-    entityId: String(stall.entityId ?? ""),
-    claimEntityId: String(stall.claimEntityId ?? stall.claim?.entityId ?? ""),
-    claimName: stall.claimName ?? stall.claim?.name,
-    regionName: stall.regionName ?? stall.claim?.regionName,
-    orders: stall.orders ?? [],
-  }));
+  const stalls = (payload.stalls ?? [])
+    .filter(isVisibleRegionRecord)
+    .map((stall) => ({
+      ...stall,
+      entityId: String(stall.entityId ?? ""),
+      claimEntityId: String(stall.claimEntityId ?? stall.claim?.entityId ?? ""),
+      claimName: stall.claimName ?? stall.claim?.name,
+      regionName: stall.regionName ?? stall.claim?.regionName,
+      orders: stall.orders ?? [],
+    }));
   const rows = [];
   for (const stall of stalls) {
     if (
@@ -182,7 +192,7 @@ export function barterRows(raw, filters = {}) {
         ["buy", required, offered],
       ])
         for (const item of items) {
-          if (Number(item.id) === 1) continue;
+          if (isHexCoin(item)) continue;
           if (filters.itemId && String(item.id) !== String(filters.itemId))
             continue;
           if (filters.itemKind && item.kind !== filters.itemKind) continue;
@@ -192,10 +202,10 @@ export function barterRows(raw, filters = {}) {
           )
             continue;
           if (filters.side && side !== filters.side) continue;
-          const coins = costs.find(
-            (stack) => Number(stack.id) === 1 && stack.kind === "item",
-          );
-          if (!coins) continue;
+          const coins = costs.find(isHexCoin);
+          // A unit price is meaningful only for a single item exchanged for
+          // coins alone. Swaps and mixed bundles retain their exact stacks.
+          const coinTrade = items.length === 1 && costs.length === 1 && coins;
           const summary = (stacks) =>
             stacks
               .map(
@@ -206,20 +216,33 @@ export function barterRows(raw, filters = {}) {
             ...item,
             entityId: `${order.entityId}:${side}:${item.kind}:${item.id}`,
             source: "stall-order",
+            exchangeId: `${stall.entityId}:${order.entityId}`,
+            orderEntityId: String(order.entityId),
+            exchangeType:
+              !offered.length || !required.length
+                ? "one-sided"
+                : coinTrade
+                  ? "coins"
+                  : [...offered, ...required].some(isHexCoin)
+                    ? "mixed"
+                    : "items",
             itemId: item.id,
             itemType: item.kind,
             itemKind: item.kind,
             itemName: item.name,
             itemIconAssetName: item.iconAssetName,
-            itemCategory: item.kind === "cargo" ? "Cargo" : "Item",
+            itemCategory:
+              item.category ?? (item.kind === "cargo" ? "Cargo" : "Item"),
             itemTier: item.tier,
             itemRarity: item.rarity,
             side,
             quantity: Number(order.remainingStock ?? 0),
-            price: coins.quantity / Math.max(1, item.quantity),
+            price: coinTrade
+              ? coins.quantity / Math.max(1, item.quantity)
+              : null,
             remainingStock: order.remainingStock ?? null,
-            bundlePrice: coins.quantity,
-            priceCurrency: "Hex Coin",
+            bundlePrice: coinTrade ? coins.quantity : null,
+            priceCurrency: coinTrade ? "Hex Coin" : null,
             offerStacks: offered,
             requiredStacks: required,
             offerSummary: summary(offered),
@@ -243,6 +266,17 @@ export function barterRows(raw, filters = {}) {
   return {
     stalls,
     listings: rows,
+    exchanges: [
+      ...new Map(
+        rows
+          .filter(
+            (row) =>
+              !filters.category ||
+              String(row.itemCategory) === filters.category,
+          )
+          .map((row) => [row.exchangeId, row]),
+      ).values(),
+    ],
     items: itemsFromListings(rows).filter((row) => matchesOrders(row, filters)),
   };
 }
@@ -272,7 +306,11 @@ export function itemsFromListings(rows) {
     };
     group[row.side + "OrderCount"]++;
     group[row.side + "OrderQuantity"] += Number(row.quantity ?? 0);
-    if (row.price !== null) {
+    if (
+      number(row.price) !== null &&
+      row.price !== null &&
+      row.price !== undefined
+    ) {
       const field = row.side === "sell" ? "lowestSellPrice" : "highestBuyPrice";
       group[field] =
         group[field] === null
@@ -296,7 +334,13 @@ export function itemsFromListings(rows) {
       ["largestBuyOrder", "quantity", true],
       ["smallestBuyOrder", "quantity", false],
     ]) {
-      const best = [...buys].sort(
+      const pricedBuys = buys.filter(
+        (row) =>
+          row.price !== null &&
+          row.price !== undefined &&
+          Number.isFinite(Number(row.price)),
+      );
+      const best = [...pricedBuys].sort(
         (a, b) => (Number(a[key]) - Number(b[key])) * (desc ? -1 : 1),
       )[0];
       group[prefix + "Price"] = best?.price ?? null;
@@ -307,4 +351,102 @@ export function itemsFromListings(rows) {
     }
   }
   return [...grouped.values()];
+}
+
+const isHexCoin = (stack) => stack.kind === "item" && Number(stack.id) === 1;
+
+export function estimateMarketFill(orders, requested, intent = "buy") {
+  const quantity = Math.max(0, Math.floor(Number(requested) || 0));
+  const sorted = orders
+    .filter(
+      (row) =>
+        row.price !== null &&
+        row.price !== undefined &&
+        row.price !== "" &&
+        Number.isFinite(Number(row.price)) &&
+        Number(row.price) >= 0 &&
+        Number(row.quantity) > 0,
+    )
+    .slice()
+    .sort(
+      (a, b) =>
+        (Number(a.price) - Number(b.price)) * (intent === "sell" ? -1 : 1),
+    );
+  let remaining = quantity,
+    total = 0;
+  const fills = [];
+  for (const order of sorted) {
+    if (!remaining) break;
+    const taken = Math.min(remaining, Number(order.quantity));
+    total += taken * Number(order.price);
+    remaining -= taken;
+    fills.push({ order, quantity: taken });
+  }
+  return {
+    requested: quantity,
+    filled: quantity - remaining,
+    remaining,
+    total,
+    average: quantity - remaining ? total / (quantity - remaining) : null,
+    fills,
+  };
+}
+
+export function estimateBarterFill(exchange, requested) {
+  const quantity = Math.max(1, Math.floor(Number(requested) || 1));
+  const value = exchange?.remainingStock;
+  const stock =
+    value === null ||
+    value === undefined ||
+    value === "" ||
+    !Number.isFinite(Number(value))
+      ? null
+      : Math.max(0, Math.floor(Number(value)));
+  const bundles = stock === null ? quantity : Math.min(quantity, stock);
+  const multiply = (stacks) =>
+    (stacks ?? []).map((stack) => ({
+      ...stack,
+      quantity: Number(stack.quantity) * bundles,
+    }));
+  return {
+    requested: quantity,
+    bundles,
+    stock,
+    unverified: stock === null,
+    give: multiply(exchange?.requiredStacks),
+    get: multiply(exchange?.offerStacks),
+  };
+}
+// Sort the complete filtered set before the UI takes a page. Unknown values
+// stay last in either direction and never masquerade as a zero price.
+export function sortTradingRows(
+  rows,
+  { sort = "price", intent = "buy", orders = false } = {},
+) {
+  const name = (row) =>
+    String(
+      orders
+        ? row.claimName || row.locationName || "Unknown claim"
+        : (row.name ?? ""),
+    );
+  const value = (row) => {
+    if (orders) return sort === "quantity" ? row.quantity : row.price;
+    return sort === "quantity"
+      ? row[intent === "buy" ? "sellOrderQuantity" : "buyOrderQuantity"]
+      : row[intent === "buy" ? "lowestSellPrice" : "highestBuyPrice"];
+  };
+  const known = (v) =>
+    v !== null && v !== undefined && v !== "" && Number.isFinite(Number(v));
+  return rows.slice().sort((a, b) => {
+    if (sort === "name") return name(a).localeCompare(name(b));
+    const av = value(a),
+      bv = value(b);
+    if (!known(av)) return known(bv) ? 1 : name(a).localeCompare(name(b));
+    if (!known(bv)) return -1;
+    return (
+      (Number(av) - Number(bv)) *
+        (sort === "quantity" || intent === "sell" ? -1 : 1) ||
+      name(a).localeCompare(name(b))
+    );
+  });
 }

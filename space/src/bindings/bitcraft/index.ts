@@ -34,22 +34,52 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AuthorizeCollectorReducer from "./authorize_collector_reducer";
+import CollectionFailureReducer from "./collection_failure_reducer";
+import CollectorHeartbeatReducer from "./collector_heartbeat_reducer";
 import ConfigureProviderReducer from "./configure_provider_reducer";
 import GrantGuideAdministratorReducer from "./grant_guide_administrator_reducer";
+import IngestCollectionReducer from "./ingest_collection_reducer";
+import IngestMarketBookReducer from "./ingest_market_book_reducer";
+import IngestMarketDirectoryReducer from "./ingest_market_directory_reducer";
+import IngestRelayTradingReducer from "./ingest_relay_trading_reducer";
+import MarketRefreshFailureReducer from "./market_refresh_failure_reducer";
 import MigrateGuidesReducer from "./migrate_guides_reducer";
+import RelayHeartbeatReducer from "./relay_heartbeat_reducer";
+import RequestMarketRefreshReducer from "./request_market_refresh_reducer";
+import RestoreAppStateReducer from "./restore_app_state_reducer";
+import RestoreMarketCheckpointReducer from "./restore_market_checkpoint_reducer";
 import SaveGuideReducer from "./save_guide_reducer";
 import SaveWidgetReducer from "./save_widget_reducer";
+import StorageLeaseReducer from "./storage_lease_reducer";
+import TouchCollectionReducer from "./touch_collection_reducer";
 
 // Import all procedure arg schemas
+import * as CollectionHistoryProcedure from "./collection_history_procedure";
+import * as ExportAppStateProcedure from "./export_app_state_procedure";
+import * as ExportMarketCheckpointProcedure from "./export_market_checkpoint_procedure";
 import * as GuideAccessProcedure from "./guide_access_procedure";
+import * as MarketCollectionWorkProcedure from "./market_collection_work_procedure";
 import * as ProviderPolicyProcedure from "./provider_policy_procedure";
 import * as PublicCatalogProcedure from "./public_catalog_procedure";
+import * as ReadMarketProcedure from "./read_market_procedure";
+import * as ReadMarketBookProcedure from "./read_market_book_procedure";
+import * as ReadRelayBarterProcedure from "./read_relay_barter_procedure";
 import * as ReadWidgetProcedure from "./read_widget_procedure";
 import * as RequestDataProcedure from "./request_data_procedure";
+import * as ReserveCollectionMapProcedure from "./reserve_collection_map_procedure";
 
 // Import all table schema definitions
+import CollectedEntityRow from "./collected_entity_table";
+import CollectionFeedRow from "./collection_feed_table";
+import CollectionSampleRow from "./collection_sample_table";
+import CollectionStatusRow from "./collection_status_table";
+import CollectorWatchesRow from "./collector_watches_table";
 import EditableGuidesRow from "./editable_guides_table";
+import MarketStatusRow from "./market_status_table";
+import MarketSummaryRowRow from "./market_summary_row_table";
 import PublishedGuidesRow from "./published_guides_table";
+import RelayStatusRow from "./relay_status_table";
 import SnapshotRow from "./snapshot_table";
 import VisibleGuideMetadataRow from "./visible_guide_metadata_table";
 
@@ -57,6 +87,110 @@ import VisibleGuideMetadataRow from "./visible_guide_metadata_table";
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  collectedEntity: __table({
+    name: 'collected_entity',
+    indexes: [
+      { accessor: 'claimId', name: 'collected_entity_claim_id_idx_btree', algorithm: 'btree', columns: [
+        'claimId',
+      ] },
+      { accessor: 'entityId', name: 'collected_entity_entity_id_idx_btree', algorithm: 'btree', columns: [
+        'entityId',
+      ] },
+      { accessor: 'itemKey', name: 'collected_entity_item_key_idx_btree', algorithm: 'btree', columns: [
+        'itemKey',
+      ] },
+      { accessor: 'key', name: 'collected_entity_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+      { accessor: 'kind', name: 'collected_entity_kind_idx_btree', algorithm: 'btree', columns: [
+        'kind',
+      ] },
+      { accessor: 'ownerId', name: 'collected_entity_owner_id_idx_btree', algorithm: 'btree', columns: [
+        'ownerId',
+      ] },
+      { accessor: 'scope', name: 'collected_entity_scope_idx_btree', algorithm: 'btree', columns: [
+        'scope',
+      ] },
+    ],
+    constraints: [
+      { name: 'collected_entity_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, CollectedEntityRow),
+  collectionFeed: __table({
+    name: 'collection_feed',
+    indexes: [
+      { accessor: 'key', name: 'collection_feed_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+    ],
+    constraints: [
+      { name: 'collection_feed_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, CollectionFeedRow),
+  collectionSample: __table({
+    name: 'collection_sample',
+    indexes: [
+      { accessor: 'key', name: 'collection_sample_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+      { accessor: 'scope', name: 'collection_sample_scope_idx_btree', algorithm: 'btree', columns: [
+        'scope',
+      ] },
+    ],
+    constraints: [
+      { name: 'collection_sample_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, CollectionSampleRow),
+  collectionStatus: __table({
+    name: 'collection_status',
+    indexes: [
+      { accessor: 'key', name: 'collection_status_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+    ],
+    constraints: [
+      { name: 'collection_status_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, CollectionStatusRow),
+  marketStatus: __table({
+    name: 'market_status',
+    indexes: [
+      { accessor: 'key', name: 'market_status_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+    ],
+    constraints: [
+      { name: 'market_status_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, MarketStatusRow),
+  marketSummaryRow: __table({
+    name: 'market_summary',
+    indexes: [
+      { accessor: 'itemKey', name: 'market_summary_item_key_idx_btree', algorithm: 'btree', columns: [
+        'itemKey',
+      ] },
+      { accessor: 'key', name: 'market_summary_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+      { accessor: 'regionId', name: 'market_summary_region_id_idx_btree', algorithm: 'btree', columns: [
+        'regionId',
+      ] },
+    ],
+    constraints: [
+      { name: 'market_summary_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, MarketSummaryRowRow),
+  relayStatus: __table({
+    name: 'relay_status',
+    indexes: [
+      { accessor: 'key', name: 'relay_status_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+    ],
+    constraints: [
+      { name: 'relay_status_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, RelayStatusRow),
   snapshot: __table({
     name: 'snapshot',
     indexes: [
@@ -68,6 +202,13 @@ const tablesSchema = __schema({
       { name: 'snapshot_key_key', constraint: 'unique', columns: ['key'] },
     ],
   }, SnapshotRow),
+  collectorWatches: __table({
+    name: 'collector_watches',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, CollectorWatchesRow),
   editableGuides: __table({
     name: 'editable_guides',
     indexes: [
@@ -93,20 +234,42 @@ const tablesSchema = __schema({
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("authorize_collector", AuthorizeCollectorReducer),
+  __reducerSchema("collection_failure", CollectionFailureReducer),
+  __reducerSchema("collector_heartbeat", CollectorHeartbeatReducer),
   __reducerSchema("configure_provider", ConfigureProviderReducer),
   __reducerSchema("grant_guide_administrator", GrantGuideAdministratorReducer),
+  __reducerSchema("ingest_collection", IngestCollectionReducer),
+  __reducerSchema("ingest_market_book", IngestMarketBookReducer),
+  __reducerSchema("ingest_market_directory", IngestMarketDirectoryReducer),
+  __reducerSchema("ingest_relay_trading", IngestRelayTradingReducer),
+  __reducerSchema("market_refresh_failure", MarketRefreshFailureReducer),
   __reducerSchema("migrate_guides", MigrateGuidesReducer),
+  __reducerSchema("relay_heartbeat", RelayHeartbeatReducer),
+  __reducerSchema("request_market_refresh", RequestMarketRefreshReducer),
+  __reducerSchema("restore_app_state", RestoreAppStateReducer),
+  __reducerSchema("restore_market_checkpoint", RestoreMarketCheckpointReducer),
   __reducerSchema("save_guide", SaveGuideReducer),
   __reducerSchema("save_widget", SaveWidgetReducer),
+  __reducerSchema("storage_lease", StorageLeaseReducer),
+  __reducerSchema("touch_collection", TouchCollectionReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */
 const proceduresSchema = __procedures(
+  __procedureSchema("collection_history", CollectionHistoryProcedure.params, CollectionHistoryProcedure.returnType),
+  __procedureSchema("export_app_state", ExportAppStateProcedure.params, ExportAppStateProcedure.returnType),
+  __procedureSchema("export_market_checkpoint", ExportMarketCheckpointProcedure.params, ExportMarketCheckpointProcedure.returnType),
   __procedureSchema("guide_access", GuideAccessProcedure.params, GuideAccessProcedure.returnType),
+  __procedureSchema("market_collection_work", MarketCollectionWorkProcedure.params, MarketCollectionWorkProcedure.returnType),
   __procedureSchema("provider_policy", ProviderPolicyProcedure.params, ProviderPolicyProcedure.returnType),
   __procedureSchema("public_catalog", PublicCatalogProcedure.params, PublicCatalogProcedure.returnType),
+  __procedureSchema("read_market", ReadMarketProcedure.params, ReadMarketProcedure.returnType),
+  __procedureSchema("read_market_book", ReadMarketBookProcedure.params, ReadMarketBookProcedure.returnType),
+  __procedureSchema("read_relay_barter", ReadRelayBarterProcedure.params, ReadRelayBarterProcedure.returnType),
   __procedureSchema("read_widget", ReadWidgetProcedure.params, ReadWidgetProcedure.returnType),
   __procedureSchema("request_data", RequestDataProcedure.params, RequestDataProcedure.returnType),
+  __procedureSchema("reserve_collection_map", ReserveCollectionMapProcedure.params, ReserveCollectionMapProcedure.returnType),
 );
 
 /** The remote SpacetimeDB module schema, both runtime and type information. */

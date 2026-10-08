@@ -2092,6 +2092,24 @@
       "sha256": "1b1c40b23703b46d09ab32d7e75c1524dc03289c41172839b0bebb935cd73212"
     }
   ],
+  "itemCards": [
+    {
+      "key": "rod",
+      "url": "/item-cards/rod.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1583801,
+      "sha256": "4fcff5868dae07f8869b4ad1243eb3eda77f8bead21e5c876ad63f4b901024c3"
+    },
+    {
+      "key": "salvage",
+      "url": "/item-cards/salvage.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1495375,
+      "sha256": "dbbd9c2d789208b22523083510c4d6cb01f8fcec930d0c456bf90f732dce02d4"
+    }
+  ],
   "items": [
     {
       "key": "rusted-tin",

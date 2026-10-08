@@ -10,4 +10,8 @@ build/
 .local/
 output/playwright/
 output/catch-cards/
+output/material-cards/
+output/rod-cards/
+output/performance-cards/
 .playwright-cli/
+__pycache__/

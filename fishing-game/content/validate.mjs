@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import { readMeasurements } from './measurements.mjs';
 
 const content = JSON.parse(await readFile(new URL('./rarities.json', import.meta.url), 'utf8'));
 const manifest = JSON.parse(await readFile(new URL('../assets/manifest.json', import.meta.url), 'utf8'));
@@ -81,7 +82,15 @@ for (const fish of pond.species) {
 console.log(`Historical starter reference valid: ${pond.species.length} species; active definitions use species.json and world.json.`);
 
 assert.equal(catalog.species.length, 251);
-assert.equal(catalog.version, 4);
+assert.equal(catalog.version, 5);
+const measurements = await readMeasurements();
+assert.deepEqual([...measurements.keys()].sort(), [...keys].sort(), 'Every species must have explicit measurements');
+for (const fish of catalog.species) {
+  const reviewed = measurements.get(fish.key);
+  assert.equal(fish.typicalLengthMm, reviewed.typicalLengthMm, `Stale length: ${fish.key}`);
+  assert.equal(fish.typicalWeightG, reviewed.typicalWeightG, `Stale weight: ${fish.key}`);
+}
+console.log(`Measurements valid: ${measurements.size} explicit species baselines, no generic fallback.`);
 assert.equal(world.version, catalog.version);
 assert.equal(rules.version, 6);
 assert.equal(world.levelCap, 60);
@@ -131,7 +140,7 @@ for (const rod of world.rods) assert(Number.isSafeInteger(rod.power) && rod.powe
 console.log('All 249 ordinary fish have ten catch ranks; 2,492 encounters valid with exact exceptional ordering and ratios.');
 
 const sizes = JSON.parse(await readFile(new URL('./size-rules.json', import.meta.url), 'utf8'));
-assert.equal(sizes.version, catalog.version);
+assert.equal(sizes.version, 4, 'Measurement baselines change independently of rank thresholds');
 assert.deepEqual(sizes.tiers.map(row => row.rarity), order);
 for (let i = 0; i < sizes.tiers.length; i++) {
   const tier = sizes.tiers[i];

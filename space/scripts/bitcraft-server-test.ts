@@ -7,19 +7,12 @@ const cli =
 const server = "http://127.0.0.1:3100",
   database = "space-bitcraft-checks";
 execFileSync(
-  cli,
-  [
-    "publish",
-    database,
-    "--module-path",
-    "bitcraft",
-    "--server",
-    server,
-    "--yes",
-    "--no-config",
-  ],
+  process.execPath,
+  ["--import", "tsx", "scripts/spacetime.ts", "publish-bitcraft-test"],
   { stdio: "inherit", windowsHide: true },
 );
+execFileSync(cli, ["call", database, "storage_lease", "300", "--server", server, "--no-config"], { stdio: "pipe", windowsHide: true });
+
 async function connect(
   token?: string,
 ): Promise<{ conn: DbConnection; token: string }> {
@@ -240,23 +233,7 @@ try {
     first.conn.reducers.saveGuide(draft),
     /guide administrator/,
   );
-  // Fail only the primary in this isolated database; the real fallback must remain usable.
-  execFileSync(
-    cli,
-    [
-      "call",
-      database,
-      "configure_provider",
-      JSON.stringify("bitjuice"),
-      JSON.stringify(
-        JSON.stringify({ baseUrl: "https://127.0.0.1:1", timeout: 1 }),
-      ),
-      "--server",
-      server,
-      "--no-config",
-    ],
-    { stdio: "pipe", windowsHide: true },
-  );
+  // Public HTTP requests use the shared BitJita cache.
   const playerRequest = {
     resource: "players",
     id: "",
@@ -265,10 +242,7 @@ try {
     options: "{}",
   };
   const fallback = await first.conn.procedures.requestData(playerRequest);
-  assert.ok(
-    fallback.key.startsWith("bitjita|"),
-    "failed primary uses independent fallback",
-  );
+  assert.ok(fallback.key.startsWith("bitjita|"), "public search uses BitJita");
   assert.ok(JSON.parse(fallback.payload).players.length > 0);
   assert.equal(fallback.error, "");
   const repeated = await second.conn.procedures.requestData(playerRequest);
@@ -277,19 +251,181 @@ try {
     fallback.updatedAt,
     "another browser reuses the same shared cache",
   );
+  await assert.rejects(
+    second.conn.reducers.collectorHeartbeat({
+      epoch: "test-epoch-1",
+      error: "",
+    }),
+    /authorization/,
+  );
+  await assert.rejects(
+    second.conn.procedures.requestData({
+      ...playerRequest,
+      options: '{"collector":true}',
+    }),
+    /authorization/,
+  );
+  await assert.rejects(
+    second.conn.reducers.authorizeCollector({
+      identity: second.conn.identity!,
+      enabled: true,
+    }),
+    /database owner/,
+  );
   execFileSync(
     cli,
     [
       "call",
       database,
-      "configure_provider",
-      JSON.stringify("bitjuice"),
-      JSON.stringify("{}"),
+      "authorize_collector",
+      JSON.stringify(second.conn.identity!.toHexString()),
+      "true",
       "--server",
       server,
       "--no-config",
     ],
     { stdio: "pipe", windowsHide: true },
+  );
+  const watch = await new Promise<any>((resolve, reject) =>
+    second.conn
+      .subscriptionBuilder()
+      .onApplied(() =>
+        resolve(
+          [...second.conn.db.collectorWatches.iter()].find(
+            (row) => row.resource === "players" && row.query === "Icha",
+          ),
+        ),
+      )
+      .onError((ctx) => reject(ctx.event))
+      .subscribe(["SELECT * FROM collector_watches"]),
+  );
+  assert.ok(watch);
+  await second.conn.reducers.collectorHeartbeat({
+    epoch: "test-epoch-1",
+    error: "",
+  });
+  await second.conn.reducers.ingestCollection({
+    key: watch.key,
+    source: "bitjita",
+    epoch: "test-epoch-1",
+    payload: fallback.payload,
+    observedAt: BigInt(Date.now()) * 1000n,
+  });
+  const shared = await first.conn.procedures.requestData(playerRequest);
+  assert.ok(shared.key.startsWith("collection|bitjita|test-epoch-1|"));
+  assert.equal(shared.payload, fallback.payload);
+  await assert.rejects(
+    second.conn.reducers.ingestCollection({
+      key: watch.key,
+      source: "bitjita",
+      epoch: "test-epoch-1",
+      payload: "{}",
+      observedAt: BigInt(Date.now()) * 1000n,
+    }),
+    /Invalid collection/,
+  );
+  assert.equal(
+    (await first.conn.procedures.requestData(playerRequest)).payload,
+    fallback.payload,
+    "Malformed snapshots preserve the previous complete scope",
+  );
+  await assert.rejects(
+    first.conn.procedures.reserveCollectionMap({ playerId: "10" }),
+    /authorization/,
+  );
+  const playerId = "9" + Date.now();
+  await second.conn.procedures.requestData({
+    resource: "relaySkills",
+    id: playerId,
+    query: "",
+    page: 1,
+    options: "{}",
+  });
+  const skillKey = `relaySkills|player/${playerId}/skills`;
+  const skillWatch = [...second.conn.db.collectorWatches.iter()].find(
+    (row) => row.key === skillKey,
+  );
+  assert.ok(skillWatch);
+  assert.ok(
+    Number(skillWatch.expiresAt / 1000n) - Date.now() > 5 * 60 * 60 * 1000,
+    "XP watches must keep collecting while the browser is suspended",
+  );
+  const sampleAt = BigInt(Date.now()) * 1000n;
+  for (const [age, xp] of [
+    [120, 100],
+    [60, 50],
+    [0, 100],
+  ]) {
+    await second.conn.reducers.ingestCollection({
+      key: skillKey,
+      source: "relay",
+      epoch: "test-epoch-1",
+      payload: JSON.stringify({
+        player: { entity_id: playerId },
+        skills: [{ skill_id: 3, xp }],
+      }),
+      observedAt: sampleAt - BigInt(age!) * 1000000n,
+    });
+  }
+  const history = JSON.parse(
+    await first.conn.procedures.collectionHistory({ playerId }),
+  );
+  assert.equal(history.fresh, true);
+  assert.equal(
+    history.rates.find((row: any) => row.skillId === 3).xpDelta,
+    0,
+    "Backward XP does not create recovery gains",
+  );
+  await second.conn.reducers.ingestCollection({
+    key: skillKey,
+    source: "relay",
+    epoch: "test-epoch-1",
+    payload: JSON.stringify({
+      player: { entity_id: playerId },
+      skills: [{ skill_id: 3, xp: null }],
+    }),
+    observedAt: BigInt(Date.now()) * 1000n,
+  });
+  assert.deepEqual(
+    JSON.parse(await first.conn.procedures.collectionHistory({ playerId }))
+      .rates,
+    [],
+    "Unknown current XP suppresses rates",
+  );
+  await second.conn.reducers.collectionFailure({ key: skillKey });
+  assert.deepEqual(
+    JSON.parse(await first.conn.procedures.collectionHistory({ playerId }))
+      .rates,
+    [],
+    "Delayed feeds suppress current rates",
+  );
+  await assert.rejects(
+    second.conn.reducers.ingestCollection({
+      key: watch.key,
+      source: "bitjita",
+      epoch: "test-epoch-1",
+      payload: "{}",
+      observedAt: 1n,
+    }),
+    /out of order/,
+  );
+  execFileSync(
+    cli,
+    [
+      "call",
+      database,
+      "authorize_collector",
+      JSON.stringify(second.conn.identity!.toHexString()),
+      "false",
+      "--server",
+      server,
+      "--no-config",
+    ],
+    { stdio: "pipe", windowsHide: true },
+  );
+  await assert.rejects(
+    second.conn.reducers.collectionFailure({ key: watch.key }),
+    /authorization/,
   );
   console.log(
     "BitCraft server checks passed: public catalogs, draft privacy, administrator grant/revoke, publishing/unpublishing, import preservation, provider configuration protection, widget ownership, reconnect and sharing.",

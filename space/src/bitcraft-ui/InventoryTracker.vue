@@ -30,7 +30,11 @@
             <div class="inventory-tracker-emoji-picker">
               <span>Emojis</span>
               <div class="inventory-tracker-emoji-picker__controls">
-                <select v-model="emojiChoice" @change="addEmojiChoice">
+                <SelectInput
+                  v-model="emojiChoice"
+                  aria-label="Add emoji"
+                  @change="addEmojiChoice"
+                >
                   <option value="">Add emoji...</option>
                   <option
                     v-for="option in emojiOptions"
@@ -39,7 +43,7 @@
                   >
                     {{ option.label }}
                   </option>
-                </select>
+                </SelectInput>
                 <button
                   v-if="selectedEmojiList.length"
                   type="button"
@@ -77,6 +81,25 @@
                 min="1"
                 max="999999999"
               />
+            </label>
+            <label>
+              <span>Housing storage</span>
+              <SelectInput v-model="form.includeHousing">
+                <option :value="false">Personal inventory only</option>
+                <option :value="true">Include housing</option>
+              </SelectInput>
+            </label>
+            <label>
+              <span>Shared claim storage (optional claim ID)</span>
+              <input
+                v-model.trim="form.storageClaimId"
+                type="text"
+                inputmode="numeric"
+                maxlength="24"
+              />
+              <small
+                >Counts stored materials; withdrawal access may differ.</small
+              >
             </label>
           </div>
 
@@ -213,6 +236,7 @@
 </template>
 
 <script setup>
+import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
 import { openWidget } from "./widgets";
@@ -362,6 +386,8 @@ const form = reactive({
   ),
   itemNeeds: parseItemNeeds(props.filters.itemNeeds ?? ""),
   need: props.filters.need ?? null,
+  includeHousing: [true, "true", "1"].includes(props.filters.includeHousing),
+  storageClaimId: props.filters.storageClaimId ?? "",
   ...normalizeWidgetTheme(props.filters),
 });
 
@@ -541,6 +567,8 @@ const payload = (setup) => ({
   itemKeys: form.itemKeys.join(","),
   itemNeeds: formatItemNeeds(form.itemNeeds),
   need: form.need,
+  includeHousing: form.includeHousing,
+  storageClaimId: form.storageClaimId,
   ...widgetThemePayload(form),
   setup: setup ? 1 : 0,
 });
@@ -554,6 +582,10 @@ const browserStorage = () => {
 };
 
 const normalizeSetup = (setup) => ({
+  includeHousing: [true, "true", "1"].includes(setup.includeHousing),
+  storageClaimId: /^\d{1,24}$/.test(String(setup.storageClaimId ?? ""))
+    ? String(setup.storageClaimId)
+    : "",
   source:
     typeof setup.source === "string" && setup.source.trim()
       ? setup.source.trim()
@@ -1095,9 +1127,9 @@ onBeforeUnmount(() => {
 }
 
 .inventory-tracker-widget__error {
-  border: 1px solid rgb(var(--accent-pink-rgb) / 0.42);
-  background: rgb(var(--accent-pink-rgb) / 0.1);
-  color: var(--accent-pink);
+  border: 1px solid rgb(var(--danger-rgb) / 0.42);
+  background: rgb(var(--danger-rgb) / 0.1);
+  color: var(--danger);
 }
 
 @media (max-width: 520px) {

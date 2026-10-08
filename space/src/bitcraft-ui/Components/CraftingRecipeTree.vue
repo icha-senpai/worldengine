@@ -49,6 +49,13 @@
     <p v-if="loadAllError" class="crafting-tree__load-error">
       {{ loadAllError }}
     </p>
+    <p v-if="inventory" class="crafting-tree__load-error">
+      {{
+        inventory.error ||
+        `Stock for ${inventory.username}. Held quantities do not reserve materials.`
+      }}
+      <template v-if="inventory.refresh?.delayed"> Refresh delayed.</template>
+    </p>
 
     <div
       v-show="activeTab === 'tree'"
@@ -114,6 +121,27 @@
               <strong class="crafting-total__quantity"
                 >{{ formatQuantity(item.quantity) }}x</strong
               >
+              <small
+                v-if="inventory && !inventory.error"
+                class="crafting-total__quantity"
+              >
+                Held
+                {{
+                  formatQuantity(
+                    inventory.quantities[`${item.kind}:${item.id}`] ?? 0,
+                  )
+                }}
+                · Missing
+                {{
+                  formatQuantity(
+                    Math.max(
+                      0,
+                      item.quantity -
+                        (inventory.quantities[`${item.kind}:${item.id}`] ?? 0),
+                    ),
+                  )
+                }}
+              </small>
             </div>
           </div>
         </section>
@@ -144,6 +172,7 @@ const props = defineProps({
   recipes: { type: Array, default: () => [] },
   desiredQuantity: { type: Number, default: 1 },
   storageKey: { type: String, default: null },
+  inventory: { type: Object, default: null },
 });
 
 const activeTab = ref("tree");
@@ -628,7 +657,7 @@ watch(activeTab, persistRecipeState);
 .crafting-tree__load-error {
   margin: 0;
   border-bottom: 1px solid rgb(var(--border-color-rgb) / 0.58);
-  color: var(--accent-pink);
+  color: var(--danger);
   font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 650;

@@ -93,6 +93,12 @@
       </div>
     </section>
 
+    <p v-if="orderBook?.history" class="mb-4 text-sm text-muted-2">
+      Completed trades · 24h average
+      {{ formatCoins(orderBook.history.avg24h) }} · 7d average
+      {{ formatCoins(orderBook.history.avg7d) }}
+      <template v-if="orderBook.historyDelayed"> · Refresh delayed</template>
+    </p>
     <div class="mb-4 flex flex-wrap gap-2 border-b border-border pb-4">
       <button
         v-for="option in sortOptions"
@@ -1169,7 +1175,7 @@ Metric.props = {
 }
 
 .market-summary-grid {
-  --market-sell-color: #e9a16f;
+  --market-sell-color: var(--accent-cyan-2);
   --market-buy-color: var(--success);
 
   display: grid;
@@ -1220,7 +1226,7 @@ Metric.props = {
 }
 
 .market-order-table-panel {
-  --market-sell-color: #e9a16f;
+  --market-sell-color: var(--accent-cyan-2);
   --market-buy-color: var(--success);
 
   overflow: hidden;

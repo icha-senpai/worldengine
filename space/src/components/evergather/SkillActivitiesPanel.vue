@@ -45,7 +45,7 @@
               class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
               >Level Band</span
             >
-            <select
+            <SelectInput
               v-model="selectedBand"
               class="rounded-md border-border bg-canvas text-xs font-ui text-primary focus:border-focus focus:ring-focus"
             >
@@ -56,7 +56,7 @@
               >
                 {{ filter.label }} · {{ filter.count }}
               </option>
-            </select>
+            </SelectInput>
           </label>
 
           <div class="mt-4 grid gap-2">
@@ -250,7 +250,7 @@
         </div>
       </div>
 
-      <p v-if="form.errors.activity" class="mt-4 text-sm text-(--accent-pink)">
+      <p v-if="form.errors.activity" class="mt-4 text-sm text-danger">
         {{ form.errors.activity }}
       </p>
     </div>
@@ -258,6 +258,7 @@
 </template>
 
 <script setup>
+import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useActionForm } from "../../evergather/useActionForm";
 import { usePersistedPanelState } from "./usePanelState";

@@ -1,5 +1,6 @@
 import { levelProgress } from "./trackers";
 import { itemKind } from "./market";
+import { isVisibleRegionRecord } from "../../bitcraft/src/regions";
 export function openCraftRows(payload, player, levels, skills) {
   if (!Array.isArray(payload.craftResults))
     throw new Error("Open crafts are temporarily unavailable.");
@@ -16,7 +17,7 @@ export function openCraftRows(payload, player, levels, skills) {
         (entry) => Number(entry.skill_id ?? entry.skillId) === id,
       )?.quantity ?? 0,
     );
-  return payload.craftResults.map((craft) => {
+  return payload.craftResults.filter(isVisibleRegionRecord).map((craft) => {
     const total = Math.max(
         1,
         Number(craft.totalActionsRequired ?? craft.totalProgress ?? 1),

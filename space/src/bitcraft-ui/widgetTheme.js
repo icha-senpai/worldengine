@@ -222,11 +222,11 @@ export const siteThemeStyle = (themeKey) => {
   const surface2 = mixColor(theme.panelColor, theme.accentColor, 0.08);
   const surface3 = mixColor(theme.panelColor, theme.accentColor, 0.18);
   const surface4 = mixColor(theme.panelColor, theme.accentColor, 0.3);
-  const primary = "#f6f8fc";
-  const primary2 = "#ffffff";
-  const muted = "#c9d1dc";
-  const muted2 = "#aab4c2";
-  const muted3 = "#7f8998";
+  const primary = theme.textColor;
+  const primary2 = mixColor(theme.textColor, "#ffffff", 0.75);
+  const muted = mixColor(theme.textColor, theme.mutedColor, 0.5);
+  const muted2 = theme.mutedColor;
+  const muted3 = mixColor(theme.mutedColor, theme.panelColor, 0.12);
   const accent2 = mixColor(theme.accentColor, primary2, 0.34);
   const accent3 = mixColor(theme.accentColor, theme.panelColor, 0.45);
   const highlight2 = mixColor(theme.highlightColor, primary2, 0.26);
@@ -255,8 +255,11 @@ export const siteThemeStyle = (themeKey) => {
     "--text-primary-rgb": rgbValue(primary),
     "--text-primary-2": primary2,
     "--text-muted": muted,
+    "--text-muted-rgb": rgbValue(muted),
     "--text-muted-2": muted2,
+    "--text-muted-2-rgb": rgbValue(muted2),
     "--text-muted-3": muted3,
+    "--text-muted-3-rgb": rgbValue(muted3),
     "--accent-cyan": theme.accentColor,
     "--accent-cyan-rgb": rgbValue(theme.accentColor),
     "--accent-cyan-2": accent2,

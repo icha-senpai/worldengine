@@ -1,3 +1,4 @@
+import { sealPublishedModule } from "./bitcraft-storage";
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
@@ -24,6 +25,60 @@ const modules = [
 ];
 function run(args: string[]) {
   execFileSync(cli, args, { stdio: "inherit", windowsHide: true });
+}
+async function publishModules(selected: typeof modules) {
+  // A busy local collector can hold HTTP procedures across publication. Stop
+  // only our managed worker, preserve its state, and restore it afterwards.
+  const resume =
+    process.platform !== "win32"
+      ? []
+      : selected
+          .filter((module) => module.path === "bitcraft")
+          .map((module) =>
+            module.database === "space-bitcraft-checks" ? "Test" : "Main",
+          )
+          .filter((target) =>
+            existsSync(
+              resolve(
+                `.runtime/services/${target === "Test" ? "collector-test" : "collector"}.pid`,
+              ),
+            ),
+          );
+  const collector = (action: string, target: string) =>
+    execFileSync(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        resolve("scripts/collector-services.ps1"),
+        "-Action",
+        action,
+        "-Target",
+        target,
+      ],
+      { stdio: "inherit", windowsHide: true },
+    );
+  for (const target of resume) collector("Stop", target);
+  try {
+    for (const module of selected) {
+      run([
+        "publish",
+        module.database,
+        "--module-path",
+        module.path,
+        "--server",
+        server,
+        "--yes",
+        "--no-config",
+      ]);
+      if (module.path === "bitcraft")
+        await sealPublishedModule(module.database);
+    }
+  } finally {
+    for (const target of resume) collector("Start", target);
+  }
 }
 const task = process.argv[2];
 switch (task) {
@@ -52,17 +107,7 @@ switch (task) {
       ]);
     break;
   case "publish":
-    for (const module of modules)
-      run([
-        "publish",
-        module.database,
-        "--module-path",
-        module.path,
-        "--server",
-        server,
-        "--yes",
-        "--no-config",
-      ]);
+    await publishModules(modules);
     run([
       "call",
       "space-evergather",
@@ -78,6 +123,20 @@ switch (task) {
       "--server",
       server,
       "--no-config",
+    ]);
+    break;
+  case "publish-bitcraft":
+    await publishModules(
+      modules.filter((module) => module.path === "bitcraft"),
+    );
+    break;
+  case "publish-bitcraft-test":
+    await publishModules([
+      {
+        path: "bitcraft",
+        database: "space-bitcraft-checks",
+        bindings: "src/bindings/bitcraft",
+      },
     ]);
     break;
   case "auth": {
@@ -114,5 +173,7 @@ switch (task) {
     break;
   }
   default:
-    throw new Error("Choose start, generate, publish, auth, or local.");
+    throw new Error(
+      "Choose start, generate, publish, publish-bitcraft, publish-bitcraft-test, auth, or local.",
+    );
 }

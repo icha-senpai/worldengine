@@ -1,0 +1,8 @@
+{
+  "mode": "built-in image_gen",
+  "useCase": "precise-object-edit",
+  "reference": "assets/rank-cards/F.png",
+  "output": "assets/item-cards/salvage.png",
+  "prompt": "Use case: precise-object-edit\nAsset type: Fishbound Discord salvage reward card background.\nPrimary request: Turn this fishing rank card into a matching salvage-material card, for existing rusted tin and scrap sprites to be composited into its center later.\nInput images: Image 1 is the existing F-rank frame and pixel-art style reference.\nStyle/medium: Preserve the crisp chunky pixel-art style, portrait proportions, weathered riveted metal and wood frame, submerged blue background, and lower-corner aquatic plants and rocks.\nComposition/framing: Replace both the large F crest and the F Rank nameplate with one modest weathered metal nameplate near the top reading \"SALVAGE\". Keep the central area from 15% to 85% width and 33% to 67% height unobstructed blue water, ready for a large item sprite. Keep the frame around all four edges.\nText (verbatim): \"SALVAGE\"\nConstraints: A standalone portrait card background with no fish, no tin can, no scrap pieces, no additional foreground items, no ranks, no textbox, no stats, no other text. Keep the center empty. Preserve the overall game-card visual family.",
+  "composition": "Original assets/items/rusted-tin.png and assets/items/scrap.png are cropped to visible alpha bounds and fitted proportionally in the centered 70% width by 34% height box by the Rust Discord renderer."
+}

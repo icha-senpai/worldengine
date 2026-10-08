@@ -3,6 +3,8 @@ import {
   activitySkillRate,
   appendActivitySample,
   normalizeActivitySamples,
+  collectedActivitySamples,
+  restoreActivitySamples,
 } from "../src/bitcraft-ui/activitySamples";
 import { activityTracker } from "../src/bitcraft-ui/trackers";
 
@@ -15,10 +17,93 @@ const sample = (at, xpBySkill, overrides = {}) => ({
 });
 
 describe("XP tracker sample continuity", () => {
+  it("recovers a five-minute rate immediately after a long hidden-tab gap", () => {
+    const history = Array.from({ length: 21 }, (_, minute) =>
+      sample(minute * 60000, { 3: 1000 + minute * 100 }),
+    );
+    const current = sample(1200000, { 3: 3000 });
+    const restored = restoreActivitySamples(
+      [history[0]],
+      history,
+      current,
+      current.at,
+    );
+    expect(activitySkillRate(restored, "3")).toEqual({
+      xpDelta: 500,
+      hourRate: 6000,
+      minutesSampled: 5,
+    });
+    expect(
+      restoreActivitySamples(restored, history, current, current.at),
+    ).toEqual(restored);
+  });
+
+  it("uses only current player/source history and still respects actual collector gaps", () => {
+    const current = sample(600000, { 3: 900 });
+    const history = [
+      sample(0, { 3: 100 }),
+      sample(540000, { 3: 800 }, { playerId: "other" }),
+    ];
+    expect(
+      activitySkillRate(
+        restoreActivitySamples([], history, current, current.at),
+        "3",
+      ).hourRate,
+    ).toBe(0);
+    expect(
+      activitySkillRate(
+        restoreActivitySamples(
+          [],
+          [sample(300000, { 3: 400 }), sample(600000, { 3: 900 })],
+          current,
+          current.at,
+        ),
+        "3",
+      ).hourRate,
+    ).toBe(0);
+  });
+
+  it("maps only fresh collector history from the current relay generation", () => {
+    const sourceKey =
+      "collection|relay|epoch-native-1|relaySkills|player/20/skills";
+    const history = {
+      fresh: true,
+      samples: [
+        { at: 1000, source: "relay", epoch: "epoch-native-1", xp: { 3: 100 } },
+        {
+          at: 2000,
+          source: "relay",
+          epoch: "older-generation",
+          xp: { 3: 900000 },
+        },
+        {
+          at: 700001,
+          source: "relay",
+          epoch: "epoch-native-1",
+          xp: { 3: 200 },
+        },
+      ],
+    };
+    expect(collectedActivitySamples(history, "20", sourceKey, 700000)).toEqual([
+      sample(1000, { 3: 100 }, { playerId: "20", sourceKey }),
+    ]);
+    expect(
+      collectedActivitySamples(
+        { ...history, fresh: false },
+        "20",
+        sourceKey,
+        700000,
+      ),
+    ).toEqual([]);
+    expect(collectedActivitySamples(history, "20", "api", 700000)).toEqual([]);
+  });
   it("measures gains over a minute and uses the oldest baseline within five minutes", () => {
     const samples = [
       sample(0, { 3: 1000 }),
       sample(60000, { 3: 1100 }),
+      sample(120000, { 3: 1200 }),
+      sample(180000, { 3: 1300 }),
+      sample(240000, { 3: 1400 }),
       sample(300000, { 3: 1500 }),
     ];
     expect(activitySkillRate(samples, "3")).toEqual({
@@ -34,6 +119,13 @@ describe("XP tracker sample continuity", () => {
       activitySkillRate([samples[0], sample(360000, { 3: 1500 })], "3")
         .hourRate,
     ).toBe(0);
+  });
+
+  it("starts a new baseline after a long observation gap", () => {
+    const before = [sample(1000, { 3: 100 }), sample(61000, { 3: 200 })];
+    const next = sample(300000, { 3: 900 });
+    expect(appendActivitySample(before, next, 300000)).toEqual([next]);
+    expect(activitySkillRate([...before, next], "3").hourRate).toBe(0);
   });
 
   it("does not count lifetime XP when a previously missing skill arrives", () => {
@@ -92,6 +184,9 @@ describe("XP tracker sample continuity", () => {
       expect(
         appendActivitySample(samples, sample(at, { 3: 9999999 }), 120000),
       ).toBe(samples);
+      expect(
+        restoreActivitySamples(samples, [], sample(at, { 3: 9999999 }), 120000),
+      ).toEqual(samples);
     }
     const next = sample(120000, { 3: 1100 });
     expect(appendActivitySample(samples, next, 120000)).toEqual([

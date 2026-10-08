@@ -90,9 +90,11 @@ export function inventoryTracker(player, payload, catalog, filters) {
   for (const inventory of payload.inventories ?? []) {
     const sourceName =
       inventory.inventoryName ?? inventory.buildingName ?? "Inventory";
-    const sourceKind = trackedKinds.find((kind) =>
-      new RegExp(`\\b${kind}\\b`, "i").test(sourceName),
-    );
+    const sourceKind =
+      inventory.storageScope ||
+      trackedKinds.find((kind) =>
+        new RegExp(`\\b${kind}\\b`, "i").test(sourceName),
+      );
     if (!sourceKind) continue;
     for (const pocket of inventory.items ??
       inventory.pockets ??

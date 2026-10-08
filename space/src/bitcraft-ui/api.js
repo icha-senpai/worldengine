@@ -1,19 +1,36 @@
-import { pageWindow } from "../../spacetimedb/src/performance";
-import { connectBitcraft, requestData } from "../bitcraft";
+import { connectBitcraft, requestData, observeCollection } from "../bitcraft";
+import { upstreamRequest } from "../../bitcraft/src/requests";
+import { relayRequest } from "../../bitcraft/src/providers";
+import {
+  isRetiredRegion,
+  isVisibleRegionRecord,
+} from "../../bitcraft/src/regions";
 import { pageState } from "./navigation";
 import { route } from "./navigation";
 import {
   marketItem,
-  matchesOrders,
   normalizeOrderBook,
   barterRows,
-  itemsFromListings,
   stallClaims,
   unwrap,
 } from "./market";
-import { activityTracker, inventoryTracker, passiveTracker } from "./trackers";
+import {
+  activityTracker,
+  inventoryTracker,
+  passiveTracker,
+  levelProgress,
+} from "./trackers";
 import { openCraftRows, filterCrafts } from "./openCrafts";
-import { relayPlayer, relayInventory, relayCrafts } from "./relay";
+import { collectedActivitySamples } from "./activitySamples";
+import {
+  relayPlayer,
+  relayInventory,
+  relayCrafts,
+  relaySkills,
+  storageInventories,
+  mergeInventories,
+  inventoryQuantities,
+} from "./relay";
 
 const catalogs = new Map(),
   pending = new Map();
@@ -57,6 +74,10 @@ export async function live(resource, id = "", q = "", page = 1, options = {}) {
     ),
   );
   const key = JSON.stringify([resource, id, q, page, options]);
+  const path = resource.startsWith("relay")
+    ? relayRequest(resource, String(id), q).path
+    : upstreamRequest(resource, String(id), q, Number(page) || 1, options).key;
+  void observeCollection(`${resource}|${path}`).catch(() => {});
   if (pending.has(key)) return pending.get(key);
   const work = requestData(resource, String(id), q, Number(page) || 1, options)
     .then((response) => {
@@ -93,6 +114,24 @@ export async function live(resource, id = "", q = "", page = 1, options = {}) {
 }
 async function lookupPlayerResponse(character) {
   if (!character) return null;
+  try {
+    const playerResponse = await lookupRelayPlayer(character);
+    if (playerResponse?.data.player) {
+      const skills = await live(
+        "relaySkills",
+        playerResponse.data.player.entityId,
+      );
+      if (!skills.refresh.delayed)
+        return {
+          ...skills,
+          data: {
+            player: relaySkills(skills.data, playerResponse.data.player),
+          },
+        };
+    }
+  } catch {
+    /* Use the searchable player API during relay recovery. */
+  }
   if (/^\d+$/.test(character)) return await live("player", character);
   const data = (await live("players", "", character)).data;
   const selected =
@@ -183,29 +222,56 @@ async function enrichTrackerItems(payload) {
     },
   };
 }
-async function trackerInventory(player) {
+async function trackerInventory(player, filters = {}) {
+  let base;
   try {
     const response = await live("relayInventories", player.entityId);
     if (!response.refresh.delayed)
-      return {
+      base = {
         ...response,
         data: await enrichTrackerItems(relayInventory(response.data)),
       };
   } catch {
     /* Continue with the player APIs. */
   }
-  const response = await live("inventories", player.entityId);
-  return { ...response, data: await enrichTrackerItems(response.data) };
+  if (!base) {
+    const response = await live("inventories", player.entityId);
+    base = { ...response, data: await enrichTrackerItems(response.data) };
+  }
+  const stores = [];
+  if ([true, "true", "1"].includes(filters.includeHousing))
+    stores.push(["relayHousing", player.entityId, "housing"]);
+  if (/^\d{1,24}$/.test(String(filters.storageClaimId ?? "")))
+    stores.push([
+      "relayClaimInventory",
+      String(filters.storageClaimId),
+      "claim",
+    ]);
+  if (!stores.length) return base;
+  const responses = await Promise.all(
+    stores.map(async ([resource, id, kind]) => {
+      const result = await live(resource, id);
+      return {
+        ...result,
+        data: { inventories: storageInventories(result.data, kind) },
+      };
+    }),
+  );
+  return {
+    ...base,
+    data: await enrichTrackerItems(
+      mergeInventories(base.data, ...responses.map((row) => row.data)),
+    ),
+    refresh: {
+      ...base.refresh,
+      delayed:
+        base.refresh.delayed || responses.some((row) => row.refresh.delayed),
+    },
+    error: base.error || responses.find((row) => row.error)?.error,
+  };
 }
 async function trackerPassive(player) {
-  let primary, failure;
-  try {
-    primary = await live("passive", player.entityId);
-    if (!primary.refresh.delayed)
-      return { ...primary, data: await enrichTrackerItems(primary.data) };
-  } catch (error) {
-    failure = error;
-  }
+  let failure;
   try {
     const response = await live("relayCrafts", player.entityId);
     const ids = [
@@ -224,13 +290,18 @@ async function trackerPassive(player) {
           .catch(() => ({})),
       ]),
     );
+    if (response.refresh.delayed) throw new Error("Craft refresh delayed.");
     return {
       ...response,
       data: await enrichTrackerItems(relayCrafts(response.data, claims)),
     };
   } catch (error) {
-    if (primary)
-      return { ...primary, data: await enrichTrackerItems(primary.data) };
+    failure = error;
+  }
+  try {
+    const response = await live("passive", player.entityId);
+    return { ...response, data: await enrichTrackerItems(response.data) };
+  } catch (error) {
     throw failure ?? error;
   }
 }
@@ -238,11 +309,16 @@ async function regionsAndFilters(filters) {
   const response = await live("regions");
   const regions = (
     Array.isArray(response.data) ? response.data : (response.data.regions ?? [])
-  ).map((row) => ({
-    ...row,
-    id: String(row.id ?? row.regionId),
-    name: row.name ?? row.regionName,
-  }));
+  )
+    .filter(
+      (row) =>
+        !isRetiredRegion(row.id ?? row.regionId, row.name ?? row.regionName),
+    )
+    .map((row) => ({
+      ...row,
+      id: String(row.id ?? row.regionId),
+      name: row.name ?? row.regionName,
+    }));
   const match = regions.find(
     (row) =>
       row.id === String(filters.region) ||
@@ -256,22 +332,47 @@ async function regionsAndFilters(filters) {
   }
   return regions;
 }
-async function mapLimited(rows, callback) {
+async function mapLimited(rows, callback, concurrency) {
   const result = new Array(rows.length);
   const { poolConcurrency } = await providerPolicy();
   let next = 0;
   await Promise.all(
-    Array.from({ length: Math.min(poolConcurrency, rows.length) }, async () => {
-      while (next < rows.length) {
-        const index = next++;
-        result[index] = await callback(rows[index]);
-      }
-    }),
+    Array.from(
+      {
+        length: Math.min(
+          concurrency ?? poolConcurrency,
+          poolConcurrency,
+          rows.length,
+        ),
+      },
+      async () => {
+        while (next < rows.length) {
+          const index = next++;
+          result[index] = await callback(rows[index]);
+        }
+      },
+    ),
   );
   return result;
 }
+async function retryDelayedMarketRequest(callback) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await callback();
+    } catch (error) {
+      // Cold complete searches may cross the shared request window. Follow
+      // the server's backoff instead of immediately spending more requests.
+      if (!error.retryAfter || attempt >= 2) throw error;
+      await new Promise((resolve) =>
+        setTimeout(resolve, error.retryAfter * 1000 + 100),
+      );
+    }
+  }
+}
 async function paged(resource, id = "", q = "", options = {}) {
-  const first = await live(resource, id, q, 1, options);
+  const first = await retryDelayedMarketRequest(() =>
+    live(resource, id, q, 1, options),
+  );
   const field =
     resource === "stalls"
       ? "stalls"
@@ -294,7 +395,11 @@ async function paged(resource, id = "", q = "", options = {}) {
     );
   const rest = await mapLimited(
     Array.from({ length: pages - 1 }, (_, index) => index + 2),
-    (page) => live(resource, id, q, page, options),
+    (page) =>
+      retryDelayedMarketRequest(() => live(resource, id, q, page, options)),
+    // Claim loading already has an outer worker pool; do not multiply it by
+    // another pool for each claim's pages.
+    resource === "claimListings" ? 1 : undefined,
   );
   return {
     ...first,
@@ -326,80 +431,182 @@ async function allStalls() {
     };
   return stallsCache.promise;
 }
-async function scopedListings(claims, filters) {
-  const side =
-    filters.hasBuyOrders && !filters.hasSellOrders
-      ? "buy"
-      : filters.hasSellOrders && !filters.hasBuyOrders
-        ? "sell"
-        : undefined;
-  const responses = await mapLimited(claims, async (claim) => ({
-    claim,
-    response: await paged("claimListings", claim.entityId, "", {
-      itemId: filters.itemId,
-      itemType: filters.itemKind,
-      side,
-    }),
-  }));
-  const listings = responses
-    .flatMap(({ claim, response }) =>
-      response.data.listings.map((row) => ({
-        ...row,
-        source: "market-order",
-        price: row.priceThreshold ?? row.price,
-        claimEntityId: row.claimEntityId ?? claim.entityId,
-        claimName: row.claimName ?? claim.name,
-        regionId: row.regionId ?? claim.regionId,
-        regionName: row.regionName ?? claim.regionName,
-      })),
-    )
-    .filter(
-      (row) =>
-        (!filters.q ||
-          String(row.itemName ?? "")
-            .toLowerCase()
-            .includes(filters.q.toLowerCase()) ||
-          String(row.itemId) === filters.q) &&
-        (!filters.category ||
-          String(row.itemCategory ?? row.itemTag ?? "")
-            .toLowerCase()
-            .includes(filters.category.toLowerCase())) &&
-        (!filters.itemId || String(row.itemId) === String(filters.itemId)),
-    );
-  return {
-    listings,
-    refresh: {
-      updatedAt:
-        responses
-          .map(({ response }) => response.refresh.updatedAt)
-          .filter(Boolean)
-          .sort()
-          .at(-1) ?? null,
-      delayed: responses.some(({ response }) => response.refresh.delayed),
-      retryAfter: Math.max(
-        0,
-        ...responses.map(({ response }) => response.refresh.retryAfter),
-      ),
-    },
-  };
-}
 export const emptyMarket = () => ({
   items: [],
   categories: [],
   claims: [],
   tradeBuildings: [],
   listings: [],
+  exchanges: [],
+  orderBooks: {},
   empires: [],
   orderBook: null,
   metrics: {},
   claim: null,
 });
-export async function marketPage(tool, filters) {
+const storedDate = (micros) =>
+  Number(micros) > 0 ? new Date(Number(micros) / 1000).toISOString() : null;
+async function resolveMarketEmpire(filters) {
+  if (!(filters.empire || filters.empireEntityId)) return [];
+  if (Array.isArray(filters.claimIds) && filters.empireEntityId) return [];
+  // Explicit empire filters need membership metadata; orders still come from storage.
+  const empires =
+    filters.empire && !/^\d+$/.test(filters.empire)
+      ? ((await live("empires", "", filters.empire)).data.empires ?? [])
+      : [];
+  const empire =
+    empires.find(
+      (row) => row.name?.toLowerCase() === filters.empire.toLowerCase(),
+    ) ?? empires[0];
+  const id =
+    filters.empireEntityId ||
+    (/^\d+$/.test(filters.empire) ? filters.empire : empire?.entityId);
+  if (!id) throw new Error(`No empire matched '${filters.empire}'.`);
+  const claims = (await live("empireClaims", id)).data.claims;
+  if (!Array.isArray(claims))
+    throw new Error(
+      "Empire membership is unavailable. Stored orders have been retained.",
+    );
+  filters.empireEntityId = String(id);
+  filters.empireName = empire?.name ?? null;
+  filters.claimIds = claims.map((claim) => String(claim.entityId));
+  return empires;
+}
+export async function storedMarketPage(filters, { refreshMarket = true } = {}) {
+  const market = emptyMarket();
+  try {
+    market.empires = await resolveMarketEmpire(filters);
+    const conn = await connectBitcraft();
+    // Both broad browsing and initial item matches are database reads only.
+    const data = JSON.parse(
+      await conn.procedures.readMarket({ filters: JSON.stringify(filters) }),
+    );
+    Object.assign(filters, data.filters);
+    Object.assign(market, {
+      items: data.items.map(marketItem),
+      categories: data.categories,
+      claims: data.claims,
+      orderScope: data.orderScope,
+      storage: data.storage,
+    });
+    if (filters.claimEntityId)
+      market.claim =
+        data.claims.find(
+          (claim) => String(claim.entityId) === String(filters.claimEntityId),
+        ) ?? null;
+    if (refreshMarket && (String(filters.q ?? "").trim() || filters.itemId)) {
+      // Queuing is quick, shared and coalesced. Never wait for upstream HTTP.
+      await conn.reducers
+        .requestMarketRefresh({
+          query: String(filters.q ?? ""),
+          itemId: String(filters.itemId ?? ""),
+          kind: filters.itemKind || "item",
+        })
+        .catch(() => {
+          data.storage.error =
+            "Item refresh could not be queued. Stored matches remain available.";
+        });
+    }
+    const refresh = {
+      updatedAt: storedDate(data.storage.oldestAt),
+      stored: true,
+      delayed: Boolean(data.storage.error),
+      pending: data.storage.pending,
+    };
+    return {
+      market,
+      regions: data.regions,
+      refresh,
+      cache: { ...refresh, sources: [] },
+      error: null,
+    };
+  } catch (error) {
+    return {
+      market,
+      regions: [],
+      refresh: {},
+      cache: {},
+      error: error.message,
+    };
+  }
+}
+export async function marketPage(tool, filters, options = {}) {
+  if (tool !== "barter-stalls") return storedMarketPage(filters, options);
+  const conn = await connectBitcraft();
+  const native = await conn.procedures.readRelayBarter({}).then(JSON.parse);
+  if (native.available) {
+    const market = emptyMarket();
+    market.empires = await resolveMarketEmpire(filters);
+    const region = native.regions.find(
+      (row) =>
+        String(row.id) === String(filters.regionId || filters.region) ||
+        row.name.toLowerCase() === String(filters.region || "").toLowerCase(),
+    );
+    if ((filters.region || filters.regionId) && !region)
+      throw new Error("Choose a current region.");
+    if (region)
+      Object.assign(filters, { regionId: region.id, regionName: region.name });
+    const stalls = native.stalls.filter(
+      (stall) =>
+        (!filters.regionId ||
+          String(stall.regionId) === String(filters.regionId)) &&
+        (!filters.claimQ ||
+          String(stall.claimName ?? "")
+            .toLowerCase()
+            .includes(filters.claimQ.toLowerCase())) &&
+        (!filters.claimIds ||
+          filters.claimIds.includes(String(stall.claimEntityId))) &&
+        (!filters.claimEntityId ||
+          String(stall.claimEntityId) === String(filters.claimEntityId) ||
+          String(stall.entityId) === String(filters.claimEntityId)),
+    );
+    const data = barterRows({ stalls }, { ...filters, claimEntityId: "" });
+    Object.assign(market, data);
+    market.claims = stallClaims(data.stalls);
+    market.claim =
+      market.claims.find(
+        (row) => String(row.entityId) === String(filters.claimEntityId),
+      ) ?? null;
+    market.tradeBuildings = data.stalls.map((stall) => ({
+      ...stall,
+      buildingName: "Barter Stall",
+      buildingNickname: stall.nickname,
+      tradeOrders: stall.orders.length,
+      inventoryItems: [],
+    }));
+    market.categories = [
+      ...new Set(data.items.map((row) => row.category).filter(Boolean)),
+    ].sort();
+    const scopes = native.coverage.filter(
+      (row) =>
+        !filters.regionId || String(row.regionId) === String(filters.regionId),
+    );
+    const ready = scopes.filter((row) => row.ready).length,
+      total = filters.regionId ? 1 : 9;
+    market.storage = {
+      relay: { ready, total },
+      error:
+        ready < total
+          ? "Some regions are reconnecting or still loading. Last collected exchanges are shown."
+          : "",
+      pending: 0,
+    };
+    return {
+      market,
+      regions: native.regions,
+      cache: {
+        stored: true,
+        updatedAt: storedDate(native.updatedAt),
+        delayed: ready < total,
+      },
+      error: null,
+    };
+  }
   const market = emptyMarket();
   let regions = [],
     refresh = {};
   try {
-    regions = await regionsAndFilters(filters);
+    regions = await retryDelayedMarketRequest(() => regionsAndFilters(filters));
     if (filters.empire || filters.empireEntityId) {
       const empires =
         filters.empire && !/^\d+$/.test(filters.empire)
@@ -417,7 +624,7 @@ export async function marketPage(tool, filters) {
       filters.empireName = empire?.name ?? null;
       market.empires = empires;
       market.claims = (await live("empireClaims", id)).data.claims ?? [];
-    } else if (filters.claimQ || filters.region)
+    } else if (filters.claimQ || (tool === "barter-stalls" && filters.region))
       market.claims =
         (
           await paged("claims", "", filters.claimQ || "", {
@@ -447,7 +654,7 @@ export async function marketPage(tool, filters) {
       ) {
         const response = await allStalls();
         refresh = response.refresh;
-        let stalls = response.data.stalls;
+        let stalls = response.data.stalls.filter(isVisibleRegionRecord);
         if (filters.claimQ)
           stalls = stalls.filter((stall) =>
             String(stall.claimName ?? "")
@@ -480,122 +687,11 @@ export async function marketPage(tool, filters) {
         ];
         market.claims = stallClaims(matchingStalls, market.claims);
       }
-    } else if (
-      filters.q ||
-      filters.category ||
-      filters.regionId ||
-      filters.empireEntityId ||
-      filters.claimQ ||
-      filters.claimEntityId ||
-      filters.itemId ||
-      filters.hasOrders ||
-      filters.hasSellOrders ||
-      filters.hasBuyOrders
-    ) {
-      if (
-        filters.regionId ||
-        filters.claimEntityId ||
-        filters.empireEntityId ||
-        filters.claimQ
-      ) {
-        const scope = pageWindow(
-          market.claims.length,
-          Number(filters.scopePage) || 1,
-          10,
-        );
-        market.scopePagination = scope;
-        const response = await scopedListings(
-          market.claims.slice(scope.offset, scope.offset + 10),
-          filters,
-        );
-        market.listings = response.listings;
-        refresh = response.refresh;
-        market.items = itemsFromListings(market.listings).filter((row) =>
-          matchesOrders(row, filters),
-        );
-      } else {
-        const response = await live("market", "", filters.q || "", 1, filters);
-        refresh = response.refresh;
-        market.items = (response.data.items ?? [])
-          .map(marketItem)
-          .filter((row) => matchesOrders(row, filters));
-        market.metrics = response.data.metrics ?? {};
-        // Market search returns availability flags; prices and real counts live
-        // in each item's order book. The shared server cache coalesces lookups.
-        market.categories = [
-          ...new Set(market.items.map((row) => row.category).filter(Boolean)),
-        ].sort();
-        const pagination = pageWindow(
-          market.items.length,
-          Number(filters.page) || 1,
-          20,
-        );
-        market.pagination = pagination;
-        market.items = await mapLimited(
-          market.items.slice(pagination.offset, pagination.offset + 20),
-          async (item) => {
-            const { orderBook: book } = await orderBook({
-              ...filters,
-              itemId: item.id,
-              itemKind: item.kind,
-            });
-            const stats = book.stats;
-            return {
-              ...item,
-              lowestSellPrice: stats.lowestSell,
-              highestBuyPrice: stats.highestBuy,
-              lowestBuyPrice: stats.lowestBuy,
-              sellOrderCount: stats.sellOrderCount,
-              buyOrderCount: stats.buyOrderCount,
-              sellOrderQuantity: book.sellOrders.reduce(
-                (sum, row) => sum + row.quantity,
-                0,
-              ),
-              buyOrderQuantity: book.buyOrders.reduce(
-                (sum, row) => sum + row.quantity,
-                0,
-              ),
-              ...Object.fromEntries(
-                Object.entries(stats).filter(([key]) =>
-                  /Quantity|LineTotal|OrderPrice/.test(key),
-                ),
-              ),
-            };
-          },
-        );
-        if (response.error)
-          throw Object.assign(new Error(response.error), { partial: true });
-      }
     }
     if (!market.categories.length)
       market.categories = [
         ...new Set(market.items.map((row) => row.category).filter(Boolean)),
       ].sort();
-    if (filters.claimEntityId) {
-      market.claim =
-        market.claims.find(
-          (row) => String(row.entityId) === String(filters.claimEntityId),
-        ) ?? (await live("claim", filters.claimEntityId)).data.claim;
-      if (tool !== "barter-stalls") {
-        const buildings =
-          (await live("claimBuildings", filters.claimEntityId)).data
-            .buildings ?? [];
-        market.tradeBuildings = buildings
-          .filter((row) =>
-            /market|barter/i.test(row.buildingName ?? row.name ?? ""),
-          )
-          .map((row) => ({
-            ...row,
-            buildingName: row.buildingName ?? row.name,
-            inventoryItems: row.inventoryItems ?? [],
-          }));
-      }
-    }
-    if (filters.itemId && tool !== "barter-stalls") {
-      const response = await orderBook(filters);
-      market.orderBook = response.orderBook;
-      refresh = response.refresh;
-    }
     return {
       market,
       regions,
@@ -623,25 +719,62 @@ export async function marketPage(tool, filters) {
     };
   }
 }
-async function orderBook(filters) {
-  if (filters.region && !filters.regionId) await regionsAndFilters(filters);
-  if (filters.empireEntityId && !filters.claimIds)
-    filters.claimIds =
-      (await live("empireClaims", filters.empireEntityId)).data.claims?.map(
-        (claim) => String(claim.entityId),
-      ) ?? [];
-  const response = await live(
-    filters.itemKind === "cargo" ? "cargoOrders" : "itemOrders",
-    filters.itemId,
-    "",
-    1,
-    filters,
+async function orderBook(filters, { history: includeHistory = true } = {}) {
+  await resolveMarketEmpire(filters);
+  const conn = await connectBitcraft();
+  // Resolve region/claim scope through the stored directory, never an API call.
+  const scope = JSON.parse(
+    await conn.procedures.readMarket({
+      filters: JSON.stringify({
+        ...filters,
+        hasOrders: false,
+        hasSellOrders: false,
+        hasBuyOrders: false,
+      }),
+    }),
   );
+  Object.assign(filters, scope.filters);
+  if (filters.claimQ && !filters.claimEntityId)
+    filters.claimIds = scope.claims.map((claim) => String(claim.entityId));
+  const stored = JSON.parse(
+    await conn.procedures.readMarketBook({
+      kind: filters.itemKind || "item",
+      id: String(filters.itemId),
+    }),
+  );
+  if (!stored.book)
+    return {
+      orderBook: null,
+      pending: stored.pending,
+      error:
+        "This item's orders are still being collected. Stored results will update automatically.",
+    };
+  const history = includeHistory
+    ? await live(
+        filters.itemKind === "cargo" ? "cargoPriceHistory" : "itemPriceHistory",
+        filters.itemId,
+        "",
+        1,
+        filters,
+      ).catch(() => null)
+    : null;
+  const refresh = {
+    updatedAt: storedDate(stored.observedAt),
+    stored: true,
+    delayed: Boolean(stored.error),
+    pending: stored.pending,
+  };
   return {
-    orderBook: normalizeOrderBook(response.data, filters),
-    cache: response.refresh,
-    refresh: response.refresh,
-    error: response.error,
+    orderBook: {
+      ...normalizeOrderBook(stored.book, filters),
+      observedAt: stored.observedAt,
+      history: history?.data.priceStats ?? null,
+      historyLoaded: includeHistory,
+      historyDelayed: history?.refresh.delayed ?? true,
+    },
+    cache: refresh,
+    refresh,
+    error: null,
   };
 }
 function filtersFor(tool, query, setup) {
@@ -671,6 +804,8 @@ function filtersFor(tool, query, setup) {
     skillGoalLevels: "",
     skillGoalXp: "",
     itemNeeds: "",
+    includeHousing: false,
+    storageClaimId: "",
     need: null,
     taskText: "",
     tasks: [],
@@ -743,22 +878,55 @@ export async function trackerSnapshot(tool, filters) {
     if (!player)
       throw new Error(`No BitCraft player matched '${filters.character}'.`);
     if (tool === "activity") {
-      const [definitions, response] = await Promise.all([
+      const [definitions, response, history] = await Promise.all([
         catalog("skills"),
         live("levels"),
+        connectBitcraft()
+          .then((conn) =>
+            conn.procedures.collectionHistory({
+              playerId: String(player.entityId),
+            }),
+          )
+          .then(JSON.parse)
+          .catch(() => null),
       ]);
+      const activity =
+        filters.background === "1"
+          ? null
+          : await live("relaySession", player.entityId)
+              .then((row) => ({ ...row.data, delayed: row.refresh.delayed }))
+              .catch(() => null);
+      const crafts =
+        filters.background === "1"
+          ? { rows: [], delayed: true }
+          : await live("relayCrafts", player.entityId)
+              .then((row) => ({
+                rows: relayCrafts(row.data, {}, true).craftResults,
+                delayed: row.refresh.delayed,
+              }))
+              .catch(() => ({ rows: [], delayed: true }));
       return {
-        tracker: activityTracker(
-          player,
-          definitions,
-          Array.isArray(response.data)
-            ? response.data
-            : (response.data.levels ?? []),
-          filters,
-        ),
+        tracker: {
+          ...activityTracker(
+            player,
+            definitions,
+            Array.isArray(response.data)
+              ? response.data
+              : (response.data.levels ?? []),
+            filters,
+          ),
+          activity,
+          passiveCrafts: crafts.rows,
+          craftsDelayed: crafts.delayed,
+        },
         error: playerResponse.error || response.error,
         sampledAt: playerResponse.refresh.updatedAt ?? sampledAt,
         sampleSourceKey: playerResponse.sourceKey,
+        xpHistory: collectedActivitySamples(
+          history,
+          String(player.entityId),
+          playerResponse.sourceKey,
+        ),
         refresh: {
           ...playerResponse.refresh,
           delayed: playerResponse.refresh.delayed || response.refresh.delayed,
@@ -767,7 +935,7 @@ export async function trackerSnapshot(tool, filters) {
     }
     if (tool === "inventory") {
       const [response, items] = await Promise.all([
-        trackerInventory(player),
+        trackerInventory(player, filters),
         catalog("items", "", filters.itemSearch ?? ""),
       ]);
       return {
@@ -841,15 +1009,20 @@ export async function pageProps(
   setup = true,
   id = "",
   editing = false,
+  options = {},
 ) {
   if (
     query.profile &&
     ["activity", "inventory", "passive-crafts", "tasks"].includes(tool)
   ) {
     const { readWidget } = await import("./widgets");
+    const presentation = query.presentation;
+    const character = query.character;
     query = {
       ...(await readWidget(tool, String(query.profile))),
       profile: query.profile,
+      ...(presentation ? { presentation } : {}),
+      ...(character ? { character } : {}),
     };
   }
   const filters = filtersFor(tool, query, setup);
@@ -863,14 +1036,66 @@ export async function pageProps(
       ),
     };
   if (tool === "tasks") return { filters };
-  if (tool === "tool-rates") return await catalog("entries");
+  if (tool === "tool-rates") {
+    const entries = await catalog("entries");
+    let observations = null,
+      nearby = null,
+      nearbyError = null;
+    if (pageState.props.bitcraft.player) {
+      const player = await lookupPlayer(
+        pageState.props.bitcraft.player.entityId,
+      ).catch(() => null);
+      if (player) {
+        if ([true, "true", "1"].includes(query.nearby)) {
+          try {
+            const result = await live("relayNearby", player.entityId);
+            nearby = { ...result.data, refresh: result.refresh };
+          } catch (error) {
+            nearbyError = error.message;
+          }
+        }
+        const conn = await connectBitcraft();
+        const history = await conn.procedures
+          .collectionHistory({ playerId: player.entityId })
+          .then(JSON.parse)
+          .catch(() => null);
+        const skills = await catalog("skills");
+        observations = {
+          username: player.username,
+          rates: (history?.rates ?? []).map((row) => ({
+            ...row,
+            name:
+              skills.find((skill) => Number(skill.id) === row.skillId)?.name ??
+              `Skill ${row.skillId}`,
+          })),
+        };
+      }
+    }
+    return { ...entries, observations, nearby, nearbyError };
+  }
   if (tool === "hunting-calculator") {
     try {
       const response = await live("levels");
+      const levels = Array.isArray(response.data)
+        ? response.data
+        : (response.data.levels ?? []);
+      let playerSkill = null;
+      if (pageState.props.bitcraft.player) {
+        const player = await lookupPlayer(
+          pageState.props.bitcraft.player.entityId,
+        ).catch(() => null);
+        const skill = player?.experience?.find(
+          (row) => Number(row.skill_id ?? row.skillId) === 9,
+        );
+        if (skill?.quantity != null)
+          playerSkill = {
+            username: player.username,
+            ...levelProgress(Number(skill.quantity), levels),
+          };
+      }
       return {
-        levels: Array.isArray(response.data)
-          ? response.data
-          : (response.data.levels ?? []),
+        levels,
+        playerSkill,
         error: response.error,
       };
     } catch (error) {
@@ -880,7 +1105,7 @@ export async function pageProps(
   if (["market", "barter-stalls"].includes(tool))
     return {
       filters,
-      ...(await marketPage(tool, filters)),
+      ...(await marketPage(tool, filters, options)),
       ...(tool === "barter-stalls"
         ? {
             tool: {
@@ -915,11 +1140,29 @@ export async function pageProps(
         : null,
       catalog("metadata"),
     ]);
+    let inventory = null;
+    if (detail && pageState.props.bitcraft.player) {
+      try {
+        const player = await lookupPlayer(
+          pageState.props.bitcraft.player.entityId,
+        );
+        const response = await trackerInventory(player, filters);
+        inventory = {
+          username: player.username,
+          quantities: inventoryQuantities(response.data),
+          refresh: response.refresh,
+          error: response.error,
+        };
+      } catch (error) {
+        inventory = { quantities: {}, error: error.message };
+      }
+    }
     return {
       filters,
       items,
       detail,
       snapshot,
+      inventory,
       error:
         filters.itemId && !detail
           ? "That item is not available in the current catalog."
@@ -928,7 +1171,7 @@ export async function pageProps(
   }
   if (tool === "open-crafts") {
     try {
-      const [response, skills] = await Promise.all([
+      let [response, skills] = await Promise.all([
         live("crafts"),
         catalog("skills"),
       ]);
@@ -948,6 +1191,98 @@ export async function pageProps(
       if (!player)
         for (const flag of ["levelUps", "meetsLevel", "mine"])
           filters[flag] = false;
+      if (player) {
+        try {
+          const relay = await live("relayCrafts", player.entityId);
+          if (!relay.refresh.delayed) {
+            const claimIds = [
+              ...new Set(
+                (relay.data.crafts ?? [])
+                  .map((job) => job.claim_entity_id)
+                  .filter(Boolean),
+              ),
+            ];
+            const claims = Object.fromEntries(
+              await Promise.all(
+                claimIds.map(async (id) => [
+                  id,
+                  await live("relayClaim", String(id))
+                    .then((result) => result.data)
+                    .catch(() => ({})),
+                ]),
+              ),
+            );
+            const raw = relayCrafts(relay.data, claims, false);
+            const existing = new Map(
+              (response.data.craftResults ?? []).map((job) => [
+                String(job.entityId),
+                job,
+              ]),
+            );
+            const jobs = await Promise.all(
+              raw.craftResults.map(async (job) => {
+                const previous = existing.get(job.entityId) ?? {};
+                let recipe = previous;
+                if (!recipe.experiencePerProgress) {
+                  const output = job.craftedItem[0];
+                  if (output) {
+                    const detail = await live(
+                      [1, "1", "Cargo", "cargo"].includes(output.item_type)
+                        ? "cargoItem"
+                        : "item",
+                      String(output.item_id),
+                    )
+                      .then((result) => result.data)
+                      .catch(() => null);
+                    recipe =
+                      detail?.craftingRecipes?.find(
+                        (row) => String(row.id) === String(job.recipeId),
+                      ) ?? {};
+                  }
+                }
+                const defined = Object.fromEntries(
+                  Object.entries(job).filter(
+                    ([, value]) => value !== undefined,
+                  ),
+                );
+                return {
+                  ...previous,
+                  ...defined,
+                  experiencePerProgress: recipe?.experiencePerProgress,
+                  levelRequirements: recipe?.levelRequirements ?? [],
+                  toolRequirements: recipe?.toolRequirements ?? [],
+                };
+              }),
+            );
+            const known = new Set(jobs.map((job) => job.entityId));
+            const enriched = await enrichTrackerItems({ craftResults: jobs });
+            response = {
+              ...response,
+              data: {
+                ...response.data,
+                craftResults: [
+                  ...(response.data.craftResults ?? []).filter(
+                    (job) =>
+                      !known.has(String(job.entityId)) &&
+                      String(job.ownerEntityId) !== String(player.entityId),
+                  ),
+                  ...jobs,
+                ],
+                items: [
+                  ...(response.data.items ?? []),
+                  ...Object.values(enriched.items ?? {}),
+                ],
+                cargos: [
+                  ...(response.data.cargos ?? []),
+                  ...Object.values(enriched.cargos ?? {}),
+                ],
+              },
+            };
+          }
+        } catch {
+          /* Preserve the public craft directory during recovery. */
+        }
+      }
       return {
         filters,
         ...filterCrafts(
@@ -1078,7 +1413,7 @@ export async function bitcraftFetch(input, options = {}) {
           (await live("players", "", filters.q ?? "")).data.players ?? [],
       };
     else if (url.pathname === "/bitcraft/market/order-book")
-      data = await orderBook(filters);
+      data = await orderBook(filters, { history: filters.history !== "0" });
     else if (url.pathname === "/bitcraft/barter-stalls/listings") {
       const result = await marketPage("barter-stalls", {
         ...filters,

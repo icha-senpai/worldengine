@@ -80,6 +80,12 @@ in discord-commands.md; eleven have handlers, including /bait and /upgrade; sell
     cargo run -p account-link
     cargo run -p discord-bot
 
+Those Cargo commands are development runs. The desktop launchers use the
+optimized bot; build it before starting or restarting local services:
+
+    cargo build -p discord-bot --release --locked
+    ./scripts/local-services.ps1 -Action Restart
+
 Services fail startup when required configuration/roles are absent.
 OAuth /health/live reports process liveness; /health/ready requires a connected,
 authorized linker. Native services reconnect after dropped database transport.
@@ -94,6 +100,49 @@ back to the already committed text result. Preview all ten ranks without credent
     cargo run -p discord-bot --example render-catch-cards --locked
 
 Output goes to output/catch-cards, including all-ranks-preview.png.
+Full-resolution previews remain 1024 × 1536. Live Discord attachments use
+512 × 768 PNGs with nearest-neighbor scaling, preserving the centered artwork
+and frame. A per-process cache keeps up to 64 rendered cards within 32 MiB,
+evicting the least recently used entries. It contains only artwork, never catch
+statistics or player data; restarting the bot clears it.
+
+Benchmark cold and cached attachments without sending Discord messages:
+
+    cargo run -p discord-bot --release --example benchmark-catch-art --locked
+
+`/rod [rod_id]` shares a public showcase of the caller's equipped or selected
+owned rod. It uses `assets/item-cards/rod.png`, the existing rod sprite, and
+quality-colored accents; stats and quality come from the authoritative snapshot.
+It does not equip the selected rod, consume materials, or modify cast cooldown.
+Preview all seven rods and seven Twig Rod qualities without credentials:
+
+    cargo run -p discord-bot --release --example render-rod-cards --locked
+
+Previews go into `output/rod-cards`. The generated background's exact built-in
+imagegen prompt is recorded in `docs/rod-card-art-prompt.json`.
+
+The optimized previews appear in `output/performance-cards`. Timing events in
+`.local/bot.stdout.log` separate Discord acknowledgement, game requests, reply
+delivery, card rendering/cache hits, and database selection queue/reducer waits.
+`command_ms` measures from handler start. Commands with confirmation buttons
+include the user's wait in their final `complete` event; use the first `reply`
+event to measure when the initial offer appeared. Logs contain command names,
+interaction IDs, durations, cache keys and byte counts, without credentials or
+private inventory contents.
+
+The local service log runner appends to `.local/<service>.stdout.log` and
+`.stderr.log`, preserving output across restarts. Each active file is capped at
+1,000,000,000 bytes (1 GB); writes crossing the limit are split exactly, the
+closed file moves into `.local/log-archive`, and a fresh active file opens.
+Archives use `.log.xz` with Python's XZ/LZMA2 preset 9 plus EXTREME, equivalent
+to `xz -9e`. Compression runs in a separate background process and verifies
+the decompressed bytes against the original before removing the closed log.
+Compression failures retain the original and retry when that service starts
+again. `.local/<service>.archive-status.json` records the latest archive job.
+Compressed archives are retained. The runner waits for stdout/stderr to drain
+when closing a service; archive compression may finish after the service exits.
+ServBay's installed Python is required by the launcher. Verify rotation without
+generating gigabytes of logs using `node --test scripts/service-log-runner.test.mjs`.
 Assets are served by SvelteKit at /fish/*
 and /rank-cards/*. All 251 species can be browsed at /catalog.
 
@@ -118,11 +167,36 @@ the existing Cloudflare tunnel, and a public HTTPS origin; see
 [ServBay hosting](servbay-hosting.md) for routes, launchers, and the Discord callback.
 Restore proof, full progression, and late-game balance are later work.
 
-## Updating an existing Fishbound deployment for crafting
+## Updating species measurements to catalog 5
+
+The source is `content/species-measurements.csv`. Rebuild with
+`node scripts/build-world-content.mjs`, run content validation and rule tests,
+then `npm run bindings` to compile WASM and regenerate the new owner reducer.
+Build the website and native clients before restarting them.
+
+Stop web/linker/bot through the supplied launcher and run
+`node scripts/measurement-preservation.mjs before`. Publish the WASM additively
+with the existing deployment name and owner identity; never use a database reset.
+Then run:
+
+    spacetime call --server http://127.0.0.1:3127 --no-config --yes fishbound-dev-local activate_species_measurements
+    node scripts/measurement-preservation.mjs after
+
+The comparison checks all 251 new definitions and every other stored table except
+the scheduled maintenance timer. Restart services after it passes. Existing catches,
+history, records, progression, equipment, XP and coins are preserved; only new
+catches carry content version 5. Rank thresholds stay at version 4 and gameplay
+rules stay at version 6. See [measurement notes](species-measurements.md).
+
+The isolated migration proof can be repeated with
+`npx tsx scripts/measurements-proof.ts <saved-pre-update-WASM>`; it verifies old
+catch preservation, owner authorization, idempotence and fresh version-5 catches.
+
+## Crafting activation
 
 Back up and compare player state; never reset the database. Build/generate with
 `npm run bindings`, publish the production WASM additively, then call the owner
-reducer `activate_crafting`. This activates rules 6 and catalog 2 without spending
+reducer `activate_crafting`. This activates rules 6 and crafting definitions without spending
 or granting player resources. Build the website and native clients, then restart
 with the supplied local-services launcher. Recipes and bait prices live in
 `content/crafting.json` and `content/trader.json`.

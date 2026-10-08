@@ -4,7 +4,7 @@
       <div class="crafting-node__recipe-head">
         <h4>{{ activeRecipe.name }}</h4>
 
-        <select
+        <SelectInput
           v-if="hasAlternatives"
           v-model.number="selectedAlternativeIndex"
           class="crafting-node__route-select"
@@ -17,7 +17,7 @@
           >
             {{ routeLabel(alternative) }}
           </option>
-        </select>
+        </SelectInput>
       </div>
 
       <div
@@ -153,6 +153,7 @@
 </template>
 
 <script setup>
+import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
 import { computed, ref, watch } from "vue";
@@ -401,6 +402,9 @@ const scaledQuantity = (quantity) => {
   min-width: 0;
   max-width: 100%;
   width: min(260px, 100%);
+}
+
+.crafting-node__route-select :deep(.app-select__trigger) {
   border: 1px solid rgb(var(--border-color-rgb) / 0.82);
   border-radius: 6px;
   background: rgb(var(--bg-surface-rgb) / 0.94);
@@ -409,7 +413,7 @@ const scaledQuantity = (quantity) => {
   font-size: 12px;
   font-weight: 650;
   line-height: 1.2;
-  padding: 7px 30px 7px 9px;
+  padding: 7px 9px;
 }
 
 .crafting-node__meta {
@@ -635,7 +639,7 @@ details > .crafting-ingredient__row {
 
 .crafting-ingredient__error {
   margin: 6px 0 0 44px;
-  color: var(--accent-pink);
+  color: var(--danger);
   font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 650;

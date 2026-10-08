@@ -1,0 +1,2382 @@
+{
+  "bitconnect": {
+    "sell_order_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "item_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "item_type",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "price_threshold",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "quantity",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "timestamp",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "__timestamp_micros_since_unix_epoch__",
+                      "type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "stored_coins",
+              "type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "buy_order_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "item_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "item_type",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "price_threshold",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "quantity",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "timestamp",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "__timestamp_micros_since_unix_epoch__",
+                      "type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "stored_coins",
+              "type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "marketplace_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "building_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "coordinates",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "x",
+                      "type": {
+                        "I32": []
+                      }
+                    },
+                    {
+                      "name": "z",
+                      "type": {
+                        "I32": []
+                      }
+                    },
+                    {
+                      "name": "dimension",
+                      "type": {
+                        "U32": []
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "barter_stall_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "market_mode_enabled",
+              "type": {
+                "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "building_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "direction_index",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "building_description_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "constructed_by_player_entity_id",
+              "type": {
+                "U64": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "building_nickname_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "nickname",
+              "type": {
+                "String": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "trade_order_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "shop_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "remaining_stock",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "offer_items",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "item_id",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "quantity",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "item_type",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "Item",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "Cargo",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "name": "durability",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "some",
+                                "type": {
+                                  "I32": []
+                                }
+                              },
+                              {
+                                "name": "none",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "offer_cargo_id",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            },
+            {
+              "name": "required_items",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "item_id",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "quantity",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "item_type",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "Item",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "Cargo",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "name": "durability",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "some",
+                                "type": {
+                                  "I32": []
+                                }
+                              },
+                              {
+                                "name": "none",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "required_cargo_id",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            },
+            {
+              "name": "traveler_trade_order_id",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "I32": []
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "owner_player_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "owner_building_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "neutral",
+              "type": {
+                "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_local_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "supplies",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "building_maintenance",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "num_tiles",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "num_tile_neighbors",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "location",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "Product": {
+                          "elements": [
+                            {
+                              "name": "x",
+                              "type": {
+                                "I32": []
+                              }
+                            },
+                            {
+                              "name": "z",
+                              "type": {
+                                "I32": []
+                              }
+                            },
+                            {
+                              "name": "dimension",
+                              "type": {
+                                "U32": []
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "treasury",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "xp_gained_since_last_coin_minting",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "supplies_purchase_threshold",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "supplies_purchase_price",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "building_description_id",
+              "type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "player_username_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "username",
+              "type": {
+                "String": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "experience_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "experience_stacks",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "skill_id",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "quantity",
+                        "type": {
+                          "I32": []
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "player_state": {
+      "key": [
+        1
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "teleport_location",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "location",
+                      "type": {
+                        "Product": {
+                          "elements": [
+                            {
+                              "name": "x",
+                              "type": {
+                                "I32": []
+                              }
+                            },
+                            {
+                              "name": "z",
+                              "type": {
+                                "I32": []
+                              }
+                            },
+                            {
+                              "name": "dimension",
+                              "type": {
+                                "U32": []
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "name": "location_type",
+                      "type": {
+                        "Sum": {
+                          "variants": [
+                            {
+                              "name": "BirthLocation",
+                              "type": {
+                                "Product": {
+                                  "elements": []
+                                }
+                              }
+                            },
+                            {
+                              "name": "TradingPost",
+                              "type": {
+                                "Product": {
+                                  "elements": []
+                                }
+                              }
+                            },
+                            {
+                              "name": "HomeLocation",
+                              "type": {
+                                "Product": {
+                                  "elements": []
+                                }
+                              }
+                            },
+                            {
+                              "name": "CustomLocation",
+                              "type": {
+                                "Product": {
+                                  "elements": []
+                                }
+                              }
+                            },
+                            {
+                              "name": "Waystone",
+                              "type": {
+                                "Product": {
+                                  "elements": []
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "time_played",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "session_start_timestamp",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "time_signed_in",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "sign_in_timestamp",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "signed_in",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "traveler_tasks_expiration",
+              "type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "inventory_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "pockets",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "volume",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "contents",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "some",
+                                "type": {
+                                  "Product": {
+                                    "elements": [
+                                      {
+                                        "name": "item_id",
+                                        "type": {
+                                          "I32": []
+                                        }
+                                      },
+                                      {
+                                        "name": "quantity",
+                                        "type": {
+                                          "I32": []
+                                        }
+                                      },
+                                      {
+                                        "name": "item_type",
+                                        "type": {
+                                          "Sum": {
+                                            "variants": [
+                                              {
+                                                "name": "Item",
+                                                "type": {
+                                                  "Product": {
+                                                    "elements": []
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "name": "Cargo",
+                                                "type": {
+                                                  "Product": {
+                                                    "elements": []
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "durability",
+                                        "type": {
+                                          "Sum": {
+                                            "variants": [
+                                              {
+                                                "name": "some",
+                                                "type": {
+                                                  "I32": []
+                                                }
+                                              },
+                                              {
+                                                "name": "none",
+                                                "type": {
+                                                  "Product": {
+                                                    "elements": []
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              {
+                                "name": "none",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "name": "locked",
+                        "type": {
+                          "Bool": []
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "inventory_index",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "cargo_index",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "player_owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "progressive_action_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "building_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "function_type",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "progress",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "recipe_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "craft_count",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "last_crit_outcome",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "lock_expiration",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "__timestamp_micros_since_unix_epoch__",
+                      "type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "preparation",
+              "type": {
+                "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "passive_craft_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "recipe_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "building_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "timestamp",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "__timestamp_micros_since_unix_epoch__",
+                      "type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "status",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "Queued",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Processing",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Complete",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "slot",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "U32": []
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "bitsync": {
+    "sell_order_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "item_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "item_type",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "price_threshold",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "quantity",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "timestamp",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "__timestamp_micros_since_unix_epoch__",
+                      "type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "stored_coins",
+              "type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "buy_order_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "item_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "item_type",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "price_threshold",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "quantity",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "timestamp",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "__timestamp_micros_since_unix_epoch__",
+                      "type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "stored_coins",
+              "type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "marketplace_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "building_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "coordinates",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "x",
+                      "type": {
+                        "I32": []
+                      }
+                    },
+                    {
+                      "name": "z",
+                      "type": {
+                        "I32": []
+                      }
+                    },
+                    {
+                      "name": "dimension",
+                      "type": {
+                        "U32": []
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "barter_stall_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "market_mode_enabled",
+              "type": {
+                "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "building_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "direction_index",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "building_description_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "constructed_by_player_entity_id",
+              "type": {
+                "U64": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "building_nickname_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "nickname",
+              "type": {
+                "String": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "trade_order_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "shop_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "remaining_stock",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "offer_items",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "item_id",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "quantity",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "item_type",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "item",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "cargo",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "name": "durability",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "some",
+                                "type": {
+                                  "I32": []
+                                }
+                              },
+                              {
+                                "name": "none",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "offer_cargo_id",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            },
+            {
+              "name": "required_items",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "item_id",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "quantity",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "item_type",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "item",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "cargo",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "name": "durability",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "some",
+                                "type": {
+                                  "I32": []
+                                }
+                              },
+                              {
+                                "name": "none",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "required_cargo_id",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            },
+            {
+              "name": "traveler_trade_order_id",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "I32": []
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "owner_player_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "owner_building_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "neutral",
+              "type": {
+                "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_local_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "supplies",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "building_maintenance",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "num_tiles",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "num_tile_neighbors",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "location",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "Product": {
+                          "elements": [
+                            {
+                              "name": "x",
+                              "type": {
+                                "I32": []
+                              }
+                            },
+                            {
+                              "name": "z",
+                              "type": {
+                                "I32": []
+                              }
+                            },
+                            {
+                              "name": "dimension",
+                              "type": {
+                                "U32": []
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "treasury",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "xp_gained_since_last_coin_minting",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "supplies_purchase_threshold",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "supplies_purchase_price",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "building_description_id",
+              "type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "player_username_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "username",
+              "type": {
+                "String": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "experience_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "experience_stacks",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "skill_id",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "quantity",
+                        "type": {
+                          "I32": []
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "player_state": {
+      "key": [
+        1
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "teleport_location",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "location",
+                      "type": {
+                        "Product": {
+                          "elements": [
+                            {
+                              "name": "x",
+                              "type": {
+                                "I32": []
+                              }
+                            },
+                            {
+                              "name": "z",
+                              "type": {
+                                "I32": []
+                              }
+                            },
+                            {
+                              "name": "dimension",
+                              "type": {
+                                "U32": []
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "name": "location_type",
+                      "type": {
+                        "Sum": {
+                          "variants": [
+                            {
+                              "name": "birthLocation",
+                              "type": {
+                                "Product": {
+                                  "elements": []
+                                }
+                              }
+                            },
+                            {
+                              "name": "tradingPost",
+                              "type": {
+                                "Product": {
+                                  "elements": []
+                                }
+                              }
+                            },
+                            {
+                              "name": "homeLocation",
+                              "type": {
+                                "Product": {
+                                  "elements": []
+                                }
+                              }
+                            },
+                            {
+                              "name": "customLocation",
+                              "type": {
+                                "Product": {
+                                  "elements": []
+                                }
+                              }
+                            },
+                            {
+                              "name": "waystone",
+                              "type": {
+                                "Product": {
+                                  "elements": []
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "time_played",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "session_start_timestamp",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "time_signed_in",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "sign_in_timestamp",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "signed_in",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "traveler_tasks_expiration",
+              "type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "inventory_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "pockets",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "volume",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "contents",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "some",
+                                "type": {
+                                  "Product": {
+                                    "elements": [
+                                      {
+                                        "name": "item_id",
+                                        "type": {
+                                          "I32": []
+                                        }
+                                      },
+                                      {
+                                        "name": "quantity",
+                                        "type": {
+                                          "I32": []
+                                        }
+                                      },
+                                      {
+                                        "name": "item_type",
+                                        "type": {
+                                          "Sum": {
+                                            "variants": [
+                                              {
+                                                "name": "item",
+                                                "type": {
+                                                  "Product": {
+                                                    "elements": []
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "name": "cargo",
+                                                "type": {
+                                                  "Product": {
+                                                    "elements": []
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "durability",
+                                        "type": {
+                                          "Sum": {
+                                            "variants": [
+                                              {
+                                                "name": "some",
+                                                "type": {
+                                                  "I32": []
+                                                }
+                                              },
+                                              {
+                                                "name": "none",
+                                                "type": {
+                                                  "Product": {
+                                                    "elements": []
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              {
+                                "name": "none",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "name": "locked",
+                        "type": {
+                          "Bool": []
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "inventory_index",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "cargo_index",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "player_owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "progressive_action_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "building_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "function_type",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "progress",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "recipe_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "craft_count",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "last_crit_outcome",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "lock_expiration",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "__timestamp_micros_since_unix_epoch__",
+                      "type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "preparation",
+              "type": {
+                "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "passive_craft_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "owner_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "recipe_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "building_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "timestamp",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "__timestamp_micros_since_unix_epoch__",
+                      "type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "status",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "queued",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "processing",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "complete",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "slot",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "U32": []
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

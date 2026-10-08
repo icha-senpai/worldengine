@@ -1,14 +1,16 @@
 <template>
   <WidgetPageShell
     :setup="setupPageVisible"
-    title="EXP Tracker"
-    description="Configure XP goals, watched skills, and the live OBS widget styling."
+    title="XP Tracker"
+    description="Watch your current grind, session gains, and next goal. Keep a companion beside the game or add an overlay to OBS."
   >
     <main
       class="activity-source"
       :class="{
         'activity-source--setup': setupVisible,
         'activity-source--in-app': setupPageVisible,
+        'activity-source--popout': presentation === 'popout',
+        'activity-source--obs': presentation === 'obs',
       }"
       :style="widgetThemeStyle"
     >
@@ -37,7 +39,7 @@
 
             <label>
               <span>Skill Scope</span>
-              <select v-model="form.skill">
+              <SelectInput v-model="form.skill" class="input">
                 <option value="all">All skills</option>
                 <option
                   v-for="skill in skillOptions"
@@ -46,11 +48,43 @@
                 >
                   {{ skill.name }}
                 </option>
-              </select>
+              </SelectInput>
             </label>
           </div>
 
           <WidgetThemeControls :model="form" @update="updateTheme" />
+          <fieldset class="xp-display-options">
+            <legend>Show in the tracker</legend>
+            <label
+              ><input
+                v-model="form.showSession"
+                class="checkbox"
+                type="checkbox"
+              />
+              Session statistics</label
+            ><label
+              ><input
+                v-model="form.showActivity"
+                class="checkbox"
+                type="checkbox"
+              />
+              Activity and stamina</label
+            ><label
+              ><input
+                v-model="form.showGoals"
+                class="checkbox"
+                type="checkbox"
+              />
+              Additional skill goals</label
+            ><label
+              ><input
+                v-model="form.showCrafts"
+                class="checkbox"
+                type="checkbox"
+              />
+              Passive crafts</label
+            >
+          </fieldset>
 
           <div ref="pickerElement" class="activity-picker">
             <label>
@@ -59,7 +93,7 @@
                 v-model.trim="form.skillSearch"
                 type="search"
                 autocomplete="off"
-                placeholder="Search skills"
+                placeholder="Search skills to add a goal"
                 @focus="pickerOpen = true"
               />
             </label>
@@ -73,6 +107,7 @@
                 :class="{
                   selected: form.skillKeys.includes(String(option.id)),
                 }"
+                :aria-pressed="form.skillKeys.includes(String(option.id))"
                 @click="selectSkill(option)"
               >
                 <span>{{ option.name }}</span>
@@ -125,6 +160,63 @@
         </form>
       </WidgetSetupDrawer>
 
+      <div v-if="presentation !== 'obs'" class="xp-toolbar">
+        <div>
+          <span class="xp-kicker">LIVE COMPANION</span>
+          <p>One grind at a time. Every gain counts.</p>
+        </div>
+        <div class="xp-toolbar-actions">
+          <button
+            v-if="presentation !== 'popout'"
+            @click="launchTracker('popout')"
+          >
+            ↗ Pop out
+          </button>
+          <button @click="copyObsUrl">Copy OBS URL</button>
+          <button v-if="presentation === 'popout'" @click="openFullTracker">
+            Full tracker
+          </button>
+        </div>
+      </div>
+      <div v-if="widgetNotice" class="xp-notice" role="status">
+        {{ widgetNotice }}
+      </div>
+      <input
+        v-if="obsUrl && presentation !== 'obs'"
+        class="xp-share-url"
+        :value="obsUrl"
+        readonly
+        aria-label="OBS browser source URL"
+        @focus="$event.target.select()"
+      />
+      <nav
+        v-if="presentation !== 'obs'"
+        class="xp-character-tabs"
+        aria-label="Tracked characters"
+      >
+        <button
+          v-for="character in watchedCharacters"
+          :key="character"
+          :class="{ 'is-selected': character === form.character }"
+          @click="switchCharacter(character)"
+        >
+          {{ characterLabel(character) }}
+        </button>
+        <form
+          v-if="
+            watchedCharacters.length < 5 && filters.widgetEditable !== false
+          "
+          @submit.prevent="addCharacter"
+        >
+          <input
+            v-model.trim="newCharacter"
+            aria-label="Add tracked character"
+            placeholder="Character name"
+            maxlength="80"
+          /><button>Add</button>
+        </form>
+      </nav>
+
       <section class="activity-widget" aria-label="Bitcraft EXP tracker">
         <header class="activity-widget__header">
           <div class="activity-widget__identity">
@@ -133,7 +225,9 @@
           </div>
 
           <div class="activity-widget__level">
-            <p>{{ activitySummaryLabel }}</p>
+            <p :class="{ 'xp-working': activityState.active }">
+              {{ activityState.label }}
+            </p>
             <time>{{ iconsLabel || clockLabel }}</time>
           </div>
         </header>
@@ -142,6 +236,22 @@
           :refresh="refreshStatus"
           :sampled-at="sampledAt"
         />
+        <p
+          v-if="tracker?.activity && form.showActivity"
+          class="activity-widget__warning"
+        >
+          {{ tracker.activity.signed_in ? "Signed in" : "Last known activity" }}
+          <template v-if="tracker.activity.stamina">
+            · Stamina {{ Math.round(tracker.activity.stamina.current) }} /
+            {{ Math.round(tracker.activity.stamina.max) }}
+          </template>
+          <template v-if="tracker.activity.target?.name">
+            · {{ tracker.activity.target.name }}</template
+          >
+          <template v-if="tracker.activity.delayed">
+            · Refresh delayed</template
+          >
+        </p>
 
         <div v-if="blockingError" class="activity-widget__error">
           {{ error }}
@@ -152,11 +262,92 @@
             {{ error }}
           </div>
 
-          <div class="activity-widget__progress" aria-hidden="true">
-            <span :style="{ width: `${summaryProgressPercent}%` }" />
+          <div class="xp-hero">
+            <div class="xp-hero-top">
+              <div>
+                <span class="xp-kicker">{{
+                  goalMode ? "YOUR GOAL" : "CURRENT SKILL"
+                }}</span>
+                <h2>
+                  {{ primaryStat?.skill.name || "Waiting for your next grind" }}
+                </h2>
+                <p>
+                  {{
+                    primaryStat
+                      ? `Level ${primaryStat.skill.level} → ${skillGoalLabel(primaryStat)}`
+                      : "Start earning XP, or choose a skill in Edit Widget."
+                  }}
+                </p>
+              </div>
+              <strong v-if="primaryStat"
+                >{{ Math.floor(displayProgressPercent(primaryStat) * 10) / 10
+                }}<small>%</small></strong
+              >
+            </div>
+            <div
+              class="xp-goal-track"
+              role="progressbar"
+              :aria-label="
+                primaryStat
+                  ? `${primaryStat.skill.name} goal progress`
+                  : 'Waiting for skill'
+              "
+              :aria-valuenow="
+                primaryStat ? displayProgressPercent(primaryStat) : 0
+              "
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <span
+                :style="{
+                  width: `${primaryStat ? displayProgressPercent(primaryStat) : 0}%`,
+                }"
+              />
+            </div>
+            <div class="xp-goal-copy">
+              <span>{{
+                primaryStat
+                  ? `${formatNumber(primaryStat.skill.xp)} current XP`
+                  : waitingLabel
+              }}</span
+              ><span>{{
+                primaryStat
+                  ? `${formatNumber(skillRemainingXp(primaryStat))} XP remaining`
+                  : ""
+              }}</span>
+            </div>
+          </div>
+          <div v-if="form.showSession" class="xp-stats-strip">
+            <div>
+              <span>Session XP</span
+              ><strong>+{{ formatCompact(session?.gained || 0) }}</strong
+              ><small>Observed gains</small>
+            </div>
+            <div>
+              <span>XP / hour</span><strong>{{ measuredRate }}</strong
+              ><small>{{
+                refreshStatus.delayed ? "Refresh delayed" : "Continuous samples"
+              }}</small>
+            </div>
+            <div>
+              <span>Time to goal</span
+              ><strong>{{
+                primaryStat && !refreshStatus.delayed
+                  ? skillTimeRemainingLabel(primaryStat)
+                  : "—"
+              }}</strong
+              ><small>At measured rate</small>
+            </div>
+            <div>
+              <span>Active time</span><strong>{{ sessionClock }}</strong
+              ><small>Observed XP activity</small>
+            </div>
           </div>
 
-          <div class="activity-widget__metrics">
+          <div
+            v-if="form.showGoals && presentation !== 'obs'"
+            class="activity-widget__metrics"
+          >
             <article
               v-if="!goalMode && activeSkillStats.length"
               class="activity-widget__metric activity-widget__metric--accent"
@@ -214,15 +405,67 @@
             </article>
           </div>
         </template>
+        <div v-if="form.showCrafts && presentation !== 'obs'" class="xp-crafts">
+          <div class="xp-section-head">
+            <strong>Passive crafts</strong
+            ><span>{{
+              tracker?.craftsDelayed
+                ? "Last known"
+                : `${tracker?.passiveCrafts?.length || 0} in progress`
+            }}</span>
+          </div>
+          <p v-if="!tracker?.passiveCrafts?.length">
+            {{
+              tracker?.craftsDelayed
+                ? "Crafts are temporarily unavailable."
+                : "No passive crafts in this watched snapshot."
+            }}
+          </p>
+          <article
+            v-for="craft in (tracker?.passiveCrafts || []).slice(0, 4)"
+            :key="craft.entityId"
+          >
+            <span>{{
+              craft.craftedItem?.[0]?.name ||
+              craft.buildingName ||
+              `Recipe ${craft.recipeId}`
+            }}</span
+            ><strong>{{
+              craft.totalProgress > 0
+                ? `${Math.min(100, Math.round((craft.progress / craft.totalProgress) * 100))}%`
+                : "In progress"
+            }}</strong>
+          </article>
+        </div>
+        <div v-if="presentation !== 'obs'" class="xp-session-controls">
+          <button @click="resetSession">Reset session</button
+          ><button
+            v-if="
+              watchedCharacters.length > 1 && filters.widgetEditable !== false
+            "
+            @click="removeCharacter"
+          >
+            Remove character
+          </button>
+        </div>
+        <p
+          v-if="sessionNotice && presentation !== 'obs'"
+          class="xp-notice"
+          role="status"
+        >
+          {{ sessionNotice }}
+        </p>
       </section>
     </main>
   </WidgetPageShell>
 </template>
 
 <script setup>
+import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
-import { openWidget } from "./widgets";
+import { openWidget, widgetUrl } from "./widgets";
+import { restoreXpSession, trackerActivity } from "./xpSession";
 import {
   computed,
   onBeforeUnmount,
@@ -241,6 +484,7 @@ import { createTrackerPoller, retryAfterSeconds } from "./trackerPolling";
 import {
   activitySkillRate,
   appendActivitySample,
+  restoreActivitySamples,
   normalizeActivitySamples,
 } from "./activitySamples";
 import {
@@ -341,9 +585,253 @@ const form = reactive({
   skillKeys: parseSkillKeys(props.filters.skillKeys ?? ""),
   skillGoalLevels: parseGoalMap(props.filters.skillGoalLevels ?? ""),
   skillGoalXp: parseGoalMap(props.filters.skillGoalXp ?? ""),
+  characters: String(
+    props.filters.characters ?? props.filters.character ?? "icha",
+  ),
+  showSession: ![false, "false", "0"].includes(props.filters.showSession),
+  showActivity: ![false, "false", "0"].includes(props.filters.showActivity),
+  showGoals: ![false, "false", "0"].includes(props.filters.showGoals),
+  showCrafts: ![false, "false", "0"].includes(props.filters.showCrafts),
   ...normalizeWidgetTheme(props.filters),
 });
 
+const presentation = computed(() =>
+  setupPageVisible.value
+    ? "full"
+    : props.filters.presentation === "popout"
+      ? "popout"
+      : "obs",
+);
+const newCharacter = ref(""),
+  obsUrl = ref(""),
+  widgetNotice = ref(""),
+  sessionNotice = ref(""),
+  backgroundRecords = ref([]);
+const session = ref(null);
+let sessionSeedUsed = false;
+const latestSourceKey = ref(props.snapshot.sampleSourceKey);
+let backgroundTimer;
+const watchedCharacters = computed(() =>
+  [
+    ...new Set(
+      [form.character, ...String(form.characters || "").split(",")]
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  ].slice(0, 5),
+);
+const sessionKey = (id) => `space.bitcraft.xpSession.v1.${id}`;
+function recordSession(sample, selected = false, history = []) {
+  let previous;
+  try {
+    previous = JSON.parse(
+      localStorage.getItem(sessionKey(sample.playerId)) || "null",
+    );
+  } catch {
+    /* Storage is optional. */
+  }
+  if (selected && !previous && session.value?.playerId === sample.playerId)
+    previous = session.value;
+  if (selected && !previous && !sessionSeedUsed && props.filters.sessionState) {
+    sessionSeedUsed = true;
+    try {
+      previous = JSON.parse(props.filters.sessionState);
+    } catch {
+      /* Invalid seed is ignored. */
+    }
+  }
+  const next = restoreXpSession(previous, sample, history);
+  if (selected) session.value = next;
+  if (next)
+    try {
+      localStorage.setItem(sessionKey(sample.playerId), JSON.stringify(next));
+    } catch {
+      /* Continue in memory. */
+    }
+}
+const activityState = ref(null);
+watch(
+  [
+    () => tracker.value?.activity,
+    () => tracker.value?.player?.entityId,
+    latestSourceKey,
+    () => refreshStatus.value.delayed,
+    () => session.value?.lastGainAt,
+    now,
+  ],
+  () => {
+    const activity = tracker.value?.activity;
+    activityState.value = trackerActivity(
+      activity
+        ? {
+            ...activity,
+            delayed: refreshStatus.value.delayed || activity.delayed,
+          }
+        : refreshStatus.value.delayed
+          ? { delayed: true }
+          : null,
+      now.value.getTime(),
+      session.value?.playerId === String(tracker.value?.player?.entityId)
+        ? session.value.lastGainAt
+        : 0,
+      activityState.value,
+      `${tracker.value?.player?.entityId ?? ""}|${latestSourceKey.value ?? ""}`,
+    );
+  },
+  { immediate: true },
+);
+const primaryStat = computed(
+  () =>
+    goalSkillStats.value[0] ||
+    skillStats.value.find(
+      (stat) => String(stat.skill.id) === String(session.value?.activeSkillId),
+    ) ||
+    (form.skill !== "all" ? skillStats.value[0] : null),
+);
+const measuredRate = computed(() =>
+  refreshStatus.value.delayed
+    ? "—"
+    : samples.value.length >= 2 &&
+        skillStats.value.some((s) => s.minutesSampled >= 1)
+      ? formatCompact(primaryStat.value?.hourRate ?? totalStats.value.hourRate)
+      : "Sampling",
+);
+const sessionClock = computed(() => {
+  const seconds = Math.floor((session.value?.activeMs || 0) / 1000);
+  return `${String(Math.floor(seconds / 3600)).padStart(2, "0")}:${String(Math.floor(seconds / 60) % 60).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+});
+function characterLabel(character) {
+  const row = backgroundRecords.value.find(
+    (row) => row.character === character,
+  );
+  return (
+    row?.username ||
+    (character === form.character
+      ? tracker.value?.player?.username
+      : character) ||
+    character
+  );
+}
+function switchCharacter(character) {
+  if (character === form.character) return;
+  form.character = character;
+  if (props.filters.widgetEditable === false) {
+    const url = new URL(location.href);
+    url.searchParams.set("character", character);
+    router.visit(url.pathname + url.search);
+    return;
+  }
+  submitSetup(setupPageVisible.value);
+}
+function addCharacter() {
+  if (!newCharacter.value || watchedCharacters.value.length >= 5) return;
+  form.characters = [...watchedCharacters.value, newCharacter.value].join(",");
+  const next = newCharacter.value;
+  newCharacter.value = "";
+  switchCharacter(next);
+}
+function removeCharacter() {
+  const remaining = watchedCharacters.value.filter((c) => c !== form.character);
+  if (!remaining.length) return;
+  form.characters = remaining.join(",");
+  form.character = remaining[0];
+  submitSetup(setupPageVisible.value);
+}
+async function refreshBackground() {
+  if (presentation.value === "obs") return;
+  for (const character of watchedCharacters.value.filter(
+    (c) => c !== form.character,
+  )) {
+    try {
+      const url = new URL(props.pollUrl, location.origin);
+      url.searchParams.delete("profile");
+      url.searchParams.set("character", character);
+      url.searchParams.set("background", "1");
+      url.searchParams.set("skill", "all");
+      const response = await fetch(url.href, { cache: "no-store" });
+      if (!response.ok) continue;
+      const snapshot = await response.json(),
+        player = snapshot.tracker?.player;
+      if (!player || snapshot.refresh?.delayed) continue;
+      recordSession(
+        {
+          playerId: String(player.entityId),
+          sourceKey: snapshot.sampleSourceKey,
+          at: Date.parse(snapshot.sampledAt),
+          xp: Object.fromEntries(
+            trackerSkills(snapshot.tracker)
+              .filter((s) => s.xpKnown !== false)
+              .map((s) => [String(s.id), s.xp]),
+          ),
+        },
+        false,
+        snapshot.xpHistory,
+      );
+      backgroundRecords.value = [
+        ...backgroundRecords.value.filter((row) => row.character !== character),
+        { character, username: player.username },
+      ];
+    } catch {
+      /* The selected tracker continues while another character reconnects. */
+    }
+  }
+}
+function resetSession() {
+  sessionSeedUsed = true;
+  session.value = null;
+  try {
+    localStorage.removeItem(
+      sessionKey(String(tracker.value?.player?.entityId)),
+    );
+  } catch {
+    /* optional */
+  }
+  samples.value = [];
+  lastActiveSkillStats.value = [];
+  lastActiveSkillStatsAt.value = 0;
+  addSample(
+    tracker.value,
+    sampledAt.value,
+    latestSourceKey.value,
+    refreshStatus.value.delayed,
+  );
+  sessionNotice.value = "Session reset. A fresh XP baseline has been taken.";
+}
+function widgetPayload(mode) {
+  return {
+    ...payload(false),
+    presentation: mode,
+    sessionState: session.value ? JSON.stringify(session.value) : "",
+  };
+}
+function launchTracker(mode) {
+  const tab = openWidget(route("bitcraft.activity", widgetPayload(mode)), {
+    popup: mode === "popout",
+  });
+  if (!tab)
+    widgetNotice.value =
+      "The browser blocked the popout. Allow popups for this site, then try again.";
+}
+function openFullTracker() {
+  window.open(
+    route("bitcraft.activity.setup", { ...payload(true) }),
+    "_blank",
+    "noopener",
+  );
+}
+async function copyObsUrl() {
+  try {
+    obsUrl.value = await widgetUrl(
+      route("bitcraft.activity", widgetPayload("obs")),
+    );
+    await navigator.clipboard.writeText(obsUrl.value);
+    widgetNotice.value = `OBS URL copied. Add it as a Browser Source at ${form.width}px wide; the page background is transparent.`;
+  } catch {
+    widgetNotice.value = obsUrl.value
+      ? "Select and copy the URL above for your OBS Browser Source."
+      : "The widget could not be saved. Try again after the connection recovers.";
+  }
+}
 const trackerSkills = (nextTracker) => {
   if (!nextTracker) {
     return [];
@@ -367,7 +855,14 @@ const trackerSkills = (nextTracker) => {
     : [];
 };
 
-const addSample = (nextTracker, nextSampledAt, sourceKey, delayed = false) => {
+const addSample = (
+  nextTracker,
+  nextSampledAt,
+  sourceKey,
+  delayed = false,
+  history = [],
+) => {
+  latestSourceKey.value = sourceKey;
   if (!nextTracker || delayed) {
     return;
   }
@@ -384,7 +879,14 @@ const addSample = (nextTracker, nextSampledAt, sourceKey, delayed = false) => {
     ),
   };
 
-  samples.value = appendActivitySample(samples.value, sample);
+  recordSession({ ...sample, xp: sample.xpBySkill }, true, history);
+  samples.value = history.length
+    ? restoreActivitySamples(
+        samples.value,
+        history.filter((row) => row.at >= session.value?.startedAt),
+        sample,
+      )
+    : appendActivitySample(samples.value, sample);
   if (samples.value.length === 1) {
     lastActiveSkillStats.value = [];
     lastActiveSkillStatsAt.value = 0;
@@ -427,6 +929,7 @@ const refresh = async () => {
         payload.sampledAt,
         payload.sampleSourceKey,
         refreshStatus.value.delayed,
+        payload.xpHistory,
       );
     }
 
@@ -438,7 +941,9 @@ const refresh = async () => {
   }
 };
 
-const polling = createTrackerPoller(refresh, POLL_INTERVAL_MS);
+const polling = createTrackerPoller(refresh, POLL_INTERVAL_MS, {
+  pauseWhenHidden: false,
+});
 
 onMounted(() => {
   const savedSetup = loadSetup();
@@ -467,17 +972,21 @@ onMounted(() => {
     sampledAt.value,
     props.snapshot.sampleSourceKey,
     refreshStatus.value.delayed,
+    props.snapshot.xpHistory,
   );
   polling.start(refreshStatus.value.retryAfter ?? 0);
   clockTimer = window.setInterval(() => {
     now.value = new Date();
   }, 1000);
+  void refreshBackground();
+  backgroundTimer = window.setInterval(refreshBackground, 10000);
   document.addEventListener("pointerdown", closePickerOnOutsidePointer);
 });
 
 onBeforeUnmount(() => {
   polling.stop();
   window.clearInterval(clockTimer);
+  window.clearInterval(backgroundTimer);
   document.removeEventListener("pointerdown", closePickerOnOutsidePointer);
 });
 
@@ -519,6 +1028,12 @@ const payload = (setup) => ({
   skillGoalLevels: formatGoalMap(form.skillGoalLevels),
   skillGoalXp: formatGoalMap(form.skillGoalXp),
   ...widgetThemePayload(form),
+  characters: watchedCharacters.value.join(","),
+  showSession: form.showSession,
+  showActivity: form.showActivity,
+  showGoals: form.showGoals,
+  showCrafts: form.showCrafts,
+  presentation: props.filters.presentation || "full",
   setup: setup ? 1 : 0,
 });
 
@@ -592,6 +1107,11 @@ const normalizeSetup = (setup) => ({
   skillKeys: parseSkillKeys(setup.skillKeys),
   skillGoalLevels: parseGoalMap(setup.skillGoalLevels),
   skillGoalXp: parseGoalMap(setup.skillGoalXp),
+  characters: String(setup.characters || setup.character || "icha"),
+  showSession: setup.showSession !== false,
+  showActivity: setup.showActivity !== false,
+  showGoals: setup.showGoals !== false,
+  showCrafts: setup.showCrafts !== false,
   ...normalizeWidgetTheme(setup),
 });
 
@@ -647,7 +1167,7 @@ const openWidgetMode = () => {
     return;
   }
 
-  openWidget(route("bitcraft.activity", payload(false)));
+  launchTracker("obs");
 };
 
 const skills = computed(() => trackerSkills(tracker.value));
@@ -666,7 +1186,10 @@ const setupPageVisible = computed(() => Boolean(props.filters.setup));
 const setupVisible = computed(() => setupPageVisible.value);
 const titleLabel = computed(() => form.title || "EXP Tracker");
 const iconsLabel = computed(() => form.icons || "");
-const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form));
+const widgetThemeStyle = computed(() => ({
+  ...resolveWidgetThemeStyle(form),
+  "--tracker-width": setupPageVisible.value ? "760px" : `${form.width}px`,
+}));
 const skillOptions = computed(() =>
   availableSkills.value
     .slice()
@@ -712,7 +1235,7 @@ const selectSkill = (skill) => {
     form.skillGoalLevels[skillId] = skill.nextLevel;
   }
 
-  form.skillSearch = skill.name;
+  form.skillSearch = "";
   pickerOpen.value = false;
   saveSetup();
 };
@@ -744,6 +1267,7 @@ watch(
       snapshot.sampledAt,
       snapshot.sampleSourceKey,
       refreshStatus.value.delayed,
+      snapshot.xpHistory,
     );
   },
 );
@@ -1006,7 +1530,290 @@ const skillDetailLabel = (stat) => {
   background: transparent;
 }
 
+.xp-toolbar,
+.xp-character-tabs,
+.xp-notice,
+.xp-share-url {
+  width: min(var(--tracker-width), 100%);
+}
+.xp-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 8px 0;
+}
+.xp-toolbar p {
+  margin: 5px 0 0;
+  color: var(--tracker-muted);
+  font-size: 12px;
+}
+.xp-kicker {
+  color: var(--tracker-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.xp-toolbar-actions,
+.xp-character-tabs,
+.xp-session-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.xp-toolbar button,
+.xp-character-tabs button,
+.xp-session-controls button {
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--tracker-border) 45%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tracker-panel) 90%, transparent);
+  color: var(--tracker-text);
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 12px;
+}
+.xp-character-tabs {
+  padding: 0 0 4px;
+}
+.xp-character-tabs button.is-selected {
+  border-color: var(--tracker-accent);
+  color: var(--tracker-accent);
+  background: color-mix(
+    in srgb,
+    var(--tracker-accent) 10%,
+    var(--tracker-panel)
+  );
+}
+.xp-character-tabs form {
+  display: flex;
+  gap: 5px;
+  max-width: 100%;
+}
+.xp-character-tabs input,
+.xp-share-url {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--tracker-border) 35%, transparent);
+  border-radius: 7px;
+  background: var(--tracker-panel);
+  color: var(--tracker-text);
+  padding: 9px 10px;
+  font-size: 12px;
+}
+.xp-character-tabs input {
+  width: 135px;
+}
+.xp-share-url {
+  box-sizing: border-box;
+}
+.xp-notice {
+  padding: 10px 14px;
+  color: var(--tracker-muted);
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.xp-working {
+  color: var(--tracker-highlight);
+}
+.xp-hero {
+  padding: 24px 22px 18px;
+}
+.xp-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+.xp-hero h2 {
+  font-size: calc(27px * var(--tracker-font-scale));
+  line-height: 1.2;
+  font-weight: 650;
+  margin: 8px 0 6px;
+  color: var(--tracker-text);
+}
+.xp-hero p {
+  font-size: 12px;
+  color: var(--tracker-muted);
+  margin: 0;
+}
+.xp-hero-top > strong {
+  font-size: 42px;
+  font-weight: 600;
+  color: var(--tracker-accent);
+}
+.xp-hero-top > strong small {
+  font-size: 18px;
+}
+.xp-goal-track {
+  height: 9px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 20px 0 9px;
+  background: color-mix(in srgb, var(--tracker-border) 18%, transparent);
+}
+.xp-goal-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--tracker-accent),
+    var(--tracker-highlight)
+  );
+  transition: width 0.5s ease;
+}
+.xp-goal-copy {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--tracker-muted);
+  font-size: 11px;
+}
+.xp-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 15px 22px;
+  gap: 12px;
+  border-block: 1px solid
+    color-mix(in srgb, var(--tracker-border) 25%, transparent);
+  background: color-mix(in srgb, var(--tracker-border) 5%, transparent);
+}
+.xp-stats-strip > div {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.xp-stats-strip span {
+  font-size: 10px;
+  color: var(--tracker-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.xp-stats-strip strong {
+  font-size: calc(22px * var(--tracker-font-scale));
+  color: var(--tracker-text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.xp-stats-strip small {
+  font-size: 10px;
+  color: var(--tracker-muted);
+  line-height: 1.4;
+}
+.xp-crafts {
+  padding: 18px 22px;
+  border-top: 1px solid
+    color-mix(in srgb, var(--tracker-border) 25%, transparent);
+}
+.xp-section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--tracker-text);
+}
+.xp-section-head span,
+.xp-crafts p {
+  color: var(--tracker-muted);
+  font-size: 11px;
+}
+.xp-crafts article {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  padding: 12px 0 0;
+}
+.xp-session-controls {
+  padding: 14px 22px;
+  border-top: 1px solid
+    color-mix(in srgb, var(--tracker-border) 25%, transparent);
+}
+.xp-session-controls label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--tracker-muted);
+}
+.xp-display-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+.activity-setup .xp-display-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  min-height: 40px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+.activity-setup .xp-display-options input {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+  margin: 0;
+}
+.activity-source--popout {
+  padding: 12px;
+  box-sizing: border-box;
+}
+.activity-source--popout .xp-toolbar {
+  align-items: start;
+  flex-direction: column;
+  gap: 8px;
+}
+.activity-source--obs {
+  min-height: 0;
+}
+:global(body:has(.activity-source--obs)),
+:global(html:has(.activity-source--obs)) {
+  background: transparent !important;
+}
+@media (max-width: 600px) {
+  .xp-toolbar {
+    align-items: start;
+    flex-direction: column;
+  }
+  .xp-stats-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 20px;
+  }
+  .xp-hero h2 {
+    font-size: 24px;
+  }
+  .xp-hero-top > strong {
+    font-size: 34px;
+  }
+  .xp-goal-copy {
+    flex-wrap: wrap;
+  }
+  .xp-character-tabs form {
+    width: 100%;
+  }
+  .xp-character-tabs input {
+    flex: 1;
+  }
+  .xp-hero,
+  .xp-crafts {
+    padding-inline: 18px;
+  }
+  .xp-session-controls {
+    padding-inline: 18px;
+  }
+}
+
 .activity-setup {
+  box-sizing: border-box;
   width: min(720px, 100%);
   border: 1px solid rgb(var(--border-color-2-rgb) / 0.36);
   border-radius: 8px;
@@ -1040,13 +1847,13 @@ const skillDetailLabel = (stat) => {
   text-transform: uppercase;
 }
 
-.activity-setup input,
+.activity-setup input:not([type="checkbox"]),
 .activity-setup select,
 .activity-picker input {
   min-height: 36px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: var(--bg-canvas);
+  background-color: var(--bg-canvas);
   color: var(--text-primary);
   font-size: 13px;
 }
@@ -1098,8 +1905,7 @@ const skillDetailLabel = (stat) => {
 }
 
 .activity-selected {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 6px;
   margin-top: 10px;
 }
@@ -1116,6 +1922,28 @@ const skillDetailLabel = (stat) => {
   color: var(--text-primary-2);
   font-size: 12px;
   font-weight: 800;
+}
+
+@media (max-width: 600px) {
+  .activity-setup__grid,
+  .xp-display-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .activity-selected span {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .activity-selected strong {
+    grid-column: 1 / -1;
+  }
+
+  .activity-selected button {
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-height: 32px;
+  }
 }
 
 .activity-selected label {
@@ -1176,7 +2004,11 @@ const skillDetailLabel = (stat) => {
       var(--tracker-panel) var(--tracker-panel-opacity),
       transparent
     ),
-    color-mix(in srgb, var(--tracker-panel) 96%, black)
+    color-mix(
+      in srgb,
+      var(--tracker-panel) var(--tracker-panel-opacity),
+      transparent
+    )
   );
   color: var(--tracker-text);
   box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.04);
@@ -1336,10 +2168,10 @@ const skillDetailLabel = (stat) => {
 .activity-widget__error {
   margin: 16px;
   padding: 14px;
-  border: 1px solid rgb(var(--accent-pink-rgb) / 0.42);
+  border: 1px solid rgb(var(--danger-rgb) / 0.42);
   border-radius: 8px;
-  background: rgb(var(--accent-pink-rgb) / 0.1);
-  color: var(--accent-pink);
+  background: rgb(var(--danger-rgb) / 0.1);
+  color: var(--danger);
   font-size: 13px;
   font-weight: 800;
 }
@@ -1347,10 +2179,10 @@ const skillDetailLabel = (stat) => {
 .activity-widget__warning {
   margin: 12px 16px 0;
   padding: 10px 12px;
-  border: 1px solid rgb(var(--accent-pink-rgb) / 0.28);
+  border: 1px solid rgb(var(--warning-rgb) / 0.28);
   border-radius: 8px;
-  background: rgb(var(--accent-pink-rgb) / 0.08);
-  color: color-mix(in srgb, var(--text-primary-2) 72%, var(--accent-pink));
+  background: rgb(var(--warning-rgb) / 0.08);
+  color: color-mix(in srgb, var(--text-primary-2) 72%, var(--warning));
   font-size: 12px;
   font-weight: 800;
 }

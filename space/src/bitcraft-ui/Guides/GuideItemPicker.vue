@@ -179,7 +179,7 @@ onBeforeUnmount(() => {
                 <span>{{ item.kind === "cargo" ? "Cargo" : "Item" }}</span>
               </span>
             </span>
-            <span class="text-lg text-cyan" aria-hidden="true">+</span>
+            <span class="text-lg text-focus" aria-hidden="true">+</span>
           </button>
         </div>
       </div>

@@ -1,13 +1,3 @@
-:where(.bitcraft-ui) :is(.empty,.notice,.toolbar,.badge,.eyebrow,.pager,.search,.table-scroll) { all: revert-layer; }
-:where(.bitcraft-ui) :is(button, input, select, textarea) { font: revert-layer; }
-:where(.bitcraft-ui) :is(input, select, textarea) {
-  padding: revert-layer; border: revert-layer; border-radius: revert-layer;
-  background: revert-layer; color: revert-layer; line-height: revert-layer;
-}
-:where(.bitcraft-ui) :is(h1,h2,h3,p) { font: revert-layer; margin: revert-layer; letter-spacing: revert-layer; }
-:where(.bitcraft-ui) label { display: revert-layer; gap: revert-layer; color: revert-layer; font-size: revert-layer; }
-:where(.bitcraft-ui) :is(table,th,td) { padding: revert-layer; font: revert-layer; border: revert-layer; text-align: revert-layer; }
-.bitcraft-ui tbody tr:hover { background: revert-layer; }
 @layer components {
   .bitcraft-ui .app-btn {
     display: inline-flex;
@@ -18,7 +8,13 @@
     font-weight: 500;
     font-family: var(--font-ui);
     letter-spacing: 0.04em;
-    transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+    transition:
+      background 0.15s,
+      border-color 0.15s,
+      color 0.15s,
+      opacity 0.15s,
+      transform 0.15s,
+      box-shadow 0.15s;
   }
 
   .bitcraft-ui .app-btn--md {
@@ -62,15 +58,15 @@
   }
 
   .bitcraft-ui .app-btn--danger {
-    border: 1px solid rgb(var(--accent-pink-rgb) / 0.24);
-    color: var(--accent-pink);
-    background: rgb(var(--accent-pink-rgb) / 0.08);
+    border: 1px solid rgb(var(--danger-rgb) / 0.24);
+    color: var(--danger);
+    background: rgb(var(--danger-rgb) / 0.08);
   }
 
   .bitcraft-ui .app-btn--danger:hover:not(:disabled) {
-    background: rgb(var(--accent-pink-rgb) / 0.12);
-    border-color: rgb(var(--accent-pink-rgb) / 0.42);
-    box-shadow: 0 10px 26px rgb(var(--accent-pink-rgb) / 0.14);
+    background: rgb(var(--danger-rgb) / 0.12);
+    border-color: rgb(var(--danger-rgb) / 0.42);
+    box-shadow: 0 10px 26px rgb(var(--danger-rgb) / 0.14);
     transform: translateY(-1px);
   }
 
@@ -110,7 +106,10 @@
     font-size: 11px;
     color: var(--text-muted-3);
     border: 1px solid var(--border-color);
-    transition: border-color 0.12s, color 0.12s, background 0.12s;
+    transition:
+      border-color 0.12s,
+      color 0.12s,
+      background 0.12s;
     white-space: nowrap;
   }
 
@@ -139,8 +138,8 @@
   }
 
   .bitcraft-ui .app-btn--select-danger:hover:not(:disabled) {
-    border-color: var(--accent-pink);
-    color: var(--accent-pink);
+    border-color: var(--danger);
+    color: var(--danger);
   }
 
   .bitcraft-ui .app-btn--selected-accent {
@@ -150,14 +149,18 @@
   }
 
   .bitcraft-ui .app-btn--selected-danger {
-    border-color: var(--accent-pink);
-    color: var(--accent-pink);
-    background: rgb(var(--accent-pink-rgb) / 0.1);
+    border-color: var(--danger);
+    color: var(--danger);
+    background: rgb(var(--danger-rgb) / 0.1);
   }
 
   .bitcraft-ui .panel {
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.34), rgb(var(--bg-surface-rgb) / 0.96)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.34),
+        rgb(var(--bg-surface-rgb) / 0.96)
+      ),
       var(--bg-surface-2);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -192,8 +195,16 @@
     overflow: hidden;
     border-left: 1px solid rgb(var(--border-color-2-rgb) / 0.28);
     background:
-      radial-gradient(circle at top left, rgb(var(--accent-pink-rgb) / 0.12), transparent 28%),
-      linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.99), rgb(var(--bg-surface-rgb) / 0.99));
+      radial-gradient(
+        circle at top left,
+        rgb(var(--accent-pink-rgb) / 0.12),
+        transparent 28%
+      ),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-2-rgb) / 0.99),
+        rgb(var(--bg-surface-rgb) / 0.99)
+      );
     box-shadow: -28px 0 80px rgb(0 0 0 / 0.38);
     clip-path: inset(0 0 0 0);
     transform: translateX(0);
@@ -215,7 +226,11 @@
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.18);
     border-radius: 12px;
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.28), rgb(var(--bg-surface-rgb) / 0.88)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.28),
+        rgb(var(--bg-surface-rgb) / 0.88)
+      ),
       var(--bg-surface-2);
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.028);
     pointer-events: none;
@@ -235,7 +250,12 @@
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgb(var(--accent-cyan-2-rgb) / 0.18), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--accent-cyan-2-rgb) / 0.18),
+      transparent
+    );
     animation: drawer-loading-shimmer 1.25s ease-in-out infinite;
   }
 
@@ -338,7 +358,11 @@
     flex-wrap: wrap;
     gap: 12px;
     border-top: 1px solid rgb(var(--border-color-2-rgb) / 0.16);
-    background: linear-gradient(180deg, rgb(var(--bg-surface-rgb) / 0.92), rgb(var(--bg-canvas-rgb) / 0.98));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-rgb) / 0.92),
+      rgb(var(--bg-canvas-rgb) / 0.98)
+    );
     padding: 18px 32px 24px;
   }
 
@@ -416,7 +440,7 @@
   .bitcraft-ui .field-error {
     font-size: 12px;
     font-family: var(--font-ui);
-    color: var(--accent-pink);
+    color: var(--danger);
   }
 
   .bitcraft-ui .category-label {
@@ -428,14 +452,21 @@
   .bitcraft-ui .input {
     height: 40px;
     padding: 0 14px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.24), rgb(var(--bg-surface-rgb) / 0.94));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-3-rgb) / 0.24),
+      rgb(var(--bg-surface-rgb) / 0.94)
+    );
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 14px;
     color: var(--text-primary);
     outline: none;
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.03);
-    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s,
+      background 0.15s;
   }
 
   .bitcraft-ui .input::placeholder {
@@ -444,11 +475,13 @@
 
   .bitcraft-ui .input:focus {
     border-color: var(--accent-cyan);
-    box-shadow: 0 0 0 3px rgb(var(--accent-cyan-rgb) / 0.16), inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.05);
+    box-shadow:
+      0 0 0 3px rgb(var(--accent-cyan-rgb) / 0.16),
+      inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.05);
   }
 
   .bitcraft-ui .input--error {
-    border-color: var(--accent-pink);
+    border-color: var(--danger);
   }
 
   .bitcraft-ui textarea.input {
@@ -464,11 +497,19 @@
     cursor: pointer;
     padding-right: 42px;
     background-image:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.24), rgb(var(--bg-surface-rgb) / 0.94)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.24),
+        rgb(var(--bg-surface-rgb) / 0.94)
+      ),
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.25 4.5 6 8.25 9.75 4.5' stroke='%23D4A44A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat, no-repeat;
-    background-position: center, right 14px center;
-    background-size: auto, 12px 12px;
+    background-position:
+      center,
+      right 14px center;
+    background-size:
+      auto,
+      12px 12px;
   }
 
   .bitcraft-ui select.input::-ms-expand {
@@ -526,19 +567,31 @@
     padding: 8px 14px;
     border: 1px solid rgb(var(--accent-cyan-rgb) / 0.26);
     border-radius: 8px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.72), rgb(var(--bg-surface-2-rgb) / 0.92));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-3-rgb) / 0.72),
+      rgb(var(--bg-surface-2-rgb) / 0.92)
+    );
     color: var(--accent-cyan);
     font-size: 12px;
     font-family: var(--font-ui);
     letter-spacing: 0.05em;
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      color 0.15s ease,
+      transform 0.15s ease;
   }
 
   .bitcraft-ui input[type="file"].input:hover::file-selector-button,
   .bitcraft-ui input[type="file"].input:hover::-webkit-file-upload-button {
     border-color: rgb(var(--accent-cyan-rgb) / 0.42);
-    background: linear-gradient(180deg, rgb(var(--bg-surface-4-rgb) / 0.78), rgb(var(--bg-surface-2-rgb) / 0.96));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-4-rgb) / 0.78),
+      rgb(var(--bg-surface-2-rgb) / 0.96)
+    );
     color: var(--accent-cyan-2);
     transform: translateY(-1px);
   }
@@ -546,7 +599,8 @@
   .bitcraft-ui input[type="file"].input:focus::file-selector-button,
   .bitcraft-ui input[type="file"].input:focus::-webkit-file-upload-button,
   .bitcraft-ui input[type="file"].input:focus-visible::file-selector-button,
-  .bitcraft-ui input[type="file"].input:focus-visible::-webkit-file-upload-button {
+  .bitcraft-ui
+    input[type="file"].input:focus-visible::-webkit-file-upload-button {
     border-color: rgb(var(--accent-cyan-rgb) / 0.5);
   }
 
@@ -561,7 +615,8 @@
 
   .bitcraft-ui input[type="date"].input::-webkit-calendar-picker-indicator,
   .bitcraft-ui input[type="time"].input::-webkit-calendar-picker-indicator,
-  .bitcraft-ui input[type="datetime-local"].input::-webkit-calendar-picker-indicator,
+  .bitcraft-ui
+    input[type="datetime-local"].input::-webkit-calendar-picker-indicator,
   .bitcraft-ui input[type="month"].input::-webkit-calendar-picker-indicator,
   .bitcraft-ui input[type="week"].input::-webkit-calendar-picker-indicator {
     border-radius: 999px;
@@ -579,7 +634,7 @@
   .bitcraft-ui .error-box {
     padding: 16px;
     background: var(--bg-surface-2);
-    border: 1px solid var(--accent-pink);
+    border: 1px solid var(--danger);
     border-radius: 8px;
   }
 
@@ -592,7 +647,9 @@
     color: var(--text-muted-2);
     border: 1px solid var(--border-color-2);
     background: var(--bg-surface);
-    transition: border-color 0.12s, color 0.12s;
+    transition:
+      border-color 0.12s,
+      color 0.12s;
   }
 
   .bitcraft-ui .universe-tag:hover {
@@ -623,9 +680,9 @@
   }
 
   .bitcraft-ui .tag--danger {
-    color: var(--accent-pink);
-    border-color: rgb(var(--accent-pink-rgb) / 0.25);
-    background: rgb(var(--accent-pink-rgb) / 0.09);
+    color: var(--danger);
+    border-color: rgb(var(--danger-rgb) / 0.25);
+    background: rgb(var(--danger-rgb) / 0.09);
   }
 
   .bitcraft-ui .tag--focus {
@@ -652,15 +709,15 @@
   }
 
   .bitcraft-ui .count--danger {
-    color: var(--accent-pink);
-    border-color: rgb(var(--accent-pink-rgb) / 0.25);
-    background: rgb(var(--accent-pink-rgb) / 0.09);
+    color: var(--danger);
+    border-color: rgb(var(--danger-rgb) / 0.25);
+    background: rgb(var(--danger-rgb) / 0.09);
   }
 
   .bitcraft-ui .dirty-indicator {
     font-size: 11px;
     font-family: var(--font-ui);
-    color: #fcd34d;
+    color: var(--warning);
     letter-spacing: 0.06em;
   }
 
@@ -671,40 +728,70 @@
     flex: 0 0 18px;
     border-radius: 4px;
     border: 1px solid var(--border-color-2);
-    background: linear-gradient(180deg, rgb(var(--bg-surface-4-rgb) / 0.92), rgb(var(--bg-surface-rgb) / 0.98));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-4-rgb) / 0.92),
+      rgb(var(--bg-surface-rgb) / 0.98)
+    );
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.06);
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      box-shadow 0.15s ease,
+      transform 0.15s ease;
   }
 
   .bitcraft-ui .checkbox:hover {
     border-color: rgb(var(--accent-cyan-rgb) / 0.5);
-    background: linear-gradient(180deg, rgb(var(--bg-surface-4-rgb) / 1), rgb(var(--bg-surface-2-rgb) / 1));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-4-rgb) / 1),
+      rgb(var(--bg-surface-2-rgb) / 1)
+    );
   }
 
   .bitcraft-ui .checkbox:focus-visible {
     outline: none;
     border-color: var(--accent-cyan);
-    box-shadow: 0 0 0 2px rgb(var(--accent-cyan-rgb) / 0.24), inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08);
+    box-shadow:
+      0 0 0 2px rgb(var(--accent-cyan-rgb) / 0.24),
+      inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08);
   }
 
   .bitcraft-ui .checkbox:checked {
     border-color: rgb(var(--accent-cyan-rgb) / 0.72);
     background-color: rgb(var(--accent-cyan-rgb) / 0.16);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23F3E7CD' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E"), linear-gradient(180deg, rgb(var(--accent-cyan-rgb) / 0.2), rgb(var(--accent-cyan-3-rgb) / 0.28));
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23F3E7CD' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E"),
+      linear-gradient(
+        180deg,
+        rgb(var(--accent-cyan-rgb) / 0.2),
+        rgb(var(--accent-cyan-3-rgb) / 0.28)
+      );
     background-position: center;
     background-repeat: no-repeat;
-    background-size: 12px 12px, auto;
+    background-size:
+      12px 12px,
+      auto;
     box-shadow: 0 0 0 1px rgb(var(--accent-cyan-rgb) / 0.18);
   }
 
   .bitcraft-ui .checkbox:indeterminate {
     border-color: rgb(var(--accent-cyan-rgb) / 0.72);
     background-color: rgb(var(--accent-cyan-rgb) / 0.16);
-    background-image: linear-gradient(var(--text-primary), var(--text-primary)), linear-gradient(180deg, rgb(var(--accent-cyan-rgb) / 0.2), rgb(var(--accent-cyan-3-rgb) / 0.28));
+    background-image:
+      linear-gradient(var(--text-primary), var(--text-primary)),
+      linear-gradient(
+        180deg,
+        rgb(var(--accent-cyan-rgb) / 0.2),
+        rgb(var(--accent-cyan-3-rgb) / 0.28)
+      );
     background-position: center;
     background-repeat: no-repeat;
-    background-size: 10px 2px, auto;
+    background-size:
+      10px 2px,
+      auto;
   }
 
   .bitcraft-ui .checkbox:disabled {
@@ -719,7 +806,11 @@
     max-height: 260px;
     overflow-y: auto;
     padding: 14px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.82), rgb(var(--bg-canvas-rgb) / 0.96));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-2-rgb) / 0.82),
+      rgb(var(--bg-canvas-rgb) / 0.96)
+    );
     border: 1px solid var(--border-color);
     border-radius: 10px;
   }
@@ -734,7 +825,9 @@
     font-size: 14px;
     color: var(--text-primary);
     background: rgb(255 255 255 / 0.015);
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease;
   }
 
   .bitcraft-ui .multiselect-option:hover {
@@ -789,11 +882,14 @@
   }
 
   .bitcraft-ui .accent-tag--interactive {
-    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
   }
 
   .bitcraft-ui .accent-tag--interactive:hover {
-    color: var(--text-strong);
+    color: var(--text-primary-2);
     border-color: rgb(var(--accent-cyan-rgb) / 0.38);
     background: rgb(var(--accent-cyan-rgb) / 0.16);
   }
@@ -869,7 +965,11 @@
     gap: 18px;
     min-height: 100%;
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.18), rgb(var(--bg-surface-rgb) / 0.94)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.18),
+        rgb(var(--bg-surface-rgb) / 0.94)
+      ),
       var(--bg-surface-2);
     border-color: rgb(var(--border-color-2-rgb) / 0.32);
     box-shadow:
@@ -909,7 +1009,11 @@
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.18);
     border-radius: 10px;
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.12), rgb(var(--bg-surface-rgb) / 0.82)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.12),
+        rgb(var(--bg-surface-rgb) / 0.82)
+      ),
       var(--bg-surface);
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.02);
   }
@@ -1030,7 +1134,11 @@
     display: block;
     padding: 18px 20px;
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.22), rgb(var(--bg-surface-rgb) / 0.94)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.22),
+        rgb(var(--bg-surface-rgb) / 0.94)
+      ),
       var(--bg-surface-2);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -1038,13 +1146,21 @@
   }
 
   .bitcraft-ui .record-card--interactive {
-    transition: border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s;
+    transition:
+      border-color 0.15s,
+      background 0.15s,
+      transform 0.15s,
+      box-shadow 0.15s;
   }
 
   .bitcraft-ui .record-card--interactive:hover {
     border-color: var(--border-color-2);
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.28), rgb(var(--bg-surface-rgb) / 0.98)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.28),
+        rgb(var(--bg-surface-rgb) / 0.98)
+      ),
       var(--bg-surface);
     transform: translateY(-1px);
     box-shadow: 0 14px 30px rgb(0 0 0 / 0.22);
@@ -1115,7 +1231,9 @@
     line-height: 1.25;
   }
 
-  .bitcraft-ui .rich-document-value :where(p, ul, ol, blockquote, pre, table, hr) {
+  .bitcraft-ui
+    .rich-document-value
+    :where(p, ul, ol, blockquote, pre, table, hr) {
     margin: 0 0 12px;
   }
 
@@ -1151,7 +1269,9 @@
   }
 
   .bitcraft-ui .rich-document-value code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
     font-size: 0.92em;
     padding: 1px 5px;
     border-radius: 4px;
@@ -1217,8 +1337,12 @@
     margin-bottom: 6px;
   }
 
-  .bitcraft-ui .rich-document-value :where(ul[data-type="taskList"] input[type="checkbox"]),
-  .bitcraft-ui .tiptap-editor__content :where(ul[data-type="taskList"] input[type="checkbox"]) {
+  .bitcraft-ui
+    .rich-document-value
+    :where(ul[data-type="taskList"] input[type="checkbox"]),
+  .bitcraft-ui
+    .tiptap-editor__content
+    :where(ul[data-type="taskList"] input[type="checkbox"]) {
     appearance: none;
     width: 18px;
     height: 18px;
@@ -1226,31 +1350,60 @@
     margin-top: 3px;
     border: 1px solid var(--border-color-2);
     border-radius: 4px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-4-rgb) / 0.92), rgb(var(--bg-surface-rgb) / 0.98));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-4-rgb) / 0.92),
+      rgb(var(--bg-surface-rgb) / 0.98)
+    );
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.06);
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
-  .bitcraft-ui .rich-document-value :where(ul[data-type="taskList"] input[type="checkbox"]:focus-visible),
-  .bitcraft-ui .tiptap-editor__content :where(ul[data-type="taskList"] input[type="checkbox"]:focus-visible) {
+  .bitcraft-ui
+    .rich-document-value
+    :where(ul[data-type="taskList"] input[type="checkbox"]:focus-visible),
+  .bitcraft-ui
+    .tiptap-editor__content
+    :where(ul[data-type="taskList"] input[type="checkbox"]:focus-visible) {
     outline: none;
     border-color: var(--accent-cyan);
-    box-shadow: 0 0 0 2px rgb(var(--accent-cyan-rgb) / 0.24), inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08);
+    box-shadow:
+      0 0 0 2px rgb(var(--accent-cyan-rgb) / 0.24),
+      inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08);
   }
 
-  .bitcraft-ui .rich-document-value :where(ul[data-type="taskList"] input[type="checkbox"]:checked),
-  .bitcraft-ui .tiptap-editor__content :where(ul[data-type="taskList"] input[type="checkbox"]:checked) {
+  .bitcraft-ui
+    .rich-document-value
+    :where(ul[data-type="taskList"] input[type="checkbox"]:checked),
+  .bitcraft-ui
+    .tiptap-editor__content
+    :where(ul[data-type="taskList"] input[type="checkbox"]:checked) {
     border-color: rgb(var(--accent-cyan-rgb) / 0.72);
     background-color: rgb(var(--accent-cyan-rgb) / 0.16);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23F3E7CD' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E"), linear-gradient(180deg, rgb(var(--accent-cyan-rgb) / 0.2), rgb(var(--accent-cyan-3-rgb) / 0.28));
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23F3E7CD' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E"),
+      linear-gradient(
+        180deg,
+        rgb(var(--accent-cyan-rgb) / 0.2),
+        rgb(var(--accent-cyan-3-rgb) / 0.28)
+      );
     background-position: center;
     background-repeat: no-repeat;
-    background-size: 12px 12px, auto;
+    background-size:
+      12px 12px,
+      auto;
   }
 
-  .bitcraft-ui .rich-document-value :where(ul[data-type="taskList"] input[type="checkbox"]:disabled),
-  .bitcraft-ui .tiptap-editor__content :where(ul[data-type="taskList"] input[type="checkbox"]:disabled) {
+  .bitcraft-ui
+    .rich-document-value
+    :where(ul[data-type="taskList"] input[type="checkbox"]:disabled),
+  .bitcraft-ui
+    .tiptap-editor__content
+    :where(ul[data-type="taskList"] input[type="checkbox"]:disabled) {
     cursor: not-allowed;
     opacity: 0.6;
   }
@@ -1258,7 +1411,11 @@
   .bitcraft-ui .editor-shell {
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.96), rgb(var(--bg-surface-rgb) / 0.96));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-2-rgb) / 0.96),
+      rgb(var(--bg-surface-rgb) / 0.96)
+    );
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
     overflow: hidden;
   }
@@ -1270,7 +1427,11 @@
     padding: 12px;
     border-bottom: 1px solid var(--border-color);
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.52), rgb(var(--bg-surface-rgb) / 0.84)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.52),
+        rgb(var(--bg-surface-rgb) / 0.84)
+      ),
       rgb(var(--bg-surface-rgb) / 0.72);
   }
 
@@ -1308,8 +1469,11 @@
     padding: 7px;
     border-radius: 10px;
     border: 1px solid var(--border-color);
-    background:
-      linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.92), rgb(var(--bg-canvas-rgb) / 0.84));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-2-rgb) / 0.92),
+      rgb(var(--bg-canvas-rgb) / 0.84)
+    );
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
   }
 
@@ -1347,7 +1511,11 @@
     font-size: 12px;
     font-family: var(--font-ui);
     font-weight: 500;
-    transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+    transition:
+      background 0.15s,
+      border-color 0.15s,
+      color 0.15s,
+      opacity 0.15s;
   }
 
   .bitcraft-ui .editor-tooltip-target {
@@ -1360,7 +1528,9 @@
     left: 50%;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.14s ease, transform 0.14s ease;
+    transition:
+      opacity 0.14s ease,
+      transform 0.14s ease;
   }
 
   .bitcraft-ui .editor-tooltip-target::after {
@@ -1371,7 +1541,11 @@
     padding: 6px 9px;
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.28);
     border-radius: 8px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.98), rgb(var(--bg-canvas-2-rgb) / 0.98));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-2-rgb) / 0.98),
+      rgb(var(--bg-canvas-2-rgb) / 0.98)
+    );
     box-shadow: 0 16px 32px rgb(0 0 0 / 0.28);
     color: var(--text-primary);
     font-size: 11px;
@@ -1427,12 +1601,14 @@
   }
 
   .bitcraft-ui .editor-tooltip-target--bottom[data-tooltip]:hover::after,
-  .bitcraft-ui .editor-tooltip-target--bottom[data-tooltip]:focus-visible::after {
+  .bitcraft-ui
+    .editor-tooltip-target--bottom[data-tooltip]:focus-visible::after {
     transform: translate(-50%, 2px);
   }
 
   .bitcraft-ui .editor-tooltip-target--bottom[data-tooltip]:hover::before,
-  .bitcraft-ui .editor-tooltip-target--bottom[data-tooltip]:focus-visible::before {
+  .bitcraft-ui
+    .editor-tooltip-target--bottom[data-tooltip]:focus-visible::before {
     transform: translate(-50%, 2px) rotate(45deg);
   }
 
@@ -1503,7 +1679,11 @@
   .bitcraft-ui .editor-color-panel {
     border: 1px solid var(--border-color);
     border-radius: 10px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.98), rgb(var(--bg-surface-rgb) / 0.98));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-2-rgb) / 0.98),
+      rgb(var(--bg-surface-rgb) / 0.98)
+    );
     box-shadow: 0 28px 60px rgb(0 0 0 / 0.34);
   }
 
@@ -1611,7 +1791,9 @@
     border-radius: 8px;
     border: 1px solid var(--border-color);
     background: var(--bg-surface);
-    transition: transform 0.12s, border-color 0.12s;
+    transition:
+      transform 0.12s,
+      border-color 0.12s;
   }
 
   .bitcraft-ui .editor-color-panel__swatch {
@@ -1670,7 +1852,7 @@
   }
 
   .bitcraft-ui .editor-color-panel__surface-white {
-    background: linear-gradient(90deg, #FFFFFF, rgb(255 255 255 / 0));
+    background: linear-gradient(90deg, #ffffff, rgb(255 255 255 / 0));
   }
 
   .bitcraft-ui .editor-color-panel__surface-black {
@@ -1682,7 +1864,7 @@
     position: absolute;
     width: 14px;
     height: 14px;
-    border: 2px solid #FFFFFF;
+    border: 2px solid #ffffff;
     border-radius: 999px;
     box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
     transform: translate(-50%, -50%);
@@ -1700,13 +1882,13 @@
     border-radius: 999px;
     background: linear-gradient(
       90deg,
-      #FF0000 0%,
-      #FFFF00 17%,
-      #00FF00 33%,
-      #00FFFF 50%,
-      #0000FF 67%,
-      #FF00FF 83%,
-      #FF0000 100%
+      #ff0000 0%,
+      #ffff00 17%,
+      #00ff00 33%,
+      #00ffff 50%,
+      #0000ff 67%,
+      #ff00ff 83%,
+      #ff0000 100%
     );
     box-shadow: inset 0 0 0 1px var(--border-color);
     cursor: ew-resize;
@@ -1789,8 +1971,16 @@
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.28);
     border-radius: 16px;
     background:
-      radial-gradient(circle at top left, rgb(var(--accent-pink-rgb) / 0.18), transparent 34%),
-      linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.97), rgb(var(--bg-canvas-2-rgb) / 0.98));
+      radial-gradient(
+        circle at top left,
+        rgb(var(--accent-pink-rgb) / 0.18),
+        transparent 34%
+      ),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-2-rgb) / 0.97),
+        rgb(var(--bg-canvas-2-rgb) / 0.98)
+      );
     box-shadow:
       0 18px 38px rgb(0 0 0 / 0.34),
       inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.07);
@@ -1842,7 +2032,11 @@
     padding: 10px;
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.99), rgb(var(--bg-surface-rgb) / 0.99));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-2-rgb) / 0.99),
+      rgb(var(--bg-surface-rgb) / 0.99)
+    );
     box-shadow: 0 22px 44px rgb(0 0 0 / 0.35);
   }
 
@@ -1930,28 +2124,55 @@
     gap: 16px;
     padding: 18px;
     background:
-      radial-gradient(circle at top right, rgb(var(--accent-pink-rgb) / 0.14), transparent 24%),
-      linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.98), rgb(var(--bg-surface-rgb) / 0.98));
+      radial-gradient(
+        circle at top right,
+        rgb(var(--accent-pink-rgb) / 0.14),
+        transparent 24%
+      ),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-2-rgb) / 0.98),
+        rgb(var(--bg-surface-rgb) / 0.98)
+      );
   }
 
   .bitcraft-ui .app-dialog {
     display: grid;
     gap: 18px;
     padding: 24px;
-    background:
-      linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.99), rgb(var(--bg-surface-rgb) / 0.99));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-2-rgb) / 0.99),
+      rgb(var(--bg-surface-rgb) / 0.99)
+    );
   }
 
   .bitcraft-ui .app-dialog--confirm {
     background:
-      radial-gradient(circle at top right, rgb(var(--accent-cyan-rgb) / 0.16), transparent 26%),
-      linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.99), rgb(var(--bg-surface-rgb) / 0.99));
+      radial-gradient(
+        circle at top right,
+        rgb(var(--accent-cyan-rgb) / 0.16),
+        transparent 26%
+      ),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-2-rgb) / 0.99),
+        rgb(var(--bg-surface-rgb) / 0.99)
+      );
   }
 
   .bitcraft-ui .app-dialog--error {
     background:
-      radial-gradient(circle at top right, rgb(var(--accent-pink-rgb) / 0.18), transparent 26%),
-      linear-gradient(180deg, rgb(var(--bg-surface-2-rgb) / 0.99), rgb(var(--bg-surface-rgb) / 0.99));
+      radial-gradient(
+        circle at top right,
+        rgb(var(--danger-rgb) / 0.18),
+        transparent 26%
+      ),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-2-rgb) / 0.99),
+        rgb(var(--bg-surface-rgb) / 0.99)
+      );
   }
 
   .bitcraft-ui .app-dialog__header,
@@ -1979,13 +2200,13 @@
   }
 
   .bitcraft-ui .app-dialog--error .app-dialog__eyebrow {
-    color: var(--accent-pink);
+    color: var(--danger);
   }
 
   .bitcraft-ui .app-dialog__title {
     color: var(--text-primary);
     font-size: clamp(1.2rem, 1.05rem + 0.45vw, 1.55rem);
-    font-weight: 300;
+    font-weight: 650;
     line-height: 1.12;
     letter-spacing: 0.01em;
   }
@@ -2001,8 +2222,11 @@
     padding: 14px 16px;
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.2);
     border-radius: 10px;
-    background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.2), rgb(var(--bg-surface-rgb) / 0.88));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-3-rgb) / 0.2),
+      rgb(var(--bg-surface-rgb) / 0.88)
+    );
     color: var(--text-muted-3);
     font-size: 12px;
     font-family: var(--font-ui);
@@ -2046,7 +2270,7 @@
   .bitcraft-ui .media-library-modal__title {
     color: var(--text-primary);
     font-size: 24px;
-    font-weight: 300;
+    font-weight: 650;
   }
 
   .bitcraft-ui .media-library-modal__filters {
@@ -2099,7 +2323,10 @@
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.16);
     background: rgb(var(--bg-surface-2-rgb) / 0.58);
     text-align: left;
-    transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    transition:
+      transform 0.15s,
+      border-color 0.15s,
+      background 0.15s;
   }
 
   .bitcraft-ui .media-library-card:hover,
@@ -2115,7 +2342,11 @@
     overflow: hidden;
     border-radius: 14px;
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.14);
-    background: linear-gradient(180deg, rgb(var(--bg-surface-4-rgb) / 0.42), rgb(var(--bg-surface-rgb) / 0.44));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-4-rgb) / 0.42),
+      rgb(var(--bg-surface-rgb) / 0.44)
+    );
   }
 
   .bitcraft-ui .media-library-card__image,
@@ -2218,7 +2449,7 @@
   }
 
   .bitcraft-ui .media-library-error {
-    color: var(--accent-pink);
+    color: var(--danger);
   }
 
   .bitcraft-ui .media-library-empty__title {
@@ -2237,11 +2468,14 @@
     outline: none;
   }
 
-  .bitcraft-ui .tiptap-editor__content :where(p, ul, ol, blockquote, pre, table, hr) {
+  .bitcraft-ui
+    .tiptap-editor__content
+    :where(p, ul, ol, blockquote, pre, table, hr) {
     margin: 0 0 14px;
   }
 
-  .bitcraft-ui .tiptap-editor__content :where(h1, h2, h3, h4, h5, h6), .bitcraft-ui .rich-document-value :where(h1, h2, h3, h4, h5, h6) {
+  .bitcraft-ui .tiptap-editor__content :where(h1, h2, h3, h4, h5, h6),
+  .bitcraft-ui .rich-document-value :where(h1, h2, h3, h4, h5, h6) {
     color: var(--text-primary-2);
     line-height: 1.2;
     margin: 0 0 14px;
@@ -2249,13 +2483,21 @@
   }
 
   .bitcraft-ui .tiptap-editor__content h1,
-  .bitcraft-ui .rich-document-value h1 { font-size: 2rem; }
+  .bitcraft-ui .rich-document-value h1 {
+    font-size: 2rem;
+  }
   .bitcraft-ui .tiptap-editor__content h2,
-  .bitcraft-ui .rich-document-value h2 { font-size: 1.68rem; }
+  .bitcraft-ui .rich-document-value h2 {
+    font-size: 1.68rem;
+  }
   .bitcraft-ui .tiptap-editor__content h3,
-  .bitcraft-ui .rich-document-value h3 { font-size: 1.42rem; }
+  .bitcraft-ui .rich-document-value h3 {
+    font-size: 1.42rem;
+  }
   .bitcraft-ui .tiptap-editor__content h4,
-  .bitcraft-ui .rich-document-value h4 { font-size: 1.2rem; }
+  .bitcraft-ui .rich-document-value h4 {
+    font-size: 1.2rem;
+  }
   .bitcraft-ui .tiptap-editor__content h5,
   .bitcraft-ui .rich-document-value h5 {
     font-size: 1rem;
@@ -2295,7 +2537,9 @@
 
   .bitcraft-ui .tiptap-editor__content code,
   .bitcraft-ui .rich-document-value code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
     font-size: 0.92em;
     padding: 1px 5px;
     border-radius: 4px;
@@ -2611,9 +2855,17 @@
     height: 36px;
     border: 1px solid var(--border-color);
     border-radius: 10px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.4), rgb(var(--bg-surface-rgb) / 0.94));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-3-rgb) / 0.4),
+      rgb(var(--bg-surface-rgb) / 0.94)
+    );
     color: var(--text-muted-2);
-    transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+    transition:
+      border-color 0.15s,
+      color 0.15s,
+      background 0.15s,
+      transform 0.15s;
   }
 
   .bitcraft-ui .mobile-icon-btn:hover {
@@ -2623,9 +2875,9 @@
   }
 
   .bitcraft-ui .mobile-icon-btn--danger {
-    color: var(--accent-pink);
-    border-color: rgb(var(--accent-pink-rgb) / 0.24);
-    background: rgb(var(--accent-pink-rgb) / 0.08);
+    color: var(--danger);
+    border-color: rgb(var(--danger-rgb) / 0.24);
+    background: rgb(var(--danger-rgb) / 0.08);
   }
 
   .bitcraft-ui .mobile-section-label {
@@ -2646,7 +2898,10 @@
     border: 1px solid var(--border-color);
     font-family: var(--font-ui);
     background: var(--bg-surface);
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    transition:
+      border-color 0.15s,
+      color 0.15s,
+      background 0.15s;
   }
 
   .bitcraft-ui .mobile-domain-nav-item,
@@ -2691,7 +2946,9 @@
   .bitcraft-ui .mobile-domain-chevron {
     flex-shrink: 0;
     color: var(--text-muted-3);
-    transition: transform 0.15s ease, color 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      color 0.15s ease;
   }
 
   .bitcraft-ui .mobile-domain-chevron.open {
@@ -2747,7 +3004,11 @@
     height: 100vh;
     border-right: 1px solid var(--border-color);
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.18), rgb(var(--bg-surface-rgb) / 0.96)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.18),
+        rgb(var(--bg-surface-rgb) / 0.96)
+      ),
       var(--bg-surface);
     box-shadow: inset -1px 0 0 rgb(var(--text-primary-rgb) / 0.02);
     transition: width 220ms ease;
@@ -2784,8 +3045,12 @@
     transition: opacity 180ms ease;
   }
 
-  .bitcraft-ui .desktop-shell-sidebar:has(.desktop-shell-sidebar__toggle:hover)::after,
-  .bitcraft-ui .desktop-shell-sidebar:has(.desktop-shell-sidebar__toggle:focus-visible)::after {
+  .bitcraft-ui
+    .desktop-shell-sidebar:has(.desktop-shell-sidebar__toggle:hover)::after,
+  .bitcraft-ui
+    .desktop-shell-sidebar:has(
+      .desktop-shell-sidebar__toggle:focus-visible
+    )::after {
     opacity: 0.9;
   }
 
@@ -2809,14 +3074,19 @@
     background: var(--bg-surface-3);
     box-shadow: 0 0 0 4px rgb(var(--bg-canvas-rgb) / 0.9);
     cursor: pointer;
-    transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+    transition:
+      border-color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease;
   }
 
   .bitcraft-ui .desktop-shell-sidebar__toggle:hover,
   .bitcraft-ui .desktop-shell-sidebar__toggle:focus-visible {
     border-color: var(--accent-cyan);
     background: var(--bg-surface-4);
-    box-shadow: 0 0 0 4px rgb(var(--bg-canvas-rgb) / 0.9), 0 0 18px rgb(var(--accent-cyan-rgb) / 0.24);
+    box-shadow:
+      0 0 0 4px rgb(var(--bg-canvas-rgb) / 0.9),
+      0 0 18px rgb(var(--accent-cyan-rgb) / 0.24);
   }
 
   .bitcraft-ui .desktop-shell-sidebar__toggle:focus-visible {
@@ -2843,11 +3113,15 @@
     transition: transform 220ms ease;
   }
 
-  .bitcraft-ui .desktop-shell-sidebar--collapsed .desktop-shell-sidebar__toggle-chevron {
+  .bitcraft-ui
+    .desktop-shell-sidebar--collapsed
+    .desktop-shell-sidebar__toggle-chevron {
     transform: rotate(180deg);
   }
 
-  .bitcraft-ui .desktop-shell-sidebar--collapsed .desktop-shell-sidebar__toggle {
+  .bitcraft-ui
+    .desktop-shell-sidebar--collapsed
+    .desktop-shell-sidebar__toggle {
     right: -12px;
     width: 24px;
   }
@@ -2904,7 +3178,11 @@
     min-width: 0;
     border: 1px solid transparent;
     font-family: var(--font-ui);
-    transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+    transition:
+      border-color 0.15s,
+      color 0.15s,
+      background 0.15s,
+      transform 0.15s;
   }
 
   .bitcraft-ui .desktop-shell-action,
@@ -2945,9 +3223,9 @@
   }
 
   .bitcraft-ui .desktop-shell-action--danger {
-    color: var(--accent-pink);
-    border-color: rgb(var(--accent-pink-rgb) / 0.26);
-    background: rgb(var(--accent-pink-rgb) / 0.08);
+    color: var(--danger);
+    border-color: rgb(var(--danger-rgb) / 0.26);
+    background: rgb(var(--danger-rgb) / 0.08);
   }
 
   .bitcraft-ui .desktop-shell-nav {
@@ -2976,7 +3254,10 @@
     font-family: var(--font-ui);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    transition:
+      border-color 0.15s,
+      color 0.15s,
+      background 0.15s;
   }
 
   .bitcraft-ui .desktop-shell-nav__workspace:hover {
@@ -3022,7 +3303,9 @@
   .bitcraft-ui .desktop-shell-nav__chevron {
     flex-shrink: 0;
     color: var(--text-muted-3);
-    transition: color 0.15s ease, transform 0.15s ease;
+    transition:
+      color 0.15s ease,
+      transform 0.15s ease;
   }
 
   .bitcraft-ui .desktop-shell-nav__chevron.open {
@@ -3135,7 +3418,10 @@
     border-bottom: 2px solid transparent;
     white-space: nowrap;
     flex-shrink: 0;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    transition:
+      color 0.15s,
+      border-color 0.15s,
+      background 0.15s;
   }
 
   .bitcraft-ui .domain-nav-item:hover {
@@ -3161,7 +3447,10 @@
     border-radius: 999px;
     color: var(--text-muted-3);
     white-space: nowrap;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    transition:
+      color 0.15s,
+      background 0.15s,
+      border-color 0.15s;
     border: 1px solid transparent;
   }
 
@@ -3196,7 +3485,10 @@
     font-family: var(--font-ui);
     color: var(--text-muted-3);
     border-left: 2px solid transparent;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    transition:
+      color 0.15s,
+      background 0.15s,
+      border-color 0.15s;
   }
 
   .bitcraft-ui .sidebar-link:hover {
@@ -3217,7 +3509,9 @@
     letter-spacing: 0.06em;
     color: var(--text-muted-3);
     border-bottom: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
+    transition:
+      color 0.15s,
+      border-color 0.15s;
     white-space: nowrap;
   }
 
@@ -3273,39 +3567,39 @@
 
   .bitcraft-ui .type--character,
   .bitcraft-ui .type--scene {
-    --chip-color: #7dd3fc;
-    --chip-border: rgb(125 211 252 / 0.3);
+    --chip-color: var(--accent-cyan-2);
+    --chip-border: rgb(var(--accent-cyan-2-rgb) / 0.3);
   }
 
   .bitcraft-ui .type--faction,
   .bitcraft-ui .type--chapter {
-    --chip-color: #c4b5fd;
-    --chip-border: rgb(196 181 253 / 0.3);
+    --chip-color: var(--text-muted);
+    --chip-border: rgb(var(--text-muted-rgb) / 0.3);
   }
 
   .bitcraft-ui .type--location,
   .bitcraft-ui .type--prologue,
   .bitcraft-ui .type--epilogue {
-    --chip-color: #6ee7b7;
-    --chip-border: rgb(110 231 183 / 0.3);
+    --chip-color: var(--success);
+    --chip-border: rgb(var(--success-rgb) / 0.3);
   }
 
   .bitcraft-ui .type--event,
   .bitcraft-ui .type--interlude {
-    --chip-color: #fcd34d;
-    --chip-border: rgb(252 211 77 / 0.3);
+    --chip-color: var(--warning);
+    --chip-border: rgb(var(--warning-rgb) / 0.3);
   }
 
   .bitcraft-ui .type--object,
   .bitcraft-ui .type--inspiration {
-    --chip-color: #fdba74;
-    --chip-border: rgb(253 186 116 / 0.3);
+    --chip-color: var(--accent-cyan);
+    --chip-border: rgb(var(--accent-cyan-rgb) / 0.3);
   }
 
   .bitcraft-ui .type--ci,
   .bitcraft-ui .type--character_study {
-    --chip-color: #f9a8d4;
-    --chip-border: rgb(249 168 212 / 0.3);
+    --chip-color: var(--text-muted-2);
+    --chip-border: rgb(var(--text-muted-2-rgb) / 0.3);
   }
 
   .bitcraft-ui .type--power,
@@ -3315,52 +3609,52 @@
   }
 
   .bitcraft-ui .type--character {
-    --chip-bg: rgb(125 211 252 / 0.08);
+    --chip-bg: rgb(var(--accent-cyan-2-rgb) / 0.08);
   }
 
   .bitcraft-ui .type--scene {
-    --chip-bg: rgb(125 211 252 / 0.06);
+    --chip-bg: rgb(var(--accent-cyan-2-rgb) / 0.06);
   }
 
   .bitcraft-ui .type--faction {
-    --chip-bg: rgb(196 181 253 / 0.08);
+    --chip-bg: rgb(var(--text-muted-rgb) / 0.08);
   }
 
   .bitcraft-ui .type--chapter {
-    --chip-bg: rgb(196 181 253 / 0.06);
+    --chip-bg: rgb(var(--text-muted-rgb) / 0.06);
   }
 
   .bitcraft-ui .type--location {
-    --chip-bg: rgb(110 231 183 / 0.08);
+    --chip-bg: rgb(var(--success-rgb) / 0.08);
   }
 
   .bitcraft-ui .type--prologue,
   .bitcraft-ui .type--epilogue {
-    --chip-bg: rgb(110 231 183 / 0.06);
+    --chip-bg: rgb(var(--success-rgb) / 0.06);
   }
 
   .bitcraft-ui .type--event {
-    --chip-bg: rgb(252 211 77 / 0.08);
+    --chip-bg: rgb(var(--warning-rgb) / 0.08);
   }
 
   .bitcraft-ui .type--interlude {
-    --chip-bg: rgb(252 211 77 / 0.06);
+    --chip-bg: rgb(var(--warning-rgb) / 0.06);
   }
 
   .bitcraft-ui .type--object {
-    --chip-bg: rgb(253 186 116 / 0.08);
+    --chip-bg: rgb(var(--accent-cyan-rgb) / 0.08);
   }
 
   .bitcraft-ui .type--inspiration {
-    --chip-bg: rgb(253 186 116 / 0.06);
+    --chip-bg: rgb(var(--accent-cyan-rgb) / 0.06);
   }
 
   .bitcraft-ui .type--ci {
-    --chip-bg: rgb(249 168 212 / 0.08);
+    --chip-bg: rgb(var(--text-muted-2-rgb) / 0.08);
   }
 
   .bitcraft-ui .type--character_study {
-    --chip-bg: rgb(249 168 212 / 0.06);
+    --chip-bg: rgb(var(--text-muted-2-rgb) / 0.06);
   }
 
   .bitcraft-ui .type--power {
@@ -3388,72 +3682,72 @@
   }
 
   .bitcraft-ui .status--active {
-    --chip-color: #6ee7b7;
-    --chip-border: rgb(110 231 183 / 0.3);
-    --chip-bg: rgb(110 231 183 / 0.08);
+    --chip-color: var(--success);
+    --chip-border: rgb(var(--success-rgb) / 0.3);
+    --chip-bg: rgb(var(--success-rgb) / 0.08);
   }
 
   .bitcraft-ui .status--archived {
-    --chip-color: #64748b;
-    --chip-border: rgb(100 116 139 / 0.3);
-    --chip-bg: rgb(100 116 139 / 0.06);
+    --chip-color: var(--text-muted-3);
+    --chip-border: rgb(var(--text-muted-3-rgb) / 0.3);
+    --chip-bg: rgb(var(--text-muted-3-rgb) / 0.06);
   }
 
   .bitcraft-ui .status--deceased,
   .bitcraft-ui .priority--blocking {
-    --chip-color: var(--accent-pink);
-    --chip-border: rgb(var(--accent-pink-rgb) / 0.3);
+    --chip-color: var(--danger);
+    --chip-border: rgb(var(--danger-rgb) / 0.3);
   }
 
   .bitcraft-ui .status--deceased {
-    --chip-bg: rgb(var(--accent-pink-rgb) / 0.06);
+    --chip-bg: rgb(var(--danger-rgb) / 0.06);
   }
 
   .bitcraft-ui .priority--blocking {
-    --chip-bg: rgb(var(--accent-pink-rgb) / 0.08);
+    --chip-bg: rgb(var(--danger-rgb) / 0.08);
   }
 
   .bitcraft-ui .status--dormant,
   .bitcraft-ui .priority--high {
-    --chip-color: #fcd34d;
-    --chip-border: rgb(252 211 77 / 0.3);
-    --chip-bg: rgb(252 211 77 / 0.06);
+    --chip-color: var(--warning);
+    --chip-border: rgb(var(--warning-rgb) / 0.3);
+    --chip-bg: rgb(var(--warning-rgb) / 0.06);
   }
 
   .bitcraft-ui .stage--outlined {
-    --chip-color: #fcd34d;
-    --chip-border: rgb(252 211 77 / 0.25);
-    --chip-bg: rgb(252 211 77 / 0.05);
+    --chip-color: var(--warning);
+    --chip-border: rgb(var(--warning-rgb) / 0.25);
+    --chip-bg: rgb(var(--warning-rgb) / 0.05);
   }
 
   .bitcraft-ui .stage--drafted {
-    --chip-color: #7dd3fc;
-    --chip-border: rgb(125 211 252 / 0.25);
-    --chip-bg: rgb(125 211 252 / 0.05);
+    --chip-color: var(--accent-cyan-2);
+    --chip-border: rgb(var(--accent-cyan-2-rgb) / 0.25);
+    --chip-bg: rgb(var(--accent-cyan-2-rgb) / 0.05);
   }
 
   .bitcraft-ui .stage--revised {
-    --chip-color: #c4b5fd;
-    --chip-border: rgb(196 181 253 / 0.25);
-    --chip-bg: rgb(196 181 253 / 0.05);
+    --chip-color: var(--text-muted);
+    --chip-border: rgb(var(--text-muted-rgb) / 0.25);
+    --chip-bg: rgb(var(--text-muted-rgb) / 0.05);
   }
 
   .bitcraft-ui .stage--complete,
   .bitcraft-ui .qstatus--resolved {
-    --chip-color: #6ee7b7;
-    --chip-border: rgb(110 231 183 / 0.2);
-    --chip-bg: rgb(110 231 183 / 0.06);
+    --chip-color: var(--success);
+    --chip-border: rgb(var(--success-rgb) / 0.2);
+    --chip-bg: rgb(var(--success-rgb) / 0.06);
   }
 
   .bitcraft-ui .stage--complete {
-    --chip-border: rgb(110 231 183 / 0.25);
-    --chip-bg: rgb(110 231 183 / 0.05);
+    --chip-border: rgb(var(--success-rgb) / 0.25);
+    --chip-bg: rgb(var(--success-rgb) / 0.05);
   }
 
   .bitcraft-ui .stage--cut {
-    --chip-color: var(--accent-pink);
-    --chip-border: rgb(var(--accent-pink-rgb) / 0.2);
-    --chip-bg: rgb(var(--accent-pink-rgb) / 0.04);
+    --chip-color: var(--danger);
+    --chip-border: rgb(var(--danger-rgb) / 0.2);
+    --chip-bg: rgb(var(--danger-rgb) / 0.04);
     text-decoration: line-through;
   }
 
@@ -3475,7 +3769,7 @@
   }
 
   .bitcraft-ui .dot--active {
-    background: #6ee7b7;
+    background: var(--success);
   }
 
   .bitcraft-ui .dot--concept {
@@ -3483,11 +3777,11 @@
   }
 
   .bitcraft-ui .dot--archived {
-    background: #475569;
+    background: var(--text-muted-3);
   }
 
   .bitcraft-ui .dot--deceased {
-    background: var(--accent-pink);
+    background: var(--danger);
   }
 
   .bitcraft-ui .dot--default {
@@ -3507,7 +3801,7 @@
   .bitcraft-ui .info-box-value {
     font-size: 13px;
     color: var(--text-primary);
-    font-weight: 300;
+    font-weight: 650;
   }
 
   .bitcraft-ui .record-card.is-blocking,
@@ -3516,7 +3810,7 @@
   }
 
   .bitcraft-ui .record-card.is-blocking {
-    border-color: rgb(var(--accent-pink-rgb) / 0.25);
+    border-color: rgb(var(--danger-rgb) / 0.25);
   }
 
   .bitcraft-ui .record-card.is-dimmed {
@@ -3552,7 +3846,7 @@
   .bitcraft-ui .metric-value {
     font-size: 16px;
     color: var(--text-primary);
-    font-weight: 300;
+    font-weight: 650;
   }
 
   .bitcraft-ui .add-child-btn {
@@ -3565,7 +3859,9 @@
     font-family: var(--font-ui);
     color: var(--text-muted-3);
     text-align: center;
-    transition: border-color 0.15s, color 0.15s;
+    transition:
+      border-color 0.15s,
+      color 0.15s;
   }
 
   .bitcraft-ui .add-child-btn:hover {
@@ -3610,11 +3906,11 @@
   }
 
   .bitcraft-ui .text-danger {
-    color: var(--accent-pink);
+    color: var(--danger);
   }
 
   .bitcraft-ui .border-danger {
-    border-color: var(--accent-pink);
+    border-color: var(--danger);
   }
 }
 
@@ -3657,7 +3953,11 @@
     padding: 28px;
     text-align: center;
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.2), rgb(var(--bg-surface-rgb) / 0.72)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.2),
+        rgb(var(--bg-surface-rgb) / 0.72)
+      ),
       var(--bg-surface-2);
   }
 
@@ -3688,9 +3988,9 @@
 
   .bitcraft-ui .page-hero__title {
     color: var(--text-primary);
-    font-weight: 300;
+    font-weight: 650;
     line-height: 1.04;
-    letter-spacing: 0.01em;
+    letter-spacing: -0.025em;
   }
 
   .bitcraft-ui .page-hero__title--lg {
@@ -3723,7 +4023,11 @@
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.22);
     border-radius: 10px;
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.18), rgb(var(--bg-surface-rgb) / 0.8)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.18),
+        rgb(var(--bg-surface-rgb) / 0.8)
+      ),
       var(--bg-surface-2);
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.03);
   }
@@ -3772,7 +4076,11 @@
     border: 1px solid var(--border-color);
     border-radius: 12px;
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.2), rgb(var(--bg-surface-rgb) / 0.94)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.2),
+        rgb(var(--bg-surface-rgb) / 0.94)
+      ),
       var(--bg-surface-2);
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.03);
   }
@@ -3800,12 +4108,19 @@
   }
 
   .bitcraft-ui .index-record--interactive {
-    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    transition:
+      background 0.15s,
+      border-color 0.15s,
+      transform 0.15s;
   }
 
   .bitcraft-ui .index-record--interactive:hover {
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.24), rgb(var(--bg-surface-rgb) / 0.98)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.24),
+        rgb(var(--bg-surface-rgb) / 0.98)
+      ),
       var(--bg-surface);
     transform: translateY(-1px);
   }
@@ -3831,7 +4146,7 @@
   .bitcraft-ui .index-record__title {
     color: var(--text-primary);
     font-size: 16px;
-    font-weight: 300;
+    font-weight: 650;
     line-height: 1.4;
   }
 
@@ -3867,7 +4182,11 @@
     color: var(--text-muted-2);
     font-size: 12px;
     font-family: var(--font-ui);
-    transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+    transition:
+      border-color 0.15s,
+      color 0.15s,
+      background 0.15s,
+      transform 0.15s;
   }
 
   .bitcraft-ui .index-pagination__link:hover {
@@ -3904,14 +4223,18 @@
     padding: 4px;
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.2);
     border-radius: 14px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.3), rgb(var(--bg-surface-rgb) / 0.76));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-3-rgb) / 0.3),
+      rgb(var(--bg-surface-rgb) / 0.76)
+    );
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.04);
   }
 
   .bitcraft-ui .show-status--positive {
-    --chip-color: #6ee7b7;
-    --chip-border: rgb(110 231 183 / 0.28);
-    --chip-bg: rgb(110 231 183 / 0.07);
+    --chip-color: var(--success);
+    --chip-border: rgb(var(--success-rgb) / 0.28);
+    --chip-bg: rgb(var(--success-rgb) / 0.07);
   }
 
   .bitcraft-ui .show-status--muted {
@@ -3931,7 +4254,11 @@
     border: 1px solid rgb(var(--border-color-2-rgb) / 0.22);
     border-radius: 14px;
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.16), rgb(var(--bg-surface-rgb) / 0.82)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.16),
+        rgb(var(--bg-surface-rgb) / 0.82)
+      ),
       var(--bg-surface-2);
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.03);
   }
@@ -3960,11 +4287,19 @@
     padding: 0 14px;
     border: 1px solid transparent;
     border-radius: 10px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.18), rgb(var(--bg-surface-rgb) / 0.82));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-3-rgb) / 0.18),
+      rgb(var(--bg-surface-rgb) / 0.82)
+    );
     color: var(--text-muted-2);
     font-size: 12px;
     font-family: var(--font-ui);
-    transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+    transition:
+      border-color 0.15s,
+      color 0.15s,
+      background 0.15s,
+      transform 0.15s;
   }
 
   .bitcraft-ui .shell-control:hover {
@@ -3993,7 +4328,11 @@
     border: 1px solid var(--border-color);
     border-radius: 12px;
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.2), rgb(var(--bg-surface-rgb) / 0.94)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.2),
+        rgb(var(--bg-surface-rgb) / 0.94)
+      ),
       var(--bg-surface-2);
     box-shadow: inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.03);
   }
@@ -4058,14 +4397,18 @@
     min-height: 108px;
     padding: 18px 20px;
     background:
-      linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.24), rgb(var(--bg-surface-rgb) / 0.95)),
+      linear-gradient(
+        180deg,
+        rgb(var(--bg-surface-3-rgb) / 0.24),
+        rgb(var(--bg-surface-rgb) / 0.95)
+      ),
       var(--bg-surface-2);
   }
 
   .bitcraft-ui .dashboard-metric__value {
     color: var(--text-primary);
     font-size: clamp(1.55rem, 1.35rem + 0.45vw, 1.95rem);
-    font-weight: 300;
+    font-weight: 650;
     line-height: 1;
   }
 
@@ -4118,13 +4461,23 @@
     padding: 14px 15px;
     border: 1px solid var(--border-color);
     border-radius: 10px;
-    background: linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.18), rgb(var(--bg-surface-rgb) / 0.9));
-    transition: border-color 0.15s ease, background 0.15s ease;
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-3-rgb) / 0.18),
+      rgb(var(--bg-surface-rgb) / 0.9)
+    );
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease;
   }
 
   .bitcraft-ui .checkbox-card:hover {
     border-color: rgb(var(--accent-cyan-rgb) / 0.22);
-    background: linear-gradient(180deg, rgb(var(--bg-surface-3-rgb) / 0.24), rgb(var(--bg-surface-rgb) / 0.96));
+    background: linear-gradient(
+      180deg,
+      rgb(var(--bg-surface-3-rgb) / 0.24),
+      rgb(var(--bg-surface-rgb) / 0.96)
+    );
   }
 
   .bitcraft-ui .checkbox-card__copy {
@@ -4169,7 +4522,7 @@
   }
 
   .bitcraft-ui .text-warn {
-    color: #fcd34d;
+    color: var(--warning);
   }
 
   .bitcraft-ui .text-border {
@@ -4177,7 +4530,7 @@
   }
 
   .bitcraft-ui .bg-success {
-    background: #6ee7b7;
+    background: var(--success);
   }
 
   .bitcraft-ui .bg-focus {
@@ -4185,16 +4538,18 @@
   }
 
   .bitcraft-ui .bg-warn {
-    background: #fcd34d;
+    background: var(--warning);
   }
 
   .bitcraft-ui .bg-danger {
-    background: var(--accent-pink);
+    background: var(--danger);
   }
 
   .bitcraft-ui .flash-enter-active,
   .bitcraft-ui .flash-leave-active {
-    transition: opacity 0.2s, transform 0.2s;
+    transition:
+      opacity 0.2s,
+      transform 0.2s;
   }
 
   .bitcraft-ui .flash-enter-from {
@@ -4205,5 +4560,4 @@
   .bitcraft-ui .flash-leave-to {
     opacity: 0;
   }
-
 }

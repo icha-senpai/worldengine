@@ -21,7 +21,7 @@ const formatDate = (value) => new Date(value).toLocaleDateString();
         <div class="page-hero__copy min-w-0">
           <Link
             :href="route('bitcraft.guides.index')"
-            class="text-sm text-cyan hover:underline"
+            class="text-sm text-focus hover:underline"
             >Back to guides</Link
           >
           <h1 class="page-hero__title mt-3 break-words">{{ guide.title }}</h1>

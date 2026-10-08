@@ -29,18 +29,19 @@ function Get-ServiceProcess([int]$Port, [string]$Kind) {
 }
 
 function Wait-Service([int]$Port, [string]$Kind, [string]$Url) {
-    $deadline = (Get-Date).AddSeconds(30)
+    $deadline = (Get-Date).AddSeconds(45)
+    $lastFailure = 'No owned process is listening.'
     while ((Get-Date) -lt $deadline) {
         $process = @(Get-ServiceProcess $Port $Kind)
         if ($process.Count) {
             try {
-                $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 2
+                $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 10
                 if ($response.StatusCode -eq 200) { return }
-            } catch { }
+            } catch { $lastFailure = $_.Exception.Message }
         }
         Start-Sleep -Milliseconds 300
     }
-    throw "$Kind did not become ready on port $Port. See logs in $logs."
+    throw "$Kind did not become ready on port $Port. $lastFailure See logs in $logs."
 }
 
 function Stop-Services {
@@ -48,6 +49,10 @@ function Stop-Services {
     $frontend = @(Get-ServiceProcess 5181 'frontend')
     $mainFrontend = @(Get-ServiceProcess 5180 'frontend')
     $database = @(Get-ServiceProcess 3100 'database')
+    & (Join-Path $PSScriptRoot 'collector-services.ps1') -Action Stop
+    if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'Collector could not be stopped safely.' }
+    & (Join-Path $PSScriptRoot 'collector-services.ps1') -Action Stop -Target Test
+    if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'Test storage guard could not be stopped safely.' }
     foreach ($process in @($frontend) + @($mainFrontend) + @($database)) {
         Stop-Process -Id $process.ProcessId -ErrorAction Stop
         Wait-Process -Id $process.ProcessId -Timeout 15 -ErrorAction SilentlyContinue
@@ -82,6 +87,10 @@ function Start-Services {
         Start-Process -FilePath $node -ArgumentList "`"$vite`" --mode playtest --host 127.0.0.1 --port 5181 --strictPort" -WorkingDirectory $project -WindowStyle Hidden -RedirectStandardOutput "$logs\frontend-$stamp.log" -RedirectStandardError "$logs\frontend-$stamp.err.log" | Out-Null
     }
     Wait-Service 5181 'frontend' 'http://127.0.0.1:5181/'
+    & (Join-Path $PSScriptRoot 'collector-services.ps1') -Action Start
+    if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'Collector could not be started.' }
+    & (Join-Path $PSScriptRoot 'collector-services.ps1') -Action Start -Target Test
+    if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'Test storage guard could not be started.' }
     Write-Host 'Space database ready: http://127.0.0.1:3100'
     Write-Host 'Main app ready: https://space.test/evergather (http://127.0.0.1:5180/evergather)'
     Write-Host 'Test server ready: http://127.0.0.1:5181/evergather'

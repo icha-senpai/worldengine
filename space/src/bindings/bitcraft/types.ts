@@ -24,6 +24,77 @@ export const Budget = __t.object("Budget", {
 });
 export type Budget = __Infer<typeof Budget>;
 
+export const CollectedEntity = __t.object("CollectedEntity", {
+  key: __t.string(),
+  scope: __t.string(),
+  kind: __t.string(),
+  entityId: __t.string(),
+  ownerId: __t.string(),
+  claimId: __t.string(),
+  itemKey: __t.string(),
+  region: __t.u32(),
+  name: __t.string(),
+  quantity: __t.f64(),
+  progress: __t.f64(),
+  total: __t.f64(),
+  payload: __t.string(),
+  observedAt: __t.u64(),
+  source: __t.string(),
+});
+export type CollectedEntity = __Infer<typeof CollectedEntity>;
+
+export const CollectionFeed = __t.object("CollectionFeed", {
+  key: __t.string(),
+  resource: __t.string(),
+  entityId: __t.string(),
+  source: __t.string(),
+  epoch: __t.string(),
+  payload: __t.string(),
+  observedAt: __t.u64(),
+  receivedAt: __t.u64(),
+  expiresAt: __t.u64(),
+  error: __t.string(),
+});
+export type CollectionFeed = __Infer<typeof CollectionFeed>;
+
+export const CollectionSample = __t.object("CollectionSample", {
+  key: __t.string(),
+  scope: __t.string(),
+  source: __t.string(),
+  epoch: __t.string(),
+  observedAt: __t.u64(),
+  payload: __t.string(),
+});
+export type CollectionSample = __Infer<typeof CollectionSample>;
+
+export const CollectionStatus = __t.object("CollectionStatus", {
+  key: __t.string(),
+  epoch: __t.string(),
+  heartbeatAt: __t.u64(),
+  feeds: __t.u32(),
+  error: __t.string(),
+});
+export type CollectionStatus = __Infer<typeof CollectionStatus>;
+
+export const CollectionWatch = __t.object("CollectionWatch", {
+  key: __t.string(),
+  resource: __t.string(),
+  entityId: __t.string(),
+  query: __t.string(),
+  page: __t.u32(),
+  options: __t.string(),
+  expiresAt: __t.u64(),
+});
+export type CollectionWatch = __Infer<typeof CollectionWatch>;
+
+export const CollectorIdentity = __t.object("CollectorIdentity", {
+  identity: __t.identity(),
+});
+export type CollectorIdentity = __Infer<typeof CollectorIdentity>;
+
+export const CollectorWatches = __t.object("CollectorWatches", {});
+export type CollectorWatches = __Infer<typeof CollectorWatches>;
+
 export const DataResponse = __t.object("DataResponse", {
   key: __t.string(),
   payload: __t.string(),
@@ -60,6 +131,51 @@ export const GuideMetadata = __t.object("GuideMetadata", {
 });
 export type GuideMetadata = __Infer<typeof GuideMetadata>;
 
+export const MarketItem = __t.object("MarketItem", {
+  key: __t.string(),
+  metadata: __t.string(),
+  indexAt: __t.u64(),
+  indexHasOrders: __t.bool(),
+  bookHasOrders: __t.bool(),
+  book: __t.string(),
+  observedAt: __t.u64(),
+  requestedAt: __t.u64(),
+  retryAt: __t.u64(),
+  error: __t.string(),
+});
+export type MarketItem = __Infer<typeof MarketItem>;
+
+export const MarketMeta = __t.object("MarketMeta", {
+  key: __t.string(),
+  payload: __t.string(),
+  observedAt: __t.u64(),
+  retryAt: __t.u64(),
+  error: __t.string(),
+});
+export type MarketMeta = __Infer<typeof MarketMeta>;
+
+export const MarketStatus = __t.object("MarketStatus", {
+  key: __t.string(),
+  revision: __t.u64(),
+  indexAt: __t.u64(),
+  updatedAt: __t.u64(),
+  totalItems: __t.u32(),
+  loadedItems: __t.u32(),
+  activeItems: __t.u32(),
+  loadedActiveItems: __t.u32(),
+  error: __t.string(),
+});
+export type MarketStatus = __Infer<typeof MarketStatus>;
+
+export const MarketSummary = __t.object("MarketSummary", {
+  key: __t.string(),
+  itemKey: __t.string(),
+  regionId: __t.u32(),
+  payload: __t.string(),
+  observedAt: __t.u64(),
+});
+export type MarketSummary = __Infer<typeof MarketSummary>;
+
 export const ProviderBudget = __t.object("ProviderBudget", {
   key: __t.string(),
   window: __t.u64(),
@@ -77,6 +193,52 @@ export type ProviderSettings = __Infer<typeof ProviderSettings>;
 export const PublishedGuides = __t.object("PublishedGuides", {});
 export type PublishedGuides = __Infer<typeof PublishedGuides>;
 
+export const RefreshState = __t.object("RefreshState", {
+  key: __t.string(),
+  updatedAt: __t.u64(),
+  expiresAt: __t.u64(),
+  retryAt: __t.u64(),
+  refreshingUntil: __t.u64(),
+  error: __t.string(),
+});
+export type RefreshState = __Infer<typeof RefreshState>;
+
+export const RelayBook = __t.object("RelayBook", {
+  key: __t.string(),
+  regionId: __t.u32(),
+  itemKey: __t.string(),
+  payload: __t.string(),
+});
+export type RelayBook = __Infer<typeof RelayBook>;
+
+export const RelayRegion = __t.object("RelayRegion", {
+  regionId: __t.u32(),
+  payload: __t.string(),
+  epoch: __t.string(),
+  observedAt: __t.u64(),
+});
+export type RelayRegion = __Infer<typeof RelayRegion>;
+
+export const RelayStall = __t.object("RelayStall", {
+  key: __t.string(),
+  regionId: __t.u32(),
+  payload: __t.string(),
+});
+export type RelayStall = __Infer<typeof RelayStall>;
+
+export const RelayStatus = __t.object("RelayStatus", {
+  key: __t.string(),
+  provider: __t.string(),
+  regionId: __t.u32(),
+  epoch: __t.string(),
+  ready: __t.bool(),
+  heartbeatAt: __t.u64(),
+  observedAt: __t.u64(),
+  rows: __t.u32(),
+  error: __t.string(),
+});
+export type RelayStatus = __Infer<typeof RelayStatus>;
+
 export const Snapshot = __t.object("Snapshot", {
   key: __t.string(),
   payload: __t.string(),
@@ -87,6 +249,25 @@ export const Snapshot = __t.object("Snapshot", {
   error: __t.string(),
 });
 export type Snapshot = __Infer<typeof Snapshot>;
+
+export const StorageState = __t.object("StorageState", {
+  id: __t.u32(),
+  writableUntil: __t.u64(),
+});
+export type StorageState = __Infer<typeof StorageState>;
+
+export const TradeRecord = __t.object("TradeRecord", {
+  key: __t.string(),
+  scope: __t.string(),
+  payload: __t.string(),
+});
+export type TradeRecord = __Infer<typeof TradeRecord>;
+
+export const TradeReference = __t.object("TradeReference", {
+  key: __t.string(),
+  payload: __t.string(),
+});
+export type TradeReference = __Infer<typeof TradeReference>;
 
 export const VisibleGuideMetadata = __t.object("VisibleGuideMetadata", {});
 export type VisibleGuideMetadata = __Infer<typeof VisibleGuideMetadata>;

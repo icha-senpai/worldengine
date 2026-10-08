@@ -244,7 +244,7 @@
         </div>
       </div>
 
-      <p v-if="form.errors.job" class="mt-4 text-sm text-(--accent-pink)">
+      <p v-if="form.errors.job" class="mt-4 text-sm text-danger">
         {{ form.errors.job }}
       </p>
     </div>

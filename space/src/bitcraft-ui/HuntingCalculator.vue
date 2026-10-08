@@ -9,6 +9,7 @@ import { calculateHuntingXp } from "./huntingXp";
 const props = defineProps({
   levels: { type: Array, default: () => [] },
   error: { type: String, default: null },
+  playerSkill: { type: Object, default: null },
 });
 const settings = reactive({
   currentLevel: 37,
@@ -57,6 +58,21 @@ function resetGoatXp() {
 
     <div class="grid gap-5">
       <section class="index-panel">
+        <button
+          v-if="playerSkill"
+          type="button"
+          class="tag mb-3"
+          @click="
+            settings.currentLevel = playerSkill.level;
+            settings.currentXp = playerSkill.xpIntoLevel;
+            settings.targetLevel = Math.max(
+              settings.targetLevel,
+              playerSkill.level,
+            );
+          "
+        >
+          Use {{ playerSkill.username }}'s Hunting level {{ playerSkill.level }}
+        </button>
         <h2
           class="font-ui text-sm font-semibold uppercase tracking-[0.18em] text-muted-2"
         >
@@ -216,9 +232,7 @@ function resetGoatXp() {
             >
               <h2 class="font-semibold">{{ scenario.label }}</h2>
               <p class="mt-2 text-xl">
-                {{
-                  scenario.count === null ? "—" : number(scenario.count)
-                }}
+                {{ scenario.count === null ? "—" : number(scenario.count) }}
                 animals
               </p>
               <p class="mt-1 text-sm text-muted-3">

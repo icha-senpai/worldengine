@@ -1,0 +1,110 @@
+/* Inter 4.1, bundled locally under SIL OFL. See public/fonts/inter/LICENSE.txt. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter/InterVariable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter/InterVariable-Italic.woff2") format("woff2");
+}
+
+@theme {
+  --font-ui:
+    "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-sans: var(--font-ui);
+  --color-canvas: var(--bg-canvas);
+  --color-canvas-2: var(--bg-canvas-2);
+  --color-surface: var(--bg-surface);
+  --color-surface-2: var(--bg-surface-2);
+  --color-surface-3: var(--bg-surface-3);
+  --color-surface-4: var(--bg-surface-4);
+  --color-border: var(--border-color);
+  --color-border-2: var(--border-color-2);
+  --color-border-3: var(--border-color-3);
+
+  --color-primary: var(--text-primary);
+  --color-primary-2: var(--text-primary-2);
+  --color-muted: var(--text-muted);
+  --color-muted-2: var(--text-muted-2);
+  --color-muted-3: var(--text-muted-3);
+  --color-focus: var(--accent-cyan);
+  --color-focus-2: var(--accent-cyan-2);
+  --color-focus-3: var(--accent-cyan-3);
+  --color-danger: var(--danger);
+  --color-danger-2: var(--danger-2);
+  --color-danger-3: var(--danger-3);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+  --color-success-2: var(--success-2);
+  --color-overlay: var(--overlay);
+  --color-overlay-2: var(--overlay-2);
+  --color-overlay-3: var(--overlay-3);
+
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-pink: var(--accent-pink);
+}
+
+:root {
+  --bg-canvas: #040306;
+  --bg-canvas-rgb: 4 3 6;
+  --bg-canvas-2: #09050c;
+  --bg-canvas-2-rgb: 9 5 12;
+  --bg-surface: #110a18;
+  --bg-surface-rgb: 17 10 24;
+  --bg-surface-2: #21161c;
+  --bg-surface-2-rgb: 33 22 28;
+  --bg-surface-3: #342621;
+  --bg-surface-3-rgb: 52 38 33;
+  --bg-surface-4: #4c3827;
+  --bg-surface-4-rgb: 76 56 39;
+  --text-primary: #fff6e6;
+  --text-primary-rgb: 255 246 230;
+  --text-primary-2: #fffbf3;
+  --text-muted: #ddc49c;
+  --text-muted-rgb: 221 196 156;
+  --text-muted-2: #b99456;
+  --text-muted-2-rgb: 185 148 86;
+  --text-muted-3: #ae8c56;
+  --text-muted-3-rgb: 174 140 86;
+  --accent-cyan: #d4a44a;
+  --accent-cyan-rgb: 212 164 74;
+  --accent-cyan-2: #e3c388;
+  --accent-cyan-2-rgb: 227 195 136;
+  --accent-cyan-3: #7c5f34;
+  --accent-cyan-3-rgb: 124 95 52;
+  --accent-pink: #6fb08d;
+  --accent-pink-rgb: 111 176 141;
+  --accent-pink-2: #94c5ab;
+  --accent-pink-2-rgb: 148 197 171;
+  --accent-pink-3: #456558;
+  --accent-pink-3-rgb: 69 101 88;
+  --border-color: #614528;
+  --border-color-rgb: 97 69 40;
+  --border-color-2: #8c6531;
+  --border-color-2-rgb: 140 101 49;
+  --border-color-3: #ac906b;
+  --border-color-3-rgb: 172 144 107;
+  --success: #6fb08d;
+  --success-rgb: 111 176 141;
+  --success-2: #4e7664;
+  --overlay: rgb(4 3 6 / 0.78);
+  --overlay-2: rgb(9 5 12 / 0.58);
+  --overlay-3: rgb(4 3 6 / 0.88);
+  --scrollbar-track: rgb(9 5 12 / 0.72);
+  --scrollbar-thumb: rgb(97 69 40 / 0.82);
+  --scrollbar-thumb-hover: rgb(172 144 107 / 0.92);
+  --scrollbar-thumb-border: rgb(9 5 12 / 0.88);
+  --danger: #e59a9a;
+  --danger-rgb: 229 154 154;
+  --danger-2: #f0baba;
+  --danger-3: #704147;
+  --warning: var(--accent-cyan);
+  --warning-rgb: var(--accent-cyan-rgb);
+}

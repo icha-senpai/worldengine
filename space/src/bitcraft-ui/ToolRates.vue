@@ -141,6 +141,44 @@
       </div>
     </section>
 
+    <section v-if="observations" class="surface-section mt-5">
+      <div class="surface-section__body">
+        <p>Observed XP for {{ observations.username }}</p>
+        <a href="/bitcraft/tool-rates?nearby=1" class="tag mt-2"
+          >Nearby resources</a
+        >
+        <p v-if="!observations.rates.length" class="text-muted-3">
+          Collecting at least a minute of continuous observations.
+        </p>
+        <div v-else class="mt-3 flex flex-wrap gap-2">
+          <span
+            v-for="row in observations.rates"
+            :key="row.skillId"
+            class="tag"
+          >
+            {{ row.name }} · {{ formatNumber(row.hourRate) }} XP/hr
+          </span>
+        </div>
+      </div>
+    </section>
+    <section v-if="nearby || nearbyError" class="surface-section mt-5">
+      <div class="surface-section__body">
+        <p>Resources around the player's last known position</p>
+        <button class="tag mt-2" @click="router.reload()">
+          Refresh observations
+        </button>
+        <p v-if="nearbyError" class="text-muted-3">{{ nearbyError }}</p>
+        <div v-else class="mt-3 grid gap-2 sm:grid-cols-2">
+          <p v-for="row in nearby.resources.slice(0, 30)" :key="row.resourceId">
+            {{ row.name }} · {{ row.count }} nodes · Nearest N {{ row.north }},
+            E {{ row.east }}
+          </p>
+        </div>
+        <p v-if="nearby?.refresh.delayed" class="text-muted-3">
+          Refresh delayed.
+        </p>
+      </div>
+    </section>
     <section class="surface-section mt-5">
       <div class="surface-section__header">
         <div class="surface-section__copy">
@@ -292,6 +330,7 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
+import { router } from "./navigation";
 import AuthenticatedLayout from "/src/bitcraft-ui/Layout.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import TextInput from "/src/bitcraft-ui/shared/TextInput.vue";
@@ -307,6 +346,9 @@ import { estimateGathering } from "./gatheringEstimates";
 const props = defineProps({
   entries: { type: Array, default: () => [] },
   snapshot: { type: Object, default: () => ({}) },
+  observations: { type: Object, default: null },
+  nearby: { type: Object, default: null },
+  nearbyError: { type: String, default: null },
 });
 
 const storageKey = "bitcraft.tool-rates.settings";
@@ -564,7 +606,7 @@ const hideBrokenIcon = (assetName) => {
     linear-gradient(
       180deg,
       rgb(var(--bg-surface-rgb) / 0.92),
-      rgb(var(--bg-soft-rgb) / 0.82)
+      rgb(var(--bg-surface-2-rgb) / 0.82)
     ),
     rgb(var(--bg-surface-rgb) / 0.9);
   padding: 14px;
@@ -636,7 +678,7 @@ const hideBrokenIcon = (assetName) => {
   min-height: 66px;
   border: 1px solid rgb(var(--border-color-rgb) / 0.62);
   border-radius: 6px;
-  background: rgb(var(--bg-base-rgb) / 0.32);
+  background: rgb(var(--bg-canvas-rgb) / 0.32);
   padding: 10px;
 }
 

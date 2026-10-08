@@ -10,13 +10,25 @@ export const retryAfterSeconds = (response) => {
     : 60;
 };
 
-export const createTrackerPoller = (refresh, interval) => {
+export const createTrackerPoller = (
+  refresh,
+  interval,
+  { pauseWhenHidden = true } = {},
+) => {
   let timer = null;
   let inFlight = false;
   let notBefore = 0;
+  let updateTimer = null;
+  let running = false;
 
   const run = async () => {
-    if (document.hidden || inFlight || Date.now() < notBefore) return;
+    if (
+      !running ||
+      (pauseWhenHidden && document.hidden) ||
+      inFlight ||
+      Date.now() < notBefore
+    )
+      return;
 
     inFlight = true;
     try {
@@ -26,16 +38,34 @@ export const createTrackerPoller = (refresh, interval) => {
       inFlight = false;
     }
   };
+  const onUpdate = () => {
+    window.clearTimeout(updateTimer);
+    updateTimer = window.setTimeout(run, 250);
+  };
+  const onResume = () => {
+    if (!document.hidden) void run();
+  };
 
   return {
     start(delay = 0) {
       this.stop();
+      running = true;
       notBefore = Date.now() + delay * 1000;
       timer = window.setInterval(run, interval);
+      window.addEventListener("bitcraft-data-updated", onUpdate);
+      document.addEventListener("visibilitychange", onResume);
+      window.addEventListener("focus", onResume);
+      window.addEventListener("pageshow", onResume);
     },
     stop() {
+      running = false;
       window.clearInterval(timer);
       timer = null;
+      window.clearTimeout(updateTimer);
+      window.removeEventListener("bitcraft-data-updated", onUpdate);
+      document.removeEventListener("visibilitychange", onResume);
+      window.removeEventListener("focus", onResume);
+      window.removeEventListener("pageshow", onResume);
     },
   };
 };

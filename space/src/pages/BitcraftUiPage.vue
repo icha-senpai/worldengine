@@ -6,6 +6,7 @@ import {
   ref,
   watch,
 } from "vue";
+import { bitcraftConnected, subscribeStoredMarket } from "../bitcraft";
 import { readWidget } from "../bitcraft-ui/widgets";
 import { useRoute } from "vue-router";
 import { pageProps } from "../bitcraft-ui/api";
@@ -66,7 +67,7 @@ const componentKey = computed(
 );
 let renderedKey = "";
 let widgetSettings = "";
-async function load() {
+async function load(refreshMarket = true) {
   const request = ++generation;
   loading.value = true;
   error.value = "";
@@ -78,6 +79,7 @@ async function load() {
       setup.value,
       route.params.guide ?? "",
       Boolean(route.meta.guideEditor),
+      { refreshMarket },
     );
     if (request !== generation) return;
     currentProps.value = props;
@@ -95,6 +97,43 @@ async function load() {
     if (request === generation) loading.value = false;
   }
 }
+let marketSubscription = 0,
+  closeMarket,
+  marketTimer;
+function marketChanged() {
+  if (!["market", "barter-stalls"].includes(tool.value) || marketTimer) return;
+  marketTimer = setTimeout(() => {
+    marketTimer = null;
+    if (loading.value) {
+      marketChanged();
+      return;
+    }
+    // A stored update must never enqueue another upstream refresh.
+    void load(false);
+  }, 2500);
+}
+watch(
+  [tool, bitcraftConnected],
+  async ([value, connected]) => {
+    const request = ++marketSubscription;
+    closeMarket?.();
+    closeMarket = null;
+    clearTimeout(marketTimer);
+    marketTimer = null;
+    if (!connected || !["market", "barter-stalls"].includes(value)) return;
+    try {
+      const close = await subscribeStoredMarket(marketChanged);
+      if (request !== marketSubscription) close();
+      else {
+        closeMarket = close;
+        marketChanged();
+      }
+    } catch {
+      /* The normal page load displays connection failures. */
+    }
+  },
+  { immediate: true },
+);
 setPageLoader(() => trackPageLoad(load()));
 watch(
   () => route.fullPath,
@@ -123,6 +162,9 @@ const profileTimer = setInterval(async () => {
 }, 5000);
 onBeforeUnmount(() => {
   generation++;
+  marketSubscription++;
+  closeMarket?.();
+  clearTimeout(marketTimer);
   clearInterval(profileTimer);
   setPageLoader(async () => {});
 });
@@ -141,7 +183,9 @@ onBeforeUnmount(() => {
       {{ pageState.error }}
     </p>
     <p v-if="loading && !currentProps" class="bitcraft-loading" role="status">
-      Loading BitCraft…
+      {{
+        tool === "market" ? "Reading the stored market…" : "Loading BitCraft…"
+      }}
     </p>
     <div v-if="error" class="surface-section p-5" role="alert">
       <p>{{ error }}</p>

@@ -1,9 +1,11 @@
 // Rebuild reviewed prototype game stats without changing sprite-derived names or stable IDs.
 import { readFile, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import { readMeasurements } from '../content/measurements.mjs';
 const root = new URL('../content/', import.meta.url);
 const catalog = JSON.parse(await readFile(new URL('species.json', root), 'utf8'));
-const starter = JSON.parse(await readFile(new URL('meadow-pond.json', root), 'utf8'));
+const reviewedMeasurements = await readMeasurements();
+assert.deepEqual([...reviewedMeasurements.keys()].sort(), catalog.species.map(fish => fish.key).sort(), 'Every species needs explicit reviewed measurements');
 const tiers = ['F', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'UR', 'UUR'];
 const biomes = [
   [1, 'meadow-pond', 'Meadow Pond', 1, 0, 86, 12, 2, 'Quiet banks, garden fish, and small freshwater discoveries.'],
@@ -48,39 +50,26 @@ function encounterAffinity(key) {
   if (headline.has(key)) return 2;
   return 3;
 }
-// Measurements are gameplay prototypes, including fantasy creatures, not biological claims.
+// Explicit per-species baselines; missing species fail rather than sharing a fallback.
 function measurements(key) {
-  const families = [
-    [/sock/, 280, 45], [/titanic|molten-giant/, 3200, 160000], [/giant-catfish/, 2400, 80000],
-    [/great-.*shark/, 4800, 700000], [/shark/, 2400, 90000], [/goliath-grouper/, 2200, 180000],
-    [/marlin|swordfish|oarfish/, 3000, 85000], [/sturgeon|muskellunge/, 1500, 18000],
-    [/manta/, 3800, 260000], [/ray/, 1000, 14000], [/tuna/, 1400, 45000],
-    [/catfish/, 650, 4000], [/carp|koi/, 430, 1700], [/bass|pike|gar|bowfin/, 550, 2500],
-    [/trout|salmon|burbot/, 450, 1200], [/eel/, 700, 1300], [/coelacanth|grouper/, 1100, 22000],
-    [/sea-turtle/, 900, 75000], [/nomura/, 1800, 120000], [/jelly|octopus|squid/, 400, 1500],
-    [/crab/, 150, 350], [/mussel|starfish/, 100, 60], [/seahorse|guppy|fry/, 45, 3],
-    [/minnow|shiner|dace|sardine|anchovy|goby|loach|bitterling/, 90, 14],
-    [/perch|bluegill|bluegil|blueegill|sunfish|bream|crappie/, 200, 200],
-    [/cod|haddock|halibut|hake/, 650, 3800],
-  ];
-  const [, typicalLengthMm, typicalWeightG] = families.find(([pattern]) => pattern.test(key)) ?? [null, 230, 240];
-  return {typicalLengthMm, typicalWeightG};
+  const reviewed = reviewedMeasurements.get(key);
+  assert(reviewed, `Missing reviewed measurements: ${key}`);
+  return {typicalLengthMm: reviewed.typicalLengthMm, typicalWeightG: reviewed.typicalWeightG};
 }
 const xpByRank = [8, 12, 18, 28, 44, 70, 110, 180, 300, 500];
 const valueMultipliers = [1, 2, 4, 6, 10, 17, 29, 50, 90, 160];
 for (const fish of catalog.species) {
-  const old = starter.species.find(row => row.key === fish.key);
+  assert(Number.isSafeInteger(fish.baseValue) && fish.baseValue > 0, `Set an explicit economy value for ${fish.key}`);
   const exceptional = ['fihs', 'nidalees-lost-sock'].includes(fish.key);
   Object.assign(fish, measurements(fish.key), {
     biomeId: biomeFor(fish.key),
-    baseValue: old?.baseValue ?? Math.max(3, Math.min(25, Math.round(Math.log2(measurements(fish.key).typicalWeightG + 1)))),
+    baseValue: fish.baseValue,
     discoveryXp: 20, requiredForProgression: false,
     countsForOrdinaryCollectionCompletion: !exceptional,
     allowedRarities: fish.key === 'fihs' ? ['UUR'] : fish.key === 'nidalees-lost-sock' ? ['F'] : [...tiers],
   });
   delete fish.rarity;
   fish.ranks = fish.allowedRarities.map(rarity => ({rarity, encounterWeight: 0, baseXp: xpByRank[tiers.indexOf(rarity)], baseValue: fish.baseValue * valueMultipliers[tiers.indexOf(rarity)]}));
-  if (old) Object.assign(fish, {typicalLengthMm: old.typicalLengthMm, typicalWeightG: old.typicalWeightG});
 }
 // Choose a species and physical size band; classify the final measurements for rank. Every ordinary fish has all ten positive
 // rank intervals. Floors keep even the rarest ordinary rank more common than Fihs.
@@ -102,10 +91,10 @@ for (const biome of biomes) {
   assert.equal(pool.reduce((sum, fish) => sum + fish.encounterWeight, 0), 1_000_000);
   console.log(`${biome.name}: ${pool.length} species, ${pool.flatMap(f => f.ranks).length} species/rank encounters`);
 }
-catalog.version = 4;
-catalog.status = 'species-relative-size-ranks-prototype';
+catalog.version = 5;
+catalog.status = 'reviewed-species-measurements';
 await writeFile(new URL('species.json', root), JSON.stringify(catalog, null, 2) + '\n');
-await writeFile(new URL('world.json', root), JSON.stringify({version: 4, levelCap: 60, biomes, rods}, null, 2) + '\n');
+await writeFile(new URL('world.json', root), JSON.stringify({version: 5, levelCap: 60, biomes, rods}, null, 2) + '\n');
 await writeFile(new URL('game-rules.json', root), JSON.stringify({version: 6, status: 'bait-rod-quality-and-mixed-pulls', castCooldownSeconds: 60}, null, 2) + '\n');
 const lengthMinimums = [0, 750000, 900000, 1000000, 1150000, 1300000, 1450000, 1600000, 1750000, 1850000];
 const weightMinimums = [0, 421875, 729000, 1000000, 1520875, 2197000, 3048625, 4096000, 5359375, 6331625];

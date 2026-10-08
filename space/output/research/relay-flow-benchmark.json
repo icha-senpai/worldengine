@@ -1,0 +1,506 @@
+{
+  "testedAt": "2026-10-07T20:54:43.885Z",
+  "protocol": "v1.json.spacetimedb",
+  "results": [
+    {
+      "provider": "BITCONNECT",
+      "region": 8,
+      "tables": [
+        "sell_order_state",
+        "buy_order_state"
+      ],
+      "snapshotBytes": 792391,
+      "updateMessages": 0,
+      "updatedRows": 0,
+      "greetingMs": 408,
+      "snapshotMs": 869,
+      "rows": {
+        "sell_order_state": 7282,
+        "buy_order_state": 642
+      },
+      "observationMs": 10000,
+      "trial": 1
+    },
+    {
+      "provider": "BitCraftSync",
+      "region": 8,
+      "tables": [
+        "sell_order_state",
+        "buy_order_state"
+      ],
+      "snapshotBytes": 2266259,
+      "updateMessages": 0,
+      "updatedRows": 0,
+      "greetingMs": 341,
+      "snapshotMs": 717,
+      "rows": {
+        "sell_order_state": 7282,
+        "buy_order_state": 642
+      },
+      "observationMs": 10000,
+      "trial": 1
+    },
+    {
+      "provider": "BITCONNECT",
+      "region": 8,
+      "tables": [
+        "sell_order_state",
+        "buy_order_state"
+      ],
+      "snapshotBytes": 792391,
+      "updateMessages": 0,
+      "updatedRows": 0,
+      "greetingMs": 210,
+      "snapshotMs": 400,
+      "rows": {
+        "sell_order_state": 7282,
+        "buy_order_state": 642
+      },
+      "observationMs": 0,
+      "trial": 2
+    },
+    {
+      "provider": "BitCraftSync",
+      "region": 8,
+      "tables": [
+        "sell_order_state",
+        "buy_order_state"
+      ],
+      "snapshotBytes": 2266258,
+      "updateMessages": 0,
+      "updatedRows": 0,
+      "greetingMs": 162,
+      "snapshotMs": 491,
+      "rows": {
+        "sell_order_state": 7282,
+        "buy_order_state": 642
+      },
+      "observationMs": 0,
+      "trial": 2
+    },
+    {
+      "provider": "BITCONNECT",
+      "region": 8,
+      "tables": [
+        "sell_order_state",
+        "buy_order_state"
+      ],
+      "snapshotBytes": 792391,
+      "updateMessages": 0,
+      "updatedRows": 0,
+      "greetingMs": 164,
+      "snapshotMs": 344,
+      "rows": {
+        "sell_order_state": 7282,
+        "buy_order_state": 642
+      },
+      "observationMs": 0,
+      "trial": 3
+    },
+    {
+      "provider": "BitCraftSync",
+      "region": 8,
+      "tables": [
+        "sell_order_state",
+        "buy_order_state"
+      ],
+      "snapshotBytes": 2266258,
+      "updateMessages": 0,
+      "updatedRows": 0,
+      "greetingMs": 128,
+      "snapshotMs": 487,
+      "rows": {
+        "sell_order_state": 7282,
+        "buy_order_state": 642
+      },
+      "observationMs": 0,
+      "trial": 3
+    },
+    {
+      "provider": "BITCONNECT",
+      "region": 8,
+      "tables": [
+        "sell_order_state",
+        "buy_order_state",
+        "marketplace_state",
+        "trade_order_state"
+      ],
+      "snapshotBytes": 4098328,
+      "updateMessages": 0,
+      "updatedRows": 0,
+      "greetingMs": 255,
+      "snapshotMs": 688,
+      "rows": {
+        "sell_order_state": 7282,
+        "buy_order_state": 642,
+        "marketplace_state": 91,
+        "trade_order_state": 40214
+      },
+      "observationMs": 0
+    },
+    {
+      "provider": "BitCraftSync",
+      "region": 8,
+      "tables": [
+        "sell_order_state",
+        "buy_order_state",
+        "marketplace_state",
+        "trade_order_state"
+      ],
+      "snapshotBytes": 11893529,
+      "updateMessages": 0,
+      "updatedRows": 0,
+      "greetingMs": 129,
+      "snapshotMs": 833,
+      "rows": {
+        "sell_order_state": 7282,
+        "buy_order_state": 642,
+        "marketplace_state": 91,
+        "trade_order_state": 40214
+      },
+      "observationMs": 0
+    }
+  ],
+  "worlds": [
+    {
+      "provider": "BITCONNECT",
+      "elapsedMs": 4189,
+      "rows": 56206,
+      "snapshotBytes": 5654122,
+      "regions": [
+        {
+          "provider": "BITCONNECT",
+          "region": 7,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 586433,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 204,
+          "snapshotMs": 367,
+          "rows": {
+            "sell_order_state": 5010,
+            "buy_order_state": 907
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BITCONNECT",
+          "region": 8,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 792391,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 189,
+          "snapshotMs": 385,
+          "rows": {
+            "sell_order_state": 7282,
+            "buy_order_state": 642
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BITCONNECT",
+          "region": 9,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 747177,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 366,
+          "snapshotMs": 760,
+          "rows": {
+            "sell_order_state": 6600,
+            "buy_order_state": 896
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BITCONNECT",
+          "region": 12,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 1044266,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 216,
+          "snapshotMs": 444,
+          "rows": {
+            "sell_order_state": 9679,
+            "buy_order_state": 794
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BITCONNECT",
+          "region": 13,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 17654,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 211,
+          "snapshotMs": 284,
+          "rows": {
+            "sell_order_state": 135,
+            "buy_order_state": 36
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BITCONNECT",
+          "region": 14,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 887807,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 171,
+          "snapshotMs": 366,
+          "rows": {
+            "sell_order_state": 8109,
+            "buy_order_state": 589
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BITCONNECT",
+          "region": 17,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 492958,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 382,
+          "snapshotMs": 766,
+          "rows": {
+            "sell_order_state": 4664,
+            "buy_order_state": 199
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BITCONNECT",
+          "region": 18,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 644138,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 211,
+          "snapshotMs": 409,
+          "rows": {
+            "sell_order_state": 5860,
+            "buy_order_state": 460
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BITCONNECT",
+          "region": 19,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 441298,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 218,
+          "snapshotMs": 404,
+          "rows": {
+            "sell_order_state": 4165,
+            "buy_order_state": 179
+          },
+          "observationMs": 0
+        }
+      ]
+    },
+    {
+      "provider": "BitCraftSync",
+      "elapsedMs": 4242,
+      "rows": 56206,
+      "snapshotBytes": 16108466,
+      "regions": [
+        {
+          "provider": "BitCraftSync",
+          "region": 7,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 1686998,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 132,
+          "snapshotMs": 474,
+          "rows": {
+            "sell_order_state": 5010,
+            "buy_order_state": 907
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BitCraftSync",
+          "region": 8,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 2266258,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 128,
+          "snapshotMs": 458,
+          "rows": {
+            "sell_order_state": 7282,
+            "buy_order_state": 642
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BitCraftSync",
+          "region": 9,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 2141436,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 131,
+          "snapshotMs": 443,
+          "rows": {
+            "sell_order_state": 6600,
+            "buy_order_state": 896
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BitCraftSync",
+          "region": 12,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 2992248,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 136,
+          "snapshotMs": 553,
+          "rows": {
+            "sell_order_state": 9679,
+            "buy_order_state": 794
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BitCraftSync",
+          "region": 13,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 49463,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 131,
+          "snapshotMs": 252,
+          "rows": {
+            "sell_order_state": 135,
+            "buy_order_state": 36
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BitCraftSync",
+          "region": 14,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 2505638,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 128,
+          "snapshotMs": 473,
+          "rows": {
+            "sell_order_state": 8109,
+            "buy_order_state": 589
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BitCraftSync",
+          "region": 17,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 1397479,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 418,
+          "snapshotMs": 750,
+          "rows": {
+            "sell_order_state": 4664,
+            "buy_order_state": 199
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BitCraftSync",
+          "region": 18,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 1819661,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 128,
+          "snapshotMs": 422,
+          "rows": {
+            "sell_order_state": 5860,
+            "buy_order_state": 460
+          },
+          "observationMs": 0
+        },
+        {
+          "provider": "BitCraftSync",
+          "region": 19,
+          "tables": [
+            "sell_order_state",
+            "buy_order_state"
+          ],
+          "snapshotBytes": 1249285,
+          "updateMessages": 0,
+          "updatedRows": 0,
+          "greetingMs": 127,
+          "snapshotMs": 409,
+          "rows": {
+            "sell_order_state": 4165,
+            "buy_order_state": 179
+          },
+          "observationMs": 0
+        }
+      ]
+    }
+  ]
+}

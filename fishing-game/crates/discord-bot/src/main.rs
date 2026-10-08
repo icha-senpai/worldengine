@@ -1,7 +1,8 @@
-use discord_bot::catch_art::CatchArt;
+use discord_bot::catch_art::{CatchArt, Material, ROD_QUALITY_COLORS};
+use discord_bot::measurements::{format_length, format_weight};
 use game_client::{Client, Error, Snapshot, module_bindings::ServiceRole};
 use poise::serenity_prelude as serenity;
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 
 struct Data {
     game: Arc<Client>,
@@ -18,12 +19,14 @@ fn interaction_id(ctx: Context<'_>) -> Result<u64, Error> {
 }
 
 async fn snapshot(ctx: Context<'_>, cast: bool) -> Result<Snapshot, Error> {
+    let started = Instant::now();
     let _permit = ctx
         .data()
         .pending
         .try_acquire()
         .map_err(|_| "The pond is busy; try again shortly")?;
-    ctx.data()
+    let result = ctx
+        .data()
         .game
         .player(
             ctx.author().id.get(),
@@ -33,10 +36,43 @@ async fn snapshot(ctx: Context<'_>, cast: bool) -> Result<Snapshot, Error> {
             ctx.channel_id().get(),
             cast,
         )
-        .await
+        .await;
+    log_timing(ctx, "game", started, result.is_ok()).await;
+    result
 }
+
+async fn log_timing(ctx: Context<'_>, stage: &str, started: Instant, success: bool) {
+    let command_ms = ctx
+        .invocation_data::<Instant>()
+        .await
+        .map(|started| started.elapsed().as_millis() as u64);
+    tracing::info!(command = %ctx.command().name, interaction_id = interaction_id(ctx).ok(), stage, elapsed_ms = started.elapsed().as_millis() as u64, command_ms, success, "Discord command timing");
+}
+
+async fn acknowledge(ctx: Context<'_>, ephemeral: bool) -> Result<(), Error> {
+    let started = Instant::now();
+    let result = if ephemeral {
+        ctx.defer_ephemeral().await
+    } else {
+        ctx.defer().await
+    };
+    log_timing(ctx, "acknowledge", started, result.is_ok()).await;
+    result.map_err(Into::into)
+}
+
+async fn send_reply<'a>(
+    ctx: Context<'a>,
+    response: poise::CreateReply,
+) -> Result<poise::ReplyHandle<'a>, Error> {
+    let started = Instant::now();
+    let result = ctx.send(response).await;
+    log_timing(ctx, "reply", started, result.is_ok()).await;
+    result.map_err(Into::into)
+}
+
 async fn reply(ctx: Context<'_>, message: impl Into<String>) -> Result<(), Error> {
-    ctx.send(
+    send_reply(
+        ctx,
         poise::CreateReply::default()
             .content(message)
             .allowed_mentions(serenity::CreateAllowedMentions::new()),
@@ -119,7 +155,7 @@ fn rejection(error: &Error) -> String {
 /// Cast in your selected biome. One accepted cast every sixty seconds.
 #[poise::command(slash_command)]
 async fn fish(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.defer().await?;
+    acknowledge(ctx, false).await?;
     let result = match snapshot(ctx, true).await {
         Ok(result) => result,
         Err(error) => {
@@ -151,11 +187,11 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
                     .ok_or("Missing species")?;
                 let grade = game_rules::measurements::SIZE_GRADE_NAMES[pull.size_grade as usize];
                 let description = format!(
-                    "{} rank · {}\n{:.1} cm · {:.3} kg · +{} XP",
+                    "{} rank · {}\n{} · {} · +{} XP",
                     pull.rarity,
                     grade,
-                    f64::from(pull.length_mm) / 10.0,
-                    pull.weight_g as f64 / 1000.0,
+                    format_length(u64::from(pull.length_mm)),
+                    format_weight(pull.weight_g),
                     pull.xp_granted
                 );
                 lines.push(format!("🎣 **{}** · {}", species.name, description));
@@ -189,25 +225,35 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
             }
             "junk" => {
                 lines.push(format!("Rusted tin · +{} XP", pull.xp_granted));
-                response = response.embed(
+                response = material_card(
+                    ctx,
+                    response,
                     serenity::CreateEmbed::new()
                         .title("Rusted tin")
                         .description(format!("+1 rusted tin · +{} XP", pull.xp_granted)),
-                );
+                    Material::RustedTin,
+                    format!("pull-{}-rusted-tin.png", index + 1),
+                )
+                .await;
             }
             "treasure" => {
                 lines.push(format!(
                     "Treasure · +{} coins · +{} scrap · +{} XP",
                     pull.coins_granted, pull.item_quantity, pull.xp_granted
                 ));
-                response = response.embed(
+                response = material_card(
+                    ctx,
+                    response,
                     serenity::CreateEmbed::new()
                         .title("Treasure cache")
                         .description(format!(
                             "+{} coins · +{} scrap · +{} XP",
                             pull.coins_granted, pull.item_quantity, pull.xp_granted
                         )),
-                );
+                    Material::Scrap,
+                    format!("pull-{}-scrap.png", index + 1),
+                )
+                .await;
             }
             _ => return Err("Unknown committed category".into()),
         }
@@ -224,7 +270,19 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
         if receipts.len() == 1 { "" } else { "s" },
         receipt.xp_granted
     );
+    let rod_name = result
+        .rods
+        .iter()
+        .find(|rod| rod.rod_id == receipt.rod_id)
+        .map_or("Rod", |rod| rod.name.as_str());
+    summary.push_str(&format!("\n**{}**", rod_name));
     if let Some(equipment) = &result.cast_equipment {
+        let quality_name = result
+            .qualities
+            .iter()
+            .find(|quality| quality.quality_level == equipment.quality_level)
+            .map_or("Unknown quality", |quality| quality.name.as_str());
+        summary.push_str(&format!(" · **{}**", quality_name));
         if equipment.bait_id != 0 {
             let name = result
                 .baits
@@ -240,12 +298,27 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
             }
         }
     }
+    let level =
+        game_rules::progression::level_for_xp(result.player.total_xp, result.config.level_cap);
+    if level >= result.config.level_cap {
+        summary.push_str(&format!("\nAngler level {} · Max level reached", level));
+    } else {
+        let level_start_xp: u64 = (1..level).map(game_rules::progression::xp_to_next).sum();
+        let remaining_xp =
+            game_rules::progression::xp_to_next(level) - (result.player.total_xp - level_start_xp);
+        summary.push_str(&format!(
+            "\nAngler level {} · {} XP to level {}",
+            level,
+            remaining_xp,
+            level + 1
+        ));
+    }
     summary.push_str(&format!(
         "\nNext cast <t:{}:R> · [Your collection]({})",
         (receipt.caught_at.to_micros_since_unix_epoch() + 60_000_000) / 1_000_000,
         ctx.data().website
     ));
-    match ctx.send(response.content(&summary)).await {
+    match send_reply(ctx, response.content(&summary)).await {
         Ok(_) => Ok(()),
         Err(error) => {
             tracing::warn!(%error, "Catch card delivery failed");
@@ -254,16 +327,35 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
     }
 }
 
+async fn material_card(
+    ctx: Context<'_>,
+    response: poise::CreateReply,
+    embed: serenity::CreateEmbed,
+    material: Material,
+    filename: String,
+) -> poise::CreateReply {
+    match ctx.data().catch_art.render_material(material).await {
+        Ok(png) => response
+            .embed(embed.image(format!("attachment://{filename}")))
+            .attachment(serenity::CreateAttachment::bytes(png, filename)),
+        Err(error) => {
+            tracing::warn!(%error, material = material.key(), "Material artwork unavailable");
+            response.embed(embed)
+        }
+    }
+}
+
 /// Collect your Dockside Delivery. Every seventh delivery includes a coin bonus.
 #[poise::command(slash_command)]
 async fn daily(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     let _permit = ctx
         .data()
         .pending
         .try_acquire()
         .map_err(|_| "The dock is busy; try again shortly")?;
-    let receipt = match ctx
+    let started = Instant::now();
+    let outcome = ctx
         .data()
         .game
         .daily(
@@ -273,8 +365,9 @@ async fn daily(ctx: Context<'_>) -> Result<(), Error> {
             ctx.guild_id().map(|id| id.get()),
             ctx.channel_id().get(),
         )
-        .await
-    {
+        .await;
+    log_timing(ctx, "game", started, outcome.is_ok()).await;
+    let receipt = match outcome {
         Ok(receipt) => receipt,
         Err(error) => {
             tracing::warn!(%error, "Delivery rejected or unavailable");
@@ -318,7 +411,7 @@ async fn profile(
     #[description = "Public angler ID from /leaderboard; omit for your own profile"]
     player_id: Option<u64>,
 ) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     let result = snapshot(ctx, false).await?;
     let target = player_id.unwrap_or(result.player.player_id);
     let badge_count = result
@@ -353,7 +446,7 @@ async fn profile(
             .await;
         };
         let standing = result.standings.iter().find(|row| row.player_id == target);
-        return reply(ctx, format!("**{} · {}**\nAngler #{} · level {}\n{} lifetime fish · {}/249 ordinary discoveries\n{} UUR catches · {} current records · {} badges\n[Public profile]({})", plain_name(&other.display_name), title, target, other.level, other.fish_count, other.discoveries, standing.map_or(0, |row| row.uur_count), standing.map_or(0, |row| row.records_held), badge_count, public_link)).await;
+        return reply(ctx, format!("**{} · {}**\n[View profile]({}) · level {}\n{} lifetime fish · {}/249 ordinary discoveries\n{} UUR catches · {} current records · {} badges", plain_name(&other.display_name), title, public_link, other.level, other.fish_count, other.discoveries, standing.map_or(0, |row| row.uur_count), standing.map_or(0, |row| row.records_held), badge_count)).await;
     }
     let ordinary = result
         .species
@@ -369,7 +462,7 @@ async fn profile(
             })
         })
         .count();
-    reply(ctx, format!("**Your Fishbound profile · {title}**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {} fish kept\n{badge_count} badges earned · Angler #{target}\n[Achievements and titles]({}/#achievements) · [Public profile]({public_link})",
+    reply(ctx, format!("**Your Fishbound profile · {title}**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {} fish kept\n{badge_count} badges earned · [Your profile]({public_link})\n[Achievements and titles]({}/#achievements)",
         game_rules::progression::level_for_xp(result.player.total_xp, result.config.level_cap), result.player.total_xp, result.player.coins,
         result.player.completed_casts, result.player.fish_count, discoveries, ordinary, result.player.kept_count, ctx.data().website.trim_end_matches('/'))).await
 }
@@ -402,7 +495,7 @@ async fn leaderboard(
     #[description = "Page number, starting at 1"] page: Option<u32>,
     #[description = "Optional species ID for length and weight records"] species_id: Option<u32>,
 ) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     let result = snapshot(ctx, false).await?;
     if let Some(id) = species_id {
         let Some(species) = result.species.iter().find(|row| row.species_id == id) else {
@@ -418,9 +511,9 @@ async fn leaderboard(
             .filter(|row| row.species_id == id)
             .map(|row| {
                 let size = if row.metric == "length" {
-                    format!("{:.1} cm", row.measurement as f64 / 10.0)
+                    format_length(row.measurement)
                 } else {
-                    format!("{:.3} kg", row.measurement as f64 / 1000.0)
+                    format_weight(row.measurement)
                 };
                 format!(
                     "{}: **{}** · {} rank · {} (Angler #{})",
@@ -505,7 +598,7 @@ async fn sell(
         String,
     >,
 ) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     let Some(text) = catch_ids else {
         return reply(ctx, "Use /inventory to find catch IDs, then /sell catch_ids:12,13 to preview their exact value. Up to 50 fish per sale; favorites are protected. Nothing is sold until you confirm.").await;
     };
@@ -557,7 +650,7 @@ async fn sell(
         .collect();
     let confirm_id = format!("sell:{}:confirm", interaction_id(ctx)?);
     let cancel_id = format!("sell:{}:cancel", interaction_id(ctx)?);
-    let handle = ctx.send(poise::CreateReply::default().content(format!("**Sell {} fish for {} coins?**\n{}{}\nCatch IDs: {}\nDiscoveries, records and badges remain. Offer expires <t:{}:R>.", quote.catch_ids.len(), quote.quoted_coins, rows.join("\n"), if quote.catch_ids.len() > 5 { "\nAdditional catches listed by ID below." } else { "" }, quote.catch_ids.iter().map(u64::to_string).collect::<Vec<_>>().join(", "), quote.expires_at.to_micros_since_unix_epoch() / 1_000_000))
+    let handle = send_reply(ctx, poise::CreateReply::default().content(format!("**Sell {} fish for {} coins?**\n{}{}\nCatch IDs: {}\nDiscoveries, records and badges remain. Offer expires <t:{}:R>.", quote.catch_ids.len(), quote.quoted_coins, rows.join("\n"), if quote.catch_ids.len() > 5 { "\nAdditional catches listed by ID below." } else { "" }, quote.catch_ids.iter().map(u64::to_string).collect::<Vec<_>>().join(", "), quote.expires_at.to_micros_since_unix_epoch() / 1_000_000))
         .allowed_mentions(serenity::CreateAllowedMentions::new()).components(vec![serenity::CreateActionRow::Buttons(vec![serenity::CreateButton::new(&confirm_id).label(format!("Sell · {} coins", quote.quoted_coins)).style(serenity::ButtonStyle::Success), serenity::CreateButton::new(&cancel_id).label("Cancel").style(serenity::ButtonStyle::Secondary)])])).await?;
     let interaction = handle
         .message()
@@ -630,7 +723,7 @@ async fn sell(
 /// See your owned fish and manage favorites or sales on the website.
 #[poise::command(slash_command)]
 async fn inventory(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     let result = snapshot(ctx, false).await?;
     let mut inventory = result.inventory;
     inventory.sort_by_key(|row| std::cmp::Reverse(row.catch_id));
@@ -645,12 +738,12 @@ async fn inventory(ctx: Context<'_>) -> Result<(), Error> {
                 .map(|row| row.name.as_str())
                 .unwrap_or("Fish");
             format!(
-                "#{} {}{} · {} rank · {:.1} cm · {} coins",
+                "#{} {}{} · {} rank · {} · {} coins",
                 fish.catch_id,
                 if fish.favorite { "★ " } else { "" },
                 name,
                 fish.rarity,
-                f64::from(fish.length_mm) / 10.0,
+                format_length(u64::from(fish.length_mm)),
                 fish.sale_value_coins
             )
         })
@@ -674,7 +767,7 @@ async fn inventory(ctx: Context<'_>) -> Result<(), Error> {
 /// See collection progress by biome and your companion book.
 #[poise::command(slash_command)]
 async fn collection(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     let result = snapshot(ctx, false).await?;
     let rows: Vec<_> = result
         .biomes
@@ -720,7 +813,7 @@ async fn biome(
     ctx: Context<'_>,
     #[description = "Biome ID from the list"] biome_id: Option<u32>,
 ) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     let result = if let Some(id) = biome_id {
         let _permit = ctx
             .data()
@@ -770,13 +863,99 @@ async fn biome(
     reply(ctx, format!("**Biomes**\n{}\nBuy sequential biome licences at /shop. Any owned rod can fish licensed waters at your level. Travel keeps your cast cooldown.", rows.join("\n"))).await
 }
 
+/// Show off your equipped rod, or any owned rod by ID, in this channel.
+#[poise::command(slash_command)]
+async fn rod(
+    ctx: Context<'_>,
+    #[description = "Owned rod ID; omit to show your equipped rod"] rod_id: Option<u32>,
+) -> Result<(), Error> {
+    acknowledge(ctx, false).await?;
+    let result = snapshot(ctx, false).await?;
+    let id = rod_id.unwrap_or(result.player.equipped_rod_id);
+    let Some(owned) = result.owned_rods.iter().find(|row| row.rod_id == id) else {
+        return reply(
+            ctx,
+            "You can only show off rods you own. Use /gear to see your rods and their IDs.",
+        )
+        .await;
+    };
+    let definition = result
+        .rods
+        .iter()
+        .find(|row| row.rod_id == id)
+        .ok_or("Missing rod")?;
+    let (quality, power, luck, xp) = rod_stats(&result, id);
+    let description = format!(
+        "**{} {}**\n{} · shown by **{}**\n\n**{} power** · **{:.1}%** bonus-pull chance\n**+{:.1}% luck** · **+{:.1}% catch XP**",
+        quality,
+        definition.name,
+        if id == result.player.equipped_rod_id {
+            "Equipped"
+        } else {
+            "Owned"
+        },
+        plain_name(&ctx.author().name),
+        power,
+        power as f64 / 2.0,
+        luck as f64 / 100.0,
+        xp as f64 / 100.0,
+    );
+    let color = ROD_QUALITY_COLORS
+        .get(usize::from(owned.upgrade_level))
+        .copied()
+        .unwrap_or(ROD_QUALITY_COLORS[0]);
+    let embed = serenity::CreateEmbed::new()
+        .title("From the tackle box")
+        .description(&description)
+        .color(color);
+    let art_key = result
+        .rod_bonuses
+        .iter()
+        .find(|row| row.rod_id == id)
+        .and_then(|row| {
+            row.sprite_asset
+                .strip_prefix("/rods/")?
+                .strip_suffix(".png")
+        });
+    let mut response =
+        poise::CreateReply::default().allowed_mentions(serenity::CreateAllowedMentions::new());
+    if let Some(key) = art_key {
+        match ctx
+            .data()
+            .catch_art
+            .render_rod(key, owned.upgrade_level)
+            .await
+        {
+            Ok(png) => {
+                let filename = format!("rod-{id}-quality-{}.png", owned.upgrade_level);
+                response = response
+                    .embed(embed.image(format!("attachment://{filename}")))
+                    .attachment(serenity::CreateAttachment::bytes(png, filename));
+            }
+            Err(error) => {
+                tracing::warn!(%error, rod_id = id, "Rod artwork unavailable");
+                response = response.embed(embed);
+            }
+        }
+    } else {
+        response = response.embed(embed);
+    }
+    match send_reply(ctx, response).await {
+        Ok(_) => Ok(()),
+        Err(error) => {
+            tracing::warn!(%error, "Rod card delivery failed");
+            reply(ctx, description).await
+        }
+    }
+}
+
 /// List rods or equip a purchased rod using its ID.
 #[poise::command(slash_command)]
 async fn gear(
     ctx: Context<'_>,
     #[description = "Rod ID from the list"] rod_id: Option<u32>,
 ) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     let result = if let Some(id) = rod_id {
         let _permit = ctx
             .data()
@@ -834,7 +1013,7 @@ async fn bait(
     ctx: Context<'_>,
     #[description = "Bait ID; zero to remove bait"] bait_id: Option<u32>,
 ) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     let result = if let Some(id) = bait_id {
         let _permit = ctx
             .data()
@@ -887,7 +1066,7 @@ async fn upgrade(
     ctx: Context<'_>,
     #[description = "Owned rod ID; defaults to equipped rod"] rod_id: Option<u32>,
 ) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     let result = snapshot(ctx, false).await?;
     let id = rod_id.unwrap_or(result.player.equipped_rod_id);
     let quote = {
@@ -924,7 +1103,7 @@ async fn upgrade(
         .ok_or("Missing quality")?;
     let confirm_id = format!("upgrade:{}:confirm", interaction_id(ctx)?);
     let cancel_id = format!("upgrade:{}:cancel", interaction_id(ctx)?);
-    let handle = ctx.send(poise::CreateReply::default().content(format!("**Craft {} {}?**\n{} rusted tin + {} scrap · guaranteed success\n+{} power · +{}% luck · +{}% XP over current quality. Each rod keeps its own permanent quality.\nOffer expires <t:{}:R>.", next.name, rod.name, quote.tin_cost, quote.scrap_cost, next.power_bonus - previous.power_bonus, (next.luck_bp - previous.luck_bp) / 100, (next.xp_bonus_bp - previous.xp_bonus_bp) / 100, quote.expires_at.to_micros_since_unix_epoch() / 1_000_000))
+    let handle = send_reply(ctx, poise::CreateReply::default().content(format!("**Craft {} {}?**\n{} rusted tin + {} scrap · guaranteed success\n+{} power · +{}% luck · +{}% XP over current quality. Each rod keeps its own permanent quality.\nOffer expires <t:{}:R>.", next.name, rod.name, quote.tin_cost, quote.scrap_cost, next.power_bonus - previous.power_bonus, (next.luck_bp - previous.luck_bp) / 100, (next.xp_bonus_bp - previous.xp_bonus_bp) / 100, quote.expires_at.to_micros_since_unix_epoch() / 1_000_000))
         .allowed_mentions(serenity::CreateAllowedMentions::new())
         .components(vec![serenity::CreateActionRow::Buttons(vec![serenity::CreateButton::new(&confirm_id).label("Craft quality").style(serenity::ButtonStyle::Success), serenity::CreateButton::new(&cancel_id).label("Cancel").style(serenity::ButtonStyle::Secondary)])])).await?;
     let interaction = handle
@@ -1000,7 +1179,7 @@ async fn shop(
     ctx: Context<'_>,
     #[description = "Item ID from the trader list"] item_id: Option<u32>,
 ) -> Result<(), Error> {
-    ctx.defer_ephemeral().await?;
+    acknowledge(ctx, true).await?;
     if item_id.is_none() {
         let result = snapshot(ctx, false).await?;
         let mut listings = result.listings;
@@ -1088,28 +1267,28 @@ async fn shop(
     };
     let confirm_id = format!("shop:{}:confirm", interaction_id(ctx)?);
     let cancel_id = format!("shop:{}:cancel", interaction_id(ctx)?);
-    let handle = ctx
-        .send(
-            poise::CreateReply::default()
-                .content(format!(
-                    "**Buy {} for {} coins?**\nYour pouch: {} coins. {} Offer expires <t:{}:R>.",
-                    listing.name,
-                    quote.quoted_coins,
-                    result.player.coins,
-                    details,
-                    quote.expires_at.to_micros_since_unix_epoch() / 1_000_000
-                ))
-                .allowed_mentions(serenity::CreateAllowedMentions::new())
-                .components(vec![serenity::CreateActionRow::Buttons(vec![
-                    serenity::CreateButton::new(&confirm_id)
-                        .label(format!("Buy · {} coins", quote.quoted_coins))
-                        .style(serenity::ButtonStyle::Success),
-                    serenity::CreateButton::new(&cancel_id)
-                        .label("Cancel")
-                        .style(serenity::ButtonStyle::Secondary),
-                ])]),
-        )
-        .await?;
+    let handle = send_reply(
+        ctx,
+        poise::CreateReply::default()
+            .content(format!(
+                "**Buy {} for {} coins?**\nYour pouch: {} coins. {} Offer expires <t:{}:R>.",
+                listing.name,
+                quote.quoted_coins,
+                result.player.coins,
+                details,
+                quote.expires_at.to_micros_since_unix_epoch() / 1_000_000
+            ))
+            .allowed_mentions(serenity::CreateAllowedMentions::new())
+            .components(vec![serenity::CreateActionRow::Buttons(vec![
+                serenity::CreateButton::new(&confirm_id)
+                    .label(format!("Buy · {} coins", quote.quoted_coins))
+                    .style(serenity::ButtonStyle::Success),
+                serenity::CreateButton::new(&cancel_id)
+                    .label("Cancel")
+                    .style(serenity::ButtonStyle::Secondary),
+            ])]),
+    )
+    .await?;
     let interaction = handle
         .message()
         .await?
@@ -1180,7 +1359,51 @@ async fn shop(
 /// Learn the commands and link your companion website.
 #[poise::command(slash_command)]
 async fn help(ctx: Context<'_>) -> Result<(), Error> {
-    reply(ctx, format!("**Fishbound**\n/fish — cast every 60 seconds\n/daily — Dockside Delivery and stamp bonus\n/profile [player_id] — your progression or a public angler profile\n/inventory — catches and IDs\n/sell [catch_ids] — preview and confirm fish sales\n/leaderboard [category] [page] [species_id] — standings or species records\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — equip owned rods\n/shop [item_id] — licences, rods and bait packs\n/bait [bait_id] — equip bait; 0 removes bait\n/upgrade [rod_id] — craft permanent rod quality\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, confirm sales, and choose earned titles in Achievements. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.", ctx.data().website)).await
+    acknowledge(ctx, true).await?;
+    let mut result = snapshot(ctx, false).await?;
+    result.rods.sort_by_key(|rod| rod.rod_id);
+    result.baits.sort_by_key(|bait| bait.bait_id);
+    result.listings.sort_by_key(|listing| listing.listing_id);
+    let rods = result
+        .rods
+        .iter()
+        .map(|rod| format!("`{}` — {}", rod.rod_id, rod.name))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let baits = result
+        .baits
+        .iter()
+        .map(|bait| format!("`{}` — {}", bait.bait_id, bait.name))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let listings = result
+        .listings
+        .iter()
+        .map(|listing| format!("`{}` — {}", listing.listing_id, listing.name))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let commands = format!(
+        "/fish — cast every 60 seconds\n/daily — Dockside Delivery and stamp bonus\n/profile [player_id] — your progression or a public angler profile\n/inventory — catches and IDs\n/sell [catch_ids] — preview and confirm fish sales\n/leaderboard [category] [page] [species_id] — standings or species records\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — equip owned rods\n/rod [rod_id] — show off an owned rod in the channel\n/shop [item_id] — licences, rods and bait packs\n/bait [bait_id] — equip bait; 0 removes bait\n/upgrade [rod_id] — craft permanent rod quality\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, confirm sales, and choose earned titles in Achievements. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.",
+        ctx.data().website
+    );
+    send_reply(ctx,
+        poise::CreateReply::default()
+            .embed(
+                serenity::CreateEmbed::new()
+                    .title("Fishbound command guide")
+                    .description(commands)
+                    .field(
+                        "/gear, /rod and /upgrade · rod_id",
+                        format!("{rods}\nUse an owned rod's ID. /upgrade without an ID upgrades your equipped rod."),
+                        false,
+                    )
+                    .field("/bait · bait_id", format!("`0` — Remove bait\n{baits}"), false)
+                    .field("/shop · item_id", listings, false),
+            )
+            .allowed_mentions(serenity::CreateAllowedMentions::new()),
+    )
+    .await?;
+    Ok(())
 }
 
 fn required(name: &str) -> Result<String, Error> {
@@ -1240,13 +1463,28 @@ async fn main() -> Result<(), Error> {
                 collection(),
                 biome(),
                 gear(),
+                rod(),
                 bait(),
                 upgrade(),
                 help(),
             ],
+            pre_command: |ctx| Box::pin(async move {
+                ctx.set_invocation_data(Instant::now()).await;
+                tracing::info!(command = %ctx.command().name, interaction_id = interaction_id(ctx).ok(), "Discord command received");
+            }),
+            post_command: |ctx| Box::pin(async move {
+                let started = ctx.invocation_data::<Instant>().await.map(|started| *started);
+                if let Some(started) = started {
+                    log_timing(ctx, "complete", started, true).await;
+                }
+            }),
             on_error: |error| {
                 Box::pin(async move {
                     if let poise::FrameworkError::Command { ctx, error, .. } = error {
+                        let started = ctx.invocation_data::<Instant>().await.map(|started| *started);
+                        if let Some(started) = started {
+                            log_timing(ctx, "failed", started, false).await;
+                        }
                         tracing::warn!(%error, "Command unavailable");
                         let _ = reply(ctx, rejection(&error)).await;
                     } else {

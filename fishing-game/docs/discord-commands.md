@@ -1,9 +1,9 @@
 # Agreed Discord command plan
 
-Status: thirteen handlers (/fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /shop, /bait, /upgrade, /help)
+Status: fourteen handlers (/fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /upgrade, /help)
 are implemented. /biome accepts optional biome_id; /gear accepts optional rod_id.
 Meadow Pond and the starter Twig Rod are free. Later rods and permanent biome licences are bought from the camp trader after reaching their level requirements. Collection responses summarize seven
-biomes to stay within Discord message limits; the website shows the full book. All launch commands below are implemented. The thirteen commands are registered globally; matching legacy server copies are removed on startup.
+biomes to stay within Discord message limits; the website shows the full book. All launch commands below are implemented. The fourteen commands are registered globally; matching legacy server copies are removed on startup.
 /profile accepts an optional public player_id from /leaderboard. Other profiles show only public progression, records, titles and badge counts; wallets and inventory remain private.
 This plan updates the original design specification's Discord command list.
 Commands use plain Discord slash syntax. The `./` spelling in chat was only to
@@ -13,8 +13,8 @@ avoid triggering another integration; it is not a bot prefix or alias.
 
 | Command | Intended behavior |
 |---|---|
-| `/profile [player_id]` | Own progression and wallet; optional game ID opens another angler's public profile. |
-| `/fish` | Cast in the selected biome, with a global one-minute cooldown, and show the authoritative saved result. |
+| `/profile [player_id]` | Own progression and wallet; optional game ID opens another angler's public profile. Replies link directly to the angler's website profile instead of displaying their ID. |
+| `/fish` | Cast in the selected biome, with a global one-minute cooldown, and show the authoritative saved result. The rod name and quality used for the cast appear directly beneath the biome. Also shows angler level and XP remaining until the next level after the catch, or "Max level reached" at the level cap. |
 | `/daily` | Dockside Delivery: 100 coins, plus 250 every seventh claim; show stamps and next midnight-UTC reset. |
 | `/upgrade [rod_id]` | Confirm the next permanent quality for an owned rod; defaults to equipped rod. |
 | `/bait [bait_id]` | List owned uses or equip bait; ID 0 removes it. |
@@ -23,9 +23,10 @@ avoid triggering another integration; it is not a bot prefix or alias.
 | `/collection` | Show discoveries, missing species, and personal length/weight records. |
 | `/biome` | Travel to a licensed biome when level and sequential licence qualify. |
 | `/gear` | Show rod ownership and equip purchased rods; does not grant free gear. |
+| `/rod [rod_id]` | Show off a rod in the channel with a generated display card, quality, power, bonus-pull chance, luck and catch-XP bonuses. Defaults to equipped rod; an optional rod ID may select any owned rod without equipping it. |
 | `/shop` | Browse the camp trader; `/shop [item_id]` previews a licence, rod or 10-use bait pack with buy/cancel buttons. |
 | `/leaderboard [category] [page] [species_id]` | Four global categories (discoveries, fish, UUR, records), ten anglers per page, shared places for ties. Optional species ID shows longest/heaviest records. |
-| `/help` | Explain commands, cooldowns, ranks, account linking, and getting started. |
+| `/help` | Explain commands, cooldowns, ranks, account linking, and getting started. Includes current rod IDs for `/gear`, `/rod` and `/upgrade`, bait IDs for `/bait`, and trader item IDs for `/shop`. |
 
 Use buttons, selects, and website links for follow-up actions where they keep
 commands short. Separate `/buy` and `/equip` commands are not needed for launch.
@@ -99,7 +100,10 @@ purchase nor travel changes fishing cooldown, XP, odds, collection, or records.
 Crafting guarantees success and consumes the quoted tin/scrap recipe once.
 Each rod keeps its own quality permanently. Bonus pulls independently roll the
 same biome category pool, sharing one cooldown and one bait use. `/fish` delivers
-up to two saved rarity-card attachments, one for each fish, and saved item rewards.
+up to two saved reward-card attachments: a rarity card for each fish, or a salvage
+card showing the original rusted tin/scrap sprite for junk/treasure pulls. Saved
+item quantities, coins and XP remain in the embed text. Guaranteed resource-bait
+bonuses remain in the cast summary.
 No typical-size multipliers or internal catch-save IDs appear in these embeds.
 
 ## Achievements and public profiles shipped

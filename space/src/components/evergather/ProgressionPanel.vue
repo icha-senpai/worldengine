@@ -90,7 +90,7 @@
             <form class="mt-3 grid gap-3" @submit.prevent="updateRewardLoadout">
               <label class="grid gap-1">
                 <span class="text-xs text-muted-2">Title slot</span>
-                <select
+                <SelectInput
                   v-model="loadoutForm.title_claim_key"
                   class="rounded-md border-border bg-canvas text-xs text-primary focus:border-focus focus:ring-focus"
                 >
@@ -102,10 +102,10 @@
                   >
                     {{ option.label }}
                   </option>
-                </select>
+                </SelectInput>
                 <span
                   v-if="loadoutForm.errors.title_claim_key"
-                  class="text-xs text-(--accent-pink)"
+                  class="text-xs text-danger"
                 >
                   {{ loadoutForm.errors.title_claim_key }}
                 </span>
@@ -350,7 +350,7 @@
 
           <p
             v-if="claimForm.errors.achievement"
-            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-(--accent-pink)"
+            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-danger"
           >
             {{ claimForm.errors.achievement }}
           </p>
@@ -379,6 +379,7 @@
 </template>
 
 <script setup>
+import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { computed, ref, watch } from "vue";
 import { useActionForm } from "../../evergather/useActionForm";
 import { usePersistedPanelState } from "./usePanelState";

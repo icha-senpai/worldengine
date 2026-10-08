@@ -106,7 +106,7 @@ describe("ICHAA BitCraft contracts", () => {
         .total,
     ).toBe(1);
   });
-  it("maps coin barter bundles and cargo while excluding non-coin exchanges", () => {
+  it("maps coin barter bundles and scopes cargo independently of item exchanges", () => {
     const result = barterRows(
       {
         stalls: [

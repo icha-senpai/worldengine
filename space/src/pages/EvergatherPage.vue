@@ -1,4 +1,5 @@
 <script setup>
+import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import {
   computed,
   nextTick,
@@ -429,7 +430,7 @@ const avatarPaletteClass = computed(
   () =>
     ({
       moonlit: "text-focus bg-focus/10",
-      ember: "text-(--accent-pink) bg-[rgb(var(--accent-pink-rgb)/0.1)]",
+      ember: "text-danger bg-[rgb(var(--accent-pink-rgb)/0.1)]",
       verdant: "text-success bg-success/10",
       tideglass: "text-focus bg-focus/10",
     })[props.player.appearance.palette] ?? "text-focus bg-focus/10",
@@ -880,7 +881,7 @@ function isWorkspacePanel(panel) {
 
         <div
           v-if="repeatDialog.open"
-          class="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6"
+          class="fixed inset-0 z-50 grid place-items-center bg-overlay-2 px-4 py-6"
           role="dialog"
           aria-modal="true"
           aria-labelledby="repeat-dialog-title"
@@ -1022,7 +1023,7 @@ function isWorkspacePanel(panel) {
                       />
                       <span
                         v-if="characterForm.errors.display_name"
-                        class="text-xs text-(--accent-pink)"
+                        class="text-xs text-danger"
                       >
                         {{ characterForm.errors.display_name }}
                       </span>
@@ -1040,7 +1041,7 @@ function isWorkspacePanel(panel) {
                       />
                       <span
                         v-if="characterForm.errors.title"
-                        class="text-xs text-(--accent-pink)"
+                        class="text-xs text-danger"
                       >
                         {{ characterForm.errors.title }}
                       </span>
@@ -1051,7 +1052,7 @@ function isWorkspacePanel(panel) {
                         class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
                         >Species</span
                       >
-                      <select
+                      <SelectInput
                         v-model="characterForm.species"
                         class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
                       >
@@ -1062,10 +1063,10 @@ function isWorkspacePanel(panel) {
                         >
                           {{ option.label }}
                         </option>
-                      </select>
+                      </SelectInput>
                       <span
                         v-if="characterForm.errors.species"
-                        class="text-xs text-(--accent-pink)"
+                        class="text-xs text-danger"
                       >
                         {{ characterForm.errors.species }}
                       </span>
@@ -1083,7 +1084,7 @@ function isWorkspacePanel(panel) {
                       />
                       <span
                         v-if="characterForm.errors.pronouns"
-                        class="text-xs text-(--accent-pink)"
+                        class="text-xs text-danger"
                       >
                         {{ characterForm.errors.pronouns }}
                       </span>
@@ -1094,7 +1095,7 @@ function isWorkspacePanel(panel) {
                         class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
                         >Home Region</span
                       >
-                      <select
+                      <SelectInput
                         v-model="characterForm.home_region"
                         class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
                       >
@@ -1105,10 +1106,10 @@ function isWorkspacePanel(panel) {
                         >
                           {{ option.label }}
                         </option>
-                      </select>
+                      </SelectInput>
                       <span
                         v-if="characterForm.errors.home_region"
-                        class="text-xs text-(--accent-pink)"
+                        class="text-xs text-danger"
                       >
                         {{ characterForm.errors.home_region }}
                       </span>
@@ -1125,7 +1126,7 @@ function isWorkspacePanel(panel) {
                         class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
                         >{{ field.label }}</span
                       >
-                      <select
+                      <SelectInput
                         v-model="characterForm.appearance[field.key]"
                         class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
                       >
@@ -1138,7 +1139,7 @@ function isWorkspacePanel(panel) {
                         >
                           {{ option.label }}
                         </option>
-                      </select>
+                      </SelectInput>
                     </label>
                   </div>
 

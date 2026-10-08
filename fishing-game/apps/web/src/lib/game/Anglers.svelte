@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import type { Game } from './game.svelte.ts';
   import PageTurner from './PageTurner.svelte';
+  import { formatLength, formatWeight } from './measurements';
   let { game, pageSize = 12 }: { game: Game; pageSize?: number } = $props();
   let query = $state('');
   let page = $state(1);
@@ -13,7 +14,7 @@
   const badges = $derived(game.earnedAchievements.filter(row => row.playerId === selected).sort((a,b) => a.achievementId - b.achievementId));
   const records = $derived(game.records.filter(row => row.playerId === selected));
   const title = (id: bigint) => game.achievements.find(row => row.achievementId === game.titles.find(row => row.playerId === id)?.achievementId)?.title ?? 'Angler';
-  const size = (metric: string, value: bigint) => metric === 'length' ? (Number(value) / 10).toFixed(1) + ' cm' : (Number(value) / 1000).toFixed(3) + ' kg';
+  const size = (metric: string, value: bigint) => metric === 'length' ? formatLength(value) : formatWeight(value);
   function open(id: bigint) {
     selected = id;
     recordPage = 1;

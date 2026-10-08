@@ -1,0 +1,160 @@
+{
+  "database": "space-bitcraft-tools",
+  "sampledAt": "2026-10-08T16:17:52.066Z",
+  "seconds": 359.971,
+  "sameReplica": true,
+  "commitlogGrowthBytes": 20642533,
+  "note": "Live interval including normal game activity; this is not a matched-activity before/after benchmark.",
+  "samples": [
+    {
+      "at": 1791475912084,
+      "replica": "14000047",
+      "commitlogBytes": 303612709,
+      "managedBytes": 413695713
+    },
+    {
+      "at": 1791475927102,
+      "replica": "14000047",
+      "commitlogBytes": 303803301,
+      "managedBytes": 413886305
+    },
+    {
+      "at": 1791475942117,
+      "replica": "14000047",
+      "commitlogBytes": 308910210,
+      "managedBytes": 418993214
+    },
+    {
+      "at": 1791475957131,
+      "replica": "14000047",
+      "commitlogBytes": 317054480,
+      "managedBytes": 427137484
+    },
+    {
+      "at": 1791475972144,
+      "replica": "14000047",
+      "commitlogBytes": 317259636,
+      "managedBytes": 427342640
+    },
+    {
+      "at": 1791475987159,
+      "replica": "14000047",
+      "commitlogBytes": 317453787,
+      "managedBytes": 427536791
+    },
+    {
+      "at": 1791476002174,
+      "replica": "14000047",
+      "commitlogBytes": 317674823,
+      "managedBytes": 427757827
+    },
+    {
+      "at": 1791476017187,
+      "replica": "14000047",
+      "commitlogBytes": 317914113,
+      "managedBytes": 427997117
+    },
+    {
+      "at": 1791476032199,
+      "replica": "14000047",
+      "commitlogBytes": 318120156,
+      "managedBytes": 428203160
+    },
+    {
+      "at": 1791476047213,
+      "replica": "14000047",
+      "commitlogBytes": 318425877,
+      "managedBytes": 428508881
+    },
+    {
+      "at": 1791476062225,
+      "replica": "14000047",
+      "commitlogBytes": 318649243,
+      "managedBytes": 428732247
+    },
+    {
+      "at": 1791476077240,
+      "replica": "14000047",
+      "commitlogBytes": 321550912,
+      "managedBytes": 431633916
+    },
+    {
+      "at": 1791476092255,
+      "replica": "14000047",
+      "commitlogBytes": 321755982,
+      "managedBytes": 431838986
+    },
+    {
+      "at": 1791476107269,
+      "replica": "14000047",
+      "commitlogBytes": 321959367,
+      "managedBytes": 432042371
+    },
+    {
+      "at": 1791476122281,
+      "replica": "14000047",
+      "commitlogBytes": 322193856,
+      "managedBytes": 432276860
+    },
+    {
+      "at": 1791476137294,
+      "replica": "14000047",
+      "commitlogBytes": 322374606,
+      "managedBytes": 432457610
+    },
+    {
+      "at": 1791476152307,
+      "replica": "14000047",
+      "commitlogBytes": 322596439,
+      "managedBytes": 432679443
+    },
+    {
+      "at": 1791476167320,
+      "replica": "14000047",
+      "commitlogBytes": 322818200,
+      "managedBytes": 432901204
+    },
+    {
+      "at": 1791476182333,
+      "replica": "14000047",
+      "commitlogBytes": 323023093,
+      "managedBytes": 433106097
+    },
+    {
+      "at": 1791476197346,
+      "replica": "14000047",
+      "commitlogBytes": 323231434,
+      "managedBytes": 433314438
+    },
+    {
+      "at": 1791476212359,
+      "replica": "14000047",
+      "commitlogBytes": 323433937,
+      "managedBytes": 433516941
+    },
+    {
+      "at": 1791476227371,
+      "replica": "14000047",
+      "commitlogBytes": 323650299,
+      "managedBytes": 433733303
+    },
+    {
+      "at": 1791476242384,
+      "replica": "14000047",
+      "commitlogBytes": 323855576,
+      "managedBytes": 433938580
+    },
+    {
+      "at": 1791476257397,
+      "replica": "14000047",
+      "commitlogBytes": 324061020,
+      "managedBytes": 434144024
+    },
+    {
+      "at": 1791476272055,
+      "replica": "14000047",
+      "commitlogBytes": 324255242,
+      "managedBytes": 434338246
+    }
+  ]
+}

@@ -2,14 +2,42 @@ export const MIN_RATE_SAMPLE_MS = 60 * 1000;
 export const RATE_SAMPLE_MS = 5 * 60 * 1000;
 export const SAMPLE_WINDOW_MS = RATE_SAMPLE_MS + MIN_RATE_SAMPLE_MS;
 
-export function normalizeActivitySamples(value, now = Date.now()) {
+export function collectedActivitySamples(
+  history,
+  playerId,
+  sourceKey,
+  now = Date.now(),
+) {
+  if (!history?.fresh || !playerId || !sourceKey) return [];
+  const scope = `relaySkills|player/${playerId}/skills`;
+  return normalizeActivitySamples(
+    (history.samples ?? [])
+      .filter(
+        (row) => `collection|${row.source}|${row.epoch}|${scope}` === sourceKey,
+      )
+      .map((row) => ({
+        at: row.at,
+        playerId: String(playerId),
+        sourceKey,
+        xpBySkill: row.xp,
+      })),
+    now,
+    6 * 60 * 60 * 1000,
+  );
+}
+
+export function normalizeActivitySamples(
+  value,
+  now = Date.now(),
+  windowMs = SAMPLE_WINDOW_MS,
+) {
   if (!Array.isArray(value)) return [];
   return value
     .filter(
       (sample) =>
         Number.isFinite(sample?.at) &&
         sample.at <= now &&
-        now - sample.at <= SAMPLE_WINDOW_MS &&
+        now - sample.at <= windowMs &&
         typeof sample.playerId === "string" &&
         sample.playerId &&
         typeof sample.sourceKey === "string" &&
@@ -28,6 +56,38 @@ export function normalizeActivitySamples(value, now = Date.now()) {
     .sort((a, b) => a.at - b.at);
 }
 
+export function restoreActivitySamples(
+  samples,
+  history,
+  current,
+  now = Date.now(),
+) {
+  const next = normalizeActivitySamples([current], now)[0];
+  if (!next || !Object.keys(next.xpBySkill).length) return samples;
+  const previous = samples.at(-1);
+  if (
+    previous?.playerId === next.playerId &&
+    previous?.sourceKey === next.sourceKey &&
+    next.at < previous.at
+  )
+    return samples;
+  const merged = new Map();
+  for (const sample of normalizeActivitySamples(
+    [...history, next, ...samples],
+    now,
+  )) {
+    if (
+      sample.playerId === next.playerId &&
+      sample.sourceKey === next.sourceKey
+    )
+      merged.set(sample.at, sample);
+  }
+  return [...merged.values()]
+    .filter((sample) => sample.at <= next.at)
+    .sort((a, b) => a.at - b.at)
+    .reduce((result, sample) => appendActivitySample(result, sample, now), []);
+}
+
 export function appendActivitySample(samples, sample, now = Date.now()) {
   const next = normalizeActivitySamples([sample], now)[0];
   if (!next || !Object.keys(next.xpBySkill).length) return samples;
@@ -41,6 +101,7 @@ export function appendActivitySample(samples, sample, now = Date.now()) {
     return [next];
   // Cached or out-of-order responses are not new observations.
   if (next.at <= previous.at) return samples;
+  if (next.at - previous.at > 120000) return [next];
   // Keep the last trusted XP baseline; rebasing on a lower total would count
   // its recovery as new XP on the next refresh.
   if (
@@ -69,7 +130,8 @@ export function activitySkillRate(samples, skillId) {
       previous.sourceKey !== last.sourceKey ||
       !Number.isFinite(previous.xpBySkill[skillId]) ||
       previous.xpBySkill[skillId] > current.xpBySkill[skillId] ||
-      previous.at >= current.at
+      previous.at >= current.at ||
+      current.at - previous.at > 120000
     )
       break;
     start--;

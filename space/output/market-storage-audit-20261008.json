@@ -1,0 +1,177 @@
+{
+  "sampledAt": "2026-10-08T15:07:38.703Z",
+  "database": "space-bitcraft-tools",
+  "replica": "14000012",
+  "recentMaintenanceAt": [
+    "2026-10-08T14:41:51.713Z",
+    "2026-10-08T13:56:31.871Z"
+  ],
+  "lastMaintenanceIntervalMinutes": 45.3307,
+  "note": "Table reads happen sequentially while collection stays live. Text bytes measure current stored payloads, not native disk allocation.",
+  "subscribedTables": [
+    "sell_order_state",
+    "buy_order_state",
+    "marketplace_state",
+    "barter_stall_state",
+    "building_state",
+    "building_nickname_state",
+    "trade_order_state",
+    "claim_state",
+    "claim_local_state",
+    "player_username_state"
+  ],
+  "tables": {
+    "relay_book": {
+      "rows": 10757,
+      "textBytes": 23409196,
+      "counts": {
+        "sellOrders": 51501,
+        "buyOrders": 4690,
+        "packageSellOrders": 0,
+        "packageBuyOrders": 0
+      },
+      "orderTextBytes": 19601657,
+      "repeatedReferenceBytes": 6797007,
+      "itemTextBytes": 2849283,
+      "uniqueOrderRecords": 56191,
+      "largestBooks": [
+        {
+          "key": "8:item:202143430",
+          "bytes": 95213
+        },
+        {
+          "key": "17:item:11002",
+          "bytes": 55236
+        },
+        {
+          "key": "12:item:11012",
+          "bytes": 47950
+        },
+        {
+          "key": "9:item:767727086",
+          "bytes": 44415
+        },
+        {
+          "key": "12:item:980809559",
+          "bytes": 40490
+        }
+      ]
+    },
+    "market_item": {
+      "rows": 9100,
+      "textBytes": 32856805,
+      "counts": {
+        "sellOrders": 51501,
+        "buyOrders": 4690,
+        "packageSellOrders": 0,
+        "packageBuyOrders": 0
+      },
+      "orderTextBytes": 19601657,
+      "repeatedReferenceBytes": 6797007,
+      "itemTextBytes": 6214621,
+      "uniqueOrderRecords": 56191,
+      "largestBooks": [
+        {
+          "key": "item:11012",
+          "bytes": 195864
+        },
+        {
+          "key": "item:1724476397",
+          "bytes": 185166
+        },
+        {
+          "key": "item:980809559",
+          "bytes": 182213
+        },
+        {
+          "key": "item:1010008",
+          "bytes": 181192
+        },
+        {
+          "key": "item:1010010",
+          "bytes": 160023
+        }
+      ]
+    },
+    "relay_stall": {
+      "rows": 1304,
+      "textBytes": 9523268,
+      "barterOrders": 16887
+    },
+    "market_summary": {
+      "rows": 19857,
+      "textBytes": 8829227
+    },
+    "market_meta": {
+      "rows": 2,
+      "textBytes": 10657183
+    },
+    "snapshot": {
+      "rows": 57,
+      "textBytes": 19517877,
+      "marketRows": 1,
+      "marketTextBytes": 10656647
+    },
+    "collection_feed": {
+      "rows": 56,
+      "textBytes": 8860967,
+      "resources": {
+        "relaySkills": {
+          "rows": 1,
+          "textBytes": 909
+        },
+        "regions": {
+          "rows": 1,
+          "textBytes": 536
+        },
+        "empires": {
+          "rows": 1,
+          "textBytes": 100922
+        },
+        "levels": {
+          "rows": 1,
+          "textBytes": 5284
+        },
+        "claims": {
+          "rows": 19,
+          "textBytes": 1524690
+        },
+        "stalls": {
+          "rows": 30,
+          "textBytes": 7223051
+        },
+        "relaySession": {
+          "rows": 1,
+          "textBytes": 5242
+        },
+        "relayCrafts": {
+          "rows": 1,
+          "textBytes": 183
+        },
+        "relayPlayer": {
+          "rows": 1,
+          "textBytes": 150
+        }
+      }
+    },
+    "collected_entity": {
+      "rows": 1842,
+      "textBytes": 1523525
+    }
+  },
+  "orderRecordsStoredInBothCopies": 56191,
+  "disk": {
+    "clog": 1031435423,
+    "module_logs": 5308,
+    "snapshots": 24492926
+  },
+  "usage": {
+    "activeBytes": 1055933710,
+    "retainedBytes": 24022918,
+    "checkpointBytes": 383,
+    "bytes": 1079957011,
+    "freeBytes": 108755329024,
+    "targetBytes": 2000000000,
+    "budgetBytes": 3000000000
+  }
+}

@@ -1,5 +1,5 @@
 export const richTextFontFamilyOptions = [
-  { label: "Font: Default", value: null },
+  { label: "Font: Inter (default)", value: null },
   {
     label: "Font: Serif",
     value: 'Georgia, Cambria, "Times New Roman", Times, serif',

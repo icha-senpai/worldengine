@@ -1,0 +1,201 @@
+{
+  "sampledAt": "2026-10-08T15:17:34.261Z",
+  "database": "space-bitcraft-tools",
+  "replica": "14000012",
+  "note": "Sequential live reads. Payload bytes are logical UTF-8 text, not native allocation or attributed commitlog bytes. Exact duplicates are compared in memory; hashes and IDs are not exported.",
+  "cache": {
+    "regions": {
+      "rows": 1,
+      "payloadBytes": 536,
+      "largestPayloadBytes": 536
+    },
+    "market": {
+      "rows": 1,
+      "payloadBytes": 10656647,
+      "largestPayloadBytes": 10656647
+    },
+    "empires": {
+      "rows": 1,
+      "payloadBytes": 100922,
+      "largestPayloadBytes": 100922
+    },
+    "other": {
+      "rows": 5,
+      "payloadBytes": 12530,
+      "largestPayloadBytes": 5741
+    },
+    "claims": {
+      "rows": 19,
+      "payloadBytes": 1524735,
+      "largestPayloadBytes": 90181
+    },
+    "stalls": {
+      "rows": 30,
+      "payloadBytes": 7223051,
+      "largestPayloadBytes": 1038614
+    }
+  },
+  "feeds": {
+    "relaySkills": {
+      "rows": 1,
+      "payloadBytes": 909,
+      "largestPayloadBytes": 909
+    },
+    "regions": {
+      "rows": 1,
+      "payloadBytes": 536,
+      "largestPayloadBytes": 536
+    },
+    "empires": {
+      "rows": 1,
+      "payloadBytes": 100922,
+      "largestPayloadBytes": 100922
+    },
+    "levels": {
+      "rows": 1,
+      "payloadBytes": 5284,
+      "largestPayloadBytes": 5284
+    },
+    "claims": {
+      "rows": 19,
+      "payloadBytes": 1524735,
+      "largestPayloadBytes": 90181
+    },
+    "stalls": {
+      "rows": 30,
+      "payloadBytes": 7223051,
+      "largestPayloadBytes": 1038614
+    },
+    "relaySession": {
+      "rows": 1,
+      "payloadBytes": 5741,
+      "largestPayloadBytes": 5741
+    },
+    "relayCrafts": {
+      "rows": 1,
+      "payloadBytes": 183,
+      "largestPayloadBytes": 183
+    },
+    "relayPlayer": {
+      "rows": 1,
+      "payloadBytes": 150,
+      "largestPayloadBytes": 150
+    }
+  },
+  "entities": {
+    "claim": {
+      "rows": 1820,
+      "payloadBytes": 1522402,
+      "largestPayloadBytes": 2064
+    },
+    "skill": {
+      "rows": 20,
+      "payloadBytes": 679,
+      "largestPayloadBytes": 36
+    },
+    "player": {
+      "rows": 2,
+      "payloadBytes": 489,
+      "largestPayloadBytes": 339
+    }
+  },
+  "xpSamples": {
+    "rows": 188,
+    "payloadBytes": 43046,
+    "largestPayloadBytes": 229
+  },
+  "watches": {
+    "regions": {
+      "active": 1,
+      "expired": 0
+    },
+    "empires": {
+      "active": 1,
+      "expired": 0
+    },
+    "levels": {
+      "active": 1,
+      "expired": 0
+    },
+    "claims": {
+      "active": 19,
+      "expired": 0
+    },
+    "stalls": {
+      "active": 30,
+      "expired": 0
+    },
+    "relayPlayer": {
+      "active": 1,
+      "expired": 0
+    },
+    "relaySkills": {
+      "active": 1,
+      "expired": 0
+    },
+    "relaySession": {
+      "active": 1,
+      "expired": 0
+    },
+    "relayCrafts": {
+      "active": 1,
+      "expired": 0
+    }
+  },
+  "feedsExactlyDuplicatedInApiCache": {
+    "regions": {
+      "rows": 1,
+      "payloadBytes": 536,
+      "largestPayloadBytes": 536
+    },
+    "empires": {
+      "rows": 1,
+      "payloadBytes": 100922,
+      "largestPayloadBytes": 100922
+    },
+    "levels": {
+      "rows": 1,
+      "payloadBytes": 5284,
+      "largestPayloadBytes": 5284
+    },
+    "claims": {
+      "rows": 19,
+      "payloadBytes": 1524735,
+      "largestPayloadBytes": 90181
+    },
+    "stalls": {
+      "rows": 30,
+      "payloadBytes": 7223051,
+      "largestPayloadBytes": 1038614
+    },
+    "relaySession": {
+      "rows": 1,
+      "payloadBytes": 5741,
+      "largestPayloadBytes": 5741
+    },
+    "relayCrafts": {
+      "rows": 1,
+      "payloadBytes": 183,
+      "largestPayloadBytes": 183
+    },
+    "relayPlayer": {
+      "rows": 1,
+      "payloadBytes": 150,
+      "largestPayloadBytes": 150
+    }
+  },
+  "disk": {
+    "clog": 1356185037,
+    "module_logs": 5308,
+    "snapshots": 133617386
+  },
+  "usage": {
+    "activeBytes": 1489808388,
+    "retainedBytes": 24022918,
+    "checkpointBytes": 383,
+    "bytes": 1513831689,
+    "freeBytes": 108053307392,
+    "targetBytes": 2000000000,
+    "budgetBytes": 3000000000
+  }
+}

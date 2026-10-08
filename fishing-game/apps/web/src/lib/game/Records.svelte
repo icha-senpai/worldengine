@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { AnglerStanding, LegendaryFind, BiomeDefinition, SpeciesDefinition, SpeciesRecord } from '@fishing-game/generated/types';
   import PageTurner from './PageTurner.svelte';
+  import { formatLength, formatWeight } from './measurements';
 
   interface RecordBookData {
     species: SpeciesDefinition[];
@@ -69,8 +70,8 @@
   const date = (micros: bigint) => new Date(Number(micros / 1000n)).toLocaleString();
   const biomeName = (id: number) => game.biomes.find(row => row.biomeId === id)?.name ?? 'Unknown waters';
   const recordValue = (record: SpeciesRecord) => record.metric === 'length'
-    ? (Number(record.measurement) / 10).toFixed(1) + ' cm'
-    : (Number(record.measurement) / 1000).toFixed(3) + ' kg';
+    ? formatLength(record.measurement)
+    : formatWeight(record.measurement);
   function switchTab(next: 'fish' | 'anglers') { view = next; }
   function tabKey(event: KeyboardEvent) {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;

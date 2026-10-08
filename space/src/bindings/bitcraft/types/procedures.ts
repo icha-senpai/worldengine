@@ -6,20 +6,44 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all procedure arg schemas
+import * as CollectionHistoryProcedure from "../collection_history_procedure";
+import * as ExportAppStateProcedure from "../export_app_state_procedure";
+import * as ExportMarketCheckpointProcedure from "../export_market_checkpoint_procedure";
 import * as GuideAccessProcedure from "../guide_access_procedure";
+import * as MarketCollectionWorkProcedure from "../market_collection_work_procedure";
 import * as ProviderPolicyProcedure from "../provider_policy_procedure";
 import * as PublicCatalogProcedure from "../public_catalog_procedure";
+import * as ReadMarketProcedure from "../read_market_procedure";
+import * as ReadMarketBookProcedure from "../read_market_book_procedure";
+import * as ReadRelayBarterProcedure from "../read_relay_barter_procedure";
 import * as ReadWidgetProcedure from "../read_widget_procedure";
 import * as RequestDataProcedure from "../request_data_procedure";
+import * as ReserveCollectionMapProcedure from "../reserve_collection_map_procedure";
 
+export type CollectionHistoryArgs = __Infer<typeof CollectionHistoryProcedure.params>;
+export type CollectionHistoryResult = __Infer<typeof CollectionHistoryProcedure.returnType>;
+export type ExportAppStateArgs = __Infer<typeof ExportAppStateProcedure.params>;
+export type ExportAppStateResult = __Infer<typeof ExportAppStateProcedure.returnType>;
+export type ExportMarketCheckpointArgs = __Infer<typeof ExportMarketCheckpointProcedure.params>;
+export type ExportMarketCheckpointResult = __Infer<typeof ExportMarketCheckpointProcedure.returnType>;
 export type GuideAccessArgs = __Infer<typeof GuideAccessProcedure.params>;
 export type GuideAccessResult = __Infer<typeof GuideAccessProcedure.returnType>;
+export type MarketCollectionWorkArgs = __Infer<typeof MarketCollectionWorkProcedure.params>;
+export type MarketCollectionWorkResult = __Infer<typeof MarketCollectionWorkProcedure.returnType>;
 export type ProviderPolicyArgs = __Infer<typeof ProviderPolicyProcedure.params>;
 export type ProviderPolicyResult = __Infer<typeof ProviderPolicyProcedure.returnType>;
 export type PublicCatalogArgs = __Infer<typeof PublicCatalogProcedure.params>;
 export type PublicCatalogResult = __Infer<typeof PublicCatalogProcedure.returnType>;
+export type ReadMarketArgs = __Infer<typeof ReadMarketProcedure.params>;
+export type ReadMarketResult = __Infer<typeof ReadMarketProcedure.returnType>;
+export type ReadMarketBookArgs = __Infer<typeof ReadMarketBookProcedure.params>;
+export type ReadMarketBookResult = __Infer<typeof ReadMarketBookProcedure.returnType>;
+export type ReadRelayBarterArgs = __Infer<typeof ReadRelayBarterProcedure.params>;
+export type ReadRelayBarterResult = __Infer<typeof ReadRelayBarterProcedure.returnType>;
 export type ReadWidgetArgs = __Infer<typeof ReadWidgetProcedure.params>;
 export type ReadWidgetResult = __Infer<typeof ReadWidgetProcedure.returnType>;
 export type RequestDataArgs = __Infer<typeof RequestDataProcedure.params>;
 export type RequestDataResult = __Infer<typeof RequestDataProcedure.returnType>;
+export type ReserveCollectionMapArgs = __Infer<typeof ReserveCollectionMapProcedure.params>;
+export type ReserveCollectionMapResult = __Infer<typeof ReserveCollectionMapProcedure.returnType>;
 

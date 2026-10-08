@@ -13,6 +13,7 @@ pub mod action_nonce_type;
 pub mod activate_achievements_reducer;
 pub mod activate_crafting_reducer;
 pub mod activate_rod_bonuses_reducer;
+pub mod activate_species_measurements_reducer;
 pub mod activate_trader_reducer;
 pub mod adapter_achievement_progress_table;
 pub mod adapter_bait_loadout_table;
@@ -141,6 +142,7 @@ pub use action_nonce_type::ActionNonce;
 pub use activate_achievements_reducer::activate_achievements;
 pub use activate_crafting_reducer::activate_crafting;
 pub use activate_rod_bonuses_reducer::activate_rod_bonuses;
+pub use activate_species_measurements_reducer::activate_species_measurements;
 pub use activate_trader_reducer::activate_trader;
 pub use adapter_achievement_progress_table::*;
 pub use adapter_bait_loadout_table::*;
@@ -273,6 +275,7 @@ pub enum Reducer {
     ActivateAchievements,
     ActivateCrafting,
     ActivateRodBonuses,
+    ActivateSpeciesMeasurements,
     ActivateTrader {
         grandfather_licences: bool,
     },
@@ -395,6 +398,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateAchievements => "activate_achievements",
             Reducer::ActivateCrafting => "activate_crafting",
             Reducer::ActivateRodBonuses => "activate_rod_bonuses",
+            Reducer::ActivateSpeciesMeasurements => "activate_species_measurements",
             Reducer::ActivateTrader { .. } => "activate_trader",
             Reducer::BackfillPlayerAchievements { .. } => "backfill_player_achievements",
             Reducer::BeginLinkChallenge => "begin_link_challenge",
@@ -438,6 +442,9 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateRodBonuses => {
                 __sats::bsatn::to_vec(&activate_rod_bonuses_reducer::ActivateRodBonusesArgs {})
             }
+            Reducer::ActivateSpeciesMeasurements => __sats::bsatn::to_vec(
+                &activate_species_measurements_reducer::ActivateSpeciesMeasurementsArgs {},
+            ),
             Reducer::ActivateTrader {
                 grandfather_licences,
             } => __sats::bsatn::to_vec(&activate_trader_reducer::ActivateTraderArgs {

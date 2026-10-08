@@ -212,7 +212,7 @@
 
       <p
         v-if="form.errors.expedition"
-        class="mt-4 text-sm text-(--accent-pink)"
+        class="mt-4 text-sm text-danger"
       >
         {{ form.errors.expedition }}
       </p>

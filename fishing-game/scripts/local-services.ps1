@@ -33,29 +33,77 @@ function Start-TrackedProcess([string]$Name, [string]$Executable, [string[]]$Arg
     $existing = Read-TrackedProcess $Name
     if ($existing) { Write-Host "$Name already running (PID $($existing.Id))."; return }
     if (!(Test-Path -LiteralPath $Executable)) { throw "Missing $Executable. Build the game services first." }
+    $nodeExecutable = 'C:\ServBay\packages\node\current\node.exe'
+    $pythonExecutable = 'C:\ServBay\packages\python\current\python.exe'
+    if (!(Test-Path -LiteralPath $pythonExecutable)) { throw 'Python is required for maximum-compression log archives.' }
+    $runnerScript = Join-Path $PSScriptRoot 'service-log-runner.mjs'
+    $runnerState = Join-Path $stateRoot "$Name-$([guid]::NewGuid().ToString('N'))-runner.json"
+    $runnerConfig = Join-Path $stateRoot "$Name-runner-config.json"
+    @{
+        name = $Name
+        executable = $Executable
+        args = @($Arguments)
+        cwd = $Directory
+        stateRoot = $stateRoot
+        runnerState = $runnerState
+        python = $pythonExecutable
+        compressor = Join-Path $PSScriptRoot 'compress-log.py'
+    } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $runnerConfig -Encoding utf8
     $processOptions = @{
-        FilePath = $Executable
+        FilePath = $nodeExecutable
+        ArgumentList = @('"' + $runnerScript + '"', '"' + $runnerConfig + '"')
         WorkingDirectory = $Directory
         WindowStyle = 'Hidden'
-        RedirectStandardOutput = Join-Path $stateRoot "$Name.stdout.log"
-        RedirectStandardError = Join-Path $stateRoot "$Name.stderr.log"
         PassThru = $true
     }
-    if ($Arguments.Count) { $processOptions.ArgumentList = $Arguments }
-    $newProcess = Start-Process @processOptions
-    @{ pid = $newProcess.Id; startedTicks = $newProcess.StartTime.ToUniversalTime().Ticks; executable = $Executable } |
+    $runnerProcess = Start-Process @processOptions
+    $newProcess = $null
+    for ($attempt = 0; $attempt -lt 100; $attempt++) {
+        if (Test-Path -LiteralPath $runnerState) {
+            try {
+                $runnerRecord = Get-Content -LiteralPath $runnerState -Raw | ConvertFrom-Json
+                if ($runnerRecord.phase -eq 'failed') { throw $runnerRecord.error }
+                if ($runnerRecord.phase -eq 'running' -and $runnerRecord.childPid) {
+                    $newProcess = Get-Process -Id $runnerRecord.childPid -ErrorAction SilentlyContinue
+                    if ($newProcess) { break }
+                }
+            } catch { if ($runnerRecord.phase -eq 'failed') { throw } }
+        }
+        $runnerProcess.Refresh()
+        if ($runnerProcess.HasExited) { throw "$Name log runner exited. Check $runnerState and .local/$Name.stderr.log." }
+        Start-Sleep -Milliseconds 50
+    }
+    if (!$newProcess) { throw "$Name did not start. Check $runnerState." }
+    @{ pid = $newProcess.Id; startedTicks = $newProcess.StartTime.ToUniversalTime().Ticks; executable = $Executable; runnerPid = $runnerProcess.Id; runnerState = $runnerState } |
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $stateRoot "$Name-process.json")
     Write-Host "Started $Name (PID $($newProcess.Id))."
 }
 
 function Close-GameServices {
     foreach ($serviceName in @('bot', 'linker', 'web')) {
+        $recordPath = Join-Path $stateRoot "$serviceName-process.json"
+        $record = if (Test-Path -LiteralPath $recordPath) { Get-Content -LiteralPath $recordPath -Raw | ConvertFrom-Json } else { $null }
         $trackedProcess = Read-TrackedProcess $serviceName
         if ($trackedProcess) {
             Stop-Process -Id $trackedProcess.Id
             Write-Host "Closed $serviceName."
         }
-        $recordPath = Join-Path $stateRoot "$serviceName-process.json"
+        # The runner must drain both pipes before a replacement opens the logs.
+        # It may remain briefly afterward to finish compressing closed archives.
+        if ($record.runnerState) {
+            $drained = $false
+            for ($attempt = 0; $attempt -lt 100; $attempt++) {
+                if (Test-Path -LiteralPath $record.runnerState) {
+                    try {
+                        $runnerRecord = Get-Content -LiteralPath $record.runnerState -Raw | ConvertFrom-Json
+                        if ($runnerRecord.phase -in @('drained', 'failed')) { $drained = $true; break }
+                    } catch { }
+                }
+                if (!(Get-Process -Id $record.runnerPid -ErrorAction SilentlyContinue)) { $drained = $true; break }
+                Start-Sleep -Milliseconds 50
+            }
+            if (!$drained) { throw "$serviceName is still flushing logs. Run Close again before starting a replacement." }
+        }
         if (Test-Path -LiteralPath $recordPath) { Remove-Item -LiteralPath $recordPath }
     }
     Write-Host 'ServBay, its shared tunnel, and the local database remain running.'
@@ -105,7 +153,7 @@ function Start-GameServices {
         Wait-ForService 'linker' 'http://127.0.0.1:3001/health/ready'
     } else { Write-Host 'Account linker waits for Discord client ID and secret in .env.' }
     if ($config.DISCORD_BOT_TOKEN) {
-        Start-TrackedProcess 'bot' (Join-Path $projectRoot 'target/debug/discord-bot.exe') @() $projectRoot
+        Start-TrackedProcess 'bot' (Join-Path $projectRoot 'target/release/discord-bot.exe') @() $projectRoot
         Start-Sleep -Seconds 2
         if (!(Read-TrackedProcess 'bot')) { throw 'Bot exited. Check .local/bot.stderr.log.' }
     } else { Write-Host 'Discord bot waits for its token in .env.' }

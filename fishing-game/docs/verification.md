@@ -1,5 +1,84 @@
 # Implementation verification — October 3–4, 2026
 
+## US customary measurement displays (October 8)
+
+Discord catches, inventory lengths and species leaderboards, plus website catch
+cards, collection bests, Records and public angler records now show inches and
+avoirdupois ounces/pounds. Length keeps one decimal; weight keeps two decimal
+places in ounces, showing ounces alone below a pound and pounds plus remaining
+ounces above it. Both clients use exact integer conversion and round before
+splitting pounds, preventing a 16-ounce remainder. Stored mm/g values and all
+gameplay rules remain unchanged. Conversion constants were checked against
+[NIST Handbook 44, Appendix C](https://www.nist.gov/system/files/documents/2025/12/30/appc-26-HB44-20251222.pdf).
+
+All eight Discord-bot tests passed, including tiny 1 g catches, the pound boundary,
+exact pound displays and inch rounding. Equivalent TypeScript checks passed.
+Svelte check found zero errors/warnings; the production website and bot builds
+passed. Restarted all local services; the Discord gateway reported ready.
+Playwright verified real public Carp record values at desktop and 390 px phone
+widths, with no horizontal overflow and readable lb/oz labels. Screenshots are
+`output/playwright/us-units-records-desktop.png` and
+`output/playwright/us-units-records-mobile.png`. No real cast was performed.
+
+## Species measurements, catalog 5 (October 8)
+
+Reviewed every supplied sprite and replaced shared family/fallback sizes with
+251 explicit CSV baselines. 249 measurement pairs changed; two reviewed original
+pairs were retained. Rebuilding preserves all stable IDs/names/sprites, biomes,
+encounter tickets, XP, base values, rank prices and exceptional probabilities.
+The eight historical starter definitions no longer override active measurements.
+Rank thresholds remain version 4; game rules remain version 6. New catches use
+catalog version 5, with the existing cubic curve and whole-gram rounding.
+
+Content validation and all 20 game-rule tests passed, including 100 generated
+specimens for every one of the 2,492 legal species/rank combinations. The module
+WASM and generated Rust/TypeScript contracts built; Svelte check had zero errors
+or warnings; the website production build and both native services built.
+
+`scripts/measurements-proof.ts` published a saved v4 production WASM into a fresh
+isolated proof database, created an old catch, additively published v5 and called
+the owner-only activation reducer. It proved 251 updated definitions, preservation
+of 43 other stored tables, unchanged non-measurement species fields, rejected
+non-owner calls, idempotent activation, preservation of the v4 catch and generation
+of a fresh v5 catch. The broader integration proof also passed all 20 checks,
+including native adapter/reconnect, cast replay, sale protection and record updates.
+
+Stopped the local web/linker/bot, saved all 44 non-timer tables, published v5
+additively to the existing live database and activated only measurement metadata.
+`scripts/measurement-preservation.mjs after` confirmed all 251 definitions matched
+the new CSV while all 43 other tables and non-measurement species fields were
+preserved exactly. Restarted services; the Discord gateway reported ready and
+the public homepage/account-link readiness returned 200. Public fresh/reconnect
+subscription and privacy/route checks passed. Existing records are preserved;
+oversized historical catches may therefore remain ahead of the new species limits.
+
+The full table, interpretation of ambiguous species and source calibration are
+documented in [species measurements](species-measurements.md). No real player's
+cast was invoked for verification; migration casts occurred only in proof DBs.
+
+## Discord salvage cards (October 8)
+
+Generated `assets/item-cards/salvage.png` with built-in imagegen using the original
+F-rank frame as the reference. The exact prompt is saved in
+`docs/salvage-card-art-prompt.json`. The Discord renderer places the original tin
+and scrap sprites into its centered safe box; both credential-free previews in
+`output/material-cards` were visually inspected. No rank is assigned to materials.
+
+All six Discord-bot tests passed, including both real material PNGs, preservation
+of every background pixel outside their fitted bounds, missing artwork handling,
+and all 251 fish across all ten rank frames. The asset manifest and website
+production build passed. Gameplay rewards, cooldown and database schemas did not
+change. Rebuilt and restarted the services; the Discord gateway reported ready,
+the public homepage and account-link readiness returned 200, and the public
+1024×1536 salvage PNG matched the local file's SHA-256 hash.
+Bot delivery in a real Discord channel still requires a player cast;
+this verification does not send guild messages or mutate player inventory.
+
+Following the owner's explicit preview request, both material cards were uploaded
+as one bot message to The Magic Tree House's `#fishy-game`. Re-fetching that message
+confirmed both image embeds; the Discord-hosted PNGs matched the renderer output
+by SHA-256. This checks image delivery without executing `/fish` or granting rewards.
+
 ## Licence and bait artwork (October 5)
 
 Generated six licence and five bait icons with the built-in image tool, then
@@ -617,3 +696,64 @@ available. A real-player login/cast/site-update check was requested from the
 owner. Isolated protocol/native proofs and registration checks do not replace
 that acceptance test. No test sent messages to Discord or spent real players'
 coins or fish.
+
+## Discord response performance (2026-10-08)
+
+- Local launchers now run `target/release/discord-bot.exe`; rebuild with
+  `cargo build -p discord-bot --release --locked` after bot/client changes.
+- Bot attachments are 512 × 768 PNGs. Source artwork and full-resolution preview
+  helpers remain unchanged. Pixel comparisons verify the attachment matches
+  nearest-neighbor scaling of the original composed card, including the frame.
+- Artwork cache: at most 64 entries and 32 MiB, least recently used eviction,
+  separate species/rank/material keys, and no cached failures. Tests verify
+  memory/entry limits, reuse, distinct keys, and worker permit cleanup.
+- Credential-free optimized benchmark: rusted tin 530,351 bytes / 66.60 ms cold,
+  scrap 527,137 bytes / 62.35 ms cold, minnow F 447,001 bytes / 42.63 ms cold,
+  ancient sturgeon UUR 681,438 bytes / 48.06 ms cold. Cached copies took
+  0.02–0.03 ms. The prior two-material debug benchmark took about 2,413 ms and
+  produced 1,822,392- and 1,811,958-byte uploads: about 71% fewer bytes now.
+- Original layout tests, attachment/cache tests, and strict bot/client Clippy
+  checks pass. Optimized salvage/F/UUR previews were visually inspected.
+- Timing logs cover acknowledgement, game requests, reply delivery, handler
+  completion/failure, rendering/cache hits, database selection waits and request
+  round trips. These local rendering numbers are not end-to-end Discord timings.
+  Real `/fish` and `/daily` usage will populate delivery measurements; this pass
+  sends no test messages and claims no player rewards.
+
+## Size-based service log rotation (2026-10-08)
+
+- A managed Node log writer caps each active stdout/stderr file at exactly
+  1,000,000,000 bytes, rotates before additional bytes would exceed the limit,
+  and appends across restarts. The launcher continues tracking the actual
+  service PID, with a separate runner PID for pipe draining.
+- Closed logs compress in background Python processes using XZ preset
+  `9 | PRESET_EXTREME` and CRC64. Every decompressed byte is compared with the
+  closed source before it is removed. OS file locks prevent concurrent archive
+  jobs racing; failed/interrupted jobs retain the source for retry on startup.
+- Three isolated Node tests verify exact limits with large UTF-8 writes,
+  byte-identical archive recovery, compression failure preservation and retry,
+  restart appending, and stdout/stderr draining with the actual child PID.
+  Fixtures use 1,024-byte limits rather than allocating 1 GB test files.
+- The exact Restart launcher starts the optimized bot through the runner,
+  preserves previous log contents, reaches Discord readiness, and returns
+  HTTP 200 for both the public site and account-link readiness endpoint.
+
+## Public rod showcase (2026-10-08)
+
+- `/rod [rod_id]` defaults to the caller's equipped rod and permits only an
+  owned rod when an ID is supplied. It renders current quality and effective
+  power, bonus-pull chance, luck and catch-XP bonuses in a public reply, without
+  changing equipment or granting/spending resources.
+- Built-in imagegen created `assets/item-cards/rod.png`; the exact prompt is in
+  `docs/rod-card-art-prompt.json`. Existing rod sprites are alpha-cropped and
+  fitted into the centered display area with quality-colored accents. Source
+  files stay unchanged. Attachments use 512 × 768 PNGs and the bounded cache.
+- Twelve bot tests and strict Clippy pass. Coverage checks placement/aspect for
+  all seven rods, all seven Twig Rod quality variants, preserved header artwork,
+  separate quality cache keys, invalid paths/qualities, and original catch cards.
+  Common/Prismatic Twig and Abyssal previews were visually inspected.
+- The optimized bot was rebuilt and restarted through the managed log runner.
+  Discord's API confirms fourteen global slash commands and `/rod` with an
+  optional integer `rod_id`. Gateway, public site, and linker readiness pass.
+  No test command was sent to a channel in this pass; the owner can now use
+  `/rod` for a live delivery check.

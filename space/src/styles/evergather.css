@@ -1,96 +1,7 @@
-@theme {
-  --font-sans:
-    "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-ui:
-    "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --color-canvas: var(--bg-canvas);
-  --color-canvas-2: var(--bg-canvas-2);
-  --color-surface: var(--bg-surface);
-  --color-surface-2: var(--bg-surface-2);
-  --color-surface-3: var(--bg-surface-3);
-  --color-surface-4: var(--bg-surface-4);
-  --color-border: var(--border-color);
-  --color-border-2: var(--border-color-2);
-  --color-border-3: var(--border-color-3);
-
-  --color-primary: var(--text-primary);
-  --color-primary-2: var(--text-primary-2);
-  --color-muted: var(--text-muted);
-  --color-muted-2: var(--text-muted-2);
-  --color-muted-3: var(--text-muted-3);
-  --color-focus: var(--accent-cyan);
-  --color-focus-2: var(--accent-cyan-2);
-  --color-focus-3: var(--accent-cyan-3);
-  --color-danger: var(--accent-pink);
-  --color-danger-2: var(--accent-pink-2);
-  --color-danger-3: var(--accent-pink-3);
-  --color-success: var(--success);
-  --color-success-2: var(--success-2);
-  --color-overlay: var(--overlay);
-  --color-overlay-2: var(--overlay-2);
-  --color-overlay-3: var(--overlay-3);
-
-  --color-accent-cyan: var(--accent-cyan);
-  --color-accent-pink: var(--accent-pink);
-
-  --color-ink-50: #f5f8fc;
-  --color-ink-100: #e8eef5;
-  --color-ink-200: #d3dde8;
-  --color-ink-300: #b5c3d1;
-  --color-ink-400: #8fa1b3;
-  --color-ink-500: #60748b;
-  --color-ink-600: #3b4e65;
-  --color-ink-700: #28384b;
-  --color-ink-800: #1b2533;
-  --color-ink-900: #141c26;
-  --color-ink-950: #0e131a;
-
-  --color-aqua-50: #faebc8;
-  --color-aqua-500: #d4a44a;
-  --color-aqua-600: #b98531;
-  --color-aqua-700: #8e6324;
-  --color-aqua-800: #69481a;
-  --color-aqua-900: #472d10;
-  --color-aqua-950: #291905;
-
-  --color-magenta-500: #9f63ea;
-  --color-magenta-600: #7b42c8;
-  --color-magenta-700: #5a2f99;
-
-  --color-mint-600: #6fb08d;
-}
-
-/* Space's generic controls live outside Tailwind layers. Restore the original
-   panel utilities here so their size, weight, and padding match ICHAA. */
-.evergather-ui :is(button, input, select, textarea) {
-  font: revert-layer;
-}
-.evergather-ui :is(input, select, textarea) {
-  padding: 8px 12px;
-  border-width: 1px;
-  line-height: revert-layer;
-  color: revert-layer;
-  background: revert-layer;
-}
-.evergather-ui .page-hero__title {
-  font: revert-layer;
-  letter-spacing: revert-layer;
-  margin: revert-layer;
-}
 .evergather-ui > header {
   padding-bottom: 22px;
   margin-bottom: 28px;
   border-bottom: 1px solid var(--border-color);
-}
-.evergather-ui label {
-  display: revert-layer;
-  gap: revert-layer;
-  color: revert-layer;
-  font-size: revert-layer;
 }
 
 @layer components {
@@ -222,9 +133,9 @@
   }
 
   .tag--danger {
-    color: var(--accent-pink);
-    border-color: rgb(var(--accent-pink-rgb) / 0.25);
-    background: rgb(var(--accent-pink-rgb) / 0.09);
+    color: var(--danger);
+    border-color: rgb(var(--danger-rgb) / 0.25);
+    background: rgb(var(--danger-rgb) / 0.09);
   }
 
   .tag--focus {
@@ -260,9 +171,9 @@
 
   .page-hero__title {
     color: var(--text-primary);
-    font-weight: 300;
+    font-weight: 650;
     line-height: 1.04;
-    letter-spacing: 0.01em;
+    letter-spacing: -0.025em;
   }
 
   .page-hero__title--lg {

@@ -377,7 +377,7 @@ function closeOnResize() {
 }
 .sidebar-icon-rail__flyout-links h3 {
   margin: 6px 10px;
-  color: var(--text-secondary);
+  color: var(--text-muted-2);
   font-size: 11px;
   font-weight: 500;
 }

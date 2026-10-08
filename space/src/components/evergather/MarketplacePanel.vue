@@ -130,7 +130,7 @@
                 class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
                 >Item</span
               >
-              <select
+              <SelectInput
                 ref="listingSelect"
                 v-model="listingForm.item_key"
                 :disabled="listingForm.processing"
@@ -145,7 +145,7 @@
                   {{ item.item_name }} ({{ item.quantity }}) ·
                   {{ item.quality }} · {{ item.total_weight }} wt
                 </option>
-              </select>
+              </SelectInput>
             </label>
 
             <label v-else class="grid gap-1">
@@ -153,7 +153,7 @@
                 class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
                 >Tool</span
               >
-              <select
+              <SelectInput
                 ref="listingSelect"
                 v-model.number="listingForm.tool_id"
                 :disabled="listingForm.processing"
@@ -170,7 +170,7 @@
                   }}
                   XP · {{ tool.market_price_band }}
                 </option>
-              </select>
+              </SelectInput>
             </label>
 
             <div class="grid gap-3 sm:grid-cols-2">
@@ -247,7 +247,7 @@
             </div>
           </div>
 
-          <p v-if="listingError" class="mt-3 text-xs text-(--accent-pink)">
+          <p v-if="listingError" class="mt-3 text-xs text-danger">
             {{ listingError }}
           </p>
           <p
@@ -286,7 +286,7 @@
                 class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
                 >Item</span
               >
-              <select
+              <SelectInput
                 ref="vendorSelect"
                 v-model="vendorForm.item_key"
                 :disabled="vendorForm.processing"
@@ -301,7 +301,7 @@
                   {{ item.item_name }} ({{ item.quantity }}) ·
                   {{ item.npc_buy_price }}g each
                 </option>
-              </select>
+              </SelectInput>
             </label>
 
             <label class="grid gap-1">
@@ -342,7 +342,7 @@
             </div>
           </div>
 
-          <p v-if="vendorError" class="mt-3 text-xs text-(--accent-pink)">
+          <p v-if="vendorError" class="mt-3 text-xs text-danger">
             {{ vendorError }}
           </p>
           <p
@@ -563,10 +563,7 @@
         </div>
       </div>
 
-      <p
-        v-if="actionForm.errors.listing"
-        class="mt-4 text-sm text-(--accent-pink)"
-      >
+      <p v-if="actionForm.errors.listing" class="mt-4 text-sm text-danger">
         {{ actionForm.errors.listing }}
       </p>
     </div>
@@ -574,6 +571,7 @@
 </template>
 
 <script setup>
+import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { computed, nextTick, ref, watch } from "vue";
 import { useActionForm } from "../../evergather/useActionForm";
 import { usePersistedPanelState } from "./usePanelState";

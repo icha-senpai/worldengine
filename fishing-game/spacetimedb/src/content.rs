@@ -2,7 +2,7 @@ use crate::tables::*;
 use serde::Deserialize;
 use spacetimedb::{ReducerContext, Table};
 
-pub const CONTENT_VERSION: u32 = 4;
+pub const CONTENT_VERSION: u32 = 5;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Rules {
@@ -66,6 +66,52 @@ struct Rod {
     name: String,
     power: u32,
     minimum_level: u32,
+}
+
+/// Activate only measurement metadata. Existing catches and all economy values
+/// retain their saved snapshots; repeated owner calls produce the same result.
+#[spacetimedb::reducer]
+pub fn activate_species_measurements(ctx: &ReducerContext) -> Result<(), String> {
+    if ctx
+        .db
+        .deployment_owner()
+        .singleton()
+        .find(1)
+        .ok_or("OWNER_REQUIRED")?
+        .identity
+        != ctx.sender()
+    {
+        return Err("OWNER_REQUIRED".into());
+    }
+    let catalog: Catalog = serde_json::from_str(include_str!("../../content/species.json"))
+        .map_err(|_| "CONTENT_UNAVAILABLE")?;
+    if catalog.version != CONTENT_VERSION
+        || catalog.species.len() as u64 != ctx.db.species_definition().count()
+    {
+        return Err("CONTENT_MISMATCH".into());
+    }
+    for species in catalog.species {
+        let mut definition = ctx
+            .db
+            .species_definition()
+            .species_id()
+            .find(species.species_id)
+            .ok_or("CONTENT_MISMATCH")?;
+        if definition.key != species.key
+            || species.typical_length_mm == 0
+            || species.typical_weight_g == 0
+        {
+            return Err("CONTENT_MISMATCH".into());
+        }
+        definition.typical_length_mm = species.typical_length_mm;
+        definition.min_length_mm = species.typical_length_mm * 55 / 100;
+        definition.max_length_mm = species.typical_length_mm * 19 / 10;
+        definition.typical_weight_g = species.typical_weight_g;
+        definition.min_weight_g = (species.typical_weight_g / 8).max(1);
+        definition.max_weight_g = species.typical_weight_g * 8;
+        ctx.db.species_definition().species_id().update(definition);
+    }
+    Ok(())
 }
 
 pub fn seed(ctx: &ReducerContext) {

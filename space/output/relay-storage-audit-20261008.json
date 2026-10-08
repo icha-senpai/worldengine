@@ -1,0 +1,213 @@
+{
+  "sampledAt": "2026-10-08T16:24:17.257Z",
+  "database": "space-bitcraft-tools",
+  "replica": "14000047",
+  "note": "Sequential live reads. Payload bytes are logical UTF-8 text, not native allocation or attributed commitlog bytes. Exact duplicates are compared in memory; hashes and IDs are not exported.",
+  "cache": {
+    "other": {
+      "rows": 5,
+      "payloadBytes": 11235,
+      "largestPayloadBytes": 5284
+    },
+    "regions": {
+      "rows": 1,
+      "payloadBytes": 536,
+      "largestPayloadBytes": 536
+    },
+    "empires": {
+      "rows": 1,
+      "payloadBytes": 100920,
+      "largestPayloadBytes": 100920
+    },
+    "market": {
+      "rows": 2,
+      "payloadBytes": 2499452,
+      "largestPayloadBytes": 2494578
+    }
+  },
+  "feeds": {
+    "relaySkills": {
+      "rows": 1,
+      "payloadBytes": 900,
+      "largestPayloadBytes": 900
+    },
+    "regions": {
+      "rows": 1,
+      "payloadBytes": 536,
+      "largestPayloadBytes": 536
+    },
+    "empires": {
+      "rows": 1,
+      "payloadBytes": 100920,
+      "largestPayloadBytes": 100920
+    },
+    "levels": {
+      "rows": 1,
+      "payloadBytes": 5284,
+      "largestPayloadBytes": 5284
+    },
+    "relayPlayer": {
+      "rows": 1,
+      "payloadBytes": 150,
+      "largestPayloadBytes": 150
+    },
+    "relaySession": {
+      "rows": 1,
+      "payloadBytes": 4446,
+      "largestPayloadBytes": 4446
+    },
+    "relayCrafts": {
+      "rows": 1,
+      "payloadBytes": 183,
+      "largestPayloadBytes": 183
+    }
+  },
+  "entities": {
+    "skill": {
+      "rows": 20,
+      "payloadBytes": 679,
+      "largestPayloadBytes": 36
+    },
+    "player": {
+      "rows": 2,
+      "payloadBytes": 480,
+      "largestPayloadBytes": 330
+    }
+  },
+  "canonicalTrading": {
+    "barter": {
+      "rows": 16887,
+      "payloadBytes": 2978051,
+      "largestPayloadBytes": 260
+    },
+    "native": {
+      "rows": 56194,
+      "payloadBytes": 20558522,
+      "largestPayloadBytes": 378
+    }
+  },
+  "sharedReferences": {
+    "labels": {
+      "rows": 7057,
+      "payloadBytes": 206118,
+      "largestPayloadBytes": 92
+    }
+  },
+  "tradingHeaders": {
+    "marketItems": {
+      "books": {
+        "rows": 9100,
+        "payloadBytes": 2995067,
+        "largestPayloadBytes": 409
+      }
+    },
+    "marketMetadata": {
+      "metadata": {
+        "rows": 9100,
+        "payloadBytes": 2221567,
+        "largestPayloadBytes": 324
+      }
+    },
+    "regionalBooks": {
+      "books": {
+        "rows": 10755,
+        "payloadBytes": 4196200,
+        "largestPayloadBytes": 716
+      }
+    },
+    "barterStalls": {
+      "stalls": {
+        "rows": 1304,
+        "payloadBytes": 561456,
+        "largestPayloadBytes": 475
+      }
+    },
+    "directory": {
+      "directory": {
+        "rows": 2,
+        "payloadBytes": 538,
+        "largestPayloadBytes": 536
+      }
+    },
+    "summaries": {
+      "summaries": {
+        "rows": 19855,
+        "payloadBytes": 8827077,
+        "largestPayloadBytes": 521
+      }
+    }
+  },
+  "xpSamples": {
+    "rows": 190,
+    "payloadBytes": 43498,
+    "largestPayloadBytes": 229
+  },
+  "watches": {
+    "relaySkills": {
+      "active": 1,
+      "expired": 0
+    },
+    "relayPlayer": {
+      "active": 1,
+      "expired": 0
+    },
+    "levels": {
+      "active": 1,
+      "expired": 0
+    },
+    "relaySession": {
+      "active": 1,
+      "expired": 0
+    },
+    "relayCrafts": {
+      "active": 1,
+      "expired": 0
+    }
+  },
+  "feedsExactlyDuplicatedInApiCache": {
+    "regions": {
+      "rows": 1,
+      "payloadBytes": 536,
+      "largestPayloadBytes": 536
+    },
+    "empires": {
+      "rows": 1,
+      "payloadBytes": 100920,
+      "largestPayloadBytes": 100920
+    },
+    "levels": {
+      "rows": 1,
+      "payloadBytes": 5284,
+      "largestPayloadBytes": 5284
+    },
+    "relayPlayer": {
+      "rows": 1,
+      "payloadBytes": 150,
+      "largestPayloadBytes": 150
+    },
+    "relaySession": {
+      "rows": 1,
+      "payloadBytes": 4446,
+      "largestPayloadBytes": 4446
+    },
+    "relayCrafts": {
+      "rows": 1,
+      "payloadBytes": 183,
+      "largestPayloadBytes": 183
+    }
+  },
+  "disk": {
+    "clog": 332225574,
+    "module_logs": 46407,
+    "snapshots": 24549397
+  },
+  "usage": {
+    "activeBytes": 356822588,
+    "retainedBytes": 85486764,
+    "checkpointBytes": 383,
+    "bytes": 442309735,
+    "freeBytes": 106194194432,
+    "targetBytes": 2000000000,
+    "budgetBytes": 3000000000
+  }
+}

@@ -4,7 +4,7 @@
 
     <label>
       <span>Theme</span>
-      <select :value="model.theme" @change="setTheme">
+      <SelectInput :value="model.theme" class="input" @change="setTheme">
         <option
           v-for="theme in bitcraftWidgetThemes"
           :key="theme.key"
@@ -12,60 +12,15 @@
         >
           {{ theme.label }}
         </option>
-      </select>
+      </SelectInput>
     </label>
 
-    <label>
-      <span>Accent</span>
-      <input
-        :value="model.accentColor"
-        type="color"
-        @input="set('accentColor', $event.target.value)"
-      />
-    </label>
-
-    <label>
-      <span>Highlight</span>
-      <input
-        :value="model.highlightColor"
-        type="color"
-        @input="set('highlightColor', $event.target.value)"
-      />
-    </label>
-
-    <label>
-      <span>Panel</span>
-      <input
-        :value="model.panelColor"
-        type="color"
-        @input="set('panelColor', $event.target.value)"
-      />
-    </label>
-
-    <label>
-      <span>Text</span>
-      <input
-        :value="model.textColor"
-        type="color"
-        @input="set('textColor', $event.target.value)"
-      />
-    </label>
-
-    <label>
-      <span>Muted</span>
-      <input
-        :value="model.mutedColor"
-        type="color"
-        @input="set('mutedColor', $event.target.value)"
-      />
-    </label>
-
-    <label>
-      <span>Border</span>
-      <input
-        :value="model.borderColor"
-        type="color"
-        @input="set('borderColor', $event.target.value)"
+    <label v-for="field in colorFields" :key="field.key">
+      <span>{{ field.label }}</span>
+      <ColorInput
+        :model-value="model[field.key]"
+        :label="field.label"
+        @update:model-value="set(field.key, $event)"
       />
     </label>
 
@@ -120,6 +75,8 @@
 </template>
 
 <script setup>
+import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
+import ColorInput from "../shared/ColorInput.vue";
 import { applyWidgetThemePreset, bitcraftWidgetThemes } from "../widgetTheme";
 
 const props = defineProps({
@@ -127,6 +84,15 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update"]);
+
+const colorFields = [
+  { key: "accentColor", label: "Accent" },
+  { key: "highlightColor", label: "Highlight" },
+  { key: "panelColor", label: "Panel" },
+  { key: "textColor", label: "Text" },
+  { key: "mutedColor", label: "Muted" },
+  { key: "borderColor", label: "Border" },
+];
 
 const set = (key, value) => {
   emit("update", { [key]: value });
@@ -162,6 +128,7 @@ const setTheme = (event) => {
 .bitcraft-widget-theme label {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .bitcraft-widget-theme span {
@@ -173,17 +140,13 @@ const setTheme = (event) => {
 
 .bitcraft-widget-theme input,
 .bitcraft-widget-theme select {
+  width: 100%;
   min-height: 36px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: var(--bg-canvas);
+  background-color: var(--bg-canvas);
   color: var(--text-primary);
   font-size: 13px;
-}
-
-.bitcraft-widget-theme input[type="color"] {
-  width: 100%;
-  padding: 3px;
 }
 
 @media (max-width: 720px) {

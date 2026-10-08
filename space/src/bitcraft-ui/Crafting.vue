@@ -38,6 +38,21 @@
           searching ? "Searching..." : "Search"
         }}</AppButton>
       </div>
+      <div class="mt-3 flex flex-wrap gap-3">
+        <label class="field-label"
+          ><input v-model="form.includeHousing" type="checkbox" /> Include
+          housing stock</label
+        >
+        <label class="field-label"
+          >Shared claim stock
+          <TextInput
+            v-model.trim="form.storageClaimId"
+            inputmode="numeric"
+            maxlength="24"
+            placeholder="Optional claim ID"
+          />
+        </label>
+      </div>
     </form>
 
     <div
@@ -180,6 +195,7 @@
                 :recipes="detail.recipeTree"
                 :desired-quantity="desiredQuantity"
                 :storage-key="recipeStorageKey"
+                :inventory="inventory"
               />
             </div>
           </div>
@@ -219,11 +235,14 @@ const props = defineProps({
   detail: { type: Object, default: null },
   snapshot: { type: Object, default: () => ({}) },
   error: { type: String, default: null },
+  inventory: { type: Object, default: null },
 });
 
 const form = reactive({
   q: props.filters.q ?? "",
   quantity: props.filters.quantity ?? 1,
+  includeHousing: [true, "true", "1"].includes(props.filters.includeHousing),
+  storageClaimId: props.filters.storageClaimId ?? "",
 });
 const brokenIconAssets = ref(new Set());
 const searching = ref(false);
@@ -233,6 +252,8 @@ watch(
   (filters) => {
     form.q = filters.q ?? "";
     form.quantity = filters.quantity ?? 1;
+    form.includeHousing = [true, "true", "1"].includes(filters.includeHousing);
+    form.storageClaimId = filters.storageClaimId ?? "";
   },
 );
 
@@ -275,7 +296,10 @@ const snapshotLabel = computed(() => {
 });
 
 const searchParams = () => {
-  const params = {};
+  const params = {
+    includeHousing: form.includeHousing ? "1" : undefined,
+    storageClaimId: form.storageClaimId || undefined,
+  };
 
   if (form.q) {
     params.q = form.q;
@@ -308,6 +332,8 @@ const submit = () => {
 
 const selectedParams = (item) => {
   const params = {
+    includeHousing: form.includeHousing ? "1" : undefined,
+    storageClaimId: form.storageClaimId || undefined,
     q: form.q,
     itemId: item.id,
     itemKind: item.kind,

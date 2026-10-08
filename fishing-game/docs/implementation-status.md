@@ -4,7 +4,7 @@ The owner authorized autonomous implementation after rereading the specification
 and project docs, then explicitly requested all fish and all biomes. All 251 species
 and seven biomes are implemented with level cap 60 and optional purchased rods.
 The website and account-link service are exposed through ServBay/Cloudflare at
-https://fish.ichaa.dev. The bot connects to Discord; all thirteen commands are
+https://fish.ichaa.dev. The bot connects to Discord; all fourteen commands are
 registered globally; matching legacy server copies are removed on startup; the public OAuth callback is registered.
 
 ## Settled decisions
@@ -43,7 +43,10 @@ and saved catches show their length/weight relative to the species typical size.
 
 Browser dashboard, catalog, collection, favorites, bounded sale quotes and
 confirmation, unlinking, token persistence, reconnect, and subscription refresh.
-Poise handlers for /fish, /daily, /profile, /inventory, /collection, /biome, /gear, /shop, /bait, /upgrade, /help.
+Poise handlers for /fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /upgrade, /help.
+`/rod` shares a public card for an equipped or selected owned rod, including quality
+and effective bonuses. Its original rod sprite fits an imagegen-created display
+frame; quality accents, half-size PNGs and the bounded cache are applied at runtime.
 /daily uses private durable stamps and eligibility, an atomic wallet/ledger grant,
 selected-adapter receipts, and recovery after reconnect. Replies are ephemeral;
 already-claimed requests show the next reset without changing any fishing stats.
@@ -75,8 +78,10 @@ IDs, display names, lifetime totals, and discovery dates; private data stays sco
 Server catch transactions refresh both current and displaced record holders.
 Existing players were backfilled from durable progress, including sold catches.
 /fish defers before the database operation and renders a saved receipt with
-up to two combined fish-on-rarity-card PNGs, one per saved fish. Transparent sprite margins are cropped;
-the visible fish fits a centered box without stretching or covering rank labels.
+up to two reward PNGs: fish use their saved rarity card; rusted tin and treasure
+scrap use the original item sprites on a matching salvage frame. Transparent
+sprite margins are cropped; each sprite fits a centered box without stretching
+or covering labels. Embed quantities, coins and XP come from the saved receipts.
 PNG work runs on two bounded background workers; missing artwork, queue timeout,
 or upload failure falls back to the committed text result. /profile shows the caller or a safe public profile by game player ID.
 
@@ -101,13 +106,15 @@ No sibling application's server or data was changed.
 ## Remaining boundaries
 
 - Discord credentials were supplied and the bot reached Gateway readiness.
-  Discord's API confirms the public OAuth callback and all thirteen global commands.
+  Discord's API confirms the public OAuth callback and all fourteen global commands.
   Live command delivery/deferral, attachment rendering, OAuth
   consent/callback, and credential rotation remain unverified against Discord.
 - Release/salvage,
   privacy preferences, administrative correction/restore tooling, and full V1 economy
   are later milestones from the specification.
-- All species measurements, economy values, and 20 first-discovery XP are prototype tuning.
+- Catalog 5 uses 251 explicit species measurement baselines, with individual
+  fantasy-creature sizes and no generic fallback. Economy values and 20
+  first-discovery XP remain prototype tuning. See species-measurements.md.
   Current pools pass 1.4 million seeded casts plus exact exceptional probability checks.
   Real-player progression/economy pacing still needs launch tuning.
 - Long-duration seven/thirty-day retention and backup restoration still need staging proof.

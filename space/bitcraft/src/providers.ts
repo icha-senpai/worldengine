@@ -50,7 +50,7 @@ export const providerDefaults: Record<ProviderName, ProviderConfig> = {
     },
   },
   bitjuice: {
-    enabled: true,
+    enabled: false,
     baseUrl: "https://bitjuiceapi.deeznuts.chat",
     timeout: 5,
     requestsPerMinute: 200,
@@ -73,7 +73,19 @@ export const providerDefaults: Record<ProviderName, ProviderConfig> = {
     appIdentifier: "",
     identity: "",
     token: "",
-    ttl: { players: 5, player: 5, inventories: 5, crafts: 5, claim: 5 },
+    ttl: {
+      players: 5,
+      player: 5,
+      skills: 10,
+      inventories: 15,
+      housing: 60,
+      crafts: 15,
+      claim: 60,
+      claimInventory: 30,
+      members: 300,
+      session: 2,
+      deposits: 60,
+    },
   },
 };
 export function providerConfig(name: string, input: string): ProviderConfig {
@@ -142,11 +154,7 @@ export function providerConfig(name: string, input: string): ProviderConfig {
 }
 export function providerOrder(resource: string): ProviderName[] {
   if (resource.startsWith("relay")) return ["relay"];
-  return ["players", "player", "inventories", "passive", "crafts"].includes(
-    resource,
-  )
-    ? ["bitjuice", "bitjita"]
-    : ["bitjita"];
+  return ["bitjita"];
 }
 export function relayRequest(resource: string, id: string, query: string) {
   const names: Record<string, string> = {
@@ -155,6 +163,13 @@ export function relayRequest(resource: string, id: string, query: string) {
     relayInventories: "inventories",
     relayCrafts: "crafts",
     relayClaim: "claim",
+    relaySkills: "skills",
+    relayHousing: "housing",
+    relaySession: "session",
+    relayClaimInventory: "claimInventory",
+    relayClaimMembers: "members",
+    relayClaimCrafts: "claimCrafts",
+    relayNearby: "nearby",
   };
   const kind = names[resource];
   if (
@@ -169,6 +184,13 @@ export function relayRequest(resource: string, id: string, query: string) {
     inventories: `player/${id}/inventory`,
     crafts: `player/${id}/crafts?completed=false`,
     claim: `claim/${id}`,
+    skills: `player/${id}/skills`,
+    housing: `player/${id}/housing`,
+    session: `bitme/session/${id}`,
+    claimInventory: `claim/${id}/inventory`,
+    members: `claim/${id}/members`,
+    claimCrafts: `claim/${id}/crafts?completed=false`,
+    nearby: `bitme/session/${id}/resources`,
   };
   return { path: paths[kind], kind };
 }
@@ -184,6 +206,21 @@ export function validProviderPayload(
       return false;
     if (kind === "inventories" || kind === "crafts")
       return Array.isArray((payload as any)[kind]);
+    if (kind === "skills")
+      return (
+        Array.isArray((payload as any).skills) &&
+        (!id || String((payload as any).player?.entity_id) === id)
+      );
+    if (kind === "claimCrafts") return Array.isArray((payload as any).crafts);
+    if (kind === "session")
+      return (
+        (payload as any).found === true &&
+        (!id || String((payload as any).player_entity_id) === id)
+      );
+    if (kind === "housing") return Array.isArray((payload as any).buildings);
+    if (kind === "claimInventory")
+      return Array.isArray((payload as any).dimensions);
+    if (kind === "members") return Array.isArray((payload as any).members);
     return Boolean((payload as any).entity_id ?? (payload as any).entityId);
   }
   const body = (payload as any)?.data ?? payload;

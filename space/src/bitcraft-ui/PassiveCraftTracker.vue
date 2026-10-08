@@ -33,7 +33,11 @@
             <div class="passive-craft-emoji-picker">
               <span>Emojis</span>
               <div class="passive-craft-emoji-picker__controls">
-                <select v-model="emojiChoice" @change="addEmojiChoice">
+                <SelectInput
+                  v-model="emojiChoice"
+                  aria-label="Add emoji"
+                  @change="addEmojiChoice"
+                >
                   <option value="">Add emoji...</option>
                   <option
                     v-for="option in emojiOptions"
@@ -42,7 +46,7 @@
                   >
                     {{ option.label }}
                   </option>
-                </select>
+                </SelectInput>
                 <button
                   v-if="selectedEmojiList.length"
                   type="button"
@@ -152,6 +156,7 @@
 </template>
 
 <script setup>
+import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
 import { openWidget } from "./widgets";
@@ -858,9 +863,9 @@ onBeforeUnmount(() => {
 }
 
 .passive-craft-widget__error {
-  border: 1px solid rgb(var(--accent-pink-rgb) / 0.42);
-  background: rgb(var(--accent-pink-rgb) / 0.1);
-  color: var(--accent-pink);
+  border: 1px solid rgb(var(--danger-rgb) / 0.42);
+  background: rgb(var(--danger-rgb) / 0.1);
+  color: var(--danger);
 }
 
 @media (max-width: 680px) {

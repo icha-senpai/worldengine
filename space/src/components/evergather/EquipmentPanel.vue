@@ -403,16 +403,16 @@
 
       <p
         v-if="rarityForm.errors.slot"
-        class="mt-4 text-sm text-(--accent-pink)"
+        class="mt-4 text-sm text-danger"
       >
         {{ rarityForm.errors.slot }}
       </p>
-      <p v-if="tierForm.errors.slot" class="mt-2 text-sm text-(--accent-pink)">
+      <p v-if="tierForm.errors.slot" class="mt-2 text-sm text-danger">
         {{ tierForm.errors.slot }}
       </p>
       <p
         v-if="inventoryForm.errors.slot || inventoryForm.errors.tool_id"
-        class="mt-2 text-sm text-(--accent-pink)"
+        class="mt-2 text-sm text-danger"
       >
         {{ inventoryForm.errors.slot ?? inventoryForm.errors.tool_id }}
       </p>

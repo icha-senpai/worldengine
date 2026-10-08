@@ -25,17 +25,30 @@ export async function saveWidget(kind, settings, token) {
   localStorage.setItem(storageKey, token);
   return token;
 }
-export function openWidget(url) {
-  const tab = window.open("about:blank", "_blank");
+export async function widgetUrl(url) {
+  const next = new URL(url, location.origin),
+    kind = widgetKind(next.pathname);
+  const token = await saveWidget(kind, Object.fromEntries(next.searchParams));
+  return `${next.origin}${next.pathname}?profile=${encodeURIComponent(token)}&presentation=${encodeURIComponent(next.searchParams.get("presentation") || "obs")}`;
+}
+export function openWidget(url, { popup = false } = {}) {
+  const tab = window.open(
+    "about:blank",
+    "_blank",
+    popup
+      ? "popup=yes,width=430,height=760,resizable=yes,scrollbars=yes"
+      : undefined,
+  );
   if (!tab) return;
   tab.opener = null;
   const next = new URL(url, location.origin),
     kind = widgetKind(next.pathname);
-  saveWidget(kind, Object.fromEntries(next.searchParams))
-    .then((token) => {
-      tab.location.href = `${next.origin}${next.pathname}?profile=${encodeURIComponent(token)}`;
+  widgetUrl(next.href)
+    .then((href) => {
+      tab.location.href = href;
     })
     .catch(() => {
       tab.location.href = next.href;
     });
+  return tab;
 }

@@ -37,6 +37,7 @@ import {
 import ActivateAchievementsReducer from "./activate_achievements_reducer";
 import ActivateCraftingReducer from "./activate_crafting_reducer";
 import ActivateRodBonusesReducer from "./activate_rod_bonuses_reducer";
+import ActivateSpeciesMeasurementsReducer from "./activate_species_measurements_reducer";
 import ActivateTraderReducer from "./activate_trader_reducer";
 import BackfillPlayerAchievementsReducer from "./backfill_player_achievements_reducer";
 import BeginLinkChallengeReducer from "./begin_link_challenge_reducer";
@@ -558,6 +559,7 @@ const reducersSchema = __reducers(
   __reducerSchema("activate_achievements", ActivateAchievementsReducer),
   __reducerSchema("activate_crafting", ActivateCraftingReducer),
   __reducerSchema("activate_rod_bonuses", ActivateRodBonusesReducer),
+  __reducerSchema("activate_species_measurements", ActivateSpeciesMeasurementsReducer),
   __reducerSchema("activate_trader", ActivateTraderReducer),
   __reducerSchema("backfill_player_achievements", BackfillPlayerAchievementsReducer),
   __reducerSchema("begin_link_challenge", BeginLinkChallengeReducer),

@@ -6,9 +6,9 @@ use module_bindings::*;
 use spacetimedb_sdk::{DbContext, Table};
 use std::{
     sync::{Arc, Mutex as StdMutex},
-    time::Duration,
+    time::{Duration, Instant},
 };
-use tokio::sync::{Mutex, oneshot};
+use tokio::sync::{Mutex, MutexGuard, oneshot};
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub fn service_token(name: &str) -> Result<String, Error> {
@@ -34,8 +34,18 @@ fn send_once(sender: &Arc<StdMutex<Option<oneshot::Sender<Reply>>>>, result: Rep
     }
 }
 async fn receive(receiver: oneshot::Receiver<Reply>) -> Result<(), Error> {
-    tokio::time::timeout(Duration::from_secs(12), receiver).await???;
-    Ok(())
+    let started = Instant::now();
+    let outcome: Result<(), Error> = async {
+        tokio::time::timeout(Duration::from_secs(12), receiver).await???;
+        Ok(())
+    }
+    .await;
+    tracing::info!(
+        elapsed_ms = started.elapsed().as_millis() as u64,
+        success = outcome.is_ok(),
+        "Database request timing"
+    );
+    outcome
 }
 fn complete<E: std::fmt::Display>(
     sender: oneshot::Sender<Reply>,
@@ -84,6 +94,17 @@ pub struct Snapshot {
 }
 
 impl Client {
+    async fn selection_guard(&self) -> Result<MutexGuard<'_, ()>, Error> {
+        let started = Instant::now();
+        let outcome = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await;
+        tracing::info!(
+            elapsed_ms = started.elapsed().as_millis() as u64,
+            success = outcome.is_ok(),
+            "Database selection queue timing"
+        );
+        Ok(outcome?)
+    }
+
     pub async fn connect(
         uri: &str,
         database: &str,
@@ -156,7 +177,7 @@ impl Client {
         Ok(connection)
     }
     pub async fn reconnect(&self) -> Result<(), Error> {
-        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        let _guard = self.selection_guard().await?;
         self.active_connection().await?;
         Ok(())
     }
@@ -193,7 +214,7 @@ impl Client {
         channel_id: u64,
         cast: bool,
     ) -> Result<Snapshot, Error> {
-        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        let _guard = self.selection_guard().await?;
         for attempt in 0..2 {
             let connection = self.active_connection().await?;
             let result = Self::player_once(
@@ -221,7 +242,7 @@ impl Client {
         guild_id: Option<u64>,
         channel_id: u64,
     ) -> Result<DailyReceipt, Error> {
-        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        let _guard = self.selection_guard().await?;
         for attempt in 0..2 {
             let connection = self.active_connection().await?;
             let result = async {
@@ -273,7 +294,7 @@ impl Client {
         listing_id: Option<u32>,
         nonce: Option<u128>,
     ) -> Result<ShopQuote, Error> {
-        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        let _guard = self.selection_guard().await?;
         for attempt in 0..2 {
             let connection = self.active_connection().await?;
             let result = async {
@@ -329,7 +350,7 @@ impl Client {
         catch_ids: Option<Vec<u64>>,
         nonce: Option<u128>,
     ) -> Result<SaleQuote, Error> {
-        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        let _guard = self.selection_guard().await?;
         for attempt in 0..2 {
             let connection = self.active_connection().await?;
             let result = async {
@@ -385,7 +406,7 @@ impl Client {
         biome_id: Option<u32>,
         rod_id: Option<u32>,
     ) -> Result<Snapshot, Error> {
-        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        let _guard = self.selection_guard().await?;
         let connection = self.active_connection().await?;
         Self::player_once(
             &connection,
@@ -425,7 +446,7 @@ impl Client {
         interaction_id: u64,
         bait_id: u32,
     ) -> Result<Snapshot, Error> {
-        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        let _guard = self.selection_guard().await?;
         let connection = self.active_connection().await?;
         Self::player_once(
             &connection,
@@ -465,7 +486,7 @@ impl Client {
         rod_id: Option<u32>,
         nonce: Option<u128>,
     ) -> Result<UpgradeQuote, Error> {
-        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        let _guard = self.selection_guard().await?;
         for attempt in 0..2 {
             let connection = self.active_connection().await?;
             let result = async {
@@ -595,7 +616,7 @@ impl Client {
         discord_user_id: u64,
         proof: u128,
     ) -> Result<(), Error> {
-        let _guard = tokio::time::timeout(Duration::from_secs(8), self.selection.lock()).await?;
+        let _guard = self.selection_guard().await?;
         for attempt in 0..2 {
             let connection = self.active_connection().await?;
             let result = async {

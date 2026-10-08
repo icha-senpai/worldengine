@@ -11,6 +11,10 @@ connects. Command delivery and the complete OAuth login still need live verifica
 - Every ordinary species supports F through UUR; Fihs only UUR and the Sock only F.
 - Rank comes from species-relative length and weight; both must meet the tier minimums.
 - Saved catch ranks drive XP, sale value, rank artwork, and collection rank progress.
+  Player-facing measurements use inches and pounds/ounces throughout Discord and the website.
+  All 251 species have explicit length/weight baselines in
+  [species-measurements.csv](content/species-measurements.csv); see
+  [measurement design and calibration](docs/species-measurements.md).
 - Level cap 60; free Twig Rod and six purchased rod families; authoritative biome/equipment selection.
 - Server RNG, fixed-point lengths/weights, XP and first discoveries, global 60-second cooldown.
 - Private accounts and inventory, scoped subscriptions, durable cast results, safe retries.
@@ -22,8 +26,10 @@ connects. Command delivery and the complete OAuth login still need live verifica
   and length/weight records that survive disposal.
 - One game shell with Camp, Tackle box, Collection, Journal, World map, Records,
   Trader, Compendium, Achievements and Anglers tabs. Lists have book pages: twelve entries on desktop and four on phones.
-- Thirteen Poise handlers: /fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /shop, /bait, /upgrade, /help.
+- Fourteen Poise handlers: /fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /upgrade, /help.
   Fish responses attach a rarity-card PNG for each saved fish, including bonus pulls.
+  Rusted tin and treasure scrap pulls attach their original sprites on a matching salvage card.
+  `/rod` publicly showcases an owned rod with a generated display card, its quality, and effective bonuses.
   Visible artwork is fitted proportionally, with crisp pixel scaling and clear rank labels.
 - Eighteen permanent cosmetic badges and selectable titles, with retroactive progress.
 - Public angler search/profiles and paged Discord standings; confirmed Discord sales protect favorites.
@@ -60,6 +66,10 @@ From this directory, run npm ci, then npm run dev. Without database settings,
 the site shows the welcome screen and full catalog. See [setup](docs/setup.md)
 for local publication, service-role bootstrap, and credential configuration.
 
+The desktop service launchers run the optimized Discord bot. After bot or shared
+client changes, build it with `cargo build -p discord-bot --release --locked`
+before restarting with `./scripts/local-services.ps1 -Action Restart`.
+
     npm run content:validate
     npm run check
     npm run build
@@ -81,6 +91,11 @@ Preview the exact Discord card renderer without credentials:
     cargo run -p discord-bot --example render-catch-cards --locked
 
 This writes ten example cards and a contact sheet to ignored output/catch-cards.
+
+Preview rusted tin and scrap with `cargo run -p discord-bot --example render-material-cards --locked`.
+The PNGs are saved to ignored `output/material-cards`. The generated frame and its
+built-in imagegen prompt are in `assets/item-cards/salvage.png` and
+`docs/salvage-card-art-prompt.json`.
 
 For the configured public site and double-click start/close/restart launchers,
 see [ServBay hosting](docs/servbay-hosting.md). Register the public OAuth callback

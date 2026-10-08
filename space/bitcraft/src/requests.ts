@@ -27,6 +27,10 @@ export function upstreamRequest(
     cargoItem: () => `api/cargo/${numeric()}`,
     itemOrders: () => `api/market/item/${numeric()}`,
     cargoOrders: () => `api/market/cargo/${numeric()}`,
+    itemPriceHistory: () => `api/market/items/${numeric()}/price-history`,
+    cargoPriceHistory: () => `api/market/cargo/${numeric()}/price-history`,
+    playerTrades: () => `api/market/player/${numeric()}/trades`,
+    storageLogs: () => `api/logs/storage`,
     stalls: () => "api/stalls",
     claims: () => "api/claims",
     regions: () => "api/regions",
@@ -40,6 +44,11 @@ export function upstreamRequest(
   if (!paths[resource]) throw new Error("Unknown data request.");
   const path = paths[resource]();
   const params: Array<[string, string]> = [];
+  if (resource.endsWith("PriceHistory"))
+    params.push(["bucket", "1 hour"], ["limit", "48"]);
+  if (resource === "playerTrades") params.push(["limit", "50"]);
+  if (resource === "storageLogs")
+    params.push(["playerEntityId", numeric()], ["limit", "50"]);
   if (query.trim()) params.push(["q", query.trim()]);
   const allowed: Record<string, string[]> = {
     market: [
@@ -52,6 +61,8 @@ export function upstreamRequest(
     ],
     itemOrders: ["claimEntityId", "regionId"],
     cargoOrders: ["claimEntityId", "regionId"],
+    itemPriceHistory: ["regionId"],
+    cargoPriceHistory: ["regionId"],
     claims: ["regionId"],
     claimListings: ["itemId", "itemType", "side"],
     stalls: ["itemId", "itemType", "claimEntityId", "regionId"],

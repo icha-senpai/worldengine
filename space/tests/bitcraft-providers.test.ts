@@ -22,7 +22,7 @@ describe("BitCraft provider and publishing rules", () => {
     expect(retryAfterSeconds("invalid", 100)).toBe(60);
   });
   it("uses primary player details and separates relay paths from API paths", () => {
-    expect(providerOrder("player")).toEqual(["bitjuice", "bitjita"]);
+    expect(providerOrder("player")).toEqual(["bitjita"]);
     expect(providerOrder("market")).toEqual(["bitjita"]);
     expect(providerOrder("relayInventories")).toEqual(["relay"]);
     expect(relayRequest("relayPlayers", "", "Icha & test").path).toBe(

@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "database": "space-bitcraft-tools",
+  "rebuildAndVerificationSeconds": 38.929,
+  "guides": 19,
+  "widgets": 8,
+  "xpSamples": 187,
+  "marketItems": 9100,
+  "nativeOrders": 56193,
+  "barterOrders": 16887,
+  "barterStalls": 1304,
+  "retainedRegions": 9,
+  "usage": {
+    "activeBytes": 165983496,
+    "retainedBytes": 85479529,
+    "checkpointBytes": 383,
+    "bytes": 251463408,
+    "freeBytes": 106602127360,
+    "targetBytes": 2000000000,
+    "budgetBytes": 3000000000
+  }
+}

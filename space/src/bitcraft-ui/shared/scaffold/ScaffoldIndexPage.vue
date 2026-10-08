@@ -97,7 +97,7 @@
             emptyCtaHref && emptyCtaHref === createHref && createCloseHref,
           )
         "
-        class="text-cyan text-sm font-ui uppercase tracking-[0.12em] hover:underline"
+        class="text-focus text-sm font-ui uppercase tracking-[0.12em] hover:underline"
       >
         {{ emptyCtaLabel }}
       </DrawerLink>

@@ -6,15 +6,43 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AuthorizeCollectorReducer from "../authorize_collector_reducer";
+import CollectionFailureReducer from "../collection_failure_reducer";
+import CollectorHeartbeatReducer from "../collector_heartbeat_reducer";
 import ConfigureProviderReducer from "../configure_provider_reducer";
 import GrantGuideAdministratorReducer from "../grant_guide_administrator_reducer";
+import IngestCollectionReducer from "../ingest_collection_reducer";
+import IngestMarketBookReducer from "../ingest_market_book_reducer";
+import IngestMarketDirectoryReducer from "../ingest_market_directory_reducer";
+import IngestRelayTradingReducer from "../ingest_relay_trading_reducer";
+import MarketRefreshFailureReducer from "../market_refresh_failure_reducer";
 import MigrateGuidesReducer from "../migrate_guides_reducer";
+import RelayHeartbeatReducer from "../relay_heartbeat_reducer";
+import RequestMarketRefreshReducer from "../request_market_refresh_reducer";
+import RestoreAppStateReducer from "../restore_app_state_reducer";
+import RestoreMarketCheckpointReducer from "../restore_market_checkpoint_reducer";
 import SaveGuideReducer from "../save_guide_reducer";
 import SaveWidgetReducer from "../save_widget_reducer";
+import StorageLeaseReducer from "../storage_lease_reducer";
+import TouchCollectionReducer from "../touch_collection_reducer";
 
+export type AuthorizeCollectorParams = __Infer<typeof AuthorizeCollectorReducer>;
+export type CollectionFailureParams = __Infer<typeof CollectionFailureReducer>;
+export type CollectorHeartbeatParams = __Infer<typeof CollectorHeartbeatReducer>;
 export type ConfigureProviderParams = __Infer<typeof ConfigureProviderReducer>;
 export type GrantGuideAdministratorParams = __Infer<typeof GrantGuideAdministratorReducer>;
+export type IngestCollectionParams = __Infer<typeof IngestCollectionReducer>;
+export type IngestMarketBookParams = __Infer<typeof IngestMarketBookReducer>;
+export type IngestMarketDirectoryParams = __Infer<typeof IngestMarketDirectoryReducer>;
+export type IngestRelayTradingParams = __Infer<typeof IngestRelayTradingReducer>;
+export type MarketRefreshFailureParams = __Infer<typeof MarketRefreshFailureReducer>;
 export type MigrateGuidesParams = __Infer<typeof MigrateGuidesReducer>;
+export type RelayHeartbeatParams = __Infer<typeof RelayHeartbeatReducer>;
+export type RequestMarketRefreshParams = __Infer<typeof RequestMarketRefreshReducer>;
+export type RestoreAppStateParams = __Infer<typeof RestoreAppStateReducer>;
+export type RestoreMarketCheckpointParams = __Infer<typeof RestoreMarketCheckpointReducer>;
 export type SaveGuideParams = __Infer<typeof SaveGuideReducer>;
 export type SaveWidgetParams = __Infer<typeof SaveWidgetReducer>;
+export type StorageLeaseParams = __Infer<typeof StorageLeaseReducer>;
+export type TouchCollectionParams = __Infer<typeof TouchCollectionReducer>;
 

@@ -191,7 +191,7 @@ function save() {
             <input
               v-model="form.is_published"
               type="checkbox"
-              class="rounded border-border text-cyan focus:ring-cyan"
+              class="rounded border-border text-focus focus:ring-focus"
               :disabled="form.processing"
             />
             Published
