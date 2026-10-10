@@ -1,0 +1,44 @@
+{
+  "at": "2026-10-10T04:36:47.040Z",
+  "audit": "output/collector-code-audit-20261009.json",
+  "addressedFindings": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "A6",
+    "A7",
+    "A8"
+  ],
+  "additionalFixes": [
+    "transport ping/pong health",
+    "authorization CLI timeout",
+    "transient replica ENOENT handling",
+    "bounded expired SDK calls",
+    "close old player sockets before new discovery",
+    "incremental memory accounting"
+  ],
+  "tests": {
+    "focused": 34,
+    "typecheck": "passed",
+    "supervisorRecovery": "passed including failed preflight",
+    "storageGuards": "passed"
+  },
+  "live": {
+    "pid": 35256,
+    "node": "v24.15.0",
+    "observedSameWorkerSeconds": 70,
+    "readyRegions": 9,
+    "barterStalls": 1304,
+    "heapUsedBytes": 360075616,
+    "rssBytes": 564248576
+  },
+  "storage": {
+    "mainManagedBytes": 990600250,
+    "testManagedBytes": 934333959,
+    "targetBytes": 2000000000,
+    "budgetBytes": 3000000000
+  },
+  "limitation": "The audited defects are repaired. A 70-second smoke observation does not prove that the prior recurring native 0xC0000409 crash is eliminated. Crash diagnostics and supervision remain enabled."
+}

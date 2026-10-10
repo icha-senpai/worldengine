@@ -17,4 +17,5 @@ export default __t.row({
   resourceItem: __t.string().name("resource_item"),
   usesPerPurchase: __t.u64().name("uses_per_purchase"),
   spriteAsset: __t.string().name("sprite_asset"),
+  xpBonusBp: __t.u32().name("xp_bonus_bp"),
 });

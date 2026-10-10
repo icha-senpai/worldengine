@@ -28,6 +28,7 @@ struct Bait {
     resource_item: String,
     uses_per_purchase: u64,
     sprite_asset: String,
+    xp_bonus_bp: u32,
 }
 
 #[spacetimedb::view(accessor=adapter_items,public)]
@@ -71,6 +72,7 @@ pub fn seed(ctx: &ReducerContext) {
             resource_item: b.resource_item,
             uses_per_purchase: b.uses_per_purchase,
             sprite_asset: b.sprite_asset,
+            xp_bonus_bp: b.xp_bonus_bp,
         };
         if ctx
             .db
@@ -187,6 +189,7 @@ pub fn equip_bait_from_discord(
 pub struct UsedBait {
     pub bait_id: u32,
     pub luck_bp: u32,
+    pub xp_bonus_bp: u32,
     pub resource_item: String,
     pub uses_left: u64,
 }
@@ -201,6 +204,7 @@ pub fn consume_bait(ctx: &ReducerContext, player_id: u64) -> Result<UsedBait, St
         return Ok(UsedBait {
             bait_id: 0,
             luck_bp: 0,
+            xp_bonus_bp: 0,
             resource_item: String::new(),
             uses_left: 0,
         });
@@ -235,6 +239,7 @@ pub fn consume_bait(ctx: &ReducerContext, player_id: u64) -> Result<UsedBait, St
     Ok(UsedBait {
         bait_id,
         luck_bp: bait.luck_bp,
+        xp_bonus_bp: bait.xp_bonus_bp,
         resource_item: bait.resource_item,
         uses_left,
     })

@@ -1,0 +1,7 @@
+{
+  "source": "https://mapdata.bitjita.com/v1/manifest.json",
+  "generatedAt": "2026-10-09T00:03:50.447Z",
+  "worldTiles": 12800,
+  "level": 3,
+  "note": "Overview uses downsampled terrain and an original palette. Exact depths come from live relay terrain."
+}

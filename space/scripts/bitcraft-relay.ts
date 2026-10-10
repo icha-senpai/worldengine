@@ -1,3 +1,4 @@
+import WebSocket from "ws";
 import pinned from "./relay-wire-contract.json";
 export type RelayRow = Record<string, any>;
 export type RelayTables = Map<string, Map<string, RelayRow>>;
@@ -39,7 +40,13 @@ export function parseRelayJson(text: string): any {
     },
   );
 }
-export function decodeRelayValue(type: WireType, value: any): any {
+export function decodeRelayValue(
+  type: WireType,
+  value: any,
+  budget = { remaining: 5_000_000 },
+): any {
+  if (--budget.remaining < 0)
+    throw Error("Relay frame exceeded its decoded node cap.");
   if (type.Product) {
     const elements = type.Product.elements;
     if (Array.isArray(value) && value.length !== elements.length)
@@ -52,13 +59,16 @@ export function decodeRelayValue(type: WireType, value: any): any {
         decodeRelayValue(
           e.type,
           Array.isArray(value) ? value[i] : value[e.name],
+          budget,
         ),
       ]),
     );
   }
   if (type.Array) {
     if (!Array.isArray(value)) throw Error("Invalid relay array.");
-    return value.map((v) => decodeRelayValue(type.Array, v));
+    if (value.length > budget.remaining)
+      throw Error("Relay frame exceeded its decoded node cap.");
+    return value.map((v) => decodeRelayValue(type.Array, v, budget));
   }
   if (type.Sum) {
     const variants = type.Sum.variants;
@@ -72,7 +82,11 @@ export function decodeRelayValue(type: WireType, value: any): any {
     const variant = variants[Number(index)];
     if (!variant) throw Error("Unknown relay variant.");
     return {
-      [variant.name || String(index)]: decodeRelayValue(variant.type, child),
+      [variant.name || String(index)]: decodeRelayValue(
+        variant.type,
+        child,
+        budget,
+      ),
     };
   }
   if (
@@ -104,12 +118,14 @@ export function decodeRelayRow(
   table: string,
   raw: any,
   provider: "bitconnect" | "bitsync" = "bitconnect",
+  budget = { remaining: 5_000_000 },
 ): RelayRow {
   const definition = (pinned as Record<string, any>)[provider][table];
   if (!definition) throw Error("Unreviewed relay table.");
   return decodeRelayValue(
     definition.type,
     typeof raw === "string" ? parseRelayJson(raw) : raw,
+    budget,
   );
 }
 export function relayRowKey(
@@ -165,6 +181,12 @@ export class RelaySubscription {
   private retry?: ReturnType<typeof setTimeout>;
   private timeout?: ReturnType<typeof setTimeout>;
   private failures = 0;
+  private health?: ReturnType<typeof setInterval>;
+  private schemaAbort?: AbortController;
+  private awaitingPong = false;
+  private rowBytes = new Map<string, number>();
+  private cachedBytes = 0;
+  private static totalCachedBytes = 0;
   constructor(
     readonly provider: "bitconnect" | "bitsync",
     readonly region: number,
@@ -175,6 +197,8 @@ export class RelaySubscription {
   async start() {
     if (this.stopped) return;
     this.ready = false;
+    this.schemaAbort?.abort();
+    const abort = (this.schemaAbort = new AbortController());
     const generation = ++this.generation;
     const host =
       this.provider === "bitconnect"
@@ -183,7 +207,7 @@ export class RelaySubscription {
     try {
       const response = await fetch(
         `${host}/v1/database/bitcraft-live-${this.region}/schema?version=9`,
-        { signal: AbortSignal.timeout(15000) },
+        { signal: AbortSignal.any([abort.signal, AbortSignal.timeout(15000)]) },
       );
       if (!response.ok) throw Error("Relay schema unavailable.");
       const schema = await response.json();
@@ -207,7 +231,31 @@ export class RelaySubscription {
       const ws = (this.socket = new WebSocket(
         `${host.replace(/^http/, "ws")}/v1/database/bitcraft-live-${this.region}/subscribe?compression=None`,
         "v1.json.spacetimedb",
+        {
+          maxPayload: 64_000_000,
+          perMessageDeflate: false,
+          handshakeTimeout: 15000,
+        },
       ));
+      ws.on("open", () => {
+        if (this.stopped || generation !== this.generation) return;
+        this.awaitingPong = false;
+        this.health = setInterval(() => {
+          if (this.stopped || generation !== this.generation) return;
+          if (this.awaitingPong) {
+            this.disconnect("Relay transport heartbeat timed out.");
+            return;
+          }
+          this.awaitingPong = true;
+          ws.ping(undefined, undefined, (error) => {
+            if (error && !this.stopped && generation === this.generation)
+              this.disconnect("Relay transport heartbeat failed.");
+          });
+        }, 30000);
+      });
+      ws.on("pong", () => {
+        if (generation === this.generation) this.awaitingPong = false;
+      });
       this.timeout = setTimeout(
         () => this.disconnect("Relay snapshot timed out."),
         45000,
@@ -236,7 +284,37 @@ export class RelaySubscription {
             tx?.status?.Committed ??
             tx?.database_update;
           if (!update) return;
-          const changes: (() => void)[] = [];
+          let operations = 0;
+          for (const table of update.tables ?? [])
+            for (const set of table.updates ?? []) {
+              operations +=
+                (set.deletes?.length ?? 0) + (set.inserts?.length ?? 0);
+              if (operations > 300000)
+                throw Error("Relay frame exceeded its operation cap.");
+            }
+          // Retire the old snapshot before decoding a replacement.
+          if (initial) this.releaseTables();
+          const changes: {
+            rows: Map<string, RelayRow>;
+            key: string;
+            row?: RelayRow;
+            charge: string;
+            bytes: number;
+          }[] = [];
+          let stagedBytes = 0;
+          const decodeBudget = { remaining: 5_000_000 };
+          const projected = new Map<string, number | undefined>();
+          let projectedRows = this.rowBytes.size,
+            projectedBytes = this.cachedBytes;
+          const account = (key: string, bytes: number | undefined) => {
+            const old = projected.has(key)
+              ? projected.get(key)
+              : this.rowBytes.get(key);
+            projectedRows +=
+              Number(bytes !== undefined) - Number(old !== undefined);
+            projectedBytes += (bytes ?? 0) - (old ?? 0);
+            projected.set(key, bytes);
+          };
           const target = initial
             ? new Map<string, Map<string, RelayRow>>(
                 names.map((n) => [n, new Map()]),
@@ -251,23 +329,55 @@ export class RelaySubscription {
                     table.table_name,
                     raw,
                     this.provider,
+                    decodeBudget,
                   ),
                   key = relayRowKey(table.table_name, row, this.provider);
-                changes.push(() => rows.delete(key));
+                const charge = `${table.table_name}:${key}`;
+                account(charge, undefined);
+                changes.push({ rows, key, charge, bytes: 0 });
               }
               for (const raw of set.inserts ?? []) {
+                const bytes =
+                  128 +
+                  Buffer.byteLength(
+                    typeof raw === "string" ? raw : JSON.stringify(raw),
+                  ) *
+                    4;
+                stagedBytes += bytes;
+                if (
+                  stagedBytes > 256_000_000 ||
+                  RelaySubscription.totalCachedBytes + stagedBytes > 768_000_000
+                )
+                  throw Error("Relay decoded data exceeded its memory budget.");
                 const row = decodeRelayRow(
                     table.table_name,
                     raw,
                     this.provider,
+                    decodeBudget,
                   ),
-                  key = relayRowKey(table.table_name, row, this.provider);
-                changes.push(() => rows.set(key, row));
+                  key = relayRowKey(table.table_name, row, this.provider),
+                  charge = `${table.table_name}:${key}`;
+                account(charge, bytes);
+                if (projectedRows > 300000)
+                  throw Error("Relay scope exceeded its row cap.");
+                changes.push({ rows, key, row, charge, bytes });
               }
             }
           }
           // Validate the entire frame before changing any cached rows.
-          changes.forEach((apply) => apply());
+          if (projectedBytes > 256_000_000)
+            throw Error("Relay scope exceeded its memory budget.");
+          for (const change of changes) {
+            if (change.row) change.rows.set(change.key, change.row);
+            else change.rows.delete(change.key);
+          }
+          RelaySubscription.totalCachedBytes +=
+            projectedBytes - this.cachedBytes;
+          this.cachedBytes = projectedBytes;
+          for (const [key, bytes] of projected) {
+            if (bytes === undefined) this.rowBytes.delete(key);
+            else this.rowBytes.set(key, bytes);
+          }
           if (initial) {
             clearTimeout(this.timeout);
             this.tables.clear();
@@ -301,12 +411,22 @@ export class RelaySubscription {
         this.disconnect((error as Error).message);
     }
   }
+  private releaseTables() {
+    RelaySubscription.totalCachedBytes -= this.cachedBytes;
+    this.cachedBytes = 0;
+    this.rowBytes.clear();
+    this.tables.clear();
+  }
   private disconnect(error: string) {
     if (this.stopped) return;
     ++this.generation;
     this.ready = false;
     clearTimeout(this.timeout);
-    this.socket?.close();
+    clearInterval(this.health);
+    this.schemaAbort?.abort();
+    this.socket?.terminate();
+    this.socket = undefined;
+    this.releaseTables();
     this.failed(error);
     clearTimeout(this.retry);
     this.retry = setTimeout(
@@ -321,6 +441,10 @@ export class RelaySubscription {
     this.ready = false;
     clearTimeout(this.retry);
     clearTimeout(this.timeout);
-    this.socket?.close();
+    clearInterval(this.health);
+    this.schemaAbort?.abort();
+    this.socket?.terminate();
+    this.socket = undefined;
+    this.releaseTables();
   }
 }

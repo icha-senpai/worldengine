@@ -58,6 +58,42 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/collector-servic
 
 Use `Stop` or `Restart` for the other actions. Test module updates use `npm run bitcraft:publish-test`; they preserve application records. The test guard must be registered to the verified test replica before its first start. That registration is already installed locally. Both guards are ordinary local processes: a PC reboot stops them, and the launchers must be run again.
 
+### Worker supervision
+
+The existing collector service launcher starts a hidden supervisor for each target. If the worker exits unexpectedly, the supervisor records its PID and exit code and restarts it after five seconds. Repeated short failures back off to 10, 20, 40 and then 60 seconds; a worker that runs for at least two minutes resets the delay. Repeated Start calls reuse the same supervisor and worker, and can adopt a previously started owned worker. Test supervision retains `--storage-only`; it does not start another world collector.
+
+Stop shuts down the supervisor before the worker, so a deliberate stop stays stopped. Restart uses the same sequence before starting a replacement. Process ownership checks and per-target mutexes prevent duplicate supervisors and avoid stopping unrelated processes. Restarted workers still perform the existing database identity, storage budget and lease checks before reopening writes. A pending rebuild remains blocked for manual recovery; supervision never attempts to bypass or repair it automatically.
+
+Supervisor events are in `.runtime/services/collector.supervisor.log` and `collector-test.supervisor.log`, with bounded retention. Worker output still uses the timestamped collector logs. This covers worker exits, not hung workers or termination of the supervisor itself. It does not install a Windows boot service; after reboot, use the normal Start launcher.
+
+`npm run test:collector-supervisor` checks adoption, repeated Start, an unexpected test-worker exit, authenticated replacement, deliberate Stop without respawn, and isolation from the main worker. `npm run test:storage-guards` checks that stopping supervision still lets the storage lease expire and blocks writes while retaining readable data.
+
+### Collector crash diagnostics
+
+Each worker writes under ignored `.runtime/diagnostics/<database>/`. `latest.json` records a 30-second aggregate sample: process/runtime versions, Windows release, RSS/heap/external memory, heap limit, available system memory, active resource counts, current collection/storage phases and event counters. `events.jsonl` records timestamped startup, failures, maintenance and trading publication activity. Player IDs, usernames, order bodies, API responses, credentials and arbitrary error messages are excluded; error summaries contain only type, safe code and stack locations.
+
+The event log rotates across three files of approximately 2 MB each, archiving retired segments. On unexpected exit, the supervisor retains `exit.json` and two previous exit records, including the exit code in decimal/hex, the last sample for that PID and the last 20 event lines. Node fatal-error reporting is enabled before the worker loads, with environment and network-interface diagnostics excluded. Its fixed `fatal-report.json` filename avoids generating unlimited files; startup retains at most two previous raw reports and queues retired reports or reports exceeding 8 MB for verified compression. These reports contain runtime stacks/statistics, not full heap dumps. A report can temporarily exceed that limit while being written; report retention is enforced on restart.
+
+Diagnostic files are included in each database's monitored storage usage. Logging failures do not replace the collector's existing error handling, and uncaught-exception monitoring does not suppress process termination. A native fast-fail or forced kill can bypass Node's report generation: the supervisor exit record and previously saved samples remain available, but a native stack is not guaranteed. These diagnostics do not alter relay subscriptions, reconnect payloads or database heartbeat intervals.
+
+Focused tests cover redaction, log/report rotation, a real fatal heap failure producing a report, and preservation of diagnostic evidence through an unexpected supervised worker exit.
+
+### Collector lifecycle safeguards
+
+Native player admission retains at most 30 active players including pending discovery. Discovery has a 15-second deadline, expires with its watch, and cannot create a socket after cancellation. A discovery timeout retires the database connection through the normal reconnect cycle because the SDK cannot cancel an individual pending procedure. Native publication uses the collection cycle's deadlines and cancellation, including failure handling. Historical scheduler keys are pruned, and stopping releases subscriptions and cached tables.
+
+Relay sockets use `ws` with a 64 MB transport frame ceiling, no per-message compression, and WebSocket ping/pong checks every 30 seconds. A missing pong closes the connection on the next check; quiet scopes that answer pings remain connected. These transport control frames do not call database reducers or change database heartbeat intervals. Snapshot frames are limited to 300,000 operations and five million decoded values; conservative wire-size accounting limits a scope to 256 MB and aggregate cached plus staged data to 768 MB. These are accounting limits, not an exact process heap quota. Over-budget frames are rejected before staging a complete decoded snapshot, and invalid caches are released.
+
+The worker owns `worker.stdout.log` and `worker.stderr.log` in its diagnostics directory. It rotates closed 2 MB segments for verified asynchronous compression. It never truncates a live redirected output file. Legacy service output is archived only before worker launch. Archiving is independent of the storage lease monitor, which tolerates replica files disappearing during normal retirement. Local authorization also has a 15-second CLI timeout.
+
+The supervisor backs off and retries transient worker-launch/archive-preflight failures. Incomplete database rebuilds still block collection pending explicit recovery. Regression coverage includes admission changes, expired/hung discovery, late publication failures, lossless log rotation, healthy quiet sockets, dead transports, oversized/malformed frames, and a real failed test-worker preflight followed by recovery.
+
+### Compressed diagnostic history
+
+Diagnostic logs rotate at their existing small limits (2 MB event logs and 2 MB worker output), before reaching the requested 1 GB ceiling. Retired event-log segments, reports and worker output are archived with maximum gzip compression (level 9). Compression streams files rather than loading large inputs into RAM. Before removing a source, the archive is decompressed and checked against its original byte count and SHA-256 hash; a sidecar records the sizes and checksum. Compression or verification failure preserves the source.
+
+Archives are flat `archive-*.gz` files under each database's diagnostics directory and count toward its physical storage budget. Retention keeps at most 100 archive pairs and 250 MB of compressed archives/sidecars per database, removing the oldest pairs first. An individual archive that cannot fit that allowance is rejected and its source remains available. Interrupted compression leaves a pending source; the next worker startup clears abandoned temporary outputs and retries pending sources. Active SpaceTimeDB transaction logs are never compressed or moved by this feature.
+
 ## Commands and recovery
 
 Run from the `space` project:

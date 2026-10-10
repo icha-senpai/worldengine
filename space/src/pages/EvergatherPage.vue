@@ -1,5 +1,6 @@
 <script setup>
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
+import TextInput from "../bitcraft-ui/shared/TextInput.vue";
 import {
   computed,
   nextTick,
@@ -786,8 +787,10 @@ function isWorkspacePanel(panel) {
       <h1>Evergather</h1>
       <h2>Create your character</h2>
       <label
-        >Character name<input
+        >Character name<TextInput
           v-model="newName"
+          type="text"
+          class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
           required
           minlength="2"
           maxlength="40"

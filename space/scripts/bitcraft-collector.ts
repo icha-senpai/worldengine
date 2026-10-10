@@ -3,11 +3,13 @@ import {
   storageUsage,
   rebuildStorage,
   ownerCall,
-  trimCollectorLogs,
 } from "./bitcraft-storage";
 import { execFileSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
+import { installCollectorConsole } from "./collector-log";
+import { pruneSchedule } from "./collector-scheduler";
 import { CollectorCycle } from "./bitcraft-collector-cycle";
+import { CollectorDiagnostics } from "./collector-diagnostics";
 import {
   mkdir,
   readFile,
@@ -48,7 +50,12 @@ const serviceName =
     : database === "space-bitcraft-checks"
       ? "collector-test"
       : `collector-${database}`;
+const diagnostics = new CollectorDiagnostics(database);
+installCollectorConsole(diagnostics.directory);
 async function markReady() {
+  diagnostics.phase("ready");
+  diagnostics.event("ready");
+  diagnostics.sample();
   await mkdir(resolve(".runtime/services"), { recursive: true });
   await writeFile(
     resolve(`.runtime/services/${serviceName}.ready.json`),
@@ -73,14 +80,23 @@ try {
 let stopping = false;
 let activeCycle: CollectorCycle | undefined;
 process.on("SIGINT", () => {
+  diagnostics.phase("stopping");
+  diagnostics.event("signal");
+  console.log("Collector received SIGINT; stopping.");
   stopping = true;
   activeCycle?.stop("Collector stopped.");
 });
 process.on("SIGTERM", () => {
+  diagnostics.phase("stopping");
+  diagnostics.event("signal");
+  console.log("Collector received SIGTERM; stopping.");
   stopping = true;
   activeCycle?.stop("Collector stopped.");
 });
 const epoch = randomUUID();
+process.on("exit", (code) => {
+  console.log(`Collector process exiting with code ${code}.`);
+});
 const due = new Map<string, number>();
 const dictionaries = new Map<string, ResourceDictionary>();
 type Request = {
@@ -188,7 +204,7 @@ async function connect(cycle: CollectorCycle) {
                 server.replace(/^ws/, "http"),
                 "--no-config",
               ],
-              { stdio: "pipe", windowsHide: true },
+              { stdio: "pipe", windowsHide: true, timeout: 15000 },
             );
           } catch {
             conn.disconnect();
@@ -446,25 +462,26 @@ while (!stopping) {
   let monitorWork: Promise<void> | undefined;
   let storageReady = false;
   try {
+    diagnostics.phase("storage-check");
     let binding = await readBinding(database);
     let usage = await storageUsage(binding);
     if (usage.bytes >= usage.targetBytes) {
+      diagnostics.phase("maintenance");
+      diagnostics.event("maintenance-start");
+      diagnostics.sample();
       binding = await rebuildStorage(binding);
+      diagnostics.event("maintenance-end");
       usage = await storageUsage(binding);
     }
     if (usage.freeBytes < 512_000_000)
       throw Error("Insufficient disk headroom; updates remain paused.");
     await ownerCall(database, "storage_lease", [20]);
-    let leasedAt = Date.now(),
-      logsAt = 0;
+    let leasedAt = Date.now();
     monitor = setInterval(() => {
       if (monitorWork || stopping || cycle.stopped) return;
       monitorWork = (async () => {
         try {
-          if (Date.now() > logsAt) {
-            await trimCollectorLogs(serviceName);
-            logsAt = Date.now() + 60000;
-          }
+          diagnostics.storage("storage-monitor");
           const current = await storageUsage(binding);
           if (
             current.bytes >= current.targetBytes ||
@@ -488,10 +505,13 @@ while (!stopping) {
               );
             }
           } else if (Date.now() - leasedAt >= 5000) {
+            diagnostics.storage("storage-lease");
             await ownerCall(database, "storage_lease", [20]);
             leasedAt = Date.now();
           }
         } catch (error) {
+          diagnostics.event("storage-error", error);
+          diagnostics.sample();
           stopping = true;
           process.exitCode = 1;
           cycle.stop("Storage monitor failed; updates remain paused.");
@@ -501,6 +521,7 @@ while (!stopping) {
             `Storage monitor failed: ${(error as Error).message}. Updates will stay paused.`,
           );
         } finally {
+          diagnostics.storage("idle");
           monitorWork = undefined;
         }
       })();
@@ -513,6 +534,7 @@ while (!stopping) {
       continue;
     }
     publishedFeeds.clear();
+    diagnostics.phase("database-connect");
     conn = await cycle.wait(() => connect(cycle));
     await cycle.wait(() =>
       conn!.reducers.collectorHeartbeat({ epoch, error: "" }),
@@ -529,7 +551,7 @@ while (!stopping) {
     );
     console.log(`BitCraft collector ready for ${database}.`);
     if (!once && process.env.BITCRAFT_NATIVE_RELAYS !== "0") {
-      native = new NativeRelayCollector(conn, epoch, due);
+      native = new NativeRelayCollector(conn, epoch, due, diagnostics, cycle);
       void native
         .start()
         .catch((error) =>
@@ -541,6 +563,14 @@ while (!stopping) {
       await cycle.wait(() =>
         conn!.reducers.collectorHeartbeat({ epoch, error: "" }),
       );
+      const activeWatches = [...conn.db.collectorWatches.iter()].filter(
+        (row) => row.expiresAt / 1000n > BigInt(Date.now()),
+      );
+      pruneSchedule(
+        due,
+        new Set([...seeds.map(keyFor), ...activeWatches.map((row) => row.key)]),
+      );
+      diagnostics.phase("relay-tick");
       if (native)
         await cycle.wait(() =>
           native!.tick([
@@ -551,6 +581,7 @@ while (!stopping) {
             })),
           ]),
         );
+      diagnostics.phase("market-refresh");
       const marketWork = JSON.parse(
         await cycle.wait(() => conn!.procedures.marketCollectionWork({})),
       );
@@ -563,6 +594,7 @@ while (!stopping) {
       await cycle.wait(() =>
         conn!.reducers.collectorHeartbeat({ epoch, error: "" }),
       );
+      diagnostics.phase("api-refresh");
       {
         for (const request of seeds
           .filter((row) => Date.now() >= (due.get(keyFor(row)) ?? 0))
@@ -605,15 +637,19 @@ while (!stopping) {
         stopping = true;
         break;
       }
+      diagnostics.phase("idle");
       await cycle.wait(() => sleep(1000));
     }
   } catch (error) {
+    diagnostics.event("cycle-error", error);
+    diagnostics.sample();
     console.error(`Collector reconnecting: ${(error as Error).message}`);
     if (once || !storageReady) {
       stopping = true;
       process.exitCode = 1;
     }
   } finally {
+    diagnostics.phase("cycle-ended");
     if (monitor) clearInterval(monitor);
     cycle.stop("Collection cycle ended.");
     native?.stop();

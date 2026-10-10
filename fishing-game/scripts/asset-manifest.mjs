@@ -13,6 +13,6 @@ async function collect(folder) {
   }
   return entries;
 }
-const manifest = { version: 1, fish: await collect('fish'), rankCards: await collect('rank-cards'), itemCards: await collect('item-cards'), items: await collect('items'), rods: await collect('rods'), licences: await collect('licences'), baits: await collect('baits') };
+const manifest = { version: 1, fish: await collect('fish'), rankCards: await collect('rank-cards'), itemCards: await collect('item-cards'), items: await collect('items'), rods: await collect('rods'), licences: await collect('licences'), baits: await collect('baits'), achievements: await collect('achievements') };
 await writeFile(new URL('manifest.json', root), `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(`Asset manifest: ${manifest.fish.length} fish sprites, ${manifest.rankCards.length} rank cards, ${manifest.itemCards.length} item cards, ${manifest.items.length} item sprites, ${manifest.rods.length} rods, ${manifest.licences.length} licences, ${manifest.baits.length} baits.`);
+console.log(`Asset manifest: ${manifest.fish.length} fish sprites, ${manifest.rankCards.length} rank cards, ${manifest.itemCards.length} item cards, ${manifest.items.length} item sprites, ${manifest.rods.length} rods, ${manifest.licences.length} licences, ${manifest.baits.length} baits, ${manifest.achievements.length} achievement badges.`);

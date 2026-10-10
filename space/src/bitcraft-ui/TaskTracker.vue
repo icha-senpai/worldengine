@@ -16,6 +16,7 @@
         :show="setupVisible"
         title="Edit Task Widget"
         @widget-mode="openWidgetMode"
+        @save="submitSetup(true)"
       >
         <form class="task-tracker-setup" @submit.prevent="submitSetup(true)">
           <div class="task-tracker-setup__grid">
@@ -24,45 +25,7 @@
               <input v-model.trim="form.title" type="text" maxlength="80" />
             </label>
 
-            <div class="task-tracker-emoji-picker">
-              <span>Emojis</span>
-              <div class="task-tracker-emoji-picker__controls">
-                <SelectInput
-                  v-model="emojiChoice"
-                  aria-label="Add emoji"
-                  @change="addEmojiChoice"
-                >
-                  <option value="">Add emoji...</option>
-                  <option
-                    v-for="option in emojiOptions"
-                    :key="option.value"
-                    :value="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-                </SelectInput>
-                <button
-                  v-if="selectedEmojiList.length"
-                  type="button"
-                  @click="clearEmojis"
-                >
-                  Clear
-                </button>
-              </div>
-              <div
-                v-if="selectedEmojiList.length"
-                class="task-tracker-emoji-picker__selected"
-              >
-                <button
-                  v-for="emoji in selectedEmojiList"
-                  :key="emoji"
-                  type="button"
-                  @click="removeEmoji(emoji)"
-                >
-                  {{ emoji }}
-                </button>
-              </div>
-            </div>
+            <EmojiInput v-model="form.icons" />
           </div>
 
           <WidgetThemeControls :model="form" @update="updateTheme" />
@@ -110,10 +73,12 @@
       <section class="task-tracker-widget" aria-label="Bitcraft task tracker">
         <header class="task-tracker-widget__header">
           <div>
-            <h1>{{ titleLabel }}</h1>
+            <h1>
+              <span>{{ titleLabel }}</span>
+              <EmojiDisplay v-if="iconsLabel" :value="iconsLabel" />
+            </h1>
             <p>{{ summaryLabel }}</p>
           </div>
-          <strong v-if="iconsLabel">{{ iconsLabel }}</strong>
         </header>
 
         <div class="task-tracker-widget__bar" aria-hidden="true">
@@ -153,10 +118,11 @@
 </template>
 
 <script setup>
-import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
+import EmojiInput from "./shared/EmojiInput.vue";
+import EmojiDisplay from "./shared/EmojiDisplay.vue";
 import { route } from "/src/bitcraft-ui/navigation";
-import { openWidget } from "./widgets";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { openWidget, persistWidgetDraft } from "./widgets";
+import { computed, onMounted, reactive, watch } from "vue";
 import { router } from "/src/bitcraft-ui/navigation";
 import WidgetSetupDrawer from "./Components/WidgetSetupDrawer.vue";
 import WidgetThemeControls from "./Components/WidgetThemeControls.vue";
@@ -172,27 +138,7 @@ const props = defineProps({
 });
 
 const STORAGE_KEY = "bitcraft.taskTracker.lastSetup";
-const emojiChoice = ref("");
 let restoredSetup = false;
-const emojiOptions = [
-  { value: "✅", label: "✅ Done" },
-  { value: "✨", label: "✨ Sparkle" },
-  { value: "⭐", label: "⭐ Star" },
-  { value: "🏆", label: "🏆 Goal" },
-  { value: "🔥", label: "🔥 Fire" },
-  { value: "💎", label: "💎 Rare" },
-  { value: "📦", label: "📦 Cargo" },
-  { value: "🧺", label: "🧺 Basket" },
-  { value: "🎣", label: "🎣 Fishing" },
-  { value: "⛵", label: "⛵ Sailing" },
-  { value: "⛏️", label: "⛏️ Mining" },
-  { value: "🌾", label: "🌾 Farming" },
-  { value: "🍄", label: "🍄 Mushroom" },
-  { value: "🛠️", label: "🛠️ Tools" },
-  { value: "🗺️", label: "🗺️ Explore" },
-  { value: "💚", label: "💚 Green" },
-  { value: "🩵", label: "🩵 Cyan" },
-];
 
 const newTaskId = () =>
   `task-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -240,9 +186,6 @@ const setupVisible = computed(() => setupPageVisible.value);
 const titleLabel = computed(() => form.title || "Task Tracker");
 const iconsLabel = computed(() => form.icons || "");
 const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form));
-const selectedEmojiList = computed(() =>
-  form.icons.split(/\s+/).filter(Boolean),
-);
 const visibleTasks = computed(() => form.tasks.filter((task) => task.text));
 const completedCount = computed(
   () => visibleTasks.value.filter((task) => task.done).length,
@@ -313,44 +256,25 @@ const loadSetup = () => {
           })),
         });
     }
-    return normalizeSetup(JSON.parse(existing ?? "null") ?? {});
+    return existing ? normalizeSetup(JSON.parse(existing)) : null;
   } catch {
     return null;
   }
 };
 
-const saveSetup = () => {
+const saveSetup = (persistProfile = true) => {
   const storage = browserStorage();
 
   if (!storage || !restoredSetup) {
     return;
   }
 
-  storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
-};
-
-const saveEmojiList = (emojis) => {
-  form.icons = emojis.join(" ");
-  saveSetup();
-};
-
-const addEmojiChoice = () => {
-  if (!emojiChoice.value) {
-    return;
+  if (props.filters.widgetEditable === false) return;
+  if (props.filters.setup) {
+    storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
+    if (persistProfile)
+      persistWidgetDraft("tasks", payload(true), props.filters.profile);
   }
-
-  saveEmojiList([...new Set([...selectedEmojiList.value, emojiChoice.value])]);
-  emojiChoice.value = "";
-};
-
-const removeEmoji = (emoji) => {
-  saveEmojiList(
-    selectedEmojiList.value.filter((selectedEmoji) => selectedEmoji !== emoji),
-  );
-};
-
-const clearEmojis = () => {
-  saveEmojiList([]);
 };
 
 const updateTheme = (updates) => {
@@ -428,7 +352,10 @@ const openWidgetMode = () => {
     return;
   }
 
-  openWidget(route("bitcraft.task-tracker", payload(false)));
+  openWidget(route("bitcraft.task-tracker", payload(false)), {
+    settings: payload(false),
+    token: props.filters.profile,
+  });
 };
 
 watch(
@@ -455,7 +382,7 @@ onMounted(() => {
     !params.has("profile") &&
     !params.has("source") &&
     !params.has("tasks") &&
-    savedSetup?.tasks?.length
+    savedSetup
   ) {
     Object.assign(form, savedSetup);
     submitSetup(Boolean(props.filters.setup));
@@ -463,7 +390,7 @@ onMounted(() => {
     return;
   }
 
-  saveSetup();
+  saveSetup(false);
 });
 </script>
 
@@ -510,14 +437,12 @@ onMounted(() => {
 }
 
 .task-tracker-setup label,
-.task-tracker-emoji-picker,
 .task-tracker-entry label {
   display: grid;
   gap: 6px;
 }
 
 .task-tracker-setup label > span,
-.task-tracker-emoji-picker > span,
 .task-tracker-entry label > span {
   color: var(--text-muted-3);
   font-size: 10px;
@@ -526,7 +451,6 @@ onMounted(() => {
 }
 
 .task-tracker-setup input,
-.task-tracker-emoji-picker select,
 .task-tracker-entry input {
   min-height: 36px;
   border: 1px solid var(--border-color);
@@ -536,14 +460,6 @@ onMounted(() => {
   font-size: 13px;
 }
 
-.task-tracker-emoji-picker__controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px;
-}
-
-.task-tracker-emoji-picker__controls button,
-.task-tracker-emoji-picker__selected button,
 .task-tracker-entry button {
   min-height: 32px;
   border: 1px solid rgb(var(--accent-cyan-rgb) / 0.28);
@@ -552,24 +468,6 @@ onMounted(() => {
   color: var(--text-primary-2);
   font-size: 12px;
   font-weight: 900;
-}
-
-.task-tracker-emoji-picker__controls button {
-  padding: 0 10px;
-  color: var(--accent-pink);
-}
-
-.task-tracker-emoji-picker__selected {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.task-tracker-emoji-picker__selected button {
-  width: 32px;
-  padding: 0;
-  font-size: 16px;
-  line-height: 1;
 }
 
 .task-tracker-entry {
@@ -665,16 +563,16 @@ onMounted(() => {
 }
 
 .task-tracker-widget__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
   padding: 18px 22px 14px;
   border-bottom: 1px solid
     color-mix(in srgb, var(--tracker-border) 24%, transparent);
 }
 
 .task-tracker-widget__header h1 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   min-width: 0;
   color: var(--tracker-text);
   font-size: calc(24px * var(--tracker-font-scale));
@@ -689,11 +587,10 @@ onMounted(() => {
   font-weight: 800;
 }
 
-.task-tracker-widget__header strong {
-  color: var(--tracker-accent);
-  font-size: calc(20px * var(--tracker-font-scale));
-  line-height: 1;
-  white-space: nowrap;
+.task-tracker-widget__header h1 > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .task-tracker-widget__bar {

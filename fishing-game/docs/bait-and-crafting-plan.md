@@ -1,6 +1,6 @@
 # Bait and rod quality: implemented rules
 
-Implemented in gameplay rules version 6. SpaceTimeDB owns purchases, charges,
+Implemented in gameplay rules version 7, including [level 120 and XP slime](xp-progression.md). SpaceTimeDB owns purchases, charges,
 quality crafting, bonus pulls and reward snapshots. This document records the
 agreed starting balance; content/crafting.json supplies the live catalog.
 
@@ -143,7 +143,7 @@ attempts and return replayed receipts without consuming an additional charge.
 Bait is purchased from the Camp Trader. Resource bait provides materials in
 addition to the normal catch, so players can target tin or scrap for crafting.
 
-These five bait types, effects and prices are agreed as the starting balance:
+These eight bait types, effects and prices are the current starting balance:
 
 | Bait | Effect | Price for 10 uses |
 |---|---|---:|
@@ -152,11 +152,14 @@ These five bait types, effects and prices are agreed as the starting balance:
 | Plump Worms | +5% luck for larger, heavier catches | 30 coins |
 | River Grubs | +10% luck for larger, heavier catches | 70 coins |
 | Moonlit Fireflies | +15% luck for larger, heavier catches | 120 coins |
+| Green XP Slime | +25% fishing XP | 50 coins |
+| Yellow XP Slime | +50% fishing XP | 150 coins |
+| Pink XP Slime | +100% fishing XP | 400 coins |
 
 ## Artwork
 
-Six purchasable biome licences and five bait icons are mapped in
-`content/equipment-art.json`. All five bait types are purchasable from the Trader;
+Six purchasable biome licences and eight bait icons are mapped in
+`content/equipment-art.json`. All eight bait types are purchasable from the Trader;
 the Tackle box shows only the actually equipped bait and its remaining uses.
 
 The original transparent PNGs are in `assets/licences/` and `assets/baits/`.

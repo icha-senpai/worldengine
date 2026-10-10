@@ -222,6 +222,31 @@ pub fn grant_item(
     Ok(())
 }
 
+/// Persist an explicit favorite state in one transaction. Repeated requests are
+/// idempotent and cannot alter another angler's catch or spend any resources.
+#[spacetimedb::reducer]
+pub fn set_catch_favorite(
+    ctx: &ReducerContext,
+    catch_id: u64,
+    favorite: bool,
+) -> Result<(), String> {
+    let player_id = player_id(ctx)?;
+    let mut fish = ctx
+        .db
+        .owned_specimen()
+        .catch_id()
+        .find(catch_id)
+        .ok_or("CATCH_UNAVAILABLE")?;
+    if fish.player_id != player_id {
+        return Err("CATCH_NOT_OWNED".into());
+    }
+    if fish.favorite != favorite {
+        fish.favorite = favorite;
+        ctx.db.owned_specimen().catch_id().update(fish);
+    }
+    Ok(())
+}
+
 /// Issue one bounded, short-lived action quote per browser. No arbitrary client UUIDs.
 #[spacetimedb::reducer]
 pub fn prepare_inventory_action(

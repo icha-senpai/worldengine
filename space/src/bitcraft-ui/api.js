@@ -22,10 +22,12 @@ import {
 } from "./trackers";
 import { openCraftRows, filterCrafts } from "./openCrafts";
 import { collectedActivitySamples } from "./activitySamples";
+import { xpSourceAction, resolveXpSource } from "./xpSource";
 import {
   relayPlayer,
   relayInventory,
   relayCrafts,
+  withRelayCraftTimers,
   relaySkills,
   storageInventories,
   mergeInventories,
@@ -270,10 +272,35 @@ async function trackerInventory(player, filters = {}) {
     error: base.error || responses.find((row) => row.error)?.error,
   };
 }
+async function passiveSnapshot(player) {
+  const response = await trackerPassive(player);
+  const ids = [
+    ...new Set(
+      (response.data.craftResults ?? [])
+        .map((row) => String(row.recipeId ?? row.recipe_id))
+        .filter((id) => /^\d+$/.test(id)),
+    ),
+  ];
+  const times = {};
+  for (let index = 0; index < ids.length; index += 6)
+    Object.assign(
+      times,
+      await catalog("recipe-times", ids.slice(index, index + 6).join(",")),
+    );
+  return {
+    tracker: passiveTracker(player, response.data, times),
+    error: response.error,
+    sampledAt: response.refresh.updatedAt ?? new Date().toISOString(),
+    refresh: response.refresh,
+  };
+}
 async function trackerPassive(player) {
   let failure;
   try {
-    const response = await live("relayCrafts", player.entityId);
+    const [response, timing] = await Promise.all([
+      live("relayCrafts", player.entityId),
+      live("relaySkills", player.entityId).catch(() => null),
+    ]);
     const ids = [
       ...new Set(
         (response.data.crafts ?? [])
@@ -293,7 +320,12 @@ async function trackerPassive(player) {
     if (response.refresh.delayed) throw new Error("Craft refresh delayed.");
     return {
       ...response,
-      data: await enrichTrackerItems(relayCrafts(response.data, claims)),
+      data: await enrichTrackerItems(
+        withRelayCraftTimers(
+          relayCrafts(response.data, claims),
+          timing?.data?.passiveCrafts,
+        ),
+      ),
     };
   } catch (error) {
     failure = error;
@@ -897,14 +929,24 @@ export async function trackerSnapshot(tool, filters) {
               .then((row) => ({ ...row.data, delayed: row.refresh.delayed }))
               .catch(() => null);
       const crafts =
-        filters.background === "1"
-          ? { rows: [], delayed: true }
-          : await live("relayCrafts", player.entityId)
-              .then((row) => ({
-                rows: relayCrafts(row.data, {}, true).craftResults,
-                delayed: row.refresh.delayed,
-              }))
-              .catch(() => ({ rows: [], delayed: true }));
+        filters.background === "1" ||
+        [false, "false", "0"].includes(filters.showCrafts)
+          ? { tracker: null, refresh: { delayed: false } }
+          : await passiveSnapshot(player).catch(() => ({
+              tracker: null,
+              refresh: { delayed: true },
+            }));
+      const action = xpSourceAction(activity);
+      const sourceCard =
+        action &&
+        ["Craft", "Extract"].includes(action.action_type) &&
+        /^\d+$/.test(String(action.recipe_id))
+          ? await catalog(
+              "card",
+              String(action.recipe_id),
+              action.action_type === "Extract" ? "gathering" : "crafting",
+            ).catch(() => null)
+          : null;
       return {
         tracker: {
           ...activityTracker(
@@ -916,8 +958,10 @@ export async function trackerSnapshot(tool, filters) {
             filters,
           ),
           activity,
-          passiveCrafts: crafts.rows,
-          craftsDelayed: crafts.delayed,
+          xpSource: resolveXpSource(action, sourceCard, player.entityId),
+          passiveCrafts: crafts.tracker?.crafts ?? [],
+          passiveCraftGroups: crafts.tracker?.groups ?? [],
+          craftsDelayed: crafts.refresh.delayed,
         },
         error: playerResponse.error || response.error,
         sampledAt: playerResponse.refresh.updatedAt ?? sampledAt,
@@ -945,26 +989,7 @@ export async function trackerSnapshot(tool, filters) {
         refresh: response.refresh,
       };
     }
-    const response = await trackerPassive(player);
-    const ids = [
-        ...new Set(
-          (response.data.craftResults ?? [])
-            .map((row) => String(row.recipeId ?? row.recipe_id))
-            .filter((id) => /^\d+$/.test(id)),
-        ),
-      ],
-      times = {};
-    for (let index = 0; index < ids.length; index += 6)
-      Object.assign(
-        times,
-        await catalog("recipe-times", ids.slice(index, index + 6).join(",")),
-      );
-    return {
-      tracker: passiveTracker(player, response.data, times),
-      error: response.error,
-      sampledAt: response.refresh.updatedAt ?? sampledAt,
-      refresh: response.refresh,
-    };
+    return await passiveSnapshot(player);
   } catch (error) {
     return {
       tracker: null,

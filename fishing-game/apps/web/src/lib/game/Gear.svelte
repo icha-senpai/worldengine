@@ -27,7 +27,7 @@
     <article class="rod-slot" aria-label="Equipped rod" data-quality={stats.quality?.qualityLevel ?? 0}>
       <div class="art">{#if bonuses}<img src={bonuses.spriteAsset} alt={rod?.name ?? 'Fishing rod'} width="160" height="160" />{:else}<span aria-hidden="true">🎣</span>{/if}</div>
       <div class="details"><small>EQUIPPED ROD</small><span class="quality">{stats.quality?.name ?? 'Common'}</span><h4>{rod?.name ?? 'Loading your rod…'}</h4>
-        {#if rod}<dl><div><dt>Power</dt><dd>{stats.power}</dd></div><div><dt>Bonus pull</dt><dd>{stats.power/2}%</dd></div><div><dt>Luck with bait</dt><dd>+{percent(stats.luckBp+(bait?.luckBp ?? 0))}%</dd></div><div><dt>Fishing XP</dt><dd>+{percent(stats.xpBonusBp)}%</dd></div></dl>{/if}
+        {#if rod}<dl><div><dt>Power</dt><dd>{stats.power}</dd></div><div><dt>Bonus pull</dt><dd>{stats.power/2}%</dd></div><div><dt>Luck with bait</dt><dd>+{percent(stats.luckBp+(bait?.luckBp ?? 0))}%</dd></div><div><dt>Fishing XP</dt><dd>+{percent(stats.xpBonusBp+(bait?.xpBonusBp ?? 0))}%</dd></div></dl>{/if}
         <label for="gear-rod">Switch rod</label><select id="gear-rod" value={rod?.rodId ?? ''} disabled={!game.ready || game.busy || !owned.length} onchange={equip}>
           {#each owned as option (option.rodId)}<option value={option.rodId} disabled={option.minimumLevel > (game.profile?.level ?? 1)}>{game.rodStats(option.rodId).quality?.name ?? 'Common'} {option.name}</option>{/each}
         </select>
@@ -38,7 +38,7 @@
     <article class="bait-slot" aria-label="Equipped bait">
       <div class="art bait-art">{#if bait}<img src={bait.spriteAsset} alt={bait.name} width="100" height="100" />{:else}<span aria-hidden="true">—</span>{/if}</div>
       <div class="details"><small>BAIT SLOT</small><h4>{bait?.name ?? 'No bait equipped'}</h4>
-        {#if bait}<p class="uses">{baitUses.toString()} uses remaining</p><p>{bait.resourceItem ? '+1 ' + (bait.resourceItem === 'scrap' ? 'scrap' : 'rusted tin') + ' alongside each cast.' : '+' + percent(bait.luckBp) + '% luck for larger, heavier fish.'}</p>{/if}
+        {#if bait}<p class="uses">{baitUses.toString()} uses remaining</p><p>{bait.resourceItem ? '+1 ' + (bait.resourceItem === 'scrap' ? 'scrap' : 'rusted tin') + ' alongside each cast.' : bait.xpBonusBp ? '+' + percent(bait.xpBonusBp) + '% fishing XP.' : '+' + percent(bait.luckBp) + '% luck for larger, heavier fish.'}</p>{/if}
         <label for="gear-bait">Switch bait</label><select id="gear-bait" value={bait?.baitId ?? 0} disabled={!game.ready || game.busy} onchange={equipBait}><option value={0}>No bait</option>
           {#each game.baits as option (option.baitId)}{@const uses = game.ownedBaits.find(row => row.baitId === option.baitId)?.usesLeft ?? 0n}<option value={option.baitId} disabled={uses === 0n}>{option.name} · {uses.toString()} uses</option>{/each}
         </select><p class="note">One use per cast, including a bonus pull. When it runs out, fishing continues without bait.</p><a href="#trader">Buy bait at the Camp Trader →</a>

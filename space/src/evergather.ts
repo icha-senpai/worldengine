@@ -4,6 +4,7 @@ import { user, localPlay } from "./auth";
 import { definitionTables, panelDefinitionQueries } from "./evergather/catalog";
 import { createConnectionRecovery } from "./connectionRecovery";
 import { recordPageLifecycle } from "./pageLifecycle";
+import { spacetimeHost } from "./spacetimeHost";
 export const evergather = shallowRef<DbConnection | null>(null);
 export const evergatherConnected = ref(false);
 export const evergatherError = ref("");
@@ -22,7 +23,7 @@ export function setEvergatherPanel(workspace: string, panel: string) {
 let initialized = false;
 let active: DbConnection | null = null;
 let generation = 0;
-const host = import.meta.env.VITE_SPACETIMEDB_HOST || "ws://127.0.0.1:3100";
+const host = spacetimeHost;
 const database = import.meta.env.VITE_EVERGATHER_DATABASE || "space-evergather";
 const localTokenKey = `space:evergather:local-token:${host}:${database}`;
 export function initializeEvergather(enabled: Ref<boolean>) {

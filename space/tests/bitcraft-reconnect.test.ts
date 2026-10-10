@@ -82,7 +82,10 @@ it("reconnects after maintenance with the same identity and restores watched XP 
   };
   vi.stubGlobal("localStorage", storage);
   vi.stubGlobal("sessionStorage", storage);
-  vi.stubGlobal("window", new EventTarget());
+  vi.stubGlobal(
+    "window",
+    Object.assign(new EventTarget(), { location: new URL("https://space.test") }),
+  );
   vi.stubGlobal(
     "document",
     Object.assign(new EventTarget(), { hidden: false }),

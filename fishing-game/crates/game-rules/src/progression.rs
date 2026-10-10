@@ -52,13 +52,13 @@ mod tests {
         assert_eq!(xp_to_next(10), 830);
         assert_eq!(xp_to_next(25), 3830);
         let mut total = 0;
-        for level in 1..30 {
+        for level in 1..120 {
             total += xp_to_next(level);
-            assert_eq!(level_for_xp(total - 1, 30), level);
-            assert_eq!(level_for_xp(total, 30), level + 1);
+            assert_eq!(level_for_xp(total - 1, 120), level);
+            assert_eq!(level_for_xp(total, 120), level + 1);
             assert!(xp_to_next(level + 1) > xp_to_next(level));
         }
-        assert_eq!(level_for_xp(u64::MAX, 30), 30);
+        assert_eq!(level_for_xp(u64::MAX, 120), 120);
     }
     #[test]
     fn record_ties_use_earliest_time_then_smallest_id() {

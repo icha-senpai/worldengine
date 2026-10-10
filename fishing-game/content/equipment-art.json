@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "licences": [
     {
       "biomeId": 2,
@@ -63,6 +63,21 @@
       "key": "moonlit-fireflies",
       "name": "Moonlit Fireflies",
       "spriteAsset": "/baits/moonlit-fireflies.png"
+    },
+    {
+      "key": "green-slime",
+      "name": "Green XP Slime",
+      "spriteAsset": "/baits/green-slime.png"
+    },
+    {
+      "key": "yellow-slime",
+      "name": "Yellow XP Slime",
+      "spriteAsset": "/baits/yellow-slime.png"
+    },
+    {
+      "key": "pink-slime",
+      "name": "Pink XP Slime",
+      "spriteAsset": "/baits/pink-slime.png"
     }
   ]
 }

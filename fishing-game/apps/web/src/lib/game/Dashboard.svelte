@@ -14,6 +14,7 @@
   import Achievements from './Achievements.svelte';
   import Anglers from './Anglers.svelte';
   import AnglerLevel from './AnglerLevel.svelte';
+  import Journal from './Journal.svelte';
   type CampView = 'camp' | 'inventory' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium' | 'trader' | 'achievements' | 'anglers';
   let { initialView = 'camp' } = $props<{ initialView?: CampView }>();
   const tabs: { id: CampView; label: string; personal?: boolean }[] = [
@@ -110,7 +111,7 @@
 
   {#if game.player}
     <section class="stats" aria-label="Your progress">
-      <div><AnglerLevel totalXp={game.player.totalXp} levelCap={game.config?.levelCap ?? 60} /></div>
+      <div><AnglerLevel totalXp={game.player.totalXp} levelCap={game.config?.levelCap ?? 120} /></div>
       <div><span>◈ COIN POUCH</span><strong>{game.player.coins.toString()}</strong><small>For your next adventure</small></div>
       <div><span>▤ COLLECTION BOOK</span><strong>{discoveries}<em> / {ordinary.length}</em></strong><progress value={discoveries} max={ordinary.length || 249} aria-label="Ordinary species discovered"></progress><small>Two bonus discoveries await</small></div>
       <div><span>⌛ NEXT CAST</span><strong>{remaining ? remaining + 's' : 'Ready!'}</strong><small>Use /fish in Discord</small></div>
@@ -159,7 +160,7 @@
 
     {/if}
     {#if visibleView === 'journal'}
-    <section class="journal" aria-labelledby="journal"><div><p class="eyebrow">THE LAST FEW CASTS</p><h2 id="journal">Fishing journal</h2>{#if !game.recent.length}<p class="muted">A fresh page. Go make a little fishing history.</p>{:else}<ol>{#each game.recent.slice(0, 8) as catchResult (catchResult.recentId)}<li><span>{catchResult.outcome === 'fish' ? '🎣' : catchResult.outcome === 'junk' ? '🥫' : '🪙'}</span><div><strong>{catchResult.outcome === 'fish' ? speciesName(catchResult.speciesId) + ' · ' + catchResult.rarity + ' rank' : catchResult.outcome === 'junk' ? 'Rusted tin' : 'Treasure cache'}</strong><small>{time(catchResult.caughtAt.microsSinceUnixEpoch)}</small></div><span class="xp">+{catchResult.xpGranted.toString()} XP</span></li>{/each}</ol>{/if}</div><aside><p class="eyebrow">YOUR ITEMS</p><h2>A few useful finds</h2>{#if !game.items.length}<p class="muted">Scrap and rusted tins from your casts appear here.</p>{:else}{#each game.items as item (item.key)}<p class="item"><span>{item.item === 'scrap' ? 'Scrap' : 'Rusted tin'}</span><strong>{item.quantity.toString()}</strong></p>{/each}{/if}<p class="muted">Buy biome licences and stronger rods from the camp trader to explore all seven waters. Buy 10-use bait at the Trader and craft rod quality in your Tackle box using tin and scrap.</p></aside></section>
+    <Journal {game} {pageSize} />
     {/if}
   {/if}
 
@@ -185,7 +186,7 @@
   <div hidden={visibleView !== 'anglers'}><Anglers {game} {pageSize} /></div>
 
   </div>
-  <div class="view-panel" role="tabpanel" id="panel-compendium" aria-labelledby="tab-compendium" tabindex="0" hidden={visibleView !== 'compendium'}><Compendium {pageSize} /></div>
+  <div class="view-panel" role="tabpanel" id="panel-compendium" aria-labelledby="tab-compendium" tabindex="0" hidden={visibleView !== 'compendium'}><Compendium active={visibleView === 'compendium'} /></div>
 
   <footer><span>Fishbound · One cast at a time.</span><div>{#if game.lastSync}<span>Updated {game.lastSync.toLocaleTimeString()}</span>{/if}{#if game.player}<button class="text-button" disabled={game.busy || !game.ready} onclick={() => game.logout()}>Unlink this browser</button>{/if}</div></footer>
   <form method="POST" action={linkUrl} bind:this={linkForm} hidden><input name="challenge_id" value={game.challenge?.challengeId.toString() ?? ''} /><input name="proof" value={game.challenge?.proof.toString() ?? ''} /></form>
@@ -247,7 +248,6 @@
   .collection-entry>img{height:62px;width:70px;object-fit:contain;image-rendering:pixelated}.collection-entry small{font-family:var(--font-game);font-size:13px;color:#826542}.collection-entry h3{margin:5px 0;font-size:21px}.collection-entry p{font-size:11px;color:#79674a;margin:4px 0}
   .discovered{margin-left:auto;color:#537145;font-weight:700}.undiscovered>img{filter:grayscale(1);opacity:.4}.undiscovered h3{color:#73684f}.undiscovered .discovered{color:#a59b7e}
   .rank-progress{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}.rank-progress span{font-family:var(--font-game);font-size:12px;color:#8c7a58;border:1px solid #c7b185;padding:2px 4px;background:#eddfba}.rank-progress span.earned{color:#f6e4a7;border-color:#547145;background:#547145}
-  .journal{display:grid;grid-template-columns:1.4fr 1fr;gap:36px}.journal ol{list-style:none;padding:0;margin:0}.journal li{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px dashed #b99a69}.journal li strong{font-size:13px}.journal li small{display:block;font-size:11px;color:#87714f;margin-top:4px}.xp{margin-left:auto;color:#5c7549;font-family:var(--font-game);font-size:16px;white-space:nowrap}.journal aside{border-left:1px dashed #b99a69;padding-left:28px}.item{display:flex;justify-content:space-between;font-size:13px;border-bottom:1px dashed #b99a69;padding:12px 0}.item strong{color:#8b642c}
   .biome-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:18px}.biome-grid article{padding:20px;border:2px solid #a68a60;background:#e8d7b0;box-shadow:3px 4px 0 #c4a878;position:relative;overflow:hidden}
   .biome-grid article::before{content:'';display:block;height:36px;margin:-20px -20px 18px;background:linear-gradient(155deg,transparent 35%,#456f58 36% 65%,transparent 66%),linear-gradient(30deg,#365c52 45%,#7b9865 46% 68%,#e8be81 69%);border-bottom:2px solid #8b7853}
   .biome-grid article:nth-child(3n)::before{filter:hue-rotate(25deg)}.biome-grid article:nth-child(4)::before{filter:hue-rotate(90deg)}.biome-grid article:nth-child(6)::before{filter:hue-rotate(140deg) saturate(.6)}.biome-grid article:nth-child(7)::before{filter:brightness(.7)}
@@ -255,7 +255,7 @@
   footer{border-top:1px solid #6a7950;margin-top:38px;padding:24px 0 32px;display:flex;justify-content:space-between;gap:16px;color:#b7c29d;font-size:11px}footer>div{display:flex;gap:24px;align-items:center}.text-button{color:#d8d9b1;background:transparent;border:0;font-family:var(--font-body);font-size:11px;padding:0;box-shadow:none}.text-button:hover:not(:disabled){background:transparent}
   .sr-only{position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden}
   @media(max-width:850px){main{padding:16px 18px 0}nav{gap:5px;padding:10px}.brand{font-size:24px}nav a{font-size:16px;padding:6px 8px}.connection{margin-left:auto}.camp-banner{gap:20px;padding:18px;grid-template-columns:1fr 1fr}.camp-intro{padding:0}h1{font-size:62px}.intro{font-size:16px}.cast-hint span{display:none}.book-link{font-size:16px;gap:10px}section{padding:22px}.collection-grid{grid-template-columns:1fr}.stats>div{padding:18px 16px}.stats span{font-size:14px}}
-  @media(max-width:600px){main{padding:12px 12px 0}nav{gap:2px}.brand{width:100%;margin:0 0 4px;font-size:26px}nav a{font-size:15px;padding:6px 7px}.connection{font-size:10px;padding:4px 6px}.camp-banner{grid-template-columns:1fr;padding:16px;margin:22px 0;gap:20px}.camp-intro{padding:8px}h1{font-size:clamp(38px,14vw,58px)}.camp-banner :global(.scene){min-height:210px}.cast-hint{font-size:12px}.welcome{grid-template-columns:1fr;gap:20px;padding:22px}.login{max-width:none}.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(2){border-right:0}.stats>div:nth-child(-n+2){border-bottom:2px solid #4d3829}.stats>div{padding:18px}.stats strong{font-size:34px}.section-heading{align-items:flex-start;flex-wrap:wrap}section{padding:20px;margin-top:22px}h2{font-size:28px}.catch-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.catch{padding:10px}.catch h3{font-size:19px}.fish-art{height:105px}.fish-art img{width:95px;height:80px}.fish-art>span{font-size:12px}.measure{font-size:10px}.relative-size{font-size:10px}.catch-footer{font-size:10px}.collection-entry{padding:12px;gap:10px}.collection-entry>img{width:50px;height:50px}.journal{grid-template-columns:1fr;gap:26px}.journal aside{border-left:0;border-top:1px dashed #b99a69;padding:22px 0 0}.sale-actions{flex-wrap:wrap}footer{flex-direction:column}footer>div{justify-content:space-between}.filters{gap:12px}.filters>div{flex:1;min-width:110px}.filters>div:last-child{flex-basis:100%}.filters input{width:100%}}
+  @media(max-width:600px){main{padding:12px 12px 0}nav{gap:2px}.brand{width:100%;margin:0 0 4px;font-size:26px}nav a{font-size:15px;padding:6px 7px}.connection{font-size:10px;padding:4px 6px}.camp-banner{grid-template-columns:1fr;padding:16px;margin:22px 0;gap:20px}.camp-intro{padding:8px}h1{font-size:clamp(38px,14vw,58px)}.camp-banner :global(.scene){min-height:210px}.cast-hint{font-size:12px}.welcome{grid-template-columns:1fr;gap:20px;padding:22px}.login{max-width:none}.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(2){border-right:0}.stats>div:nth-child(-n+2){border-bottom:2px solid #4d3829}.stats>div{padding:18px}.stats strong{font-size:34px}.section-heading{align-items:flex-start;flex-wrap:wrap}section{padding:20px;margin-top:22px}h2{font-size:28px}.catch-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.catch{padding:10px}.catch h3{font-size:19px}.fish-art{height:105px}.fish-art img{width:95px;height:80px}.fish-art>span{font-size:12px}.measure{font-size:10px}.relative-size{font-size:10px}.catch-footer{font-size:10px}.collection-entry{padding:12px;gap:10px}.collection-entry>img{width:50px;height:50px}.sale-actions{flex-wrap:wrap}footer{flex-direction:column}footer>div{justify-content:space-between}.filters{gap:12px}.filters>div{flex:1;min-width:110px}.filters>div:last-child{flex-basis:100%}.filters input{width:100%}}
 
   .compact-banner{padding:14px 24px;margin:20px 0;grid-template-columns:1fr 240px;gap:20px}
   .compact-banner .camp-intro{padding:0}.compact-banner .eyebrow{margin-bottom:4px}.compact-banner h1{font-size:40px;margin:0;line-height:1.1}

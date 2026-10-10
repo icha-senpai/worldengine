@@ -74,7 +74,8 @@
       "luckBp": 0,
       "resourceItem": "rusted_tin",
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/sticky-chum.png"
+      "spriteAsset": "/baits/sticky-chum.png",
+      "xpBonusBp": 0
     },
     {
       "baitId": 2,
@@ -84,7 +85,8 @@
       "luckBp": 0,
       "resourceItem": "scrap",
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/salvage-chum.png"
+      "spriteAsset": "/baits/salvage-chum.png",
+      "xpBonusBp": 0
     },
     {
       "baitId": 3,
@@ -94,7 +96,8 @@
       "luckBp": 500,
       "resourceItem": "",
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/plump-worms.png"
+      "spriteAsset": "/baits/plump-worms.png",
+      "xpBonusBp": 0
     },
     {
       "baitId": 4,
@@ -104,7 +107,8 @@
       "luckBp": 1000,
       "resourceItem": "",
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/river-grubs.png"
+      "spriteAsset": "/baits/river-grubs.png",
+      "xpBonusBp": 0
     },
     {
       "baitId": 5,
@@ -114,7 +118,41 @@
       "luckBp": 1500,
       "resourceItem": "",
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/moonlit-fireflies.png"
+      "spriteAsset": "/baits/moonlit-fireflies.png",
+      "xpBonusBp": 0
+    },
+    {
+      "baitId": 6,
+      "key": "green-slime",
+      "name": "Green XP Slime",
+      "priceCoins": 50,
+      "luckBp": 0,
+      "xpBonusBp": 2500,
+      "resourceItem": "",
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/green-slime.png"
+    },
+    {
+      "baitId": 7,
+      "key": "yellow-slime",
+      "name": "Yellow XP Slime",
+      "priceCoins": 150,
+      "luckBp": 0,
+      "xpBonusBp": 5000,
+      "resourceItem": "",
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/yellow-slime.png"
+    },
+    {
+      "baitId": 8,
+      "key": "pink-slime",
+      "name": "Pink XP Slime",
+      "priceCoins": 400,
+      "luckBp": 0,
+      "xpBonusBp": 10000,
+      "resourceItem": "",
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/pink-slime.png"
     }
   ]
 }

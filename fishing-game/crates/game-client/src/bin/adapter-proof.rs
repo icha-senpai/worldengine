@@ -2,6 +2,22 @@
 use game_client::{Client, Error, module_bindings::ServiceRole};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+async fn collect_unlocks(
+    receiver: &mut tokio::sync::broadcast::Receiver<game_client::AchievementUnlock>,
+) -> Vec<game_client::AchievementUnlock> {
+    let first = tokio::time::timeout(std::time::Duration::from_secs(3), receiver.recv())
+        .await
+        .expect("committed unlock delivered")
+        .expect("unlock stream open");
+    let mut events = vec![first];
+    while let Ok(Ok(event)) =
+        tokio::time::timeout(std::time::Duration::from_millis(100), receiver.recv()).await
+    {
+        events.push(event);
+    }
+    events
+}
+
 fn snowflake(sequence: u64) -> u64 {
     let ms = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -23,17 +39,32 @@ async fn main() -> Result<(), Error> {
         ServiceRole::DiscordAdapter,
     )
     .await?;
+    let mut unlocks = client.subscribe_achievement_unlocks();
     let id = snowflake(1);
     let result = client
         .player(9001, "Native proof".into(), id, Some(5), 42, true)
         .await?;
     assert_eq!(result.player.completed_casts, 1);
+    let awards = collect_unlocks(&mut unlocks).await;
+    assert!(awards.iter().any(|row| row.achievement_id == 1
+        && row.name == "First ripple"
+        && row.description == "Complete your first cast."));
+    assert!(
+        awards.iter().all(
+            |row| row.player_id == result.player.player_id && row.discord_user_id == Some(9001)
+        )
+    );
+    assert_eq!(client.known_player_id(9001), Some(result.player.player_id));
     let receipt = result.receipt.expect("committed receipt");
     let replay = client
         .player(9001, "Native proof".into(), id, Some(5), 42, true)
         .await?;
     assert_eq!(replay.receipt.expect("replayed receipt"), receipt);
     assert_eq!(replay.player.completed_casts, 1);
+    assert!(
+        unlocks.try_recv().is_err(),
+        "Replay must not announce existing awards"
+    );
     assert_eq!(replay.species.len(), 251);
     assert_eq!(replay.biomes.len(), 7);
     assert_eq!(replay.rods.len(), 7);
@@ -92,6 +123,11 @@ async fn main() -> Result<(), Error> {
         client.player(9002, "Left".into(), snowflake(2), None, 42, true),
         client.player(9003, "Right".into(), snowflake(3), None, 42, true)
     );
+    assert!(
+        unlocks.try_recv().is_ok(),
+        "A real cast after reconnect still emits new awards"
+    );
+    while unlocks.try_recv().is_ok() {}
     assert_eq!(left?.player.discord_user_id, 9002);
     assert_eq!(right?.player.discord_user_id, 9003);
     let locked_offer = client
@@ -109,7 +145,7 @@ async fn main() -> Result<(), Error> {
                 false,
             )
             .await?;
-        assert_eq!(before.achievements.len(), 18);
+        assert_eq!(before.achievements.len(), 113);
         assert!(
             before
                 .public_profiles
@@ -172,6 +208,51 @@ async fn main() -> Result<(), Error> {
         );
         assert_eq!(after.collection, before.collection);
         assert_eq!(after.earned_achievements, before.earned_achievements);
+        assert!(
+            unlocks.try_recv().is_err(),
+            "Selection, sales and reconnects must not replay historical awards"
+        );
+        // A different connection's commits use the same SDK transaction event as web purchases.
+        client
+            .player(9001, "Native proof".into(), snowflake(45), None, 1, false)
+            .await?;
+        for (reducer, args) in [
+            (
+                "proof_social_history",
+                vec!["9408".to_owned(), "false".to_owned()],
+            ),
+            (
+                "backfill_player_achievements",
+                vec![before.player.player_id.to_string()],
+            ),
+        ] {
+            let output = std::process::Command::new("spacetime")
+                .args([
+                    "call",
+                    "--server",
+                    &uri,
+                    "--no-config",
+                    "--yes",
+                    &database,
+                    reducer,
+                ])
+                .args(args)
+                .output()?;
+            assert!(
+                output.status.success(),
+                "Isolated owner fixture failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+        let external_awards = collect_unlocks(&mut unlocks).await;
+        assert!(external_awards.iter().all(
+            |row| row.player_id == before.player.player_id && row.discord_user_id == Some(9408)
+        ));
+        assert!(external_awards.iter().any(|row| row.achievement_id == 15));
+        assert!(external_awards.iter().any(|row| row.achievement_id == 16));
+        println!(
+            "PASS achievement events: committed cast, exact badge data, replay suppression, reconnect history suppression, and external transaction awards for an unselected player"
+        );
     }
     if std::env::var("TEST_SHOP_PROOF").as_deref() == Ok("true") {
         let quote = client
@@ -311,6 +392,7 @@ async fn main() -> Result<(), Error> {
         ServiceRole::DiscordAdapter,
     )
     .await?;
+    let mut resumed_unlocks = resumed.subscribe_achievement_unlocks();
     assert_eq!(
         resumed
             .player(9001, "Native proof".into(), id, Some(5), 42, true)
@@ -318,6 +400,10 @@ async fn main() -> Result<(), Error> {
             .receipt
             .expect("reconnect receipt"),
         receipt
+    );
+    assert!(
+        resumed_unlocks.try_recv().is_err(),
+        "New connection and receipt replay must not announce historical awards"
     );
     println!(
         "PASS native Rust adapter: commit, replay, serialized selection, and reconnect recovery"

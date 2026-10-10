@@ -65,14 +65,14 @@ The callback must point at the Axum service. PUBLIC_ACCOUNT_LINK_URL points at
 that service; WEBSITE_URL must match the website Origin exactly. Public internet
 URLs require HTTPS. The localhost exception is for development.
 
-Set DISCORD_REGISTER_COMMANDS=true to register the eleven implemented commands
+Set DISCORD_REGISTER_COMMANDS=true to register the fourteen implemented commands
 globally for all installed servers. DISCORD_GUILD_ID and comma-separated
 DISCORD_GUILD_IDS identify servers where startup removes legacy guild commands
 that match a global command's name and type. Guild-only commands are preserved;
 startup creates no server copies. The application's bot installation needs
 slash-command access.
 There are no dot-prefix commands. The command launch plan remains
-in discord-commands.md; eleven have handlers, including /bait and /upgrade; sell and leaderboard follow later.
+in discord-commands.md; all fourteen have handlers, including /rod, /bait, /upgrade, /sell and /leaderboard.
 
 ## Run
 

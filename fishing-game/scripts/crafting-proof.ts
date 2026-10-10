@@ -55,7 +55,7 @@ try {
     return args;
   };
   const prepare=async(user=9301n,id=1)=>{await pause();const args=await select(user);await bot.reducers.prepareUpgradeFromDiscord({...args,rodId:id});return {args,q:[...bot.db.adapterUpgradeQuote.iter()][0]};};
-  assert.equal(bot.db.baitDefinition.count(),5n);assert.equal(bot.db.qualityDefinition.count(),7n);assert.equal(bot.db.shopListing.count(),17n);
+  assert.equal(bot.db.baitDefinition.count(),8n);assert.equal(bot.db.qualityDefinition.count(),7n);assert.equal(bot.db.shopListing.count(),20n);
   ownerCall('prepare_trader_player',['9301','10000000','200000','1']);let args=await select();
   await assert.rejects(bot.reducers.prepareUpgradeFromDiscord({...args,rodId:1}),/INSUFFICIENT_MATERIALS/);
   await assert.rejects(bot.reducers.prepareUpgradeFromDiscord({...args,rodId:7}),/ROD_NOT_OWNED/);
@@ -108,6 +108,31 @@ try {
   ownerCall('proof_cast_setup',['9301','1','0']);args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal([...bot.db.adapterCastEquipment.iter()][0].baitId,0);assert.equal(uses(1),0n);
   args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:2});ownerCall('proof_cast_setup',['9301','100','2']);args=await select();const oldScrap=material('scrap');await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal(material('scrap'),oldScrap+1n+[...bot.db.adapterCastPulls.iter()].reduce((sum,p)=>sum+p.receipt.itemQuantity,0n));assert.equal(uses(2),9n);
   for(const [id,luck] of [[3,4500],[4,5000],[5,5500]]){args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:id});ownerCall('proof_cast_setup',['9301','1','0']);args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal([...bot.db.adapterCastEquipment.iter()][0].luckBp,luck);assert.equal(uses(id),9n);}
+  for (const [id, bonus] of [[6,2500],[7,5000],[8,10000]]) {
+    const coins = player().coins;
+    await purchase(100+id);
+    assert.equal(coins-player().coins,BigInt([50,150,400][id-6]));
+    args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:id});
+    for (let cast=0;cast<10;cast++) {
+      ownerCall('proof_cast_setup',['9301','100',String(cast%3)]);
+      args=await select();const before=player();
+      await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
+      const gear=[...bot.db.adapterCastEquipment.iter()][0];
+      const pulls=[...bot.db.adapterCastPulls.iter()];
+      const total=[...bot.db.adapterReceipt.iter()][0];
+      assert.equal(pulls.length,2);assert.equal(gear.xpBonusBp,7500+bonus);
+      assert.equal(gear.luckBp,4000);assert.equal(gear.baitItem,'');
+      assert.equal(total.xpGranted,pulls.reduce((sum,p)=>sum+p.baseXp,0n)*BigInt(17500+bonus)/10000n);
+      assert.equal(total.xpGranted,pulls.reduce((sum,p)=>sum+p.receipt.xpGranted,0n));
+      assert.equal(player().totalXp,before.totalXp+total.xpGranted);assert.equal(uses(id),BigInt(9-cast));
+      const committed=player();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
+      assert.deepEqual(player(),committed);assert.equal(uses(id),BigInt(9-cast));
+      await assert.rejects(bot.reducers.fishFromDiscord({...args,interactionId:snowflake(),guildId:5n,channelId:42n}),/COOLDOWN_ACTIVE/);
+      assert.equal(uses(id),BigInt(9-cast));
+    }
+    assert.equal([...bot.db.adapterBaitLoadout.iter()][0].baitId,0);
+  }
+  console.log('PASS all three XP slime purchases, additive bonuses on fish/junk/treasure and two pulls, one-use consumption, replay, cooldown rejection and ten-use depletion.');
   const savedPulls=[...bot.db.adapterCastPulls.iter()],savedGear=[...bot.db.adapterCastEquipment.iter()][0];
   await bot.reducers.equipBaitFromDiscord({...args,baitId:0});await bot.reducers.changeLoadoutFromDiscord({...args,rodId:2});const replayPlayer=player();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.deepEqual([...bot.db.adapterCastPulls.iter()],savedPulls);assert.deepEqual([...bot.db.adapterCastEquipment.iter()][0],savedGear);assert.deepEqual(player(),replayPlayer);
   console.log('PASS repeatable packs, 20 two-pull casts, independent results, XP once, resource bait once, cooldown/replay, all bait effects, depletion and immutable cast snapshots.');
@@ -126,6 +151,7 @@ try {
   const stranger=await connect(['my_baits','my_bait_loadout','my_upgrade_quote','adapter_baits','adapter_upgrade_quote','adapter_cast_pulls','adapter_cast_equipment','adapter_items'].map(t=>`SELECT * FROM ${t}`));
   for(const view of [stranger.db.myBaits,stranger.db.myBaitLoadout,stranger.db.myUpgradeQuote,stranger.db.adapterBaits,stranger.db.adapterUpgradeQuote,stranger.db.adapterCastPulls,stranger.db.adapterCastEquipment,stranger.db.adapterItems])assert.equal(view.count(),0n);
   await assert.rejects(stranger.reducers.equipBait({baitId:1}),/ACCOUNT_NOT_LINKED/);await assert.rejects(stranger.reducers.activateCrafting({}),/OWNER_REQUIRED/);
+  await assert.rejects(stranger.reducers.activateXpProgression({}),/OWNER_REQUIRED/);
   for(const table of ['bait_stack','bait_loadout','upgrade_quote','cast_pull','cast_equipment_receipt'])await assert.rejects(connect([`SELECT * FROM ${table}`]));
   await browser.reducers.unlinkBrowser({});assert.equal(browser.db.myBaits.count(),0n);assert.equal(browser.db.myUpgradeQuote.count(),0n);assert.equal(browser.db.myRods.count(),0n);
   ownerCall('prepare_trader_player',['9303','10000000','1000','1']);ownerCall('proof_materials',['9303','100','100']);ownerCall('proof_cast_setup',['9303','1','0']);

@@ -58,7 +58,7 @@ try {
   ownerGrant(bot.identity, 'DiscordAdapter');
   ownerGrant(linker.identity, 'AccountLinker');
   const browserQueries = ['SELECT * FROM my_rods', 'SELECT * FROM my_licences', 'SELECT * FROM my_shop_quote', 'SELECT * FROM my_profile', 'SELECT * FROM my_player', 'SELECT * FROM my_inventory',
-    'SELECT * FROM my_collection', 'SELECT * FROM my_recent_catches', 'SELECT * FROM my_link_challenge',
+    'SELECT * FROM my_collection', 'SELECT * FROM my_recent_catches', 'SELECT * FROM my_journal', 'SELECT * FROM my_link_challenge',
     'SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt', 'SELECT * FROM adapter_daily_receipt', 'SELECT * FROM adapter_rods', 'SELECT * FROM adapter_licences', 'SELECT * FROM adapter_shop_quote', 'SELECT * FROM shop_listing'];
   await Promise.all([subscribe(botConn, ['SELECT * FROM adapter_player', 'SELECT * FROM adapter_receipt', 'SELECT * FROM adapter_daily_receipt', 'SELECT * FROM adapter_rods', 'SELECT * FROM adapter_licences', 'SELECT * FROM adapter_shop_quote', 'SELECT * FROM shop_listing',
     'SELECT * FROM adapter_cast_pulls', 'SELECT * FROM adapter_inventory', 'SELECT * FROM adapter_collection', 'SELECT * FROM species_definition',
@@ -111,8 +111,8 @@ try {
       assert.equal(actual.spriteAsset, rod.spriteAsset);
     }
     await assert.rejects(bob.connection.reducers.activateRodBonuses({}), /NOT_AUTHORIZED/);
-    assert.equal(botConn.db.shopListing.count(), 17n);
-    assert.equal([...botConn.db.gameConfig.iter()][0].levelCap, 60);
+    assert.equal(botConn.db.shopListing.count(), 20n);
+    assert.equal([...botConn.db.gameConfig.iter()][0].levelCap, 120);
     assert.equal([...botConn.db.gameConfig.iter()][0].inventoryCapacity, 0, 'Fish storage is unlimited');
     for (const definition of catalog.species) {
       const actual = species.find(row => row.speciesId === definition.speciesId)!;
@@ -277,6 +277,8 @@ try {
     assert.equal(bob.connection.db.myPlayer.count(), 0n);
     assert.equal(bob.connection.db.myRecentCatches.count(), 0n);
     assert.equal(bob.connection.db.myInventory.count(), 0n);
+    assert.equal([...alice.connection.db.myJournal.iter()][0].totalEntries, 1n);
+    assert.equal(bob.connection.db.myJournal.count(), 0n);
     assert.equal(bob.connection.db.myLinkChallenge.count(), 0n);
   });
   await checks('linked loadout selection is authoritative, rejects locked content, and preserves global cooldown', async () => {
@@ -305,6 +307,7 @@ try {
     await waitFor(() => replacement.connection.db.myPlayer.count() === 1n && alice.connection.db.myPlayer.count() === 0n, 'identity replacement');
     assert.equal(alice.connection.db.myRecentCatches.count(), 0n);
     assert.equal(alice.connection.db.myInventory.count(), 0n);
+    assert.equal(alice.connection.db.myJournal.count(), 0n);
   });
   await checks('reconnect reconstructs committed state with the same authenticated identity', async () => {
     replacement.connection.disconnect();
@@ -352,6 +355,27 @@ try {
     let nonce = [...manager.connection.db.myAction.iter()][0].nonce;
     await manager.connection.reducers.commitInventoryAction({ nonce });
     assert.equal([...manager.connection.db.myInventory.iter()][0].favorite, true);
+    const savedPlayer = [...manager.connection.db.myPlayer.iter()][0];
+    await assert.rejects(bob.connection.reducers.setCatchFavorite({ catchId: ownFish.catchId, favorite: false }), /ACCOUNT_NOT_LINKED/);
+    await assert.rejects(manager.connection.reducers.setCatchFavorite({ catchId: 18446744073709551615n, favorite: true }), /CATCH_UNAVAILABLE/);
+    // Consecutive explicit saves must not inherit the sale-preview throttle.
+    for (const favorite of [false,true,true,false,true]) {
+      await manager.connection.reducers.setCatchFavorite({ catchId: ownFish.catchId, favorite });
+      assert.equal([...manager.connection.db.myInventory.iter()][0].favorite, favorite);
+    }
+    assert.deepEqual([...manager.connection.db.myPlayer.iter()][0], savedPlayer);
+    assert.deepEqual([...manager.connection.db.myInventory.iter()][0], {...ownFish,favorite:true});
+    const returning = await connect(manager.token);
+    await subscribe(returning.connection, ['SELECT * FROM my_inventory']);
+    assert.equal([...returning.connection.db.myInventory.iter()][0].favorite, true, 'Fresh browser connection must load the saved favorite');
+    returning.connection.disconnect();
+    const outsider = await connect();
+    await subscribe(outsider.connection, ['SELECT * FROM my_link_challenge']);
+    await outsider.connection.reducers.beginLinkChallenge({});
+    const outsiderChallenge = [...outsider.connection.db.myLinkChallenge.iter()][0];
+    await linker.connection.reducers.completeAccountLink({ challengeId: outsiderChallenge.challengeId, proof: outsiderChallenge.proof, verifiedDiscordUserId: 9999n });
+    await assert.rejects(outsider.connection.reducers.setCatchFavorite({ catchId: ownFish.catchId, favorite: false }), /CATCH_NOT_OWNED/);
+    console.log('PASS immediate favorite/unfavorite, repeated saves, reconnect persistence, unchanged player/catch data, and ownership protection');
     await new Promise(resolve => setTimeout(resolve, 1100));
     await assert.rejects(manager.connection.reducers.prepareInventoryAction({ kind: 'sell', catchIds: [ownFish.catchId], favorite: false }), /FAVORITE_PROTECTED/);
     await manager.connection.reducers.prepareInventoryAction({ kind: 'favorite', catchIds: [ownFish.catchId], favorite: false });

@@ -18,6 +18,7 @@
         :show="setupVisible"
         title="Edit EXP Widget"
         @widget-mode="openWidgetMode"
+        @save="submitSetup(true)"
       >
         <form class="activity-setup" @submit.prevent="submitSetup(true)">
           <div class="activity-setup__grid">
@@ -26,10 +27,7 @@
               <input v-model.trim="form.title" type="text" maxlength="80" />
             </label>
 
-            <label>
-              <span>Emojis</span>
-              <input v-model.trim="form.icons" type="text" maxlength="40" />
-            </label>
+            <EmojiInput v-model="form.icons" />
 
             <label>
               <span>Character</span>
@@ -220,15 +218,20 @@
       <section class="activity-widget" aria-label="Bitcraft EXP tracker">
         <header class="activity-widget__header">
           <div class="activity-widget__identity">
-            <p class="activity-widget__eyebrow">{{ titleLabel }}</p>
-            <h1>{{ tracker?.player?.username ?? form.character }}</h1>
+            <p class="activity-widget__eyebrow">
+              {{ tracker?.player?.username ?? form.character }}
+            </p>
+            <h1>
+              <span>{{ titleLabel }}</span>
+              <EmojiDisplay v-if="iconsLabel" :value="iconsLabel" />
+            </h1>
           </div>
 
           <div class="activity-widget__level">
             <p :class="{ 'xp-working': activityState.active }">
               {{ activityState.label }}
             </p>
-            <time>{{ iconsLabel || clockLabel }}</time>
+            <time>{{ clockLabel }}</time>
           </div>
         </header>
 
@@ -269,7 +272,25 @@
                   goalMode ? "YOUR GOAL" : "CURRENT SKILL"
                 }}</span>
                 <h2>
-                  {{ primaryStat?.skill.name || "Waiting for your next grind" }}
+                  <span>{{
+                    primaryStat?.skill.name || "Waiting for your next grind"
+                  }}</span>
+                  <template v-if="primaryItem">
+                    <span aria-hidden="true">-</span>
+                    <span class="xp-source-item">
+                      <img
+                        v-if="sourceIconUrl"
+                        :src="sourceIconUrl"
+                        alt=""
+                        width="28"
+                        height="28"
+                        loading="lazy"
+                        decoding="async"
+                        @error="hideSourceIcon"
+                      />
+                      <span>{{ primaryItem.name }}</span>
+                    </span>
+                  </template>
                 </h2>
                 <p>
                   {{
@@ -405,7 +426,7 @@
             </article>
           </div>
         </template>
-        <div v-if="form.showCrafts && presentation !== 'obs'" class="xp-crafts">
+        <div v-if="form.showCrafts" class="xp-crafts">
           <div class="xp-section-head">
             <strong>Passive crafts</strong
             ><span>{{
@@ -414,7 +435,7 @@
                 : `${tracker?.passiveCrafts?.length || 0} in progress`
             }}</span>
           </div>
-          <p v-if="!tracker?.passiveCrafts?.length">
+          <p v-if="!passiveCraftGroups.length">
             {{
               tracker?.craftsDelayed
                 ? "Crafts are temporarily unavailable."
@@ -422,19 +443,16 @@
             }}
           </p>
           <article
-            v-for="craft in (tracker?.passiveCrafts || []).slice(0, 4)"
-            :key="craft.entityId"
+            v-for="group in passiveCraftGroups"
+            :key="group.key"
+            :title="group.claim?.name"
           >
-            <span>{{
-              craft.craftedItem?.[0]?.name ||
-              craft.buildingName ||
-              `Recipe ${craft.recipeId}`
-            }}</span
-            ><strong>{{
-              craft.totalProgress > 0
-                ? `${Math.min(100, Math.round((craft.progress / craft.totalProgress) * 100))}%`
-                : "In progress"
-            }}</strong>
+            <span
+              >{{ group.name }} x{{
+                formatNumber(group.totalOutputQuantity)
+              }}</span
+            >
+            <strong>{{ passiveCraftCountdown(group) }}</strong>
           </article>
         </div>
         <div v-if="presentation !== 'obs'" class="xp-session-controls">
@@ -461,11 +479,20 @@
 </template>
 
 <script setup>
+import EmojiInput from "./shared/EmojiInput.vue";
+import EmojiDisplay from "./shared/EmojiDisplay.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
-import { openWidget, widgetUrl } from "./widgets";
+import { openWidget, widgetUrl, persistWidgetDraft } from "./widgets";
 import { restoreXpSession, trackerActivity } from "./xpSession";
+import { xpItemForSkill } from "./xpSource";
+import { bitcraftAssetUrl } from "./bitjitaAssets";
+import {
+  passiveDeadlines,
+  passiveSecondsLeft,
+  passiveCountdownLabel,
+} from "./passiveCountdown";
 import {
   computed,
   onBeforeUnmount,
@@ -518,6 +545,31 @@ const sampledAt = ref(props.snapshot.sampledAt);
 const refreshStatus = ref(props.snapshot.refresh ?? {});
 const samples = ref([]);
 const now = ref(new Date());
+const passiveCraftGroups = computed(
+  () => tracker.value?.passiveCraftGroups ?? [],
+);
+const passiveCraftDeadlines = ref(new Map());
+watch(
+  [() => tracker.value?.player?.entityId, passiveCraftGroups],
+  ([playerId, groups], previous) => {
+    passiveCraftDeadlines.value = passiveDeadlines(
+      groups,
+      playerId === previous?.[0] ? passiveCraftDeadlines.value : new Map(),
+      now.value.getTime(),
+    );
+  },
+  { immediate: true },
+);
+const passiveCraftCountdown = (group) => {
+  const seconds = passiveSecondsLeft(
+    passiveCraftDeadlines.value.get(group.key)?.finishesAt,
+    now.value.getTime(),
+  );
+  const label = passiveCountdownLabel(seconds, group.timerSource);
+  return group.waitingCount && group.timerSource !== "queued"
+    ? `${label} · ${group.waitingCount} waiting`
+    : label;
+};
 const pickerOpen = ref(false);
 const pickerElement = ref(null);
 const lastActiveSkillStats = ref([]);
@@ -688,6 +740,29 @@ const primaryStat = computed(
     ) ||
     (form.skill !== "all" ? skillStats.value[0] : null),
 );
+const brokenSourceIcons = ref(new Set());
+const primaryItem = computed(() =>
+  refreshStatus.value.delayed
+    ? null
+    : xpItemForSkill(
+        tracker.value?.xpSource,
+        primaryStat.value?.skill,
+        tracker.value?.activity,
+        now.value.getTime(),
+        tracker.value?.player?.entityId,
+      ),
+);
+const sourceIconUrl = computed(() =>
+  brokenSourceIcons.value.has(primaryItem.value?.iconAssetName)
+    ? null
+    : bitcraftAssetUrl(primaryItem.value?.iconAssetName),
+);
+const hideSourceIcon = () => {
+  brokenSourceIcons.value = new Set([
+    ...brokenSourceIcons.value,
+    primaryItem.value?.iconAssetName,
+  ]);
+};
 const measuredRate = computed(() =>
   refreshStatus.value.delayed
     ? "—"
@@ -807,6 +882,8 @@ function widgetPayload(mode) {
 function launchTracker(mode) {
   const tab = openWidget(route("bitcraft.activity", widgetPayload(mode)), {
     popup: mode === "popout",
+    settings: widgetPayload(mode),
+    token: props.filters.profile,
   });
   if (!tab)
     widgetNotice.value =
@@ -814,7 +891,10 @@ function launchTracker(mode) {
 }
 function openFullTracker() {
   window.open(
-    route("bitcraft.activity.setup", { ...payload(true) }),
+    route("bitcraft.activity.setup", {
+      ...payload(true),
+      profile: props.filters.profile,
+    }),
     "_blank",
     "noopener",
   );
@@ -823,6 +903,7 @@ async function copyObsUrl() {
   try {
     obsUrl.value = await widgetUrl(
       route("bitcraft.activity", widgetPayload("obs")),
+      { settings: widgetPayload("obs"), token: props.filters.profile },
     );
     await navigator.clipboard.writeText(obsUrl.value);
     widgetNotice.value = `OBS URL copied. Add it as a Browser Source at ${form.width}px wide; the page background is transparent.`;
@@ -955,7 +1036,7 @@ onMounted(() => {
     !params.has("profile") &&
     !params.has("source") &&
     !params.has("skillKeys") &&
-    savedSetup?.skillKeys?.length
+    savedSetup
   ) {
     Object.assign(form, savedSetup);
     if (page.props.bitcraft?.player && !params.has("character"))
@@ -965,7 +1046,7 @@ onMounted(() => {
     return;
   }
 
-  saveSetup();
+  saveSetup(false);
   samples.value = loadSamples();
   addSample(
     tracker.value,
@@ -1123,22 +1204,26 @@ const loadSetup = () => {
   }
 
   try {
-    return normalizeSetup(
-      JSON.parse(storage.getItem(STORAGE_KEY) ?? "null") ?? {},
-    );
+    const saved = storage.getItem(STORAGE_KEY);
+    return saved ? normalizeSetup(JSON.parse(saved)) : null;
   } catch {
     return null;
   }
 };
 
-const saveSetup = () => {
+const saveSetup = (persistProfile = true) => {
   const storage = browserStorage();
 
   if (!storage || !restoredSetup) {
     return;
   }
 
-  storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
+  if (props.filters.widgetEditable === false) return;
+  if (props.filters.setup) {
+    storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
+    if (persistProfile)
+      persistWidgetDraft("activity", payload(true), props.filters.profile);
+  }
 };
 
 const updateTheme = (updates) => {
@@ -1627,11 +1712,36 @@ const skillDetailLabel = (stat) => {
   gap: 15px;
 }
 .xp-hero h2 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   font-size: calc(27px * var(--tracker-font-scale));
   line-height: 1.2;
   font-weight: 650;
   margin: 8px 0 6px;
   color: var(--tracker-text);
+}
+.xp-hero-top > div {
+  min-width: 0;
+  flex: 1;
+}
+.xp-source-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+.xp-source-item span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.xp-source-item img {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 .xp-hero p {
   font-size: 12px;
@@ -1639,6 +1749,7 @@ const skillDetailLabel = (stat) => {
   margin: 0;
 }
 .xp-hero-top > strong {
+  flex-shrink: 0;
   font-size: 42px;
   font-weight: 600;
   color: var(--tracker-accent);
@@ -1720,11 +1831,20 @@ const skillDetailLabel = (stat) => {
   font-size: 11px;
 }
 .xp-crafts article {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 10px;
   font-size: 12px;
   padding: 12px 0 0;
+}
+.xp-crafts article > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.xp-crafts article > strong {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .xp-session-controls {
   padding: 14px 22px;
@@ -2039,11 +2159,21 @@ const skillDetailLabel = (stat) => {
 }
 
 .activity-widget h1 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 4px;
   color: var(--tracker-text);
   font-size: calc(24px * var(--tracker-font-scale));
   font-weight: 900;
   line-height: 1.1;
+}
+
+.activity-widget h1 > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .activity-widget__level {

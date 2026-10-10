@@ -123,20 +123,17 @@ export const normalizeWidgetTheme = (value = {}) => {
     ? selectedTheme
     : DEFAULT_THEME.key;
   const preset = themeFor(theme);
-  const colors =
-    theme === DEFAULT_THEME.key
-      ? preset
-      : {
-          accentColor: normalizeColor(value?.accentColor, preset.accentColor),
-          highlightColor: normalizeColor(
-            value?.highlightColor,
-            preset.highlightColor,
-          ),
-          panelColor: normalizeColor(value?.panelColor, preset.panelColor),
-          textColor: normalizeColor(value?.textColor, preset.textColor),
-          mutedColor: normalizeColor(value?.mutedColor, preset.mutedColor),
-          borderColor: normalizeColor(value?.borderColor, preset.borderColor),
-        };
+  const colors = {
+    accentColor: normalizeColor(value?.accentColor, preset.accentColor),
+    highlightColor: normalizeColor(
+      value?.highlightColor,
+      preset.highlightColor,
+    ),
+    panelColor: normalizeColor(value?.panelColor, preset.panelColor),
+    textColor: normalizeColor(value?.textColor, preset.textColor),
+    mutedColor: normalizeColor(value?.mutedColor, preset.mutedColor),
+    borderColor: normalizeColor(value?.borderColor, preset.borderColor),
+  };
 
   return {
     theme,

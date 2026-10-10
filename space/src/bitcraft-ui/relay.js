@@ -25,6 +25,39 @@ export function relayInventory(raw) {
     })),
   };
 }
+export function withRelayCraftTimers(payload, states = []) {
+  const timers = new Map(states.map((row) => [String(row.entity_id), row]));
+  return {
+    ...payload,
+    craftResults: (payload.craftResults ?? []).flatMap((row) => {
+      const timer = timers.get(String(row.entityId ?? row.entity_id));
+      if (
+        !timer ||
+        String(timer.recipe_id) !== String(row.recipeId ?? row.recipe_id)
+      )
+        return [row];
+      const status = Object.keys(timer.status ?? {})[0];
+      if (status === "complete") return [];
+      const micros = Number(
+        timer.timestamp?.__timestamp_micros_since_unix_epoch__,
+      );
+      const date = new Date(micros / 1000);
+      const timestamp =
+        Number.isFinite(micros) && !Number.isNaN(date.getTime())
+          ? date.toISOString()
+          : null;
+      return [
+        {
+          ...row,
+          status,
+          startedAt: status === "processing" ? timestamp : null,
+          queuedAt: status === "queued" ? timestamp : null,
+          relayTiming: true,
+        },
+      ];
+    }),
+  };
+}
 export function relayCrafts(raw, claims = {}, passive = true) {
   return {
     ...raw,

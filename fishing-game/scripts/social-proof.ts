@@ -53,7 +53,7 @@ try {
   const player=()=>[...bot.db.adapterPlayer.iter()][0];
   const fish=()=>[...bot.db.adapterInventory.iter()];
   const earned=(id=player().playerId)=>[...bot.db.earnedAchievement.iter()].filter(row=>row.playerId===id).sort((a,b)=>a.achievementId-b.achievementId);
-  assert.equal(bot.db.achievementDefinition.count(),18n);
+  assert.equal(bot.db.achievementDefinition.count(),113n);
   assert.equal([...bot.db.achievementDefinition.iter()].filter(row=>row.bonus).length,2);
   ownerCall('proof_cast_setup',['9401','0','0']);
   let args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
@@ -96,10 +96,10 @@ try {
   assert.equal(race.filter(r=>r.status==='fulfilled').length,1);assert.equal(race.filter(r=>r.status==='rejected'&&/CATCH_UNAVAILABLE/.test(String(r.reason))).length,1);assert.equal(player().coins,raceBefore.coins+quote.quotedCoins);
   console.log('PASS sale exact quote, confirmation, replay after expiry, wrong nonce/account, duplicate/oversized batches, favorite protection at prepare and commit, expired/changed quotes and browser-Discord race.');
   await castFish();ownerCall('proof_social_history',['9401','false']);await waitFor(()=>player().completedCasts===1000n,'History subscription updated');const cosmeticBefore=player();const ledgerBefore=[...browser.db.myLedger.iter()];
-  ownerCall('backfill_player_achievements',[player().playerId.toString()]);await waitFor(()=>earned().length===16,'All ordinary milestones exclude both impossible bonus finds');
+  ownerCall('backfill_player_achievements',[player().playerId.toString()]);await waitFor(()=>earned().filter(row=>row.achievementId<=16).length===16,'All ordinary milestones exclude both impossible bonus finds');
   assert.deepEqual(player(),cosmeticBefore);assert.deepEqual([...browser.db.myLedger.iter()],ledgerBefore);
   const once=earned();ownerCall('backfill_player_achievements',[player().playerId.toString()]);assert.deepEqual(earned(),once,'Backfill preserves original award timestamps');
-  ownerCall('proof_social_history',['9401','true']);ownerCall('backfill_player_achievements',[player().playerId.toString()]);await waitFor(()=>earned().length===18,'Both bonus badges unlocked');
+  ownerCall('proof_social_history',['9401','true']);ownerCall('backfill_player_achievements',[player().playerId.toString()]);await waitFor(()=>earned().filter(row=>row.achievementId<=18).length===18,'Both bonus badges unlocked');
   await browser.reducers.equipTitle({achievementId:16});assert.equal([...browser.db.anglerTitle.iter()].find(row=>row.playerId===player().playerId)!.achievementId,16);
   const allBadges=earned();await pause();await bot.reducers.prepareSaleFromDiscord({...args,catchIds:fish().map(row=>row.catchId)});quote=[...bot.db.adapterSaleQuote.iter()][0];await bot.reducers.commitSaleFromDiscord({...args,nonce:quote.nonce});assert.deepEqual(earned(),allBadges);
   ownerCall('activate_achievements');ownerCall('activate_achievements');assert.deepEqual(earned(),allBadges);
@@ -111,7 +111,7 @@ try {
   await assert.rejects(stranger.reducers.prepareSaleFromDiscord({...args,catchIds:[1n]}),/SERVICE_UNAUTHORIZED/);
   for(const table of ['sale_quote','achievement_progress'])await assert.rejects(connect([`SELECT * FROM ${table}`]));
   await browser.reducers.unlinkBrowser({});assert.equal(browser.db.myAchievementProgress.count(),0n);await assert.rejects(browser.reducers.equipTitle({achievementId:1}),/ACCOUNT_NOT_LINKED/);
-  console.log('PASS first-cast automatic unlocks, all 18 milestones, retroactive sold-catch history, ordinary/bonus separation, permanent awards, cosmetic-only backfill, earned-title validation/clear, public profile privacy, unlink and owner/service boundaries.');
+  console.log('PASS first-cast automatic unlocks, all 18 original milestones, retroactive sold-catch history, ordinary/bonus separation, permanent awards, cosmetic-only backfill, earned-title validation/clear, public profile privacy, unlink and owner/service boundaries.');
   await writeFile('.local/achievement-catalog.json', JSON.stringify([...bot.db.achievementDefinition.iter()].sort((a,b)=>a.achievementId-b.achievementId),(_,value)=>typeof value==='bigint'?value.toString():value));
   ownerCall('proof_cast_setup',['9408','0','0']);args=await select(9408n);await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
   const native=await new Promise<{status:number|null,stdout:string,stderr:string}>((resolve,reject)=>{

@@ -7,6 +7,7 @@ mod crafting;
 mod daily;
 mod gear;
 mod inventory;
+mod journal;
 mod loadout;
 mod maintenance;
 mod records;

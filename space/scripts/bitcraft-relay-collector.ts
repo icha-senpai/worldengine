@@ -1,3 +1,4 @@
+import { CollectorCycle } from "./bitcraft-collector-cycle";
 import { tradingDelta } from "./bitcraft-trading-delta";
 import { RelaySubscription, tradingQueries } from "./bitcraft-relay";
 import {
@@ -7,6 +8,7 @@ import {
 import { catalogResponse } from "../bitcraft/src/catalog";
 import { collectionKey } from "../bitcraft/src/collection";
 import type { DbConnection } from "../src/bindings/bitcraft";
+import type { CollectorDiagnostics } from "./collector-diagnostics";
 type Watch = { resource: string; entityId: string; expiresAt: bigint };
 type Scope = {
   key: string;
@@ -23,28 +25,33 @@ type Scope = {
 };
 export class NativeRelayCollector {
   private scopes = new Map<string, Scope>();
-  private discovering = new Set<string>();
+  private discovering = new Map<string, CollectorCycle>();
+  private admitted = new Map<string, bigint>();
   private stopped = false;
   private lastDiscovery = new Map<string, number>();
   constructor(
     private conn: DbConnection,
     private epoch: string,
     private due: Map<string, number>,
+    private diagnostics?: CollectorDiagnostics,
+    private cycle = new CollectorCycle(),
   ) {}
   private generation(scope: Scope) {
     return `${this.epoch}-native-${scope.relay.generation}`;
   }
   private async status(scope: Scope) {
     if (this.stopped) return;
-    await this.conn.reducers.relayHeartbeat({
-      key: scope.key,
-      provider: scope.relay.provider,
-      regionId: scope.relay.region,
-      epoch: this.generation(scope),
-      ready: scope.relay.ready,
-      rows: [...scope.relay.tables.values()].reduce((n, t) => n + t.size, 0),
-      error: scope.error.slice(0, 240),
-    });
+    await this.cycle.wait(() =>
+      this.conn.reducers.relayHeartbeat({
+        key: scope.key,
+        provider: scope.relay.provider,
+        regionId: scope.relay.region,
+        epoch: this.generation(scope),
+        ready: scope.relay.ready,
+        rows: [...scope.relay.tables.values()].reduce((n, t) => n + t.size, 0),
+        error: scope.error.slice(0, 240),
+      }),
+    );
     scope.heartbeat = Date.now();
   }
   private add(
@@ -92,14 +99,23 @@ export class NativeRelayCollector {
       },
       (error) => {
         if (this.stopped) return;
+        this.diagnostics?.event(
+          "relay-error",
+          new Error(error),
+          scope.relay.region,
+        );
         scope.error = error;
         scope.dirty = false;
         scope.published = 0;
+        scope.trading = undefined;
+        scope.tradingGeneration = undefined;
         if (playerId)
-          void this.conn.reducers
-            .collectionFailure({
-              key: collectionKey("relaySkills", `player/${playerId}/skills`),
-            })
+          void this.cycle
+            .wait(() =>
+              this.conn.reducers.collectionFailure({
+                key: collectionKey("relaySkills", `player/${playerId}/skills`),
+              }),
+            )
             .catch(() => {});
         console.error(`Native relay ${key}: ${error}`);
         void this.status(scope).catch(() => {});
@@ -132,27 +148,43 @@ export class NativeRelayCollector {
   }
   private async player(id: string) {
     if (
+      this.stopped ||
+      this.cycle.stopped ||
       this.discovering.has(id) ||
       Date.now() < (this.lastDiscovery.get(id) ?? 0)
     )
       return;
-    this.discovering.add(id);
+    const discovery = new CollectorCycle();
+    this.discovering.set(id, discovery);
     this.lastDiscovery.set(id, Date.now() + 60000);
     try {
-      const response = await this.conn.procedures.requestData({
-        resource: "relayPlayer",
-        id,
-        query: "",
-        page: 1,
-        options: '{"collector":true}',
-      });
+      const response = await discovery.wait(
+        () =>
+          this.cycle.wait(
+            () =>
+              this.conn.procedures.requestData({
+                resource: "relayPlayer",
+                id,
+                query: "",
+                page: 1,
+                options: '{"collector":true}',
+              }),
+            15000,
+          ),
+        15000,
+      );
       if (!response.payload || response.error)
         throw Error("Player region resolution delayed.");
       const player = JSON.parse(response.payload),
         region = Number(player.region ?? player.regionId);
       if (!CURRENT_REGIONS[region])
         throw Error("Player region is outside current regions.");
-      if (this.stopped) return;
+      if (
+        this.stopped ||
+        discovery.stopped ||
+        (this.admitted.get(id) ?? 0n) / 1000n <= BigInt(Date.now())
+      )
+        return;
       const previous = this.scopes.get(`player:${id}`);
       if (previous?.relay.region === region) return;
       previous?.relay.stop();
@@ -172,31 +204,62 @@ export class NativeRelayCollector {
       );
       await scope.relay.start();
     } catch (error) {
+      if (this.stopped || !this.admitted.has(id)) return;
+      // The SDK cannot cancel an individual pending procedure. Retire its
+      // connection on timeout instead of accumulating abandoned callbacks.
+      if (
+        discovery.stopped &&
+        String(discovery.signal.reason?.message).includes("timed out")
+      ) {
+        this.cycle.stop("Player discovery timed out; reconnecting.");
+      }
       console.error(
         `Native player discovery delayed: ${(error as Error).message}`,
       );
     } finally {
-      this.discovering.delete(id);
+      if (this.discovering.get(id) === discovery) this.discovering.delete(id);
     }
   }
   async tick(watches: Watch[]) {
-    if (this.stopped) return;
-    const active = new Set(
-      watches
-        .filter(
-          (w) =>
-            w.expiresAt / 1000n > BigInt(Date.now()) &&
-            /^relay(Player|Skills|Inventories|Housing|Crafts|Session)$/.test(
-              w.resource,
-            ),
-        )
-        .map((w) => w.entityId)
-        .filter((id) => /^\d{1,24}$/.test(id)),
-    );
-    // Bound private companion connection fan-out; remaining users retain shared APIs.
-    for (const id of [...active].slice(0, 30)) void this.player(id);
+    if (this.stopped || this.cycle.stopped) return;
+    const candidates = new Map<string, bigint>();
+    for (const w of watches) {
+      if (
+        w.expiresAt / 1000n <= BigInt(Date.now()) ||
+        !/^relay(Player|Skills|Inventories|Housing|Crafts|Session)$/.test(
+          w.resource,
+        ) ||
+        !/^\d{1,24}$/.test(w.entityId)
+      )
+        continue;
+      candidates.set(
+        w.entityId,
+        w.expiresAt > (candidates.get(w.entityId) ?? 0n)
+          ? w.expiresAt
+          : candidates.get(w.entityId)!,
+      );
+    }
+    // Preserve admitted users while active so reordered watches cannot grow fan-out.
+    const selected = [
+      ...new Set([...this.admitted.keys(), ...candidates.keys()]),
+    ]
+      .filter((id) => candidates.has(id))
+      .slice(0, 30);
+    this.admitted = new Map(selected.map((id) => [id, candidates.get(id)!]));
+    // Close removed sockets synchronously before discovery or any awaited status.
     for (const [key, scope] of this.scopes) {
-      if (scope.playerId && !active.has(scope.playerId)) {
+      if (scope.playerId && !this.admitted.has(scope.playerId)) {
+        scope.relay.stop();
+        this.scopes.delete(key);
+      }
+    }
+    for (const [id, discovery] of this.discovering)
+      if (!this.admitted.has(id)) discovery.stop("Player watch expired.");
+    for (const id of this.lastDiscovery.keys())
+      if (!this.admitted.has(id)) this.lastDiscovery.delete(id);
+    for (const id of selected) void this.player(id);
+    for (const [key, scope] of this.scopes) {
+      if (scope.playerId && !this.admitted.has(scope.playerId)) {
         scope.relay.stop();
         this.scopes.delete(key);
         continue;
@@ -229,18 +292,27 @@ export class NativeRelayCollector {
               const stacks = experience.experience_stacks ?? [];
               const payload = {
                 player: { ...state, ...username, region: scope.relay.region },
+                // The HTTP craft list omits timestamps/status. Preserve the live
+                // state alongside the existing player subscription for timers.
+                passiveCrafts: [
+                  ...(scope.relay.tables.get("passive_craft_state")?.values() ??
+                    []),
+                ],
                 skills: stacks.map((s: any) => ({
                   skill_id: Number(s["0"] ?? s.skill_id),
                   xp: Number(s["1"] ?? s.quantity),
                 })),
               };
-              await this.conn.reducers.ingestCollection({
-                key: collectionKey("relaySkills", `player/${id}/skills`),
-                source: "relay",
-                epoch: generation,
-                payload: JSON.stringify(payload),
-                observedAt,
-              });
+              await this.cycle.wait(() =>
+                this.conn.reducers.ingestCollection({
+                  key: collectionKey("relaySkills", `player/${id}/skills`),
+                  source: "relay",
+                  epoch: generation,
+                  payload: JSON.stringify(payload),
+                  observedAt,
+                }),
+              );
+              if (this.stopped) return;
               this.due.set(
                 collectionKey("relaySkills", `player/${id}/skills`),
                 Date.now() + 15000,
@@ -258,12 +330,20 @@ export class NativeRelayCollector {
                 data,
               );
               if (delta.changed) {
-                await this.conn.reducers.ingestRelayTrading({
-                  regionId: scope.relay.region,
-                  epoch: generation,
-                  payload: JSON.stringify(delta.patch),
-                  observedAt,
-                });
+                this.diagnostics?.event(
+                  "relay-publication",
+                  undefined,
+                  scope.relay.region,
+                );
+                await this.cycle.wait(() =>
+                  this.conn.reducers.ingestRelayTrading({
+                    regionId: scope.relay.region,
+                    epoch: generation,
+                    payload: JSON.stringify(delta.patch),
+                    observedAt,
+                  }),
+                );
+                if (this.stopped) return;
                 scope.trading = delta.next;
                 scope.tradingGeneration = generation;
               }
@@ -272,16 +352,19 @@ export class NativeRelayCollector {
             scope.dirty = scope.revision !== revision;
           }
         } catch (error) {
+          if (this.stopped || this.cycle.stopped) return;
           scope.error = (error as Error).message;
           console.error(`Native relay publication ${key}: ${scope.error}`);
           if (scope.playerId)
-            await this.conn.reducers
-              .collectionFailure({
-                key: collectionKey(
-                  "relaySkills",
-                  `player/${scope.playerId}/skills`,
-                ),
-              })
+            await this.cycle
+              .wait(() =>
+                this.conn.reducers.collectionFailure({
+                  key: collectionKey(
+                    "relaySkills",
+                    `player/${scope.playerId}/skills`,
+                  ),
+                }),
+              )
               .catch(() => {});
         } finally {
           scope.pending = false;
@@ -298,6 +381,13 @@ export class NativeRelayCollector {
   }
   stop() {
     this.stopped = true;
+    this.cycle.stop("Native collector stopped.");
+    for (const discovery of this.discovering.values())
+      discovery.stop("Native collector stopped.");
+    this.discovering.clear();
+    this.admitted.clear();
+    this.lastDiscovery.clear();
     for (const scope of this.scopes.values()) scope.relay.stop();
+    this.scopes.clear();
   }
 }

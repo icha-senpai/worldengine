@@ -28,6 +28,7 @@ const mobileToggle = ref<HTMLButtonElement | null>(null);
 const tools = [
   ["guides", "Guides"],
   ["market", "Market Finder"],
+  ["fishing-map", "Fishing Map"],
   ["barter-stalls", "Barter Stalls"],
   ["crafting", "Crafting Calculator"],
   ["open-crafts", "Open Crafts"],

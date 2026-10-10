@@ -1,8 +1,11 @@
 import { DbConnection } from '@fishing-game/generated';
+import type { JournalPage } from '@fishing-game/generated/types';
+export type JournalQuery = { page: number; pageSize: number; sort: string; descending: boolean; search: string; biomeId: number; rarity: string; outcome: string };
 import type { ActionNonce, AnglerStanding, LegendaryFind, BiomeDefinition, RodDefinition, RarityDefinition, GameConfig, ItemStack, LinkChallenge, OwnedSpecimen, Player, PlayerSpeciesProgress, PublicProfile, RecentCatch, SpeciesDefinition, SpeciesRecord, ShopListing, ShopQuote, OwnedRod, OwnedBiomeLicence, RodBonuses } from '@fishing-game/generated/types';
 
 export class Game {
   achievements = $state.raw<import('@fishing-game/generated/types').AchievementDefinition[]>([]);
+  achievementCollections = $state.raw<import('@fishing-game/generated/types').AchievementCollection[]>([]);
   earnedAchievements = $state.raw<import('@fishing-game/generated/types').EarnedAchievement[]>([]);
   achievementProgress = $state.raw<import('@fishing-game/generated/types').AchievementProgress[]>([]);
   titles = $state.raw<import('@fishing-game/generated/types').AnglerTitle[]>([]);
@@ -22,6 +25,11 @@ export class Game {
   inventory = $state.raw<OwnedSpecimen[]>([]);
   collection = $state.raw<PlayerSpeciesProgress[]>([]);
   recent = $state.raw<RecentCatch[]>([]);
+  journal = $state.raw<JournalPage | null>(null);
+  journalLoading = $state(false);
+  journalError = $state('');
+  private journalPending: JournalQuery | null = null;
+  private journalLastQuery = '';
   species = $state.raw<SpeciesDefinition[]>([]);
   biomes = $state.raw<BiomeDefinition[]>([]);
   rods = $state.raw<RodDefinition[]>([]);
@@ -51,11 +59,13 @@ export class Game {
     this.ownedBaits = []; this.baitLoadout = null; this.upgradeQuote = null;
     this.player = null; this.profile = null; this.inventory = []; this.collection = [];
     this.recent = []; this.items = []; this.challenge = null; this.action = null; this.shopQuote = null; this.ownedRods = []; this.licences = [];
+    this.journal = null; this.journalLastQuery = ''; this.journalPending = null; this.journalError = '';
   }
   private refresh = () => {
     const connection = this.connection;
     if (!connection || !this.ready) return;
     this.achievements = [...connection.db.achievementDefinition.iter()].sort((a,b) => a.achievementId-b.achievementId);
+    this.achievementCollections = [...connection.db.achievementCollection.iter()];
     this.earnedAchievements = [...connection.db.earnedAchievement.iter()];
     this.achievementProgress = [...connection.db.myAchievementProgress.iter()];
     this.titles = [...connection.db.anglerTitle.iter()];
@@ -65,6 +75,7 @@ export class Game {
     this.inventory = [...connection.db.myInventory.iter()].sort((a, b) => a.catchId > b.catchId ? -1 : 1);
     this.collection = [...connection.db.myCollection.iter()];
     this.recent = [...connection.db.myRecentCatches.iter()].sort((a, b) => a.recentId > b.recentId ? -1 : 1);
+    this.journal = [...connection.db.myJournal.iter()][0] ?? null;
     this.species = [...connection.db.speciesDefinition.iter()].sort((a, b) => a.speciesId - b.speciesId);
     this.records = [...connection.db.speciesRecord.iter()];
     this.standings = [...connection.db.anglerStanding.iter()];
@@ -119,13 +130,13 @@ export class Game {
           if (generation !== this.generation) return;
           this.ready = true; this.status = 'Live'; this.attempts = 0; this.error = ''; this.refresh();
         }).onError(() => { this.error = 'The pond could not load your data.'; connection.disconnect(); })
-          .subscribe(['SELECT * FROM achievement_definition', 'SELECT * FROM earned_achievement', 'SELECT * FROM angler_title', 'SELECT * FROM my_achievement_progress', 'SELECT * FROM public_profile', 'SELECT * FROM my_player', 'SELECT * FROM my_profile', 'SELECT * FROM my_inventory', 'SELECT * FROM my_collection',
-            'SELECT * FROM my_baits', 'SELECT * FROM my_bait_loadout', 'SELECT * FROM my_upgrade_quote', 'SELECT * FROM bait_definition', 'SELECT * FROM quality_definition', 'SELECT * FROM my_recent_catches', 'SELECT * FROM my_link_challenge', 'SELECT * FROM my_action', 'SELECT * FROM my_items',
+          .subscribe(['SELECT * FROM achievement_definition', 'SELECT * FROM achievement_collection', 'SELECT * FROM earned_achievement', 'SELECT * FROM angler_title', 'SELECT * FROM my_achievement_progress', 'SELECT * FROM public_profile', 'SELECT * FROM my_player', 'SELECT * FROM my_profile', 'SELECT * FROM my_inventory', 'SELECT * FROM my_collection',
+            'SELECT * FROM my_baits', 'SELECT * FROM my_bait_loadout', 'SELECT * FROM my_upgrade_quote', 'SELECT * FROM bait_definition', 'SELECT * FROM quality_definition', 'SELECT * FROM my_recent_catches', 'SELECT * FROM my_journal', 'SELECT * FROM my_link_challenge', 'SELECT * FROM my_action', 'SELECT * FROM my_items',
             'SELECT * FROM species_definition', 'SELECT * FROM species_record', 'SELECT * FROM angler_standing', 'SELECT * FROM legendary_find', 'SELECT * FROM game_config', 'SELECT * FROM biome_definition', 'SELECT * FROM my_rods', 'SELECT * FROM my_licences', 'SELECT * FROM my_shop_quote', 'SELECT * FROM shop_listing', 'SELECT * FROM rod_bonuses', 'SELECT * FROM rod_definition', 'SELECT * FROM rarity_definition']);
       }).onConnectError(lost).onDisconnect(lost).build();
     this.connection = connection;
-    for (const table of [connection.db.achievementDefinition, connection.db.earnedAchievement, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection,
-      connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.baitDefinition, connection.db.qualityDefinition, connection.db.myRods, connection.db.myLicences, connection.db.myShopQuote, connection.db.shopListing, connection.db.myRecentCatches, connection.db.myLinkChallenge, connection.db.myAction, connection.db.myItems,
+    for (const table of [connection.db.achievementDefinition, connection.db.achievementCollection, connection.db.earnedAchievement, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection,
+      connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.baitDefinition, connection.db.qualityDefinition, connection.db.myRods, connection.db.myLicences, connection.db.myShopQuote, connection.db.shopListing, connection.db.myRecentCatches, connection.db.myJournal, connection.db.myLinkChallenge, connection.db.myAction, connection.db.myItems,
       connection.db.speciesDefinition, connection.db.speciesRecord, connection.db.anglerStanding, connection.db.legendaryFind, connection.db.gameConfig, connection.db.biomeDefinition, connection.db.rodBonuses, connection.db.rodDefinition, connection.db.rarityDefinition]) {
       table.onInsert(this.refresh); table.onDelete(this.refresh);
     }
@@ -139,6 +150,7 @@ export class Game {
     connection.db.speciesDefinition.onUpdate(this.refresh);
     connection.db.gameConfig.onUpdate(this.refresh);
     connection.db.achievementDefinition.onUpdate(this.refresh);
+    connection.db.achievementCollection.onUpdate(this.refresh);
     connection.db.myAchievementProgress.onUpdate(this.refresh);
     connection.db.anglerTitle.onUpdate(this.refresh);
     connection.db.publicProfile.onUpdate(this.refresh);
@@ -152,6 +164,29 @@ export class Game {
     this.retry = null; this.connection?.disconnect(); this.connection = null; this.ready = false; this.clearPrivate();
   }
   reconnect() { this.start(this.uri, this.database); }
+  async queryJournal(query: JournalQuery) {
+    if (!this.ready || !this.connection || !this.player) return;
+    if (JSON.stringify(query) === this.journalLastQuery && !this.journalLoading) return;
+    this.journalPending = query;
+    if (this.journalLoading) return;
+    const connection = this.connection;
+    const generation = this.generation;
+    this.journalLoading = true; this.journalError = '';
+    try {
+      while (this.journalPending && this.ready && generation === this.generation) {
+        const next = this.journalPending; this.journalPending = null;
+        await connection.reducers.selectJournal(next);
+        if (generation !== this.generation) break;
+        this.journalLastQuery = JSON.stringify(next); this.refresh();
+      }
+    } catch {
+      if (generation === this.generation) this.journalError = 'The journal could not turn to that page. Try again.';
+    } finally {
+      this.journalLoading = false;
+      // A reconnect or newer selection may arrive while the old request settles.
+      if (this.journalPending) void this.queryJournal(this.journalPending);
+    }
+  }
   async run(action: (connection: DbConnection) => Promise<void>) {
     if (!this.ready || !this.connection || this.busy) return;
     this.busy = true; this.error = '';
@@ -198,12 +233,7 @@ export class Game {
   }
   async confirmPurchase(nonce: bigint) { await this.run(connection => connection.reducers.commitShopPurchase({ nonce })); }
   async favorite(fish: OwnedSpecimen) {
-    await this.run(async connection => {
-      await connection.reducers.prepareInventoryAction({ kind: 'favorite', catchIds: [fish.catchId], favorite: !fish.favorite });
-      const action = [...connection.db.myAction.iter()][0];
-      if (!action || action.kind !== 'favorite' || action.catchIds[0] !== fish.catchId) throw new Error('Missing action quote');
-      await connection.reducers.commitInventoryAction({ nonce: action.nonce });
-    });
+    await this.run(connection => connection.reducers.setCatchFavorite({ catchId: fish.catchId, favorite: !fish.favorite }));
   }
   async previewSale(ids: bigint[]) {
     await this.run(connection => connection.reducers.prepareInventoryAction({ kind: 'sell', catchIds: ids, favorite: false }));

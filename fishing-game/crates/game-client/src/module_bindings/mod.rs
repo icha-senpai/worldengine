@@ -6,6 +6,8 @@
 #![allow(unused, clippy::all)]
 use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
+pub mod achievement_collection_table;
+pub mod achievement_collection_type;
 pub mod achievement_definition_table;
 pub mod achievement_definition_type;
 pub mod achievement_progress_type;
@@ -15,6 +17,7 @@ pub mod activate_crafting_reducer;
 pub mod activate_rod_bonuses_reducer;
 pub mod activate_species_measurements_reducer;
 pub mod activate_trader_reducer;
+pub mod activate_xp_progression_reducer;
 pub mod adapter_achievement_progress_table;
 pub mod adapter_bait_loadout_table;
 pub mod adapter_baits_table;
@@ -36,6 +39,7 @@ pub mod angler_standing_table;
 pub mod angler_standing_type;
 pub mod angler_title_table;
 pub mod angler_title_type;
+pub mod backfill_journal_reducer;
 pub mod backfill_player_achievements_reducer;
 pub mod bait_definition_table;
 pub mod bait_definition_type;
@@ -71,6 +75,10 @@ pub mod fish_from_discord_reducer;
 pub mod game_config_table;
 pub mod game_config_type;
 pub mod item_stack_type;
+pub mod journal_entry_type;
+pub mod journal_import_type;
+pub mod journal_page_type;
+pub mod journal_selection_type;
 pub mod legendary_find_table;
 pub mod legendary_find_type;
 pub mod link_challenge_type;
@@ -83,6 +91,7 @@ pub mod my_baits_table;
 pub mod my_collection_table;
 pub mod my_inventory_table;
 pub mod my_items_table;
+pub mod my_journal_table;
 pub mod my_ledger_table;
 pub mod my_licences_table;
 pub mod my_link_challenge_table;
@@ -119,9 +128,11 @@ pub mod rod_definition_table;
 pub mod rod_definition_type;
 pub mod sale_quote_type;
 pub mod select_discord_player_reducer;
+pub mod select_journal_reducer;
 pub mod service_principal_type;
 pub mod service_role_type;
 pub mod service_selection_type;
+pub mod set_catch_favorite_reducer;
 pub mod shop_listing_table;
 pub mod shop_listing_type;
 pub mod shop_quote_type;
@@ -135,6 +146,8 @@ pub mod trader_migration_type;
 pub mod unlink_browser_reducer;
 pub mod upgrade_quote_type;
 
+pub use achievement_collection_table::*;
+pub use achievement_collection_type::AchievementCollection;
 pub use achievement_definition_table::*;
 pub use achievement_definition_type::AchievementDefinition;
 pub use achievement_progress_type::AchievementProgress;
@@ -144,6 +157,7 @@ pub use activate_crafting_reducer::activate_crafting;
 pub use activate_rod_bonuses_reducer::activate_rod_bonuses;
 pub use activate_species_measurements_reducer::activate_species_measurements;
 pub use activate_trader_reducer::activate_trader;
+pub use activate_xp_progression_reducer::activate_xp_progression;
 pub use adapter_achievement_progress_table::*;
 pub use adapter_bait_loadout_table::*;
 pub use adapter_baits_table::*;
@@ -165,6 +179,7 @@ pub use angler_standing_table::*;
 pub use angler_standing_type::AnglerStanding;
 pub use angler_title_table::*;
 pub use angler_title_type::AnglerTitle;
+pub use backfill_journal_reducer::backfill_journal;
 pub use backfill_player_achievements_reducer::backfill_player_achievements;
 pub use bait_definition_table::*;
 pub use bait_definition_type::BaitDefinition;
@@ -200,6 +215,10 @@ pub use fish_from_discord_reducer::fish_from_discord;
 pub use game_config_table::*;
 pub use game_config_type::GameConfig;
 pub use item_stack_type::ItemStack;
+pub use journal_entry_type::JournalEntry;
+pub use journal_import_type::JournalImport;
+pub use journal_page_type::JournalPage;
+pub use journal_selection_type::JournalSelection;
 pub use legendary_find_table::*;
 pub use legendary_find_type::LegendaryFind;
 pub use link_challenge_type::LinkChallenge;
@@ -212,6 +231,7 @@ pub use my_baits_table::*;
 pub use my_collection_table::*;
 pub use my_inventory_table::*;
 pub use my_items_table::*;
+pub use my_journal_table::*;
 pub use my_ledger_table::*;
 pub use my_licences_table::*;
 pub use my_link_challenge_table::*;
@@ -248,9 +268,11 @@ pub use rod_definition_table::*;
 pub use rod_definition_type::RodDefinition;
 pub use sale_quote_type::SaleQuote;
 pub use select_discord_player_reducer::select_discord_player;
+pub use select_journal_reducer::select_journal;
 pub use service_principal_type::ServicePrincipal;
 pub use service_role_type::ServiceRole;
 pub use service_selection_type::ServiceSelection;
+pub use set_catch_favorite_reducer::set_catch_favorite;
 pub use shop_listing_table::*;
 pub use shop_listing_type::ShopListing;
 pub use shop_quote_type::ShopQuote;
@@ -278,6 +300,10 @@ pub enum Reducer {
     ActivateSpeciesMeasurements,
     ActivateTrader {
         grandfather_licences: bool,
+    },
+    ActivateXpProgression,
+    BackfillJournal {
+        player_id: u64,
     },
     BackfillPlayerAchievements {
         player_id: u64,
@@ -385,6 +411,20 @@ pub enum Reducer {
         display_name: String,
         interaction_id: u64,
     },
+    SelectJournal {
+        page: u32,
+        page_size: u32,
+        sort: String,
+        descending: bool,
+        search: String,
+        biome_id: u32,
+        rarity: String,
+        outcome: String,
+    },
+    SetCatchFavorite {
+        catch_id: u64,
+        favorite: bool,
+    },
     UnlinkBrowser,
 }
 
@@ -400,6 +440,8 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateRodBonuses => "activate_rod_bonuses",
             Reducer::ActivateSpeciesMeasurements => "activate_species_measurements",
             Reducer::ActivateTrader { .. } => "activate_trader",
+            Reducer::ActivateXpProgression => "activate_xp_progression",
+            Reducer::BackfillJournal { .. } => "backfill_journal",
             Reducer::BackfillPlayerAchievements { .. } => "backfill_player_achievements",
             Reducer::BeginLinkChallenge => "begin_link_challenge",
             Reducer::ChangeLoadout { .. } => "change_loadout",
@@ -426,6 +468,8 @@ impl __sdk::Reducer for Reducer {
             Reducer::PrepareUpgradeFromDiscord { .. } => "prepare_upgrade_from_discord",
             Reducer::RebuildPlayerRecords { .. } => "rebuild_player_records",
             Reducer::SelectDiscordPlayer { .. } => "select_discord_player",
+            Reducer::SelectJournal { .. } => "select_journal",
+            Reducer::SetCatchFavorite { .. } => "set_catch_favorite",
             Reducer::UnlinkBrowser => "unlink_browser",
             _ => unreachable!(),
         }
@@ -450,6 +494,14 @@ impl __sdk::Reducer for Reducer {
             } => __sats::bsatn::to_vec(&activate_trader_reducer::ActivateTraderArgs {
                 grandfather_licences: grandfather_licences.clone(),
             }),
+            Reducer::ActivateXpProgression => __sats::bsatn::to_vec(
+                &activate_xp_progression_reducer::ActivateXpProgressionArgs {},
+            ),
+            Reducer::BackfillJournal { player_id } => {
+                __sats::bsatn::to_vec(&backfill_journal_reducer::BackfillJournalArgs {
+                    player_id: player_id.clone(),
+                })
+            }
             Reducer::BackfillPlayerAchievements { player_id } => __sats::bsatn::to_vec(
                 &backfill_player_achievements_reducer::BackfillPlayerAchievementsArgs {
                     player_id: player_id.clone(),
@@ -657,6 +709,31 @@ impl __sdk::Reducer for Reducer {
                 display_name: display_name.clone(),
                 interaction_id: interaction_id.clone(),
             }),
+            Reducer::SelectJournal {
+                page,
+                page_size,
+                sort,
+                descending,
+                search,
+                biome_id,
+                rarity,
+                outcome,
+            } => __sats::bsatn::to_vec(&select_journal_reducer::SelectJournalArgs {
+                page: page.clone(),
+                page_size: page_size.clone(),
+                sort: sort.clone(),
+                descending: descending.clone(),
+                search: search.clone(),
+                biome_id: biome_id.clone(),
+                rarity: rarity.clone(),
+                outcome: outcome.clone(),
+            }),
+            Reducer::SetCatchFavorite { catch_id, favorite } => {
+                __sats::bsatn::to_vec(&set_catch_favorite_reducer::SetCatchFavoriteArgs {
+                    catch_id: catch_id.clone(),
+                    favorite: favorite.clone(),
+                })
+            }
             Reducer::UnlinkBrowser => {
                 __sats::bsatn::to_vec(&unlink_browser_reducer::UnlinkBrowserArgs {})
             }
@@ -669,6 +746,7 @@ impl __sdk::Reducer for Reducer {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub struct DbUpdate {
+    achievement_collection: __sdk::TableUpdate<AchievementCollection>,
     achievement_definition: __sdk::TableUpdate<AchievementDefinition>,
     adapter_achievement_progress: __sdk::TableUpdate<AchievementProgress>,
     adapter_bait_loadout: __sdk::TableUpdate<BaitLoadout>,
@@ -700,6 +778,7 @@ pub struct DbUpdate {
     my_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
     my_inventory: __sdk::TableUpdate<OwnedSpecimen>,
     my_items: __sdk::TableUpdate<ItemStack>,
+    my_journal: __sdk::TableUpdate<JournalPage>,
     my_ledger: __sdk::TableUpdate<EconomyLedger>,
     my_licences: __sdk::TableUpdate<OwnedBiomeLicence>,
     my_link_challenge: __sdk::TableUpdate<LinkChallenge>,
@@ -727,6 +806,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
         let mut db_update = DbUpdate::default();
         for table_update in __sdk::transaction_update_iter_table_updates(raw) {
             match &table_update.table_name[..] {
+                "achievement_collection" => db_update.achievement_collection.append(
+                    achievement_collection_table::parse_table_update(table_update)?,
+                ),
                 "achievement_definition" => db_update.achievement_definition.append(
                     achievement_definition_table::parse_table_update(table_update)?,
                 ),
@@ -820,6 +902,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_items" => db_update
                     .my_items
                     .append(my_items_table::parse_table_update(table_update)?),
+                "my_journal" => db_update
+                    .my_journal
+                    .append(my_journal_table::parse_table_update(table_update)?),
                 "my_ledger" => db_update
                     .my_ledger
                     .append(my_ledger_table::parse_table_update(table_update)?),
@@ -903,6 +988,12 @@ impl __sdk::DbUpdate for DbUpdate {
     ) -> AppliedDiff<'_> {
         let mut diff = AppliedDiff::default();
 
+        diff.achievement_collection = cache
+            .apply_diff_to_table::<AchievementCollection>(
+                "achievement_collection",
+                &self.achievement_collection,
+            )
+            .with_updates_by_pk(|row| &row.achievement_id);
         diff.achievement_definition = cache
             .apply_diff_to_table::<AchievementDefinition>(
                 "achievement_definition",
@@ -1024,6 +1115,7 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.my_inventory =
             cache.apply_diff_to_table::<OwnedSpecimen>("my_inventory", &self.my_inventory);
         diff.my_items = cache.apply_diff_to_table::<ItemStack>("my_items", &self.my_items);
+        diff.my_journal = cache.apply_diff_to_table::<JournalPage>("my_journal", &self.my_journal);
         diff.my_ledger = cache.apply_diff_to_table::<EconomyLedger>("my_ledger", &self.my_ledger);
         diff.my_licences =
             cache.apply_diff_to_table::<OwnedBiomeLicence>("my_licences", &self.my_licences);
@@ -1048,6 +1140,9 @@ impl __sdk::DbUpdate for DbUpdate {
         let mut db_update = DbUpdate::default();
         for table_rows in raw.tables {
             match &table_rows.table[..] {
+                "achievement_collection" => db_update
+                    .achievement_collection
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "achievement_definition" => db_update
                     .achievement_definition
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -1140,6 +1235,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_items" => db_update
                     .my_items
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_journal" => db_update
+                    .my_journal
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_ledger" => db_update
                     .my_ledger
@@ -1211,6 +1309,9 @@ impl __sdk::DbUpdate for DbUpdate {
         let mut db_update = DbUpdate::default();
         for table_rows in raw.tables {
             match &table_rows.table[..] {
+                "achievement_collection" => db_update
+                    .achievement_collection
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "achievement_definition" => db_update
                     .achievement_definition
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1303,6 +1404,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_items" => db_update
                     .my_items
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_journal" => db_update
+                    .my_journal
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_ledger" => db_update
                     .my_ledger
@@ -1376,6 +1480,7 @@ impl __sdk::DbUpdate for DbUpdate {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub struct AppliedDiff<'r> {
+    achievement_collection: __sdk::TableAppliedDiff<'r, AchievementCollection>,
     achievement_definition: __sdk::TableAppliedDiff<'r, AchievementDefinition>,
     adapter_achievement_progress: __sdk::TableAppliedDiff<'r, AchievementProgress>,
     adapter_bait_loadout: __sdk::TableAppliedDiff<'r, BaitLoadout>,
@@ -1407,6 +1512,7 @@ pub struct AppliedDiff<'r> {
     my_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
     my_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
     my_items: __sdk::TableAppliedDiff<'r, ItemStack>,
+    my_journal: __sdk::TableAppliedDiff<'r, JournalPage>,
     my_ledger: __sdk::TableAppliedDiff<'r, EconomyLedger>,
     my_licences: __sdk::TableAppliedDiff<'r, OwnedBiomeLicence>,
     my_link_challenge: __sdk::TableAppliedDiff<'r, LinkChallenge>,
@@ -1439,6 +1545,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         event: &EventContext,
         callbacks: &mut __sdk::DbCallbacks<RemoteModule>,
     ) {
+        callbacks.invoke_table_row_callbacks::<AchievementCollection>(
+            "achievement_collection",
+            &self.achievement_collection,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<AchievementDefinition>(
             "achievement_definition",
             &self.achievement_definition,
@@ -1574,6 +1685,7 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             event,
         );
         callbacks.invoke_table_row_callbacks::<ItemStack>("my_items", &self.my_items, event);
+        callbacks.invoke_table_row_callbacks::<JournalPage>("my_journal", &self.my_journal, event);
         callbacks.invoke_table_row_callbacks::<EconomyLedger>("my_ledger", &self.my_ledger, event);
         callbacks.invoke_table_row_callbacks::<OwnedBiomeLicence>(
             "my_licences",
@@ -2313,6 +2425,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
     type QueryBuilder = __sdk::QueryBuilder;
 
     fn register_tables(client_cache: &mut __sdk::ClientCache<Self>) {
+        achievement_collection_table::register_table(client_cache);
         achievement_definition_table::register_table(client_cache);
         adapter_achievement_progress_table::register_table(client_cache);
         adapter_bait_loadout_table::register_table(client_cache);
@@ -2344,6 +2457,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_collection_table::register_table(client_cache);
         my_inventory_table::register_table(client_cache);
         my_items_table::register_table(client_cache);
+        my_journal_table::register_table(client_cache);
         my_ledger_table::register_table(client_cache);
         my_licences_table::register_table(client_cache);
         my_link_challenge_table::register_table(client_cache);
@@ -2365,6 +2479,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         species_record_table::register_table(client_cache);
     }
     const ALL_TABLE_NAMES: &'static [&'static str] = &[
+        "achievement_collection",
         "achievement_definition",
         "adapter_achievement_progress",
         "adapter_bait_loadout",
@@ -2396,6 +2511,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_collection",
         "my_inventory",
         "my_items",
+        "my_journal",
         "my_ledger",
         "my_licences",
         "my_link_challenge",

@@ -13,6 +13,7 @@ playwright-report/
 .playwright-cli/
 output/playwright/
 output/performance/
+output/research/terrain-source/
 spacetimedb/node_modules/
 spacetimedb/dist/
 bitcraft/node_modules/

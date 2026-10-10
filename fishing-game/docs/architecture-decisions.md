@@ -47,7 +47,7 @@
     Bot responses attach original files. All 251 names/keys come from the sprite
     catalog; exceptional rank and rarity constraints override illustrative spec names.
 15. All 251 species have one home biome across the seven specified destinations.
-    Level cap is 60 so Glacial Reach and Abyssal Shelf are reachable. Seven rods
+    Level cap is 120 so Glacial Reach and Abyssal Shelf are reachable. Seven rods
     use the camp trader: only Twig is free; later rods and permanent sequential
     biome licences require confirmed coin purchases after the level gate.
     Travel/equip and casts all check level and power; loadout changes keep cooldown.

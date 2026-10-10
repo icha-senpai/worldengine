@@ -28,7 +28,7 @@ const props = defineProps({
   title: { type: String, default: "Edit Widget" },
 });
 
-defineEmits(["widget-mode"]);
+const emit = defineEmits(["widget-mode", "save"]);
 
 const drawerOpen = ref(false);
 
@@ -38,13 +38,14 @@ const openDrawer = () => {
 
 const closeDrawer = () => {
   drawerOpen.value = false;
+  emit("save");
 };
 
 watch(
   () => props.show,
   (show) => {
     if (!show) {
-      closeDrawer();
+      drawerOpen.value = false;
     }
   },
 );

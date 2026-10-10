@@ -1,6 +1,7 @@
 import { ref } from "vue";
 import { DbConnection } from "./bindings/bitcraft";
 import { recordPageLifecycle } from "./pageLifecycle";
+import { spacetimeHost } from "./spacetimeHost";
 export const bitcraftConnected = ref(false);
 export const bitcraftError = ref("");
 let connection: DbConnection | null = null;
@@ -50,7 +51,7 @@ export function connectBitcraft(): Promise<DbConnection> {
       }
     }, 15000);
     connection = attempt = DbConnection.builder()
-      .withUri(import.meta.env.VITE_SPACETIMEDB_HOST || "ws://127.0.0.1:3100")
+      .withUri(spacetimeHost)
       .withDatabaseName(
         import.meta.env.VITE_BITCRAFT_DATABASE || "space-bitcraft-tools",
       )

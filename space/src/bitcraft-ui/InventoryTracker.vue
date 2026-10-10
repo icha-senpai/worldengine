@@ -16,6 +16,7 @@
         :show="setupVisible"
         title="Edit Inventory Widget"
         @widget-mode="openWidgetMode"
+        @save="submitSetup(true)"
       >
         <form
           class="inventory-tracker-setup"
@@ -27,45 +28,7 @@
               <input v-model.trim="form.title" type="text" maxlength="80" />
             </label>
 
-            <div class="inventory-tracker-emoji-picker">
-              <span>Emojis</span>
-              <div class="inventory-tracker-emoji-picker__controls">
-                <SelectInput
-                  v-model="emojiChoice"
-                  aria-label="Add emoji"
-                  @change="addEmojiChoice"
-                >
-                  <option value="">Add emoji...</option>
-                  <option
-                    v-for="option in emojiOptions"
-                    :key="option.value"
-                    :value="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-                </SelectInput>
-                <button
-                  v-if="selectedEmojiList.length"
-                  type="button"
-                  @click="clearEmojis"
-                >
-                  Clear
-                </button>
-              </div>
-              <div
-                v-if="selectedEmojiList.length"
-                class="inventory-tracker-emoji-picker__selected"
-              >
-                <button
-                  v-for="emoji in selectedEmojiList"
-                  :key="emoji"
-                  type="button"
-                  @click="removeEmoji(emoji)"
-                >
-                  {{ emoji }}
-                </button>
-              </div>
-            </div>
+            <EmojiInput v-model="form.icons" />
 
             <label>
               <span>Character</span>
@@ -169,8 +132,10 @@
         aria-label="Live Bitcraft inventory tracker"
       >
         <header class="inventory-tracker-widget__header">
-          <h1>{{ titleLabel }}</h1>
-          <p v-if="iconsLabel">{{ iconsLabel }}</p>
+          <h1>
+            <span>{{ titleLabel }}</span>
+            <EmojiDisplay v-if="iconsLabel" :value="iconsLabel" />
+          </h1>
         </header>
 
         <TrackerRefreshStatus
@@ -236,10 +201,12 @@
 </template>
 
 <script setup>
+import EmojiInput from "./shared/EmojiInput.vue";
+import EmojiDisplay from "./shared/EmojiDisplay.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
-import { openWidget } from "./widgets";
+import { openWidget, persistWidgetDraft } from "./widgets";
 import {
   computed,
   onBeforeUnmount,
@@ -292,34 +259,6 @@ const sampledAt = ref(props.snapshot.sampledAt);
 const refreshStatus = ref(props.snapshot.refresh ?? {});
 const pickerOpen = ref(false);
 const pickerElement = ref(null);
-const emojiChoice = ref("");
-const emojiOptions = [
-  { value: "🐟", label: "🐟 Fish" },
-  { value: "🎣", label: "🎣 Fishing" },
-  { value: "🐠", label: "🐠 Tropical fish" },
-  { value: "🐡", label: "🐡 Pufferfish" },
-  { value: "🦀", label: "🦀 Crab" },
-  { value: "🦞", label: "🦞 Lobster" },
-  { value: "🦐", label: "🦐 Shrimp" },
-  { value: "⛵", label: "⛵ Sailing" },
-  { value: "🚤", label: "🚤 Skiff" },
-  { value: "🛶", label: "🛶 Raft" },
-  { value: "📦", label: "📦 Cargo" },
-  { value: "🧺", label: "🧺 Basket" },
-  { value: "🪵", label: "🪵 Wood" },
-  { value: "🪨", label: "🪨 Stone" },
-  { value: "⛏️", label: "⛏️ Mining" },
-  { value: "🌾", label: "🌾 Farming" },
-  { value: "🍄", label: "🍄 Mushroom" },
-  { value: "✨", label: "✨ Sparkle" },
-  { value: "⭐", label: "⭐ Star" },
-  { value: "🔥", label: "🔥 Fire" },
-  { value: "💎", label: "💎 Rare" },
-  { value: "🏆", label: "🏆 Goal" },
-  { value: "✅", label: "✅ Done" },
-  { value: "💚", label: "💚 Green" },
-  { value: "🩵", label: "🩵 Cyan" },
-];
 
 const parseItemKeys = (value) => {
   const keys = Array.isArray(value) ? value : String(value ?? "").split(",");
@@ -398,9 +337,6 @@ const setupVisible = computed(() => setupPageVisible.value);
 const titleLabel = computed(() => form.title || "Inventory Tracker");
 const iconsLabel = computed(() => form.icons || "");
 const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form));
-const selectedEmojiList = computed(() =>
-  form.icons.split(/\s+/).filter(Boolean),
-);
 const trackerItems = computed(() => {
   if (!tracker.value) {
     return [];
@@ -502,27 +438,6 @@ const formatNumber = (value) =>
 const hasTier = (tier) => hasBitcraftTier(tier);
 const itemVisualStyle = (item) =>
   bitcraftItemFrameStyle(item?.tier, item?.rarity);
-const saveEmojiList = (emojis) => {
-  form.icons = emojis.join(" ");
-  saveSetup();
-};
-const addEmojiChoice = () => {
-  if (!emojiChoice.value) {
-    return;
-  }
-
-  saveEmojiList([...new Set([...selectedEmojiList.value, emojiChoice.value])]);
-  emojiChoice.value = "";
-};
-const removeEmoji = (emoji) => {
-  saveEmojiList(
-    selectedEmojiList.value.filter((selectedEmoji) => selectedEmoji !== emoji),
-  );
-};
-const clearEmojis = () => {
-  saveEmojiList([]);
-};
-
 const updateTheme = (updates) => {
   Object.assign(form, updates);
   saveSetup();
@@ -619,22 +534,26 @@ const loadSetup = () => {
   }
 
   try {
-    return normalizeSetup(
-      JSON.parse(storage.getItem(STORAGE_KEY) ?? "null") ?? {},
-    );
+    const saved = storage.getItem(STORAGE_KEY);
+    return saved ? normalizeSetup(JSON.parse(saved)) : null;
   } catch {
     return null;
   }
 };
 
-const saveSetup = () => {
+const saveSetup = (persistProfile = true) => {
   const storage = browserStorage();
 
   if (!storage || !restoredSetup) {
     return;
   }
 
-  storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
+  if (props.filters.widgetEditable === false) return;
+  if (props.filters.setup) {
+    storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
+    if (persistProfile)
+      persistWidgetDraft("inventory", payload(true), props.filters.profile);
+  }
 };
 
 const submitSetup = (setup) => {
@@ -660,7 +579,10 @@ const openWidgetMode = () => {
     return;
   }
 
-  openWidget(route("bitcraft.inventory-tracker", payload(false)));
+  openWidget(route("bitcraft.inventory-tracker", payload(false)), {
+    settings: payload(false),
+    token: props.filters.profile,
+  });
 };
 
 const refresh = async () => {
@@ -726,7 +648,7 @@ onMounted(() => {
     !params.has("source") &&
     !params.has("itemKey") &&
     !params.has("itemKeys") &&
-    savedSetup?.itemKeys?.length
+    savedSetup
   ) {
     Object.assign(form, savedSetup);
     if (page.props.bitcraft?.player && !params.has("character"))
@@ -736,7 +658,7 @@ onMounted(() => {
     return;
   }
 
-  saveSetup();
+  saveSetup(false);
   polling.start(refreshStatus.value.retryAfter ?? 0);
   document.addEventListener("pointerdown", closePickerOnOutsidePointer);
 });
@@ -790,14 +712,12 @@ onBeforeUnmount(() => {
 }
 
 .inventory-tracker-setup label,
-.inventory-tracker-emoji-picker,
 .inventory-tracker-picker label {
   display: grid;
   gap: 6px;
 }
 
 .inventory-tracker-setup span,
-.inventory-tracker-emoji-picker span,
 .inventory-tracker-picker span {
   color: var(--text-muted-3);
   font-size: 10px;
@@ -805,49 +725,13 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
 }
 
-.inventory-tracker-setup input,
-.inventory-tracker-emoji-picker select {
+.inventory-tracker-setup input {
   min-height: 36px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   background: var(--bg-canvas);
   color: var(--text-primary);
   font-size: 13px;
-}
-
-.inventory-tracker-emoji-picker__controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px;
-}
-
-.inventory-tracker-emoji-picker__controls button,
-.inventory-tracker-emoji-picker__selected button {
-  min-height: 32px;
-  border: 1px solid rgb(var(--accent-cyan-rgb) / 0.28);
-  border-radius: 6px;
-  background: rgb(var(--accent-cyan-rgb) / 0.08);
-  color: var(--text-primary-2);
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.inventory-tracker-emoji-picker__controls button {
-  padding: 0 10px;
-  color: var(--accent-pink);
-}
-
-.inventory-tracker-emoji-picker__selected {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.inventory-tracker-emoji-picker__selected button {
-  width: 32px;
-  padding: 0;
-  font-size: 16px;
-  line-height: 1;
 }
 
 .inventory-tracker-picker {
@@ -982,15 +866,16 @@ onBeforeUnmount(() => {
 }
 
 .inventory-tracker-widget__header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   padding: 18px 22px 14px;
   border-bottom: 1px solid
     color-mix(in srgb, var(--tracker-border) 24%, transparent);
 }
 
 .inventory-tracker-widget__header h1 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   min-width: 0;
   color: var(--tracker-text);
   font-size: calc(24px * var(--tracker-font-scale));
@@ -998,10 +883,10 @@ onBeforeUnmount(() => {
   line-height: 1.1;
 }
 
-.inventory-tracker-widget__header p {
-  color: var(--tracker-accent);
-  font-size: calc(20px * var(--tracker-font-scale));
-  line-height: 1;
+.inventory-tracker-widget__header h1 > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .inventory-tracker-widget__tracked-item

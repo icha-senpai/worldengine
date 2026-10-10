@@ -13,6 +13,7 @@ pub struct BaitDefinition {
     pub resource_item: String,
     pub uses_per_purchase: u64,
     pub sprite_asset: String,
+    pub xp_bonus_bp: u32,
 }
 
 impl __sdk::InModule for BaitDefinition {
@@ -29,6 +30,7 @@ pub struct BaitDefinitionCols {
     pub resource_item: __sdk::__query_builder::Col<BaitDefinition, String>,
     pub uses_per_purchase: __sdk::__query_builder::Col<BaitDefinition, u64>,
     pub sprite_asset: __sdk::__query_builder::Col<BaitDefinition, String>,
+    pub xp_bonus_bp: __sdk::__query_builder::Col<BaitDefinition, u32>,
 }
 
 impl __sdk::__query_builder::HasCols for BaitDefinition {
@@ -41,6 +43,7 @@ impl __sdk::__query_builder::HasCols for BaitDefinition {
             resource_item: __sdk::__query_builder::Col::new(table_name, "resource_item"),
             uses_per_purchase: __sdk::__query_builder::Col::new(table_name, "uses_per_purchase"),
             sprite_asset: __sdk::__query_builder::Col::new(table_name, "sprite_asset"),
+            xp_bonus_bp: __sdk::__query_builder::Col::new(table_name, "xp_bonus_bp"),
         }
     }
 }

@@ -10,6 +10,14 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const AchievementCollection = __t.object("AchievementCollection", {
+  achievementId: __t.u32(),
+  biomeId: __t.u32(),
+  rarity: __t.string(),
+  allRanks: __t.bool(),
+});
+export type AchievementCollection = __Infer<typeof AchievementCollection>;
+
 export const AchievementDefinition = __t.object("AchievementDefinition", {
   achievementId: __t.u32(),
   name: __t.string(),
@@ -74,6 +82,7 @@ export const BaitDefinition = __t.object("BaitDefinition", {
   resourceItem: __t.string(),
   usesPerPurchase: __t.u64(),
   spriteAsset: __t.string(),
+  xpBonusBp: __t.u32(),
 });
 export type BaitDefinition = __Infer<typeof BaitDefinition>;
 
@@ -219,6 +228,53 @@ export const ItemStack = __t.object("ItemStack", {
   quantity: __t.u64(),
 });
 export type ItemStack = __Infer<typeof ItemStack>;
+
+export const JournalEntry = __t.object("JournalEntry", {
+  key: __t.string(),
+  playerId: __t.u64(),
+  catchId: __t.option(__t.u64()),
+  caughtAt: __t.timestamp(),
+  outcome: __t.string(),
+  speciesId: __t.option(__t.u32()),
+  name: __t.string(),
+  rarity: __t.string(),
+  lengthMm: __t.u32(),
+  weightG: __t.u64(),
+  xpGranted: __t.option(__t.u64()),
+  biomeId: __t.option(__t.u32()),
+});
+export type JournalEntry = __Infer<typeof JournalEntry>;
+
+export const JournalImport = __t.object("JournalImport", {
+  playerId: __t.u64(),
+  completedAt: __t.timestamp(),
+});
+export type JournalImport = __Infer<typeof JournalImport>;
+
+export const JournalPage = __t.object("JournalPage", {
+  get entries() {
+    return __t.array(JournalEntry);
+  },
+  totalEntries: __t.u64(),
+  matchingEntries: __t.u64(),
+  page: __t.u32(),
+  pageSize: __t.u32(),
+});
+export type JournalPage = __Infer<typeof JournalPage>;
+
+export const JournalSelection = __t.object("JournalSelection", {
+  identity: __t.identity(),
+  playerId: __t.u64(),
+  page: __t.u32(),
+  pageSize: __t.u32(),
+  sort: __t.string(),
+  descending: __t.bool(),
+  search: __t.string(),
+  biomeId: __t.u32(),
+  rarity: __t.string(),
+  outcome: __t.string(),
+});
+export type JournalSelection = __Infer<typeof JournalSelection>;
 
 export const LegendaryFind = __t.object("LegendaryFind", {
   key: __t.u128(),

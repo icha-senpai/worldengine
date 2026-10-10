@@ -50,7 +50,7 @@ pub fn bonus_pull_bp(power: u32) -> Result<u32, String> {
 }
 /// Apply once to the complete cast reward, including discoveries from either pull.
 pub fn fishing_xp(base: u64, bonus_bp: u32) -> Result<u64, String> {
-    if bonus_bp > 10000 {
+    if bonus_bp > 20000 {
         return Err("INVALID_ROD_XP".into());
     }
     base.checked_mul(10000 + u64::from(bonus_bp))
@@ -65,7 +65,8 @@ mod tests {
         assert_eq!(fishing_xp(120, 10000), Ok(240));
         assert_eq!(fishing_xp(3, 5000), Ok(4));
         assert!(fishing_xp(u64::MAX, 10000).is_err());
-        assert!(fishing_xp(1, 10001).is_err());
+        assert_eq!(fishing_xp(120, 20000), Ok(360));
+        assert!(fishing_xp(1, 20001).is_err());
         assert_eq!(bonus_pull_bp(185), Ok(9250));
         assert_eq!(bonus_pull_bp(1), Ok(50));
         assert!(bonus_pull_bp(201).is_err());

@@ -16,6 +16,7 @@
         :show="setupVisible"
         title="Edit Passive Craft Widget"
         @widget-mode="openWidgetMode"
+        @save="submitSetup(true)"
       >
         <form class="passive-craft-setup" @submit.prevent="submitSetup(true)">
           <div class="passive-craft-setup__grid">
@@ -30,45 +31,7 @@
               <input v-model.trim="form.title" type="text" maxlength="80" />
             </label>
 
-            <div class="passive-craft-emoji-picker">
-              <span>Emojis</span>
-              <div class="passive-craft-emoji-picker__controls">
-                <SelectInput
-                  v-model="emojiChoice"
-                  aria-label="Add emoji"
-                  @change="addEmojiChoice"
-                >
-                  <option value="">Add emoji...</option>
-                  <option
-                    v-for="option in emojiOptions"
-                    :key="option.value"
-                    :value="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-                </SelectInput>
-                <button
-                  v-if="selectedEmojiList.length"
-                  type="button"
-                  @click="clearEmojis"
-                >
-                  Clear
-                </button>
-              </div>
-              <div
-                v-if="selectedEmojiList.length"
-                class="passive-craft-emoji-picker__selected"
-              >
-                <button
-                  v-for="emoji in selectedEmojiList"
-                  :key="emoji"
-                  type="button"
-                  @click="removeEmoji(emoji)"
-                >
-                  {{ emoji }}
-                </button>
-              </div>
-            </div>
+            <EmojiInput v-model="form.icons" />
           </div>
 
           <WidgetThemeControls :model="form" @update="updateTheme" />
@@ -85,10 +48,12 @@
       >
         <header class="passive-craft-widget__header">
           <div>
-            <h1>{{ titleLabel }}</h1>
+            <h1>
+              <span>{{ titleLabel }}</span>
+              <EmojiDisplay v-if="iconsLabel" :value="iconsLabel" />
+            </h1>
             <p>{{ summaryLabel }}</p>
           </div>
-          <strong v-if="iconsLabel">{{ iconsLabel }}</strong>
         </header>
 
         <TrackerRefreshStatus
@@ -121,16 +86,25 @@
             <div class="passive-craft-widget__row">
               <div class="passive-craft-widget__item">
                 <p>
+                  <img
+                    v-if="itemIconUrl(group.output)"
+                    class="passive-craft-widget__icon"
+                    :src="itemIconUrl(group.output)"
+                    alt=""
+                    width="32"
+                    height="32"
+                    loading="lazy"
+                    decoding="async"
+                    @error="hideBrokenIcon(group.output?.iconAssetName)"
+                  />
                   <BitcraftTierBadge
                     v-if="hasTier(group.output?.tier)"
                     :tier="group.output.tier"
                   />
                   <span>{{ group.name }}</span>
                 </p>
-                <small>{{ groupLocationLabel(group) }}</small>
               </div>
               <div class="passive-craft-widget__count">
-                <small>{{ formatNumber(group.craftsCount) }} crafts</small>
                 <strong>x{{ formatNumber(group.totalOutputQuantity) }}</strong>
               </div>
             </div>
@@ -140,12 +114,24 @@
             </div>
 
             <div class="passive-craft-widget__footer">
-              <span>{{ remainingTimeLabel(group) }}</span>
+              <div class="passive-craft-widget__timer">
+                <span>{{ remainingTimeLabel(group) }}</span>
+                <small v-if="estimatedFinishLabel(group)">
+                  Est.
+                  {{ group.waitingCount ? "running crafts finish" : "finish" }}
+                  {{ estimatedFinishLabel(group) }}
+                </small>
+                <small v-if="group.waitingCount"
+                  >{{ formatNumber(group.waitingCount) }} waiting to
+                  start</small
+                >
+              </div>
               <span>{{ progressLabel(group) }}</span>
             </div>
 
             <div class="passive-craft-widget__outputs">
               <span>{{ stationLabel(group) }}</span>
+              <span>{{ claimName(group) }}</span>
               <span>{{ regionLabel(group) }}</span>
             </div>
           </article>
@@ -156,10 +142,12 @@
 </template>
 
 <script setup>
+import EmojiInput from "./shared/EmojiInput.vue";
+import EmojiDisplay from "./shared/EmojiDisplay.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
-import { openWidget } from "./widgets";
+import { openWidget, persistWidgetDraft } from "./widgets";
 import {
   computed,
   onBeforeUnmount,
@@ -172,6 +160,7 @@ import { router, usePage } from "/src/bitcraft-ui/navigation";
 import SitePlayerDefaultButton from "./Components/SitePlayerDefaultButton.vue";
 import BitcraftTierBadge from "/src/bitcraft-ui/Components/BitcraftTierBadge.vue";
 import {
+  bitcraftAssetUrl,
   bitcraftItemFrameStyle,
   hasBitcraftTier,
 } from "/src/bitcraft-ui/bitjitaAssets.js";
@@ -180,6 +169,11 @@ import WidgetThemeControls from "./Components/WidgetThemeControls.vue";
 import WidgetPageShell from "./Components/WidgetPageShell.vue";
 import TrackerRefreshStatus from "./Components/TrackerRefreshStatus.vue";
 import { createTrackerPoller, retryAfterSeconds } from "./trackerPolling";
+import {
+  passiveDeadlines,
+  passiveSecondsLeft,
+  passiveCountdownLabel,
+} from "./passiveCountdown";
 import {
   normalizeWidgetTheme,
   widgetThemePayload,
@@ -204,26 +198,13 @@ const tracker = ref(props.snapshot.tracker);
 const error = ref(props.snapshot.error);
 const sampledAt = ref(props.snapshot.sampledAt);
 const refreshStatus = ref(props.snapshot.refresh ?? {});
-const emojiChoice = ref("");
+const now = ref(Date.now());
+const deadlines = ref(
+  passiveDeadlines(tracker.value?.groups, new Map(), now.value),
+);
+const brokenIcons = ref(new Set());
+let countdownTimer;
 let restoredSetup = false;
-
-const emojiOptions = [
-  { value: "🧵", label: "🧵 Thread" },
-  { value: "🔨", label: "🔨 Hammer" },
-  { value: "🛠️", label: "🛠️ Tools" },
-  { value: "📦", label: "📦 Cargo" },
-  { value: "🧺", label: "🧺 Basket" },
-  { value: "🌾", label: "🌾 Farming" },
-  { value: "🪵", label: "🪵 Wood" },
-  { value: "🪨", label: "🪨 Stone" },
-  { value: "✨", label: "✨ Sparkle" },
-  { value: "⭐", label: "⭐ Star" },
-  { value: "🔥", label: "🔥 Fire" },
-  { value: "💎", label: "💎 Rare" },
-  { value: "✅", label: "✅ Done" },
-  { value: "💚", label: "💚 Green" },
-  { value: "🩵", label: "🩵 Cyan" },
-];
 
 const form = reactive({
   source: props.filters.source ?? "default",
@@ -238,9 +219,6 @@ const setupVisible = computed(() => setupPageVisible.value);
 const titleLabel = computed(() => form.title || "Passive Crafts");
 const iconsLabel = computed(() => form.icons || "");
 const widgetThemeStyle = computed(() => resolveWidgetThemeStyle(form));
-const selectedEmojiList = computed(() =>
-  form.icons.split(/\s+/).filter(Boolean),
-);
 const crafts = computed(() =>
   Array.isArray(tracker.value?.crafts) ? tracker.value.crafts : [],
 );
@@ -258,13 +236,22 @@ const summaryLabel = computed(() => {
     return `${name} · 0 active`;
   }
 
-  return `${name} · ${formatNumber(tracker.value.totalQueued ?? crafts.value.length)} queued · ${remainingTimeLabel(tracker.value)}`;
+  const latest = groups.value.reduce((longest, group) => {
+    const finish = deadlines.value.get(group.key)?.finishesAt;
+    return Number.isFinite(finish) && (!longest || finish > longest.finishesAt)
+      ? { finishesAt: finish, timerSource: group.timerSource }
+      : longest;
+  }, null);
+  const timerSource =
+    latest?.timerSource ??
+    (groups.value.every((group) => group.timerSource === "queued")
+      ? "queued"
+      : null);
+  return `${name} · ${formatNumber(tracker.value.totalQueued ?? crafts.value.length)} crafts · ${passiveCountdownLabel(passiveSecondsLeft(latest?.finishesAt, now.value), timerSource)}`;
 });
 
 const formatNumber = (value) =>
   new Intl.NumberFormat().format(Math.max(0, Math.round(Number(value) || 0)));
-const formatCoordinate = (value) =>
-  new Intl.NumberFormat().format(Math.round(Number(value) || 0));
 const formatShortTime = (value) => {
   const date = new Date(value);
 
@@ -280,10 +267,19 @@ const formatShortTime = (value) => {
 const hasTier = (tier) => hasBitcraftTier(tier);
 const itemVisualStyle = (item) =>
   bitcraftItemFrameStyle(item?.tier, item?.rarity);
+const itemIconUrl = (item) =>
+  brokenIcons.value.has(item?.iconAssetName)
+    ? null
+    : bitcraftAssetUrl(item?.iconAssetName);
+const hideBrokenIcon = (assetName) => {
+  brokenIcons.value = new Set([...brokenIcons.value, assetName]);
+};
 const craftProgressPercent = (craft) =>
   Math.max(0, Math.min(100, Number(craft?.progressPercent) || 0));
 const progressLabel = (craft) => {
-  if (["bitjita", "bitjuice"].includes(craft?.timerSource)) {
+  if (
+    ["relay-start", "api", "bitjita", "bitjuice"].includes(craft?.timerSource)
+  ) {
     const startedAt = formatShortTime(craft.startedAt);
 
     return startedAt ? `Started ${startedAt}` : "Live timer";
@@ -292,6 +288,7 @@ const progressLabel = (craft) => {
   if (craft?.timerSource === "recipe") {
     return "Recipe duration estimate";
   }
+  if (craft?.timerSource === "queued") return "Queued";
 
   if (!craft?.totalActionsRequired) {
     return "Waiting";
@@ -300,39 +297,27 @@ const progressLabel = (craft) => {
   return `${formatNumber(craft.progress)} / ${formatNumber(craft.totalActionsRequired)} actions`;
 };
 const remainingTimeLabel = (entry) => {
-  if (
-    entry?.estimatedRemainingSeconds === null ||
-    entry?.estimatedRemainingSeconds === undefined
-  )
-    return "Timer unavailable";
-  const seconds = Number(entry?.estimatedRemainingSeconds ?? 0);
-
-  if (!Number.isFinite(seconds) || seconds <= 0) {
-    return "Ready soon";
-  }
-
-  const prefix = entry?.timerSource === "recipe" ? "up to " : "";
-  const minutes = Math.ceil(seconds / 60);
-
-  if (minutes < 60) {
-    return `${prefix}~${minutes}m left`;
-  }
-
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours < 24) {
-    return remainingMinutes > 0
-      ? `${prefix}~${hours}h ${remainingMinutes}m left`
-      : `${prefix}~${hours}h left`;
-  }
-
-  const days = Math.floor(hours / 24);
-  const remainingHours = hours % 24;
-
-  return remainingHours > 0
-    ? `${prefix}~${days}d ${remainingHours}h left`
-    : `${prefix}~${days}d left`;
+  const finish = deadlines.value.get(entry.key)?.finishesAt;
+  return passiveCountdownLabel(
+    passiveSecondsLeft(finish, now.value),
+    entry.timerSource,
+  );
+};
+const estimatedFinishLabel = (entry) => {
+  const finish = deadlines.value.get(entry.key)?.finishesAt;
+  if (!Number.isFinite(finish)) return "";
+  return new Intl.DateTimeFormat([], {
+    ...(new Date(finish).toDateString() !== new Date(now.value).toDateString()
+      ? { weekday: "short" }
+      : {}),
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(finish));
+};
+const updateTracker = (value) => {
+  now.value = Date.now();
+  deadlines.value = passiveDeadlines(value?.groups, deadlines.value, now.value);
+  tracker.value = value;
 };
 const claimName = (group) =>
   group?.claim?.name ||
@@ -349,21 +334,6 @@ const regionLabel = (group) => {
     regionName || (regionNumber ? `Region ${regionNumber}` : "Unknown region")
   );
 };
-const locationLabel = (group) => {
-  const x = group?.claim?.locationX;
-  const z = group?.claim?.locationZ;
-
-  if (x === null || x === undefined || z === null || z === undefined) {
-    return "";
-  }
-
-  return `${formatCoordinate(x)}, ${formatCoordinate(z)}`;
-};
-const groupLocationLabel = (group) => {
-  return [claimName(group), regionLabel(group), locationLabel(group)]
-    .filter(Boolean)
-    .join(" · ");
-};
 const stationLabel = (group) => {
   if (!Array.isArray(group?.buildingNames) || !group.buildingNames.length) {
     return "Unknown station";
@@ -374,30 +344,6 @@ const stationLabel = (group) => {
   }
 
   return `${group.buildingNames[0]} + ${formatNumber(group.buildingNames.length - 1)} more`;
-};
-
-const saveEmojiList = (emojis) => {
-  form.icons = emojis.join(" ");
-  saveSetup();
-};
-
-const addEmojiChoice = () => {
-  if (!emojiChoice.value) {
-    return;
-  }
-
-  saveEmojiList([...new Set([...selectedEmojiList.value, emojiChoice.value])]);
-  emojiChoice.value = "";
-};
-
-const removeEmoji = (emoji) => {
-  saveEmojiList(
-    selectedEmojiList.value.filter((selectedEmoji) => selectedEmoji !== emoji),
-  );
-};
-
-const clearEmojis = () => {
-  saveEmojiList([]);
 };
 
 const updateTheme = (updates) => {
@@ -448,22 +394,30 @@ const loadSetup = () => {
   }
 
   try {
-    return normalizeSetup(
-      JSON.parse(storage.getItem(STORAGE_KEY) ?? "null") ?? {},
-    );
+    const saved = storage.getItem(STORAGE_KEY);
+    return saved ? normalizeSetup(JSON.parse(saved)) : null;
   } catch {
     return null;
   }
 };
 
-const saveSetup = () => {
+const saveSetup = (persistProfile = true) => {
   const storage = browserStorage();
 
   if (!storage || !restoredSetup) {
     return;
   }
 
-  storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
+  if (props.filters.widgetEditable === false) return;
+  if (props.filters.setup) {
+    storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
+    if (persistProfile)
+      persistWidgetDraft(
+        "passive-crafts",
+        payload(true),
+        props.filters.profile,
+      );
+  }
 };
 
 const submitSetup = (setup) => {
@@ -489,7 +443,10 @@ const openWidgetMode = () => {
     return;
   }
 
-  openWidget(route("bitcraft.passive-crafts", payload(false)));
+  openWidget(route("bitcraft.passive-crafts", payload(false)), {
+    settings: payload(false),
+    token: props.filters.profile,
+  });
 };
 
 const refresh = async () => {
@@ -513,7 +470,7 @@ const refresh = async () => {
     const payload = await response.json();
     refreshStatus.value = payload.refresh ?? {};
     if (payload.tracker) {
-      tracker.value = payload.tracker;
+      updateTracker(payload.tracker);
       sampledAt.value = payload.sampledAt;
     }
     error.value = payload.error;
@@ -528,7 +485,7 @@ const polling = createTrackerPoller(refresh, POLL_INTERVAL_MS);
 watch(
   () => props.snapshot,
   (snapshot) => {
-    tracker.value = snapshot.tracker;
+    updateTracker(snapshot.tracker);
     error.value = snapshot.error;
     sampledAt.value = snapshot.sampledAt;
     refreshStatus.value = snapshot.refresh ?? {};
@@ -549,6 +506,9 @@ watch(
 watch(form, saveSetup, { deep: true });
 
 onMounted(() => {
+  countdownTimer = setInterval(() => {
+    now.value = Date.now();
+  }, 1000);
   const savedSetup = loadSetup();
   const params = new URLSearchParams(window.location.search);
 
@@ -567,11 +527,12 @@ onMounted(() => {
     return;
   }
 
-  saveSetup();
+  saveSetup(false);
   polling.start(refreshStatus.value.retryAfter ?? 0);
 });
 
 onBeforeUnmount(() => {
+  clearInterval(countdownTimer);
   polling.stop();
 });
 </script>
@@ -618,22 +579,19 @@ onBeforeUnmount(() => {
   gap: 10px;
 }
 
-.passive-craft-setup label,
-.passive-craft-emoji-picker {
+.passive-craft-setup label {
   display: grid;
   gap: 6px;
 }
 
-.passive-craft-setup span,
-.passive-craft-emoji-picker span {
+.passive-craft-setup span {
   color: var(--text-muted-3);
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
-.passive-craft-setup input,
-.passive-craft-emoji-picker select {
+.passive-craft-setup input {
   min-height: 36px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
@@ -642,14 +600,6 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 
-.passive-craft-emoji-picker__controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px;
-}
-
-.passive-craft-emoji-picker__controls button,
-.passive-craft-emoji-picker__selected button,
 .passive-craft-setup__actions button {
   min-height: 32px;
   border: 1px solid rgb(var(--accent-cyan-rgb) / 0.28);
@@ -658,24 +608,6 @@ onBeforeUnmount(() => {
   color: var(--text-primary-2);
   font-size: 12px;
   font-weight: 900;
-}
-
-.passive-craft-emoji-picker__controls button {
-  padding: 0 10px;
-  color: var(--accent-pink);
-}
-
-.passive-craft-emoji-picker__selected {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.passive-craft-emoji-picker__selected button {
-  width: 32px;
-  padding: 0;
-  font-size: 16px;
-  line-height: 1;
 }
 
 .passive-craft-setup__actions {
@@ -710,16 +642,16 @@ onBeforeUnmount(() => {
 }
 
 .passive-craft-widget__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
   padding: 18px 22px 14px;
   border-bottom: 1px solid
     color-mix(in srgb, var(--tracker-border) 24%, transparent);
 }
 
 .passive-craft-widget__header h1 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   min-width: 0;
   color: var(--tracker-text);
   font-size: calc(24px * var(--tracker-font-scale));
@@ -734,11 +666,10 @@ onBeforeUnmount(() => {
   font-weight: 800;
 }
 
-.passive-craft-widget__header strong {
-  color: var(--tracker-accent);
-  font-size: calc(20px * var(--tracker-font-scale));
-  line-height: 1;
-  white-space: nowrap;
+.passive-craft-widget__header h1 > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .passive-craft-widget__craft + .passive-craft-widget__craft {
@@ -753,7 +684,8 @@ onBeforeUnmount(() => {
 .passive-craft-widget__row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 20px;
+  align-items: center;
+  gap: 12px;
   padding: 18px 22px 7px;
 }
 
@@ -767,29 +699,29 @@ onBeforeUnmount(() => {
   line-height: 1.25;
 }
 
-.passive-craft-widget__item small,
-.passive-craft-widget__count small {
-  display: block;
-  margin-top: 5px;
-  color: var(--tracker-muted);
-  font-size: calc(11px * var(--tracker-font-scale));
-  font-weight: 800;
+.passive-craft-widget__item p > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.passive-craft-widget__icon {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .passive-craft-widget__count {
   text-align: right;
 }
 
-.passive-craft-widget__count small {
-  color: var(--tracker-highlight);
-}
-
 .passive-craft-widget__count strong {
   display: block;
-  margin-top: 3px;
   color: var(--tracker-text);
   font-size: calc(19px * var(--tracker-font-scale));
   font-weight: 900;
+  line-height: 1.25;
+  white-space: nowrap;
 }
 
 .passive-craft-widget__bar {
@@ -831,6 +763,17 @@ onBeforeUnmount(() => {
   font-weight: 900;
 }
 
+.passive-craft-widget__timer {
+  display: grid;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.passive-craft-widget__timer small {
+  color: var(--tracker-muted);
+  font-size: calc(10px * var(--tracker-font-scale));
+}
+
 .passive-craft-widget__outputs {
   display: flex;
   flex-wrap: wrap;
@@ -839,6 +782,8 @@ onBeforeUnmount(() => {
 }
 
 .passive-craft-widget__outputs span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   border: 1px solid color-mix(in srgb, var(--tracker-border) 32%, transparent);
   border-radius: 999px;
   padding: 4px 8px;
@@ -874,13 +819,4 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 520px) {
-  .passive-craft-widget__row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .passive-craft-widget__count {
-    text-align: left;
-  }
-}
 </style>

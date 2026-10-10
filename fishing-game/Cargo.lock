@@ -612,6 +612,8 @@ dependencies = [
  "game-rules",
  "image",
  "poise",
+ "serde",
+ "serde_json",
  "serenity",
  "spacetimedb-sdk",
  "tokio",

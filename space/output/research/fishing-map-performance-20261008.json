@@ -1,0 +1,10 @@
+{
+  "environment": "Local Space Vite development server, Microsoft Edge, 1440x1000 viewport",
+  "cpuThrottle": 6,
+  "schoolCount": 7946,
+  "workload": "Three 24-step drags, zoom in/out, then 1500 ms to finish pending work per view",
+  "liveDepthCloseup": { "frameIntervalP95Ms": 8, "worstFrameIntervalMs": 104, "mainThreadLongTasks": 0, "taskDurationSeconds": 2.306, "jsHeapMB": 22 },
+  "regionOverview": { "frameIntervalP95Ms": 8, "worstFrameIntervalMs": 92, "mainThreadLongTasks": 2, "longestTaskMs": 71, "taskDurationSeconds": 2.341, "jsHeapMB": 21 },
+  "limits": { "depthBitmapCacheMiB": 32, "depthBitmapCount": 96, "terrainChunks": 128, "subscribedTerrainChunks": 64 },
+  "note": "Frame intervals include the active interactions and settling period. This is a local browser measurement, not a guarantee for every device. Bitmap memory is separate from JS heap. Original dense-renderer drag runs stalled and were interrupted, so no percentage speedup is claimed."
+}

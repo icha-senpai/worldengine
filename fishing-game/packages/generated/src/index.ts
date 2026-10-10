@@ -39,6 +39,8 @@ import ActivateCraftingReducer from "./activate_crafting_reducer";
 import ActivateRodBonusesReducer from "./activate_rod_bonuses_reducer";
 import ActivateSpeciesMeasurementsReducer from "./activate_species_measurements_reducer";
 import ActivateTraderReducer from "./activate_trader_reducer";
+import ActivateXpProgressionReducer from "./activate_xp_progression_reducer";
+import BackfillJournalReducer from "./backfill_journal_reducer";
 import BackfillPlayerAchievementsReducer from "./backfill_player_achievements_reducer";
 import BeginLinkChallengeReducer from "./begin_link_challenge_reducer";
 import ChangeLoadoutReducer from "./change_loadout_reducer";
@@ -65,11 +67,14 @@ import PrepareShopPurchaseReducer from "./prepare_shop_purchase_reducer";
 import PrepareUpgradeFromDiscordReducer from "./prepare_upgrade_from_discord_reducer";
 import RebuildPlayerRecordsReducer from "./rebuild_player_records_reducer";
 import SelectDiscordPlayerReducer from "./select_discord_player_reducer";
+import SelectJournalReducer from "./select_journal_reducer";
+import SetCatchFavoriteReducer from "./set_catch_favorite_reducer";
 import UnlinkBrowserReducer from "./unlink_browser_reducer";
 
 // Import all procedure arg schemas
 
 // Import all table schema definitions
+import AchievementCollectionRow from "./achievement_collection_table";
 import AchievementDefinitionRow from "./achievement_definition_table";
 import AdapterAchievementProgressRow from "./adapter_achievement_progress_table";
 import AdapterBaitLoadoutRow from "./adapter_bait_loadout_table";
@@ -101,6 +106,7 @@ import MyBaitsRow from "./my_baits_table";
 import MyCollectionRow from "./my_collection_table";
 import MyInventoryRow from "./my_inventory_table";
 import MyItemsRow from "./my_items_table";
+import MyJournalRow from "./my_journal_table";
 import MyLedgerRow from "./my_ledger_table";
 import MyLicencesRow from "./my_licences_table";
 import MyLinkChallengeRow from "./my_link_challenge_table";
@@ -125,6 +131,17 @@ import SpeciesRecordRow from "./species_record_table";
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  achievementCollection: __table({
+    name: 'achievement_collection',
+    indexes: [
+      { accessor: 'achievement_id', name: 'achievement_collection_achievement_id_idx_btree', algorithm: 'btree', columns: [
+        'achievementId',
+      ] },
+    ],
+    constraints: [
+      { name: 'achievement_collection_achievement_id_key', constraint: 'unique', columns: ['achievementId'] },
+    ],
+  }, AchievementCollectionRow),
   achievementDefinition: __table({
     name: 'achievement_definition',
     indexes: [
@@ -482,6 +499,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyItemsRow),
+  myJournal: __table({
+    name: 'my_journal',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyJournalRow),
   myLedger: __table({
     name: 'my_ledger',
     indexes: [
@@ -561,6 +585,8 @@ const reducersSchema = __reducers(
   __reducerSchema("activate_rod_bonuses", ActivateRodBonusesReducer),
   __reducerSchema("activate_species_measurements", ActivateSpeciesMeasurementsReducer),
   __reducerSchema("activate_trader", ActivateTraderReducer),
+  __reducerSchema("activate_xp_progression", ActivateXpProgressionReducer),
+  __reducerSchema("backfill_journal", BackfillJournalReducer),
   __reducerSchema("backfill_player_achievements", BackfillPlayerAchievementsReducer),
   __reducerSchema("begin_link_challenge", BeginLinkChallengeReducer),
   __reducerSchema("change_loadout", ChangeLoadoutReducer),
@@ -587,6 +613,8 @@ const reducersSchema = __reducers(
   __reducerSchema("prepare_upgrade_from_discord", PrepareUpgradeFromDiscordReducer),
   __reducerSchema("rebuild_player_records", RebuildPlayerRecordsReducer),
   __reducerSchema("select_discord_player", SelectDiscordPlayerReducer),
+  __reducerSchema("select_journal", SelectJournalReducer),
+  __reducerSchema("set_catch_favorite", SetCatchFavoriteReducer),
   __reducerSchema("unlink_browser", UnlinkBrowserReducer),
 );
 
@@ -596,6 +624,8 @@ const proceduresSchema = __procedures(
 
 type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "tables"> & {
   tables: typeof tablesSchema.schemaType.tables & {
+    /** @deprecated Use `achievementCollection` instead. This alias will be removed in the next major version. */
+    readonly "achievement_collection": Omit<typeof tablesSchema.schemaType.tables["achievementCollection"], "accessorName"> & { readonly accessorName: "achievement_collection" };
     /** @deprecated Use `achievementDefinition` instead. This alias will be removed in the next major version. */
     readonly "achievement_definition": Omit<typeof tablesSchema.schemaType.tables["achievementDefinition"], "accessorName"> & { readonly accessorName: "achievement_definition" };
     /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
@@ -676,6 +706,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_inventory": Omit<typeof tablesSchema.schemaType.tables["myInventory"], "accessorName"> & { readonly accessorName: "my_inventory" };
     /** @deprecated Use `myItems` instead. This alias will be removed in the next major version. */
     readonly "my_items": Omit<typeof tablesSchema.schemaType.tables["myItems"], "accessorName"> & { readonly accessorName: "my_items" };
+    /** @deprecated Use `myJournal` instead. This alias will be removed in the next major version. */
+    readonly "my_journal": Omit<typeof tablesSchema.schemaType.tables["myJournal"], "accessorName"> & { readonly accessorName: "my_journal" };
     /** @deprecated Use `myLedger` instead. This alias will be removed in the next major version. */
     readonly "my_ledger": Omit<typeof tablesSchema.schemaType.tables["myLedger"], "accessorName"> & { readonly accessorName: "my_ledger" };
     /** @deprecated Use `myLicences` instead. This alias will be removed in the next major version. */
@@ -714,6 +746,7 @@ const REMOTE_MODULE = {
 >;
 
 const tableAccessorAliases = {
+  "achievement_collection": "achievementCollection",
   "achievement_definition": "achievementDefinition",
   "angler_standing": "anglerStanding",
   "angler_title": "anglerTitle",
@@ -754,6 +787,7 @@ const tableAccessorAliases = {
   "my_collection": "myCollection",
   "my_inventory": "myInventory",
   "my_items": "myItems",
+  "my_journal": "myJournal",
   "my_ledger": "myLedger",
   "my_licences": "myLicences",
   "my_link_challenge": "myLinkChallenge",
@@ -784,6 +818,8 @@ function __withTableAccessorAliases<T extends object>(target: T, freeze = false)
 
 type __DbViewBase = __DbConnectionImpl<typeof REMOTE_MODULE>["db"];
 export type DbView = __DbViewBase & {
+  /** @deprecated Use `achievementCollection` instead. This alias will be removed in the next major version. */
+  readonly "achievement_collection": __DbViewBase["achievementCollection"];
   /** @deprecated Use `achievementDefinition` instead. This alias will be removed in the next major version. */
   readonly "achievement_definition": __DbViewBase["achievementDefinition"];
   /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
@@ -864,6 +900,8 @@ export type DbView = __DbViewBase & {
   readonly "my_inventory": __DbViewBase["myInventory"];
   /** @deprecated Use `myItems` instead. This alias will be removed in the next major version. */
   readonly "my_items": __DbViewBase["myItems"];
+  /** @deprecated Use `myJournal` instead. This alias will be removed in the next major version. */
+  readonly "my_journal": __DbViewBase["myJournal"];
   /** @deprecated Use `myLedger` instead. This alias will be removed in the next major version. */
   readonly "my_ledger": __DbViewBase["myLedger"];
   /** @deprecated Use `myLicences` instead. This alias will be removed in the next major version. */
@@ -888,6 +926,8 @@ export type DbView = __DbViewBase & {
 
 type __TablesBase = __QueryBuilder<typeof tablesSchema.schemaType>;
 export type Tables = __TablesBase & {
+  /** @deprecated Use `achievementCollection` instead. This alias will be removed in the next major version. */
+  readonly "achievement_collection": __TablesBase["achievementCollection"];
   /** @deprecated Use `achievementDefinition` instead. This alias will be removed in the next major version. */
   readonly "achievement_definition": __TablesBase["achievementDefinition"];
   /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
@@ -968,6 +1008,8 @@ export type Tables = __TablesBase & {
   readonly "my_inventory": __TablesBase["myInventory"];
   /** @deprecated Use `myItems` instead. This alias will be removed in the next major version. */
   readonly "my_items": __TablesBase["myItems"];
+  /** @deprecated Use `myJournal` instead. This alias will be removed in the next major version. */
+  readonly "my_journal": __TablesBase["myJournal"];
   /** @deprecated Use `myLedger` instead. This alias will be removed in the next major version. */
   readonly "my_ledger": __TablesBase["myLedger"];
   /** @deprecated Use `myLicences` instead. This alias will be removed in the next major version. */

@@ -1,6 +1,111 @@
 //! Permanent, cosmetic milestones. No balance, XP, or equipment mutations.
 use crate::tables::*;
 use spacetimedb::{ReducerContext, Table, ViewContext};
+use std::collections::BTreeMap;
+
+const RANKS: [&str; 10] = ["F", "D", "C", "B", "A", "S", "SS", "SSS", "UR", "UUR"];
+
+#[derive(Default)]
+struct CollectionCounts {
+    species: u64,
+    ranks: [u64; 10],
+}
+
+impl CollectionCounts {
+    fn add(&mut self, rank_counts: &[u64]) {
+        self.species += 1;
+        for (ordinal, count) in rank_counts.iter().take(RANKS.len()).enumerate() {
+            if *count > 0 {
+                self.ranks[ordinal] += 1;
+            }
+        }
+    }
+
+    fn progress(&self, collection: &AchievementCollection) -> u64 {
+        if collection.all_ranks {
+            self.ranks.iter().sum()
+        } else if collection.rarity.is_empty() {
+            self.species
+        } else {
+            RANKS
+                .iter()
+                .position(|rank| *rank == collection.rarity)
+                .map(|ordinal| self.ranks[ordinal])
+                .unwrap_or(0)
+        }
+    }
+}
+
+fn seed_collection(
+    ctx: &ReducerContext,
+    id: u32,
+    biome_id: u32,
+    rank: &str,
+    all_ranks: bool,
+    name: String,
+    title: String,
+    species_count: u64,
+) {
+    let scope = if biome_id == 0 {
+        "across all biomes".to_owned()
+    } else {
+        format!(
+            "in {}",
+            ctx.db
+                .biome_definition()
+                .biome_id()
+                .find(biome_id)
+                .expect("seeded biome")
+                .name
+        )
+    };
+    let requirement = if all_ranks {
+        "at every rank from F through UUR".to_owned()
+    } else if rank.is_empty() {
+        "at any rank".to_owned()
+    } else {
+        format!("at {rank} rank")
+    };
+    let row = AchievementDefinition {
+        achievement_id: id,
+        name,
+        title,
+        description: format!("Catch all {species_count} ordinary species {scope} {requirement}."),
+        target: species_count * if all_ranks { 10 } else { 1 },
+        bonus: false,
+    };
+    if ctx
+        .db
+        .achievement_definition()
+        .achievement_id()
+        .find(id)
+        .is_some()
+    {
+        ctx.db.achievement_definition().achievement_id().update(row);
+    } else {
+        ctx.db.achievement_definition().insert(row);
+    }
+    let criteria = AchievementCollection {
+        achievement_id: id,
+        biome_id,
+        rarity: rank.into(),
+        all_ranks,
+    };
+    if ctx
+        .db
+        .achievement_collection()
+        .achievement_id()
+        .find(id)
+        .is_some()
+    {
+        ctx.db
+            .achievement_collection()
+            .achievement_id()
+            .update(criteria);
+    } else {
+        ctx.db.achievement_collection().insert(criteria);
+    }
+}
 
 pub fn seed(ctx: &ReducerContext) {
     let catalog = [
@@ -170,6 +275,100 @@ pub fn seed(ctx: &ReducerContext) {
             ctx.db.achievement_definition().insert(row);
         }
     }
+    let mut totals = BTreeMap::<u32, u64>::new();
+    for species in ctx
+        .db
+        .species_definition()
+        .iter()
+        .filter(|s| s.counts_for_ordinary_collection_completion)
+    {
+        *totals.entry(species.biome_id).or_default() += 1;
+    }
+    let total = totals.values().sum();
+    for biome in ctx.db.biome_definition().iter() {
+        let count = totals.get(&biome.biome_id).copied().unwrap_or(0);
+        if count == 0 {
+            continue;
+        }
+        // Preserve the existing Pond badge and its earned title.
+        let id = if biome.biome_id == 1 {
+            10
+        } else {
+            20 + biome.biome_id
+        };
+        seed_collection(
+            ctx,
+            id,
+            biome.biome_id,
+            "",
+            false,
+            if biome.biome_id == 1 {
+                "Pond collection".into()
+            } else {
+                format!("{} collection", biome.name)
+            },
+            if biome.biome_id == 1 {
+                "Pond Naturalist".into()
+            } else {
+                format!("{} Naturalist", biome.name)
+            },
+            count,
+        );
+        for (ordinal, rank) in RANKS.iter().enumerate() {
+            seed_collection(
+                ctx,
+                100 + (biome.biome_id - 1) * 10 + ordinal as u32,
+                biome.biome_id,
+                rank,
+                false,
+                format!("{} · {rank} collection", biome.name),
+                format!("{} {rank} Collector", biome.name),
+                count,
+            );
+        }
+        seed_collection(
+            ctx,
+            300 + biome.biome_id - 1,
+            biome.biome_id,
+            "",
+            true,
+            format!("{} · every rank", biome.name),
+            format!("{} Completionist", biome.name),
+            count,
+        );
+    }
+    seed_collection(
+        ctx,
+        30,
+        0,
+        "",
+        false,
+        "All waters collection".into(),
+        "World Naturalist".into(),
+        total,
+    );
+    for (ordinal, rank) in RANKS.iter().enumerate() {
+        seed_collection(
+            ctx,
+            200 + ordinal as u32,
+            0,
+            rank,
+            false,
+            format!("All waters · {rank} collection"),
+            format!("{rank} World Collector"),
+            total,
+        );
+    }
+    seed_collection(
+        ctx,
+        310,
+        0,
+        "",
+        true,
+        "Every fish, every rank".into(),
+        "World Completionist".into(),
+        total,
+    );
 }
 
 pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
@@ -187,6 +386,8 @@ pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String
     values[4] = player.fish_count;
     values[5] = player.fish_count;
     let mut discoveries = 0;
+    let mut world = CollectionCounts::default();
+    let mut biomes = BTreeMap::<u32, CollectionCounts>::new();
     for progress in ctx
         .db
         .player_species_progress()
@@ -204,6 +405,11 @@ pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String
             .ok_or("CONTENT_UNAVAILABLE")?;
         if species.counts_for_ordinary_collection_completion {
             discoveries += 1;
+            world.add(&progress.rank_counts);
+            biomes
+                .entry(species.biome_id)
+                .or_default()
+                .add(&progress.rank_counts);
             if species.biome_id == 1 {
                 values[9] += 1;
             }
@@ -241,7 +447,23 @@ pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String
     for definition in ctx.db.achievement_definition().iter() {
         let id = definition.achievement_id;
         let key = u128::from(player_id) << 32 | u128::from(id);
-        let current = values[(id - 1) as usize].min(definition.target);
+        let current =
+            if let Some(collection) = ctx.db.achievement_collection().achievement_id().find(id) {
+                if collection.biome_id == 0 {
+                    world.progress(&collection)
+                } else {
+                    biomes
+                        .get(&collection.biome_id)
+                        .map(|counts| counts.progress(&collection))
+                        .unwrap_or(0)
+                }
+            } else {
+                id.checked_sub(1)
+                    .and_then(|index| values.get(index as usize))
+                    .copied()
+                    .unwrap_or(0)
+            }
+            .min(definition.target);
         let row = AchievementProgress {
             key,
             player_id,

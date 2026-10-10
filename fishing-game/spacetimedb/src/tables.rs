@@ -11,6 +11,18 @@ pub struct AchievementDefinition {
     pub bonus: bool,
 }
 
+/// Collection criteria are public; each player's unfinished progress stays private.
+#[spacetimedb::table(accessor = achievement_collection, public)]
+pub struct AchievementCollection {
+    #[primary_key]
+    pub achievement_id: u32,
+    /// Zero covers every biome.
+    pub biome_id: u32,
+    /// Empty for any-rank discoveries or every-rank completion.
+    pub rarity: String,
+    pub all_ranks: bool,
+}
+
 #[spacetimedb::table(accessor = earned_achievement, public)]
 pub struct EarnedAchievement {
     #[primary_key]
@@ -329,6 +341,8 @@ pub struct BaitDefinition {
     pub resource_item: String,
     pub uses_per_purchase: u64,
     pub sprite_asset: String,
+    #[default(0)]
+    pub xp_bonus_bp: u32,
 }
 
 #[spacetimedb::table(accessor = quality_definition, public)]
@@ -425,6 +439,57 @@ pub struct RecentCatch {
     pub weight_g: u64,
     pub size_grade: u8,
     pub xp_granted: u64,
+}
+
+/// Permanent per-pull history. Kept separate from inventory and retry receipts.
+#[spacetimedb::table(accessor = journal_entry)]
+pub struct JournalEntry {
+    #[primary_key]
+    pub key: String,
+    #[index(btree)]
+    pub player_id: u64,
+    pub catch_id: Option<u64>,
+    pub caught_at: Timestamp,
+    pub outcome: String,
+    pub species_id: Option<u32>,
+    pub name: String,
+    pub rarity: String,
+    pub length_mm: u32,
+    pub weight_g: u64,
+    /// Legacy inventory snapshots did not save XP. Never guess those rewards.
+    pub xp_granted: Option<u64>,
+    pub biome_id: Option<u32>,
+}
+
+#[spacetimedb::table(accessor = journal_selection)]
+pub struct JournalSelection {
+    #[primary_key]
+    pub identity: Identity,
+    pub player_id: u64,
+    pub page: u32,
+    pub page_size: u32,
+    pub sort: String,
+    pub descending: bool,
+    pub search: String,
+    pub biome_id: u32,
+    pub rarity: String,
+    pub outcome: String,
+}
+
+#[spacetimedb::table(accessor = journal_import)]
+pub struct JournalImport {
+    #[primary_key]
+    pub player_id: u64,
+    pub completed_at: Timestamp,
+}
+
+#[derive(SpacetimeType)]
+pub struct JournalPage {
+    pub entries: Vec<JournalEntry>,
+    pub total_entries: u64,
+    pub matching_entries: u64,
+    pub page: u32,
+    pub page_size: u32,
 }
 
 #[spacetimedb::table(accessor = player_species_progress)]

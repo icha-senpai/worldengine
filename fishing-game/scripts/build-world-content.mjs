@@ -94,8 +94,8 @@ for (const biome of biomes) {
 catalog.version = 5;
 catalog.status = 'reviewed-species-measurements';
 await writeFile(new URL('species.json', root), JSON.stringify(catalog, null, 2) + '\n');
-await writeFile(new URL('world.json', root), JSON.stringify({version: 5, levelCap: 60, biomes, rods}, null, 2) + '\n');
-await writeFile(new URL('game-rules.json', root), JSON.stringify({version: 6, status: 'bait-rod-quality-and-mixed-pulls', castCooldownSeconds: 60}, null, 2) + '\n');
+await writeFile(new URL('world.json', root), JSON.stringify({version: 5, levelCap: 120, biomes, rods}, null, 2) + '\n');
+await writeFile(new URL('game-rules.json', root), JSON.stringify({version: 7, status: 'level-120-and-xp-slime-bait', castCooldownSeconds: 60}, null, 2) + '\n');
 const lengthMinimums = [0, 750000, 900000, 1000000, 1150000, 1300000, 1450000, 1600000, 1750000, 1850000];
 const weightMinimums = [0, 421875, 729000, 1000000, 1520875, 2197000, 3048625, 4096000, 5359375, 6331625];
 await writeFile(new URL('size-rules.json', root), JSON.stringify({version: 4, method: 'both-species-relative-length-and-weight', tiers: tiers.map((rarity, i) => ({rarity, minimumLengthMillionths: lengthMinimums[i], minimumWeightMillionths: weightMinimums[i]}))}, null, 2) + '\n');

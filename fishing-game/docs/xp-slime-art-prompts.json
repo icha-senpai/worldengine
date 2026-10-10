@@ -1,0 +1,18 @@
+{
+  "mode": "built-in image_gen",
+  "transparentBackground": true,
+  "assets": [
+    {
+      "key": "green-slime",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG bait inventory icon, readable at 96px. Primary request: a mound of green goo-like slime used as magical experience bait. Style: crisp chunky 16-bit pixel art with visible square pixels, limited palette and dark stepped outlines, warm adventurous handcrafted fishing game feel. Subject: one glossy emerald and lime-green slime mound, rounded lumpy puddle with a small curling droplet on top, a few bright square highlights suggesting magical experience. Composition: centered complete object occupying about 75% of square canvas, generous empty margins. True transparent background. No container, face, eyes, text, letters, labels, UI frame, scene, people or cropping. Avoid smooth vector art, photorealism and blurry painting."
+    },
+    {
+      "key": "yellow-slime",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG bait inventory icon, readable at 96px. Primary request: a mound of yellow goo-like slime used as magical experience bait. Style: crisp chunky 16-bit pixel art with visible square pixels, limited palette and dark stepped outlines, warm adventurous handcrafted fishing game feel. Subject: one glossy golden lemon-yellow slime mound, rounded lumpy puddle with a small curling droplet on top, a few bright square highlights suggesting magical experience. Composition: centered complete object occupying about 75% of square canvas, generous empty margins. True transparent background. No container, face, eyes, text, letters, labels, UI frame, scene, people or cropping. Avoid smooth vector art, photorealism and blurry painting."
+    },
+    {
+      "key": "pink-slime",
+      "prompt": "Use case: stylized-concept. Asset type: individual Fishbound fishing RPG bait inventory icon, readable at 96px. Primary request: a mound of pink goo-like slime used as magical experience bait. Style: crisp chunky 16-bit pixel art with visible square pixels, limited palette and dark stepped outlines, warm adventurous handcrafted fishing game feel. Subject: one glossy rose and candy-pink slime mound, rounded lumpy puddle with a small curling droplet on top, a few bright square highlights suggesting magical experience. Composition: centered complete object occupying about 75% of square canvas, generous empty margins. True transparent background. No container, face, eyes, text, letters, labels, UI frame, scene, people or cropping. Avoid smooth vector art, photorealism and blurry painting."
+    }
+  ]
+}

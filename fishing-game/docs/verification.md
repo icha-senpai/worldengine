@@ -757,3 +757,238 @@ coins or fish.
   optional integer `rod_id`. Gateway, public site, and linker readiness pass.
   No test command was sent to a channel in this pass; the owner can now use
   `/rod` for a live delivery check.
+
+## Level 120 and XP slime bait (2026-10-08)
+
+- Rules version 7 raises the cap to 120 with the existing quadratic XP curve;
+  thresholds through level 120 and the u64 maximum pass pure-rule tests.
+- Eight bait types and twenty trader offers validate. Green/yellow/pink XP
+  slime grant +25/+50/+100% additive fishing XP, cost 50/150/400 coins for ten
+  uses, and use IDs 6/7/8 (shop IDs 106/107/108).
+- Built-in imagegen produced three real RGBA sprites in `assets/baits/`;
+  dimensions are 1254 square and alpha spans 0–255. Prompts are saved in
+  `docs/xp-slime-art-prompts.json` and the manifest records hashes.
+- Thirty-two Rust bot/rules tests, strict Clippy, zero-error/zero-warning
+  Svelte checks, content validation and the production frontend build pass.
+  The general isolated integration suite passes all twenty checks.
+- The extended crafting proof buys all three slime types, forces two pulls
+  through fish/junk/treasure, verifies exact additive XP and per-pull sums,
+  consumes one use per cast, preserves resources on replay and cooldown
+  rejection, and automatically unequips each slime after ten casts. Existing
+  quality, resource bait, privacy and native transport checks also pass.
+- The old production WASM was published to an isolated database and upgraded
+  with the appended default-zero XP column. Owner activation and repeated
+  activation pass; anonymous activation is rejected. All forty gameplay tables
+  outside config/bait/shop/public-profile metadata stay byte-for-byte identical.
+- Live services were stopped around deployment. Before/after snapshots of all
+  forty-four nonscheduled tables verify the same forty-table preservation.
+  Original config rows remain, rules version 7 has cap 120, and metadata plus
+  computed public profile levels match the content. No reset was performed.
+- Actual component fixtures verify reactive bait/combined XP and level-120
+  progress at desktop and 390/320 phone widths. Screenshots were inspected.
+  Anonymous public-site QA loads all three server-backed slime sprites and
+  verifies four-item phone pagination without overflow. Screenshots are in
+  `output/playwright/xp-slime-*`. No real player purchases or casts were used.
+- Updated native bot and linker were rebuilt, desktop Start reaches Discord
+  readiness, both public website and linker readiness return HTTP 200, and
+  Discord still reports fourteen globally registered commands.
+
+## Favorite saving and refresh persistence (2026-10-09)
+
+- A single original star click persisted in the isolated browser, but rapid
+  unfavorite/favorite clicks reproduced `ACTION_RATE_LIMITED`: favorites used
+  the two-step sale-preview flow and inherited its one-second limit.
+- The website now calls `set_catch_favorite` with an explicit desired state.
+  The reducer authenticates the linked browser, checks ownership, and saves
+  the catch in one transaction. Repeated identical requests are idempotent.
+  Old favorite quotes remain supported for compatibility; sales still require
+  a preview/confirmation and recheck favorite protection when committed.
+- The twenty-check integration suite passes, including repeated direct saves,
+  fresh authenticated reconnect persistence, unauthorized/missing/other-owner
+  catches, unchanged player and catch measurements, and protected sales.
+- Playwright on the real web app against an isolated proof database passes
+  five consecutive star toggles, refresh, Camp/Tackle Box view changes, full
+  return navigation, disabled sale selection, mobile rendering and persistent
+  unfavoriting. Screenshots are `output/playwright/favorite-persisted-*.png`.
+- Svelte reports zero errors/warnings and the production build passes. Both
+  binding sets were regenerated. Live publishing adds only a reducer, with no
+  table migration and `--delete-data=never`. All forty-four nonscheduled live
+  tables match the predeployment snapshot exactly; no real catch was changed
+  for testing. Services restarted, the public compiled client uses the direct
+  save, and Discord/site/linker readiness pass.
+
+## Permanent sortable journal (2026-10-09)
+
+- A private `journal_entry` snapshot is saved for every authoritative pull after
+  XP allocation. Sales, recent-result trimming, and receipt pruning leave it
+  intact. Replayed casts do not add entries. Both generated binding sets were
+  refreshed; Rust workspace checking and rebuilt bot/linker executables pass.
+- The existing twenty-check integration suite passes with journal visibility
+  and browser-revocation assertions. The dedicated journal proof passes legacy
+  overlap reconciliation, identical double pulls, unknown fields, aggregate XP
+  safety, idempotent owner import, ten sort directions, filters, page bounds,
+  sales, reconnect, and unlinking. Its 112 permanent entries remain after the
+  recent list trims to 100 and the real scheduler prunes aged retry receipts.
+- The migration proof publishes the previous production WASM, records a real
+  cast, links a browser, upgrades additively, and imports twice. All forty-four
+  pre-existing tables stay unchanged.
+- Playwright against the actual app and isolated proof backend passes desktop
+  twelve-entry and phone four-entry pages, next/previous navigation, filters,
+  ascending/descending weight order, rank order, missing-XP labels, no-results
+  reset, refresh persistence, artwork loading, and no horizontal overflow.
+  Visually reviewed screenshots: `output/playwright/journal-desktop.png` and
+  `output/playwright/journal-mobile.png`.
+- Svelte reports zero errors and warnings; production web build passes. Live
+  publishing adds three private tables and the caller-scoped `my_journal` view
+  with `--delete-data=never`. The owner import recovers 174 permanent entries
+  across eight players. All forty-four existing live tables match the saved
+  predeployment snapshot exactly after import.
+- Public site and compiled journal client return HTTP 200; linker readiness
+  returns HTTP 200; the restarted Discord adapter reports ready. The isolated
+  browser and QA server were closed. See journal.md for retention/import details.
+
+## Compendium pages and fish field notes (2026-10-09)
+
+- The public Compendium now shows 24 fish per page on desktop and phones;
+  name/biome/rank filtering and pagination still work. Opening a card reveals
+  reference length/weight, actual catchable ranges, per-rank distribution bars,
+  length/weight envelopes, base cast odds, and the species-relative rank rules.
+  Measurement display uses inches, pounds, and ounces. Fihs and the Sock retain
+  their UUR-only and F-only detail rows.
+- `npx tsx scripts/compendium-proof.ts` passes all 2,492 rank ranges against the
+  real Rust sampler at exact minimum/maximum endpoints, plus 498,400 sampled
+  catches. Conditional rank percentages total 100%; approved exceptional cast
+  probabilities and all seven normalized biome pools match.
+- Playwright passes keyboard card opening, native modal focus containment and
+  restoration, background scroll locking/restoration, Escape, close button,
+  backdrop dismissal, tab-change dismissal, retained filters/pagination, and
+  phone viewport fit. Desktop/mobile field notes and rank rows were visually
+  reviewed in `output/playwright/compendium-*.png`.
+- Svelte reports zero errors and warnings; production web build passes. Only
+  the web service restarted; the running bot and linker were retained. Public
+  `/catalog` and its compiled field-notes client return HTTP 200, SSR renders
+  24 cards, and opening Ancient Sturgeon on the live site shows the new dialog
+  with the verified US measurements. Isolated QA browser/server were closed.
+- See compendium.md for the distinction between conditional rank share and
+  at-least-one-per-cast probability, and for exact measurement derivation.
+
+## Biome collection achievements (2026-10-09)
+
+- Expanded the catalog from 18 to 113 cosmetic badges: 111 ordinary badges
+  and two optional bonus discoveries. The existing Pond badge and title keep
+  their ID. Collection criteria cover every ordinary species, each of ten
+  ranks, and all ten ranks together, in every biome and across all biomes.
+  The final world badge requires 2,490 distinct species/rank pairs.
+- `biome-achievements-proof.ts` passes catalog-derived targets, duplicate
+  catches, partial and cross-biome boundaries, rank separation, a real
+  last-species F cast awarding both badges immediately, idempotent cast replay,
+  all 111 ordinary awards without bonus fish, lifetime credit with no specimens
+  kept, unchanged player/inventory/history on backfill, new titles and private
+  progress/owner access boundaries.
+- `biome-achievements-migration-proof.ts` passes an additive upgrade from the
+  previous production WASM, preserving all 44 gameplay tables, legacy badge
+  names/titles/targets, and original earned dates. Repeated backfill is safe.
+  The production migration granted lifetime credit for all eight players and
+  passed the same preservation checks. Proof-only fixture controls are absent
+  from the deployed WASM.
+- The 20-check integration suite and social/native adapter proof pass,
+  including sales, title validation, private views, reconnects and revocation.
+  Bindings regenerate successfully; Svelte reports zero errors/warnings;
+  production web and both native service builds pass. The web build retains
+  its existing bundle-size advisory.
+- Playwright passes desktop and phone biome/rank/status filters, correct
+  species and pair targets, empty incompatible scopes, filter page reset,
+  desktop 12-card and phone four-card pages, and title persistence on refresh.
+  Screenshots under `output/playwright/biome-achievements-*.png` were reviewed.
+- All services restarted successfully. The bot logged readiness; public
+  catalog and compiled achievement UI return HTTP 200, linker readiness
+  returns HTTP 200, and a fresh anonymous live subscription confirms the
+  113-badge/96-collection catalog while unfinished player progress stays private.
+  The isolated browser and QA server were closed.
+
+## Generated achievement art: first style batch (2026-10-09)
+
+- Built-in image_gen produced three individual, transparent pixel-art medals:
+  Pond collection (10), Meadow Pond UUR collection (109), and the lost Sock (18).
+  The first Pond medal was the style/layout reference for the other two. The
+  complete 113-asset prompt plan is saved in content/achievement-badge-art.json;
+  this sample batch is complete and the remaining 110 images are planned.
+- Originals were copied non-destructively into assets/achievements. All three
+  are square RGBA PNGs with alpha ranging from zero to 255 and complete opaque
+  subjects inside their canvas margins. Their names, dimensions, byte sizes and
+  SHA-256 hashes are included in the shared asset manifest.
+- The badge book displays generated artwork by stable achievement ID, retains
+  existing symbols for other badges, preserves full colors on earned medals,
+  and fades locked medals through CSS. No server, achievement or balance rules
+  changed. Badge names and ranks remain website text rather than image lettering.
+- Playwright passes all three asset loads, unclipped artwork, earned/locked
+  styling, filters and phone viewport fit. Desktop/phone screenshots in
+  output/playwright/generated-badge-*.png were reviewed. Svelte reports zero
+  errors/warnings and the production build passes.
+- Only the web process restarted; bot and linker stayed running. The installed
+  PNGs return HTTPS 200 and exactly match source hashes, checked with
+  `node scripts/achievement-badge-proof.mjs --live`. Public catalog, compiled
+  achievement UI and linker readiness return HTTP 200. QA services were closed.
+
+## Generated achievement art: complete medal set (2026-10-09)
+
+- Finished all 113 individual achievement images with the built-in image_gen
+  tool: 17 milestone/bonus medals, seven biome families of 12 medals each, and
+  12 all-waters medals. The three approved samples were retained. The remaining
+  110 generations used the Pond medal as their style/layout reference; Fihs
+  additionally referenced its supplied blue/pink/gold fish sprite. All nine
+  labelled contact sheets in output/playwright/badge-batch-*.png were reviewed.
+- Selected images retain their original generated pixels, dimensions and alpha;
+  originals remain in the Codex generated-images directory. The exact prompt
+  set is content/achievement-badge-art.json, with local per-generation provenance
+  under .local/achievement-badge-generation. No generation failed or remains
+  queued. All 113 PNGs have unique source hashes and stable achievement IDs.
+- `python scripts/validate-achievement-badge-alpha.py --complete` passes actual
+  transparency and complete opaque-subject margins for every square RGBA PNG.
+  `node scripts/achievement-badge-proof.mjs --complete --live` passes complete
+  manifest coverage, source hashes, HTTP 200 delivery and matching public hashes
+  for all 113 images at https://fish.ichaa.dev.
+- Playwright traverses all ten desktop pages and verifies every distinct badge
+  image loads. Every-rank, biome and bonus filters pass, including locked bonus
+  grayscale styling. Phone pagination shows four cards, resets correctly after
+  filter changes, and has no horizontal overflow. The check scrolls cards into
+  view before awaiting lazily loaded images. Desktop and phone screenshots in
+  output/playwright/badge-book-complete-*.png were reviewed.
+- Svelte reports zero errors/warnings and the production build passes, retaining
+  the existing bundle-size advisory. Only the web service restarted; the bot
+  and linker stayed running. Public catalog and the new compiled achievement
+  client return HTTP 200, and linker readiness returns HTTP 200. A fresh anonymous
+  live subscription confirms the 113-badge/96-collection catalog and 2,490-pair
+  world target while unfinished player progress remains private. Both isolated
+  QA servers and browser sessions were closed. No gameplay rules changed.
+
+## Discord achievement announcements and badge zoom (2026-10-09)
+
+- Added a read-only native client stream for newly committed earned-badge
+  inserts. Both the adapter's own reducers and other clients' transactions emit
+  award details; initial subscriptions and reconnect history do not. No database
+  schema, reducer, award condition, fishing odds or gameplay data changed.
+- All 14 Discord library tests pass, including exact achievement embed data,
+  badge URL, disabled mentions, enforced retry nonce, latest-channel routing,
+  saved history on restart, database scope and cross-player routing isolation.
+  `cargo check --workspace --locked` and the optimized bot build pass.
+- The isolated social/native proof passes real first-cast unlock events, exact
+  names/descriptions and Discord identities, receipt replay suppression,
+  reconnect history suppression, and external transaction awards for a player
+  outside the currently selected private view. Existing sale, title, public
+  profile privacy, account unlink and service-revocation checks also pass.
+  Proof-only fixture controls were never published to the live database.
+- Playwright passes desktop/phone badge enlargement, exact requirement text,
+  earned/locked previews, keyboard activation, Escape with restored focus,
+  close-button and backdrop dismissal, viewport fit, native dialog modality and
+  restored background scrolling. Reviewed screenshots are
+  output/playwright/badge-preview-pond-desktop.png,
+  badge-preview-fihs-desktop.png and badge-preview-world-mobile.png. A separate
+  traversal still loads all 113 images and passes filters and pagination.
+- Svelte reports zero errors/warnings and the production web build passes,
+  retaining its existing bundle-size advisory. Web and bot were restarted;
+  the linker and database stayed running. The bot logged fresh readiness.
+  Eight existing channel routes were seeded from retained casts with read-only
+  owner SQL, preserving exact 64-bit Discord IDs. Public production assets
+  contain the clickable badge and preview dialog; catalog, client and linker
+  readiness return HTTP 200. No test messages were posted to Discord.

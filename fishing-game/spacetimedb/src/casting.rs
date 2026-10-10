@@ -113,6 +113,7 @@ pub fn fish_from_discord(
         .as_ref()
         .map_or(0, |row| row.xp_bonus_bp)
         .checked_add(quality.xp_bonus_bp)
+        .and_then(|v| v.checked_add(bait.xp_bonus_bp))
         .ok_or("INVALID_ROD_XP")?;
     let mut rng = ctx.rng();
     let pull_count = if rng.gen_range(0..10000u32) < game_rules::rods::bonus_pull_bp(power)? {
@@ -388,6 +389,7 @@ pub fn fish_from_discord(
             game_rules::rods::fishing_xp(pull.base_xp, xp_bonus_bp)?
         };
         allocated_xp += pull.receipt.xp_granted;
+        crate::journal::save_pull(ctx, &pull);
         ctx.db.recent_catch().insert(RecentCatch {
             recent_id: 0,
             player_id: player.player_id,

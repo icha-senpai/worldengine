@@ -1,4 +1,5 @@
 import { marketCheckpointTables } from "../bitcraft/src/market-checkpoint";
+import { archiveDiagnosticFile } from "./diagnostic-archives";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
@@ -131,17 +132,22 @@ export async function directoryBytes(
   for (const entry of await readdir(path, { withFileTypes: true })) {
     if (entry.isSymbolicLink()) throw Error("Unexpected linked storage path.");
     const child = join(path, entry.name);
-    if (entry.isDirectory()) total += await directoryBytes(child, linkedFiles);
-    else {
-      const info = await stat(child, { bigint: true });
-      // Snapshot pages are hardlinked across generations. Count a shared file
-      // once while retaining a conservative file-size estimate for sparse files.
-      if (info.nlink > 1n && info.ino !== 0n) {
-        const identity = `${info.dev}:${info.ino}`;
-        if (linkedFiles.has(identity)) continue;
-        linkedFiles.add(identity);
+    try {
+      if (entry.isDirectory())
+        total += await directoryBytes(child, linkedFiles);
+      else {
+        const info = await stat(child, { bigint: true });
+        // Snapshot pages are hardlinked across generations. Count a shared file
+        // once while retaining a conservative file-size estimate for sparse files.
+        if (info.nlink > 1n && info.ino !== 0n) {
+          const identity = `${info.dev}:${info.ino}`;
+          if (linkedFiles.has(identity)) continue;
+          linkedFiles.add(identity);
+        }
+        total += Number(info.size);
       }
-      total += Number(info.size);
+    } catch (error: any) {
+      if (error.code !== "ENOENT") throw error;
     }
   }
   return total;
@@ -150,6 +156,15 @@ export async function trimCollectorLogs(serviceName = "collector") {
   if (!/^[a-zA-Z0-9-]+$/.test(serviceName))
     throw Error("Invalid service name.");
   const directory = resolve(".runtime/services");
+  const diagnosticDirectory = resolve(
+    ".runtime/diagnostics",
+    serviceName === "collector"
+      ? "space-bitcraft-tools"
+      : serviceName === "collector-test"
+        ? "space-bitcraft-checks"
+        : serviceName.replace(/^collector-/, ""),
+  );
+  await mkdir(diagnosticDirectory, { recursive: true });
   const names = (await readdir(directory))
     .filter((name) =>
       new RegExp(`^${serviceName}-\\d{8}-\\d{6}-\\d{3}(?:\\.err)?\\.log$`).test(
@@ -162,22 +177,14 @@ export async function trimCollectorLogs(serviceName = "collector") {
   for (const [index, name] of names.entries()) {
     const path = join(directory, name);
     if (index >= 16) {
-      await rm(path);
+      await archiveDiagnosticFile(path, diagnosticDirectory);
       continue;
     }
     const size = (await stat(path)).size;
-    if (size > 1_000_000) {
-      const file = await open(path, "r+");
-      try {
-        const tail = Buffer.alloc(64000);
-        await file.read(tail, 0, tail.length, size - tail.length);
-        await file.truncate(0);
-        await file.write(tail, 0, tail.length, 0);
-        bytes += tail.length;
-      } finally {
-        await file.close();
-      }
-    } else bytes += size;
+    // Called only before launching a worker; these redirected logs are closed.
+    if (size > 1_000_000)
+      await archiveDiagnosticFile(path, diagnosticDirectory);
+    else bytes += size;
   }
   return bytes;
 }
@@ -494,11 +501,33 @@ export async function storageUsage(binding: Binding) {
     throw error;
   });
   const disk = await statfs(replicas);
+  const diagnosticDirectory = resolve(".runtime/diagnostics", binding.database);
+  // Diagnostics rotate concurrently; a file disappearing between listing and
+  // stat is normal. Avoid turning a log rotation into a storage-guard shutdown.
+  const diagnosticBytes = await (async () => {
+    let bytes = 0;
+    for (const entry of await readdir(diagnosticDirectory, {
+      withFileTypes: true,
+    })) {
+      if (!entry.isFile() || entry.isSymbolicLink())
+        throw Error("Unexpected linked diagnostic path.");
+      try {
+        bytes += (await stat(join(diagnosticDirectory, entry.name))).size;
+      } catch (error: any) {
+        if (error.code !== "ENOENT") throw error;
+      }
+    }
+    return bytes;
+  })().catch((error) => {
+    if (error.code === "ENOENT") return 0;
+    throw error;
+  });
   return {
     activeBytes,
     retainedBytes,
     checkpointBytes,
-    bytes: activeBytes + retainedBytes + checkpointBytes,
+    diagnosticBytes,
+    bytes: activeBytes + retainedBytes + checkpointBytes + diagnosticBytes,
     freeBytes: disk.bavail * disk.bsize,
     targetBytes: STORAGE_TARGET,
     budgetBytes: STORAGE_BUDGET,

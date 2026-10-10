@@ -1,0 +1,1027 @@
+{
+  "version": 1,
+  "mode": "built-in image_gen",
+  "transparentBackground": true,
+  "style": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.",
+  "styleReferenceAchievementId": 10,
+  "referencePromptPrefix": "The attached badge is a style and layout reference only. Create a distinct new badge for this achievement, preserving the pixel scale, scalloped medallion shape and short ribbon tails. Replace the central emblem and metal/ribbon colors as described below. Do not carry over the pond lily pad or freshwater fish unless required by this achievement.",
+  "assets": [
+    {
+      "achievementId": 1,
+      "key": "badge-1",
+      "name": "First ripple",
+      "title": "New Angler",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-1.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: First ripple. Meaning: Complete your first cast.\nCentral emblem: one fishing bobber making its first circular ripple, a tiny twig rod and hook, copper and pond-green. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 2,
+      "key": "badge-2",
+      "name": "First fish",
+      "title": "Hooked",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-2.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: First fish. Meaning: Catch your first fish.\nCentral emblem: one small cheerful freshwater fish resting above a curved fishing hook, copper and turquoise. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 3,
+      "key": "badge-3",
+      "name": "A hundred ripples",
+      "title": "Patient Angler",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-3.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: A hundred ripples. Meaning: Complete 100 casts.\nCentral emblem: a bobber above three concentric ripples, a small silver hook, bronze and pond-green. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 4,
+      "key": "badge-4",
+      "name": "A thousand ripples",
+      "title": "Ripplekeeper",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-4.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: A thousand ripples. Meaning: Complete 1,000 casts.\nCentral emblem: a bobber surrounded by many ripples and two crossed fishing rods, a gold laurel border. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 5,
+      "key": "badge-5",
+      "name": "A full net",
+      "title": "Steady Hand",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-5.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: A full net. Meaning: Catch 100 fish over your lifetime.\nCentral emblem: a small fishing net filled with several fish, bronze and sea-green. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 6,
+      "key": "badge-6",
+      "name": "Old hand",
+      "title": "Veteran Angler",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-6.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Old hand. Meaning: Catch 1,000 fish over your lifetime.\nCentral emblem: an overflowing fishing net and two crossed rods framed by a golden laurel wreath. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 7,
+      "key": "badge-7",
+      "name": "Curious angler",
+      "title": "Curious Angler",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-7.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Curious angler. Meaning: Discover 10 ordinary species.\nCentral emblem: an open field journal with two small fish silhouettes on its pages and a magnifying glass, bronze and green. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 8,
+      "key": "badge-8",
+      "name": "Naturalist",
+      "title": "Naturalist",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-8.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Naturalist. Meaning: Discover 50 ordinary species.\nCentral emblem: an open field journal with a fern sprig and three small fish silhouettes, silver and green. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 9,
+      "key": "badge-9",
+      "name": "Fish scholar",
+      "title": "Fish Scholar",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-9.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Fish scholar. Meaning: Discover 100 ordinary species.\nCentral emblem: a richly bound field journal with three fish silhouettes, a quill and golden laurel accents. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 10,
+      "key": "badge-10",
+      "name": "Pond collection",
+      "title": "Pond Naturalist",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-10.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Pond collection. Meaning: Catch all 28 ordinary species in Meadow Pond at any rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: an antique bronze-and-gold rim with two fern sprigs, a naturalist collection medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 11,
+      "key": "badge-11",
+      "name": "River wanderer",
+      "title": "River Wanderer",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-11.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: River wanderer. Meaning: Own a River fishing licence.\nCentral emblem: a parchment fishing permit, a river wave and a silver trout, copper and teal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 12,
+      "key": "badge-12",
+      "name": "Deepwater explorer",
+      "title": "Deepwater Explorer",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-12.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Deepwater explorer. Meaning: Own an Abyssal fishing licence.\nCentral emblem: a parchment fishing permit above a glowing deep-sea fish and volcanic vent, gold and violet. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 13,
+      "key": "badge-13",
+      "name": "Rare company",
+      "title": "Trophy Hunter",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-13.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Rare company. Meaning: Catch an A-rank fish or better.\nCentral emblem: a large emerald-accented trophy fish on a golden shield with a star. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 14,
+      "key": "badge-14",
+      "name": "Beyond typical",
+      "title": "Tall Tale Teller",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-14.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Beyond typical. Meaning: Catch a fish at least 1.35 times its typical length.\nCentral emblem: one exceptionally long fish beside a simple measuring stick with blank tick marks, silver and turquoise. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 15,
+      "key": "badge-15",
+      "name": "Mythic maker",
+      "title": "Mythic Crafter",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-15.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Mythic maker. Meaning: Upgrade any rod to Mythic or better.\nCentral emblem: a purple-crystal fishing rod crossing a small smithing hammer above an anvil, gold and violet. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 16,
+      "key": "badge-16",
+      "name": "Prismatic masterpiece",
+      "title": "Prismatic Artisan",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-16.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Prismatic masterpiece. Meaning: Upgrade any rod to Prismatic.\nCentral emblem: a rainbow-crystal fishing rod crossing a smithing hammer above an anvil, radiant gold and prismatic accents. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 17,
+      "key": "badge-17",
+      "name": "A fish called Fihs",
+      "title": "Myth Hunter",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-17.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: A fish called Fihs. Meaning: Discover Fihs. A bonus outside ordinary completion.\nCentral emblem: a strange mythical fish matching the supplied Fihs sprite: cyan-blue body, a vivid pink lateral stripe, pale outline, golden spiky fins and a dark forked tail, beside a tiny purple crystal and two little stars, gold and violet. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 18,
+      "key": "badge-18",
+      "name": "The lost sock",
+      "title": "Sock Detective",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-18.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: The lost sock. Meaning: Discover Nidalees Lost Sock. A bonus outside ordinary completion.\nCentral emblem: one comically worn lost wool sock dangling from a fishing hook, a small gold star, plum-purple and cream. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 22,
+      "key": "badge-22",
+      "name": "Whispering River collection",
+      "title": "Whispering River Naturalist",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-22.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River collection. Meaning: Catch all 31 ordinary species in Whispering River at any rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: an antique bronze-and-gold rim with two fern sprigs, a naturalist collection medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 23,
+      "key": "badge-23",
+      "name": "Hollow Marsh collection",
+      "title": "Hollow Marsh Naturalist",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-23.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at any rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: an antique bronze-and-gold rim with two fern sprigs, a naturalist collection medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 24,
+      "key": "badge-24",
+      "name": "Moonlit Lake collection",
+      "title": "Moonlit Lake Naturalist",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-24.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at any rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: an antique bronze-and-gold rim with two fern sprigs, a naturalist collection medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 25,
+      "key": "badge-25",
+      "name": "Sunken Coast collection",
+      "title": "Sunken Coast Naturalist",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-25.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast collection. Meaning: Catch all 52 ordinary species in Sunken Coast at any rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: an antique bronze-and-gold rim with two fern sprigs, a naturalist collection medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 26,
+      "key": "badge-26",
+      "name": "Glacial Reach collection",
+      "title": "Glacial Reach Naturalist",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-26.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach collection. Meaning: Catch all 45 ordinary species in Glacial Reach at any rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: an antique bronze-and-gold rim with two fern sprigs, a naturalist collection medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 27,
+      "key": "badge-27",
+      "name": "Abyssal Shelf collection",
+      "title": "Abyssal Shelf Naturalist",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-27.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at any rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: an antique bronze-and-gold rim with two fern sprigs, a naturalist collection medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 30,
+      "key": "badge-30",
+      "name": "All waters collection",
+      "title": "World Naturalist",
+      "batch": "all-waters",
+      "url": "/achievements/badge-30.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters collection. Meaning: Catch all 249 ordinary species across all biomes at any rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: an antique bronze-and-gold rim with two fern sprigs, a naturalist collection medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 100,
+      "key": "badge-100",
+      "name": "Meadow Pond · F collection",
+      "title": "Meadow Pond F Collector",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-100.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · F collection. Meaning: Catch all 28 ordinary species in Meadow Pond at F rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: weathered iron edging with wood-brown and slate-gray accents; simple and humble. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 101,
+      "key": "badge-101",
+      "name": "Meadow Pond · D collection",
+      "title": "Meadow Pond D Collector",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-101.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · D collection. Meaning: Catch all 28 ordinary species in Meadow Pond at D rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: copper edging with muted green accents and one tiny inset stud. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 102,
+      "key": "badge-102",
+      "name": "Meadow Pond · C collection",
+      "title": "Meadow Pond C Collector",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-102.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · C collection. Meaning: Catch all 28 ordinary species in Meadow Pond at C rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: bronze edging with jade accents and two inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 103,
+      "key": "badge-103",
+      "name": "Meadow Pond · B collection",
+      "title": "Meadow Pond B Collector",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-103.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · B collection. Meaning: Catch all 28 ordinary species in Meadow Pond at B rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: polished silver edging with cobalt accents and three inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 104,
+      "key": "badge-104",
+      "name": "Meadow Pond · A collection",
+      "title": "Meadow Pond A Collector",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-104.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · A collection. Meaning: Catch all 28 ordinary species in Meadow Pond at A rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: gold edging with a prominent emerald gemstone. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 105,
+      "key": "badge-105",
+      "name": "Meadow Pond · S collection",
+      "title": "Meadow Pond S Collector",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-105.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · S collection. Meaning: Catch all 28 ordinary species in Meadow Pond at S rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: gold edging with sapphire gemstones and a small laurel flourish. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 106,
+      "key": "badge-106",
+      "name": "Meadow Pond · SS collection",
+      "title": "Meadow Pond SS Collector",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-106.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · SS collection. Meaning: Catch all 28 ordinary species in Meadow Pond at SS rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: gold edging with amethyst gemstones and two laurel flourishes. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 107,
+      "key": "badge-107",
+      "name": "Meadow Pond · SSS collection",
+      "title": "Meadow Pond SSS Collector",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-107.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · SSS collection. Meaning: Catch all 28 ordinary species in Meadow Pond at SSS rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: rich gold edging with amber gemstones, a small crown and complete laurel wreath. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 108,
+      "key": "badge-108",
+      "name": "Meadow Pond · UR collection",
+      "title": "Meadow Pond UR Collector",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-108.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · UR collection. Meaning: Catch all 28 ordinary species in Meadow Pond at UR rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: rich gold edging with magenta crystal gemstones and a star-shaped crown. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 109,
+      "key": "badge-109",
+      "name": "Meadow Pond · UUR collection",
+      "title": "Meadow Pond UUR Collector",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-109.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · UUR collection. Meaning: Catch all 28 ordinary species in Meadow Pond at UUR rank.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: radiant gold edging with prismatic cyan-pink-lavender crystal gemstones, a star-shaped crown and subtle pixel sparkles. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 110,
+      "key": "badge-110",
+      "name": "Whispering River · F collection",
+      "title": "Whispering River F Collector",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-110.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · F collection. Meaning: Catch all 31 ordinary species in Whispering River at F rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: weathered iron edging with wood-brown and slate-gray accents; simple and humble. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 111,
+      "key": "badge-111",
+      "name": "Whispering River · D collection",
+      "title": "Whispering River D Collector",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-111.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · D collection. Meaning: Catch all 31 ordinary species in Whispering River at D rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: copper edging with muted green accents and one tiny inset stud. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 112,
+      "key": "badge-112",
+      "name": "Whispering River · C collection",
+      "title": "Whispering River C Collector",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-112.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · C collection. Meaning: Catch all 31 ordinary species in Whispering River at C rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: bronze edging with jade accents and two inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 113,
+      "key": "badge-113",
+      "name": "Whispering River · B collection",
+      "title": "Whispering River B Collector",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-113.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · B collection. Meaning: Catch all 31 ordinary species in Whispering River at B rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: polished silver edging with cobalt accents and three inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 114,
+      "key": "badge-114",
+      "name": "Whispering River · A collection",
+      "title": "Whispering River A Collector",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-114.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · A collection. Meaning: Catch all 31 ordinary species in Whispering River at A rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: gold edging with a prominent emerald gemstone. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 115,
+      "key": "badge-115",
+      "name": "Whispering River · S collection",
+      "title": "Whispering River S Collector",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-115.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · S collection. Meaning: Catch all 31 ordinary species in Whispering River at S rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: gold edging with sapphire gemstones and a small laurel flourish. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 116,
+      "key": "badge-116",
+      "name": "Whispering River · SS collection",
+      "title": "Whispering River SS Collector",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-116.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · SS collection. Meaning: Catch all 31 ordinary species in Whispering River at SS rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: gold edging with amethyst gemstones and two laurel flourishes. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 117,
+      "key": "badge-117",
+      "name": "Whispering River · SSS collection",
+      "title": "Whispering River SSS Collector",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-117.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · SSS collection. Meaning: Catch all 31 ordinary species in Whispering River at SSS rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: rich gold edging with amber gemstones, a small crown and complete laurel wreath. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 118,
+      "key": "badge-118",
+      "name": "Whispering River · UR collection",
+      "title": "Whispering River UR Collector",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-118.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · UR collection. Meaning: Catch all 31 ordinary species in Whispering River at UR rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: rich gold edging with magenta crystal gemstones and a star-shaped crown. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 119,
+      "key": "badge-119",
+      "name": "Whispering River · UUR collection",
+      "title": "Whispering River UUR Collector",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-119.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · UUR collection. Meaning: Catch all 31 ordinary species in Whispering River at UUR rank.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: radiant gold edging with prismatic cyan-pink-lavender crystal gemstones, a star-shaped crown and subtle pixel sparkles. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 120,
+      "key": "badge-120",
+      "name": "Hollow Marsh · F collection",
+      "title": "Hollow Marsh F Collector",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-120.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · F collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at F rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: weathered iron edging with wood-brown and slate-gray accents; simple and humble. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 121,
+      "key": "badge-121",
+      "name": "Hollow Marsh · D collection",
+      "title": "Hollow Marsh D Collector",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-121.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · D collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at D rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: copper edging with muted green accents and one tiny inset stud. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 122,
+      "key": "badge-122",
+      "name": "Hollow Marsh · C collection",
+      "title": "Hollow Marsh C Collector",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-122.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · C collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at C rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: bronze edging with jade accents and two inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 123,
+      "key": "badge-123",
+      "name": "Hollow Marsh · B collection",
+      "title": "Hollow Marsh B Collector",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-123.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · B collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at B rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: polished silver edging with cobalt accents and three inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 124,
+      "key": "badge-124",
+      "name": "Hollow Marsh · A collection",
+      "title": "Hollow Marsh A Collector",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-124.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · A collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at A rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: gold edging with a prominent emerald gemstone. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 125,
+      "key": "badge-125",
+      "name": "Hollow Marsh · S collection",
+      "title": "Hollow Marsh S Collector",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-125.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · S collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at S rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: gold edging with sapphire gemstones and a small laurel flourish. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 126,
+      "key": "badge-126",
+      "name": "Hollow Marsh · SS collection",
+      "title": "Hollow Marsh SS Collector",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-126.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · SS collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at SS rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: gold edging with amethyst gemstones and two laurel flourishes. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 127,
+      "key": "badge-127",
+      "name": "Hollow Marsh · SSS collection",
+      "title": "Hollow Marsh SSS Collector",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-127.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · SSS collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at SSS rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: rich gold edging with amber gemstones, a small crown and complete laurel wreath. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 128,
+      "key": "badge-128",
+      "name": "Hollow Marsh · UR collection",
+      "title": "Hollow Marsh UR Collector",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-128.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · UR collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at UR rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: rich gold edging with magenta crystal gemstones and a star-shaped crown. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 129,
+      "key": "badge-129",
+      "name": "Hollow Marsh · UUR collection",
+      "title": "Hollow Marsh UUR Collector",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-129.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · UUR collection. Meaning: Catch all 22 ordinary species in Hollow Marsh at UUR rank.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: radiant gold edging with prismatic cyan-pink-lavender crystal gemstones, a star-shaped crown and subtle pixel sparkles. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 130,
+      "key": "badge-130",
+      "name": "Moonlit Lake · F collection",
+      "title": "Moonlit Lake F Collector",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-130.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · F collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at F rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: weathered iron edging with wood-brown and slate-gray accents; simple and humble. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 131,
+      "key": "badge-131",
+      "name": "Moonlit Lake · D collection",
+      "title": "Moonlit Lake D Collector",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-131.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · D collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at D rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: copper edging with muted green accents and one tiny inset stud. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 132,
+      "key": "badge-132",
+      "name": "Moonlit Lake · C collection",
+      "title": "Moonlit Lake C Collector",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-132.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · C collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at C rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: bronze edging with jade accents and two inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 133,
+      "key": "badge-133",
+      "name": "Moonlit Lake · B collection",
+      "title": "Moonlit Lake B Collector",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-133.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · B collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at B rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: polished silver edging with cobalt accents and three inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 134,
+      "key": "badge-134",
+      "name": "Moonlit Lake · A collection",
+      "title": "Moonlit Lake A Collector",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-134.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · A collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at A rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: gold edging with a prominent emerald gemstone. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 135,
+      "key": "badge-135",
+      "name": "Moonlit Lake · S collection",
+      "title": "Moonlit Lake S Collector",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-135.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · S collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at S rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: gold edging with sapphire gemstones and a small laurel flourish. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 136,
+      "key": "badge-136",
+      "name": "Moonlit Lake · SS collection",
+      "title": "Moonlit Lake SS Collector",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-136.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · SS collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at SS rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: gold edging with amethyst gemstones and two laurel flourishes. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 137,
+      "key": "badge-137",
+      "name": "Moonlit Lake · SSS collection",
+      "title": "Moonlit Lake SSS Collector",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-137.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · SSS collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at SSS rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: rich gold edging with amber gemstones, a small crown and complete laurel wreath. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 138,
+      "key": "badge-138",
+      "name": "Moonlit Lake · UR collection",
+      "title": "Moonlit Lake UR Collector",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-138.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · UR collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at UR rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: rich gold edging with magenta crystal gemstones and a star-shaped crown. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 139,
+      "key": "badge-139",
+      "name": "Moonlit Lake · UUR collection",
+      "title": "Moonlit Lake UUR Collector",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-139.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · UUR collection. Meaning: Catch all 22 ordinary species in Moonlit Lake at UUR rank.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: radiant gold edging with prismatic cyan-pink-lavender crystal gemstones, a star-shaped crown and subtle pixel sparkles. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 140,
+      "key": "badge-140",
+      "name": "Sunken Coast · F collection",
+      "title": "Sunken Coast F Collector",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-140.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · F collection. Meaning: Catch all 52 ordinary species in Sunken Coast at F rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: weathered iron edging with wood-brown and slate-gray accents; simple and humble. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 141,
+      "key": "badge-141",
+      "name": "Sunken Coast · D collection",
+      "title": "Sunken Coast D Collector",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-141.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · D collection. Meaning: Catch all 52 ordinary species in Sunken Coast at D rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: copper edging with muted green accents and one tiny inset stud. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 142,
+      "key": "badge-142",
+      "name": "Sunken Coast · C collection",
+      "title": "Sunken Coast C Collector",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-142.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · C collection. Meaning: Catch all 52 ordinary species in Sunken Coast at C rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: bronze edging with jade accents and two inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 143,
+      "key": "badge-143",
+      "name": "Sunken Coast · B collection",
+      "title": "Sunken Coast B Collector",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-143.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · B collection. Meaning: Catch all 52 ordinary species in Sunken Coast at B rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: polished silver edging with cobalt accents and three inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 144,
+      "key": "badge-144",
+      "name": "Sunken Coast · A collection",
+      "title": "Sunken Coast A Collector",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-144.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · A collection. Meaning: Catch all 52 ordinary species in Sunken Coast at A rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: gold edging with a prominent emerald gemstone. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 145,
+      "key": "badge-145",
+      "name": "Sunken Coast · S collection",
+      "title": "Sunken Coast S Collector",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-145.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · S collection. Meaning: Catch all 52 ordinary species in Sunken Coast at S rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: gold edging with sapphire gemstones and a small laurel flourish. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 146,
+      "key": "badge-146",
+      "name": "Sunken Coast · SS collection",
+      "title": "Sunken Coast SS Collector",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-146.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · SS collection. Meaning: Catch all 52 ordinary species in Sunken Coast at SS rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: gold edging with amethyst gemstones and two laurel flourishes. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 147,
+      "key": "badge-147",
+      "name": "Sunken Coast · SSS collection",
+      "title": "Sunken Coast SSS Collector",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-147.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · SSS collection. Meaning: Catch all 52 ordinary species in Sunken Coast at SSS rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: rich gold edging with amber gemstones, a small crown and complete laurel wreath. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 148,
+      "key": "badge-148",
+      "name": "Sunken Coast · UR collection",
+      "title": "Sunken Coast UR Collector",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-148.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · UR collection. Meaning: Catch all 52 ordinary species in Sunken Coast at UR rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: rich gold edging with magenta crystal gemstones and a star-shaped crown. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 149,
+      "key": "badge-149",
+      "name": "Sunken Coast · UUR collection",
+      "title": "Sunken Coast UUR Collector",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-149.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · UUR collection. Meaning: Catch all 52 ordinary species in Sunken Coast at UUR rank.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: radiant gold edging with prismatic cyan-pink-lavender crystal gemstones, a star-shaped crown and subtle pixel sparkles. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 150,
+      "key": "badge-150",
+      "name": "Glacial Reach · F collection",
+      "title": "Glacial Reach F Collector",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-150.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · F collection. Meaning: Catch all 45 ordinary species in Glacial Reach at F rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: weathered iron edging with wood-brown and slate-gray accents; simple and humble. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 151,
+      "key": "badge-151",
+      "name": "Glacial Reach · D collection",
+      "title": "Glacial Reach D Collector",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-151.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · D collection. Meaning: Catch all 45 ordinary species in Glacial Reach at D rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: copper edging with muted green accents and one tiny inset stud. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 152,
+      "key": "badge-152",
+      "name": "Glacial Reach · C collection",
+      "title": "Glacial Reach C Collector",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-152.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · C collection. Meaning: Catch all 45 ordinary species in Glacial Reach at C rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: bronze edging with jade accents and two inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 153,
+      "key": "badge-153",
+      "name": "Glacial Reach · B collection",
+      "title": "Glacial Reach B Collector",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-153.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · B collection. Meaning: Catch all 45 ordinary species in Glacial Reach at B rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: polished silver edging with cobalt accents and three inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 154,
+      "key": "badge-154",
+      "name": "Glacial Reach · A collection",
+      "title": "Glacial Reach A Collector",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-154.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · A collection. Meaning: Catch all 45 ordinary species in Glacial Reach at A rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: gold edging with a prominent emerald gemstone. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 155,
+      "key": "badge-155",
+      "name": "Glacial Reach · S collection",
+      "title": "Glacial Reach S Collector",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-155.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · S collection. Meaning: Catch all 45 ordinary species in Glacial Reach at S rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: gold edging with sapphire gemstones and a small laurel flourish. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 156,
+      "key": "badge-156",
+      "name": "Glacial Reach · SS collection",
+      "title": "Glacial Reach SS Collector",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-156.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · SS collection. Meaning: Catch all 45 ordinary species in Glacial Reach at SS rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: gold edging with amethyst gemstones and two laurel flourishes. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 157,
+      "key": "badge-157",
+      "name": "Glacial Reach · SSS collection",
+      "title": "Glacial Reach SSS Collector",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-157.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · SSS collection. Meaning: Catch all 45 ordinary species in Glacial Reach at SSS rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: rich gold edging with amber gemstones, a small crown and complete laurel wreath. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 158,
+      "key": "badge-158",
+      "name": "Glacial Reach · UR collection",
+      "title": "Glacial Reach UR Collector",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-158.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · UR collection. Meaning: Catch all 45 ordinary species in Glacial Reach at UR rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: rich gold edging with magenta crystal gemstones and a star-shaped crown. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 159,
+      "key": "badge-159",
+      "name": "Glacial Reach · UUR collection",
+      "title": "Glacial Reach UUR Collector",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-159.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · UUR collection. Meaning: Catch all 45 ordinary species in Glacial Reach at UUR rank.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: radiant gold edging with prismatic cyan-pink-lavender crystal gemstones, a star-shaped crown and subtle pixel sparkles. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 160,
+      "key": "badge-160",
+      "name": "Abyssal Shelf · F collection",
+      "title": "Abyssal Shelf F Collector",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-160.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · F collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at F rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: weathered iron edging with wood-brown and slate-gray accents; simple and humble. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 161,
+      "key": "badge-161",
+      "name": "Abyssal Shelf · D collection",
+      "title": "Abyssal Shelf D Collector",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-161.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · D collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at D rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: copper edging with muted green accents and one tiny inset stud. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 162,
+      "key": "badge-162",
+      "name": "Abyssal Shelf · C collection",
+      "title": "Abyssal Shelf C Collector",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-162.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · C collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at C rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: bronze edging with jade accents and two inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 163,
+      "key": "badge-163",
+      "name": "Abyssal Shelf · B collection",
+      "title": "Abyssal Shelf B Collector",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-163.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · B collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at B rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: polished silver edging with cobalt accents and three inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 164,
+      "key": "badge-164",
+      "name": "Abyssal Shelf · A collection",
+      "title": "Abyssal Shelf A Collector",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-164.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · A collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at A rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: gold edging with a prominent emerald gemstone. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 165,
+      "key": "badge-165",
+      "name": "Abyssal Shelf · S collection",
+      "title": "Abyssal Shelf S Collector",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-165.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · S collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at S rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: gold edging with sapphire gemstones and a small laurel flourish. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 166,
+      "key": "badge-166",
+      "name": "Abyssal Shelf · SS collection",
+      "title": "Abyssal Shelf SS Collector",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-166.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · SS collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at SS rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: gold edging with amethyst gemstones and two laurel flourishes. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 167,
+      "key": "badge-167",
+      "name": "Abyssal Shelf · SSS collection",
+      "title": "Abyssal Shelf SSS Collector",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-167.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · SSS collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at SSS rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: rich gold edging with amber gemstones, a small crown and complete laurel wreath. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 168,
+      "key": "badge-168",
+      "name": "Abyssal Shelf · UR collection",
+      "title": "Abyssal Shelf UR Collector",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-168.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · UR collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at UR rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: rich gold edging with magenta crystal gemstones and a star-shaped crown. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 169,
+      "key": "badge-169",
+      "name": "Abyssal Shelf · UUR collection",
+      "title": "Abyssal Shelf UUR Collector",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-169.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · UUR collection. Meaning: Catch all 49 ordinary species in Abyssal Shelf at UUR rank.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: radiant gold edging with prismatic cyan-pink-lavender crystal gemstones, a star-shaped crown and subtle pixel sparkles. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 200,
+      "key": "badge-200",
+      "name": "All waters · F collection",
+      "title": "F World Collector",
+      "batch": "all-waters",
+      "url": "/achievements/badge-200.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters · F collection. Meaning: Catch all 249 ordinary species across all biomes at F rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: weathered iron edging with wood-brown and slate-gray accents; simple and humble. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 201,
+      "key": "badge-201",
+      "name": "All waters · D collection",
+      "title": "D World Collector",
+      "batch": "all-waters",
+      "url": "/achievements/badge-201.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters · D collection. Meaning: Catch all 249 ordinary species across all biomes at D rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: copper edging with muted green accents and one tiny inset stud. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 202,
+      "key": "badge-202",
+      "name": "All waters · C collection",
+      "title": "C World Collector",
+      "batch": "all-waters",
+      "url": "/achievements/badge-202.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters · C collection. Meaning: Catch all 249 ordinary species across all biomes at C rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: bronze edging with jade accents and two inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 203,
+      "key": "badge-203",
+      "name": "All waters · B collection",
+      "title": "B World Collector",
+      "batch": "all-waters",
+      "url": "/achievements/badge-203.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters · B collection. Meaning: Catch all 249 ordinary species across all biomes at B rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: polished silver edging with cobalt accents and three inset studs. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 204,
+      "key": "badge-204",
+      "name": "All waters · A collection",
+      "title": "A World Collector",
+      "batch": "all-waters",
+      "url": "/achievements/badge-204.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters · A collection. Meaning: Catch all 249 ordinary species across all biomes at A rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: gold edging with a prominent emerald gemstone. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 205,
+      "key": "badge-205",
+      "name": "All waters · S collection",
+      "title": "S World Collector",
+      "batch": "all-waters",
+      "url": "/achievements/badge-205.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters · S collection. Meaning: Catch all 249 ordinary species across all biomes at S rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: gold edging with sapphire gemstones and a small laurel flourish. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 206,
+      "key": "badge-206",
+      "name": "All waters · SS collection",
+      "title": "SS World Collector",
+      "batch": "all-waters",
+      "url": "/achievements/badge-206.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters · SS collection. Meaning: Catch all 249 ordinary species across all biomes at SS rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: gold edging with amethyst gemstones and two laurel flourishes. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 207,
+      "key": "badge-207",
+      "name": "All waters · SSS collection",
+      "title": "SSS World Collector",
+      "batch": "all-waters",
+      "url": "/achievements/badge-207.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters · SSS collection. Meaning: Catch all 249 ordinary species across all biomes at SSS rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: rich gold edging with amber gemstones, a small crown and complete laurel wreath. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 208,
+      "key": "badge-208",
+      "name": "All waters · UR collection",
+      "title": "UR World Collector",
+      "batch": "all-waters",
+      "url": "/achievements/badge-208.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters · UR collection. Meaning: Catch all 249 ordinary species across all biomes at UR rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: rich gold edging with magenta crystal gemstones and a star-shaped crown. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 209,
+      "key": "badge-209",
+      "name": "All waters · UUR collection",
+      "title": "UUR World Collector",
+      "batch": "all-waters",
+      "url": "/achievements/badge-209.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: All waters · UUR collection. Meaning: Catch all 249 ordinary species across all biomes at UUR rank.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: radiant gold edging with prismatic cyan-pink-lavender crystal gemstones, a star-shaped crown and subtle pixel sparkles. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 300,
+      "key": "badge-300",
+      "name": "Meadow Pond · every rank",
+      "title": "Meadow Pond Completionist",
+      "batch": "meadow-pond",
+      "url": "/achievements/badge-300.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Meadow Pond · every rank. Meaning: Catch all 28 ordinary species in Meadow Pond at every rank from F through UUR.\nCentral emblem: a lily pad, a small freshwater fish and gentle pond ripples, fern-green and turquoise. Border and ribbon treatment: a full golden laurel wreath, an ornate prismatic crown and ten small jewel studs around the rim, clearly the ultimate completion medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 301,
+      "key": "badge-301",
+      "name": "Whispering River · every rank",
+      "title": "Whispering River Completionist",
+      "batch": "whispering-river",
+      "url": "/achievements/badge-301.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Whispering River · every rank. Meaning: Catch all 31 ordinary species in Whispering River at every rank from F through UUR.\nCentral emblem: a silver trout leaping over a curling river current between rounded pebbles, teal and pale blue. Border and ribbon treatment: a full golden laurel wreath, an ornate prismatic crown and ten small jewel studs around the rim, clearly the ultimate completion medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 302,
+      "key": "badge-302",
+      "name": "Hollow Marsh · every rank",
+      "title": "Hollow Marsh Completionist",
+      "batch": "hollow-marsh",
+      "url": "/achievements/badge-302.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Hollow Marsh · every rank. Meaning: Catch all 22 ordinary species in Hollow Marsh at every rank from F through UUR.\nCentral emblem: a dark catfish with reeds and cattails above murky marsh water, moss-green and amber. Border and ribbon treatment: a full golden laurel wreath, an ornate prismatic crown and ten small jewel studs around the rim, clearly the ultimate completion medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 303,
+      "key": "badge-303",
+      "name": "Moonlit Lake · every rank",
+      "title": "Moonlit Lake Completionist",
+      "batch": "moonlit-lake",
+      "url": "/achievements/badge-303.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Moonlit Lake · every rank. Meaning: Catch all 22 ordinary species in Moonlit Lake at every rank from F through UUR.\nCentral emblem: a luminous fish beneath a crescent moon reflected on still lake water, indigo and lavender. Border and ribbon treatment: a full golden laurel wreath, an ornate prismatic crown and ten small jewel studs around the rim, clearly the ultimate completion medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 304,
+      "key": "badge-304",
+      "name": "Sunken Coast · every rank",
+      "title": "Sunken Coast Completionist",
+      "batch": "sunken-coast",
+      "url": "/achievements/badge-304.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Sunken Coast · every rank. Meaning: Catch all 52 ordinary species in Sunken Coast at every rank from F through UUR.\nCentral emblem: a bright reef fish and coral beside a curling sea wave and shell, coral-orange and ocean-blue. Border and ribbon treatment: a full golden laurel wreath, an ornate prismatic crown and ten small jewel studs around the rim, clearly the ultimate completion medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 305,
+      "key": "badge-305",
+      "name": "Glacial Reach · every rank",
+      "title": "Glacial Reach Completionist",
+      "batch": "glacial-reach",
+      "url": "/achievements/badge-305.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Glacial Reach · every rank. Meaning: Catch all 45 ordinary species in Glacial Reach at every rank from F through UUR.\nCentral emblem: an icebound fish below a pointed glacier and a snowflake, icy cyan and pale silver. Border and ribbon treatment: a full golden laurel wreath, an ornate prismatic crown and ten small jewel studs around the rim, clearly the ultimate completion medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 306,
+      "key": "badge-306",
+      "name": "Abyssal Shelf · every rank",
+      "title": "Abyssal Shelf Completionist",
+      "batch": "abyssal-shelf",
+      "url": "/achievements/badge-306.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Abyssal Shelf · every rank. Meaning: Catch all 49 ordinary species in Abyssal Shelf at every rank from F through UUR.\nCentral emblem: a glowing deep-sea fish above a volcanic vent, violet and dark ocean-blue with ember accents. Border and ribbon treatment: a full golden laurel wreath, an ornate prismatic crown and ten small jewel studs around the rim, clearly the ultimate completion medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 310,
+      "key": "badge-310",
+      "name": "Every fish, every rank",
+      "title": "World Completionist",
+      "batch": "all-waters",
+      "url": "/achievements/badge-310.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Every fish, every rank. Meaning: Catch all 249 ordinary species across all biomes at every rank from F through UUR.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: a full golden laurel wreath, an ornate prismatic crown and ten small jewel studs around the rim, clearly the ultimate completion medal. Do not write the achievement name or any rank text into the image."
+    }
+  ]
+}

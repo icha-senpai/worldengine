@@ -2,7 +2,7 @@
 
 The owner authorized autonomous implementation after rereading the specification
 and project docs, then explicitly requested all fish and all biomes. All 251 species
-and seven biomes are implemented with level cap 60 and optional purchased rods.
+and seven biomes are implemented with level cap 120 and optional purchased rods.
 The website and account-link service are exposed through ServBay/Cloudflare at
 https://fish.ichaa.dev. The bot connects to Discord; all fourteen commands are
 registered globally; matching legacy server copies are removed on startup; the public OAuth callback is registered.
@@ -32,7 +32,7 @@ registered globally; matching legacy server copies are removed on startup; the p
 ## Implemented locally
 
 Starter account, seven rod families (free starter plus six level-gated purchases), all seven biomes and 251 named species; categories,
-measurements, XP, first-discovery bonus, cooldown, compact recent history,
+measurements, XP, first-discovery bonus, cooldown, permanent catch journal plus compact recent history,
 private inventory, junk stacks, treasure bundle, economy ledger, personal progress,
 and public per-species length/weight record snapshots. Ranks are saved per catch,
 receipt, journal result, and record winner. Rank-specific XP/value drive rewards;
@@ -43,6 +43,10 @@ and saved catches show their length/weight relative to the species typical size.
 
 Browser dashboard, catalog, collection, favorites, bounded sale quotes and
 confirmation, unlinking, token persistence, reconnect, and subscription refresh.
+The personal Journal retains individual fish, tin, and treasure pulls after sales
+and receipt pruning. It has date/rank/weight/length/XP sorting in either direction,
+name/biome/rank/outcome filters, and bounded server pages. Historical import
+recovers retained snapshots without inventing missing XP or biome data; see journal.md.
 Poise handlers for /fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /upgrade, /help.
 `/rod` shares a public card for an equipped or selected owned rod, including quality
 and effective bonuses. Its original rod sprite fits an imagegen-created display
@@ -56,9 +60,12 @@ Private ownership views are shared by browser and adapter; `/gear` only equips
 owned rods, and every travel/cast checks its biome licence. Legacy migration
 retains rods and licences through previously reached waters exactly once.
 Website biome travel, rod equip, and collection/catalog biome/tier/name filters.
-The catalog is a public compendium with original fish artwork and only species
-name, biome, eligible rarity, and cast rates. Size details stay on personal catches
-and collection rank guidance.
+The catalog is a public compendium with 24 fish per page. Compact cards show
+original artwork, species name, biome, eligible rarity, and base cast rates.
+Opening a card reveals a parchment field-notes dialog with reference measurements,
+catchable ranges, rank distribution, exact per-rank size envelopes, and base odds.
+All measurements use inches, pounds, and ounces; derived ranges match the Rust
+generator, including Fihs's UUR-only and the Sock's F-only restrictions.
 Both pages use the fishing-camp theme: a pixel pond and dock, wooden navigation,
 parchment panels, framed sprite slots, and locally bundled Pixelify Sans/Nunito
 fonts. Decorative motion respects reduced-motion preferences.
@@ -66,7 +73,8 @@ The shell now shows one tab at a time: Camp, Tackle box, Collection, Journal,
 World map, Trader, Records, Compendium, Achievements, or Anglers. Switching preserves the database connection,
 filters, and inventory selection. Hash links and browser back select views;
 /catalog opens the public Compendium directly. Lists use twelve-entry desktop
-pages or four-entry phone pages instead of stacking the whole game vertically.
+pages or four-entry phone pages instead of stacking the whole game vertically;
+the public Compendium uses 24 fish per page at both sizes.
 Records is now a public parchment record book and angler bragging board. Fish
 Records lists all 249 ordinary species with independent biome/search/held-record
 filters, separate longest/heaviest holders, rarity badges, and expandable catch
@@ -142,8 +150,10 @@ favorites, ownership, prices and stale selections are checked again at commit.
 ties, plus optional per-species length/weight records. /profile supports public
 angler lookup by game ID without exposing other players' private state.
 
-Eighteen permanent cosmetic badges and titles are authoritative and retroactive:
-16 ordinary milestones plus separate Fihs and Sock bonus badges. The website
+The 113 permanent cosmetic badges and titles are authoritative and retroactive:
+111 ordinary milestones and collections plus separate Fihs and Sock bonus badges.
+Biome collections cover every ordinary species, every individual rank and all
+ten ranks, per biome and globally; lifetime catches receive retroactive credit. The website
 has paged Achievements and public Anglers books, title selection and shareable
 profiles. Earned badges and public titles use separate additive tables; no XP,
 coins, gear, daily state or fishing odds are changed by the backfill.

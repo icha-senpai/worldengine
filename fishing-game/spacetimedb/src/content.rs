@@ -3,6 +3,53 @@ use serde::Deserialize;
 use spacetimedb::{ReducerContext, Table};
 
 pub const CONTENT_VERSION: u32 = 5;
+
+/// Refresh progression metadata without rewriting XP, catches or owned equipment.
+#[spacetimedb::reducer]
+pub fn activate_xp_progression(ctx: &ReducerContext) -> Result<(), String> {
+    if ctx
+        .db
+        .deployment_owner()
+        .singleton()
+        .find(1)
+        .ok_or("OWNER_REQUIRED")?
+        .identity
+        != ctx.sender()
+    {
+        return Err("OWNER_REQUIRED".into());
+    }
+    let rules: Rules = serde_json::from_str(include_str!("../../content/game-rules.json"))
+        .map_err(|_| "CONTENT_UNAVAILABLE")?;
+    let world: World = serde_json::from_str(include_str!("../../content/world.json"))
+        .map_err(|_| "CONTENT_UNAVAILABLE")?;
+    let mut config = crate::accounts::config(ctx);
+    config.version = rules.version;
+    config.level_cap = world.level_cap;
+    if ctx
+        .db
+        .game_config()
+        .version()
+        .find(config.version)
+        .is_some()
+    {
+        ctx.db.game_config().version().update(config);
+    } else {
+        ctx.db.game_config().insert(config);
+    }
+    crate::crafting::seed(ctx);
+    crate::shop::seed(ctx);
+    for mut profile in ctx.db.public_profile().iter() {
+        let player = ctx
+            .db
+            .player()
+            .player_id()
+            .find(profile.player_id)
+            .ok_or("PLAYER_NOT_FOUND")?;
+        profile.level = game_rules::progression::level_for_xp(player.total_xp, world.level_cap);
+        ctx.db.public_profile().player_id().update(profile);
+    }
+    Ok(())
+}
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Rules {

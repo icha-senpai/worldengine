@@ -257,8 +257,9 @@ export function passiveTracker(
       });
       const recipeSeconds =
         Number(recipeTimes[row.recipeId ?? row.recipe_id] ?? 0) * count;
-      const started = Date.parse(row.timestamp ?? row.startedAt),
-        usesTimer = Number.isFinite(started) && recipeSeconds > 0;
+      const queued = row.status === "queued";
+      const started = Date.parse(row.startedAt ?? row.timestamp),
+        usesTimer = !queued && Number.isFinite(started) && recipeSeconds > 0;
       const total = usesTimer
         ? recipeSeconds
         : Number(
@@ -270,16 +271,19 @@ export function passiveTracker(
       const progress = usesTimer
         ? Math.min(total, Math.max(0, (now - started) / 1000))
         : Math.min(total, Math.max(0, Number(row.progress ?? 0)));
-      const recipeEstimate = !usesTimer && total <= 1 && recipeSeconds > 0;
-      const seconds = usesTimer
-        ? Math.max(0, total - progress)
-        : (row.estimatedRemainingSeconds ??
-          row.remainingSeconds ??
-          (recipeEstimate
-            ? recipeSeconds
-            : total > 0
-              ? total - progress
-              : null));
+      const recipeEstimate =
+        !queued && !usesTimer && total <= 1 && recipeSeconds > 0;
+      const seconds = queued
+        ? null
+        : usesTimer
+          ? Math.max(0, total - progress)
+          : (row.estimatedRemainingSeconds ??
+            row.remainingSeconds ??
+            (recipeEstimate
+              ? recipeSeconds
+              : total > 0
+                ? total - progress
+                : null));
       const finishesAt = usesTimer
         ? new Date(started + recipeSeconds * 1000).toISOString()
         : null;
@@ -304,12 +308,16 @@ export function passiveTracker(
         progressPercent: total > 0 ? (progress / total) * 100 : 0,
         estimatedRemainingSeconds: seconds,
         timerSource: usesTimer
-          ? "api"
-          : recipeEstimate
-            ? "recipe"
-            : total > 0
-              ? "relay"
-              : null,
+          ? row.relayTiming
+            ? "relay-start"
+            : "api"
+          : queued
+            ? "queued"
+            : recipeEstimate
+              ? "recipe"
+              : total > 0
+                ? "relay"
+                : null,
         startedAt: usesTimer ? new Date(started).toISOString() : null,
         finishesAt,
       };
@@ -325,8 +333,10 @@ export function passiveTracker(
       const first = rows[0],
         longest = [...rows].sort(
           (a, b) =>
+            Number(a.timerSource === "queued") -
+              Number(b.timerSource === "queued") ||
             (b.estimatedRemainingSeconds ?? 0) -
-            (a.estimatedRemainingSeconds ?? 0),
+              (a.estimatedRemainingSeconds ?? 0),
         )[0];
       const progress = rows.reduce((sum, row) => sum + row.progress, 0),
         total = rows.reduce((sum, row) => sum + row.totalActionsRequired, 0),
@@ -356,6 +366,7 @@ export function passiveTracker(
         timerSource: longest.timerSource,
         startedAt: longest.startedAt,
         finishesAt: longest.finishesAt,
+        waitingCount: rows.filter((row) => row.status === "queued").length,
       };
     })
     .sort(

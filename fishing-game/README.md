@@ -15,14 +15,14 @@ connects. Command delivery and the complete OAuth login still need live verifica
   All 251 species have explicit length/weight baselines in
   [species-measurements.csv](content/species-measurements.csv); see
   [measurement design and calibration](docs/species-measurements.md).
-- Level cap 60; free Twig Rod and six purchased rod families; authoritative biome/equipment selection.
+- Level cap 120; free Twig Rod and six purchased rod families; authoritative biome/equipment selection.
 - Server RNG, fixed-point lengths/weights, XP and first discoveries, global 60-second cooldown.
 - Private accounts and inventory, scoped subscriptions, durable cast results, safe retries.
 - Junk stacks and immediate treasure rewards with economy ledger entries.
 - Five repeatable 10-use bait packs and permanent Common-to-Prismatic quality per rod.
 - Power can add one independent mixed pull; both pulls share cooldown and one bait use.
 - Confirmed tin/scrap crafting; biome access uses level and licences instead of power.
-- Website dashboard, collection, recent catches, favorites, sale preview/confirmation,
+- Website dashboard, collection, permanent sortable catch journal, favorites, sale preview/confirmation,
   and length/weight records that survive disposal.
 - One game shell with Camp, Tackle box, Collection, Journal, World map, Records,
   Trader, Compendium, Achievements and Anglers tabs. Lists have book pages: twelve entries on desktop and four on phones.

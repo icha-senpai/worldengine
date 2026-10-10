@@ -1,3 +1,4 @@
+use discord_bot::achievement_notifications::AchievementNotifications;
 use discord_bot::catch_art::{CatchArt, Material, ROD_QUALITY_COLORS};
 use discord_bot::measurements::{format_length, format_weight};
 use game_client::{Client, Error, Snapshot, module_bindings::ServiceRole};
@@ -9,6 +10,7 @@ struct Data {
     website: String,
     pending: tokio::sync::Semaphore,
     catch_art: CatchArt,
+    achievement_notifications: Arc<AchievementNotifications>,
 }
 type Context<'a> = poise::Context<'a, Data, Error>;
 fn interaction_id(ctx: Context<'_>) -> Result<u64, Error> {
@@ -1042,7 +1044,9 @@ async fn bait(
                 .iter()
                 .find(|stack| stack.bait_id == row.bait_id)
                 .map_or(0, |stack| stack.uses_left);
-            let effect = if row.resource_item.is_empty() {
+            let effect = if row.xp_bonus_bp > 0 {
+                format!("+{}% fishing XP", row.xp_bonus_bp / 100)
+            } else if row.resource_item.is_empty() {
                 format!("+{}% luck", row.luck_bp / 100)
             } else {
                 format!("+1 {} per cast", row.resource_item.replace('_', " "))
@@ -1057,7 +1061,7 @@ async fn bait(
             )
         })
         .collect();
-    reply(ctx, format!("**Bait pouch**\n{}\n{}\nBuy 10-use packs at /shop (item IDs 101–105). One use per accepted cast; depletion removes bait automatically. /bait bait_id:0 removes bait.", rows.join("\n"), if equipped == 0 { "No bait equipped." } else { "→ Equipped bait" })).await
+    reply(ctx, format!("**Bait pouch**\n{}\n{}\nBuy 10-use packs at /shop (item IDs 101–108). One use per accepted cast; depletion removes bait automatically. /bait bait_id:0 removes bait.", rows.join("\n"), if equipped == 0 { "No bait equipped." } else { "→ Equipped bait" })).await
 }
 
 /// Permanently craft the next quality for an owned rod. Defaults to equipped rod.
@@ -1254,7 +1258,12 @@ async fn shop(
             .iter()
             .find(|row| row.bait_id == listing.target_id)
             .ok_or("Missing bait")?;
-        if bait.resource_item.is_empty() {
+        if bait.xp_bonus_bp > 0 {
+            format!(
+                "10 uses · +{}% fishing XP. Equip with /bait.",
+                bait.xp_bonus_bp / 100
+            )
+        } else if bait.resource_item.is_empty() {
             format!("10 uses · +{}% luck. Equip with /bait.", bait.luck_bp / 100)
         } else {
             format!(
@@ -1470,9 +1479,11 @@ async fn main() -> Result<(), Error> {
             ],
             pre_command: |ctx| Box::pin(async move {
                 ctx.set_invocation_data(Instant::now()).await;
+                ctx.data().achievement_notifications.record_channel(ctx.author().id.get(), ctx.channel_id().get(), ctx.data().game.known_player_id(ctx.author().id.get()));
                 tracing::info!(command = %ctx.command().name, interaction_id = interaction_id(ctx).ok(), "Discord command received");
             }),
             post_command: |ctx| Box::pin(async move {
+                ctx.data().achievement_notifications.remember_player(ctx.author().id.get(), ctx.data().game.known_player_id(ctx.author().id.get())).await;
                 let started = ctx.invocation_data::<Instant>().await.map(|started| *started);
                 if let Some(started) = started {
                     log_timing(ctx, "complete", started, true).await;
@@ -1510,11 +1521,14 @@ async fn main() -> Result<(), Error> {
                     }
                 }
                 tracing::info!("Discord adapter ready");
+                let achievement_notifications = Arc::new(AchievementNotifications::load(required("SPACETIMEDB_DATABASE")?, ".local/achievement-notification-routes.json".into()));
+                achievement_notifications.start(game.clone(), ctx.http.clone(), website.clone());
                 Ok(Data {
                     game,
                     website,
                     pending: tokio::sync::Semaphore::new(32),
                     catch_art: CatchArt::new(assets),
+                    achievement_notifications,
                 })
             })
         })

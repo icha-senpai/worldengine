@@ -44,6 +44,7 @@ export function savePlayer(player) {
 }
 const names = {
   market: "market",
+  "fishing-map": "fishing-map",
   "barter-stalls": "barter-stalls",
   crafting: "crafting",
   "tool-rates": "tool-rates",
@@ -111,7 +112,7 @@ async function navigate(url, data = {}, options = {}) {
       const previous = appRouter.currentRoute.value.query.profile;
       const token = await saveWidget(
         kind,
-        Object.fromEntries(next.searchParams),
+        { ...Object.fromEntries(next.searchParams), ...data },
         typeof previous === "string" ? previous : undefined,
       );
       next.search = "";

@@ -1,0 +1,102 @@
+{
+  "scope": "Space collector orchestration, native relay lifecycle, wire decoding, publication deltas, storage monitor, log archives, supervisor, and installed SDK disconnect handling",
+  "runtimeChanged": false,
+  "productionCodeChanged": false,
+  "liveServicesRestarted": false,
+  "crashConclusion": "No audited defect has been demonstrated to cause the recorded 0xC0000409 exits. The isolated reproductions below prove separate correctness and resource-management defects.",
+  "verification": {
+    "focusedTests": "18 tests passed across five files",
+    "scriptTypecheck": "passed",
+    "isolatedProbe": ".runtime/collector-code-audit.ts",
+    "probeResults": ".runtime/collector-code-audit-results.json",
+    "probeIsolation": "Mocked database procedures/reducers and relay start; synthetic task-owned log; no real database writes or relay sockets"
+  },
+  "findings": [
+    {
+      "id": "A1",
+      "priority": "high",
+      "file": "scripts/bitcraft-storage.ts:180",
+      "summary": "Live log truncation is unsafe and does not enforce the intended size bound",
+      "evidence": "A writer with an existing file offset wrote 1,100,000 bytes. trimCollectorLogs reduced the file to 64,000 bytes. Its next 14-byte write expanded the file to 1,100,014 bytes.",
+      "additionalRisk": "Compression captures a fixed prefix, but the live file can receive more writes while it is compressed and verified. Truncation then discards anything appended outside that prefix. The tail is read using the earlier size.",
+      "qualification": "The probe uses an open file writer to demonstrate the offset defect. The exact PowerShell redirect implementation was not instrumented during this audit.",
+      "recommendation": "Use coordinated log rotation with writer reopening, or collector-owned bounded logging. Archive closed segments only. Keep logging failures independent of the storage lease."
+    },
+    {
+      "id": "A2",
+      "priority": "high",
+      "file": "scripts/bitcraft-relay-collector.ts:204",
+      "summary": "The 30-player connection limit is not enforced on existing scopes",
+      "evidence": "With 60 active watches, the first tick created 30 scopes. Reordering the same watches created the remaining 30 while retaining the first set, resulting in 60 player scopes.",
+      "recommendation": "Choose a bounded admitted set and enforce it on discovery and retained scopes. Pending discovery must also count toward the limit."
+    },
+    {
+      "id": "A3",
+      "priority": "medium",
+      "file": "scripts/bitcraft-relay-collector.ts:140",
+      "summary": "Background player discovery has no operation deadline or cycle cancellation",
+      "evidence": "A never-settling requestData promise leaves the player in discovering even after its retry window is elapsed. The tick itself completes because discovery is fire-and-forget.",
+      "relatedReproduction": "A discovery response received after the player's watches disappeared creates a new player scope anyway. A later tick may remove it, but watch expiration is not revalidated before creation.",
+      "recommendation": "Bind discovery to cycle cancellation and a deadline, and revalidate admission immediately before creating a socket."
+    },
+    {
+      "id": "A4",
+      "priority": "medium",
+      "file": "scripts/bitcraft-relay-collector.ts:297",
+      "summary": "Publication error handling can call the database after the collector is stopped",
+      "evidence": "Stopping while ingestCollection was pending and then rejecting it caused collectionFailure to be invoked after stop.",
+      "qualification": "This proves an attempted late reducer call, not that it committed. Existing database authorization and storage leases may reject it.",
+      "recommendation": "Pass the cycle through all native operations and check cancellation after awaits and before error-handler writes."
+    },
+    {
+      "id": "A5",
+      "priority": "high",
+      "file": "scripts/collector-services.ps1:152",
+      "summary": "A transient worker-launch or archive-preflight error can terminate the supervisor",
+      "evidence": "The retry loop handles a worker that was started and subsequently exited. Start-Collector errors escape the loop into the outer catch, which exits the supervisor with code 1. Archive preparation errors throw before the worker is started.",
+      "verification": "Static control-flow inspection; deliberately failing the live supervisor was not attempted.",
+      "recommendation": "Retry recoverable launch/preflight errors inside the supervision loop with backoff and observable status. Preserve the explicit stop-and-manual-recovery behavior for incomplete rebuilds."
+    },
+    {
+      "id": "A6",
+      "priority": "medium",
+      "file": "scripts/bitcraft-relay.ts:239",
+      "summary": "Wire memory bounds are checked too late to cap snapshot processing",
+      "evidence": "The complete frame is parsed, decoded into objects, staged as closures, and applied before the 300,000-row cap is checked. Initial snapshots can coexist with the previous cached snapshot. The 64,000,000 limit measures string length, not total retained heap or decoder allocation.",
+      "qualification": "This is a peak-memory risk, not a demonstrated out-of-memory crash. The saved crash samples do not establish memory exhaustion.",
+      "recommendation": "Budget frames and decoded operations before applying them; reject over-budget snapshots before staging the complete decoded graph. Release invalid cached state explicitly."
+    },
+    {
+      "id": "A7",
+      "priority": "medium",
+      "file": "scripts/bitcraft-collector.ts:98",
+      "summary": "Small scheduler maps accumulate historical watch keys",
+      "evidence": "due survives collection cycles and has no delete or clear path. lastDiscovery retains every discovered player until the native collector is replaced. publishedFeeds is capped at 500 and dictionaries at 25, showing the other caches have explicit bounds.",
+      "qualification": "Entries are small; this is slow lifetime growth, not evidence explaining the observed roughly hourly native exits.",
+      "recommendation": "Prune expired and inactive keys while retaining configured seeds; add explicit maximums."
+    },
+    {
+      "id": "A8",
+      "priority": "medium",
+      "file": "scripts/bitcraft-collector.ts:485",
+      "summary": "Log compression and storage lease renewal share one serial monitor task",
+      "evidence": "trimCollectorLogs runs before storageUsage and lease renewal. Expensive compression delays the 20-second lease; any logging/archive error is handled as a fatal storage-monitor error and stops the worker.",
+      "qualification": "A delayed lease fails closed, protecting database writes. This can produce unnecessary sampling or paused-update intervals, but was not proven to occur in the recorded crashes.",
+      "recommendation": "Decouple bounded diagnostic archival from lease renewal without changing heartbeat frequency or transaction policy."
+    }
+  ],
+  "additionalRisks": [
+    "lastReceivedAt is recorded but never checked after the initial subscription timeout. A half-open relay can remain reported ready. A liveness policy must distinguish naturally quiet scopes from an actual dead connection.",
+    "The local authorization execFileSync has no explicit timeout and blocks the collector event loop, unlike the bounded maintenance publish call.",
+    "directoryBytes does not tolerate a normal ENOENT race while traversing live replica files; diagnostic traversal already tolerates rotation. This can stop updates with an ordinary storage-error if SpacetimeDB retires a file during enumeration."
+  ],
+  "existingProtectionsReviewed": [
+    "CollectorCycle interrupts timed-out and disconnected main-loop operations and prevents chained work after cancellation.",
+    "Storage writes require a renewed lease and low disk headroom fails closed.",
+    "Maintenance verifies backups, retained records, database identity, and the deployed module before retiring the old replica.",
+    "Canonical market data is published as deltas during steady state, with full reconciliation on generation changes.",
+    "Diagnostic compression uses streaming gzip and verifies decompressed bytes and SHA-256 before source deletion.",
+    "Market refresh tasks are bounded to two by the server; the client Promise.all is not currently an unbounded market fan-out."
+  ],
+  "nextWork": "Fix active-log handling and supervisor recovery first, then native cancellation/admission, then memory and scheduler bounds. Reconnect payload optimization and heartbeat/status transaction reduction remain deferred."
+}

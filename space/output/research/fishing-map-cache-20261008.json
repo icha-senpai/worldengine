@@ -1,0 +1,25 @@
+{
+  "verifiedAt": "2026-10-08 America/Chicago",
+  "defaults": { "region": 9, "tier": 1 },
+  "storage": { "type": "IndexedDB", "maximumChunks": 4096, "refreshAfterHours": 24 },
+  "browser": "Microsoft Edge via Playwright CLI",
+  "results": {
+    "freshCacheReloadRestoresCamera": true,
+    "freshCacheReloadCreatesNoTerrainRelayWorker": true,
+    "manualRefreshWritesNewSnapshot": true,
+    "cachedTerrainDrawsWhenRelaySchemaIsBlocked": true,
+    "expiredSnapshotRefreshesAutomatically": true,
+    "explicitR8LocationLinkOverridesDefault": true,
+    "switchingBackToR9RestoresSavedView": true,
+    "oldSchoolSelectionClearedOnRegionSwitch": true,
+    "mobile390pxHasNoHorizontalOverflow": true,
+    "browserPageErrors": []
+  },
+  "tests": { "fullSuitePassed": 153, "mapFocusedPassed": 19 },
+  "limitations": [
+    "Unvisited areas require their first terrain download.",
+    "Cache and view are local to the browser and may be removed by browser storage cleanup.",
+    "Fish locations are live and still require a relay connection.",
+    "Saved terrain may be stale until refreshed; player terraforming can change depth."
+  ]
+}

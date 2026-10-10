@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "listings": [
     {
       "listingId": 20,
@@ -167,6 +167,36 @@
       "targetId": 5,
       "name": "Moonlit Fireflies",
       "priceCoins": 120,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 106,
+      "kind": "bait",
+      "targetId": 6,
+      "name": "Green XP Slime",
+      "priceCoins": 50,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 107,
+      "kind": "bait",
+      "targetId": 7,
+      "name": "Yellow XP Slime",
+      "priceCoins": 150,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 108,
+      "kind": "bait",
+      "targetId": 8,
+      "name": "Pink XP Slime",
+      "priceCoins": 400,
       "minimumLevel": 1,
       "previousBiomeId": 1,
       "biomeId": 1

@@ -77,6 +77,7 @@ const books = new Map(),
   brokenIcons = ref(new Set());
 let searchTimer,
   lookupGeneration = 0,
+  selectedBookScope = "",
   syncing = false,
   destroyed = false;
 const storageKey = computed(() => `space.bitcraft.trading.${props.tool.key}`);
@@ -105,6 +106,17 @@ const categories = computed(() =>
     .filter(Boolean)
     .sort(),
 );
+const regionSelection = computed({
+  get() {
+    const region = props.regions.find(
+      (row) => String(row.id ?? row.regionId) === String(form.region),
+    );
+    return region?.name ?? region?.regionName ?? form.region;
+  },
+  set(value) {
+    form.region = value;
+  },
+});
 const updated = computed(() => {
   if (!props.cache.updatedAt) return "";
   const date = new Date(props.cache.updatedAt);
@@ -256,6 +268,7 @@ function payload() {
 }
 function visit(extra = {}) {
   clearTimeout(searchTimer);
+  searchTimer = null;
   remember();
   router.get(
     route(props.tool.routeName ?? "bitcraft.market"),
@@ -287,21 +300,18 @@ function normalizeQuantity() {
 }
 function reset() {
   clearTimeout(searchTimer);
+  searchTimer = null;
+  syncing = true;
+  Object.assign(
+    form,
+    Object.fromEntries(Object.keys(form).map((key) => [key, ""])),
+  );
   exchangeType.value = "";
   availableOnly.value = true;
-  router.get(
-    route(props.tool.routeName ?? "bitcraft.market"),
-    { intent: intent.value, hasOrders: 1 },
-    {
-      replace: true,
-      onStart: () => {
-        searching.value = true;
-      },
-      onFinish: () => {
-        searching.value = false;
-      },
-    },
-  );
+  submit();
+  nextTick(() => {
+    syncing = false;
+  });
 }
 function setIntent(value) {
   intent.value = value;
@@ -386,6 +396,9 @@ function bestClaim(item) {
 async function select(row, moveToDetails = false) {
   const request = ++lookupGeneration;
   const changed = selectedKey.value !== rowKey(row);
+  const scope = resultScope.value;
+  const retainedBook =
+    !changed && selectedBookScope === scope ? selectedBook.value : null;
   selectedKey.value = rowKey(row);
   lookupWarning.value = "";
   if (changed) {
@@ -405,14 +418,17 @@ async function select(row, moveToDetails = false) {
     remember();
     return;
   }
-  selectedBook.value = knownBook(row);
-  if (selectedBook.value) {
+  const cachedBook = knownBook(row);
+  // Stored revisions refresh the same selection in place. Only a new item or
+  // filter scope should replace its details with the initial loading state.
+  selectedBook.value = cachedBook ?? retainedBook;
+  selectedBookScope = scope;
+  if (cachedBook) {
     if (detailsTab.value === "history" || popupOpen.value) loadHistory();
     remember();
     return;
   }
   bookLoading.value = true;
-  const scope = resultScope.value;
   try {
     const response = await bitcraftFetch(
       route("bitcraft.market.order-book", {
@@ -431,8 +447,17 @@ async function select(row, moveToDetails = false) {
       return;
     if (!response.ok || !data.orderBook)
       throw new Error(data.error || "Order details could not refresh.");
-    books.set(`${scope}:${itemKey(row)}`, data.orderBook);
-    selectedBook.value = data.orderBook;
+    const book = {
+      ...data.orderBook,
+      ...(retainedBook?.historyLoaded
+        ? {
+            history: retainedBook.history,
+            historyDelayed: retainedBook.historyDelayed,
+          }
+        : {}),
+    };
+    books.set(`${scope}:${itemKey(row)}`, book);
+    selectedBook.value = book;
     if (data.refresh?.delayed)
       lookupWarning.value =
         "Refresh delayed. Showing previously fetched orders.";
@@ -511,8 +536,31 @@ function returnToResults() {
   row?.focus({ preventScroll: true });
 }
 watch(
-  () => props.filters,
-  (filters) => {
+  // Stored market updates replace the props object without changing the search.
+  // Only changed filter values should replace the user's editable draft.
+  () =>
+    JSON.stringify({
+      q: props.filters.q ?? "",
+      category: props.filters.category ?? "",
+      claimQ: props.filters.claimQ ?? "",
+      claimEntityId: props.filters.claimEntityId ?? "",
+      empire: props.filters.empire ?? props.filters.empireName ?? "",
+      empireEntityId: props.filters.empireEntityId ?? "",
+      region:
+        props.filters.region ??
+        props.filters.regionName ??
+        props.filters.regionId ??
+        "",
+      side: props.filters.side ?? "",
+      intent: props.filters.intent,
+      hasBuyOrders: props.filters.hasBuyOrders,
+      hasSellOrders: props.filters.hasSellOrders,
+      hasOrders: props.filters.hasOrders,
+    }),
+  (serialized) => {
+    // An earlier response must not cancel an edit waiting for its debounce.
+    if (searchTimer) return;
+    const filters = JSON.parse(serialized);
     syncing = true;
     clearTimeout(searchTimer);
     Object.assign(form, {
@@ -690,17 +738,19 @@ onBeforeUnmount(() => {
           /></label>
           <label class="field-group"
             ><span class="field-label">Region</span
-            ><TextInput
-              v-model.trim="form.region"
-              type="search"
-              list="trade-regions"
-              placeholder="All regions" /><datalist id="trade-regions">
+            ><SelectInput v-model="regionSelection" aria-label="Region">
+              <option value="">All regions</option>
               <option
                 v-for="region in regions"
                 :key="region.id ?? region.regionId"
                 :value="region.name ?? region.regionName"
-              /></datalist
-          ></label>
+              >
+                {{ region.name ?? region.regionName }} (R{{
+                  region.id ?? region.regionId
+                }})
+              </option></SelectInput
+            ></label
+          >
           <label class="field-group"
             ><span class="field-label">{{
               isBarter ? "Bundles" : "Quantity"

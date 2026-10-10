@@ -1,7 +1,9 @@
 # Equipped rods and tackle-box gear
 
-Gameplay rules version 6 adds bait, rod quality and mixed pulls; species/content and physical
-rank thresholds remain version 4. Each new rod improves all three stats.
+Gameplay rules version 7 includes bait, rod quality, mixed pulls and level 120;
+species/content is version 5 and physical rank thresholds remain version 4.
+Each new rod improves all three stats. [XP slime rules](xp-progression.md) add
+three purchasable baits with +25%, +50% and +100% fishing XP.
 
 | Rod | Power | Luck | Fishing XP | Level |
 |---|---:|---:|---:|---:|
@@ -39,7 +41,7 @@ probability is `(1+q)*p-q*p*p`, so two independent pulls slightly alter those
 ratios for that distinct measure. With maximum gear, Fihs averages roughly
 2,813 casts and the Sock 5,625; these are averages without a guarantee.
 
-Fishing XP applies once to the combined raw rewards, including first discoveries,
+Fishing XP combines rod family, quality and slime bonuses additively, then applies once to the combined raw rewards, including first discoveries,
 then rounds down. Per-pull saved XP shares sum to the cast total. Daily delivery
 and sales receive no gear XP bonus. Saved pull and equipment receipts preserve
 actual quality, bait effect and remaining uses; replay after changing gear returns
@@ -60,7 +62,7 @@ copied into the project without changing their pixels or alpha. Exact prompts
 are preserved in `docs/rod-art-prompts.json`; the asset manifest records hashes
 and dimensions. `build-world-content.mjs` retains modifiers and image paths.
 
-Six licence icons in `assets/licences/` and all five bait icons in `assets/baits/`
+Six licence icons in `assets/licences/` and all eight bait icons in `assets/baits/`
 appear in the real Trader and Tackle box. `content/equipment-art.json` maps their
 visuals; prompts remain in `docs/licence-and-bait-art-prompts.json`.
 

@@ -1,0 +1,27 @@
+{
+  "snapshot": "20261009010358",
+  "nativeTiles": 1300,
+  "regionMaps": 13,
+  "assetMiB": 80.6,
+  "browser": "Microsoft Edge via Playwright CLI",
+  "viewport": "1440x1000",
+  "cpuThrottle": 6,
+  "schools": 7947,
+  "closeup": { "samples": 672, "frameP95Ms": 8, "worstFrameMs": 159, "longTasks": 3, "longestTaskMs": 84, "heapMB": 26 },
+  "overview": { "samples": 648, "frameP95Ms": 13, "worstFrameMs": 225, "longTasks": 4, "longestTaskMs": 122, "heapMB": 27 },
+  "validation": {
+    "relayWaterCellsCompared": 9216,
+    "depthMismatches": 0,
+    "terrainRelayWorkers": 0,
+    "rasterWorkers": 0,
+    "repeatedTileDownloadsAfterReload": 0,
+    "mobileOverflow": false,
+    "browserPageErrors": []
+  },
+  "limitations": [
+    "Frame samples cover scripted panning and zooming, including idle settling time; this is not a sustained FPS benchmark.",
+    "Occasional long tasks remain under the six-times CPU slowdown.",
+    "Reported JavaScript heap excludes bitmap and graphics memory; decoded bitmap cache is separately capped at 64 MiB.",
+    "Browsers fetch Space's local map assets on their first use; CacheStorage can be evicted by the browser."
+  ]
+}

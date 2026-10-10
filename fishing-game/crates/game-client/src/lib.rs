@@ -5,10 +5,11 @@ pub mod module_bindings;
 use module_bindings::*;
 use spacetimedb_sdk::{DbContext, Table};
 use std::{
+    collections::HashMap,
     sync::{Arc, Mutex as StdMutex},
     time::{Duration, Instant},
 };
-use tokio::sync::{Mutex, MutexGuard, oneshot};
+use tokio::sync::{Mutex, MutexGuard, broadcast, oneshot};
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub fn service_token(name: &str) -> Result<String, Error> {
@@ -63,6 +64,22 @@ pub struct Client {
     role: ServiceRole,
     // The adapter view selects one player per identity. Serialize selection + read + mutation.
     selection: Mutex<()>,
+    known_players: Arc<StdMutex<HashMap<u64, u64>>>,
+    achievement_unlocks: broadcast::Sender<AchievementUnlock>,
+}
+
+/// A newly committed award, never a row loaded by an initial subscription.
+#[derive(Clone, Debug)]
+pub struct AchievementUnlock {
+    pub key: u128,
+    pub player_id: u64,
+    pub discord_user_id: Option<u64>,
+    pub display_name: String,
+    pub achievement_id: u32,
+    pub name: String,
+    pub description: String,
+    pub title: String,
+    pub bonus: bool,
 }
 
 pub struct Snapshot {
@@ -111,7 +128,17 @@ impl Client {
         token: String,
         role: ServiceRole,
     ) -> Result<Self, Error> {
-        let connection = Self::open_connection(uri, database, token.clone(), role).await?;
+        let known_players = Arc::new(StdMutex::new(HashMap::new()));
+        let (achievement_unlocks, _) = broadcast::channel(1024);
+        let connection = Self::open_connection(
+            uri,
+            database,
+            token.clone(),
+            role,
+            known_players.clone(),
+            achievement_unlocks.clone(),
+        )
+        .await?;
         Ok(Self {
             connection: StdMutex::new(Arc::new(connection)),
             uri: uri.into(),
@@ -119,6 +146,8 @@ impl Client {
             token,
             role,
             selection: Mutex::new(()),
+            known_players,
+            achievement_unlocks,
         })
     }
 
@@ -127,6 +156,8 @@ impl Client {
         database: &str,
         token: String,
         role: ServiceRole,
+        known_players: Arc<StdMutex<HashMap<u64, u64>>>,
+        achievement_unlocks: broadcast::Sender<AchievementUnlock>,
     ) -> Result<DbConnection, Error> {
         let (sender, receiver) = oneshot::channel();
         let sender = Arc::new(StdMutex::new(Some(sender)));
@@ -150,6 +181,67 @@ impl Client {
             .on_connect_error(move |_, error| send_once(&errors, Err(error.to_string())))
             .on_disconnect(|_, error| tracing::warn!(?error, "Database connection closed"))
             .build()?;
+        if role == ServiceRole::DiscordAdapter {
+            let players = known_players.clone();
+            connection.db.adapter_player().on_insert(move |_, player| {
+                players
+                    .lock()
+                    .expect("known players mutex")
+                    .insert(player.discord_user_id, player.player_id);
+            });
+            connection
+                .db
+                .earned_achievement()
+                .on_insert(move |ctx, award| {
+                    // Reconnection and initial subscriptions load historical rows too.
+                    if !matches!(
+                        ctx.event,
+                        spacetimedb_sdk::Event::Reducer(_) | spacetimedb_sdk::Event::Transaction
+                    ) {
+                        return;
+                    }
+                    let Some(definition) = ctx
+                        .db
+                        .achievement_definition()
+                        .iter()
+                        .find(|row| row.achievement_id == award.achievement_id)
+                    else {
+                        return;
+                    };
+                    let discord_user_id = ctx
+                        .db
+                        .adapter_player()
+                        .iter()
+                        .find(|row| row.player_id == award.player_id)
+                        .map(|row| row.discord_user_id)
+                        .or_else(|| {
+                            known_players
+                                .lock()
+                                .expect("known players mutex")
+                                .iter()
+                                .find_map(|(user, player)| {
+                                    (*player == award.player_id).then_some(*user)
+                                })
+                        });
+                    let display_name = ctx
+                        .db
+                        .public_profile()
+                        .iter()
+                        .find(|row| row.player_id == award.player_id)
+                        .map_or_else(|| "Angler".into(), |row| row.display_name);
+                    let _ = achievement_unlocks.send(AchievementUnlock {
+                        key: award.key,
+                        player_id: award.player_id,
+                        discord_user_id,
+                        display_name,
+                        achievement_id: definition.achievement_id,
+                        name: definition.name,
+                        description: definition.description,
+                        title: definition.title,
+                        bonus: definition.bonus,
+                    });
+                });
+        }
         connection.run_threaded();
         if let Err(error) = receive(receiver).await {
             let _ = connection.disconnect();
@@ -170,7 +262,15 @@ impl Client {
             return Ok(existing);
         }
         let connection = Arc::new(
-            Self::open_connection(&self.uri, &self.database, self.token.clone(), self.role).await?,
+            Self::open_connection(
+                &self.uri,
+                &self.database,
+                self.token.clone(),
+                self.role,
+                self.known_players.clone(),
+                self.achievement_unlocks.clone(),
+            )
+            .await?,
         );
         *self.connection.lock().expect("connection mutex") = connection.clone();
         let _ = existing.disconnect();
@@ -203,6 +303,18 @@ impl Client {
                 .my_service()
                 .iter()
                 .any(|service| service.active && service.role == self.role)
+    }
+
+    pub fn subscribe_achievement_unlocks(&self) -> broadcast::Receiver<AchievementUnlock> {
+        self.achievement_unlocks.subscribe()
+    }
+
+    pub fn known_player_id(&self, discord_user_id: u64) -> Option<u64> {
+        self.known_players
+            .lock()
+            .expect("known players mutex")
+            .get(&discord_user_id)
+            .copied()
     }
 
     pub async fn player(

@@ -6,6 +6,9 @@ Meadow Pond and the starter Twig Rod are free. Later rods and permanent biome li
 biomes to stay within Discord message limits; the website shows the full book. All launch commands below are implemented. The fourteen commands are registered globally; matching legacy server copies are removed on startup.
 /profile accepts an optional public player_id from /leaderboard. Other profiles show only public progression, records, titles and badge counts; wallets and inventory remain private.
 This plan updates the original design specification's Discord command list.
+Angler level caps at 120. `/shop` item IDs 106/107/108 buy green/yellow/pink
+XP slime packs; `/bait` IDs 6/7/8 equip them. Each has ten uses and adds
++25/+50/+100% fishing XP respectively. See [XP progression](xp-progression.md).
 Commands use plain Discord slash syntax. The `./` spelling in chat was only to
 avoid triggering another integration; it is not a bot prefix or alias.
 
