@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import source from "../spacetimedb/src/content/evergather.json";
 import {
+  materialOutputLabel,
+  sourcesForMaterial,
+  trainingSourceFor,
+} from "../src/evergather/materialSources";
+import {
   presentEvergather,
   readCatalog,
   skillProgress,
@@ -13,6 +18,8 @@ const content = {
       character_options: source.character_options,
       rarity_rules: source.rarity_rules,
       rarity_materials: source.rarity_materials,
+      rarity_materials_by_tier: source.rarity_materials_by_tier,
+      consumables: source.consumables,
       rarity_effects: source.rarity_effects,
     },
   },
@@ -70,6 +77,29 @@ function fixture() {
   };
 }
 describe("ICHAA Evergather presentation contracts", () => {
+  it("offers starter training inside a locked material source and stops at level ten", () => {
+    const rows = fixture();
+    const source = () => {
+      const view = presentEvergather(rows, content);
+      const sources = {
+        recipes: view.crafting_recipes,
+        activities: view.skill_activities,
+      };
+      const entry = sourcesForMaterial("smithing_1", sources, view.player).find(
+        (source) => source.entry.key === "smithing_1",
+      );
+      return trainingSourceFor(entry, sources);
+    };
+    expect(source()).toMatchObject({
+      action: "activity",
+      ready: true,
+      entry: { key: "training_smithing", skill_level: 1 },
+    });
+    rows.tools.find((tool) => tool.skill === "smithing").durability = 0;
+    expect(source().ready).toBe(false);
+    rows.skills.find((skill) => skill.skill === "smithing").experience = 1100n;
+    expect(source()).toBeNull();
+  });
   it.each([
     [0, 1, 0, 0],
     [249, 1, 249, 99],
@@ -97,37 +127,38 @@ describe("ICHAA Evergather presentation contracts", () => {
         id: 1n,
         createdAt: { microsSinceUnixEpoch: 1000n, toDate: () => new Date(1) },
         kind: "gathering_actions",
-        label: "Mining",
+        label: "Mine Copper Ore",
         skill: "mining",
         experience: 30n,
         gold: 3n,
         items: "[]",
         details: JSON.stringify({
-          key: "mine",
+          key: "mining_1",
           event: { label: "Meteorfall" },
         }),
       },
     ];
     const view = presentEvergather(rows, { ...content, gathering_actions: {} });
     expect(view.recent_actions[0]).toMatchObject({
-      label: "Mining",
+      label: "Mine Copper Ore",
       event_label: "Meteorfall",
     });
   });
   it("keeps actions ready and contracts unlimited despite legacy timers and caps", () => {
     const rows = fixture();
+    rows.skills.find((row) => row.skill === "trading").experience = 1100n;
     const now = Date.now();
     rows.player.nextActionAt = BigInt(now + 60000) * 1000n;
     rows.contracts = [
       {
-        jobKey: "fishing_starter_contract",
+        jobKey: "delivery_1",
         day: BigInt(Math.floor(now / 86400000)),
         completions: 100,
         active: false,
         progress: 0,
       },
     ];
-    rows.inventory = [{ itemKey: "river_minnow", quantity: 100n }];
+    rows.inventory = [{ itemKey: "trading_1", quantity: 100n }];
     const view = presentEvergather(rows, content, now);
     expect(view.player).toMatchObject({
       next_action_at: null,
@@ -138,9 +169,7 @@ describe("ICHAA Evergather presentation contracts", () => {
         (action) => action.cooldown_seconds === 0,
       ),
     ).toBe(true);
-    expect(
-      view.jobs.find((job) => job.key === "fishing_starter_contract"),
-    ).toMatchObject({
+    expect(view.jobs.find((job) => job.key === "delivery_1")).toMatchObject({
       completion_cap: null,
       remaining_completions: null,
       is_demand_available: true,
@@ -150,10 +179,12 @@ describe("ICHAA Evergather presentation contracts", () => {
   it("supplies all panel contracts, pacing numbers, and real skill unlock paths", () => {
     const view = presentEvergather(fixture(), content);
     expect(view.skills).toHaveLength(38);
-    expect(view.actions).toHaveLength(91);
-    expect(view.skill_activities).toHaveLength(310);
+    expect(view.actions).toHaveLength(70);
+    expect(view.skill_activities).toHaveLength(128);
     expect(view.equipment).toHaveLength(38);
-    expect(view.progression.achievements).toHaveLength(451);
+    expect(view.progression.achievements).toHaveLength(
+      Object.keys(source.achievements).length,
+    );
     expect(
       view.skills.every(
         (skill) => skill.activities.length && skill.unlocks.length,
@@ -163,19 +194,31 @@ describe("ICHAA Evergather presentation contracts", () => {
     expect(view.skill_catalog.pacing.calibrated_experience_per_hour).toBe(1600);
     expect(view.player.appearance.palette).toBe("moonlit");
     expect(
-      view.actions.find((action) => action.key === "fish").equipped_tool
+      view.actions.find((action) => action.key === "fishing_1").equipped_tool
         .signature_trait,
     ).toBe("Tidehook Memory");
   });
   it("matches crafting guards and uses committed inventory without applying result deltas twice", () => {
     const rows = fixture();
-    const recipeKey = "smelting_candlemark_ingot";
+    const recipeKey = "smelting_1";
+    rows.skills.find((row) => row.skill === "smelting").experience = 1100n;
     const before = presentEvergather(rows, content).crafting_recipes.find(
       (recipe) => recipe.key === recipeKey,
     );
     expect(before.can_craft).toBe(false);
     rows.inventory = [
-      { itemKey: "iron_ore", name: "Iron Ore", rarity: "common", quantity: 2n },
+      {
+        itemKey: "mining_1",
+        name: "Copper Ore",
+        rarity: "common",
+        quantity: 2n,
+      },
+      {
+        itemKey: "survival_1",
+        name: "Ash Charcoal",
+        rarity: "common",
+        quantity: 1n,
+      },
     ];
     expect(
       presentEvergather(rows, content).crafting_recipes.find(
@@ -213,9 +256,7 @@ describe("ICHAA Evergather presentation contracts", () => {
     ).toBe(0);
     expect(view.last_result.recipe_key).toBe(recipeKey);
     expect(view.recent_actions).toEqual([]);
-    expect(view.last_result.items_created[0].item_key).toBe(
-      "smelting_candlemark_ingot",
-    );
+    expect(view.last_result.items_created[0].item_key).toBe("smelting_1");
     expect(rows.inventory[0].quantity).toBe(0n);
   });
   it("keeps unique tool ids intact and calculates listing ownership and payout", () => {
@@ -230,7 +271,7 @@ describe("ICHAA Evergather presentation contracts", () => {
     rows.listings = [
       {
         id,
-        itemKey: "river_minnow",
+        itemKey: "trading_1",
         name: "River Minnow",
         rarity: "common",
         seller: owner,
@@ -254,15 +295,37 @@ describe("ICHAA Evergather presentation contracts", () => {
   it("maps owned materials to their actual sources, uses, and disposal paths", () => {
     const rows = fixture();
     rows.inventory = [
-      { itemKey: "iron_ore", name: "Iron Ore", rarity: "common", quantity: 3n },
+      {
+        itemKey: "mining_1",
+        name: "Copper Ore",
+        rarity: "common",
+        quantity: 3n,
+      },
     ];
-    const item = presentEvergather(rows, content).item_guide.owned[0];
-    expect(item.sources.some((source) => source.label === "Mining")).toBe(true);
-    expect(item.sinks.some((sink) => sink.label === "Candlemark Ingot")).toBe(
-      true,
-    );
+    const view = presentEvergather(rows, content);
+    const item = view.item_guide.owned[0];
+    expect(
+      item.sources.some((source) => source.label === "Mine Copper Ore"),
+    ).toBe(true);
+    expect(
+      item.sinks.some((sink) => sink.label === "Smelt Copper Ingots"),
+    ).toBe(true);
+    expect(
+      item.sources.find((path) => path.label === "Mine Copper Ore"),
+    ).toMatchObject({
+      action: "gather",
+      key: "mining_1",
+    });
+    expect(
+      item.sinks.find((path) => path.label === "Smelt Copper Ingots"),
+    ).toMatchObject({
+      action: "craft",
+      key: view.crafting_recipes.find(
+        (recipe) => recipe.label === "Smelt Copper Ingots",
+      ).key,
+    });
     expect(item.best_fallback_sink.label).toBe("Ledger Steward");
-    expect(item.total_weight).toBe(3.75);
+    expect(item.total_weight).toBe(0.6);
   });
   it("keeps claimed reward titles separate from editable character titles", () => {
     const rows = fixture();
@@ -301,11 +364,125 @@ describe("ICHAA Evergather presentation contracts", () => {
     ).toBe("Fishing updated");
     expect(initial.label).toBe("Fishing");
   });
+  it("finds live material sources and supports a processing recipe's raw ingredients", () => {
+    const rows = fixture();
+    rows.skills.find((row) => row.skill === "smelting").experience = 1100n;
+    const getSources = (itemKey) => {
+      const view = presentEvergather(rows, content);
+      return sourcesForMaterial(
+        itemKey,
+        {
+          actions: view.actions,
+          activities: view.skill_activities,
+          recipes: view.crafting_recipes,
+          expeditions: view.expeditions,
+          offers: view.shop.offers,
+        },
+        view.player,
+      );
+    };
+    const ingot = () =>
+      getSources("smelting_1").find(
+        (entry) => entry.entry.key === "smelting_1",
+      );
+    expect(ingot()).toMatchObject({
+      ready: false,
+      label: "Process",
+      blockedReason: "Need ingredients",
+    });
+    expect(ingot().requirements[0].item_key).toBe("mining_1");
+    expect(
+      getSources("mining_1").find((entry) => entry.entry.key === "mining_1"),
+    ).toMatchObject({ action: "gather", ready: true });
+    rows.inventory = [
+      {
+        itemKey: "mining_1",
+        name: "Copper Ore",
+        rarity: "common",
+        quantity: 2n,
+      },
+      {
+        itemKey: "survival_1",
+        name: "Ash Charcoal",
+        rarity: "common",
+        quantity: 1n,
+      },
+    ];
+    expect(ingot().ready).toBe(true);
+    rows.tools.find((tool) => tool.skill === "smelting").durability = 0;
+    expect(ingot()).toMatchObject({ ready: false });
+    expect(ingot().blockedReason).toContain("Repair");
+    // Gathering keeps its own tool guard and doesn't bypass it in the popup.
+    rows.tools.find((tool) => tool.skill === "mining").durability = 0;
+    expect(
+      getSources("mining_1").find((entry) => entry.entry.key === "mining_1")
+        .ready,
+    ).toBe(false);
+    expect(
+      getSources("smelting_2").find((entry) => entry.action === "craft")
+        .blockedReason,
+    ).toBe("Need Smelting Lv 20");
+    expect(
+      getSources("tool_fishing_1").some((entry) => entry.action === "shop"),
+    ).toBe(false);
+    expect(materialOutputLabel({ quantity: 1, chance: 70 })).toBe(
+      "1 per action · 70% chance",
+    );
+    expect(materialOutputLabel({ min: 0, max: 1 })).toBe("0–1 per action");
+  });
   it("shows max level progress without inventing a next level", () => {
     expect(skillProgress("fishing", 170000, "Fishing")).toMatchObject({
       level: 100,
       next_level_experience: null,
       experience_to_next_level: 0,
+    });
+  });
+  it("resolves rarity supplies through crafting while preserving gold and tier limits", () => {
+    const rows = fixture();
+    const rod = rows.tools.find((tool) => tool.skill === "fishing");
+    rod.tierLevel = 20;
+    const view = () => presentEvergather(rows, content);
+    const upgrade = () =>
+      view().tool_rarity_upgrades.options.find(
+        (entry) => entry.slot === "tool_fishing",
+      );
+    expect(upgrade()).toMatchObject({
+      is_tier_capped: false,
+      can_upgrade: false,
+      status: "Need Materials",
+    });
+    const snapshot = view();
+    const [tonic] = sourcesForMaterial(
+      upgrade().materials[0].item_key,
+      { recipes: snapshot.crafting_recipes },
+      snapshot.player,
+    );
+    expect(tonic).toMatchObject({
+      action: "craft",
+      label: "Craft",
+      ready: false,
+    });
+    expect(tonic.requirements[0].item_key).toBe("foraging_2");
+    rows.inventory = upgrade().materials.map((item) => ({
+      itemKey: item.item_key,
+      name: item.item_name,
+      rarity: "common",
+      quantity: BigInt(item.quantity),
+    }));
+    expect(upgrade().can_upgrade).toBe(true);
+    rows.player.gold = 44n;
+    expect(upgrade()).toMatchObject({ can_upgrade: false, status: "Need 45g" });
+    rows.player.gold = 500n;
+    rod.tierLevel = 10;
+    expect(upgrade()).toMatchObject({
+      can_upgrade: false,
+      is_tier_capped: true,
+      status: "Tier Up First",
+    });
+    rod.rarity = "mythic";
+    expect(upgrade()).toMatchObject({
+      can_upgrade: false,
+      is_max_rarity: true,
     });
   });
 });

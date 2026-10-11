@@ -6,6 +6,7 @@ export interface AchievementFacts {
   inventory: { quantity: bigint; rarity: string }[];
   skills: { skill: string; experience: bigint }[];
   equipped: number;
+  tools?: { rarity: string }[];
   categories: Record<string, string>;
 }
 
@@ -100,7 +101,7 @@ export function achievementUnlocked(
     quartermaster: quantity >= 100,
     warehouse_mind: quantity >= 250,
     collector_shelf: inventory.length >= 10,
-    rare_keeper: inventory.some((row) =>
+    rare_keeper: [...inventory, ...(facts.tools ?? [])].some((row) =>
       ["uncommon", "rare", "epic", "legendary", "mythic"].includes(row.rarity),
     ),
     apprentice_spark: highest() >= 5,

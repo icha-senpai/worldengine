@@ -12,29 +12,7 @@
     </div>
 
     <div class="surface-section__body">
-      <div class="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
-        <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-          <p class="text-sm font-ui text-primary">Result Index</p>
-          <div class="mt-3 grid gap-2 text-xs">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Type</span>
-              <span class="text-primary">{{ resultTypeLabel }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Records</span>
-              <span class="text-primary">{{ recordCount }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Items</span>
-              <span class="text-primary">{{ itemCount }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Gold</span>
-              <span class="text-primary">{{ goldDeltaLabel }}</span>
-            </div>
-          </div>
-        </div>
-
+      <div class="grid gap-4">
         <div class="grid gap-4">
           <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
             <div class="flex flex-wrap items-start justify-between gap-3">
@@ -44,7 +22,6 @@
                 </p>
                 <p class="mt-1 text-xs text-muted-2">{{ resultDetailLabel }}</p>
               </div>
-              <span class="tag">{{ recordCount }} records</span>
             </div>
 
             <div
@@ -68,14 +45,8 @@
               <article
                 v-for="(row, index) in detailRows"
                 :key="row.key"
-                class="grid gap-3 rounded-md border border-border bg-canvas px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                class="grid gap-3 rounded-md border border-border bg-canvas px-3 py-3 md:grid-cols-[minmax(0,1fr)_auto]"
               >
-                <div
-                  class="grid h-9 w-9 place-items-center rounded-md border border-border bg-surface-2 text-sm font-ui text-primary"
-                >
-                  #{{ index + 1 }}
-                </div>
-
                 <div class="min-w-0">
                   <div class="flex flex-wrap items-center gap-2">
                     <p class="min-w-0 truncate text-sm font-ui text-primary">
@@ -97,14 +68,8 @@
               <article
                 v-for="(item, index) in resultItems"
                 :key="`${item.kind}-${item.item_key ?? item.label}-${index}`"
-                class="grid gap-3 rounded-md border border-border bg-canvas px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                class="grid gap-3 rounded-md border border-border bg-canvas px-3 py-3 md:grid-cols-[minmax(0,1fr)_auto]"
               >
-                <div
-                  class="grid h-9 w-9 place-items-center rounded-md border border-border bg-surface-2 text-sm font-ui text-primary"
-                >
-                  #{{ index + 1 }}
-                </div>
-
                 <div class="min-w-0">
                   <div class="flex flex-wrap items-center gap-2">
                     <p class="min-w-0 truncate text-sm font-ui text-primary">
@@ -154,6 +119,7 @@
 
 <script setup>
 import { computed } from "vue";
+import { resultFeedback } from "../../evergather/gameplayUi";
 
 const props = defineProps({
   result: {
@@ -176,6 +142,8 @@ const contextLabel = computed(
     null,
 );
 const resultDetailLabel = computed(() => {
+  if (props.result.type === "tool_rarity_upgrade")
+    return resultFeedback(props.result);
   if (contextLabel.value) {
     return `${resultTypeLabel.value} completed in ${contextLabel.value}.`;
   }

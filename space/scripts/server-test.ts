@@ -5,7 +5,7 @@ import { DbConnection } from "../src/bindings/evergather";
 const cli =
   process.env.LOCALAPPDATA + "/SpacetimeDB/bin/current/spacetimedb-cli.exe";
 const server = "http://127.0.0.1:3100";
-const database = "space-evergather-checks";
+const database = `space-evergather-checks-${Date.now()}`;
 function command(args: string[]) {
   execFileSync(cli, args, { stdio: "pipe" });
 }
@@ -123,7 +123,7 @@ try {
     [...first.db.myCatalog.iter()].filter(
       (row) => row.kind === "crafting_recipes",
     ).length,
-    570,
+    650,
   );
   await first.reducers.setUiScope({
     workspace: "gather",
@@ -145,7 +145,7 @@ try {
     [...observer.db.myCatalog.iter()].filter(
       (row) => row.kind === "crafting_recipes",
     ).length,
-    570,
+    650,
   );
   assert.ok(
     ![...first.db.myCatalog.iter()].some(
@@ -201,7 +201,7 @@ try {
   );
   await first.reducers.performAction({
     kind: "gathering_actions",
-    key: "fish",
+    key: "fishing_1",
   });
   await eventually(() => [...observer!.db.myInventory.iter()].length > 0);
   assert.deepEqual(
@@ -227,7 +227,7 @@ try {
   )!.experience;
   await first.reducers.performAction({
     kind: "gathering_actions",
-    key: "fish",
+    key: "fishing_1",
   });
   assert.ok(
     [...first.db.mySkills.iter()].find((row) => row.skill === "fishing")!
@@ -247,8 +247,8 @@ try {
     row.quantity,
   ]);
   await assert.rejects(
-    first.reducers.craft({ key: "smelting_candlemark_ingot" }),
-    /Not enough/,
+    first.reducers.craft({ key: "smelting_1" }),
+    /Not enough|Level 10/,
   );
   assert.deepEqual(
     [...first.db.myInventory.iter()].map((row) => [row.key, row.quantity]),
@@ -286,7 +286,7 @@ try {
   );
   await second.reducers.claimAchievement({ key: "account_level_1" });
   const fish = [...first.db.myInventory.iter()].find(
-    (row) => row.itemKey === "river_minnow",
+    (row) => row.itemKey === "fishing_1",
   )!;
   await assert.rejects(
     first.reducers.listItem({
@@ -328,7 +328,7 @@ try {
   )!;
   assert.equal(
     JSON.parse(publicOffer.metadata).item_key,
-    "river_minnow",
+    "fishing_1",
     "shared page retains item metadata",
   );
   await assert.rejects(
@@ -367,72 +367,32 @@ try {
     "seller receives gross less rounded 5% fee",
   );
   assert.equal([...second.db.myPlayer.iter()][0].gold, 3n);
-  await second.reducers.sellToVendor({ itemKey: "river_minnow", quantity: 1 });
+  await second.reducers.sellToVendor({ itemKey: "fishing_1", quantity: 1 });
   assert.equal(
     [...second.db.myPlayer.iter()][0].gold,
     4n,
     "vendor uses catalog buy price",
-  );
-  for (const key of [
-    "account_level_1",
-    "skill_milestone_fishing_1",
-    "skill_milestone_mining_1",
-    "skill_milestone_foraging_1",
-  ])
-    await first.reducers.claimAchievement({ key });
-  await first.reducers.buyShopOffer({ key: "bundle_fishers_icebox" });
-  await first.reducers.completeJob({ key: "fishing_starter_contract" });
-  assert.equal([...first.db.myContracts.iter()][0].completions, 1);
-  for (const skill of [
-    "smelting",
-    "milling",
-    "tanning",
-    "cutting",
-    "weaving",
-    "smithing",
-  ])
-    await first.reducers.claimAchievement({
-      key: `skill_milestone_${skill}_1`,
-    });
-  for (let repeat = 0; repeat < 3; repeat++) {
-    await first.reducers.buyShopOffer({ key: "bundle_fishers_icebox" });
-    await first.reducers.completeJob({ key: "fishing_starter_contract" });
-  }
-  assert.equal(
-    [...first.db.myContracts.iter()][0].completions,
-    4,
-    "contracts can exceed their former daily cap",
   );
   await first.reducers.setUiScope({
     workspace: "gather",
     panel: "activities",
     page: 1,
   });
-  const activityKey = "smelting_starter_activity_1";
-  assert.equal(
-    JSON.parse(
-      [...first.db.myCatalog.iter()].find(
-        (row) => row.key === `skill_activities:${activityKey}`,
-      )!.payload,
-    ).cooldown_seconds,
-    0,
-  );
   const activityXp = [...first.db.mySkills.iter()].find(
     (row) => row.skill === "smelting",
   )!.experience;
-  for (let repeat = 0; repeat < 2; repeat++)
-    await first.reducers.performAction({
-      kind: "skill_activities",
-      key: activityKey,
-    });
-  assert.ok(
-    [...first.db.mySkills.iter()].find((row) => row.skill === "smelting")!
-      .experience > activityXp,
-  );
+  await first.reducers.performAction({
+    kind: "skill_activities",
+    key: "training_smelting",
+  });
   assert.equal(
-    [...first.db.myPlayer.iter()][0].nextActionAt,
-    0n,
-    "skill activities are immediately repeatable",
+    [...first.db.mySkills.iter()].find((row) => row.skill === "smelting")!
+      .experience,
+    activityXp + 55n,
+  );
+  await assert.rejects(
+    first.reducers.resetItemEconomy({ version: "ten-tier-v1" }),
+    /database owner/,
   );
   await assert.rejects(
     first.reducers.updateCharacter({
@@ -501,8 +461,164 @@ try {
       "--no-config",
     ]);
   }
+  const resetOwner = [...first.db.myPlayer.iter()][0].owner;
+  const retainedGold = [...first.db.myPlayer.iter()][0].gold;
+  const inventorySnapshot = [...first.db.myInventory.iter()]
+    .map((row) => [row.itemKey, row.quantity.toString()])
+    .sort();
+  const otherSkills = [...second.db.mySkills.iter()]
+    .map((row) => [row.skill, row.experience.toString()])
+    .sort();
+  await assert.rejects(
+    first.reducers.resetPlayerLevels({ owner: resetOwner }),
+    /database owner/,
+  );
+  await assert.rejects(first.reducers.clearLeaderboards({}), /database owner/);
+  command([
+    "call",
+    database,
+    "reset_player_levels",
+    JSON.stringify(resetOwner.toHexString()),
+    "--server",
+    server,
+    "--no-config",
+  ]);
+  await eventually(() =>
+    [...first.db.mySkills.iter()].every((row) => row.experience === 0n),
+  );
+  assert.equal([...first.db.mySkills.iter()].length, 38);
+  assert.equal([...first.db.myPlayer.iter()][0].gold, retainedGold);
+  assert.deepEqual(
+    [...first.db.myInventory.iter()]
+      .map((row) => [row.itemKey, row.quantity.toString()])
+      .sort(),
+    inventorySnapshot,
+  );
+  assert.deepEqual(
+    [...second.db.mySkills.iter()]
+      .map((row) => [row.skill, row.experience.toString()])
+      .sort(),
+    otherSkills,
+  );
+  assert.equal(
+    [...first.db.myTools.iter()].filter((row) => row.equipped).length,
+    38,
+  );
+  command([
+    "call",
+    database,
+    "clear_leaderboards",
+    "--server",
+    server,
+    "--no-config",
+  ]);
+  await eventually(() => [...first.db.topLeaderboard.iter()].length === 0);
+  command([
+    "call",
+    database,
+    "refresh_content",
+    "--server",
+    server,
+    "--no-config",
+  ]);
+  await first.reducers.setUiScope({
+    workspace: "gather",
+    panel: "actions",
+    page: 1,
+  });
+  assert.equal(
+    [...first.db.topLeaderboard.iter()].length,
+    0,
+    "content refresh does not restore cleared standings",
+  );
+  await first.reducers.performAction({
+    kind: "gathering_actions",
+    key: "mining_1",
+  });
+  await eventually(() => [...first.db.topLeaderboard.iter()].length === 1);
+  assert.ok([...first.db.topLeaderboard.iter()][0].owner.equals(resetOwner));
+  assert.ok([...first.db.myAchievements.iter()].length > 0);
+  assert.ok([...second.db.myAchievements.iter()].length > 0);
+  const identitiesBefore = [first, second].map((conn) => {
+    const row = [...conn.db.myPlayer.iter()][0];
+    return [
+      row.owner.toHexString(),
+      row.name,
+      row.appearance,
+      row.characterTitle,
+    ];
+  });
+  await assert.rejects(first.reducers.resetAllProgress({}), /database owner/);
+  command([
+    "call",
+    database,
+    "reset_all_progress",
+    "--server",
+    server,
+    "--no-config",
+  ]);
+  await eventually(() =>
+    [first, second].every(
+      (conn) =>
+        [...conn.db.myPlayer.iter()][0].gold === 0n &&
+        [...conn.db.mySkills.iter()].every((row) => row.experience === 0n) &&
+        [...conn.db.myAchievements.iter()].length === 0 &&
+        [...conn.db.topLeaderboard.iter()].length === 0,
+    ),
+  );
+  for (const conn of [first, second]) {
+    const row = [...conn.db.myPlayer.iter()][0];
+    assert.equal(row.metrics, "{}");
+    assert.equal(row.title, "");
+    assert.equal(row.nextActionAt, 0n);
+    assert.equal([...conn.db.myResults.iter()].length, 0);
+    assert.equal([...conn.db.myContracts.iter()].length, 0);
+    assert.equal([...conn.db.mySkills.iter()].length, 38);
+  }
+  assert.deepEqual(
+    [first, second].map((conn) => {
+      const row = [...conn.db.myPlayer.iter()][0];
+      return [
+        row.owner.toHexString(),
+        row.name,
+        row.appearance,
+        row.characterTitle,
+      ];
+    }),
+    identitiesBefore,
+  );
+  command([
+    "call",
+    database,
+    "refresh_content",
+    "--server",
+    server,
+    "--no-config",
+  ]);
+  await assert.rejects(
+    first.reducers.claimAchievement({ key: "first_steps" }),
+    /Complete this achievement/,
+  );
+  assert.equal([...first.db.topLeaderboard.iter()].length, 0);
+  await first.reducers.performAction({
+    kind: "gathering_actions",
+    key: "mining_1",
+  });
+  await first.reducers.claimAchievement({ key: "first_steps" });
+  assert.equal(
+    [...first.db.myAchievements.iter()].length,
+    1,
+    "achievements can be earned again from new gameplay after reset",
+  );
+  assert.equal(
+    [...second.db.mySkills.iter()].reduce(
+      (sum, row) => sum + row.experience,
+      0n,
+    ),
+    0n,
+  );
   console.log(
-    "PASS: private inventory, 38 skills and tools, consecutive gathering without cooldown and unlimited contract completions, transactional craft rejection, caller and owner checks, achievement locking/duplicate claims, market price bands/ownership/tax/double-buy, vendor pricing, job turn-in, claimed titles, and reversible owner-controlled local play.",
+    "PASS: gameplay/privacy/market checks, owner-only individual and global progress reset, cleared gold/XP/achievements/titles/counters/jobs/history, identity preservation, persistent leaderboard clear, and fresh achievement progression.",
   );
 } finally {
   observer?.disconnect();

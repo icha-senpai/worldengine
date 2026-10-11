@@ -27,82 +27,19 @@
         </button>
       </div>
 
-      <div class="mt-4 grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
-        <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-          <div class="flex items-center justify-between gap-3">
-            <p class="text-sm font-ui text-primary">
-              {{ activeGroup.category }}
-            </p>
-            <span class="tag">{{ activeGroup.entries.length }}</span>
-          </div>
-          <div class="mt-3 grid gap-2 text-xs">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Level 100 XP</span>
-              <span class="text-primary">{{
-                catalog.pacing.level_100_experience.toLocaleString()
-              }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">XP/hour</span>
-              <span class="text-primary">{{
-                catalog.pacing.calibrated_experience_per_hour.toLocaleString()
-              }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Category Target</span>
-              <span class="text-primary">{{
-                formatHoursRange(activeGroupTargetRange)
-              }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Major Goal</span>
-              <span class="text-primary"
-                >{{ formatNumberRange(majorActionGoalRange) }} acts</span
-              >
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Unlocked Acts</span>
-              <span class="text-primary">{{ activeUnlockedActivities }}</span>
-            </div>
-          </div>
-
-          <div class="mt-4 grid gap-2">
-            <button
-              v-for="skill in activeGroup.entries"
-              :key="`jump-${skill.skill}`"
-              type="button"
-              class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
-              :class="{
-                'border-focus/70 bg-focus/10':
-                  activeSkill?.skill === skill.skill,
-              }"
-              :aria-pressed="activeSkill?.skill === skill.skill"
-              @click="selectedSkillKey = skill.skill"
-            >
-              <span class="flex min-w-0 items-center justify-between gap-2">
-                <span class="truncate text-xs font-ui text-primary">{{
-                  skill.label
-                }}</span>
-                <span class="text-[11px] text-muted-3"
-                  >Lv {{ skill.level }}</span
-                >
-              </span>
-              <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
-                <span
-                  class="block h-full rounded-full bg-focus"
-                  :style="{ width: `${skillProgress(skill)}%` }"
-                />
-              </span>
-              <span
-                class="flex items-center justify-between gap-2 text-[11px] text-muted-3"
-              >
-                <span>{{ skill.activities.length }} acts</span>
-                <span>{{ skill.unlocks.length }} unlocks</span>
-              </span>
-            </button>
-          </div>
-        </div>
-
+      <label class="game-select block mt-3"
+        ><span class="sr-only">Skill</span
+        ><select v-model="selectedSkillKey">
+          <option
+            v-for="skill in activeGroup.entries"
+            :key="skill.skill"
+            :value="skill.skill"
+          >
+            {{ skill.label }} · Lv {{ skill.level }}
+          </option>
+        </select></label
+      >
+      <div class="mt-4 grid gap-4">
         <div class="grid gap-4">
           <article
             v-if="activeSkill"
@@ -145,9 +82,7 @@
               <span>{{ activeSkill.experience.toLocaleString() }} XP</span>
               <span v-if="activeSkill.next_level_experience"
                 >/
-                {{
-                  activeSkill.next_level_experience.toLocaleString()
-                }}
+                {{ activeSkill.next_level_experience.toLocaleString() }}
                 next</span
               >
               <span>{{ activeSkill.activities.length }} activities</span>
@@ -287,6 +222,39 @@
           </p>
         </div>
       </div>
+      <details class="game-tool-details">
+        <summary>Progression targets</summary>
+        <div class="mt-3 grid gap-2 text-xs">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-muted-2">Level 100 XP</span>
+            <span class="text-primary">{{
+              catalog.pacing.level_100_experience.toLocaleString()
+            }}</span>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-muted-2">Baseline XP/hour</span>
+            <span class="text-primary">{{
+              catalog.pacing.calibrated_experience_per_hour.toLocaleString()
+            }}</span>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-muted-2">Category Target</span>
+            <span class="text-primary">{{
+              formatHoursRange(activeGroupTargetRange)
+            }}</span>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-muted-2">Major Goal</span>
+            <span class="text-primary"
+              >{{ formatNumberRange(majorActionGoalRange) }} acts</span
+            >
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-muted-2">Unlocked Acts</span>
+            <span class="text-primary">{{ activeUnlockedActivities }}</span>
+          </div>
+        </div>
+      </details>
     </div>
   </section>
 </template>

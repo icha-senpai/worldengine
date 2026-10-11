@@ -25,7 +25,12 @@ const panels: Record<string, string[]> = {
   "craft:expeditions": ["expedition_definitions"],
   "trade:shop": ["shop_definitions"],
   "trade:inventory": ["inventory_guide_definitions"],
-  "progress:skills": ["gathering_definitions", "activity_definitions"],
+  "progress:skills": [
+    "gathering_definitions",
+    "activity_definitions",
+    "recipe_definitions",
+    "job_definitions",
+  ],
 };
 export function panelDefinitionQueries(workspace: string, panel: string) {
   return (panels[`${workspace}:${panel}`] ?? []).map(

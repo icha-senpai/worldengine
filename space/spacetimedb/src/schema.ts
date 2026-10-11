@@ -163,6 +163,11 @@ export const leaderboard = table(
     skillExperience: t.string().default("{}"),
   },
 );
+// Cleared characters stay off the boards until they perform another action.
+export const leaderboardExcluded = table(
+  { name: "leaderboard_excluded" },
+  { owner: t.identity().primaryKey() },
+);
 export const trade = table(
   { name: "trade", public: true },
   {
@@ -216,7 +221,30 @@ export const catalogReference = table(
     definitionKey: t.string(),
   },
 );
+export const economyState = table(
+  { name: "economy_state" },
+  { id: t.u32().primaryKey(), version: t.string(), appliedAt: t.timestamp() },
+);
+export const buff = table(
+  {
+    name: "buff",
+    indexes: [{ accessor: "byOwner", algorithm: "btree", columns: ["owner"] }],
+  },
+  {
+    key: t.string().primaryKey(),
+    owner: t.identity(),
+    itemKey: t.string(),
+    name: t.string(),
+    family: t.string(),
+    effect: t.string(),
+    skill: t.string(),
+    percent: t.u32(),
+    charges: t.u32(),
+  },
+);
 const db = schema({
+  economyState,
+  buff,
   catalogReference,
   uiSession,
   uiScope,
@@ -231,6 +259,7 @@ const db = schema({
   listing,
   achievement,
   leaderboard,
+  leaderboardExcluded,
   trade,
 });
 export default db;

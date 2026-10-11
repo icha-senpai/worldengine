@@ -1,5 +1,21 @@
 import { ref, watch } from "vue";
 
+// Shortcuts reveal their target once; subsequent manual filtering stays intact.
+export function usePanelFocus(request, entries, reveal) {
+  let appliedRequest = null;
+  watch(
+    [request, entries],
+    ([focus, values]) => {
+      if (!focus || focus === appliedRequest) return;
+      const entry = values.find((value) => value.key === focus.key);
+      if (!entry) return;
+      appliedRequest = focus;
+      reveal(entry);
+    },
+    { immediate: true },
+  );
+}
+
 export function usePersistedPanelState(
   storageKey,
   fallbackState,

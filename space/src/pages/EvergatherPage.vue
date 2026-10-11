@@ -1,9 +1,22 @@
 <script setup>
+import PanelSearch from "../components/evergather/PanelSearch.vue";
+import InventoryPanel from "../components/evergather/InventoryPanel.vue";
+import RecoveryDialog from "../components/evergather/RecoveryDialog.vue";
+import { resultFeedback } from "../evergather/gameplayUi";
+import {
+  quickAction,
+  autoRepeat,
+  autoRepeatNotice,
+  favorites,
+  recentCommands,
+  commandId,
+  toggleFavorite,
+  applyEconomyVersion,
+} from "../evergather/playSession";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import TextInput from "../bitcraft-ui/shared/TextInput.vue";
 import {
   computed,
-  nextTick,
   onBeforeUnmount,
   onMounted,
   reactive,
@@ -78,10 +91,16 @@ const view = computed(() => {
       contracts: rows("myContracts"),
       leaders: rows("topLeaderboard"),
       trades: rows("trade"),
+      buffs: rows("myBuffs"),
     },
     catalog.value,
   );
 });
+watch(
+  () => catalog.value.presentation?.settings?.economy_version,
+  applyEconomyVersion,
+  { immediate: true },
+);
 const now = ref(Date.now());
 const props = reactive({
   player: computed(() =>
@@ -159,6 +178,8 @@ const defaultActiveSubPanels = {
   overview: "character",
   gather: "actions",
   craft: "recipes",
+  gear: "equipment",
+  bag: "inventory",
   trade: "marketplace",
   progress: "skills",
 };
@@ -166,24 +187,19 @@ const defaultActiveSubPanels = {
 const savedNavigationState = readSavedNavigationState();
 const activePanel = ref(savedNavigationState.activePanel);
 const activeSubPanels = ref(savedNavigationState.activeSubPanels);
-const searchQuery = ref(savedNavigationState.searchQuery);
+const searchQueries = ref(savedNavigationState.queries ?? {});
+const searchQuery = computed({
+  get: () =>
+    searchQueries.value[activePanel.value + ":" + activeSubPanel.value] ?? "",
+  set: (value) => {
+    searchQueries.value[activePanel.value + ":" + activeSubPanel.value] = value;
+  },
+});
 const selectedInventoryCategory = ref(
   savedNavigationState.selectedInventoryCategory,
 );
 const selectedInventoryKey = ref(savedNavigationState.selectedInventoryKey);
-const repeatDialog = ref({ open: false, title: "", message: "", details: [] });
-const repeatDialogClose = ref(null);
-watch(
-  () => repeatDialog.value.open,
-  async (open) => {
-    if (open) {
-      await nextTick();
-      repeatDialogClose.value?.focus();
-    }
-  },
-);
 const repeatForm = useActionForm({});
-const repeatProcessing = computed(() => repeatForm.processing);
 const characterForm = useActionForm({
   display_name: "",
   title: "",
@@ -213,55 +229,30 @@ watch(
 const catalogCount = (kind) =>
   catalog.value.presentation?.settings?.catalog_counts?.[kind] ?? 0;
 const workspaceTabs = computed(() => [
+  { key: "gather", label: "Gather" },
+  { key: "craft", label: "Craft" },
   {
-    key: "overview",
-    label: "Overview",
-    count: props.player?.can_act_now ? "Ready" : "Wait",
+    key: "gear",
+    label: "Gear",
+    count: props.equipment.filter((tool) => tool.is_broken).length
+      ? props.equipment.filter((tool) => tool.is_broken).length + " broken"
+      : "",
   },
   {
-    key: "gather",
-    label: "Gather",
-    count:
-      (catalog.value.presentation?.settings?.catalog_counts
-        ?.gathering_actions ?? 0) +
-      (catalog.value.presentation?.settings?.catalog_counts?.skill_activities ??
-        0),
+    key: "bag",
+    label: "Bag",
+    count: props.item_guide.summary.owned_items
+      ? props.item_guide.summary.owned_items
+      : "",
   },
-  {
-    key: "craft",
-    label: "Craft",
-    count: workspacePanelCount(
-      "craft",
-      catalogCount("crafting_recipes") +
-        catalogCount("job_contracts") +
-        catalogCount("expeditions"),
-    ),
-  },
-  {
-    key: "trade",
-    label: "Trade",
-    count: workspacePanelCount(
-      "trade",
-      catalogCount("shop_offers") + props.marketplace.pagination.total,
-    ),
-  },
-  {
-    key: "progress",
-    label: "Progress",
-    count: workspacePanelCount("progress", props.skills.length),
-  },
+  { key: "trade", label: "Trade" },
+  { key: "progress", label: "Progress" },
+  { key: "overview", label: "Character" },
 ]);
-
 const workspaceSubTabs = computed(() => ({
-  overview: [
-    { key: "character", label: "Character", count: props.player?.gold ?? 0 },
-    {
-      key: "progression",
-      label: "Progression",
-      count: props.summary.account_level,
-    },
-    ...resultSubTab(),
-  ],
+  gear: [{ key: "equipment", label: "Gear", count: 0 }],
+  bag: [{ key: "inventory", label: "Bag", count: 0 }],
+  overview: [{ key: "character", label: "Character", count: 0 }],
   gather: [
     {
       key: "actions",
@@ -273,14 +264,8 @@ const workspaceSubTabs = computed(() => ({
       label: "Activities",
       count: catalogCount("skill_activities"),
     },
-    ...resultSubTab(),
   ],
   craft: [
-    {
-      key: "equipment",
-      label: "Equipment",
-      count: subPanelCount("equipment", props.equipment.length),
-    },
     {
       key: "recipes",
       label: "Recipes",
@@ -296,7 +281,6 @@ const workspaceSubTabs = computed(() => ({
       label: "Expeditions",
       count: subPanelCount("expeditions", catalogCount("expeditions")),
     },
-    ...resultSubTab(),
   ],
   trade: [
     {
@@ -312,18 +296,19 @@ const workspaceSubTabs = computed(() => ({
       label: "Shop",
       count: subPanelCount("shop", catalogCount("shop_offers")),
     },
-    {
-      key: "inventory",
-      label: "Inventory",
-      count: subPanelCount("inventory", props.summary.inventory_quantity),
-    },
-    ...resultSubTab(),
   ],
   progress: [
+    ...resultSubTab(),
     {
       key: "skills",
       label: "Skills",
       count: subPanelCount("skills", props.skills.length),
+    },
+    {
+      key: "progression",
+      label: "Rewards",
+      count: props.progression.achievements.filter((entry) => entry.can_claim)
+        .length,
     },
     {
       key: "events",
@@ -364,69 +349,32 @@ const activeSubPanel = computed(() => {
 });
 watch(
   [activePanel, activeSubPanel],
-  ([workspace, panel]) => setEvergatherPanel(workspace, panel ?? ""),
+  ([workspace, panel]) =>
+    setEvergatherPanel(
+      workspace === "gear"
+        ? "craft"
+        : workspace === "bag"
+          ? "trade"
+          : workspace === "progress" && panel === "progression"
+            ? "overview"
+            : workspace,
+      panel ?? "",
+    ),
   { immediate: true },
-);
-const itemGuideCategories = computed(() => [
-  { key: "owned", label: "Owned", count: props.item_guide.summary.owned_items },
-  {
-    key: "uses",
-    label: "Has Uses",
-    count: props.item_guide.summary.owned_items_with_sinks,
-  },
-  ...(props.item_guide.owned_categories ?? []),
-]);
-const visibleInventory = computed(() =>
-  (props.item_guide.owned ?? []).filter((item) => {
-    const matchesCategory =
-      selectedInventoryCategory.value === "owned" ||
-      (selectedInventoryCategory.value === "uses" && item.has_use) ||
-      item.item_class === selectedInventoryCategory.value;
-
-    return matchesCategory && searchMatches(item, searchQuery.value);
-  }),
-);
-const selectedInventoryItem = computed(
-  () =>
-    visibleInventory.value.find(
-      (item) => item.item_key === selectedInventoryKey.value,
-    ) ??
-    visibleInventory.value[0] ??
-    null,
-);
-const visibleInventoryWeight = computed(
-  () =>
-    Math.round(
-      visibleInventory.value.reduce(
-        (total, item) => total + item.total_weight,
-        0,
-      ) * 100,
-    ) / 100,
-);
-const visibleInventoryValue = computed(() =>
-  visibleInventory.value.reduce(
-    (total, item) => total + item.total_vendor_value,
-    0,
-  ),
 );
 const recentActionExperience = computed(() =>
   props.recent_actions.reduce(
-    (total, entry) => total + entry.experience_awarded,
+    (total, entry) => total + Number(entry.experience_awarded ?? 0),
     0,
   ),
 );
 const recentActionGold = computed(() =>
-  props.recent_actions.reduce((total, entry) => total + entry.gold_awarded, 0),
+  props.recent_actions.reduce(
+    (total, entry) =>
+      total + Number(entry.gold_awarded ?? 0) - Number(entry.gold_spent ?? 0),
+    0,
+  ),
 );
-const repeatCommand = computed(() => repeatCommandFor(props.last_result));
-const repeatButtonLabel = computed(() => {
-  if (repeatProcessing.value) {
-    return "Repeating...";
-  }
-
-  return props.last_result ? "Repeat Last" : "No Last";
-});
-
 const avatarPaletteClass = computed(
   () =>
     ({
@@ -438,9 +386,15 @@ const avatarPaletteClass = computed(
 );
 
 const selectWorkspaceTab = (panel) => {
-  if (isWorkspacePanel(panel)) activePanel.value = panel;
+  focusedPath.value = null;
+  if (isWorkspacePanel(panel)) {
+    activePanel.value = panel;
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
 };
 function selectSubPanel(panel) {
+  focusedPath.value = null;
+  window.scrollTo({ top: 0, behavior: "auto" });
   if (activeWorkspaceSubTabs.value.some((tab) => tab.key === panel))
     activeSubPanels.value = {
       ...activeSubPanels.value,
@@ -489,107 +443,13 @@ async function createCharacter() {
     actionProcessing.value = false;
   }
 }
-function repeatCommandFor(result) {
-  if (!result) return null;
-  const commands = {
-    gathering: ["gather", "action"],
-    skill_activity: ["activity", "activity"],
-    crafting: ["craft", "recipe_key"],
-    job: ["job", "job_key"],
-    expedition: ["expedition", "expedition_key"],
-    shop: ["shop", "offer_key"],
-  };
-  const command = commands[result.type];
-  if (command && result[command[1]])
-    return {
-      action: command[0],
-      data: {
-        [{
-          gather: "action",
-          activity: "activity",
-          craft: "recipe",
-          job: "job",
-          expedition: "expedition",
-          shop: "offer",
-        }[command[0]]]: result[command[1]],
-      },
-    };
-  if (
-    ["tool_rarity_upgrade", "tool_tier_upgrade"].includes(result.type) &&
-    result.slot
-  )
-    return {
-      action: result.type === "tool_rarity_upgrade" ? "rarity" : "tier",
-      data: { slot: result.slot },
-    };
-  if (
-    result.type === "market_listing" &&
-    result.listing_type === "item" &&
-    result.item_key
-  )
-    return {
-      action: "list",
-      data: {
-        listing_type: "item",
-        item_key: result.item_key,
-        quantity: result.quantity,
-        unit_price: result.unit_price,
-      },
-    };
-  if (result.type === "npc_sale" && result.item_key)
-    return {
-      action: "vendor",
-      data: { item_key: result.item_key, quantity: result.quantity },
-    };
-  return {
-    message: ["market_purchase", "market_cancel"].includes(result.type)
-      ? "Choose a current listing from Marketplace. Completed purchases and cancellations cannot be repeated."
-      : "This result needs a fresh selection. Choose the tool, title, reward, or action from its board.",
-  };
-}
-function repeatLast() {
-  const command = repeatCommand.value;
-  if (!command) return;
-  if (command.message) {
-    repeatDialog.value = {
-      open: true,
-      title: "Choose again",
-      message: command.message,
-      details: [],
-    };
-    return;
-  }
-  Object.assign(repeatForm, command.data);
-  repeatForm.submit(command.action, {
-    onError: (errors) => {
-      repeatDialog.value = {
-        open: true,
-        title: "Could not repeat",
-        message: errors._error,
-        details: [],
-      };
-    },
-  });
-}
-function closeRepeatDialog() {
-  if (repeatDialog.value.title === "Could not repeat") actionError.value = "";
-  repeatDialog.value.open = false;
-  nextTick(() =>
-    document
-      .querySelector('[aria-label="Evergather command board"] .app-btn')
-      ?.focus(),
-  );
-}
-function escapeDialog(event) {
-  if (event.key === "Escape" && repeatDialog.value.open) closeRepeatDialog();
-}
 let scrollSaveFrame = null;
 let clock;
 watch(
   [
     activePanel,
     activeSubPanels,
-    searchQuery,
+    searchQueries,
     selectedInventoryCategory,
     selectedInventoryKey,
   ],
@@ -600,44 +460,24 @@ onMounted(() => {
   window.addEventListener("scroll", queueNavigationStatePersist, {
     passive: true,
   });
-  window.addEventListener("keydown", escapeDialog);
   restoreScrollPosition();
   clock = setInterval(() => {
     now.value = Date.now();
+    maybeAutoRepeat();
   }, 250);
 });
 onBeforeUnmount(() => {
   window.removeEventListener("scroll", queueNavigationStatePersist);
-  window.removeEventListener("keydown", escapeDialog);
   clearInterval(clock);
   if (scrollSaveFrame !== null) cancelAnimationFrame(scrollSaveFrame);
   persistNavigationState();
 });
-function searchMatches(entry, query) {
-  const normalizedQuery = query.trim().toLowerCase();
-
-  if (!normalizedQuery) {
-    return true;
-  }
-
-  return [
-    entry.item_name,
-    entry.rarity,
-    entry.quality,
-    entry.item_class,
-    entry.material_family,
-    ...(entry.tags ?? []),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase()
-    .includes(normalizedQuery);
-}
 function readSavedNavigationState() {
   const fallbackState = {
     activePanel: defaultActivePanel,
     activeSubPanels: { ...defaultActiveSubPanels },
     searchQuery: "",
+    queries: {},
     selectedInventoryCategory: defaultInventoryCategory,
     selectedInventoryKey: "",
     scrollY: 0,
@@ -653,7 +493,7 @@ function readSavedNavigationState() {
     );
     const savedState =
       parsedState && typeof parsedState === "object" ? parsedState : {};
-    const activePanel = isWorkspacePanel(savedState.activePanel)
+    let activePanel = isWorkspacePanel(savedState.activePanel)
       ? savedState.activePanel
       : fallbackState.activePanel;
     const activeSubPanels = { ...defaultActiveSubPanels };
@@ -671,7 +511,28 @@ function readSavedNavigationState() {
       );
     }
 
+    if (activePanel === "craft" && activeSubPanels.craft === "equipment") {
+      activePanel = "gear";
+      activeSubPanels.craft = "recipes";
+    }
+    if (activePanel === "trade" && activeSubPanels.trade === "inventory") {
+      activePanel = "bag";
+      activeSubPanels.trade = "marketplace";
+    }
+    if (
+      activePanel === "overview" &&
+      activeSubPanels.overview === "progression"
+    ) {
+      activePanel = "progress";
+      activeSubPanels.progress = "progression";
+      activeSubPanels.overview = "character";
+    }
     return {
+      queries: Object.fromEntries(
+        Object.entries(savedState.queries ?? {}).filter(
+          ([, value]) => typeof value === "string",
+        ),
+      ),
       activePanel,
       activeSubPanels,
       searchQuery:
@@ -705,7 +566,7 @@ function persistNavigationState() {
       JSON.stringify({
         activePanel: activePanel.value,
         activeSubPanels: activeSubPanels.value,
-        searchQuery: searchQuery.value,
+        queries: searchQueries.value,
         selectedInventoryCategory: selectedInventoryCategory.value,
         selectedInventoryKey: selectedInventoryKey.value,
         scrollY: Math.max(0, Math.round(window.scrollY ?? 0)),
@@ -744,6 +605,216 @@ function isWorkspacePanel(panel) {
     Object.prototype.hasOwnProperty.call(defaultActiveSubPanels, panel)
   );
 }
+const recoveryRequest = ref(null);
+const focusedPath = ref(null);
+const tradeIntent = ref(null);
+const materialSources = computed(() => ({
+  actions: props.actions,
+  activities: props.skill_activities,
+  recipes: props.crafting_recipes,
+  jobs: props.jobs,
+  expeditions: props.expeditions,
+  offers: props.shop.offers,
+  tools: [...props.equipment, ...props.tool_inventory],
+  inventory: props.item_guide.owned,
+  result: props.last_result,
+}));
+const quickCollections = computed(() => ({
+  gather: props.actions,
+  activity: props.skill_activities,
+  craft: props.crafting_recipes,
+  job: props.jobs,
+  expedition: props.expeditions,
+}));
+const quickEntry = computed(() =>
+  (quickCollections.value[quickAction.value?.action] ?? []).find(
+    (entry) => entry.key === quickAction.value?.key,
+  ),
+);
+const quickSkill = computed(() =>
+  props.skills.find(
+    (skill) =>
+      skill.skill === (quickEntry.value?.skill ?? quickAction.value?.skill),
+  ),
+);
+const quickTool = computed(() =>
+  props.equipment.find((tool) => tool.skill === quickSkill.value?.skill),
+);
+const quickUnavailable = computed(() => {
+  if (
+    quickTool.value?.is_broken &&
+    ["gather", "activity", "craft"].includes(quickAction.value?.action)
+  )
+    return "Repair tool first";
+  const entry = quickEntry.value;
+  if (!entry)
+    return quickAction.value?.key?.startsWith("training_")
+      ? "Training complete — choose tiered work"
+      : "";
+  if (!entry.is_unlocked) return "Required level not reached";
+  if (entry.missing_supplies) return "Need supplies";
+  if (entry.requires_tool_repair) return "Repair tool first";
+  if (quickAction.value.action === "craft" && !entry.can_craft)
+    return "Need materials or gold";
+  if (quickAction.value.action === "job" && !entry.can_complete)
+    return "Commission requirements not met";
+  if (quickAction.value.action === "expedition" && !entry.can_start)
+    return "Need supplies";
+  return "";
+});
+const feedback = computed(() => resultFeedback(props.last_result));
+const isFavorite = computed(
+  () =>
+    quickAction.value &&
+    favorites.value.some(
+      (entry) => commandId(entry) === commandId(quickAction.value),
+    ),
+);
+const cooldownText = computed(() => {
+  const left = Math.ceil(
+    (new Date(props.player?.next_action_at ?? 0).getTime() - now.value) / 1000,
+  );
+  return left > 0 ? left + "s cooldown" : "Ready";
+});
+const skillPercent = computed(() => {
+  const skill = quickSkill.value;
+  return !skill
+    ? 0
+    : skill.next_level_experience === null
+      ? 100
+      : Math.min(
+          100,
+          Math.max(
+            0,
+            (Number(skill.experience_into_level) /
+              (Number(skill.next_level_experience) -
+                Number(skill.current_level_experience))) *
+              100,
+          ),
+        );
+});
+watch(
+  () => props.last_result?.id,
+  () => {
+    if (quickAction.value || !props.last_result) return;
+    const action = {
+      gathering: "gather",
+      skill_activity: "activity",
+      crafting: "craft",
+      job: "job",
+      expedition: "expedition",
+    }[props.last_result.type];
+    const key = {
+      gather: "action",
+      activity: "activity",
+      craft: "recipe_key",
+      job: "job_key",
+      expedition: "expedition_key",
+    }[action];
+    if (action && props.last_result[key])
+      quickAction.value = {
+        action,
+        key: props.last_result[key],
+        label: props.last_result.label,
+        skill: props.last_result.skill_progress?.skill,
+      };
+  },
+  { immediate: true },
+);
+watch(quickUnavailable, (reason) => {
+  if (reason && autoRepeat.value) {
+    autoRepeat.value = false;
+    autoRepeatNotice.value = "Stopped: " + reason;
+  }
+});
+let lastRepeatAt = 0;
+function recover(request) {
+  autoRepeat.value = false;
+  recoveryRequest.value = request;
+}
+function repeatSelected() {
+  if (
+    !quickAction.value ||
+    actionProcessing.value ||
+    quickUnavailable.value ||
+    !props.player.can_act_now
+  )
+    return;
+  const command = quickAction.value;
+  const field = {
+    gather: "action",
+    activity: "activity",
+    craft: "recipe",
+    job: "job",
+    expedition: "expedition",
+  }[command.action];
+  repeatForm[field] = command.key;
+  lastRepeatAt = Date.now();
+  repeatForm.submit(command.action, {
+    onError: () => {
+      autoRepeat.value = false;
+      autoRepeatNotice.value = "Stopped: " + repeatForm.errors._error;
+    },
+  });
+}
+function toggleAuto() {
+  autoRepeat.value = !autoRepeat.value;
+  autoRepeatNotice.value = "";
+  if (autoRepeat.value) repeatSelected();
+}
+function maybeAutoRepeat() {
+  if (
+    autoRepeat.value &&
+    Date.now() - lastRepeatAt >= 650 &&
+    !document.querySelector("dialog[open]")
+  )
+    repeatSelected();
+}
+function openQuickCommand(command) {
+  autoRepeat.value = false;
+  quickAction.value = command;
+  navigatePath(command);
+}
+function navigatePath(path) {
+  const destination = {
+    gather: ["gather", "actions"],
+    activity: ["gather", "activities"],
+    craft: ["craft", "recipes"],
+    job: ["craft", "jobs"],
+    expedition: ["craft", "expeditions"],
+    shop: ["trade", "shop"],
+    tier: ["craft", "equipment"],
+    rarity: ["craft", "equipment"],
+  }[path.action];
+  if (!destination) return;
+  focusedPath.value = { ...path };
+  activePanel.value = destination[0];
+  activeSubPanels.value = {
+    ...activeSubPanels.value,
+    [destination[0]]: destination[1],
+  };
+  searchQueries.value[destination.join(":")] = ["tier", "rarity"].includes(
+    path.action,
+  )
+    ? ""
+    : path.label;
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+function openTrade(intent) {
+  tradeIntent.value = { ...intent, sequence: Date.now() };
+  activePanel.value = "trade";
+  activeSubPanels.value = { ...activeSubPanels.value, trade: "marketplace" };
+  searchQueries.value["trade:marketplace"] = "";
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+function showResult() {
+  activePanel.value = "progress";
+  activeSubPanels.value = { ...activeSubPanels.value, progress: "result" };
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+onBeforeUnmount(() => {
+  autoRepeat.value = false;
+});
 </script>
 <template>
   <section class="page">
@@ -801,132 +872,118 @@ function isWorkspacePanel(panel) {
     </form>
     <template v-else>
       <div class="evergather-ui">
-        <header class="mb-6">
-          <div class="page-hero">
-            <div class="page-hero__copy">
-              <div class="page-hero__eyebrow">Datacrypt</div>
-              <h1 class="page-hero__title page-hero__title--md">Evergather</h1>
-            </div>
+        <header class="game-hud">
+          <div class="game-hud__identity">
+            <h1>Evergather</h1>
+            <span>{{ player.display_name }}</span>
+          </div>
+          <div class="game-hud__stats">
+            <span
+              v-for="buff in view.active_buffs"
+              :key="buff.family"
+              :title="buff.name"
+              >{{ buff.description }}</span
+            >
+            <strong>{{ player.gold }}g</strong
+            ><span :class="{ 'text-success': player.can_act_now }">{{
+              cooldownText
+            }}</span
+            ><span v-if="quickSkill"
+              >{{ quickSkill.label }} Lv {{ quickSkill.level }}
+              <span v-if="quickSkill.experience_to_next_level !== null"
+                >· {{ quickSkill.experience_to_next_level }} XP to next</span
+              ></span
+            ><span
+              v-if="quickTool"
+              :class="{ 'text-danger': quickTool.is_broken }"
+              >{{ quickTool.item_name }} · {{ quickTool.durability }}/{{
+                quickTool.max_durability
+              }}</span
+            >
+          </div>
+          <div
+            v-if="quickSkill"
+            class="game-hud__progress"
+            :aria-label="quickSkill.label + ' level progress'"
+          >
+            <span :style="{ width: skillPercent + '%' }" />
           </div>
         </header>
-
-        <nav
-          class="mb-5 border-y border-border/70 py-3"
-          aria-label="Evergather command board"
-        >
+        <nav class="game-navigation" aria-label="Evergather command board">
           <div
-            class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] xl:items-start"
+            class="game-navigation__workspaces"
+            aria-label="Evergather workspaces"
           >
-            <div class="min-w-0 space-y-3">
-              <div
-                class="flex min-w-0 gap-2 overflow-x-auto pb-1"
-                aria-label="Evergather workspaces"
-              >
-                <button
-                  v-for="tab in workspaceTabs"
-                  :key="tab.key"
-                  type="button"
-                  class="tag shrink-0 transition hover:border-focus/60"
-                  :class="{
-                    'border-focus/70 bg-focus/10 text-primary':
-                      activePanel === tab.key,
-                  }"
-                  :aria-pressed="activePanel === tab.key"
-                  @click="selectWorkspaceTab(tab.key)"
-                >
-                  {{ tab.label }} · {{ tab.count }}
-                </button>
-              </div>
-
-              <div
-                class="flex min-w-0 gap-2 overflow-x-auto pb-1"
-                aria-label="Evergather sections"
-              >
-                <button
-                  v-for="tab in activeWorkspaceSubTabs"
-                  :key="tab.key"
-                  type="button"
-                  class="shrink-0 rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                  :class="{
-                    'border-focus/70 bg-focus/10 text-primary':
-                      activeSubPanel === tab.key,
-                  }"
-                  :aria-pressed="activeSubPanel === tab.key"
-                  @click="selectSubPanel(tab.key)"
-                >
-                  {{ tab.label }} · {{ tab.count }}
-                </button>
-              </div>
-            </div>
-
-            <div class="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-              <label class="relative min-w-0">
-                <span class="sr-only">Search Evergather</span>
-                <input
-                  v-model="searchQuery"
-                  type="search"
-                  class="w-full rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
-                  placeholder="Search Evergather..."
-                />
-              </label>
-
+            <button
+              v-for="tab in workspaceTabs"
+              :key="tab.key"
+              class="app-btn app-btn--ghost"
+              :aria-pressed="activePanel === tab.key"
+              @click="selectWorkspaceTab(tab.key)"
+            >
+              {{ tab.label }}<span v-if="tab.count">{{ tab.count }}</span>
+            </button>
+          </div>
+          <div class="game-navigation__secondary">
+            <div
+              v-if="activeWorkspaceSubTabs.length > 1"
+              class="game-navigation__sections"
+              aria-label="Evergather sections"
+            >
               <button
-                type="button"
-                class="app-btn app-btn--primary app-btn--sm"
-                :disabled="actionProcessing || repeatProcessing || !last_result"
-                @click="repeatLast"
+                v-for="tab in activeWorkspaceSubTabs"
+                :key="tab.key"
+                class="app-btn app-btn--ghost app-btn--sm"
+                :aria-pressed="activeSubPanel === tab.key"
+                @click="selectSubPanel(tab.key)"
               >
-                {{ repeatButtonLabel }}
+                {{ tab.label }}
               </button>
             </div>
+            <PanelSearch
+              v-if="
+                activePanel !== 'overview' &&
+                (activePanel !== 'progress' || activeSubPanel === 'skills')
+              "
+              v-model="searchQuery"
+              :label="
+                activePanel === 'gear'
+                  ? 'gear'
+                  : activePanel === 'bag'
+                    ? 'bag'
+                    : activeSubPanel
+              "
+            />
           </div>
+          <details
+            v-if="favorites.length || recentCommands.length"
+            class="game-quick-links"
+          >
+            <summary>Favorites & recent</summary>
+            <div>
+              <button
+                v-for="command in favorites"
+                :key="'fav-' + commandId(command)"
+                class="app-btn app-btn--ghost app-btn--sm"
+                @click="openQuickCommand(command)"
+              >
+                ★ {{ command.label }}</button
+              ><button
+                v-for="command in recentCommands.filter(
+                  (value) =>
+                    !favorites.some(
+                      (fav) => commandId(fav) === commandId(value),
+                    ),
+                )"
+                :key="commandId(command)"
+                class="app-btn app-btn--ghost app-btn--sm"
+                @click="openQuickCommand(command)"
+              >
+                {{ command.label }}
+              </button>
+            </div>
+          </details>
         </nav>
-
-        <div
-          v-if="repeatDialog.open"
-          class="fixed inset-0 z-50 grid place-items-center bg-overlay-2 px-4 py-6"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="repeat-dialog-title"
-          @keydown.tab.prevent="repeatDialogClose?.focus()"
-        >
-          <div
-            class="w-full max-w-md rounded-md border border-border bg-surface px-4 py-4 shadow-xl"
-          >
-            <div class="flex items-start justify-between gap-4">
-              <div class="min-w-0">
-                <p
-                  id="repeat-dialog-title"
-                  class="text-sm font-ui text-primary"
-                >
-                  {{ repeatDialog.title }}
-                </p>
-                <p class="mt-2 text-sm text-muted-2">
-                  {{ repeatDialog.message }}
-                </p>
-              </div>
-              <button
-                ref="repeatDialogClose"
-                type="button"
-                class="rounded-md border border-border bg-surface-2 px-2 py-1 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                @click="closeRepeatDialog"
-              >
-                Close
-              </button>
-            </div>
-
-            <div v-if="repeatDialog.details.length" class="mt-4 grid gap-2">
-              <div
-                v-for="detail in repeatDialog.details"
-                :key="detail"
-                class="rounded-md border border-border bg-canvas px-3 py-2 text-xs text-muted-2"
-              >
-                {{ detail }}
-              </div>
-            </div>
-          </div>
-        </div>
-
         <p
           v-if="!evergatherPanelReady"
           class="surface-section p-5"
@@ -1180,7 +1237,7 @@ function isWorkspacePanel(panel) {
 
           <ProgressionPanel
             v-if="
-              activePanel === 'overview' && activeSubPanel === 'progression'
+              activePanel === 'progress' && activeSubPanel === 'progression'
             "
             class="xl:col-span-2"
             :progression="progression"
@@ -1194,33 +1251,44 @@ function isWorkspacePanel(panel) {
           />
 
           <GatheringPanel
+            :focus-request="
+              focusedPath?.action === 'gather' ? focusedPath : null
+            "
             v-if="activePanel === 'gather' && activeSubPanel === 'actions'"
             class="xl:col-span-2"
             :actions="actions"
             :player="player"
             :last-result="last_result"
             :search-term="searchQuery"
+            @clear-search="searchQuery = ''"
+            @recover="recover"
           />
 
           <SkillActivitiesPanel
+            :focus-request="
+              focusedPath?.action === 'activity' ? focusedPath : null
+            "
             v-if="activePanel === 'gather' && activeSubPanel === 'activities'"
             class="xl:col-span-2"
             :activities="skill_activities"
             :player="player"
             :last-result="last_result"
             :search-term="searchQuery"
+            @clear-search="searchQuery = ''"
+            @recover="recover"
           />
 
-          <template
-            v-if="activePanel === 'craft' && activeSubPanel === 'equipment'"
-          >
+          <template v-if="activePanel === 'gear'">
             <EquipmentPanel
               class="xl:col-span-2"
               :equipment="equipment"
               :tool-inventory="tool_inventory"
               :tool-rarity-upgrades="tool_rarity_upgrades"
               :tool-tier-upgrades="tool_tier_upgrades"
+              :player="player"
+              :material-sources="materialSources"
               :search-term="searchQuery"
+              @clear-search="searchQuery = ''"
             />
           </template>
 
@@ -1228,20 +1296,30 @@ function isWorkspacePanel(panel) {
             v-if="activePanel === 'craft' && activeSubPanel === 'recipes'"
           >
             <CraftingPanel
+              :focus-request="
+                focusedPath?.action === 'craft' ? focusedPath : null
+              "
               class="xl:col-span-2"
               :recipes="crafting_recipes"
               :player="player"
               :last-result="last_result"
               :search-term="searchQuery"
+              @clear-search="searchQuery = ''"
+              @recover="recover"
             />
           </template>
 
           <template v-if="activePanel === 'craft' && activeSubPanel === 'jobs'">
             <JobsPanel
+              :focus-request="
+                focusedPath?.action === 'job' ? focusedPath : null
+              "
               class="xl:col-span-2"
               :jobs="jobs"
               :last-result="last_result"
               :search-term="searchQuery"
+              @clear-search="searchQuery = ''"
+              @recover="recover"
             />
           </template>
 
@@ -1249,10 +1327,15 @@ function isWorkspacePanel(panel) {
             v-if="activePanel === 'craft' && activeSubPanel === 'expeditions'"
           >
             <ExpeditionsPanel
+              :focus-request="
+                focusedPath?.action === 'expedition' ? focusedPath : null
+              "
               class="xl:col-span-2"
               :expeditions="expeditions"
               :last-result="last_result"
               :search-term="searchQuery"
+              @clear-search="searchQuery = ''"
+              @recover="recover"
             />
           </template>
 
@@ -1264,14 +1347,20 @@ function isWorkspacePanel(panel) {
               :marketplace="marketplace"
               @page="marketPage = $event"
               :search-term="searchQuery"
+              @clear-search="searchQuery = ''"
+              :intent="tradeIntent"
             />
           </template>
 
           <template v-if="activePanel === 'trade' && activeSubPanel === 'shop'">
             <ShopPanel
+              :focus-request="
+                focusedPath?.action === 'shop' ? focusedPath : null
+              "
               class="xl:col-span-2"
               :shop="shop"
               :search-term="searchQuery"
+              @clear-search="searchQuery = ''"
             />
           </template>
 
@@ -1306,291 +1395,16 @@ function isWorkspacePanel(panel) {
             />
           </template>
 
-          <template
-            v-if="activePanel === 'trade' && activeSubPanel === 'inventory'"
-          >
-            <section class="surface-section xl:col-span-2">
-              <div class="surface-section__header">
-                <div class="surface-section__copy">
-                  <span class="surface-section__title">Inventory Guide</span>
-                  <p class="surface-section__subtitle">
-                    {{ item_guide.summary.owned_items }} owned items ·
-                    {{ item_guide.summary.owned_items_with_sinks }} with mapped
-                    uses ·
-                    {{ item_guide.summary.owned_items_with_fallback_sinks }}
-                    with fallback disposal.
-                  </p>
-                </div>
-              </div>
-
-              <div class="surface-section__body">
-                <div
-                  class="grid gap-4 xl:grid-cols-[14rem_minmax(0,1fr)_minmax(18rem,0.8fr)]"
-                >
-                  <div
-                    class="rounded-md border border-border bg-surface-2 px-3 py-3"
-                  >
-                    <p class="text-sm font-ui text-primary">Item Index</p>
-                    <div class="mt-3 flex flex-wrap gap-2 xl:grid">
-                      <button
-                        v-for="category in itemGuideCategories"
-                        :key="category.key"
-                        type="button"
-                        class="rounded-md border border-border bg-canvas px-3 py-2 text-left text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
-                        :class="{
-                          'border-focus/70 bg-focus/10 text-primary':
-                            selectedInventoryCategory === category.key,
-                        }"
-                        @click="selectedInventoryCategory = category.key"
-                      >
-                        {{ category.label }} · {{ category.count }}
-                      </button>
-                    </div>
-                    <div class="mt-4 grid gap-2 text-xs">
-                      <div class="flex items-center justify-between gap-3">
-                        <span class="text-muted-2">Visible</span>
-                        <span class="text-primary">{{
-                          visibleInventory.length
-                        }}</span>
-                      </div>
-                      <div class="flex items-center justify-between gap-3">
-                        <span class="text-muted-2">Weight</span>
-                        <span class="text-primary"
-                          >{{ visibleInventoryWeight }} wt</span
-                        >
-                      </div>
-                      <div class="flex items-center justify-between gap-3">
-                        <span class="text-muted-2">Value</span>
-                        <span class="text-primary"
-                          >{{ visibleInventoryValue }}g</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    v-if="visibleInventory.length"
-                    class="grid max-h-[42rem] gap-2 overflow-y-auto pr-1"
-                  >
-                    <button
-                      v-for="(item, index) in visibleInventory"
-                      :key="item.item_key"
-                      type="button"
-                      class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 text-left transition hover:border-focus/60 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
-                      :class="{
-                        'border-focus/70 bg-focus/10':
-                          selectedInventoryItem?.item_key === item.item_key,
-                      }"
-                      @click="selectedInventoryKey = item.item_key"
-                    >
-                      <div
-                        class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary"
-                      >
-                        #{{ index + 1 }}
-                      </div>
-                      <div class="min-w-0">
-                        <div class="flex flex-wrap items-center gap-2">
-                          <p
-                            class="min-w-0 truncate text-sm font-ui text-primary"
-                          >
-                            {{ item.item_name }}
-                          </p>
-                          <span class="tag capitalize">{{ item.rarity }}</span>
-                          <span class="tag capitalize">{{ item.quality }}</span>
-                        </div>
-                        <p class="mt-1 text-xs text-muted-2">
-                          {{ item.item_class }} · {{ item.material_family }} ·
-                          {{ item.market_price_band }}
-                        </p>
-                      </div>
-                      <div class="text-left md:text-right">
-                        <p class="text-sm font-ui text-primary">
-                          x{{ item.owned_quantity }}
-                        </p>
-                        <p class="mt-1 text-xs text-muted-3">
-                          {{ item.weight }} wt ea · {{ item.total_weight }} wt
-                        </p>
-                      </div>
-                    </button>
-                  </div>
-
-                  <p
-                    v-else
-                    class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
-                  >
-                    No inventory matches.
-                  </p>
-
-                  <aside
-                    v-if="selectedInventoryItem"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-3"
-                  >
-                    <div class="flex flex-wrap items-center gap-2">
-                      <p class="text-sm font-ui text-primary">
-                        {{ selectedInventoryItem.item_name }}
-                      </p>
-                      <span class="tag capitalize">{{
-                        selectedInventoryItem.rarity
-                      }}</span>
-                      <span class="tag capitalize">{{
-                        selectedInventoryItem.quality
-                      }}</span>
-                    </div>
-
-                    <div class="mt-3 grid gap-2 text-xs">
-                      <div class="flex items-center justify-between gap-3">
-                        <span class="text-muted-2">Owned</span>
-                        <span class="text-primary">{{
-                          selectedInventoryItem.owned_quantity
-                        }}</span>
-                      </div>
-                      <div class="flex items-center justify-between gap-3">
-                        <span class="text-muted-2">NPC floor</span>
-                        <span class="text-primary"
-                          >{{ selectedInventoryItem.npc_buy_price }}g</span
-                        >
-                      </div>
-                      <div class="flex items-center justify-between gap-3">
-                        <span class="text-muted-2">Market band</span>
-                        <span class="text-primary">{{
-                          selectedInventoryItem.market_price_band
-                        }}</span>
-                      </div>
-                      <div class="flex items-center justify-between gap-3">
-                        <span class="text-muted-2">Weight</span>
-                        <span class="text-primary"
-                          >{{ selectedInventoryItem.weight }} wt</span
-                        >
-                      </div>
-                    </div>
-
-                    <div
-                      class="mt-4 rounded-md border border-border bg-canvas px-3 py-3"
-                    >
-                      <p
-                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
-                      >
-                        Best Source
-                      </p>
-                      <p
-                        v-if="selectedInventoryItem.best_source"
-                        class="mt-2 text-sm text-primary"
-                      >
-                        {{ selectedInventoryItem.best_source.label }}
-                      </p>
-                      <p
-                        v-if="selectedInventoryItem.best_source"
-                        class="mt-1 text-xs text-muted-2"
-                      >
-                        {{ selectedInventoryItem.best_source.type }} ·
-                        {{ selectedInventoryItem.best_source.context }} · Lv
-                        {{ selectedInventoryItem.best_source.required_level }}
-                      </p>
-                      <p v-else class="mt-2 text-xs text-muted-2">
-                        No source mapped yet.
-                      </p>
-                    </div>
-
-                    <div
-                      class="mt-3 rounded-md border border-border bg-canvas px-3 py-3"
-                    >
-                      <p
-                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
-                      >
-                        Best Use
-                      </p>
-                      <p
-                        v-if="selectedInventoryItem.best_sink"
-                        class="mt-2 text-sm text-primary"
-                      >
-                        {{ selectedInventoryItem.best_sink.label }}
-                      </p>
-                      <p
-                        v-if="selectedInventoryItem.best_sink"
-                        class="mt-1 text-xs text-muted-2"
-                      >
-                        {{ selectedInventoryItem.best_sink.type }} ·
-                        {{ selectedInventoryItem.best_sink.context }} · Lv
-                        {{ selectedInventoryItem.best_sink.required_level }}
-                      </p>
-                      <p
-                        v-if="selectedInventoryItem.purpose"
-                        class="mt-2 text-xs text-muted-2"
-                      >
-                        {{ selectedInventoryItem.purpose }}
-                      </p>
-                      <p
-                        v-if="
-                          !selectedInventoryItem.best_sink &&
-                          selectedInventoryItem.best_fallback_sink
-                        "
-                        class="mt-2 text-xs text-muted-2"
-                      >
-                        Fallback:
-                        {{ selectedInventoryItem.best_fallback_sink.label }}
-                      </p>
-                      <p
-                        v-else-if="!selectedInventoryItem.best_sink"
-                        class="mt-2 text-xs text-muted-2"
-                      >
-                        No primary use mapped yet.
-                      </p>
-                    </div>
-
-                    <div class="mt-3 grid gap-2">
-                      <p
-                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
-                      >
-                        Known Paths
-                      </p>
-                      <div class="flex flex-wrap gap-2">
-                        <span
-                          v-for="source in selectedInventoryItem.sources.slice(
-                            0,
-                            4,
-                          )"
-                          :key="`source-${source.type}-${source.label}`"
-                          class="tag"
-                        >
-                          {{ source.type }}
-                        </span>
-                        <span
-                          v-for="sink in selectedInventoryItem.sinks.slice(
-                            0,
-                            4,
-                          )"
-                          :key="`sink-${sink.type}-${sink.label}`"
-                          class="tag"
-                        >
-                          {{ sink.type }}
-                        </span>
-                        <span
-                          v-for="sink in selectedInventoryItem.fallback_sinks.slice(
-                            0,
-                            2,
-                          )"
-                          :key="`fallback-${sink.type}-${sink.label}`"
-                          class="tag"
-                        >
-                          {{ sink.type }}
-                        </span>
-                        <span
-                          v-for="route in selectedInventoryItem.transfer_routes.slice(
-                            0,
-                            2,
-                          )"
-                          :key="`transfer-${route.type}-${route.label}`"
-                          class="tag"
-                        >
-                          {{ route.type }}
-                        </span>
-                      </div>
-                    </div>
-                  </aside>
-                </div>
-              </div>
-            </section>
-          </template>
+          <InventoryPanel
+            v-if="activePanel === 'bag'"
+            :guide="item_guide"
+            :buffs="view.active_buffs"
+            :search-term="searchQuery"
+            @clear-search="searchQuery = ''"
+            @recover="recover"
+            @navigate="navigatePath"
+            @trade="openTrade"
+          />
 
           <template
             v-if="activePanel === 'progress' && activeSubPanel === 'recent'"
@@ -1606,50 +1420,23 @@ function isWorkspacePanel(panel) {
               </div>
 
               <div class="surface-section__body">
-                <div class="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
-                  <div
-                    class="rounded-md border border-border bg-surface-2 px-3 py-3"
-                  >
-                    <p class="text-sm font-ui text-primary">Action Ledger</p>
-                    <div class="mt-3 grid gap-2 text-xs">
-                      <div class="flex items-center justify-between gap-3">
-                        <span class="text-muted-2">Visible</span>
-                        <span class="text-primary">{{
-                          recent_actions.length
-                        }}</span>
-                      </div>
-                      <div class="flex items-center justify-between gap-3">
-                        <span class="text-muted-2">XP</span>
-                        <span class="text-primary">{{
-                          recentActionExperience
-                        }}</span>
-                      </div>
-                      <div class="flex items-center justify-between gap-3">
-                        <span class="text-muted-2">Gold</span>
-                        <span class="text-primary">{{ recentActionGold }}</span>
-                      </div>
-                    </div>
-                  </div>
-
+                <div class="grid gap-3">
+                  <p class="text-xs text-muted-2">
+                    {{ recent_actions.length }} recent ·
+                    {{ recentActionExperience }} XP · {{ recentActionGold }}g
+                    net
+                  </p>
                   <div v-if="recent_actions.length" class="grid gap-3">
                     <article
-                      v-for="(entry, index) in recent_actions"
+                      v-for="entry in recent_actions"
                       :key="entry.id"
-                      class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                      class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_auto]"
                     >
-                      <div
-                        class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary"
-                      >
-                        #{{ index + 1 }}
-                      </div>
                       <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">
-                          <p
-                            class="min-w-0 truncate text-sm font-ui text-primary"
-                          >
-                            {{ entry.label || entry.action }}
+                          <p class="min-w-0 text-sm font-ui text-primary">
+                            {{ resultFeedback(entry) }}
                           </p>
-                          <span class="tag">{{ entry.platform }}</span>
                           <span
                             v-if="entry.event_label"
                             class="tag tag--success"
@@ -1664,11 +1451,10 @@ function isWorkspacePanel(panel) {
                         </p>
                       </div>
                       <div class="text-left md:text-right">
-                        <p class="text-sm font-ui text-primary">
-                          +{{ entry.experience_awarded }} XP
-                        </p>
-                        <p class="mt-1 text-xs text-muted-2">
-                          +{{ entry.gold_awarded }} gold
+                        <p class="text-xs text-muted-2">
+                          <time :datetime="entry.created_at">{{
+                            new Date(entry.created_at).toLocaleString()
+                          }}</time>
                         </p>
                       </div>
                     </article>
@@ -1685,6 +1471,92 @@ function isWorkspacePanel(panel) {
             </section>
           </template>
         </div>
+        <RecoveryDialog
+          v-if="recoveryRequest"
+          :request="recoveryRequest"
+          :sources="materialSources"
+          :player="player"
+          @close="recoveryRequest = null"
+        />
+        <footer class="game-action-bar" aria-label="Current action">
+          <div v-if="quickAction" class="game-action-bar__controls">
+            <div class="min-w-0">
+              <strong :title="quickAction.label">{{
+                quickAction.label
+              }}</strong>
+              <p>
+                {{
+                  autoRepeat ? "Auto running" : quickUnavailable || cooldownText
+                }}
+              </p>
+            </div>
+            <button
+              class="app-btn app-btn--primary app-btn--sm"
+              :disabled="
+                actionProcessing ||
+                Boolean(quickUnavailable) ||
+                !player.can_act_now
+              "
+              @click="repeatSelected"
+            >
+              Repeat once</button
+            ><button
+              class="app-btn app-btn--ghost app-btn--sm"
+              :aria-pressed="autoRepeat"
+              :disabled="!autoRepeat && Boolean(quickUnavailable)"
+              @click="toggleAuto"
+            >
+              {{ autoRepeat ? "Stop" : "Auto" }}</button
+            ><button
+              class="app-btn app-btn--ghost app-btn--sm"
+              :aria-pressed="isFavorite"
+              :aria-label="isFavorite ? 'Remove favorite' : 'Save favorite'"
+              @click="toggleFavorite(quickAction)"
+            >
+              <span aria-hidden="true">{{ isFavorite ? "★" : "☆" }}</span
+              ><span class="game-favorite-label">{{
+                isFavorite ? "Saved" : "Save"
+              }}</span></button
+            ><button
+              v-if="
+                quickUnavailable &&
+                quickEntry &&
+                ['craft', 'job', 'expedition'].includes(quickAction.action)
+              "
+              class="app-btn app-btn--ghost app-btn--sm"
+              @click="
+                recover({ action: quickAction.action, key: quickAction.key })
+              "
+            >
+              Get supplies</button
+            ><button
+              v-else-if="quickUnavailable && quickTool?.is_broken"
+              class="app-btn app-btn--ghost app-btn--sm"
+              @click="recover({ action: 'repair', key: quickTool.tool_id })"
+            >
+              Repair tool
+            </button>
+          </div>
+          <div v-if="feedback" class="game-action-bar__result">
+            <p role="status" aria-live="polite">{{ feedback }}</p>
+            <button
+              class="app-btn app-btn--ghost app-btn--sm"
+              @click="showResult"
+            >
+              Details
+            </button>
+          </div>
+          <p
+            v-if="autoRepeatNotice"
+            role="status"
+            class="game-action-bar__notice"
+          >
+            {{ autoRepeatNotice }}
+          </p>
+          <p v-if="!quickAction && !feedback" class="game-action-bar__notice">
+            Choose an action to start. Its repeat controls will stay here.
+          </p>
+        </footer>
       </div>
     </template>
   </section>

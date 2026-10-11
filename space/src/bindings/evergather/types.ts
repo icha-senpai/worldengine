@@ -25,6 +25,19 @@ export type AchievementDefinitions = __Infer<typeof AchievementDefinitions>;
 export const ActivityDefinitions = __t.object("ActivityDefinitions", {});
 export type ActivityDefinitions = __Infer<typeof ActivityDefinitions>;
 
+export const Buff = __t.object("Buff", {
+  key: __t.string(),
+  owner: __t.identity(),
+  itemKey: __t.string(),
+  name: __t.string(),
+  family: __t.string(),
+  effect: __t.string(),
+  skill: __t.string(),
+  percent: __t.u32(),
+  charges: __t.u32(),
+});
+export type Buff = __Infer<typeof Buff>;
+
 export const Catalog = __t.object("Catalog", {
   key: __t.string(),
   kind: __t.string(),
@@ -57,6 +70,13 @@ export type Contract = __Infer<typeof Contract>;
 
 export const CoreDefinitions = __t.object("CoreDefinitions", {});
 export type CoreDefinitions = __Infer<typeof CoreDefinitions>;
+
+export const EconomyState = __t.object("EconomyState", {
+  id: __t.u32(),
+  version: __t.string(),
+  appliedAt: __t.timestamp(),
+});
+export type EconomyState = __Infer<typeof EconomyState>;
 
 export const EquipmentDefinitions = __t.object("EquipmentDefinitions", {});
 export type EquipmentDefinitions = __Infer<typeof EquipmentDefinitions>;
@@ -92,6 +112,11 @@ export const Leaderboard = __t.object("Leaderboard", {
   skillExperience: __t.string(),
 });
 export type Leaderboard = __Infer<typeof Leaderboard>;
+
+export const LeaderboardExcluded = __t.object("LeaderboardExcluded", {
+  owner: __t.identity(),
+});
+export type LeaderboardExcluded = __Infer<typeof LeaderboardExcluded>;
 
 export const Listing = __t.object("Listing", {
   id: __t.u64(),
@@ -169,6 +194,9 @@ export type MarketTotals = __Infer<typeof MarketTotals>;
 
 export const MyAchievements = __t.object("MyAchievements", {});
 export type MyAchievements = __Infer<typeof MyAchievements>;
+
+export const MyBuffs = __t.object("MyBuffs", {});
+export type MyBuffs = __Infer<typeof MyBuffs>;
 
 export const MyCatalog = __t.object("MyCatalog", {});
 export type MyCatalog = __Infer<typeof MyCatalog>;

@@ -39,6 +39,7 @@ import BuyListingReducer from "./buy_listing_reducer";
 import BuyShopOfferReducer from "./buy_shop_offer_reducer";
 import CancelListingReducer from "./cancel_listing_reducer";
 import ClaimAchievementReducer from "./claim_achievement_reducer";
+import ClearLeaderboardsReducer from "./clear_leaderboards_reducer";
 import CompleteJobReducer from "./complete_job_reducer";
 import ConfigureAuthReducer from "./configure_auth_reducer";
 import ConfigureLocalPlayReducer from "./configure_local_play_reducer";
@@ -52,6 +53,9 @@ import PerformActionReducer from "./perform_action_reducer";
 import RefreshContentReducer from "./refresh_content_reducer";
 import RemoveToolReducer from "./remove_tool_reducer";
 import RepairToolReducer from "./repair_tool_reducer";
+import ResetAllProgressReducer from "./reset_all_progress_reducer";
+import ResetItemEconomyReducer from "./reset_item_economy_reducer";
+import ResetPlayerLevelsReducer from "./reset_player_levels_reducer";
 import RunExpeditionReducer from "./run_expedition_reducer";
 import SellToVendorReducer from "./sell_to_vendor_reducer";
 import SellToolToVendorReducer from "./sell_tool_to_vendor_reducer";
@@ -59,6 +63,7 @@ import SetUiScopeReducer from "./set_ui_scope_reducer";
 import UpdateCharacterReducer from "./update_character_reducer";
 import UpgradeToolRarityReducer from "./upgrade_tool_rarity_reducer";
 import UpgradeToolTierReducer from "./upgrade_tool_tier_reducer";
+import UseConsumableReducer from "./use_consumable_reducer";
 
 // Import all procedure arg schemas
 
@@ -78,6 +83,7 @@ import MarketListingsRow from "./market_listings_table";
 import MarketPageListingsRow from "./market_page_listings_table";
 import MarketSummaryRow from "./market_summary_table";
 import MyAchievementsRow from "./my_achievements_table";
+import MyBuffsRow from "./my_buffs_table";
 import MyCatalogRow from "./my_catalog_table";
 import MyContractsRow from "./my_contracts_table";
 import MyInventoryRow from "./my_inventory_table";
@@ -231,6 +237,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyAchievementsRow),
+  myBuffs: __table({
+    name: 'my_buffs',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyBuffsRow),
   myCatalog: __table({
     name: 'my_catalog',
     indexes: [
@@ -331,6 +344,7 @@ const reducersSchema = __reducers(
   __reducerSchema("buy_shop_offer", BuyShopOfferReducer),
   __reducerSchema("cancel_listing", CancelListingReducer),
   __reducerSchema("claim_achievement", ClaimAchievementReducer),
+  __reducerSchema("clear_leaderboards", ClearLeaderboardsReducer),
   __reducerSchema("complete_job", CompleteJobReducer),
   __reducerSchema("configure_auth", ConfigureAuthReducer),
   __reducerSchema("configure_local_play", ConfigureLocalPlayReducer),
@@ -344,6 +358,9 @@ const reducersSchema = __reducers(
   __reducerSchema("refresh_content", RefreshContentReducer),
   __reducerSchema("remove_tool", RemoveToolReducer),
   __reducerSchema("repair_tool", RepairToolReducer),
+  __reducerSchema("reset_all_progress", ResetAllProgressReducer),
+  __reducerSchema("reset_item_economy", ResetItemEconomyReducer),
+  __reducerSchema("reset_player_levels", ResetPlayerLevelsReducer),
   __reducerSchema("run_expedition", RunExpeditionReducer),
   __reducerSchema("sell_to_vendor", SellToVendorReducer),
   __reducerSchema("sell_tool_to_vendor", SellToolToVendorReducer),
@@ -351,6 +368,7 @@ const reducersSchema = __reducers(
   __reducerSchema("update_character", UpdateCharacterReducer),
   __reducerSchema("upgrade_tool_rarity", UpgradeToolRarityReducer),
   __reducerSchema("upgrade_tool_tier", UpgradeToolTierReducer),
+  __reducerSchema("use_consumable", UseConsumableReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

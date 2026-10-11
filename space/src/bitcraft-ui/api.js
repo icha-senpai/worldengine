@@ -980,7 +980,7 @@ export async function trackerSnapshot(tool, filters) {
     if (tool === "inventory") {
       const [response, items] = await Promise.all([
         trackerInventory(player, filters),
-        catalog("items", "", filters.itemSearch ?? ""),
+        catalog("inventory-items"),
       ]);
       return {
         ...inventoryTracker(player, response.data, items, filters),
@@ -995,7 +995,7 @@ export async function trackerSnapshot(tool, filters) {
       tracker: null,
       options:
         tool === "inventory"
-          ? await catalog("items", "", filters.itemSearch ?? "")
+          ? await catalog("inventory-items")
               .then((items) =>
                 items.map((item) => ({
                   ...item,

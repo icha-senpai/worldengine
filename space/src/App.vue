@@ -8,7 +8,11 @@ import SidebarIconRail from "./components/SidebarIconRail.vue";
 
 const route = useRoute();
 const home = computed(() => route.path === "/");
-const widget = computed(() => route.path.startsWith('/bitcraft/') && (route.params.mode === 'widget' || route.query.setup === '0'));
+const widget = computed(
+  () =>
+    route.path.startsWith("/bitcraft/") &&
+    (route.params.mode === "widget" || route.query.setup === "0"),
+);
 const navKey = "space.shellNavState";
 function readNavState() {
   try {
@@ -21,8 +25,16 @@ function readNavState() {
   }
 }
 const savedNav = readNavState();
-const collapsed = ref(savedNav.collapsed === true);
-const bitcraftOpen = ref(savedNav.bitcraftOpen !== false);
+const collapsed = ref(
+  route.path.startsWith("/evergather")
+    ? savedNav.gameCollapsed !== false
+    : savedNav.collapsed === true,
+);
+const bitcraftOpen = ref(
+  route.path.startsWith("/evergather")
+    ? false
+    : savedNav.bitcraftOpen !== false,
+);
 const mobileOpen = ref(false);
 const mobileToggle = ref<HTMLButtonElement | null>(null);
 const tools = [
@@ -89,8 +101,10 @@ watch([collapsed, bitcraftOpen], () => {
     localStorage.setItem(
       navKey,
       JSON.stringify({
-        collapsed: collapsed.value,
-        bitcraftOpen: bitcraftOpen.value,
+        ...readNavState(),
+        ...(inEvergather.value
+          ? { gameCollapsed: collapsed.value }
+          : { collapsed: collapsed.value, bitcraftOpen: bitcraftOpen.value }),
       }),
     );
   } catch {
@@ -101,6 +115,13 @@ watch(
   () => route.path,
   () => {
     mobileOpen.value = false;
+    const preferred = readNavState();
+    collapsed.value = inEvergather.value
+      ? preferred.gameCollapsed !== false
+      : preferred.collapsed === true;
+    bitcraftOpen.value = inEvergather.value
+      ? false
+      : preferred.bitcraftOpen !== false;
   },
 );
 function escapeMobile(event: KeyboardEvent) {

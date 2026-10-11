@@ -82,7 +82,7 @@
 
             <div v-if="pickerOpen" class="inventory-tracker-picker__menu">
               <button
-                v-for="option in filteredOptions"
+                v-for="option in visibleOptions"
                 :key="option.key"
                 type="button"
                 class="inventory-tracker-picker__option"
@@ -98,7 +98,18 @@
                 >
               </button>
 
-              <p v-if="filteredOptions.length === 0">No matches loaded.</p>
+              <p v-if="filteredOptions.length === 0">
+                No matching items or cargo.
+              </p>
+              <button
+                v-if="visibleOptions.length < filteredOptions.length"
+                type="button"
+                class="inventory-tracker-picker__option"
+                @click="visibleOptionCount += 100"
+              >
+                Show more ({{ visibleOptions.length }} of
+                {{ filteredOptions.length }})
+              </button>
             </div>
           </div>
 
@@ -258,6 +269,7 @@ const error = ref(props.snapshot.error);
 const sampledAt = ref(props.snapshot.sampledAt);
 const refreshStatus = ref(props.snapshot.refresh ?? {});
 const pickerOpen = ref(false);
+const visibleOptionCount = ref(100);
 const pickerElement = ref(null);
 
 const parseItemKeys = (value) => {
@@ -374,20 +386,27 @@ const selectedOptions = computed(() =>
 const filteredOptions = computed(() => {
   const search = form.itemSearch.toLowerCase();
 
-  return options.value
-    .filter((option) => {
-      if (!search) {
-        return true;
-      }
+  return options.value.filter((option) => {
+    if (!search) {
+      return true;
+    }
 
-      return [option.name, option.kind, option.tag, option.rarity]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(search);
-    })
-    .slice(0, 40);
+    return [option.name, option.kind, option.tag, option.rarity]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(search);
+  });
 });
+const visibleOptions = computed(() =>
+  filteredOptions.value.slice(0, visibleOptionCount.value),
+);
+watch(
+  () => form.itemSearch,
+  () => {
+    visibleOptionCount.value = 100;
+  },
+);
 
 const itemMetaLabel = (item) => {
   return [item.kind, item.tag, item.rarity].filter(Boolean).join(" · ");

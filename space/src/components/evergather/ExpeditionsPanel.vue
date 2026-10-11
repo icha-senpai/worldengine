@@ -10,122 +10,105 @@
     </div>
 
     <div class="surface-section__body">
-      <div class="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
-        <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-          <div class="flex items-center justify-between gap-3">
-            <p class="text-sm font-ui text-primary">Route Board</p>
-            <span class="tag"
-              >{{ activeBoard.count }} {{ activeBoard.unit }}</span
-            >
-          </div>
-          <p class="mt-1 text-xs text-muted-3">{{ activeBoard.description }}</p>
-
-          <div class="mt-3 grid grid-cols-2 gap-2">
-            <button
-              v-for="board in expeditionBoards"
-              :key="board.key"
-              type="button"
-              class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
-              :class="{
-                'border-focus/70 bg-focus/10': selectedBoard === board.key,
-              }"
-              @click="selectedBoard = board.key"
-            >
-              <span class="block text-xs font-ui text-primary">{{
-                board.label
-              }}</span>
-              <span class="mt-1 block text-[11px] text-muted-3"
-                >{{ board.count }} {{ board.unit }}</span
+      <BoardLayout
+        :boards="expeditionBoards"
+        v-model:board="selectedBoard"
+        :search-term="searchTerm"
+        @clear="clearFilters"
+        :filters="filters"
+        v-model:filter="selectedFilter"
+      >
+        <template #filters
+          ><div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-sm font-ui text-primary">Route Board</p>
+              <span class="tag"
+                >{{ activeBoard.count }} {{ activeBoard.unit }}</span
               >
-            </button>
-          </div>
+            </div>
+            <p class="mt-1 text-xs text-muted-3">
+              {{ activeBoard.description }}
+            </p>
 
-          <div class="mt-4 grid gap-2">
-            <button
-              v-for="filter in filters"
-              :key="filter.key"
-              type="button"
-              class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
-              :class="{
-                'border-focus/70 bg-focus/10': selectedFilter === filter.key,
-              }"
-              @click="selectedFilter = filter.key"
-            >
-              <span class="flex min-w-0 items-center justify-between gap-2">
-                <span class="truncate text-xs font-ui text-primary">{{
-                  filter.label
+            <div class="mt-3 grid grid-cols-2 gap-2">
+              <button
+                v-for="board in expeditionBoards"
+                :key="board.key"
+                type="button"
+                class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                :class="{
+                  'border-focus/70 bg-focus/10': selectedBoard === board.key,
+                }"
+                @click="selectedBoard = board.key"
+              >
+                <span class="block text-xs font-ui text-primary">{{
+                  board.label
                 }}</span>
-                <span class="text-[11px] text-muted-3">{{
-                  filter.metaLabel
-                }}</span>
-              </span>
-              <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
-                <span
-                  class="block h-full rounded-full bg-focus"
-                  :style="{ width: `${filterProgress(filter)}%` }"
-                />
-              </span>
-            </button>
-          </div>
+                <span class="mt-1 block text-[11px] text-muted-3"
+                  >{{ board.count }} {{ board.unit }}</span
+                >
+              </button>
+            </div>
 
-          <div class="mt-3 grid gap-2 text-xs">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Ready</span>
-              <span class="text-primary">{{
-                visibleExpeditions.filter((expedition) => expedition.can_start)
-                  .length
-              }}</span>
+            <div class="mt-4 grid gap-2">
+              <button
+                v-for="filter in filters"
+                :key="filter.key"
+                type="button"
+                class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                :class="{
+                  'border-focus/70 bg-focus/10': selectedFilter === filter.key,
+                }"
+                @click="selectedFilter = filter.key"
+              >
+                <span class="flex min-w-0 items-center justify-between gap-2">
+                  <span class="truncate text-xs font-ui text-primary">{{
+                    filter.label
+                  }}</span>
+                  <span class="text-[11px] text-muted-3">{{
+                    filter.metaLabel
+                  }}</span>
+                </span>
+                <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                  <span
+                    class="block h-full rounded-full bg-focus"
+                    :style="{ width: `${filterProgress(filter)}%` }"
+                  />
+                </span>
+              </button>
             </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Gold</span>
-              <span class="text-primary">{{ visibleGold }}g</span>
+
+            <div class="mt-3 grid gap-2 text-xs">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">Ready</span>
+                <span class="text-primary">{{
+                  visibleExpeditions.filter(
+                    (expedition) => expedition.can_start,
+                  ).length
+                }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">Gold</span>
+                <span class="text-primary">{{ visibleGold }}g</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">XP</span>
+                <span class="text-primary">{{ visibleExperience }}</span>
+              </div>
             </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">XP</span>
-              <span class="text-primary">{{ visibleExperience }}</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            class="app-btn app-btn--ghost app-btn--sm mt-4 w-full"
-            :class="{
-              'border-focus/70 bg-focus/10 text-primary': autoRepeatEnabled,
-            }"
-            :disabled="!repeatExpeditionKey"
-            @click="toggleAutoRepeatExpedition"
-          >
-            {{ autoRepeatEnabled ? "Repeating" : "Repeat Last" }}
-          </button>
-        </div>
+          </div></template
+        >
 
         <div class="grid content-start gap-3">
-          <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p class="text-sm font-ui text-primary">
-                  {{ activeBoard.label }}
-                </p>
-                <p class="mt-1 text-xs text-muted-3">
-                  {{ activeFilter.label }} ·
-                  {{ visibleExpeditions.length }} visible
-                </p>
-              </div>
-              <span class="tag">{{ visibleGold }}g</span>
-            </div>
-          </div>
-
           <article
-            v-for="(expedition, index) in visibleExpeditions"
+            v-for="(expedition, index) in preferredEntries(
+              visibleExpeditions,
+              'expedition',
+            )"
             :key="expedition.key"
-            class="grid min-h-32 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem]"
             :class="{ 'opacity-70': !expedition.is_unlocked }"
           >
-            <div
-              class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary"
-            >
-              #{{ index + 1 }}
-            </div>
-
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <p class="min-w-0 truncate text-sm font-ui text-primary">
@@ -181,12 +164,16 @@
               </div>
               <button
                 type="button"
-                class="app-btn app-btn--sm"
+                class="app-btn app-btn--primary app-btn--sm"
                 :disabled="isExpeditionDisabled(expedition)"
                 @click="requestExpedition(expedition.key)"
               >
                 {{
-                  runningExpedition === expedition.key ? "Running..." : "Run"
+                  !expedition.can_start
+                    ? "Get supplies"
+                    : runningExpedition === expedition.key
+                      ? "Running..."
+                      : "Run"
                 }}
               </button>
             </div>
@@ -208,12 +195,9 @@
             {{ emptyBoardMessage }}
           </p>
         </div>
-      </div>
+      </BoardLayout>
 
-      <p
-        v-if="form.errors.expedition"
-        class="mt-4 text-sm text-danger"
-      >
+      <p v-if="form.errors.expedition" class="mt-4 text-sm text-danger">
         {{ form.errors.expedition }}
       </p>
     </div>
@@ -221,11 +205,22 @@
 </template>
 
 <script setup>
+import {
+  selectQuickAction,
+  preferredEntries,
+} from "../../evergather/playSession";
+import BoardLayout from "./BoardLayout.vue";
+const emit = defineEmits(["clear-search", "recover"]);
+function clearFilters() {
+  selectedFilter.value = "All";
+  emit("clear-search");
+}
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useActionForm } from "../../evergather/useActionForm";
-import { usePersistedPanelState } from "./usePanelState";
+import { usePersistedPanelState, usePanelFocus } from "./usePanelState";
 
 const props = defineProps({
+  focusRequest: { type: Object, default: null },
   expeditions: {
     type: Array,
     required: true,
@@ -257,7 +252,6 @@ const boardPageSize = 12;
 const visibleLimit = ref(boardPageSize);
 const runningExpedition = ref(null);
 const repeatExpeditionKey = ref("");
-const autoRepeatEnabled = ref(false);
 const queuedExpeditions = ref([]);
 const localExpeditions = ref([...props.expeditions]);
 
@@ -314,7 +308,9 @@ const readyExpeditions = computed(() =>
 );
 const prepareExpeditions = computed(() =>
   filteredExpeditions.value.filter(
-    (expedition) => expedition.is_unlocked && !expedition.can_start,
+    (expedition) =>
+      (expedition.is_unlocked || expedition.key === props.focusRequest?.key) &&
+      !expedition.can_start,
   ),
 );
 const expeditionBoards = computed(() => [
@@ -341,7 +337,10 @@ const activeBoard = computed(
     expeditionBoards.value[0],
 );
 const visibleExpeditions = computed(() =>
-  activeBoard.value.entries.slice(0, visibleLimit.value),
+  preferredEntries(activeBoard.value.entries, "expedition").slice(
+    0,
+    visibleLimit.value,
+  ),
 );
 const canShowMoreExpeditions = computed(
   () => activeBoard.value.entries.length > visibleExpeditions.value.length,
@@ -450,6 +449,14 @@ function filterProgress(filter) {
 }
 
 function requestExpedition(expedition) {
+  const entry = localExpeditions.value.find(
+    (value) => value.key === expedition,
+  );
+  if (!entry?.can_start) {
+    emit("recover", { action: "expedition", key: expedition });
+    return;
+  }
+  selectQuickAction("expedition", entry);
   repeatExpeditionKey.value = expedition;
 
   if (form.processing) {
@@ -479,38 +486,8 @@ function run(expedition) {
   });
 }
 
-function maybeRepeatExpedition() {
-  if (
-    !autoRepeatEnabled.value ||
-    !repeatExpeditionKey.value ||
-    form.processing
-  ) {
-    return;
-  }
-
-  const expedition = localExpeditions.value.find(
-    (entry) => entry.key === repeatExpeditionKey.value,
-  );
-
-  if (!expedition?.can_start) {
-    autoRepeatEnabled.value = false;
-
-    return;
-  }
-
-  run(repeatExpeditionKey.value);
-}
-
 function isExpeditionDisabled(expedition) {
-  return !expedition.can_start;
-}
-
-function toggleAutoRepeatExpedition() {
-  autoRepeatEnabled.value = !autoRepeatEnabled.value;
-
-  if (autoRepeatEnabled.value) {
-    queueNextExpedition();
-  }
+  return !expedition.is_unlocked;
 }
 
 function queueNextExpedition(delay = 0) {
@@ -528,8 +505,6 @@ function queueNextExpedition(delay = 0) {
 
       return;
     }
-
-    maybeRepeatExpedition();
   }, delay);
 }
 
@@ -565,13 +540,19 @@ watch(
   () => form.errors,
   (errors) => {
     if (Object.keys(errors).length) {
-      autoRepeatEnabled.value = false;
       queuedExpeditions.value = [];
     }
   },
 );
 onBeforeUnmount(() => {
-  autoRepeatEnabled.value = false;
   queuedExpeditions.value = [];
 });
+usePanelFocus(
+  () => props.focusRequest,
+  () => localExpeditions.value,
+  (entry) => {
+    selectedFilter.value = "All";
+    selectedBoard.value = entry.can_start ? "ready" : "prepare";
+  },
+);
 </script>

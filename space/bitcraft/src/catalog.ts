@@ -250,6 +250,8 @@ export function catalogResponse(kind: string, id: string, q: string) {
       snapshot: { available: true, generatedAt: content.generatedAt },
     };
   }
+  if (kind === "inventory-items")
+    return content.items.map(({ description: _description, ...row }) => row);
   if (kind === "items" || kind === "targets")
     return (kind === "targets" ? targets : content.items)
       .filter(

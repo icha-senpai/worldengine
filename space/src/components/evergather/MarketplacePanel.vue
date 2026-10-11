@@ -20,7 +20,7 @@
         aria-label="Marketplace pages"
       >
         <button
-          class="app-btn app-btn--sm"
+          class="app-btn app-btn--primary app-btn--sm"
           :disabled="marketplace.pagination.page <= 1"
           @click="$emit('page', marketplace.pagination.page - 1)"
         >
@@ -31,7 +31,7 @@
           {{ marketplace.pagination.pages }} · search applies to this page</span
         >
         <button
-          class="app-btn app-btn--sm"
+          class="app-btn app-btn--primary app-btn--sm"
           :disabled="
             marketplace.pagination.page >= marketplace.pagination.pages
           "
@@ -40,52 +40,60 @@
           Next
         </button>
       </div>
-      <div class="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
-        <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-          <div class="flex items-center justify-between gap-3">
-            <p class="text-sm font-ui text-primary">Market Desk</p>
-            <span class="tag">{{ activeBoardRecord.count }}</span>
-          </div>
+      <BoardLayout
+        :boards="boards"
+        state-label="Market view"
+        v-model:board="activeBoard"
+        :search-term="searchTerm"
+        @clear="clearFilters"
+      >
+        <template #filters
+          ><div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-sm font-ui text-primary">Market Desk</p>
+              <span class="tag">{{ activeBoardRecord.count }}</span>
+            </div>
 
-          <div class="mt-4 grid gap-2">
-            <button
-              v-for="board in boards"
-              :key="board.key"
-              type="button"
-              class="grid gap-1 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
-              :class="{
-                'border-focus/70 bg-focus/10': activeBoard === board.key,
-              }"
-              @click="activeBoard = board.key"
-            >
-              <span class="truncate text-xs font-ui text-primary">{{
-                board.label
-              }}</span>
-              <span class="text-[11px] text-muted-3"
-                >{{ board.count }} records</span
+            <div class="mt-4 grid gap-2">
+              <button
+                v-for="board in boards"
+                :key="board.key"
+                type="button"
+                class="grid gap-1 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                :class="{
+                  'border-focus/70 bg-focus/10': activeBoard === board.key,
+                }"
+                @click="activeBoard = board.key"
               >
-            </button>
-          </div>
+                <span class="truncate text-xs font-ui text-primary">{{
+                  board.label
+                }}</span>
+                <span class="text-[11px] text-muted-3"
+                  >{{ board.count }} records</span
+                >
+              </button>
+            </div>
 
-          <div class="mt-3 grid gap-2 text-xs">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Listings</span>
-              <span class="text-primary">{{
-                visibleActiveListings.length
-              }}</span>
+            <div class="mt-3 grid gap-2 text-xs">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">Listings</span>
+                <span class="text-primary">{{
+                  visibleActiveListings.length
+                }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">Sellable</span>
+                <span class="text-primary">{{
+                  visibleSellableInventory.length
+                }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">Volume</span>
+                <span class="text-primary">{{ marketVolume }}g</span>
+              </div>
             </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Sellable</span>
-              <span class="text-primary">{{
-                visibleSellableInventory.length
-              }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Volume</span>
-              <span class="text-primary">{{ marketVolume }}g</span>
-            </div>
-          </div>
-        </div>
+          </div></template
+        >
 
         <form
           v-if="activeBoard === 'sell'"
@@ -374,13 +382,8 @@
           <article
             v-for="(row, index) in visibleMarketRows"
             :key="`${row.listing_type}-${row.item_key ?? row.item_name}`"
-            class="grid min-h-28 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem]"
           >
-            <div
-              class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary"
-            >
-              #{{ index + 1 }}
-            </div>
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <p class="truncate text-sm font-ui text-primary">
@@ -426,13 +429,8 @@
           <article
             v-for="(transaction, index) in visibleTransactions"
             :key="transaction.id"
-            class="grid min-h-28 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem]"
           >
-            <div
-              class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary"
-            >
-              #{{ index + 1 }}
-            </div>
             <div class="min-w-0">
               <p class="truncate text-sm font-ui text-primary">
                 {{ transaction.item_name }}
@@ -477,14 +475,8 @@
           <article
             v-for="(listing, index) in visibleActiveListings"
             :key="listing.id"
-            class="grid min-h-28 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem]"
           >
-            <div
-              class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary"
-            >
-              #{{ index + 1 }}
-            </div>
-
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <p class="min-w-0 truncate text-sm font-ui text-primary">
@@ -536,7 +528,7 @@
               <button
                 v-else
                 type="button"
-                class="app-btn app-btn--sm"
+                class="app-btn app-btn--primary app-btn--sm"
                 :disabled="actionForm.processing || !listing.can_buy"
                 @click="buyListing(listing.id)"
               >
@@ -561,7 +553,7 @@
             }}
           </p>
         </div>
-      </div>
+      </BoardLayout>
 
       <p v-if="actionForm.errors.listing" class="mt-4 text-sm text-danger">
         {{ actionForm.errors.listing }}
@@ -571,13 +563,18 @@
 </template>
 
 <script setup>
+import BoardLayout from "./BoardLayout.vue";
+const emit = defineEmits(["clear-search", "recover", "page"]);
+function clearFilters() {
+  emit("clear-search");
+}
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { computed, nextTick, ref, watch } from "vue";
 import { useActionForm } from "../../evergather/useActionForm";
 import { usePersistedPanelState } from "./usePanelState";
 
-defineEmits(["page"]);
 const props = defineProps({
+  intent: { type: Object, default: null },
   marketplace: {
     type: Object,
     required: true,
@@ -617,6 +614,19 @@ const vendorForm = useActionForm({
 });
 
 const actionForm = useActionForm({});
+
+watch(
+  () => props.intent,
+  (intent) => {
+    if (!intent) return;
+    activeBoard.value = intent.mode;
+    listingForm.item_key = intent.itemKey;
+    listingForm.quantity = 1;
+    vendorForm.item_key = intent.itemKey;
+    vendorForm.quantity = 1;
+  },
+  { immediate: true },
+);
 
 const listingError = computed(
   () =>

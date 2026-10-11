@@ -3,14 +3,26 @@ import {
   xpForLevel,
   levelForXp,
   maxDurability,
+  itemTier,
+  tierLevels,
   assertQuantity,
 } from "../spacetimedb/src/rules";
 import { upstreamRequest } from "../bitcraft/src/requests";
-import reference from './fixtures/legacy-rules.json';
+import reference from "./fixtures/legacy-rules.json";
 describe("legacy Evergather progression", () => {
-  it('matches the live Laravel export at every XP threshold and durability tier',()=>{
-    for(const row of reference.experience)expect(xpForLevel(row.level),`Level ${row.level} XP`).toBe(row.experience);
-    for(const row of reference.durability)expect(maxDurability(row.level,row.rarity),`${row.level}/${row.rarity} durability`).toBe(row.maximum);
+  it("matches the live Laravel export at every XP threshold and durability tier", () => {
+    for (const row of reference.experience)
+      expect(xpForLevel(row.level), `Level ${row.level} XP`).toBe(
+        row.experience,
+      );
+    const oldGates = [1, 5, 10, 20, 30, 40, 50, 65, 80, 100];
+    for (const row of reference.durability)
+      expect(
+        maxDurability(
+          Math.max(1, oldGates.filter((gate) => gate <= row.level).length) * 10,
+          row.rarity,
+        ),
+      ).toBe(row.maximum);
   });
   it("preserves calibrated level anchors and exact unlock boundaries", () => {
     for (const [level, xp] of [
@@ -29,6 +41,14 @@ describe("legacy Evergather progression", () => {
     for (let level = 2; level <= 100; level++)
       expect(xpForLevel(level)).toBeGreaterThan(xpForLevel(level - 1));
     expect(levelForXp(1_000_000)).toBe(100);
+  });
+  it("uses ten level gates with starter equipment below ten", () => {
+    expect(tierLevels).toEqual([10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
+    expect(itemTier(9)).toBe(0);
+    for (const level of tierLevels) {
+      expect(itemTier(level)).toBe(level / 10);
+      expect(itemTier(level - 1)).toBe(level / 10 - 1);
+    }
   });
   it("preserves durability endpoints", () => {
     expect(maxDurability(1, "common")).toBe(100);

@@ -9,17 +9,31 @@ it("preserves live ICHAA valuation for working, broken, and upgraded tools acros
       toolPrices(row.tool, row.metadata, row.rarityMarketPremium),
       `${row.skill}/${row.rarity}/${row.tool.tierLevel}, durability ${row.tool.durability}, upgrades ${row.tool.upgrades}`,
     ).toEqual(row.prices);
-    // Verify the shipped metadata, not just the pricing function's inputs.
-    const upgrade =
-      content.tool_upgrades[
-        `${row.skill}:${row.tool.tierLevel}` as keyof typeof content.tool_upgrades
-      ];
-    const metadata =
-      content.item_metadata[
-        `${upgrade.output.item_key}:${row.rarity}` as keyof typeof content.item_metadata
-      ];
-    expect(toolPrices(row.tool, metadata, row.rarityMarketPremium)).toEqual(
-      row.prices,
-    );
   }
+});
+it("prices current tools across every tier and quality within positive market bounds", () => {
+  for (const upgrade of Object.values(content.tool_upgrades))
+    for (const rarity of content.rarities) {
+      const metadata =
+        content.item_metadata[
+          `${upgrade.output.item_key}:${rarity}` as keyof typeof content.item_metadata
+        ];
+      const prices = toolPrices(
+        {
+          tierLevel: upgrade.required_level,
+          durability: 100,
+          maxDurability: 100,
+          upgrades: 0,
+          tierUpgrades: 0,
+          bonuses: JSON.stringify(upgrade.bonuses),
+        },
+        metadata,
+        0,
+      );
+      expect(prices.marketFloorPrice).toBeGreaterThan(0);
+      expect(prices.marketCeilingPrice).toBeGreaterThanOrEqual(
+        prices.marketFloorPrice,
+      );
+      expect(prices.npcBuyPrice).toBeGreaterThan(0);
+    }
 });

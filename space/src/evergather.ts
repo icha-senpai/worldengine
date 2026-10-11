@@ -111,6 +111,7 @@ export function initializeEvergather(enabled: Ref<boolean>) {
             "myResults",
             "myContracts",
             "myAchievements",
+            "myBuffs",
           ] as const) {
             const table = connection.db[name];
             table.onInsert(changed);
@@ -272,6 +273,7 @@ export function initializeEvergather(enabled: Ref<boolean>) {
               "SELECT * FROM my_results",
               "SELECT * FROM my_contracts",
               "SELECT * FROM my_achievements",
+              "SELECT * FROM my_buffs",
             ]);
         })
         .onConnectError(() => {

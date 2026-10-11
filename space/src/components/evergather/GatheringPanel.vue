@@ -10,134 +10,119 @@
     </div>
 
     <div class="surface-section__body">
-      <div class="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
-        <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-          <div class="flex items-center justify-between gap-3">
-            <p class="text-sm font-ui text-primary">Action Board</p>
-            <span class="tag"
-              >{{ activeBoard.count }} {{ activeBoard.unit }}</span
-            >
-          </div>
-          <p class="mt-1 text-xs text-muted-3">{{ activeBoard.description }}</p>
-
-          <div class="mt-3 grid grid-cols-2 gap-2">
-            <button
-              v-for="board in actionBoards"
-              :key="board.key"
-              type="button"
-              class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
-              :class="{
-                'border-focus/70 bg-focus/10': selectedBoard === board.key,
-              }"
-              @click="selectedBoard = board.key"
-            >
-              <span class="block text-xs font-ui text-primary">{{
-                board.label
-              }}</span>
-              <span class="mt-1 block text-[11px] text-muted-3"
-                >{{ board.count }} {{ board.unit }}</span
+      <BoardLayout
+        :boards="actionBoards"
+        v-model:board="selectedBoard"
+        :search-term="searchTerm"
+        @clear="clearFilters"
+        :filters="filters"
+        v-model:filter="selectedFilter"
+      >
+        <template #filters
+          ><div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-sm font-ui text-primary">Action Board</p>
+              <span class="tag"
+                >{{ activeBoard.count }} {{ activeBoard.unit }}</span
               >
-            </button>
-          </div>
+            </div>
+            <p class="mt-1 text-xs text-muted-3">
+              {{ activeBoard.description }}
+            </p>
 
-          <div class="mt-4 grid gap-2">
-            <button
-              v-for="filter in filters"
-              :key="filter.key"
-              type="button"
-              class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
-              :class="{
-                'border-focus/70 bg-focus/10': selectedFilter === filter.key,
-              }"
-              @click="selectedFilter = filter.key"
-            >
-              <span class="flex min-w-0 items-center justify-between gap-2">
-                <span class="truncate text-xs font-ui text-primary">{{
-                  filter.label
+            <div class="mt-3 grid grid-cols-2 gap-2">
+              <button
+                v-for="board in actionBoards"
+                :key="board.key"
+                type="button"
+                class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                :class="{
+                  'border-focus/70 bg-focus/10': selectedBoard === board.key,
+                }"
+                @click="selectedBoard = board.key"
+              >
+                <span class="block text-xs font-ui text-primary">{{
+                  board.label
                 }}</span>
-                <span class="text-[11px] text-muted-3">{{
-                  filter.metaLabel
-                }}</span>
-              </span>
-              <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
-                <span
-                  class="block h-full rounded-full bg-focus"
-                  :style="{ width: `${filterProgress(filter)}%` }"
-                />
-              </span>
-            </button>
-          </div>
+                <span class="mt-1 block text-[11px] text-muted-3"
+                  >{{ board.count }} {{ board.unit }}</span
+                >
+              </button>
+            </div>
 
-          <div class="mt-3 grid gap-2 text-xs">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Unlocked</span>
-              <span class="text-primary">{{ activeUnlockedCount }}</span>
+            <div class="mt-4 grid gap-2">
+              <button
+                v-for="filter in filters"
+                :key="filter.key"
+                type="button"
+                class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                :class="{
+                  'border-focus/70 bg-focus/10': selectedFilter === filter.key,
+                }"
+                @click="selectedFilter = filter.key"
+              >
+                <span class="flex min-w-0 items-center justify-between gap-2">
+                  <span class="truncate text-xs font-ui text-primary">{{
+                    filter.label
+                  }}</span>
+                  <span class="text-[11px] text-muted-3">{{
+                    filter.metaLabel
+                  }}</span>
+                </span>
+                <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                  <span
+                    class="block h-full rounded-full bg-focus"
+                    :style="{ width: `${filterProgress(filter)}%` }"
+                  />
+                </span>
+              </button>
             </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Locked</span>
-              <span class="text-primary">{{
-                visibleActions.length - activeUnlockedCount
-              }}</span>
+
+            <div class="mt-3 grid gap-2 text-xs">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">Unlocked</span>
+                <span class="text-primary">{{ activeUnlockedCount }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">Locked</span>
+                <span class="text-primary">{{
+                  visibleActions.length - activeUnlockedCount
+                }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">State</span>
+                <span class="text-primary">{{
+                  canActNow ? "Ready" : "Cooldown"
+                }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">Timer</span>
+                <span class="text-primary">{{ cooldownLabel }}</span>
+              </div>
             </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">State</span>
-              <span class="text-primary">{{
-                canActNow ? "Ready" : "Cooldown"
-              }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Timer</span>
-              <span class="text-primary">{{ cooldownLabel }}</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            class="app-btn app-btn--ghost app-btn--sm mt-4 w-full"
-            :class="{
-              'border-focus/70 bg-focus/10 text-primary': autoRepeatEnabled,
-            }"
-            :disabled="!repeatActionKey"
-            @click="toggleAutoRepeatAction"
-          >
-            {{ autoRepeatEnabled ? "Repeating" : "Repeat Last" }}
-          </button>
-        </div>
+          </div></template
+        >
 
         <div class="grid content-start gap-3">
-          <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p class="text-sm font-ui text-primary">
-                  {{ activeBoard.label }}
-                </p>
-                <p class="mt-1 text-xs text-muted-3">
-                  {{ activeFilter.label }} · {{ visibleActions.length }} visible
-                </p>
-              </div>
-              <span class="tag">{{ cooldownLabel }}</span>
-            </div>
-          </div>
-
           <button
-            v-for="(action, index) in visibleActions"
+            v-for="(action, index) in preferredEntries(
+              visibleActions,
+              'gather',
+            )"
             :key="action.key"
             type="button"
-            class="grid min-h-32 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 text-left transition hover:border-focus/60 disabled:cursor-not-allowed disabled:opacity-55 md:grid-cols-[3rem_minmax(0,1fr)_5.75rem]"
-            :disabled="isActionDisabled(action)"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 text-left transition hover:border-focus/60 disabled:cursor-not-allowed disabled:opacity-55 md:grid-cols-[minmax(0,1fr)_6rem]"
+            :disabled="isActionDisabled(action) && !requiresToolRepair(action)"
             @click="requestAction(action.key)"
           >
-            <span
-              class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary"
-            >
-              #{{ index + 1 }}
-            </span>
-
             <span class="min-w-0">
               <span class="flex flex-wrap items-center gap-2">
                 <span class="min-w-0 truncate text-sm font-ui text-primary">{{
                   action.label
                 }}</span>
-                <span class="tag">{{ action.skill_label }}</span>
+                <span v-if="action.label !== action.skill_label" class="tag">{{
+                  action.skill_label
+                }}</span>
                 <span class="tag">Lv {{ action.required_level }}</span>
                 <span
                   v-if="action.active_event"
@@ -159,21 +144,9 @@
                   v-for="item in action.loot_preview.slice(0, 3)"
                   :key="item.item_key"
                   class="tag capitalize"
+                  :data-rarity="item.rarity"
                 >
                   {{ item.item_name }}
-                  <span class="text-muted-3"
-                    >· {{ item.rarity }} · {{ item.weight }} wt</span
-                  >
-                </span>
-                <span
-                  v-for="perk in (action.equipped_tool?.perks ?? []).slice(
-                    0,
-                    2,
-                  )"
-                  :key="`${action.key}-${perk.key}`"
-                  class="tag"
-                >
-                  {{ perk.label }}
                 </span>
               </span>
             </span>
@@ -222,7 +195,7 @@
             {{ emptyBoardMessage }}
           </p>
         </div>
-      </div>
+      </BoardLayout>
 
       <p v-if="form.errors.action" class="mt-4 text-sm text-danger">
         {{ form.errors.action }}
@@ -232,11 +205,22 @@
 </template>
 
 <script setup>
+import {
+  selectQuickAction,
+  preferredEntries,
+} from "../../evergather/playSession";
+import BoardLayout from "./BoardLayout.vue";
+const emit = defineEmits(["clear-search", "recover"]);
+function clearFilters() {
+  selectedFilter.value = "All";
+  emit("clear-search");
+}
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useActionForm } from "../../evergather/useActionForm";
-import { usePersistedPanelState } from "./usePanelState";
+import { usePersistedPanelState, usePanelFocus } from "./usePanelState";
 
 const props = defineProps({
+  focusRequest: { type: Object, default: null },
   actions: {
     type: Array,
     required: true,
@@ -268,7 +252,6 @@ const { selectedFilter, selectedBoard } = usePersistedPanelState(
 const boardPageSize = 12;
 const visibleLimit = ref(boardPageSize);
 const now = ref(Date.now());
-const autoRepeatEnabled = ref(false);
 const repeatActionKey = ref("");
 const runningAction = ref("");
 const queuedActions = ref([]);
@@ -362,7 +345,10 @@ const activeBoard = computed(
     actionBoards.value[0],
 );
 const visibleActions = computed(() =>
-  activeBoard.value.entries.slice(0, visibleLimit.value),
+  preferredEntries(activeBoard.value.entries, "gather").slice(
+    0,
+    visibleLimit.value,
+  ),
 );
 const canShowMoreActions = computed(
   () => activeBoard.value.entries.length > visibleActions.value.length,
@@ -418,7 +404,6 @@ const emptyBoardMessage = computed(() => {
 onMounted(() => {
   cooldownTimer = window.setInterval(() => {
     now.value = Date.now();
-    maybeRepeatAction();
   }, 250);
 });
 
@@ -473,6 +458,12 @@ watch(
 );
 
 function requestAction(action) {
+  const entry = localActions.value.find((value) => value.key === action);
+  if (requiresToolRepair(entry)) {
+    emit("recover", { action: "repair", key: entry.equipped_tool.tool_id });
+    return;
+  }
+  selectQuickAction("gather", entry);
   repeatActionKey.value = action;
 
   if (form.processing) {
@@ -501,29 +492,6 @@ function submitAction(action) {
   });
 }
 
-function maybeRepeatAction() {
-  if (
-    !autoRepeatEnabled.value ||
-    !repeatActionKey.value ||
-    form.processing ||
-    !canActNow.value
-  ) {
-    return;
-  }
-
-  const action = localActions.value.find(
-    (entry) => entry.key === repeatActionKey.value,
-  );
-
-  if (!action?.is_unlocked || requiresToolRepair(action)) {
-    autoRepeatEnabled.value = false;
-
-    return;
-  }
-
-  submitAction(repeatActionKey.value);
-}
-
 function isActionDisabled(action) {
   if (!canActNow.value || !action.is_unlocked || requiresToolRepair(action)) {
     return true;
@@ -538,14 +506,6 @@ function requiresToolRepair(action) {
   );
 }
 
-function toggleAutoRepeatAction() {
-  autoRepeatEnabled.value = !autoRepeatEnabled.value;
-
-  if (autoRepeatEnabled.value) {
-    queueNextAction();
-  }
-}
-
 function queueNextAction() {
   window.setTimeout(() => {
     now.value = Date.now();
@@ -557,8 +517,6 @@ function queueNextAction() {
 
       return;
     }
-
-    maybeRepeatAction();
   }, 0);
 }
 
@@ -665,13 +623,19 @@ watch(
   () => form.errors,
   (errors) => {
     if (Object.keys(errors).length) {
-      autoRepeatEnabled.value = false;
       queuedActions.value = [];
     }
   },
 );
 onBeforeUnmount(() => {
-  autoRepeatEnabled.value = false;
   queuedActions.value = [];
 });
+usePanelFocus(
+  () => props.focusRequest,
+  () => localActions.value,
+  (entry) => {
+    selectedFilter.value = "All";
+    selectedBoard.value = entry.is_unlocked ? "ready" : "next";
+  },
+);
 </script>

@@ -90,6 +90,14 @@ export function presentEvergather(rows, content, now = Date.now()) {
       total_vendor_value: n(meta.vendor_value) * n(quantity),
       total_npc_buy_price: n(meta.npc_buy_price) * n(quantity),
       tags: meta.tags ?? [],
+      consumable: settings.consumables?.[key] ?? null,
+      can_use: Boolean(
+        settings.consumables?.[key] &&
+        (settings.consumables[key].skill
+          ? level(settings.consumables[key].skill)
+          : Math.max(1, ...Object.keys(definitions).map(level))) >=
+          settings.consumables[key].required_level,
+      ),
     };
   };
   const requirements = (items) =>
@@ -109,7 +117,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
     const repairMaterials = base
       ? requirements([{ ...base, quantity: Math.ceil(missing / 35) }])
       : [];
-    const cost = missing * itemTier(row.tierLevel) * 2;
+    const cost = missing * Math.max(1, itemTier(row.tierLevel)) * 2;
     const trait = toolTraits[row.skill] ?? {
       signature: "Wayfinder Handling",
       discipline: "General Fieldcraft",
@@ -134,6 +142,8 @@ export function presentEvergather(rows, content, now = Date.now()) {
         row.origin === "starter" ? "Field Kit" : readable(row.origin),
       status: row.equipped ? "equipped" : "inventory",
       status_label: row.equipped ? "Equipped" : "Stored",
+      can_equip: level(row.skill) >= row.tierLevel,
+      equip_required_level: row.tierLevel,
       durability: row.durability,
       max_durability: row.maxDurability,
       durability_percent: Math.round(
@@ -145,6 +155,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
       upgrade_count: row.upgrades,
       rarity_upgrade_attempts: row.rarityAttempts,
       tier_level: row.tierLevel,
+      item_tier: itemTier(row.tierLevel),
       maker_name: row.makerName,
       market_floor_price: row.marketFloorPrice,
       market_ceiling_price: row.marketCeilingPrice,
@@ -178,10 +189,10 @@ export function presentEvergather(rows, content, now = Date.now()) {
           gold_cost: cost,
           has_gold: gold >= cost,
           missing_materials: !allEnough(repairMaterials),
-          is_repairable: missing > 0 && Boolean(base),
+          is_repairable: missing > 0 && (row.tierLevel === 0 || Boolean(base)),
           can_repair:
             missing > 0 &&
-            Boolean(base) &&
+            (row.tierLevel === 0 || Boolean(base)) &&
             gold >= cost &&
             allEnough(repairMaterials),
         },
@@ -218,15 +229,25 @@ export function presentEvergather(rows, content, now = Date.now()) {
     gold_bonus: n(event.bonus?.gold),
   }));
   const actionsFor = (kind) =>
-    entries(kind).map((action) => ({
-      ...action,
-      cooldown_seconds: 0,
-      loot_preview: (action.loot ?? []).map((item) => describeItem(item)),
-      active_event: eventRows.find(
-        (event) =>
-          event.status === "active" && event.skills.includes(action.skill),
-      ),
-    }));
+    entries(kind)
+      .filter(
+        (action) => !action.max_level || action.skill_level <= action.max_level,
+      )
+      .map((action) => ({
+        ...action,
+        cooldown_seconds: 0,
+        loot_preview: (action.loot ?? []).map((item) => describeItem(item)),
+        supplies: requirements(action.supplies),
+        missing_supplies: !allEnough(requirements(action.supplies)),
+        can_perform:
+          action.is_unlocked &&
+          !action.requires_tool_repair &&
+          allEnough(requirements(action.supplies)),
+        active_event: eventRows.find(
+          (event) =>
+            event.status === "active" && event.skills.includes(action.skill),
+        ),
+      }));
   const actions = actionsFor("gathering_actions");
   const activities = actionsFor("skill_activities");
   const recipes = entries("crafting_recipes").map((recipe) => {
@@ -260,6 +281,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
       rotation: "unlimited",
       completion_cap: null,
       requirements: items,
+      rewards: requirements(job.rewards),
       requires_acceptance: requiresAcceptance,
       is_accepted: contract?.active ?? false,
       completed_in_rotation: completed,
@@ -322,7 +344,10 @@ export function presentEvergather(rows, content, now = Date.now()) {
   };
   const rarityOptions = equipment.map((tool) => {
     const rule = settings.rarity_rules?.[tool.rarity];
-    const materials = requirements(settings.rarity_materials?.[tool.rarity]);
+    const materials = requirements(
+      settings.rarity_materials_by_tier?.[itemTier(tool.tier_level)] ??
+        settings.rarity_materials?.[tool.rarity],
+    );
     const rank = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
     const capped = Boolean(
       rule && rank.indexOf(rule.target) > itemTier(tool.tier_level) - 1,
@@ -336,7 +361,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
       slot: tool.slot,
       current_rarity: tool.rarity,
       target_rarity: rule?.target,
-      rarity_cap: rank[Math.min(5, itemTier(tool.tier_level) - 1)],
+      rarity_cap: rank[Math.max(0, Math.min(5, itemTier(tool.tier_level) - 1))],
       rarity_progress: row?.rarityProgress ?? 0,
       is_max_rarity: !rule,
       is_tier_capped: capped,
@@ -370,7 +395,9 @@ export function presentEvergather(rows, content, now = Date.now()) {
     const value = content.tool_upgrades?.[`${tool.skill}:${next}`];
     const ingredients = requirements(value?.ingredients);
     const canLevel = Boolean(
-      value && level(value.skill) >= (value.required_level ?? 1),
+      value &&
+      level(value.skill) >= (value.required_level ?? 1) &&
+      level(tool.skill) >= (value.required_level ?? 1),
     );
     const canUpgrade =
       canLevel && gold >= n(value?.gold_cost) && allEnough(ingredients);
@@ -387,7 +414,14 @@ export function presentEvergather(rows, content, now = Date.now()) {
       status: !value
         ? "Max Tier"
         : !canLevel
-          ? `Need Lv ${value.required_level}`
+          ? `Need ${[value.skill, tool.skill]
+              .filter(
+                (key, index, array) =>
+                  array.indexOf(key) === index &&
+                  level(key) < value.required_level,
+              )
+              .map(skillName)
+              .join(" & ")} Lv ${value.required_level}`
           : gold < n(value.gold_cost)
             ? `Need ${value.gold_cost}g`
             : !allEnough(ingredients)
@@ -509,6 +543,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
     metrics,
     gold,
     inventory: rows.inventory,
+    tools: rows.tools,
     skills: rows.skills,
     equipped: equipment.length,
     categories: Object.fromEntries(
@@ -596,13 +631,15 @@ export function presentEvergather(rows, content, now = Date.now()) {
         "skill_activities",
         "expedition",
         "tool_salvage",
+        "job",
       ].includes(row.kind)
         ? items
         : [],
       items_created: row.kind === "crafting" ? items : [],
-      items_delivered: row.kind === "job" ? items : [],
+      items_delivered:
+        row.kind === "job" ? requirements(details.items_consumed) : [],
       items_consumed:
-        row.kind === "tool_repair"
+        row.kind === "tool_repair" && !details.items_consumed
           ? items
           : requirements(details.items_consumed),
       supplies_consumed: requirements(details.supplies_consumed),
@@ -612,7 +649,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
     };
   });
   const paths = new Map();
-  const addPath = (items, collection, type, direction) => {
+  const addPath = (items, collection, type, direction, action) => {
     for (const entry of collection)
       for (const item of items(entry)) {
         const key = item.item_key ?? item.key;
@@ -620,6 +657,8 @@ export function presentEvergather(rows, content, now = Date.now()) {
         const index = paths.get(key) ?? { sources: [], sinks: [] };
         index[direction].push({
           type,
+          action,
+          key: entry.key,
           label: entry.label,
           context:
             entry.location ??
@@ -633,16 +672,64 @@ export function presentEvergather(rows, content, now = Date.now()) {
   };
   addPath(
     (entry) => entry.loot ?? [],
-    [...actions, ...activities],
+    actions,
     "Gathering",
     "sources",
+    "gather",
   );
-  addPath((entry) => entry.outputs, recipes, "Crafting", "sources");
-  addPath((entry) => entry.ingredients, recipes, "Crafting", "sinks");
-  addPath((entry) => entry.requirements, jobs, "Job", "sinks");
-  addPath((entry) => entry.rewards, expeditions, "Expedition", "sources");
-  addPath((entry) => entry.supplies, expeditions, "Expedition", "sinks");
-  addPath((entry) => [entry], shop.offers, "Shop", "sources");
+  addPath(
+    (entry) => entry.loot ?? [],
+    activities,
+    "Activity",
+    "sources",
+    "activity",
+  );
+  addPath((entry) => entry.outputs, recipes, "Crafting", "sources", "craft");
+  addPath((entry) => entry.ingredients, recipes, "Crafting", "sinks", "craft");
+  addPath((entry) => entry.requirements, jobs, "Job", "sinks", "job");
+  addPath((entry) => entry.rewards, jobs, "Job", "sources", "job");
+  addPath(
+    (entry) => entry.supplies,
+    activities,
+    "Activity",
+    "sinks",
+    "activity",
+  );
+  addPath(
+    (entry) => entry.ingredients,
+    entries("tool_upgrades"),
+    "Equipment",
+    "sinks",
+    "tier",
+  );
+  addPath(
+    (entry) => entry.materials,
+    rarityOptions.map((entry) => ({
+      ...entry,
+      key: entry.slot,
+      label: `Rarity upgrade ${entry.slot.replace("tool_", "")}`,
+      required_level: equipment.find((tool) => tool.slot === entry.slot)
+        ?.tier_level,
+    })),
+    "Rarity upgrade",
+    "sinks",
+    "rarity",
+  );
+  addPath(
+    (entry) => entry.rewards,
+    expeditions,
+    "Expedition",
+    "sources",
+    "expedition",
+  );
+  addPath(
+    (entry) => entry.supplies,
+    expeditions,
+    "Expedition",
+    "sinks",
+    "expedition",
+  );
+  addPath((entry) => [entry], shop.offers, "Shop", "sources", "shop");
   const owned = inventory.map((item) => {
     const index = paths.get(item.item_key) ?? { sources: [], sinks: [] };
     const sources = index.sources.sort(
@@ -666,7 +753,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
       owned_quantity: item.quantity,
       sources,
       sinks,
-      has_use: sinks.length > 0,
+      has_use: sinks.length > 0 || Boolean(item.consumable),
       fallback_sinks: fallback,
       transfer_routes: item.tradeable
         ? [{ type: "Marketplace", label: "Player Market" }]
@@ -779,6 +866,10 @@ export function presentEvergather(rows, content, now = Date.now()) {
     }),
   ];
   return {
+    active_buffs: (rows.buffs ?? []).map((row) => ({
+      ...row,
+      description: `+${row.percent}% ${row.effect}${row.skill ? ` for ${skillName(row.skill)}` : ""} · ${row.charges} actions left`,
+    })),
     player: current
       ? {
           display_name: current.name,

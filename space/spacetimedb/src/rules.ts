@@ -76,12 +76,12 @@ export function levelForXp(xp: number): number {
     if (xp >= xpForLevel(level)) return level;
   return 1;
 }
-export const tierLevels = [1,5,10,20,30,40,50,65,80,100];
-export function itemTier(level:number):number {
-  return Math.max(1,tierLevels.filter(threshold=>threshold<=level).length);
+export const tierLevels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+export function itemTier(level: number): number {
+  return tierLevels.filter((threshold) => threshold <= level).length;
 }
 export function maxDurability(level: number, rarity: string): number {
-  const tier = itemTier(level);
+  const tier = Math.max(1, itemTier(level));
   const rank = Math.max(
     0,
     ["common", "uncommon", "rare", "epic", "legendary", "mythic"].indexOf(

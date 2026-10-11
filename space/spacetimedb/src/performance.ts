@@ -39,7 +39,12 @@ const panels: Record<string, string[]> = {
     "shop_offers",
     "tool_upgrades",
   ],
-  "progress:skills": ["gathering_actions", "skill_activities"],
+  "progress:skills": [
+    "gathering_actions",
+    "skill_activities",
+    "crafting_recipes",
+    "job_contracts",
+  ],
   "progress:events": [],
   "progress:leaderboards": [],
   "progress:recent": [],

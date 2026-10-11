@@ -68,6 +68,8 @@ export async function executeAction(action, data, id) {
     return tool.id;
   };
   switch (action) {
+    case "use":
+      return reducers.useConsumable({ itemKey: data.item_key });
     case "gather":
       return reducers.performAction({
         kind: "gathering_actions",

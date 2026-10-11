@@ -10,120 +10,100 @@
     </div>
 
     <div class="surface-section__body">
-      <div class="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
-        <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-          <div class="flex items-center justify-between gap-3">
-            <p class="text-sm font-ui text-primary">Commission Board</p>
-            <span class="tag"
-              >{{ activeBoard.count }} {{ activeBoard.unit }}</span
-            >
-          </div>
-          <p class="mt-1 text-xs text-muted-3">{{ activeBoard.description }}</p>
-
-          <div class="mt-3 grid grid-cols-2 gap-2">
-            <button
-              v-for="board in jobBoards"
-              :key="board.key"
-              type="button"
-              class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
-              :class="{
-                'border-focus/70 bg-focus/10': selectedBoard === board.key,
-              }"
-              @click="selectedBoard = board.key"
-            >
-              <span class="block text-xs font-ui text-primary">{{
-                board.label
-              }}</span>
-              <span class="mt-1 block text-[11px] text-muted-3"
-                >{{ board.count }} {{ board.unit }}</span
+      <BoardLayout
+        :boards="jobBoards"
+        v-model:board="selectedBoard"
+        :search-term="searchTerm"
+        @clear="clearFilters"
+        :filters="filters"
+        v-model:filter="selectedFilter"
+      >
+        <template #filters
+          ><div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-sm font-ui text-primary">Commission Board</p>
+              <span class="tag"
+                >{{ activeBoard.count }} {{ activeBoard.unit }}</span
               >
-            </button>
-          </div>
+            </div>
+            <p class="mt-1 text-xs text-muted-3">
+              {{ activeBoard.description }}
+            </p>
 
-          <div class="mt-4 grid gap-2">
-            <button
-              v-for="filter in filters"
-              :key="filter.key"
-              type="button"
-              class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
-              :class="{
-                'border-focus/70 bg-focus/10': selectedFilter === filter.key,
-              }"
-              @click="selectedFilter = filter.key"
-            >
-              <span class="flex min-w-0 items-center justify-between gap-2">
-                <span class="truncate text-xs font-ui text-primary">{{
-                  filter.label
+            <div class="mt-3 grid grid-cols-2 gap-2">
+              <button
+                v-for="board in jobBoards"
+                :key="board.key"
+                type="button"
+                class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                :class="{
+                  'border-focus/70 bg-focus/10': selectedBoard === board.key,
+                }"
+                @click="selectedBoard = board.key"
+              >
+                <span class="block text-xs font-ui text-primary">{{
+                  board.label
                 }}</span>
-                <span class="text-[11px] text-muted-3">{{
-                  filter.metaLabel
-                }}</span>
-              </span>
-              <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
-                <span
-                  class="block h-full rounded-full bg-focus"
-                  :style="{ width: `${filterProgress(filter)}%` }"
-                />
-              </span>
-            </button>
-          </div>
+                <span class="mt-1 block text-[11px] text-muted-3"
+                  >{{ board.count }} {{ board.unit }}</span
+                >
+              </button>
+            </div>
 
-          <div class="mt-3 grid gap-2 text-xs">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Ready</span>
-              <span class="text-primary">{{
-                visibleJobs.filter((job) => job.can_complete).length
-              }}</span>
+            <div class="mt-4 grid gap-2">
+              <button
+                v-for="filter in filters"
+                :key="filter.key"
+                type="button"
+                class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                :class="{
+                  'border-focus/70 bg-focus/10': selectedFilter === filter.key,
+                }"
+                @click="selectedFilter = filter.key"
+              >
+                <span class="flex min-w-0 items-center justify-between gap-2">
+                  <span class="truncate text-xs font-ui text-primary">{{
+                    filter.label
+                  }}</span>
+                  <span class="text-[11px] text-muted-3">{{
+                    filter.metaLabel
+                  }}</span>
+                </span>
+                <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                  <span
+                    class="block h-full rounded-full bg-focus"
+                    :style="{ width: `${filterProgress(filter)}%` }"
+                  />
+                </span>
+              </button>
             </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">Gold</span>
-              <span class="text-primary">{{ visibleGold }}g</span>
+
+            <div class="mt-3 grid gap-2 text-xs">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">Ready</span>
+                <span class="text-primary">{{
+                  visibleJobs.filter((job) => job.can_complete).length
+                }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">Gold</span>
+                <span class="text-primary">{{ visibleGold }}g</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-muted-2">XP</span>
+                <span class="text-primary">{{ visibleExperience }}</span>
+              </div>
             </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-muted-2">XP</span>
-              <span class="text-primary">{{ visibleExperience }}</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            class="app-btn app-btn--ghost app-btn--sm mt-4 w-full"
-            :class="{
-              'border-focus/70 bg-focus/10 text-primary': autoRepeatEnabled,
-            }"
-            :disabled="!repeatJob"
-            @click="toggleAutoRepeatJob"
-          >
-            {{ autoRepeatEnabled ? "Repeating" : "Repeat Last" }}
-          </button>
-        </div>
+          </div></template
+        >
 
         <div class="grid content-start gap-3">
-          <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p class="text-sm font-ui text-primary">
-                  {{ activeBoard.label }}
-                </p>
-                <p class="mt-1 text-xs text-muted-3">
-                  {{ activeFilter.label }} · {{ visibleJobs.length }} visible
-                </p>
-              </div>
-              <span class="tag">{{ visibleGold }}g</span>
-            </div>
-          </div>
-
           <article
-            v-for="(job, index) in visibleJobs"
+            v-for="(job, index) in preferredEntries(visibleJobs, 'job')"
             :key="job.key"
-            class="grid min-h-32 items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem]"
             :class="{ 'opacity-70': !job.is_unlocked }"
           >
-            <div
-              class="grid h-9 w-9 place-items-center rounded-md border border-border bg-canvas text-sm font-ui text-primary"
-            >
-              #{{ index + 1 }}
-            </div>
-
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <p class="min-w-0 truncate text-sm font-ui text-primary">
@@ -132,7 +112,6 @@
                 <span class="tag">{{ job.category }}</span>
                 <span class="tag">{{ job.skill_label }}</span>
                 <span class="tag">Lv {{ job.required_level }}</span>
-                <span class="tag capitalize">Unlimited completions</span>
               </div>
               <div class="mt-3 grid gap-2">
                 <div v-if="job.requires_acceptance" class="grid gap-1 text-xs">
@@ -201,12 +180,11 @@
                 >
                   Demand filled
                 </p>
-                <p v-else class="mt-1 text-xs text-muted-3">Unlimited</p>
               </div>
               <button
                 v-if="job.requires_acceptance && !job.is_accepted"
                 type="button"
-                class="app-btn app-btn--sm"
+                class="app-btn app-btn--primary app-btn--sm"
                 :disabled="isJobDisabled(job, 'accept')"
                 @click="requestJob('accept', job.key)"
               >
@@ -215,7 +193,7 @@
               <button
                 v-else
                 type="button"
-                class="app-btn app-btn--sm"
+                class="app-btn app-btn--primary app-btn--sm"
                 :disabled="isJobDisabled(job, 'complete')"
                 @click="requestJob('complete', job.key)"
               >
@@ -242,7 +220,7 @@
             {{ emptyBoardMessage }}
           </p>
         </div>
-      </div>
+      </BoardLayout>
 
       <p v-if="form.errors.job" class="mt-4 text-sm text-danger">
         {{ form.errors.job }}
@@ -252,11 +230,22 @@
 </template>
 
 <script setup>
+import {
+  selectQuickAction,
+  preferredEntries,
+} from "../../evergather/playSession";
+import BoardLayout from "./BoardLayout.vue";
+const emit = defineEmits(["clear-search", "recover"]);
+function clearFilters() {
+  selectedFilter.value = "All";
+  emit("clear-search");
+}
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useActionForm } from "../../evergather/useActionForm";
-import { usePersistedPanelState } from "./usePanelState";
+import { usePersistedPanelState, usePanelFocus } from "./usePanelState";
 
 const props = defineProps({
+  focusRequest: { type: Object, default: null },
   jobs: {
     type: Array,
     required: true,
@@ -288,7 +277,6 @@ const boardPageSize = 12;
 const visibleLimit = ref(boardPageSize);
 const runningJob = ref("");
 const repeatJob = ref(null);
-const autoRepeatEnabled = ref(false);
 const queuedJobs = ref([]);
 const localJobs = ref([...props.jobs]);
 
@@ -342,7 +330,10 @@ const readyJobs = computed(() =>
 );
 const prepareJobs = computed(() =>
   filteredJobs.value.filter(
-    (job) => job.is_unlocked && !job.can_complete && !job.is_accepted,
+    (job) =>
+      (job.is_unlocked || job.key === props.focusRequest?.key) &&
+      !job.can_complete &&
+      (!job.is_accepted || job.key === props.focusRequest?.key),
   ),
 );
 const jobBoards = computed(() => [
@@ -369,7 +360,10 @@ const activeBoard = computed(
     jobBoards.value[0],
 );
 const visibleJobs = computed(() =>
-  activeBoard.value.entries.slice(0, visibleLimit.value),
+  preferredEntries(activeBoard.value.entries, "job").slice(
+    0,
+    visibleLimit.value,
+  ),
 );
 const canShowMoreJobs = computed(
   () => activeBoard.value.entries.length > visibleJobs.value.length,
@@ -469,6 +463,12 @@ function filterProgress(filter) {
 }
 
 function requestJob(action, job) {
+  const entry = localJobs.value.find((value) => value.key === job);
+  if (action === "complete" && !entry?.can_complete) {
+    emit("recover", { action: "job", key: job });
+    return;
+  }
+  if (action === "complete") selectQuickAction("job", entry);
   repeatJob.value = { action, job };
 
   if (form.processing) {
@@ -506,38 +506,17 @@ function submitJob(action, job) {
   });
 }
 
-function maybeRepeatJob() {
-  if (!autoRepeatEnabled.value || !repeatJob.value || form.processing) {
-    return;
-  }
-
-  const job = localJobs.value.find(
-    (entry) => entry.key === repeatJob.value.job,
-  );
-
-  if (!job || isJobDisabled(job, repeatJob.value.action)) {
-    autoRepeatEnabled.value = false;
-
-    return;
-  }
-
-  submitJob(repeatJob.value.action, repeatJob.value.job);
-}
-
 function isJobDisabled(job, action) {
   if (action === "accept") {
     return !job.can_accept;
   }
 
-  return !job.can_complete;
-}
-
-function toggleAutoRepeatJob() {
-  autoRepeatEnabled.value = !autoRepeatEnabled.value;
-
-  if (autoRepeatEnabled.value) {
-    queueNextJob();
-  }
+  return (
+    !job.is_unlocked ||
+    !job.is_demand_available ||
+    (job.requires_acceptance &&
+      (!job.is_accepted || job.progress_quantity < job.progress_required))
+  );
 }
 
 function queueNextJob(delay = 0) {
@@ -553,8 +532,6 @@ function queueNextJob(delay = 0) {
 
       return;
     }
-
-    maybeRepeatJob();
   }, delay);
 }
 
@@ -587,7 +564,11 @@ function skillProgressPercent(progress) {
 }
 
 function completeLabel(job) {
-  return job.requires_acceptance ? "Complete" : "Turn In";
+  return !job.can_complete
+    ? "Get materials"
+    : job.requires_acceptance
+      ? "Complete"
+      : "Turn In";
 }
 
 function objectiveLabel(job) {
@@ -605,13 +586,19 @@ watch(
   () => form.errors,
   (errors) => {
     if (Object.keys(errors).length) {
-      autoRepeatEnabled.value = false;
       queuedJobs.value = [];
     }
   },
 );
 onBeforeUnmount(() => {
-  autoRepeatEnabled.value = false;
   queuedJobs.value = [];
 });
+usePanelFocus(
+  () => props.focusRequest,
+  () => localJobs.value,
+  (entry) => {
+    selectedFilter.value = "All";
+    selectedBoard.value = entry.can_complete ? "ready" : "prepare";
+  },
+);
 </script>

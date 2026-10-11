@@ -15,6 +15,7 @@ import db, {
   catalog,
   listing,
   leaderboard,
+  buff,
 } from "./schema";
 import source from "./content/evergather.json";
 import {
@@ -47,6 +48,7 @@ type Ctx = ReducerCtx<InferSchema<typeof db>>;
 const content = source as unknown as Record<string, Record<string, Definition>>;
 
 function seedContent(ctx: Ctx) {
+  const retained = new Set<string>(["presentation:settings"]);
   for (const kind of [
     "skills",
     "tiers",
@@ -79,6 +81,7 @@ function seedContent(ctx: Ctx) {
             : {}),
         }),
       };
+      retained.add(row.key);
       if (ctx.db.catalog.key.find(row.key)) ctx.db.catalog.key.update(row);
       else ctx.db.catalog.insert(row);
     }
@@ -87,6 +90,9 @@ function seedContent(ctx: Ctx) {
     character_options: content.character_options,
     rarity_rules: content.rarity_rules,
     rarity_materials: content.rarity_materials,
+    rarity_materials_by_tier: content.rarity_materials_by_tier,
+    consumables: content.consumables,
+    economy_version: source.economy_version,
     rarity_effects: content.rarity_effects,
     catalog_counts: Object.fromEntries(
       Object.entries(content).map(([kind, values]) => [
@@ -134,9 +140,12 @@ function seedContent(ctx: Ctx) {
         Object.fromEntries(fields.map((field) => [field, metadata[field]])),
       ),
     };
+    retained.add(row.key);
     if (ctx.db.catalog.key.find(row.key)) ctx.db.catalog.key.update(row);
     else ctx.db.catalog.insert(row);
   }
+  for (const row of [...ctx.db.catalog.iter()])
+    if (!retained.has(row.key)) ctx.db.catalog.key.delete(row.key);
   for (const row of ctx.db.player.iter()) {
     if (row.nextActionAt)
       ctx.db.player.owner.update({ ...row, nextActionAt: 0n });
@@ -153,12 +162,125 @@ export const init = db.init((ctx) => {
     localPlay: false,
   });
   seedContent(ctx);
+  ctx.db.economyState.insert({
+    id: 1,
+    version: source.economy_version,
+    appliedAt: ctx.timestamp,
+  });
 });
 export const refreshContent = db.reducer((ctx) => {
   if (!ctx.db.security.id.find(1)!.owner.equals(ctx.sender))
     throw new SenderError("Only the database owner can import content.");
   seedContent(ctx);
 });
+export const clearLeaderboards = db.reducer((ctx) => {
+  if (!ctx.db.security.id.find(1)!.owner.equals(ctx.sender))
+    throw new SenderError("Only the database owner can clear leaderboards.");
+  for (const row of [...ctx.db.leaderboard.iter()])
+    ctx.db.leaderboard.owner.delete(row.owner);
+  for (const row of ctx.db.player.iter())
+    if (!ctx.db.leaderboardExcluded.owner.find(row.owner))
+      ctx.db.leaderboardExcluded.insert({ owner: row.owner });
+});
+export const resetPlayerLevels = db.reducer(
+  { owner: t.identity() },
+  (ctx, { owner }) => {
+    if (!ctx.db.security.id.find(1)!.owner.equals(ctx.sender))
+      throw new SenderError("Only the database owner can reset player levels.");
+    resetLevels(ctx, owner);
+  },
+);
+function resetLevels(ctx: Ctx, owner: Identity) {
+  const current = ctx.db.player.owner.find(owner);
+  if (!current) throw new SenderError("That character does not exist.");
+  for (const row of ctx.db.skill.byOwner.filter(owner))
+    ctx.db.skill.key.update({ ...row, experience: 0n });
+  ctx.db.player.owner.update({ ...current, nextActionAt: 0n });
+  for (const row of [...ctx.db.buff.byOwner.filter(owner)])
+    ctx.db.buff.key.delete(row.key);
+  // Store advanced equipment and restore one usable starter per skill.
+  for (const row of ctx.db.tool.byOwner.filter(owner))
+    if (row.equipped && row.tierLevel > 1)
+      ctx.db.tool.id.update({ ...row, equipped: false });
+  for (const [skillName, starter] of Object.entries(content.starter_tools)) {
+    const tools = [...ctx.db.tool.byOwner.filter(owner)].filter(
+      (row) => row.skill === skillName,
+    );
+    if (tools.some((row) => row.equipped)) continue;
+    const basic = tools.find((row) => row.tierLevel === 0 && !row.listed);
+    if (basic) ctx.db.tool.id.update({ ...basic, equipped: true });
+    else addTool(ctx, starter, skillName, 0, "starter", owner);
+  }
+  ctx.db.leaderboard.owner.delete(owner);
+  if (!ctx.db.leaderboardExcluded.owner.find(owner))
+    ctx.db.leaderboardExcluded.insert({ owner });
+  syncCatalogReferences(ctx, owner);
+}
+// One transaction resets all earned progress while keeping character identities.
+export const resetAllProgress = db.reducer((ctx) => {
+  if (!ctx.db.security.id.find(1)!.owner.equals(ctx.sender))
+    throw new SenderError("Only the database owner can reset all progress.");
+  for (const row of [...ctx.db.achievement.iter()])
+    ctx.db.achievement.key.delete(row.key);
+  for (const row of [...ctx.db.contract.iter()])
+    ctx.db.contract.key.delete(row.key);
+  for (const row of [...ctx.db.result.iter()]) ctx.db.result.id.delete(row.id);
+  for (const current of [...ctx.db.player.iter()]) {
+    resetLevels(ctx, current.owner);
+    ctx.db.player.owner.update({
+      ...current,
+      gold: 0n,
+      title: "",
+      metrics: "{}",
+      nextActionAt: 0n,
+    });
+  }
+  for (const row of [...ctx.db.leaderboard.iter()])
+    ctx.db.leaderboard.owner.delete(row.owner);
+});
+// Explicit, owner-only and versioned. Publishing alone never erases possessions.
+export const resetItemEconomy = db.reducer(
+  { version: t.string() },
+  (ctx, { version }) => {
+    if (!ctx.db.security.id.find(1)!.owner.equals(ctx.sender))
+      throw new SenderError(
+        "Only the database owner can replace the item economy.",
+      );
+    if (version !== source.economy_version)
+      throw new SenderError(
+        "The requested economy version does not match this module.",
+      );
+    if (ctx.db.economyState.id.find(1)?.version === version)
+      throw new SenderError(
+        "This economy replacement has already been applied.",
+      );
+    for (const row of [...ctx.db.listing.iter()])
+      ctx.db.listing.id.delete(row.id);
+    for (const row of [...ctx.db.inventory.iter()])
+      ctx.db.inventory.key.delete(row.key);
+    for (const row of [...ctx.db.tool.iter()]) ctx.db.tool.id.delete(row.id);
+    for (const row of [...ctx.db.result.iter()])
+      ctx.db.result.id.delete(row.id);
+    for (const row of [...ctx.db.contract.iter()])
+      ctx.db.contract.key.delete(row.key);
+    for (const row of [...ctx.db.trade.iter()]) ctx.db.trade.id.delete(row.id);
+    for (const row of [...ctx.db.buff.iter()]) ctx.db.buff.key.delete(row.key);
+    for (const row of [...ctx.db.catalogReference.iter()])
+      ctx.db.catalogReference.key.delete(row.key);
+    for (const row of [...ctx.db.achievement.iter()])
+      if (!content.achievements[row.achievementKey])
+        ctx.db.achievement.key.delete(row.key);
+    seedContent(ctx);
+    for (const owner of [...ctx.db.player.iter()].map((row) => row.owner)) {
+      for (const [skillName, starter] of Object.entries(content.starter_tools))
+        addTool(ctx, starter, skillName, 0, "starter", owner);
+      syncCatalogReferences(ctx, owner);
+    }
+    const state = { id: 1, version, appliedAt: ctx.timestamp };
+    if (ctx.db.economyState.id.find(1)) ctx.db.economyState.id.update(state);
+    else ctx.db.economyState.insert(state);
+  },
+);
 export const configureAuth = db.reducer(
   { issuer: t.string(), audience: t.string() },
   (ctx, args) => {
@@ -278,7 +400,11 @@ function consume(ctx: Ctx, items: Item[]) {
     });
   }
 }
-function refreshLeaderboard(ctx: Ctx, owner: Identity) {
+function refreshLeaderboard(ctx: Ctx, owner: Identity, played = false) {
+  if (ctx.db.leaderboardExcluded.owner.find(owner)) {
+    if (!played) return;
+    ctx.db.leaderboardExcluded.owner.delete(owner);
+  }
   const current = ctx.db.player.owner.find(owner)!;
   const metrics = JSON.parse(current.metrics) as Record<string, number>;
   const summary = {
@@ -363,7 +489,7 @@ function log(
         ),
       });
   }
-  refreshLeaderboard(ctx, ctx.sender);
+  refreshLeaderboard(ctx, ctx.sender, true);
   syncCatalogReferences(ctx);
 }
 function equipped(ctx: Ctx, name: string) {
@@ -444,14 +570,20 @@ function addTool(
   skillName: string,
   tierLevel: number,
   origin: string,
+  owner: Identity = ctx.sender,
 ) {
   const maximum = maxDurability(tierLevel, value.rarity ?? "common");
-  for (const current of ctx.db.tool.byOwner.filter(ctx.sender))
-    if (current.skill === skillName && current.equipped)
+  const experience =
+    ctx.db.skill.key.find(`${owner.toHexString()}:${skillName}`)?.experience ??
+    0n;
+  const canEquip =
+    tierLevel === 0 || levelForXp(Number(experience)) >= tierLevel;
+  for (const current of ctx.db.tool.byOwner.filter(owner))
+    if (canEquip && current.skill === skillName && current.equipped)
       ctx.db.tool.id.update({ ...current, equipped: false });
   ctx.db.tool.insert({
     id: 0n,
-    owner: ctx.sender,
+    owner,
     itemKey: value.item_key!,
     name: value.item_name!,
     skill: skillName,
@@ -459,7 +591,7 @@ function addTool(
     tierLevel,
     durability: maximum,
     maxDurability: maximum,
-    equipped: true,
+    equipped: canEquip,
     origin,
     bonuses: JSON.stringify(value.bonuses ?? {}),
     upgrades: 0,
@@ -468,9 +600,68 @@ function addTool(
     rarityProgress: 0,
     listed: false,
     makerName:
-      origin === "crafted" ? ctx.db.player.owner.find(ctx.sender)!.name : "",
+      origin === "crafted" ? ctx.db.player.owner.find(owner)!.name : "",
   });
 }
+function chargedBonus(ctx: Ctx, skillName: string, effect: string) {
+  let percent = 0;
+  for (const row of [...ctx.db.buff.byOwner.filter(ctx.sender)]) {
+    if (row.effect !== effect || (row.skill && row.skill !== skillName))
+      continue;
+    percent += row.percent;
+    if (row.charges <= 1) ctx.db.buff.key.delete(row.key);
+    else ctx.db.buff.key.update({ ...row, charges: row.charges - 1 });
+  }
+  return percent;
+}
+function boostedXp(ctx: Ctx, skillName: string, base: number) {
+  return (
+    base + Math.floor((base * chargedBonus(ctx, skillName, "experience")) / 100)
+  );
+}
+export const useConsumable = db.reducer(
+  { itemKey: t.string() },
+  (ctx, { itemKey }) => {
+    character(ctx);
+    const rule = content.consumables[itemKey];
+    if (!rule)
+      throw new SenderError("That item cannot be used as a consumable.");
+    const requiredSkill = String(rule.skill ?? "");
+    const currentLevel = requiredSkill
+      ? levelForXp(xp(ctx, requiredSkill))
+      : Math.max(
+          ...[...ctx.db.skill.byOwner.filter(ctx.sender)].map((row) =>
+            levelForXp(Number(row.experience)),
+          ),
+        );
+    if (currentLevel < Number(rule.required_level))
+      throw new SenderError(
+        `Need ${requiredSkill || "any skill at"} level ${rule.required_level} to use this item.`,
+      );
+    consume(ctx, [
+      { item_key: itemKey, item_name: String(rule.item_name), quantity: 1 },
+    ]);
+    const key = ownerKey(ctx, String(rule.family));
+    const row = {
+      key,
+      owner: ctx.sender,
+      itemKey,
+      name: String(rule.item_name),
+      family: String(rule.family),
+      effect: String(rule.effect),
+      skill: requiredSkill,
+      percent: Number(rule.percent),
+      charges: Number(rule.charges),
+    };
+    if (ctx.db.buff.key.find(key)) ctx.db.buff.key.update(row);
+    else ctx.db.buff.insert(row);
+    log(ctx, "consumable", { label: `Used ${rule.item_name}` }, 0, 0, [], {
+      family: rule.family,
+      percent: rule.percent,
+      charges: rule.charges,
+    });
+  },
+);
 export const createCharacter = db.reducer(
   { name: t.string() },
   (ctx, { name }) => {
@@ -642,9 +833,17 @@ export const performAction = db.reducer(
       throw new SenderError("Choose a gathering action or activity.");
     const value = definition(ctx, kind, key);
     checkLevel(ctx, value);
+    if (
+      value.max_level &&
+      levelForXp(xp(ctx, value.skill!)) > Number(value.max_level)
+    )
+      throw new SenderError(
+        "Starter training ends at level 10. Choose tiered work.",
+      );
     const equipment = equipped(ctx, value.skill!);
     if (equipment && !equipment.durability)
       throw new SenderError("Repair your equipped tool first.");
+    consume(ctx, value.supplies ?? []);
     const bonuses = toolModifiers(equipment);
     const matchingEvent = Object.values(content.world_events).find(
       (event) =>
@@ -656,10 +855,14 @@ export const performAction = db.reducer(
       typeof range === "number"
         ? range
         : ctx.random.integerInRange(range?.min ?? 0, range?.max ?? 0);
-    const experience =
+    const experience = boostedXp(
+      ctx,
+      value.skill!,
       roll(value.experience) +
-      bonuses.experience +
-      (eventBonus.experience ?? 0);
+        bonuses.experience +
+        (eventBonus.experience ?? 0),
+    );
+    const yieldPercent = chargedBonus(ctx, value.skill!, "yield");
     const gold = roll(value.gold) + bonuses.gold + (eventBonus.gold ?? 0);
     const items: Item[] = [];
     for (const item of value.loot ?? []) {
@@ -678,6 +881,9 @@ export const performAction = db.reducer(
         rarity: item.rarity ?? "common",
         quantity:
           amount +
+          (yieldPercent && ctx.random.integerInRange(1, 100) <= yieldPercent
+            ? 1
+            : 0) +
           ((item.min ?? 1) > 0 ? bonuses.yield + (eventBonus.yield ?? 0) : 0),
       });
     }
@@ -701,6 +907,7 @@ export const performAction = db.reducer(
     log(ctx, kind, value, experience, gold, items, {
       key,
       kind,
+      supplies_consumed: value.supplies ?? [],
       event: matchingEvent
         ? { label: matchingEvent.label, ...eventBonus }
         : undefined,
@@ -719,15 +926,11 @@ export const craft = db.reducer({ key: t.string() }, (ctx, { key }) => {
   consume(ctx, value.ingredients ?? []);
   const preserved =
     Math.max(1, equipment?.tierLevel ?? 0) >= (value.required_level ?? 1) &&
-    toolModifiers(equipment).preservation > 0
+    ctx.random.integerInRange(1, 100) <= toolModifiers(equipment).preservation
       ? value.ingredients?.find((item) => item.quantity > 1)
       : undefined;
   if (preserved) {
     grantItem(ctx, { ...preserved, quantity: 1 });
-    ctx.db.tool.id.update({
-      ...equipment!,
-      durability: Math.max(0, equipment!.durability - 1),
-    });
   }
   for (const item of value.outputs ?? []) {
     if (item.equipment_skill)
@@ -740,7 +943,18 @@ export const craft = db.reducer({ key: t.string() }, (ctx, { key }) => {
       );
     else grantItem(ctx, item);
   }
-  const experience = Number(value.experience ?? 0);
+  const experience = boostedXp(
+    ctx,
+    value.skill!,
+    Number(value.experience ?? 0) + toolModifiers(equipment).experience,
+  );
+  if (equipment && (preserved || toolModifiers(equipment).experience > 0)) {
+    const working = ctx.db.tool.id.find(equipment.id)!;
+    ctx.db.tool.id.update({
+      ...working,
+      durability: Math.max(0, working.durability - 1),
+    });
+  }
   grantXp(ctx, value.skill!, experience);
   ctx.db.player.owner.update({ ...current, gold: current.gold - BigInt(cost) });
   log(ctx, "crafting", value, experience, -cost, value.outputs ?? [], {
@@ -796,7 +1010,11 @@ export const runExpedition = db.reducer({ key: t.string() }, (ctx, { key }) => {
   consume(ctx, value.supplies ?? []);
   for (const item of value.rewards ?? []) grantItem(ctx, item);
   const gold = Number(value.gold ?? 0);
-  const experience = Number(value.experience ?? 0);
+  const experience = boostedXp(
+    ctx,
+    value.skill!,
+    Number(value.experience ?? 0),
+  );
   grantXp(ctx, value.skill!, experience);
   ctx.db.player.owner.update({ ...current, gold: current.gold + BigInt(gold) });
   log(ctx, "expedition", value, experience, gold, value.rewards ?? [], {
@@ -1057,7 +1275,12 @@ export const completeJob = db.reducer({ key: t.string() }, (ctx, { key }) => {
     );
   consume(ctx, value.requirements ?? []);
   const gold = Number(value.gold ?? 0);
-  const experience = Number(value.experience ?? 0);
+  const experience = boostedXp(
+    ctx,
+    value.skill!,
+    Number(value.experience ?? 0),
+  );
+  for (const item of value.rewards ?? []) grantItem(ctx, item);
   grantXp(ctx, value.skill!, experience);
   ctx.db.player.owner.update({ ...current, gold: current.gold + BigInt(gold) });
   const record = {
@@ -1072,9 +1295,10 @@ export const completeJob = db.reducer({ key: t.string() }, (ctx, { key }) => {
   };
   if (previous) ctx.db.contract.key.update(record);
   else ctx.db.contract.insert(record);
-  log(ctx, "job", value, experience, gold, value.requirements ?? [], {
+  log(ctx, "job", value, experience, gold, value.rewards ?? [], {
     key,
     kind: "job_contracts",
+    items_consumed: value.requirements ?? [],
   });
 });
 export const equipTool = db.reducer(
@@ -1085,6 +1309,11 @@ export const equipTool = db.reducer(
     if (!args.equipped && row.origin === "starter")
       throw new SenderError("Field kit tools stay equipped until replaced.");
     if (args.equipped) {
+      checkLevel(ctx, {
+        label: row.name,
+        skill: row.skill,
+        required_level: row.tierLevel,
+      });
       for (const current of ctx.db.tool.byOwner.filter(ctx.sender))
         if (current.skill === row.skill && current.equipped)
           ctx.db.tool.id.update({ ...current, equipped: false });
@@ -1109,11 +1338,14 @@ export const repairTool = db.reducer({ id: t.u64() }, (ctx, { id }) => {
   const row = ownedTool(ctx, id);
   const missing = row.maxDurability - row.durability;
   if (missing < 1) throw new SenderError("This tool does not need repair.");
-  const cost = missing * itemTier(row.tierLevel) * 2;
+  const cost = missing * Math.max(1, itemTier(row.tierLevel)) * 2;
   if (current.gold < BigInt(cost))
     throw new SenderError(`Repair costs ${cost} gold.`);
-  const material = { ...baseMaterial(row), quantity: Math.ceil(missing / 35) };
-  consume(ctx, [material]);
+  const materials =
+    row.tierLevel === 0
+      ? []
+      : [{ ...baseMaterial(row), quantity: Math.ceil(missing / 35) }];
+  consume(ctx, materials);
   ctx.db.player.owner.update({ ...current, gold: current.gold - BigInt(cost) });
   ctx.db.tool.id.update({ ...row, durability: row.maxDurability });
   log(
@@ -1122,7 +1354,8 @@ export const repairTool = db.reducer({ id: t.u64() }, (ctx, { id }) => {
     { label: `Repaired ${row.name}`, skill: row.skill },
     0,
     -cost,
-    [material],
+    [],
+    { items_consumed: materials },
   );
 });
 export const removeTool = db.reducer(
@@ -1159,6 +1392,11 @@ export const upgradeToolTier = db.reducer({ id: t.u64() }, (ctx, { id }) => {
     throw new SenderError("This tool is already at its highest tier.");
   const value = definition(ctx, "tool_upgrades", `${row.skill}:${nextLevel}`);
   checkLevel(ctx, value);
+  checkLevel(ctx, {
+    label: row.name,
+    skill: row.skill,
+    required_level: nextLevel,
+  });
   const cost = value.gold_cost ?? 0;
   if (current.gold < BigInt(cost))
     throw new SenderError(`Tier upgrade costs ${cost} gold.`);
@@ -1177,9 +1415,16 @@ export const upgradeToolTier = db.reducer({ id: t.u64() }, (ctx, { id }) => {
     bonuses: JSON.stringify({
       experience: Math.max(
         bonuses.experience ?? 0,
-        value.bonuses?.experience ?? 0,
+        (value.bonuses?.experience ?? 0) +
+          Number(content.rarity_bonuses[row.rarity].experience) -
+          Number(content.rarity_bonuses.common.experience),
       ),
-      yield: Math.max(bonuses.yield ?? 0, value.bonuses?.yield ?? 0),
+      yield: Math.max(
+        bonuses.yield ?? 0,
+        (value.bonuses?.yield ?? 0) +
+          Number(content.rarity_bonuses[row.rarity].yield) -
+          Number(content.rarity_bonuses.common.yield),
+      ),
     }),
     upgrades: row.upgrades + 1,
     tierUpgrades: row.tierUpgrades + 1,
@@ -1218,7 +1463,12 @@ export const upgradeToolRarity = db.reducer({ id: t.u64() }, (ctx, { id }) => {
     throw new SenderError(`Tier up before attempting ${rule.target} rarity.`);
   if (current.gold < BigInt(rule.gold_cost))
     throw new SenderError(`Rarity attempt costs ${rule.gold_cost} gold.`);
-  consume(ctx, content.rarity_materials[row.rarity] as unknown as Item[]);
+  consume(
+    ctx,
+    content.rarity_materials_by_tier[
+      String(itemTier(row.tierLevel))
+    ] as unknown as Item[],
+  );
   const family = content.tool_families[row.skill];
   const craftLevel = levelForXp(xp(ctx, String(family.craft)));
   const success =
@@ -1287,6 +1537,7 @@ export const claimAchievement = db.reducer(
       metrics: JSON.parse(current.metrics),
       gold: Number(current.gold),
       inventory: [...ctx.db.inventory.byOwner.filter(ctx.sender)],
+      tools: [...ctx.db.tool.byOwner.filter(ctx.sender)],
       skills: [...ctx.db.skill.byOwner.filter(ctx.sender)],
       equipped: [...ctx.db.tool.byOwner.filter(ctx.sender)].filter(
         (row) => row.equipped,
@@ -1331,6 +1582,11 @@ export const myInventory = db.view(
   { name: "my_inventory", public: true },
   t.array(inventory.rowType),
   (ctx) => [...ctx.db.inventory.byOwner.filter(ctx.sender)],
+);
+export const myBuffs = db.view(
+  { name: "my_buffs", public: true },
+  t.array(buff.rowType),
+  (ctx) => [...ctx.db.buff.byOwner.filter(ctx.sender)],
 );
 export const myTools = db.view(
   { name: "my_tools", public: true },

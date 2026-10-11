@@ -128,14 +128,7 @@ export function inventoryTracker(player, payload, catalog, filters) {
   }
   const options = [
     ...new Map(
-      [
-        ...entries,
-        ...catalog.filter(
-          (item) =>
-            !filters.itemSearch ||
-            item.name.toLowerCase().includes(filters.itemSearch.toLowerCase()),
-        ),
-      ].map((item) => {
+      [...entries, ...catalog].map((item) => {
         const key = item.key ?? `${item.kind}:${item.id}`;
         return [
           key,
