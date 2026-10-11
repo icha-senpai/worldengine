@@ -296,7 +296,11 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
                 name, equipment.bait_uses_left
             ));
             if !equipment.bait_item.is_empty() {
-                summary.push_str(&format!(" · +1 {}", equipment.bait_item.replace('_', " ")));
+                summary.push_str(&format!(
+                    " · +{} {}",
+                    equipment.bait_quantity.max(1),
+                    equipment.bait_item.replace('_', " ")
+                ));
             }
         }
     }
@@ -1080,7 +1084,11 @@ async fn bait(
             } else if row.resource_item.is_empty() {
                 format!("+{}% luck", row.luck_bp / 100)
             } else {
-                format!("+1 {} per cast", row.resource_item.replace('_', " "))
+                format!(
+                    "+{} {} per cast",
+                    row.resource_quantity.max(1),
+                    row.resource_item.replace('_', " ")
+                )
             };
             format!(
                 "{} **{}** · ID {} · {} uses · {}",
@@ -1302,7 +1310,8 @@ async fn shop(
             format!("10 uses · +{}% luck. Equip with /bait.", bait.luck_bp / 100)
         } else {
             format!(
-                "10 uses · +1 {} per cast. Equip with /bait.",
+                "10 uses · +{} {} per cast. Equip with /bait.",
+                bait.resource_quantity.max(1),
                 bait.resource_item.replace('_', " ")
             )
         }

@@ -343,6 +343,8 @@ pub struct BaitDefinition {
     pub sprite_asset: String,
     #[default(0)]
     pub xp_bonus_bp: u32,
+    #[default(0)]
+    pub resource_quantity: u64,
 }
 
 #[spacetimedb::table(accessor = quality_definition, public)]
@@ -433,6 +435,8 @@ pub struct CastEquipmentReceipt {
     pub bait_id: u32,
     pub bait_uses_left: u64,
     pub bait_item: String,
+    #[default(0)]
+    pub bait_quantity: u64,
 }
 
 #[spacetimedb::table(accessor = recent_catch)]

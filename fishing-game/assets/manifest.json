@@ -2286,12 +2286,44 @@
       "sha256": "3516ae835561456e10b76b6daa04cb37b6546e694cc9b3846971c6cde5523439"
     },
     {
+      "key": "scrap-chum-plus-2",
+      "url": "/baits/scrap-chum-plus-2.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1299111,
+      "sha256": "552d74a5bd4dbecd4dda1487157c452ae79a3d8bad6947b04a3686f663d24557"
+    },
+    {
+      "key": "scrap-chum-plus-3",
+      "url": "/baits/scrap-chum-plus-3.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1261323,
+      "sha256": "a79cc845506ccea3f4be19b26858b7aec88bdc25fc387b1fb9e0b6690c3692d8"
+    },
+    {
       "key": "sticky-chum",
       "url": "/baits/sticky-chum.png",
       "width": 1254,
       "height": 1254,
       "bytes": 1072600,
       "sha256": "30b1c6db04e6e253cf19cc6464438cc8fb9ff78a6667ec8e9c856696a057242d"
+    },
+    {
+      "key": "tin-chum-plus-2",
+      "url": "/baits/tin-chum-plus-2.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1196741,
+      "sha256": "2c00f219c922de1d62d6323cba6eec9815704d11b91f7ed81f71ddabe5839833"
+    },
+    {
+      "key": "tin-chum-plus-3",
+      "url": "/baits/tin-chum-plus-3.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1160271,
+      "sha256": "de0a3bb79bacfce648cf811c23f91ad41dbe263d11b6edba1fdbcc6b8494f20f"
     },
     {
       "key": "yellow-slime",

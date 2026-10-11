@@ -62,7 +62,7 @@ try {
     return args;
   };
   const prepare=async(user=9301n,id=1)=>{await pause();const args=await select(user);await bot.reducers.prepareUpgradeFromDiscord({...args,rodId:id});return {args,q:[...bot.db.adapterUpgradeQuote.iter()][0]};};
-  assert.equal(bot.db.baitDefinition.count(),8n);assert.equal(bot.db.qualityDefinition.count(),7n);assert.equal(bot.db.shopListing.count(),20n);
+  assert.equal(bot.db.baitDefinition.count(),12n);assert.equal(bot.db.qualityDefinition.count(),7n);assert.equal(bot.db.shopListing.count(),24n);
   assert.equal(bot.db.rodUpgradeRecipe.count(),42n);
   for(const expected of craftingContent.rodRecipes) {
     const actual=[...bot.db.rodUpgradeRecipe.iter()].find(r=>r.rodId===expected.rodId&&r.qualityLevel===expected.qualityLevel)!;
@@ -152,6 +152,26 @@ try {
     await assert.rejects(bot.reducers.fishFromDiscord({...args,interactionId:snowflake(),guildId:5n,channelId:42n}),/COOLDOWN_ACTIVE/);assert.equal(uses(1),BigInt(19-cast));
   }
   assert(mixed,'Actual context RNG produced mixed categories');assert.equal([...bot.db.adapterBaitLoadout.iter()][0].baitId,0);
+  for (const id of [9,10,11,12]) {
+    const definition=craftingContent.baits.find((b:{baitId:number})=>b.baitId===id);
+    const beforeCoins=player().coins;
+    await purchase(100+id);assert.equal(beforeCoins-player().coins,BigInt(definition.priceCoins));assert.equal(uses(id),10n);
+    args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:id});
+    for(let cast=0;cast<10;cast++) {
+      ownerCall('proof_cast_setup',['9301',forcedBasePower,String(cast%4)]);
+      args=await select();const before=material(definition.resourceItem);
+      await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
+      const pulls=[...bot.db.adapterCastPulls.iter()];assert.equal(pulls.length,2);
+      const natural=pulls.filter(p=>p.receipt.itemGranted===definition.resourceItem).reduce((sum,p)=>sum+p.receipt.itemQuantity,0n);
+      assert.equal(material(definition.resourceItem),before+natural+BigInt(definition.resourceQuantity));
+      const receipt=[...bot.db.adapterCastEquipment.iter()][0];assert.equal(receipt.baitQuantity,BigInt(definition.resourceQuantity));assert.equal(receipt.baitItem,definition.resourceItem);
+      assert.equal(uses(id),BigInt(9-cast));const saved=material(definition.resourceItem);
+      await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal(material(definition.resourceItem),saved);assert.equal(uses(id),BigInt(9-cast));
+      await assert.rejects(bot.reducers.fishFromDiscord({...args,interactionId:snowflake(),guildId:5n,channelId:42n}),/COOLDOWN_ACTIVE/);assert.equal(uses(id),BigInt(9-cast));
+    }
+    assert.equal([...bot.db.adapterBaitLoadout.iter()][0].baitId,0);
+  }
+  console.log('PASS all four chum tiers: exact pack prices, once-per-cast +2/+3 grants across categories and double pulls, saved quantity, replay, cooldown and depletion.');
   ownerCall('proof_cast_setup',['9301','1','0']);args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal([...bot.db.adapterCastEquipment.iter()][0].baitId,0);assert.equal(uses(1),0n);
   args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:2});ownerCall('proof_cast_setup',['9301',forcedBasePower,'2']);args=await select();const oldScrap=material('scrap');await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal(material('scrap'),oldScrap+1n+[...bot.db.adapterCastPulls.iter()].reduce((sum,p)=>sum+p.receipt.itemQuantity,0n));assert.equal(uses(2),9n);
   for(const [id,luck] of [[3,maxQuality.luckBp+500],[4,maxQuality.luckBp+1000],[5,maxQuality.luckBp+1500]]){args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:id});ownerCall('proof_cast_setup',['9301','1','0']);args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal([...bot.db.adapterCastEquipment.iter()][0].luckBp,luck);assert.equal(uses(id),9n);}

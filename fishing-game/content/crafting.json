@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "qualities": [
     {
       "qualityLevel": 0,
@@ -75,7 +75,8 @@
       "resourceItem": "rusted_tin",
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/sticky-chum.png",
-      "xpBonusBp": 0
+      "xpBonusBp": 0,
+      "resourceQuantity": 1
     },
     {
       "baitId": 2,
@@ -86,7 +87,8 @@
       "resourceItem": "scrap",
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/salvage-chum.png",
-      "xpBonusBp": 0
+      "xpBonusBp": 0,
+      "resourceQuantity": 1
     },
     {
       "baitId": 3,
@@ -97,7 +99,8 @@
       "resourceItem": "",
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/plump-worms.png",
-      "xpBonusBp": 0
+      "xpBonusBp": 0,
+      "resourceQuantity": 0
     },
     {
       "baitId": 4,
@@ -108,7 +111,8 @@
       "resourceItem": "",
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/river-grubs.png",
-      "xpBonusBp": 0
+      "xpBonusBp": 0,
+      "resourceQuantity": 0
     },
     {
       "baitId": 5,
@@ -119,7 +123,8 @@
       "resourceItem": "",
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/moonlit-fireflies.png",
-      "xpBonusBp": 0
+      "xpBonusBp": 0,
+      "resourceQuantity": 0
     },
     {
       "baitId": 6,
@@ -130,7 +135,8 @@
       "xpBonusBp": 2500,
       "resourceItem": "",
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/green-slime.png"
+      "spriteAsset": "/baits/green-slime.png",
+      "resourceQuantity": 0
     },
     {
       "baitId": 7,
@@ -141,7 +147,8 @@
       "xpBonusBp": 5000,
       "resourceItem": "",
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/yellow-slime.png"
+      "spriteAsset": "/baits/yellow-slime.png",
+      "resourceQuantity": 0
     },
     {
       "baitId": 8,
@@ -152,7 +159,56 @@
       "xpBonusBp": 10000,
       "resourceItem": "",
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/pink-slime.png"
+      "spriteAsset": "/baits/pink-slime.png",
+      "resourceQuantity": 0
+    },
+    {
+      "baitId": 9,
+      "key": "tin-chum-plus-2",
+      "name": "Enriched Tin Chum",
+      "priceCoins": 40,
+      "resourceItem": "rusted_tin",
+      "resourceQuantity": 2,
+      "luckBp": 0,
+      "xpBonusBp": 0,
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/tin-chum-plus-2.png"
+    },
+    {
+      "baitId": 10,
+      "key": "tin-chum-plus-3",
+      "name": "Concentrated Tin Chum",
+      "priceCoins": 60,
+      "resourceItem": "rusted_tin",
+      "resourceQuantity": 3,
+      "luckBp": 0,
+      "xpBonusBp": 0,
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/tin-chum-plus-3.png"
+    },
+    {
+      "baitId": 11,
+      "key": "scrap-chum-plus-2",
+      "name": "Enriched Salvage Chum",
+      "priceCoins": 100,
+      "resourceItem": "scrap",
+      "resourceQuantity": 2,
+      "luckBp": 0,
+      "xpBonusBp": 0,
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/scrap-chum-plus-2.png"
+    },
+    {
+      "baitId": 12,
+      "key": "scrap-chum-plus-3",
+      "name": "Concentrated Salvage Chum",
+      "priceCoins": 150,
+      "resourceItem": "scrap",
+      "resourceQuantity": 3,
+      "luckBp": 0,
+      "xpBonusBp": 0,
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/scrap-chum-plus-3.png"
     }
   ],
   "rodRecipes": [

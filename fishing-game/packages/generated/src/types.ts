@@ -83,6 +83,7 @@ export const BaitDefinition = __t.object("BaitDefinition", {
   usesPerPurchase: __t.u64(),
   spriteAsset: __t.string(),
   xpBonusBp: __t.u32(),
+  resourceQuantity: __t.u64(),
 });
 export type BaitDefinition = __Infer<typeof BaitDefinition>;
 
@@ -123,6 +124,7 @@ export const CastEquipmentReceipt = __t.object("CastEquipmentReceipt", {
   baitId: __t.u32(),
   baitUsesLeft: __t.u64(),
   baitItem: __t.string(),
+  baitQuantity: __t.u64(),
 });
 export type CastEquipmentReceipt = __Infer<typeof CastEquipmentReceipt>;
 

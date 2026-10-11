@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "listings": [
     {
       "listingId": 20,
@@ -197,6 +197,46 @@
       "targetId": 8,
       "name": "Pink XP Slime",
       "priceCoins": 400,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 109,
+      "kind": "bait",
+      "targetId": 9,
+      "name": "Enriched Tin Chum",
+      "priceCoins": 40,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 110,
+      "kind": "bait",
+      "targetId": 10,
+      "name": "Concentrated Tin Chum",
+      "priceCoins": 60,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 111,
+      "kind": "bait",
+      "targetId": 11,
+      "name": "Enriched Salvage Chum",
+      "priceCoins": 100,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 112,
+      "kind": "bait",
+      "targetId": 12,
+      "name": "Concentrated Salvage Chum",
+      "priceCoins": 150,
       "minimumLevel": 1,
       "previousBiomeId": 1,
       "biomeId": 1

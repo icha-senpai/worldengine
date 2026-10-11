@@ -159,7 +159,7 @@ for (let i = 0; i < sizes.tiers.length; i++) {
 console.log('Species-relative length and weight thresholds valid; all 2,492 size bands are reachable.');
 
 const trader = JSON.parse(await readFile(new URL('./trader.json', import.meta.url), 'utf8'));
-assert.equal(trader.listings.length, 20);
+assert.equal(trader.listings.length, 24);
 assert.equal(new Set(trader.listings.map(row => row.listingId)).size, trader.listings.length);
 for (const listing of trader.listings) {
   assert(['rod', 'licence', 'bait'].includes(listing.kind));
@@ -167,25 +167,25 @@ for (const listing of trader.listings) {
   const biome = world.biomes.find(row => row.biomeId === listing.biomeId);
   assert(biome && listing.previousBiomeId === Math.max(1,biome.biomeId - 1));
   if (listing.kind !== 'rod') assert.equal(listing.minimumLevel, biome.minimumLevel);
-  if (listing.kind === 'bait') { assert(listing.targetId >= 1 && listing.targetId <= 8); continue; }
+  if (listing.kind === 'bait') { assert(listing.targetId >= 1 && listing.targetId <= 12); continue; }
   if (listing.kind === 'licence') assert.equal(listing.targetId, biome.biomeId);
   else assert(world.rods.some(row => row.rodId === listing.targetId && row.minimumLevel === listing.minimumLevel && row.power >= biome.requiredPower));
 }
-console.log('Trader catalog valid: six permanent licences, six purchasable rods and eight repeatable bait offers.');
+console.log('Trader catalog valid: six permanent licences, six purchasable rods and twelve repeatable bait offers.');
 
 const equipmentArt = JSON.parse(await readFile(new URL('./equipment-art.json', import.meta.url), 'utf8'));
 assert.deepEqual(equipmentArt.licences.map(row => row.biomeId), trader.listings.filter(row => row.kind === 'licence').map(row => row.targetId));
-assert.equal(equipmentArt.baits.length, 8);
+assert.equal(equipmentArt.baits.length, 12);
 for (const kind of ['licences', 'baits']) {
   assert.equal(new Set(equipmentArt[kind].map(row => row.key)).size, equipmentArt[kind].length);
   for (const row of equipmentArt[kind]) {
     assert(manifest[kind].some(asset => asset.key === row.key && asset.url === row.spriteAsset), `Missing ${kind} artwork: ${row.name}`);
   }
 }
-console.log('Equipment artwork valid: every paid licence and all eight bait types have sprites.');
+console.log('Equipment artwork valid: every paid licence and all twelve bait types have sprites.');
 
 const crafting = JSON.parse(await readFile(new URL('./crafting.json', import.meta.url), 'utf8'));
-assert.equal(crafting.version, 3);
+assert.equal(crafting.version, 4);
 assert.deepEqual(crafting.qualities.map(q => [q.qualityLevel,q.name,q.powerBonus,q.luckBp,q.xpBonusBp,q.tinCost,q.scrapCost]), [
   [0,'Common',0,0,0,0,0],[1,'Uncommon',2,50,100,10,5],[2,'Rare',4,100,250,25,15],
   [3,'Epic',7,200,450,60,40],[4,'Legendary',11,350,700,150,100],
@@ -203,16 +203,17 @@ for (let id = 2; id < 7; id++) {
   const next = crafting.rodRecipes.filter(r => r.rodId === id+1 && r.qualityLevel <= 5);
   for (const key of ['tinCost', 'scrapCost']) assert(previous[key] < next.reduce((sum,r) => sum+r[key],0), 'A saved Prismatic recipe must not fully fund the next Mythic rod');
 }
-assert.equal(crafting.baits.length, 8);
-assert.deepEqual(crafting.baits.map(b => b.baitId), [1,2,3,4,5,6,7,8]);
+assert.equal(crafting.baits.length, 12);
+assert.deepEqual(crafting.baits.map(b => b.baitId), [1,2,3,4,5,6,7,8,9,10,11,12]);
 for (const bait of crafting.baits) {
   assert.equal(bait.usesPerPurchase,10);
-  assert.equal(bait.xpBonusBp,[0,0,0,0,0,2500,5000,10000][bait.baitId-1]);
+  assert.equal(bait.resourceQuantity,[1,1,0,0,0,0,0,0,2,3,2,3][bait.baitId-1]);
+  assert.equal(bait.xpBonusBp,[0,0,0,0,0,2500,5000,10000,0,0,0,0][bait.baitId-1]);
   const offer = trader.listings.find(row => row.kind === 'bait' && row.targetId === bait.baitId);
-  assert(offer && offer.priceCoins === [20,50,30,70,120,50,150,400][bait.baitId-1]);
+  assert(offer && offer.priceCoins === [20,50,30,70,120,50,150,400,40,60,100,150][bait.baitId-1]);
   assert(manifest.baits.some(asset => asset.url === bait.spriteAsset));
-  assert.equal(bait.luckBp,[0,0,500,1000,1500,0,0,0][bait.baitId-1]);
-  assert.equal(bait.resourceItem,['rusted_tin','scrap','','','','','',''][bait.baitId-1]);
+  assert.equal(bait.luckBp,[0,0,500,1000,1500,0,0,0,0,0,0,0][bait.baitId-1]);
+  assert.equal(bait.resourceItem,['rusted_tin','scrap','','','','','','','rusted_tin','rusted_tin','scrap','scrap'][bait.baitId-1]);
 }
 assert(world.biomes.every(b => b.requiredPower === 0));
 const maximumQuality = crafting.qualities.at(-1);
@@ -225,4 +226,4 @@ for (let i = 1; i < world.rods.length; i++) {
 assert.equal(Math.max(...world.rods.map(r=>r.power))+maximumQuality.powerBonus,185);
 assert.equal(Math.max(...world.rods.map(r=>r.luckBp))+maximumQuality.luckBp+1500,8500);
 assert.equal(Math.max(...world.rods.map(r=>r.xpBonusBp))+Math.max(...crafting.qualities.map(q=>q.xpBonusBp))+Math.max(...crafting.baits.map(b=>b.xpBonusBp)),20000);
-console.log('Crafting valid: seven permanent qualities, exact recipes, eight 10-use baits; maximum 92.5% bonus pull and +85% luck.');
+console.log('Crafting valid: seven permanent qualities, exact recipes, twelve 10-use baits; maximum 92.5% bonus pull and +85% luck.');

@@ -78,6 +78,26 @@
       "key": "pink-slime",
       "name": "Pink XP Slime",
       "spriteAsset": "/baits/pink-slime.png"
+    },
+    {
+      "key": "tin-chum-plus-2",
+      "name": "Enriched Tin Chum",
+      "spriteAsset": "/baits/tin-chum-plus-2.png"
+    },
+    {
+      "key": "tin-chum-plus-3",
+      "name": "Concentrated Tin Chum",
+      "spriteAsset": "/baits/tin-chum-plus-3.png"
+    },
+    {
+      "key": "scrap-chum-plus-2",
+      "name": "Enriched Salvage Chum",
+      "spriteAsset": "/baits/scrap-chum-plus-2.png"
+    },
+    {
+      "key": "scrap-chum-plus-3",
+      "name": "Concentrated Salvage Chum",
+      "spriteAsset": "/baits/scrap-chum-plus-3.png"
     }
   ]
 }

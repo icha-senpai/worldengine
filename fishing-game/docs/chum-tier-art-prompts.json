@@ -1,0 +1,30 @@
+{
+  "mode": "built-in image_gen",
+  "transparentBackground": true,
+  "assets": [
+    {
+      "key": "tin-chum-plus-2",
+      "spriteAsset": "/baits/tin-chum-plus-2.png",
+      "reference": "assets/baits/sticky-chum.png",
+      "prompt": "Use case: stylized-concept. Create ONE individual Fishbound fishing RPG chum inventory sprite. Reference image is style and family reference only. Match its chunky crisp 16-bit pixel art, stepped dark outlines, square pixel clusters, cloth folds and rope, three-quarter front view, generous clear transparent margins, single centered complete open pouch, readable at 96px. Truly transparent background. No text, digits, labels, UI frame, scene, multiple objects or ground shadow. Tier +2 TIN chum: a warm ochre-tan reinforced cloth pouch, amber sticky chum overflowing slightly, plentiful dull silver tin flakes embedded among copper-orange bits. Two small silver tin lozenges stitched vertically on the pouch front act as a visual tier marker. More premium than reference, retain recognizable amber tin-chum family."
+    },
+    {
+      "key": "tin-chum-plus-3",
+      "spriteAsset": "/baits/tin-chum-plus-3.png",
+      "reference": "assets/baits/sticky-chum.png",
+      "prompt": "Use case: stylized-concept. Create ONE individual Fishbound fishing RPG chum inventory sprite. Reference image is style and family reference only. Match its chunky crisp 16-bit pixel art, stepped dark outlines, square pixel clusters, cloth folds and rope, three-quarter front view, generous clear transparent margins, single centered complete open pouch, readable at 96px. Truly transparent background. No text, digits, labels, UI frame, scene, multiple objects or ground shadow. Tier +3 TIN chum: a rich burnt-orange reinforced cloth pouch with pale cream rolled rim and braided rope, glossy golden-amber sticky chum densely studded with bright silver tin nuggets. Three small silver tin lozenges stitched vertically on the pouch front act as visual tier marker. Strong premium silhouette, retain recognizable amber tin-chum family."
+    },
+    {
+      "key": "scrap-chum-plus-2",
+      "spriteAsset": "/baits/scrap-chum-plus-2.png",
+      "reference": "assets/baits/salvage-chum.png",
+      "prompt": "Use case: stylized-concept. Create ONE individual Fishbound fishing RPG chum inventory sprite. Reference image is style and family reference only. Match its chunky crisp 16-bit pixel art, stepped dark outlines, square pixel clusters, cloth folds and rope, three-quarter front view, generous clear transparent margins, single centered complete open pouch, readable at 96px. Truly transparent background. No text, digits, labels, UI frame, scene, multiple objects or ground shadow. Tier +2 SCRAP chum: a deep teal-green reinforced cloth pouch filled with dark coarse chum and plentiful metallic scrap bits, small washers and bent silver fragments. Two small square silver metal patches stitched vertically on pouch front act as visual tier marker. Retain recognizable dark salvage-chum family."
+    },
+    {
+      "key": "scrap-chum-plus-3",
+      "spriteAsset": "/baits/scrap-chum-plus-3.png",
+      "reference": "assets/baits/salvage-chum.png",
+      "prompt": "Use case: stylized-concept. Create ONE individual Fishbound fishing RPG chum inventory sprite. Reference image is style and family reference only. Match its chunky crisp 16-bit pixel art, stepped dark outlines, square pixel clusters, cloth folds and rope, three-quarter front view, generous clear transparent margins, single centered complete open pouch, readable at 96px. Truly transparent background. No text, digits, labels, UI frame, scene, multiple objects or ground shadow. Tier +3 SCRAP chum: a deep blue-indigo reinforced cloth pouch with olive rolled rim and sturdy braided tan rope, dark coarse chum densely studded with silvery scrap shards, washers and a few rusty copper bits. Three small square silver metal patches stitched vertically on pouch front act as visual tier marker. Strong premium silhouette, retain recognizable dark salvage-chum family."
+    }
+  ]
+}

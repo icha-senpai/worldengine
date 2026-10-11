@@ -418,7 +418,7 @@ pub fn fish_from_discord(
             player.player_id,
             slot,
             &bait.resource_item,
-            1,
+            bait.resource_quantity,
             format!("discord:{interaction_id}:bait"),
         )?;
     }
@@ -435,6 +435,7 @@ pub fn fish_from_discord(
             bait_id: bait.bait_id,
             bait_uses_left: bait.uses_left,
             bait_item: bait.resource_item,
+            bait_quantity: bait.resource_quantity,
         });
     let mut receipt = ctx
         .db

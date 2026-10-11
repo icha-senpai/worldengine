@@ -210,6 +210,24 @@ unconsumed shop/upgrade quotes reject changed prices or recipes on commit.
 
 ## Rules-10 XP curve activation
 
+### Chum tier catalog update
+
+Crafting catalog 4 and Trader catalog 6 add four 10-use +2/+3 tin/scrap
+packs. Before rebuilding, save the deployed WASM and an old crafting fixture
+WASM. `npm run bindings` builds the module and regenerates both clients.
+The additive migration appends `bait_definition.resource_quantity` and
+`cast_equipment_receipt.bait_quantity`, each with default zero. Existing resource
+baits continue to grant +1 before activation; old saved receipts render as +1
+when their material field is populated. New casts save their actual quantity.
+
+Run `npx tsx scripts/chum-migration-proof.ts <saved-old-crafting-fixture.wasm>`
+and `npx tsx scripts/crafting-proof.ts` in fresh proof databases. For an
+authorized live deployment, take a verified recoverable backup and preservation
+snapshot, publish without deleting data, then call `activate_xp_progression`
+to refresh metadata. Verify `scripts/xp-preservation.mjs after` before starting
+rebuilt clients. Lifetime XP, level thresholds and existing bait charges are
+unchanged. Builds alone do not publish the catalog.
+
 Rules 10 change level thresholds without changing lifetime XP or the schema.
 Save the previous rules-9 WASM, clients and a recoverable database backup.
 Run the isolated `scripts/xp-curve-proof.ts <saved-rules-9-crafting-fixture.wasm>`

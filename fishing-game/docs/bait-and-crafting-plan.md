@@ -158,7 +158,8 @@ attempts and return replayed receipts without consuming an additional charge.
 Bait is purchased from the Camp Trader. Resource bait provides materials in
 addition to the normal catch, so players can target tin or scrap for crafting.
 
-These eight bait types, effects and prices are the current starting balance:
+The catalog contains twelve bait types. Each resource reward applies once per
+accepted cast, including double pulls, and consumes one use.
 
 | Bait | Effect | Price for 10 uses |
 |---|---|---:|
@@ -170,13 +171,24 @@ These eight bait types, effects and prices are the current starting balance:
 | Green XP Slime | +25% fishing XP | 50 coins |
 | Yellow XP Slime | +50% fishing XP | 150 coins |
 | Pink XP Slime | +100% fishing XP | 400 coins |
+| Enriched Tin Chum | +2 rusted tin per cast | 40 coins |
+| Concentrated Tin Chum | +3 rusted tin per cast | 60 coins |
+| Enriched Salvage Chum | +2 scrap per cast | 100 coins |
+| Concentrated Salvage Chum | +3 scrap per cast | 150 coins |
+
+The stronger chum tiers cost the same per guaranteed material as the originals:
+2 coins per tin and 5 coins per scrap. They accelerate targeted collection while
+spending more gold per cast and occupying the bait slot that could hold XP slime
+or luck bait. No level or additional licence gate applies. Crafting catalog 4 and
+Trader catalog 6 add these tiers; gameplay rules and XP remain version 10.
 
 ## Artwork
 
-Six purchasable biome licences and eight bait icons are mapped in
-`content/equipment-art.json`. All eight bait types are purchasable from the Trader;
+Six purchasable biome licences and twelve bait icons are mapped in
+`content/equipment-art.json`. All twelve bait types are purchasable from the Trader;
 the Tackle box shows only the actually equipped bait and its remaining uses.
 
 The original transparent PNGs are in `assets/licences/` and `assets/baits/`.
-Exact prompts are stored in `docs/licence-and-bait-art-prompts.json`, generated
+Exact prompts are stored in `docs/licence-and-bait-art-prompts.json`,
+`docs/xp-slime-art-prompts.json`, and `docs/chum-tier-art-prompts.json`, generated
 through the built-in image tool and copied without altering pixels or alpha.
