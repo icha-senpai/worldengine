@@ -1,6 +1,6 @@
 # Equipped rods and tackle-box gear
 
-Gameplay rules version 9 includes bait, rod quality, mixed pulls and level 120;
+Gameplay rules version 10 includes bait, rod quality, mixed pulls and level 120;
 species/content is version 5 and physical rank thresholds remain version 4.
 Each new rod improves all three stats. [XP slime rules](xp-progression.md) add
 three purchasable baits with +25%, +50% and +100% fishing XP.
@@ -21,6 +21,9 @@ licences are bought in order, and any owned rod can fish licensed waters.
 Purchases still start Common and never equip automatically. Rod ownership is
 not an additional shop prerequisite, so players can skip families if their
 licences and wallet permit; the pacing audit assumes sequential purchases.
+
+The following rod-only audit records rules 9 before the subsequent
+[XP tuning in rules 10](xp-short-session-audit.md); its exact timings are historical.
 
 The October 11 rules-9 shorter-session tuning includes River and Marsh and
 uses **25 and 50 casts per day** as the primary schedules; 100 is an upper-bound
@@ -108,7 +111,7 @@ visuals; prompts remain in `docs/licence-and-bait-art-prompts.json`.
 Publish additive schema updates without resetting the player database, then
 call owner-only `activate_xp_progression`. It refreshes rod base definitions,
 rod bonuses, quality definitions and 42 rod recipes (version 3), bait and shop metadata, inserts
-rules version 9, and refreshes profile levels from stored XP. It preserves
+rules version 10, and refreshes profile levels from stored XP. It preserves
 owned rod quality, XP, coins, materials, catches, records, cooldowns, and saved
 receipts. The operation is idempotent; historical receipts keep their original
 rule/equipment snapshots. This update adds the public `rod_upgrade_recipe` metadata table; regenerate

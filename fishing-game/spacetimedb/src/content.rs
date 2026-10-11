@@ -46,7 +46,11 @@ pub fn activate_xp_progression(ctx: &ReducerContext) -> Result<(), String> {
             .player_id()
             .find(profile.player_id)
             .ok_or("PLAYER_NOT_FOUND")?;
-        profile.level = game_rules::progression::level_for_xp(player.total_xp, world.level_cap);
+        profile.level = game_rules::progression::level_for_xp_for_version(
+            player.total_xp,
+            world.level_cap,
+            rules.version,
+        );
         ctx.db.public_profile().player_id().update(profile);
     }
     Ok(())

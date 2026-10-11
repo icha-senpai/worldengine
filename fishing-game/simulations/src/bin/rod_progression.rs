@@ -52,6 +52,27 @@ struct Content {
     thresholds: Vec<u64>,
 }
 impl Content {
+    fn set_late_curve(&mut self, quadratic: u64, linear_step: Option<u64>) {
+        assert!(quadratic <= 5);
+        for level in 2..=120 {
+            let l = (level - 1) as u64;
+            let required = if l <= 10 {
+                80 + 25 * l + 5 * l * l
+            } else if let Some(step) = linear_step {
+                830 + step * (l - 10)
+            } else {
+                80 + 25 * l + quadratic * l * l + (5 - quadratic) * 100
+            };
+            self.thresholds[level] = self.thresholds[level - 1] + required;
+        }
+    }
+    fn level(&self, xp: u64) -> u32 {
+        (self
+            .thresholds
+            .partition_point(|threshold| *threshold <= xp)
+            .saturating_sub(1)
+            .min(120)) as u32
+    }
     fn load() -> Self {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../content");
         Self::load_from(&root)
@@ -243,6 +264,8 @@ impl Player {
     fn bait(&mut self, c: &Content, policy: Policy, cap: usize) -> usize {
         let id = match policy {
             Policy::Natural => 0,
+            Policy::Green => 6,
+            Policy::Yellow => 7,
             Policy::Pink => 8,
             Policy::Materials if self.quality < cap => {
                 let q = c.recipe(self.rod, self.quality + 1);
@@ -334,6 +357,8 @@ impl Player {
 enum Policy {
     Natural,
     Materials,
+    Green,
+    Yellow,
     Pink,
 }
 #[derive(Default)]
@@ -440,7 +465,7 @@ fn simulate_material_choice(c: &Content, policy: Policy, trials: u64, casts_per_
             let ready = p.quality == 5
                 && p.tin >= n(recipe, "tinCost")
                 && p.scrap >= n(recipe, "scrapCost");
-            let level = u64::from(game_rules::progression::level_for_xp(p.xp, 120));
+            let level = u64::from(c.level(p.xp));
             if p.quality == 5 && !reached_mythic {
                 mythic_levels[p.rod].push(level);
                 reached_mythic = true;
@@ -547,8 +572,7 @@ fn simulate(
                 s.purchase_casts.push(p.casts);
                 s.purchase_stage_casts
                     .push(p.casts - previous_purchase_cast);
-                s.purchase_levels
-                    .push(u64::from(game_rules::progression::level_for_xp(p.xp, 120)));
+                s.purchase_levels.push(u64::from(c.level(p.xp)));
                 s.prismatic_ready_at_purchase += u64::from(
                     p.quality == 6
                         || (p.quality == 5
@@ -699,6 +723,79 @@ fn calibrate_gold_prices(
     }
     json!({"trials":trials,"calibration":"Median wallet when the previous rod is Mythic with the Prismatic recipe banked; River remains a short starter purchase; Marsh and later prices follow the previous family. Validation uses separate career seeds and buys immediately when eligible/affordable.","milestones":milestones,"trader":c.trader})
 }
+// XP careers continue after the last rod, including licence 55 and level 120.
+// Per-player milestone samples include casts, gold, gear and material readiness.
+fn simulate_xp(c: &Content, policy: Policy, trials: u64, casts_per_day: u64) -> Value {
+    let levels = [5usize, 10, 18, 28, 40, 55, 60, 80, 100, 120];
+    let mut milestones: Vec<Vec<u64>> = vec![vec![]; levels.len()];
+    let mut abyssal_casts = vec![];
+    let mut abyssal_levels = vec![];
+    let mut rod_quality: Vec<Vec<usize>> = vec![vec![]; 6];
+    let mut rod_ready = [0u64; 6];
+    for trial in 0..trials {
+        let mut p = Player::new(c);
+        let mut rng = StdRng::seed_from_u64(12112026 + trial);
+        let mut next_milestone = 0;
+        loop {
+            while next_milestone < levels.len() && p.xp >= c.thresholds[levels[next_milestone]] {
+                milestones[next_milestone].push(p.casts);
+                next_milestone += 1;
+            }
+            if next_milestone == levels.len() && p.rod == 6 {
+                break;
+            }
+            p.daily(casts_per_day);
+            // Bank Prismatic before buying each family; finish the last rod when affordable.
+            p.upgrade(c, if p.rod == 6 { 6 } else { 5 });
+            while p.biome < 6
+                && p.xp >= c.thresholds[n(&c.biomes[p.biome + 1], "minimumLevel") as usize]
+                && p.coins >= c.price("licence", p.biome + 1)
+            {
+                p.coins -= c.price("licence", p.biome + 1);
+                p.biome += 1;
+            }
+            if p.rod < 6 {
+                let target = p.rod + 1;
+                if p.biome >= target - 1
+                    && p.xp >= c.thresholds[n(&c.rods[target], "minimumLevel") as usize]
+                    && p.coins >= c.price("rod", target)
+                {
+                    rod_quality[p.rod].push(p.quality);
+                    rod_ready[p.rod] += u64::from(
+                        p.quality == 5
+                            && p.tin >= n(c.recipe(p.rod, 6), "tinCost")
+                            && p.scrap >= n(c.recipe(p.rod, 6), "scrapCost"),
+                    );
+                    p.coins -= c.price("rod", target);
+                    p.rod = target;
+                    p.quality = 0;
+                    p.upgrade(c, 5);
+                    if p.rod == 6 {
+                        abyssal_casts.push(p.casts);
+                        abyssal_levels.push(u64::from(c.level(p.xp)));
+                    }
+                }
+            }
+            let banked = p.quality == 5
+                && p.tin >= n(c.recipe(p.rod, 6), "tinCost")
+                && p.scrap >= n(c.recipe(p.rod, 6), "scrapCost");
+            let bait = p.bait(
+                c,
+                if next_milestone == levels.len() {
+                    Policy::Natural
+                } else {
+                    policy
+                },
+                if banked { 5 } else { 6 },
+            );
+            p.cast(c, bait, &mut rng);
+            assert!(p.casts < 100000, "XP career did not converge");
+        }
+    }
+    json!({"trials":trials,"seed":12112026,"milestones":levels.iter().enumerate().map(|(i,l)|json!({"level":l,"casts":summary(&milestones[i]),"fishing_days":fishing_days(&milestones[i],casts_per_day)})).collect::<Vec<_>>(),
+        "abyssal_purchase_casts":summary(&abyssal_casts),"abyssal_purchase_level":summary(&abyssal_levels),
+        "rod_transitions":rod_quality.iter().enumerate().map(|(i,q)|json!({"from":c.rods[i]["name"],"mythic_pct":100.0*q.iter().filter(|v|**v>=5).count() as f64/trials as f64,"prismatic_ready_pct":100.0*rod_ready[i] as f64/trials as f64})).collect::<Vec<_>>()})
+}
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let trials = args.get(1).map(|v| v.parse().unwrap()).unwrap_or(5000u64);
@@ -713,6 +810,34 @@ fn main() {
         .get(4)
         .map(|root| Content::load_from(Path::new(root)))
         .unwrap_or_else(Content::load);
+    let linear_step = args
+        .get(6)
+        .and_then(|v| v.strip_prefix("linear-"))
+        .map(|v| v.parse::<u64>().unwrap());
+    let curve = args
+        .get(6)
+        .filter(|_| linear_step.is_none())
+        .map(|v| v.parse::<u64>().unwrap());
+    if curve.is_some() || linear_step.is_some() {
+        c.set_late_curve(curve.unwrap_or(0), linear_step);
+    }
+    if args.get(5).is_some_and(|v| v == "xp") {
+        let mut scenarios = serde_json::Map::new();
+        for (name, policy) in [
+            ("natural", Policy::Natural),
+            ("resource", Policy::Materials),
+            ("green", Policy::Green),
+            ("yellow", Policy::Yellow),
+            ("pink", Policy::Pink),
+        ] {
+            eprintln!("XP simulation {name}: {trials} careers");
+            scenarios.insert(name.into(), simulate_xp(&c, policy, trials, casts_per_day));
+        }
+        fs::create_dir_all(output.parent().unwrap()).unwrap();
+        fs::write(&output,serde_json::to_string_pretty(&json!({"date":"2026-10-11","casts_per_day":casts_per_day,"late_quadratic":curve,"linear_step":linear_step,"level_thresholds":c.thresholds,"scenarios":scenarios,
+            "assumptions":["Fresh starter; sell every fish; daily claims on played days; sequential licences and rods as soon as eligible and affordable.","Bank Prismatic on each rod before replacement; upgrade the final Abyssal to Prismatic whenever affordable.","Slime is bought until level 120 whenever affordable at actual ten-use pack prices; depleted or unaffordable bait means an unboosted cast.","Milestones are cumulative casts from a fresh start. No gifts, achievements payouts, favourites or other spending.","Offline simulation uses authoritative XP rewards and physical catches. Hypothetical curves retain levels 1–10 and alter only the later requirement."]})).unwrap()).unwrap();
+        return;
+    }
     if args.get(5).is_some_and(|v| v.starts_with("calibrate-")) {
         let policy = if args[5] == "calibrate-natural" {
             Policy::Natural

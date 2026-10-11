@@ -1,6 +1,6 @@
 # Bait and rod quality: implemented rules
 
-Implemented in gameplay rules version 9, including [level 120 and XP slime](xp-progression.md). SpaceTimeDB owns purchases, charges,
+Implemented in gameplay rules version 10, including [level 120 and XP slime](xp-progression.md). SpaceTimeDB owns purchases, charges,
 quality crafting, bonus pulls and reward snapshots. This document records the
 agreed starting balance; content/crafting.json supplies the catalog to activate at deployment.
 

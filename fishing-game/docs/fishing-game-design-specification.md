@@ -294,13 +294,14 @@ Access is checked both when changing biome and when casting. A player can become
 
 ### 7.1 XP and levels
 
-Prototype cost to advance from level `L` to `L+1`:
+Rules-10 cost to advance from level `L` to `L+1`:
 
 ```text
-xp_to_next(L) = 80 + 25L + 5L²
+xp_to_next(L) = 80 + 25L + 5L²          when L <= 10
+xp_to_next(L) = 830 + 35(L - 10)       when L > 10
 ```
 
-Level 1 needs 110 XP; level 10 needs 830 XP; level 25 needs 3,830 XP. Store total lifetime XP as the source of truth and compute level through a versioned threshold catalog. Current level cap: 120, expanded for the owner-requested seven-biome implementation.
+Level 1 needs 110 XP; level 10 needs 830 XP; level 25 needs 1,355 XP. Store total lifetime XP as the source of truth and compute level through a versioned threshold catalog. Current level cap: 120, expanded for the owner-requested seven-biome implementation.
 
 Fish XP starts from tier values `[8, 12, 18, 28, 44, 70, 110, 180, 300, 500]`. Size bonus ranges from 0% to 25%. First discovery adds a one-time fixed species reward. Junk grants 2 XP and treasure 8 XP initially. Avoid sale-value-based XP so economy adjustments do not accidentally alter progression.
 

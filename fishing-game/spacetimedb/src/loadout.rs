@@ -2,7 +2,7 @@ use crate::{
     accounts::{config, require_service},
     tables::*,
 };
-use game_rules::progression::{check_interaction_freshness, level_for_xp};
+use game_rules::progression::{check_interaction_freshness, level_for_xp_for_version};
 use spacetimedb::ReducerContext;
 
 // Both transports use the same transactional access checks. Equipment changes never
@@ -19,7 +19,8 @@ fn change(
         .player_id()
         .find(player_id)
         .ok_or("PLAYER_UNAVAILABLE")?;
-    let level = level_for_xp(player.total_xp, config(ctx).level_cap);
+    let level =
+        level_for_xp_for_version(player.total_xp, config(ctx).level_cap, config(ctx).version);
     let rod = ctx
         .db
         .rod_definition()

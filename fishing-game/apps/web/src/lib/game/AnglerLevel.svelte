@@ -1,10 +1,11 @@
 <script lang="ts">
-  let { totalXp, levelCap }: { totalXp: bigint; levelCap: number } = $props();
+  import { xpToNextLevel } from './progression';
+  let { totalXp, levelCap, rulesVersion }: { totalXp: bigint; levelCap: number; rulesVersion: number } = $props();
   const progress = $derived.by(() => {
     let level = 1;
     let earned = totalXp;
     // Match game-rules::progression::xp_to_next and level_for_xp.
-    const requiredFor = (level: number) => BigInt(80 + 25 * level + 5 * level * level);
+    const requiredFor = (level: number) => xpToNextLevel(level, rulesVersion);
     while (level < levelCap && earned >= requiredFor(level)) {
       earned -= requiredFor(level);
       level += 1;

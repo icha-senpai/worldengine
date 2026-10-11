@@ -1,11 +1,22 @@
+/// Rules 10 retain the first ten level costs, then grow by 35 XP per level.
 pub fn xp_to_next(level: u32) -> u64 {
-    let level = u64::from(level);
-    80 + 25 * level + 5 * level * level
+    xp_to_next_for_version(level, 10)
 }
-pub fn level_for_xp(mut total_xp: u64, max_level: u32) -> u32 {
+pub fn xp_to_next_for_version(level: u32, rules_version: u32) -> u64 {
+    let level = u64::from(level);
+    if rules_version < 10 || level <= 10 {
+        80 + 25 * level + 5 * level * level
+    } else {
+        830 + 35 * (level - 10)
+    }
+}
+pub fn level_for_xp(total_xp: u64, max_level: u32) -> u32 {
+    level_for_xp_for_version(total_xp, max_level, 10)
+}
+pub fn level_for_xp_for_version(mut total_xp: u64, max_level: u32, rules_version: u32) -> u32 {
     let mut level = 1;
-    while level < max_level && total_xp >= xp_to_next(level) {
-        total_xp -= xp_to_next(level);
+    while level < max_level && total_xp >= xp_to_next_for_version(level, rules_version) {
+        total_xp -= xp_to_next_for_version(level, rules_version);
         level += 1;
     }
     level
@@ -50,7 +61,9 @@ mod tests {
     fn xp_thresholds_are_monotonic_and_allow_multiple_level_crossings() {
         assert_eq!(xp_to_next(1), 110);
         assert_eq!(xp_to_next(10), 830);
-        assert_eq!(xp_to_next(25), 3830);
+        assert_eq!(xp_to_next(11), 865);
+        assert_eq!(xp_to_next(25), 1355);
+        assert_eq!((1..120).map(xp_to_next).sum::<u64>(), 304395);
         let mut total = 0;
         for level in 1..120 {
             total += xp_to_next(level);
@@ -59,6 +72,27 @@ mod tests {
             assert!(xp_to_next(level + 1) > xp_to_next(level));
         }
         assert_eq!(level_for_xp(u64::MAX, 120), 120);
+    }
+    #[test]
+    fn curve_activation_retains_early_levels_and_never_lowers_existing_levels() {
+        let mut legacy_total = 0;
+        for level in 1..120 {
+            let old = xp_to_next_for_version(level, 9);
+            if level <= 10 {
+                assert_eq!(old, xp_to_next(level));
+            }
+            assert!(xp_to_next(level) <= old);
+            assert!(
+                level_for_xp(legacy_total, 120) >= level_for_xp_for_version(legacy_total, 120, 9)
+            );
+            assert_eq!(level_for_xp_for_version(legacy_total, 120, 9), level);
+            assert_eq!(
+                level_for_xp_for_version(legacy_total + old - 1, 120, 9),
+                level
+            );
+            legacy_total += old;
+        }
+        assert_eq!(legacy_total, 3032120);
     }
     #[test]
     fn record_ties_use_earliest_time_then_smallest_id() {

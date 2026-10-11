@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { xpToNextLevel } from '../apps/web/src/lib/game/progression';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawnSync, spawn } from 'node:child_process';
@@ -77,7 +78,7 @@ try {
     await assert.rejects(purchase(20,9305n),/SHOP_LEVEL_REQUIRED/);
     await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
   }
-  const xpAtLevel=(level:number)=>Array.from({length:level-1},(_,i)=>80+25*(i+1)+5*(i+1)**2).reduce((sum,xp)=>sum+xp,0);
+  const xpAtLevel=(level:number)=>Array.from({length:level-1},(_,i)=>Number(xpToNextLevel(i+1,10))).reduce((sum,xp)=>sum+xp,0);
   ownerCall('prepare_trader_player',['9306',String(xpAtLevel(5)),'1000000','1']);
   await purchase(20,9306n);let goldArgs=await purchase(31,9306n);
   await bot.reducers.changeLoadoutFromDiscord({...goldArgs,rodId:3});assert.equal(player().equippedRodId,3);

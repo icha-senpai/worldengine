@@ -4,7 +4,7 @@ use crate::{
 };
 use game_rules::{
     measurements::{SpeciesMeasurements, classify_rarity, generate_in_size_band},
-    progression::{check_interaction_freshness, level_for_xp, record_wins},
+    progression::{check_interaction_freshness, level_for_xp_for_version, record_wins},
     sampling::sample,
 };
 use spacetimedb::{ReducerContext, Table, TimeDuration, rand::Rng};
@@ -83,10 +83,13 @@ pub fn fish_from_discord(
         .quality_level()
         .find(owned.upgrade_level)
         .ok_or("QUALITY_UNAVAILABLE")?;
-    if level_for_xp(player.total_xp, rules.level_cap) < biome.minimum_level {
+    if level_for_xp_for_version(player.total_xp, rules.level_cap, rules.version)
+        < biome.minimum_level
+    {
         return Err("BIOME_LOCKED".into());
     }
-    if level_for_xp(player.total_xp, rules.level_cap) < rod.minimum_level {
+    if level_for_xp_for_version(player.total_xp, rules.level_cap, rules.version) < rod.minimum_level
+    {
         return Err("ROD_LOCKED".into());
     }
     let species: Vec<_> = ctx
@@ -472,7 +475,7 @@ pub fn fish_from_discord(
         .player_id()
         .find(player.player_id)
         .ok_or("PROFILE_MISSING")?;
-    profile.level = level_for_xp(player.total_xp, rules.level_cap);
+    profile.level = level_for_xp_for_version(player.total_xp, rules.level_cap, rules.version);
     profile.fish_count = player.fish_count;
     ctx.db.public_profile().player_id().update(profile);
     let mut history: Vec<_> = ctx

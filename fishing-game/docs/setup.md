@@ -196,7 +196,7 @@ catch preservation, owner authorization, idempotence and fresh version-5 catches
 
 Back up and compare player state; never reset the database. Build/generate with
 `npm run bindings`, publish the production WASM additively, then call the owner
-reducer `activate_xp_progression`. This activates rules 9, gold-gated rods and family recipes without spending
+reducer `activate_xp_progression`. This activates rules 10, the shorter-session XP curve, gold-gated rods and family recipes without spending
 or granting player resources. Build the website and native clients, then restart
 with the supplied local-services launcher. Recipes and bait prices live in
 `content/crafting.json` and `content/trader.json`.
@@ -207,3 +207,16 @@ Run `npm run bindings`, build all clients, and verify
 in isolated proof databases before publication. Existing owned qualities,
 wallets, XP, catches, inventories, quotes and receipts are retained. Outstanding
 unconsumed shop/upgrade quotes reject changed prices or recipes on commit.
+
+## Rules-10 XP curve activation
+
+Rules 10 change level thresholds without changing lifetime XP or the schema.
+Save the previous rules-9 WASM, clients and a recoverable database backup.
+Run the isolated `scripts/xp-curve-proof.ts <saved-rules-9-crafting-fixture.wasm>`
+and `scripts/crafting-proof.ts`, then build the production module, website and
+native clients. Publish with `--delete-data=never`, call owner-only
+`activate_xp_progression`, and run `scripts/xp-preservation.mjs after` against the
+saved before snapshot. All 41 retained gameplay tables must remain identical;
+public profile levels deliberately increase according to the new curve.
+Clients and server gates retain rules-9 thresholds until the rules-10 config
+is activated, avoiding inconsistent levels during the publication window.

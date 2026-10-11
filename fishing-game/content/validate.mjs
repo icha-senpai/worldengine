@@ -92,7 +92,7 @@ for (const fish of catalog.species) {
 }
 console.log(`Measurements valid: ${measurements.size} explicit species baselines, no generic fallback.`);
 assert.equal(world.version, catalog.version);
-assert.equal(rules.version, 9);
+assert.equal(rules.version, 10);
 assert.equal(world.levelCap, 120);
 assert.deepEqual(world.biomes.map(b => b.name), ['Meadow Pond', 'Whispering River', 'Hollow Marsh', 'Moonlit Lake', 'Sunken Coast', 'Glacial Reach', 'Abyssal Shelf']);
 assert.equal(new Set(world.biomes.map(b => b.biomeId)).size, world.biomes.length);

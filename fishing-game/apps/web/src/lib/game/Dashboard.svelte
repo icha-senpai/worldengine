@@ -111,7 +111,7 @@
 
   {#if game.player}
     <section class="stats" aria-label="Your progress">
-      <div><AnglerLevel totalXp={game.player.totalXp} levelCap={game.config?.levelCap ?? 120} /></div>
+      <div><AnglerLevel totalXp={game.player.totalXp} levelCap={game.config?.levelCap ?? 120} rulesVersion={game.config?.version ?? 9} /></div>
       <div><span>◈ COIN POUCH</span><strong>{game.player.coins.toString()}</strong><small>For your next adventure</small></div>
       <div><span>▤ COLLECTION BOOK</span><strong>{discoveries}<em> / {ordinary.length}</em></strong><progress value={discoveries} max={ordinary.length || 249} aria-label="Ordinary species discovered"></progress><small>Two bonus discoveries await</small></div>
       <div><span>⌛ NEXT CAST</span><strong>{remaining ? remaining + 's' : 'Ready!'}</strong><small>Use /fish in Discord</small></div>

@@ -300,14 +300,22 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
             }
         }
     }
-    let level =
-        game_rules::progression::level_for_xp(result.player.total_xp, result.config.level_cap);
+    let level = game_rules::progression::level_for_xp_for_version(
+        result.player.total_xp,
+        result.config.level_cap,
+        result.config.version,
+    );
     if level >= result.config.level_cap {
         summary.push_str(&format!("\nAngler level {} · Max level reached", level));
     } else {
-        let level_start_xp: u64 = (1..level).map(game_rules::progression::xp_to_next).sum();
+        let level_start_xp: u64 = (1..level)
+            .map(|level| {
+                game_rules::progression::xp_to_next_for_version(level, result.config.version)
+            })
+            .sum();
         let remaining_xp =
-            game_rules::progression::xp_to_next(level) - (result.player.total_xp - level_start_xp);
+            game_rules::progression::xp_to_next_for_version(level, result.config.version)
+                - (result.player.total_xp - level_start_xp);
         summary.push_str(&format!(
             "\nAngler level {} · {} XP to level {}",
             level,
@@ -465,7 +473,7 @@ async fn profile(
         })
         .count();
     reply(ctx, format!("**Your Fishbound profile · {title}**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {} fish kept\n{badge_count} badges earned · [Your profile]({public_link})\n[Achievements and titles]({}/#achievements)",
-        game_rules::progression::level_for_xp(result.player.total_xp, result.config.level_cap), result.player.total_xp, result.player.coins,
+        game_rules::progression::level_for_xp_for_version(result.player.total_xp, result.config.level_cap, result.config.version), result.player.total_xp, result.player.coins,
         result.player.completed_casts, result.player.fish_count, discoveries, ordinary, result.player.kept_count, ctx.data().website.trim_end_matches('/'))).await
 }
 

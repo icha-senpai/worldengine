@@ -2,6 +2,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
+import { levelForXp } from '../apps/web/src/lib/game/progression.ts';
 const database = process.argv[3] ?? 'fishbound-dev-local';
 assert(database === 'fishbound-dev-local' || /^fishbound-proof-/.test(database));
 const tables = [...(await readFile('spacetimedb/src/tables.rs','utf8')).matchAll(/accessor = (\w+)/g)].map(m=>m[1]).filter(t=>t!=='maintenance_job');
@@ -43,8 +44,7 @@ if(process.argv[2]==='before') {
  for(const old of before.public_profile) {
   const current=snapshot.public_profile.find(row=>row.player_id===old.player_id);
   assert.deepEqual({...current,level:old.level},old);
-  let xp=BigInt(snapshot.player.find(row=>row.player_id===old.player_id).total_xp),level=1;
-  while(level<120){const needed=BigInt(80+25*level+5*level*level);if(xp<needed)break;xp-=needed;level++;}
+  const level=levelForXp(BigInt(snapshot.player.find(row=>row.player_id===old.player_id).total_xp),120,rules.version);
   assert.equal(current.level,level);
  }
  console.log(`PASS ${tables.length-updated.length} gameplay tables preserved byte-for-byte; config, rod/quality/bait metadata, shop versions and profile levels match activation.`);

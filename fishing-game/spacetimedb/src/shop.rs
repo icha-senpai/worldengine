@@ -3,7 +3,7 @@ use crate::{
     inventory::ledger,
     tables::*,
 };
-use game_rules::progression::{check_interaction_freshness, level_for_xp};
+use game_rules::progression::{check_interaction_freshness, level_for_xp_for_version};
 use serde::Deserialize;
 use spacetimedb::{ReducerContext, Table, TimeDuration, ViewContext, rand::Rng};
 
@@ -80,7 +80,9 @@ fn owned(ctx: &ReducerContext, player_id: u64, listing: &ShopListing) -> bool {
 }
 
 fn eligible(ctx: &ReducerContext, player: &Player, listing: &ShopListing) -> Result<(), String> {
-    if level_for_xp(player.total_xp, config(ctx).level_cap) < listing.minimum_level {
+    if level_for_xp_for_version(player.total_xp, config(ctx).level_cap, config(ctx).version)
+        < listing.minimum_level
+    {
         return Err("SHOP_LEVEL_REQUIRED".into());
     }
     if !owns_licence(ctx, player.player_id, listing.previous_biome_id) {
