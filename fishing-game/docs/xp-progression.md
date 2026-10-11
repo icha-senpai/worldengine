@@ -4,8 +4,8 @@ Gameplay rules version 7 raises the angler cap from 60 to 120. Lifetime XP stays
 the source of truth; existing players retain their XP, catches, coins, equipment
 and bait stock. The curve remains `80 + 25*level + 5*level*level` XP per level.
 Level 120 requires 3,032,120 total XP. XP earned while previously capped counts
-immediately toward the expanded progression. Existing biome and rod gates stay
-at their current levels.
+immediately toward the expanded progression. Biome licence gates retain their levels. Rules 9 replace rod level gates with
+gold purchases and family-specific material recipes.
 
 All three slime baits are available at the Camp Trader from level 1. Each pack
 contains ten uses, and repeated purchases add uses to the same bait stack.
@@ -43,9 +43,10 @@ Append `bait_definition.xp_bonus_bp` with default zero, regenerate both bindings
 rebuild native services, and publish with `--delete-data=never`. SpaceTimeDB
 [supports appended columns with defaults](https://spacetimedb.com/docs/tables/default-values/).
 The owner-only, idempotent `activate_xp_progression` reducer seeds eight bait
-definitions and twenty shop offers, inserts rules version 7 with cap 120, and
+definitions, rod bases/bonuses, qualities, 42 family recipes, and twenty shop offers, inserts
+current rules version 9 with cap 120, and
 refreshes public profile levels from stored XP. It never changes player XP,
-wallets, bait stacks, quality, catches, history, records or cooldowns.
+wallets, bait stacks, owned rod quality levels, catches, history, records or cooldowns.
 
 Use `scripts/xp-migration-proof.ts` with the saved old WASM to verify migration,
 and `scripts/xp-preservation.mjs before|after` to compare the live table snapshot.

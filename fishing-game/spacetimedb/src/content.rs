@@ -37,6 +37,7 @@ pub fn activate_xp_progression(ctx: &ReducerContext) -> Result<(), String> {
         ctx.db.game_config().insert(config);
     }
     crate::crafting::seed(ctx);
+    crate::gear::seed(ctx);
     crate::shop::seed(ctx);
     for mut profile in ctx.db.public_profile().iter() {
         let player = ctx

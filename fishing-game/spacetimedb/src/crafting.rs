@@ -6,6 +6,8 @@ use spacetimedb::{ReducerContext, Table, TimeDuration, ViewContext, rand::Rng};
 struct Catalog {
     version: u32,
     qualities: Vec<Quality>,
+    #[serde(rename = "rodRecipes")]
+    rod_recipes: Vec<Recipe>,
     baits: Vec<Bait>,
 }
 #[derive(Deserialize)]
@@ -16,6 +18,14 @@ struct Quality {
     power_bonus: u32,
     luck_bp: u32,
     xp_bonus_bp: u32,
+    tin_cost: u64,
+    scrap_cost: u64,
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Recipe {
+    rod_id: u32,
+    quality_level: u8,
     tin_cost: u64,
     scrap_cost: u64,
 }
@@ -62,6 +72,21 @@ pub fn seed(ctx: &ReducerContext) {
             ctx.db.quality_definition().quality_level().update(row);
         } else {
             ctx.db.quality_definition().insert(row);
+        }
+    }
+    for recipe in catalog.rod_recipes {
+        let row = RodUpgradeRecipe {
+            key: recipe_key(recipe.rod_id, recipe.quality_level),
+            rod_id: recipe.rod_id,
+            quality_level: recipe.quality_level,
+            version: catalog.version,
+            tin_cost: recipe.tin_cost,
+            scrap_cost: recipe.scrap_cost,
+        };
+        if ctx.db.rod_upgrade_recipe().key().find(row.key).is_some() {
+            ctx.db.rod_upgrade_recipe().key().update(row);
+        } else {
+            ctx.db.rod_upgrade_recipe().insert(row);
         }
     }
     for b in catalog.baits {
@@ -252,7 +277,17 @@ fn material(ctx: &ReducerContext, player_id: u64, slot: u32) -> u64 {
         .find(u128::from(player_id) << 32 | u128::from(slot))
         .map_or(0, |row| row.quantity)
 }
-fn affordable(ctx: &ReducerContext, player_id: u64, q: &QualityDefinition) -> Result<(), String> {
+fn recipe_key(rod_id: u32, quality: u8) -> u64 {
+    (u64::from(rod_id) << 8) | u64::from(quality)
+}
+fn recipe(ctx: &ReducerContext, rod_id: u32, quality: u8) -> Result<RodUpgradeRecipe, String> {
+    ctx.db
+        .rod_upgrade_recipe()
+        .key()
+        .find(recipe_key(rod_id, quality))
+        .ok_or("RECIPE_UNAVAILABLE".into())
+}
+fn affordable(ctx: &ReducerContext, player_id: u64, q: &RodUpgradeRecipe) -> Result<(), String> {
     if material(ctx, player_id, 2) < q.tin_cost || material(ctx, player_id, 1) < q.scrap_cost {
         return Err("INSUFFICIENT_MATERIALS".into());
     }
@@ -274,16 +309,17 @@ fn prepare(ctx: &ReducerContext, player_id: u64, rod_id: u32) -> Result<(), Stri
         .quality_level()
         .find(owned.upgrade_level.checked_add(1).ok_or("MAX_QUALITY")?)
         .ok_or("MAX_QUALITY")?;
-    affordable(ctx, player_id, &next)?;
+    let cost = recipe(ctx, rod_id, next.quality_level)?;
+    affordable(ctx, player_id, &cost)?;
     let key = quote_key(ctx, player_id);
     if let Some(old) = ctx.db.upgrade_quote().key().find(&key) {
         if ctx.timestamp < old.created_at + TimeDuration::from_micros(1_000_000) {
             if !old.consumed
                 && old.rod_id == rod_id
                 && old.from_quality == owned.upgrade_level
-                && old.catalog_version == next.version
-                && old.tin_cost == next.tin_cost
-                && old.scrap_cost == next.scrap_cost
+                && old.catalog_version == cost.version
+                && old.tin_cost == cost.tin_cost
+                && old.scrap_cost == cost.scrap_cost
             {
                 return Ok(());
             }
@@ -297,9 +333,9 @@ fn prepare(ctx: &ReducerContext, player_id: u64, rod_id: u32) -> Result<(), Stri
         nonce: ctx.rng().r#gen(),
         rod_id,
         from_quality: owned.upgrade_level,
-        catalog_version: next.version,
-        tin_cost: next.tin_cost,
-        scrap_cost: next.scrap_cost,
+        catalog_version: cost.version,
+        tin_cost: cost.tin_cost,
+        scrap_cost: cost.scrap_cost,
         created_at: ctx.timestamp,
         expires_at: ctx.timestamp + TimeDuration::from_micros(120_000_000),
         consumed: false,
@@ -371,16 +407,18 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
         .quality_level()
         .find(rod.upgrade_level + 1)
         .ok_or("MAX_QUALITY")?;
+    let cost = recipe(ctx, quote.rod_id, next.quality_level)?;
     if next.version != quote.catalog_version
-        || next.tin_cost != quote.tin_cost
-        || next.scrap_cost != quote.scrap_cost
+        || cost.version != quote.catalog_version
+        || cost.tin_cost != quote.tin_cost
+        || cost.scrap_cost != quote.scrap_cost
     {
         return Err("QUOTE_CHANGED".into());
     }
-    affordable(ctx, player_id, &next)?;
+    affordable(ctx, player_id, &cost)?;
     let operation = format!("upgrade:{nonce}");
-    spend(ctx, player_id, 2, next.tin_cost, &operation)?;
-    spend(ctx, player_id, 1, next.scrap_cost, &operation)?;
+    spend(ctx, player_id, 2, cost.tin_cost, &operation)?;
+    spend(ctx, player_id, 1, cost.scrap_cost, &operation)?;
     rod.upgrade_level = next.quality_level;
     ctx.db.owned_rod().key().update(rod);
     crate::inventory::ledger(

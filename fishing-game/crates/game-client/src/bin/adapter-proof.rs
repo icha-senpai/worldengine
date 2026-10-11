@@ -372,7 +372,7 @@ async fn main() -> Result<(), Error> {
                 .as_ref()
                 .expect("equipment snapshot")
                 .luck_bp,
-            700
+            550 // Uncommon +0.5% and Plump Worms +5%.
         );
         let replay = client
             .player(9303, "Native crafting proof".into(), id, Some(5), 42, true)

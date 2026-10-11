@@ -10,6 +10,9 @@ struct World {
 #[serde(rename_all = "camelCase")]
 struct Modifiers {
     rod_id: u32,
+    name: String,
+    power: u32,
+    minimum_level: u32,
     luck_bp: u32,
     xp_bonus_bp: u32,
     sprite_asset: String,
@@ -19,9 +22,20 @@ pub fn seed(ctx: &ReducerContext) {
     let world: World = serde_json::from_str(include_str!("../../content/world.json"))
         .expect("validated rod bonuses");
     for rod in world.rods {
+        let definition = RodDefinition {
+            rod_id: rod.rod_id,
+            name: rod.name,
+            power: rod.power,
+            minimum_level: rod.minimum_level,
+        };
+        if ctx.db.rod_definition().rod_id().find(rod.rod_id).is_some() {
+            ctx.db.rod_definition().rod_id().update(definition);
+        } else {
+            ctx.db.rod_definition().insert(definition);
+        }
         let row = RodBonuses {
             rod_id: rod.rod_id,
-            version: 1,
+            version: 2,
             luck_bp: rod.luck_bp,
             xp_bonus_bp: rod.xp_bonus_bp,
             sprite_asset: rod.sprite_asset,

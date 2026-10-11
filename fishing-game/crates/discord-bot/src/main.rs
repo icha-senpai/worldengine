@@ -977,11 +977,34 @@ async fn gear(
     } else {
         snapshot(ctx, false).await?
     };
-    let rows: Vec<_> = result.rods.iter().map(|rod| {
-        let (quality, power, luck, xp) = rod_stats(&result, rod.rod_id);
-        let owned = result.owned_rods.iter().any(|row| row.rod_id == rod.rod_id);
-        format!("{} **{} {}** · ID {} · level {}\n{} power · {:.1}% bonus pull · +{}% luck · +{}% XP · {}", if rod.rod_id == result.player.equipped_rod_id { "→" } else { "·" }, quality, rod.name, rod.rod_id, rod.minimum_level, power, power as f64 / 2.0, luck / 100, xp / 100, if owned { "owned" } else { "shop purchase needed" })
-    }).collect();
+    let rows: Vec<_> = result
+        .rods
+        .iter()
+        .map(|rod| {
+            let (quality, power, luck, xp) = rod_stats(&result, rod.rod_id);
+            let owned = result.owned_rods.iter().any(|row| row.rod_id == rod.rod_id);
+            format!(
+                "{} **{} {}** · ID {}\n{} power · {:.1}% bonus pull · +{}% luck · +{}% XP · {}",
+                if rod.rod_id == result.player.equipped_rod_id {
+                    "→"
+                } else {
+                    "·"
+                },
+                quality,
+                rod.name,
+                rod.rod_id,
+                power,
+                power as f64 / 2.0,
+                luck as f64 / 100.0,
+                xp as f64 / 100.0,
+                if owned {
+                    "owned"
+                } else {
+                    "shop purchase needed"
+                }
+            )
+        })
+        .collect();
     reply(ctx, format!("**Your fishing rods**\n{}\n/shop buys rods · /gear equips · /upgrade crafts quality · /bait equips bait. Power can add one independent fish, junk or treasure pull. One cooldown and one bait use per cast.", rows.join("\n"))).await
 }
 
@@ -1107,7 +1130,7 @@ async fn upgrade(
         .ok_or("Missing quality")?;
     let confirm_id = format!("upgrade:{}:confirm", interaction_id(ctx)?);
     let cancel_id = format!("upgrade:{}:cancel", interaction_id(ctx)?);
-    let handle = send_reply(ctx, poise::CreateReply::default().content(format!("**Craft {} {}?**\n{} rusted tin + {} scrap · guaranteed success\n+{} power · +{}% luck · +{}% XP over current quality. Each rod keeps its own permanent quality.\nOffer expires <t:{}:R>.", next.name, rod.name, quote.tin_cost, quote.scrap_cost, next.power_bonus - previous.power_bonus, (next.luck_bp - previous.luck_bp) / 100, (next.xp_bonus_bp - previous.xp_bonus_bp) / 100, quote.expires_at.to_micros_since_unix_epoch() / 1_000_000))
+    let handle = send_reply(ctx, poise::CreateReply::default().content(format!("**Craft {} {}?**\n{} rusted tin + {} scrap · guaranteed success\n+{} power · +{}% luck · +{}% XP over current quality. Each rod keeps its own permanent quality.\nOffer expires <t:{}:R>.", next.name, rod.name, quote.tin_cost, quote.scrap_cost, next.power_bonus - previous.power_bonus, (next.luck_bp - previous.luck_bp) as f64 / 100.0, (next.xp_bonus_bp - previous.xp_bonus_bp) as f64 / 100.0, quote.expires_at.to_micros_since_unix_epoch() / 1_000_000))
         .allowed_mentions(serenity::CreateAllowedMentions::new())
         .components(vec![serenity::CreateActionRow::Buttons(vec![serenity::CreateButton::new(&confirm_id).label("Craft quality").style(serenity::ButtonStyle::Success), serenity::CreateButton::new(&cancel_id).label("Cancel").style(serenity::ButtonStyle::Secondary)])])).await?;
     let interaction = handle
@@ -1205,11 +1228,15 @@ async fn shop(
                     false
                 };
                 format!(
-                    "**{}** · ID {} · {} coins · level {}{}",
+                    "**{}** · ID {} · {} coins · {}{}",
                     row.name,
                     row.listing_id,
                     row.price_coins,
-                    row.minimum_level,
+                    if row.kind == "rod" {
+                        "gold purchase".to_owned()
+                    } else {
+                        format!("level {}", row.minimum_level)
+                    },
                     if owned { " · owned" } else { "" }
                 )
             })
@@ -1246,11 +1273,11 @@ async fn shop(
             "Power {} · {:.1}% bonus pull · +{}% luck · +{}% XP\nVs equipped: {:+} power · {:+}% luck · {:+}% XP.",
             power,
             power as f64 / 2.0,
-            luck / 100,
-            xp / 100,
+            luck as f64 / 100.0,
+            xp as f64 / 100.0,
             i64::from(power) - i64::from(old_power),
-            (i64::from(luck) - i64::from(old_luck)) / 100,
-            (i64::from(xp) - i64::from(old_xp)) / 100
+            (i64::from(luck) - i64::from(old_luck)) as f64 / 100.0,
+            (i64::from(xp) - i64::from(old_xp)) as f64 / 100.0
         )
     } else if listing.kind == "bait" {
         let bait = result

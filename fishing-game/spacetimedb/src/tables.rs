@@ -358,6 +358,17 @@ pub struct QualityDefinition {
     pub scrap_cost: u64,
 }
 
+#[spacetimedb::table(accessor = rod_upgrade_recipe, public)]
+pub struct RodUpgradeRecipe {
+    #[primary_key]
+    pub key: u64,
+    pub rod_id: u32,
+    pub quality_level: u8,
+    pub version: u32,
+    pub tin_cost: u64,
+    pub scrap_cost: u64,
+}
+
 #[spacetimedb::table(accessor = bait_stack)]
 pub struct BaitStack {
     #[primary_key]

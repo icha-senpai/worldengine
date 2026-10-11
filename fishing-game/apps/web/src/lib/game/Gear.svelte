@@ -9,6 +9,7 @@
   const baitUses = $derived(game.ownedBaits.find(row => row.baitId === bait?.baitId)?.usesLeft ?? 0n);
   const owned = $derived(game.rods.filter(row => game.ownedRods.some(owned => owned.rodId === row.rodId)));
   const next = $derived(game.qualities.find(row => row.qualityLevel === (stats.quality?.qualityLevel ?? 0)+1));
+  const recipe = $derived(game.rodRecipes.find(row => row.rodId === rod?.rodId && row.qualityLevel === next?.qualityLevel) ?? ((game.config?.version ?? 0) < 9 ? next : undefined));
   const tin = $derived(game.items.find(row => row.item === 'rusted_tin')?.quantity ?? 0n);
   const scrap = $derived(game.items.find(row => row.item === 'scrap')?.quantity ?? 0n);
   let previewing = $state(false);
@@ -31,8 +32,8 @@
         <label for="gear-rod">Switch rod</label><select id="gear-rod" value={rod?.rodId ?? ''} disabled={!game.ready || game.busy || !owned.length} onchange={equip}>
           {#each owned as option (option.rodId)}<option value={option.rodId} disabled={option.minimumLevel > (game.profile?.level ?? 1)}>{game.rodStats(option.rodId).quality?.name ?? 'Common'} {option.name}</option>{/each}
         </select>
-        {#if next}<div class="recipe"><p>Next: <strong>{next.name}</strong></p><p class:short={tin < next.tinCost}>{tin.toString()} / {next.tinCost.toString()} rusted tin</p><p class:short={scrap < next.scrapCost}>{scrap.toString()} / {next.scrapCost.toString()} scrap</p><p>Power +{next.powerBonus-(stats.quality?.powerBonus ?? 0)} · luck +{percent(next.luckBp-(stats.quality?.luckBp ?? 0))}% · XP +{percent(next.xpBonusBp-(stats.quality?.xpBonusBp ?? 0))}%</p>
-        <button disabled={!game.ready || game.busy || tin < next.tinCost || scrap < next.scrapCost} onclick={previewUpgrade}>Preview upgrade to {next.name}</button></div>{:else if stats.quality}<p class="mastered">Prismatic · fully upgraded</p>{/if}
+        {#if next && recipe}<div class="recipe"><p>Next: <strong>{next.name}</strong></p><p class:short={tin < recipe.tinCost}>{tin.toString()} / {recipe.tinCost.toString()} rusted tin</p><p class:short={scrap < recipe.scrapCost}>{scrap.toString()} / {recipe.scrapCost.toString()} scrap</p><p>Power +{next.powerBonus-(stats.quality?.powerBonus ?? 0)} · luck +{percent(next.luckBp-(stats.quality?.luckBp ?? 0))}% · XP +{percent(next.xpBonusBp-(stats.quality?.xpBonusBp ?? 0))}%</p>
+        <button disabled={!game.ready || game.busy || tin < recipe.tinCost || scrap < recipe.scrapCost} onclick={previewUpgrade}>Preview upgrade to {next.name}</button></div>{:else if stats.quality}<p class="mastered">Prismatic · fully upgraded</p>{/if}
       </div>
     </article>
     <article class="bait-slot" aria-label="Equipped bait">

@@ -11,6 +11,7 @@ export class Game {
   titles = $state.raw<import('@fishing-game/generated/types').AnglerTitle[]>([]);
   publicProfiles = $state.raw<PublicProfile[]>([]);
   baits = $state.raw<import('@fishing-game/generated/types').BaitDefinition[]>([]);
+  rodRecipes = $state.raw<import('@fishing-game/generated/types').RodUpgradeRecipe[]>([]);
   qualities = $state.raw<import('@fishing-game/generated/types').QualityDefinition[]>([]);
   ownedBaits = $state.raw<import('@fishing-game/generated/types').BaitStack[]>([]);
   baitLoadout = $state.raw<import('@fishing-game/generated/types').BaitLoadout | null>(null);
@@ -48,6 +49,7 @@ export class Game {
   licences = $state.raw<OwnedBiomeLicence[]>([]);
   private connection: DbConnection | null = null;
   private generation = 0;
+  private recipesSubscribed = false;
   private retry: ReturnType<typeof setTimeout> | null = null;
   private attempts = 0;
   private uri = '';
@@ -81,11 +83,20 @@ export class Game {
     this.standings = [...connection.db.anglerStanding.iter()];
     this.legendaryFinds = [...connection.db.legendaryFind.iter()];
     this.biomes = [...connection.db.biomeDefinition.iter()].sort((a, b) => a.biomeId - b.biomeId);
-    this.rods = [...connection.db.rodDefinition.iter()].sort((a, b) => a.minimumLevel - b.minimumLevel);
+    this.rods = [...connection.db.rodDefinition.iter()].sort((a, b) => a.rodId - b.rodId);
     this.rodBonuses = [...connection.db.rodBonuses.iter()];
     this.rarities = [...connection.db.rarityDefinition.iter()].sort((a, b) => a.ordinal - b.ordinal);
     this.items = [...connection.db.myItems.iter()];
     this.config = [...connection.db.gameConfig.iter()].sort((a,b) => b.version-a.version)[0] ?? null;
+    if ((this.config?.version ?? 0) >= 9 && !this.recipesSubscribed) {
+      this.recipesSubscribed = true;
+      const generation = this.generation;
+      connection.subscriptionBuilder().onApplied(() => {
+        if (generation === this.generation) this.refresh();
+      }).onError(() => {
+        if (generation === this.generation) this.error = 'The upgrade recipes could not load. Try reconnecting.';
+      }).subscribe(['SELECT * FROM rod_upgrade_recipe']);
+    }
     this.challenge = [...connection.db.myLinkChallenge.iter()][0] ?? null;
     this.action = [...connection.db.myAction.iter()][0] ?? null;
     this.shopQuote = [...connection.db.myShopQuote.iter()][0] ?? null;
@@ -93,6 +104,7 @@ export class Game {
     this.ownedRods = [...connection.db.myRods.iter()];
     this.licences = [...connection.db.myLicences.iter()];
     this.baits = [...connection.db.baitDefinition.iter()].sort((a,b) => a.baitId-b.baitId);
+    this.rodRecipes = [...connection.db.rodUpgradeRecipe.iter()];
     this.qualities = [...connection.db.qualityDefinition.iter()].sort((a,b) => a.qualityLevel-b.qualityLevel);
     this.ownedBaits = [...connection.db.myBaits.iter()];
     this.baitLoadout = [...connection.db.myBaitLoadout.iter()][0] ?? null;
@@ -107,6 +119,7 @@ export class Game {
   }
   private connect() {
     const generation = ++this.generation;
+    this.recipesSubscribed = false;
     this.connection?.disconnect(); this.connection = null;
     let token: string | undefined;
     try { token = localStorage.getItem(this.tokenKey) ?? undefined; } catch { /* Storage may be disabled. */ }
@@ -136,11 +149,11 @@ export class Game {
       }).onConnectError(lost).onDisconnect(lost).build();
     this.connection = connection;
     for (const table of [connection.db.achievementDefinition, connection.db.achievementCollection, connection.db.earnedAchievement, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection,
-      connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.baitDefinition, connection.db.qualityDefinition, connection.db.myRods, connection.db.myLicences, connection.db.myShopQuote, connection.db.shopListing, connection.db.myRecentCatches, connection.db.myJournal, connection.db.myLinkChallenge, connection.db.myAction, connection.db.myItems,
+      connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.baitDefinition, connection.db.rodUpgradeRecipe, connection.db.qualityDefinition, connection.db.myRods, connection.db.myLicences, connection.db.myShopQuote, connection.db.shopListing, connection.db.myRecentCatches, connection.db.myJournal, connection.db.myLinkChallenge, connection.db.myAction, connection.db.myItems,
       connection.db.speciesDefinition, connection.db.speciesRecord, connection.db.anglerStanding, connection.db.legendaryFind, connection.db.gameConfig, connection.db.biomeDefinition, connection.db.rodBonuses, connection.db.rodDefinition, connection.db.rarityDefinition]) {
       table.onInsert(this.refresh); table.onDelete(this.refresh);
     }
-    for (const table of [connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.myRods, connection.db.baitDefinition, connection.db.qualityDefinition]) table.onUpdate(this.refresh);
+    for (const table of [connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.myRods, connection.db.baitDefinition, connection.db.rodUpgradeRecipe, connection.db.qualityDefinition]) table.onUpdate(this.refresh);
     connection.db.rodBonuses.onUpdate(this.refresh);
     connection.db.shopListing.onUpdate(this.refresh);
     connection.db.myItems.onUpdate(this.refresh);

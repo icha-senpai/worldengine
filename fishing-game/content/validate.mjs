@@ -92,17 +92,19 @@ for (const fish of catalog.species) {
 }
 console.log(`Measurements valid: ${measurements.size} explicit species baselines, no generic fallback.`);
 assert.equal(world.version, catalog.version);
-assert.equal(rules.version, 7);
+assert.equal(rules.version, 9);
 assert.equal(world.levelCap, 120);
 assert.deepEqual(world.biomes.map(b => b.name), ['Meadow Pond', 'Whispering River', 'Hollow Marsh', 'Moonlit Lake', 'Sunken Coast', 'Glacial Reach', 'Abyssal Shelf']);
 assert.equal(new Set(world.biomes.map(b => b.biomeId)).size, world.biomes.length);
 assert.equal(new Set(world.rods.map(r => r.rodId)).size, world.rods.length);
 assert.equal(world.rods.length, 7);
 for (const [i, rod] of world.rods.entries()) {
-  assert.equal(rod.luckBp, [0, 500, 1000, 1500, 2000, 2500, 3000][i]);
-  assert.equal(rod.xpBonusBp, [0, 500, 800, 1200, 1600, 2000, 2500][i]);
+  assert.equal(rod.power, 1 + 27 * i);
+  assert.equal(rod.luckBp, 1050 * i);
+  assert.equal(rod.xpBonusBp, 1450 * i);
   assert(manifest.rods.some(asset => asset.url === rod.spriteAsset), `Missing rod sprite: ${rod.name}`);
-  if (i) assert(rod.power > world.rods[i - 1].power && rod.minimumLevel > world.rods[i - 1].minimumLevel);
+  assert.equal(rod.minimumLevel, 1, "Rod purchases and equipment have no angler-level gate");
+  if (i) assert(rod.power > world.rods[i - 1].power);
 }
 const probabilities = new Map();
 for (const biome of world.biomes) {
@@ -164,7 +166,7 @@ for (const listing of trader.listings) {
   assert(Number.isSafeInteger(listing.priceCoins) && listing.priceCoins > 0);
   const biome = world.biomes.find(row => row.biomeId === listing.biomeId);
   assert(biome && listing.previousBiomeId === Math.max(1,biome.biomeId - 1));
-  assert.equal(listing.minimumLevel, biome.minimumLevel);
+  if (listing.kind !== 'rod') assert.equal(listing.minimumLevel, biome.minimumLevel);
   if (listing.kind === 'bait') { assert(listing.targetId >= 1 && listing.targetId <= 8); continue; }
   if (listing.kind === 'licence') assert.equal(listing.targetId, biome.biomeId);
   else assert(world.rods.some(row => row.rodId === listing.targetId && row.minimumLevel === listing.minimumLevel && row.power >= biome.requiredPower));
@@ -183,12 +185,24 @@ for (const kind of ['licences', 'baits']) {
 console.log('Equipment artwork valid: every paid licence and all eight bait types have sprites.');
 
 const crafting = JSON.parse(await readFile(new URL('./crafting.json', import.meta.url), 'utf8'));
-assert.equal(crafting.version, 1);
+assert.equal(crafting.version, 3);
 assert.deepEqual(crafting.qualities.map(q => [q.qualityLevel,q.name,q.powerBonus,q.luckBp,q.xpBonusBp,q.tinCost,q.scrapCost]), [
-  [0,'Common',0,0,0,0,0],[1,'Uncommon',5,200,500,10,5],[2,'Rare',15,500,1000,25,15],
-  [3,'Epic',30,1000,2000,60,40],[4,'Legendary',50,1500,3000,150,100],
-  [5,'Mythic',75,2500,5000,300,200],[6,'Prismatic',100,4000,7500,600,400]
+  [0,'Common',0,0,0,0,0],[1,'Uncommon',2,50,100,10,5],[2,'Rare',4,100,250,25,15],
+  [3,'Epic',7,200,450,60,40],[4,'Legendary',11,350,700,150,100],
+  [5,'Mythic',16,500,950,300,200],[6,'Prismatic',22,700,1300,600,400]
 ]);
+assert.equal(crafting.rodRecipes.length, 42);
+assert.equal(new Set(crafting.rodRecipes.map(r => `${r.rodId}:${r.qualityLevel}`)).size, 42);
+for (const rod of world.rods) for (let quality = 1; quality <= 6; quality++) {
+  const recipe = crafting.rodRecipes.find(r => r.rodId === rod.rodId && r.qualityLevel === quality);
+  assert(recipe, `Missing recipe for ${rod.name} quality ${quality}`);
+  for (const key of ['tinCost', 'scrapCost']) assert(Number.isSafeInteger(recipe[key]) && recipe[key] > 0);
+}
+for (let id = 2; id < 7; id++) {
+  const previous = crafting.rodRecipes.find(r => r.rodId === id && r.qualityLevel === 6);
+  const next = crafting.rodRecipes.filter(r => r.rodId === id+1 && r.qualityLevel <= 5);
+  for (const key of ['tinCost', 'scrapCost']) assert(previous[key] < next.reduce((sum,r) => sum+r[key],0), 'A saved Prismatic recipe must not fully fund the next Mythic rod');
+}
 assert.equal(crafting.baits.length, 8);
 assert.deepEqual(crafting.baits.map(b => b.baitId), [1,2,3,4,5,6,7,8]);
 for (const bait of crafting.baits) {
@@ -201,7 +215,14 @@ for (const bait of crafting.baits) {
   assert.equal(bait.resourceItem,['rusted_tin','scrap','','','','','',''][bait.baitId-1]);
 }
 assert(world.biomes.every(b => b.requiredPower === 0));
-assert.equal(Math.max(...world.rods.map(r=>r.power))+100,185);
-assert.equal(Math.max(...world.rods.map(r=>r.luckBp))+4000+1500,8500);
+const maximumQuality = crafting.qualities.at(-1);
+for (let i = 1; i < world.rods.length; i++) {
+  const previous = world.rods[i - 1], next = world.rods[i];
+  assert(next.power > previous.power + maximumQuality.powerBonus, `Common ${next.name} must beat previous Prismatic power`);
+  assert(next.luckBp > previous.luckBp + maximumQuality.luckBp, `Common ${next.name} must beat previous Prismatic luck`);
+  assert(next.xpBonusBp > previous.xpBonusBp + maximumQuality.xpBonusBp, `Common ${next.name} must beat previous Prismatic XP`);
+}
+assert.equal(Math.max(...world.rods.map(r=>r.power))+maximumQuality.powerBonus,185);
+assert.equal(Math.max(...world.rods.map(r=>r.luckBp))+maximumQuality.luckBp+1500,8500);
 assert.equal(Math.max(...world.rods.map(r=>r.xpBonusBp))+Math.max(...crafting.qualities.map(q=>q.xpBonusBp))+Math.max(...crafting.baits.map(b=>b.xpBonusBp)),20000);
 console.log('Crafting valid: seven permanent qualities, exact recipes, eight 10-use baits; maximum 92.5% bonus pull and +85% luck.');

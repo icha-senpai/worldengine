@@ -46,3 +46,13 @@ pub fn proof_change_quality(ctx: &ReducerContext, quality_level: u8) -> Result<(
     ctx.db.quality_definition().quality_level().update(quality);
     Ok(())
 }
+
+#[spacetimedb::reducer]
+pub fn proof_change_recipe(ctx: &ReducerContext, rod_id: u32, quality_level: u8) -> Result<(), String> {
+    proof_owner(ctx)?;
+    let key = (u64::from(rod_id) << 8) | u64::from(quality_level);
+    let mut recipe = ctx.db.rod_upgrade_recipe().key().find(key).ok_or("RECIPE_UNAVAILABLE")?;
+    recipe.tin_cost += 1;
+    ctx.db.rod_upgrade_recipe().key().update(recipe);
+    Ok(())
+}

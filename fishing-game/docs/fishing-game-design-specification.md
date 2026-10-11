@@ -326,7 +326,7 @@ A rod template plus upgrade level defines effective stats. Keep formula derivati
 | Clean cast | Reduces junk weight | Category probabilities normalized after adjustment |
 | Treasure affinity | Increases treasure weight | Independent from fish-tier luck |
 
-Current access rod templates: Twig, River, Marsh, Moonwood, Tide, Glacial, and Abyssal Rod. Twig is free; later rods are purchased at the camp trader at levels 5, 10, 18, 28, 40, and 55. A permanent biome licence is also required, bought in biome order. Upgrade recipes remain a later economy feature; suggested upgrade levels 0–5. Twig remains a low-cost stepping stone; specialization begins when River and Marsh are both viable choices.
+Current rod families are Twig, River, Marsh, Moonwood, Tide, Glacial, and Abyssal. Twig is free; later rods require gold and the previous biome licence, without a rod level gate. Biome licence levels remain 5, 10, 18, 28, 40, and 55 and licences are bought in order. Every family has permanent Common-through-Prismatic quality and guaranteed-success material recipes. Current prices and recipes are documented in rod-progression.md and bait-and-crafting-plan.md.
 
 For each eligible tier, apply a named multiplier in basis points. Example: luck strength boosts A and above by at most 25%, leaves C/B unchanged, and slightly reduces F/D. Normalize after all adjustments. This means “25% more relative high-tier weight,” not “25 percentage points more high-tier probability.” UI wording must reflect this distinction.
 

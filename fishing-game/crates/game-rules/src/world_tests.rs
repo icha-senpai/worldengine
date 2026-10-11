@@ -15,6 +15,21 @@ fn content() -> (Value, Value) {
         serde_json::from_str(include_str!("../../../content/species.json")).unwrap(),
     )
 }
+
+#[test]
+fn each_common_unlock_strictly_beats_every_quality_of_the_previous_rod() {
+    let (world, _) = content();
+    let crafting: Value =
+        serde_json::from_str(include_str!("../../../content/crafting.json")).unwrap();
+    let rods = world["rods"].as_array().unwrap();
+    for pair in rods.windows(2) {
+        for quality in crafting["qualities"].as_array().unwrap() {
+            assert!(n(&pair[1], "power") > n(&pair[0], "power") + n(quality, "powerBonus"));
+            assert!(n(&pair[1], "luckBp") > n(&pair[0], "luckBp") + n(quality, "luckBp"));
+            assert!(n(&pair[1], "xpBonusBp") > n(&pair[0], "xpBonusBp") + n(quality, "xpBonusBp"));
+        }
+    }
+}
 fn n(row: &Value, field: &str) -> u64 {
     row[field].as_u64().unwrap()
 }

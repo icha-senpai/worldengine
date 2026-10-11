@@ -1,8 +1,8 @@
 # Bait and rod quality: implemented rules
 
-Implemented in gameplay rules version 7, including [level 120 and XP slime](xp-progression.md). SpaceTimeDB owns purchases, charges,
+Implemented in gameplay rules version 9, including [level 120 and XP slime](xp-progression.md). SpaceTimeDB owns purchases, charges,
 quality crafting, bonus pulls and reward snapshots. This document records the
-agreed starting balance; content/crafting.json supplies the live catalog.
+agreed starting balance; content/crafting.json supplies the catalog to activate at deployment.
 
 ## Progression
 
@@ -14,19 +14,32 @@ purchased licence, without a rod-power requirement. Any owned rod can fish in
 an unlocked biome. Newer rod families retain better base bonuses.
 Upgrade success is guaranteed, and the upgraded quality is permanent.
 
-The agreed starting material costs below are for each individual upgrade step,
-not cumulative totals. Tune them against real-player progression after implementation.
+Material costs vary by rod. Each cell below is **tin / scrap for that step**,
+not a cumulative cost. `rod_upgrade_recipe` is the authoritative public metadata;
+the server quotes and rechecks its version and costs before spending.
 
-| Upgrade to | Rusted tin | Scrap |
-|---|---:|---:|
-| Uncommon | 10 | 5 |
-| Rare | 25 | 15 |
-| Epic | 60 | 40 |
-| Legendary | 150 | 100 |
-| Mythic | 300 | 200 |
-| Prismatic | 600 | 400 |
+| Rod | Uncommon | Rare | Epic | Legendary | Mythic | Prismatic |
+|---|---:|---:|---:|---:|---:|---:|
+| Twig Rod | 10 / 5 | 25 / 15 | 60 / 40 | 150 / 100 | 300 / 200 | 600 / 400 |
+| River Rod | 1 / 1 | 1 / 1 | 1 / 1 | 1 / 1 | 2 / 2 | 9 / 10 |
+| Marsh Rod | 1 / 1 | 1 / 1 | 2 / 2 | 5 / 3 | 9 / 6 | 18 / 16 |
+| Moonwood Rod | 1 / 1 | 2 / 1 | 4 / 3 | 9 / 6 | 18 / 12 | 36 / 24 |
+| Tide Rod | 1 / 1 | 3 / 2 | 6 / 4 | 15 / 10 | 30 / 20 | 60 / 40 |
+| Glacial Rod | 2 / 1 | 4 / 3 | 10 / 7 | 24 / 16 | 48 / 32 | 96 / 64 |
+| Abyssal Rod | 3 / 2 | 6 / 4 | 15 / 10 | 36 / 24 | 72 / 48 | 144 / 96 |
 
-### Recipe pacing check
+River and Marsh are included in the shorter-session tuning. Twig remains an
+optional starter investment; buying River does not require upgrading Twig.
+River onward uses smaller family recipes, with a separate Prismatic chase.
+Banking a Prismatic recipe cannot fully fund the next family's Mythic upgrades
+in either material. Quality bonuses and bait prices are unchanged. See
+[rod progression](rod-progression.md) and the
+[short-session audit](rod-short-session-audit.md) for prices and pacing.
+
+### Historical recipe pacing check (rules 7)
+
+These results predate the rules-8 family/quality rebalance and are retained
+as historical recipe evidence, not current pacing estimates.
 
 Ran 10,000 seeded resource-farming trials for each of two example loadouts:
 Twig Rod in Meadow Pond and Abyssal Rod in Abyssal Shelf. Start with zero
@@ -71,11 +84,13 @@ per cast, alongside normal materials from either result.
 
 The accepted starting conversion is one power equals 0.5 percentage points of
 bonus-pull chance: 20 power gives 10%, 100 power gives 50%. This is an agreed
-balance baseline for the future implementation, not current live behavior.
+balance baseline implemented by the authoritative fishing rules.
 
 ## Agreed quality bonuses
 
-These numbers are agreed as the starting balance. Each row is the total
+Rules version 8 moves strength into rod families so each new Common rod beats
+the previous Prismatic rod. Rules 9 retain those bonuses while adding family
+recipes and gold-gated purchases. Each row is the total
 quality bonus added to the rod-family base, not an amount stacked on all
 previous quality rows. This maximum gives a Prismatic Abyssal Rod 185 power,
 or a 92.5% bonus-pull chance; no quality reaches a guaranteed second result.
@@ -83,16 +98,16 @@ or a 92.5% bonus-pull chance; no quality reaches a guaranteed second result.
 | Quality | Added power | Added luck | Added fishing XP |
 |---|---:|---:|---:|
 | Common | 0 | 0% | 0% |
-| Uncommon | 5 | 2% | 5% |
-| Rare | 15 | 5% | 10% |
-| Epic | 30 | 10% | 20% |
-| Legendary | 50 | 15% | 30% |
-| Mythic | 75 | 25% | 50% |
-| Prismatic | 100 | 40% | 75% |
+| Uncommon | 2 | 0.5% | 1% |
+| Rare | 4 | 1% | 2.5% |
+| Epic | 7 | 2% | 4.5% |
+| Legendary | 11 | 3.5% | 7% |
+| Mythic | 16 | 5% | 9.5% |
+| Prismatic | 22 | 7% | 13% |
 
 Luck percentages describe equipment bonuses, not percentage-point additions to
-a rank's probability. The combined luck calculation must be redesigned before
-these bonuses can go live. Additional pulls change per-cast rare-fish chances;
+a rank's probability. The authoritative graded-luck calculation combines family, quality, and bait
+bonuses while preserving total ticket weight. Additional pulls change per-cast rare-fish chances;
 their effect must be included in balance tuning while retaining the exceptional
 rarity contract.
 

@@ -126,6 +126,8 @@ pub mod rod_bonuses_table;
 pub mod rod_bonuses_type;
 pub mod rod_definition_table;
 pub mod rod_definition_type;
+pub mod rod_upgrade_recipe_table;
+pub mod rod_upgrade_recipe_type;
 pub mod sale_quote_type;
 pub mod select_discord_player_reducer;
 pub mod select_journal_reducer;
@@ -266,6 +268,8 @@ pub use rod_bonuses_table::*;
 pub use rod_bonuses_type::RodBonuses;
 pub use rod_definition_table::*;
 pub use rod_definition_type::RodDefinition;
+pub use rod_upgrade_recipe_table::*;
+pub use rod_upgrade_recipe_type::RodUpgradeRecipe;
 pub use sale_quote_type::SaleQuote;
 pub use select_discord_player_reducer::select_discord_player;
 pub use select_journal_reducer::select_journal;
@@ -794,6 +798,7 @@ pub struct DbUpdate {
     rarity_definition: __sdk::TableUpdate<RarityDefinition>,
     rod_bonuses: __sdk::TableUpdate<RodBonuses>,
     rod_definition: __sdk::TableUpdate<RodDefinition>,
+    rod_upgrade_recipe: __sdk::TableUpdate<RodUpgradeRecipe>,
     shop_listing: __sdk::TableUpdate<ShopListing>,
     species_definition: __sdk::TableUpdate<SpeciesDefinition>,
     species_rank_definition: __sdk::TableUpdate<SpeciesRankDefinition>,
@@ -950,6 +955,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "rod_definition" => db_update
                     .rod_definition
                     .append(rod_definition_table::parse_table_update(table_update)?),
+                "rod_upgrade_recipe" => db_update
+                    .rod_upgrade_recipe
+                    .append(rod_upgrade_recipe_table::parse_table_update(table_update)?),
                 "shop_listing" => db_update
                     .shop_listing
                     .append(shop_listing_table::parse_table_update(table_update)?),
@@ -1042,6 +1050,9 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.rod_definition = cache
             .apply_diff_to_table::<RodDefinition>("rod_definition", &self.rod_definition)
             .with_updates_by_pk(|row| &row.rod_id);
+        diff.rod_upgrade_recipe = cache
+            .apply_diff_to_table::<RodUpgradeRecipe>("rod_upgrade_recipe", &self.rod_upgrade_recipe)
+            .with_updates_by_pk(|row| &row.key);
         diff.shop_listing = cache
             .apply_diff_to_table::<ShopListing>("shop_listing", &self.shop_listing)
             .with_updates_by_pk(|row| &row.listing_id);
@@ -1284,6 +1295,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "rod_definition" => db_update
                     .rod_definition
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "rod_upgrade_recipe" => db_update
+                    .rod_upgrade_recipe
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "shop_listing" => db_update
                     .shop_listing
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -1453,6 +1467,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "rod_definition" => db_update
                     .rod_definition
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "rod_upgrade_recipe" => db_update
+                    .rod_upgrade_recipe
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "shop_listing" => db_update
                     .shop_listing
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1528,6 +1545,7 @@ pub struct AppliedDiff<'r> {
     rarity_definition: __sdk::TableAppliedDiff<'r, RarityDefinition>,
     rod_bonuses: __sdk::TableAppliedDiff<'r, RodBonuses>,
     rod_definition: __sdk::TableAppliedDiff<'r, RodDefinition>,
+    rod_upgrade_recipe: __sdk::TableAppliedDiff<'r, RodUpgradeRecipe>,
     shop_listing: __sdk::TableAppliedDiff<'r, ShopListing>,
     species_definition: __sdk::TableAppliedDiff<'r, SpeciesDefinition>,
     species_rank_definition: __sdk::TableAppliedDiff<'r, SpeciesRankDefinition>,
@@ -1743,6 +1761,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<RodDefinition>(
             "rod_definition",
             &self.rod_definition,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<RodUpgradeRecipe>(
+            "rod_upgrade_recipe",
+            &self.rod_upgrade_recipe,
             event,
         );
         callbacks.invoke_table_row_callbacks::<ShopListing>(
@@ -2473,6 +2496,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         rarity_definition_table::register_table(client_cache);
         rod_bonuses_table::register_table(client_cache);
         rod_definition_table::register_table(client_cache);
+        rod_upgrade_recipe_table::register_table(client_cache);
         shop_listing_table::register_table(client_cache);
         species_definition_table::register_table(client_cache);
         species_rank_definition_table::register_table(client_cache);
@@ -2527,6 +2551,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "rarity_definition",
         "rod_bonuses",
         "rod_definition",
+        "rod_upgrade_recipe",
         "shop_listing",
         "species_definition",
         "species_rank_definition",

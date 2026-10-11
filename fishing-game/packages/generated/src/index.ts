@@ -122,6 +122,7 @@ import QualityDefinitionRow from "./quality_definition_table";
 import RarityDefinitionRow from "./rarity_definition_table";
 import RodBonusesRow from "./rod_bonuses_table";
 import RodDefinitionRow from "./rod_definition_table";
+import RodUpgradeRecipeRow from "./rod_upgrade_recipe_table";
 import ShopListingRow from "./shop_listing_table";
 import SpeciesDefinitionRow from "./species_definition_table";
 import SpeciesRankDefinitionRow from "./species_rank_definition_table";
@@ -288,6 +289,17 @@ const tablesSchema = __schema({
       { name: 'rod_definition_rod_id_key', constraint: 'unique', columns: ['rodId'] },
     ],
   }, RodDefinitionRow),
+  rodUpgradeRecipe: __table({
+    name: 'rod_upgrade_recipe',
+    indexes: [
+      { accessor: 'key', name: 'rod_upgrade_recipe_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+    ],
+    constraints: [
+      { name: 'rod_upgrade_recipe_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, RodUpgradeRecipeRow),
   shopListing: __table({
     name: 'shop_listing',
     indexes: [
@@ -652,6 +664,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "rod_bonuses": Omit<typeof tablesSchema.schemaType.tables["rodBonuses"], "accessorName"> & { readonly accessorName: "rod_bonuses" };
     /** @deprecated Use `rodDefinition` instead. This alias will be removed in the next major version. */
     readonly "rod_definition": Omit<typeof tablesSchema.schemaType.tables["rodDefinition"], "accessorName"> & { readonly accessorName: "rod_definition" };
+    /** @deprecated Use `rodUpgradeRecipe` instead. This alias will be removed in the next major version. */
+    readonly "rod_upgrade_recipe": Omit<typeof tablesSchema.schemaType.tables["rodUpgradeRecipe"], "accessorName"> & { readonly accessorName: "rod_upgrade_recipe" };
     /** @deprecated Use `shopListing` instead. This alias will be removed in the next major version. */
     readonly "shop_listing": Omit<typeof tablesSchema.schemaType.tables["shopListing"], "accessorName"> & { readonly accessorName: "shop_listing" };
     /** @deprecated Use `speciesDefinition` instead. This alias will be removed in the next major version. */
@@ -760,6 +774,7 @@ const tableAccessorAliases = {
   "rarity_definition": "rarityDefinition",
   "rod_bonuses": "rodBonuses",
   "rod_definition": "rodDefinition",
+  "rod_upgrade_recipe": "rodUpgradeRecipe",
   "shop_listing": "shopListing",
   "species_definition": "speciesDefinition",
   "species_rank_definition": "speciesRankDefinition",
@@ -846,6 +861,8 @@ export type DbView = __DbViewBase & {
   readonly "rod_bonuses": __DbViewBase["rodBonuses"];
   /** @deprecated Use `rodDefinition` instead. This alias will be removed in the next major version. */
   readonly "rod_definition": __DbViewBase["rodDefinition"];
+  /** @deprecated Use `rodUpgradeRecipe` instead. This alias will be removed in the next major version. */
+  readonly "rod_upgrade_recipe": __DbViewBase["rodUpgradeRecipe"];
   /** @deprecated Use `shopListing` instead. This alias will be removed in the next major version. */
   readonly "shop_listing": __DbViewBase["shopListing"];
   /** @deprecated Use `speciesDefinition` instead. This alias will be removed in the next major version. */
@@ -954,6 +971,8 @@ export type Tables = __TablesBase & {
   readonly "rod_bonuses": __TablesBase["rodBonuses"];
   /** @deprecated Use `rodDefinition` instead. This alias will be removed in the next major version. */
   readonly "rod_definition": __TablesBase["rodDefinition"];
+  /** @deprecated Use `rodUpgradeRecipe` instead. This alias will be removed in the next major version. */
+  readonly "rod_upgrade_recipe": __TablesBase["rodUpgradeRecipe"];
   /** @deprecated Use `shopListing` instead. This alias will be removed in the next major version. */
   readonly "shop_listing": __TablesBase["shopListing"];
   /** @deprecated Use `speciesDefinition` instead. This alias will be removed in the next major version. */

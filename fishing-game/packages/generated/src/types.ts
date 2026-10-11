@@ -434,6 +434,16 @@ export const RodDefinition = __t.object("RodDefinition", {
 });
 export type RodDefinition = __Infer<typeof RodDefinition>;
 
+export const RodUpgradeRecipe = __t.object("RodUpgradeRecipe", {
+  key: __t.u64(),
+  rodId: __t.u32(),
+  qualityLevel: __t.u8(),
+  version: __t.u32(),
+  tinCost: __t.u64(),
+  scrapCost: __t.u64(),
+});
+export type RodUpgradeRecipe = __Infer<typeof RodUpgradeRecipe>;
+
 export const SaleQuote = __t.object("SaleQuote", {
   key: __t.string(),
   identity: __t.identity(),

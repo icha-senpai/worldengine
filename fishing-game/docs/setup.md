@@ -196,7 +196,14 @@ catch preservation, owner authorization, idempotence and fresh version-5 catches
 
 Back up and compare player state; never reset the database. Build/generate with
 `npm run bindings`, publish the production WASM additively, then call the owner
-reducer `activate_crafting`. This activates rules 6 and crafting definitions without spending
+reducer `activate_xp_progression`. This activates rules 9, gold-gated rods and family recipes without spending
 or granting player resources. Build the website and native clients, then restart
 with the supplied local-services launcher. Recipes and bait prices live in
 `content/crafting.json` and `content/trader.json`.
+
+The rules-9 update adds only the public `rod_upgrade_recipe` metadata table.
+Run `npm run bindings`, build all clients, and verify
+`npx tsx scripts/rod-balance-proof.ts` and `npx tsx scripts/crafting-proof.ts`
+in isolated proof databases before publication. Existing owned qualities,
+wallets, XP, catches, inventories, quotes and receipts are retained. Outstanding
+unconsumed shop/upgrade quotes reject changed prices or recipes on commit.

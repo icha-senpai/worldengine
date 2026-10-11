@@ -7,3 +7,5 @@ publish.workspace = true
 
 [dependencies]
 game-rules.workspace = true
+rand = "=0.8.8"
+serde_json = "=1.0.151"

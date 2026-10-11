@@ -5,6 +5,12 @@ import { spawnSync, spawn } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
 
 const uri = 'http://127.0.0.1:3127';
+const craftingContent = JSON.parse(await readFile('content/crafting.json', 'utf8'));
+const traderContent = JSON.parse(await readFile('content/trader.json', 'utf8'));
+const price = (listingId: number) => traderContent.listings.find((r: {listingId: number}) => r.listingId === listingId).priceCoins;
+const recipeFor = (rodId: number, qualityLevel: number) => craftingContent.rodRecipes.find((r: {rodId: number; qualityLevel: number}) => r.rodId === rodId && r.qualityLevel === qualityLevel);
+const maxQuality = craftingContent.qualities.at(-1);
+const forcedBasePower = String(200 - maxQuality.powerBonus);
 const database = `fishbound-proof-crafting-${Date.now()}`;
 const fixtureRoot = resolve('.local/crafting-boundary-module');
 const targetRoot = resolve('spacetimedb/target');
@@ -41,7 +47,7 @@ async function connect(queries: string[]) {
   return connection;
 }
 try {
-  const bot = await connect(['my_service','adapter_player','adapter_rods','adapter_baits','adapter_bait_loadout','adapter_items','adapter_upgrade_quote','adapter_shop_quote','adapter_receipt','adapter_cast_pulls','adapter_cast_equipment','adapter_inventory','adapter_collection','shop_listing','bait_definition','quality_definition'].map(t=>`SELECT * FROM ${t}`));
+  const bot = await connect(['my_service','adapter_player','adapter_rods','adapter_baits','adapter_bait_loadout','adapter_items','adapter_upgrade_quote','adapter_shop_quote','adapter_receipt','adapter_cast_pulls','adapter_cast_equipment','adapter_inventory','adapter_collection','shop_listing','bait_definition','quality_definition','rod_upgrade_recipe'].map(t=>`SELECT * FROM ${t}`));
   ownerCall('configure_service',[JSON.stringify(bot.identity!.toHexString()),JSON.stringify({discordAdapter:{}}),'true']);
   const select = async (user=9301n) => { const args={discordUserId:user,displayName:'Crafting proof',interactionId:snowflake()}; await bot.reducers.selectDiscordPlayer(args);return args; };
   const player=()=>[...bot.db.adapterPlayer.iter()][0];
@@ -56,6 +62,37 @@ try {
   };
   const prepare=async(user=9301n,id=1)=>{await pause();const args=await select(user);await bot.reducers.prepareUpgradeFromDiscord({...args,rodId:id});return {args,q:[...bot.db.adapterUpgradeQuote.iter()][0]};};
   assert.equal(bot.db.baitDefinition.count(),8n);assert.equal(bot.db.qualityDefinition.count(),7n);assert.equal(bot.db.shopListing.count(),20n);
+  assert.equal(bot.db.rodUpgradeRecipe.count(),42n);
+  for(const expected of craftingContent.rodRecipes) {
+    const actual=[...bot.db.rodUpgradeRecipe.iter()].find(r=>r.rodId===expected.rodId&&r.qualityLevel===expected.qualityLevel)!;
+    assert.equal(actual.tinCost,BigInt(expected.tinCost));assert.equal(actual.scrapCost,BigInt(expected.scrapCost));
+  }
+  ownerCall('prepare_trader_player',['9305','0',String(price(21)-1),'1']);
+  await assert.rejects(purchase(21,9305n),/INSUFFICIENT_COINS/);
+  ownerCall('prepare_trader_player',['9305','0',String(price(21)),'1']);
+  {
+    const args=await purchase(21,9305n);
+    assert.equal(player().totalXp,0n);assert.equal(player().coins,0n);
+    await bot.reducers.changeLoadoutFromDiscord({...args,rodId:2});assert.equal(player().equippedRodId,2);
+    await assert.rejects(purchase(20,9305n),/SHOP_LEVEL_REQUIRED/);
+    await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
+  }
+  const xpAtLevel=(level:number)=>Array.from({length:level-1},(_,i)=>80+25*(i+1)+5*(i+1)**2).reduce((sum,xp)=>sum+xp,0);
+  ownerCall('prepare_trader_player',['9306',String(xpAtLevel(5)),'1000000','1']);
+  await purchase(20,9306n);let goldArgs=await purchase(31,9306n);
+  await bot.reducers.changeLoadoutFromDiscord({...goldArgs,rodId:3});assert.equal(player().equippedRodId,3);
+  await assert.rejects(purchase(30,9306n),/SHOP_LEVEL_REQUIRED/);
+  await assert.rejects(purchase(41,9306n),/PREVIOUS_LICENCE_REQUIRED/);
+  ownerCall('prepare_trader_player',['9306',String(xpAtLevel(10)),String(price(30)+price(41)),'1']);
+  await purchase(30,9306n);goldArgs=await purchase(41,9306n);
+  assert.equal(player().coins,0n);
+  await bot.reducers.changeLoadoutFromDiscord({...goldArgs,rodId:4});assert.equal(player().equippedRodId,4);
+  const moonwoodRecipe=recipeFor(4,1);
+  ownerCall('proof_materials',['9306',String(moonwoodRecipe.tinCost),String(moonwoodRecipe.scrapCost)]);
+  const goldUpgrade=await prepare(9306n,4);assert.equal(goldUpgrade.q.tinCost,BigInt(moonwoodRecipe.tinCost));assert.equal(goldUpgrade.q.scrapCost,BigInt(moonwoodRecipe.scrapCost));
+  await bot.reducers.commitUpgradeFromDiscord({...goldUpgrade.args,nonce:goldUpgrade.q.nonce});
+  assert.equal(material('rusted_tin'),0n);assert.equal(material('scrap'),0n);
+  console.log('PASS gold-only rod purchase/equip/cast, exact wallet boundary, retained licence levels and previous-licence gates, and rod-specific recipe below the former level unlock.');
   ownerCall('prepare_trader_player',['9301','10000000','200000','1']);let args=await select();
   await assert.rejects(bot.reducers.prepareUpgradeFromDiscord({...args,rodId:1}),/INSUFFICIENT_MATERIALS/);
   await assert.rejects(bot.reducers.prepareUpgradeFromDiscord({...args,rodId:7}),/ROD_NOT_OWNED/);
@@ -74,6 +111,15 @@ try {
   await purchase(21);assert.equal(quality(2),0,'Each purchased rod starts Common independently');
   await purchase(20);args=await select();await bot.reducers.changeLoadoutFromDiscord({...args,biomeId:2,rodId:1});assert.equal(player().equippedRodId,1,'Twig travels without a power gate');
   await bot.reducers.changeLoadoutFromDiscord({...args,biomeId:1,rodId:1});
+  await purchase(31);await purchase(30);await purchase(41);
+  for(const id of [2,3,4]) for(let level=1;level<=6;level++) {
+    const {args,q}=await prepare(9301n,id);const recipe=craftingContent.rodRecipes.find((r:{rodId:number;qualityLevel:number})=>r.rodId===id&&r.qualityLevel===level);
+    assert.equal(q.tinCost,BigInt(recipe.tinCost));assert.equal(q.scrapCost,BigInt(recipe.scrapCost));
+    await bot.reducers.commitUpgradeFromDiscord({...args,nonce:q.nonce});tin-=q.tinCost;scrap-=q.scrapCost;
+    assert.equal(material('rusted_tin'),tin);assert.equal(material('scrap'),scrap);assert.equal(quality(id),level);
+    await bot.reducers.commitUpgradeFromDiscord({...args,nonce:q.nonce});assert.equal(material('rusted_tin'),tin);assert.equal(material('scrap'),scrap);
+  }
+  console.log('PASS all 42 published recipes and exact River/Marsh/Moonwood costs, spending and replay.');
   console.log('PASS six exact recipes, permanent independent qualities, guaranteed craft success, atomic spending, replay and licence-only travel.');
   await purchase(101);await purchase(101);assert.equal(uses(1),20n);
   await purchase(102);assert.equal(uses(2),10n);
@@ -81,15 +127,15 @@ try {
   args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:1});
   let mixed=false;
   for(let cast=0;cast<20;cast++){
-    // Proof-only base power 100 plus Prismatic 100 forces two pulls.
-    ownerCall('proof_cast_setup',['9301','100',String(cast<3?cast:3)]);
+    // Proof-only base plus current Prismatic bonus forces exactly two pulls.
+    ownerCall('proof_cast_setup',['9301',forcedBasePower,String(cast<3?cast:3)]);
     args=await select();const before=player();const beforeTin=material('rusted_tin'),beforeScrap=material('scrap');
     await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
     const pulls=[...bot.db.adapterCastPulls.iter()];const total=[...bot.db.adapterReceipt.iter()][0];const gear=[...bot.db.adapterCastEquipment.iter()][0];
     assert.equal(pulls.length,2);assert.equal(player().completedCasts,before.completedCasts+1n);
     assert.equal(uses(1),BigInt(19-cast));assert.equal(gear.baitUsesLeft,uses(1));assert.equal(gear.qualityLevel,6);assert.equal(gear.power,200);
-    assert.equal(gear.luckBp,4000);assert.equal(gear.xpBonusBp,7500);
-    assert.equal(total.xpGranted,pulls.reduce((sum,p)=>sum+p.baseXp,0n)*17500n/10000n);
+    assert.equal(gear.luckBp,maxQuality.luckBp);assert.equal(gear.xpBonusBp,maxQuality.xpBonusBp);
+    assert.equal(total.xpGranted,pulls.reduce((sum,p)=>sum+p.baseXp,0n)*BigInt(10000+maxQuality.xpBonusBp)/10000n);
     assert.equal(total.xpGranted,pulls.reduce((sum,p)=>sum+p.receipt.xpGranted,0n));
     assert.equal(player().totalXp,before.totalXp+total.xpGranted);assert.equal(player().coins,before.coins+pulls.reduce((sum,p)=>sum+p.receipt.coinsGranted,0n));
     const fish=pulls.filter(p=>p.receipt.outcome==='fish'),junk=pulls.filter(p=>p.receipt.outcome==='junk');
@@ -106,23 +152,23 @@ try {
   }
   assert(mixed,'Actual context RNG produced mixed categories');assert.equal([...bot.db.adapterBaitLoadout.iter()][0].baitId,0);
   ownerCall('proof_cast_setup',['9301','1','0']);args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal([...bot.db.adapterCastEquipment.iter()][0].baitId,0);assert.equal(uses(1),0n);
-  args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:2});ownerCall('proof_cast_setup',['9301','100','2']);args=await select();const oldScrap=material('scrap');await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal(material('scrap'),oldScrap+1n+[...bot.db.adapterCastPulls.iter()].reduce((sum,p)=>sum+p.receipt.itemQuantity,0n));assert.equal(uses(2),9n);
-  for(const [id,luck] of [[3,4500],[4,5000],[5,5500]]){args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:id});ownerCall('proof_cast_setup',['9301','1','0']);args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal([...bot.db.adapterCastEquipment.iter()][0].luckBp,luck);assert.equal(uses(id),9n);}
+  args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:2});ownerCall('proof_cast_setup',['9301',forcedBasePower,'2']);args=await select();const oldScrap=material('scrap');await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal(material('scrap'),oldScrap+1n+[...bot.db.adapterCastPulls.iter()].reduce((sum,p)=>sum+p.receipt.itemQuantity,0n));assert.equal(uses(2),9n);
+  for(const [id,luck] of [[3,maxQuality.luckBp+500],[4,maxQuality.luckBp+1000],[5,maxQuality.luckBp+1500]]){args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:id});ownerCall('proof_cast_setup',['9301','1','0']);args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal([...bot.db.adapterCastEquipment.iter()][0].luckBp,luck);assert.equal(uses(id),9n);}
   for (const [id, bonus] of [[6,2500],[7,5000],[8,10000]]) {
     const coins = player().coins;
     await purchase(100+id);
     assert.equal(coins-player().coins,BigInt([50,150,400][id-6]));
     args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:id});
     for (let cast=0;cast<10;cast++) {
-      ownerCall('proof_cast_setup',['9301','100',String(cast%3)]);
+      ownerCall('proof_cast_setup',['9301',forcedBasePower,String(cast%3)]);
       args=await select();const before=player();
       await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
       const gear=[...bot.db.adapterCastEquipment.iter()][0];
       const pulls=[...bot.db.adapterCastPulls.iter()];
       const total=[...bot.db.adapterReceipt.iter()][0];
-      assert.equal(pulls.length,2);assert.equal(gear.xpBonusBp,7500+bonus);
-      assert.equal(gear.luckBp,4000);assert.equal(gear.baitItem,'');
-      assert.equal(total.xpGranted,pulls.reduce((sum,p)=>sum+p.baseXp,0n)*BigInt(17500+bonus)/10000n);
+      assert.equal(pulls.length,2);assert.equal(gear.xpBonusBp,maxQuality.xpBonusBp+bonus);
+      assert.equal(gear.luckBp,maxQuality.luckBp);assert.equal(gear.baitItem,'');
+      assert.equal(total.xpGranted,pulls.reduce((sum,p)=>sum+p.baseXp,0n)*BigInt(10000+maxQuality.xpBonusBp+bonus)/10000n);
       assert.equal(total.xpGranted,pulls.reduce((sum,p)=>sum+p.receipt.xpGranted,0n));
       assert.equal(player().totalXp,before.totalXp+total.xpGranted);assert.equal(uses(id),BigInt(9-cast));
       const committed=player();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
@@ -140,6 +186,7 @@ try {
   let test=await prepare(9302n);ownerCall('proof_materials',['9302','0','100']);await assert.rejects(bot.reducers.commitUpgradeFromDiscord({...test.args,nonce:test.q.nonce}),/INSUFFICIENT_MATERIALS/);assert.equal(quality(),0);assert.equal(material('scrap'),100n);
   ownerCall('proof_materials',['9302','100','100']);test=await prepare(9302n);ownerCall('proof_expire_upgrade',[test.q.nonce.toString()]);await assert.rejects(bot.reducers.commitUpgradeFromDiscord({...test.args,nonce:test.q.nonce}),/ACTION_EXPIRED|ACTION_NOT_FOUND/);
   test=await prepare(9302n);ownerCall('proof_change_quality',['1']);await assert.rejects(bot.reducers.commitUpgradeFromDiscord({...test.args,nonce:test.q.nonce}),/QUOTE_CHANGED/);ownerCall('activate_crafting');
+  test=await prepare(9302n);ownerCall('proof_change_recipe',['1','1']);await assert.rejects(bot.reducers.commitUpgradeFromDiscord({...test.args,nonce:test.q.nonce}),/QUOTE_CHANGED/);ownerCall('activate_crafting');
   test=await prepare(9302n);args=await select(9301n);await assert.rejects(bot.reducers.commitUpgradeFromDiscord({...args,nonce:test.q.nonce}),/ACTION_CONFLICT|ACTION_NOT_FOUND/);
   const browser=await connect(['my_link_challenge','my_player','my_rods','my_items','my_upgrade_quote','my_baits','my_bait_loadout','my_ledger'].map(t=>`SELECT * FROM ${t}`));
   const linker=await connect(['SELECT * FROM my_service']);ownerCall('configure_service',[JSON.stringify(linker.identity!.toHexString()),JSON.stringify({accountLinker:{}}),'true']);
@@ -147,7 +194,11 @@ try {
   await browser.reducers.prepareRodUpgrade({rodId:1});const q=[...browser.db.myUpgradeQuote.iter()][0];await assert.rejects(browser.reducers.commitRodUpgrade({nonce:q.nonce^1n}),/ACTION_CONFLICT/);
   test=await prepare(9302n);const race=await Promise.allSettled([browser.reducers.commitRodUpgrade({nonce:q.nonce}),bot.reducers.commitUpgradeFromDiscord({...test.args,nonce:test.q.nonce})]);assert.equal(race.filter(r=>r.status==='fulfilled').length,1);assert.equal(race.filter(r=>r.status==='rejected'&&/QUOTE_CHANGED/.test(String(r.reason))).length,1);
   assert.equal([...browser.db.myRods.iter()][0].upgradeLevel,1);assert.equal([...browser.db.myItems.iter()].find(r=>r.item==='rusted_tin')!.quantity,90n);assert.equal([...browser.db.myItems.iter()].find(r=>r.item==='scrap')!.quantity,95n);
-  const beforeActivation=JSON.stringify([...browser.db.myPlayer.iter()],(_,v)=>typeof v==='bigint'?v.toString():v);ownerCall('activate_crafting');ownerCall('activate_crafting');assert.equal(JSON.stringify([...browser.db.myPlayer.iter()],(_,v)=>typeof v==='bigint'?v.toString():v),beforeActivation);
+  const beforeActivation=JSON.stringify([...browser.db.myPlayer.iter()],(_,v)=>typeof v==='bigint'?v.toString():v);
+  console.log(run(process.execPath,['scripts/xp-preservation.mjs','before',database]).trim());
+  ownerCall('activate_xp_progression');ownerCall('activate_xp_progression');
+  console.log(run(process.execPath,['scripts/xp-preservation.mjs','after',database]).trim());
+  assert.equal(JSON.stringify([...browser.db.myPlayer.iter()],(_,v)=>typeof v==='bigint'?v.toString():v),beforeActivation);
   const stranger=await connect(['my_baits','my_bait_loadout','my_upgrade_quote','adapter_baits','adapter_upgrade_quote','adapter_cast_pulls','adapter_cast_equipment','adapter_items'].map(t=>`SELECT * FROM ${t}`));
   for(const view of [stranger.db.myBaits,stranger.db.myBaitLoadout,stranger.db.myUpgradeQuote,stranger.db.adapterBaits,stranger.db.adapterUpgradeQuote,stranger.db.adapterCastPulls,stranger.db.adapterCastEquipment,stranger.db.adapterItems])assert.equal(view.count(),0n);
   await assert.rejects(stranger.reducers.equipBait({baitId:1}),/ACCOUNT_NOT_LINKED/);await assert.rejects(stranger.reducers.activateCrafting({}),/OWNER_REQUIRED/);

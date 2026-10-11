@@ -86,16 +86,17 @@ Quotes last two minutes and bind the caller, player, listing, price, and catalog
 version. Commit rechecks eligibility, wallet, and ownership; retries cannot spend
 again. The website World map travels using the current owned rod, preserving cooldown.
 
-| Destination | Level | Licence | Rod | Combined coins |
-|---|---:|---:|---:|---:|
-| Whispering River | 5 | 150 | 250 | 400 |
-| Hollow Marsh | 10 | 500 | 750 | 1,250 |
-| Moonlit Lake | 18 | 1,500 | 2,000 | 3,500 |
-| Sunken Coast | 28 | 4,000 | 6,000 | 10,000 |
-| Glacial Reach | 40 | 10,000 | 15,000 | 25,000 |
-| Abyssal Shelf | 55 | 25,000 | 35,000 | 60,000 |
+| Destination | Licence level | Rod level | Licence | Rod | Combined coins |
+|---|---:|---:|---:|---:|---:|
+| Whispering River | 5 | None | 150 | 500 | 650 |
+| Hollow Marsh | 10 | None | 500 | 15,000 | 15,500 |
+| Moonlit Lake | 18 | None | 1,500 | 16,000 | 17,500 |
+| Sunken Coast | 28 | None | 4,000 | 33,000 | 37,000 |
+| Glacial Reach | 40 | None | 10,000 | 74,000 | 84,000 |
+| Abyssal Shelf | 55 | None | 25,000 | 130,000 | 155,000 |
 
-Prices are initial tuning in `content/trader.json`. Existing rods are retained;
+Rods require gold and the previous licence, with no rod level requirement.
+Their material recipes vary by family. Prices are in `content/trader.json`. Existing rods are retained;
 the one-time transition grants licences through a player's furthest selected or
 discovered biome. New players and future unlocks require purchases. Neither
 purchase nor travel changes fishing cooldown, XP, odds, collection, or records.

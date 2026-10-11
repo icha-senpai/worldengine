@@ -1,0 +1,4201 @@
+{
+  "assumptions": [
+    "Fresh level-1 Common Twig, zero coins and materials; free starter rod/licence.",
+    "Sell every fish immediately at its authoritative saved value; keep all tin/scrap for rods.",
+    "Claim daily before the first cast and every casts_per_day casts; 0 disables daily.",
+    "Buy sequential licences first and each next rod as soon as its gate, previous licence and coins allow; equip immediately.",
+    "Upgrade equipped rod to the scenario quality cap whenever materials allow, including immediately before shop purchases.",
+    "Material bait switches between deficits for the next recipe; actual ten-use purchases, charges carried per bait.",
+    "Epic-cap policy banks after Epic; Mythic-cap policy banks the Prismatic recipe and continues resource bait until it is funded; unlimited policies spend on Prismatic.",
+    "Recovery is a separate branch: keep the new rod equipped and farm material bait until all three stats match/exceed the old rod; do not purchase further rods.",
+    "Alternative recovery branch keeps the old rod equipped while spending gathered materials on the new owned rod; paired recovery seed, same starting state.",
+    "Catch odds, physical measurements, size XP, first discoveries, integer cast XP, mixed pulls, treasure coins and scrap follow current source.",
+    "Fishing-day equivalents assume the specified cast budget every day played; missed days extend calendar time without losing XP, quality or materials.",
+    "No other income, gifts, material spending, favorites, achievements payouts or skipped rods; simulated strategies are not observed player frequencies."
+  ],
+  "casts_per_day": 25,
+  "catalog_version": 5,
+  "crafting_version": 3,
+  "date": "2026-10-11",
+  "material_choice": {},
+  "material_choice_assumptions": [
+    "Twig is replaced as soon as eligible and affordable; the material-choice target starts with River.",
+    "Upgrade to Mythic, then bank that family's actual Prismatic recipe instead of spending it.",
+    "From River onward buy the next rod only when its gate, price and Prismatic material readiness all permit; carry saved materials into the new rod.",
+    "Resource bait continues through the Prismatic recipe; licences and waters advance as soon as affordable."
+  ],
+  "qualities": [
+    {
+      "luckBp": 0,
+      "name": "Common",
+      "powerBonus": 0,
+      "qualityLevel": 0,
+      "scrapCost": 0,
+      "tinCost": 0,
+      "xpBonusBp": 0
+    },
+    {
+      "luckBp": 50,
+      "name": "Uncommon",
+      "powerBonus": 2,
+      "qualityLevel": 1,
+      "scrapCost": 5,
+      "tinCost": 10,
+      "xpBonusBp": 100
+    },
+    {
+      "luckBp": 100,
+      "name": "Rare",
+      "powerBonus": 4,
+      "qualityLevel": 2,
+      "scrapCost": 15,
+      "tinCost": 25,
+      "xpBonusBp": 250
+    },
+    {
+      "luckBp": 200,
+      "name": "Epic",
+      "powerBonus": 7,
+      "qualityLevel": 3,
+      "scrapCost": 40,
+      "tinCost": 60,
+      "xpBonusBp": 450
+    },
+    {
+      "luckBp": 350,
+      "name": "Legendary",
+      "powerBonus": 11,
+      "qualityLevel": 4,
+      "scrapCost": 100,
+      "tinCost": 150,
+      "xpBonusBp": 700
+    },
+    {
+      "luckBp": 500,
+      "name": "Mythic",
+      "powerBonus": 16,
+      "qualityLevel": 5,
+      "scrapCost": 200,
+      "tinCost": 300,
+      "xpBonusBp": 950
+    },
+    {
+      "luckBp": 700,
+      "name": "Prismatic",
+      "powerBonus": 22,
+      "qualityLevel": 6,
+      "scrapCost": 400,
+      "tinCost": 600,
+      "xpBonusBp": 1300
+    }
+  ],
+  "quality_labels": [
+    "Common",
+    "Uncommon",
+    "Rare",
+    "Epic",
+    "Legendary",
+    "Mythic",
+    "Prismatic"
+  ],
+  "rod_recipes": [
+    {
+      "qualityLevel": 1,
+      "rodId": 1,
+      "scrapCost": 5,
+      "tinCost": 10
+    },
+    {
+      "qualityLevel": 2,
+      "rodId": 1,
+      "scrapCost": 15,
+      "tinCost": 25
+    },
+    {
+      "qualityLevel": 3,
+      "rodId": 1,
+      "scrapCost": 40,
+      "tinCost": 60
+    },
+    {
+      "qualityLevel": 4,
+      "rodId": 1,
+      "scrapCost": 100,
+      "tinCost": 150
+    },
+    {
+      "qualityLevel": 5,
+      "rodId": 1,
+      "scrapCost": 200,
+      "tinCost": 300
+    },
+    {
+      "qualityLevel": 6,
+      "rodId": 1,
+      "scrapCost": 400,
+      "tinCost": 600
+    },
+    {
+      "qualityLevel": 1,
+      "rodId": 2,
+      "scrapCost": 1,
+      "tinCost": 1
+    },
+    {
+      "qualityLevel": 2,
+      "rodId": 2,
+      "scrapCost": 1,
+      "tinCost": 1
+    },
+    {
+      "qualityLevel": 3,
+      "rodId": 2,
+      "scrapCost": 1,
+      "tinCost": 1
+    },
+    {
+      "qualityLevel": 4,
+      "rodId": 2,
+      "scrapCost": 1,
+      "tinCost": 1
+    },
+    {
+      "qualityLevel": 5,
+      "rodId": 2,
+      "scrapCost": 2,
+      "tinCost": 2
+    },
+    {
+      "qualityLevel": 6,
+      "rodId": 2,
+      "scrapCost": 10,
+      "tinCost": 9
+    },
+    {
+      "qualityLevel": 1,
+      "rodId": 3,
+      "scrapCost": 1,
+      "tinCost": 1
+    },
+    {
+      "qualityLevel": 2,
+      "rodId": 3,
+      "scrapCost": 1,
+      "tinCost": 1
+    },
+    {
+      "qualityLevel": 3,
+      "rodId": 3,
+      "scrapCost": 2,
+      "tinCost": 2
+    },
+    {
+      "qualityLevel": 4,
+      "rodId": 3,
+      "scrapCost": 3,
+      "tinCost": 5
+    },
+    {
+      "qualityLevel": 5,
+      "rodId": 3,
+      "scrapCost": 6,
+      "tinCost": 9
+    },
+    {
+      "qualityLevel": 6,
+      "rodId": 3,
+      "scrapCost": 16,
+      "tinCost": 18
+    },
+    {
+      "qualityLevel": 1,
+      "rodId": 4,
+      "scrapCost": 1,
+      "tinCost": 1
+    },
+    {
+      "qualityLevel": 2,
+      "rodId": 4,
+      "scrapCost": 1,
+      "tinCost": 2
+    },
+    {
+      "qualityLevel": 3,
+      "rodId": 4,
+      "scrapCost": 3,
+      "tinCost": 4
+    },
+    {
+      "qualityLevel": 4,
+      "rodId": 4,
+      "scrapCost": 6,
+      "tinCost": 9
+    },
+    {
+      "qualityLevel": 5,
+      "rodId": 4,
+      "scrapCost": 12,
+      "tinCost": 18
+    },
+    {
+      "qualityLevel": 6,
+      "rodId": 4,
+      "scrapCost": 24,
+      "tinCost": 36
+    },
+    {
+      "qualityLevel": 1,
+      "rodId": 5,
+      "scrapCost": 1,
+      "tinCost": 1
+    },
+    {
+      "qualityLevel": 2,
+      "rodId": 5,
+      "scrapCost": 2,
+      "tinCost": 3
+    },
+    {
+      "qualityLevel": 3,
+      "rodId": 5,
+      "scrapCost": 4,
+      "tinCost": 6
+    },
+    {
+      "qualityLevel": 4,
+      "rodId": 5,
+      "scrapCost": 10,
+      "tinCost": 15
+    },
+    {
+      "qualityLevel": 5,
+      "rodId": 5,
+      "scrapCost": 20,
+      "tinCost": 30
+    },
+    {
+      "qualityLevel": 6,
+      "rodId": 5,
+      "scrapCost": 40,
+      "tinCost": 60
+    },
+    {
+      "qualityLevel": 1,
+      "rodId": 6,
+      "scrapCost": 1,
+      "tinCost": 2
+    },
+    {
+      "qualityLevel": 2,
+      "rodId": 6,
+      "scrapCost": 3,
+      "tinCost": 4
+    },
+    {
+      "qualityLevel": 3,
+      "rodId": 6,
+      "scrapCost": 7,
+      "tinCost": 10
+    },
+    {
+      "qualityLevel": 4,
+      "rodId": 6,
+      "scrapCost": 16,
+      "tinCost": 24
+    },
+    {
+      "qualityLevel": 5,
+      "rodId": 6,
+      "scrapCost": 32,
+      "tinCost": 48
+    },
+    {
+      "qualityLevel": 6,
+      "rodId": 6,
+      "scrapCost": 64,
+      "tinCost": 96
+    },
+    {
+      "qualityLevel": 1,
+      "rodId": 7,
+      "scrapCost": 2,
+      "tinCost": 3
+    },
+    {
+      "qualityLevel": 2,
+      "rodId": 7,
+      "scrapCost": 4,
+      "tinCost": 6
+    },
+    {
+      "qualityLevel": 3,
+      "rodId": 7,
+      "scrapCost": 10,
+      "tinCost": 15
+    },
+    {
+      "qualityLevel": 4,
+      "rodId": 7,
+      "scrapCost": 24,
+      "tinCost": 36
+    },
+    {
+      "qualityLevel": 5,
+      "rodId": 7,
+      "scrapCost": 48,
+      "tinCost": 72
+    },
+    {
+      "qualityLevel": 6,
+      "rodId": 7,
+      "scrapCost": 96,
+      "tinCost": 144
+    }
+  ],
+  "rod_stats": [
+    {
+      "luckBp": 0,
+      "minimumLevel": 1,
+      "name": "Twig Rod",
+      "power": 1,
+      "rodId": 1,
+      "spriteAsset": "/rods/twig.png",
+      "xpBonusBp": 0
+    },
+    {
+      "luckBp": 1050,
+      "minimumLevel": 1,
+      "name": "River Rod",
+      "power": 28,
+      "rodId": 2,
+      "spriteAsset": "/rods/river.png",
+      "xpBonusBp": 1450
+    },
+    {
+      "luckBp": 2100,
+      "minimumLevel": 1,
+      "name": "Marsh Rod",
+      "power": 55,
+      "rodId": 3,
+      "spriteAsset": "/rods/marsh.png",
+      "xpBonusBp": 2900
+    },
+    {
+      "luckBp": 3150,
+      "minimumLevel": 1,
+      "name": "Moonwood Rod",
+      "power": 82,
+      "rodId": 4,
+      "spriteAsset": "/rods/moonwood.png",
+      "xpBonusBp": 4350
+    },
+    {
+      "luckBp": 4200,
+      "minimumLevel": 1,
+      "name": "Tide Rod",
+      "power": 109,
+      "rodId": 5,
+      "spriteAsset": "/rods/tide.png",
+      "xpBonusBp": 5800
+    },
+    {
+      "luckBp": 5250,
+      "minimumLevel": 1,
+      "name": "Glacial Rod",
+      "power": 136,
+      "rodId": 6,
+      "spriteAsset": "/rods/glacial.png",
+      "xpBonusBp": 7250
+    },
+    {
+      "luckBp": 6300,
+      "minimumLevel": 1,
+      "name": "Abyssal Rod",
+      "power": 163,
+      "rodId": 7,
+      "spriteAsset": "/rods/abyssal.png",
+      "xpBonusBp": 8700
+    }
+  ],
+  "scenarios": {
+    "natural_bank_at_mythic": {
+      "quality_cap": 5,
+      "seed": 10112026,
+      "transitions": [
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 32,
+            "mean": 10.439,
+            "median": 10,
+            "min": 1,
+            "p10": 3,
+            "p90": 19,
+            "p95": 22
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 32,
+            "mean": 10.439,
+            "median": 10,
+            "min": 1,
+            "p10": 3,
+            "p90": 19,
+            "p95": 22
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 1.28,
+            "mean": 0.41756,
+            "median": 0.4,
+            "min": 0.04,
+            "p10": 0.12,
+            "p90": 0.76,
+            "p95": 0.88
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 1.28,
+            "mean": 0.41756,
+            "median": 0.4,
+            "min": 0.04,
+            "p10": 0.12,
+            "p90": 0.76,
+            "p95": 0.88
+          },
+          "from": "Twig Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            875,
+            75,
+            33,
+            15,
+            2,
+            0,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 85.67908803525242,
+            "scrap": 0.03343232110355398,
+            "tin": 0.12300028738384902
+          },
+          "mythic_or_better_at_purchase_pct": 0.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 0.0,
+          "purchase_delay_casts": {
+            "max": 32,
+            "mean": 10.439,
+            "median": 10,
+            "min": 1,
+            "p10": 3,
+            "p90": 19,
+            "p95": 22
+          },
+          "purchase_level": {
+            "max": 6,
+            "mean": 3.478,
+            "median": 3,
+            "min": 1,
+            "p10": 3,
+            "p90": 4,
+            "p95": 5
+          },
+          "purchase_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "sampled_casts": 10439,
+          "to": "River Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 316,
+            "mean": 141.916,
+            "median": 142,
+            "min": 2,
+            "p10": 93,
+            "p90": 192,
+            "p95": 207
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 321,
+            "mean": 152.355,
+            "median": 152,
+            "min": 16,
+            "p10": 102,
+            "p90": 203,
+            "p95": 217
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 12.84,
+            "mean": 6.0942,
+            "median": 6.08,
+            "min": 0.64,
+            "p10": 4.08,
+            "p90": 8.12,
+            "p95": 8.68
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 12.64,
+            "mean": 5.67664,
+            "median": 5.68,
+            "min": 0.08,
+            "p10": 3.72,
+            "p90": 7.68,
+            "p95": 8.28
+          },
+          "from": "River Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            73,
+            55,
+            83,
+            154,
+            359,
+            276,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 106.40187152963725,
+            "scrap": 0.10869810310324417,
+            "tin": 0.19332562924546914
+          },
+          "mythic_or_better_at_purchase_pct": 93.6,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 46.9,
+          "purchase_delay_casts": {
+            "max": 321,
+            "mean": 152.355,
+            "median": 152,
+            "min": 16,
+            "p10": 102,
+            "p90": 203,
+            "p95": 217
+          },
+          "purchase_level": {
+            "max": 16,
+            "mean": 13.775,
+            "median": 14,
+            "min": 6,
+            "p10": 13,
+            "p90": 15,
+            "p95": 15
+          },
+          "purchase_quality_counts": [
+            5,
+            4,
+            8,
+            13,
+            34,
+            936,
+            0
+          ],
+          "sampled_casts": 141916,
+          "to": "Marsh Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 241,
+            "mean": 135.938,
+            "median": 137,
+            "min": 29,
+            "p10": 86,
+            "p90": 185,
+            "p95": 197
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 473,
+            "mean": 288.293,
+            "median": 291,
+            "min": 112,
+            "p10": 212,
+            "p90": 360,
+            "p95": 376
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 18.92,
+            "mean": 11.53172,
+            "median": 11.64,
+            "min": 4.48,
+            "p10": 8.48,
+            "p90": 14.4,
+            "p95": 15.04
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 9.64,
+            "mean": 5.437519999999999,
+            "median": 5.48,
+            "min": 1.16,
+            "p10": 3.44,
+            "p90": 7.4,
+            "p95": 7.88
+          },
+          "from": "Marsh Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            23,
+            27,
+            117,
+            215,
+            438,
+            180,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 120.26882108019832,
+            "scrap": 0.13450249378393092,
+            "tin": 0.22174079359708102
+          },
+          "mythic_or_better_at_purchase_pct": 94.9,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 44.6,
+          "purchase_delay_casts": {
+            "max": 473,
+            "mean": 288.293,
+            "median": 291,
+            "min": 112,
+            "p10": 212,
+            "p90": 360,
+            "p95": 376
+          },
+          "purchase_level": {
+            "max": 20,
+            "mean": 18.412,
+            "median": 19,
+            "min": 15,
+            "p10": 17,
+            "p90": 19,
+            "p95": 20
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            5,
+            46,
+            949,
+            0
+          ],
+          "sampled_casts": 135938,
+          "to": "Moonwood Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 383,
+            "mean": 242.816,
+            "median": 241,
+            "min": 121,
+            "p10": 194,
+            "p90": 295,
+            "p95": 310
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 725,
+            "mean": 531.109,
+            "median": 530,
+            "min": 266,
+            "p10": 444,
+            "p90": 618,
+            "p95": 638
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 29.0,
+            "mean": 21.24436,
+            "median": 21.2,
+            "min": 10.64,
+            "p10": 17.76,
+            "p90": 24.72,
+            "p95": 25.52
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 15.32,
+            "mean": 9.71264,
+            "median": 9.64,
+            "min": 4.84,
+            "p10": 7.76,
+            "p90": 11.8,
+            "p95": 12.4
+          },
+          "from": "Moonwood Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            9,
+            20,
+            32,
+            248,
+            603,
+            88,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 131.6001457894043,
+            "scrap": 0.14702078940432262,
+            "tin": 0.16600224037954664
+          },
+          "mythic_or_better_at_purchase_pct": 98.7,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 44.9,
+          "purchase_delay_casts": {
+            "max": 725,
+            "mean": 531.109,
+            "median": 530,
+            "min": 266,
+            "p10": 444,
+            "p90": 618,
+            "p95": 638
+          },
+          "purchase_level": {
+            "max": 26,
+            "mean": 24.872,
+            "median": 25,
+            "min": 22,
+            "p10": 24,
+            "p90": 26,
+            "p95": 26
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            13,
+            987,
+            0
+          ],
+          "sampled_casts": 242816,
+          "to": "Tide Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 522,
+            "mean": 363.942,
+            "median": 361,
+            "min": 223,
+            "p10": 304,
+            "p90": 427,
+            "p95": 445
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 1150,
+            "mean": 895.051,
+            "median": 893,
+            "min": 552,
+            "p10": 804,
+            "p90": 992,
+            "p95": 1019
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 46.0,
+            "mean": 35.802040000000005,
+            "median": 35.72,
+            "min": 22.08,
+            "p10": 32.16,
+            "p90": 39.68,
+            "p95": 40.76
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 20.88,
+            "mean": 14.55768,
+            "median": 14.44,
+            "min": 8.92,
+            "p10": 12.16,
+            "p90": 17.08,
+            "p95": 17.8
+          },
+          "from": "Tide Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            1,
+            7,
+            156,
+            766,
+            70,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 209.7291821224261,
+            "scrap": 0.20352693561061927,
+            "tin": 0.19994669480301808
+          },
+          "mythic_or_better_at_purchase_pct": 99.9,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 45.6,
+          "purchase_delay_casts": {
+            "max": 1150,
+            "mean": 895.051,
+            "median": 893,
+            "min": 552,
+            "p10": 804,
+            "p90": 992,
+            "p95": 1019
+          },
+          "purchase_level": {
+            "max": 35,
+            "mean": 33.44,
+            "median": 33,
+            "min": 31,
+            "p10": 33,
+            "p90": 34,
+            "p95": 34
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            999,
+            0
+          ],
+          "sampled_casts": 363942,
+          "to": "Glacial Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 721,
+            "mean": 549.179,
+            "median": 548,
+            "min": 408,
+            "p10": 478,
+            "p90": 621,
+            "p95": 643
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 1777,
+            "mean": 1444.23,
+            "median": 1441,
+            "min": 1037,
+            "p10": 1325,
+            "p90": 1566,
+            "p95": 1604
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 71.08,
+            "mean": 57.7692,
+            "median": 57.64,
+            "min": 41.48,
+            "p10": 53.0,
+            "p90": 62.64,
+            "p95": 64.16
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 28.84,
+            "mean": 21.96716,
+            "median": 21.92,
+            "min": 16.32,
+            "p10": 19.12,
+            "p90": 24.84,
+            "p95": 25.72
+          },
+          "from": "Glacial Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            1,
+            2,
+            98,
+            822,
+            77,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 249.34748051181856,
+            "scrap": 0.21478971337214278,
+            "tin": 0.22043268224021675
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 45.7,
+          "purchase_delay_casts": {
+            "max": 1777,
+            "mean": 1444.23,
+            "median": 1441,
+            "min": 1037,
+            "p10": 1325,
+            "p90": 1566,
+            "p95": 1604
+          },
+          "purchase_level": {
+            "max": 45,
+            "mean": 43.283,
+            "median": 43,
+            "min": 41,
+            "p10": 43,
+            "p90": 44,
+            "p95": 44
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "sampled_casts": 549179,
+          "to": "Abyssal Rod"
+        }
+      ],
+      "trials": 1000
+    },
+    "natural_spend_prismatic": {
+      "quality_cap": 6,
+      "seed": 10112026,
+      "transitions": [
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 32,
+            "mean": 10.439,
+            "median": 10,
+            "min": 1,
+            "p10": 3,
+            "p90": 19,
+            "p95": 22
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 32,
+            "mean": 10.439,
+            "median": 10,
+            "min": 1,
+            "p10": 3,
+            "p90": 19,
+            "p95": 22
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 1.28,
+            "mean": 0.41756,
+            "median": 0.4,
+            "min": 0.04,
+            "p10": 0.12,
+            "p90": 0.76,
+            "p95": 0.88
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 1.28,
+            "mean": 0.41756,
+            "median": 0.4,
+            "min": 0.04,
+            "p10": 0.12,
+            "p90": 0.76,
+            "p95": 0.88
+          },
+          "from": "Twig Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            875,
+            75,
+            33,
+            15,
+            2,
+            0,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 85.67908803525242,
+            "scrap": 0.03343232110355398,
+            "tin": 0.12300028738384902
+          },
+          "mythic_or_better_at_purchase_pct": 0.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 0.0,
+          "purchase_delay_casts": {
+            "max": 32,
+            "mean": 10.439,
+            "median": 10,
+            "min": 1,
+            "p10": 3,
+            "p90": 19,
+            "p95": 22
+          },
+          "purchase_level": {
+            "max": 6,
+            "mean": 3.478,
+            "median": 3,
+            "min": 1,
+            "p10": 3,
+            "p90": 4,
+            "p95": 5
+          },
+          "purchase_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "sampled_casts": 10439,
+          "to": "River Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 295,
+            "mean": 141.336,
+            "median": 141,
+            "min": 2,
+            "p10": 93,
+            "p90": 190,
+            "p95": 203
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 300,
+            "mean": 151.775,
+            "median": 151,
+            "min": 16,
+            "p10": 102,
+            "p90": 200,
+            "p95": 215
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 12.0,
+            "mean": 6.071000000000001,
+            "median": 6.04,
+            "min": 0.64,
+            "p10": 4.08,
+            "p90": 8.0,
+            "p95": 8.6
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 11.8,
+            "mean": 5.653440000000001,
+            "median": 5.64,
+            "min": 0.08,
+            "p10": 3.72,
+            "p90": 7.6,
+            "p95": 8.12
+          },
+          "from": "River Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            135,
+            112,
+            174,
+            257,
+            271,
+            50,
+            1
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 106.94395624610857,
+            "scrap": 0.10880455085753099,
+            "tin": 0.19432416369502462
+          },
+          "mythic_or_better_at_purchase_pct": 93.6,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 46.9,
+          "purchase_delay_casts": {
+            "max": 300,
+            "mean": 151.775,
+            "median": 151,
+            "min": 16,
+            "p10": 102,
+            "p90": 200,
+            "p95": 215
+          },
+          "purchase_level": {
+            "max": 16,
+            "mean": 13.794,
+            "median": 14,
+            "min": 6,
+            "p10": 13,
+            "p90": 15,
+            "p95": 15
+          },
+          "purchase_quality_counts": [
+            5,
+            4,
+            8,
+            13,
+            34,
+            467,
+            469
+          ],
+          "sampled_casts": 141336,
+          "to": "Marsh Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 253,
+            "mean": 136.234,
+            "median": 138,
+            "min": 17,
+            "p10": 87,
+            "p90": 183,
+            "p95": 198
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 476,
+            "mean": 288.009,
+            "median": 291,
+            "min": 112,
+            "p10": 212,
+            "p90": 362,
+            "p95": 375
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 19.04,
+            "mean": 11.52036,
+            "median": 11.64,
+            "min": 4.48,
+            "p10": 8.48,
+            "p90": 14.48,
+            "p95": 15.0
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 10.12,
+            "mean": 5.44936,
+            "median": 5.52,
+            "min": 0.68,
+            "p10": 3.48,
+            "p90": 7.32,
+            "p95": 7.92
+          },
+          "from": "Marsh Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            73,
+            74,
+            252,
+            354,
+            247,
+            0,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 120.0647195266967,
+            "scrap": 0.13493694672401896,
+            "tin": 0.21995977509285494
+          },
+          "mythic_or_better_at_purchase_pct": 90.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 25.2,
+          "purchase_delay_casts": {
+            "max": 476,
+            "mean": 288.009,
+            "median": 291,
+            "min": 112,
+            "p10": 212,
+            "p90": 362,
+            "p95": 375
+          },
+          "purchase_level": {
+            "max": 20,
+            "mean": 18.42,
+            "median": 19,
+            "min": 15,
+            "p10": 17,
+            "p90": 20,
+            "p95": 20
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            1,
+            8,
+            91,
+            648,
+            252
+          ],
+          "sampled_casts": 136234,
+          "to": "Moonwood Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 370,
+            "mean": 244.733,
+            "median": 243,
+            "min": 122,
+            "p10": 195,
+            "p90": 296,
+            "p95": 311
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 725,
+            "mean": 532.742,
+            "median": 532,
+            "min": 266,
+            "p10": 444,
+            "p90": 620,
+            "p95": 637
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 29.0,
+            "mean": 21.30968,
+            "median": 21.28,
+            "min": 10.64,
+            "p10": 17.76,
+            "p90": 24.8,
+            "p95": 25.48
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 14.8,
+            "mean": 9.78932,
+            "median": 9.72,
+            "min": 4.88,
+            "p10": 7.8,
+            "p90": 11.84,
+            "p95": 12.44
+          },
+          "from": "Moonwood Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            37,
+            78,
+            168,
+            466,
+            251,
+            0,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 130.49234063244432,
+            "scrap": 0.14630638287439782,
+            "tin": 0.16572346189520826
+          },
+          "mythic_or_better_at_purchase_pct": 96.2,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 19.8,
+          "purchase_delay_casts": {
+            "max": 725,
+            "mean": 532.742,
+            "median": 532,
+            "min": 266,
+            "p10": 444,
+            "p90": 620,
+            "p95": 637
+          },
+          "purchase_level": {
+            "max": 26,
+            "mean": 24.855,
+            "median": 25,
+            "min": 22,
+            "p10": 24,
+            "p90": 26,
+            "p95": 26
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            1,
+            37,
+            764,
+            198
+          ],
+          "sampled_casts": 244733,
+          "to": "Tide Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 522,
+            "mean": 365.85,
+            "median": 365,
+            "min": 237,
+            "p10": 307,
+            "p90": 425,
+            "p95": 443
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 1157,
+            "mean": 898.592,
+            "median": 897,
+            "min": 552,
+            "p10": 804,
+            "p90": 990,
+            "p95": 1024
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 46.28,
+            "mean": 35.94368,
+            "median": 35.88,
+            "min": 22.08,
+            "p10": 32.16,
+            "p90": 39.6,
+            "p95": 40.96
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 20.88,
+            "mean": 14.634,
+            "median": 14.6,
+            "min": 9.48,
+            "p10": 12.28,
+            "p90": 17.0,
+            "p95": 17.72
+          },
+          "from": "Tide Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            23,
+            65,
+            118,
+            426,
+            368,
+            0,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 208.54755227552275,
+            "scrap": 0.2028754954216209,
+            "tin": 0.19865791991253245
+          },
+          "mythic_or_better_at_purchase_pct": 99.5,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 19.1,
+          "purchase_delay_casts": {
+            "max": 1157,
+            "mean": 898.592,
+            "median": 897,
+            "min": 552,
+            "p10": 804,
+            "p90": 990,
+            "p95": 1024
+          },
+          "purchase_level": {
+            "max": 35,
+            "mean": 33.397,
+            "median": 33,
+            "min": 31,
+            "p10": 33,
+            "p90": 34,
+            "p95": 34
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            5,
+            804,
+            191
+          ],
+          "sampled_casts": 365850,
+          "to": "Glacial Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 707,
+            "mean": 552.388,
+            "median": 551,
+            "min": 407,
+            "p10": 478,
+            "p90": 625,
+            "p95": 646
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 1766,
+            "mean": 1450.98,
+            "median": 1447,
+            "min": 1037,
+            "p10": 1327,
+            "p90": 1574,
+            "p95": 1613
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 70.64,
+            "mean": 58.0392,
+            "median": 57.88,
+            "min": 41.48,
+            "p10": 53.08,
+            "p90": 62.96,
+            "p95": 64.52
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 28.28,
+            "mean": 22.09552,
+            "median": 22.04,
+            "min": 16.28,
+            "p10": 19.12,
+            "p90": 25.0,
+            "p95": 25.84
+          },
+          "from": "Glacial Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            17,
+            36,
+            74,
+            359,
+            514,
+            0,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 247.87029406866188,
+            "scrap": 0.21397097692201858,
+            "tin": 0.21911410095802225
+          },
+          "mythic_or_better_at_purchase_pct": 99.9,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 10.6,
+          "purchase_delay_casts": {
+            "max": 1766,
+            "mean": 1450.98,
+            "median": 1447,
+            "min": 1037,
+            "p10": 1327,
+            "p90": 1574,
+            "p95": 1613
+          },
+          "purchase_level": {
+            "max": 45,
+            "mean": 43.241,
+            "median": 43,
+            "min": 41,
+            "p10": 43,
+            "p90": 44,
+            "p95": 44
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            893,
+            106
+          ],
+          "sampled_casts": 552388,
+          "to": "Abyssal Rod"
+        }
+      ],
+      "trials": 1000
+    },
+    "pink_bank_at_mythic": {
+      "quality_cap": 5,
+      "seed": 10112026,
+      "transitions": [
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 66,
+            "mean": 16.149,
+            "median": 13,
+            "min": 1,
+            "p10": 3,
+            "p90": 34,
+            "p95": 42
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 66,
+            "mean": 16.149,
+            "median": 13,
+            "min": 1,
+            "p10": 3,
+            "p90": 34,
+            "p95": 42
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 2.64,
+            "mean": 0.6459600000000001,
+            "median": 0.52,
+            "min": 0.04,
+            "p10": 0.12,
+            "p90": 1.36,
+            "p95": 1.68
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 2.64,
+            "mean": 0.6459600000000001,
+            "median": 0.52,
+            "min": 0.04,
+            "p10": 0.12,
+            "p90": 1.36,
+            "p95": 1.68
+          },
+          "from": "Twig Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            759,
+            92,
+            81,
+            38,
+            22,
+            8,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 87.20632856523623,
+            "scrap": 0.043841723945755154,
+            "tin": 0.1246516812186513
+          },
+          "mythic_or_better_at_purchase_pct": 0.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 0.0,
+          "purchase_delay_casts": {
+            "max": 66,
+            "mean": 16.149,
+            "median": 13,
+            "min": 1,
+            "p10": 3,
+            "p90": 34,
+            "p95": 42
+          },
+          "purchase_level": {
+            "max": 10,
+            "mean": 4.884,
+            "median": 5,
+            "min": 1,
+            "p10": 3,
+            "p90": 7,
+            "p95": 8
+          },
+          "purchase_quality_counts": [
+            999,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "sampled_casts": 16149,
+          "to": "River Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 549,
+            "mean": 253.615,
+            "median": 255,
+            "min": 2,
+            "p10": 145,
+            "p90": 359,
+            "p95": 392
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 562,
+            "mean": 269.764,
+            "median": 271,
+            "min": 16,
+            "p10": 154,
+            "p90": 376,
+            "p95": 408
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 22.48,
+            "mean": 10.790560000000001,
+            "median": 10.84,
+            "min": 0.64,
+            "p10": 6.16,
+            "p90": 15.04,
+            "p95": 16.32
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 21.96,
+            "mean": 10.1446,
+            "median": 10.2,
+            "min": 0.08,
+            "p10": 5.8,
+            "p90": 14.36,
+            "p95": 15.68
+          },
+          "from": "River Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            15,
+            8,
+            24,
+            26,
+            111,
+            816,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 101.21292510301046,
+            "scrap": 0.11954734538572245,
+            "tin": 0.17534057528143052
+          },
+          "mythic_or_better_at_purchase_pct": 98.4,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 88.1,
+          "purchase_delay_casts": {
+            "max": 562,
+            "mean": 269.764,
+            "median": 271,
+            "min": 16,
+            "p10": 154,
+            "p90": 376,
+            "p95": 408
+          },
+          "purchase_level": {
+            "max": 26,
+            "mean": 21.443,
+            "median": 22,
+            "min": 6,
+            "p10": 19,
+            "p90": 24,
+            "p95": 24
+          },
+          "purchase_quality_counts": [
+            1,
+            2,
+            2,
+            6,
+            5,
+            984,
+            0
+          ],
+          "sampled_casts": 253615,
+          "to": "Marsh Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 413,
+            "mean": 206.191,
+            "median": 203,
+            "min": 71,
+            "p10": 132,
+            "p90": 286,
+            "p95": 308
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 770,
+            "mean": 475.955,
+            "median": 475,
+            "min": 132,
+            "p10": 339,
+            "p90": 614,
+            "p95": 642
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 30.8,
+            "mean": 19.0382,
+            "median": 19.0,
+            "min": 5.28,
+            "p10": 13.56,
+            "p90": 24.56,
+            "p95": 25.68
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 16.52,
+            "mean": 8.24764,
+            "median": 8.12,
+            "min": 2.84,
+            "p10": 5.28,
+            "p90": 11.44,
+            "p95": 12.32
+          },
+          "from": "Marsh Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            4,
+            2,
+            6,
+            35,
+            178,
+            775,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 122.5433117837345,
+            "scrap": 0.14214975435397278,
+            "tin": 0.1547836714502573
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 90.7,
+          "purchase_delay_casts": {
+            "max": 770,
+            "mean": 475.955,
+            "median": 475,
+            "min": 132,
+            "p10": 339,
+            "p90": 614,
+            "p95": 642
+          },
+          "purchase_level": {
+            "max": 31,
+            "mean": 27.753,
+            "median": 27,
+            "min": 20,
+            "p10": 26,
+            "p90": 30,
+            "p95": 30
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "sampled_casts": 206191,
+          "to": "Moonwood Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 441,
+            "mean": 216.619,
+            "median": 212,
+            "min": 86,
+            "p10": 147,
+            "p90": 288,
+            "p95": 315
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 990,
+            "mean": 692.574,
+            "median": 694,
+            "min": 399,
+            "p10": 567,
+            "p90": 820,
+            "p95": 854
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 39.6,
+            "mean": 27.702959999999997,
+            "median": 27.76,
+            "min": 15.96,
+            "p10": 22.68,
+            "p90": 32.8,
+            "p95": 34.16
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 17.64,
+            "mean": 8.66476,
+            "median": 8.48,
+            "min": 3.44,
+            "p10": 5.88,
+            "p90": 11.52,
+            "p95": 12.6
+          },
+          "from": "Moonwood Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            3,
+            23,
+            368,
+            606,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 196.6768658335603,
+            "scrap": 0.20187056537053535,
+            "tin": 0.1889723431462614
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 89.0,
+          "purchase_delay_casts": {
+            "max": 990,
+            "mean": 692.574,
+            "median": 694,
+            "min": 399,
+            "p10": 567,
+            "p90": 820,
+            "p95": 854
+          },
+          "purchase_level": {
+            "max": 36,
+            "mean": 34.218,
+            "median": 34,
+            "min": 30,
+            "p10": 33,
+            "p90": 35,
+            "p95": 36
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "sampled_casts": 216619,
+          "to": "Tide Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 681,
+            "mean": 459.582,
+            "median": 456,
+            "min": 264,
+            "p10": 378,
+            "p90": 545,
+            "p95": 576
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 1644,
+            "mean": 1152.156,
+            "median": 1153,
+            "min": 766,
+            "p10": 1003,
+            "p90": 1310,
+            "p95": 1349
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 65.76,
+            "mean": 46.08624,
+            "median": 46.12,
+            "min": 30.64,
+            "p10": 40.12,
+            "p90": 52.4,
+            "p95": 53.96
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 27.24,
+            "mean": 18.38328,
+            "median": 18.24,
+            "min": 10.56,
+            "p10": 15.12,
+            "p90": 21.8,
+            "p95": 23.04
+          },
+          "from": "Tide Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            1,
+            6,
+            363,
+            630,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 217.18637805658184,
+            "scrap": 0.1896962892367412,
+            "tin": 0.20232733222798108
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 95.2,
+          "purchase_delay_casts": {
+            "max": 1644,
+            "mean": 1152.156,
+            "median": 1153,
+            "min": 766,
+            "p10": 1003,
+            "p90": 1310,
+            "p95": 1349
+          },
+          "purchase_level": {
+            "max": 47,
+            "mean": 44.589,
+            "median": 45,
+            "min": 41,
+            "p10": 43,
+            "p90": 46,
+            "p95": 46
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "sampled_casts": 459582,
+          "to": "Glacial Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 1020,
+            "mean": 757.899,
+            "median": 758,
+            "min": 473,
+            "p10": 659,
+            "p90": 859,
+            "p95": 883
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 2515,
+            "mean": 1910.055,
+            "median": 1916,
+            "min": 1410,
+            "p10": 1742,
+            "p90": 2084,
+            "p95": 2137
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 100.6,
+            "mean": 76.40220000000001,
+            "median": 76.64,
+            "min": 56.4,
+            "p10": 69.68,
+            "p90": 83.36,
+            "p95": 85.48
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 40.8,
+            "mean": 30.31596,
+            "median": 30.32,
+            "min": 18.92,
+            "p10": 26.36,
+            "p90": 34.36,
+            "p95": 35.32
+          },
+          "from": "Glacial Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            0,
+            1,
+            97,
+            902,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 237.59890697837048,
+            "scrap": 0.20028394284726592,
+            "tin": 0.21898564320575697
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 98.4,
+          "purchase_delay_casts": {
+            "max": 2515,
+            "mean": 1910.055,
+            "median": 1916,
+            "min": 1410,
+            "p10": 1742,
+            "p90": 2084,
+            "p95": 2137
+          },
+          "purchase_level": {
+            "max": 59,
+            "mean": 56.878,
+            "median": 57,
+            "min": 53,
+            "p10": 56,
+            "p90": 58,
+            "p95": 58
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "sampled_casts": 757899,
+          "to": "Abyssal Rod"
+        }
+      ],
+      "trials": 1000
+    },
+    "resource_bait_bank_at_mythic": {
+      "quality_cap": 5,
+      "seed": 10112026,
+      "transitions": [
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 40,
+            "mean": 11.603,
+            "median": 11,
+            "min": 1,
+            "p10": 3,
+            "p90": 22,
+            "p95": 25
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 40,
+            "mean": 11.603,
+            "median": 11,
+            "min": 1,
+            "p10": 3,
+            "p90": 22,
+            "p95": 25
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 1.6,
+            "mean": 0.46412,
+            "median": 0.44,
+            "min": 0.04,
+            "p10": 0.12,
+            "p90": 0.88,
+            "p95": 1.0
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 1.6,
+            "mean": 0.46412,
+            "median": 0.44,
+            "min": 0.04,
+            "p10": 0.12,
+            "p90": 0.88,
+            "p95": 1.0
+          },
+          "from": "Twig Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            553,
+            129,
+            111,
+            105,
+            97,
+            5,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 86.34413513746445,
+            "scrap": 0.2756183745583039,
+            "tin": 0.8808928725329657
+          },
+          "mythic_or_better_at_purchase_pct": 0.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 0.0,
+          "purchase_delay_casts": {
+            "max": 40,
+            "mean": 11.603,
+            "median": 11,
+            "min": 1,
+            "p10": 3,
+            "p90": 22,
+            "p95": 25
+          },
+          "purchase_level": {
+            "max": 6,
+            "mean": 3.679,
+            "median": 4,
+            "min": 1,
+            "p10": 3,
+            "p90": 5,
+            "p95": 5
+          },
+          "purchase_quality_counts": [
+            582,
+            418,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "sampled_casts": 11603,
+          "to": "River Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 287,
+            "mean": 138.793,
+            "median": 138,
+            "min": 3,
+            "p10": 91,
+            "p90": 187,
+            "p95": 203
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 293,
+            "mean": 150.396,
+            "median": 150,
+            "min": 13,
+            "p10": 101,
+            "p90": 200,
+            "p95": 215
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 11.72,
+            "mean": 6.01584,
+            "median": 6.0,
+            "min": 0.52,
+            "p10": 4.04,
+            "p90": 8.0,
+            "p95": 8.6
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 11.48,
+            "mean": 5.55172,
+            "median": 5.52,
+            "min": 0.12,
+            "p10": 3.64,
+            "p90": 7.48,
+            "p95": 8.12
+          },
+          "from": "River Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            4,
+            0,
+            1,
+            1,
+            47,
+            947,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 109.41478316629801,
+            "scrap": 0.20910276454864438,
+            "tin": 0.24411173474166564
+          },
+          "mythic_or_better_at_purchase_pct": 99.7,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 99.4,
+          "purchase_delay_casts": {
+            "max": 293,
+            "mean": 150.396,
+            "median": 150,
+            "min": 13,
+            "p10": 101,
+            "p90": 200,
+            "p95": 215
+          },
+          "purchase_level": {
+            "max": 16,
+            "mean": 13.963,
+            "median": 14,
+            "min": 6,
+            "p10": 13,
+            "p90": 15,
+            "p95": 15
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            2,
+            1,
+            0,
+            997,
+            0
+          ],
+          "sampled_casts": 138793,
+          "to": "Marsh Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 240,
+            "mean": 135.159,
+            "median": 136,
+            "min": 16,
+            "p10": 84,
+            "p90": 184,
+            "p95": 197
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 475,
+            "mean": 285.555,
+            "median": 289,
+            "min": 87,
+            "p10": 211,
+            "p90": 357,
+            "p95": 377
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 19.0,
+            "mean": 11.4222,
+            "median": 11.56,
+            "min": 3.48,
+            "p10": 8.44,
+            "p90": 14.28,
+            "p95": 15.08
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 9.6,
+            "mean": 5.406359999999999,
+            "median": 5.44,
+            "min": 0.64,
+            "p10": 3.36,
+            "p90": 7.36,
+            "p95": 7.88
+          },
+          "from": "Marsh Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            126,
+            874,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 121.77433985158221,
+            "scrap": 0.1739210855362943,
+            "tin": 0.2461323330299869
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 475,
+            "mean": 285.555,
+            "median": 289,
+            "min": 87,
+            "p10": 211,
+            "p90": 357,
+            "p95": 377
+          },
+          "purchase_level": {
+            "max": 20,
+            "mean": 18.602,
+            "median": 19,
+            "min": 15,
+            "p10": 17,
+            "p90": 20,
+            "p95": 20
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "sampled_casts": 135159,
+          "to": "Moonwood Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 367,
+            "mean": 240.399,
+            "median": 240,
+            "min": 115,
+            "p10": 191,
+            "p90": 292,
+            "p95": 307
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 710,
+            "mean": 525.954,
+            "median": 528,
+            "min": 298,
+            "p10": 436,
+            "p90": 617,
+            "p95": 640
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 28.4,
+            "mean": 21.038159999999998,
+            "median": 21.12,
+            "min": 11.92,
+            "p10": 17.44,
+            "p90": 24.68,
+            "p95": 25.6
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 14.68,
+            "mean": 9.61596,
+            "median": 9.6,
+            "min": 4.6,
+            "p10": 7.64,
+            "p90": 11.68,
+            "p95": 12.28
+          },
+          "from": "Moonwood Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            38,
+            962,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 132.90674254052638,
+            "scrap": 0.18744254343820066,
+            "tin": 0.235824608255442
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 710,
+            "mean": 525.954,
+            "median": 528,
+            "min": 298,
+            "p10": 436,
+            "p90": 617,
+            "p95": 640
+          },
+          "purchase_level": {
+            "max": 26,
+            "mean": 24.995,
+            "median": 25,
+            "min": 22,
+            "p10": 24,
+            "p90": 26,
+            "p95": 26
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "sampled_casts": 240399,
+          "to": "Tide Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 522,
+            "mean": 360.544,
+            "median": 358,
+            "min": 238,
+            "p10": 306,
+            "p90": 420,
+            "p95": 436
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 1138,
+            "mean": 886.498,
+            "median": 884,
+            "min": 656,
+            "p10": 788,
+            "p90": 985,
+            "p95": 1010
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 45.52,
+            "mean": 35.459920000000004,
+            "median": 35.36,
+            "min": 26.24,
+            "p10": 31.52,
+            "p90": 39.4,
+            "p95": 40.4
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 20.88,
+            "mean": 14.421759999999999,
+            "median": 14.32,
+            "min": 9.52,
+            "p10": 12.24,
+            "p90": 16.8,
+            "p95": 17.44
+          },
+          "from": "Tide Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 212.15960326617557,
+            "scrap": 0.2442614493654034,
+            "tin": 0.2982853687760717
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 1138,
+            "mean": 886.498,
+            "median": 884,
+            "min": 656,
+            "p10": 788,
+            "p90": 985,
+            "p95": 1010
+          },
+          "purchase_level": {
+            "max": 35,
+            "mean": 33.533,
+            "median": 34,
+            "min": 32,
+            "p10": 33,
+            "p90": 34,
+            "p95": 34
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "sampled_casts": 360544,
+          "to": "Glacial Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 738,
+            "mean": 547.039,
+            "median": 545,
+            "min": 387,
+            "p10": 479,
+            "p90": 618,
+            "p95": 641
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 1784,
+            "mean": 1433.537,
+            "median": 1431,
+            "min": 1154,
+            "p10": 1310,
+            "p90": 1561,
+            "p95": 1594
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 71.36,
+            "mean": 57.341480000000004,
+            "median": 57.24,
+            "min": 46.16,
+            "p10": 52.4,
+            "p90": 62.44,
+            "p95": 63.76
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 29.52,
+            "mean": 21.88156,
+            "median": 21.8,
+            "min": 15.48,
+            "p10": 19.16,
+            "p90": 24.72,
+            "p95": 25.64
+          },
+          "from": "Glacial Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 250.5491637707732,
+            "scrap": 0.22697650441741812,
+            "tin": 0.3069890812172441
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 1784,
+            "mean": 1433.537,
+            "median": 1431,
+            "min": 1154,
+            "p10": 1310,
+            "p90": 1561,
+            "p95": 1594
+          },
+          "purchase_level": {
+            "max": 45,
+            "mean": 43.398,
+            "median": 43,
+            "min": 42,
+            "p10": 43,
+            "p90": 44,
+            "p95": 44
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000,
+            0
+          ],
+          "sampled_casts": 547039,
+          "to": "Abyssal Rod"
+        }
+      ],
+      "trials": 1000
+    },
+    "resource_bait_spend_prismatic": {
+      "quality_cap": 6,
+      "seed": 10112026,
+      "transitions": [
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 40,
+            "mean": 11.603,
+            "median": 11,
+            "min": 1,
+            "p10": 3,
+            "p90": 22,
+            "p95": 25
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 40,
+            "mean": 11.603,
+            "median": 11,
+            "min": 1,
+            "p10": 3,
+            "p90": 22,
+            "p95": 25
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 1.6,
+            "mean": 0.46412,
+            "median": 0.44,
+            "min": 0.04,
+            "p10": 0.12,
+            "p90": 0.88,
+            "p95": 1.0
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 1.6,
+            "mean": 0.46412,
+            "median": 0.44,
+            "min": 0.04,
+            "p10": 0.12,
+            "p90": 0.88,
+            "p95": 1.0
+          },
+          "from": "Twig Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            553,
+            129,
+            111,
+            105,
+            97,
+            5,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 86.34413513746445,
+            "scrap": 0.2756183745583039,
+            "tin": 0.8808928725329657
+          },
+          "mythic_or_better_at_purchase_pct": 0.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 0.0,
+          "purchase_delay_casts": {
+            "max": 40,
+            "mean": 11.603,
+            "median": 11,
+            "min": 1,
+            "p10": 3,
+            "p90": 22,
+            "p95": 25
+          },
+          "purchase_level": {
+            "max": 6,
+            "mean": 3.679,
+            "median": 4,
+            "min": 1,
+            "p10": 3,
+            "p90": 5,
+            "p95": 5
+          },
+          "purchase_quality_counts": [
+            582,
+            418,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "sampled_casts": 11603,
+          "to": "River Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 280,
+            "mean": 134.744,
+            "median": 134,
+            "min": 3,
+            "p10": 89,
+            "p90": 184,
+            "p95": 193
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 286,
+            "mean": 146.347,
+            "median": 147,
+            "min": 13,
+            "p10": 100,
+            "p90": 195,
+            "p95": 206
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 11.44,
+            "mean": 5.85388,
+            "median": 5.88,
+            "min": 0.52,
+            "p10": 4.0,
+            "p90": 7.8,
+            "p95": 8.24
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 11.2,
+            "mean": 5.38976,
+            "median": 5.36,
+            "min": 0.12,
+            "p10": 3.56,
+            "p90": 7.36,
+            "p95": 7.72
+          },
+          "from": "River Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            12,
+            7,
+            35,
+            101,
+            352,
+            477,
+            16
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 112.60941489045895,
+            "scrap": 0.2144956361693285,
+            "tin": 0.25011874369174136
+          },
+          "mythic_or_better_at_purchase_pct": 99.7,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 99.4,
+          "purchase_delay_casts": {
+            "max": 286,
+            "mean": 146.347,
+            "median": 147,
+            "min": 13,
+            "p10": 100,
+            "p90": 195,
+            "p95": 206
+          },
+          "purchase_level": {
+            "max": 16,
+            "mean": 14.078,
+            "median": 14,
+            "min": 6,
+            "p10": 13,
+            "p90": 15,
+            "p95": 15
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            2,
+            1,
+            0,
+            3,
+            994
+          ],
+          "sampled_casts": 134744,
+          "to": "Marsh Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 245,
+            "mean": 132.38,
+            "median": 132,
+            "min": 13,
+            "p10": 85,
+            "p90": 179,
+            "p95": 192
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 450,
+            "mean": 278.727,
+            "median": 280,
+            "min": 99,
+            "p10": 207,
+            "p90": 347,
+            "p95": 366
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 18.0,
+            "mean": 11.14908,
+            "median": 11.2,
+            "min": 3.96,
+            "p10": 8.28,
+            "p90": 13.88,
+            "p95": 14.64
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 9.8,
+            "mean": 5.2951999999999995,
+            "median": 5.28,
+            "min": 0.52,
+            "p10": 3.4,
+            "p90": 7.16,
+            "p95": 7.68
+          },
+          "from": "Marsh Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            10,
+            8,
+            44,
+            248,
+            605,
+            85,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 124.94516543284485,
+            "scrap": 0.2340836984438737,
+            "tin": 0.2785617162713401
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 450,
+            "mean": 278.727,
+            "median": 280,
+            "min": 99,
+            "p10": 207,
+            "p90": 347,
+            "p95": 366
+          },
+          "purchase_level": {
+            "max": 21,
+            "mean": 18.789,
+            "median": 19,
+            "min": 15,
+            "p10": 17,
+            "p90": 20,
+            "p95": 20
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000
+          ],
+          "sampled_casts": 132380,
+          "to": "Moonwood Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 373,
+            "mean": 237.418,
+            "median": 236,
+            "min": 101,
+            "p10": 191,
+            "p90": 287,
+            "p95": 305
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 713,
+            "mean": 516.145,
+            "median": 516,
+            "min": 266,
+            "p10": 432,
+            "p90": 600,
+            "p95": 623
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 28.52,
+            "mean": 20.645799999999998,
+            "median": 20.64,
+            "min": 10.64,
+            "p10": 17.28,
+            "p90": 24.0,
+            "p95": 24.92
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 14.92,
+            "mean": 9.49672,
+            "median": 9.44,
+            "min": 4.04,
+            "p10": 7.64,
+            "p90": 11.48,
+            "p95": 12.2
+          },
+          "from": "Moonwood Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            11,
+            310,
+            674,
+            5,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 135.05061958234,
+            "scrap": 0.24764339687808,
+            "tin": 0.3147865789451516
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 713,
+            "mean": 516.145,
+            "median": 516,
+            "min": 266,
+            "p10": 432,
+            "p90": 600,
+            "p95": 623
+          },
+          "purchase_level": {
+            "max": 27,
+            "mean": 25.213,
+            "median": 25,
+            "min": 22,
+            "p10": 25,
+            "p90": 26,
+            "p95": 26
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000
+          ],
+          "sampled_casts": 237418,
+          "to": "Tide Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 509,
+            "mean": 351.321,
+            "median": 350,
+            "min": 200,
+            "p10": 297,
+            "p90": 407,
+            "p95": 425
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 1095,
+            "mean": 867.466,
+            "median": 863,
+            "min": 552,
+            "p10": 779,
+            "p90": 957,
+            "p95": 984
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 43.8,
+            "mean": 34.69864,
+            "median": 34.52,
+            "min": 22.08,
+            "p10": 31.16,
+            "p90": 38.28,
+            "p95": 39.36
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 20.36,
+            "mean": 14.052840000000002,
+            "median": 14.0,
+            "min": 8.0,
+            "p10": 11.88,
+            "p90": 16.28,
+            "p95": 17.0
+          },
+          "from": "Tide Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            0,
+            113,
+            883,
+            4,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 218.47933656115063,
+            "scrap": 0.303144417783167,
+            "tin": 0.39488103472323033
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 1095,
+            "mean": 867.466,
+            "median": 863,
+            "min": 552,
+            "p10": 779,
+            "p90": 957,
+            "p95": 984
+          },
+          "purchase_level": {
+            "max": 35,
+            "mean": 33.766,
+            "median": 34,
+            "min": 32,
+            "p10": 33,
+            "p90": 34,
+            "p95": 34
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000
+          ],
+          "sampled_casts": 351321,
+          "to": "Glacial Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase": {
+            "max": 733,
+            "mean": 540.012,
+            "median": 539,
+            "min": 367,
+            "p10": 472,
+            "p90": 609,
+            "p95": 631
+          },
+          "casts_since_previous_purchase_to_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "casts_to_level_gate": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "cumulative_purchase_casts": {
+            "max": 1725,
+            "mean": 1407.478,
+            "median": 1405,
+            "min": 1017,
+            "p10": 1294,
+            "p90": 1525,
+            "p95": 1554
+          },
+          "cumulative_purchase_fishing_days": {
+            "max": 69.0,
+            "mean": 56.29912,
+            "median": 56.2,
+            "min": 40.68,
+            "p10": 51.76,
+            "p90": 61.0,
+            "p95": 62.16
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 0.0,
+          "fishing_days_since_previous_purchase": {
+            "max": 29.32,
+            "mean": 21.600479999999997,
+            "median": 21.56,
+            "min": 14.68,
+            "p10": 18.88,
+            "p90": 24.36,
+            "p95": 25.24
+          },
+          "from": "Glacial Rod",
+          "gate_quality_counts": [
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            0,
+            27,
+            965,
+            8,
+            0
+          ],
+          "level": 1,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "mean_cast_rewards": {
+            "gross_coins": 254.27414390791316,
+            "scrap": 0.27789567639237645,
+            "tin": 0.40761501596260824
+          },
+          "mythic_or_better_at_purchase_pct": 100.0,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "prismatic_ready_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 1725,
+            "mean": 1407.478,
+            "median": 1405,
+            "min": 1017,
+            "p10": 1294,
+            "p90": 1525,
+            "p95": 1554
+          },
+          "purchase_level": {
+            "max": 45,
+            "mean": 43.677,
+            "median": 44,
+            "min": 42,
+            "p10": 43,
+            "p90": 44,
+            "p95": 44
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1000
+          ],
+          "sampled_casts": 540012,
+          "to": "Abyssal Rod"
+        }
+      ],
+      "trials": 1000
+    }
+  },
+  "shop_listings": [
+    {
+      "biomeId": 2,
+      "kind": "licence",
+      "listingId": 20,
+      "minimumLevel": 5,
+      "name": "Whispering River Licence",
+      "previousBiomeId": 1,
+      "priceCoins": 150,
+      "targetId": 2
+    },
+    {
+      "biomeId": 2,
+      "kind": "rod",
+      "listingId": 21,
+      "minimumLevel": 1,
+      "name": "River Rod",
+      "previousBiomeId": 1,
+      "priceCoins": 500,
+      "targetId": 2
+    },
+    {
+      "biomeId": 3,
+      "kind": "licence",
+      "listingId": 30,
+      "minimumLevel": 10,
+      "name": "Hollow Marsh Licence",
+      "previousBiomeId": 2,
+      "priceCoins": 500,
+      "targetId": 3
+    },
+    {
+      "biomeId": 3,
+      "kind": "rod",
+      "listingId": 31,
+      "minimumLevel": 1,
+      "name": "Marsh Rod",
+      "previousBiomeId": 2,
+      "priceCoins": 15000,
+      "targetId": 3
+    },
+    {
+      "biomeId": 4,
+      "kind": "licence",
+      "listingId": 40,
+      "minimumLevel": 18,
+      "name": "Moonlit Lake Licence",
+      "previousBiomeId": 3,
+      "priceCoins": 1500,
+      "targetId": 4
+    },
+    {
+      "biomeId": 4,
+      "kind": "rod",
+      "listingId": 41,
+      "minimumLevel": 1,
+      "name": "Moonwood Rod",
+      "previousBiomeId": 3,
+      "priceCoins": 16000,
+      "targetId": 4
+    },
+    {
+      "biomeId": 5,
+      "kind": "licence",
+      "listingId": 50,
+      "minimumLevel": 28,
+      "name": "Sunken Coast Licence",
+      "previousBiomeId": 4,
+      "priceCoins": 4000,
+      "targetId": 5
+    },
+    {
+      "biomeId": 5,
+      "kind": "rod",
+      "listingId": 51,
+      "minimumLevel": 1,
+      "name": "Tide Rod",
+      "previousBiomeId": 4,
+      "priceCoins": 33000,
+      "targetId": 5
+    },
+    {
+      "biomeId": 6,
+      "kind": "licence",
+      "listingId": 60,
+      "minimumLevel": 40,
+      "name": "Glacial Reach Licence",
+      "previousBiomeId": 5,
+      "priceCoins": 10000,
+      "targetId": 6
+    },
+    {
+      "biomeId": 6,
+      "kind": "rod",
+      "listingId": 61,
+      "minimumLevel": 1,
+      "name": "Glacial Rod",
+      "previousBiomeId": 5,
+      "priceCoins": 74000,
+      "targetId": 6
+    },
+    {
+      "biomeId": 7,
+      "kind": "licence",
+      "listingId": 70,
+      "minimumLevel": 55,
+      "name": "Abyssal Shelf Licence",
+      "previousBiomeId": 6,
+      "priceCoins": 25000,
+      "targetId": 7
+    },
+    {
+      "biomeId": 7,
+      "kind": "rod",
+      "listingId": 71,
+      "minimumLevel": 1,
+      "name": "Abyssal Rod",
+      "previousBiomeId": 6,
+      "priceCoins": 130000,
+      "targetId": 7
+    },
+    {
+      "biomeId": 1,
+      "kind": "bait",
+      "listingId": 101,
+      "minimumLevel": 1,
+      "name": "Sticky Chum",
+      "previousBiomeId": 1,
+      "priceCoins": 20,
+      "targetId": 1
+    },
+    {
+      "biomeId": 1,
+      "kind": "bait",
+      "listingId": 102,
+      "minimumLevel": 1,
+      "name": "Salvage Chum",
+      "previousBiomeId": 1,
+      "priceCoins": 50,
+      "targetId": 2
+    },
+    {
+      "biomeId": 1,
+      "kind": "bait",
+      "listingId": 103,
+      "minimumLevel": 1,
+      "name": "Plump Worms",
+      "previousBiomeId": 1,
+      "priceCoins": 30,
+      "targetId": 3
+    },
+    {
+      "biomeId": 1,
+      "kind": "bait",
+      "listingId": 104,
+      "minimumLevel": 1,
+      "name": "River Grubs",
+      "previousBiomeId": 1,
+      "priceCoins": 70,
+      "targetId": 4
+    },
+    {
+      "biomeId": 1,
+      "kind": "bait",
+      "listingId": 105,
+      "minimumLevel": 1,
+      "name": "Moonlit Fireflies",
+      "previousBiomeId": 1,
+      "priceCoins": 120,
+      "targetId": 5
+    },
+    {
+      "biomeId": 1,
+      "kind": "bait",
+      "listingId": 106,
+      "minimumLevel": 1,
+      "name": "Green XP Slime",
+      "previousBiomeId": 1,
+      "priceCoins": 50,
+      "targetId": 6
+    },
+    {
+      "biomeId": 1,
+      "kind": "bait",
+      "listingId": 107,
+      "minimumLevel": 1,
+      "name": "Yellow XP Slime",
+      "previousBiomeId": 1,
+      "priceCoins": 150,
+      "targetId": 7
+    },
+    {
+      "biomeId": 1,
+      "kind": "bait",
+      "listingId": 108,
+      "minimumLevel": 1,
+      "name": "Pink XP Slime",
+      "previousBiomeId": 1,
+      "priceCoins": 400,
+      "targetId": 8
+    }
+  ],
+  "trader_version": 5,
+  "world_version": 5
+}
