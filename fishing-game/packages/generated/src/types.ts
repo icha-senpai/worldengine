@@ -69,6 +69,45 @@ export const AnglerStanding = __t.object("AnglerStanding", {
 });
 export type AnglerStanding = __Infer<typeof AnglerStanding>;
 
+export const AnglerStatistics = __t.object("AnglerStatistics", {
+  playerId: __t.u64(),
+  displayName: __t.string(),
+  totalCasts: __t.u64(),
+  bonusPulls: __t.u64(),
+  fishCount: __t.u64(),
+  junkCount: __t.u64(),
+  treasureCount: __t.u64(),
+  bonusFish: __t.u64(),
+  bonusJunk: __t.u64(),
+  bonusTreasure: __t.u64(),
+  bonusHistoryComplete: __t.bool(),
+  rankCounts: __t.array(__t.u64()),
+  collectionPairs: __t.u32(),
+  mostCaughtSpeciesId: __t.option(__t.u32()),
+  mostCaughtSpeciesCount: __t.u64(),
+  totalWeightG: __t.u64(),
+  measuredFishCount: __t.u64(),
+  recordedCasts: __t.u64(),
+  historyComplete: __t.bool(),
+  daysFished: __t.u32(),
+  favoriteBiomeId: __t.option(__t.u32()),
+  favoriteBiomeCasts: __t.u64(),
+  biomeHistoryComplete: __t.bool(),
+  bestRelativeSpeciesId: __t.option(__t.u32()),
+  bestRelativeCatchId: __t.option(__t.u64()),
+  bestRelativeLengthMillionths: __t.u64(),
+  bestRelativeLengthMm: __t.u32(),
+  bestRelativeWeightG: __t.u64(),
+  saleEarnings: __t.u64(),
+  biggestSingleSale: __t.u64(),
+  biggestSaleBatch: __t.u64(),
+  saleHistoryComplete: __t.bool(),
+  salesTrackedSince: __t.timestamp(),
+  recordsSet: __t.u64(),
+  recordsTrackedSince: __t.timestamp(),
+});
+export type AnglerStatistics = __Infer<typeof AnglerStatistics>;
+
 export const AnglerTitle = __t.object("AnglerTitle", {
   playerId: __t.u64(),
   achievementId: __t.u32(),
@@ -213,6 +252,21 @@ export const EconomyLedger = __t.object("EconomyLedger", {
   createdAt: __t.timestamp(),
 });
 export type EconomyLedger = __Infer<typeof EconomyLedger>;
+
+export const FishingBiomeActivity = __t.object("FishingBiomeActivity", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  biomeId: __t.u32(),
+  casts: __t.u64(),
+});
+export type FishingBiomeActivity = __Infer<typeof FishingBiomeActivity>;
+
+export const FishingDay = __t.object("FishingDay", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  utcDay: __t.u64(),
+});
+export type FishingDay = __Infer<typeof FishingDay>;
 
 export const GameConfig = __t.object("GameConfig", {
   version: __t.u32(),

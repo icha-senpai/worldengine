@@ -12,6 +12,7 @@ mod loadout;
 mod maintenance;
 mod records;
 mod shop;
+mod statistics;
 mod tables;
 
 use spacetimedb::{ReducerContext, Table};

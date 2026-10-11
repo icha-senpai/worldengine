@@ -1,7 +1,7 @@
 import { DbConnection } from '@fishing-game/generated';
 import type { JournalPage } from '@fishing-game/generated/types';
 export type JournalQuery = { page: number; pageSize: number; sort: string; descending: boolean; search: string; biomeId: number; rarity: string; outcome: string };
-import type { ActionNonce, AnglerStanding, LegendaryFind, BiomeDefinition, RodDefinition, RarityDefinition, GameConfig, ItemStack, LinkChallenge, OwnedSpecimen, Player, PlayerSpeciesProgress, PublicProfile, RecentCatch, SpeciesDefinition, SpeciesRecord, ShopListing, ShopQuote, OwnedRod, OwnedBiomeLicence, RodBonuses } from '@fishing-game/generated/types';
+import type { ActionNonce, AnglerStatistics, AnglerStanding, LegendaryFind, BiomeDefinition, RodDefinition, RarityDefinition, GameConfig, ItemStack, LinkChallenge, OwnedSpecimen, Player, PlayerSpeciesProgress, PublicProfile, RecentCatch, SpeciesDefinition, SpeciesRecord, ShopListing, ShopQuote, OwnedRod, OwnedBiomeLicence, RodBonuses } from '@fishing-game/generated/types';
 
 export class Game {
   achievements = $state.raw<import('@fishing-game/generated/types').AchievementDefinition[]>([]);
@@ -38,6 +38,7 @@ export class Game {
   rarities = $state.raw<RarityDefinition[]>([]);
   records = $state.raw<SpeciesRecord[]>([]);
   standings = $state.raw<AnglerStanding[]>([]);
+  statistics = $state.raw<AnglerStatistics[]>([]);
   legendaryFinds = $state.raw<LegendaryFind[]>([]);
   items = $state.raw<ItemStack[]>([]);
   config = $state.raw<GameConfig | null>(null);
@@ -81,6 +82,7 @@ export class Game {
     this.species = [...connection.db.speciesDefinition.iter()].sort((a, b) => a.speciesId - b.speciesId);
     this.records = [...connection.db.speciesRecord.iter()];
     this.standings = [...connection.db.anglerStanding.iter()];
+    this.statistics = [...connection.db.anglerStatistics.iter()];
     this.legendaryFinds = [...connection.db.legendaryFind.iter()];
     this.biomes = [...connection.db.biomeDefinition.iter()].sort((a, b) => a.biomeId - b.biomeId);
     this.rods = [...connection.db.rodDefinition.iter()].sort((a, b) => a.rodId - b.rodId);
@@ -145,12 +147,12 @@ export class Game {
         }).onError(() => { this.error = 'The pond could not load your data.'; connection.disconnect(); })
           .subscribe(['SELECT * FROM achievement_definition', 'SELECT * FROM achievement_collection', 'SELECT * FROM earned_achievement', 'SELECT * FROM angler_title', 'SELECT * FROM my_achievement_progress', 'SELECT * FROM public_profile', 'SELECT * FROM my_player', 'SELECT * FROM my_profile', 'SELECT * FROM my_inventory', 'SELECT * FROM my_collection',
             'SELECT * FROM my_baits', 'SELECT * FROM my_bait_loadout', 'SELECT * FROM my_upgrade_quote', 'SELECT * FROM bait_definition', 'SELECT * FROM quality_definition', 'SELECT * FROM my_recent_catches', 'SELECT * FROM my_journal', 'SELECT * FROM my_link_challenge', 'SELECT * FROM my_action', 'SELECT * FROM my_items',
-            'SELECT * FROM species_definition', 'SELECT * FROM species_record', 'SELECT * FROM angler_standing', 'SELECT * FROM legendary_find', 'SELECT * FROM game_config', 'SELECT * FROM biome_definition', 'SELECT * FROM my_rods', 'SELECT * FROM my_licences', 'SELECT * FROM my_shop_quote', 'SELECT * FROM shop_listing', 'SELECT * FROM rod_bonuses', 'SELECT * FROM rod_definition', 'SELECT * FROM rarity_definition']);
+            'SELECT * FROM species_definition', 'SELECT * FROM species_record', 'SELECT * FROM angler_standing', 'SELECT * FROM angler_statistics', 'SELECT * FROM legendary_find', 'SELECT * FROM game_config', 'SELECT * FROM biome_definition', 'SELECT * FROM my_rods', 'SELECT * FROM my_licences', 'SELECT * FROM my_shop_quote', 'SELECT * FROM shop_listing', 'SELECT * FROM rod_bonuses', 'SELECT * FROM rod_definition', 'SELECT * FROM rarity_definition']);
       }).onConnectError(lost).onDisconnect(lost).build();
     this.connection = connection;
     for (const table of [connection.db.achievementDefinition, connection.db.achievementCollection, connection.db.earnedAchievement, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection,
       connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.baitDefinition, connection.db.rodUpgradeRecipe, connection.db.qualityDefinition, connection.db.myRods, connection.db.myLicences, connection.db.myShopQuote, connection.db.shopListing, connection.db.myRecentCatches, connection.db.myJournal, connection.db.myLinkChallenge, connection.db.myAction, connection.db.myItems,
-      connection.db.speciesDefinition, connection.db.speciesRecord, connection.db.anglerStanding, connection.db.legendaryFind, connection.db.gameConfig, connection.db.biomeDefinition, connection.db.rodBonuses, connection.db.rodDefinition, connection.db.rarityDefinition]) {
+      connection.db.speciesDefinition, connection.db.speciesRecord, connection.db.anglerStanding, connection.db.anglerStatistics, connection.db.legendaryFind, connection.db.gameConfig, connection.db.biomeDefinition, connection.db.rodBonuses, connection.db.rodDefinition, connection.db.rarityDefinition]) {
       table.onInsert(this.refresh); table.onDelete(this.refresh);
     }
     for (const table of [connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.myRods, connection.db.baitDefinition, connection.db.rodUpgradeRecipe, connection.db.qualityDefinition]) table.onUpdate(this.refresh);
@@ -159,6 +161,7 @@ export class Game {
     connection.db.myItems.onUpdate(this.refresh);
     connection.db.speciesRecord.onUpdate(this.refresh);
     connection.db.anglerStanding.onUpdate(this.refresh);
+    connection.db.anglerStatistics.onUpdate(this.refresh);
     connection.db.legendaryFind.onUpdate(this.refresh);
     connection.db.speciesDefinition.onUpdate(this.refresh);
     connection.db.gameConfig.onUpdate(this.refresh);

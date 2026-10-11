@@ -37,10 +37,13 @@ pub mod adapter_upgrade_quote_table;
 pub mod admin_audit_type;
 pub mod angler_standing_table;
 pub mod angler_standing_type;
+pub mod angler_statistics_table;
+pub mod angler_statistics_type;
 pub mod angler_title_table;
 pub mod angler_title_type;
 pub mod backfill_journal_reducer;
 pub mod backfill_player_achievements_reducer;
+pub mod backfill_player_statistics_reducer;
 pub mod bait_definition_table;
 pub mod bait_definition_type;
 pub mod bait_loadout_type;
@@ -72,6 +75,8 @@ pub mod equip_bait_from_discord_reducer;
 pub mod equip_bait_reducer;
 pub mod equip_title_reducer;
 pub mod fish_from_discord_reducer;
+pub mod fishing_biome_activity_type;
+pub mod fishing_day_type;
 pub mod game_config_table;
 pub mod game_config_type;
 pub mod item_stack_type;
@@ -179,10 +184,13 @@ pub use adapter_upgrade_quote_table::*;
 pub use admin_audit_type::AdminAudit;
 pub use angler_standing_table::*;
 pub use angler_standing_type::AnglerStanding;
+pub use angler_statistics_table::*;
+pub use angler_statistics_type::AnglerStatistics;
 pub use angler_title_table::*;
 pub use angler_title_type::AnglerTitle;
 pub use backfill_journal_reducer::backfill_journal;
 pub use backfill_player_achievements_reducer::backfill_player_achievements;
+pub use backfill_player_statistics_reducer::backfill_player_statistics;
 pub use bait_definition_table::*;
 pub use bait_definition_type::BaitDefinition;
 pub use bait_loadout_type::BaitLoadout;
@@ -214,6 +222,8 @@ pub use equip_bait_from_discord_reducer::equip_bait_from_discord;
 pub use equip_bait_reducer::equip_bait;
 pub use equip_title_reducer::equip_title;
 pub use fish_from_discord_reducer::fish_from_discord;
+pub use fishing_biome_activity_type::FishingBiomeActivity;
+pub use fishing_day_type::FishingDay;
 pub use game_config_table::*;
 pub use game_config_type::GameConfig;
 pub use item_stack_type::ItemStack;
@@ -310,6 +320,9 @@ pub enum Reducer {
         player_id: u64,
     },
     BackfillPlayerAchievements {
+        player_id: u64,
+    },
+    BackfillPlayerStatistics {
         player_id: u64,
     },
     BeginLinkChallenge,
@@ -447,6 +460,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateXpProgression => "activate_xp_progression",
             Reducer::BackfillJournal { .. } => "backfill_journal",
             Reducer::BackfillPlayerAchievements { .. } => "backfill_player_achievements",
+            Reducer::BackfillPlayerStatistics { .. } => "backfill_player_statistics",
             Reducer::BeginLinkChallenge => "begin_link_challenge",
             Reducer::ChangeLoadout { .. } => "change_loadout",
             Reducer::ChangeLoadoutFromDiscord { .. } => "change_loadout_from_discord",
@@ -508,6 +522,11 @@ impl __sdk::Reducer for Reducer {
             }
             Reducer::BackfillPlayerAchievements { player_id } => __sats::bsatn::to_vec(
                 &backfill_player_achievements_reducer::BackfillPlayerAchievementsArgs {
+                    player_id: player_id.clone(),
+                },
+            ),
+            Reducer::BackfillPlayerStatistics { player_id } => __sats::bsatn::to_vec(
+                &backfill_player_statistics_reducer::BackfillPlayerStatisticsArgs {
                     player_id: player_id.clone(),
                 },
             ),
@@ -769,6 +788,7 @@ pub struct DbUpdate {
     adapter_shop_quote: __sdk::TableUpdate<ShopQuote>,
     adapter_upgrade_quote: __sdk::TableUpdate<UpgradeQuote>,
     angler_standing: __sdk::TableUpdate<AnglerStanding>,
+    angler_statistics: __sdk::TableUpdate<AnglerStatistics>,
     angler_title: __sdk::TableUpdate<AnglerTitle>,
     bait_definition: __sdk::TableUpdate<BaitDefinition>,
     biome_definition: __sdk::TableUpdate<BiomeDefinition>,
@@ -868,6 +888,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "angler_standing" => db_update
                     .angler_standing
                     .append(angler_standing_table::parse_table_update(table_update)?),
+                "angler_statistics" => db_update
+                    .angler_statistics
+                    .append(angler_statistics_table::parse_table_update(table_update)?),
                 "angler_title" => db_update
                     .angler_title
                     .append(angler_title_table::parse_table_update(table_update)?),
@@ -1010,6 +1033,9 @@ impl __sdk::DbUpdate for DbUpdate {
             .with_updates_by_pk(|row| &row.achievement_id);
         diff.angler_standing = cache
             .apply_diff_to_table::<AnglerStanding>("angler_standing", &self.angler_standing)
+            .with_updates_by_pk(|row| &row.player_id);
+        diff.angler_statistics = cache
+            .apply_diff_to_table::<AnglerStatistics>("angler_statistics", &self.angler_statistics)
             .with_updates_by_pk(|row| &row.player_id);
         diff.angler_title = cache
             .apply_diff_to_table::<AnglerTitle>("angler_title", &self.angler_title)
@@ -1208,6 +1234,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "angler_standing" => db_update
                     .angler_standing
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "angler_statistics" => db_update
+                    .angler_statistics
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "angler_title" => db_update
                     .angler_title
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -1380,6 +1409,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "angler_standing" => db_update
                     .angler_standing
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "angler_statistics" => db_update
+                    .angler_statistics
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "angler_title" => db_update
                     .angler_title
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1516,6 +1548,7 @@ pub struct AppliedDiff<'r> {
     adapter_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
     adapter_upgrade_quote: __sdk::TableAppliedDiff<'r, UpgradeQuote>,
     angler_standing: __sdk::TableAppliedDiff<'r, AnglerStanding>,
+    angler_statistics: __sdk::TableAppliedDiff<'r, AnglerStatistics>,
     angler_title: __sdk::TableAppliedDiff<'r, AnglerTitle>,
     bait_definition: __sdk::TableAppliedDiff<'r, BaitDefinition>,
     biome_definition: __sdk::TableAppliedDiff<'r, BiomeDefinition>,
@@ -1652,6 +1685,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<AnglerStanding>(
             "angler_standing",
             &self.angler_standing,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<AnglerStatistics>(
+            "angler_statistics",
+            &self.angler_statistics,
             event,
         );
         callbacks.invoke_table_row_callbacks::<AnglerTitle>(
@@ -2467,6 +2505,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_shop_quote_table::register_table(client_cache);
         adapter_upgrade_quote_table::register_table(client_cache);
         angler_standing_table::register_table(client_cache);
+        angler_statistics_table::register_table(client_cache);
         angler_title_table::register_table(client_cache);
         bait_definition_table::register_table(client_cache);
         biome_definition_table::register_table(client_cache);
@@ -2522,6 +2561,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_shop_quote",
         "adapter_upgrade_quote",
         "angler_standing",
+        "angler_statistics",
         "angler_title",
         "bait_definition",
         "biome_definition",

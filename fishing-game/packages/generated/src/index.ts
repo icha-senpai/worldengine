@@ -42,6 +42,7 @@ import ActivateTraderReducer from "./activate_trader_reducer";
 import ActivateXpProgressionReducer from "./activate_xp_progression_reducer";
 import BackfillJournalReducer from "./backfill_journal_reducer";
 import BackfillPlayerAchievementsReducer from "./backfill_player_achievements_reducer";
+import BackfillPlayerStatisticsReducer from "./backfill_player_statistics_reducer";
 import BeginLinkChallengeReducer from "./begin_link_challenge_reducer";
 import ChangeLoadoutReducer from "./change_loadout_reducer";
 import ChangeLoadoutFromDiscordReducer from "./change_loadout_from_discord_reducer";
@@ -93,6 +94,7 @@ import AdapterSaleQuoteRow from "./adapter_sale_quote_table";
 import AdapterShopQuoteRow from "./adapter_shop_quote_table";
 import AdapterUpgradeQuoteRow from "./adapter_upgrade_quote_table";
 import AnglerStandingRow from "./angler_standing_table";
+import AnglerStatisticsRow from "./angler_statistics_table";
 import AnglerTitleRow from "./angler_title_table";
 import BaitDefinitionRow from "./bait_definition_table";
 import BiomeDefinitionRow from "./biome_definition_table";
@@ -165,6 +167,17 @@ const tablesSchema = __schema({
       { name: 'angler_standing_player_id_key', constraint: 'unique', columns: ['playerId'] },
     ],
   }, AnglerStandingRow),
+  anglerStatistics: __table({
+    name: 'angler_statistics',
+    indexes: [
+      { accessor: 'player_id', name: 'angler_statistics_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'angler_statistics_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, AnglerStatisticsRow),
   anglerTitle: __table({
     name: 'angler_title',
     indexes: [
@@ -600,6 +613,7 @@ const reducersSchema = __reducers(
   __reducerSchema("activate_xp_progression", ActivateXpProgressionReducer),
   __reducerSchema("backfill_journal", BackfillJournalReducer),
   __reducerSchema("backfill_player_achievements", BackfillPlayerAchievementsReducer),
+  __reducerSchema("backfill_player_statistics", BackfillPlayerStatisticsReducer),
   __reducerSchema("begin_link_challenge", BeginLinkChallengeReducer),
   __reducerSchema("change_loadout", ChangeLoadoutReducer),
   __reducerSchema("change_loadout_from_discord", ChangeLoadoutFromDiscordReducer),
@@ -642,6 +656,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "achievement_definition": Omit<typeof tablesSchema.schemaType.tables["achievementDefinition"], "accessorName"> & { readonly accessorName: "achievement_definition" };
     /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
     readonly "angler_standing": Omit<typeof tablesSchema.schemaType.tables["anglerStanding"], "accessorName"> & { readonly accessorName: "angler_standing" };
+    /** @deprecated Use `anglerStatistics` instead. This alias will be removed in the next major version. */
+    readonly "angler_statistics": Omit<typeof tablesSchema.schemaType.tables["anglerStatistics"], "accessorName"> & { readonly accessorName: "angler_statistics" };
     /** @deprecated Use `anglerTitle` instead. This alias will be removed in the next major version. */
     readonly "angler_title": Omit<typeof tablesSchema.schemaType.tables["anglerTitle"], "accessorName"> & { readonly accessorName: "angler_title" };
     /** @deprecated Use `baitDefinition` instead. This alias will be removed in the next major version. */
@@ -763,6 +779,7 @@ const tableAccessorAliases = {
   "achievement_collection": "achievementCollection",
   "achievement_definition": "achievementDefinition",
   "angler_standing": "anglerStanding",
+  "angler_statistics": "anglerStatistics",
   "angler_title": "anglerTitle",
   "bait_definition": "baitDefinition",
   "biome_definition": "biomeDefinition",
@@ -839,6 +856,8 @@ export type DbView = __DbViewBase & {
   readonly "achievement_definition": __DbViewBase["achievementDefinition"];
   /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
   readonly "angler_standing": __DbViewBase["anglerStanding"];
+  /** @deprecated Use `anglerStatistics` instead. This alias will be removed in the next major version. */
+  readonly "angler_statistics": __DbViewBase["anglerStatistics"];
   /** @deprecated Use `anglerTitle` instead. This alias will be removed in the next major version. */
   readonly "angler_title": __DbViewBase["anglerTitle"];
   /** @deprecated Use `baitDefinition` instead. This alias will be removed in the next major version. */
@@ -949,6 +968,8 @@ export type Tables = __TablesBase & {
   readonly "achievement_definition": __TablesBase["achievementDefinition"];
   /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
   readonly "angler_standing": __TablesBase["anglerStanding"];
+  /** @deprecated Use `anglerStatistics` instead. This alias will be removed in the next major version. */
+  readonly "angler_statistics": __TablesBase["anglerStatistics"];
   /** @deprecated Use `anglerTitle` instead. This alias will be removed in the next major version. */
   readonly "angler_title": __TablesBase["anglerTitle"];
   /** @deprecated Use `baitDefinition` instead. This alias will be removed in the next major version. */

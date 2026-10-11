@@ -499,6 +499,30 @@ enum Board {
     Uur,
     #[name = "Records held"]
     Records,
+    #[name = "Total casts"]
+    Casts,
+    #[name = "Bonus pulls"]
+    Bonus,
+    #[name = "Treasure catches"]
+    Treasure,
+    #[name = "Junk catches"]
+    Junk,
+    #[name = "Species and rank pairs"]
+    Pairs,
+    #[name = "Recorded caught weight"]
+    Weight,
+    #[name = "Recorded fish-sale earnings"]
+    Earnings,
+    #[name = "Biggest individual sale"]
+    SingleSale,
+    #[name = "Biggest recorded sale batch"]
+    BatchSale,
+    #[name = "Record-setting catches since tracking"]
+    SetRecords,
+    #[name = "Recorded fishing days UTC"]
+    Days,
+    #[name = "Best relative length"]
+    Relative,
 }
 
 /// Public fishing standings, or the longest and heaviest catches for a species.
@@ -556,11 +580,29 @@ async fn leaderboard(
         .await;
     }
     let category = category.unwrap_or(Board::Discoveries);
-    let value = |row: &game_client::module_bindings::AnglerStanding| match category {
-        Board::Discoveries => u64::from(row.discoveries),
-        Board::Fish => row.fish_count,
-        Board::Uur => row.uur_count,
-        Board::Records => u64::from(row.records_held),
+    let value = |row: &game_client::module_bindings::AnglerStanding| {
+        let stats = result
+            .statistics
+            .iter()
+            .find(|stat| stat.player_id == row.player_id);
+        match category {
+            Board::Discoveries => u64::from(row.discoveries),
+            Board::Fish => row.fish_count,
+            Board::Uur => row.uur_count,
+            Board::Records => u64::from(row.records_held),
+            Board::Casts => stats.map_or(0, |stat| stat.total_casts),
+            Board::Bonus => stats.map_or(0, |stat| stat.bonus_pulls),
+            Board::Treasure => stats.map_or(0, |stat| stat.treasure_count),
+            Board::Junk => stats.map_or(0, |stat| stat.junk_count),
+            Board::Pairs => stats.map_or(0, |stat| u64::from(stat.collection_pairs)),
+            Board::Weight => stats.map_or(0, |stat| stat.total_weight_g),
+            Board::Earnings => stats.map_or(0, |stat| stat.sale_earnings),
+            Board::SingleSale => stats.map_or(0, |stat| stat.biggest_single_sale),
+            Board::BatchSale => stats.map_or(0, |stat| stat.biggest_sale_batch),
+            Board::SetRecords => stats.map_or(0, |stat| stat.records_set),
+            Board::Days => stats.map_or(0, |stat| u64::from(stat.days_fished)),
+            Board::Relative => stats.map_or(0, |stat| stat.best_relative_length_millionths),
+        }
     };
     let mut standings: Vec<_> = result
         .standings
@@ -586,11 +628,16 @@ async fn leaderboard(
             if index / 10 + 1 != page {
                 return None;
             }
+            let display_score = match category {
+                Board::Weight => format_weight(score),
+                Board::Relative => format!("{:.2}× typical length", score as f64 / 1_000_000.0),
+                _ => score.to_string(),
+            };
             Some(format!(
                 "{}. **{}** · {} · Angler #{}",
                 rank,
                 plain_name(&row.display_name),
-                score,
+                display_score,
                 row.player_id
             ))
         })
@@ -600,6 +647,18 @@ async fn leaderboard(
         Board::Fish => "Lifetime fish caught",
         Board::Uur => "UUR catches",
         Board::Records => "Current records held",
+        Board::Casts => "Total casts",
+        Board::Bonus => "Bonus pulls",
+        Board::Treasure => "Treasure catches",
+        Board::Junk => "Junk catches",
+        Board::Pairs => "Species and rank pairs",
+        Board::Weight => "Recorded caught weight",
+        Board::Earnings => "Recorded fish-sale earnings",
+        Board::SingleSale => "Biggest individual sale",
+        Board::BatchSale => "Biggest recorded sale batch",
+        Board::SetRecords => "Record-setting catches since tracking",
+        Board::Days => "Recorded fishing days UTC",
+        Board::Relative => "Best relative length",
     };
     reply(ctx, format!("**{} · page {}/{}**\n{}\nTied scores share a place. /profile player_id opens an angler's public profile.\n[Records book]({}/#records)", label, page, pages, if rows.is_empty() { "The first place is waiting for an angler.".into() } else { rows.join("\n") }, ctx.data().website.trim_end_matches('/'))).await
 }

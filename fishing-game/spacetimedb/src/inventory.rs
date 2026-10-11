@@ -54,11 +54,19 @@ fn settle_sale(
         .checked_sub(ids.len() as u32)
         .ok_or("COUNT_UNDERFLOW")?;
     let delta = i64::try_from(coins).map_err(|_| "COIN_OVERFLOW")?;
+    let biggest_fish = ids
+        .iter()
+        .filter_map(|id| ctx.db.owned_specimen().catch_id().find(*id))
+        .map(|fish| fish.sale_value_coins)
+        .max()
+        .unwrap_or(0);
+    crate::statistics::observe_sale(ctx, player_id, coins, biggest_fish)?;
     for id in ids {
         ctx.db.owned_specimen().catch_id().delete(*id);
     }
     ctx.db.player().player_id().update(player);
     ledger(ctx, player_id, operation, "coins", delta, "fish_sale");
+    crate::statistics::refresh(ctx, player_id)?;
     Ok(())
 }
 

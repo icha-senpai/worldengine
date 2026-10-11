@@ -85,6 +85,7 @@ pub struct AchievementUnlock {
 pub struct Snapshot {
     pub public_profiles: Vec<PublicProfile>,
     pub standings: Vec<AnglerStanding>,
+    pub statistics: Vec<AnglerStatistics>,
     pub records: Vec<SpeciesRecord>,
     pub achievements: Vec<AchievementDefinition>,
     pub earned_achievements: Vec<EarnedAchievement>,
@@ -169,7 +170,7 @@ impl Client {
                 let error = connected.clone();
                 let mut queries = vec!["SELECT * FROM my_service"];
                 if role == ServiceRole::DiscordAdapter {
-                    queries.extend(["SELECT * FROM public_profile", "SELECT * FROM angler_standing", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
+                    queries.extend(["SELECT * FROM public_profile", "SELECT * FROM angler_standing", "SELECT * FROM angler_statistics", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
                     queries.extend(["SELECT * FROM bait_definition", "SELECT * FROM quality_definition", "SELECT * FROM adapter_baits", "SELECT * FROM adapter_bait_loadout", "SELECT * FROM adapter_items", "SELECT * FROM adapter_cast_pulls", "SELECT * FROM adapter_cast_equipment", "SELECT * FROM adapter_upgrade_quote", "SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
                         "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_bonuses", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
                 }
@@ -691,6 +692,7 @@ impl Client {
         Ok(Snapshot {
             public_profiles: connection.db.public_profile().iter().collect(),
             standings: connection.db.angler_standing().iter().collect(),
+            statistics: connection.db.angler_statistics().iter().collect(),
             records: connection.db.species_record().iter().collect(),
             achievements: connection.db.achievement_definition().iter().collect(),
             earned_achievements: connection.db.earned_achievement().iter().collect(),

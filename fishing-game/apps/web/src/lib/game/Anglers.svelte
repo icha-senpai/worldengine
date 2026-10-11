@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { Game } from './game.svelte.ts';
+  import Statistics from './Statistics.svelte';
   import PageTurner from './PageTurner.svelte';
   import { formatLength, formatWeight } from './measurements';
   let { game, pageSize = 12 }: { game: Game; pageSize?: number } = $props();
@@ -31,6 +32,7 @@
 <section aria-labelledby="anglers-heading"><p class="eyebrow">STORIES FROM THE OTHER BANK</p><h2 id="anglers-heading">The angler book</h2><p class="note">Browse public discoveries, records, badges and titles.</p>
   {#if profile}
     <article class="profile" aria-label="Public angler profile"><div class="portrait" aria-hidden="true">⚓</div><div class="identity"><p class="eyebrow">{title(profile.playerId)}</p><h3>{profile.displayName}</h3><small>Angler #{profile.playerId.toString()} · Level {profile.level}</small></div><dl><div><dt>Lifetime fish</dt><dd>{profile.fishCount.toLocaleString()}</dd></div><div><dt>Ordinary discoveries</dt><dd>{profile.discoveries} / 249</dd></div><div><dt>UUR catches</dt><dd>{standing?.uurCount.toLocaleString() ?? '0'}</dd></div><div><dt>Records held</dt><dd>{standing?.recordsHeld ?? 0}</dd></div></dl>
+      {#if game.statistics.find(row => row.playerId === selected)}<Statistics stats={game.statistics.find(row => row.playerId === selected)!} species={game.species} biomes={game.biomes} />{/if}
       <div class="badge-row"><h4>Earned badges · {badges.length}</h4>{#if !badges.length}<p>No badges yet. The journey has just started.</p>{:else}{#each badges as badge}{@const definition = game.achievements.find(row => row.achievementId === badge.achievementId)}<span class:bonus={definition?.bonus} title={definition?.description}>✦ {definition?.name ?? 'Badge'}</span>{/each}{/if}</div>
       {#if records.length}<details><summary>Current species records · {records.length}</summary><ul>{#each records.slice((recordPage - 1) * pageSize, recordPage * pageSize) as record}<li>{game.species.find(row => row.speciesId === record.speciesId)?.name ?? 'Fish'} · {record.metric} · {size(record.metric, record.measurement)} · {record.rarity} rank</li>{/each}</ul><PageTurner bind:page={recordPage} total={records.length} {pageSize} label="Public profile record pages" /></details>{/if}
       <a class="profile-link" href={'?angler=' + profile.playerId + '#anglers'}>Link to this profile ↗</a>

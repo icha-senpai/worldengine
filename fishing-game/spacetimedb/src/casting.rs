@@ -127,7 +127,9 @@ pub fn fish_from_discord(
     let mut changed_record_holders = Vec::new();
     let mut total_base_xp = 0u64;
     let mut total_coins = 0u64;
+    crate::statistics::observe_cast(ctx, player.player_id, biome.biome_id)?;
     for pull in 0..pull_count {
+        let mut sets_record = false;
         let category = sample(
             &[biome.fish_weight, biome.junk_weight, biome.treasure_weight],
             &mut rng,
@@ -252,6 +254,7 @@ pub fn fish_from_discord(
                             ),
                         )
                     }) {
+                        sets_record = true;
                         let record = SpeciesRecord {
                             key,
                             species_id: definition.species_id,
@@ -361,6 +364,7 @@ pub fn fish_from_discord(
                 )?;
             }
         }
+        crate::statistics::observe_pull(ctx, &receipt, pull > 0, sets_record)?;
         total_base_xp = total_base_xp
             .checked_add(receipt.xp_granted)
             .ok_or("XP_OVERFLOW")?;

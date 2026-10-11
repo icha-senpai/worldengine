@@ -543,6 +543,66 @@ pub struct AnglerStanding {
     pub records_held: u32,
 }
 
+/// Public game statistics only: no wallet, Discord IDs, identities or raw history.
+#[spacetimedb::table(accessor = angler_statistics, public)]
+pub struct AnglerStatistics {
+    #[primary_key]
+    pub player_id: u64,
+    pub display_name: String,
+    pub total_casts: u64,
+    pub bonus_pulls: u64,
+    pub fish_count: u64,
+    pub junk_count: u64,
+    pub treasure_count: u64,
+    pub bonus_fish: u64,
+    pub bonus_junk: u64,
+    pub bonus_treasure: u64,
+    pub bonus_history_complete: bool,
+    pub rank_counts: Vec<u64>,
+    pub collection_pairs: u32,
+    pub most_caught_species_id: Option<u32>,
+    pub most_caught_species_count: u64,
+    pub total_weight_g: u64,
+    pub measured_fish_count: u64,
+    pub recorded_casts: u64,
+    pub history_complete: bool,
+    pub days_fished: u32,
+    pub favorite_biome_id: Option<u32>,
+    pub favorite_biome_casts: u64,
+    pub biome_history_complete: bool,
+    pub best_relative_species_id: Option<u32>,
+    pub best_relative_catch_id: Option<u64>,
+    pub best_relative_length_millionths: u64,
+    pub best_relative_length_mm: u32,
+    pub best_relative_weight_g: u64,
+    pub sale_earnings: u64,
+    pub biggest_single_sale: u64,
+    pub biggest_sale_batch: u64,
+    pub sale_history_complete: bool,
+    pub sales_tracked_since: Timestamp,
+    pub records_set: u64,
+    pub records_tracked_since: Timestamp,
+}
+
+#[spacetimedb::table(accessor = fishing_day)]
+pub struct FishingDay {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub utc_day: u64,
+}
+
+#[spacetimedb::table(accessor = fishing_biome_activity)]
+pub struct FishingBiomeActivity {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub biome_id: u32,
+    pub casts: u64,
+}
+
 /// Each angler's first legendary discovery, retained after selling a catch.
 #[spacetimedb::table(accessor = legendary_find, public)]
 pub struct LegendaryFind {
