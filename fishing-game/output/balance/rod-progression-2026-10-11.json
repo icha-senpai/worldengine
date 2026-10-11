@@ -1,0 +1,1908 @@
+{
+  "assumptions": [
+    "Fresh level-1 Common Twig, zero coins and materials; free starter rod/licence.",
+    "Sell every fish immediately at its authoritative saved value; keep all tin/scrap for rods.",
+    "Claim daily before the first cast and every casts_per_day casts; 0 disables daily.",
+    "Buy sequential licences first and each next rod as soon as level and coins allow; equip immediately.",
+    "Upgrade equipped rod whenever materials allow, including immediately before shop purchases.",
+    "Material bait switches between deficits for the next recipe; actual ten-use purchases, charges carried per bait.",
+    "Epic-cap policy banks materials after Epic; other policies may reach Prismatic.",
+    "Recovery is a separate branch: keep the new rod equipped and farm material bait until all three stats match/exceed the old rod; do not purchase further rods.",
+    "Alternative recovery branch keeps the old rod equipped while spending gathered materials on the new owned rod; paired recovery seed, same starting state.",
+    "Catch odds, physical measurements, size XP, first discoveries, integer cast XP, mixed pulls, treasure coins and scrap follow current source.",
+    "No other income, gifts, material spending, favorites, achievements payouts or skipped rods; simulated strategies are not observed player frequencies."
+  ],
+  "casts_per_day": 100,
+  "catalog_version": 5,
+  "crafting_version": 1,
+  "date": "2026-10-11",
+  "quality_labels": [
+    "Common",
+    "Uncommon",
+    "Rare",
+    "Epic",
+    "Legendary",
+    "Mythic",
+    "Prismatic"
+  ],
+  "scenarios": {
+    "natural_materials": {
+      "quality_cap": 6,
+      "seed": 10112026,
+      "transitions": [
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 38,
+            "mean": 17.916,
+            "median": 18,
+            "min": 2,
+            "p10": 9,
+            "p90": 27,
+            "p95": 29
+          },
+          "casts_to_level_gate": {
+            "max": 38,
+            "mean": 17.916,
+            "median": 18,
+            "min": 2,
+            "p10": 9,
+            "p90": 27,
+            "p95": 29
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Twig Rod",
+          "gate_quality_counts": [
+            5000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            5000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 5,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            5000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "to": "River Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 33.94,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 116,
+            "mean": 58.4216,
+            "median": 58,
+            "min": 14,
+            "p10": 38,
+            "p90": 79,
+            "p95": 85
+          },
+          "casts_to_level_gate": {
+            "max": 142,
+            "mean": 76.3376,
+            "median": 76,
+            "min": 26,
+            "p10": 54,
+            "p90": 99,
+            "p95": 105
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "River Rod",
+          "gate_quality_counts": [
+            3281,
+            1719,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            4978,
+            22,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 10,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 15,
+            "mean": 7.478491455509723,
+            "median": 8,
+            "min": 1,
+            "p10": 4,
+            "p90": 11,
+            "p95": 12
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 15,
+            "mean": 7.509723040659988,
+            "median": 8,
+            "min": 1,
+            "p10": 4,
+            "p90": 11,
+            "p95": 12
+          },
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            3281,
+            1719,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "to": "Marsh Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 85.24,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 426,
+            "mean": 269.9648,
+            "median": 270,
+            "min": 167,
+            "p10": 226,
+            "p90": 313,
+            "p95": 326
+          },
+          "casts_to_level_gate": {
+            "max": 519,
+            "mean": 346.3024,
+            "median": 346,
+            "min": 216,
+            "p10": 298,
+            "p90": 395,
+            "p95": 409
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Marsh Rod",
+          "gate_quality_counts": [
+            0,
+            250,
+            4750,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            680,
+            3829,
+            491,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 18,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 46,
+            "mean": 14.646879399343032,
+            "median": 14,
+            "min": 1,
+            "p10": 4,
+            "p90": 27,
+            "p95": 30
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 46,
+            "mean": 14.69028625058658,
+            "median": 14,
+            "min": 1,
+            "p10": 4,
+            "p90": 27,
+            "p95": 30
+          },
+          "old_dominates_new_common_at_purchase_pct": 95.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            250,
+            4750,
+            0,
+            0,
+            0,
+            0
+          ],
+          "to": "Moonwood Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 91.56,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 836,
+            "mean": 628.4636,
+            "median": 627,
+            "min": 469,
+            "p10": 569,
+            "p90": 687,
+            "p95": 707
+          },
+          "casts_to_level_gate": {
+            "max": 1168,
+            "mean": 974.766,
+            "median": 974,
+            "min": 784,
+            "p10": 904,
+            "p90": 1046,
+            "p95": 1068
+          },
+          "epic_or_better_at_level_gate_pct": 91.52,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Moonwood Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            424,
+            4576,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            892,
+            2940,
+            1168,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 28,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 123,
+            "mean": 73.75316732197466,
+            "median": 74,
+            "min": 3,
+            "p10": 53,
+            "p90": 94,
+            "p95": 99
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 123,
+            "mean": 73.61992136304063,
+            "median": 74,
+            "min": 3,
+            "p10": 53,
+            "p90": 94,
+            "p95": 99
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            424,
+            4576,
+            0,
+            0,
+            0
+          ],
+          "to": "Tide Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 25.5,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 1254,
+            "mean": 1030.9836,
+            "median": 1031,
+            "min": 840,
+            "p10": 951,
+            "p90": 1110,
+            "p95": 1134
+          },
+          "casts_to_level_gate": {
+            "max": 2289,
+            "mean": 2005.7496,
+            "median": 2007,
+            "min": 1704,
+            "p10": 1904,
+            "p90": 2106,
+            "p95": 2135
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Tide Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            4672,
+            328,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            196,
+            116,
+            963,
+            3725,
+            0,
+            0,
+            0
+          ],
+          "level": 40,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 306,
+            "mean": 66.7443137254902,
+            "median": 12,
+            "min": 1,
+            "p10": 2,
+            "p90": 236,
+            "p95": 250
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 302,
+            "mean": 66.31607843137255,
+            "median": 12,
+            "min": 1,
+            "p10": 2,
+            "p90": 233,
+            "p95": 249
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            4672,
+            328,
+            0,
+            0
+          ],
+          "to": "Glacial Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 78.18,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 2303,
+            "mean": 1949.5,
+            "median": 1946,
+            "min": 1678,
+            "p10": 1844,
+            "p90": 2059,
+            "p95": 2096
+          },
+          "casts_to_level_gate": {
+            "max": 4522,
+            "mean": 3955.2496,
+            "median": 3951,
+            "min": 3490,
+            "p10": 3814,
+            "p90": 4103,
+            "p95": 4153
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Glacial Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            4978,
+            22,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            14,
+            8,
+            4,
+            3883,
+            1091,
+            0,
+            0
+          ],
+          "level": 55,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 565,
+            "mean": 35.10232796111538,
+            "median": 28,
+            "min": 1,
+            "p10": 7,
+            "p90": 67,
+            "p95": 85
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 558,
+            "mean": 35.0596060373497,
+            "median": 28,
+            "min": 1,
+            "p10": 7,
+            "p90": 67,
+            "p95": 85
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            4978,
+            22,
+            0
+          ],
+          "to": "Abyssal Rod"
+        }
+      ],
+      "trials": 5000
+    },
+    "pink_xp_slime_natural_materials": {
+      "quality_cap": 6,
+      "seed": 10112026,
+      "transitions": [
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 36,
+            "mean": 13.8966,
+            "median": 14,
+            "min": 2,
+            "p10": 7,
+            "p90": 21,
+            "p95": 23
+          },
+          "casts_to_level_gate": {
+            "max": 36,
+            "mean": 13.8966,
+            "median": 14,
+            "min": 2,
+            "p10": 7,
+            "p90": 21,
+            "p95": 23
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Twig Rod",
+          "gate_quality_counts": [
+            5000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            5000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 5,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "purchase_delay_casts": {
+            "max": 28,
+            "mean": 1.8692,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 7,
+            "p95": 9
+          },
+          "purchase_quality_counts": [
+            5000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "to": "River Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 10.86,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 80,
+            "mean": 28.6976,
+            "median": 28,
+            "min": 3,
+            "p10": 15,
+            "p90": 43,
+            "p95": 48
+          },
+          "casts_to_level_gate": {
+            "max": 95,
+            "mean": 44.4634,
+            "median": 43,
+            "min": 10,
+            "p10": 28,
+            "p90": 63,
+            "p95": 68
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "River Rod",
+          "gate_quality_counts": [
+            4718,
+            282,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            4966,
+            34,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 10,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 30,
+            "mean": 7.4935543278084715,
+            "median": 8,
+            "min": 1,
+            "p10": 3,
+            "p90": 11,
+            "p95": 12
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 30,
+            "mean": 7.552486187845304,
+            "median": 8,
+            "min": 1,
+            "p10": 3,
+            "p90": 11,
+            "p95": 12
+          },
+          "old_dominates_new_common_at_purchase_pct": 0.04,
+          "purchase_delay_casts": {
+            "max": 199,
+            "mean": 4.4018,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 15,
+            "p95": 30
+          },
+          "purchase_quality_counts": [
+            4424,
+            574,
+            2,
+            0,
+            0,
+            0,
+            0
+          ],
+          "to": "Marsh Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 33.16,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 236,
+            "mean": 139.397,
+            "median": 139,
+            "min": 50,
+            "p10": 106,
+            "p90": 173,
+            "p95": 183
+          },
+          "casts_to_level_gate": {
+            "max": 321,
+            "mean": 188.2622,
+            "median": 188,
+            "min": 89,
+            "p10": 151,
+            "p90": 227,
+            "p95": 239
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Marsh Rod",
+          "gate_quality_counts": [
+            55,
+            3829,
+            1116,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            1541,
+            3458,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 18,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 50,
+            "mean": 24.237032569360675,
+            "median": 31,
+            "min": 1,
+            "p10": 1,
+            "p90": 42,
+            "p95": 44
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 50,
+            "mean": 24.318455971049456,
+            "median": 31,
+            "min": 1,
+            "p10": 1,
+            "p90": 42,
+            "p95": 44
+          },
+          "old_dominates_new_common_at_purchase_pct": 22.54,
+          "purchase_delay_casts": {
+            "max": 138,
+            "mean": 0.3182,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            55,
+            3818,
+            1127,
+            0,
+            0,
+            0,
+            0
+          ],
+          "to": "Moonwood Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 63.7,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 487,
+            "mean": 356.847,
+            "median": 356,
+            "min": 241,
+            "p10": 310,
+            "p90": 406,
+            "p95": 420
+          },
+          "casts_to_level_gate": {
+            "max": 729,
+            "mean": 545.4274,
+            "median": 544,
+            "min": 382,
+            "p10": 485,
+            "p90": 608,
+            "p95": 626
+          },
+          "epic_or_better_at_level_gate_pct": 0.74,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Moonwood Rod",
+          "gate_quality_counts": [
+            0,
+            9,
+            4954,
+            37,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            237,
+            2957,
+            1806,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 28,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 118,
+            "mean": 11.618210361067504,
+            "median": 9,
+            "min": 1,
+            "p10": 2,
+            "p90": 21,
+            "p95": 25
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 117,
+            "mean": 11.657142857142857,
+            "median": 9,
+            "min": 1,
+            "p10": 2,
+            "p90": 21,
+            "p95": 25
+          },
+          "old_dominates_new_common_at_purchase_pct": 99.82,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            9,
+            4954,
+            37,
+            0,
+            0,
+            0
+          ],
+          "to": "Tide Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 99.34,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 791,
+            "mean": 596.43,
+            "median": 596,
+            "min": 432,
+            "p10": 539,
+            "p90": 656,
+            "p95": 673
+          },
+          "casts_to_level_gate": {
+            "max": 1402,
+            "mean": 1141.8574,
+            "median": 1140,
+            "min": 880,
+            "p10": 1060,
+            "p90": 1228,
+            "p95": 1251
+          },
+          "epic_or_better_at_level_gate_pct": 99.46,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Tide Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            27,
+            4973,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            130,
+            1716,
+            3148,
+            6,
+            0,
+            0,
+            0
+          ],
+          "level": 40,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 95,
+            "mean": 46.96134487618281,
+            "median": 47,
+            "min": 1,
+            "p10": 27,
+            "p90": 66,
+            "p95": 71
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 98,
+            "mean": 46.95127843768874,
+            "median": 47,
+            "min": 1,
+            "p10": 27,
+            "p90": 66,
+            "p95": 71
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            27,
+            4973,
+            0,
+            0,
+            0
+          ],
+          "to": "Glacial Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 79.26,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 1573,
+            "mean": 1264.4452,
+            "median": 1265,
+            "min": 1038,
+            "p10": 1185,
+            "p90": 1344,
+            "p95": 1370
+          },
+          "casts_to_level_gate": {
+            "max": 2743,
+            "mean": 2406.3026,
+            "median": 2404,
+            "min": 2052,
+            "p10": 2301,
+            "p90": 2518,
+            "p95": 2549
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Glacial Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            1038,
+            3962,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            743,
+            2032,
+            1182,
+            1043,
+            0,
+            0,
+            0
+          ],
+          "level": 55,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 283,
+            "mean": 189.1516527882917,
+            "median": 189,
+            "min": 10,
+            "p10": 164,
+            "p90": 215,
+            "p95": 225
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 273,
+            "mean": 188.41408024224071,
+            "median": 188,
+            "min": 10,
+            "p10": 163,
+            "p90": 214,
+            "p95": 223
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            1038,
+            3962,
+            0,
+            0
+          ],
+          "to": "Abyssal Rod"
+        }
+      ],
+      "trials": 5000
+    },
+    "resource_bait_to_epic": {
+      "quality_cap": 3,
+      "seed": 10112026,
+      "transitions": [
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 36,
+            "mean": 17.601,
+            "median": 18,
+            "min": 2,
+            "p10": 9,
+            "p90": 26,
+            "p95": 28
+          },
+          "casts_to_level_gate": {
+            "max": 36,
+            "mean": 17.601,
+            "median": 18,
+            "min": 2,
+            "p10": 9,
+            "p90": 26,
+            "p95": 28
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Twig Rod",
+          "gate_quality_counts": [
+            1179,
+            3821,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            4786,
+            214,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 5,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "purchase_delay_casts": {
+            "max": 2,
+            "mean": 0.0006,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            1179,
+            3821,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "to": "River Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 85.08,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 103,
+            "mean": 53.031,
+            "median": 52,
+            "min": 14,
+            "p10": 36,
+            "p90": 71,
+            "p95": 76
+          },
+          "casts_to_level_gate": {
+            "max": 121,
+            "mean": 70.6326,
+            "median": 70,
+            "min": 25,
+            "p10": 51,
+            "p90": 90,
+            "p95": 96
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "River Rod",
+          "gate_quality_counts": [
+            0,
+            692,
+            4308,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            2844,
+            2053,
+            103,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 10,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 52,
+            "mean": 24.951104842501174,
+            "median": 26,
+            "min": 1,
+            "p10": 8,
+            "p90": 39,
+            "p95": 41
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 51,
+            "mean": 24.944287729196052,
+            "median": 26,
+            "min": 1,
+            "p10": 9,
+            "p90": 39,
+            "p95": 41
+          },
+          "old_dominates_new_common_at_purchase_pct": 86.16,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            692,
+            4308,
+            0,
+            0,
+            0,
+            0
+          ],
+          "to": "Marsh Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 100.0,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 346,
+            "mean": 229.4736,
+            "median": 229,
+            "min": 125,
+            "p10": 191,
+            "p90": 268,
+            "p95": 279
+          },
+          "casts_to_level_gate": {
+            "max": 417,
+            "mean": 300.1062,
+            "median": 300,
+            "min": 194,
+            "p10": 258,
+            "p90": 342,
+            "p95": 355
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Marsh Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            5000,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            163,
+            4087,
+            750,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 18,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 128,
+            "mean": 86.4986,
+            "median": 87,
+            "min": 41,
+            "p10": 71,
+            "p90": 102,
+            "p95": 105
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 127,
+            "mean": 86.4108,
+            "median": 87,
+            "min": 41,
+            "p10": 71,
+            "p90": 101,
+            "p95": 105
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            5000,
+            0,
+            0,
+            0
+          ],
+          "to": "Moonwood Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 98.7,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 726,
+            "mean": 560.5784,
+            "median": 561,
+            "min": 402,
+            "p10": 503,
+            "p90": 618,
+            "p95": 635
+          },
+          "casts_to_level_gate": {
+            "max": 1049,
+            "mean": 860.6846,
+            "median": 860,
+            "min": 682,
+            "p10": 790,
+            "p90": 931,
+            "p95": 952
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Moonwood Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            5000,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            1,
+            4934,
+            65,
+            0,
+            0,
+            0
+          ],
+          "level": 28,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 69,
+            "mean": 24.308004052684904,
+            "median": 24,
+            "min": 1,
+            "p10": 11,
+            "p90": 38,
+            "p95": 42
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 69,
+            "mean": 24.308004052684904,
+            "median": 24,
+            "min": 1,
+            "p10": 11,
+            "p90": 38,
+            "p95": 42
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            5000,
+            0,
+            0,
+            0
+          ],
+          "to": "Tide Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 1200,
+            "mean": 969.5424,
+            "median": 969,
+            "min": 735,
+            "p10": 890,
+            "p90": 1048,
+            "p95": 1070
+          },
+          "casts_to_level_gate": {
+            "max": 2189,
+            "mean": 1830.227,
+            "median": 1829,
+            "min": 1580,
+            "p10": 1728,
+            "p90": 1935,
+            "p95": 1964
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Tide Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            5000,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            0,
+            5000,
+            0,
+            0,
+            0
+          ],
+          "level": 40,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            5000,
+            0,
+            0,
+            0
+          ],
+          "to": "Glacial Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 2498,
+            "mean": 2142.0402,
+            "median": 2142,
+            "min": 1843,
+            "p10": 2033,
+            "p90": 2252,
+            "p95": 2283
+          },
+          "casts_to_level_gate": {
+            "max": 4393,
+            "mean": 3972.2672,
+            "median": 3974,
+            "min": 3546,
+            "p10": 3823,
+            "p90": 4120,
+            "p95": 4159
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Glacial Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            5000,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            0,
+            0,
+            5000,
+            0,
+            0,
+            0
+          ],
+          "level": 55,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            5000,
+            0,
+            0,
+            0
+          ],
+          "to": "Abyssal Rod"
+        }
+      ],
+      "trials": 5000
+    },
+    "resource_bait_unlimited_upgrades": {
+      "quality_cap": 6,
+      "seed": 10112026,
+      "transitions": [
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 0.0,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 36,
+            "mean": 17.601,
+            "median": 18,
+            "min": 2,
+            "p10": 9,
+            "p90": 26,
+            "p95": 28
+          },
+          "casts_to_level_gate": {
+            "max": 36,
+            "mean": 17.601,
+            "median": 18,
+            "min": 2,
+            "p10": 9,
+            "p90": 26,
+            "p95": 28
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Twig Rod",
+          "gate_quality_counts": [
+            1179,
+            3821,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            4786,
+            214,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 5,
+          "material_bait_recovery_casts_conditional_on_regression": null,
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": null,
+          "old_dominates_new_common_at_purchase_pct": 0.0,
+          "purchase_delay_casts": {
+            "max": 2,
+            "mean": 0.0006,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            1179,
+            3821,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "to": "River Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 85.08,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 103,
+            "mean": 53.031,
+            "median": 52,
+            "min": 14,
+            "p10": 36,
+            "p90": 71,
+            "p95": 76
+          },
+          "casts_to_level_gate": {
+            "max": 121,
+            "mean": 70.6326,
+            "median": 70,
+            "min": 25,
+            "p10": 51,
+            "p90": 90,
+            "p95": 96
+          },
+          "epic_or_better_at_level_gate_pct": 0.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "River Rod",
+          "gate_quality_counts": [
+            0,
+            692,
+            4308,
+            0,
+            0,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            2844,
+            2053,
+            103,
+            0,
+            0,
+            0,
+            0
+          ],
+          "level": 10,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 52,
+            "mean": 24.951104842501174,
+            "median": 26,
+            "min": 1,
+            "p10": 8,
+            "p90": 39,
+            "p95": 41
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 51,
+            "mean": 24.944287729196052,
+            "median": 26,
+            "min": 1,
+            "p10": 9,
+            "p90": 39,
+            "p95": 41
+          },
+          "old_dominates_new_common_at_purchase_pct": 86.16,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            692,
+            4308,
+            0,
+            0,
+            0,
+            0
+          ],
+          "to": "Marsh Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 49.48,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 332,
+            "mean": 229.3618,
+            "median": 229,
+            "min": 125,
+            "p10": 191,
+            "p90": 267,
+            "p95": 278
+          },
+          "casts_to_level_gate": {
+            "max": 410,
+            "mean": 299.9944,
+            "median": 300,
+            "min": 194,
+            "p10": 258,
+            "p90": 342,
+            "p95": 354
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Marsh Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            4719,
+            281,
+            0,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            252,
+            122,
+            2100,
+            2526,
+            0,
+            0,
+            0
+          ],
+          "level": 18,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 342,
+            "mean": 50.44745351657235,
+            "median": 15,
+            "min": 1,
+            "p10": 3,
+            "p90": 289,
+            "p95": 309
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 343,
+            "mean": 50.09175424413905,
+            "median": 15,
+            "min": 1,
+            "p10": 3,
+            "p90": 285,
+            "p95": 305
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            4719,
+            281,
+            0,
+            0
+          ],
+          "to": "Moonwood Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 67.98,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 632,
+            "mean": 493.3838,
+            "median": 494,
+            "min": 351,
+            "p10": 442,
+            "p90": 545,
+            "p95": 559
+          },
+          "casts_to_level_gate": {
+            "max": 987,
+            "mean": 793.3782,
+            "median": 791,
+            "min": 636,
+            "p10": 729,
+            "p90": 859,
+            "p95": 877
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Moonwood Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            4709,
+            291,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            222,
+            69,
+            30,
+            3078,
+            1601,
+            0,
+            0
+          ],
+          "level": 28,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 679,
+            "mean": 90.38275963518682,
+            "median": 36,
+            "min": 1,
+            "p10": 6,
+            "p90": 128,
+            "p95": 635
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 672,
+            "mean": 89.20800235363342,
+            "median": 35,
+            "min": 1,
+            "p10": 6,
+            "p90": 125,
+            "p95": 622
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            4709,
+            291,
+            0
+          ],
+          "to": "Tide Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 100.0,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 950,
+            "mean": 728.774,
+            "median": 725,
+            "min": 578,
+            "p10": 667,
+            "p90": 795,
+            "p95": 817
+          },
+          "casts_to_level_gate": {
+            "max": 1817,
+            "mean": 1522.1522,
+            "median": 1512,
+            "min": 1340,
+            "p10": 1440,
+            "p90": 1622,
+            "p95": 1674
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Tide Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            5000,
+            0
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            8,
+            222,
+            2640,
+            2130,
+            0,
+            0
+          ],
+          "level": 40,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 590,
+            "mean": 304.7448,
+            "median": 298,
+            "min": 77,
+            "p10": 221,
+            "p90": 392,
+            "p95": 436
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 601,
+            "mean": 302.0186,
+            "median": 297,
+            "min": 77,
+            "p10": 219,
+            "p90": 389,
+            "p95": 430
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            5000,
+            0
+          ],
+          "to": "Glacial Rod"
+        },
+        {
+          "any_stat_regresses_after_immediate_upgrades_pct": 100.0,
+          "casts_since_previous_purchase_to_gate": {
+            "max": 1673,
+            "mean": 1392.824,
+            "median": 1392,
+            "min": 1193,
+            "p10": 1320,
+            "p90": 1469,
+            "p95": 1490
+          },
+          "casts_to_level_gate": {
+            "max": 3300,
+            "mean": 2914.9762,
+            "median": 2899,
+            "min": 2701,
+            "p10": 2820,
+            "p90": 3029,
+            "p95": 3121
+          },
+          "epic_or_better_at_level_gate_pct": 100.0,
+          "expected_previous_rod_at_gate_pct": 100.0,
+          "from": "Glacial Rod",
+          "gate_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            5000
+          ],
+          "immediate_new_quality_counts": [
+            0,
+            30,
+            4087,
+            883,
+            0,
+            0,
+            0
+          ],
+          "level": 55,
+          "material_bait_recovery_casts_conditional_on_regression": {
+            "max": 1272,
+            "mean": 1159.4222,
+            "median": 1160,
+            "min": 1056,
+            "p10": 1122,
+            "p90": 1196,
+            "p95": 1207
+          },
+          "material_bait_recovery_keeping_old_equipped_conditional_on_regression": {
+            "max": 1236,
+            "mean": 1137.9866,
+            "median": 1138,
+            "min": 1038,
+            "p10": 1103,
+            "p90": 1173,
+            "p95": 1183
+          },
+          "old_dominates_new_common_at_purchase_pct": 100.0,
+          "purchase_delay_casts": {
+            "max": 0,
+            "mean": 0.0,
+            "median": 0,
+            "min": 0,
+            "p10": 0,
+            "p90": 0,
+            "p95": 0
+          },
+          "purchase_quality_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            5000
+          ],
+          "to": "Abyssal Rod"
+        }
+      ],
+      "trials": 5000
+    }
+  },
+  "trader_version": 3,
+  "world_version": 5
+}
