@@ -1039,3 +1039,20 @@ Live public Trader checks verified 1/5/10 pack controls, correct prices/uses,
 guest gating and 1440/390/320 layouts without overflow or console errors. No live
 player purchase was executed for acceptance. The isolated restore service was
 closed; the verified backup remains in `.local/deployments/`.
+## Silkscreen typography (October 12, 2026)
+
+Replaced Pixelify Sans with locally bundled Silkscreen regular/bold, pinned through
+Fontsource; its OFL licence is included at `assets/fonts/silkscreen-OFL.txt`.
+Adjusted heading sizes, mobile counters, trader titles and record columns for the
+wider glyphs. Public views passed font-loading and overflow checks at 1440, 850,
+390 and 320 pixels. Synthetic trader/tackle-box checks retained direct purchases,
+bulk selection and sale behavior. Screenshots are `output/playwright/silkscreen-*`.
+Svelte/scripts checks and the isolated production build passed. This records local
+verification before deployment.
+
+Live deployment on October 12 replaced only the served website build. Both font
+weights and the OFL licence returned HTTP 200 and matched the candidate by SHA-256.
+All six public views passed the same four viewport checks without overflow or
+console errors. The site and account linker remained healthy; bot, linker and
+database processes were unchanged. A copy of the previous website build is
+retained in `.local/deployments/`. Live screenshots are `output/playwright/silkscreen-live-*`.
