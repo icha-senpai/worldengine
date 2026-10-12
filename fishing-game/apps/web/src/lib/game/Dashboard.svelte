@@ -28,6 +28,10 @@
   const visibleView = $derived(!game.player && tabs.find(tab => tab.id === activeView)?.personal ? 'camp' : activeView);
   const viewLabel = $derived(tabs.find(tab => tab.id === visibleView)!.label);
   let inventoryPage = $state(1);
+  const inventoryPageSize = 25;
+  const saleBatchSize = 50;
+  const ranks = ['F', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'UR', 'UUR'];
+  let selectionRank = $state('');
   let bookPage = $state(1);
   let worldPage = $state(1);
   let pageSize = $state(12);
@@ -49,12 +53,18 @@
   const remaining = $derived(game.player ? Math.max(0, Math.ceil(Number(game.player.nextCastAt.microsSinceUnixEpoch / 1000n - BigInt(now)) / 1000)) : 0);
   const quote = $derived(showQuote && game.action?.kind === 'sell' && !game.action.consumed ? game.action : null);
   const selectedOwned = $derived(selected.filter(id => game.inventory.some(fish => fish.catchId === id && !fish.favorite)));
+  const saleBatch = $derived(selectedOwned.slice(0, saleBatchSize));
+  const selectable = $derived(game.inventory.filter(fish => !fish.favorite));
   const speciesName = (id: number | undefined) => game.species.find(fish => fish.speciesId === id)?.name ?? 'Fish';
   const sprite = (id: number) => game.species.find(fish => fish.speciesId === id)?.spriteAsset ?? '/fish/minnow.png';
   const rankMinimums = (tier: string) => { const rule = game.rarities.find(row => row.tier === tier); return !rule || tier === 'F' ? 'Below D in length or weight' : `At least ${Number(rule.minimumLengthMillionths) / 1_000_000}× typical length and ${Number(rule.minimumWeightMillionths) / 1_000_000}× typical weight`; };
   const time = (micros: bigint) => new Date(Number(micros / 1000n)).toLocaleString();
   const linkUrl = (env.PUBLIC_ACCOUNT_LINK_URL ?? '').replace(/\/$/, '') + '/auth/discord/start';
   function select(id: bigint) { selected = selected.includes(id) ? selected.filter(value => value !== id) : [...selected, id]; showQuote = false; }
+  function quickSelect(rank = '') {
+    selected = selectable.filter(fish => !rank || fish.rarity === rank).map(fish => fish.catchId);
+    showQuote = false;
+  }
   function openView(view: CampView) {
     activeView = view;
     if (window.location.hash !== '#' + view) window.history.pushState(null, '', '#' + view);
@@ -78,17 +88,18 @@
     await tick();
     if (game.challenge && !game.challenge.consumed && !game.error) linkForm.requestSubmit();
   }
-  async function preview() { await game.previewSale(selectedOwned); showQuote = !game.error; }
+  async function preview() { await game.previewSale(saleBatch); showQuote = !game.error; }
   async function confirm() {
     if (!quote) return;
+    const soldIds = quote.catchIds;
     await game.confirmSale(quote.nonce);
-    if (!game.error) { selected = []; showQuote = false; }
+    if (!game.error) { selected = selected.filter(id => !soldIds.includes(id)); showQuote = false; }
   }
   onMount(() => {
     const compactScreen = window.matchMedia('(max-width: 600px)');
     const resizePages = () => {
       pageSize = compactScreen.matches ? 4 : 12;
-      inventoryPage = bookPage = worldPage = 1;
+      bookPage = worldPage = 1;
     };
     resizePages();
     compactScreen.addEventListener('change', resizePages);
@@ -136,18 +147,27 @@
   {#if visibleView === 'trader'}<Trader {game} {pageSize} />{/if}
   {#if game.player}
     {#if visibleView === 'inventory'}
-    <section aria-labelledby="inventory"><div class="section-heading"><div><p class="eyebrow">KEEP THE GOOD ONES</p><h2 id="inventory">Your tackle box <span>{game.inventory.length} fish kept</span></h2></div><button class="secondary" disabled={!selectedOwned.length || selectedOwned.length > 50 || game.busy || !game.ready} onclick={preview}>Preview sale ({selectedOwned.length})</button></div>
+    <section aria-labelledby="inventory"><div class="section-heading"><div><p class="eyebrow">KEEP THE GOOD ONES</p><h2 id="inventory">Your tackle box <span>{game.inventory.length} fish kept</span></h2></div><button class="secondary" disabled={!selectedOwned.length || game.busy || !game.ready} onclick={preview}>Preview sale ({saleBatch.length}{selectedOwned.length > saleBatchSize ? ' of ' + selectedOwned.length : ''})</button></div>
+      {#if game.inventory.length}
+        <div class="quick-select" aria-label="Quick fish selection">
+          <label for="selection-rank">Quick select by rank<select id="selection-rank" bind:value={selectionRank} disabled={game.busy || !game.ready}><option value="">Choose a rank…</option>{#each ranks as rank}<option value={rank}>{rank} ({selectable.filter(fish => fish.rarity === rank).length})</option>{/each}</select></label>
+          <button class="secondary" disabled={!selectionRank || !selectable.some(fish => fish.rarity === selectionRank) || game.busy || !game.ready} onclick={() => quickSelect(selectionRank)}>Select rank</button>
+          <button class="secondary" disabled={!selectable.length || game.busy || !game.ready} onclick={() => { selectionRank = ''; quickSelect(); }}>Select all</button>
+          <button class="secondary" disabled={!selected.length || game.busy || !game.ready} onclick={() => { selectionRank = ''; selected = []; showQuote = false; }}>Clear selection</button>
+          <p class="muted" aria-live="polite">{selectedOwned.length} selected across all pages. Favorites stay protected.{#if selectedOwned.length > saleBatchSize} Preview and sell up to {saleBatchSize} at a time; the rest stay selected.{/if}</p>
+        </div>
+      {/if}
       {#if quote}
         <div class="sale" role="status"><div><strong>Sell {quote.catchIds.length} selected {quote.catchIds.length === 1 ? 'catch' : 'catches'} for {quote.quotedCoins.toString()} coins?</strong><p>{quote.catchIds.map(id => { const fish = game.inventory.find(row => row.catchId === id); return '#' + id + ' ' + (fish ? speciesName(fish.speciesId) : '(catch changed)'); }).join(' · ')}</p><small>Discoveries and records remain. Favorites are protected. Preview expires at {time(quote.expiresAt.microsSinceUnixEpoch)}.</small></div><div class="sale-actions"><button disabled={game.busy || !game.ready || quote.expiresAt.microsSinceUnixEpoch <= BigInt(now) * 1000n} onclick={confirm}>Confirm sale · {quote.quotedCoins.toString()} coins</button><button class="secondary" onclick={() => { showQuote = false; }}>Cancel</button></div></div>
       {/if}
       <Gear {game} />
       <TackleBoxItems items={game.items} />
       {#if !game.inventory.length}<p class="empty">Your next catch could be the keeper. Try <code>/fish</code> in Discord.</p>{:else}<div class="catch-grid">
-        {#each game.inventory.slice((inventoryPage - 1) * pageSize, inventoryPage * pageSize) as fish (fish.catchId)}
+        {#each game.inventory.slice((inventoryPage - 1) * inventoryPageSize, inventoryPage * inventoryPageSize) as fish (fish.catchId)}
           <article class="catch" class:favorite={fish.favorite}><div class="catch-tools"><label><input type="checkbox" checked={selected.includes(fish.catchId)} disabled={fish.favorite || game.busy || !game.ready} onchange={() => select(fish.catchId)} /><span class="sr-only">Select catch #{fish.catchId.toString()}</span></label><button class="star" class:active={fish.favorite} disabled={game.busy || !game.ready} onclick={() => { showQuote = false; game.favorite(fish); }} aria-label={(fish.favorite ? 'Unfavorite' : 'Favorite') + ' catch #' + fish.catchId}>{fish.favorite ? '★' : '☆'}</button></div><div class="fish-art"><img src={sprite(fish.speciesId)} alt={speciesName(fish.speciesId)} /><span>{fish.rarity} RANK</span></div><p class="grade">{grades[fish.sizeGrade]}</p><h3>{speciesName(fish.speciesId)}</h3><p class="measure">{formatLength(fish.lengthMm)} <span>·</span> {formatWeight(fish.weightG)}</p><p class="relative-size">{(fish.lengthMm / (game.species.find(row => row.speciesId === fish.speciesId)?.typicalLengthMm ?? fish.lengthMm)).toFixed(2)}× typical length<br />{(Number(fish.weightG) / Number(game.species.find(row => row.speciesId === fish.speciesId)?.typicalWeightG ?? fish.weightG)).toFixed(2)}× typical weight</p><div class="catch-footer"><span>#{fish.catchId.toString()}</span><span>{fish.saleValueCoins.toString()} coins</span></div></article>
         {/each}
       </div>{/if}
-      <PageTurner bind:page={inventoryPage} total={game.inventory.length} {pageSize} label="Tackle box pages" />
+      <PageTurner bind:page={inventoryPage} total={game.inventory.length} pageSize={inventoryPageSize} label="Tackle box pages" />
     </section>
 
     {/if}
@@ -234,6 +254,10 @@
   .filters{display:flex;flex-wrap:wrap;gap:16px;margin:20px 0}.filters>div,.filters label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#665039;min-width:0}.filters label{font-weight:700}
   .filters select,.filters input{max-width:100%;min-height:42px;border:2px solid #a68a60;background:#fff1cd;color:var(--ink);padding:8px 12px;box-shadow:inset 2px 2px 0 #dcc398;border-radius:0}
   .catch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+  .quick-select{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;padding:16px;margin-bottom:20px;border:1px dashed #b99a69;background:#e8d6ad}
+  .quick-select label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;max-width:100%}
+  .quick-select select{min-height:42px;max-width:100%;border:2px solid #a68a60;background:#fff1cd;color:var(--ink);padding:8px 12px;border-radius:0}
+  .quick-select p{flex-basis:100%;margin:0}
   .catch{border:2px solid #a38859;padding:14px;background:#fff0ca;box-shadow:inset 0 0 0 2px #f9e4b6,3px 4px 0 #ccb080}
   .catch.favorite{border-color:#9d7738;box-shadow:inset 0 0 0 2px #e9bd67,3px 4px 0 #b89453}
   .catch-tools{display:flex;justify-content:space-between;align-items:center;height:23px}.catch-tools input{accent-color:#5c8054;width:18px;height:18px}
