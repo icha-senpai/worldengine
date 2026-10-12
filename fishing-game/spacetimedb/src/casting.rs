@@ -101,6 +101,9 @@ pub fn fish_from_discord(
     if species.is_empty() {
         return Err("CONTENT_UNAVAILABLE".into());
     }
+    let collection_focus_enabled =
+        crate::collection_focus::active(ctx, player.player_id, biome.biome_id, &species);
+    let mut collection_focus_rerolls = 0;
     let bait = crate::crafting::consume_bait(ctx, player.player_id)?;
     let power = rod
         .power
@@ -185,11 +188,45 @@ pub fn fish_from_discord(
                     })
                     .collect::<Result<_, String>>()?;
                 let weights = game_rules::rods::luck_weights(&tickets, luck_bp)?;
-                let band = &bands[sample(&weights, &mut rng)?];
+                let mut band = &bands[sample(&weights, &mut rng)?];
                 let definition = species
                     .iter()
                     .find(|row| row.species_id == band.species_id)
                     .ok_or("CONTENT_UNAVAILABLE")?;
+                if collection_focus_enabled && definition.counts_for_ordinary_collection_completion
+                {
+                    let progress_key =
+                        (u128::from(player.player_id) << 32) | u128::from(definition.species_id);
+                    let progress = ctx.db.player_species_progress().key().find(progress_key);
+                    let known: Vec<_> = (0..10)
+                        .map(|rank| {
+                            progress.as_ref().is_some_and(|row| {
+                                row.rank_counts.get(rank).is_some_and(|count| *count > 0)
+                            })
+                        })
+                        .collect();
+                    let ranks: Vec<_> = bands
+                        .iter()
+                        .zip(&weights)
+                        .filter(|(row, _)| row.species_id == definition.species_id)
+                        .map(|(row, weight)| (row.ordinal, *weight))
+                        .collect();
+                    let ordinal = game_rules::collection_focus::reroll(
+                        band.ordinal,
+                        &ranks,
+                        &known,
+                        &mut rng,
+                    )?;
+                    if ordinal != band.ordinal {
+                        collection_focus_rerolls += 1;
+                        band = bands
+                            .iter()
+                            .find(|row| {
+                                row.species_id == definition.species_id && row.ordinal == ordinal
+                            })
+                            .ok_or("CONTENT_UNAVAILABLE")?;
+                    }
+                }
                 let model = SpeciesMeasurements {
                     typical_length_mm: definition.typical_length_mm,
                     min_length_mm: definition.min_length_mm,
@@ -202,7 +239,7 @@ pub fn fish_from_discord(
                     model,
                     band.ordinal,
                     bait.size_rolls,
-                    rules.version >= 11,
+                    rules.version,
                     &mut rng,
                 )?;
                 let ordinal = classify_rarity(model, measurements)?;
@@ -248,6 +285,16 @@ pub fn fish_from_discord(
                     definition.species_id,
                     specimen.catch_id,
                     ctx.timestamp,
+                    measurements.length_mm,
+                    measurements.weight_g,
+                )?;
+                crate::perfection::observe_rank_maximum(
+                    ctx,
+                    player.player_id,
+                    definition.species_id,
+                    specimen.catch_id,
+                    ctx.timestamp,
+                    &rank.rarity,
                     measurements.length_mm,
                     measurements.weight_g,
                 )?;
@@ -426,20 +473,22 @@ pub fn fish_from_discord(
         });
         ctx.db.cast_pull().key().update(pull);
     }
-    if !bait.resource_item.is_empty() {
-        let slot = if bait.resource_item == "rusted_tin" {
-            2
-        } else {
-            1
-        };
-        crate::inventory::grant_item(
-            ctx,
-            player.player_id,
-            slot,
-            &bait.resource_item,
-            bait.resource_quantity,
-            format!("discord:{interaction_id}:bait"),
-        )?;
+    for (index, used) in [&bait.primary, &bait.secondary].into_iter().enumerate() {
+        if !used.resource_item.is_empty() {
+            let slot = if used.resource_item == "rusted_tin" {
+                2
+            } else {
+                1
+            };
+            crate::inventory::grant_item(
+                ctx,
+                player.player_id,
+                slot,
+                &used.resource_item,
+                used.resource_quantity,
+                format!("discord:{interaction_id}:bait:{}", index + 1),
+            )?;
+        }
     }
     ctx.db
         .cast_equipment_receipt()
@@ -451,11 +500,17 @@ pub fn fish_from_discord(
             power,
             luck_bp,
             xp_bonus_bp,
-            bait_id: bait.bait_id,
-            bait_uses_left: bait.uses_left,
-            bait_item: bait.resource_item,
-            bait_quantity: bait.resource_quantity,
+            bait_id: bait.primary.bait_id,
+            bait_uses_left: bait.primary.uses_left,
+            bait_item: bait.primary.resource_item,
+            bait_quantity: bait.primary.resource_quantity,
             bait_size_rolls: bait.size_rolls,
+            collection_focus_enabled,
+            collection_focus_rerolls,
+            secondary_bait_id: bait.secondary.bait_id,
+            secondary_bait_uses_left: bait.secondary.uses_left,
+            secondary_bait_item: bait.secondary.resource_item,
+            secondary_bait_quantity: bait.secondary.resource_quantity,
         });
     let mut receipt = ctx
         .db

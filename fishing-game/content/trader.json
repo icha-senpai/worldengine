@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "listings": [
     {
       "listingId": 20,
@@ -246,7 +246,7 @@
       "kind": "bait",
       "targetId": 13,
       "name": "Trophy Chum",
-      "priceCoins": 1000,
+      "priceCoins": 500,
       "minimumLevel": 1,
       "previousBiomeId": 1,
       "biomeId": 1

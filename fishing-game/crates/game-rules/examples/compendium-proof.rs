@@ -159,25 +159,38 @@ fn main() {
             lightest_at_max_length.weight_g,
             n(row, "minWeightAtMaxLength")
         );
-        if band == 9 {
+        if band == 9 || row.get("maximumSizeChance").is_some() {
             assert_eq!(high, maximum_in_size_band(model, band).unwrap());
             let natural = 1.0
                 / ((u64::from(high.length_mm - low.length_mm) + 1)
                     * (high.weight_g - lightest_at_max_length.weight_g + 1))
                     as f64;
-            let endpoint = if version >= 11 {
-                1.0 / f64::from(game_rules::trophy::PERFECT_ROLL_ONE_IN)
-            } else {
-                0.0
-            };
+            let endpoint =
+                if game_rules::trophy::endpoint_roll_enabled(band, rolls as u8, version as u32) {
+                    1.0 / f64::from(game_rules::trophy::PERFECT_ROLL_ONE_IN)
+                } else {
+                    0.0
+                };
             let attempt_chance = endpoint + (1.0 - endpoint) * natural;
             let size_chance = -(f64::from(rolls) * (-attempt_chance).ln_1p()).exp_m1();
-            assert!((row["naturalPerfectSizeChance"].as_f64().unwrap() - natural).abs() < 1e-15);
-            assert!((row["perfectSizeChance"].as_f64().unwrap() - size_chance).abs() < 1e-15);
+            let natural_expected = row
+                .get("naturalMaximumSizeChance")
+                .unwrap_or(&row["naturalPerfectSizeChance"]);
+            let size_expected = row
+                .get("maximumSizeChance")
+                .unwrap_or(&row["perfectSizeChance"]);
+            assert!((natural_expected.as_f64().unwrap() - natural).abs() < 1e-15);
+            assert!((size_expected.as_f64().unwrap() - size_chance).abs() < 1e-15);
             let p = rank_pull * size_chance;
             let per_cast = (1.0 + q) * p - q * p * p;
             assert!(
-                (row["perfectCastChance"].as_f64().unwrap() - per_cast).abs() < per_cast * 1e-12
+                (row.get("maximumCastChance")
+                    .unwrap_or(&row["perfectCastChance"])
+                    .as_f64()
+                    .unwrap()
+                    - per_cast)
+                    .abs()
+                    < per_cast * 1e-12
             );
         }
         for _ in 0..200 {

@@ -91,9 +91,11 @@ pub struct Snapshot {
     pub earned_achievements: Vec<EarnedAchievement>,
     pub titles: Vec<AnglerTitle>,
     pub perfect_species: Vec<PerfectSpecies>,
+    pub rank_maxima: Vec<RankMaximum>,
     pub baits: Vec<BaitDefinition>,
     pub qualities: Vec<QualityDefinition>,
     pub owned_baits: Vec<BaitStack>,
+    pub focus_preferences: Vec<CollectionFocusPreference>,
     pub bait_loadout: Option<BaitLoadout>,
     pub items: Vec<ItemStack>,
     pub cast_pulls: Vec<CastPull>,
@@ -171,8 +173,8 @@ impl Client {
                 let error = connected.clone();
                 let mut queries = vec!["SELECT * FROM my_service"];
                 if role == ServiceRole::DiscordAdapter {
-                    queries.extend(["SELECT * FROM public_profile", "SELECT * FROM angler_standing", "SELECT * FROM angler_statistics", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM perfect_species", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
-                    queries.extend(["SELECT * FROM bait_definition", "SELECT * FROM quality_definition", "SELECT * FROM adapter_baits", "SELECT * FROM adapter_bait_loadout", "SELECT * FROM adapter_items", "SELECT * FROM adapter_cast_pulls", "SELECT * FROM adapter_cast_equipment", "SELECT * FROM adapter_upgrade_quote", "SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
+                    queries.extend(["SELECT * FROM public_profile", "SELECT * FROM angler_standing", "SELECT * FROM angler_statistics", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM perfect_species", "SELECT * FROM rank_maximum", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
+                    queries.extend(["SELECT * FROM bait_definition", "SELECT * FROM quality_definition", "SELECT * FROM adapter_baits", "SELECT * FROM adapter_bait_loadout", "SELECT * FROM adapter_collection_focus", "SELECT * FROM adapter_items", "SELECT * FROM adapter_cast_pulls", "SELECT * FROM adapter_cast_equipment", "SELECT * FROM adapter_upgrade_quote", "SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
                         "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_bonuses", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
                 }
                 conn.subscription_builder().on_applied(move |ctx| {
@@ -560,6 +562,18 @@ impl Client {
         interaction_id: u64,
         bait_id: u32,
     ) -> Result<Snapshot, Error> {
+        self.set_bait_slot(discord_user_id, display_name, interaction_id, bait_id, 1)
+            .await
+    }
+
+    pub async fn set_bait_slot(
+        &self,
+        discord_user_id: u64,
+        display_name: String,
+        interaction_id: u64,
+        bait_id: u32,
+        slot: u8,
+    ) -> Result<Snapshot, Error> {
         let _guard = self.selection_guard().await?;
         let connection = self.active_connection().await?;
         Self::player_once(
@@ -573,10 +587,52 @@ impl Client {
         )
         .await?;
         let (sender, receiver) = oneshot::channel();
-        connection.reducers.equip_bait_from_discord_then(
+        connection.reducers.set_bait_slot_from_discord_then(
             discord_user_id,
             interaction_id,
             bait_id,
+            slot,
+            complete(sender),
+        )?;
+        receive(receiver).await?;
+        Self::player_once(
+            &connection,
+            discord_user_id,
+            display_name,
+            interaction_id,
+            None,
+            1,
+            false,
+        )
+        .await
+    }
+
+    pub async fn set_collection_focus(
+        &self,
+        discord_user_id: u64,
+        display_name: String,
+        interaction_id: u64,
+        biome_id: Option<u32>,
+        enabled: bool,
+    ) -> Result<Snapshot, Error> {
+        let _guard = self.selection_guard().await?;
+        let connection = self.active_connection().await?;
+        let selected = Self::player_once(
+            &connection,
+            discord_user_id,
+            display_name.clone(),
+            interaction_id,
+            None,
+            1,
+            false,
+        )
+        .await?;
+        let (sender, receiver) = oneshot::channel();
+        connection.reducers.set_collection_focus_from_discord_then(
+            discord_user_id,
+            interaction_id,
+            biome_id.unwrap_or(selected.player.selected_biome_id),
+            enabled,
             complete(sender),
         )?;
         receive(receiver).await?;
@@ -699,10 +755,12 @@ impl Client {
             earned_achievements: connection.db.earned_achievement().iter().collect(),
             titles: connection.db.angler_title().iter().collect(),
             perfect_species: connection.db.perfect_species().iter().collect(),
+            rank_maxima: connection.db.rank_maximum().iter().collect(),
             baits: connection.db.bait_definition().iter().collect(),
             qualities: connection.db.quality_definition().iter().collect(),
             owned_baits: connection.db.adapter_baits().iter().collect(),
             bait_loadout: connection.db.adapter_bait_loadout().iter().next(),
+            focus_preferences: connection.db.adapter_collection_focus().iter().collect(),
             items: connection.db.adapter_items().iter().collect(),
             cast_pulls: connection.db.adapter_cast_pulls().iter().collect(),
             cast_equipment: connection.db.adapter_cast_equipment().iter().next(),

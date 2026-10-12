@@ -9,6 +9,7 @@ import { type Infer as __Infer } from "spacetimedb";
 import ActivateAchievementsReducer from "../activate_achievements_reducer";
 import ActivateCraftingReducer from "../activate_crafting_reducer";
 import ActivatePerfectCatchesReducer from "../activate_perfect_catches_reducer";
+import ActivateRankMaximaReducer from "../activate_rank_maxima_reducer";
 import ActivateRodBonusesReducer from "../activate_rod_bonuses_reducer";
 import ActivateSpeciesMeasurementsReducer from "../activate_species_measurements_reducer";
 import ActivateTraderReducer from "../activate_trader_reducer";
@@ -44,13 +45,18 @@ import PrepareUpgradeFromDiscordReducer from "../prepare_upgrade_from_discord_re
 import RebuildPlayerRecordsReducer from "../rebuild_player_records_reducer";
 import SelectDiscordPlayerReducer from "../select_discord_player_reducer";
 import SelectJournalReducer from "../select_journal_reducer";
+import SetBaitSlotReducer from "../set_bait_slot_reducer";
+import SetBaitSlotFromDiscordReducer from "../set_bait_slot_from_discord_reducer";
 import SetCatchFavoriteReducer from "../set_catch_favorite_reducer";
+import SetCollectionFocusReducer from "../set_collection_focus_reducer";
+import SetCollectionFocusFromDiscordReducer from "../set_collection_focus_from_discord_reducer";
 import SyncDiscordPortraitReducer from "../sync_discord_portrait_reducer";
 import UnlinkBrowserReducer from "../unlink_browser_reducer";
 
 export type ActivateAchievementsParams = __Infer<typeof ActivateAchievementsReducer>;
 export type ActivateCraftingParams = __Infer<typeof ActivateCraftingReducer>;
 export type ActivatePerfectCatchesParams = __Infer<typeof ActivatePerfectCatchesReducer>;
+export type ActivateRankMaximaParams = __Infer<typeof ActivateRankMaximaReducer>;
 export type ActivateRodBonusesParams = __Infer<typeof ActivateRodBonusesReducer>;
 export type ActivateSpeciesMeasurementsParams = __Infer<typeof ActivateSpeciesMeasurementsReducer>;
 export type ActivateTraderParams = __Infer<typeof ActivateTraderReducer>;
@@ -86,7 +92,11 @@ export type PrepareUpgradeFromDiscordParams = __Infer<typeof PrepareUpgradeFromD
 export type RebuildPlayerRecordsParams = __Infer<typeof RebuildPlayerRecordsReducer>;
 export type SelectDiscordPlayerParams = __Infer<typeof SelectDiscordPlayerReducer>;
 export type SelectJournalParams = __Infer<typeof SelectJournalReducer>;
+export type SetBaitSlotParams = __Infer<typeof SetBaitSlotReducer>;
+export type SetBaitSlotFromDiscordParams = __Infer<typeof SetBaitSlotFromDiscordReducer>;
 export type SetCatchFavoriteParams = __Infer<typeof SetCatchFavoriteReducer>;
+export type SetCollectionFocusParams = __Infer<typeof SetCollectionFocusReducer>;
+export type SetCollectionFocusFromDiscordParams = __Infer<typeof SetCollectionFocusFromDiscordReducer>;
 export type SyncDiscordPortraitParams = __Infer<typeof SyncDiscordPortraitReducer>;
 export type UnlinkBrowserParams = __Infer<typeof UnlinkBrowserReducer>;
 

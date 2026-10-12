@@ -37,6 +37,7 @@ import {
 import ActivateAchievementsReducer from "./activate_achievements_reducer";
 import ActivateCraftingReducer from "./activate_crafting_reducer";
 import ActivatePerfectCatchesReducer from "./activate_perfect_catches_reducer";
+import ActivateRankMaximaReducer from "./activate_rank_maxima_reducer";
 import ActivateRodBonusesReducer from "./activate_rod_bonuses_reducer";
 import ActivateSpeciesMeasurementsReducer from "./activate_species_measurements_reducer";
 import ActivateTraderReducer from "./activate_trader_reducer";
@@ -72,7 +73,11 @@ import PrepareUpgradeFromDiscordReducer from "./prepare_upgrade_from_discord_red
 import RebuildPlayerRecordsReducer from "./rebuild_player_records_reducer";
 import SelectDiscordPlayerReducer from "./select_discord_player_reducer";
 import SelectJournalReducer from "./select_journal_reducer";
+import SetBaitSlotReducer from "./set_bait_slot_reducer";
+import SetBaitSlotFromDiscordReducer from "./set_bait_slot_from_discord_reducer";
 import SetCatchFavoriteReducer from "./set_catch_favorite_reducer";
+import SetCollectionFocusReducer from "./set_collection_focus_reducer";
+import SetCollectionFocusFromDiscordReducer from "./set_collection_focus_from_discord_reducer";
 import SyncDiscordPortraitReducer from "./sync_discord_portrait_reducer";
 import UnlinkBrowserReducer from "./unlink_browser_reducer";
 
@@ -87,6 +92,7 @@ import AdapterBaitsRow from "./adapter_baits_table";
 import AdapterCastEquipmentRow from "./adapter_cast_equipment_table";
 import AdapterCastPullsRow from "./adapter_cast_pulls_table";
 import AdapterCollectionRow from "./adapter_collection_table";
+import AdapterCollectionFocusRow from "./adapter_collection_focus_table";
 import AdapterDailyReceiptRow from "./adapter_daily_receipt_table";
 import AdapterInventoryRow from "./adapter_inventory_table";
 import AdapterItemsRow from "./adapter_items_table";
@@ -111,6 +117,7 @@ import MyActionRow from "./my_action_table";
 import MyBaitLoadoutRow from "./my_bait_loadout_table";
 import MyBaitsRow from "./my_baits_table";
 import MyCollectionRow from "./my_collection_table";
+import MyCollectionFocusRow from "./my_collection_focus_table";
 import MyInventoryRow from "./my_inventory_table";
 import MyItemsRow from "./my_items_table";
 import MyJournalRow from "./my_journal_table";
@@ -127,6 +134,7 @@ import MyUpgradeQuoteRow from "./my_upgrade_quote_table";
 import PerfectSpeciesRow from "./perfect_species_table";
 import PublicProfileRow from "./public_profile_table";
 import QualityDefinitionRow from "./quality_definition_table";
+import RankMaximumRow from "./rank_maximum_table";
 import RarityDefinitionRow from "./rarity_definition_table";
 import RodBonusesRow from "./rod_bonuses_table";
 import RodDefinitionRow from "./rod_definition_table";
@@ -300,6 +308,20 @@ const tablesSchema = __schema({
       { name: 'quality_definition_quality_level_key', constraint: 'unique', columns: ['qualityLevel'] },
     ],
   }, QualityDefinitionRow),
+  rankMaximum: __table({
+    name: 'rank_maximum',
+    indexes: [
+      { accessor: 'key', name: 'rank_maximum_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+      { accessor: 'player_id', name: 'rank_maximum_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'rank_maximum_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, RankMaximumRow),
   rarityDefinition: __table({
     name: 'rarity_definition',
     indexes: [
@@ -436,6 +458,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterCollectionRow),
+  adapterCollectionFocus: __table({
+    name: 'adapter_collection_focus',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterCollectionFocusRow),
   adapterDailyReceipt: __table({
     name: 'adapter_daily_receipt',
     indexes: [
@@ -541,6 +570,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyCollectionRow),
+  myCollectionFocus: __table({
+    name: 'my_collection_focus',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyCollectionFocusRow),
   myInventory: __table({
     name: 'my_inventory',
     indexes: [
@@ -639,6 +675,7 @@ const reducersSchema = __reducers(
   __reducerSchema("activate_achievements", ActivateAchievementsReducer),
   __reducerSchema("activate_crafting", ActivateCraftingReducer),
   __reducerSchema("activate_perfect_catches", ActivatePerfectCatchesReducer),
+  __reducerSchema("activate_rank_maxima", ActivateRankMaximaReducer),
   __reducerSchema("activate_rod_bonuses", ActivateRodBonusesReducer),
   __reducerSchema("activate_species_measurements", ActivateSpeciesMeasurementsReducer),
   __reducerSchema("activate_trader", ActivateTraderReducer),
@@ -674,7 +711,11 @@ const reducersSchema = __reducers(
   __reducerSchema("rebuild_player_records", RebuildPlayerRecordsReducer),
   __reducerSchema("select_discord_player", SelectDiscordPlayerReducer),
   __reducerSchema("select_journal", SelectJournalReducer),
+  __reducerSchema("set_bait_slot", SetBaitSlotReducer),
+  __reducerSchema("set_bait_slot_from_discord", SetBaitSlotFromDiscordReducer),
   __reducerSchema("set_catch_favorite", SetCatchFavoriteReducer),
+  __reducerSchema("set_collection_focus", SetCollectionFocusReducer),
+  __reducerSchema("set_collection_focus_from_discord", SetCollectionFocusFromDiscordReducer),
   __reducerSchema("sync_discord_portrait", SyncDiscordPortraitReducer),
   __reducerSchema("unlink_browser", UnlinkBrowserReducer),
 );
@@ -713,6 +754,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "public_profile": Omit<typeof tablesSchema.schemaType.tables["publicProfile"], "accessorName"> & { readonly accessorName: "public_profile" };
     /** @deprecated Use `qualityDefinition` instead. This alias will be removed in the next major version. */
     readonly "quality_definition": Omit<typeof tablesSchema.schemaType.tables["qualityDefinition"], "accessorName"> & { readonly accessorName: "quality_definition" };
+    /** @deprecated Use `rankMaximum` instead. This alias will be removed in the next major version. */
+    readonly "rank_maximum": Omit<typeof tablesSchema.schemaType.tables["rankMaximum"], "accessorName"> & { readonly accessorName: "rank_maximum" };
     /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
     readonly "rarity_definition": Omit<typeof tablesSchema.schemaType.tables["rarityDefinition"], "accessorName"> & { readonly accessorName: "rarity_definition" };
     /** @deprecated Use `rodBonuses` instead. This alias will be removed in the next major version. */
@@ -741,6 +784,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "adapter_cast_pulls": Omit<typeof tablesSchema.schemaType.tables["adapterCastPulls"], "accessorName"> & { readonly accessorName: "adapter_cast_pulls" };
     /** @deprecated Use `adapterCollection` instead. This alias will be removed in the next major version. */
     readonly "adapter_collection": Omit<typeof tablesSchema.schemaType.tables["adapterCollection"], "accessorName"> & { readonly accessorName: "adapter_collection" };
+    /** @deprecated Use `adapterCollectionFocus` instead. This alias will be removed in the next major version. */
+    readonly "adapter_collection_focus": Omit<typeof tablesSchema.schemaType.tables["adapterCollectionFocus"], "accessorName"> & { readonly accessorName: "adapter_collection_focus" };
     /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
     readonly "adapter_daily_receipt": Omit<typeof tablesSchema.schemaType.tables["adapterDailyReceipt"], "accessorName"> & { readonly accessorName: "adapter_daily_receipt" };
     /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
@@ -771,6 +816,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_baits": Omit<typeof tablesSchema.schemaType.tables["myBaits"], "accessorName"> & { readonly accessorName: "my_baits" };
     /** @deprecated Use `myCollection` instead. This alias will be removed in the next major version. */
     readonly "my_collection": Omit<typeof tablesSchema.schemaType.tables["myCollection"], "accessorName"> & { readonly accessorName: "my_collection" };
+    /** @deprecated Use `myCollectionFocus` instead. This alias will be removed in the next major version. */
+    readonly "my_collection_focus": Omit<typeof tablesSchema.schemaType.tables["myCollectionFocus"], "accessorName"> & { readonly accessorName: "my_collection_focus" };
     /** @deprecated Use `myInventory` instead. This alias will be removed in the next major version. */
     readonly "my_inventory": Omit<typeof tablesSchema.schemaType.tables["myInventory"], "accessorName"> & { readonly accessorName: "my_inventory" };
     /** @deprecated Use `myItems` instead. This alias will be removed in the next major version. */
@@ -829,6 +876,7 @@ const tableAccessorAliases = {
   "perfect_species": "perfectSpecies",
   "public_profile": "publicProfile",
   "quality_definition": "qualityDefinition",
+  "rank_maximum": "rankMaximum",
   "rarity_definition": "rarityDefinition",
   "rod_bonuses": "rodBonuses",
   "rod_definition": "rodDefinition",
@@ -843,6 +891,7 @@ const tableAccessorAliases = {
   "adapter_cast_equipment": "adapterCastEquipment",
   "adapter_cast_pulls": "adapterCastPulls",
   "adapter_collection": "adapterCollection",
+  "adapter_collection_focus": "adapterCollectionFocus",
   "adapter_daily_receipt": "adapterDailyReceipt",
   "adapter_inventory": "adapterInventory",
   "adapter_items": "adapterItems",
@@ -858,6 +907,7 @@ const tableAccessorAliases = {
   "my_bait_loadout": "myBaitLoadout",
   "my_baits": "myBaits",
   "my_collection": "myCollection",
+  "my_collection_focus": "myCollectionFocus",
   "my_inventory": "myInventory",
   "my_items": "myItems",
   "my_journal": "myJournal",
@@ -919,6 +969,8 @@ export type DbView = __DbViewBase & {
   readonly "public_profile": __DbViewBase["publicProfile"];
   /** @deprecated Use `qualityDefinition` instead. This alias will be removed in the next major version. */
   readonly "quality_definition": __DbViewBase["qualityDefinition"];
+  /** @deprecated Use `rankMaximum` instead. This alias will be removed in the next major version. */
+  readonly "rank_maximum": __DbViewBase["rankMaximum"];
   /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
   readonly "rarity_definition": __DbViewBase["rarityDefinition"];
   /** @deprecated Use `rodBonuses` instead. This alias will be removed in the next major version. */
@@ -947,6 +999,8 @@ export type DbView = __DbViewBase & {
   readonly "adapter_cast_pulls": __DbViewBase["adapterCastPulls"];
   /** @deprecated Use `adapterCollection` instead. This alias will be removed in the next major version. */
   readonly "adapter_collection": __DbViewBase["adapterCollection"];
+  /** @deprecated Use `adapterCollectionFocus` instead. This alias will be removed in the next major version. */
+  readonly "adapter_collection_focus": __DbViewBase["adapterCollectionFocus"];
   /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_daily_receipt": __DbViewBase["adapterDailyReceipt"];
   /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
@@ -977,6 +1031,8 @@ export type DbView = __DbViewBase & {
   readonly "my_baits": __DbViewBase["myBaits"];
   /** @deprecated Use `myCollection` instead. This alias will be removed in the next major version. */
   readonly "my_collection": __DbViewBase["myCollection"];
+  /** @deprecated Use `myCollectionFocus` instead. This alias will be removed in the next major version. */
+  readonly "my_collection_focus": __DbViewBase["myCollectionFocus"];
   /** @deprecated Use `myInventory` instead. This alias will be removed in the next major version. */
   readonly "my_inventory": __DbViewBase["myInventory"];
   /** @deprecated Use `myItems` instead. This alias will be removed in the next major version. */
@@ -1035,6 +1091,8 @@ export type Tables = __TablesBase & {
   readonly "public_profile": __TablesBase["publicProfile"];
   /** @deprecated Use `qualityDefinition` instead. This alias will be removed in the next major version. */
   readonly "quality_definition": __TablesBase["qualityDefinition"];
+  /** @deprecated Use `rankMaximum` instead. This alias will be removed in the next major version. */
+  readonly "rank_maximum": __TablesBase["rankMaximum"];
   /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
   readonly "rarity_definition": __TablesBase["rarityDefinition"];
   /** @deprecated Use `rodBonuses` instead. This alias will be removed in the next major version. */
@@ -1063,6 +1121,8 @@ export type Tables = __TablesBase & {
   readonly "adapter_cast_pulls": __TablesBase["adapterCastPulls"];
   /** @deprecated Use `adapterCollection` instead. This alias will be removed in the next major version. */
   readonly "adapter_collection": __TablesBase["adapterCollection"];
+  /** @deprecated Use `adapterCollectionFocus` instead. This alias will be removed in the next major version. */
+  readonly "adapter_collection_focus": __TablesBase["adapterCollectionFocus"];
   /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_daily_receipt": __TablesBase["adapterDailyReceipt"];
   /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
@@ -1093,6 +1153,8 @@ export type Tables = __TablesBase & {
   readonly "my_baits": __TablesBase["myBaits"];
   /** @deprecated Use `myCollection` instead. This alias will be removed in the next major version. */
   readonly "my_collection": __TablesBase["myCollection"];
+  /** @deprecated Use `myCollectionFocus` instead. This alias will be removed in the next major version. */
+  readonly "my_collection_focus": __TablesBase["myCollectionFocus"];
   /** @deprecated Use `myInventory` instead. This alias will be removed in the next major version. */
   readonly "my_inventory": __TablesBase["myInventory"];
   /** @deprecated Use `myItems` instead. This alias will be removed in the next major version. */

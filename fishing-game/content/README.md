@@ -2,7 +2,7 @@
 
 `species.json` is the authoritative active catalog of all 251 supplied sprite names, preserving numeric species IDs and spelling. Every entry includes allowed ranks and rank-specific rewards/tickets, one home biome, encounter tickets, prototype measurements/value, discovery XP, and completion eligibility. Nidalees Lost Sock is the one fake fish; Sun Fish and Sunfish remain distinct.
 
-`world.json` defines seven biomes and rod families, category splits and level cap 120. The starter Twig is free; later rods and sequential licences are bought from the Trader. Power grants a chance of one additional independent pull. Luck shifts physical size bands. Bait and permanent rod quality are active.
+`world.json` defines seven biomes and rod families, category splits and level cap 10,000. The starter Twig is free; later rods and sequential licences are bought from the Trader. Power grants a chance of one additional independent pull. Luck shifts physical size bands. Bait and permanent rod quality are active.
 
 `game-rules.json` defines rules version 7 and the global 60-second accepted-cast cooldown. All equipment and travel changes preserve that cooldown. Rejected operations and receipt replays do not restart it. `crafting.json` defines eight 10-use baits, including green, yellow and pink XP slime; see [XP progression](../docs/xp-progression.md).
 

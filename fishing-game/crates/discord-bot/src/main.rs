@@ -110,6 +110,18 @@ fn rejection(error: &Error) -> String {
     if message.contains("INTERACTION_EXPIRED") {
         return "That request expired. Use /fish for a new cast.".into();
     }
+    if message.contains("INVALID_BAIT_SLOT") {
+        return "Choose bait slot 1 or 2.".into();
+    }
+    if message.contains("MULTI_BAIT_UNAVAILABLE") {
+        return "The second bait slot is awaiting the game update.".into();
+    }
+    if message.contains("COLLECTION_FOCUS_LOCKED") {
+        return "Discover every ordinary species in that biome to unlock Collection Focus. Fihs and the Sock are bonus discoveries.".into();
+    }
+    if message.contains("COLLECTION_FOCUS_UNAVAILABLE") {
+        return "Collection Focus is awaiting the game update.".into();
+    }
     if message.contains("BIOME_LICENCE_REQUIRED") || message.contains("PREVIOUS_LICENCE_REQUIRED") {
         return "Visit /shop for biome licences. Buy each water's licence before moving on.".into();
     }
@@ -145,7 +157,7 @@ fn rejection(error: &Error) -> String {
         return "That rod is already Prismatic.".into();
     }
     if message.contains("BAIT_NOT_OWNED") {
-        return "Buy a 10-use pack at /shop before equipping bait.".into();
+        return "This slot needs stocked bait from /shop. Matching bait in both slots requires two shared uses.".into();
     }
     if message.contains("BIOME_UNAVAILABLE") || message.contains("ROD_UNAVAILABLE") {
         return "That ID is unavailable. Use /biome or /gear to see valid IDs.".into();
@@ -234,11 +246,15 @@ async fn catch_reply(
                 );
                 let perfect =
                     discord_bot::perfect_catch::card(species, pull, &result.player.display_name);
-                let is_perfect = perfect.is_some();
+                let is_maximum = perfect.is_some();
+                let is_perfect =
+                    is_maximum && pull.rarity == "UUR" && species.key != "nidalees-lost-sock";
                 lines.push(format!(
                     "{} **{}** · {}",
-                    if perfect.is_some() {
+                    if is_perfect {
                         "✦ PERFECT CATCH ·"
+                    } else if is_maximum {
+                        "✦ RANK MAXIMUM ·"
                     } else {
                         "🎣"
                     },
@@ -254,6 +270,10 @@ async fn catch_reply(
                 let art = if is_perfect {
                     data.catch_art
                         .render_perfect(&species.key, &pull.rarity)
+                        .await
+                } else if is_maximum {
+                    data.catch_art
+                        .render_rank_maximum(&species.key, &pull.rarity)
                         .await
                 } else {
                     data.catch_art.render(&species.key, &pull.rarity).await
@@ -332,21 +352,36 @@ async fn catch_reply(
             .find(|quality| quality.quality_level == equipment.quality_level)
             .map_or("Unknown quality", |quality| quality.name.as_str());
         summary.push_str(&format!(" · **{}**", quality_name));
-        if equipment.bait_id != 0 {
+        for (slot, id, uses, item, quantity) in [
+            (
+                1,
+                equipment.bait_id,
+                equipment.bait_uses_left,
+                &equipment.bait_item,
+                equipment.bait_quantity,
+            ),
+            (
+                2,
+                equipment.secondary_bait_id,
+                equipment.secondary_bait_uses_left,
+                &equipment.secondary_bait_item,
+                equipment.secondary_bait_quantity,
+            ),
+        ] {
+            if id == 0 {
+                continue;
+            }
             let name = result
                 .baits
                 .iter()
-                .find(|bait| bait.bait_id == equipment.bait_id)
+                .find(|bait| bait.bait_id == id)
                 .map_or("Bait", |bait| bait.name.as_str());
-            summary.push_str(&format!(
-                "\n{} · {} uses left",
-                name, equipment.bait_uses_left
-            ));
-            if !equipment.bait_item.is_empty() {
+            summary.push_str(&format!("\nSlot {slot}: {name} · {uses} shared uses left"));
+            if !item.is_empty() {
                 summary.push_str(&format!(
                     " · +{} {}",
-                    equipment.bait_quantity.max(1),
-                    equipment.bait_item.replace('_', " ")
+                    quantity.max(1),
+                    item.replace('_', " ")
                 ));
             }
         }
@@ -653,6 +688,33 @@ async fn profile(
         .iter()
         .filter(|row| row.player_id == target)
         .count();
+    let maxima: std::collections::BTreeSet<_> = result
+        .rank_maxima
+        .iter()
+        .filter(|row| row.player_id == target)
+        .map(|row| (row.species_id, row.rarity.as_str()))
+        .collect();
+    let maximum_count = result
+        .species
+        .iter()
+        .map(|fish| {
+            fish.allowed_rarities
+                .iter()
+                .filter(|rank| maxima.contains(&(fish.species_id, rank.as_str())))
+                .count()
+        })
+        .sum::<usize>();
+    let fully_maxed = result
+        .species
+        .iter()
+        .filter(|fish| {
+            !fish.allowed_rarities.is_empty()
+                && fish
+                    .allowed_rarities
+                    .iter()
+                    .all(|rank| maxima.contains(&(fish.species_id, rank.as_str())))
+        })
+        .count();
     let badge_count = result
         .earned_achievements
         .iter()
@@ -685,7 +747,7 @@ async fn profile(
             .await;
         };
         let standing = result.standings.iter().find(|row| row.player_id == target);
-        return reply(ctx, format!("**{} · {}**\n[View profile]({}) · level {}\n{} lifetime fish · {}/249 ordinary discoveries\n{} UUR catches · {} current records · {} badges\n✦ {perfected_count} perfected species", plain_name(&other.display_name), title, public_link, other.level, other.fish_count, other.discoveries, standing.map_or(0, |row| row.uur_count), standing.map_or(0, |row| row.records_held), badge_count)).await;
+        return reply(ctx, format!("**{} · {}**\n[View profile]({}) · level {}\n{} lifetime fish · {}/249 ordinary discoveries\n{} UUR catches · {} current records · {} badges\n✦ {perfected_count} UUR perfected species\n{maximum_count} rank maxima · {fully_maxed} fully maxed species", plain_name(&other.display_name), title, public_link, other.level, other.fish_count, other.discoveries, standing.map_or(0, |row| row.uur_count), standing.map_or(0, |row| row.records_held), badge_count)).await;
     }
     let ordinary = result
         .species
@@ -701,7 +763,7 @@ async fn profile(
             })
         })
         .count();
-    reply(ctx, format!("**Your Fishbound profile · {title}**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {} fish kept\n✦ {perfected_count} perfected species\n{badge_count} badges earned · [Your profile]({public_link})\n[Achievements and titles]({}/#achievements)",
+    reply(ctx, format!("**Your Fishbound profile · {title}**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {} fish kept\n✦ {perfected_count} UUR perfected species\n{maximum_count} rank maxima · {fully_maxed} fully maxed species\n{badge_count} badges earned · [Your profile]({public_link})\n[Achievements and titles]({}/#achievements)",
         game_rules::progression::level_for_xp_for_version(result.player.total_xp, result.config.level_cap, result.config.version), result.player.total_xp, result.player.coins,
         result.player.completed_casts, result.player.fish_count, discoveries, ordinary, result.player.kept_count, ctx.data().website.trim_end_matches('/'))).await
 }
@@ -1247,6 +1309,39 @@ async fn rod(
     }
 }
 
+/// Toggle Collection Focus after discovering a biome's ordinary species.
+#[poise::command(slash_command)]
+async fn focus(
+    ctx: Context<'_>,
+    #[description = "Enable or disable Collection Focus"] enabled: bool,
+    #[description = "Biome ID; defaults to your current water"] biome_id: Option<u32>,
+) -> Result<(), Error> {
+    acknowledge(ctx, true).await?;
+    let _permit = ctx
+        .data()
+        .pending
+        .try_acquire()
+        .map_err(|_| "The game is busy")?;
+    let result = ctx
+        .data()
+        .game
+        .set_collection_focus(
+            ctx.author().id.get(),
+            ctx.author().name.clone(),
+            interaction_id(ctx)?,
+            biome_id,
+            enabled,
+        )
+        .await?;
+    let id = biome_id.unwrap_or(result.player.selected_biome_id);
+    let name = result
+        .biomes
+        .iter()
+        .find(|row| row.biome_id == id)
+        .map_or("this biome", |row| row.name.as_str());
+    reply(ctx, format!("**Collection Focus {} · {}**\nA duplicate rank has a 20% chance to become a missing rank of the same fish, weighted by its normal rank odds. Species odds stay the same; Fihs and the Sock are unaffected. Free to toggle; saved separately for each biome.", if enabled { "on" } else { "off" }, name)).await
+}
+
 /// List rods or equip a purchased rod using its ID.
 #[poise::command(slash_command)]
 async fn gear(
@@ -1301,7 +1396,7 @@ async fn gear(
             )
         })
         .collect();
-    reply(ctx, format!("**Your fishing rods**\n{}\n/shop buys rods · /gear equips · /upgrade crafts quality · /bait equips bait. Power can add one independent fish, junk or treasure pull. One cooldown and one bait use per cast.", rows.join("\n"))).await
+    reply(ctx, format!("**Your fishing rods**\n{}\n/shop buys rods · /gear equips · /upgrade crafts quality · /bait equips bait. Power can add one independent fish, junk or treasure pull. One cooldown and one use from each active bait slot per cast.", rows.join("\n"))).await
 }
 
 fn rod_stats(result: &Snapshot, rod_id: u32) -> (&str, u32, u32, u32) {
@@ -1332,7 +1427,8 @@ fn rod_stats(result: &Snapshot, rod_id: u32) -> (&str, u32, u32, u32) {
 #[poise::command(slash_command)]
 async fn bait(
     ctx: Context<'_>,
-    #[description = "Bait ID; zero to remove bait"] bait_id: Option<u32>,
+    #[description = "Bait ID; zero clears the chosen slot"] bait_id: Option<u32>,
+    #[description = "Bait slot 1 or 2; defaults to 1"] slot: Option<u8>,
 ) -> Result<(), Error> {
     acknowledge(ctx, true).await?;
     let result = if let Some(id) = bait_id {
@@ -1343,17 +1439,22 @@ async fn bait(
             .map_err(|_| "The game is busy")?;
         ctx.data()
             .game
-            .equip_bait(
+            .set_bait_slot(
                 ctx.author().id.get(),
                 ctx.author().name.clone(),
                 interaction_id(ctx)?,
                 id,
+                slot.unwrap_or(1),
             )
             .await?
     } else {
         snapshot(ctx, false).await?
     };
     let equipped = result.bait_loadout.as_ref().map_or(0, |row| row.bait_id);
+    let secondary = result
+        .bait_loadout
+        .as_ref()
+        .map_or(0, |row| row.secondary_bait_id);
     let rows: Vec<_> = result
         .baits
         .iter()
@@ -1382,7 +1483,7 @@ async fn bait(
             };
             format!(
                 "{} **{}** · ID {} · {} uses · {}",
-                if equipped == row.bait_id { "→" } else { "·" },
+                if equipped == row.bait_id && secondary == row.bait_id { "→ 1+2" } else if equipped == row.bait_id { "→ 1" } else if secondary == row.bait_id { "→ 2" } else { "·" },
                 row.name,
                 row.bait_id,
                 stock,
@@ -1390,7 +1491,7 @@ async fn bait(
             )
         })
         .collect();
-    reply(ctx, format!("**Bait pouch**\n{}\n{}\nBuy 10-use packs at /shop (item IDs 101–108). One use per accepted cast; depletion removes bait automatically. /bait bait_id:0 removes bait.", rows.join("\n"), if equipped == 0 { "No bait equipped." } else { "→ Equipped bait" })).await
+    reply(ctx, format!("**Bait pouch**\n{}\nSlots: 1 → {} · 2 → {}\n/bait bait_id:ID slot:1 or slot:2 equips a slot; bait_id:0 clears it. Both slots work from level 1, including matching bait. Luck, XP, materials and luck-bait size attempts add together. Each active slot spends one use per accepted cast, including bonus pulls. Shared stock goes to slot 1 first; depleted slots clear. Buy 10-use packs at /shop (IDs 101–113).", rows.join("\n"), equipped, secondary)).await
 }
 
 /// Permanently craft the next quality for an owned rod. Defaults to equipped rod.
@@ -1732,7 +1833,7 @@ async fn help(ctx: Context<'_>) -> Result<(), Error> {
         .collect::<Vec<_>>()
         .join("\n");
     let commands = format!(
-        "/fish — cast every 60 seconds, or click Fish again beneath your catch\n/daily — Dockside Delivery and stamp bonus\n/profile [player_id] — your progression or a public angler profile\n/inventory — catches and IDs\n/sell [catch_ids] — preview and confirm fish sales\n/leaderboard [category] [page] [species_id] — standings or species records\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — equip owned rods\n/rod [rod_id] — show off an owned rod in the channel\n/shop [item_id] — licences, rods and bait packs\n/bait [bait_id] — equip bait; 0 removes bait\n/upgrade [rod_id] — craft permanent rod quality\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, confirm sales, and choose earned titles in Achievements. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.",
+        "/fish — cast every 60 seconds, or click Fish again beneath your catch\n/daily — Dockside Delivery and stamp bonus\n/profile [player_id] — your progression or a public angler profile\n/inventory — catches and IDs\n/sell [catch_ids] — preview and confirm fish sales\n/leaderboard [category] [page] [species_id] — standings or species records\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — equip owned rods\n/rod [rod_id] — show off an owned rod in the channel\n/shop [item_id] — licences, rods and bait packs\n/bait [bait_id] [slot] — equip either bait slot; 0 clears it\n/focus enabled [biome_id] — toggle help finding missing ranks\n/upgrade [rod_id] — craft permanent rod quality\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, confirm sales, and choose earned titles in Achievements. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.",
         ctx.data().website
     );
     send_reply(ctx,
@@ -1815,6 +1916,7 @@ async fn main() -> Result<(), Error> {
                 gear(),
                 rod(),
                 bait(),
+            focus(),
                 upgrade(),
                 help(),
             ],

@@ -1,12 +1,12 @@
 # Agreed Discord command plan
 
-Status: fourteen handlers (/fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /upgrade, /help)
+Status: fifteen handlers (/fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /focus, /upgrade, /help)
 are implemented. /biome accepts optional biome_id; /gear accepts optional rod_id.
 Meadow Pond and the starter Twig Rod are free. Later rods and permanent biome licences are bought from the camp trader after reaching their level requirements. Collection responses summarize seven
-biomes to stay within Discord message limits; the website shows the full book. All launch commands below are implemented. The fourteen commands are registered globally; matching legacy server copies are removed on startup.
+biomes to stay within Discord message limits; the website shows the full book. All launch commands below are implemented. The fifteen commands are registered globally; matching legacy server copies are removed on startup.
 /profile accepts an optional public player_id from /leaderboard. Other profiles show only public progression, records, titles and badge counts; wallets and inventory remain private.
 This plan updates the original design specification's Discord command list.
-Angler level caps at 120. `/shop` item IDs 106/107/108 buy green/yellow/pink
+The local rules-12 candidate raises the angler level cap to 10,000. `/shop` item IDs 106/107/108 buy green/yellow/pink
 XP slime packs; `/bait` IDs 6/7/8 equip them. Each has ten uses and adds
 +25/+50/+100% fishing XP respectively. See [XP progression](xp-progression.md).
 Commands use plain Discord slash syntax. The `./` spelling in chat was only to
@@ -112,7 +112,7 @@ purchase nor travel changes fishing cooldown, XP, odds, collection, or records.
 
 Crafting guarantees success and consumes the quoted tin/scrap recipe once.
 Each rod keeps its own quality permanently. Bonus pulls independently roll the
-same biome category pool, sharing one cooldown and one bait use. `/fish` delivers
+same biome category pool, sharing one cooldown and one use per active bait slot. `/fish` delivers
 up to two saved reward-card attachments: a rarity card for each fish, or a salvage
 card showing the original rusted tin/scrap sprite for junk/treasure pulls. Saved
 item quantities, coins and XP remain in the embed text. Guaranteed resource-bait
@@ -132,3 +132,24 @@ Sale previews bind service identity, player, nonce and exact catch IDs for two
 minutes. Only the invoking Discord user can confirm. Commit rechecks ownership,
 favorites and the quoted total atomically; concurrent website/Discord sales pay
 once. Sale quotes are private and expired rows are pruned after a day.
+
+
+## Collection Focus (deployed October 12)
+
+`/focus enabled:true [biome_id]` enables missing-rank help after discovering all
+ordinary species in that licensed biome. Defaults to the current water.
+`enabled:false` disables it. The confirmation is private. This is the fifteenth
+global command. Discord API verification confirms its required `enabled` boolean
+and optional `biome_id`, with no duplicate server registrations.
+See [Collection Focus](collection-focus.md) for odds, unlocks and persistence.
+
+
+## Two bait slots (rules-14 candidate)
+
+`/bait bait_id:ID slot:1` or `slot:2` equips either slot, with no level or category
+restriction. Matching bait requires two shared uses. Omitting slot selects 1;
+`bait_id:0` clears only the specified slot. Catch summaries retain both bait
+names, remaining shared stock and material bonuses. The command count stays 15;
+its new optional integer slot argument is registered when deploying the bot.
+
+Deployed rules 15 adds rank-maxima and fully-maxed-species counters to both own and public `/profile` replies. Exact maxima at lower ranks receive a RANK MAXIMUM catch card; UUR retains the PERFECT CATCH badge card. No new slash command is required. See [rank maxima recognition](rank-maxima-recognition.md).

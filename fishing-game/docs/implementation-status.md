@@ -2,10 +2,39 @@
 
 The owner authorized autonomous implementation after rereading the specification
 and project docs, then explicitly requested all fish and all biomes. All 251 species
-and seven biomes are implemented with level cap 120 and optional purchased rods.
+and seven biomes are implemented with the live level cap 10,000 and optional purchased rods.
 The website and account-link service are exposed through ServBay/Cloudflare at
-https://fish.ichaa.dev. The bot connects to Discord; all fourteen commands are
+https://fish.ichaa.dev. The bot connects to Discord; all fifteen commands are
 registered globally; matching legacy server copies are removed on startup; the public OAuth callback is registered.
+
+## Expanded cap and bait pricing (October 12, deployed)
+
+The level cap is 10,000 with every XP threshold/reward retained. Banked lifetime
+XP is credited when the owner activates the new configuration. Trophy Chum is
+500 coins per ten-use pack (50 per cast), with trader catalog 8 invalidating old
+quotes. All luck baits use the complete species pool. Crafting catalog 6 gives
+Worms/Grubs/Fireflies 2/3/4 size attempts, preserving their luck and prices;
+Trophy retains eight attempts. Descriptions and loadout rates use these effects. Unrestricted two-slot multi-baiting is implemented locally for level 1; see the candidate below.
+
+## Collection Focus (October 12, deployed)
+
+Rules 13 adds a saved, optional toggle per biome after all its ordinary species
+are discovered. Duplicate ranks have a 20% chance to become a weighted missing
+rank of the same fish. The web Compendium and `/focus` share the preference;
+Equipped/Best rates account for current collected ranks and between-pull updates.
+Default off, no extra cost/cooldown/bait use; Fihs and the Sock unaffected.
+The module/client schema change passed both isolated and restored-live migration
+proofs and shipped with coordinated client restarts. See [Collection Focus](collection-focus.md).
+
+## Multi-baiting (rules 14, local candidate)
+
+Both bait slots work from level 1, with any pairing including matching bait.
+Luck/XP/material bonuses and luck-bait size attempts stack; each funded slot
+spends one use per accepted cast. Odd shared stock prioritizes slot 1, and
+unavailable slots clear independently. The Tackle Box and `/bait [slot]` expose
+both slots; Equipped/Best compendium rates include them. Existing single-bait
+loadouts and receipts migrate with additive defaults. See [multi-baiting](multi-bait.md).
+The live rules-13 deployment is unchanged pending publication.
 
 ## Settled decisions
 
@@ -30,6 +59,13 @@ registered globally; matching legacy server copies are removed on startup; the p
 - Generate bindings from WASM; do not edit generated files.
 
 ## Implemented locally
+
+Trophy Chum all-rank maxima (October 12, deployed): rules 12 extends the
+existing per-attempt endpoint roll to every rank for Trophy Chum. Rank selection,
+UUR perfect odds/recognition, other bait, price and luck remain unchanged. All
+2492 valid species/rank maxima remain in their selected rank. The odds and
+25–50-cast/day implications are documented in `trophy-chum-rank-maxima.md`.
+Rules 13, deployed October 12, includes this tuning and Collection Focus.
 
 Desktop readability update (October 12, deployed): the shared frame is
 1760 px wide, with direct typography and layout edits in every camp view and its
@@ -134,7 +170,7 @@ No sibling application's server or data was changed.
 ## Remaining boundaries
 
 - Discord credentials were supplied and the bot reached Gateway readiness.
-  Discord's API confirms the public OAuth callback and all fourteen global commands.
+  Discord's API confirms the public OAuth callback and all fifteen global commands.
   Live command delivery/deferral, attachment rendering, OAuth
   consent/callback, and credential rotation remain unverified against Discord.
 - Release/salvage,
@@ -180,3 +216,5 @@ coins, gear, daily state or fishing odds are changed by the backfill.
 
 Live OAuth consent and Discord command/button delivery remain a real-player
 acceptance check. Isolated integration/native proofs verify server behavior.
+
+Rank maxima recognition and unrestricted multi-bait are deployed in rules 15 (2026-10-12): permanent species/rank collection marks, unique-pair and fully-maxed-species profile counters, Discord rank-maximum cards, and two unrestricted bait slots from level 1. Seven retained historical maxima were recovered without changing existing gameplay state. Site, database, bot commands and OAuth callback verified. See [rank-maxima-recognition.md](rank-maxima-recognition.md).

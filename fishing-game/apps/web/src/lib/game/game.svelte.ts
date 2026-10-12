@@ -8,6 +8,7 @@ export class Game {
   achievementCollections = $state.raw<import('@fishing-game/generated/types').AchievementCollection[]>([]);
   earnedAchievements = $state.raw<import('@fishing-game/generated/types').EarnedAchievement[]>([]);
   achievementProgress = $state.raw<import('@fishing-game/generated/types').AchievementProgress[]>([]);
+  rankMaxima = $state.raw<import('@fishing-game/generated/types').RankMaximum[]>([]);
   perfectSpecies = $state.raw<import('@fishing-game/generated/types').PerfectSpecies[]>([]);
   titles = $state.raw<import('@fishing-game/generated/types').AnglerTitle[]>([]);
   publicProfiles = $state.raw<PublicProfile[]>([]);
@@ -16,6 +17,7 @@ export class Game {
   rodRecipes = $state.raw<import('@fishing-game/generated/types').RodUpgradeRecipe[]>([]);
   qualities = $state.raw<import('@fishing-game/generated/types').QualityDefinition[]>([]);
   ownedBaits = $state.raw<import('@fishing-game/generated/types').BaitStack[]>([]);
+  focusPreferences = $state.raw<import('@fishing-game/generated/types').CollectionFocusPreference[]>([]);
   baitLoadout = $state.raw<import('@fishing-game/generated/types').BaitLoadout | null>(null);
   upgradeQuote = $state.raw<import('@fishing-game/generated/types').UpgradeQuote | null>(null);
   status = $state('Not connected');
@@ -61,7 +63,7 @@ export class Game {
 
   private clearPrivate() {
     this.achievementProgress = [];
-    this.ownedBaits = []; this.baitLoadout = null; this.upgradeQuote = null;
+    this.focusPreferences = []; this.ownedBaits = []; this.baitLoadout = null; this.upgradeQuote = null;
     this.player = null; this.profile = null; this.inventory = []; this.collection = [];
     this.recent = []; this.items = []; this.challenge = null; this.action = null; this.shopQuote = null; this.ownedRods = []; this.licences = [];
     this.journal = null; this.journalLastQuery = ''; this.journalPending = null; this.journalError = '';
@@ -73,6 +75,7 @@ export class Game {
     this.achievementCollections = [...connection.db.achievementCollection.iter()];
     this.earnedAchievements = [...connection.db.earnedAchievement.iter()];
     this.achievementProgress = [...connection.db.myAchievementProgress.iter()];
+    this.rankMaxima = [...connection.db.rankMaximum.iter()];
     this.perfectSpecies = [...connection.db.perfectSpecies.iter()];
     this.titles = [...connection.db.anglerTitle.iter()];
     this.publicProfiles = [...connection.db.publicProfile.iter()];
@@ -81,6 +84,7 @@ export class Game {
     this.profile = [...connection.db.myProfile.iter()][0] ?? null;
     this.inventory = [...connection.db.myInventory.iter()].sort((a, b) => a.catchId > b.catchId ? -1 : 1);
     this.collection = [...connection.db.myCollection.iter()];
+    this.focusPreferences = [...connection.db.myCollectionFocus.iter()];
     this.recent = [...connection.db.myRecentCatches.iter()].sort((a, b) => a.recentId > b.recentId ? -1 : 1);
     this.journal = [...connection.db.myJournal.iter()][0] ?? null;
     this.species = [...connection.db.speciesDefinition.iter()].sort((a, b) => a.speciesId - b.speciesId);
@@ -149,12 +153,12 @@ export class Game {
           if (generation !== this.generation) return;
           this.ready = true; this.status = 'Live'; this.attempts = 0; this.error = ''; this.refresh();
         }).onError(() => { this.error = 'The pond could not load your data.'; connection.disconnect(); })
-          .subscribe(['SELECT * FROM achievement_definition', 'SELECT * FROM achievement_collection', 'SELECT * FROM earned_achievement', 'SELECT * FROM perfect_species', 'SELECT * FROM angler_title', 'SELECT * FROM my_achievement_progress', 'SELECT * FROM public_profile', 'SELECT * FROM angler_portrait', 'SELECT * FROM my_player', 'SELECT * FROM my_profile', 'SELECT * FROM my_inventory', 'SELECT * FROM my_collection',
+          .subscribe(['SELECT * FROM achievement_definition', 'SELECT * FROM achievement_collection', 'SELECT * FROM earned_achievement', 'SELECT * FROM perfect_species', 'SELECT * FROM rank_maximum', 'SELECT * FROM angler_title', 'SELECT * FROM my_achievement_progress', 'SELECT * FROM public_profile', 'SELECT * FROM angler_portrait', 'SELECT * FROM my_player', 'SELECT * FROM my_profile', 'SELECT * FROM my_inventory', 'SELECT * FROM my_collection', 'SELECT * FROM my_collection_focus',
             'SELECT * FROM my_baits', 'SELECT * FROM my_bait_loadout', 'SELECT * FROM my_upgrade_quote', 'SELECT * FROM bait_definition', 'SELECT * FROM quality_definition', 'SELECT * FROM my_recent_catches', 'SELECT * FROM my_journal', 'SELECT * FROM my_link_challenge', 'SELECT * FROM my_action', 'SELECT * FROM my_items',
             'SELECT * FROM species_definition', 'SELECT * FROM species_record', 'SELECT * FROM angler_standing', 'SELECT * FROM angler_statistics', 'SELECT * FROM legendary_find', 'SELECT * FROM game_config', 'SELECT * FROM biome_definition', 'SELECT * FROM my_rods', 'SELECT * FROM my_licences', 'SELECT * FROM my_shop_quote', 'SELECT * FROM shop_listing', 'SELECT * FROM rod_bonuses', 'SELECT * FROM rod_definition', 'SELECT * FROM rarity_definition']);
       }).onConnectError(lost).onDisconnect(lost).build();
     this.connection = connection;
-    for (const table of [connection.db.achievementDefinition, connection.db.achievementCollection, connection.db.earnedAchievement, connection.db.perfectSpecies, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.anglerPortrait, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection,
+    for (const table of [connection.db.achievementDefinition, connection.db.achievementCollection, connection.db.earnedAchievement, connection.db.perfectSpecies, connection.db.rankMaximum, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.anglerPortrait, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection, connection.db.myCollectionFocus,
       connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.baitDefinition, connection.db.rodUpgradeRecipe, connection.db.qualityDefinition, connection.db.myRods, connection.db.myLicences, connection.db.myShopQuote, connection.db.shopListing, connection.db.myRecentCatches, connection.db.myJournal, connection.db.myLinkChallenge, connection.db.myAction, connection.db.myItems,
       connection.db.speciesDefinition, connection.db.speciesRecord, connection.db.anglerStanding, connection.db.anglerStatistics, connection.db.legendaryFind, connection.db.gameConfig, connection.db.biomeDefinition, connection.db.rodBonuses, connection.db.rodDefinition, connection.db.rarityDefinition]) {
       table.onInsert(this.refresh); table.onDelete(this.refresh);
@@ -178,6 +182,7 @@ export class Game {
     connection.db.myPlayer.onUpdate(this.refresh);
     connection.db.myProfile.onUpdate(this.refresh);
     connection.db.myCollection.onUpdate(this.refresh);
+    connection.db.myCollectionFocus.onUpdate(this.refresh);
     connection.db.myInventory.onUpdate(this.refresh);
   }
   stop() {
@@ -216,7 +221,7 @@ export class Game {
       const message = String(error);
       this.error = message.includes('INSUFFICIENT_MATERIALS') ? 'Gather more rusted tin and scrap before upgrading. Resource bait is available at the Trader.'
         : message.includes('MAX_QUALITY') ? 'This rod has already reached Prismatic quality.'
-        : message.includes('BAIT_NOT_OWNED') ? 'Buy bait at the Trader before equipping it.'
+        : message.includes('BAIT_NOT_OWNED') ? 'This slot needs stocked bait. Matching bait in both slots requires two shared uses.'
         : message.includes('INSUFFICIENT_COINS') ? 'Your coin pouch is a little short. Sell catches or collect /daily, then visit the trader again.'
         : message.includes('ALREADY_OWNED') ? 'You already own this. Your collection of gear has refreshed.'
         : message.includes('QUOTE_CHANGED') ? 'This offer changed. Check the updated price and try again.'
@@ -228,6 +233,10 @@ export class Game {
         : message.includes('BIOME_LEVEL_REQUIRED') || message.includes('ROD_LOCKED') ? 'Reach the required angler level to unlock this destination or rod.'
         : message.includes('BIOME_POWER_REQUIRED') ? 'Equip a stronger rod for this biome, or return to an earlier biome first.'
         : message.includes('ACTION_RATE_LIMITED') ? 'Give the previous action a moment before trying again.'
+        : message.includes('MULTI_BAIT_UNAVAILABLE') ? 'The second bait slot is awaiting the game update.'
+        : message.includes('INVALID_BAIT_SLOT') ? 'Choose bait slot 1 or 2.'
+        : message.includes('COLLECTION_FOCUS_LOCKED') ? 'Discover every ordinary species in this biome to unlock Collection Focus.'
+        : message.includes('COLLECTION_FOCUS_UNAVAILABLE') ? 'Collection Focus is awaiting the game update.'
         : message.includes('CATCH_UNAVAILABLE') ? 'A selected catch changed. Review your inventory and try again.'
         : message.includes('ACTION_EXPIRED') ? 'That preview expired. Prepare a new offer.'
         : 'The action could not be confirmed. Your saved state will refresh when connected.';
@@ -254,7 +263,8 @@ export class Game {
     });
     return !this.error;
   }
-  async equipBait(baitId: number) { await this.run(connection => connection.reducers.equipBait({ baitId })); }
+  async setCollectionFocus(biomeId: number, enabled: boolean) { await this.run(connection => connection.reducers.setCollectionFocus({ biomeId, enabled })); }
+  async equipBait(baitId: number, slot = 1) { await this.run(connection => connection.reducers.setBaitSlot({ baitId, slot })); }
   async equipTitle(achievementId: number) { await this.run(connection => connection.reducers.equipTitle({ achievementId })); }
   async previewUpgrade(rodId: number) { await this.run(connection => connection.reducers.prepareRodUpgrade({ rodId })); }
   async confirmUpgrade(nonce: bigint) { await this.run(connection => connection.reducers.commitRodUpgrade({ nonce })); }

@@ -1,5 +1,51 @@
 # Implementation verification — October 3–4, 2026
 
+## Expanded level cap and luck-bait sizing (October 12, local candidate)
+
+Rules 12 now also raises the cap to 10,000 without changing the XP curve or
+rewards. Crafting catalog 6 gives Worms/Grubs/Fireflies 2/3/4 size attempts;
+Trophy keeps eight and costs 500 coins per ten uses in trader catalog 8.
+All species remain available. Multibaiting at level 100 remains a proposal.
+
+All 32 game-rules tests passed. New cap boundaries cover banked XP and the
+1,754,621,895-XP threshold for level 10,000. Endpoint tests cover all 2,492
+valid species/rank pairs at every 2/3/4/8-attempt count without promotion.
+The sizing audit checked 14,952 displayed bands against Rust and 2,990,400
+natural samples. The isolated crafting proof verified owner-only/idempotent
+activation, frontend level agreement through 10,000, old-price quote rejection,
+500-coin packs, ten-use grants and 45 unchanged gameplay tables, including
+retained owned state and immutable cast snapshots. New attempt counts are
+saved in equipment receipts and still consume one use per accepted cast.
+
+TypeScript/Svelte checks passed with zero errors/warnings. The locked release
+WASM and isolated web build are verified separately; the website candidate is
+`.local/level-cap-bait-web-build`. All 2,058 stationary loadouts in the updated
+all-bait income audit had positive mean net income after bait cost, excluding
+daily rewards. Details: [Luck-bait sizing](luck-bait-sizing.md).
+No live module activation, player mutation or service deployment was performed.
+
+## Trophy Chum endpoint rolls at every rank (October 12, local candidate)
+
+Rules 12 lets Trophy Chum's eight within-band attempts use the existing
+1-in-5000 paired-endpoint roll at F through UUR. Other bait/no bait, rules-11 RNG
+behavior, current UUR perfect odds and UUR-only recognition remain preserved.
+The casting caller passes the saved gameplay rules version to the shared sampler;
+there are no table or reducer-contract changes.
+
+All 31 game-rules tests passed, including forced paired maxima at all 2492 valid
+species/rank combinations without promotion, legacy/other-bait RNG preservation,
+unchanged UUR streams, and seeded F/UR maximum frequencies over 200,000 Trophy
+fish each. `rank-maxima-audit.ts` cross-checked 9968 bands and 1,993,600 generated
+natural samples against Rust's endpoint gate, integer luck, measurement bounds
+and bonus-pull probabilities. Content validation and TypeScript/Svelte checks
+passed with zero errors/warnings; the locked release WASM and isolated website
+build also passed. The website candidate is `.local/rank-maxima-web-build`.
+
+The reproducible report is `docs/trophy-chum-rank-maxima.md`; detailed all-species
+data and the Rust reference inputs are ignored artifacts under `.local/`.
+A read-only live query confirmed the active config is still rules 11. No module
+publication, live player mutation, bot restart or website deployment was done.
+
 ## Joint website deployment (October 12, 2026)
 
 Deployed the wider desktop layouts/larger type, Compendium Baseline/Equipped/Best
@@ -1164,3 +1210,88 @@ layouts passed without overflow or console errors. The public client bundle
 matched the candidate by SHA-256. Site and account-link health returned HTTP 200;
 bot, linker and database processes stayed running. Live screenshots are
 `output/playwright/perfect-odds-live-{carp,detail}-*.png`.
+
+
+Collection Focus candidate: `npx tsx scripts/collection-focus-odds-proof.ts`
+cross-checks 39,840 cast probabilities. `npx tsx scripts/collection-focus-proof.ts`
+requires `.local/pre-collection-focus-fixture.wasm` and its saved TS bindings;
+these must be built/saved from the prior rules-12 candidate before editing.
+It uses a fresh isolated database, the actual new production WASM for migration,
+and a separate fixture for gameplay controls. See collection-focus.md.
+
+
+October 12 Collection Focus acceptance: 34 Rust rule tests pass; both clients'
+bindings regenerated from the release WASM; native workspace checks pass and
+new bot/linker executables linked (copied into `.local/collection-focus-native`
+because the running development linker holds its normal output file open).
+The isolated production web build and TypeScript/Svelte checks pass with zero
+diagnostics. The latest no-delete migration proof preserved all 54 prior tables,
+verified defaults and activation, and exercised 50 two-pull casts (17 actual
+rerolls in this seeded history), one bait use per cast, full-state replay,
+16 exceptional catches without rerolls, and account-scoped privacy.
+Playwright reviewed the Compendium at 1440×1000 and 390×844, toggled Focus off/on,
+verified the licence lock and persisted setting after reload, and reported zero
+console errors and no horizontal overflow. Screenshots are local ignored
+`output/playwright/focus-desktop.png` and `focus-mobile.png`. This is local
+acceptance; the live website, module and Discord registration remain unchanged.
+
+
+## October 12 live rules-13 deployment
+
+Deployed to the existing `fishbound-dev-local` database identity
+`c2002230cb292d622fb9716c64c8c73f84b1934e4eb6e6db546fb271ab32e488`,
+with no data deletion. Evidence and previous module/bot/linker/web artifacts:
+`.local/deployments/collection-focus-20261012-095959`.
+The 4,107-file cold runtime backup was hash-verified and restored on a separate
+3128 listener. All 7,379 retained rows matched before migration; the restored
+rules-11 database and the live database then passed rules-13 migration defaults
+and repeated activation checks. Forty-six gameplay tables remained identical;
+old equipment receipts gained only false/zero Focus defaults, and declared
+catalog/config/profile-level transformations matched content exactly. Banked XP,
+coins, owned inventory/equipment, collection and past rewards were retained.
+
+Published the production WASM, installed the separately built release bot and
+new linked account service, and verified 537 served website files against the
+candidate. Public website and account-link health returned 200. The actual
+`st_module` byte hash matches the candidate WASM; config is rules 13/cap 10,000,
+Trophy is 500 coins/10 uses, and the four luck baits have 2/3/4/8 size attempts.
+Discord API checks confirm all 15 global commands, `/focus` option types,
+no duplicate server commands, and the retained public OAuth callback. The bot
+logged ready after restarting with the new bindings.
+
+Live Playwright QA confirmed the Compendium connects and presents Collection
+Focus, with zero console errors and 390px page/viewport width on mobile. The
+restore-check listener was closed after proof; the neighboring Space database
+on 3100 retained its original process. These live checks do not invoke casts or
+post Discord messages on behalf of players.
+
+
+## Rules-14 multi-bait candidate
+
+`npx tsx scripts/multi-bait-proof.ts` passed rules-13 retained state → actual
+production WASM migration for all 55 prior tables, including historical receipts,
+stock and a saved Focus setting. The isolated fixture passed unrestricted
+level-1 slot control, material/XP/luck combinations, identical bait, one use per
+slot with two pulls, odd-stock handling, independent depletion, cooldown/replay
+and browser/Discord authorization/revocation. Fixture helpers are excluded from
+production; all databases use fresh `fishbound-proof-multi-bait-*` namespaces.
+
+The 36 Rust rule tests pass; `multi-bait-loadout-proof.ts` covers all 169 pairs.
+The Compendium proof matches 9,968 rank bands and 1,993,600 generated catches with
+Rust and checks all 169 maximum-gear pairs. Both binding sets are regenerated;
+release bot and linker build successfully into an isolated output directory.
+TypeScript/Svelte checks return zero diagnostics and the separate web build
+leaves the live served build unchanged. Playwright exercised duplicate luck/XP/material pair selections and persisted
+reload, with inspected 1440px/390px layouts, zero console errors and no
+horizontal overflow; see multi-bait.md.
+
+
+Rank maxima recognition, rules 15 local candidate (2026-10-12):
+- Rules 14 fixture -> actual rules 15 production WASM retained all 55 existing tables exactly; owner-only activation/backfill recovered 17 unique pairs and was idempotent. Four paired evidence sources, near misses, invalid rank, earliest evidence, independent bests, UUR achievements, and both bonus species were covered.
+- Real casting, replay/repeated maxima, and removal of inventory plus all historical evidence proved permanent unique-pair progress.
+- Combined rules 13 -> 15 migration and the complete multi-bait boundary proof passed (`.local/rank-maxima-combined-migration-proof.log`).
+- 36 game-rules and 19 Discord library tests passed; release bot/linker builds and isolated production web build passed; TypeScript/Svelte diagnostics were clean. Exact recognition covered all 2,492 valid endpoints.
+- Playwright verified five Carp marks, selected-rank heading markers, near-miss rejection, 7/2 and 10/1 profile counters, retained UUR counters, reload persistence, mobile overflow and dialog bounds, and zero browser errors. Screenshots: `output/playwright/rank-maxima-collection-{desktop,mobile}.png`, `rank-maxima-profile-{desktop,mobile}.png`, and `rank-maxima-profile-mobile-viewport.png`.
+- Credential-free Discord artwork preview: `output/balance/rank-maximum-carp-card.png`. No Discord catch/message was sent. Candidate artifact manifest: `.local/rank-maxima-candidate-artifacts.json`.
+
+2026-10-12 rules-15 deployment passed: 4,355 cold backup files hash-checked; 7,427 retained rows restored and compared; seven historical maxima added with all 55 other tables unchanged; actual module/native/web hashes verified; 537 website files served; public HTTP health, 15 registered Discord commands, optional `/bait slot`, OAuth callback and live browser profile counters confirmed. icha_ profile shows 3 rank maxima and 0 fully maxed species. Restore port 3128 closed; neighboring 3100 process unchanged. No Discord command/message was sent as a test. Evidence: `C:\laragon\www\dataverse\fishing-game\.local\deployments\rank-maxima-20261012-114135`.

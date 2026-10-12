@@ -1,6 +1,6 @@
 //! Shared equipment math for independent mixed pulls and graded rank luck.
 pub fn luck_weights(tickets: &[(u64, u8)], luck_bp: u32) -> Result<Vec<u64>, String> {
-    if luck_bp > 9_500 || tickets.iter().any(|(_, score)| *score > 9) {
+    if luck_bp > 12_000 || tickets.iter().any(|(_, score)| *score > 9) {
         return Err("INVALID_ROD_LUCK".into());
     }
     let total = tickets
@@ -50,7 +50,7 @@ pub fn bonus_pull_bp(power: u32) -> Result<u32, String> {
 }
 /// Apply once to the complete cast reward, including discoveries from either pull.
 pub fn fishing_xp(base: u64, bonus_bp: u32) -> Result<u64, String> {
-    if bonus_bp > 20000 {
+    if bonus_bp > 30000 {
         return Err("INVALID_ROD_XP".into());
     }
     base.checked_mul(10000 + u64::from(bonus_bp))
@@ -66,7 +66,8 @@ mod tests {
         assert_eq!(fishing_xp(3, 5000), Ok(4));
         assert!(fishing_xp(u64::MAX, 10000).is_err());
         assert_eq!(fishing_xp(120, 20000), Ok(360));
-        assert!(fishing_xp(1, 20001).is_err());
+        assert_eq!(fishing_xp(120, 30000), Ok(480));
+        assert!(fishing_xp(1, 30001).is_err());
         assert_eq!(bonus_pull_bp(185), Ok(9250));
         assert_eq!(bonus_pull_bp(1), Ok(50));
         assert!(bonus_pull_bp(201).is_err());
@@ -110,7 +111,7 @@ mod tests {
             let total: u64 = baseline.iter().sum();
             for rod in world["rods"].as_array().unwrap() {
                 for quality in equipment["qualities"].as_array().unwrap() {
-                    for bait_luck in [0, 500, 1000, 1500] {
+                    for bait_luck in [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000] {
                         let luck = (rod["luckBp"].as_u64().unwrap()
                             + quality["luckBp"].as_u64().unwrap()
                             + bait_luck) as u32;
@@ -147,7 +148,7 @@ mod tests {
             }
         }
         assert!(luck_weights(&[(1, 9)], 8500).is_err());
-        assert!(luck_weights(&[(1, 0), (1, 9)], 9501).is_err());
+        assert!(luck_weights(&[(1, 0), (1, 9)], 12001).is_err());
         assert!(luck_weights(&[(1, 10)], 0).is_err());
     }
 }

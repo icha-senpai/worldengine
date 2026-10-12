@@ -177,25 +177,51 @@ pub fn grant_bait(
     Ok(())
 }
 
-fn equip(ctx: &ReducerContext, player_id: u64, bait_id: u32) -> Result<(), String> {
+fn stock(ctx: &ReducerContext, player_id: u64, bait_id: u32) -> u64 {
+    ctx.db
+        .bait_stack()
+        .key()
+        .find((u128::from(player_id) << 32) | u128::from(bait_id))
+        .map_or(0, |row| row.uses_left)
+}
+fn equip_slot(ctx: &ReducerContext, player_id: u64, bait_id: u32, slot: u8) -> Result<(), String> {
+    if !(1..=2).contains(&slot) {
+        return Err("INVALID_BAIT_SLOT".into());
+    }
+    if slot == 2 && crate::accounts::config(ctx).version < 14 {
+        return Err("MULTI_BAIT_UNAVAILABLE".into());
+    }
+    let mut row = ctx
+        .db
+        .bait_loadout()
+        .player_id()
+        .find(player_id)
+        .unwrap_or(BaitLoadout {
+            player_id,
+            bait_id: 0,
+            secondary_bait_id: 0,
+        });
+    let other = if slot == 1 {
+        row.secondary_bait_id
+    } else {
+        row.bait_id
+    };
     if bait_id != 0 {
         ctx.db
             .bait_definition()
             .bait_id()
             .find(bait_id)
             .ok_or("BAIT_UNAVAILABLE")?;
-        let key = u128::from(player_id) << 32 | u128::from(bait_id);
-        if ctx
-            .db
-            .bait_stack()
-            .key()
-            .find(key)
-            .is_none_or(|row| row.uses_left == 0)
-        {
+        let required = if other == bait_id { 2 } else { 1 };
+        if stock(ctx, player_id, bait_id) < required {
             return Err("BAIT_NOT_OWNED".into());
         }
     }
-    let row = BaitLoadout { player_id, bait_id };
+    if slot == 1 {
+        row.bait_id = bait_id;
+    } else {
+        row.secondary_bait_id = bait_id;
+    }
     if ctx.db.bait_loadout().player_id().find(player_id).is_some() {
         ctx.db.bait_loadout().player_id().update(row);
     } else {
@@ -205,7 +231,7 @@ fn equip(ctx: &ReducerContext, player_id: u64, bait_id: u32) -> Result<(), Strin
 }
 #[spacetimedb::reducer]
 pub fn equip_bait(ctx: &ReducerContext, bait_id: u32) -> Result<(), String> {
-    equip(ctx, crate::shop::browser_player(ctx)?, bait_id)
+    equip_slot(ctx, crate::shop::browser_player(ctx)?, bait_id, 1)
 }
 #[spacetimedb::reducer]
 pub fn equip_bait_from_discord(
@@ -214,39 +240,56 @@ pub fn equip_bait_from_discord(
     interaction_id: u64,
     bait_id: u32,
 ) -> Result<(), String> {
-    equip(
+    equip_slot(
         ctx,
         crate::shop::adapter_player_id(ctx, discord_user_id, interaction_id)?,
         bait_id,
+        1,
+    )
+}
+#[spacetimedb::reducer]
+pub fn set_bait_slot(ctx: &ReducerContext, bait_id: u32, slot: u8) -> Result<(), String> {
+    equip_slot(ctx, crate::shop::browser_player(ctx)?, bait_id, slot)
+}
+#[spacetimedb::reducer]
+pub fn set_bait_slot_from_discord(
+    ctx: &ReducerContext,
+    discord_user_id: u64,
+    interaction_id: u64,
+    bait_id: u32,
+    slot: u8,
+) -> Result<(), String> {
+    equip_slot(
+        ctx,
+        crate::shop::adapter_player_id(ctx, discord_user_id, interaction_id)?,
+        bait_id,
+        slot,
     )
 }
 
+#[derive(Default)]
 pub struct UsedBait {
     pub bait_id: u32,
-    pub luck_bp: u32,
-    pub xp_bonus_bp: u32,
     pub resource_item: String,
     pub resource_quantity: u64,
-    pub size_rolls: u8,
     pub uses_left: u64,
+    pub bonuses: game_rules::baits::BaitBonuses,
 }
-pub fn consume_bait(ctx: &ReducerContext, player_id: u64) -> Result<UsedBait, String> {
-    let bait_id = ctx
-        .db
-        .bait_loadout()
-        .player_id()
-        .find(player_id)
-        .map_or(0, |row| row.bait_id);
-    if bait_id == 0 {
-        return Ok(UsedBait {
-            bait_id: 0,
-            luck_bp: 0,
-            xp_bonus_bp: 0,
-            resource_item: String::new(),
-            resource_quantity: 0,
-            size_rolls: 1,
-            uses_left: 0,
-        });
+pub struct UsedBaits {
+    pub primary: UsedBait,
+    pub secondary: UsedBait,
+    pub luck_bp: u32,
+    pub xp_bonus_bp: u32,
+    pub size_rolls: u8,
+}
+fn consume_slot(
+    ctx: &ReducerContext,
+    player_id: u64,
+    bait_id: u32,
+    slot: u8,
+) -> Result<UsedBait, String> {
+    if bait_id == 0 || stock(ctx, player_id, bait_id) == 0 {
+        return Ok(UsedBait::default());
     }
     let bait = ctx
         .db
@@ -254,7 +297,7 @@ pub fn consume_bait(ctx: &ReducerContext, player_id: u64) -> Result<UsedBait, St
         .bait_id()
         .find(bait_id)
         .ok_or("BAIT_UNAVAILABLE")?;
-    let key = u128::from(player_id) << 32 | u128::from(bait_id);
+    let key = (u128::from(player_id) << 32) | u128::from(bait_id);
     let mut stack = ctx
         .db
         .bait_stack()
@@ -264,30 +307,76 @@ pub fn consume_bait(ctx: &ReducerContext, player_id: u64) -> Result<UsedBait, St
     stack.uses_left = stack.uses_left.checked_sub(1).ok_or("BAIT_NOT_OWNED")?;
     let uses_left = stack.uses_left;
     ctx.db.bait_stack().key().update(stack);
-    if uses_left == 0 {
-        equip(ctx, player_id, 0)?;
-    }
     crate::inventory::ledger(
         ctx,
         player_id,
-        format!("bait:{}", ctx.timestamp.to_micros_since_unix_epoch()),
+        format!("bait:{}:{slot}", ctx.timestamp.to_micros_since_unix_epoch()),
         &format!("bait_{bait_id}_uses"),
         -1,
         "cast_bait",
     );
     Ok(UsedBait {
         bait_id,
-        luck_bp: bait.luck_bp,
-        xp_bonus_bp: bait.xp_bonus_bp,
-        size_rolls: bait.size_rolls,
-        // Existing resource bait rows default to zero until metadata activation.
+        uses_left,
         resource_quantity: if bait.resource_item.is_empty() {
             0
         } else {
             bait.resource_quantity.max(1)
         },
         resource_item: bait.resource_item,
-        uses_left,
+        bonuses: game_rules::baits::BaitBonuses {
+            luck_bp: bait.luck_bp,
+            xp_bonus_bp: bait.xp_bonus_bp,
+            size_rolls: bait.size_rolls,
+        },
+    })
+}
+pub fn consume_bait(ctx: &ReducerContext, player_id: u64) -> Result<UsedBaits, String> {
+    let loadout = ctx.db.bait_loadout().player_id().find(player_id);
+    let mut primary = consume_slot(
+        ctx,
+        player_id,
+        loadout.as_ref().map_or(0, |row| row.bait_id),
+        1,
+    )?;
+    let mut secondary = consume_slot(
+        ctx,
+        player_id,
+        if crate::accounts::config(ctx).version >= 14 {
+            loadout.as_ref().map_or(0, |row| row.secondary_bait_id)
+        } else {
+            0
+        },
+        2,
+    )?;
+    let mut effects = Vec::new();
+    for used in [&mut primary, &mut secondary] {
+        if used.bait_id != 0 {
+            used.uses_left = stock(ctx, player_id, used.bait_id);
+            effects.push(used.bonuses);
+        }
+    }
+    let combined = game_rules::baits::combine(&effects)?;
+    if let Some(mut row) = loadout {
+        if stock(ctx, player_id, row.bait_id) == 0 {
+            row.bait_id = 0;
+        }
+        let required = if row.secondary_bait_id != 0 && row.bait_id == row.secondary_bait_id {
+            2
+        } else {
+            1
+        };
+        if stock(ctx, player_id, row.secondary_bait_id) < required {
+            row.secondary_bait_id = 0;
+        }
+        ctx.db.bait_loadout().player_id().update(row);
+    }
+    Ok(UsedBaits {
+        primary,
+        secondary,
+        luck_bp: combined.luck_bp,
+        xp_bonus_bp: combined.xp_bonus_bp,
+        size_rolls: combined.size_rolls,
     })
 }
 

@@ -40,6 +40,14 @@ bonus pull with the same at-least-one-per-cast formula. Extra size attempts do n
 repeat the species or rank selection; XP and resource bait effects do not enter
 catch odds.
 
+The shared `rankMaximumOdds` helper also calculates both-maxima probabilities
+for any eligible rank. Rules 12 enables the endpoint roll below UUR when the
+loadout uses multi-attempt bait (Plump Worms, River Grubs, Moonlit Fireflies and Trophy Chum); legacy rules 11 and
+single-attempt bait keep the original behavior. The Compendium's existing
+perfect-catch display continues to target UUR, and Sock perfect credit stays
+excluded. See [the rank-maxima audit](trophy-chum-rank-maxima.md) for the local
+before/after comparison.
+
 Best for perfects currently selects Prismatic Abyssal Rod and Trophy Chum: power
 185, 9500 basis points of luck, and eight size attempts. It is an aspirational
 comparison regardless of ownership. The preset comes from the current catalogs;
@@ -56,3 +64,18 @@ tab closes the dialog. Opening/closing does not reset filters or pagination.
 against the real Rust generator's minimum/maximum endpoints and 498,400 sampled
 catches. It also checks distribution totals, biome pools, and exceptional odds.
 The Rust example is test-only and is never included in the deployed module.
+
+
+Rules 13 adds optional [Collection Focus](collection-focus.md). Equipped and Best
+presets include the viewer's current per-biome Focus setting and collected ranks;
+Baseline stays personal-state-free. The per-cast calculation handles collection
+updates between pulls rather than assuming identical independent rank odds.
+The gear preset does not automatically choose whether Focus benefits a perfect
+chase: duplicate UUR odds can decrease while other ranks remain missing.
+
+
+Rules-14 candidate: Equipped combines both funded bait slots. The Best preset
+uses two Trophy Chums (+120% total luck, 16 attempts, 92.5% bonus pull with
+Prismatic Abyssal). Its exact probability is checked against Rust and every
+maximum-gear bait pair. Earlier single-bait values in this document describe
+the deployed rules-13 setup. See [multi-baiting](multi-bait.md).

@@ -19,6 +19,12 @@ pub struct CastEquipmentReceipt {
     pub bait_item: String,
     pub bait_quantity: u64,
     pub bait_size_rolls: u8,
+    pub collection_focus_enabled: bool,
+    pub collection_focus_rerolls: u8,
+    pub secondary_bait_id: u32,
+    pub secondary_bait_uses_left: u64,
+    pub secondary_bait_item: String,
+    pub secondary_bait_quantity: u64,
 }
 
 impl __sdk::InModule for CastEquipmentReceipt {
@@ -41,6 +47,12 @@ pub struct CastEquipmentReceiptCols {
     pub bait_item: __sdk::__query_builder::Col<CastEquipmentReceipt, String>,
     pub bait_quantity: __sdk::__query_builder::Col<CastEquipmentReceipt, u64>,
     pub bait_size_rolls: __sdk::__query_builder::Col<CastEquipmentReceipt, u8>,
+    pub collection_focus_enabled: __sdk::__query_builder::Col<CastEquipmentReceipt, bool>,
+    pub collection_focus_rerolls: __sdk::__query_builder::Col<CastEquipmentReceipt, u8>,
+    pub secondary_bait_id: __sdk::__query_builder::Col<CastEquipmentReceipt, u32>,
+    pub secondary_bait_uses_left: __sdk::__query_builder::Col<CastEquipmentReceipt, u64>,
+    pub secondary_bait_item: __sdk::__query_builder::Col<CastEquipmentReceipt, String>,
+    pub secondary_bait_quantity: __sdk::__query_builder::Col<CastEquipmentReceipt, u64>,
 }
 
 impl __sdk::__query_builder::HasCols for CastEquipmentReceipt {
@@ -59,6 +71,27 @@ impl __sdk::__query_builder::HasCols for CastEquipmentReceipt {
             bait_item: __sdk::__query_builder::Col::new(table_name, "bait_item"),
             bait_quantity: __sdk::__query_builder::Col::new(table_name, "bait_quantity"),
             bait_size_rolls: __sdk::__query_builder::Col::new(table_name, "bait_size_rolls"),
+            collection_focus_enabled: __sdk::__query_builder::Col::new(
+                table_name,
+                "collection_focus_enabled",
+            ),
+            collection_focus_rerolls: __sdk::__query_builder::Col::new(
+                table_name,
+                "collection_focus_rerolls",
+            ),
+            secondary_bait_id: __sdk::__query_builder::Col::new(table_name, "secondary_bait_id"),
+            secondary_bait_uses_left: __sdk::__query_builder::Col::new(
+                table_name,
+                "secondary_bait_uses_left",
+            ),
+            secondary_bait_item: __sdk::__query_builder::Col::new(
+                table_name,
+                "secondary_bait_item",
+            ),
+            secondary_bait_quantity: __sdk::__query_builder::Col::new(
+                table_name,
+                "secondary_bait_quantity",
+            ),
         }
     }
 }

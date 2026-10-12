@@ -1,7 +1,7 @@
 //! Compose supplied fish and material sprites onto their Discord reward cards.
 //! Original asset files are read only; PNG generation runs off the async executor.
 
-use image::{ImageEncoder, RgbaImage, codecs::png::PngEncoder, imageops};
+use image::{ImageEncoder, Rgba, RgbaImage, codecs::png::PngEncoder, imageops};
 use std::{
     collections::VecDeque,
     io,
@@ -141,6 +141,50 @@ impl CatchArt {
     pub async fn render_material(&self, material: Material) -> Result<Vec<u8>, ArtError> {
         self.render_cached(format!("material:{}", material.key()), move |assets| {
             encode_attachment(&material_card(assets, material)?)
+        })
+        .await
+    }
+
+    /// A gold pixel star marks a rank maximum without implying an earned UUR badge.
+    pub async fn render_rank_maximum(
+        &self,
+        species_key: &str,
+        rarity: &str,
+    ) -> Result<Vec<u8>, ArtError> {
+        let key = format!("rank-maximum:{species_key}:{rarity}");
+        let species_key = species_key.to_owned();
+        let rarity = rarity.to_owned();
+        self.render_cached(key, move |assets| {
+            let mut card = fish_card(assets, &species_key, &rarity)?;
+            let cell = (card.width().min(card.height()) / 100).max(1);
+            let pattern = [
+                "....#....",
+                "....#....",
+                "...###...",
+                "..#####..",
+                "#########",
+                "..#####..",
+                "...###...",
+                "....#....",
+                "....#....",
+            ];
+            let x = card.width().saturating_sub(9 * cell + 24);
+            for (row, line) in pattern.iter().enumerate() {
+                for (column, ch) in line.chars().enumerate() {
+                    if ch == '#' {
+                        for dy in 0..cell {
+                            for dx in 0..cell {
+                                card.put_pixel(
+                                    x + column as u32 * cell + dx,
+                                    24 + row as u32 * cell + dy,
+                                    Rgba([255, 211, 79, 255]),
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            encode_attachment(&card)
         })
         .await
     }
@@ -465,6 +509,17 @@ mod tests {
         assert_eq!(art.render_perfect("carp", "UUR").await.unwrap(), perfect);
         assert_eq!(
             image::load_from_memory(&perfect)
+                .unwrap()
+                .to_rgba8()
+                .dimensions(),
+            (512, 768)
+        );
+        let normal = art.render("carp", "F").await.unwrap();
+        let maximum = art.render_rank_maximum("carp", "F").await.unwrap();
+        assert_ne!(normal, maximum);
+        assert_eq!(art.render_rank_maximum("carp", "F").await.unwrap(), maximum);
+        assert_eq!(
+            image::load_from_memory(&maximum)
                 .unwrap()
                 .to_rgba8()
                 .dimensions(),

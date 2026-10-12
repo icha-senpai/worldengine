@@ -7,6 +7,7 @@
   import manifest from '../../../../../assets/manifest.json';
   import Statistics from './Statistics.svelte';
   import PageTurner from './PageTurner.svelte';
+  import { rankMaximaSummary } from './rank-maxima';
   import { formatLength, formatWeight } from './measurements';
   let { game, pageSize = 12 }: { game: Game; pageSize?: number } = $props();
   let query = $state('');
@@ -28,6 +29,7 @@
   const badgeAssets = new Map(manifest.achievements.map(asset => [asset.key, asset.url]));
   const profiles = $derived(game.publicProfiles.filter(row => row.displayName.toLowerCase().includes(query.toLowerCase().trim()) || row.playerId.toString() === query.trim().replace(/^#/, '')).sort((a,b) => a.displayName.localeCompare(b.displayName) || (a.playerId < b.playerId ? -1 : 1)));
   const profile = $derived(game.publicProfiles.find(row => row.playerId === selected));
+  const maxima = $derived(rankMaximaSummary(game.rankMaxima, game.species, selected));
   const standing = $derived(game.standings.find(row => row.playerId === selected));
   const badges = $derived(game.earnedAchievements.filter(row => row.playerId === selected).sort((a,b) => a.achievementId - b.achievementId));
   const records = $derived(game.records.filter(row => row.playerId === selected));
@@ -72,7 +74,8 @@
   <header class="panel-header"><h2 id="angler-profile-title">Angler profile</h2><button class="close" onclick={close} aria-label="Close angler profile">✕</button></header>
   <div class="panel-content">
   {#if profile}
-    <article class="profile" aria-label="Public angler profile"><DiscordPortrait portrait={game.portraits.find(row => row.playerId === profile.playerId)} name={profile.displayName} /><div class="identity"><TitleBadge definition={titleDefinition(profile.playerId)} onpreview={() => enlargedBadge = titleDefinition(profile.playerId) ?? null} /><h3>{profile.displayName}</h3><small>Angler #{profile.playerId.toString()} · Level {profile.level}</small></div><dl><div><dt>Lifetime fish</dt><dd>{profile.fishCount.toLocaleString()}</dd></div><div><dt>Ordinary discoveries</dt><dd>{profile.discoveries} / 249</dd></div><div><dt>UUR catches</dt><dd>{standing?.uurCount.toLocaleString() ?? '0'}</dd></div><div><dt>✦ Perfected species</dt><dd>{game.perfectSpecies.filter(row => row.playerId === selected).length}</dd></div><div><dt>Records held</dt><dd>{standing?.recordsHeld ?? 0}</dd></div></dl>
+    <article class="profile" aria-label="Public angler profile"><DiscordPortrait portrait={game.portraits.find(row => row.playerId === profile.playerId)} name={profile.displayName} /><div class="identity"><TitleBadge definition={titleDefinition(profile.playerId)} onpreview={() => enlargedBadge = titleDefinition(profile.playerId) ?? null} /><h3>{profile.displayName}</h3><small>Angler #{profile.playerId.toString()} · Level {profile.level}</small></div><dl><div><dt>Lifetime fish</dt><dd>{profile.fishCount.toLocaleString()}</dd></div><div><dt>Ordinary discoveries</dt><dd>{profile.discoveries} / 249</dd></div><div><dt>UUR catches</dt><dd>{standing?.uurCount.toLocaleString() ?? '0'}</dd></div><div><dt>✦ UUR perfected species</dt><dd>{game.perfectSpecies.filter(row => row.playerId === selected).length}</dd></div><div><dt>✦ Rank maxima</dt><dd>{maxima.count}</dd></div><div><dt>Fully maxed species</dt><dd>{maxima.fullyMaxedSpecies}</dd></div><div><dt>Records held</dt><dd>{standing?.recordsHeld ?? 0}</dd></div></dl>
+      <p class="note">Rank maxima count each species/rank once. Fully maxed species have every allowed rank marked, including the one-rank bonus species.</p>
       {#if game.statistics.find(row => row.playerId === selected)}<Statistics stats={game.statistics.find(row => row.playerId === selected)!} species={game.species} biomes={game.biomes} />{/if}
       <div class="badge-row"><h4>Earned badges · {badges.length}</h4>{#if !badges.length}<p>No badges yet. The journey has just started.</p>{:else}{#each badges as badge}{@const definition = game.achievements.find(row => row.achievementId === badge.achievementId)}<button class="earned-badge" class:bonus={definition?.bonus} title={definition?.description} aria-label={'View ' + (definition?.name ?? 'earned') + ' badge'} onclick={() => enlargedBadge = definition ?? null}>{#if badgeAssets.get('badge-' + badge.achievementId)}<img src={badgeAssets.get('badge-' + badge.achievementId)} alt="" width="36" height="36" loading="lazy" decoding="async" />{:else}<span aria-hidden="true">✦</span>{/if}{definition?.name ?? 'Badge'}</button>{/each}{/if}</div>
       {#if records.length}<details><summary>Current species records · {records.length}</summary><ul>{#each records.slice((recordPage - 1) * pageSize, recordPage * pageSize) as record}<li>{game.species.find(row => row.speciesId === record.speciesId)?.name ?? 'Fish'} · {record.metric} · {size(record.metric, record.measurement)} · {record.rarity} rank</li>{/each}</ul><PageTurner bind:page={recordPage} total={records.length} {pageSize} label="Public profile record pages" /></details>{/if}

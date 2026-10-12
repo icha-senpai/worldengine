@@ -1,6 +1,7 @@
 {
-  "version": 11,
-  "status": "perfect-catches-and-trophy-chum",
+  "version": 15,
+  "status": "rank-maxima-recognition",
   "castCooldownSeconds": 60,
-  "perfectRollOneIn": 5000
+  "perfectRollOneIn": 5000,
+  "collectionFocusBp": 2000
 }

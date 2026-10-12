@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { rankSpreads } from '../apps/web/src/lib/game/compendium';
-import { xpToNextLevel } from '../apps/web/src/lib/game/progression';
+import { levelForXp, xpToNextLevel } from '../apps/web/src/lib/game/progression';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawnSync, spawn } from 'node:child_process';
@@ -9,6 +9,8 @@ import { DbConnection } from '../packages/generated/src/index';
 const uri = 'http://127.0.0.1:3127';
 const craftingContent = JSON.parse(await readFile('content/crafting.json', 'utf8'));
 const traderContent = JSON.parse(await readFile('content/trader.json', 'utf8'));
+const worldContent = JSON.parse(await readFile('content/world.json', 'utf8'));
+const rulesContent = JSON.parse(await readFile('content/game-rules.json', 'utf8'));
 const price = (listingId: number) => traderContent.listings.find((r: {listingId: number}) => r.listingId === listingId).priceCoins;
 const recipeFor = (rodId: number, qualityLevel: number) => craftingContent.rodRecipes.find((r: {rodId: number; qualityLevel: number}) => r.rodId === rodId && r.qualityLevel === qualityLevel);
 const maxQuality = craftingContent.qualities.at(-1);
@@ -30,7 +32,7 @@ const manifest = (await readFile('spacetimedb/Cargo.toml', 'utf8'))
 await writeFile(fixtureRoot + '/Cargo.toml', manifest + '\n[workspace]\n');
 await writeFile(fixtureRoot + '/Cargo.lock', (await readFile('spacetimedb/Cargo.lock', 'utf8')).replace('name = "fishing-game-module"', 'name = "fishing-crafting-proof"'));
 const source = (await readFile('spacetimedb/src/lib.rs', 'utf8')).replace(/^mod (\w+);$/gm, (_, name) => `#[path = ${rustPath(`spacetimedb/src/${name}.rs`)}]\nmod ${name};`);
-await writeFile(fixtureRoot + '/lib.rs', source + `\ninclude!(${rustPath('scripts/fixtures/crafting-boundary.rs')});\ninclude!(${rustPath('scripts/fixtures/perfect-catches.rs')});\n`);
+await writeFile(fixtureRoot + '/lib.rs', source + `\ninclude!(${rustPath('scripts/fixtures/crafting-boundary.rs')});\ninclude!(${rustPath('scripts/fixtures/perfect-catches.rs')});\ninclude!(${rustPath('scripts/fixtures/level-cap-bait.rs')});\n`);
 run('cargo', ['build', '--manifest-path', fixtureRoot + '/Cargo.toml', '--target-dir', targetRoot, '--target', 'wasm32-unknown-unknown', '--release', '--locked']);
 run('cargo', ['build', '--package', 'game-client', '--bin', 'adapter-proof', '--locked']);
 run('spacetime', ['publish', '--server', uri, '--no-config', '--yes=skip-login', '--bin-path', targetRoot + '/wasm32-unknown-unknown/release/fishing_crafting_proof.wasm', database]);
@@ -50,7 +52,7 @@ async function connect(queries: string[]) {
   return connection;
 }
 try {
-  const bot = await connect(['my_service','adapter_player','adapter_rods','adapter_baits','adapter_bait_loadout','adapter_items','adapter_upgrade_quote','adapter_shop_quote','adapter_receipt','adapter_cast_pulls','adapter_cast_equipment','adapter_inventory','adapter_collection','shop_listing','bait_definition','quality_definition','rod_upgrade_recipe'].map(t=>`SELECT * FROM ${t}`));
+  const bot = await connect(['my_service','adapter_player','adapter_rods','adapter_baits','adapter_bait_loadout','adapter_items','adapter_upgrade_quote','adapter_shop_quote','adapter_receipt','adapter_cast_pulls','adapter_cast_equipment','adapter_inventory','adapter_collection','shop_listing','bait_definition','quality_definition','rod_upgrade_recipe','game_config','public_profile'].map(t=>`SELECT * FROM ${t}`));
   ownerCall('configure_service',[JSON.stringify(bot.identity!.toHexString()),JSON.stringify({discordAdapter:{}}),'true']);
   const select = async (user=9301n) => { const args={discordUserId:user,displayName:'Crafting proof',interactionId:snowflake()}; await bot.reducers.selectDiscordPlayer(args);return args; };
   const player=()=>[...bot.db.adapterPlayer.iter()][0];
@@ -70,6 +72,51 @@ try {
     const actual=[...bot.db.rodUpgradeRecipe.iter()].find(r=>r.rodId===expected.rodId&&r.qualityLevel===expected.qualityLevel)!;
     assert.equal(actual.tinCost,BigInt(expected.tinCost));assert.equal(actual.scrapCost,BigInt(expected.scrapCost));
   }
+  // Activation credits banked XP and changes the price without changing owned state.
+  const capSeeds=[0n,304394n,304395n,7662839n,1754621894n,1754621895n];
+  const capProfiles=new Map<bigint,bigint>();
+  for(const [i,xp] of capSeeds.entries()) {
+    const user=9890n+BigInt(i);
+    ownerCall('prepare_trader_player',[user.toString(),xp.toString(),'5000','1']);
+    await pause();
+    await select(user);
+    capProfiles.set(player().playerId,xp);
+  }
+  await purchase(113,9893n);
+  assert.equal(uses(13),10n);
+  for(const expected of craftingContent.baits) {
+    const actual=[...bot.db.baitDefinition.iter()].find(b=>b.baitId===expected.baitId)!;
+    assert.equal(actual.sizeRolls,expected.sizeRolls);
+    assert.equal(actual.luckBp,expected.luckBp);
+  }
+  ownerCall('proof_previous_cap_and_trophy_price');
+  await pause();
+  const oldOfferArgs=await select(9893n);
+  await bot.reducers.prepareShopFromDiscord({...oldOfferArgs,listingId:113});
+  const oldOffer=[...bot.db.adapterShopQuote.iter()][0];
+  assert.equal(oldOffer.quotedCoins,1000n);
+  assert.equal([...bot.db.publicProfile.iter()].find(p=>p.playerId===player().playerId)!.level,120);
+  console.log(run(process.execPath,['scripts/xp-preservation.mjs','before',database]).trim());
+  const capGuest=await connect(['SELECT * FROM public_profile']);
+  await assert.rejects(capGuest.reducers.activateXpProgression({}),/OWNER_REQUIRED/);
+  ownerCall('activate_xp_progression');
+  console.log(run(process.execPath,['scripts/xp-preservation.mjs','after',database]).trim());
+  ownerCall('activate_xp_progression');
+  console.log(run(process.execPath,['scripts/xp-preservation.mjs','after',database]).trim());
+  const capAppliedBy=Date.now()+12000;
+  while([...bot.db.gameConfig.iter()].find(c=>c.version===rulesContent.version)?.levelCap!==worldContent.levelCap) {
+    assert(Date.now()<capAppliedBy,'Activated cap must reach the subscribed client');
+    await new Promise(resolve=>setTimeout(resolve,20));
+  }
+  assert.equal([...bot.db.gameConfig.iter()].find(c=>c.version===rulesContent.version)!.levelCap,worldContent.levelCap);
+  for(const [id,xp] of capProfiles) assert.equal([...bot.db.publicProfile.iter()].find(p=>p.playerId===id)!.level,levelForXp(xp,worldContent.levelCap,rulesContent.version));
+  assert.equal(uses(13),10n);
+  await assert.rejects(bot.reducers.commitShopFromDiscord({...oldOfferArgs,nonce:oldOffer.nonce}),/QUOTE_CHANGED/);
+  const capWallet=player().coins;
+  await purchase(113,9893n);
+  assert.equal(capWallet-player().coins,500n);
+  assert.equal(uses(13),20n);
+  console.log('PASS 10,000-level cap credits banked XP through the final boundary; metadata-only, owner-only and idempotent activation preserves gameplay; old Trophy quote rejected and new 500-coin pack grants ten uses.');
   ownerCall('prepare_trader_player',['9305','0',String(price(21)-1),'1']);
   await assert.rejects(purchase(21,9305n),/INSUFFICIENT_COINS/);
   ownerCall('prepare_trader_player',['9305','0',String(price(21)),'1']);
@@ -176,7 +223,7 @@ try {
   console.log('PASS all four chum tiers: exact pack prices, once-per-cast +2/+3 grants across categories and double pulls, saved quantity, replay, cooldown and depletion.');
   ownerCall('proof_cast_setup',['9301','1','0']);args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal([...bot.db.adapterCastEquipment.iter()][0].baitId,0);assert.equal(uses(1),0n);
   args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:2});ownerCall('proof_cast_setup',['9301',forcedBasePower,'2']);args=await select();const oldScrap=material('scrap');await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal(material('scrap'),oldScrap+1n+[...bot.db.adapterCastPulls.iter()].reduce((sum,p)=>sum+p.receipt.itemQuantity,0n));assert.equal(uses(2),9n);
-  for(const [id,luck] of [[3,maxQuality.luckBp+500],[4,maxQuality.luckBp+1000],[5,maxQuality.luckBp+1500]]){args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:id});ownerCall('proof_cast_setup',['9301','1','0']);args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal([...bot.db.adapterCastEquipment.iter()][0].luckBp,luck);assert.equal(uses(id),9n);}
+  for(const [id,luck] of [[3,maxQuality.luckBp+500],[4,maxQuality.luckBp+1000],[5,maxQuality.luckBp+1500]]){args=await select();await bot.reducers.equipBaitFromDiscord({...args,baitId:id});ownerCall('proof_cast_setup',['9301','1','0']);args=await select();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.equal([...bot.db.adapterCastEquipment.iter()][0].luckBp,luck);assert.equal([...bot.db.adapterCastEquipment.iter()][0].baitSizeRolls,craftingContent.baits.find((b:any)=>b.baitId===id).sizeRolls);assert.equal(uses(id),9n);}
   for (const [id, bonus] of [[6,2500],[7,5000],[8,10000]]) {
     const coins = player().coins;
     await purchase(100+id);
@@ -216,7 +263,7 @@ try {
     const ordered=[...ordinary].sort((a:any,b:any)=>b.typicalWeightG-a.typicalWeightG);
     const cutoff=ordered[Math.ceil(ordered.length/3)-1].typicalWeightG;
     args=await select(trophyUser);await bot.reducers.changeLoadoutFromDiscord({...args,biomeId});
-    const coins=player().coins;await purchase(113,trophyUser);assert.equal(coins-player().coins,1000n);
+    const coins=player().coins;await purchase(113,trophyUser);assert.equal(coins-player().coins,BigInt(price(113)));
     args=await select(trophyUser);await bot.reducers.equipBaitFromDiscord({...args,baitId:13});
     ownerCall('proof_biome_category',[String(biomeId),'0']);
     for(let cast=0;cast<10;cast++) {

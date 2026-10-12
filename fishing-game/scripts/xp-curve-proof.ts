@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
 import { levelForXp, xpToNextLevel } from '../apps/web/src/lib/game/progression';
+import world from '../content/world.json';
 
 // Only this fresh proof database receives fixture mutations.
 const database=`fishbound-proof-xp-curve-${Date.now()}`;
@@ -49,6 +50,6 @@ try {
  call('activate_xp_progression');await new Promise(resolve=>setTimeout(resolve,100));console.log(run(process.execPath,['scripts/xp-preservation.mjs','after',database]).trim());
  await prepareLicence();
  assert.equal([...bot.db.adapterPlayer.iter()][0].coins,selected.coins,'Level activation and quote preparation do not spend gold');
- assert.equal([...bot.db.publicProfile.iter()].find(p=>p.playerId===1n)!.level,levelForXp(selected.totalXp,120,10));
+ assert.equal([...bot.db.publicProfile.iter()].find(p=>p.playerId===1n)!.level,levelForXp(selected.totalXp,world.levelCap,10));
  console.log('PASS rules-9 gates retained until owner activation; rules-10 levels match frontend at boundaries and for retained XP; saved rewards, gear, wallets and inventories preserved; repeated activation and new licence eligibility.');
 } finally {for(const c of connections)c.disconnect();}

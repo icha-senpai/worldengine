@@ -2,6 +2,7 @@
 mod accounts;
 mod achievements;
 mod casting;
+mod collection_focus;
 mod content;
 mod crafting;
 mod daily;

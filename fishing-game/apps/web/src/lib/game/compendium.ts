@@ -4,7 +4,8 @@ import sizeRules from '../../../../../content/size-rules.json';
 import gameRules from '../../../../../content/game-rules.json';
 
 export type CatalogFish = typeof catalog.species[number];
-export type RateLoadout = { name: string; power: number; luckBp: number; sizeRolls: number; rulesVersion: number };
+export type CollectionFocus = { biomeIds: readonly number[]; rankMasks: Readonly<Record<number, number>> };
+export type RateLoadout = { name: string; power: number; luckBp: number; sizeRolls: number; rulesVersion: number; focus?: CollectionFocus };
 export const baselineLoadout: RateLoadout = {
   name: 'Common Twig Rod · no bait', power: world.rods[0].power, luckBp: 0, sizeRolls: 1, rulesVersion: gameRules.version,
 };
@@ -36,11 +37,46 @@ function adjustedPool(biomeId: number, luckBp: number) {
   return pool;
 }
 
-function pullChance(fish: CatalogFish, rarity: string | undefined, loadout: RateLoadout) {
-  const bands = adjustedPool(fish.biomeId, loadout.luckBp).get(fish.speciesId)!;
-  const chance = rarity ? bands.get(rarity) ?? 0 : [...bands.values()].reduce((sum, value) => sum + value, 0);
+function rankMask(fish: CatalogFish, loadout: RateLoadout) {
+  return loadout.focus?.rankMasks[fish.speciesId] ?? 0;
+}
+
+function focusActive(fish: CatalogFish, loadout: RateLoadout) {
+  return loadout.rulesVersion >= 13 && fish.countsForOrdinaryCollectionCompletion && !!loadout.focus?.biomeIds.includes(fish.biomeId);
+}
+
+/** Keep species/category mass fixed; redistribute only duplicates of this fish. */
+function pullBands(fish: CatalogFish, loadout: RateLoadout, mask = rankMask(fish, loadout)) {
+  const base = adjustedPool(fish.biomeId, loadout.luckBp).get(fish.speciesId)!;
   const biome = world.biomes.find(row => row.biomeId === fish.biomeId)!;
-  return chance * biome.fishWeight / (biome.fishWeight + biome.junkWeight + biome.treasureWeight);
+  const fishChance = biome.fishWeight / (biome.fishWeight + biome.junkWeight + biome.treasureWeight);
+  let duplicates = 0, missing = 0;
+  for (const [rank, chance] of base) {
+    if (mask & (1 << ranks.indexOf(rank))) duplicates += chance;
+    else missing += chance;
+  }
+  const active = focusActive(fish, loadout) && missing > 0;
+  return new Map([...base].map(([rank, chance]) => [rank, chance * fishChance * (!active ? 1 : mask & (1 << ranks.indexOf(rank)) ? 0.8 : 1 + 0.2 * duplicates / missing)]));
+}
+
+function pullChance(fish: CatalogFish, rarity: string | undefined, loadout: RateLoadout) {
+  const bands = pullBands(fish, loadout);
+  return rarity ? bands.get(rarity) ?? 0 : [...bands.values()].reduce((sum, value) => sum + value, 0);
+}
+
+/** The first pull updates collection before the second. Exclude first hits. */
+function outcomeChance(fish: CatalogFish, rarity: string, sizeChance: number, loadout: RateLoadout) {
+  if (!focusActive(fish, loadout)) return chancePerCast(pullChance(fish, rarity, loadout) * sizeChance, loadout);
+  const mask = rankMask(fish, loadout);
+  const first = pullBands(fish, loadout, mask);
+  const hit = (first.get(rarity) ?? 0) * sizeChance;
+  const speciesChance = [...first.values()].reduce((sum, value) => sum + value, 0);
+  let secondAfterMiss = (1 - speciesChance) * hit;
+  for (const [rank, chance] of first) {
+    const next = pullBands(fish, loadout, mask | (1 << ranks.indexOf(rank)));
+    secondAfterMiss += chance * (rank === rarity ? 1 - sizeChance : 1) * (next.get(rarity) ?? 0) * sizeChance;
+  }
+  return hit + loadout.power / 200 * secondAfterMiss;
 }
 
 function chancePerCast(p: number, loadout: RateLoadout) {
@@ -48,26 +84,33 @@ function chancePerCast(p: number, loadout: RateLoadout) {
   return (1 + q) * p - q * p * p;
 }
 
-/** At least one matching catch per cast, including one independent bonus pull. */
+/** At least one matching catch per cast, including the rod's bonus pull. */
 export function castChance(fish: CatalogFish, rarity?: string, loadout = baselineLoadout) {
-  return chancePerCast(pullChance(fish, rarity, loadout), loadout);
+  return rarity ? outcomeChance(fish, rarity, 1, loadout) : chancePerCast(pullChance(fish, undefined, loadout), loadout);
 }
 
-/** Perfection requires both exact UUR maxima on one retained specimen. */
-export function perfectCatchOdds(fish: CatalogFish, loadout = baselineLoadout) {
-  if (fish.key === 'nidalees-lost-sock' || !fish.allowedRarities.includes('UUR')) return null;
-  const band = rankSpreads(fish).find(row => row.rarity === 'UUR')!;
-  const weights = weightRangeAtLength(fish, 'UUR', band.maxLengthMm);
+/** Both exact maxima of the selected rank on one retained specimen. */
+export function rankMaximumOdds(fish: CatalogFish, rarity: string, loadout = baselineLoadout) {
+  const band = rankSpreads(fish).find(row => row.rarity === rarity);
+  if (!band) return null;
+  const weights = weightRangeAtLength(fish, rarity, band.maxLengthMm);
   // Length is uniform in integer millimetres, then weight is uniform in grams
   // at that length. Include the natural outcome when the special roll misses.
   const naturalSizeChance = 1 / ((band.maxLengthMm - band.minLengthMm + 1) * (weights.max - weights.min + 1));
-  const endpointChance = loadout.rulesVersion >= 11 ? 1 / gameRules.perfectRollOneIn : 0;
+  const endpointEnabled = loadout.rulesVersion >= 11 && (rarity === 'UUR' || loadout.rulesVersion >= 12 && loadout.sizeRolls > 1);
+  const endpointChance = endpointEnabled ? 1 / gameRules.perfectRollOneIn : 0;
   const attemptChance = endpointChance + (1 - endpointChance) * naturalSizeChance;
   // A perfect has the greatest weight and length, so it always survives the
   // heaviest-then-longest selection across Trophy Chum's size attempts.
   const sizeChance = -Math.expm1(loadout.sizeRolls * Math.log1p(-attemptChance));
   return { maxLengthMm: band.maxLengthMm, maxWeightG: weights.max, naturalSizeChance, attemptChance, sizeChance,
-    chancePerCast: chancePerCast(pullChance(fish, 'UUR', loadout) * sizeChance, loadout) };
+    chancePerCast: outcomeChance(fish, rarity, sizeChance, loadout) };
+}
+
+/** Official perfect-catch credit still requires the species' UUR maxima. */
+export function perfectCatchOdds(fish: CatalogFish, loadout = baselineLoadout) {
+  if (fish.key === 'nidalees-lost-sock') return null;
+  return rankMaximumOdds(fish, 'UUR', loadout);
 }
 
 export const formatOdds = (chance: number) => `1 in ${(1 / chance).toLocaleString(undefined, { maximumFractionDigits: 1 })}`;

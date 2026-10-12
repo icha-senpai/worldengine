@@ -92,10 +92,11 @@ for (const fish of catalog.species) {
 }
 console.log(`Measurements valid: ${measurements.size} explicit species baselines, no generic fallback.`);
 assert.equal(world.version, catalog.version);
-assert.equal(rules.version, 11);
+assert.equal(rules.version, 15);
+assert.equal(rules.collectionFocusBp, 2000);
 assert.equal(rules.perfectRollOneIn,5000);
 assert.match(await readFile(new URL('../crates/game-rules/src/trophy.rs', import.meta.url),'utf8'),/PERFECT_ROLL_ONE_IN: u32 = 5_000/);
-assert.equal(world.levelCap, 120);
+assert.equal(world.levelCap, 10000);
 assert.deepEqual(world.biomes.map(b => b.name), ['Meadow Pond', 'Whispering River', 'Hollow Marsh', 'Moonlit Lake', 'Sunken Coast', 'Glacial Reach', 'Abyssal Shelf']);
 assert.equal(new Set(world.biomes.map(b => b.biomeId)).size, world.biomes.length);
 assert.equal(new Set(world.rods.map(r => r.rodId)).size, world.rods.length);
@@ -187,7 +188,7 @@ for (const kind of ['licences', 'baits']) {
 console.log('Equipment artwork valid: every paid licence and all thirteen bait types have sprites.');
 
 const crafting = JSON.parse(await readFile(new URL('./crafting.json', import.meta.url), 'utf8'));
-assert.equal(crafting.version, 5);
+assert.equal(crafting.version, 6);
 assert.deepEqual(crafting.qualities.map(q => [q.qualityLevel,q.name,q.powerBonus,q.luckBp,q.xpBonusBp,q.tinCost,q.scrapCost]), [
   [0,'Common',0,0,0,0,0],[1,'Uncommon',2,50,100,10,5],[2,'Rare',4,100,250,25,15],
   [3,'Epic',7,200,450,60,40],[4,'Legendary',11,350,700,150,100],
@@ -209,11 +210,12 @@ assert.equal(crafting.baits.length, 13);
 assert.deepEqual(crafting.baits.map(b => b.baitId), [1,2,3,4,5,6,7,8,9,10,11,12,13]);
 for (const bait of crafting.baits) {
   assert.equal(bait.usesPerPurchase,10);
-  assert.equal(bait.sizeRolls,bait.baitId===13?8:1);
+  assert.equal(bait.sizeRolls,[1,1,2,3,4,1,1,1,1,1,1,1,8][bait.baitId-1]);
   assert.equal(bait.resourceQuantity,[1,1,0,0,0,0,0,0,2,3,2,3,0][bait.baitId-1]);
   assert.equal(bait.xpBonusBp,[0,0,0,0,0,2500,5000,10000,0,0,0,0,0][bait.baitId-1]);
   const offer = trader.listings.find(row => row.kind === 'bait' && row.targetId === bait.baitId);
-  assert(offer && offer.priceCoins === [20,50,30,70,120,50,150,400,40,60,100,150,1000][bait.baitId-1]);
+  assert(offer && offer.priceCoins === [20,50,30,70,120,50,150,400,40,60,100,150,500][bait.baitId-1]);
+  assert.equal(bait.priceCoins,offer.priceCoins);
   assert(manifest.baits.some(asset => asset.url === bait.spriteAsset));
   assert.equal(bait.luckBp,[0,0,500,1000,1500,0,0,0,0,0,0,0,2500][bait.baitId-1]);
   assert.equal(bait.resourceItem,['rusted_tin','scrap','','','','','','','rusted_tin','rusted_tin','scrap','scrap',''][bait.baitId-1]);
@@ -227,6 +229,6 @@ for (let i = 1; i < world.rods.length; i++) {
   assert(next.xpBonusBp > previous.xpBonusBp + maximumQuality.xpBonusBp, `Common ${next.name} must beat previous Prismatic XP`);
 }
 assert.equal(Math.max(...world.rods.map(r=>r.power))+maximumQuality.powerBonus,185);
-assert.equal(Math.max(...world.rods.map(r=>r.luckBp))+maximumQuality.luckBp+2500,9500);
-assert.equal(Math.max(...world.rods.map(r=>r.xpBonusBp))+Math.max(...crafting.qualities.map(q=>q.xpBonusBp))+Math.max(...crafting.baits.map(b=>b.xpBonusBp)),20000);
-console.log('Crafting valid: seven permanent qualities, exact recipes, thirteen 10-use baits; maximum 92.5% bonus pull and +95% luck.');
+assert.equal(Math.max(...world.rods.map(r=>r.luckBp))+maximumQuality.luckBp+5000,12000);
+assert.equal(Math.max(...world.rods.map(r=>r.xpBonusBp))+Math.max(...crafting.qualities.map(q=>q.xpBonusBp))+2*Math.max(...crafting.baits.map(b=>b.xpBonusBp)),30000);
+console.log('Crafting valid: seven permanent qualities, exact recipes, thirteen 10-use baits; two bait slots; maximum 92.5% bonus pull, +120% luck and +300% XP.');

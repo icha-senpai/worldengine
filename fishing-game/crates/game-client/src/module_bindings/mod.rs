@@ -15,6 +15,7 @@ pub mod action_nonce_type;
 pub mod activate_achievements_reducer;
 pub mod activate_crafting_reducer;
 pub mod activate_perfect_catches_reducer;
+pub mod activate_rank_maxima_reducer;
 pub mod activate_rod_bonuses_reducer;
 pub mod activate_species_measurements_reducer;
 pub mod activate_trader_reducer;
@@ -24,6 +25,7 @@ pub mod adapter_bait_loadout_table;
 pub mod adapter_baits_table;
 pub mod adapter_cast_equipment_table;
 pub mod adapter_cast_pulls_table;
+pub mod adapter_collection_focus_table;
 pub mod adapter_collection_table;
 pub mod adapter_daily_receipt_table;
 pub mod adapter_inventory_table;
@@ -59,6 +61,7 @@ pub mod cast_equipment_receipt_type;
 pub mod cast_pull_type;
 pub mod change_loadout_from_discord_reducer;
 pub mod change_loadout_reducer;
+pub mod collection_focus_preference_type;
 pub mod command_receipt_type;
 pub mod commit_inventory_action_reducer;
 pub mod commit_rod_upgrade_reducer;
@@ -98,6 +101,7 @@ pub mod my_achievement_progress_table;
 pub mod my_action_table;
 pub mod my_bait_loadout_table;
 pub mod my_baits_table;
+pub mod my_collection_focus_table;
 pub mod my_collection_table;
 pub mod my_inventory_table;
 pub mod my_items_table;
@@ -130,6 +134,8 @@ pub mod public_profile_table;
 pub mod public_profile_type;
 pub mod quality_definition_table;
 pub mod quality_definition_type;
+pub mod rank_maximum_table;
+pub mod rank_maximum_type;
 pub mod rarity_definition_table;
 pub mod rarity_definition_type;
 pub mod rebuild_player_records_reducer;
@@ -146,7 +152,11 @@ pub mod select_journal_reducer;
 pub mod service_principal_type;
 pub mod service_role_type;
 pub mod service_selection_type;
+pub mod set_bait_slot_from_discord_reducer;
+pub mod set_bait_slot_reducer;
 pub mod set_catch_favorite_reducer;
+pub mod set_collection_focus_from_discord_reducer;
+pub mod set_collection_focus_reducer;
 pub mod shop_listing_table;
 pub mod shop_listing_type;
 pub mod shop_quote_type;
@@ -170,6 +180,7 @@ pub use action_nonce_type::ActionNonce;
 pub use activate_achievements_reducer::activate_achievements;
 pub use activate_crafting_reducer::activate_crafting;
 pub use activate_perfect_catches_reducer::activate_perfect_catches;
+pub use activate_rank_maxima_reducer::activate_rank_maxima;
 pub use activate_rod_bonuses_reducer::activate_rod_bonuses;
 pub use activate_species_measurements_reducer::activate_species_measurements;
 pub use activate_trader_reducer::activate_trader;
@@ -179,6 +190,7 @@ pub use adapter_bait_loadout_table::*;
 pub use adapter_baits_table::*;
 pub use adapter_cast_equipment_table::*;
 pub use adapter_cast_pulls_table::*;
+pub use adapter_collection_focus_table::*;
 pub use adapter_collection_table::*;
 pub use adapter_daily_receipt_table::*;
 pub use adapter_inventory_table::*;
@@ -214,6 +226,7 @@ pub use cast_equipment_receipt_type::CastEquipmentReceipt;
 pub use cast_pull_type::CastPull;
 pub use change_loadout_from_discord_reducer::change_loadout_from_discord;
 pub use change_loadout_reducer::change_loadout;
+pub use collection_focus_preference_type::CollectionFocusPreference;
 pub use command_receipt_type::CommandReceipt;
 pub use commit_inventory_action_reducer::commit_inventory_action;
 pub use commit_rod_upgrade_reducer::commit_rod_upgrade;
@@ -253,6 +266,7 @@ pub use my_achievement_progress_table::*;
 pub use my_action_table::*;
 pub use my_bait_loadout_table::*;
 pub use my_baits_table::*;
+pub use my_collection_focus_table::*;
 pub use my_collection_table::*;
 pub use my_inventory_table::*;
 pub use my_items_table::*;
@@ -285,6 +299,8 @@ pub use public_profile_table::*;
 pub use public_profile_type::PublicProfile;
 pub use quality_definition_table::*;
 pub use quality_definition_type::QualityDefinition;
+pub use rank_maximum_table::*;
+pub use rank_maximum_type::RankMaximum;
 pub use rarity_definition_table::*;
 pub use rarity_definition_type::RarityDefinition;
 pub use rebuild_player_records_reducer::rebuild_player_records;
@@ -301,7 +317,11 @@ pub use select_journal_reducer::select_journal;
 pub use service_principal_type::ServicePrincipal;
 pub use service_role_type::ServiceRole;
 pub use service_selection_type::ServiceSelection;
+pub use set_bait_slot_from_discord_reducer::set_bait_slot_from_discord;
+pub use set_bait_slot_reducer::set_bait_slot;
 pub use set_catch_favorite_reducer::set_catch_favorite;
+pub use set_collection_focus_from_discord_reducer::set_collection_focus_from_discord;
+pub use set_collection_focus_reducer::set_collection_focus;
 pub use shop_listing_table::*;
 pub use shop_listing_type::ShopListing;
 pub use shop_quote_type::ShopQuote;
@@ -327,6 +347,7 @@ pub enum Reducer {
     ActivateAchievements,
     ActivateCrafting,
     ActivatePerfectCatches,
+    ActivateRankMaxima,
     ActivateRodBonuses,
     ActivateSpeciesMeasurements,
     ActivateTrader {
@@ -460,9 +481,29 @@ pub enum Reducer {
         rarity: String,
         outcome: String,
     },
+    SetBaitSlot {
+        bait_id: u32,
+        slot: u8,
+    },
+    SetBaitSlotFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        bait_id: u32,
+        slot: u8,
+    },
     SetCatchFavorite {
         catch_id: u64,
         favorite: bool,
+    },
+    SetCollectionFocus {
+        biome_id: u32,
+        enabled: bool,
+    },
+    SetCollectionFocusFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        biome_id: u32,
+        enabled: bool,
     },
     SyncDiscordPortrait {
         discord_user_id: u64,
@@ -482,6 +523,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateAchievements => "activate_achievements",
             Reducer::ActivateCrafting => "activate_crafting",
             Reducer::ActivatePerfectCatches => "activate_perfect_catches",
+            Reducer::ActivateRankMaxima => "activate_rank_maxima",
             Reducer::ActivateRodBonuses => "activate_rod_bonuses",
             Reducer::ActivateSpeciesMeasurements => "activate_species_measurements",
             Reducer::ActivateTrader { .. } => "activate_trader",
@@ -517,7 +559,11 @@ impl __sdk::Reducer for Reducer {
             Reducer::RebuildPlayerRecords { .. } => "rebuild_player_records",
             Reducer::SelectDiscordPlayer { .. } => "select_discord_player",
             Reducer::SelectJournal { .. } => "select_journal",
+            Reducer::SetBaitSlot { .. } => "set_bait_slot",
+            Reducer::SetBaitSlotFromDiscord { .. } => "set_bait_slot_from_discord",
             Reducer::SetCatchFavorite { .. } => "set_catch_favorite",
+            Reducer::SetCollectionFocus { .. } => "set_collection_focus",
+            Reducer::SetCollectionFocusFromDiscord { .. } => "set_collection_focus_from_discord",
             Reducer::SyncDiscordPortrait { .. } => "sync_discord_portrait",
             Reducer::UnlinkBrowser => "unlink_browser",
             _ => unreachable!(),
@@ -535,6 +581,9 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivatePerfectCatches => __sats::bsatn::to_vec(
                 &activate_perfect_catches_reducer::ActivatePerfectCatchesArgs {},
             ),
+            Reducer::ActivateRankMaxima => {
+                __sats::bsatn::to_vec(&activate_rank_maxima_reducer::ActivateRankMaximaArgs {})
+            }
             Reducer::ActivateRodBonuses => {
                 __sats::bsatn::to_vec(&activate_rod_bonuses_reducer::ActivateRodBonusesArgs {})
             }
@@ -794,12 +843,50 @@ impl __sdk::Reducer for Reducer {
                 rarity: rarity.clone(),
                 outcome: outcome.clone(),
             }),
+            Reducer::SetBaitSlot { bait_id, slot } => {
+                __sats::bsatn::to_vec(&set_bait_slot_reducer::SetBaitSlotArgs {
+                    bait_id: bait_id.clone(),
+                    slot: slot.clone(),
+                })
+            }
+            Reducer::SetBaitSlotFromDiscord {
+                discord_user_id,
+                interaction_id,
+                bait_id,
+                slot,
+            } => __sats::bsatn::to_vec(
+                &set_bait_slot_from_discord_reducer::SetBaitSlotFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    bait_id: bait_id.clone(),
+                    slot: slot.clone(),
+                },
+            ),
             Reducer::SetCatchFavorite { catch_id, favorite } => {
                 __sats::bsatn::to_vec(&set_catch_favorite_reducer::SetCatchFavoriteArgs {
                     catch_id: catch_id.clone(),
                     favorite: favorite.clone(),
                 })
             }
+            Reducer::SetCollectionFocus { biome_id, enabled } => {
+                __sats::bsatn::to_vec(&set_collection_focus_reducer::SetCollectionFocusArgs {
+                    biome_id: biome_id.clone(),
+                    enabled: enabled.clone(),
+                })
+            }
+            Reducer::SetCollectionFocusFromDiscord {
+                discord_user_id,
+                interaction_id,
+                biome_id,
+                enabled,
+            } => __sats::bsatn::to_vec(
+                &set_collection_focus_from_discord_reducer::SetCollectionFocusFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    biome_id: biome_id.clone(),
+                    enabled: enabled.clone(),
+                },
+            ),
             Reducer::SyncDiscordPortrait {
                 discord_user_id,
                 avatar_hash,
@@ -829,6 +916,7 @@ pub struct DbUpdate {
     adapter_cast_equipment: __sdk::TableUpdate<CastEquipmentReceipt>,
     adapter_cast_pulls: __sdk::TableUpdate<CastPull>,
     adapter_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
+    adapter_collection_focus: __sdk::TableUpdate<CollectionFocusPreference>,
     adapter_daily_receipt: __sdk::TableUpdate<DailyReceipt>,
     adapter_inventory: __sdk::TableUpdate<OwnedSpecimen>,
     adapter_items: __sdk::TableUpdate<ItemStack>,
@@ -853,6 +941,7 @@ pub struct DbUpdate {
     my_bait_loadout: __sdk::TableUpdate<BaitLoadout>,
     my_baits: __sdk::TableUpdate<BaitStack>,
     my_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
+    my_collection_focus: __sdk::TableUpdate<CollectionFocusPreference>,
     my_inventory: __sdk::TableUpdate<OwnedSpecimen>,
     my_items: __sdk::TableUpdate<ItemStack>,
     my_journal: __sdk::TableUpdate<JournalPage>,
@@ -869,6 +958,7 @@ pub struct DbUpdate {
     perfect_species: __sdk::TableUpdate<PerfectSpecies>,
     public_profile: __sdk::TableUpdate<PublicProfile>,
     quality_definition: __sdk::TableUpdate<QualityDefinition>,
+    rank_maximum: __sdk::TableUpdate<RankMaximum>,
     rarity_definition: __sdk::TableUpdate<RarityDefinition>,
     rod_bonuses: __sdk::TableUpdate<RodBonuses>,
     rod_definition: __sdk::TableUpdate<RodDefinition>,
@@ -909,6 +999,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_collection" => db_update
                     .adapter_collection
                     .append(adapter_collection_table::parse_table_update(table_update)?),
+                "adapter_collection_focus" => db_update.adapter_collection_focus.append(
+                    adapter_collection_focus_table::parse_table_update(table_update)?,
+                ),
                 "adapter_daily_receipt" => db_update.adapter_daily_receipt.append(
                     adapter_daily_receipt_table::parse_table_update(table_update)?,
                 ),
@@ -981,6 +1074,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_collection" => db_update
                     .my_collection
                     .append(my_collection_table::parse_table_update(table_update)?),
+                "my_collection_focus" => db_update
+                    .my_collection_focus
+                    .append(my_collection_focus_table::parse_table_update(table_update)?),
                 "my_inventory" => db_update
                     .my_inventory
                     .append(my_inventory_table::parse_table_update(table_update)?),
@@ -1029,6 +1125,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "quality_definition" => db_update
                     .quality_definition
                     .append(quality_definition_table::parse_table_update(table_update)?),
+                "rank_maximum" => db_update
+                    .rank_maximum
+                    .append(rank_maximum_table::parse_table_update(table_update)?),
                 "rarity_definition" => db_update
                     .rarity_definition
                     .append(rarity_definition_table::parse_table_update(table_update)?),
@@ -1133,6 +1232,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 &self.quality_definition,
             )
             .with_updates_by_pk(|row| &row.quality_level);
+        diff.rank_maximum = cache
+            .apply_diff_to_table::<RankMaximum>("rank_maximum", &self.rank_maximum)
+            .with_updates_by_pk(|row| &row.key);
         diff.rarity_definition = cache
             .apply_diff_to_table::<RarityDefinition>("rarity_definition", &self.rarity_definition)
             .with_updates_by_pk(|row| &row.ordinal);
@@ -1181,6 +1283,10 @@ impl __sdk::DbUpdate for DbUpdate {
             "adapter_collection",
             &self.adapter_collection,
         );
+        diff.adapter_collection_focus = cache.apply_diff_to_table::<CollectionFocusPreference>(
+            "adapter_collection_focus",
+            &self.adapter_collection_focus,
+        );
         diff.adapter_daily_receipt = cache.apply_diff_to_table::<DailyReceipt>(
             "adapter_daily_receipt",
             &self.adapter_daily_receipt,
@@ -1215,6 +1321,10 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.my_baits = cache.apply_diff_to_table::<BaitStack>("my_baits", &self.my_baits);
         diff.my_collection = cache
             .apply_diff_to_table::<PlayerSpeciesProgress>("my_collection", &self.my_collection);
+        diff.my_collection_focus = cache.apply_diff_to_table::<CollectionFocusPreference>(
+            "my_collection_focus",
+            &self.my_collection_focus,
+        );
         diff.my_inventory =
             cache.apply_diff_to_table::<OwnedSpecimen>("my_inventory", &self.my_inventory);
         diff.my_items = cache.apply_diff_to_table::<ItemStack>("my_items", &self.my_items);
@@ -1266,6 +1376,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_collection" => db_update
                     .adapter_collection
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_collection_focus" => db_update
+                    .adapter_collection_focus
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_daily_receipt" => db_update
                     .adapter_daily_receipt
@@ -1339,6 +1452,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_collection" => db_update
                     .my_collection
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_collection_focus" => db_update
+                    .my_collection_focus
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_inventory" => db_update
                     .my_inventory
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -1386,6 +1502,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "quality_definition" => db_update
                     .quality_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "rank_maximum" => db_update
+                    .rank_maximum
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "rarity_definition" => db_update
                     .rarity_definition
@@ -1448,6 +1567,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_collection" => db_update
                     .adapter_collection
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_collection_focus" => db_update
+                    .adapter_collection_focus
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_daily_receipt" => db_update
                     .adapter_daily_receipt
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1520,6 +1642,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_collection" => db_update
                     .my_collection
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_collection_focus" => db_update
+                    .my_collection_focus
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_inventory" => db_update
                     .my_inventory
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1568,6 +1693,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "quality_definition" => db_update
                     .quality_definition
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "rank_maximum" => db_update
+                    .rank_maximum
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "rarity_definition" => db_update
                     .rarity_definition
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1615,6 +1743,7 @@ pub struct AppliedDiff<'r> {
     adapter_cast_equipment: __sdk::TableAppliedDiff<'r, CastEquipmentReceipt>,
     adapter_cast_pulls: __sdk::TableAppliedDiff<'r, CastPull>,
     adapter_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
+    adapter_collection_focus: __sdk::TableAppliedDiff<'r, CollectionFocusPreference>,
     adapter_daily_receipt: __sdk::TableAppliedDiff<'r, DailyReceipt>,
     adapter_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
     adapter_items: __sdk::TableAppliedDiff<'r, ItemStack>,
@@ -1639,6 +1768,7 @@ pub struct AppliedDiff<'r> {
     my_bait_loadout: __sdk::TableAppliedDiff<'r, BaitLoadout>,
     my_baits: __sdk::TableAppliedDiff<'r, BaitStack>,
     my_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
+    my_collection_focus: __sdk::TableAppliedDiff<'r, CollectionFocusPreference>,
     my_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
     my_items: __sdk::TableAppliedDiff<'r, ItemStack>,
     my_journal: __sdk::TableAppliedDiff<'r, JournalPage>,
@@ -1655,6 +1785,7 @@ pub struct AppliedDiff<'r> {
     perfect_species: __sdk::TableAppliedDiff<'r, PerfectSpecies>,
     public_profile: __sdk::TableAppliedDiff<'r, PublicProfile>,
     quality_definition: __sdk::TableAppliedDiff<'r, QualityDefinition>,
+    rank_maximum: __sdk::TableAppliedDiff<'r, RankMaximum>,
     rarity_definition: __sdk::TableAppliedDiff<'r, RarityDefinition>,
     rod_bonuses: __sdk::TableAppliedDiff<'r, RodBonuses>,
     rod_definition: __sdk::TableAppliedDiff<'r, RodDefinition>,
@@ -1714,6 +1845,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<PlayerSpeciesProgress>(
             "adapter_collection",
             &self.adapter_collection,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<CollectionFocusPreference>(
+            "adapter_collection_focus",
+            &self.adapter_collection_focus,
             event,
         );
         callbacks.invoke_table_row_callbacks::<DailyReceipt>(
@@ -1820,6 +1956,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.my_collection,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<CollectionFocusPreference>(
+            "my_collection_focus",
+            &self.my_collection_focus,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<OwnedSpecimen>(
             "my_inventory",
             &self.my_inventory,
@@ -1878,6 +2019,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<QualityDefinition>(
             "quality_definition",
             &self.quality_definition,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<RankMaximum>(
+            "rank_maximum",
+            &self.rank_maximum,
             event,
         );
         callbacks.invoke_table_row_callbacks::<RarityDefinition>(
@@ -2584,6 +2730,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_cast_equipment_table::register_table(client_cache);
         adapter_cast_pulls_table::register_table(client_cache);
         adapter_collection_table::register_table(client_cache);
+        adapter_collection_focus_table::register_table(client_cache);
         adapter_daily_receipt_table::register_table(client_cache);
         adapter_inventory_table::register_table(client_cache);
         adapter_items_table::register_table(client_cache);
@@ -2608,6 +2755,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_bait_loadout_table::register_table(client_cache);
         my_baits_table::register_table(client_cache);
         my_collection_table::register_table(client_cache);
+        my_collection_focus_table::register_table(client_cache);
         my_inventory_table::register_table(client_cache);
         my_items_table::register_table(client_cache);
         my_journal_table::register_table(client_cache);
@@ -2624,6 +2772,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         perfect_species_table::register_table(client_cache);
         public_profile_table::register_table(client_cache);
         quality_definition_table::register_table(client_cache);
+        rank_maximum_table::register_table(client_cache);
         rarity_definition_table::register_table(client_cache);
         rod_bonuses_table::register_table(client_cache);
         rod_definition_table::register_table(client_cache);
@@ -2642,6 +2791,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_cast_equipment",
         "adapter_cast_pulls",
         "adapter_collection",
+        "adapter_collection_focus",
         "adapter_daily_receipt",
         "adapter_inventory",
         "adapter_items",
@@ -2666,6 +2816,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_bait_loadout",
         "my_baits",
         "my_collection",
+        "my_collection_focus",
         "my_inventory",
         "my_items",
         "my_journal",
@@ -2682,6 +2833,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "perfect_species",
         "public_profile",
         "quality_definition",
+        "rank_maximum",
         "rarity_definition",
         "rod_bonuses",
         "rod_definition",

@@ -13,4 +13,5 @@ import {
 export default __t.row({
   playerId: __t.u64().name("player_id"),
   baitId: __t.u32().name("bait_id"),
+  secondaryBaitId: __t.u32().name("secondary_bait_id"),
 });

@@ -345,6 +345,21 @@ pub struct PerfectSpecies {
     pub weight_g: u64,
 }
 
+// Lifetime progress survives sale, journal pruning, and receipt retention.
+#[spacetimedb::table(accessor = rank_maximum, public)]
+pub struct RankMaximum {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub species_id: u32,
+    pub rarity: String,
+    pub first_catch_id: u64,
+    pub achieved_at: Timestamp,
+    pub length_mm: u32,
+    pub weight_g: u64,
+}
+
 #[spacetimedb::table(accessor = bait_definition, public)]
 pub struct BaitDefinition {
     #[primary_key]
@@ -401,6 +416,8 @@ pub struct BaitLoadout {
     #[primary_key]
     pub player_id: u64,
     pub bait_id: u32,
+    #[default(0)]
+    pub secondary_bait_id: u32,
 }
 
 #[spacetimedb::table(accessor = upgrade_quote)]
@@ -436,6 +453,16 @@ pub struct CastPull {
     pub receipt: CommandReceipt,
 }
 
+#[spacetimedb::table(accessor = collection_focus_preference)]
+pub struct CollectionFocusPreference {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub biome_id: u32,
+    pub enabled: bool,
+}
+
 #[spacetimedb::table(accessor = cast_equipment_receipt)]
 pub struct CastEquipmentReceipt {
     #[primary_key]
@@ -454,6 +481,18 @@ pub struct CastEquipmentReceipt {
     pub bait_quantity: u64,
     #[default(1)]
     pub bait_size_rolls: u8,
+    #[default(false)]
+    pub collection_focus_enabled: bool,
+    #[default(0)]
+    pub collection_focus_rerolls: u8,
+    #[default(0)]
+    pub secondary_bait_id: u32,
+    #[default(0)]
+    pub secondary_bait_uses_left: u64,
+    #[default("")]
+    pub secondary_bait_item: String,
+    #[default(0)]
+    pub secondary_bait_quantity: u64,
 }
 
 #[spacetimedb::table(accessor = recent_catch)]

@@ -23,4 +23,10 @@ export default __t.row({
   baitItem: __t.string().name("bait_item"),
   baitQuantity: __t.u64().name("bait_quantity"),
   baitSizeRolls: __t.u8().name("bait_size_rolls"),
+  collectionFocusEnabled: __t.bool().name("collection_focus_enabled"),
+  collectionFocusRerolls: __t.u8().name("collection_focus_rerolls"),
+  secondaryBaitId: __t.u32().name("secondary_bait_id"),
+  secondaryBaitUsesLeft: __t.u64().name("secondary_bait_uses_left"),
+  secondaryBaitItem: __t.string().name("secondary_bait_item"),
+  secondaryBaitQuantity: __t.u64().name("secondary_bait_quantity"),
 });

@@ -74,6 +74,23 @@ mod tests {
         assert_eq!(level_for_xp(u64::MAX, 120), 120);
     }
     #[test]
+    fn expanded_cap_credits_banked_xp_and_keeps_existing_thresholds() {
+        let cap = 10_000;
+        let previous_cap_xp: u64 = (1..120).map(xp_to_next).sum();
+        assert_eq!(previous_cap_xp, 304395);
+        assert_eq!(level_for_xp(previous_cap_xp, cap), 120);
+        let banked_xp = 7_662_839;
+        assert_eq!(level_for_xp(banked_xp, 120), 120);
+        assert_eq!(level_for_xp(banked_xp, cap), 648);
+        for level in [121, 250, 500, 1000, cap] {
+            let threshold: u64 = (1..level).map(xp_to_next).sum();
+            assert_eq!(level_for_xp(threshold - 1, cap), level - 1);
+            assert_eq!(level_for_xp(threshold, cap), level);
+        }
+        assert_eq!((1..cap).map(xp_to_next).sum::<u64>(), 1_754_621_895);
+        assert_eq!(level_for_xp(u64::MAX, cap), cap);
+    }
+    #[test]
     fn curve_activation_retains_early_levels_and_never_lowers_existing_levels() {
         let mut legacy_total = 0;
         for level in 1..120 {

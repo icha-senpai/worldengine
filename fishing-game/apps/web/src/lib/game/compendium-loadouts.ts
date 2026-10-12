@@ -1,14 +1,18 @@
+import { equippedBaits, stackedBaitBonuses } from './bait-loadout';
+import catalog from '../../../../../content/species.json';
 import world from '../../../../../content/world.json';
 import crafting from '../../../../../content/crafting.json';
-import { baselineLoadout, type RateLoadout } from './compendium';
+import { baselineLoadout, type CollectionFocus, type RateLoadout } from './compendium';
 import type { BaitDefinition, BaitLoadout, BaitStack, GameConfig, Player, QualityDefinition, RodDefinition } from '@fishing-game/generated/types';
 
 type EquippedRateState = {
+  collection?: { speciesId: number; count: bigint; rankCounts: bigint[] }[];
+  focusPreferences?: { biomeId: number; enabled: boolean }[];
   ready: boolean;
   player: Pick<Player, 'equippedRodId'> | null;
   rods: Pick<RodDefinition, 'rodId' | 'name'>[];
   baits: Pick<BaitDefinition, 'baitId' | 'name' | 'luckBp' | 'sizeRolls'>[];
-  baitLoadout: Pick<BaitLoadout, 'baitId'> | null;
+  baitLoadout: (Pick<BaitLoadout, 'baitId'> & Partial<Pick<BaitLoadout, 'secondaryBaitId'>>) | null;
   ownedBaits: Pick<BaitStack, 'baitId' | 'usesLeft'>[];
   config: Pick<GameConfig, 'version'> | null;
   rodStats: (rodId: number) => { power: number; luckBp: number; quality?: Pick<QualityDefinition, 'name'> };
@@ -20,26 +24,35 @@ const rod = [...world.rods].sort((a, b) => b.power - a.power || b.luckBp - a.luc
 const quality = [...crafting.qualities].sort((a, b) => b.powerBonus - a.powerBonus || b.luckBp - a.luckBp)[0];
 const bait = [...crafting.baits].sort((a, b) => b.sizeRolls - a.sizeRolls || b.luckBp - a.luckBp)[0];
 export const bestPerfectLoadout: RateLoadout = {
-  name: `${quality.name} ${rod.name} · ${bait.name}`,
+  name: `${quality.name} ${rod.name} · ${bait.name} ×2`,
   power: rod.power + quality.powerBonus,
-  luckBp: rod.luckBp + quality.luckBp + bait.luckBp,
-  sizeRolls: bait.sizeRolls,
+  luckBp: rod.luckBp + quality.luckBp + bait.luckBp * 2,
+  sizeRolls: bait.sizeRolls * 2,
   rulesVersion: baselineLoadout.rulesVersion,
 };
+
+
+export function collectionFocusContext(game?: EquippedRateState): CollectionFocus | undefined {
+  if (!game?.ready || !game.player || (game.config?.version ?? 0) < 13) return undefined;
+  const discovered = new Set(game.collection?.filter(row => row.count > 0n).map(row => row.speciesId));
+  const biomeIds = game.focusPreferences?.filter(row => row.enabled && catalog.species.filter(fish => fish.biomeId === row.biomeId && fish.countsForOrdinaryCollectionCompletion).every(fish => discovered.has(fish.speciesId))).map(row => row.biomeId) ?? [];
+  const rankMasks = Object.fromEntries(game.collection?.map(row => [row.speciesId, row.rankCounts.reduce((mask, count, rank) => count > 0n ? mask | (1 << rank) : mask, 0)]) ?? []);
+  return { biomeIds, rankMasks };
+}
 
 export function equippedLoadout(game?: EquippedRateState): RateLoadout | null {
   if (!game?.ready || !game.player) return null;
   const rod = game.rods.find(row => row.rodId === game.player!.equippedRodId);
   const stats = game.rodStats(game.player.equippedRodId);
   if (!rod || !stats.quality) return null;
-  const baitId = game.baitLoadout?.baitId;
-  const stocked = game.ownedBaits.some(row => row.baitId === baitId && row.usesLeft > 0n);
-  const bait = stocked ? game.baits.find(row => row.baitId === baitId) : undefined;
+  const selected = equippedBaits(game).map(row => row.bait);
+  const bonuses = stackedBaitBonuses(selected);
   return {
-    name: `${stats.quality.name} ${rod.name} · ${bait?.name ?? 'no bait'}`,
+    name: `${stats.quality.name} ${rod.name} · ${selected.map(bait => bait.name).join(' + ') || 'no bait'}`,
     power: stats.power,
-    luckBp: stats.luckBp + (bait?.luckBp ?? 0),
-    sizeRolls: bait?.sizeRolls ?? 1,
+    luckBp: stats.luckBp + bonuses.luckBp,
+    sizeRolls: bonuses.sizeRolls,
     rulesVersion: game.config?.version ?? baselineLoadout.rulesVersion,
+    focus: collectionFocusContext(game),
   };
 }

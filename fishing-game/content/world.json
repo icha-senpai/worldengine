@@ -1,6 +1,6 @@
 {
   "version": 5,
-  "levelCap": 120,
+  "levelCap": 10000,
   "biomes": [
     {
       "biomeId": 1,

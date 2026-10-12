@@ -3,7 +3,8 @@
 Rust / SpaceTimeDB authority, Serenity + Poise Discord bot, and SvelteKit companion.
 All 251 fish and all seven specified biomes are implemented and locally verified.
 The ServBay/Cloudflare site is live at https://fish.ichaa.dev and the Discord bot
-connects. Command delivery and the complete OAuth login still need live verification.
+connects. The October 12 rules-13 deployment passed public service health, database
+preservation, and all 15 global command-registration checks.
 
 ## Implemented
 
@@ -15,18 +16,21 @@ connects. Command delivery and the complete OAuth login still need live verifica
   All 251 species have explicit length/weight baselines in
   [species-measurements.csv](content/species-measurements.csv); see
   [measurement design and calibration](docs/species-measurements.md).
-- Level cap 120; free Twig Rod and six purchased rod families; authoritative biome/equipment selection.
+- Level cap 10,000; free Twig Rod and six purchased rod families; authoritative biome/equipment selection.
 - Server RNG, fixed-point lengths/weights, XP and first discoveries, global 60-second cooldown.
 - Private accounts and inventory, scoped subscriptions, durable cast results, safe retries.
 - Junk stacks and immediate treasure rewards with economy ledger entries.
-- Five repeatable 10-use bait packs and permanent Common-to-Prismatic quality per rod.
+- Thirteen repeatable 10-use bait packs and permanent Common-to-Prismatic quality per rod.
 - Power can add one independent mixed pull; both pulls share cooldown and one bait use.
 - Confirmed tin/scrap crafting; biome access uses level and licences instead of power.
 - Website dashboard, collection, permanent sortable catch journal, favorites, sale preview/confirmation,
   and length/weight records that survive disposal.
 - One game shell with Camp, Tackle box, Collection, Journal, World map, Records,
   Trader, Compendium, Achievements and Anglers tabs. Lists have book pages: twelve entries on desktop and four on phones.
-- Fourteen Poise handlers: /fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /upgrade, /help.
+- Fifteen Poise handlers: /fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /focus, /upgrade, /help.
+- Optional Collection Focus unlocks per biome after all its ordinary species are
+  discovered. Duplicate ranks have a 20% chance to become a weighted missing rank
+  of the same fish; toggle in the Compendium or with `/focus`.
 - Catch replies include a static green **🎣 Fish again** button anyone can use.
   Each click casts for the clicking angler, using their own gear, bait, rewards and
   cooldown. Each click sends a fresh cast interaction through the same

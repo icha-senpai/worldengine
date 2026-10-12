@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "qualities": [
     {
       "qualityLevel": 0,
@@ -103,7 +103,7 @@
       "spriteAsset": "/baits/plump-worms.png",
       "xpBonusBp": 0,
       "resourceQuantity": 0,
-      "sizeRolls": 1
+      "sizeRolls": 2
     },
     {
       "baitId": 4,
@@ -116,7 +116,7 @@
       "spriteAsset": "/baits/river-grubs.png",
       "xpBonusBp": 0,
       "resourceQuantity": 0,
-      "sizeRolls": 1
+      "sizeRolls": 3
     },
     {
       "baitId": 5,
@@ -129,7 +129,7 @@
       "spriteAsset": "/baits/moonlit-fireflies.png",
       "xpBonusBp": 0,
       "resourceQuantity": 0,
-      "sizeRolls": 1
+      "sizeRolls": 4
     },
     {
       "baitId": 6,
@@ -226,7 +226,7 @@
       "baitId": 13,
       "key": "trophy-chum",
       "name": "Trophy Chum",
-      "priceCoins": 1000,
+      "priceCoins": 500,
       "luckBp": 2500,
       "xpBonusBp": 0,
       "resourceItem": "",

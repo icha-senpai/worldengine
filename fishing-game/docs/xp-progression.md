@@ -1,9 +1,10 @@
-# Level 120 and experience slime bait
+# Angler progression and experience slime bait
 
 Gameplay rules 10 tune baseline levelling for 25–50 casts per day. Keep lifetime
 XP as the source of truth: existing players retain all XP, catches, coins,
 equipment and bait stock, and their displayed level can increase on activation.
-The cap remains 120 and the first ten level costs are unchanged.
+The local rules-12 candidate raises the cap to 10,000. All existing level
+costs and rewards remain unchanged; level 120 is now a milestone.
 
 XP needed from level `L` to `L+1`:
 
@@ -12,9 +13,15 @@ L <= 10: 80 + 25*L + 5*L*L
 L > 10:  830 + 35*(L - 10)
 ```
 
-Level 120 now requires **304,395 total XP**, down from 3,032,120. The curve stays
+Level 120 requires **304,395 total XP**, down from 3,032,120. The curve stays
 strictly increasing; level 10 costs 830 and level 11 costs 865. Cast reward XP,
 slime bonuses, rod bonuses, fish values and material recipes are unchanged.
+
+Level 10,000 requires **1,754,621,895 lifetime XP** on the unchanged curve. This
+provides long-term growth headroom, not a short-session completion target.
+Existing saved XP is never clamped to the displayed level cap. Activation
+refreshes public levels from the complete banked amount.
+
 Licence level requirements remain 1/5/10/18/28/40/55. Rods remain gold purchases
 with the previous licence required.
 
@@ -36,7 +43,7 @@ contains ten uses, and repeated purchases add uses to the same bait stack.
 
 These starting prices are tunable. They offer a choice alongside resource and
 luck bait: only one bait type can occupy the slot, and slime grants no extra
-luck, power or guaranteed material. All eight baits work in every licensed biome.
+luck, power or guaranteed material. All thirteen baits work in every licensed biome.
 
 XP bonuses add: rod family + permanent quality + equipped slime. Apply the
 combined percentage once to the complete cast's base XP, including discoveries,
@@ -62,7 +69,7 @@ rebuild native services, and publish with `--delete-data=never`. SpaceTimeDB
 [supports appended columns with defaults](https://spacetimedb.com/docs/tables/default-values/).
 The owner-only, idempotent `activate_xp_progression` reducer seeds the current bait catalog
 definitions, rod bases/bonuses, qualities, 42 family recipes, and 25 shop offers, inserts
-current rules version 11 with cap 120 (the same rules-10 XP curve), and
+current local rules version 12 with cap 10,000 (the same rules-10 XP curve), and
 refreshes public profile levels from stored XP. It never changes player XP,
 wallets, bait stacks, owned rod quality levels, catches, history, records or cooldowns.
 

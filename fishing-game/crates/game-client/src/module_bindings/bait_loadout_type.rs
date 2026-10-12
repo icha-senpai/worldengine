@@ -9,6 +9,7 @@ use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 pub struct BaitLoadout {
     pub player_id: u64,
     pub bait_id: u32,
+    pub secondary_bait_id: u32,
 }
 
 impl __sdk::InModule for BaitLoadout {
@@ -21,6 +22,7 @@ impl __sdk::InModule for BaitLoadout {
 pub struct BaitLoadoutCols {
     pub player_id: __sdk::__query_builder::Col<BaitLoadout, u64>,
     pub bait_id: __sdk::__query_builder::Col<BaitLoadout, u32>,
+    pub secondary_bait_id: __sdk::__query_builder::Col<BaitLoadout, u32>,
 }
 
 impl __sdk::__query_builder::HasCols for BaitLoadout {
@@ -29,6 +31,7 @@ impl __sdk::__query_builder::HasCols for BaitLoadout {
         BaitLoadoutCols {
             player_id: __sdk::__query_builder::Col::new(table_name, "player_id"),
             bait_id: __sdk::__query_builder::Col::new(table_name, "bait_id"),
+            secondary_bait_id: __sdk::__query_builder::Col::new(table_name, "secondary_bait_id"),
         }
     }
 }

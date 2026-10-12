@@ -30,6 +30,19 @@ pub fn classify_size(ratio_millionths: u64) -> u8 {
 }
 pub const SIZE_GRADE_NAMES: [&str; 6] = ["Tiny", "Small", "Typical", "Large", "Trophy", "Colossal"];
 
+/// One specimen must match both exact endpoints of its saved rank.
+pub fn is_rank_maximum(
+    species: SpeciesMeasurements,
+    ordinal: u8,
+    length_mm: u32,
+    weight_g: u64,
+) -> Result<bool, &'static str> {
+    let maximum = maximum_in_size_band(species, ordinal)?;
+    Ok(length_mm == maximum.length_mm
+        && weight_g == maximum.weight_g
+        && classify_rarity(species, maximum)? == ordinal)
+}
+
 // Weight scales with volume. Both measured dimensions must meet the cutoff;
 // these are comparisons to this species, never to other species' raw sizes.
 pub const RANK_LENGTH_MIN: [u64; 10] = [
@@ -272,6 +285,31 @@ mod tests {
                 })
                 .unwrap() as u8;
             let maximum = maximum_in_size_band(model, band).unwrap();
+            for rank in fish["allowedRarities"].as_array().unwrap() {
+                let ordinal = crate::RARITY_TIERS.iter().position(|r| rank == r).unwrap() as u8;
+                let endpoint = maximum_in_size_band(model, ordinal).unwrap();
+                assert_eq!(
+                    is_rank_maximum(model, ordinal, endpoint.length_mm, endpoint.weight_g),
+                    Ok(true)
+                );
+                assert_eq!(
+                    is_rank_maximum(model, ordinal, endpoint.length_mm - 1, endpoint.weight_g),
+                    Ok(false)
+                );
+                assert_eq!(
+                    is_rank_maximum(model, ordinal, endpoint.length_mm, endpoint.weight_g - 1),
+                    Ok(false)
+                );
+                assert_eq!(
+                    is_rank_maximum(
+                        model,
+                        (ordinal + 1) % 10,
+                        endpoint.length_mm,
+                        endpoint.weight_g
+                    ),
+                    Ok(false)
+                );
+            }
             assert_eq!(
                 is_perfect(model, band, maximum.length_mm, maximum.weight_g),
                 Ok(true)

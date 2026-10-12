@@ -1,7 +1,7 @@
 //! Recognition and presentation use saved integer dimensions, never rounded text.
 use crate::measurements::{format_length, format_weight};
 use game_client::module_bindings::{CommandReceipt, SpeciesDefinition};
-use game_rules::measurements::{SpeciesMeasurements, is_perfect};
+use game_rules::measurements::{SpeciesMeasurements, is_rank_maximum};
 use serenity::builder::CreateEmbed;
 
 pub fn card(
@@ -9,19 +9,16 @@ pub fn card(
     receipt: &CommandReceipt,
     angler: &str,
 ) -> Option<CreateEmbed> {
-    if receipt.outcome != "fish"
-        || receipt.species_id != Some(species.species_id)
-        || species.key == "nidalees-lost-sock"
-    {
+    if receipt.outcome != "fish" || receipt.species_id != Some(species.species_id) {
         return None;
     }
-    let band = game_rules::RARITY_TIERS.iter().rposition(|rank| {
-        species
-            .allowed_rarities
-            .iter()
-            .any(|allowed| allowed == rank)
-    })? as u8;
-    let perfect = is_perfect(
+    if !species.allowed_rarities.contains(&receipt.rarity) {
+        return None;
+    }
+    let band = game_rules::RARITY_TIERS
+        .iter()
+        .position(|rank| *rank == receipt.rarity)? as u8;
+    let perfect = is_rank_maximum(
         SpeciesMeasurements {
             typical_length_mm: species.typical_length_mm,
             min_length_mm: species.min_length_mm,
@@ -38,10 +35,22 @@ pub fn card(
     if !perfect {
         return None;
     }
+    let official_perfect = receipt.rarity == "UUR" && species.key != "nidalees-lost-sock";
     Some(
         CreateEmbed::new()
-            .title(format!("✦ PERFECT CATCH · {}", species.name))
-            .description("Both exact maximum measurements. A catch for the history books.")
+            .title(if official_perfect {
+                format!("✦ PERFECT CATCH · {}", species.name)
+            } else {
+                format!("✦ RANK MAXIMUM · {} · {}", receipt.rarity, species.name)
+            })
+            .description(if official_perfect {
+                "Both exact maximum measurements. A catch for the history books.".to_owned()
+            } else {
+                format!(
+                    "Both exact maximum measurements for {} rank. A permanent collection mark.",
+                    receipt.rarity
+                )
+            })
             .field("Angler", angler, false)
             .field(
                 "Maximum length",
@@ -133,6 +142,43 @@ mod tests {
         receipt.weight_g += 1;
         let mut fake = species.clone();
         fake.key = "nidalees-lost-sock".into();
+        fake.allowed_rarities = vec!["F".into()];
         assert!(card(&fake, &receipt, "Boss").is_none());
+        for (ordinal, rank) in game_rules::RARITY_TIERS.iter().enumerate() {
+            let model = SpeciesMeasurements {
+                typical_length_mm: 450,
+                min_length_mm: 247,
+                max_length_mm: 855,
+                typical_weight_g: 1600,
+                min_weight_g: 200,
+                max_weight_g: 12800,
+            };
+            let maximum =
+                game_rules::measurements::maximum_in_size_band(model, ordinal as u8).unwrap();
+            receipt.rarity = (*rank).into();
+            receipt.length_mm = maximum.length_mm;
+            receipt.weight_g = maximum.weight_g;
+            let payload =
+                serde_json::to_string(&card(&species, &receipt, "Boss").unwrap()).unwrap();
+            assert!(payload.contains(if *rank == "UUR" {
+                "PERFECT CATCH"
+            } else {
+                "RANK MAXIMUM"
+            }));
+            receipt.weight_g -= 1;
+            assert!(card(&species, &receipt, "Boss").is_none());
+            receipt.weight_g += 1;
+            receipt.length_mm -= 1;
+            assert!(card(&species, &receipt, "Boss").is_none());
+            receipt.length_mm += 1;
+            receipt.rarity = "invalid".into();
+            assert!(card(&species, &receipt, "Boss").is_none());
+            if *rank == "F" {
+                receipt.rarity = "F".into();
+                let payload =
+                    serde_json::to_string(&card(&fake, &receipt, "Boss").unwrap()).unwrap();
+                assert!(payload.contains("RANK MAXIMUM") && !payload.contains("PERFECT CATCH"));
+            }
+        }
     }
 }

@@ -5,7 +5,7 @@
   import PageTurner from './PageTurner.svelte';
   import FishDetails from './FishDetails.svelte';
   import { baselineLoadout, castChance, formatOdds, formatPercent, perfectCatchOdds } from './compendium';
-  import { bestPerfectLoadout, equippedLoadout } from './compendium-loadouts';
+  import { bestPerfectLoadout, collectionFocusContext, equippedLoadout } from './compendium-loadouts';
   import type { Game } from './game.svelte';
   let { active = true, game } = $props<{ active?: boolean; game?: Game }>();
   const pageSize = 24;
@@ -16,8 +16,16 @@
   let page = $state(1);
   let rateMode = $state<'baseline' | 'equipped' | 'best'>('baseline');
   const equipped = $derived(equippedLoadout(game));
-  const loadout = $derived(rateMode === 'best' ? bestPerfectLoadout : rateMode === 'equipped' && equipped ? equipped : baselineLoadout);
+  const loadout = $derived(rateMode === 'best' ? { ...bestPerfectLoadout, focus: collectionFocusContext(game) } : rateMode === 'equipped' && equipped ? equipped : baselineLoadout);
   $effect(() => { if (rateMode === 'equipped' && !equipped) rateMode = 'baseline'; });
+  const focusBiomeId = $derived(biome || game?.player?.selectedBiomeId || 1);
+  const focusBiome = $derived(world.biomes.find(row => row.biomeId === focusBiomeId)!);
+  const focusSpecies = $derived(catalog.species.filter(row => row.biomeId === focusBiomeId && row.countsForOrdinaryCollectionCompletion));
+  const focusDiscovered = $derived(focusSpecies.filter(fish => game?.collection.some((row: { speciesId: number; count: bigint }) => row.speciesId === fish.speciesId && row.count > 0n)).length);
+  const focusEnabled = $derived(game?.focusPreferences.some((row: { biomeId: number; enabled: boolean }) => row.biomeId === focusBiomeId && row.enabled) ?? false);
+  const focusAvailable = $derived(!!game?.ready && !!game.player && (game.config?.version ?? 0) >= 13);
+  const focusLicensed = $derived(focusBiomeId === 1 || !!game?.licences.some((row: { biomeId: number }) => row.biomeId === focusBiomeId));
+  const focusUnlocked = $derived(focusDiscovered === focusSpecies.length && focusLicensed);
   let selected = $state<typeof catalog.species[number] | null>(null);
   $effect(() => { if (!active) selected = null; });
   const species = $derived(catalog.species.map(entry => ({ ...entry, perfect: perfectCatchOdds(entry, loadout), asset: manifest.fish.find(asset => asset.key === entry.spriteKey)! })));
@@ -36,8 +44,14 @@
       <button aria-pressed={rateMode === 'best'} onclick={() => rateMode = 'best'}>Best for perfects</button>
     </div>{#if !equipped}<small>Link your Discord account to compare your equipped loadout.</small>{/if}</fieldset>
   </div>
+  <div class="collection-focus">
+    <label for="collection-focus-toggle"><input id="collection-focus-toggle" type="checkbox" checked={focusEnabled} disabled={!focusAvailable || (!focusUnlocked && !focusEnabled) || game?.busy} onchange={event => game?.setCollectionFocus(focusBiomeId, event.currentTarget.checked)} /> Collection Focus · {focusBiome.name}</label>
+    <p>{#if !game?.player}Link Discord to track your collection and unlock this mode.{:else if !focusAvailable}Collection Focus is awaiting the game update.{:else if !focusLicensed}Purchase this biome’s licence to use Collection Focus.{:else if !focusUnlocked}{focusDiscovered} / {focusSpecies.length} ordinary species discovered. Discover them all in this biome to unlock.{:else}{focusEnabled ? 'On' : 'Off'} · All {focusSpecies.length} ordinary species discovered.{/if}</p>
+    <p>A duplicate rank has a 20% chance to become a missing rank of the same fish, weighted by its normal rank odds. Free to toggle; applies to Discord casts. Fihs and the Sock keep their normal odds.</p>
+  </div>
   <p class="loadout" aria-live="polite"><strong>{loadout.name}</strong><span>+{formatPercent(loadout.luckBp / 100)} luck · {formatPercent(loadout.power / 2)} bonus pull · {loadout.sizeRolls} size {loadout.sizeRolls === 1 ? 'attempt' : 'attempts'}</span></p>
-  <p class="count">{fish.length} matching fish. Rates are per accepted cast in each fish's biome{rarity ? ' at the selected rank' : ', across all eligible ranks'}, using the loadout above.{rateMode === 'best' ? ' This is the strongest perfect-catching setup, whether or not you own it.' : ''}</p>
+  <p class="count">{fish.length} matching fish. Rates are per accepted cast in each fish's biome{rarity ? ' at the selected rank' : ', across all eligible ranks'}, using the loadout above.{rateMode === 'best' ? ' Uses the strongest gear and two Trophy Chums, whether or not you own them.' : ''}</p>
+  {#if rateMode !== 'baseline' && loadout.focus?.biomeIds.length}<p class="count">Rates include your enabled Collection Focus settings and current collected ranks. Focus helps missing ranks; it can lower the odds of ranks you already have, including UUR.</p>{/if}
   <p class="count perfect-note">✦ Perfect rates always refer to both exact maximum measurements at UUR, regardless of the rank filter. They include natural perfects, the UUR perfect roll, and any extra size attempts.</p>
   <div class="fish">
     {#each fish.slice((page - 1) * pageSize, page * pageSize) as entry (entry.speciesId)}
@@ -54,6 +68,9 @@
 <FishDetails bind:fish={selected} {loadout} asset={selected ? manifest.fish.find(asset => asset.key === selected!.spriteKey)!.url : ''} />
 
 <style>
+  .collection-focus{margin-top:16px;padding:16px;background:#e4d2a7;border:1px solid #b99b6c}
+  .collection-focus label{display:flex;align-items:center;gap:12px;line-height:1.5}.collection-focus input{width:24px;min-height:24px;flex:none;accent-color:#385846}
+  .collection-focus p{margin:8px 0 0;font-size:14px;line-height:1.6;color:#685034}
   .rate-presets{flex:1 0 100%;min-width:0;margin:0;padding:12px 0 0;border:0;border-top:1px dashed #b99b6c}
   .rate-presets legend{font-size:16px;font-weight:700;color:#685034;padding:0 8px 0 0}
   .rate-presets>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}

@@ -138,6 +138,7 @@ export type BaitDefinition = __Infer<typeof BaitDefinition>;
 export const BaitLoadout = __t.object("BaitLoadout", {
   playerId: __t.u64(),
   baitId: __t.u32(),
+  secondaryBaitId: __t.u32(),
 });
 export type BaitLoadout = __Infer<typeof BaitLoadout>;
 
@@ -174,6 +175,12 @@ export const CastEquipmentReceipt = __t.object("CastEquipmentReceipt", {
   baitItem: __t.string(),
   baitQuantity: __t.u64(),
   baitSizeRolls: __t.u8(),
+  collectionFocusEnabled: __t.bool(),
+  collectionFocusRerolls: __t.u8(),
+  secondaryBaitId: __t.u32(),
+  secondaryBaitUsesLeft: __t.u64(),
+  secondaryBaitItem: __t.string(),
+  secondaryBaitQuantity: __t.u64(),
 });
 export type CastEquipmentReceipt = __Infer<typeof CastEquipmentReceipt>;
 
@@ -188,6 +195,14 @@ export const CastPull = __t.object("CastPull", {
   },
 });
 export type CastPull = __Infer<typeof CastPull>;
+
+export const CollectionFocusPreference = __t.object("CollectionFocusPreference", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  biomeId: __t.u32(),
+  enabled: __t.bool(),
+});
+export type CollectionFocusPreference = __Infer<typeof CollectionFocusPreference>;
 
 export const CommandReceipt = __t.object("CommandReceipt", {
   interactionId: __t.u64(),
@@ -469,6 +484,18 @@ export const QualityDefinition = __t.object("QualityDefinition", {
   scrapCost: __t.u64(),
 });
 export type QualityDefinition = __Infer<typeof QualityDefinition>;
+
+export const RankMaximum = __t.object("RankMaximum", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  speciesId: __t.u32(),
+  rarity: __t.string(),
+  firstCatchId: __t.u64(),
+  achievedAt: __t.timestamp(),
+  lengthMm: __t.u32(),
+  weightG: __t.u64(),
+});
+export type RankMaximum = __Infer<typeof RankMaximum>;
 
 export const RarityDefinition = __t.object("RarityDefinition", {
   ordinal: __t.u8(),

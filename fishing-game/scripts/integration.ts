@@ -112,7 +112,7 @@ try {
     }
     await assert.rejects(bob.connection.reducers.activateRodBonuses({}), /NOT_AUTHORIZED/);
     assert.equal(botConn.db.shopListing.count(), 20n);
-    assert.equal([...botConn.db.gameConfig.iter()][0].levelCap, 120);
+    assert.equal([...botConn.db.gameConfig.iter()][0].levelCap, 10000);
     assert.equal([...botConn.db.gameConfig.iter()][0].inventoryCapacity, 0, 'Fish storage is unlimited');
     for (const definition of catalog.species) {
       const actual = species.find(row => row.speciesId === definition.speciesId)!;

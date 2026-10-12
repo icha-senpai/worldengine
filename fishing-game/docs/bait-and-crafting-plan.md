@@ -79,7 +79,7 @@ Power becomes a chance of one additional, independently rolled result from the
 current biome: fish, junk or treasure. There are at most two results per cast;
 the bonus pull cannot trigger another pull. Each fish has independent species,
 measurements and rank. The cooldown remains one minute and the entire cast
-consumes only one bait charge. Guaranteed resource-bait materials apply once
+consumes one charge per active bait slot (one slot in rules 13; up to two in the rules-14 candidate). Guaranteed resource-bait materials apply once
 per cast, alongside normal materials from either result.
 
 The accepted starting conversion is one power equals 0.5 percentage points of
@@ -166,9 +166,9 @@ accepted cast, including double pulls, and consumes one use.
 |---|---|---:|
 | Sticky Chum | +1 rusted tin per cast | 20 coins |
 | Salvage Chum | +1 scrap per cast | 50 coins |
-| Plump Worms | +5% luck for larger, heavier catches | 30 coins |
-| River Grubs | +10% luck for larger, heavier catches | 70 coins |
-| Moonlit Fireflies | +15% luck for larger, heavier catches | 120 coins |
+| Plump Worms | All fish; +5% luck; best of 2 size rolls | 30 coins |
+| River Grubs | All fish; +10% luck; best of 3 size rolls | 70 coins |
+| Moonlit Fireflies | All fish; +15% luck; best of 4 size rolls | 120 coins |
 | Green XP Slime | +25% fishing XP | 50 coins |
 | Yellow XP Slime | +50% fishing XP | 150 coins |
 | Pink XP Slime | +100% fishing XP | 400 coins |
@@ -176,12 +176,12 @@ accepted cast, including double pulls, and consumes one use.
 | Concentrated Tin Chum | +3 rusted tin per cast | 60 coins |
 | Enriched Salvage Chum | +2 scrap per cast | 100 coins |
 | Concentrated Salvage Chum | +3 scrap per cast | 150 coins |
-| Trophy Chum | All fish; best of 8 size rolls; +25% luck | 1,000 coins |
+| Trophy Chum | All fish; best of 8 size rolls; +25% luck | 500 coins |
 
 ### Trophy Chum
 
-Crafting catalog 5 and Trader catalog 7 introduce Trophy Chum at 1,000 coins
-per ten uses (100 coins per accepted cast). It uses the entire normal encounter
+The local rules-12 candidate and Trader catalog 8 price Trophy Chum at 500 coins
+per ten uses (50 coins per accepted cast). It uses the entire normal encounter
 pool, including small fish and Fihs. The Sock remains catchable but never earns
 perfect recognition. All category, species and rank selection rules remain the
 same; +25% bait luck shifts ranks normally. Eight independent size attempts
@@ -196,6 +196,16 @@ count. Other bait and no bait receive one size attempt and the same endpoint
 chance. Fihs is eligible. The Sock's F-only band never receives the UUR roll.
 Ranks below UUR never receive it. Rules 10 retain their legacy natural RNG
 until owner activation; XP thresholds and every existing reward stay unchanged.
+
+Rules 12 is a local tuning candidate: Trophy Chum's endpoint roll now applies
+to every selected rank, F through UUR. Its eight attempts each keep the existing
+1-in-5,000 chance; successful measurements are the maxima of that rank and never
+promote the fish. Plump Worms, River Grubs and Moonlit Fireflies now use 2/3/4 attempts with
+the same within-rank endpoint roll. Resource bait, XP slime and no bait retain
+one attempt and UUR-only endpoint rolls. Official
+Perfect Angler credit, collection marks and announcements still require UUR
+maxima; the Sock remains excluded. The current candidate also halves the Trophy pack price to 500 coins. Trophy luck, its eight attempts and reward formulas are unchanged. The odds comparison and reproducible proof are in
+[Trophy Chum rank maxima](trophy-chum-rank-maxima.md). This candidate is not deployed.
 
 At Prismatic Abyssal power/luck, the endpoint chance across eight attempts is
 about 1 in 625 UUR fish, before natural perfects. Actual per-accepted-cast
@@ -233,3 +243,8 @@ Exact prompts are stored in `docs/licence-and-bait-art-prompts.json`,
 through the built-in image tool and copied without altering pixels or alpha.
 Trophy Chum's matching transparent sprite and built-in generation prompt are
 recorded in `docs/trophy-chum-art-prompts.json`.
+
+
+Rules 14 adds unrestricted [two-slot multi-baiting](multi-bait.md) from level 1,
+including same-category and identical bait. All effects add; resource bonuses
+apply once per slot per cast. Existing prices, qualities and rod recipes remain.
