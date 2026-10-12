@@ -9,7 +9,7 @@ import catalog from '../content/species.json';
 const uri='http://127.0.0.1:3127';
 const database=`fishbound-proof-rank-maxima-${Date.now()}`;
 assert(/^fishbound-proof-rank-maxima-\d+$/.test(database));
-const oldWasm=resolve('.local/../spacetimedb/target/wasm32-unknown-unknown/release/fishing_rank_old_proof.wasm');
+const oldWasm=resolve('.local/pre-rank-maxima-fixture.wasm');
 const { DbConnection: OldDbConnection } = await import(pathToFileURL(resolve('.local/pre-rank-recognition-bindings/index.ts')).href);
 const newWasm=resolve('spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm');
 function run(command:string,args:string[]) { const r=spawnSync(command,args,{encoding:'utf8',windowsHide:true}); if(r.status!==0) throw Error(r.stderr||r.stdout); return r.stdout; }

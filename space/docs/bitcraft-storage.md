@@ -1,6 +1,6 @@
 # Keeping BitCraft on SpacetimeDB within a small disk budget
 
-Updated October 8, 2026. SpacetimeDB 2.10.2 remains the only application database. No SQLite service or secondary database was introduced.
+Updated October 12, 2026. SpacetimeDB 2.10.2 remains the only application database. No SQLite service or secondary database was introduced.
 
 The incident was primarily accumulated transaction history: about 61.5 GB of commit logs and 7.9 GB of snapshots in the BitCraft replica. Deleting expired application rows does not reclaim that history. [SpacetimeDB documents its uncompacted commit log here](https://spacetimedb.com/docs/reference/internals/commitlog/).
 
@@ -45,6 +45,14 @@ Updates pause during this process. Existing market and barter records are restor
 This is a monitored application budget with substantial headroom, **not a native filesystem quota**. SpacetimeDB has no total-disk ceiling setting. In-flight transactions and engine snapshots can consume headroom between measurements; a literal physical guarantee against every fault requires an OS-enforced quota or fixed-capacity volume. The manager stops renewing writes rather than continuing collection after a failed preservation/recovery step. Evergather, unmanaged databases and pre-existing whole-server backups are outside these BitCraft budgets and are not reset by them.
 
 ## Main and test protection
+
+### Folder cleanup and temporary databases
+
+The October 12 folder audit found an old whole-server upgrade backup, timestamped Evergather test databases, orphan replicas, generated builds and old module versions outside the two BitCraft budgets. Cleanup retained all six persistent database identities and the October 3 whole-server rollback backup. It removed 25 temporary databases, seven replicas whose identities returned HTTP 404, generated frontend output and temporary tools/module sources. Module-file pruning was performed with the owned Space server stopped, retaining the initial and current module references for every persistent database and verifying retained file hashes before restart. Do not treat an owner database list alone as proof that an arbitrary replica or module is unused: all physical replicas must also be accounted for. Do not manually remove logs or snapshots belonging to a retained database.
+
+The gameplay, catalog, economy migration and load-test scripts now use `runTemporaryDatabaseTest` from `scripts/temporary-database.ts`. It requires an unused timestamped test name, wraps setup as well as execution in cleanup, deletes through the database API/CLI, verifies HTTP 404, then removes only replicas with the matching snapshot identity. Persistent database names, mismatched identities and linked paths are rejected. Owned temporary module-source folders are also removed. Forced process termination can still bypass JavaScript cleanup, so periodic orphan audits remain useful. Historical published module files require a separate reference audit and offline cleanup; there is no automatic whole-folder size ceiling.
+
+`scripts/sql-backup.ts` preserves the exact CLI JSON bytes and hashes the saved file, avoiding formatting mismatches and large-integer rounding. The local Evergather backup wrappers now use it. Four older Evergather manifests were reconciled against their original compact-CLI checksums, then updated to hash the saved files while retaining `originalCliSha256`. These are per-database exports, not an atomic whole-server backup or a proven restore drill; retain the whole-server rollback copy until replacement recovery coverage is verified.
 
 `space-bitcraft-tools` runs the full relay/API collector. `space-bitcraft-checks`, used by the frontend on port 5181, runs the same storage monitor and verified maintenance code in `--storage-only` mode. That test worker measures storage and renews its short write lease, but does not establish duplicate global relay subscriptions or poll the market. Test UI requests can update the test database while its guard is healthy. If either worker stops, ordinary writes to its own database become blocked when the 20-second lease expires.
 

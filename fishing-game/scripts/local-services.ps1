@@ -32,7 +32,7 @@ function Test-LocalPort([int]$Port) {
 function Start-TrackedProcess([string]$Name, [string]$Executable, [string[]]$Arguments, [string]$Directory) {
     $existing = Read-TrackedProcess $Name
     if ($existing) { Write-Host "$Name already running (PID $($existing.Id))."; return }
-    if (!(Test-Path -LiteralPath $Executable)) { throw "Missing $Executable. Build the game services first." }
+    if (!(Test-Path -LiteralPath $Executable)) { throw "Missing $Executable. Build and install the service binaries with scripts/install-service-binaries.ps1 first." }
     $nodeExecutable = 'C:\ServBay\packages\node\current\node.exe'
     $pythonExecutable = 'C:\ServBay\packages\python\current\python.exe'
     if (!(Test-Path -LiteralPath $pythonExecutable)) { throw 'Python is required for maximum-compression log archives.' }
@@ -149,11 +149,11 @@ function Start-GameServices {
 
     if ($config.DISCORD_CLIENT_ID -and $config.DISCORD_CLIENT_SECRET) {
         if ((Test-LocalPort 3001) -and !(Read-TrackedProcess 'linker')) { throw 'Port 3001 belongs to an untracked process; it was left alone.' }
-        Start-TrackedProcess 'linker' (Join-Path $projectRoot 'target/debug/account-link.exe') @() $projectRoot
+        Start-TrackedProcess 'linker' (Join-Path $projectRoot '.runtime/bin/account-link.exe') @() $projectRoot
         Wait-ForService 'linker' 'http://127.0.0.1:3001/health/ready'
     } else { Write-Host 'Account linker waits for Discord client ID and secret in .env.' }
     if ($config.DISCORD_BOT_TOKEN) {
-        Start-TrackedProcess 'bot' (Join-Path $projectRoot 'target/release/discord-bot.exe') @() $projectRoot
+        Start-TrackedProcess 'bot' (Join-Path $projectRoot '.runtime/bin/discord-bot.exe') @() $projectRoot
         Start-Sleep -Seconds 2
         if (!(Read-TrackedProcess 'bot')) { throw 'Bot exited. Check .local/bot.stderr.log.' }
     } else { Write-Host 'Discord bot waits for its token in .env.' }

@@ -3,7 +3,7 @@
 Rust / SpaceTimeDB authority, Serenity + Poise Discord bot, and SvelteKit companion.
 All 251 fish and all seven specified biomes are implemented and locally verified.
 The ServBay/Cloudflare site is live at https://fish.ichaa.dev and the Discord bot
-connects. The October 12 rules-13 deployment passed public service health, database
+connects. The October 12 rules-15 deployment passed public service health, database
 preservation, and all 15 global command-registration checks.
 
 ## Implemented
@@ -76,9 +76,11 @@ From this directory, run npm ci, then npm run dev. Without database settings,
 the site shows the welcome screen and full catalog. See [setup](docs/setup.md)
 for local publication, service-role bootstrap, and credential configuration.
 
-The desktop service launchers run the optimized Discord bot. After bot or shared
-client changes, build it with `cargo build -p discord-bot --release --locked`
-before restarting with `./scripts/local-services.ps1 -Action Restart`.
+The desktop launchers run installed native programs from `.runtime/bin`, independently
+of Cargo caches. After native changes, build both services with
+`cargo build -p discord-bot -p account-link --release --locked`, close the services,
+run `./scripts/install-service-binaries.ps1`, then start them. A build alone does
+not replace the deployed programs. See [runtime storage](docs/runtime-storage.md).
 
     npm run content:validate
     npm run check
