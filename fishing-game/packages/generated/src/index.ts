@@ -40,6 +40,7 @@ import ActivateRodBonusesReducer from "./activate_rod_bonuses_reducer";
 import ActivateSpeciesMeasurementsReducer from "./activate_species_measurements_reducer";
 import ActivateTraderReducer from "./activate_trader_reducer";
 import ActivateXpProgressionReducer from "./activate_xp_progression_reducer";
+import BackfillCatchRecordsReducer from "./backfill_catch_records_reducer";
 import BackfillJournalReducer from "./backfill_journal_reducer";
 import BackfillPlayerAchievementsReducer from "./backfill_player_achievements_reducer";
 import BackfillPlayerStatisticsReducer from "./backfill_player_statistics_reducer";
@@ -70,6 +71,7 @@ import RebuildPlayerRecordsReducer from "./rebuild_player_records_reducer";
 import SelectDiscordPlayerReducer from "./select_discord_player_reducer";
 import SelectJournalReducer from "./select_journal_reducer";
 import SetCatchFavoriteReducer from "./set_catch_favorite_reducer";
+import SyncDiscordPortraitReducer from "./sync_discord_portrait_reducer";
 import UnlinkBrowserReducer from "./unlink_browser_reducer";
 
 // Import all procedure arg schemas
@@ -93,6 +95,7 @@ import AdapterRodsRow from "./adapter_rods_table";
 import AdapterSaleQuoteRow from "./adapter_sale_quote_table";
 import AdapterShopQuoteRow from "./adapter_shop_quote_table";
 import AdapterUpgradeQuoteRow from "./adapter_upgrade_quote_table";
+import AnglerPortraitRow from "./angler_portrait_table";
 import AnglerStandingRow from "./angler_standing_table";
 import AnglerStatisticsRow from "./angler_statistics_table";
 import AnglerTitleRow from "./angler_title_table";
@@ -156,6 +159,17 @@ const tablesSchema = __schema({
       { name: 'achievement_definition_achievement_id_key', constraint: 'unique', columns: ['achievementId'] },
     ],
   }, AchievementDefinitionRow),
+  anglerPortrait: __table({
+    name: 'angler_portrait',
+    indexes: [
+      { accessor: 'player_id', name: 'angler_portrait_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'angler_portrait_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, AnglerPortraitRow),
   anglerStanding: __table({
     name: 'angler_standing',
     indexes: [
@@ -611,6 +625,7 @@ const reducersSchema = __reducers(
   __reducerSchema("activate_species_measurements", ActivateSpeciesMeasurementsReducer),
   __reducerSchema("activate_trader", ActivateTraderReducer),
   __reducerSchema("activate_xp_progression", ActivateXpProgressionReducer),
+  __reducerSchema("backfill_catch_records", BackfillCatchRecordsReducer),
   __reducerSchema("backfill_journal", BackfillJournalReducer),
   __reducerSchema("backfill_player_achievements", BackfillPlayerAchievementsReducer),
   __reducerSchema("backfill_player_statistics", BackfillPlayerStatisticsReducer),
@@ -641,6 +656,7 @@ const reducersSchema = __reducers(
   __reducerSchema("select_discord_player", SelectDiscordPlayerReducer),
   __reducerSchema("select_journal", SelectJournalReducer),
   __reducerSchema("set_catch_favorite", SetCatchFavoriteReducer),
+  __reducerSchema("sync_discord_portrait", SyncDiscordPortraitReducer),
   __reducerSchema("unlink_browser", UnlinkBrowserReducer),
 );
 
@@ -654,6 +670,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "achievement_collection": Omit<typeof tablesSchema.schemaType.tables["achievementCollection"], "accessorName"> & { readonly accessorName: "achievement_collection" };
     /** @deprecated Use `achievementDefinition` instead. This alias will be removed in the next major version. */
     readonly "achievement_definition": Omit<typeof tablesSchema.schemaType.tables["achievementDefinition"], "accessorName"> & { readonly accessorName: "achievement_definition" };
+    /** @deprecated Use `anglerPortrait` instead. This alias will be removed in the next major version. */
+    readonly "angler_portrait": Omit<typeof tablesSchema.schemaType.tables["anglerPortrait"], "accessorName"> & { readonly accessorName: "angler_portrait" };
     /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
     readonly "angler_standing": Omit<typeof tablesSchema.schemaType.tables["anglerStanding"], "accessorName"> & { readonly accessorName: "angler_standing" };
     /** @deprecated Use `anglerStatistics` instead. This alias will be removed in the next major version. */
@@ -778,6 +796,7 @@ const REMOTE_MODULE = {
 const tableAccessorAliases = {
   "achievement_collection": "achievementCollection",
   "achievement_definition": "achievementDefinition",
+  "angler_portrait": "anglerPortrait",
   "angler_standing": "anglerStanding",
   "angler_statistics": "anglerStatistics",
   "angler_title": "anglerTitle",
@@ -854,6 +873,8 @@ export type DbView = __DbViewBase & {
   readonly "achievement_collection": __DbViewBase["achievementCollection"];
   /** @deprecated Use `achievementDefinition` instead. This alias will be removed in the next major version. */
   readonly "achievement_definition": __DbViewBase["achievementDefinition"];
+  /** @deprecated Use `anglerPortrait` instead. This alias will be removed in the next major version. */
+  readonly "angler_portrait": __DbViewBase["anglerPortrait"];
   /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
   readonly "angler_standing": __DbViewBase["anglerStanding"];
   /** @deprecated Use `anglerStatistics` instead. This alias will be removed in the next major version. */
@@ -966,6 +987,8 @@ export type Tables = __TablesBase & {
   readonly "achievement_collection": __TablesBase["achievementCollection"];
   /** @deprecated Use `achievementDefinition` instead. This alias will be removed in the next major version. */
   readonly "achievement_definition": __TablesBase["achievementDefinition"];
+  /** @deprecated Use `anglerPortrait` instead. This alias will be removed in the next major version. */
+  readonly "angler_portrait": __TablesBase["anglerPortrait"];
   /** @deprecated Use `anglerStanding` instead. This alias will be removed in the next major version. */
   readonly "angler_standing": __TablesBase["anglerStanding"];
   /** @deprecated Use `anglerStatistics` instead. This alias will be removed in the next major version. */

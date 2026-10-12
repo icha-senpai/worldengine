@@ -16,6 +16,23 @@ pub const ROD_QUALITY_COLORS: [u32; 7] = [
     0xa8a8a8, 0x69bf68, 0x6ba5ff, 0xbc80ee, 0xeaba5e, 0xe66699, 0x76ded9,
 ];
 
+/// Solid embed accents chosen to match the supplied rank-card artwork.
+/// Prismatic effects remain in the card image; each embed uses one RGB colour.
+pub fn rank_color(rank: &str) -> u32 {
+    match rank {
+        "D" => 0xb58a4a,
+        "C" => 0x58cfff,
+        "B" => 0x947beb,
+        "A" => 0xe84545,
+        "S" => 0xffd34f,
+        "SS" => 0xc774ff,
+        "SSS" => 0x55eedb,
+        "UR" => 0xf06bff,
+        "UUR" => 0xfff1ba,
+        _ => 0x9a948a, // F and a neutral fallback for unknown ranks.
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum Material {
     RustedTin,

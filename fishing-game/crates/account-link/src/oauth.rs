@@ -230,8 +230,14 @@ struct AccessToken {
 #[derive(Deserialize)]
 struct DiscordUser {
     id: String,
+    avatar: Option<String>,
+    discriminator: Option<String>,
 }
-async fn verified_user(http: &reqwest::Client, config: &Config, code: &str) -> Result<u64, Error> {
+async fn verified_user(
+    http: &reqwest::Client,
+    config: &Config,
+    code: &str,
+) -> Result<DiscordUser, Error> {
     let token: AccessToken = http
         .post(&config.token_url)
         .form(&[
@@ -261,7 +267,7 @@ async fn verified_user(http: &reqwest::Client, config: &Config, code: &str) -> R
     if id == 0 {
         return Err("Invalid verified Discord user".into());
     }
-    Ok(id)
+    Ok(user)
 }
 pub async fn callback(
     ExtractState(state): ExtractState<Arc<State>>,
@@ -287,12 +293,35 @@ pub async fn callback(
         .filter(|code| !code.is_empty() && code.len() <= 2048)
     {
         match verified_user(&state.http, &state.config, &code).await {
-            Ok(discord_id) => match state
+            Ok(user) => match state
                 .game
-                .link(session.challenge_id, discord_id, session.proof)
+                .link(
+                    session.challenge_id,
+                    user.id.parse().expect("verified Discord ID"),
+                    session.proof,
+                )
                 .await
             {
-                Ok(()) => Redirect::to(&state.config.website).into_response(),
+                Ok(()) => {
+                    let discriminator = user
+                        .discriminator
+                        .as_deref()
+                        .unwrap_or("0")
+                        .parse()
+                        .unwrap_or(0);
+                    if let Err(error) = state
+                        .game
+                        .sync_portrait(
+                            user.id.parse().expect("verified Discord ID"),
+                            user.avatar,
+                            discriminator,
+                        )
+                        .await
+                    {
+                        tracing::warn!(%error, "Verified Discord portrait could not refresh");
+                    }
+                    Redirect::to(&state.config.website).into_response()
+                }
                 Err(_) => {
                     tracing::warn!("Verified account challenge could not be linked");
                     (StatusCode::CONFLICT, "This linking challenge expired, was used, or belongs to a different account. Start again from Fishbound.").into_response()
@@ -399,7 +428,7 @@ mod tests {
                         headers.get(header::AUTHORIZATION).unwrap(),
                         "Bearer test-access"
                     );
-                    Json(serde_json::json!({"id":"8001"}))
+                    Json(serde_json::json!({"id":"8001", "avatar":"a_1269e74af4df7417b13759eae50c83dc", "discriminator":"0"}))
                 }),
             );
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -417,12 +446,15 @@ mod tests {
             token_url: format!("http://{address}/token"),
             user_url: format!("http://{address}/user"),
         };
+        let user = verified_user(&reqwest::Client::new(), &config, "proof-code")
+            .await
+            .unwrap();
+        assert_eq!(user.id, "8001");
         assert_eq!(
-            verified_user(&reqwest::Client::new(), &config, "proof-code")
-                .await
-                .unwrap(),
-            8001
+            user.avatar.as_deref(),
+            Some("a_1269e74af4df7417b13759eae50c83dc")
         );
+        assert_eq!(user.discriminator.as_deref(), Some("0"));
         server.abort();
     }
 }

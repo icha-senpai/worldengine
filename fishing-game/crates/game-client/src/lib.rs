@@ -724,6 +724,24 @@ impl Client {
         })
     }
 
+    pub async fn sync_portrait(
+        &self,
+        discord_user_id: u64,
+        avatar_hash: Option<String>,
+        discriminator: u16,
+    ) -> Result<(), Error> {
+        let _guard = self.selection_guard().await?;
+        let connection = self.active_connection().await?;
+        let (sender, receiver) = oneshot::channel();
+        connection.reducers.sync_discord_portrait_then(
+            discord_user_id,
+            avatar_hash,
+            discriminator,
+            complete(sender),
+        )?;
+        receive(receiver).await
+    }
+
     pub async fn link(
         &self,
         challenge_id: u64,

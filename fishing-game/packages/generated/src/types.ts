@@ -59,6 +59,14 @@ export const AdminAudit = __t.object("AdminAudit", {
 });
 export type AdminAudit = __Infer<typeof AdminAudit>;
 
+export const AnglerPortrait = __t.object("AnglerPortrait", {
+  playerId: __t.u64(),
+  avatarUrl: __t.string(),
+  stillUrl: __t.string(),
+  updatedAt: __t.timestamp(),
+});
+export type AnglerPortrait = __Infer<typeof AnglerPortrait>;
+
 export const AnglerStanding = __t.object("AnglerStanding", {
   playerId: __t.u64(),
   displayName: __t.string(),

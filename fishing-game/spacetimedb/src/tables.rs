@@ -543,6 +543,16 @@ pub struct AnglerStanding {
     pub records_held: u32,
 }
 
+/// Discord CDN portraits only. Account IDs and OAuth credentials remain private.
+#[spacetimedb::table(accessor = angler_portrait, public)]
+pub struct AnglerPortrait {
+    #[primary_key]
+    pub player_id: u64,
+    pub avatar_url: String,
+    pub still_url: String,
+    pub updated_at: Timestamp,
+}
+
 /// Public game statistics only: no wallet, Discord IDs, identities or raw history.
 #[spacetimedb::table(accessor = angler_statistics, public)]
 pub struct AnglerStatistics {

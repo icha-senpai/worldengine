@@ -39,9 +39,9 @@
     { key: 'collectionPairs', name: 'Rank Collectors', unit: 'pairs', description: 'Distinct ordinary species and rank combinations discovered.', icon: '▤' },
     { key: 'totalWeightG', name: 'Catch Weight', unit: 'caught weight', description: 'Recorded weight including sold fish. Older journal coverage may be incomplete.', icon: '⚓' },
     { key: 'saleEarnings', name: 'Fish-sale Earnings', unit: 'coins', description: 'Recorded fish sales. Older receipts may be incomplete; daily rewards do not count.', icon: '●' },
-    { key: 'biggestSingleSale', name: 'Biggest Fish Sale', unit: 'coins', description: 'Largest individual fish sale since tracking began.', icon: '●' },
+    { key: 'biggestSingleSale', name: 'Most Expensive Fish', unit: 'coins', description: 'Highest saved value of a caught fish, kept or sold.', icon: '●' },
     { key: 'biggestSaleBatch', name: 'Biggest Batch', unit: 'coins', description: 'Largest recorded sale batch. Older receipts may be incomplete.', icon: '●' },
-    { key: 'recordsSet', name: 'Record Setters', unit: 'record catches', description: 'Catches establishing or breaking a global species record since tracking began. One catch counts once.', icon: '♛' },
+    { key: 'recordsSet', name: 'Record Setters', unit: 'record catches', description: 'Catches establishing or breaking a global species record. Recovered history is included; one catch counts once.', icon: '♛' },
     { key: 'daysFished', name: 'Days on the Water', unit: 'UTC days', description: 'Distinct fishing dates in UTC. Older journal coverage may be incomplete.', icon: '☀' },
     { key: 'bestRelativeLengthMillionths', name: 'Relative Size', unit: 'times typical length', description: 'Best fish length relative to its species typical length. Older journal coverage may be incomplete.', icon: '↔' },
   ];

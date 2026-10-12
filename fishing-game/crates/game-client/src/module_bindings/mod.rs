@@ -35,12 +35,15 @@ pub mod adapter_sale_quote_table;
 pub mod adapter_shop_quote_table;
 pub mod adapter_upgrade_quote_table;
 pub mod admin_audit_type;
+pub mod angler_portrait_table;
+pub mod angler_portrait_type;
 pub mod angler_standing_table;
 pub mod angler_standing_type;
 pub mod angler_statistics_table;
 pub mod angler_statistics_type;
 pub mod angler_title_table;
 pub mod angler_title_type;
+pub mod backfill_catch_records_reducer;
 pub mod backfill_journal_reducer;
 pub mod backfill_player_achievements_reducer;
 pub mod backfill_player_statistics_reducer;
@@ -149,6 +152,7 @@ pub mod species_rank_definition_table;
 pub mod species_rank_definition_type;
 pub mod species_record_table;
 pub mod species_record_type;
+pub mod sync_discord_portrait_reducer;
 pub mod trader_migration_type;
 pub mod unlink_browser_reducer;
 pub mod upgrade_quote_type;
@@ -182,12 +186,15 @@ pub use adapter_sale_quote_table::*;
 pub use adapter_shop_quote_table::*;
 pub use adapter_upgrade_quote_table::*;
 pub use admin_audit_type::AdminAudit;
+pub use angler_portrait_table::*;
+pub use angler_portrait_type::AnglerPortrait;
 pub use angler_standing_table::*;
 pub use angler_standing_type::AnglerStanding;
 pub use angler_statistics_table::*;
 pub use angler_statistics_type::AnglerStatistics;
 pub use angler_title_table::*;
 pub use angler_title_type::AnglerTitle;
+pub use backfill_catch_records_reducer::backfill_catch_records;
 pub use backfill_journal_reducer::backfill_journal;
 pub use backfill_player_achievements_reducer::backfill_player_achievements;
 pub use backfill_player_statistics_reducer::backfill_player_statistics;
@@ -296,6 +303,7 @@ pub use species_rank_definition_table::*;
 pub use species_rank_definition_type::SpeciesRankDefinition;
 pub use species_record_table::*;
 pub use species_record_type::SpeciesRecord;
+pub use sync_discord_portrait_reducer::sync_discord_portrait;
 pub use trader_migration_type::TraderMigration;
 pub use unlink_browser_reducer::unlink_browser;
 pub use upgrade_quote_type::UpgradeQuote;
@@ -316,6 +324,7 @@ pub enum Reducer {
         grandfather_licences: bool,
     },
     ActivateXpProgression,
+    BackfillCatchRecords,
     BackfillJournal {
         player_id: u64,
     },
@@ -442,6 +451,11 @@ pub enum Reducer {
         catch_id: u64,
         favorite: bool,
     },
+    SyncDiscordPortrait {
+        discord_user_id: u64,
+        avatar_hash: Option<String>,
+        discriminator: u16,
+    },
     UnlinkBrowser,
 }
 
@@ -458,6 +472,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateSpeciesMeasurements => "activate_species_measurements",
             Reducer::ActivateTrader { .. } => "activate_trader",
             Reducer::ActivateXpProgression => "activate_xp_progression",
+            Reducer::BackfillCatchRecords => "backfill_catch_records",
             Reducer::BackfillJournal { .. } => "backfill_journal",
             Reducer::BackfillPlayerAchievements { .. } => "backfill_player_achievements",
             Reducer::BackfillPlayerStatistics { .. } => "backfill_player_statistics",
@@ -488,6 +503,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::SelectDiscordPlayer { .. } => "select_discord_player",
             Reducer::SelectJournal { .. } => "select_journal",
             Reducer::SetCatchFavorite { .. } => "set_catch_favorite",
+            Reducer::SyncDiscordPortrait { .. } => "sync_discord_portrait",
             Reducer::UnlinkBrowser => "unlink_browser",
             _ => unreachable!(),
         }
@@ -515,6 +531,9 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateXpProgression => __sats::bsatn::to_vec(
                 &activate_xp_progression_reducer::ActivateXpProgressionArgs {},
             ),
+            Reducer::BackfillCatchRecords => {
+                __sats::bsatn::to_vec(&backfill_catch_records_reducer::BackfillCatchRecordsArgs {})
+            }
             Reducer::BackfillJournal { player_id } => {
                 __sats::bsatn::to_vec(&backfill_journal_reducer::BackfillJournalArgs {
                     player_id: player_id.clone(),
@@ -757,6 +776,15 @@ impl __sdk::Reducer for Reducer {
                     favorite: favorite.clone(),
                 })
             }
+            Reducer::SyncDiscordPortrait {
+                discord_user_id,
+                avatar_hash,
+                discriminator,
+            } => __sats::bsatn::to_vec(&sync_discord_portrait_reducer::SyncDiscordPortraitArgs {
+                discord_user_id: discord_user_id.clone(),
+                avatar_hash: avatar_hash.clone(),
+                discriminator: discriminator.clone(),
+            }),
             Reducer::UnlinkBrowser => {
                 __sats::bsatn::to_vec(&unlink_browser_reducer::UnlinkBrowserArgs {})
             }
@@ -787,6 +815,7 @@ pub struct DbUpdate {
     adapter_sale_quote: __sdk::TableUpdate<SaleQuote>,
     adapter_shop_quote: __sdk::TableUpdate<ShopQuote>,
     adapter_upgrade_quote: __sdk::TableUpdate<UpgradeQuote>,
+    angler_portrait: __sdk::TableUpdate<AnglerPortrait>,
     angler_standing: __sdk::TableUpdate<AnglerStanding>,
     angler_statistics: __sdk::TableUpdate<AnglerStatistics>,
     angler_title: __sdk::TableUpdate<AnglerTitle>,
@@ -885,6 +914,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_upgrade_quote" => db_update.adapter_upgrade_quote.append(
                     adapter_upgrade_quote_table::parse_table_update(table_update)?,
                 ),
+                "angler_portrait" => db_update
+                    .angler_portrait
+                    .append(angler_portrait_table::parse_table_update(table_update)?),
                 "angler_standing" => db_update
                     .angler_standing
                     .append(angler_standing_table::parse_table_update(table_update)?),
@@ -1031,6 +1063,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 &self.achievement_definition,
             )
             .with_updates_by_pk(|row| &row.achievement_id);
+        diff.angler_portrait = cache
+            .apply_diff_to_table::<AnglerPortrait>("angler_portrait", &self.angler_portrait)
+            .with_updates_by_pk(|row| &row.player_id);
         diff.angler_standing = cache
             .apply_diff_to_table::<AnglerStanding>("angler_standing", &self.angler_standing)
             .with_updates_by_pk(|row| &row.player_id);
@@ -1231,6 +1266,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_upgrade_quote" => db_update
                     .adapter_upgrade_quote
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "angler_portrait" => db_update
+                    .angler_portrait
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "angler_standing" => db_update
                     .angler_standing
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -1406,6 +1444,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_upgrade_quote" => db_update
                     .adapter_upgrade_quote
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "angler_portrait" => db_update
+                    .angler_portrait
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "angler_standing" => db_update
                     .angler_standing
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1547,6 +1588,7 @@ pub struct AppliedDiff<'r> {
     adapter_sale_quote: __sdk::TableAppliedDiff<'r, SaleQuote>,
     adapter_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
     adapter_upgrade_quote: __sdk::TableAppliedDiff<'r, UpgradeQuote>,
+    angler_portrait: __sdk::TableAppliedDiff<'r, AnglerPortrait>,
     angler_standing: __sdk::TableAppliedDiff<'r, AnglerStanding>,
     angler_statistics: __sdk::TableAppliedDiff<'r, AnglerStatistics>,
     angler_title: __sdk::TableAppliedDiff<'r, AnglerTitle>,
@@ -1680,6 +1722,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<UpgradeQuote>(
             "adapter_upgrade_quote",
             &self.adapter_upgrade_quote,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<AnglerPortrait>(
+            "angler_portrait",
+            &self.angler_portrait,
             event,
         );
         callbacks.invoke_table_row_callbacks::<AnglerStanding>(
@@ -2504,6 +2551,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_sale_quote_table::register_table(client_cache);
         adapter_shop_quote_table::register_table(client_cache);
         adapter_upgrade_quote_table::register_table(client_cache);
+        angler_portrait_table::register_table(client_cache);
         angler_standing_table::register_table(client_cache);
         angler_statistics_table::register_table(client_cache);
         angler_title_table::register_table(client_cache);
@@ -2560,6 +2608,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_sale_quote",
         "adapter_shop_quote",
         "adapter_upgrade_quote",
+        "angler_portrait",
         "angler_standing",
         "angler_statistics",
         "angler_title",

@@ -1,5 +1,5 @@
 use discord_bot::achievement_notifications::AchievementNotifications;
-use discord_bot::catch_art::{CatchArt, Material, ROD_QUALITY_COLORS};
+use discord_bot::catch_art::{CatchArt, Material, ROD_QUALITY_COLORS, rank_color};
 use discord_bot::measurements::{format_length, format_weight};
 use game_client::{Client, Error, Snapshot, module_bindings::ServiceRole};
 use poise::serenity_prelude as serenity;
@@ -39,6 +39,21 @@ async fn snapshot(ctx: Context<'_>, cast: bool) -> Result<Snapshot, Error> {
             cast,
         )
         .await;
+    if result.is_ok() {
+        let user = ctx.author();
+        if let Err(error) = ctx
+            .data()
+            .game
+            .sync_portrait(
+                user.id.get(),
+                user.avatar.map(|hash| hash.to_string()),
+                user.discriminator.map_or(0, |value| value.get()),
+            )
+            .await
+        {
+            tracing::warn!(%error, "Discord portrait refresh unavailable");
+        }
+    }
     log_timing(ctx, "game", started, result.is_ok()).await;
     result
 }
@@ -197,6 +212,10 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
                     pull.xp_granted
                 );
                 lines.push(format!("🎣 **{}** · {}", species.name, description));
+                let embed = serenity::CreateEmbed::new()
+                    .title(&species.name)
+                    .description(description)
+                    .color(rank_color(&pull.rarity));
                 match ctx
                     .data()
                     .catch_art
@@ -207,21 +226,12 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
                         let filename =
                             format!("catch-{}-{}-{}.png", index + 1, species.key, pull.rarity);
                         response = response
-                            .embed(
-                                serenity::CreateEmbed::new()
-                                    .title(&species.name)
-                                    .description(description)
-                                    .image(format!("attachment://{filename}")),
-                            )
+                            .embed(embed.image(format!("attachment://{filename}")))
                             .attachment(serenity::CreateAttachment::bytes(png, filename));
                     }
                     Err(error) => {
                         tracing::warn!(%error, "Catch artwork unavailable");
-                        response = response.embed(
-                            serenity::CreateEmbed::new()
-                                .title(&species.name)
-                                .description(description),
-                        );
+                        response = response.embed(embed);
                     }
                 }
             }
@@ -513,11 +523,11 @@ enum Board {
     Weight,
     #[name = "Recorded fish-sale earnings"]
     Earnings,
-    #[name = "Biggest individual sale"]
+    #[name = "Most expensive fish"]
     SingleSale,
     #[name = "Biggest recorded sale batch"]
     BatchSale,
-    #[name = "Record-setting catches since tracking"]
+    #[name = "Record-setting catches"]
     SetRecords,
     #[name = "Recorded fishing days UTC"]
     Days,
@@ -654,9 +664,9 @@ async fn leaderboard(
         Board::Pairs => "Species and rank pairs",
         Board::Weight => "Recorded caught weight",
         Board::Earnings => "Recorded fish-sale earnings",
-        Board::SingleSale => "Biggest individual sale",
+        Board::SingleSale => "Most expensive fish",
         Board::BatchSale => "Biggest recorded sale batch",
-        Board::SetRecords => "Record-setting catches since tracking",
+        Board::SetRecords => "Record-setting catches",
         Board::Days => "Recorded fishing days UTC",
         Board::Relative => "Best relative length",
     };

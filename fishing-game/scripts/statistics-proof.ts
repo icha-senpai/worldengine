@@ -57,6 +57,17 @@ try {
  const catalog=[...bot.db.speciesDefinition.iter()];
  const ratio=Math.max(...fish.map(f=>Math.floor(f.lengthMm*1000000/catalog.find(s=>s.speciesId===f.speciesId)!.typicalLengthMm)));
  assert.equal(stats().bestRelativeLengthMillionths,BigInt(ratio));
+ const mostExpensive=fish.reduce((max,f)=>f.saleValueCoins>max?f.saleValueCoins:max,0n);
+ assert.equal(stats().biggestSingleSale,mostExpensive,'Most expensive fish counts before selling');
+ const historicRecords=stats().recordsSet;
+ await assert.rejects(bot.reducers.backfillCatchRecords({}),/OWNER_REQUIRED/);
+ ownerCall('proof_reset_catch_records',[id.toString()]);ownerCall('backfill_catch_records');
+ await new Promise(resolve=>setTimeout(resolve,100));
+ assert.equal(stats().recordsSet,historicRecords);assert.equal(stats().biggestSingleSale,mostExpensive);
+ const catchHistory=stats();ownerCall('backfill_catch_records');await new Promise(resolve=>setTimeout(resolve,100));assert.deepEqual(stats(),catchHistory);
+ ownerCall('proof_hide_fish_history',['true']);assert.throws(()=>ownerCall('backfill_catch_records'),/INCOMPLETE_CATCH_HISTORY/);ownerCall('proof_hide_fish_history',['false']);
+ ownerCall('proof_mismatch_record',['true']);assert.throws(()=>ownerCall('backfill_catch_records'),/RECORD_HISTORY_MISMATCH/);ownerCall('proof_mismatch_record',['false']);
+ await new Promise(resolve=>setTimeout(resolve,100));assert.deepEqual(stats(),catchHistory,'Rejected recovery must leave every statistic untouched');
  const saleArgs=args();await bot.reducers.selectDiscordPlayer(saleArgs);await bot.reducers.prepareSaleFromDiscord({...saleArgs,catchIds:fish.map(f=>f.catchId)});
  const quote=[...bot.db.adapterSaleQuote.iter()][0];await bot.reducers.commitSaleFromDiscord({...saleArgs,nonce:quote.nonce});
  assert.equal(stats().saleEarnings,quote.quotedCoins);assert.equal(stats().biggestSaleBatch,quote.quotedCoins);

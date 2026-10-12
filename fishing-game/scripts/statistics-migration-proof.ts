@@ -12,16 +12,17 @@ async function connect(tables:string[]) {
  await new Promise<void>((resolve,reject)=>c.subscriptionBuilder().onApplied(()=>resolve()).onError(ctx=>reject(ctx.event)).subscribe(tables.map(t=>`SELECT * FROM ${t}`)));return c;
 }
 try {
- publish('.local/pre-statistics.wasm');
+ publish('.local/pre-catch-records.wasm');
  const bot=await connect(['adapter_player','adapter_receipt']);
  call('configure_service',[JSON.stringify(bot.identity!.toHexString()),JSON.stringify({discordAdapter:{}}),'true']);
  const args={discordUserId:99601n,displayName:'Statistics migration proof',interactionId:(BigInt(Date.now())-1420070400000n)<<22n};
  await bot.reducers.selectDiscordPlayer(args);await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
  const id=[...bot.db.adapterPlayer.iter()][0].playerId;connections.forEach(c=>c.disconnect());
- console.log(run(process.execPath,['scripts/statistics-preservation.mjs','before',database]).trim());
+ console.log(run(process.execPath,['scripts/catch-record-preservation.mjs','before',database]).trim());
  publish('spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm');
  call('backfill_player_statistics',[id.toString()]);
- console.log(run(process.execPath,['scripts/statistics-preservation.mjs','after',database]).trim());
+ call('backfill_catch_records');
+ console.log(run(process.execPath,['scripts/catch-record-preservation.mjs','after',database]).trim());
  const c=await connect(['angler_statistics']);const stats=[...c.db.anglerStatistics.iter()][0];assert(stats);assert.equal(stats.totalCasts,1n);assert(stats.historyComplete);
  call('backfill_player_statistics',[id.toString()]);assert.deepEqual([...c.db.anglerStatistics.iter()][0],stats);
  await assert.rejects(c.reducers.backfillPlayerStatistics({playerId:id}),/OWNER_REQUIRED/);

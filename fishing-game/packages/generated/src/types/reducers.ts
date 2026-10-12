@@ -12,6 +12,7 @@ import ActivateRodBonusesReducer from "../activate_rod_bonuses_reducer";
 import ActivateSpeciesMeasurementsReducer from "../activate_species_measurements_reducer";
 import ActivateTraderReducer from "../activate_trader_reducer";
 import ActivateXpProgressionReducer from "../activate_xp_progression_reducer";
+import BackfillCatchRecordsReducer from "../backfill_catch_records_reducer";
 import BackfillJournalReducer from "../backfill_journal_reducer";
 import BackfillPlayerAchievementsReducer from "../backfill_player_achievements_reducer";
 import BackfillPlayerStatisticsReducer from "../backfill_player_statistics_reducer";
@@ -42,6 +43,7 @@ import RebuildPlayerRecordsReducer from "../rebuild_player_records_reducer";
 import SelectDiscordPlayerReducer from "../select_discord_player_reducer";
 import SelectJournalReducer from "../select_journal_reducer";
 import SetCatchFavoriteReducer from "../set_catch_favorite_reducer";
+import SyncDiscordPortraitReducer from "../sync_discord_portrait_reducer";
 import UnlinkBrowserReducer from "../unlink_browser_reducer";
 
 export type ActivateAchievementsParams = __Infer<typeof ActivateAchievementsReducer>;
@@ -50,6 +52,7 @@ export type ActivateRodBonusesParams = __Infer<typeof ActivateRodBonusesReducer>
 export type ActivateSpeciesMeasurementsParams = __Infer<typeof ActivateSpeciesMeasurementsReducer>;
 export type ActivateTraderParams = __Infer<typeof ActivateTraderReducer>;
 export type ActivateXpProgressionParams = __Infer<typeof ActivateXpProgressionReducer>;
+export type BackfillCatchRecordsParams = __Infer<typeof BackfillCatchRecordsReducer>;
 export type BackfillJournalParams = __Infer<typeof BackfillJournalReducer>;
 export type BackfillPlayerAchievementsParams = __Infer<typeof BackfillPlayerAchievementsReducer>;
 export type BackfillPlayerStatisticsParams = __Infer<typeof BackfillPlayerStatisticsReducer>;
@@ -80,5 +83,6 @@ export type RebuildPlayerRecordsParams = __Infer<typeof RebuildPlayerRecordsRedu
 export type SelectDiscordPlayerParams = __Infer<typeof SelectDiscordPlayerReducer>;
 export type SelectJournalParams = __Infer<typeof SelectJournalReducer>;
 export type SetCatchFavoriteParams = __Infer<typeof SetCatchFavoriteReducer>;
+export type SyncDiscordPortraitParams = __Infer<typeof SyncDiscordPortraitReducer>;
 export type UnlinkBrowserParams = __Infer<typeof UnlinkBrowserReducer>;
 

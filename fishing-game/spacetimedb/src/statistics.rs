@@ -223,6 +223,9 @@ pub fn observe_pull(
         if sets_record {
             add(&mut stats.records_set, 1)?;
         }
+        // The persisted field keeps its original name for client/schema compatibility.
+        // Its value is now the highest fish value, regardless of whether it is sold.
+        stats.biggest_single_sale = stats.biggest_single_sale.max(receipt.sale_value_coins);
     }
     if is_bonus {
         bonus(&mut stats, &receipt.outcome)?;
@@ -337,6 +340,11 @@ pub fn refresh(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
 
 #[spacetimedb::reducer]
 pub fn backfill_player_statistics(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
+    require_owner(ctx)?;
+    refresh(ctx, player_id)
+}
+
+fn require_owner(ctx: &ReducerContext) -> Result<(), String> {
     if ctx
         .db
         .deployment_owner()
@@ -348,5 +356,133 @@ pub fn backfill_player_statistics(ctx: &ReducerContext, player_id: u64) -> Resul
     {
         return Err("OWNER_REQUIRED".into());
     }
-    refresh(ctx, player_id)
+    Ok(())
+}
+
+/// Reconstruct historical record events only when the entire game's fish history
+/// is present and its final winners exactly match the current record book.
+#[spacetimedb::reducer]
+pub fn backfill_catch_records(ctx: &ReducerContext) -> Result<(), String> {
+    require_owner(ctx)?;
+    let players: Vec<_> = ctx.db.player().iter().collect();
+    let mut counts: BTreeMap<u64, u64> = players.iter().map(|p| (p.player_id, 0)).collect();
+    let mut wins = counts.clone();
+    let mut fish: Vec<_> = ctx
+        .db
+        .journal_entry()
+        .iter()
+        .filter(|e| e.outcome == "fish")
+        .collect();
+    let mut ids = BTreeSet::new();
+    for entry in &fish {
+        let id = entry.catch_id.ok_or("INCOMPLETE_CATCH_HISTORY")?;
+        if entry.species_id.is_none() || !ids.insert(id) {
+            return Err("INCOMPLETE_CATCH_HISTORY".into());
+        }
+        add(
+            counts
+                .get_mut(&entry.player_id)
+                .ok_or("INVALID_CATCH_HISTORY")?,
+            1,
+        )?;
+    }
+    for player in &players {
+        if counts[&player.player_id] != player.fish_count {
+            return Err("INCOMPLETE_CATCH_HISTORY".into());
+        }
+    }
+    fish.sort_by_key(|entry| (entry.caught_at, entry.catch_id));
+    let mut best: BTreeMap<u64, (u64, Timestamp, u64, u64)> = BTreeMap::new();
+    for entry in &fish {
+        let catch_id = entry.catch_id.ok_or("INCOMPLETE_CATCH_HISTORY")?;
+        let species_id = entry.species_id.ok_or("INCOMPLETE_CATCH_HISTORY")?;
+        let mut sets_record = false;
+        for (metric, value) in [(0, u64::from(entry.length_mm)), (1, entry.weight_g)] {
+            let key = u64::from(species_id) * 2 + metric;
+            if best.get(&key).is_none_or(|old| {
+                game_rules::progression::record_wins(
+                    value,
+                    entry.caught_at.to_micros_since_unix_epoch(),
+                    catch_id,
+                    (old.0, old.1.to_micros_since_unix_epoch(), old.2),
+                )
+            }) {
+                best.insert(key, (value, entry.caught_at, catch_id, entry.player_id));
+                sets_record = true;
+            }
+        }
+        if sets_record {
+            add(
+                wins.get_mut(&entry.player_id)
+                    .ok_or("INVALID_CATCH_HISTORY")?,
+                1,
+            )?;
+        }
+    }
+    if best.len() as u64 != ctx.db.species_record().count() {
+        return Err("RECORD_HISTORY_MISMATCH".into());
+    }
+    for record in ctx.db.species_record().iter() {
+        if best.get(&record.key)
+            != Some(&(
+                record.measurement,
+                record.caught_at,
+                record.catch_id,
+                record.player_id,
+            ))
+        {
+            return Err("RECORD_HISTORY_MISMATCH".into());
+        }
+    }
+
+    // Prices come from original saved specimens/receipts, never today's catalog.
+    // Capture the maximum now before retry receipts expire.
+    let mut values: BTreeMap<u64, u64> = BTreeMap::new();
+    for specimen in ctx.db.owned_specimen().iter() {
+        values.insert(specimen.catch_id, specimen.sale_value_coins);
+    }
+    for receipt in ctx
+        .db
+        .cast_pull()
+        .iter()
+        .map(|pull| pull.receipt)
+        .chain(ctx.db.command_receipt().iter())
+    {
+        if receipt.outcome == "fish" {
+            if let Some(id) = receipt.catch_id {
+                if values
+                    .get(&id)
+                    .is_some_and(|value| *value != receipt.sale_value_coins)
+                {
+                    return Err("FISH_VALUE_HISTORY_MISMATCH".into());
+                }
+                values.insert(id, receipt.sale_value_coins);
+            }
+        }
+    }
+    let mut maxima: BTreeMap<u64, u64> = players.iter().map(|p| (p.player_id, 0)).collect();
+    for entry in &fish {
+        let id = entry.catch_id.ok_or("INCOMPLETE_CATCH_HISTORY")?;
+        let value = *values.get(&id).ok_or("INCOMPLETE_FISH_VALUE_HISTORY")?;
+        let maximum = maxima
+            .get_mut(&entry.player_id)
+            .ok_or("INVALID_CATCH_HISTORY")?;
+        *maximum = (*maximum).max(value);
+    }
+    // All validation completes before touching projections. Reducer rollback also
+    // protects against failures; repeated recovery assigns totals, not increments.
+    for player in players {
+        ensure(ctx, player.player_id)?;
+        let mut stats = ctx
+            .db
+            .angler_statistics()
+            .player_id()
+            .find(player.player_id)
+            .ok_or("STATISTICS_MISSING")?;
+        stats.records_set = wins[&player.player_id];
+        stats.records_tracked_since = player.created_at;
+        stats.biggest_single_sale = stats.biggest_single_sale.max(maxima[&player.player_id]);
+        ctx.db.angler_statistics().player_id().update(stats);
+    }
+    Ok(())
 }

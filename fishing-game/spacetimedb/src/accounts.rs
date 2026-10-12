@@ -152,6 +152,85 @@ pub fn select_discord_player(
     Ok(())
 }
 
+/// Metadata supplied by authenticated Discord/OAuth adapters, never the browser.
+#[spacetimedb::reducer]
+pub fn sync_discord_portrait(
+    ctx: &ReducerContext,
+    discord_user_id: u64,
+    avatar_hash: Option<String>,
+    discriminator: u16,
+) -> Result<(), String> {
+    let service = ctx
+        .db
+        .service_principal()
+        .identity()
+        .find(ctx.sender())
+        .ok_or("SERVICE_UNAUTHORIZED")?;
+    if !service.active
+        || !matches!(
+            service.role,
+            ServiceRole::DiscordAdapter | ServiceRole::AccountLinker
+        )
+    {
+        return Err("SERVICE_UNAUTHORIZED".into());
+    }
+    let player = ctx
+        .db
+        .player()
+        .discord_user_id()
+        .find(discord_user_id)
+        .ok_or("PLAYER_MISSING")?;
+    if discriminator > 9999 {
+        return Err("INVALID_DISCORD_PORTRAIT".into());
+    }
+    let (avatar_url, still_url) = match avatar_hash {
+        Some(hash) => {
+            let digits = hash.strip_prefix("a_").unwrap_or(&hash);
+            if digits.len() != 32
+                || !digits
+                    .bytes()
+                    .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+            {
+                return Err("INVALID_DISCORD_PORTRAIT".into());
+            }
+            let base = format!("https://cdn.discordapp.com/avatars/{discord_user_id}/{hash}");
+            let still = format!("{base}.webp?size=128");
+            let avatar = if hash.starts_with("a_") {
+                format!("{base}.gif?size=128")
+            } else {
+                still.clone()
+            };
+            (avatar, still)
+        }
+        None => {
+            let index = if discriminator == 0 {
+                (discord_user_id >> 22) % 6
+            } else {
+                u64::from(discriminator) % 5
+            };
+            let url = format!("https://cdn.discordapp.com/embed/avatars/{index}.png");
+            (url.clone(), url)
+        }
+    };
+    if let Some(mut row) = ctx.db.angler_portrait().player_id().find(player.player_id) {
+        if row.avatar_url == avatar_url && row.still_url == still_url {
+            return Ok(());
+        }
+        row.avatar_url = avatar_url;
+        row.still_url = still_url;
+        row.updated_at = ctx.timestamp;
+        ctx.db.angler_portrait().player_id().update(row);
+    } else {
+        ctx.db.angler_portrait().insert(AnglerPortrait {
+            player_id: player.player_id,
+            avatar_url,
+            still_url,
+            updated_at: ctx.timestamp,
+        });
+    }
+    Ok(())
+}
+
 #[spacetimedb::reducer]
 pub fn begin_link_challenge(ctx: &ReducerContext) -> Result<(), String> {
     if let Some(old) = ctx
