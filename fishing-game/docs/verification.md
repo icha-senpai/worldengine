@@ -1,5 +1,89 @@
 # Implementation verification — October 3–4, 2026
 
+## Joint website deployment (October 12, 2026)
+
+Deployed the wider desktop layouts/larger type, Compendium Baseline/Equipped/Best
+presets, and trader purchase confirmation together. All 537 served files match
+the approved production candidate by SHA-256; the public client bundle also
+matches. The previous web build is retained for rollback in
+`.local/deployments/desktop-loadouts-confirm-20261012-063828/previous-web-build`.
+
+Only the website restarted. Bot, linker, Fishbound database and the neighboring
+Space database retained their processes. Site and account-link health returned
+HTTP 200. Live public checks verified the 1760 px desktop frame and 17 px body
+text, all six public views at 1920/1440/1024/850/390/320 px, Compendium baseline
+and best rates/modal consistency/filter preservation, guest equipped gating,
+Fihs/Sock eligibility, and trader pack controls with confirmation semantics and
+guest purchase blocking. No horizontal overflow or browser console errors were
+found. Linked-account equipment and confirmed purchases were verified in the
+synthetic checks below; no real purchase was made for release acceptance.
+Live screenshots are `output/playwright/ui-release-live-*` and
+`compendium-presets-live-*`.
+
+## Trader purchase confirmation (October 12, local candidate)
+
+All licence/rod purchases and bait 1/5/10 packs require a modal confirmation,
+showing the item, quantity/uses, total cost and remaining balance. Cancel receives
+initial focus; native modal behavior traps focus and returns it to Buy on dismissal.
+Offer identity, price, catalog version, bait uses and purchase eligibility are
+revalidated before Confirm. Server quote validation and transaction locks remain.
+
+Type/Svelte checks passed with zero errors or warnings, and the isolated production
+build passed at `.local/trader-confirm-web-build`. Playwright used the real Trader
+and Game purchase method with synthetic reducers to verify opening/cancelling,
+Escape and backdrop dismissal make no purchase RPCs; confirmed rods/licences and
+all bait quantities; focus restoration; duplicate confirm clicks; in-flight Escape
+protection; failed purchases; changed listed prices/server quotes; balance changes;
+account unlink and guest gating. Layout checks passed at 1920, 1440, 850, 390 and
+320 px. Screenshots are `output/playwright/trader-confirm-{1440,390}.png`.
+No real purchases were made. These updates were deployed together in the joint website release above; database and bot changes were not needed.
+
+## Compendium loadout rate presets (October 12, local candidate)
+
+Baseline, Equipped and Best for perfects filter buttons update both card and
+detail rates, conditional rank distributions and the displayed loadout summary.
+Equipped reacts to rod/quality and bait changes, excludes exhausted bait, and
+returns to Baseline on account unlink. Presets preserve the other filters and
+pagination. No gameplay, database or bot changes are required.
+
+`npx tsx scripts/compendium-loadout-proof.ts` passed: 9968 displayed rank ranges,
+1,993,600 generated samples, exact Rust luck tickets and bonus-pull math, and
+natural/special endpoint probabilities with one/eight attempts. Every available
+gear combination was compared for all eligible fish; the advertised best wins
+for each. The existing baseline `compendium-proof.ts` also passed all 2492 bands
+and 498,400 samples, including Fihs eligibility and Sock exclusion.
+
+Type/Svelte checks passed. Playwright verified public guest gating and both
+linked-account and guest switching at 1920, 1440, 850, 390 and 320 px, with
+consistent modal/card rates, unchanged filters/pages, reactive equipment updates,
+spent-bait handling, and no horizontal overflow. Screenshots are
+`output/playwright/compendium-best-1920.png` and `compendium-best-390.png`.
+The production candidate is isolated in `.local/loadout-ui-web-build`; these updates were verified locally before the joint website deployment above.
+
+## Wider desktop pages and larger type (October 12, local candidate)
+
+Edited the ten Dashboard views and all supporting UI components directly. The
+desktop frame grows from 1280 to 1760 px, with larger text, cards, spacing and
+dialogs. Responsive adjustments include wrapped long names and balances,
+two-column mobile pagination controls, material quantities on their own row,
+and wrapping trader price controls and Records headers/categories.
+
+`npm run check` passed with zero Svelte errors or warnings. A production build
+passed using an isolated adapter output at `.local/wide-ui-web-build`; the served
+build and live services were not changed. The existing chunk-size warning remains.
+
+Playwright checked the six public views against the running candidate and all ten
+views against a synthetic account, including fish, badge and profile dialogs, at
+1920, 1440, 1024, 850, 390 and 320 px. No page or text overflow remained. A further
+pass covered every trader shelf, badge page, all 251 compendium cards, and every
+Records ranking category at 1920, 1024 and 320 px. Screenshots are under
+`output/playwright/wide-public-*`, `wide-private-*` and `wide-bait-1920.png`.
+
+Existing synthetic browser checks passed for direct licence/rod purchases, bait
+1/5/10 packs, affordability and duplicate-click protection, plus tackle-box
+25-item pagination, rank/all selection, favorites and batched sales. No real
+purchases, sales or casts were performed. Live deployment is verified in the joint release above.
+
 ## US customary measurement displays (October 8)
 
 Discord catches, inventory lengths and species leaderboards, plus website catch

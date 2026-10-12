@@ -64,11 +64,11 @@
   .swimmer{position:absolute;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(3px 5px 0 #163e4855)}
   .koi{width:92px;height:70px;left:49%;top:61%}
   .minnow{width:48px;height:38px;left:73%;top:59%;opacity:.8;transform:scaleX(-1)}
-  .scene-label{position:absolute;right:14px;bottom:14px;padding:6px 10px;background:#203e37e8;color:#f4dfac;font-family:var(--font-game);font-size:16px;border:2px solid #779164}
-  .motion-toggle{position:absolute;left:14px;bottom:14px;min-height:36px;padding:6px 10px;background:#203e37e8;color:#f4dfac;font-family:var(--font-game);font-size:15px;border:2px solid #779164;cursor:pointer}
+  .scene-label{position:absolute;right:14px;bottom:14px;padding:6px 10px;background:#203e37e8;color:#f4dfac;font-family:var(--font-game);font-size:19px;border:2px solid #779164}
+  .motion-toggle{position:absolute;left:14px;bottom:14px;min-height:36px;padding:6px 10px;background:#203e37e8;color:#f4dfac;font-family:var(--font-game);font-size:18px;border:2px solid #779164;cursor:pointer}
   .motion-toggle:hover{background:#31584b}.motion-toggle:focus-visible{outline:3px solid #ffe7a6;outline-offset:3px}
   .compact{min-height:205px}.compact .koi{width:72px;height:58px}
-  @media(max-width:600px){.scene-label{font-size:13px;right:10px;bottom:10px}.motion-toggle{font-size:13px;left:10px;bottom:10px}.koi{top:54%}}
+  @media(max-width:600px){.scene-label{font-size:15px;right:10px;bottom:10px}.motion-toggle{font-size:15px;left:10px;bottom:10px}.koi{top:54%}}
   @media(max-width:360px){.scene-label{display:none}}
   /* The user's explicit pond choice overrides the global reduced-motion rule
      for these gentle effects only. Other UI motion still follows the system. */

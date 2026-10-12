@@ -31,6 +31,26 @@ registered globally; matching legacy server copies are removed on startup; the p
 
 ## Implemented locally
 
+Desktop readability update (October 12, deployed): the shared frame is
+1760 px wide, with direct typography and layout edits in every camp view and its
+supporting components. Body text is 17 px; most panel copy is 16 px and secondary
+text is 14 px. Catch and compendium cards have larger desktop minimum widths;
+fish/profile dialogs open up to 1200 px and badge details to 800 px. Mobile layouts
+retain responsive columns and wrap long names, balances and purchase controls.
+No zoom, scaling layer or blanket font override is used.
+
+Compendium rate presets (October 12, deployed): Baseline, Equipped,
+and Best for perfects buttons update ordinary and perfect odds on cards and in
+fish details. Equipped uses the linked viewer's rod quality and stocked bait;
+the best preset is Prismatic Abyssal Rod with Trophy Chum. Luck ticket adjustment,
+bonus pulls, and repeated perfect-size attempts were checked against Rust.
+
+Trader purchase confirmation (October 12, deployed): every card's Buy
+button now opens a modal showing the item, pack count/uses, total cost and remaining
+coins. No purchase request is sent until Confirm. Cancel, Escape and backdrop
+dismissal do not spend coins; changed offers or insufficient balance disable
+confirmation. The existing server quote and duplicate-purchase guards remain.
+
 Starter account, seven rod families (free starter plus six level-gated purchases), all seven biomes and 251 named species; categories,
 measurements, XP, first-discovery bonus, cooldown, permanent catch journal plus compact recent history,
 private inventory, junk stacks, treasure bundle, economy ledger, personal progress,

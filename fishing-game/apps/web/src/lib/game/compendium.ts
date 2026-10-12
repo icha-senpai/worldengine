@@ -4,37 +4,70 @@ import sizeRules from '../../../../../content/size-rules.json';
 import gameRules from '../../../../../content/game-rules.json';
 
 export type CatalogFish = typeof catalog.species[number];
+export type RateLoadout = { name: string; power: number; luckBp: number; sizeRolls: number; rulesVersion: number };
+export const baselineLoadout: RateLoadout = {
+  name: 'Common Twig Rod · no bait', power: world.rods[0].power, luckBp: 0, sizeRolls: 1, rulesVersion: gameRules.version,
+};
 const million = 1_000_000n;
+const ranks = sizeRules.tiers.map(row => row.rarity);
+const pools = new Map<string, Map<number, Map<string, number>>>();
 
-function pullChance(fish: CatalogFish, rarity?: string) {
-  const tickets = rarity ? fish.ranks.find(rank => rank.rarity === rarity)!.encounterWeight : fish.encounterWeight;
-  const biome = world.biomes.find(row => row.biomeId === fish.biomeId)!;
-  const poolTickets = catalog.species.filter(row => row.biomeId === fish.biomeId).reduce((sum, row) => sum + row.encounterWeight, 0);
-  return tickets / poolTickets * biome.fishWeight / (biome.fishWeight + biome.junkWeight + biome.treasureWeight);
+/** Match rods::luck_weights, including the Sock's exceptional luck score. */
+function adjustedPool(biomeId: number, luckBp: number) {
+  const key = `${biomeId}:${luckBp}`;
+  const cached = pools.get(key);
+  if (cached) return cached;
+  const entries = catalog.species.filter(row => row.biomeId === biomeId).flatMap(fish => fish.ranks.map(rank => ({
+    speciesId: fish.speciesId, rarity: rank.rarity, weight: BigInt(rank.encounterWeight),
+    score: BigInt(fish.key === 'nidalees-lost-sock' ? 9 : ranks.indexOf(rank.rarity)),
+  })));
+  const total = entries.reduce((sum, row) => sum + row.weight, 0n);
+  const moment = entries.reduce((sum, row) => sum + row.weight * row.score, 0n);
+  const distance = 9n * total - moment;
+  const denominator = Number(total * 10000n * distance);
+  const pool = new Map<number, Map<string, number>>();
+  for (const entry of entries) {
+    const factor = 10000n * distance + BigInt(luckBp) * (entry.score * total - moment);
+    const bands = pool.get(entry.speciesId) ?? new Map<string, number>();
+    bands.set(entry.rarity, Number(entry.weight * factor) / denominator);
+    pool.set(entry.speciesId, bands);
+  }
+  pools.set(key, pool);
+  return pool;
 }
 
-function chancePerCast(p: number) {
-  const q = world.rods[0].power / 200;
+function pullChance(fish: CatalogFish, rarity: string | undefined, loadout: RateLoadout) {
+  const bands = adjustedPool(fish.biomeId, loadout.luckBp).get(fish.speciesId)!;
+  const chance = rarity ? bands.get(rarity) ?? 0 : [...bands.values()].reduce((sum, value) => sum + value, 0);
+  const biome = world.biomes.find(row => row.biomeId === fish.biomeId)!;
+  return chance * biome.fishWeight / (biome.fishWeight + biome.junkWeight + biome.treasureWeight);
+}
+
+function chancePerCast(p: number, loadout: RateLoadout) {
+  const q = loadout.power / 200;
   return (1 + q) * p - q * p * p;
 }
 
-/** Baseline at-least-one-per-cast chance, including the Twig's bonus pull. */
-export function castChance(fish: CatalogFish, rarity?: string) {
-  return chancePerCast(pullChance(fish, rarity));
+/** At least one matching catch per cast, including one independent bonus pull. */
+export function castChance(fish: CatalogFish, rarity?: string, loadout = baselineLoadout) {
+  return chancePerCast(pullChance(fish, rarity, loadout), loadout);
 }
 
-/** Same Common Twig/no-bait baseline; perfection requires both exact UUR maxima. */
-export function perfectCatchOdds(fish: CatalogFish) {
+/** Perfection requires both exact UUR maxima on one retained specimen. */
+export function perfectCatchOdds(fish: CatalogFish, loadout = baselineLoadout) {
   if (fish.key === 'nidalees-lost-sock' || !fish.allowedRarities.includes('UUR')) return null;
   const band = rankSpreads(fish).find(row => row.rarity === 'UUR')!;
   const weights = weightRangeAtLength(fish, 'UUR', band.maxLengthMm);
   // Length is uniform in integer millimetres, then weight is uniform in grams
   // at that length. Include the natural outcome when the special roll misses.
   const naturalSizeChance = 1 / ((band.maxLengthMm - band.minLengthMm + 1) * (weights.max - weights.min + 1));
-  const endpointChance = gameRules.version >= 11 ? 1 / gameRules.perfectRollOneIn : 0;
-  const sizeChance = endpointChance + (1 - endpointChance) * naturalSizeChance;
-  return { maxLengthMm: band.maxLengthMm, maxWeightG: weights.max, naturalSizeChance, sizeChance,
-    chancePerCast: chancePerCast(pullChance(fish, 'UUR') * sizeChance) };
+  const endpointChance = loadout.rulesVersion >= 11 ? 1 / gameRules.perfectRollOneIn : 0;
+  const attemptChance = endpointChance + (1 - endpointChance) * naturalSizeChance;
+  // A perfect has the greatest weight and length, so it always survives the
+  // heaviest-then-longest selection across Trophy Chum's size attempts.
+  const sizeChance = -Math.expm1(loadout.sizeRolls * Math.log1p(-attemptChance));
+  return { maxLengthMm: band.maxLengthMm, maxWeightG: weights.max, naturalSizeChance, attemptChance, sizeChance,
+    chancePerCast: chancePerCast(pullChance(fish, 'UUR', loadout) * sizeChance, loadout) };
 }
 
 export const formatOdds = (chance: number) => `1 in ${(1 / chance).toLocaleString(undefined, { maximumFractionDigits: 1 })}`;
@@ -60,7 +93,8 @@ export function weightRangeAtLength(fish: CatalogFish, rarity: string, length: n
 }
 
 /** Catchable ranges, rather than the wider configured safety caps. */
-export function rankSpreads(fish: CatalogFish) {
+export function rankSpreads(fish: CatalogFish, loadout = baselineLoadout) {
+  const speciesChance = pullChance(fish, undefined, loadout);
   return fish.ranks.map(rank => {
     const index = sizeRules.tiers.findIndex(row => row.rarity === rank.rarity);
     const rule = sizeRules.tiers[index];
@@ -73,8 +107,8 @@ export function rankSpreads(fish: CatalogFish) {
       maxWeightG: weightRangeAtLength(fish, rank.rarity, maxLengthMm).max,
       minimumLengthFactor: rule.minimumLengthMillionths / 1_000_000,
       minimumWeightFactor: rule.minimumWeightMillionths / 1_000_000,
-      sharePercent: rank.encounterWeight / fish.encounterWeight * 100,
-      castChance: castChance(fish, rank.rarity),
+      sharePercent: pullChance(fish, rank.rarity, loadout) / speciesChance * 100,
+      castChance: castChance(fish, rank.rarity, loadout),
     };
   });
 }

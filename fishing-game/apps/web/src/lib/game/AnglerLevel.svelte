@@ -28,13 +28,13 @@
 <small class="total-xp">{totalXp.toLocaleString()} total XP</small>
 
 <style>
-  span{font-family:var(--font-game);font-size:16px;color:#f3d898}
-  strong{font-family:var(--font-game);font-weight:500;font-size:38px;display:block;margin:8px 0;line-height:1.15;text-shadow:2px 2px 0 #392b23}
-  small{font-size:11px;color:#ecddbc;display:block;line-height:1.4}
+  span{font-family:var(--font-game);font-size:19px;color:#f3d898}
+  strong{font-family:var(--font-game);font-weight:500;font-size:42px;display:block;margin:8px 0;line-height:1.15;text-shadow:2px 2px 0 #392b23}
+  small{font-size:14px;color:#ecddbc;display:block;line-height:1.4}
   .total-xp{margin-top:4px;color:#d0bd97}
   progress{display:block;width:100%;height:8px;accent-color:#b7ce79;border:1px solid #392d23;margin:8px 0;background:#392d23}
   progress::-webkit-progress-bar{background:#392d23}
   progress::-webkit-progress-value{background:#b7ce79}
   progress::-moz-progress-bar{background:#b7ce79}
-  @media(max-width:600px){strong{font-size:34px}}
+  @media(max-width:600px){strong{font-size:36px}}
 </style>

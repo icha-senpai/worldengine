@@ -18,7 +18,7 @@ body {
   background: radial-gradient(ellipse at 50% 0, #43654c, transparent 65%), repeating-linear-gradient(0deg, #ffffff02 0 2px, transparent 2px 5px), #1d3732;
   color: var(--paper-light);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.55;
 }
 button,input,select { font: inherit; }

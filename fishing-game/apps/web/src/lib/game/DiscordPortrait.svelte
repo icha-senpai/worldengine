@@ -20,5 +20,5 @@
 </div>
 
 <style>
-  .portrait{display:grid;place-items:center;width:76px;height:76px;background:#456951;color:#ffe7a1;border:3px solid #c7ac6e;box-shadow:inset 0 0 0 2px #263e31;font-size:38px;flex:none;overflow:hidden}.portrait img{display:block;width:100%;height:100%;object-fit:cover}.portrait.compact{width:46px;height:46px;border-width:2px;font-size:26px}
+  .portrait{display:grid;place-items:center;width:76px;height:76px;background:#456951;color:#ffe7a1;border:3px solid #c7ac6e;box-shadow:inset 0 0 0 2px #263e31;font-size:42px;flex:none;overflow:hidden}.portrait img{display:block;width:100%;height:100%;object-fit:cover}.portrait.compact{width:46px;height:46px;border-width:2px;font-size:30px}
 </style>

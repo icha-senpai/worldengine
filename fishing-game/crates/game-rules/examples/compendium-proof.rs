@@ -66,6 +66,66 @@ fn main() {
             .iter()
             .position(|&r| r == row["rarity"].as_str().unwrap())
             .unwrap() as u8;
+        let loadout = row.get("loadout");
+        let luck = loadout.map_or(0, |v| n(v, "luckBp") as u32);
+        let power = loadout.map_or(n(&world["rods"][0], "power"), |v| n(v, "power"));
+        let rolls = loadout.map_or(1, |v| n(v, "sizeRolls")) as i32;
+        let version = loadout.map_or(n(&rules, "version"), |v| n(v, "rulesVersion"));
+        let biome = world["biomes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|biome| biome["biomeId"] == fish["biomeId"])
+            .unwrap();
+        let candidates: Vec<_> = catalog["species"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|candidate| candidate["biomeId"] == fish["biomeId"])
+            .flat_map(|candidate| {
+                candidate["ranks"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(move |rank| (candidate, rank))
+            })
+            .collect();
+        let tickets: Vec<_> = candidates
+            .iter()
+            .map(|(candidate, rank)| {
+                let score = if candidate["key"] == "nidalees-lost-sock" {
+                    9
+                } else {
+                    game_rules::RARITY_TIERS
+                        .iter()
+                        .position(|&r| r == rank["rarity"].as_str().unwrap())
+                        .unwrap() as u8
+                };
+                (n(rank, "encounterWeight"), score)
+            })
+            .collect();
+        let weights = game_rules::rods::luck_weights(&tickets, luck).unwrap();
+        let pool: u128 = weights.iter().map(|&weight| u128::from(weight)).sum();
+        let species_tickets: u128 = candidates
+            .iter()
+            .zip(&weights)
+            .filter(|((candidate, _), _)| candidate["speciesId"] == fish["speciesId"])
+            .map(|(_, &weight)| u128::from(weight))
+            .sum();
+        let index = candidates
+            .iter()
+            .position(|(candidate, rank)| {
+                candidate["speciesId"] == fish["speciesId"] && rank["rarity"] == row["rarity"]
+            })
+            .unwrap();
+        let category = n(biome, "fishWeight") as f64
+            / (n(biome, "fishWeight") + n(biome, "junkWeight") + n(biome, "treasureWeight")) as f64;
+        let rank_pull = weights[index] as f64 / pool as f64 * category;
+        let q = f64::from(game_rules::rods::bonus_pull_bp(power as u32).unwrap()) / 10000.0;
+        let rank_cast = (1.0 + q) * rank_pull - q * rank_pull * rank_pull;
+        assert!((row["castChance"].as_f64().unwrap() - rank_cast).abs() < rank_cast * 1e-12);
+        let share = weights[index] as f64 / species_tickets as f64 * 100.0;
+        assert!((row["sharePercent"].as_f64().unwrap() - share).abs() < 1e-10);
         let low = generate_in_size_band(model, band, &mut EndpointRng(vec![0, 0], 0)).unwrap();
         assert_eq!(u64::from(low.length_mm), n(row, "minLengthMm"));
         assert_eq!(low.weight_g, n(row, "minWeightG"));
@@ -105,34 +165,16 @@ fn main() {
                 / ((u64::from(high.length_mm - low.length_mm) + 1)
                     * (high.weight_g - lightest_at_max_length.weight_g + 1))
                     as f64;
-            let endpoint = 1.0 / f64::from(game_rules::trophy::PERFECT_ROLL_ONE_IN);
-            let size_chance = endpoint + (1.0 - endpoint) * natural;
+            let endpoint = if version >= 11 {
+                1.0 / f64::from(game_rules::trophy::PERFECT_ROLL_ONE_IN)
+            } else {
+                0.0
+            };
+            let attempt_chance = endpoint + (1.0 - endpoint) * natural;
+            let size_chance = -(f64::from(rolls) * (-attempt_chance).ln_1p()).exp_m1();
             assert!((row["naturalPerfectSizeChance"].as_f64().unwrap() - natural).abs() < 1e-15);
             assert!((row["perfectSizeChance"].as_f64().unwrap() - size_chance).abs() < 1e-15);
-            let biome = world["biomes"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .find(|biome| biome["biomeId"] == fish["biomeId"])
-                .unwrap();
-            let pool: u64 = catalog["species"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .filter(|candidate| candidate["biomeId"] == fish["biomeId"])
-                .map(|candidate| n(candidate, "encounterWeight"))
-                .sum();
-            let rank = fish["ranks"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .find(|rank| rank["rarity"] == "UUR")
-                .unwrap();
-            let category = n(biome, "fishWeight") as f64
-                / (n(biome, "fishWeight") + n(biome, "junkWeight") + n(biome, "treasureWeight"))
-                    as f64;
-            let p = n(rank, "encounterWeight") as f64 / pool as f64 * category * size_chance;
-            let q = n(&world["rods"][0], "power") as f64 / 200.0;
+            let p = rank_pull * size_chance;
             let per_cast = (1.0 + q) * p - q * p * p;
             assert!(
                 (row["perfectCastChance"].as_f64().unwrap() - per_cast).abs() < per_cast * 1e-12
