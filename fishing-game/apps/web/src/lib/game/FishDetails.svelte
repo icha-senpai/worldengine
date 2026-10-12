@@ -1,11 +1,12 @@
 <script lang="ts">
   import type { CatalogFish } from './compendium';
-  import { castChance, formatOdds, formatPercent, rankSpreads } from './compendium';
+  import { castChance, formatOdds, formatPercent, rankSpreads, perfectCatchOdds } from './compendium';
   import { formatLength, formatWeight } from './measurements';
   import world from '../../../../../content/world.json';
   let { fish = $bindable(null), asset = '' } = $props<{fish?: CatalogFish | null; asset?: string}>();
   let dialog: HTMLDialogElement;
   const bands = $derived(fish ? rankSpreads(fish) : []);
+  const perfect = $derived(fish ? perfectCatchOdds(fish) : null);
   const ranges = $derived(bands.length ? {
     minLength: Math.min(...bands.map(row => row.minLengthMm)), maxLength: Math.max(...bands.map(row => row.maxLengthMm)),
     minWeight: Math.min(...bands.map(row => row.minWeightG)), maxWeight: Math.max(...bands.map(row => row.maxWeightG)),
@@ -35,6 +36,7 @@
         <div class="fish-art"><img src={asset} alt={fish.name} /><span>{fish.allowedRarities.length === 1 ? fish.allowedRarities[0] + ' ONLY' : 'SPECIES PROFILE'}</span></div>
         <div class="facts"><dl><div><dt>Reference length</dt><dd>{formatLength(fish.typicalLengthMm)}</dd></div><div><dt>Reference weight</dt><dd>{formatWeight(fish.typicalWeightG)}</dd></div><div><dt>Catchable length</dt><dd>{formatLength(ranges.minLength)} – {formatLength(ranges.maxLength)}</dd></div><div><dt>Catchable weight</dt><dd>{formatWeight(ranges.minWeight)} – {formatWeight(ranges.maxWeight)}</dd></div></dl><p class="overall">About <strong>{formatOdds(castChance(fish))} casts</strong> across eligible ranks.</p></div>
       </div>
+      <p class="perfect"><strong>✦ Perfect catch:</strong> {perfect ? formatOdds(perfect.chancePerCast) + ' casts with a Common Twig Rod and no bait. Both exact UUR maximum measurements must match on the same catch.' : 'This bonus find is not eligible for perfect-catch credit.'}</p>
       {#if fish.lore}<p class="lore">{fish.lore}</p>{/if}
       <section aria-labelledby="size-spread-title">
         <h3 id="size-spread-title">Size &amp; rarity spread</h3>
@@ -60,6 +62,7 @@
 </dialog>
 
 <style>
+  .perfect{padding:12px 16px;border:1px solid #b99b6c;background:#fff0c9;color:#6b4b78;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
   dialog{width:min(960px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:0;border:4px solid var(--wood-dark);color:var(--ink);background:var(--paper);box-shadow:inset 0 0 0 3px #fff0cb,0 12px 0 #132a2580;overflow:hidden}dialog[open]{display:flex;flex-direction:column}dialog::backdrop{background:#102820cf}
   header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;padding:22px 26px 18px;border-bottom:2px solid #b99b6c;background:#e4d2a7;flex-shrink:0}.eyebrow{margin:0 0 6px;font-size:10px;letter-spacing:2px;color:#79603b;font-weight:800}h2{font:34px var(--font-game);margin:0;line-height:1.2}.biome{font-size:12px;color:#79603b;margin:5px 0 0}.close{flex-shrink:0;width:42px;height:42px;border:2px solid #96794f;background:#fff0cb;color:var(--ink);font-size:20px;box-shadow:2px 3px 0 #b4996a}.close:hover{background:#f6d993}
   .pages{padding:24px 26px;overflow-y:auto;overscroll-behavior:contain}.overview{display:grid;grid-template-columns:210px 1fr;gap:24px;align-items:center}.fish-art{height:180px;border:3px solid #6a7657;background:repeating-linear-gradient(0deg,#ffffff05 0 2px,transparent 2px 8px),#385d56;box-shadow:inset 0 0 0 3px #78916a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}.fish-art img{width:160px;height:110px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(3px 4px 0 #203b3580)}.fish-art>span{font:13px var(--font-game);color:#ffe5a4;margin-top:12px;letter-spacing:1px}dl{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:0}dt{font-size:11px;color:#79603b;margin-bottom:4px}dd{margin:0;font-weight:800;font-size:14px}.overall{font-size:12px;margin:18px 0 0;color:#79603b}.overall strong{color:#5d4930}.lore{padding:14px 18px;background:#e8d6ab;border-left:3px solid #b28c42;font-size:13px;margin:22px 0 0}

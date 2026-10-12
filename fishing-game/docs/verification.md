@@ -1056,3 +1056,27 @@ All six public views passed the same four viewport checks without overflow or
 console errors. The site and account linker remained healthy; bot, linker and
 database processes were unchanged. A copy of the previous website build is
 retained in `.local/deployments/`. Live screenshots are `output/playwright/silkscreen-live-*`.
+## Compendium perfect-catch odds (October 12, 2026)
+
+Each species card and detail panel shows its perfect-catch rate using the existing
+Common Twig/no-bait baseline. The calculation combines the UUR encounter rate,
+natural paired maximum probability, rules-11 1-in-5,000 perfect roll and the Twig
+bonus pull before calculating at least one perfect per accepted cast. Rank filters
+leave this UUR chase rate unchanged. Fihs is eligible; the Sock is explicitly not.
+
+The expanded `scripts/compendium-proof.ts` checks all 250 eligible rates against
+Rust's exact inclusive length/weight ranges, perfect endpoints and roll constant,
+while retaining the existing 2,492 range checks and 498,400 sampled catches.
+Browser checks verified every paginated card, card/detail consistency, rank filters,
+both exceptional species and 1440/390/320 layouts without overflow or console
+errors. Screenshots are `output/playwright/perfect-odds-{carp,detail}-*.png`.
+Svelte/scripts checks and the isolated production build passed. This records local
+verification before deployment; no gameplay rules or player data changed.
+
+Live deployment on October 12 replaced only the website build and retained the
+previous build for recovery. All 251 live cards matched the Rust-verified odds;
+rank filters, card/detail consistency, Fihs/Sock eligibility and 1440/390/320
+layouts passed without overflow or console errors. The public client bundle
+matched the candidate by SHA-256. Site and account-link health returned HTTP 200;
+bot, linker and database processes stayed running. Live screenshots are
+`output/playwright/perfect-odds-live-{carp,detail}-*.png`.

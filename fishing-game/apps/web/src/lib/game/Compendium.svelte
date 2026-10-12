@@ -4,7 +4,7 @@
   import world from '../../../../../content/world.json';
   import PageTurner from './PageTurner.svelte';
   import FishDetails from './FishDetails.svelte';
-  import { castChance, formatOdds } from './compendium';
+  import { castChance, formatOdds, perfectCatchOdds } from './compendium';
   let { active = true } = $props<{ active?: boolean }>();
   const pageSize = 24;
   const tiers = ['F', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'UR', 'UUR'];
@@ -14,7 +14,7 @@
   let page = $state(1);
   let selected = $state<typeof catalog.species[number] | null>(null);
   $effect(() => { if (!active) selected = null; });
-  const species = catalog.species.map(entry => ({ ...entry, asset: manifest.fish.find(asset => asset.key === entry.spriteKey)! }));
+  const species = catalog.species.map(entry => ({ ...entry, perfect: perfectCatchOdds(entry), asset: manifest.fish.find(asset => asset.key === entry.spriteKey)! }));
   const fish = $derived(species.filter(entry => (!biome || entry.biomeId === biome) && (!rarity || entry.allowedRarities.includes(rarity)) && (entry.name.toLowerCase().includes(query.trim().toLowerCase()) || entry.key.includes(query.trim().toLowerCase().replaceAll(' ', '-')))));
 </script>
 
@@ -22,11 +22,13 @@
   <h2 id="compendium-heading">The fish book <span>{species.length} species</span></h2>
   <div class="filters"><div class="search"><label for="catalog-search">Find a fish</label><input id="catalog-search" type="search" placeholder="Carp, koi, trout…" bind:value={query} oninput={() => page = 1} /></div><div><label for="catalog-biome">Biome</label><select id="catalog-biome" bind:value={biome} onchange={() => page = 1}><option value={0}>All waters</option>{#each world.biomes as b}<option value={b.biomeId}>{b.name}</option>{/each}</select></div><div><label for="catalog-rank">Rank</label><select id="catalog-rank" bind:value={rarity} onchange={() => page = 1}><option value="">All ranks</option>{#each tiers as tier}<option value={tier}>{tier}</option>{/each}</select></div></div>
   <p class="count">{fish.length} matching fish. Base rates are per accepted cast in each fish's biome{rarity ? ' at the selected rank' : ', across all eligible ranks'}, with a Common Twig Rod and no bait. Better gear and bait improve these rates.</p>
+  <p class="count perfect-note">✦ Perfect rates use the same rod and no bait, and always refer to both exact maximum measurements at UUR, regardless of the rank filter. They include natural perfects and the UUR perfect roll.</p>
   <div class="fish">
     {#each fish.slice((page - 1) * pageSize, page * pageSize) as entry (entry.speciesId)}
       <button class="fish-card" aria-label={`Open ${entry.name} details`} aria-haspopup="dialog" data-rank={rarity || (entry.allowedRarities.length === 1 ? entry.allowedRarities[0] : '')} onclick={() => selected = entry}>
         <span class="sprite-slot"><img src={entry.asset.url} alt="" loading="lazy" width={entry.asset.width} height={entry.asset.height} /></span>
         <span class="caption"><span class="fish-name">{entry.name}</span><span class="detail">{world.biomes.find(b => b.biomeId === entry.biomeId)?.name}</span><span class="rarity">{rarity || (entry.allowedRarities.length === 10 ? 'F through UUR' : entry.allowedRarities[0] + ' only')}</span><span class="detail">About {formatOdds(castChance(entry, rarity || undefined))} casts{rarity ? ' at ' + rarity : ' across ranks'}</span></span>
+        <span class="perfect-odds"><span>✦ Perfect catch</span><strong>{entry.perfect ? formatOdds(entry.perfect.chancePerCast) + ' casts' : 'Not eligible'}</strong></span>
       </button>
     {/each}
     {#if !fish.length}<p class="count">No fish match these filters.</p>{/if}
@@ -36,6 +38,9 @@
 <FishDetails bind:fish={selected} asset={selected ? manifest.fish.find(asset => asset.key === selected!.spriteKey)!.url : ''} />
 
 <style>
+  .perfect-note{margin-top:-12px}
+  .perfect-odds{display:block;padding-top:8px;margin-top:10px;border-top:1px dashed #c1a16b;color:#6b4b78;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+  .perfect-odds span,.perfect-odds strong{display:block}
   section{position:relative;padding:30px;background:repeating-linear-gradient(0deg,#896b3410 0 1px,transparent 1px 6px),var(--paper);color:var(--ink);border:3px solid var(--wood-dark);box-shadow:inset 0 0 0 2px #fff0cb,0 6px 0 #132a25}
   section::before{content:'';position:absolute;left:12px;top:12px;bottom:12px;border-left:2px dashed #c5ac7e;pointer-events:none}
   h2{font-family:var(--font-game);font-size:32px;font-weight:500;margin:0 0 22px;line-height:1.25}h2 span{font-family:var(--font-body);font-size:13px;color:var(--ink-muted);font-weight:400;margin-left:12px;white-space:nowrap}

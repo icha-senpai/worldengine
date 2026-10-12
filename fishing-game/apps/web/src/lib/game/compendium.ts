@@ -1,18 +1,40 @@
 import catalog from '../../../../../content/species.json';
 import world from '../../../../../content/world.json';
 import sizeRules from '../../../../../content/size-rules.json';
+import gameRules from '../../../../../content/game-rules.json';
 
 export type CatalogFish = typeof catalog.species[number];
 const million = 1_000_000n;
 
-/** Baseline at-least-one-per-cast chance, including the Twig's bonus pull. */
-export function castChance(fish: CatalogFish, rarity?: string) {
+function pullChance(fish: CatalogFish, rarity?: string) {
   const tickets = rarity ? fish.ranks.find(rank => rank.rarity === rarity)!.encounterWeight : fish.encounterWeight;
   const biome = world.biomes.find(row => row.biomeId === fish.biomeId)!;
   const poolTickets = catalog.species.filter(row => row.biomeId === fish.biomeId).reduce((sum, row) => sum + row.encounterWeight, 0);
-  const p = tickets / poolTickets * biome.fishWeight / (biome.fishWeight + biome.junkWeight + biome.treasureWeight);
+  return tickets / poolTickets * biome.fishWeight / (biome.fishWeight + biome.junkWeight + biome.treasureWeight);
+}
+
+function chancePerCast(p: number) {
   const q = world.rods[0].power / 200;
   return (1 + q) * p - q * p * p;
+}
+
+/** Baseline at-least-one-per-cast chance, including the Twig's bonus pull. */
+export function castChance(fish: CatalogFish, rarity?: string) {
+  return chancePerCast(pullChance(fish, rarity));
+}
+
+/** Same Common Twig/no-bait baseline; perfection requires both exact UUR maxima. */
+export function perfectCatchOdds(fish: CatalogFish) {
+  if (fish.key === 'nidalees-lost-sock' || !fish.allowedRarities.includes('UUR')) return null;
+  const band = rankSpreads(fish).find(row => row.rarity === 'UUR')!;
+  const weights = weightRangeAtLength(fish, 'UUR', band.maxLengthMm);
+  // Length is uniform in integer millimetres, then weight is uniform in grams
+  // at that length. Include the natural outcome when the special roll misses.
+  const naturalSizeChance = 1 / ((band.maxLengthMm - band.minLengthMm + 1) * (weights.max - weights.min + 1));
+  const endpointChance = gameRules.version >= 11 ? 1 / gameRules.perfectRollOneIn : 0;
+  const sizeChance = endpointChance + (1 - endpointChance) * naturalSizeChance;
+  return { maxLengthMm: band.maxLengthMm, maxWeightG: weights.max, naturalSizeChance, sizeChance,
+    chancePerCast: chancePerCast(pullChance(fish, 'UUR') * sizeChance) };
 }
 
 export const formatOdds = (chance: number) => `1 in ${(1 / chance).toLocaleString(undefined, { maximumFractionDigits: 1 })}`;
