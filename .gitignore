@@ -2,3 +2,15 @@
 /.codex/problems.json
 /tmp/
 /lootun-analysis/
+
+# Generated output, at any level of the workspace.
+output/
+.playwright-cli/
+**/outputs/playwright/
+*.tsbuildinfo
+
+# Local agent instructions, at any level of the workspace.
+AGENTS.md
+AGENTS.override.md
+agents.md
+agents.override.md
