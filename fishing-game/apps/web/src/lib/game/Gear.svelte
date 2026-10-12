@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { baitEffect } from './bait-effects';
   import { onMount } from 'svelte';
   import type { Game } from './game.svelte.ts';
   let { game }: { game: Game } = $props();
@@ -39,7 +40,7 @@
     <article class="bait-slot" aria-label="Equipped bait">
       <div class="art bait-art">{#if bait}<img src={bait.spriteAsset} alt={bait.name} width="100" height="100" />{:else}<span aria-hidden="true">—</span>{/if}</div>
       <div class="details"><small>BAIT SLOT</small><h4>{bait?.name ?? 'No bait equipped'}</h4>
-        {#if bait}<p class="uses">{baitUses.toString()} uses remaining</p><p>{bait.resourceItem ? '+' + bait.resourceQuantity.toString() + ' ' + (bait.resourceItem === 'scrap' ? 'scrap' : 'rusted tin') + ' alongside each cast.' : bait.xpBonusBp ? '+' + percent(bait.xpBonusBp) + '% fishing XP.' : '+' + percent(bait.luckBp) + '% luck for larger, heavier fish.'}</p>{/if}
+        {#if bait}<p class="uses">{baitUses.toString()} uses remaining</p><p>{baitEffect(bait)}.</p>{/if}
         <label for="gear-bait">Switch bait</label><select id="gear-bait" value={bait?.baitId ?? 0} disabled={!game.ready || game.busy} onchange={equipBait}><option value={0}>No bait</option>
           {#each game.baits as option (option.baitId)}{@const uses = game.ownedBaits.find(row => row.baitId === option.baitId)?.usesLeft ?? 0n}<option value={option.baitId} disabled={uses === 0n}>{option.name} · {uses.toString()} uses</option>{/each}
         </select><p class="note">One use per cast, including a bonus pull. When it runs out, fishing continues without bait.</p><a href="#trader">Buy bait at the Camp Trader →</a>

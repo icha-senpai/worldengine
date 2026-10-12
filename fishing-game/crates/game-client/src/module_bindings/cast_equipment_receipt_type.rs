@@ -18,6 +18,7 @@ pub struct CastEquipmentReceipt {
     pub bait_uses_left: u64,
     pub bait_item: String,
     pub bait_quantity: u64,
+    pub bait_size_rolls: u8,
 }
 
 impl __sdk::InModule for CastEquipmentReceipt {
@@ -39,6 +40,7 @@ pub struct CastEquipmentReceiptCols {
     pub bait_uses_left: __sdk::__query_builder::Col<CastEquipmentReceipt, u64>,
     pub bait_item: __sdk::__query_builder::Col<CastEquipmentReceipt, String>,
     pub bait_quantity: __sdk::__query_builder::Col<CastEquipmentReceipt, u64>,
+    pub bait_size_rolls: __sdk::__query_builder::Col<CastEquipmentReceipt, u8>,
 }
 
 impl __sdk::__query_builder::HasCols for CastEquipmentReceipt {
@@ -56,6 +58,7 @@ impl __sdk::__query_builder::HasCols for CastEquipmentReceipt {
             bait_uses_left: __sdk::__query_builder::Col::new(table_name, "bait_uses_left"),
             bait_item: __sdk::__query_builder::Col::new(table_name, "bait_item"),
             bait_quantity: __sdk::__query_builder::Col::new(table_name, "bait_quantity"),
+            bait_size_rolls: __sdk::__query_builder::Col::new(table_name, "bait_size_rolls"),
         }
     }
 }

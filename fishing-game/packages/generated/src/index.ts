@@ -36,6 +36,7 @@ import {
 // Import all reducer arg schemas
 import ActivateAchievementsReducer from "./activate_achievements_reducer";
 import ActivateCraftingReducer from "./activate_crafting_reducer";
+import ActivatePerfectCatchesReducer from "./activate_perfect_catches_reducer";
 import ActivateRodBonusesReducer from "./activate_rod_bonuses_reducer";
 import ActivateSpeciesMeasurementsReducer from "./activate_species_measurements_reducer";
 import ActivateTraderReducer from "./activate_trader_reducer";
@@ -122,6 +123,7 @@ import MyRodsRow from "./my_rods_table";
 import MyServiceRow from "./my_service_table";
 import MyShopQuoteRow from "./my_shop_quote_table";
 import MyUpgradeQuoteRow from "./my_upgrade_quote_table";
+import PerfectSpeciesRow from "./perfect_species_table";
 import PublicProfileRow from "./public_profile_table";
 import QualityDefinitionRow from "./quality_definition_table";
 import RarityDefinitionRow from "./rarity_definition_table";
@@ -261,6 +263,20 @@ const tablesSchema = __schema({
       { name: 'legendary_find_key_key', constraint: 'unique', columns: ['key'] },
     ],
   }, LegendaryFindRow),
+  perfectSpecies: __table({
+    name: 'perfect_species',
+    indexes: [
+      { accessor: 'key', name: 'perfect_species_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+      { accessor: 'player_id', name: 'perfect_species_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'perfect_species_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, PerfectSpeciesRow),
   publicProfile: __table({
     name: 'public_profile',
     indexes: [
@@ -621,6 +637,7 @@ const tablesSchema = __schema({
 const reducersSchema = __reducers(
   __reducerSchema("activate_achievements", ActivateAchievementsReducer),
   __reducerSchema("activate_crafting", ActivateCraftingReducer),
+  __reducerSchema("activate_perfect_catches", ActivatePerfectCatchesReducer),
   __reducerSchema("activate_rod_bonuses", ActivateRodBonusesReducer),
   __reducerSchema("activate_species_measurements", ActivateSpeciesMeasurementsReducer),
   __reducerSchema("activate_trader", ActivateTraderReducer),
@@ -688,6 +705,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "game_config": Omit<typeof tablesSchema.schemaType.tables["gameConfig"], "accessorName"> & { readonly accessorName: "game_config" };
     /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
     readonly "legendary_find": Omit<typeof tablesSchema.schemaType.tables["legendaryFind"], "accessorName"> & { readonly accessorName: "legendary_find" };
+    /** @deprecated Use `perfectSpecies` instead. This alias will be removed in the next major version. */
+    readonly "perfect_species": Omit<typeof tablesSchema.schemaType.tables["perfectSpecies"], "accessorName"> & { readonly accessorName: "perfect_species" };
     /** @deprecated Use `publicProfile` instead. This alias will be removed in the next major version. */
     readonly "public_profile": Omit<typeof tablesSchema.schemaType.tables["publicProfile"], "accessorName"> & { readonly accessorName: "public_profile" };
     /** @deprecated Use `qualityDefinition` instead. This alias will be removed in the next major version. */
@@ -805,6 +824,7 @@ const tableAccessorAliases = {
   "earned_achievement": "earnedAchievement",
   "game_config": "gameConfig",
   "legendary_find": "legendaryFind",
+  "perfect_species": "perfectSpecies",
   "public_profile": "publicProfile",
   "quality_definition": "qualityDefinition",
   "rarity_definition": "rarityDefinition",
@@ -891,6 +911,8 @@ export type DbView = __DbViewBase & {
   readonly "game_config": __DbViewBase["gameConfig"];
   /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
   readonly "legendary_find": __DbViewBase["legendaryFind"];
+  /** @deprecated Use `perfectSpecies` instead. This alias will be removed in the next major version. */
+  readonly "perfect_species": __DbViewBase["perfectSpecies"];
   /** @deprecated Use `publicProfile` instead. This alias will be removed in the next major version. */
   readonly "public_profile": __DbViewBase["publicProfile"];
   /** @deprecated Use `qualityDefinition` instead. This alias will be removed in the next major version. */
@@ -1005,6 +1027,8 @@ export type Tables = __TablesBase & {
   readonly "game_config": __TablesBase["gameConfig"];
   /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
   readonly "legendary_find": __TablesBase["legendaryFind"];
+  /** @deprecated Use `perfectSpecies` instead. This alias will be removed in the next major version. */
+  readonly "perfect_species": __TablesBase["perfectSpecies"];
   /** @deprecated Use `publicProfile` instead. This alias will be removed in the next major version. */
   readonly "public_profile": __TablesBase["publicProfile"];
   /** @deprecated Use `qualityDefinition` instead. This alias will be removed in the next major version. */

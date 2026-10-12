@@ -37,6 +37,7 @@ struct Bait {
     luck_bp: u32,
     resource_item: String,
     resource_quantity: u64,
+    size_rolls: u8,
     uses_per_purchase: u64,
     sprite_asset: String,
     xp_bonus_bp: u32,
@@ -97,6 +98,7 @@ pub fn seed(ctx: &ReducerContext) {
             luck_bp: b.luck_bp,
             resource_item: b.resource_item,
             resource_quantity: b.resource_quantity,
+            size_rolls: b.size_rolls,
             uses_per_purchase: b.uses_per_purchase,
             sprite_asset: b.sprite_asset,
             xp_bonus_bp: b.xp_bonus_bp,
@@ -219,6 +221,7 @@ pub struct UsedBait {
     pub xp_bonus_bp: u32,
     pub resource_item: String,
     pub resource_quantity: u64,
+    pub size_rolls: u8,
     pub uses_left: u64,
 }
 pub fn consume_bait(ctx: &ReducerContext, player_id: u64) -> Result<UsedBait, String> {
@@ -235,6 +238,7 @@ pub fn consume_bait(ctx: &ReducerContext, player_id: u64) -> Result<UsedBait, St
             xp_bonus_bp: 0,
             resource_item: String::new(),
             resource_quantity: 0,
+            size_rolls: 1,
             uses_left: 0,
         });
     }
@@ -269,6 +273,7 @@ pub fn consume_bait(ctx: &ReducerContext, player_id: u64) -> Result<UsedBait, St
         bait_id,
         luck_bp: bait.luck_bp,
         xp_bonus_bp: bait.xp_bonus_bp,
+        size_rolls: bait.size_rolls,
         // Existing resource bait rows default to zero until metadata activation.
         resource_quantity: if bait.resource_item.is_empty() {
             0

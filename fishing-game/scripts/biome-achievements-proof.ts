@@ -62,8 +62,8 @@ try {
   const ordinary = [...bot.db.speciesDefinition.iter()].filter(s => s.countsForOrdinaryCollectionCompletion);
   const definitions = [...bot.db.achievementDefinition.iter()];
   const collections = [...bot.db.achievementCollection.iter()];
-  assert.equal(definitions.length, 113); assert.equal(collections.length, 96); assert.equal(ordinary.length, 249);
-  assert.equal(definitions.filter(r => r.bonus).length, 2);
+  assert.equal(definitions.length, 114); assert.equal(collections.length, 96); assert.equal(ordinary.length, 249);
+  assert.equal(definitions.filter(r => r.bonus).length, 3);
   for (const c of collections) {
     const count = ordinary.filter(s => c.biomeId === 0 || s.biomeId === c.biomeId).length;
     assert.equal(definitions.find(d => d.achievementId === c.achievementId)!.target, BigInt(count * (c.allRanks ? 10 : 1)));

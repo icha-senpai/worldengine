@@ -87,6 +87,38 @@ fn weight_at_length(
     ) as u64)
 }
 
+/// Exact catchable maxima, including gram rounding and the highest allowed band.
+/// The safety weight cap can be larger than any weight the generator produces.
+pub fn maximum_in_size_band(
+    species: SpeciesMeasurements,
+    band: u8,
+) -> Result<Measurements, &'static str> {
+    let (_, maximum, floor) = size_band_bounds(species, band)?;
+    let length_mm = maximum as u32;
+    let minimum = weight_at_length(species, length_mm, 880_000)?
+        .max(floor)
+        .max(species.min_weight_g);
+    Ok(Measurements {
+        length_mm,
+        weight_g: weight_at_length(species, length_mm, 1_120_000)?
+            .max(minimum)
+            .min(species.max_weight_g),
+        size_grade: classify_size(
+            u64::from(length_mm) * 1_000_000 / u64::from(species.typical_length_mm),
+        ),
+    })
+}
+
+pub fn is_perfect(
+    species: SpeciesMeasurements,
+    highest_band: u8,
+    length_mm: u32,
+    weight_g: u64,
+) -> Result<bool, &'static str> {
+    let maximum = maximum_in_size_band(species, highest_band)?;
+    Ok(length_mm == maximum.length_mm && weight_g == maximum.weight_g)
+}
+
 /// Sample physical dimensions in a weighted size band. The caller classifies
 /// the resulting integer measurements afterward to obtain the saved rarity.
 pub fn generate_in_size_band(
@@ -94,6 +126,31 @@ pub fn generate_in_size_band(
     band: u8,
     rng: &mut impl Rng,
 ) -> Result<Measurements, &'static str> {
+    let (min_length, max_length, rank_weight_floor) = size_band_bounds(species, band)?;
+    let length_mm = rng.gen_range(min_length..=max_length) as u32;
+    let min_weight = weight_at_length(species, length_mm, 880_000)?
+        .max(rank_weight_floor)
+        .max(species.min_weight_g);
+    let max_weight = weight_at_length(species, length_mm, 1_120_000)?
+        .max(min_weight)
+        .min(species.max_weight_g);
+    if min_weight > max_weight {
+        return Err("SIZE_BAND_UNAVAILABLE");
+    }
+    let weight_g = rng.gen_range(min_weight..=max_weight);
+    Ok(Measurements {
+        length_mm,
+        weight_g,
+        size_grade: classify_size(
+            u64::from(length_mm) * 1_000_000 / u64::from(species.typical_length_mm),
+        ),
+    })
+}
+
+fn size_band_bounds(
+    species: SpeciesMeasurements,
+    band: u8,
+) -> Result<(u64, u64, u64), &'static str> {
     let i = usize::from(band);
     if i >= RANK_LENGTH_MIN.len()
         || species.typical_length_mm == 0
@@ -129,26 +186,7 @@ pub fn generate_in_size_band(
     if min_length > max_length || rank_weight_floor > species.max_weight_g {
         return Err("SIZE_BAND_UNAVAILABLE");
     }
-    let length_mm = rng.gen_range(min_length..=max_length) as u32;
-    let min_weight = weight_at_length(species, length_mm, 880_000)?
-        .max(rank_weight_floor)
-        .max(species.min_weight_g);
-    // At gram precision, a tiny fish may need its next whole gram to meet the
-    // cutoff. Allow that rounding step without dropping it into a different band.
-    let max_weight = weight_at_length(species, length_mm, 1_120_000)?
-        .max(min_weight)
-        .min(species.max_weight_g);
-    if min_weight > max_weight {
-        return Err("SIZE_BAND_UNAVAILABLE");
-    }
-    let weight_g = rng.gen_range(min_weight..=max_weight);
-    Ok(Measurements {
-        length_mm,
-        weight_g,
-        size_grade: classify_size(
-            u64::from(length_mm) * 1_000_000 / u64::from(species.typical_length_mm),
-        ),
-    })
+    Ok((min_length, max_length, rank_weight_floor))
 }
 
 pub fn from_factors(
@@ -208,6 +246,49 @@ pub fn generate(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn perfection_uses_both_exact_catchable_endpoints_including_tiny_fish_rounding() {
+        let catalog: serde_json::Value =
+            serde_json::from_str(include_str!("../../../content/species.json")).unwrap();
+        for fish in catalog["species"].as_array().unwrap() {
+            let length = fish["typicalLengthMm"].as_u64().unwrap() as u32;
+            let weight = fish["typicalWeightG"].as_u64().unwrap();
+            let model = SpeciesMeasurements {
+                typical_length_mm: length,
+                min_length_mm: length * 55 / 100,
+                max_length_mm: length * 19 / 10,
+                typical_weight_g: weight,
+                min_weight_g: (weight / 8).max(1),
+                max_weight_g: weight * 8,
+            };
+            let band = crate::RARITY_TIERS
+                .iter()
+                .rposition(|rank| {
+                    fish["allowedRarities"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .any(|allowed| allowed == rank)
+                })
+                .unwrap() as u8;
+            let maximum = maximum_in_size_band(model, band).unwrap();
+            assert_eq!(
+                is_perfect(model, band, maximum.length_mm, maximum.weight_g),
+                Ok(true)
+            );
+            assert_eq!(
+                is_perfect(model, band, maximum.length_mm - 1, maximum.weight_g),
+                Ok(false)
+            );
+            assert_eq!(
+                is_perfect(model, band, maximum.length_mm, maximum.weight_g - 1),
+                Ok(false)
+            );
+            if fish["key"] == "carp" {
+                assert_eq!((maximum.length_mm, maximum.weight_g), (855, 12291));
+            }
+        }
+    }
     use rand::{SeedableRng, rngs::StdRng};
     fn carp() -> SpeciesMeasurements {
         SpeciesMeasurements {

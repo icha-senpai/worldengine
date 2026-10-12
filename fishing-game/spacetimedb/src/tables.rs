@@ -332,6 +332,19 @@ pub struct CommandReceipt {
     pub rod_id: u32,
 }
 
+#[spacetimedb::table(accessor = perfect_species, public)]
+pub struct PerfectSpecies {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub species_id: u32,
+    pub first_catch_id: u64,
+    pub perfected_at: Timestamp,
+    pub length_mm: u32,
+    pub weight_g: u64,
+}
+
 #[spacetimedb::table(accessor = bait_definition, public)]
 pub struct BaitDefinition {
     #[primary_key]
@@ -345,6 +358,8 @@ pub struct BaitDefinition {
     pub xp_bonus_bp: u32,
     #[default(0)]
     pub resource_quantity: u64,
+    #[default(1)]
+    pub size_rolls: u8,
 }
 
 #[spacetimedb::table(accessor = quality_definition, public)]
@@ -437,6 +452,8 @@ pub struct CastEquipmentReceipt {
     pub bait_item: String,
     #[default(0)]
     pub bait_quantity: u64,
+    #[default(1)]
+    pub bait_size_rolls: u8,
 }
 
 #[spacetimedb::table(accessor = recent_catch)]

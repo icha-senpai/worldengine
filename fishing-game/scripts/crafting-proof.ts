@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { rankSpreads } from '../apps/web/src/lib/game/compendium';
 import { xpToNextLevel } from '../apps/web/src/lib/game/progression';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -29,8 +30,9 @@ const manifest = (await readFile('spacetimedb/Cargo.toml', 'utf8'))
 await writeFile(fixtureRoot + '/Cargo.toml', manifest + '\n[workspace]\n');
 await writeFile(fixtureRoot + '/Cargo.lock', (await readFile('spacetimedb/Cargo.lock', 'utf8')).replace('name = "fishing-game-module"', 'name = "fishing-crafting-proof"'));
 const source = (await readFile('spacetimedb/src/lib.rs', 'utf8')).replace(/^mod (\w+);$/gm, (_, name) => `#[path = ${rustPath(`spacetimedb/src/${name}.rs`)}]\nmod ${name};`);
-await writeFile(fixtureRoot + '/lib.rs', source + `\ninclude!(${rustPath('scripts/fixtures/crafting-boundary.rs')});\n`);
+await writeFile(fixtureRoot + '/lib.rs', source + `\ninclude!(${rustPath('scripts/fixtures/crafting-boundary.rs')});\ninclude!(${rustPath('scripts/fixtures/perfect-catches.rs')});\n`);
 run('cargo', ['build', '--manifest-path', fixtureRoot + '/Cargo.toml', '--target-dir', targetRoot, '--target', 'wasm32-unknown-unknown', '--release', '--locked']);
+run('cargo', ['build', '--package', 'game-client', '--bin', 'adapter-proof', '--locked']);
 run('spacetime', ['publish', '--server', uri, '--no-config', '--yes=skip-login', '--bin-path', targetRoot + '/wasm32-unknown-unknown/release/fishing_crafting_proof.wasm', database]);
 console.log('Built and published an isolated fixture module. Production WASM was not modified.');
 
@@ -62,7 +64,7 @@ try {
     return args;
   };
   const prepare=async(user=9301n,id=1)=>{await pause();const args=await select(user);await bot.reducers.prepareUpgradeFromDiscord({...args,rodId:id});return {args,q:[...bot.db.adapterUpgradeQuote.iter()][0]};};
-  assert.equal(bot.db.baitDefinition.count(),12n);assert.equal(bot.db.qualityDefinition.count(),7n);assert.equal(bot.db.shopListing.count(),24n);
+  assert.equal(bot.db.baitDefinition.count(),13n);assert.equal(bot.db.qualityDefinition.count(),7n);assert.equal(bot.db.shopListing.count(),25n);
   assert.equal(bot.db.rodUpgradeRecipe.count(),42n);
   for(const expected of craftingContent.rodRecipes) {
     const actual=[...bot.db.rodUpgradeRecipe.iter()].find(r=>r.rodId===expected.rodId&&r.qualityLevel===expected.qualityLevel)!;
@@ -203,18 +205,75 @@ try {
   const savedPulls=[...bot.db.adapterCastPulls.iter()],savedGear=[...bot.db.adapterCastEquipment.iter()][0];
   await bot.reducers.equipBaitFromDiscord({...args,baitId:0});await bot.reducers.changeLoadoutFromDiscord({...args,rodId:2});const replayPlayer=player();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.deepEqual([...bot.db.adapterCastPulls.iter()],savedPulls);assert.deepEqual([...bot.db.adapterCastEquipment.iter()][0],savedGear);assert.deepEqual(player(),replayPlayer);
   console.log('PASS repeatable packs, 20 two-pull casts, independent results, XP once, resource bait once, cooldown/replay, all bait effects, depletion and immutable cast snapshots.');
+  // A separate angler exercises Trophy Chum in every biome, with real licences.
+  const trophyUser=9513n;
+  ownerCall('prepare_trader_player',[trophyUser.toString(),'10000000','1000000','1']);
+  for(const listingId of [20,30,40,50,60,70])await purchase(listingId,trophyUser);
+  let catchesOutsideOldPool=0;
+  const speciesContent=JSON.parse(await readFile('content/species.json','utf8'));
+  for(let biomeId=1;biomeId<=7;biomeId++) {
+    const ordinary=speciesContent.species.filter((f:any)=>f.biomeId===biomeId&&f.countsForOrdinaryCollectionCompletion);
+    const ordered=[...ordinary].sort((a:any,b:any)=>b.typicalWeightG-a.typicalWeightG);
+    const cutoff=ordered[Math.ceil(ordered.length/3)-1].typicalWeightG;
+    args=await select(trophyUser);await bot.reducers.changeLoadoutFromDiscord({...args,biomeId});
+    const coins=player().coins;await purchase(113,trophyUser);assert.equal(coins-player().coins,1000n);
+    args=await select(trophyUser);await bot.reducers.equipBaitFromDiscord({...args,baitId:13});
+    ownerCall('proof_biome_category',[String(biomeId),'0']);
+    for(let cast=0;cast<10;cast++) {
+      ownerCall('proof_cast_setup',[trophyUser.toString(),'200','0']);
+      args=await select(trophyUser);const before=player();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
+      const pulls=[...bot.db.adapterCastPulls.iter()];assert.equal(pulls.length,2);
+      assert(pulls.every(p=>p.receipt.outcome==='fish'));
+      for(const p of pulls.filter(p=>p.receipt.outcome==='fish')) {
+        const f=speciesContent.species.find((f:any)=>f.speciesId===p.receipt.speciesId);assert(f&&f.biomeId===biomeId,'Trophy Chum retains the full biome pool');assert(f.allowedRarities.includes(p.receipt.rarity));if(f.countsForOrdinaryCollectionCompletion&&f.typicalWeightG<cutoff)catchesOutsideOldPool++;
+      }
+      const gear=[...bot.db.adapterCastEquipment.iter()][0];assert.equal(gear.baitSizeRolls,8);assert.equal(gear.luckBp,2500);
+      assert.equal(uses(13),BigInt(9-cast));const saved=player();await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});assert.deepEqual(player(),saved);assert.equal(uses(13),BigInt(9-cast));
+      await assert.rejects(bot.reducers.fishFromDiscord({...args,interactionId:snowflake(),guildId:5n,channelId:42n}),/COOLDOWN_ACTIVE/);assert.equal(uses(13),BigInt(9-cast));assert.equal(saved.completedCasts,before.completedCasts+1n);
+    }
+    assert.equal([...bot.db.adapterBaitLoadout.iter()][0].baitId,0);
+  }
+  assert(catchesOutsideOldPool>0,'Smaller species remain catchable with Trophy Chum');
+  console.log('PASS Trophy Chum exact purchase cost, full species pool in all seven biomes, double pulls with one charge, saved effect metadata, replay/cooldown and depletion.');
+  args=await select();
   ownerCall('prepare_trader_player',['9302','10000000','1000','1']);ownerCall('proof_materials',['9302','100','100']);
   let test=await prepare(9302n);ownerCall('proof_materials',['9302','0','100']);await assert.rejects(bot.reducers.commitUpgradeFromDiscord({...test.args,nonce:test.q.nonce}),/INSUFFICIENT_MATERIALS/);assert.equal(quality(),0);assert.equal(material('scrap'),100n);
   ownerCall('proof_materials',['9302','100','100']);test=await prepare(9302n);ownerCall('proof_expire_upgrade',[test.q.nonce.toString()]);await assert.rejects(bot.reducers.commitUpgradeFromDiscord({...test.args,nonce:test.q.nonce}),/ACTION_EXPIRED|ACTION_NOT_FOUND/);
   test=await prepare(9302n);ownerCall('proof_change_quality',['1']);await assert.rejects(bot.reducers.commitUpgradeFromDiscord({...test.args,nonce:test.q.nonce}),/QUOTE_CHANGED/);ownerCall('activate_crafting');
   test=await prepare(9302n);ownerCall('proof_change_recipe',['1','1']);await assert.rejects(bot.reducers.commitUpgradeFromDiscord({...test.args,nonce:test.q.nonce}),/QUOTE_CHANGED/);ownerCall('activate_crafting');
   test=await prepare(9302n);args=await select(9301n);await assert.rejects(bot.reducers.commitUpgradeFromDiscord({...args,nonce:test.q.nonce}),/ACTION_CONFLICT|ACTION_NOT_FOUND/);
-  const browser=await connect(['my_link_challenge','my_player','my_rods','my_items','my_upgrade_quote','my_baits','my_bait_loadout','my_ledger'].map(t=>`SELECT * FROM ${t}`));
+  const browser=await connect(['my_link_challenge','my_player','my_rods','my_items','my_upgrade_quote','my_baits','my_bait_loadout','my_ledger','my_inventory','perfect_species','earned_achievement','angler_title'].map(t=>`SELECT * FROM ${t}`));
   const linker=await connect(['SELECT * FROM my_service']);ownerCall('configure_service',[JSON.stringify(linker.identity!.toHexString()),JSON.stringify({accountLinker:{}}),'true']);
   await browser.reducers.beginLinkChallenge({});const link=[...browser.db.myLinkChallenge.iter()][0];await linker.reducers.completeAccountLink({challengeId:link.challengeId,proof:link.proof,verifiedDiscordUserId:9302n});
   await browser.reducers.prepareRodUpgrade({rodId:1});const q=[...browser.db.myUpgradeQuote.iter()][0];await assert.rejects(browser.reducers.commitRodUpgrade({nonce:q.nonce^1n}),/ACTION_CONFLICT/);
   test=await prepare(9302n);const race=await Promise.allSettled([browser.reducers.commitRodUpgrade({nonce:q.nonce}),bot.reducers.commitUpgradeFromDiscord({...test.args,nonce:test.q.nonce})]);assert.equal(race.filter(r=>r.status==='fulfilled').length,1);assert.equal(race.filter(r=>r.status==='rejected'&&/QUOTE_CHANGED/.test(String(r.reason))).length,1);
   assert.equal([...browser.db.myRods.iter()][0].upgradeLevel,1);assert.equal([...browser.db.myItems.iter()].find(r=>r.item==='rusted_tin')!.quantity,90n);assert.equal([...browser.db.myItems.iter()].find(r=>r.item==='scrap')!.quantity,95n);
+  // Recognition is cosmetic, unique per species and remains after a real sale.
+  const perfectPlayer=[...browser.db.myPlayer.iter()][0].playerId;
+  const perfectRows=()=>[...browser.db.perfectSpecies.iter()].filter(r=>r.playerId===perfectPlayer);
+  const awardRows=()=>[...browser.db.earnedAchievement.iter()].filter(r=>r.playerId===perfectPlayer&&r.achievementId===19);
+  const drain=async()=>{await select(9302n);await new Promise(r=>setTimeout(r,100));};
+  const carp=speciesContent.species.find((f:any)=>f.key==='carp');
+  const minnow=speciesContent.species.find((f:any)=>f.key==='minnow');
+  const sock=speciesContent.species.find((f:any)=>f.key==='nidalees-lost-sock');
+  const perfectSeed=(fish:any, dl=0, dw=0)=>{const max=rankSpreads(fish).at(-1)!;ownerCall('proof_perfect_specimen',['9302',String(fish.speciesId),String(max.maxLengthMm-dl),String(max.maxWeightG-dw)]);};
+  const cosmeticBefore=[...browser.db.myPlayer.iter()][0];
+  perfectSeed(carp,1,0);perfectSeed(carp,0,1);perfectSeed(sock);await drain();
+  assert.equal(perfectRows().length,0);assert.equal(awardRows().length,0);
+  await assert.rejects(browser.reducers.equipTitle({achievementId:19}),/TITLE_NOT_EARNED/);
+  perfectSeed(carp);await drain();assert.equal(perfectRows().length,1);assert.equal(awardRows().length,1);
+  const firstStamp=perfectRows()[0];perfectSeed(carp);perfectSeed(minnow);await drain();
+  assert.equal(perfectRows().length,2);assert.equal(awardRows().length,1);assert.deepEqual(perfectRows().find(r=>r.speciesId===carp.speciesId),firstStamp);
+  assert.equal([...browser.db.myPlayer.iter()][0].totalXp,cosmeticBefore.totalXp);assert.equal([...browser.db.myPlayer.iter()][0].coins,cosmeticBefore.coins);
+  await browser.reducers.equipTitle({achievementId:19});assert.equal([...browser.db.anglerTitle.iter()].find(r=>r.playerId===perfectPlayer)!.achievementId,19);
+  await pause();await browser.reducers.prepareInventoryAction({kind:'sell',catchIds:[firstStamp.firstCatchId],favorite:false});
+  const inventoryAction=await connect(['SELECT * FROM my_action']);
+  // A quote belongs to its original browser; read it on that same connection.
+  await new Promise<void>((resolve,reject)=>browser.subscriptionBuilder().onApplied(()=>resolve()).onError(c=>reject(c.event)).subscribe(['SELECT * FROM my_action']));
+  await browser.reducers.commitInventoryAction({nonce:[...browser.db.myAction.iter()][0].nonce});await drain();
+  assert(![...browser.db.myInventory.iter()].some(r=>r.catchId===firstStamp.firstCatchId));assert.equal(perfectRows().length,2);assert.equal(awardRows().length,1);
+  await assert.rejects(inventoryAction.reducers.activatePerfectCatches({}),/OWNER_REQUIRED/);
+  console.log('PASS exact paired maxima, 1mm/1g near misses, fake-fish exclusion, unique badge/title, species deduplication, distinct species, no XP/coin bonus, and permanent marks after sale.');
   const beforeActivation=JSON.stringify([...browser.db.myPlayer.iter()],(_,v)=>typeof v==='bigint'?v.toString():v);
   console.log(run(process.execPath,['scripts/xp-preservation.mjs','before',database]).trim());
   ownerCall('activate_xp_progression');ownerCall('activate_xp_progression');

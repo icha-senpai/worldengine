@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "listings": [
     {
       "listingId": 20,
@@ -237,6 +237,16 @@
       "targetId": 12,
       "name": "Concentrated Salvage Chum",
       "priceCoins": 150,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 1
+    },
+    {
+      "listingId": 113,
+      "kind": "bait",
+      "targetId": 13,
+      "name": "Trophy Chum",
+      "priceCoins": 1000,
       "minimumLevel": 1,
       "previousBiomeId": 1,
       "biomeId": 1

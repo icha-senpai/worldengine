@@ -180,7 +180,7 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
             return reply(ctx, rejection(&error)).await;
         }
     };
-    let response = catch_reply(ctx.data(), &result).await?;
+    let response = catch_reply(ctx.data(), &result, None).await?;
     match send_reply(ctx, response.rich).await {
         Ok(_) => Ok(()),
         Err(error) => {
@@ -196,7 +196,11 @@ struct CatchReply {
     fallback: poise::CreateReply,
 }
 
-async fn catch_reply(data: &Data, result: &Snapshot) -> Result<CatchReply, Error> {
+async fn catch_reply(
+    data: &Data,
+    result: &Snapshot,
+    clicking_user_id: Option<u64>,
+) -> Result<CatchReply, Error> {
     let receipt = result
         .receipt
         .as_ref()
@@ -228,12 +232,33 @@ async fn catch_reply(data: &Data, result: &Snapshot) -> Result<CatchReply, Error
                     format_weight(pull.weight_g),
                     pull.xp_granted
                 );
-                lines.push(format!("🎣 **{}** · {}", species.name, description));
-                let embed = serenity::CreateEmbed::new()
-                    .title(&species.name)
-                    .description(description)
-                    .color(rank_color(&pull.rarity));
-                match data.catch_art.render(&species.key, &pull.rarity).await {
+                let perfect =
+                    discord_bot::perfect_catch::card(species, pull, &result.player.display_name);
+                let is_perfect = perfect.is_some();
+                lines.push(format!(
+                    "{} **{}** · {}",
+                    if perfect.is_some() {
+                        "✦ PERFECT CATCH ·"
+                    } else {
+                        "🎣"
+                    },
+                    species.name,
+                    description
+                ));
+                let embed = perfect.unwrap_or_else(|| {
+                    serenity::CreateEmbed::new()
+                        .title(&species.name)
+                        .description(description)
+                        .color(rank_color(&pull.rarity))
+                });
+                let art = if is_perfect {
+                    data.catch_art
+                        .render_perfect(&species.key, &pull.rarity)
+                        .await
+                } else {
+                    data.catch_art.render(&species.key, &pull.rarity).await
+                };
+                match art {
                     Ok(png) => {
                         let filename =
                             format!("catch-{}-{}-{}.png", index + 1, species.key, pull.rarity);
@@ -355,10 +380,18 @@ async fn catch_reply(data: &Data, result: &Snapshot) -> Result<CatchReply, Error
         data.website
     ));
     let components = discord_bot::fish_again::components();
+    let fallback_content = format!("{}\n{}", lines.join("\n"), summary);
+    let (summary, fallback_content) = match clicking_user_id {
+        Some(user_id) => (
+            discord_bot::fish_again::attributed_content(user_id, &summary),
+            discord_bot::fish_again::attributed_content(user_id, &fallback_content),
+        ),
+        None => (summary, fallback_content),
+    };
     Ok(CatchReply {
         rich: response.content(&summary).components(components.clone()),
         fallback: poise::CreateReply::default()
-            .content(format!("{}\n{}", lines.join("\n"), summary))
+            .content(fallback_content)
             .components(components)
             .allowed_mentions(serenity::CreateAllowedMentions::new()),
     })
@@ -501,19 +534,42 @@ async fn fish_again(
     {
         tracing::warn!(%error, "Discord portrait refresh unavailable");
     }
-    let response = catch_reply(data, &result).await?;
-    let public = serenity::CreateInteractionResponseFollowup::new().ephemeral(false);
+    let response = catch_reply(data, &result, Some(user_id)).await?;
+    let source = serenity::MessageReference::from(interaction.message.as_ref());
     if let Err(error) = interaction
-        .create_followup(
+        .channel_id
+        .send_message(
             ctx,
-            response.rich.to_slash_followup_response(public.clone()),
+            discord_bot::fish_again::public_message(
+                response.rich,
+                source.clone(),
+                interaction.id.get(),
+            ),
         )
         .await
     {
         tracing::warn!(%error, "Fish again catch card delivery failed");
-        interaction
-            .create_followup(ctx, response.fallback.to_slash_followup_response(public))
-            .await?;
+        if let Err(error) = interaction
+            .channel_id
+            .send_message(
+                ctx,
+                discord_bot::fish_again::public_message(
+                    response.fallback,
+                    source,
+                    interaction.id.get(),
+                ),
+            )
+            .await
+        {
+            tracing::warn!(%error, "Fish again text delivery failed");
+            interaction.create_followup(
+                ctx,
+                serenity::CreateInteractionResponseFollowup::new()
+                    .content("Your cast was saved, but I couldn't post the catch in this channel. You can see it with /inventory or on your profile.")
+                    .ephemeral(true)
+                    .allowed_mentions(serenity::CreateAllowedMentions::new()),
+            ).await?;
+        }
     }
     tracing::info!(
         interaction_id = interaction.id.get(),
@@ -592,6 +648,11 @@ async fn profile(
     acknowledge(ctx, true).await?;
     let result = snapshot(ctx, false).await?;
     let target = player_id.unwrap_or(result.player.player_id);
+    let perfected_count = result
+        .perfect_species
+        .iter()
+        .filter(|row| row.player_id == target)
+        .count();
     let badge_count = result
         .earned_achievements
         .iter()
@@ -624,7 +685,7 @@ async fn profile(
             .await;
         };
         let standing = result.standings.iter().find(|row| row.player_id == target);
-        return reply(ctx, format!("**{} · {}**\n[View profile]({}) · level {}\n{} lifetime fish · {}/249 ordinary discoveries\n{} UUR catches · {} current records · {} badges", plain_name(&other.display_name), title, public_link, other.level, other.fish_count, other.discoveries, standing.map_or(0, |row| row.uur_count), standing.map_or(0, |row| row.records_held), badge_count)).await;
+        return reply(ctx, format!("**{} · {}**\n[View profile]({}) · level {}\n{} lifetime fish · {}/249 ordinary discoveries\n{} UUR catches · {} current records · {} badges\n✦ {perfected_count} perfected species", plain_name(&other.display_name), title, public_link, other.level, other.fish_count, other.discoveries, standing.map_or(0, |row| row.uur_count), standing.map_or(0, |row| row.records_held), badge_count)).await;
     }
     let ordinary = result
         .species
@@ -640,7 +701,7 @@ async fn profile(
             })
         })
         .count();
-    reply(ctx, format!("**Your Fishbound profile · {title}**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {} fish kept\n{badge_count} badges earned · [Your profile]({public_link})\n[Achievements and titles]({}/#achievements)",
+    reply(ctx, format!("**Your Fishbound profile · {title}**\nLevel {} · {} XP · {} coins\n{} casts · {} fish · {}/{} ordinary discoveries\nInventory: {} fish kept\n✦ {perfected_count} perfected species\n{badge_count} badges earned · [Your profile]({public_link})\n[Achievements and titles]({}/#achievements)",
         game_rules::progression::level_for_xp_for_version(result.player.total_xp, result.config.level_cap, result.config.version), result.player.total_xp, result.player.coins,
         result.player.completed_casts, result.player.fish_count, discoveries, ordinary, result.player.kept_count, ctx.data().website.trim_end_matches('/'))).await
 }
@@ -1302,7 +1363,13 @@ async fn bait(
                 .iter()
                 .find(|stack| stack.bait_id == row.bait_id)
                 .map_or(0, |stack| stack.uses_left);
-            let effect = if row.xp_bonus_bp > 0 {
+            let effect = if row.size_rolls > 1 {
+                format!(
+                    "All fish · {} size rolls, keep the heaviest · 1-in-5,000 perfect chance per UUR size roll · +{}% luck",
+                    row.size_rolls,
+                    row.luck_bp / 100
+                )
+            } else if row.xp_bonus_bp > 0 {
                 format!("+{}% fishing XP", row.xp_bonus_bp / 100)
             } else if row.resource_item.is_empty() {
                 format!("+{}% luck", row.luck_bp / 100)
@@ -1524,7 +1591,13 @@ async fn shop(
             .iter()
             .find(|row| row.bait_id == listing.target_id)
             .ok_or("Missing bait")?;
-        if bait.xp_bonus_bp > 0 {
+        if bait.size_rolls > 1 {
+            format!(
+                "10 uses · all fish · {} size rolls, keep the heaviest · 1-in-5,000 perfect chance per UUR size roll · +{}% luck. Junk and treasure remain possible.",
+                bait.size_rolls,
+                bait.luck_bp / 100
+            )
+        } else if bait.xp_bonus_bp > 0 {
             format!(
                 "10 uses · +{}% fishing XP. Equip with /bait.",
                 bait.xp_bonus_bp / 100

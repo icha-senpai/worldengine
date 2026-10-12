@@ -4,8 +4,8 @@ Owner implementation update: this first achievement catalog is cosmetic only.
 It supersedes coin/XP achievement examples in the original design specification.
 No title or badge changes fishing odds, rod stats, XP, wallet or cooldown.
 
-The badge book contains 113 badges: 111 ordinary milestones and collections, plus two bonuses. Fihs and the Sock are
-optional bonus badges and do not gate ordinary completion. Awards are permanent,
+The badge book contains 114 badges: 111 ordinary milestones and collections, plus three bonuses. Fihs and the Sock are
+optional bonus badges; Perfect catch is also optional. These badges do not gate ordinary completion. Awards are permanent,
 including after a fish sale or title change. One earned badge supplies one title;
 the linked website lets you select a title or clear it back to Angler.
 
@@ -54,6 +54,7 @@ click, and returns focus to the image button without changing filters or titles.
 | 16 | Prismatic masterpiece | Upgrade any rod to Prismatic. | Prismatic Artisan |
 | 17 | A fish called Fihs (bonus) | Discover Fihs. A bonus outside ordinary completion. | Myth Hunter |
 | 18 | The lost sock (bonus) | Discover Nidalees Lost Sock. A bonus outside ordinary completion. | Sock Detective |
+| 19 | Perfect catch (bonus) | Catch one fish at its exact maximum catchable length AND weight. | Perfect Angler |
 
 Unlocks run in the same transaction after casts, purchases and upgrades.
 Durable counters and per-species lifetime progress provide retroactive credit
@@ -129,3 +130,35 @@ progress and idempotent cosmetic backfill. The separate
 checks every gameplay table plus existing awards. Test fixtures stay out of
 production. `achievement-preservation.mjs before/after DATABASE` also verifies
 live migration and credit without changing player, journal, inventory or gear.
+
+## Perfect catches
+
+A perfect catch reaches the exact maximum catchable length and weight on one
+specimen, using the integer generator's highest allowed size band and gram
+rounding. The wider safety weight cap is not the target. Fihs can qualify;
+Nidalees Lost Sock is not a real fish and cannot qualify. Bait and gear are
+never required: the same recognition applies to every fish catch.
+
+The first perfect grants badge 19 and the selectable title Perfect Angler.
+The public perfect_species table keeps one lifetime record per angler/species,
+including its first catch ID, date and exact measurements. Duplicate perfects
+do not add species or badges. Collection entries retain a gold ✦ after selling,
+and web/Discord profiles show the perfected-species count. Rewards are cosmetic.
+Each perfect Discord catch uses a gold PERFECT CATCH embed with the angler,
+species, both maximum measurements and dedicated badge-stamped catch artwork.
+Normal catches and near misses retain their normal cards.
+
+Owner-only activate_perfect_catches adds the definition and credits exact paired
+measurements from retained inventory, journal and catch receipts. Separate best
+length/weight aggregates cannot establish a perfect specimen. Missing historical
+evidence cannot be reconstructed. It preserves old achievements, progress,
+titles, wallets, XP, measurements and saved rewards. Historical awards use the
+first retained qualifying catch date; repeat activation preserves it. Stop the
+bot during activation so backfilled inserts are hydrated without announcements.
+
+Gameplay rules 11 add a 1-in-5,000 chance of both exact maxima to every UUR
+size attempt. Trophy Chum supplies eight attempts for every fish species,
+including Fihs; other bait and no bait supply one. Natural perfects still
+qualify. This never changes the selected species or rank, and lower bands do
+not receive the endpoint roll. The fake Sock stays in the encounter pool but
+cannot earn the badge or a perfect-species mark.

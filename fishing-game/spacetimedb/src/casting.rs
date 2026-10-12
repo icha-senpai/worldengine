@@ -3,7 +3,7 @@ use crate::{
     tables::*,
 };
 use game_rules::{
-    measurements::{SpeciesMeasurements, classify_rarity, generate_in_size_band},
+    measurements::{SpeciesMeasurements, classify_rarity},
     progression::{check_interaction_freshness, level_for_xp_for_version, record_wins},
     sampling::sample,
 };
@@ -198,7 +198,13 @@ pub fn fish_from_discord(
                     min_weight_g: definition.min_weight_g,
                     max_weight_g: definition.max_weight_g,
                 };
-                let measurements = generate_in_size_band(model, band.ordinal, &mut rng)?;
+                let measurements = game_rules::trophy::generate(
+                    model,
+                    band.ordinal,
+                    bait.size_rolls,
+                    rules.version >= 11,
+                    &mut rng,
+                )?;
                 let ordinal = classify_rarity(model, measurements)?;
                 let rank = ctx
                     .db
@@ -236,6 +242,15 @@ pub fn fish_from_discord(
                     biome_id: biome.biome_id,
                     source_guild_id: guild_id,
                 });
+                crate::perfection::observe(
+                    ctx,
+                    player.player_id,
+                    definition.species_id,
+                    specimen.catch_id,
+                    ctx.timestamp,
+                    measurements.length_mm,
+                    measurements.weight_g,
+                )?;
                 for (metric_id, metric, measurement) in [
                     (0u64, "length", u64::from(measurements.length_mm)),
                     (1, "weight", measurements.weight_g),
@@ -440,6 +455,7 @@ pub fn fish_from_discord(
             bait_uses_left: bait.uses_left,
             bait_item: bait.resource_item,
             bait_quantity: bait.resource_quantity,
+            bait_size_rolls: bait.size_rolls,
         });
     let mut receipt = ctx
         .db

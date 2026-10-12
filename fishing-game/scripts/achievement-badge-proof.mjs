@@ -5,8 +5,8 @@ import { createHash } from 'node:crypto';
 const manifest=JSON.parse(await readFile('assets/manifest.json','utf8'));
 const plan=JSON.parse(await readFile('content/achievement-badge-art.json','utf8'));
 const planned=new Set(plan.assets.map(asset=>asset.key));
-assert.equal(plan.assets.length,113);
-assert.equal(planned.size,113);
+assert.equal(plan.assets.length,114);
+assert.equal(planned.size,plan.assets.length);
 assert.equal(new Set(manifest.achievements.map(asset=>asset.key)).size,manifest.achievements.length);
 assert.equal(new Set(manifest.achievements.map(asset=>asset.sha256)).size,manifest.achievements.length,'Each achievement has its own generated artwork');
 if(process.argv.includes('--complete')) {
@@ -25,4 +25,4 @@ for(const asset of manifest.achievements) {
     assert.equal(createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex'),asset.sha256,'Public asset matches source');
   }
 }
-console.log(`PASS ${manifest.achievements.length} installed badges match unique achievement IDs, square RGBA PNGs and manifest hashes${process.argv.includes('--live')?', including HTTPS delivery':''}. ${113-manifest.achievements.length} prompts remain planned.`);
+console.log(`PASS ${manifest.achievements.length} installed badges match unique achievement IDs, square RGBA PNGs and manifest hashes${process.argv.includes('--live')?', including HTTPS delivery':''}. ${plan.assets.length-manifest.achievements.length} prompts remain planned.`);

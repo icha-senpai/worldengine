@@ -5,6 +5,7 @@ pub mod measurements;
 pub mod progression;
 pub mod rods;
 pub mod sampling;
+pub mod trophy;
 
 #[cfg(test)]
 mod world_tests;

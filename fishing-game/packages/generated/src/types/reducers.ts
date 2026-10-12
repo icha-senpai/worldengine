@@ -8,6 +8,7 @@ import { type Infer as __Infer } from "spacetimedb";
 // Import all reducer arg schemas
 import ActivateAchievementsReducer from "../activate_achievements_reducer";
 import ActivateCraftingReducer from "../activate_crafting_reducer";
+import ActivatePerfectCatchesReducer from "../activate_perfect_catches_reducer";
 import ActivateRodBonusesReducer from "../activate_rod_bonuses_reducer";
 import ActivateSpeciesMeasurementsReducer from "../activate_species_measurements_reducer";
 import ActivateTraderReducer from "../activate_trader_reducer";
@@ -48,6 +49,7 @@ import UnlinkBrowserReducer from "../unlink_browser_reducer";
 
 export type ActivateAchievementsParams = __Infer<typeof ActivateAchievementsReducer>;
 export type ActivateCraftingParams = __Infer<typeof ActivateCraftingReducer>;
+export type ActivatePerfectCatchesParams = __Infer<typeof ActivatePerfectCatchesReducer>;
 export type ActivateRodBonusesParams = __Infer<typeof ActivateRodBonusesReducer>;
 export type ActivateSpeciesMeasurementsParams = __Infer<typeof ActivateSpeciesMeasurementsReducer>;
 export type ActivateTraderParams = __Infer<typeof ActivateTraderReducer>;

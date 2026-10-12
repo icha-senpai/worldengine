@@ -210,6 +210,22 @@ unconsumed shop/upgrade quotes reject changed prices or recipes on commit.
 
 ## Rules-10 XP curve activation
 
+### Trophy Chum catalog update
+
+Crafting catalog 5 and Trader catalog 7 add Trophy Chum. Back up the deployed
+module/clients and a recoverable database before an authorized live update.
+`bait_definition.size_rolls` defaults to 1;
+saved cast-equipment receipts append the matching bait fields with the same
+defaults. Existing bait behavior and rewards remain intact before activation.
+Regenerate both bindings with `npm run bindings` and rebuild all affected clients.
+
+Run `npx tsx scripts/trophy-chum-migration-proof.ts <saved-pre-Trophy-fixture.wasm>`
+and `npx tsx scripts/crafting-proof.ts` in fresh isolated databases. Publish
+without deleting data, activate through owner-only `activate_xp_progression`,
+then compare canonical player state with `scripts/xp-preservation.mjs` before
+starting rebuilt clients. Gameplay rules become version 11; XP thresholds and
+size ceilings do not change. Old receipts retain their original outcomes.
+
 ### Chum tier catalog update
 
 Crafting catalog 4 and Trader catalog 6 add four 10-use +2/+3 tin/scrap
@@ -238,3 +254,16 @@ saved before snapshot. All 41 retained gameplay tables must remain identical;
 public profile levels deliberately increase according to the new curve.
 Clients and server gates retain rules-9 thresholds until the rules-10 config
 is activated, avoiding inconsistent levels during the publication window.
+
+### Perfect-catch recognition update
+
+After publishing the additive perfect_species table and rebuilding both clients,
+run owner-only activate_perfect_catches with the bot stopped. It seeds badge 19,
+backfills only paired perfect inventory/journal/receipt measurements, and awards
+the cosmetic Perfect Angler title. Existing awards and rewards remain intact;
+no old catches are re-announced on bot startup. Trophy Chum's catalog remains
+Crafting 5 / Trader 7: all fish, +25% luck, eight within-band rolls, 1,000 coins per ten uses.
+Gameplay rules 11 enable the 1-in-5,000 exact-maxima chance per UUR size attempt;
+other bait and no bait receive one attempt. Natural perfects remain possible.
+Before live publication, run the isolated crafting and Trophy migration proofs,
+including old-schema history backfill, owner rejection and replay checks.

@@ -19,4 +19,5 @@ export default __t.row({
   spriteAsset: __t.string().name("sprite_asset"),
   xpBonusBp: __t.u32().name("xp_bonus_bp"),
   resourceQuantity: __t.u64().name("resource_quantity"),
+  sizeRolls: __t.u8().name("size_rolls"),
 });

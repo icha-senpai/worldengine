@@ -1,0 +1,2703 @@
+{
+  "date": "2026-10-12T03:59:04.690Z",
+  "versions": {
+    "rules": 11,
+    "world": 5,
+    "species": 5,
+    "crafting": 5
+  },
+  "loadout": "Prismatic Abyssal Rod; compare Moonlit Fireflies versus Trophy Chum",
+  "luckBp": 9500,
+  "baselineLuckBp": 8500,
+  "costPerUse": 100,
+  "rodId": 7,
+  "qualityLevel": 6,
+  "bonusPull": 0.925,
+  "rolls": 8,
+  "perfectRollOneIn": 5000,
+  "assumptions": "Fixed loadout, exact integer size bounds, no pity. Exact perfect probabilities; 50,000 seeded conditional fish samples per bait/biome for estimated sale value. Sell every catch; include expected treasure coins; exclude discovery/daily/achievement income, travel, other spending and unlocking time. Both baits use the complete encounter pool. Each UUR size attempt has a 1-in-5,000 chance of both exact maxima; natural perfects also count. Fihs qualifies; fake Sock never does.",
+  "hashes": {
+    "game-rules": "ff8719a2a1a33daa4792482e4a1131735a5115c2b055cff282e691a29ca591d0",
+    "species": "158c18482f0068bb5a23174dd52dc764789366c613669034bc1e8abfae5a3051",
+    "world": "ca726fa0eae96cb7dcaa4ef43a947d6cbfac3b0f7e512b8a54fbbd539722ccab",
+    "crafting": "66275b59bc7622d920a03b6a1f542ad4724740864625da48ec47c247b406f11b",
+    "size-rules": "239fb8b45c9198452f9f378e25bc4d0b422c4e30124a6abe7c3a340d0774bff5"
+  },
+  "results": [
+    {
+      "biome": "Meadow Pond",
+      "eligibleSpecies": [
+        "angelfish",
+        "betta-fish",
+        "bitterling",
+        "blue-discus",
+        "bluegill",
+        "bream",
+        "carp",
+        "crappie",
+        "crucean-carp",
+        "fathead-minnow",
+        "golden-shiner",
+        "goldfish",
+        "gudgeon",
+        "guppy",
+        "honey-carp",
+        "killifish",
+        "koi",
+        "minnow",
+        "mosquitofish",
+        "petal-koi",
+        "pumpkinseed",
+        "roach",
+        "rudd",
+        "shiner",
+        "stickleback",
+        "sunfish",
+        "tench",
+        "tilapia"
+      ],
+      "baselineAnyPerfectOneInCasts": 1447.9949714819961,
+      "anyPerfectOneInCasts": 271.88151759918736,
+      "targets": [
+        {
+          "key": "angelfish",
+          "bandWeight": 233,
+          "conditionalOneIn": 378,
+          "lengthMm": 228,
+          "weightGrams": 307,
+          "oneInCasts": 58997.723953813016,
+          "baselineOneInCasts": 492566.8194022601
+        },
+        {
+          "key": "betta-fish",
+          "bandWeight": 233,
+          "conditionalOneIn": 15,
+          "lengthMm": 104,
+          "weightGrams": 23,
+          "oneInCasts": 3127.7588361627936,
+          "baselineOneInCasts": 20961.640631166803
+        },
+        {
+          "key": "bitterling",
+          "bandWeight": 233,
+          "conditionalOneIn": 15,
+          "lengthMm": 104,
+          "weightGrams": 23,
+          "oneInCasts": 3127.7588361627936,
+          "baselineOneInCasts": 20961.640631166803
+        },
+        {
+          "key": "blue-discus",
+          "bandWeight": 233,
+          "conditionalOneIn": 976,
+          "lengthMm": 266,
+          "weightGrams": 691,
+          "oneInCasts": 136311.82599484138,
+          "baselineOneInCasts": 1144524.7077988705
+        },
+        {
+          "key": "bluegill",
+          "bandWeight": 233,
+          "conditionalOneIn": 1890,
+          "lengthMm": 342,
+          "weightGrams": 1075,
+          "oneInCasts": 228546.34788667937,
+          "baselineOneInCasts": 1922289.7297452285
+        },
+        {
+          "key": "bream",
+          "bandWeight": 233,
+          "conditionalOneIn": 9728,
+          "lengthMm": 570,
+          "weightGrams": 3457,
+          "oneInCasts": 549452.2617824555,
+          "baselineOneInCasts": 4628310.303163477
+        },
+        {
+          "key": "carp",
+          "bandWeight": 233,
+          "conditionalOneIn": 49703,
+          "lengthMm": 855,
+          "weightGrams": 12291,
+          "oneInCasts": 755569.4764414659,
+          "baselineOneInCasts": 6366380.397227985
+        },
+        {
+          "key": "crappie",
+          "bandWeight": 233,
+          "conditionalOneIn": 5278,
+          "lengthMm": 475,
+          "weightGrams": 2305,
+          "oneInCasts": 427322.2116634908,
+          "baselineOneInCasts": 3598456.269841351
+        },
+        {
+          "key": "crucean-carp",
+          "bandWeight": 233,
+          "conditionalOneIn": 6149,
+          "lengthMm": 475,
+          "weightGrams": 2689,
+          "oneInCasts": 458901.18110425305,
+          "baselineOneInCasts": 3864743.9934164598
+        },
+        {
+          "key": "fathead-minnow",
+          "bandWeight": 233,
+          "conditionalOneIn": 6,
+          "lengthMm": 76,
+          "weightGrams": 8,
+          "oneInCasts": 1731.7796555291595,
+          "baselineOneInCasts": 8399.883155402855
+        },
+        {
+          "key": "golden-shiner",
+          "bandWeight": 233,
+          "conditionalOneIn": 196,
+          "lengthMm": 228,
+          "weightGrams": 154,
+          "oneInCasts": 31936.04670288359,
+          "baselineOneInCasts": 264352.91236641305
+        },
+        {
+          "key": "goldfish",
+          "bandWeight": 233,
+          "conditionalOneIn": 434,
+          "lengthMm": 228,
+          "weightGrams": 346,
+          "oneInCasts": 66959.96714344042,
+          "baselineOneInCasts": 559710.4146422622
+        },
+        {
+          "key": "gudgeon",
+          "bandWeight": 233,
+          "conditionalOneIn": 126,
+          "lengthMm": 209,
+          "weightGrams": 115,
+          "oneInCasts": 21017.544396560195,
+          "baselineOneInCasts": 172262.3924316544
+        },
+        {
+          "key": "guppy",
+          "bandWeight": 233,
+          "conditionalOneIn": 6,
+          "lengthMm": 76,
+          "weightGrams": 8,
+          "oneInCasts": 1731.7796555291595,
+          "baselineOneInCasts": 8399.883155402855
+        },
+        {
+          "key": "honey-carp",
+          "bandWeight": 233,
+          "conditionalOneIn": 113456,
+          "lengthMm": 1045,
+          "weightGrams": 23046,
+          "oneInCasts": 796437.8501084542,
+          "baselineOneInCasts": 6711000.279974534
+        },
+        {
+          "key": "killifish",
+          "bandWeight": 233,
+          "conditionalOneIn": 24,
+          "lengthMm": 114,
+          "weightGrams": 31,
+          "oneInCasts": 4589.291057399191,
+          "baselineOneInCasts": 33478.3828535174
+        },
+        {
+          "key": "koi",
+          "bandWeight": 233,
+          "conditionalOneIn": 52831,
+          "lengthMm": 855,
+          "weightGrams": 13060,
+          "oneInCasts": 759676.7504189837,
+          "baselineOneInCasts": 6401014.7162889745
+        },
+        {
+          "key": "minnow",
+          "bandWeight": 233,
+          "conditionalOneIn": 24,
+          "lengthMm": 133,
+          "weightGrams": 31,
+          "oneInCasts": 4589.291057399191,
+          "baselineOneInCasts": 33478.3828535174
+        },
+        {
+          "key": "mosquitofish",
+          "bandWeight": 233,
+          "conditionalOneIn": 4,
+          "lengthMm": 57,
+          "weightGrams": 8,
+          "oneInCasts": 1477.367082207113,
+          "baselineOneInCasts": 5602.243875754626
+        },
+        {
+          "key": "petal-koi",
+          "bandWeight": 233,
+          "conditionalOneIn": 159092,
+          "lengthMm": 1140,
+          "weightGrams": 29192,
+          "oneInCasts": 806190.2780723368,
+          "baselineOneInCasts": 6793236.988433194
+        },
+        {
+          "key": "pumpkinseed",
+          "bandWeight": 233,
+          "conditionalOneIn": 816,
+          "lengthMm": 285,
+          "weightGrams": 576,
+          "oneInCasts": 117183.72718591087,
+          "baselineOneInCasts": 983226.8273474365
+        },
+        {
+          "key": "roach",
+          "bandWeight": 233,
+          "conditionalOneIn": 1793,
+          "lengthMm": 380,
+          "weightGrams": 922,
+          "oneInCasts": 219935.2198101872,
+          "baselineOneInCasts": 1849676.7633717111
+        },
+        {
+          "key": "rudd",
+          "bandWeight": 233,
+          "conditionalOneIn": 2928,
+          "lengthMm": 418,
+          "weightGrams": 1383,
+          "oneInCasts": 307500.47684022563,
+          "baselineOneInCasts": 2588066.4679687293
+        },
+        {
+          "key": "shiner",
+          "bandWeight": 233,
+          "conditionalOneIn": 35,
+          "lengthMm": 152,
+          "weightGrams": 38,
+          "oneInCasts": 6384.506639014109,
+          "baselineOneInCasts": 48715.84368798632
+        },
+        {
+          "key": "stickleback",
+          "bandWeight": 233,
+          "conditionalOneIn": 9,
+          "lengthMm": 95,
+          "weightGrams": 15,
+          "oneInCasts": 2176.5820147291547,
+          "baselineOneInCasts": 12592.152322646187
+        },
+        {
+          "key": "sunfish",
+          "bandWeight": 233,
+          "conditionalOneIn": 1760,
+          "lengthMm": 342,
+          "weightGrams": 999,
+          "oneInCasts": 216949.3152294441,
+          "baselineOneInCasts": 1824498.2477667728
+        },
+        {
+          "key": "tench",
+          "bandWeight": 233,
+          "conditionalOneIn": 21888,
+          "lengthMm": 665,
+          "weightGrams": 6914,
+          "oneInCasts": 677013.9352028817,
+          "baselineOneInCasts": 5703965.915432473
+        },
+        {
+          "key": "tilapia",
+          "bandWeight": 233,
+          "conditionalOneIn": 15120,
+          "lengthMm": 570,
+          "weightGrams": 5377,
+          "oneInCasts": 625043.6739842109,
+          "baselineOneInCasts": 5265730.048747304
+        }
+      ],
+      "economy": [
+        {
+          "bait": "Moonlit Fireflies",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 255.33692338,
+          "costPerCast": 12,
+          "estimatedNetCoinsPerCast": 243.33692338
+        },
+        {
+          "bait": "Trophy Chum",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 279.50404482,
+          "costPerCast": 100,
+          "estimatedNetCoinsPerCast": 179.50404482
+        }
+      ]
+    },
+    {
+      "biome": "Whispering River",
+      "eligibleSpecies": [
+        "ancient-sturgeon",
+        "bass",
+        "big-mouth-bass",
+        "brook-trout",
+        "brown-trout",
+        "burbot",
+        "channel-catfish",
+        "creek-chub",
+        "dace",
+        "dorado",
+        "drum",
+        "fallfish",
+        "flowstone-muskellunge",
+        "lightning-loach",
+        "muskellunge",
+        "perch",
+        "pink-salmon",
+        "rainbow-trout",
+        "rock-bass",
+        "ruffe",
+        "shad",
+        "silver-perch",
+        "spottail-shiner",
+        "stone-loach",
+        "stormscale",
+        "sturddlefish",
+        "suckerfish",
+        "threadfin-shad",
+        "walleye",
+        "white-bass",
+        "yellow-perch"
+      ],
+      "baselineAnyPerfectOneInCasts": 21033.369343701746,
+      "anyPerfectOneInCasts": 2599.0969500484593,
+      "targets": [
+        {
+          "key": "ancient-sturgeon",
+          "bandWeight": 241,
+          "conditionalOneIn": 4915729,
+          "lengthMm": 3420,
+          "weightGrams": 307283,
+          "oneInCasts": 832113.4476634904,
+          "baselineOneInCasts": 7011823.824701794
+        },
+        {
+          "key": "bass",
+          "bandWeight": 241,
+          "conditionalOneIn": 31206,
+          "lengthMm": 760,
+          "weightGrams": 8450,
+          "oneInCasts": 718028.9024064783,
+          "baselineOneInCasts": 6049813.370563276
+        },
+        {
+          "key": "big-mouth-bass",
+          "bandWeight": 241,
+          "conditionalOneIn": 73736,
+          "lengthMm": 950,
+          "weightGrams": 16132,
+          "oneInCasts": 780110.3106759792,
+          "baselineOneInCasts": 6573310.787328777
+        },
+        {
+          "key": "brook-trout",
+          "bandWeight": 241,
+          "conditionalOneIn": 3172,
+          "lengthMm": 475,
+          "weightGrams": 1383,
+          "oneInCasts": 323713.5303994861,
+          "baselineOneInCasts": 2724773.551427521
+        },
+        {
+          "key": "brown-trout",
+          "bandWeight": 241,
+          "conditionalOneIn": 22701,
+          "lengthMm": 760,
+          "weightGrams": 6146,
+          "oneInCasts": 682740.7807620848,
+          "baselineOneInCasts": 5752248.580644489
+        },
+        {
+          "key": "burbot",
+          "bandWeight": 241,
+          "conditionalOneIn": 42146,
+          "lengthMm": 950,
+          "weightGrams": 9218,
+          "oneInCasts": 744698.452273362,
+          "baselineOneInCasts": 6274702.609124286
+        },
+        {
+          "key": "channel-catfish",
+          "bandWeight": 241,
+          "conditionalOneIn": 56186,
+          "lengthMm": 950,
+          "weightGrams": 12291,
+          "oneInCasts": 764951.4384443065,
+          "baselineOneInCasts": 6445484.5902629495
+        },
+        {
+          "key": "creek-chub",
+          "bandWeight": 241,
+          "conditionalOneIn": 196,
+          "lengthMm": 228,
+          "weightGrams": 154,
+          "oneInCasts": 31991.92596588147,
+          "baselineOneInCasts": 264815.4601440508
+        },
+        {
+          "key": "dace",
+          "bandWeight": 241,
+          "conditionalOneIn": 175,
+          "lengthMm": 228,
+          "weightGrams": 138,
+          "oneInCasts": 28741.51614733027,
+          "baselineOneInCasts": 237402.06271587918
+        },
+        {
+          "key": "dorado",
+          "bandWeight": 241,
+          "conditionalOneIn": 688755,
+          "lengthMm": 1900,
+          "weightGrams": 76821,
+          "oneInCasts": 826961.193263118,
+          "baselineOneInCasts": 6968377.778394868
+        },
+        {
+          "key": "drum",
+          "bandWeight": 241,
+          "conditionalOneIn": 94528,
+          "lengthMm": 1045,
+          "weightGrams": 19205,
+          "oneInCasts": 791150.8450069096,
+          "baselineOneInCasts": 6666409.369077135
+        },
+        {
+          "key": "fallfish",
+          "bandWeight": 241,
+          "conditionalOneIn": 1342,
+          "lengthMm": 380,
+          "weightGrams": 691,
+          "oneInCasts": 176746.57778368742,
+          "baselineOneInCasts": 1485481.4837119586
+        },
+        {
+          "key": "flowstone-muskellunge",
+          "bandWeight": 241,
+          "conditionalOneIn": 2397102,
+          "lengthMm": 2660,
+          "weightGrams": 192052,
+          "oneInCasts": 831226.8107392014,
+          "baselineOneInCasts": 7004347.317170371
+        },
+        {
+          "key": "lightning-loach",
+          "bandWeight": 241,
+          "conditionalOneIn": 35126,
+          "lengthMm": 950,
+          "weightGrams": 7682,
+          "oneInCasts": 729256.9701134121,
+          "baselineOneInCasts": 6144493.319205666
+        },
+        {
+          "key": "muskellunge",
+          "bandWeight": 241,
+          "conditionalOneIn": 551055,
+          "lengthMm": 1900,
+          "weightGrams": 61457,
+          "oneInCasts": 825475.8937041274,
+          "baselineOneInCasts": 6955853.087547908
+        },
+        {
+          "key": "perch",
+          "bandWeight": 241,
+          "conditionalOneIn": 2928,
+          "lengthMm": 437,
+          "weightGrams": 1383,
+          "oneInCasts": 308038.5215311558,
+          "baselineOneInCasts": 2592594.9045853456
+        },
+        {
+          "key": "pink-salmon",
+          "bandWeight": 241,
+          "conditionalOneIn": 52676,
+          "lengthMm": 950,
+          "weightGrams": 11523,
+          "oneInCasts": 760812.612964427,
+          "baselineOneInCasts": 6410584.21531374
+        },
+        {
+          "key": "rainbow-trout",
+          "bandWeight": 241,
+          "conditionalOneIn": 12168,
+          "lengthMm": 665,
+          "weightGrams": 3841,
+          "oneInCasts": 590572.7253175568,
+          "baselineOneInCasts": 4975047.399634022
+        },
+        {
+          "key": "rock-bass",
+          "bandWeight": 241,
+          "conditionalOneIn": 2030,
+          "lengthMm": 342,
+          "weightGrams": 1152,
+          "oneInCasts": 240976.6369868331,
+          "baselineOneInCasts": 2027098.9804595485
+        },
+        {
+          "key": "ruffe",
+          "bandWeight": 241,
+          "conditionalOneIn": 210,
+          "lengthMm": 228,
+          "weightGrams": 169,
+          "oneInCasts": 34144.363373482585,
+          "baselineOneInCasts": 282968.26212695
+        },
+        {
+          "key": "shad",
+          "bandWeight": 241,
+          "conditionalOneIn": 14598,
+          "lengthMm": 665,
+          "weightGrams": 4609,
+          "oneInCasts": 620628.2819103285,
+          "baselineOneInCasts": 5228488.950651361
+        },
+        {
+          "key": "silver-perch",
+          "bandWeight": 241,
+          "conditionalOneIn": 4225,
+          "lengthMm": 475,
+          "weightGrams": 1844,
+          "oneInCasts": 381848.3095813038,
+          "baselineOneInCasts": 3214991.728081072
+        },
+        {
+          "key": "spottail-shiner",
+          "bandWeight": 241,
+          "conditionalOneIn": 45,
+          "lengthMm": 171,
+          "weightGrams": 46,
+          "oneInCasts": 8028.752439501869,
+          "baselineOneInCasts": 62619.7852994628
+        },
+        {
+          "key": "stone-loach",
+          "bandWeight": 241,
+          "conditionalOneIn": 102,
+          "lengthMm": 190,
+          "weightGrams": 92,
+          "oneInCasts": 17235.95346032088,
+          "baselineOneInCasts": 140351.81324412714
+        },
+        {
+          "key": "stormscale",
+          "bandWeight": 241,
+          "conditionalOneIn": 24318,
+          "lengthMm": 665,
+          "weightGrams": 7682,
+          "oneInCasts": 691026.1766331188,
+          "baselineOneInCasts": 5822114.643091192
+        },
+        {
+          "key": "sturddlefish",
+          "bandWeight": 241,
+          "conditionalOneIn": 2565912,
+          "lengthMm": 2850,
+          "weightGrams": 192052,
+          "oneInCasts": 831340.5531543852,
+          "baselineOneInCasts": 7005306.442603381
+        },
+        {
+          "key": "suckerfish",
+          "bandWeight": 241,
+          "conditionalOneIn": 15804,
+          "lengthMm": 665,
+          "weightGrams": 4993,
+          "oneInCasts": 632937.607489584,
+          "baselineOneInCasts": 5332286.545415321
+        },
+        {
+          "key": "threadfin-shad",
+          "bandWeight": 241,
+          "conditionalOneIn": 102,
+          "lengthMm": 209,
+          "weightGrams": 92,
+          "oneInCasts": 17235.95346032088,
+          "baselineOneInCasts": 140351.81324412714
+        },
+        {
+          "key": "walleye",
+          "bandWeight": 241,
+          "conditionalOneIn": 31073,
+          "lengthMm": 855,
+          "weightGrams": 7682,
+          "oneInCasts": 717605.146838282,
+          "baselineOneInCasts": 6046240.079355699
+        },
+        {
+          "key": "white-bass",
+          "bandWeight": 241,
+          "conditionalOneIn": 8115,
+          "lengthMm": 532,
+          "weightGrams": 3073,
+          "oneInCasts": 515661.05456915405,
+          "baselineOneInCasts": 4343359.495112757
+        },
+        {
+          "key": "yellow-perch",
+          "bandWeight": 241,
+          "conditionalOneIn": 2436,
+          "lengthMm": 418,
+          "weightGrams": 1152,
+          "oneInCasts": 273302.7306448144,
+          "baselineOneInCasts": 2299687.1863899874
+        }
+      ],
+      "economy": [
+        {
+          "bait": "Moonlit Fireflies",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 266.96087802999995,
+          "costPerCast": 12,
+          "estimatedNetCoinsPerCast": 254.96087802999995
+        },
+        {
+          "bait": "Trophy Chum",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 288.75159967499997,
+          "costPerCast": 100,
+          "estimatedNetCoinsPerCast": 188.75159967499997
+        }
+      ]
+    },
+    {
+      "biome": "Hollow Marsh",
+      "eligibleSpecies": [
+        "batfin",
+        "bowfin",
+        "bullhead",
+        "candycorn-minnow",
+        "catfish",
+        "cobweb-carp",
+        "duskbite",
+        "eel",
+        "gar",
+        "ghost-shiner",
+        "giant-catfish",
+        "jack-o-fish",
+        "leaffish",
+        "lil-green-slimefish",
+        "mudminnow",
+        "pumpkin-koi",
+        "pumpkin-puffer",
+        "shadow-koi",
+        "skullscale",
+        "thornscale",
+        "warmouth",
+        "witchlight-betta"
+      ],
+      "baselineAnyPerfectOneInCasts": 27632.138211629932,
+      "anyPerfectOneInCasts": 3581.2298995203555,
+      "targets": [
+        {
+          "key": "batfin",
+          "bandWeight": 260,
+          "conditionalOneIn": 29720,
+          "lengthMm": 722,
+          "weightGrams": 8450,
+          "oneInCasts": 712504.265405008,
+          "baselineOneInCasts": 6003231.404093761
+        },
+        {
+          "key": "bowfin",
+          "bandWeight": 260,
+          "conditionalOneIn": 90776,
+          "lengthMm": 1045,
+          "weightGrams": 18437,
+          "oneInCasts": 788842.5863596218,
+          "baselineOneInCasts": 6646949.304201094
+        },
+        {
+          "key": "bullhead",
+          "bandWeight": 260,
+          "conditionalOneIn": 5278,
+          "lengthMm": 475,
+          "weightGrams": 2305,
+          "oneInCasts": 427706.4172237689,
+          "baselineOneInCasts": 3601691.6448845062
+        },
+        {
+          "key": "candycorn-minnow",
+          "bandWeight": 260,
+          "conditionalOneIn": 336,
+          "lengthMm": 247,
+          "weightGrams": 269,
+          "oneInCasts": 52963.98443363438,
+          "baselineOneInCasts": 441680.8480704403
+        },
+        {
+          "key": "catfish",
+          "bandWeight": 260,
+          "conditionalOneIn": 178266,
+          "lengthMm": 1235,
+          "weightGrams": 30728,
+          "oneInCasts": 809565.9554250028,
+          "baselineOneInCasts": 6821697.753429405
+        },
+        {
+          "key": "cobweb-carp",
+          "bandWeight": 260,
+          "conditionalOneIn": 213939,
+          "lengthMm": 1235,
+          "weightGrams": 36874,
+          "oneInCasts": 813262.3012455978,
+          "baselineOneInCasts": 6852866.946696208
+        },
+        {
+          "key": "duskbite",
+          "bandWeight": 260,
+          "conditionalOneIn": 75392,
+          "lengthMm": 1140,
+          "weightGrams": 13828,
+          "oneInCasts": 780535.6035312566,
+          "baselineOneInCasts": 6576901.216230742
+        },
+        {
+          "key": "eel",
+          "bandWeight": 260,
+          "conditionalOneIn": 34020,
+          "lengthMm": 1330,
+          "weightGrams": 5377,
+          "oneInCasts": 725700.7643200024,
+          "baselineOneInCasts": 6114510.020856967
+        },
+        {
+          "key": "gar",
+          "bandWeight": 260,
+          "conditionalOneIn": 447729,
+          "lengthMm": 1900,
+          "weightGrams": 49934,
+          "oneInCasts": 823068.5085617366,
+          "baselineOneInCasts": 6935557.145280748
+        },
+        {
+          "key": "ghost-shiner",
+          "bandWeight": 260,
+          "conditionalOneIn": 544,
+          "lengthMm": 285,
+          "weightGrams": 384,
+          "oneInCasts": 82205.7085011111,
+          "baselineOneInCasts": 688268.1100091414
+        },
+        {
+          "key": "giant-catfish",
+          "bandWeight": 260,
+          "conditionalOneIn": 11242635,
+          "lengthMm": 4180,
+          "weightGrams": 576156,
+          "oneInCasts": 831882.1215667063,
+          "baselineOneInCasts": 7009877.357222466
+        },
+        {
+          "key": "jack-o-fish",
+          "bandWeight": 260,
+          "conditionalOneIn": 51072,
+          "lengthMm": 760,
+          "weightGrams": 13828,
+          "oneInCasts": 758104.4572801376,
+          "baselineOneInCasts": 6387752.044575194
+        },
+        {
+          "key": "leaffish",
+          "bandWeight": 260,
+          "conditionalOneIn": 14048,
+          "lengthMm": 570,
+          "weightGrams": 4993,
+          "oneInCasts": 613975.2314706015,
+          "baselineOneInCasts": 5172391.706384401
+        },
+        {
+          "key": "lil-green-slimefish",
+          "bandWeight": 260,
+          "conditionalOneIn": 288,
+          "lengthMm": 209,
+          "weightGrams": 269,
+          "oneInCasts": 45889.34086846895,
+          "baselineOneInCasts": 382020.72994647897
+        },
+        {
+          "key": "mudminnow",
+          "bandWeight": 260,
+          "conditionalOneIn": 28,
+          "lengthMm": 142,
+          "weightGrams": 38,
+          "oneInCasts": 5246.637408691445,
+          "baselineOneInCasts": 39062.08227129274
+        },
+        {
+          "key": "pumpkin-koi",
+          "bandWeight": 260,
+          "conditionalOneIn": 151256,
+          "lengthMm": 1045,
+          "weightGrams": 30728,
+          "oneInCasts": 805644.5227012594,
+          "baselineOneInCasts": 6788630.529571802
+        },
+        {
+          "key": "pumpkin-puffer",
+          "bandWeight": 260,
+          "conditionalOneIn": 70896,
+          "lengthMm": 760,
+          "weightGrams": 19205,
+          "oneInCasts": 777471.952197062,
+          "baselineOneInCasts": 6551067.1771645155
+        },
+        {
+          "key": "shadow-koi",
+          "bandWeight": 260,
+          "conditionalOneIn": 121016,
+          "lengthMm": 1045,
+          "weightGrams": 24583,
+          "oneInCasts": 799259.5468732791,
+          "baselineOneInCasts": 6734789.640154353
+        },
+        {
+          "key": "skullscale",
+          "bandWeight": 260,
+          "conditionalOneIn": 68356,
+          "lengthMm": 855,
+          "weightGrams": 16901,
+          "oneInCasts": 775575.139444369,
+          "baselineOneInCasts": 6535072.427930925
+        },
+        {
+          "key": "thornscale",
+          "bandWeight": 260,
+          "conditionalOneIn": 8115,
+          "lengthMm": 532,
+          "weightGrams": 3073,
+          "oneInCasts": 515223.1807587583,
+          "baselineOneInCasts": 4339671.327921281
+        },
+        {
+          "key": "warmouth",
+          "bandWeight": 260,
+          "conditionalOneIn": 1098,
+          "lengthMm": 304,
+          "weightGrams": 691,
+          "oneInCasts": 150357.49717489805,
+          "baselineOneInCasts": 1262960.3021918528
+        },
+        {
+          "key": "witchlight-betta",
+          "bandWeight": 260,
+          "conditionalOneIn": 1098,
+          "lengthMm": 304,
+          "weightGrams": 691,
+          "oneInCasts": 150357.49717489805,
+          "baselineOneInCasts": 1262960.3021918528
+        }
+      ],
+      "economy": [
+        {
+          "bait": "Moonlit Fireflies",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 229.06220183000002,
+          "costPerCast": 12,
+          "estimatedNetCoinsPerCast": 217.06220183000002
+        },
+        {
+          "bait": "Trophy Chum",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 251.58765863000002,
+          "costPerCast": 100,
+          "estimatedNetCoinsPerCast": 151.58765863000002
+        }
+      ]
+    },
+    {
+      "biome": "Moonlit Lake",
+      "eligibleSpecies": [
+        "blue-slimefish",
+        "blueglass",
+        "cloudfish",
+        "crystal-eel",
+        "crystalstinger",
+        "fish-toy",
+        "galaxyscale",
+        "glimmer-eel",
+        "lil-blue-slimefish",
+        "lil-pink-slimefish",
+        "moon-fish",
+        "nebula-minnow",
+        "nyan-fish",
+        "pearl-wisp",
+        "pink-slimefish",
+        "rift-bitterling",
+        "runefin",
+        "silverflake",
+        "silverscale",
+        "sun-fish",
+        "sunray-fish",
+        "tidebloom"
+      ],
+      "baselineAnyPerfectOneInCasts": 39844.86515638028,
+      "anyPerfectOneInCasts": 4816.6493551470585,
+      "targets": [
+        {
+          "key": "blue-slimefish",
+          "bandWeight": 238,
+          "conditionalOneIn": 19533,
+          "lengthMm": 608,
+          "weightGrams": 6530,
+          "oneInCasts": 663706.9595033155,
+          "baselineOneInCasts": 5591744.411894802
+        },
+        {
+          "key": "blueglass",
+          "bandWeight": 238,
+          "conditionalOneIn": 2233,
+          "lengthMm": 380,
+          "weightGrams": 1152,
+          "oneInCasts": 257735.10618892222,
+          "baselineOneInCasts": 2168411.263870773
+        },
+        {
+          "key": "cloudfish",
+          "bandWeight": 238,
+          "conditionalOneIn": 6149,
+          "lengthMm": 475,
+          "weightGrams": 2689,
+          "oneInCasts": 459957.0756044651,
+          "baselineOneInCasts": 3873636.461014228
+        },
+        {
+          "key": "crystal-eel",
+          "bandWeight": 238,
+          "conditionalOneIn": 111872,
+          "lengthMm": 1710,
+          "weightGrams": 13828,
+          "oneInCasts": 797794.028289361,
+          "baselineOneInCasts": 6722424.871104036
+        },
+        {
+          "key": "crystalstinger",
+          "bandWeight": 238,
+          "conditionalOneIn": 94528,
+          "lengthMm": 1045,
+          "weightGrams": 19205,
+          "oneInCasts": 791586.1519571521,
+          "baselineOneInCasts": 6670077.361289721
+        },
+        {
+          "key": "fish-toy",
+          "bandWeight": 238,
+          "conditionalOneIn": 170,
+          "lengthMm": 171,
+          "weightGrams": 192,
+          "oneInCasts": 27979.121377844396,
+          "baselineOneInCasts": 230969.2465058929
+        },
+        {
+          "key": "galaxyscale",
+          "bandWeight": 238,
+          "conditionalOneIn": 993968,
+          "lengthMm": 1710,
+          "weightGrams": 122913,
+          "oneInCasts": 829249.7331056802,
+          "baselineOneInCasts": 6987673.035078021
+        },
+        {
+          "key": "glimmer-eel",
+          "bandWeight": 238,
+          "conditionalOneIn": 92923,
+          "lengthMm": 1615,
+          "weightGrams": 12291,
+          "oneInCasts": 790900.5132731316,
+          "baselineOneInCasts": 6664295.758066255
+        },
+        {
+          "key": "lil-blue-slimefish",
+          "bandWeight": 238,
+          "conditionalOneIn": 434,
+          "lengthMm": 228,
+          "weightGrams": 346,
+          "oneInCasts": 67114.03612133005,
+          "baselineOneInCasts": 560998.2631612191
+        },
+        {
+          "key": "lil-pink-slimefish",
+          "bandWeight": 238,
+          "conditionalOneIn": 246,
+          "lengthMm": 190,
+          "weightGrams": 230,
+          "oneInCasts": 39648.39173998613,
+          "baselineOneInCasts": 329383.0469573122
+        },
+        {
+          "key": "moon-fish",
+          "bandWeight": 238,
+          "conditionalOneIn": 486180,
+          "lengthMm": 1330,
+          "weightGrams": 76821,
+          "oneInCasts": 824941.1648824755,
+          "baselineOneInCasts": 6951341.31690688
+        },
+        {
+          "key": "nebula-minnow",
+          "bandWeight": 238,
+          "conditionalOneIn": 600,
+          "lengthMm": 285,
+          "weightGrams": 423,
+          "oneInCasts": 89833.01480071545,
+          "baselineOneInCasts": 752579.2258448041
+        },
+        {
+          "key": "nyan-fish",
+          "bandWeight": 238,
+          "conditionalOneIn": 77648,
+          "lengthMm": 855,
+          "weightGrams": 19205,
+          "oneInCasts": 783042.453762111,
+          "baselineOneInCasts": 6598033.18657844
+        },
+        {
+          "key": "pearl-wisp",
+          "bandWeight": 238,
+          "conditionalOneIn": 102,
+          "lengthMm": 190,
+          "weightGrams": 92,
+          "oneInCasts": 17245.436890800996,
+          "baselineOneInCasts": 140429.03749381955
+        },
+        {
+          "key": "pink-slimefish",
+          "bandWeight": 238,
+          "conditionalOneIn": 16224,
+          "lengthMm": 570,
+          "weightGrams": 5762,
+          "oneInCasts": 637246.434731635,
+          "baselineOneInCasts": 5368617.747630131
+        },
+        {
+          "key": "rift-bitterling",
+          "bandWeight": 238,
+          "conditionalOneIn": 204,
+          "lengthMm": 209,
+          "weightGrams": 192,
+          "oneInCasts": 33241.58372606859,
+          "baselineOneInCasts": 275351.8725073364
+        },
+        {
+          "key": "runefin",
+          "bandWeight": 238,
+          "conditionalOneIn": 10140,
+          "lengthMm": 532,
+          "weightGrams": 3841,
+          "oneInCasts": 558410.0627635219,
+          "baselineOneInCasts": 4703835.0950635
+        },
+        {
+          "key": "silverflake",
+          "bandWeight": 238,
+          "conditionalOneIn": 1090,
+          "lengthMm": 342,
+          "weightGrams": 615,
+          "oneInCasts": 149670.9284771503,
+          "baselineOneInCasts": 1257163.9217584322
+        },
+        {
+          "key": "silverscale",
+          "bandWeight": 238,
+          "conditionalOneIn": 3874,
+          "lengthMm": 475,
+          "weightGrams": 1690,
+          "oneInCasts": 364203.4677907688,
+          "baselineOneInCasts": 3066199.9285800424
+        },
+        {
+          "key": "sun-fish",
+          "bandWeight": 238,
+          "conditionalOneIn": 401115,
+          "lengthMm": 1235,
+          "weightGrams": 69139,
+          "oneInCasts": 823165.7304960152,
+          "baselineOneInCasts": 6936370.083188313
+        },
+        {
+          "key": "sunray-fish",
+          "bandWeight": 238,
+          "conditionalOneIn": 9728,
+          "lengthMm": 570,
+          "weightGrams": 3457,
+          "oneInCasts": 550716.5071085579,
+          "baselineOneInCasts": 4638959.676035774
+        },
+        {
+          "key": "tidebloom",
+          "bandWeight": 238,
+          "conditionalOneIn": 11888,
+          "lengthMm": 570,
+          "weightGrams": 4225,
+          "oneInCasts": 586876.4995096589,
+          "baselineOneInCasts": 4943876.506456142
+        }
+      ],
+      "economy": [
+        {
+          "bait": "Moonlit Fireflies",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 211.13909893999997,
+          "costPerCast": 12,
+          "estimatedNetCoinsPerCast": 199.13909893999997
+        },
+        {
+          "bait": "Trophy Chum",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 224.80371913999997,
+          "costPerCast": 100,
+          "estimatedNetCoinsPerCast": 124.80371913999997
+        }
+      ]
+    },
+    {
+      "biome": "Sunken Coast",
+      "eligibleSpecies": [
+        "anchovy",
+        "aurora-fry",
+        "blenny",
+        "blowfish",
+        "blue-crab",
+        "blue-marlin",
+        "blue-tang",
+        "brown-ray",
+        "chromis",
+        "clownfish",
+        "cod",
+        "coral-fish",
+        "croaker",
+        "damselfish",
+        "dungeness-crab",
+        "flounder",
+        "green-tropic-fish",
+        "grunt",
+        "haddock",
+        "hake",
+        "halibut",
+        "hermit-crab",
+        "herring",
+        "jellyfish",
+        "kelpfin",
+        "kelpscale",
+        "lionfish",
+        "mackerel",
+        "manta-ray",
+        "moon-jelly",
+        "mullet",
+        "mussels",
+        "octopus",
+        "pea-crab",
+        "pollock",
+        "red-king-crab",
+        "red-reef-fish",
+        "sandbar-shark",
+        "sardine",
+        "sea-turtle",
+        "seahorse",
+        "shark",
+        "smelt",
+        "squid",
+        "starfish",
+        "stingray",
+        "swordfish",
+        "triggerfish",
+        "tuna",
+        "whitefish",
+        "whiting",
+        "wrasse"
+      ],
+      "baselineAnyPerfectOneInCasts": 2184.7817998321348,
+      "anyPerfectOneInCasts": 644.1507018196506,
+      "targets": [
+        {
+          "key": "anchovy",
+          "bandWeight": 250,
+          "conditionalOneIn": 84,
+          "lengthMm": 209,
+          "weightGrams": 77,
+          "oneInCasts": 14351.279247956792,
+          "baselineOneInCasts": 116010.59581042078
+        },
+        {
+          "key": "aurora-fry",
+          "bandWeight": 250,
+          "conditionalOneIn": 24,
+          "lengthMm": 114,
+          "weightGrams": 31,
+          "oneInCasts": 4598.01023607773,
+          "baselineOneInCasts": 33541.99130665305
+        },
+        {
+          "key": "blenny",
+          "bandWeight": 250,
+          "conditionalOneIn": 80,
+          "lengthMm": 180,
+          "weightGrams": 91,
+          "oneInCasts": 13706.999110447508,
+          "baselineOneInCasts": 110573.30762472744
+        },
+        {
+          "key": "blowfish",
+          "bandWeight": 250,
+          "conditionalOneIn": 4872,
+          "lengthMm": 418,
+          "weightGrams": 2305,
+          "oneInCasts": 411478.3049379854,
+          "baselineOneInCasts": 3464844.1561623365
+        },
+        {
+          "key": "blue-crab",
+          "bandWeight": 250,
+          "conditionalOneIn": 1952,
+          "lengthMm": 285,
+          "weightGrams": 1383,
+          "oneInCasts": 234368.9236531241,
+          "baselineOneInCasts": 1971379.0013186706
+        },
+        {
+          "key": "blue-marlin",
+          "bandWeight": 250,
+          "conditionalOneIn": 17974671,
+          "lengthMm": 4560,
+          "weightGrams": 845029,
+          "oneInCasts": 832852.5421869266,
+          "baselineOneInCasts": 7018055.453209715
+        },
+        {
+          "key": "blue-tang",
+          "bandWeight": 250,
+          "conditionalOneIn": 2030,
+          "lengthMm": 342,
+          "weightGrams": 1152,
+          "oneInCasts": 241012.78344493793,
+          "baselineOneInCasts": 2027403.0452691743
+        },
+        {
+          "key": "brown-ray",
+          "bandWeight": 250,
+          "conditionalOneIn": 155991,
+          "lengthMm": 1235,
+          "weightGrams": 26887,
+          "oneInCasts": 807233.5152210242,
+          "baselineOneInCasts": 6802024.692492218
+        },
+        {
+          "key": "chromis",
+          "bandWeight": 250,
+          "conditionalOneIn": 105,
+          "lengthMm": 171,
+          "weightGrams": 115,
+          "oneInCasts": 17717.82970858511,
+          "baselineOneInCasts": 144416.53823785635
+        },
+        {
+          "key": "clownfish",
+          "bandWeight": 250,
+          "conditionalOneIn": 80,
+          "lengthMm": 161,
+          "weightGrams": 114,
+          "oneInCasts": 13706.999110447508,
+          "baselineOneInCasts": 110573.30762472744
+        },
+        {
+          "key": "cod",
+          "bandWeight": 250,
+          "conditionalOneIn": 142626,
+          "lengthMm": 1235,
+          "weightGrams": 24583,
+          "oneInCasts": 804893.1810817593,
+          "baselineOneInCasts": 6782289.978565623
+        },
+        {
+          "key": "coral-fish",
+          "bandWeight": 250,
+          "conditionalOneIn": 5278,
+          "lengthMm": 456,
+          "weightGrams": 2305,
+          "oneInCasts": 428134.1233913719,
+          "baselineOneInCasts": 3605293.3362797694
+        },
+        {
+          "key": "croaker",
+          "bandWeight": 250,
+          "conditionalOneIn": 8656,
+          "lengthMm": 570,
+          "weightGrams": 3073,
+          "oneInCasts": 528311.3760827408,
+          "baselineOneInCasts": 4450031.795953791
+        },
+        {
+          "key": "damselfish",
+          "bandWeight": 250,
+          "conditionalOneIn": 168,
+          "lengthMm": 190,
+          "weightGrams": 154,
+          "oneInCasts": 27656.35167234948,
+          "baselineOneInCasts": 228248.9779662786
+        },
+        {
+          "key": "dungeness-crab",
+          "bandWeight": 250,
+          "conditionalOneIn": 10810,
+          "lengthMm": 342,
+          "weightGrams": 6146,
+          "oneInCasts": 569837.0986181276,
+          "baselineOneInCasts": 4800194.815138637
+        },
+        {
+          "key": "flounder",
+          "bandWeight": 250,
+          "conditionalOneIn": 14598,
+          "lengthMm": 665,
+          "weightGrams": 4609,
+          "oneInCasts": 620721.3761151719,
+          "baselineOneInCasts": 5229273.223956515
+        },
+        {
+          "key": "green-tropic-fish",
+          "bandWeight": 250,
+          "conditionalOneIn": 704,
+          "lengthMm": 266,
+          "weightGrams": 499,
+          "oneInCasts": 103351.48510370999,
+          "baselineOneInCasts": 866576.6027829417
+        },
+        {
+          "key": "grunt",
+          "bandWeight": 250,
+          "conditionalOneIn": 5278,
+          "lengthMm": 475,
+          "weightGrams": 2305,
+          "oneInCasts": 428134.1233913719,
+          "baselineOneInCasts": 3605293.3362797694
+        },
+        {
+          "key": "haddock",
+          "bandWeight": 250,
+          "conditionalOneIn": 27968,
+          "lengthMm": 855,
+          "weightGrams": 6914,
+          "oneInCasts": 706846.5388270136,
+          "baselineOneInCasts": 5955518.080650226
+        },
+        {
+          "key": "hake",
+          "bandWeight": 250,
+          "conditionalOneIn": 49168,
+          "lengthMm": 1045,
+          "weightGrams": 9987,
+          "oneInCasts": 756253.6366814999,
+          "baselineOneInCasts": 6372140.208630711
+        },
+        {
+          "key": "halibut",
+          "bandWeight": 250,
+          "conditionalOneIn": 964257,
+          "lengthMm": 1900,
+          "weightGrams": 107549,
+          "oneInCasts": 828790.332002883,
+          "baselineOneInCasts": 6983801.133072267
+        },
+        {
+          "key": "hermit-crab",
+          "bandWeight": 250,
+          "conditionalOneIn": 102,
+          "lengthMm": 95,
+          "weightGrams": 192,
+          "oneInCasts": 17238.53881589577,
+          "baselineOneInCasts": 140372.86597867054
+        },
+        {
+          "key": "herring",
+          "bandWeight": 250,
+          "conditionalOneIn": 2639,
+          "lengthMm": 475,
+          "weightGrams": 1152,
+          "oneInCasts": 288220.28258883825,
+          "baselineOneInCasts": 2425477.9304006505
+        },
+        {
+          "key": "jellyfish",
+          "bandWeight": 250,
+          "conditionalOneIn": 17563,
+          "lengthMm": 475,
+          "weightGrams": 7682,
+          "oneInCasts": 648629.1481057712,
+          "baselineOneInCasts": 5464603.710855485
+        },
+        {
+          "key": "kelpfin",
+          "bandWeight": 250,
+          "conditionalOneIn": 9728,
+          "lengthMm": 570,
+          "weightGrams": 3457,
+          "oneInCasts": 550496.2206055628,
+          "baselineOneInCasts": 4637104.092265207
+        },
+        {
+          "key": "kelpscale",
+          "bandWeight": 250,
+          "conditionalOneIn": 1630,
+          "lengthMm": 342,
+          "weightGrams": 922,
+          "oneInCasts": 205286.73712515083,
+          "baselineOneInCasts": 1726144.6820555192
+        },
+        {
+          "key": "lionfish",
+          "bandWeight": 250,
+          "conditionalOneIn": 5278,
+          "lengthMm": 475,
+          "weightGrams": 2305,
+          "oneInCasts": 428134.1233913719,
+          "baselineOneInCasts": 3605293.3362797694
+        },
+        {
+          "key": "mackerel",
+          "bandWeight": 250,
+          "conditionalOneIn": 5424,
+          "lengthMm": 570,
+          "weightGrams": 1921,
+          "oneInCasts": 433806.45005307026,
+          "baselineOneInCasts": 3653124.8851878364
+        },
+        {
+          "key": "manta-ray",
+          "bandWeight": 250,
+          "conditionalOneIn": 61175687,
+          "lengthMm": 5700,
+          "weightGrams": 2304624,
+          "oneInCasts": 833015.9849230214,
+          "baselineOneInCasts": 7019433.673327995
+        },
+        {
+          "key": "moon-jelly",
+          "bandWeight": 250,
+          "conditionalOneIn": 7436,
+          "lengthMm": 380,
+          "weightGrams": 3841,
+          "oneInCasts": 498410.08717701025,
+          "baselineOneInCasts": 4197891.057885276
+        },
+        {
+          "key": "mullet",
+          "bandWeight": 250,
+          "conditionalOneIn": 13374,
+          "lengthMm": 665,
+          "weightGrams": 4225,
+          "oneInCasts": 606573.8861314,
+          "baselineOneInCasts": 5109975.42436465
+        },
+        {
+          "key": "mussels",
+          "bandWeight": 250,
+          "conditionalOneIn": 136,
+          "lengthMm": 114,
+          "weightGrams": 192,
+          "oneInCasts": 22638.333319437348,
+          "baselineOneInCasts": 185924.48617799242
+        },
+        {
+          "key": "octopus",
+          "bandWeight": 250,
+          "conditionalOneIn": 104656,
+          "lengthMm": 1140,
+          "weightGrams": 19205,
+          "oneInCasts": 795131.6045940343,
+          "baselineOneInCasts": 6699976.125648557
+        },
+        {
+          "key": "pea-crab",
+          "bandWeight": 250,
+          "conditionalOneIn": 2,
+          "lengthMm": 19,
+          "weightGrams": 8,
+          "oneInCasts": 1337.4661492447724,
+          "baselineOneInCasts": 2807.690962444923
+        },
+        {
+          "key": "pollock",
+          "bandWeight": 250,
+          "conditionalOneIn": 111408,
+          "lengthMm": 1235,
+          "weightGrams": 19205,
+          "oneInCasts": 797332.9724001493,
+          "baselineOneInCasts": 6718539.015201128
+        },
+        {
+          "key": "red-king-crab",
+          "bandWeight": 250,
+          "conditionalOneIn": 56724,
+          "lengthMm": 418,
+          "weightGrams": 26887,
+          "oneInCasts": 765659.0490953223,
+          "baselineOneInCasts": 6451450.733279416
+        },
+        {
+          "key": "red-reef-fish",
+          "bandWeight": 250,
+          "conditionalOneIn": 1098,
+          "lengthMm": 304,
+          "weightGrams": 691,
+          "oneInCasts": 150507.8544224516,
+          "baselineOneInCasts": 1264223.2622444239
+        },
+        {
+          "key": "sandbar-shark",
+          "bandWeight": 250,
+          "conditionalOneIn": 4105444,
+          "lengthMm": 2850,
+          "weightGrams": 307283,
+          "oneInCasts": 832071.5447085117,
+          "baselineOneInCasts": 7011469.743357736
+        },
+        {
+          "key": "sardine",
+          "bandWeight": 250,
+          "conditionalOneIn": 328,
+          "lengthMm": 285,
+          "weightGrams": 230,
+          "oneInCasts": 51845.51616259445,
+          "baselineOneInCasts": 432243.9707699499
+        },
+        {
+          "key": "sea-turtle",
+          "bandWeight": 250,
+          "conditionalOneIn": 3875853,
+          "lengthMm": 1520,
+          "weightGrams": 537746,
+          "oneInCasts": 832011.6474603182,
+          "baselineOneInCasts": 7010964.663753102
+        },
+        {
+          "key": "seahorse",
+          "bandWeight": 250,
+          "conditionalOneIn": 147,
+          "lengthMm": 228,
+          "weightGrams": 115,
+          "oneInCasts": 24370.257364236706,
+          "baselineOneInCasts": 200532.90254367894
+        },
+        {
+          "key": "shark",
+          "bandWeight": 250,
+          "conditionalOneIn": 13491051,
+          "lengthMm": 4180,
+          "weightGrams": 691387,
+          "oneInCasts": 832775.645412178,
+          "baselineOneInCasts": 7017407.0262160925
+        },
+        {
+          "key": "smelt",
+          "bandWeight": 250,
+          "conditionalOneIn": 272,
+          "lengthMm": 285,
+          "weightGrams": 192,
+          "oneInCasts": 43546.02778223706,
+          "baselineOneInCasts": 362254.4536506395
+        },
+        {
+          "key": "squid",
+          "bandWeight": 250,
+          "conditionalOneIn": 17031,
+          "lengthMm": 760,
+          "weightGrams": 4609,
+          "oneInCasts": 644174.768739023,
+          "baselineOneInCasts": 5427042.444706293
+        },
+        {
+          "key": "starfish",
+          "bandWeight": 250,
+          "conditionalOneIn": 1080,
+          "lengthMm": 285,
+          "weightGrams": 768,
+          "oneInCasts": 148486.74826027133,
+          "baselineOneInCasts": 1247180.309105274
+        },
+        {
+          "key": "stingray",
+          "bandWeight": 250,
+          "conditionalOneIn": 553705,
+          "lengthMm": 1520,
+          "weightGrams": 76821,
+          "oneInCasts": 825635.2139465355,
+          "baselineOneInCasts": 6957195.807577837
+        },
+        {
+          "key": "swordfish",
+          "bandWeight": 250,
+          "conditionalOneIn": 11593689,
+          "lengthMm": 3800,
+          "weightGrams": 652977,
+          "oneInCasts": 832725.2022416702,
+          "baselineOneInCasts": 7016981.66749969
+        },
+        {
+          "key": "triggerfish",
+          "bandWeight": 250,
+          "conditionalOneIn": 16224,
+          "lengthMm": 570,
+          "weightGrams": 5762,
+          "oneInCasts": 636991.5362575905,
+          "baselineOneInCasts": 5366470.300630927
+        },
+        {
+          "key": "tuna",
+          "bandWeight": 250,
+          "conditionalOneIn": 3643578,
+          "lengthMm": 2660,
+          "weightGrams": 291919,
+          "oneInCasts": 831943.3790808868,
+          "baselineOneInCasts": 7010388.995135039
+        },
+        {
+          "key": "whitefish",
+          "bandWeight": 250,
+          "conditionalOneIn": 19845,
+          "lengthMm": 760,
+          "weightGrams": 5377,
+          "oneInCasts": 665571.9093611946,
+          "baselineOneInCasts": 5607472.448623873
+        },
+        {
+          "key": "whiting",
+          "bandWeight": 250,
+          "conditionalOneIn": 5424,
+          "lengthMm": 570,
+          "weightGrams": 1921,
+          "oneInCasts": 433806.45005307026,
+          "baselineOneInCasts": 3653124.8851878364
+        },
+        {
+          "key": "wrasse",
+          "bandWeight": 250,
+          "conditionalOneIn": 2684,
+          "lengthMm": 380,
+          "weightGrams": 1383,
+          "oneInCasts": 291411.59325499914,
+          "baselineOneInCasts": 2452388.4888108037
+        }
+      ],
+      "economy": [
+        {
+          "bait": "Moonlit Fireflies",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 329.668647,
+          "costPerCast": 12,
+          "estimatedNetCoinsPerCast": 317.668647
+        },
+        {
+          "bait": "Trophy Chum",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 358.2151958,
+          "costPerCast": 100,
+          "estimatedNetCoinsPerCast": 258.2151958
+        }
+      ]
+    },
+    {
+      "biome": "Glacial Reach",
+      "eligibleSpecies": [
+        "ancient-iced-coelacanth",
+        "aurora-frostfin",
+        "chillscale-fry",
+        "coldmist",
+        "deepwinter-catfish",
+        "frostbelle",
+        "frostbite",
+        "frostcloak-squid",
+        "frostfang",
+        "frostfin-minnow",
+        "frostglass-koi",
+        "frostjaw-bass",
+        "frostveil-betta",
+        "frosty-nyan-fish",
+        "frozen-fangling",
+        "frozen-loach",
+        "glaciel-sturgeon",
+        "glacier-guppy",
+        "glacier-maw",
+        "glacier-puffer",
+        "hail-pike",
+        "hailstinger",
+        "hailstripe",
+        "icebarb-sturgeon",
+        "icechip-dace",
+        "icefeather-lionfish",
+        "icefish",
+        "icey-blueegill",
+        "icicle-goby",
+        "icicle-seahorse",
+        "moonice-wrasse",
+        "plaice",
+        "polar-shiner",
+        "slush-minnow",
+        "snow-crab",
+        "snow-puff",
+        "snowcap",
+        "snowdrift",
+        "snowflake-guppy",
+        "snowmantle-plaice",
+        "snowpike",
+        "titanic-frost-catfish",
+        "whiteout-shark",
+        "winter-sprat",
+        "wintertide-octopus"
+      ],
+      "baselineAnyPerfectOneInCasts": 8021.811295174509,
+      "anyPerfectOneInCasts": 1059.8512858862807,
+      "targets": [
+        {
+          "key": "ancient-iced-coelacanth",
+          "bandWeight": 241,
+          "conditionalOneIn": 9297909,
+          "lengthMm": 3040,
+          "weightGrams": 652977,
+          "oneInCasts": 832511.7792164531,
+          "baselineOneInCasts": 7015182.729314468
+        },
+        {
+          "key": "aurora-frostfin",
+          "bandWeight": 241,
+          "conditionalOneIn": 316044,
+          "lengthMm": 1330,
+          "weightGrams": 49934,
+          "oneInCasts": 819998.037891014,
+          "baselineOneInCasts": 6909661.428584136
+        },
+        {
+          "key": "chillscale-fry",
+          "bandWeight": 241,
+          "conditionalOneIn": 21,
+          "lengthMm": 123,
+          "weightGrams": 38,
+          "oneInCasts": 4107.669959280931,
+          "baselineOneInCasts": 29362.408529900476
+        },
+        {
+          "key": "coldmist",
+          "bandWeight": 241,
+          "conditionalOneIn": 1220,
+          "lengthMm": 342,
+          "weightGrams": 691,
+          "oneInCasts": 163873.51178722375,
+          "baselineOneInCasts": 1376929.674896997
+        },
+        {
+          "key": "deepwinter-catfish",
+          "bandWeight": 241,
+          "conditionalOneIn": 1361248,
+          "lengthMm": 2090,
+          "weightGrams": 138277,
+          "oneInCasts": 829913.460237676,
+          "baselineOneInCasts": 6993272.575466585
+        },
+        {
+          "key": "frostbelle",
+          "bandWeight": 241,
+          "conditionalOneIn": 3732,
+          "lengthMm": 418,
+          "weightGrams": 1767,
+          "oneInCasts": 356376.14543763484,
+          "baselineOneInCasts": 3000199.1945429887
+        },
+        {
+          "key": "frostbite",
+          "bandWeight": 241,
+          "conditionalOneIn": 83216,
+          "lengthMm": 1045,
+          "weightGrams": 16901,
+          "oneInCasts": 785789.6868835513,
+          "baselineOneInCasts": 6621201.754843968
+        },
+        {
+          "key": "frostcloak-squid",
+          "bandWeight": 241,
+          "conditionalOneIn": 178266,
+          "lengthMm": 1235,
+          "weightGrams": 30728,
+          "oneInCasts": 810253.9830707896,
+          "baselineOneInCasts": 6827495.326671658
+        },
+        {
+          "key": "frostfang",
+          "bandWeight": 241,
+          "conditionalOneIn": 1235677,
+          "lengthMm": 2280,
+          "weightGrams": 115231,
+          "oneInCasts": 829605.2093525592,
+          "baselineOneInCasts": 6990673.270155411
+        },
+        {
+          "key": "frostfin-minnow",
+          "bandWeight": 241,
+          "conditionalOneIn": 180,
+          "lengthMm": 209,
+          "weightGrams": 169,
+          "oneInCasts": 29517.80313500853,
+          "baselineOneInCasts": 243949.22661217008
+        },
+        {
+          "key": "frostglass-koi",
+          "bandWeight": 241,
+          "conditionalOneIn": 200541,
+          "lengthMm": 1235,
+          "weightGrams": 34569,
+          "oneInCasts": 812714.6022633719,
+          "baselineOneInCasts": 6848244.33634714
+        },
+        {
+          "key": "frostjaw-bass",
+          "bandWeight": 241,
+          "conditionalOneIn": 132356,
+          "lengthMm": 1045,
+          "weightGrams": 26887,
+          "oneInCasts": 802664.960142473,
+          "baselineOneInCasts": 6763501.389260093
+        },
+        {
+          "key": "frostveil-betta",
+          "bandWeight": 241,
+          "conditionalOneIn": 336,
+          "lengthMm": 228,
+          "weightGrams": 269,
+          "oneInCasts": 53008.99685636012,
+          "baselineOneInCasts": 442056.2202732921
+        },
+        {
+          "key": "frosty-nyan-fish",
+          "bandWeight": 241,
+          "conditionalOneIn": 112372,
+          "lengthMm": 950,
+          "weightGrams": 24583,
+          "oneInCasts": 797506.9793796252,
+          "baselineOneInCasts": 6720007.055087066
+        },
+        {
+          "key": "frozen-fangling",
+          "bandWeight": 241,
+          "conditionalOneIn": 9728,
+          "lengthMm": 570,
+          "weightGrams": 3457,
+          "oneInCasts": 550413.6585942167,
+          "baselineOneInCasts": 4636408.631008001
+        },
+        {
+          "key": "frozen-loach",
+          "bandWeight": 241,
+          "conditionalOneIn": 750,
+          "lengthMm": 342,
+          "weightGrams": 423,
+          "oneInCasts": 109173.91837226322,
+          "baselineOneInCasts": 915675.2596502115
+        },
+        {
+          "key": "glaciel-sturgeon",
+          "bandWeight": 241,
+          "conditionalOneIn": 11242635,
+          "lengthMm": 4180,
+          "weightGrams": 576156,
+          "oneInCasts": 832589.1151088292,
+          "baselineOneInCasts": 7015834.85913864
+        },
+        {
+          "key": "glacier-guppy",
+          "bandWeight": 241,
+          "conditionalOneIn": 36,
+          "lengthMm": 142,
+          "weightGrams": 53,
+          "oneInCasts": 6559.134133424581,
+          "baselineOneInCasts": 50185.42347829469
+        },
+        {
+          "key": "glacier-maw",
+          "bandWeight": 241,
+          "conditionalOneIn": 22876744,
+          "lengthMm": 4560,
+          "weightGrams": 1075491,
+          "oneInCasts": 832777.213651903,
+          "baselineOneInCasts": 7017420.987727122
+        },
+        {
+          "key": "glacier-puffer",
+          "bandWeight": 241,
+          "conditionalOneIn": 108721,
+          "lengthMm": 855,
+          "weightGrams": 26887,
+          "oneInCasts": 796368.7841752808,
+          "baselineOneInCasts": 6710409.298729062
+        },
+        {
+          "key": "hail-pike",
+          "bandWeight": 241,
+          "conditionalOneIn": 907536,
+          "lengthMm": 2090,
+          "weightGrams": 92185,
+          "oneInCasts": 828399.1875273675,
+          "baselineOneInCasts": 6980503.570445923
+        },
+        {
+          "key": "hailstinger",
+          "bandWeight": 241,
+          "conditionalOneIn": 90776,
+          "lengthMm": 1045,
+          "weightGrams": 18437,
+          "oneInCasts": 789513.0017835364,
+          "baselineOneInCasts": 6652598.3635385875
+        },
+        {
+          "key": "hailstripe",
+          "bandWeight": 241,
+          "conditionalOneIn": 6149,
+          "lengthMm": 456,
+          "weightGrams": 2689,
+          "oneInCasts": 459704.1372909211,
+          "baselineOneInCasts": 3871506.2806250206
+        },
+        {
+          "key": "icebarb-sturgeon",
+          "bandWeight": 241,
+          "conditionalOneIn": 7130400,
+          "lengthMm": 3610,
+          "weightGrams": 422514,
+          "oneInCasts": 832375.9083006079,
+          "baselineOneInCasts": 7014037.006756121
+        },
+        {
+          "key": "icechip-dace",
+          "bandWeight": 241,
+          "conditionalOneIn": 328,
+          "lengthMm": 266,
+          "weightGrams": 230,
+          "oneInCasts": 51837.740538957056,
+          "baselineOneInCasts": 432179.14393580274
+        },
+        {
+          "key": "icefeather-lionfish",
+          "bandWeight": 241,
+          "conditionalOneIn": 188387,
+          "lengthMm": 1140,
+          "weightGrams": 34569,
+          "oneInCasts": 811442.270330371,
+          "baselineOneInCasts": 6837515.480919498
+        },
+        {
+          "key": "icefish",
+          "bandWeight": 241,
+          "conditionalOneIn": 432,
+          "lengthMm": 285,
+          "weightGrams": 307,
+          "oneInCasts": 66795.09682457986,
+          "baselineOneInCasts": 558311.4638375922
+        },
+        {
+          "key": "icey-blueegill",
+          "bandWeight": 241,
+          "conditionalOneIn": 4068,
+          "lengthMm": 418,
+          "weightGrams": 1921,
+          "oneInCasts": 374037.087735412,
+          "baselineOneInCasts": 3149124.0603131317
+        },
+        {
+          "key": "icicle-goby",
+          "bandWeight": 241,
+          "conditionalOneIn": 126,
+          "lengthMm": 190,
+          "weightGrams": 115,
+          "oneInCasts": 21054.31914619547,
+          "baselineOneInCasts": 172563.80596954195
+        },
+        {
+          "key": "icicle-seahorse",
+          "bandWeight": 241,
+          "conditionalOneIn": 486,
+          "lengthMm": 323,
+          "weightGrams": 307,
+          "oneInCasts": 74337.80018277925,
+          "baselineOneInCasts": 621916.699933083
+        },
+        {
+          "key": "moonice-wrasse",
+          "bandWeight": 241,
+          "conditionalOneIn": 46598,
+          "lengthMm": 855,
+          "weightGrams": 11523,
+          "oneInCasts": 752313.9382953374,
+          "baselineOneInCasts": 6338919.697151906
+        },
+        {
+          "key": "plaice",
+          "bandWeight": 241,
+          "conditionalOneIn": 8656,
+          "lengthMm": 570,
+          "weightGrams": 3073,
+          "oneInCasts": 528232.1412989891,
+          "baselineOneInCasts": 4449364.391332534
+        },
+        {
+          "key": "polar-shiner",
+          "bandWeight": 241,
+          "conditionalOneIn": 287,
+          "lengthMm": 247,
+          "weightGrams": 230,
+          "oneInCasts": 45779.46112502079,
+          "baselineOneInCasts": 381089.89183873945
+        },
+        {
+          "key": "slush-minnow",
+          "bandWeight": 241,
+          "conditionalOneIn": 150,
+          "lengthMm": 190,
+          "weightGrams": 138,
+          "oneInCasts": 24837.602402354907,
+          "baselineOneInCasts": 204475.5121051942
+        },
+        {
+          "key": "snow-crab",
+          "bandWeight": 241,
+          "conditionalOneIn": 7560,
+          "lengthMm": 266,
+          "weightGrams": 5377,
+          "oneInCasts": 501639.2092353632,
+          "baselineOneInCasts": 4225121.165076889
+        },
+        {
+          "key": "snow-puff",
+          "bandWeight": 241,
+          "conditionalOneIn": 2030,
+          "lengthMm": 342,
+          "weightGrams": 1152,
+          "oneInCasts": 240976.6369868331,
+          "baselineOneInCasts": 2027098.9804595485
+        },
+        {
+          "key": "snowcap",
+          "bandWeight": 241,
+          "conditionalOneIn": 1467,
+          "lengthMm": 323,
+          "weightGrams": 922,
+          "oneInCasts": 189432.36236601422,
+          "baselineOneInCasts": 1592453.9733266537
+        },
+        {
+          "key": "snowdrift",
+          "bandWeight": 241,
+          "conditionalOneIn": 1215,
+          "lengthMm": 304,
+          "weightGrams": 768,
+          "oneInCasts": 163335.144711495,
+          "baselineOneInCasts": 1372389.9060270227
+        },
+        {
+          "key": "snowflake-guppy",
+          "bandWeight": 241,
+          "conditionalOneIn": 21,
+          "lengthMm": 123,
+          "weightGrams": 38,
+          "oneInCasts": 4107.669959280931,
+          "baselineOneInCasts": 29362.408529900476
+        },
+        {
+          "key": "snowmantle-plaice",
+          "bandWeight": 241,
+          "conditionalOneIn": 34041,
+          "lengthMm": 760,
+          "weightGrams": 9218,
+          "oneInCasts": 726374.8807793133,
+          "baselineOneInCasts": 6120190.288944
+        },
+        {
+          "key": "snowpike",
+          "bandWeight": 241,
+          "conditionalOneIn": 619905,
+          "lengthMm": 1900,
+          "weightGrams": 69139,
+          "oneInCasts": 826300.3663511836,
+          "baselineOneInCasts": 6962805.398922009
+        },
+        {
+          "key": "titanic-frost-catfish",
+          "bandWeight": 241,
+          "conditionalOneIn": 73329797,
+          "lengthMm": 6840,
+          "weightGrams": 2304624,
+          "oneInCasts": 832902.3233114558,
+          "baselineOneInCasts": 7018475.966699599
+        },
+        {
+          "key": "whiteout-shark",
+          "bandWeight": 241,
+          "conditionalOneIn": 47833261,
+          "lengthMm": 6080,
+          "weightGrams": 1690058,
+          "oneInCasts": 832872.0821616105,
+          "baselineOneInCasts": 7018220.96019328
+        },
+        {
+          "key": "winter-sprat",
+          "bandWeight": 241,
+          "conditionalOneIn": 272,
+          "lengthMm": 266,
+          "weightGrams": 192,
+          "oneInCasts": 43539.49689514629,
+          "baselineOneInCasts": 362200.1236695322
+        },
+        {
+          "key": "wintertide-octopus",
+          "bandWeight": 241,
+          "conditionalOneIn": 497030,
+          "lengthMm": 1710,
+          "weightGrams": 61457,
+          "oneInCasts": 824670.6050465006,
+          "baselineOneInCasts": 6949062.543900149
+        }
+      ],
+      "economy": [
+        {
+          "bait": "Moonlit Fireflies",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 277.403497525,
+          "costPerCast": 12,
+          "estimatedNetCoinsPerCast": 265.403497525
+        },
+        {
+          "bait": "Trophy Chum",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 293.86847105,
+          "costPerCast": 100,
+          "estimatedNetCoinsPerCast": 193.86847104999998
+        }
+      ]
+    },
+    {
+      "biome": "Abyssal Shelf",
+      "eligibleSpecies": [
+        "ash-trout",
+        "basalt-blowfish",
+        "blaze-goby",
+        "blazing-coelacanth",
+        "blobfish",
+        "burnfish",
+        "burning-bluegil",
+        "burning-slimefish",
+        "cinder-loach",
+        "cinderling-guppy",
+        "cinderling",
+        "coelacanth",
+        "corecracker-carp",
+        "crackle-perch",
+        "deep-anglerfish",
+        "dragonfish",
+        "ember-minnow",
+        "ember-platy",
+        "fihs",
+        "fire-tuna",
+        "firefish",
+        "flamejaw-oarfish",
+        "furnace-koi",
+        "giant-crab",
+        "goliath-grouper",
+        "great-hellfin-shark",
+        "great-white-shark",
+        "heated-goliath-grouper",
+        "ignis-catfish",
+        "lava-dragonfish",
+        "lava-eel",
+        "lava-shiner",
+        "lavafish",
+        "lil-molten-slime",
+        "magma-carp",
+        "magma-danio",
+        "magma-sardine",
+        "molten-angelfish",
+        "molten-giant-catfish",
+        "molten-piranha",
+        "nomura-s-jellyfish",
+        "oarfish",
+        "phantom-ray",
+        "pyro-discus",
+        "seared-fry",
+        "searfin",
+        "searing-bass",
+        "void-fish",
+        "volcanic-ray",
+        "volcanic-sturgeon"
+      ],
+      "baselineAnyPerfectOneInCasts": 8595.532978879088,
+      "anyPerfectOneInCasts": 1116.5246067175578,
+      "targets": [
+        {
+          "key": "ash-trout",
+          "bandWeight": 256,
+          "conditionalOneIn": 28226,
+          "lengthMm": 798,
+          "weightGrams": 7298,
+          "oneInCasts": 708961.1400742038,
+          "baselineOneInCasts": 5973341.43740866
+        },
+        {
+          "key": "basalt-blowfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 13170,
+          "lengthMm": 532,
+          "weightGrams": 4993,
+          "oneInCasts": 604998.6473022486,
+          "baselineOneInCasts": 5096684.4425675785
+        },
+        {
+          "key": "blaze-goby",
+          "bandWeight": 256,
+          "conditionalOneIn": 48,
+          "lengthMm": 161,
+          "weightGrams": 68,
+          "oneInCasts": 8532.804099602226,
+          "baselineOneInCasts": 66871.72525059462
+        },
+        {
+          "key": "blazing-coelacanth",
+          "bandWeight": 256,
+          "conditionalOneIn": 4010886,
+          "lengthMm": 2470,
+          "weightGrams": 345694,
+          "oneInCasts": 833381.1146496859,
+          "baselineOneInCasts": 7022504.725986348
+        },
+        {
+          "key": "blobfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 8788,
+          "lengthMm": 475,
+          "weightGrams": 3841,
+          "oneInCasts": 532080.6694871688,
+          "baselineOneInCasts": 4481808.241981935
+        },
+        {
+          "key": "burnfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 1220,
+          "lengthMm": 342,
+          "weightGrams": 691,
+          "oneInCasts": 164160.74957647696,
+          "baselineOneInCasts": 1379343.162972151
+        },
+        {
+          "key": "burning-bluegil",
+          "bandWeight": 256,
+          "conditionalOneIn": 4872,
+          "lengthMm": 437,
+          "weightGrams": 2305,
+          "oneInCasts": 412137.7248984295,
+          "baselineOneInCasts": 3470396.790627949
+        },
+        {
+          "key": "burning-slimefish",
+          "bandWeight": 256,
+          "conditionalOneIn": 35929,
+          "lengthMm": 684,
+          "weightGrams": 10755,
+          "oneInCasts": 732573.3972102667,
+          "baselineOneInCasts": 6172450.256364896
+        },
+        {
+          "key": "cinder-loach",
+          "bandWeight": 256,
+          "conditionalOneIn": 432,
+          "lengthMm": 285,
+          "weightGrams": 307,
+          "oneInCasts": 66912.17513247638,
+          "baselineOneInCasts": 559290.0742391141
+        },
+        {
+          "key": "cinderling-guppy",
+          "bandWeight": 256,
+          "conditionalOneIn": 36,
+          "lengthMm": 133,
+          "weightGrams": 46,
+          "oneInCasts": 6570.630575596434,
+          "baselineOneInCasts": 50273.38827621814
+        },
+        {
+          "key": "cinderling",
+          "bandWeight": 256,
+          "conditionalOneIn": 378,
+          "lengthMm": 228,
+          "weightGrams": 307,
+          "oneInCasts": 59204.54602929296,
+          "baselineOneInCasts": 494293.56518975535
+        },
+        {
+          "key": "coelacanth",
+          "bandWeight": 256,
+          "conditionalOneIn": 2883287,
+          "lengthMm": 2280,
+          "weightGrams": 268873,
+          "oneInCasts": 832975.889521276,
+          "baselineOneInCasts": 7019087.691751246
+        },
+        {
+          "key": "corecracker-carp",
+          "bandWeight": 256,
+          "conditionalOneIn": 316044,
+          "lengthMm": 1330,
+          "weightGrams": 49934,
+          "oneInCasts": 821435.3336937715,
+          "baselineOneInCasts": 6921772.713703513
+        },
+        {
+          "key": "crackle-perch",
+          "bandWeight": 256,
+          "conditionalOneIn": 7095,
+          "lengthMm": 532,
+          "weightGrams": 2689,
+          "oneInCasts": 489757.30201667163,
+          "baselineOneInCasts": 4124919.1049842276
+        },
+        {
+          "key": "deep-anglerfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 18252,
+          "lengthMm": 665,
+          "weightGrams": 5762,
+          "oneInCasts": 655143.3522435612,
+          "baselineOneInCasts": 5519526.4349245215
+        },
+        {
+          "key": "dragonfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 580715,
+          "lengthMm": 1615,
+          "weightGrams": 76821,
+          "oneInCasts": 827302.3959392876,
+          "baselineOneInCasts": 6971246.330312504
+        },
+        {
+          "key": "ember-minnow",
+          "bandWeight": 256,
+          "conditionalOneIn": 150,
+          "lengthMm": 190,
+          "weightGrams": 138,
+          "oneInCasts": 24881.137425751796,
+          "baselineOneInCasts": 204833.91726279352
+        },
+        {
+          "key": "ember-platy",
+          "bandWeight": 256,
+          "conditionalOneIn": 44,
+          "lengthMm": 133,
+          "weightGrams": 61,
+          "oneInCasts": 7879.406512734467,
+          "baselineOneInCasts": 61347.72322360901
+        },
+        {
+          "key": "fihs",
+          "bandWeight": 128,
+          "conditionalOneIn": 245124,
+          "lengthMm": 1235,
+          "weightGrams": 42251,
+          "oneInCasts": 1635507.5833302015,
+          "baselineOneInCasts": 13781458.560370412
+        },
+        {
+          "key": "fire-tuna",
+          "bandWeight": 256,
+          "conditionalOneIn": 9871854,
+          "lengthMm": 3230,
+          "weightGrams": 652977,
+          "oneInCasts": 833997.0464709417,
+          "baselineOneInCasts": 7027698.530544901
+        },
+        {
+          "key": "firefish",
+          "bandWeight": 256,
+          "conditionalOneIn": 11888,
+          "lengthMm": 570,
+          "weightGrams": 4225,
+          "oneInCasts": 587581.8796176984,
+          "baselineOneInCasts": 4949818.665418685
+        },
+        {
+          "key": "flamejaw-oarfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 58582762,
+          "lengthMm": 9120,
+          "weightGrams": 1382774,
+          "oneInCasts": 834347.93072803,
+          "baselineOneInCasts": 7030657.338956244
+        },
+        {
+          "key": "furnace-koi",
+          "bandWeight": 256,
+          "conditionalOneIn": 175863,
+          "lengthMm": 1140,
+          "weightGrams": 32265,
+          "oneInCasts": 811372.0025156899,
+          "baselineOneInCasts": 6836914.334878645
+        },
+        {
+          "key": "giant-crab",
+          "bandWeight": 256,
+          "conditionalOneIn": 632008,
+          "lengthMm": 950,
+          "weightGrams": 138277,
+          "oneInCasts": 827875.4445172295,
+          "baselineOneInCasts": 6976078.524758303
+        },
+        {
+          "key": "goliath-grouper",
+          "bandWeight": 256,
+          "conditionalOneIn": 10938726,
+          "lengthMm": 3040,
+          "weightGrams": 768208,
+          "oneInCasts": 834038.1890682906,
+          "baselineOneInCasts": 7028045.462790084
+        },
+        {
+          "key": "great-hellfin-shark",
+          "bandWeight": 256,
+          "conditionalOneIn": 409998276,
+          "lengthMm": 10450,
+          "weightGrams": 8450288,
+          "oneInCasts": 834408.9110696617,
+          "baselineOneInCasts": 7031171.551674779
+        },
+        {
+          "key": "great-white-shark",
+          "bandWeight": 256,
+          "conditionalOneIn": 162865074,
+          "lengthMm": 7600,
+          "weightGrams": 4609248,
+          "oneInCasts": 834393.4846326916,
+          "baselineOneInCasts": 7031041.469260032
+        },
+        {
+          "key": "heated-goliath-grouper",
+          "bandWeight": 256,
+          "conditionalOneIn": 28629752,
+          "lengthMm": 3990,
+          "weightGrams": 1536416,
+          "oneInCasts": 834273.50839011,
+          "baselineOneInCasts": 7030029.7774884235
+        },
+        {
+          "key": "ignis-catfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 964257,
+          "lengthMm": 1900,
+          "weightGrams": 107549,
+          "oneInCasts": 830118.52123747,
+          "baselineOneInCasts": 6994993.1216675425
+        },
+        {
+          "key": "lava-dragonfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 1663816,
+          "lengthMm": 2090,
+          "weightGrams": 169006,
+          "oneInCasts": 831921.2932383602,
+          "baselineOneInCasts": 7010194.877975338
+        },
+        {
+          "key": "lava-eel",
+          "bandWeight": 256,
+          "conditionalOneIn": 192882,
+          "lengthMm": 1900,
+          "weightGrams": 21510,
+          "oneInCasts": 813354.1946912096,
+          "baselineOneInCasts": 6853629.040170995
+        },
+        {
+          "key": "lava-shiner",
+          "bandWeight": 256,
+          "conditionalOneIn": 336,
+          "lengthMm": 247,
+          "weightGrams": 269,
+          "oneInCasts": 53101.91082637077,
+          "baselineOneInCasts": 442831.0579622363
+        },
+        {
+          "key": "lavafish",
+          "bandWeight": 256,
+          "conditionalOneIn": 20682,
+          "lengthMm": 665,
+          "weightGrams": 6530,
+          "oneInCasts": 672106.8655262071,
+          "baselineOneInCasts": 5662570.162024939
+        },
+        {
+          "key": "lil-molten-slime",
+          "bandWeight": 256,
+          "conditionalOneIn": 616,
+          "lengthMm": 247,
+          "weightGrams": 499,
+          "oneInCasts": 92062.35101560272,
+          "baselineOneInCasts": 771372.347795894
+        },
+        {
+          "key": "magma-carp",
+          "bandWeight": 256,
+          "conditionalOneIn": 245124,
+          "lengthMm": 1235,
+          "weightGrams": 42251,
+          "oneInCasts": 817753.9164754126,
+          "baselineOneInCasts": 6890729.4049954675
+        },
+        {
+          "key": "magma-danio",
+          "bandWeight": 256,
+          "conditionalOneIn": 65,
+          "lengthMm": 152,
+          "weightGrams": 69,
+          "oneInCasts": 11300.537891575892,
+          "baselineOneInCasts": 90251.37660218457
+        },
+        {
+          "key": "magma-sardine",
+          "bandWeight": 256,
+          "conditionalOneIn": 950,
+          "lengthMm": 342,
+          "weightGrams": 538,
+          "oneInCasts": 133740.72471087408,
+          "baselineOneInCasts": 1122826.6371973304
+        },
+        {
+          "key": "molten-angelfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 6149,
+          "lengthMm": 475,
+          "weightGrams": 2689,
+          "oneInCasts": 460509.9083280032,
+          "baselineOneInCasts": 3878292.2737683076
+        },
+        {
+          "key": "molten-giant-catfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 56043924,
+          "lengthMm": 6270,
+          "weightGrams": 1920520,
+          "oneInCasts": 834344.7079976988,
+          "baselineOneInCasts": 7030630.163494771
+        },
+        {
+          "key": "molten-piranha",
+          "bandWeight": 256,
+          "conditionalOneIn": 17296,
+          "lengthMm": 570,
+          "weightGrams": 6146,
+          "oneInCasts": 647456.0869260908,
+          "baselineOneInCasts": 5454704.067185965
+        },
+        {
+          "key": "nomura-s-jellyfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 5793480,
+          "lengthMm": 2470,
+          "weightGrams": 499335,
+          "oneInCasts": 833700.2098218735,
+          "baselineOneInCasts": 7025195.475031695
+        },
+        {
+          "key": "oarfish",
+          "bandWeight": 256,
+          "conditionalOneIn": 13072400,
+          "lengthMm": 6650,
+          "weightGrams": 422514,
+          "oneInCasts": 834100.3338502866,
+          "baselineOneInCasts": 7028569.494575453
+        },
+        {
+          "key": "phantom-ray",
+          "bandWeight": 256,
+          "conditionalOneIn": 3592292,
+          "lengthMm": 2850,
+          "weightGrams": 268873,
+          "oneInCasts": 833260.3334581978,
+          "baselineOneInCasts": 7021486.246535524
+        },
+        {
+          "key": "pyro-discus",
+          "bandWeight": 256,
+          "conditionalOneIn": 5676,
+          "lengthMm": 418,
+          "weightGrams": 2689,
+          "oneInCasts": 443942.3225885851,
+          "baselineOneInCasts": 3738587.1263807043
+        },
+        {
+          "key": "seared-fry",
+          "bandWeight": 256,
+          "conditionalOneIn": 21,
+          "lengthMm": 123,
+          "weightGrams": 38,
+          "oneInCasts": 4114.869464028323,
+          "baselineOneInCasts": 29413.87465378271
+        },
+        {
+          "key": "searfin",
+          "bandWeight": 256,
+          "conditionalOneIn": 12976,
+          "lengthMm": 570,
+          "weightGrams": 4609,
+          "oneInCasts": 602522.5661605368,
+          "baselineOneInCasts": 5075805.047261201
+        },
+        {
+          "key": "searing-bass",
+          "bandWeight": 256,
+          "conditionalOneIn": 105352,
+          "lengthMm": 950,
+          "weightGrams": 23046,
+          "oneInCasts": 796645.6085576211,
+          "baselineOneInCasts": 6712734.9847565
+        },
+        {
+          "key": "void-fish",
+          "bandWeight": 256,
+          "conditionalOneIn": 1721862,
+          "lengthMm": 1900,
+          "weightGrams": 192052,
+          "oneInCasts": 832005.2527435716,
+          "baselineOneInCasts": 7010902.86097968
+        },
+        {
+          "key": "volcanic-ray",
+          "bandWeight": 256,
+          "conditionalOneIn": 2673924,
+          "lengthMm": 2470,
+          "weightGrams": 230462,
+          "oneInCasts": 832863.1015835047,
+          "baselineOneInCasts": 7018136.614886309
+        },
+        {
+          "key": "volcanic-sturgeon",
+          "bandWeight": 256,
+          "conditionalOneIn": 8865780,
+          "lengthMm": 3800,
+          "weightGrams": 499335,
+          "oneInCasts": 833949.1820592342,
+          "baselineOneInCasts": 7027294.917042393
+        }
+      ],
+      "economy": [
+        {
+          "bait": "Moonlit Fireflies",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 337.33833287000004,
+          "costPerCast": 12,
+          "estimatedNetCoinsPerCast": 325.33833287000004
+        },
+        {
+          "bait": "Trophy Chum",
+          "samples": 50000,
+          "estimatedGrossCoinsPerCast": 365.74734350000006,
+          "costPerCast": 100,
+          "estimatedNetCoinsPerCast": 265.74734350000006
+        }
+      ]
+    }
+  ]
+}

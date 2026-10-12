@@ -1,0 +1,8 @@
+{
+  "mode": "built-in image_gen",
+  "transparentBackground": true,
+  "key": "trophy-chum",
+  "spriteAsset": "/baits/trophy-chum.png",
+  "reference": "assets/baits/salvage-chum.png",
+  "prompt": "Use case: stylized-concept. Asset type: ONE Fishbound fishing RPG inventory sprite, Trophy Chum. Input image is a reference for crisp chunky 16-bit pixel style, stepped dark outline, square pixel clusters, open cloth pouch shape, folded rim, tan rope, three-quarter front view. Create one centered complete premium deep plum-purple cloth bait pouch with ochre braided rope, filled with rich reddish-brown coarse fish chum and a few large pale fish chunks. A simple small brass trophy-shaped clasp on the pouch front identifies its purpose; no writing or numbers. Warm handcrafted adventure RPG feel. Generous transparent margin. Actual transparent background; no floor shadow, scene, UI frame, photorealism, smooth vector outlines, or extra separate objects. Readable silhouette and details at 96px."
+}

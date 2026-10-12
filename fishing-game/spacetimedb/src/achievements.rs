@@ -253,6 +253,14 @@ pub fn seed(ctx: &ReducerContext) {
             1,
             true,
         ),
+        (
+            19,
+            "Perfect catch",
+            "Catch a fish at its exact maximum catchable length and weight on the same specimen.",
+            "Perfect Angler",
+            1,
+            true,
+        ),
     ];
     for (achievement_id, name, description, title, target, bonus) in catalog {
         let row = AchievementDefinition {
@@ -378,7 +386,15 @@ pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String
         .player_id()
         .find(player_id)
         .ok_or("PLAYER_MISSING")?;
-    let mut values = [0u64; 18];
+    let mut values = [0u64; 19];
+    values[18] = u64::from(
+        ctx.db
+            .perfect_species()
+            .player_id()
+            .filter(player_id)
+            .next()
+            .is_some(),
+    );
     values[0] = player.completed_casts;
     values[1] = player.fish_count;
     values[2] = player.completed_casts;

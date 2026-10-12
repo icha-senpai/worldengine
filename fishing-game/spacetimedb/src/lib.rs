@@ -10,6 +10,7 @@ mod inventory;
 mod journal;
 mod loadout;
 mod maintenance;
+mod perfection;
 mod records;
 mod shop;
 mod statistics;

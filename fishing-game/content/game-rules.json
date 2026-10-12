@@ -1,5 +1,6 @@
 {
-  "version": 10,
-  "status": "short-session-xp-progression",
-  "castCooldownSeconds": 60
+  "version": 11,
+  "status": "perfect-catches-and-trophy-chum",
+  "castCooldownSeconds": 60,
+  "perfectRollOneIn": 5000
 }

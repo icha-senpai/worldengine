@@ -32,6 +32,7 @@ const trims=[
   'radiant gold edging with prismatic cyan-pink-lavender crystal gemstones, a star-shaped crown and subtle pixel sparkles',
 ];
 const milestones={
+  19:'radiant pearl-white and gold fish beneath one large four-point star; gold medallion rim, deep plum field, royal-purple ribbon tails',
   1:'one fishing bobber making its first circular ripple, a tiny twig rod and hook, copper and pond-green',
   2:'one small cheerful freshwater fish resting above a curved fishing hook, copper and turquoise',
   3:'a bobber above three concentric ripples, a small silver hook, bronze and pond-green',
@@ -64,7 +65,7 @@ const assets=rows('achievement_definition').sort((a,b)=>a[0]-b[0]).map(([achieve
   if(!subject)throw Error(`No artwork motif for ${achievementId}`);
   return {achievementId,key:`badge-${achievementId}`,name,title,batch,url:`/achievements/badge-${achievementId}.png`,prompt:`${style}\nAchievement: ${name}. Meaning: ${description}\nCentral emblem: ${subject}. Do not write the achievement name or any rank text into the image.`};
 });
-if(assets.length!==113)throw Error('Review catalog changes before generating another batch.');
+if(assets.length!==114)throw Error('Review catalog changes before generating another batch.');
 const referencePromptPrefix='The attached badge is a style and layout reference only. Create a distinct new badge for this achievement, preserving the pixel scale, scalloped medallion shape and short ribbon tails. Replace the central emblem and metal/ribbon colors as described below. Do not carry over the pond lily pad or freshwater fish unless required by this achievement.';
 const plan={version:1,mode:'built-in image_gen',transparentBackground:true,style,styleReferenceAchievementId:10,referencePromptPrefix,assets};
 writeFileSync('content/achievement-badge-art.json',`${JSON.stringify(plan,null,2)}\n`);

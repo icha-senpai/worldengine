@@ -1,6 +1,6 @@
 # Bait and rod quality: implemented rules
 
-Implemented in gameplay rules version 10, including [level 120 and XP slime](xp-progression.md). SpaceTimeDB owns purchases, charges,
+Implemented in gameplay rules version 11, including [level 120 and XP slime](xp-progression.md). SpaceTimeDB owns purchases, charges,
 quality crafting, bonus pulls and reward snapshots. This document records the
 agreed starting balance; content/crafting.json supplies the catalog to activate at deployment.
 
@@ -113,9 +113,10 @@ rarity contract.
 
 ## Agreed combined luck calculation
 
-This calculation is agreed as the starting balance. Add rod-family, quality and equipped
-bait luck, rather than multiplying these three bonuses. The maximum proposed
-loadout is Prismatic Abyssal with Moonlit Fireflies: 30% + 40% + 15% = 85%.
+Add rod-family, quality and equipped bait luck rather than multiplying these
+three bonuses. Prismatic Abyssal with Moonlit Fireflies gives 63% + 7% + 15% =
+85%. Trophy Chum gives 63% + 7% + 25% = 95% in the same complete encounter
+pool. Fihs and the Sock retain their exceptional encounter weights.
 Apply the same combined luck to each pull. Power controls whether a second pull
 occurs; it does not multiply the luck value.
 
@@ -158,7 +159,7 @@ attempts and return replayed receipts without consuming an additional charge.
 Bait is purchased from the Camp Trader. Resource bait provides materials in
 addition to the normal catch, so players can target tin or scrap for crafting.
 
-The catalog contains twelve bait types. Each resource reward applies once per
+The catalog contains thirteen bait types. Each resource reward applies once per
 accepted cast, including double pulls, and consumes one use.
 
 | Bait | Effect | Price for 10 uses |
@@ -175,20 +176,60 @@ accepted cast, including double pulls, and consumes one use.
 | Concentrated Tin Chum | +3 rusted tin per cast | 60 coins |
 | Enriched Salvage Chum | +2 scrap per cast | 100 coins |
 | Concentrated Salvage Chum | +3 scrap per cast | 150 coins |
+| Trophy Chum | All fish; best of 8 size rolls; +25% luck | 1,000 coins |
+
+### Trophy Chum
+
+Crafting catalog 5 and Trader catalog 7 introduce Trophy Chum at 1,000 coins
+per ten uses (100 coins per accepted cast). It uses the entire normal encounter
+pool, including small fish and Fihs. The Sock remains catchable but never earns
+perfect recognition. All category, species and rank selection rules remain the
+same; +25% bait luck shifts ranks normally. Eight independent size attempts
+follow within the selected species and band, keeping the heaviest; length
+breaks equal-weight ties. Each bonus pull gets eight attempts, while a cast
+consumes one use. No extra material or XP bonus applies.
+
+Gameplay rules 11 add an independent 1-in-5,000 endpoint chance to each UUR
+size attempt. A hit produces both exact maximum catchable measurements for that
+species; all other attempts sample dimensions normally. Natural perfects still
+count. Other bait and no bait receive one size attempt and the same endpoint
+chance. Fihs is eligible. The Sock's F-only band never receives the UUR roll.
+Ranks below UUR never receive it. Rules 10 retain their legacy natural RNG
+until owner activation; XP thresholds and every existing reward stay unchanged.
+
+At Prismatic Abyssal power/luck, the endpoint chance across eight attempts is
+about 1 in 625 UUR fish, before natural perfects. Actual per-accepted-cast
+perfect odds include species/rank selection, junk/treasure and the bonus pull:
+Carp about 1 in 755,569, Great Hellfin Shark 1 in 834,409 and Fihs 1 in 1,635,508.
+Any perfect Pond fish is about 1 in 272 casts; any perfect Abyssal fish about
+1 in 1,117. With Common Twig, a Pond perfect averages 812 accepted casts.
+At 25–50 casts/day, that is 16–32 days with Common Twig or 5–11 days at maximum
+gear, excluding unlocking time. There is no pity or guaranteed deadline.
+
+The bait is a premium perfect-catch option. The 50,000-fish seeded sell-all
+audit estimates net Pond coins/cast around 180 versus 243 with Fireflies at
+maximum gear, and around 6 versus 82 with Common Twig. Travel, daily rewards,
+other spending and unlocking time are excluded. Keeping fish lowers realized
+income further. The price is optional and never gates rods or licences.
+Reproduce both odds and estimated sale value with
+`node scripts/trophy-chum-audit.mjs output/balance/trophy-chum-audit.json`;
+add `--rod 1 --quality 0` for the starter-loadout report.
 
 The stronger chum tiers cost the same per guaranteed material as the originals:
 2 coins per tin and 5 coins per scrap. They accelerate targeted collection while
 spending more gold per cast and occupying the bait slot that could hold XP slime
 or luck bait. No level or additional licence gate applies. Crafting catalog 4 and
-Trader catalog 6 add these tiers; gameplay rules and XP remain version 10.
+Trader catalog 6 add these tiers; gameplay rules are now 11; the XP curve remains the rules-10 curve.
 
 ## Artwork
 
-Six purchasable biome licences and twelve bait icons are mapped in
-`content/equipment-art.json`. All twelve bait types are purchasable from the Trader;
+Six purchasable biome licences and thirteen bait icons are mapped in
+`content/equipment-art.json`. All thirteen bait types are purchasable from the Trader;
 the Tackle box shows only the actually equipped bait and its remaining uses.
 
 The original transparent PNGs are in `assets/licences/` and `assets/baits/`.
 Exact prompts are stored in `docs/licence-and-bait-art-prompts.json`,
 `docs/xp-slime-art-prompts.json`, and `docs/chum-tier-art-prompts.json`, generated
 through the built-in image tool and copied without altering pixels or alpha.
+Trophy Chum's matching transparent sprite and built-in generation prompt are
+recorded in `docs/trophy-chum-art-prompts.json`.

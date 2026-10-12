@@ -118,6 +118,26 @@ impl CatchArt {
         .await
     }
 
+    pub async fn render_perfect(
+        &self,
+        species_key: &str,
+        rarity: &str,
+    ) -> Result<Vec<u8>, ArtError> {
+        let key = format!("perfect:{species_key}:{rarity}");
+        let species_key = species_key.to_owned();
+        let rarity = rarity.to_owned();
+        self.render_cached(key, move |assets| {
+            let mut card = fish_card(assets, &species_key, &rarity)?;
+            let badge = image::open(assets.join("achievements/badge-19.png"))?.to_rgba8();
+            let size = card.width().min(card.height()) / 4;
+            let badge = imageops::resize(&badge, size, size, imageops::FilterType::Nearest);
+            let x = card.width().saturating_sub(size + 12);
+            imageops::overlay(&mut card, &badge, i64::from(x), 12);
+            encode_attachment(&card)
+        })
+        .await
+    }
+
     pub async fn render_material(&self, material: Material) -> Result<Vec<u8>, ArtError> {
         self.render_cached(format!("material:{}", material.key()), move |assets| {
             encode_attachment(&material_card(assets, material)?)
@@ -433,6 +453,23 @@ mod tests {
         assert!(art.render_material(Material::Scrap).await.is_err());
         assert!(art.cache.lock().unwrap().entries.is_empty());
         assert_eq!(art.workers.available_permits(), 2);
+    }
+
+    #[tokio::test]
+    async fn perfect_art_adds_its_badge_and_does_not_share_normal_card_cache() {
+        let assets = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets");
+        let art = CatchArt::new(&assets);
+        let normal = art.render("carp", "UUR").await.unwrap();
+        let perfect = art.render_perfect("carp", "UUR").await.unwrap();
+        assert_ne!(normal, perfect);
+        assert_eq!(art.render_perfect("carp", "UUR").await.unwrap(), perfect);
+        assert_eq!(
+            image::load_from_memory(&perfect)
+                .unwrap()
+                .to_rgba8()
+                .dimensions(),
+            (512, 768)
+        );
     }
 
     #[tokio::test]

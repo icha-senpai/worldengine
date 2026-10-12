@@ -1,6 +1,17 @@
 // Test-only controls compiled into isolated loopback proof databases.
 include!("trader-boundary.rs");
 
+#[spacetimedb::reducer]
+pub fn proof_biome_category(ctx: &ReducerContext, biome_id: u32, category: u8) -> Result<(), String> {
+    proof_owner(ctx)?;
+    let mut biome=ctx.db.biome_definition().biome_id().find(biome_id).ok_or("BIOME_UNAVAILABLE")?;
+    (biome.fish_weight,biome.junk_weight,biome.treasure_weight)=match category {
+        0=>(100,0,0),1=>(0,100,0),2=>(0,0,100),_=>(50,25,25)
+    };
+    ctx.db.biome_definition().biome_id().update(biome);
+    Ok(())
+}
+
 fn proof_owner(ctx: &ReducerContext) -> Result<(), String> {
     if ctx.db.deployment_owner().singleton().find(1).ok_or("OWNER_REQUIRED")?.identity != ctx.sender() { return Err("OWNER_REQUIRED".into()); }
     Ok(())

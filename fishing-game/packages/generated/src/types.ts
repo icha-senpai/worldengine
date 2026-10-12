@@ -131,6 +131,7 @@ export const BaitDefinition = __t.object("BaitDefinition", {
   spriteAsset: __t.string(),
   xpBonusBp: __t.u32(),
   resourceQuantity: __t.u64(),
+  sizeRolls: __t.u8(),
 });
 export type BaitDefinition = __Infer<typeof BaitDefinition>;
 
@@ -172,6 +173,7 @@ export const CastEquipmentReceipt = __t.object("CastEquipmentReceipt", {
   baitUsesLeft: __t.u64(),
   baitItem: __t.string(),
   baitQuantity: __t.u64(),
+  baitSizeRolls: __t.u8(),
 });
 export type CastEquipmentReceipt = __Infer<typeof CastEquipmentReceipt>;
 
@@ -398,6 +400,17 @@ export const OwnedSpecimen = __t.object("OwnedSpecimen", {
   sourceGuildId: __t.option(__t.u64()),
 });
 export type OwnedSpecimen = __Infer<typeof OwnedSpecimen>;
+
+export const PerfectSpecies = __t.object("PerfectSpecies", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  speciesId: __t.u32(),
+  firstCatchId: __t.u64(),
+  perfectedAt: __t.timestamp(),
+  lengthMm: __t.u32(),
+  weightG: __t.u64(),
+});
+export type PerfectSpecies = __Infer<typeof PerfectSpecies>;
 
 export const Player = __t.object("Player", {
   playerId: __t.u64(),

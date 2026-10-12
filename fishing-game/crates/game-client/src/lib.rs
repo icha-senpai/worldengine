@@ -90,6 +90,7 @@ pub struct Snapshot {
     pub achievements: Vec<AchievementDefinition>,
     pub earned_achievements: Vec<EarnedAchievement>,
     pub titles: Vec<AnglerTitle>,
+    pub perfect_species: Vec<PerfectSpecies>,
     pub baits: Vec<BaitDefinition>,
     pub qualities: Vec<QualityDefinition>,
     pub owned_baits: Vec<BaitStack>,
@@ -170,7 +171,7 @@ impl Client {
                 let error = connected.clone();
                 let mut queries = vec!["SELECT * FROM my_service"];
                 if role == ServiceRole::DiscordAdapter {
-                    queries.extend(["SELECT * FROM public_profile", "SELECT * FROM angler_standing", "SELECT * FROM angler_statistics", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
+                    queries.extend(["SELECT * FROM public_profile", "SELECT * FROM angler_standing", "SELECT * FROM angler_statistics", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM perfect_species", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
                     queries.extend(["SELECT * FROM bait_definition", "SELECT * FROM quality_definition", "SELECT * FROM adapter_baits", "SELECT * FROM adapter_bait_loadout", "SELECT * FROM adapter_items", "SELECT * FROM adapter_cast_pulls", "SELECT * FROM adapter_cast_equipment", "SELECT * FROM adapter_upgrade_quote", "SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
                         "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_bonuses", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
                 }
@@ -697,6 +698,7 @@ impl Client {
             achievements: connection.db.achievement_definition().iter().collect(),
             earned_achievements: connection.db.earned_achievement().iter().collect(),
             titles: connection.db.angler_title().iter().collect(),
+            perfect_species: connection.db.perfect_species().iter().collect(),
             baits: connection.db.bait_definition().iter().collect(),
             qualities: connection.db.quality_definition().iter().collect(),
             owned_baits: connection.db.adapter_baits().iter().collect(),

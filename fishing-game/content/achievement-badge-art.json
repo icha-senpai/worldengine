@@ -169,6 +169,15 @@
       "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: The lost sock. Meaning: Discover Nidalees Lost Sock. A bonus outside ordinary completion.\nCentral emblem: one comically worn lost wool sock dangling from a fishing hook, a small gold star, plum-purple and cream. Do not write the achievement name or any rank text into the image."
     },
     {
+      "achievementId": 19,
+      "key": "badge-19",
+      "name": "Perfect catch",
+      "title": "Perfect Angler",
+      "batch": "milestones-and-bonuses",
+      "url": "/achievements/badge-19.png",
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Perfect catch. Meaning: exact maximum length and weight on the same fish. Central emblem: radiant pearl-white and gold fish beneath one large four-point star; gold medallion rim, deep plum field, royal-purple ribbon tails. Style reference: badge-10.png."
+    },
+    {
       "achievementId": 22,
       "key": "badge-22",
       "name": "Whispering River collection",

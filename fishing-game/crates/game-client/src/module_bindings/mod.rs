@@ -14,6 +14,7 @@ pub mod achievement_progress_type;
 pub mod action_nonce_type;
 pub mod activate_achievements_reducer;
 pub mod activate_crafting_reducer;
+pub mod activate_perfect_catches_reducer;
 pub mod activate_rod_bonuses_reducer;
 pub mod activate_species_measurements_reducer;
 pub mod activate_trader_reducer;
@@ -113,6 +114,8 @@ pub mod my_upgrade_quote_table;
 pub mod owned_biome_licence_type;
 pub mod owned_rod_type;
 pub mod owned_specimen_type;
+pub mod perfect_species_table;
+pub mod perfect_species_type;
 pub mod player_identity_type;
 pub mod player_species_progress_type;
 pub mod player_type;
@@ -165,6 +168,7 @@ pub use achievement_progress_type::AchievementProgress;
 pub use action_nonce_type::ActionNonce;
 pub use activate_achievements_reducer::activate_achievements;
 pub use activate_crafting_reducer::activate_crafting;
+pub use activate_perfect_catches_reducer::activate_perfect_catches;
 pub use activate_rod_bonuses_reducer::activate_rod_bonuses;
 pub use activate_species_measurements_reducer::activate_species_measurements;
 pub use activate_trader_reducer::activate_trader;
@@ -264,6 +268,8 @@ pub use my_upgrade_quote_table::*;
 pub use owned_biome_licence_type::OwnedBiomeLicence;
 pub use owned_rod_type::OwnedRod;
 pub use owned_specimen_type::OwnedSpecimen;
+pub use perfect_species_table::*;
+pub use perfect_species_type::PerfectSpecies;
 pub use player_identity_type::PlayerIdentity;
 pub use player_species_progress_type::PlayerSpeciesProgress;
 pub use player_type::Player;
@@ -318,6 +324,7 @@ pub use upgrade_quote_type::UpgradeQuote;
 pub enum Reducer {
     ActivateAchievements,
     ActivateCrafting,
+    ActivatePerfectCatches,
     ActivateRodBonuses,
     ActivateSpeciesMeasurements,
     ActivateTrader {
@@ -468,6 +475,7 @@ impl __sdk::Reducer for Reducer {
         match self {
             Reducer::ActivateAchievements => "activate_achievements",
             Reducer::ActivateCrafting => "activate_crafting",
+            Reducer::ActivatePerfectCatches => "activate_perfect_catches",
             Reducer::ActivateRodBonuses => "activate_rod_bonuses",
             Reducer::ActivateSpeciesMeasurements => "activate_species_measurements",
             Reducer::ActivateTrader { .. } => "activate_trader",
@@ -517,6 +525,9 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateCrafting => {
                 __sats::bsatn::to_vec(&activate_crafting_reducer::ActivateCraftingArgs {})
             }
+            Reducer::ActivatePerfectCatches => __sats::bsatn::to_vec(
+                &activate_perfect_catches_reducer::ActivatePerfectCatchesArgs {},
+            ),
             Reducer::ActivateRodBonuses => {
                 __sats::bsatn::to_vec(&activate_rod_bonuses_reducer::ActivateRodBonusesArgs {})
             }
@@ -842,6 +853,7 @@ pub struct DbUpdate {
     my_service: __sdk::TableUpdate<ServicePrincipal>,
     my_shop_quote: __sdk::TableUpdate<ShopQuote>,
     my_upgrade_quote: __sdk::TableUpdate<UpgradeQuote>,
+    perfect_species: __sdk::TableUpdate<PerfectSpecies>,
     public_profile: __sdk::TableUpdate<PublicProfile>,
     quality_definition: __sdk::TableUpdate<QualityDefinition>,
     rarity_definition: __sdk::TableUpdate<RarityDefinition>,
@@ -995,6 +1007,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_upgrade_quote" => db_update
                     .my_upgrade_quote
                     .append(my_upgrade_quote_table::parse_table_update(table_update)?),
+                "perfect_species" => db_update
+                    .perfect_species
+                    .append(perfect_species_table::parse_table_update(table_update)?),
                 "public_profile" => db_update
                     .public_profile
                     .append(public_profile_table::parse_table_update(table_update)?),
@@ -1092,6 +1107,9 @@ impl __sdk::DbUpdate for DbUpdate {
             .with_updates_by_pk(|row| &row.version);
         diff.legendary_find = cache
             .apply_diff_to_table::<LegendaryFind>("legendary_find", &self.legendary_find)
+            .with_updates_by_pk(|row| &row.key);
+        diff.perfect_species = cache
+            .apply_diff_to_table::<PerfectSpecies>("perfect_species", &self.perfect_species)
             .with_updates_by_pk(|row| &row.key);
         diff.public_profile = cache
             .apply_diff_to_table::<PublicProfile>("public_profile", &self.public_profile)
@@ -1347,6 +1365,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_upgrade_quote" => db_update
                     .my_upgrade_quote
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "perfect_species" => db_update
+                    .perfect_species
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "public_profile" => db_update
                     .public_profile
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -1525,6 +1546,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_upgrade_quote" => db_update
                     .my_upgrade_quote
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "perfect_species" => db_update
+                    .perfect_species
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "public_profile" => db_update
                     .public_profile
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1615,6 +1639,7 @@ pub struct AppliedDiff<'r> {
     my_service: __sdk::TableAppliedDiff<'r, ServicePrincipal>,
     my_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
     my_upgrade_quote: __sdk::TableAppliedDiff<'r, UpgradeQuote>,
+    perfect_species: __sdk::TableAppliedDiff<'r, PerfectSpecies>,
     public_profile: __sdk::TableAppliedDiff<'r, PublicProfile>,
     quality_definition: __sdk::TableAppliedDiff<'r, QualityDefinition>,
     rarity_definition: __sdk::TableAppliedDiff<'r, RarityDefinition>,
@@ -1825,6 +1850,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<UpgradeQuote>(
             "my_upgrade_quote",
             &self.my_upgrade_quote,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<PerfectSpecies>(
+            "perfect_species",
+            &self.perfect_species,
             event,
         );
         callbacks.invoke_table_row_callbacks::<PublicProfile>(
@@ -2578,6 +2608,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_service_table::register_table(client_cache);
         my_shop_quote_table::register_table(client_cache);
         my_upgrade_quote_table::register_table(client_cache);
+        perfect_species_table::register_table(client_cache);
         public_profile_table::register_table(client_cache);
         quality_definition_table::register_table(client_cache);
         rarity_definition_table::register_table(client_cache);
@@ -2635,6 +2666,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_service",
         "my_shop_quote",
         "my_upgrade_quote",
+        "perfect_species",
         "public_profile",
         "quality_definition",
         "rarity_definition",

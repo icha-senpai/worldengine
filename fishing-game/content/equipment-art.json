@@ -98,6 +98,11 @@
       "key": "scrap-chum-plus-3",
       "name": "Concentrated Salvage Chum",
       "spriteAsset": "/baits/scrap-chum-plus-3.png"
+    },
+    {
+      "key": "trophy-chum",
+      "name": "Trophy Chum",
+      "spriteAsset": "/baits/trophy-chum.png"
     }
   ]
 }

@@ -34,6 +34,15 @@ avoid triggering another integration; it is not a bot prefix or alias.
 Use buttons, selects, and website links for follow-up actions where they keep
 commands short. Separate `/buy` and `/equip` commands are not needed for launch.
 
+The shared green Fish again button casts for the member who clicks it. Successful
+button casts post a fresh channel message headed with that member's mention,
+without a reply link to the previous bot catch. The bot remains the message
+author. Both rich cards and the plain-text fallback keep the clickable button;
+the member's mention is displayed without sending a ping. Cooldown and rejected
+casts remain private. An enforced interaction nonce prevents duplicate catch
+posts on short delivery retries. If both public deliveries fail, the clicker
+receives a private notice that their cast is saved and available in inventory.
+
 ## Implementation order
 
 1. Complete the Phase 0 database, identity, service-role, receipt, and reconnect

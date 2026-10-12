@@ -23,7 +23,7 @@
 
 <dialog bind:this={dialog} aria-labelledby="badge-details-title" onclose={() => badge = null} oncancel={() => badge = null} onpointerdown={dismissBackdrop}>
   {#if badge}
-    <header><div><p class="eyebrow">{badge.bonus ? 'BONUS DISCOVERY' : 'ACHIEVEMENT MEDAL'} · {earned ? 'EARNED' : 'STILL TO EARN'}</p><h2 id="badge-details-title">{badge.name}</h2></div><button class="close" onclick={() => badge = null} aria-label="Close badge preview">✕</button></header>
+    <header><div><p class="eyebrow">{badge.bonus ? 'BONUS BADGE' : 'ACHIEVEMENT MEDAL'} · {earned ? 'EARNED' : 'STILL TO EARN'}</p><h2 id="badge-details-title">{badge.name}</h2></div><button class="close" onclick={() => badge = null} aria-label="Close badge preview">✕</button></header>
     <div class="contents">
       <div class="art"><img src={asset} alt={badge.name + ' badge'} decoding="async" /></div>
       <p class="description">{badge.description}</p>

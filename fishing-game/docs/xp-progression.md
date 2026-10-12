@@ -60,9 +60,9 @@ Both the Trader and Tackle Box consume the real sprites and server metadata.
 Append `bait_definition.xp_bonus_bp` with default zero, regenerate both bindings,
 rebuild native services, and publish with `--delete-data=never`. SpaceTimeDB
 [supports appended columns with defaults](https://spacetimedb.com/docs/tables/default-values/).
-The owner-only, idempotent `activate_xp_progression` reducer seeds eight bait
-definitions, rod bases/bonuses, qualities, 42 family recipes, and twenty shop offers, inserts
-current rules version 10 with cap 120, and
+The owner-only, idempotent `activate_xp_progression` reducer seeds the current bait catalog
+definitions, rod bases/bonuses, qualities, 42 family recipes, and 25 shop offers, inserts
+current rules version 11 with cap 120 (the same rules-10 XP curve), and
 refreshes public profile levels from stored XP. It never changes player XP,
 wallets, bait stacks, owned rod quality levels, catches, history, records or cooldowns.
 

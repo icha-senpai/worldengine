@@ -20,6 +20,25 @@ pub fn components() -> Vec<serenity::CreateActionRow> {
     ])]
 }
 
+pub fn attributed_content(clicking_user_id: u64, content: &str) -> String {
+    format!("🎣 <@{clicking_user_id}> went fishing.\n{content}")
+}
+
+/// A normal channel post has no component-reply link to the previous bot catch.
+/// The same nonce also prevents a lost delivery acknowledgement duplicating it.
+pub fn public_message(
+    reply: poise::CreateReply,
+    source: serenity::MessageReference,
+    interaction_id: u64,
+) -> serenity::CreateMessage {
+    reply
+        .reply(false)
+        .to_prefix(source)
+        .allowed_mentions(serenity::CreateAllowedMentions::new())
+        .nonce(serenity::Nonce::String(format!("f{interaction_id}")))
+        .enforce_nonce(true)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -49,5 +68,42 @@ mod tests {
         assert_eq!(button["style"], 3);
         assert_eq!(button["emoji"]["name"], "🎣");
         assert_ne!(button["disabled"], true);
+    }
+
+    #[test]
+    fn fresh_catch_names_the_clicker_without_replying_to_the_previous_bot_message() {
+        let source = serenity::MessageReference::from((
+            serenity::ChannelId::new(42),
+            serenity::MessageId::new(777),
+        ));
+        for user in [123, 456] {
+            let message = public_message(
+                poise::CreateReply::new()
+                    .content(attributed_content(user, "Carp · +25 XP"))
+                    .embed(serenity::CreateEmbed::new().title("Carp"))
+                    .components(components())
+                    .reply(true),
+                source.clone(),
+                991,
+            );
+            let payload = serde_json::to_value(message).unwrap();
+            assert_eq!(
+                payload["content"],
+                format!("🎣 <@{user}> went fishing.\nCarp · +25 XP")
+            );
+            assert!(
+                payload
+                    .get("message_reference")
+                    .is_none_or(|reference| reference.is_null())
+            );
+            assert_eq!(payload["allowed_mentions"]["parse"], serde_json::json!([]));
+            assert_eq!(payload["embeds"][0]["title"], "Carp");
+            assert_eq!(
+                payload["components"][0]["components"][0]["custom_id"],
+                CUSTOM_ID
+            );
+            assert_eq!(payload["nonce"], "f991");
+            assert_eq!(payload["enforce_nonce"], true);
+        }
     }
 }

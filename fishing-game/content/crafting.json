@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "qualities": [
     {
       "qualityLevel": 0,
@@ -76,7 +76,8 @@
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/sticky-chum.png",
       "xpBonusBp": 0,
-      "resourceQuantity": 1
+      "resourceQuantity": 1,
+      "sizeRolls": 1
     },
     {
       "baitId": 2,
@@ -88,7 +89,8 @@
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/salvage-chum.png",
       "xpBonusBp": 0,
-      "resourceQuantity": 1
+      "resourceQuantity": 1,
+      "sizeRolls": 1
     },
     {
       "baitId": 3,
@@ -100,7 +102,8 @@
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/plump-worms.png",
       "xpBonusBp": 0,
-      "resourceQuantity": 0
+      "resourceQuantity": 0,
+      "sizeRolls": 1
     },
     {
       "baitId": 4,
@@ -112,7 +115,8 @@
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/river-grubs.png",
       "xpBonusBp": 0,
-      "resourceQuantity": 0
+      "resourceQuantity": 0,
+      "sizeRolls": 1
     },
     {
       "baitId": 5,
@@ -124,7 +128,8 @@
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/moonlit-fireflies.png",
       "xpBonusBp": 0,
-      "resourceQuantity": 0
+      "resourceQuantity": 0,
+      "sizeRolls": 1
     },
     {
       "baitId": 6,
@@ -136,7 +141,8 @@
       "resourceItem": "",
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/green-slime.png",
-      "resourceQuantity": 0
+      "resourceQuantity": 0,
+      "sizeRolls": 1
     },
     {
       "baitId": 7,
@@ -148,7 +154,8 @@
       "resourceItem": "",
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/yellow-slime.png",
-      "resourceQuantity": 0
+      "resourceQuantity": 0,
+      "sizeRolls": 1
     },
     {
       "baitId": 8,
@@ -160,7 +167,8 @@
       "resourceItem": "",
       "usesPerPurchase": 10,
       "spriteAsset": "/baits/pink-slime.png",
-      "resourceQuantity": 0
+      "resourceQuantity": 0,
+      "sizeRolls": 1
     },
     {
       "baitId": 9,
@@ -172,7 +180,8 @@
       "luckBp": 0,
       "xpBonusBp": 0,
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/tin-chum-plus-2.png"
+      "spriteAsset": "/baits/tin-chum-plus-2.png",
+      "sizeRolls": 1
     },
     {
       "baitId": 10,
@@ -184,7 +193,8 @@
       "luckBp": 0,
       "xpBonusBp": 0,
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/tin-chum-plus-3.png"
+      "spriteAsset": "/baits/tin-chum-plus-3.png",
+      "sizeRolls": 1
     },
     {
       "baitId": 11,
@@ -196,7 +206,8 @@
       "luckBp": 0,
       "xpBonusBp": 0,
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/scrap-chum-plus-2.png"
+      "spriteAsset": "/baits/scrap-chum-plus-2.png",
+      "sizeRolls": 1
     },
     {
       "baitId": 12,
@@ -208,7 +219,21 @@
       "luckBp": 0,
       "xpBonusBp": 0,
       "usesPerPurchase": 10,
-      "spriteAsset": "/baits/scrap-chum-plus-3.png"
+      "spriteAsset": "/baits/scrap-chum-plus-3.png",
+      "sizeRolls": 1
+    },
+    {
+      "baitId": 13,
+      "key": "trophy-chum",
+      "name": "Trophy Chum",
+      "priceCoins": 1000,
+      "luckBp": 2500,
+      "xpBonusBp": 0,
+      "resourceItem": "",
+      "resourceQuantity": 0,
+      "sizeRolls": 8,
+      "usesPerPurchase": 10,
+      "spriteAsset": "/baits/trophy-chum.png"
     }
   ],
   "rodRecipes": [

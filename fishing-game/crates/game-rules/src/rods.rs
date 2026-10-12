@@ -1,6 +1,6 @@
 //! Shared equipment math for independent mixed pulls and graded rank luck.
 pub fn luck_weights(tickets: &[(u64, u8)], luck_bp: u32) -> Result<Vec<u64>, String> {
-    if luck_bp > 8_500 || tickets.iter().any(|(_, score)| *score > 9) {
+    if luck_bp > 9_500 || tickets.iter().any(|(_, score)| *score > 9) {
         return Err("INVALID_ROD_LUCK".into());
     }
     let total = tickets
@@ -147,7 +147,7 @@ mod tests {
             }
         }
         assert!(luck_weights(&[(1, 9)], 8500).is_err());
-        assert!(luck_weights(&[(1, 0), (1, 9)], 8501).is_err());
+        assert!(luck_weights(&[(1, 0), (1, 9)], 9501).is_err());
         assert!(luck_weights(&[(1, 10)], 0).is_err());
     }
 }

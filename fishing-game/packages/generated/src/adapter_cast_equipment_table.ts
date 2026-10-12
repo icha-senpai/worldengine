@@ -22,4 +22,5 @@ export default __t.row({
   baitUsesLeft: __t.u64().name("bait_uses_left"),
   baitItem: __t.string().name("bait_item"),
   baitQuantity: __t.u64().name("bait_quantity"),
+  baitSizeRolls: __t.u8().name("bait_size_rolls"),
 });

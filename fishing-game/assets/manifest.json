@@ -2326,6 +2326,14 @@
       "sha256": "de0a3bb79bacfce648cf811c23f91ad41dbe263d11b6edba1fdbcc6b8494f20f"
     },
     {
+      "key": "trophy-chum",
+      "url": "/baits/trophy-chum.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1221871,
+      "sha256": "df74e0b4bd0a73dcc5086785867ee67c01e2a675408935d04d9b39f5922db87c"
+    },
+    {
       "key": "yellow-slime",
       "url": "/baits/yellow-slime.png",
       "width": 1254,
@@ -2974,6 +2982,14 @@
       "height": 1254,
       "bytes": 1075936,
       "sha256": "bd50dc8674e602673e4718828a9e602435a03197f4e7e2044d68bf68216c6143"
+    },
+    {
+      "key": "badge-19",
+      "url": "/achievements/badge-19.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1085141,
+      "sha256": "e23eeb2e87b1e246c4829c3befd6bb76cb2e6a8254c16de606801bb84df5a702"
     },
     {
       "key": "badge-2",
