@@ -180,6 +180,23 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
             return reply(ctx, rejection(&error)).await;
         }
     };
+    let response = catch_reply(ctx.data(), &result).await?;
+    match send_reply(ctx, response.rich).await {
+        Ok(_) => Ok(()),
+        Err(error) => {
+            tracing::warn!(%error, "Catch card delivery failed");
+            send_reply(ctx, response.fallback).await?;
+            Ok(())
+        }
+    }
+}
+
+struct CatchReply {
+    rich: poise::CreateReply,
+    fallback: poise::CreateReply,
+}
+
+async fn catch_reply(data: &Data, result: &Snapshot) -> Result<CatchReply, Error> {
     let receipt = result
         .receipt
         .as_ref()
@@ -216,12 +233,7 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
                     .title(&species.name)
                     .description(description)
                     .color(rank_color(&pull.rarity));
-                match ctx
-                    .data()
-                    .catch_art
-                    .render(&species.key, &pull.rarity)
-                    .await
-                {
+                match data.catch_art.render(&species.key, &pull.rarity).await {
                     Ok(png) => {
                         let filename =
                             format!("catch-{}-{}-{}.png", index + 1, species.key, pull.rarity);
@@ -238,7 +250,7 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
             "junk" => {
                 lines.push(format!("Rusted tin · +{} XP", pull.xp_granted));
                 response = material_card(
-                    ctx,
+                    data,
                     response,
                     serenity::CreateEmbed::new()
                         .title("Rusted tin")
@@ -254,7 +266,7 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
                     pull.coins_granted, pull.item_quantity, pull.xp_granted
                 ));
                 response = material_card(
-                    ctx,
+                    data,
                     response,
                     serenity::CreateEmbed::new()
                         .title("Treasure cache")
@@ -340,25 +352,26 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
     summary.push_str(&format!(
         "\nNext cast <t:{}:R> · [Your collection]({})",
         (receipt.caught_at.to_micros_since_unix_epoch() + 60_000_000) / 1_000_000,
-        ctx.data().website
+        data.website
     ));
-    match send_reply(ctx, response.content(&summary)).await {
-        Ok(_) => Ok(()),
-        Err(error) => {
-            tracing::warn!(%error, "Catch card delivery failed");
-            reply(ctx, format!("{}\n{}", lines.join("\n"), summary)).await
-        }
-    }
+    let components = discord_bot::fish_again::components();
+    Ok(CatchReply {
+        rich: response.content(&summary).components(components.clone()),
+        fallback: poise::CreateReply::default()
+            .content(format!("{}\n{}", lines.join("\n"), summary))
+            .components(components)
+            .allowed_mentions(serenity::CreateAllowedMentions::new()),
+    })
 }
 
 async fn material_card(
-    ctx: Context<'_>,
+    data: &Data,
     response: poise::CreateReply,
     embed: serenity::CreateEmbed,
     material: Material,
     filename: String,
 ) -> poise::CreateReply {
-    match ctx.data().catch_art.render_material(material).await {
+    match data.catch_art.render_material(material).await {
         Ok(png) => response
             .embed(embed.image(format!("attachment://{filename}")))
             .attachment(serenity::CreateAttachment::bytes(png, filename)),
@@ -367,6 +380,147 @@ async fn material_card(
             response.embed(embed)
         }
     }
+}
+
+async fn handle_event(
+    framework: poise::FrameworkContext<'_, Data, Error>,
+    event: &serenity::FullEvent,
+) -> Result<(), Error> {
+    let serenity::FullEvent::InteractionCreate {
+        interaction: serenity::Interaction::Component(interaction),
+    } = event
+    else {
+        return Ok(());
+    };
+    if interaction.message.author.id != framework.bot_id()
+        || !interaction
+            .data
+            .custom_id
+            .starts_with(discord_bot::fish_again::PREFIX)
+    {
+        return Ok(());
+    }
+    if let Err(error) =
+        fish_again(framework.serenity_context, interaction, framework.user_data).await
+    {
+        tracing::warn!(%error, interaction_id=interaction.id.get(), "Fish again unavailable");
+        let _ = interaction
+            .create_followup(
+                framework.serenity_context,
+                serenity::CreateInteractionResponseFollowup::new()
+                    .content(rejection(&error))
+                    .ephemeral(true)
+                    .allowed_mentions(serenity::CreateAllowedMentions::new()),
+            )
+            .await;
+    }
+    Ok(())
+}
+
+async fn fish_again(
+    ctx: &serenity::Context,
+    interaction: &serenity::ComponentInteraction,
+    data: &Data,
+) -> Result<(), Error> {
+    let user_id = match discord_bot::fish_again::caster(
+        &interaction.data.custom_id,
+        interaction.user.id.get(),
+    ) {
+        Ok(user_id) => user_id,
+        Err(message) => {
+            interaction
+                .create_response(
+                    ctx,
+                    serenity::CreateInteractionResponse::Message(
+                        serenity::CreateInteractionResponseMessage::new()
+                            .content(message)
+                            .ephemeral(true)
+                            .allowed_mentions(serenity::CreateAllowedMentions::new()),
+                    ),
+                )
+                .await?;
+            return Ok(());
+        }
+    };
+    // Acknowledge the click without editing the existing catch or its button.
+    interaction
+        .create_response(ctx, serenity::CreateInteractionResponse::Acknowledge)
+        .await?;
+    let started = Instant::now();
+    data.achievement_notifications.record_channel(
+        user_id,
+        interaction.channel_id.get(),
+        data.game.known_player_id(user_id),
+    );
+    let result = {
+        let _permit = data
+            .pending
+            .try_acquire()
+            .map_err(|_| "The pond is busy; try again shortly")?;
+        data.game
+            .player(
+                user_id,
+                interaction.user.name.clone(),
+                interaction.id.get(),
+                interaction.guild_id.map(|id| id.get()),
+                interaction.channel_id.get(),
+                true,
+            )
+            .await
+    };
+    let result = match result {
+        Ok(result) => result,
+        Err(error) => {
+            tracing::warn!(%error, interaction_id=interaction.id.get(), "Fish again rejected or unavailable");
+            interaction
+                .create_followup(
+                    ctx,
+                    serenity::CreateInteractionResponseFollowup::new()
+                        .content(rejection(&error))
+                        .ephemeral(true)
+                        .allowed_mentions(serenity::CreateAllowedMentions::new()),
+                )
+                .await?;
+            return Ok(());
+        }
+    };
+    data.achievement_notifications
+        .remember_player(user_id, Some(result.player.player_id))
+        .await;
+    if let Err(error) = data
+        .game
+        .sync_portrait(
+            user_id,
+            interaction.user.avatar.map(|hash| hash.to_string()),
+            interaction
+                .user
+                .discriminator
+                .map_or(0, |value| value.get()),
+        )
+        .await
+    {
+        tracing::warn!(%error, "Discord portrait refresh unavailable");
+    }
+    let response = catch_reply(data, &result).await?;
+    let public = serenity::CreateInteractionResponseFollowup::new().ephemeral(false);
+    if let Err(error) = interaction
+        .create_followup(
+            ctx,
+            response.rich.to_slash_followup_response(public.clone()),
+        )
+        .await
+    {
+        tracing::warn!(%error, "Fish again catch card delivery failed");
+        interaction
+            .create_followup(ctx, response.fallback.to_slash_followup_response(public))
+            .await?;
+    }
+    tracing::info!(
+        interaction_id = interaction.id.get(),
+        elapsed_ms = started.elapsed().as_millis() as u64,
+        "Fish again complete"
+    );
+    Ok(())
 }
 
 /// Collect your Dockside Delivery. Every seventh delivery includes a coin bonus.
@@ -1505,7 +1659,7 @@ async fn help(ctx: Context<'_>) -> Result<(), Error> {
         .collect::<Vec<_>>()
         .join("\n");
     let commands = format!(
-        "/fish — cast every 60 seconds\n/daily — Dockside Delivery and stamp bonus\n/profile [player_id] — your progression or a public angler profile\n/inventory — catches and IDs\n/sell [catch_ids] — preview and confirm fish sales\n/leaderboard [category] [page] [species_id] — standings or species records\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — equip owned rods\n/rod [rod_id] — show off an owned rod in the channel\n/shop [item_id] — licences, rods and bait packs\n/bait [bait_id] — equip bait; 0 removes bait\n/upgrade [rod_id] — craft permanent rod quality\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, confirm sales, and choose earned titles in Achievements. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.",
+        "/fish — cast every 60 seconds, or click Fish again beneath your catch\n/daily — Dockside Delivery and stamp bonus\n/profile [player_id] — your progression or a public angler profile\n/inventory — catches and IDs\n/sell [catch_ids] — preview and confirm fish sales\n/leaderboard [category] [page] [species_id] — standings or species records\n/collection — discoveries by biome\n/biome [biome_id] — destinations and travel\n/gear [rod_id] — equip owned rods\n/rod [rod_id] — show off an owned rod in the channel\n/shop [item_id] — licences, rods and bait packs\n/bait [bait_id] — equip bait; 0 removes bait\n/upgrade [rod_id] — craft permanent rod quality\n/help — this guide\n\n251 species across seven biomes. Link Discord on [the website]({}) to see your catches live, travel, equip rods, favorite catches, confirm sales, and choose earned titles in Achievements. Selling keeps discoveries and records. Ordinary ranks F through UUR come from species-relative length and weight; both must meet the minimum. Fihs is UUR-only; the Sock F-only. Both are bonus discoveries.",
         ctx.data().website
     );
     send_reply(ctx,
@@ -1574,6 +1728,7 @@ async fn main() -> Result<(), Error> {
     guilds.dedup();
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
+            event_handler: |framework, event| Box::pin(handle_event(framework, event)),
             commands: vec![
                 fish(),
                 daily(),

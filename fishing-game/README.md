@@ -27,6 +27,12 @@ connects. Command delivery and the complete OAuth login still need live verifica
 - One game shell with Camp, Tackle box, Collection, Journal, World map, Records,
   Trader, Compendium, Achievements and Anglers tabs. Lists have book pages: twelve entries on desktop and four on phones.
 - Fourteen Poise handlers: /fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /upgrade, /help.
+- Catch replies include a static green **🎣 Fish again** button anyone can use.
+  Each click casts for the clicking angler, using their own gear, bait, rewards and
+  cooldown. Each click sends a fresh cast interaction through the same
+  authoritative cooldown/replay path as `/fish`; early clicks get a private
+  cooldown reply. Successful clicks post a new catch with another button.
+  No timer edits or per-message collectors run, so buttons survive bot restarts.
   Fish responses attach a rarity-card PNG for each saved fish, including bonus pulls.
   Rusted tin and treasure scrap pulls attach their original sprites on a matching salvage card.
   `/rod` publicly showcases an owned rod with a generated display card, its quality, and effective bonuses.
