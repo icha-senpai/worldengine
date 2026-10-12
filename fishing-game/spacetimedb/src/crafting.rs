@@ -146,26 +146,32 @@ pub fn activate_crafting(ctx: &ReducerContext) -> Result<(), String> {
     Ok(())
 }
 
-pub fn grant_bait(ctx: &ReducerContext, player_id: u64, bait_id: u32) -> Result<(), String> {
+pub fn grant_bait(
+    ctx: &ReducerContext,
+    player_id: u64,
+    bait_id: u32,
+    quantity: u32,
+) -> Result<(), String> {
     let bait = ctx
         .db
         .bait_definition()
         .bait_id()
         .find(bait_id)
         .ok_or("BAIT_UNAVAILABLE")?;
+    let uses = bait
+        .uses_per_purchase
+        .checked_mul(u64::from(quantity))
+        .ok_or("ITEM_OVERFLOW")?;
     let key = u128::from(player_id) << 32 | u128::from(bait_id);
     if let Some(mut row) = ctx.db.bait_stack().key().find(key) {
-        row.uses_left = row
-            .uses_left
-            .checked_add(bait.uses_per_purchase)
-            .ok_or("ITEM_OVERFLOW")?;
+        row.uses_left = row.uses_left.checked_add(uses).ok_or("ITEM_OVERFLOW")?;
         ctx.db.bait_stack().key().update(row);
     } else {
         ctx.db.bait_stack().insert(BaitStack {
             key,
             player_id,
             bait_id,
-            uses_left: bait.uses_per_purchase,
+            uses_left: uses,
         });
     }
     Ok(())

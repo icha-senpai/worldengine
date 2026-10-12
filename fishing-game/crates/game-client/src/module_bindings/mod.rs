@@ -64,6 +64,7 @@ pub mod commit_inventory_action_reducer;
 pub mod commit_rod_upgrade_reducer;
 pub mod commit_sale_from_discord_reducer;
 pub mod commit_shop_from_discord_reducer;
+pub mod commit_shop_purchase_quantity_reducer;
 pub mod commit_shop_purchase_reducer;
 pub mod commit_upgrade_from_discord_reducer;
 pub mod complete_account_link_reducer;
@@ -218,6 +219,7 @@ pub use commit_inventory_action_reducer::commit_inventory_action;
 pub use commit_rod_upgrade_reducer::commit_rod_upgrade;
 pub use commit_sale_from_discord_reducer::commit_sale_from_discord;
 pub use commit_shop_from_discord_reducer::commit_shop_from_discord;
+pub use commit_shop_purchase_quantity_reducer::commit_shop_purchase_quantity;
 pub use commit_shop_purchase_reducer::commit_shop_purchase;
 pub use commit_upgrade_from_discord_reducer::commit_upgrade_from_discord;
 pub use complete_account_link_reducer::complete_account_link;
@@ -371,6 +373,10 @@ pub enum Reducer {
     CommitShopPurchase {
         nonce: u128,
     },
+    CommitShopPurchaseQuantity {
+        nonce: u128,
+        quantity: u32,
+    },
     CommitUpgradeFromDiscord {
         discord_user_id: u64,
         interaction_id: u64,
@@ -492,6 +498,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::CommitSaleFromDiscord { .. } => "commit_sale_from_discord",
             Reducer::CommitShopFromDiscord { .. } => "commit_shop_from_discord",
             Reducer::CommitShopPurchase { .. } => "commit_shop_purchase",
+            Reducer::CommitShopPurchaseQuantity { .. } => "commit_shop_purchase_quantity",
             Reducer::CommitUpgradeFromDiscord { .. } => "commit_upgrade_from_discord",
             Reducer::CompleteAccountLink { .. } => "complete_account_link",
             Reducer::ConfigureService { .. } => "configure_service",
@@ -619,6 +626,12 @@ impl __sdk::Reducer for Reducer {
                     nonce: nonce.clone(),
                 })
             }
+            Reducer::CommitShopPurchaseQuantity { nonce, quantity } => __sats::bsatn::to_vec(
+                &commit_shop_purchase_quantity_reducer::CommitShopPurchaseQuantityArgs {
+                    nonce: nonce.clone(),
+                    quantity: quantity.clone(),
+                },
+            ),
             Reducer::CommitUpgradeFromDiscord {
                 discord_user_id,
                 interaction_id,

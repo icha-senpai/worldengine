@@ -219,7 +219,7 @@ export class Game {
         : message.includes('BAIT_NOT_OWNED') ? 'Buy bait at the Trader before equipping it.'
         : message.includes('INSUFFICIENT_COINS') ? 'Your coin pouch is a little short. Sell catches or collect /daily, then visit the trader again.'
         : message.includes('ALREADY_OWNED') ? 'You already own this. Your collection of gear has refreshed.'
-        : message.includes('QUOTE_CHANGED') ? 'This offer changed. Review a fresh purchase or upgrade preview.'
+        : message.includes('QUOTE_CHANGED') ? 'This offer changed. Check the updated price and try again.'
         : message.includes('PREVIOUS_LICENCE_REQUIRED') ? 'Buy the previous biome licence before continuing your journey.'
         : message.includes('BIOME_LICENCE_REQUIRED') ? 'Visit the camp trader for this biome licence first.'
         : message.includes('ROD_NOT_OWNED') ? 'Buy that rod from the camp trader before equipping it.'
@@ -241,6 +241,19 @@ export class Game {
     await this.run(connection => connection.reducers.changeLoadout({ biomeId, rodId }));
   }
   async previewPurchase(listingId: number) { await this.run(connection => connection.reducers.prepareShopPurchase({ listingId })); }
+  async purchase(listingId: number, quantity = 1) {
+    if (!this.ready || !this.connection || this.busy) return false;
+    const listing = this.listings.find(row => row.listingId === listingId);
+    if (!listing) { this.error = 'That item is no longer available. Check the trader again.'; return false; }
+    await this.run(async connection => {
+      await connection.reducers.prepareShopPurchase({ listingId });
+      const quote = [...connection.db.myShopQuote.iter()].find(row => row.listingId === listingId && !row.consumed);
+      if (!quote) throw new Error('ACTION_NOT_FOUND');
+      if (quote.quotedCoins !== listing.priceCoins || quote.catalogVersion !== listing.catalogVersion) throw new Error('QUOTE_CHANGED');
+      await connection.reducers.commitShopPurchaseQuantity({ nonce: quote.nonce, quantity });
+    });
+    return !this.error;
+  }
   async equipBait(baitId: number) { await this.run(connection => connection.reducers.equipBait({ baitId })); }
   async equipTitle(achievementId: number) { await this.run(connection => connection.reducers.equipTitle({ achievementId })); }
   async previewUpgrade(rodId: number) { await this.run(connection => connection.reducers.prepareRodUpgrade({ rodId })); }

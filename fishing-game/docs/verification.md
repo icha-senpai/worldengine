@@ -992,3 +992,50 @@ coins or fish.
   owner SQL, preserving exact 64-bit Discord IDs. Public production assets
   contain the clickable badge and preview dialog; catalog, client and linker
   readiness return HTTP 200. No test messages were posted to Discord.
+## Direct trader purchases and bait bundles (October 12, 2026)
+
+Trader item cards now buy directly. Bait cards offer 1, 5 and 10 packs, showing
+the total coin cost and 10, 50 or 100 uses. Costs remain the existing per-pack
+price multiplied by the quantity; unaffordable options are disabled independently.
+The browser locks the full prepare/commit sequence and rejects a prepared price
+or catalog version that differs from the clicked listing.
+
+The additive `commit_shop_purchase_quantity` reducer accepts 1, 5 or 10 for bait
+and only 1 for rods/licences. It uses the existing server-generated quote nonce,
+checks the full cost, grants stock and writes one ledger debit/credit pair in a
+single transaction. Existing browser and Discord single-pack reducers remain
+compatible. No persisted table, catalog price, or gameplay configuration changes.
+
+`node node_modules/tsx/dist/cli.mjs scripts/trader-bulk-proof.ts` builds a separate
+fixture module and uses a fresh `fishbound-proof-trader-bulk-*` database. It checks
+all thirteen baits at each quantity, exact balances/uses/ledger entries, nonce
+replay, concurrent duplicate commits, reconnect recovery, insufficient funds,
+invalid quantities, private ownership, stock overflow rollback, stale prices,
+expired quotes, rods/licences, and the existing Discord single-pack flow.
+
+An additional old-to-new fixture publication passed on
+`fishbound-proof-trader-bulk-1791782590324`: all 54 persisted tables retained
+every row and field, including an outstanding pre-update quote that subsequently
+committed through the existing browser reducer. No live player purchases were
+used for verification.
+
+The real Trader and Game purchase method were checked with an isolated browser
+fixture: direct rod/licence buys, each bait quantity, rapid-click protection,
+failed commit feedback, price changes during preparation, affordability and guest
+gating passed at 1440, 390 and 320 pixels without horizontal overflow. Screenshots
+are `output/playwright/trader-buy-{1440,390,320}.png`. WASM/bindings, workspace Rust
+check, Svelte/scripts check, and the isolated production web build passed. This
+checks passed before publication.
+
+Live deployment on October 12 published the additive reducer to
+`fishbound-dev-local` without deleting data or changing tables. A fresh cold
+backup restored successfully on isolated port 3128; all 54 retained tables then
+matched the live pre-publication snapshot exactly after publication. The
+database identity stayed unchanged. The served WASM and client bundle matched
+the approved artifacts by SHA-256. Site and account-link health returned HTTP
+200, the rebuilt bot reached Discord Gateway readiness, and an anonymous live
+client reached the new reducer and received `ACCOUNT_NOT_LINKED` as expected.
+Live public Trader checks verified 1/5/10 pack controls, correct prices/uses,
+guest gating and 1440/390/320 layouts without overflow or console errors. No live
+player purchase was executed for acceptance. The isolated restore service was
+closed; the verified backup remains in `.local/deployments/`.

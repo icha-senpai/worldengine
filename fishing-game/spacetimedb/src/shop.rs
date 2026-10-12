@@ -148,7 +148,10 @@ fn prepare(ctx: &ReducerContext, player_id: u64, listing_id: u32) -> Result<(), 
     Ok(())
 }
 
-fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), String> {
+fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128, quantity: u32) -> Result<(), String> {
+    if !matches!(quantity, 1 | 5 | 10) {
+        return Err("SHOP_QUANTITY_INVALID".into());
+    }
     let key = quote_key(ctx, player_id);
     let mut quote = ctx
         .db
@@ -171,6 +174,9 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
         .listing_id()
         .find(quote.listing_id)
         .ok_or("SHOP_ITEM_UNAVAILABLE")?;
+    if listing.kind != "bait" && quantity != 1 {
+        return Err("SHOP_QUANTITY_INVALID".into());
+    }
     if listing.catalog_version != quote.catalog_version || listing.price_coins != quote.quoted_coins
     {
         return Err("QUOTE_CHANGED".into());
@@ -182,9 +188,14 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
         .find(player_id)
         .ok_or("PLAYER_UNAVAILABLE")?;
     eligible(ctx, &player, &listing)?;
+    let total = listing
+        .price_coins
+        .checked_mul(u64::from(quantity))
+        .ok_or("COIN_OVERFLOW")?;
+    let coin_delta = i64::try_from(total).map_err(|_| "COIN_OVERFLOW")?;
     player.coins = player
         .coins
-        .checked_sub(listing.price_coins)
+        .checked_sub(total)
         .ok_or("INSUFFICIENT_COINS")?;
     ctx.db.player().player_id().update(player);
     let ownership_key = (u128::from(player_id) << 32) | u128::from(listing.target_id);
@@ -195,7 +206,7 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
             biome_id: listing.target_id,
         });
     } else if listing.kind == "bait" {
-        crate::crafting::grant_bait(ctx, player_id, listing.target_id)?;
+        crate::crafting::grant_bait(ctx, player_id, listing.target_id, quantity)?;
     } else {
         ctx.db.owned_rod().insert(OwnedRod {
             key: ownership_key,
@@ -210,7 +221,7 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
         player_id,
         operation.clone(),
         "coins",
-        -(listing.price_coins as i64),
+        -coin_delta,
         "trader_purchase",
     );
     ledger(
@@ -218,7 +229,7 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
         player_id,
         operation,
         &format!("{}_{}", listing.kind, listing.target_id),
-        1,
+        i64::from(quantity),
         "trader_purchase",
     );
     quote.consumed = true;
@@ -264,7 +275,15 @@ pub fn prepare_shop_purchase(ctx: &ReducerContext, listing_id: u32) -> Result<()
 }
 #[spacetimedb::reducer]
 pub fn commit_shop_purchase(ctx: &ReducerContext, nonce: u128) -> Result<(), String> {
-    commit(ctx, browser_player(ctx)?, nonce)
+    commit(ctx, browser_player(ctx)?, nonce, 1)
+}
+#[spacetimedb::reducer]
+pub fn commit_shop_purchase_quantity(
+    ctx: &ReducerContext,
+    nonce: u128,
+    quantity: u32,
+) -> Result<(), String> {
+    commit(ctx, browser_player(ctx)?, nonce, quantity)
 }
 #[spacetimedb::reducer]
 pub fn prepare_shop_from_discord(
@@ -290,6 +309,7 @@ pub fn commit_shop_from_discord(
         ctx,
         adapter_player_id(ctx, discord_user_id, interaction_id)?,
         nonce,
+        1,
     )
 }
 

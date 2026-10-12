@@ -53,6 +53,7 @@ import CommitRodUpgradeReducer from "./commit_rod_upgrade_reducer";
 import CommitSaleFromDiscordReducer from "./commit_sale_from_discord_reducer";
 import CommitShopFromDiscordReducer from "./commit_shop_from_discord_reducer";
 import CommitShopPurchaseReducer from "./commit_shop_purchase_reducer";
+import CommitShopPurchaseQuantityReducer from "./commit_shop_purchase_quantity_reducer";
 import CommitUpgradeFromDiscordReducer from "./commit_upgrade_from_discord_reducer";
 import CompleteAccountLinkReducer from "./complete_account_link_reducer";
 import ConfigureServiceReducer from "./configure_service_reducer";
@@ -654,6 +655,7 @@ const reducersSchema = __reducers(
   __reducerSchema("commit_sale_from_discord", CommitSaleFromDiscordReducer),
   __reducerSchema("commit_shop_from_discord", CommitShopFromDiscordReducer),
   __reducerSchema("commit_shop_purchase", CommitShopPurchaseReducer),
+  __reducerSchema("commit_shop_purchase_quantity", CommitShopPurchaseQuantityReducer),
   __reducerSchema("commit_upgrade_from_discord", CommitUpgradeFromDiscordReducer),
   __reducerSchema("complete_account_link", CompleteAccountLinkReducer),
   __reducerSchema("configure_service", ConfigureServiceReducer),
