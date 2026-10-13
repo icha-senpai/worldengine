@@ -17,15 +17,55 @@
   const tin = $derived(game.items.find(row => row.item === 'rusted_tin')?.quantity ?? 0n);
   const scrap = $derived(game.items.find(row => row.item === 'scrap')?.quantity ?? 0n);
   let previewing = $state(false);
+  let confirming = $state(false);
+  let previewPlayerId = $state<bigint | null>(null);
+  let dialog: HTMLDialogElement;
+  let cancelButton = $state<HTMLButtonElement>();
   let now = $state(Date.now());
   const quote = $derived(previewing && game.upgradeQuote && !game.upgradeQuote.consumed ? game.upgradeQuote : null);
+  const expired = $derived(!!quote && quote.expiresAt.microsSinceUnixEpoch <= BigInt(now)*1000n);
+  $effect(() => {
+    if (previewing && (!game.ready || game.player?.playerId !== previewPlayerId)) previewing = false;
+  });
+  $effect(() => {
+    if (quote && dialog && !dialog.open) { dialog.showModal(); cancelButton?.focus(); }
+    else if (!quote && dialog?.open) dialog.close();
+  });
+  $effect(() => {
+    if (!quote) return;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = overflow; };
+  });
   const percent = (bp: number | undefined) => (bp ?? 0)/100;
   onMount(() => { const timer = setInterval(() => now = Date.now(),1000); return () => clearInterval(timer); });
   async function equip(event: Event) { const select = event.currentTarget as HTMLSelectElement; await game.changeLoadout(undefined,Number(select.value)); select.value = String(game.player?.equippedRodId ?? ''); previewing=false; }
   const baitIdInSlot = (slot: number) => slot === 1 ? game.baitLoadout?.baitId ?? 0 : game.baitLoadout?.secondaryBaitId ?? 0;
   async function equipBait(event: Event, slot: number) { const select = event.currentTarget as HTMLSelectElement; await game.equipBait(Number(select.value), slot); select.value = String(baitIdInSlot(slot)); }
-  async function previewUpgrade() { if (!rod) return; previewing=false; await game.previewUpgrade(rod.rodId); previewing=!game.error; now=Date.now(); }
-  async function confirmUpgrade() { if (!quote) return; await game.confirmUpgrade(quote.nonce); if (!game.error) previewing=false; }
+  async function previewUpgrade() {
+    if (!rod || !game.player || game.busy || !game.ready) return;
+    const rodId = rod.rodId;
+    previewPlayerId = game.player.playerId;
+    previewing = false;
+    await game.previewUpgrade(rodId);
+    previewing = !game.error && game.ready && game.player?.playerId === previewPlayerId && game.upgradeQuote?.rodId === rodId;
+    now = Date.now();
+  }
+  async function confirmUpgrade() {
+    if (!quote || expired || confirming || game.busy || !game.ready) return;
+    confirming = true;
+    try { await game.confirmUpgrade(quote.nonce); if (!game.error) previewing = false; }
+    finally { confirming = false; }
+  }
+  function cancelUpgrade(event?: Event) {
+    if (confirming) { event?.preventDefault(); return; }
+    previewing = false;
+  }
+  function dismissBackdrop(event: PointerEvent) {
+    if (event.target !== dialog) return;
+    const box = dialog.getBoundingClientRect();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) cancelUpgrade();
+  }
 </script>
 <div class="gear" role="region" aria-labelledby="gear-title">
   <div class="heading"><h3 id="gear-title">Gear</h3><p>Ready for the next cast.</p></div>
@@ -38,7 +78,7 @@
           {#each owned as option (option.rodId)}<option value={option.rodId} disabled={option.minimumLevel > (game.profile?.level ?? 1)}>{game.rodStats(option.rodId).quality?.name ?? 'Common'} {option.name}</option>{/each}
         </select>
         {#if next && recipe}<div class="recipe"><p>Next: <strong>{next.name}</strong></p><p class:short={tin < recipe.tinCost}>{tin.toString()} / {recipe.tinCost.toString()} rusted tin</p><p class:short={scrap < recipe.scrapCost}>{scrap.toString()} / {recipe.scrapCost.toString()} scrap</p><p>Power +{next.powerBonus-(stats.quality?.powerBonus ?? 0)} · luck +{percent(next.luckBp-(stats.quality?.luckBp ?? 0))}% · XP +{percent(next.xpBonusBp-(stats.quality?.xpBonusBp ?? 0))}%</p>
-        <button disabled={!game.ready || game.busy || tin < recipe.tinCost || scrap < recipe.scrapCost} onclick={previewUpgrade}>Preview upgrade to {next.name}</button></div>{:else if stats.quality}<p class="mastered">Prismatic · fully upgraded</p>{/if}
+        <button disabled={!game.ready || game.busy || tin < recipe.tinCost || scrap < recipe.scrapCost} onclick={previewUpgrade} aria-haspopup="dialog" aria-controls="rod-upgrade-dialog">Preview upgrade to {next.name}</button></div>{:else if stats.quality}<p class="mastered">Prismatic · fully upgraded</p>{/if}
       </div>
     </article>
     <div class="bait-slots">
@@ -59,9 +99,23 @@
       <p class="note">Combined bait: +{percent(baitBonuses.luckBp)}% luck · +{percent(baitBonuses.xpBonusBp)}% XP · {baitBonuses.sizeRolls} size {baitBonuses.sizeRolls === 1 ? 'attempt' : 'attempts'}{materialBonuses ? ' · ' + materialBonuses : ''}.</p><a href="#trader">Buy bait at the Camp Trader →</a>
     </div>
   </div>
-  {#if quote}{@const target = game.rods.find(row => row.rodId === quote.rodId)}{@const quality = game.qualities.find(row => row.qualityLevel === quote.fromQuality+1)}<div class="upgrade-offer" role="region" aria-label="Confirm rod upgrade"><strong>Craft a {quality?.name} {target?.name}?</strong><p>Spend {quote.tinCost.toString()} rusted tin and {quote.scrapCost.toString()} scrap. Guaranteed success; this upgrade stays with this rod.</p><div><button disabled={game.busy || !game.ready || quote.expiresAt.microsSinceUnixEpoch <= BigInt(now)*1000n} onclick={confirmUpgrade}>Confirm upgrade</button><button class="secondary" onclick={() => previewing=false}>Cancel</button></div></div>{/if}
   <p class="note">Power adds a chance of one extra fish, junk or treasure pull. Luck favors higher fish ranks. Any owned rod can fish in waters unlocked by your level and licence.</p>
 </div>
+<dialog id="rod-upgrade-dialog" class="upgrade-dialog" bind:this={dialog} aria-labelledby="rod-upgrade-title" aria-describedby="rod-upgrade-description" aria-busy={confirming} onclose={() => previewing = false} oncancel={cancelUpgrade} onpointerdown={dismissBackdrop}>
+  {#if quote}
+    {@const target = game.rods.find(row => row.rodId === quote.rodId)}
+    {@const quality = game.qualities.find(row => row.qualityLevel === quote.fromQuality+1)}
+    <h2 id="rod-upgrade-title">Confirm rod upgrade</h2>
+    <h3>Upgrade to {quality?.name} {target?.name}?</h3>
+    <p id="rod-upgrade-description">Guaranteed success. This permanent upgrade stays with this rod. Materials are spent when you confirm.</p>
+    <dl><div><dt>Rusted tin</dt><dd>{quote.tinCost.toLocaleString()}</dd></div><div><dt>Scrap</dt><dd>{quote.scrapCost.toLocaleString()}</dd></div></dl>
+    {#if expired || game.error}<p class="upgrade-error" role="alert">{expired ? 'This preview expired. Cancel and preview the upgrade again.' : game.error}</p>{/if}
+    <div class="upgrade-actions">
+      <button class="secondary" bind:this={cancelButton} disabled={confirming} onclick={() => cancelUpgrade()}>Cancel</button>
+      <button disabled={confirming || game.busy || !game.ready || expired} onclick={confirmUpgrade}>{confirming ? 'Upgrading…' : 'Confirm upgrade'}</button>
+    </div>
+  {/if}
+</dialog>
 <style>
   .bait-slots{display:grid;gap:16px;align-content:start;min-width:0}.bait-slots>a{font-size:16px;color:#4c713b}
   .gear{margin-bottom:26px;padding-bottom:24px;border-bottom:1px dashed #b99a69;color:var(--wood-dark,#493126)}
@@ -72,5 +126,9 @@
   @media(max-width:600px){.bait-slot{flex-direction:column;align-items:stretch}.bait-art{align-self:center}}
   @media(max-width:360px){.rod-slot,.bait-slot{flex-direction:column}.bait-art{align-self:center}.art{width:140px;height:140px}}
 
-  .quality{display:inline-block;margin-left:10px;padding:3px 7px;border:1px solid #947348;font-size:14px;background:#e4d4a8}.rod-slot[data-quality="1"] .quality{background:#c8deaf}.rod-slot[data-quality="2"] .quality{background:#b5d6e8}.rod-slot[data-quality="3"] .quality{background:#d6b8e0}.rod-slot[data-quality="4"] .quality{background:#edc988}.rod-slot[data-quality="5"] .quality{background:#e8a7b5}.rod-slot[data-quality="6"] .quality{background:linear-gradient(110deg,#c6e6de,#ddc8ec,#edd8ae)}.recipe{margin-top:14px;border-top:1px dashed #b99a69;padding-top:10px}.recipe p{font-size:14px;line-height:1.7}.short{color:#9d4036}.recipe button{margin-top:10px}.bait-art{width:100px;height:100px}.uses,.mastered{font-family:var(--font-game);font-size:26px;color:#4c713b}.bait-slot p{margin:8px 0}button{font-family:var(--font-game);font-size:20px;background:#59714b;color:#fff0c8;border:2px solid #4c3928;padding:9px 12px;cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible,a:focus-visible{outline:3px solid #b47f35;outline-offset:3px}.upgrade-offer{margin-top:18px;padding:16px;border:2px solid #738551;background:#dfd8ac}.upgrade-offer strong{font-family:var(--font-game);font-size:28px}.upgrade-offer p{font-size:16px;line-height:1.8;margin:10px 0}.upgrade-offer>div{display:flex;gap:10px;flex-wrap:wrap}.secondary{background:#e9d9b1;color:#4c3928}@media(max-width:700px){.slots{grid-template-columns:1fr}.rod-slot{flex-direction:column}.art{align-self:center}.details{width:100%}}
+  .quality{display:inline-block;margin-left:10px;padding:3px 7px;border:1px solid #947348;font-size:14px;background:#e4d4a8}.rod-slot[data-quality="1"] .quality{background:#c8deaf}.rod-slot[data-quality="2"] .quality{background:#b5d6e8}.rod-slot[data-quality="3"] .quality{background:#d6b8e0}.rod-slot[data-quality="4"] .quality{background:#edc988}.rod-slot[data-quality="5"] .quality{background:#e8a7b5}.rod-slot[data-quality="6"] .quality{background:linear-gradient(110deg,#c6e6de,#ddc8ec,#edd8ae)}.recipe{margin-top:14px;border-top:1px dashed #b99a69;padding-top:10px}.recipe p{font-size:14px;line-height:1.7}.short{color:#9d4036}.recipe button{margin-top:10px}.bait-art{width:100px;height:100px}.uses,.mastered{font-family:var(--font-game);font-size:26px;color:#4c713b}.bait-slot p{margin:8px 0}button{font-family:var(--font-game);font-size:20px;background:#59714b;color:#fff0c8;border:2px solid #4c3928;padding:9px 12px;cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible,a:focus-visible{outline:3px solid #b47f35;outline-offset:3px}.secondary{background:#e9d9b1;color:#4c3928}@media(max-width:700px){.slots{grid-template-columns:1fr}.rod-slot{flex-direction:column}.art{align-self:center}.details{width:100%}}
+  .upgrade-dialog{width:min(640px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:28px;border:4px solid var(--wood-dark,#3c2d21);background:var(--paper,#f3e7c4);color:var(--ink,#354239);box-shadow:inset 0 0 0 3px #fff0cb,0 12px 0 #132a2580;overflow:auto;overscroll-behavior:contain;box-sizing:border-box}
+  .upgrade-dialog::backdrop{background:#102820cf}.upgrade-dialog h2{margin:0 0 18px;font-family:var(--font-game);font-size:30px;font-weight:400}.upgrade-dialog h3{font-size:26px;margin:0 0 12px;overflow-wrap:anywhere}.upgrade-dialog p{font-size:16px;line-height:1.6}.upgrade-dialog dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:22px 0}.upgrade-dialog dd{margin-top:6px;font-size:26px;overflow-wrap:anywhere}.upgrade-error{padding:12px;background:#f7d5b6;color:#663d31;border:1px solid #a57654}.upgrade-actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:22px}.upgrade-actions button{max-width:100%;overflow-wrap:anywhere}
+  @media(max-width:600px){.upgrade-dialog{width:calc(100% - 20px);max-height:calc(100dvh - 20px);padding:18px}.upgrade-dialog h2{font-size:26px}.upgrade-dialog h3{font-size:23px}.upgrade-actions{flex-direction:column-reverse}.upgrade-actions button{width:100%}}
+
 </style>

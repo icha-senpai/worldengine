@@ -12,7 +12,7 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 
-			adapter: adapter()
+			adapter: adapter({ out: process.env.FISHBOUND_WEB_BUILD_DIR ?? 'build' })
 		})
 	]
 });

@@ -1,6 +1,6 @@
 {
-  "version": 15,
-  "status": "rank-maxima-recognition",
+  "version": 16,
+  "status": "level-500-display-cap",
   "castCooldownSeconds": 60,
   "perfectRollOneIn": 5000,
   "collectionFocusBp": 2000

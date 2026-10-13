@@ -2,10 +2,17 @@
 
 The owner authorized autonomous implementation after rereading the specification
 and project docs, then explicitly requested all fish and all biomes. All 251 species
-and seven biomes are implemented with the live level cap 10,000 and optional purchased rods.
+and seven biomes are implemented with the displayed level cap 500 and optional purchased rods.
 The website and account-link service are exposed through ServBay/Cloudflare at
 https://fish.ichaa.dev. The bot connects to Discord; all fifteen commands are
 registered globally; matching legacy server copies are removed on startup; the public OAuth callback is registered.
+
+## Displayed level cap (October 13)
+
+Rules 16 cap website, public profile and Discord levels at 500 without changing
+the XP curve or rewards. Level 500 requires 4,603,145 XP. Lifetime XP is retained
+and keeps accumulating past 1,754,621,895; fishing, replay protection, inventories,
+equipment, wallets and achievement state are preserved.
 
 ## Expanded cap and bait pricing (October 12, deployed)
 

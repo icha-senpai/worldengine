@@ -16,7 +16,7 @@ preservation, and all 15 global command-registration checks.
   All 251 species have explicit length/weight baselines in
   [species-measurements.csv](content/species-measurements.csv); see
   [measurement design and calibration](docs/species-measurements.md).
-- Level cap 10,000; free Twig Rod and six purchased rod families; authoritative biome/equipment selection.
+- Displayed level cap 500 with uncapped lifetime XP; free Twig Rod and six purchased rod families; authoritative biome/equipment selection.
 - Server RNG, fixed-point lengths/weights, XP and first discoveries, global 60-second cooldown.
 - Private accounts and inventory, scoped subscriptions, durable cast results, safe retries.
 - Junk stacks and immediate treasure rewards with economy ledger entries.

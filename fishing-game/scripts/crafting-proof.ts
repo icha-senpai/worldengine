@@ -116,7 +116,7 @@ try {
   await purchase(113,9893n);
   assert.equal(capWallet-player().coins,500n);
   assert.equal(uses(13),20n);
-  console.log('PASS 10,000-level cap credits banked XP through the final boundary; metadata-only, owner-only and idempotent activation preserves gameplay; old Trophy quote rejected and new 500-coin pack grants ten uses.');
+  console.log(`PASS level-${worldContent.levelCap} display cap retains banked XP; metadata-only, owner-only and idempotent activation preserves gameplay; old Trophy quote rejected and new 500-coin pack grants ten uses.`);
   ownerCall('prepare_trader_player',['9305','0',String(price(21)-1),'1']);
   await assert.rejects(purchase(21,9305n),/INSUFFICIENT_COINS/);
   ownerCall('prepare_trader_player',['9305','0',String(price(21)),'1']);

@@ -92,11 +92,11 @@ for (const fish of catalog.species) {
 }
 console.log(`Measurements valid: ${measurements.size} explicit species baselines, no generic fallback.`);
 assert.equal(world.version, catalog.version);
-assert.equal(rules.version, 15);
+assert.equal(rules.version, 16);
 assert.equal(rules.collectionFocusBp, 2000);
 assert.equal(rules.perfectRollOneIn,5000);
 assert.match(await readFile(new URL('../crates/game-rules/src/trophy.rs', import.meta.url),'utf8'),/PERFECT_ROLL_ONE_IN: u32 = 5_000/);
-assert.equal(world.levelCap, 10000);
+assert.equal(world.levelCap, 500);
 assert.deepEqual(world.biomes.map(b => b.name), ['Meadow Pond', 'Whispering River', 'Hollow Marsh', 'Moonlit Lake', 'Sunken Coast', 'Glacial Reach', 'Abyssal Shelf']);
 assert.equal(new Set(world.biomes.map(b => b.biomeId)).size, world.biomes.length);
 assert.equal(new Set(world.rods.map(r => r.rodId)).size, world.rods.length);
@@ -168,7 +168,8 @@ for (const listing of trader.listings) {
   assert(['rod', 'licence', 'bait'].includes(listing.kind));
   assert(Number.isSafeInteger(listing.priceCoins) && listing.priceCoins > 0);
   const biome = world.biomes.find(row => row.biomeId === listing.biomeId);
-  assert(biome && listing.previousBiomeId === Math.max(1,biome.biomeId - 1));
+  const coinsOnlyRod = listing.kind === 'rod' && [6, 7].includes(listing.targetId);
+  assert(biome && listing.previousBiomeId === (coinsOnlyRod ? 1 : Math.max(1, biome.biomeId - 1)));
   if (listing.kind !== 'rod') assert.equal(listing.minimumLevel, biome.minimumLevel);
   if (listing.kind === 'bait') { assert(listing.targetId >= 1 && listing.targetId <= 13); continue; }
   if (listing.kind === 'licence') assert.equal(listing.targetId, biome.biomeId);

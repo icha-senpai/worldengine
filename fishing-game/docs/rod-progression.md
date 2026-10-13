@@ -12,11 +12,12 @@ three purchasable baits with +25%, +50% and +100% fishing XP.
 | Marsh | 55 | +21% | +29% | 15,000 | Whispering River |
 | Moonwood | 82 | +31.5% | +43.5% | 16,000 | Hollow Marsh |
 | Tide | 109 | +42% | +58% | 33,000 | Moonlit Lake |
-| Glacial | 136 | +52.5% | +72.5% | 74,000 | Sunken Coast |
-| Abyssal | 163 | +63% | +87% | 130,000 | Glacial Reach |
+| Glacial | 136 | +52.5% | +72.5% | 74,000 | None |
+| Abyssal | 163 | +63% | +87% | 130,000 | None |
 
 Rods have no angler-level purchase or equipment gate. They require gold and the
-previous biome licence. Biome licence levels remain 1, 5, 10, 18, 28, 40, and 55;
+previous biome licence, except Glacial and Abyssal, which require coins only.
+Biome licence levels remain 1, 5, 10, 18, 28, 40, and 55;
 licences are bought in order, and any owned rod can fish licensed waters.
 Purchases still start Common and never equip automatically. Rod ownership is
 not an additional shop prerequisite, so players can skip families if their

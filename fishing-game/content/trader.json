@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "listings": [
     {
       "listingId": 20,
@@ -98,7 +98,7 @@
       "name": "Glacial Rod",
       "priceCoins": 74000,
       "minimumLevel": 1,
-      "previousBiomeId": 5,
+      "previousBiomeId": 1,
       "biomeId": 6
     },
     {
@@ -118,7 +118,7 @@
       "name": "Abyssal Rod",
       "priceCoins": 130000,
       "minimumLevel": 1,
-      "previousBiomeId": 6,
+      "previousBiomeId": 1,
       "biomeId": 7
     },
     {

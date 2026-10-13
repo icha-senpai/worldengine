@@ -51,6 +51,12 @@ sets, preserves small verification reports, and refuses targets referenced by
 active processes. Newly generated older-version fixtures should use `pre-*`
 names if they must survive cleanup.
 
+Cleanup protects the database supervisor's config and process state alongside
+the website, linker and bot. It reviews individual files before deletion,
+rejects filesystem links and changed files, and removes only empty directories.
+Run `powershell -NoProfile -File scripts/cleanup-local-artifacts.test.ps1` to
+exercise these guards without touching deployment or database data.
+
 `scripts/cleanup-proof-databases.ps1` previews disposable `fishbound-proof-*`
 databases on **3127 only**. `-Apply` deletes them through SpaceTimeDB's supported
 command after checking each identity against the live identity. Capture and

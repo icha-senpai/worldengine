@@ -88,8 +88,9 @@ behavior must exist before exposing either buttons or standalone commands.
 
 ## Camp trader progression (owner update)
 
-Biome licences are permanent and bought in order; each tier's licence and rod
-require the previous biome licence. Buying never equips or travels automatically.
+Biome licences are permanent and bought in order. Licences and rods require
+the previous biome licence, except Glacial and Abyssal rods, which require coins
+only. Buying never equips or travels automatically.
 Both the website and `/shop` preview the server price before explicit confirmation.
 Quotes last two minutes and bind the caller, player, listing, price, and catalog
 version. Commit rechecks eligibility, wallet, and ownership; retries cannot spend
@@ -104,7 +105,8 @@ again. The website World map travels using the current owned rod, preserving coo
 | Glacial Reach | 40 | None | 10,000 | 74,000 | 84,000 |
 | Abyssal Shelf | 55 | None | 25,000 | 130,000 | 155,000 |
 
-Rods require gold and the previous licence, with no rod level requirement.
+Rods require gold and the previous licence, except Glacial and Abyssal rods,
+which require coins only. No rod has a level requirement.
 Their material recipes vary by family. Prices are in `content/trader.json`. Existing rods are retained;
 the one-time transition grants licences through a player's furthest selected or
 discovered biome. New players and future unlocks require purchases. Neither

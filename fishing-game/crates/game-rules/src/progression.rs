@@ -91,6 +91,23 @@ mod tests {
         assert_eq!(level_for_xp(u64::MAX, cap), cap);
     }
     #[test]
+    fn display_cap_500_preserves_the_curve_and_accepts_unbounded_lifetime_xp() {
+        let cap = 500;
+        let threshold: u64 = (1..cap).map(xp_to_next).sum();
+        assert_eq!(threshold, 4_603_145);
+        assert_eq!(level_for_xp(threshold - 1, cap), 499);
+        assert_eq!(level_for_xp(threshold, cap), cap);
+        for xp in [threshold + 1, 1_754_621_895, u64::MAX] {
+            assert_eq!(level_for_xp(xp, cap), cap);
+        }
+        for level in 1..=500 {
+            assert_eq!(
+                xp_to_next_for_version(level, 16),
+                xp_to_next_for_version(level, 15)
+            );
+        }
+    }
+    #[test]
     fn curve_activation_retains_early_levels_and_never_lowers_existing_levels() {
         let mut legacy_total = 0;
         for level in 1..120 {
