@@ -1,5 +1,6 @@
 import bundled from "./content/catalog.json";
 import guides from "./content/guides.json";
+import woodLogOutputs from "./content/wood-log-outputs.json";
 
 type Row = Record<string, any>;
 const content = bundled as unknown as {
@@ -68,9 +69,41 @@ function detail(kind: string, id: string) {
   const raw = content.details[`${kind}:${id}`];
   if (!raw) return null;
   const target = item(raw[kind] ?? raw.item ?? raw.cargo);
-  const craftingRecipes = (raw.craftingRecipes ?? []).map((row: Row) =>
+  const craftingRecipes: Row[] = (raw.craftingRecipes ?? []).map((row: Row) =>
     recipe(row, "crafting", target),
   );
+  const woodLogOutput = woodLogOutputs.outputs.find(
+    (row) => kind === "item" && row.itemId === Number(target.id),
+  );
+  if (woodLogOutput) {
+    for (const option of craftingRecipes) {
+      if (
+        option.ingredients.some((input: Row) =>
+          /wood log package$/i.test(input.name),
+        )
+      )
+        option.secondaryRoute = true;
+    }
+    const bundle = itemMap.get(`item:${woodLogOutput.outputItemId}`);
+    const bundleData = content.details[`item:${woodLogOutput.outputItemId}`];
+    if (bundle && bundleData) {
+      for (const rawRecipe of bundleData.craftingRecipes ?? []) {
+        const normalized = recipe(rawRecipe, "wood-log-output", bundle);
+        if (
+          !normalized.outputs.some((output: Row) => key(output) === key(bundle))
+        )
+          continue;
+        craftingRecipes.push({
+          ...normalized,
+          id: `${normalized.id}:${key(target)}:wood-log-output`,
+          name: `Split ${normalized.ingredients[0]?.name ?? "trunk"} into ${target.name}`,
+          outputQuantity: woodLogOutput.quantity,
+          outputs: [{ ...target, quantity: woodLogOutput.quantity }],
+          primaryRoute: true,
+        });
+      }
+    }
+  }
   if (
     kind === "item" &&
     String(target.category).toLowerCase() === "bait" &&
@@ -108,15 +141,50 @@ function detail(kind: string, id: string) {
       });
     }
   }
+  const extractionRecipes: Row[] = (raw.extractionRecipes ?? []).map(
+    (row: Row) => {
+      const normalized = recipe(row, "extraction", target);
+      if (kind === "cargo" && target.category === "Trunk") {
+        const entry = content.entries.find(
+          (entry) => Number(entry.id) === Number(normalized.id),
+        );
+        if (entry) return { ...normalized, name: entry.name, gathering: true };
+      }
+      return normalized;
+    },
+  );
+  if (kind === "cargo" && target.category === "Trunk") {
+    for (const source of woodLogOutputs.trunkSources.filter(
+      (source) => source.itemId === Number(target.id),
+    )) {
+      const normalized = {
+        id: source.id,
+        source: "tree-trunk",
+        name: source.name,
+        station: null,
+        skill: source.skill,
+        duration: source.duration,
+        outputQuantity: source.quantity,
+        outputs: [{ ...target, quantity: source.quantity }],
+        ingredients: [],
+        gathering: true,
+        primaryRoute: true,
+      };
+      const index = extractionRecipes.findIndex(
+        (option) => Number(option.id) === source.id,
+      );
+      if (index < 0) extractionRecipes.push(normalized);
+      else extractionRecipes[index] = normalized;
+    }
+  }
   return {
     item: target,
     craftingRecipes,
-    extractionRecipes: (raw.extractionRecipes ?? []).map((row: Row) =>
-      recipe(row, "extraction", target),
-    ),
+    extractionRecipes,
     marketStats: raw.marketStats ?? {},
   };
 }
+
 const special = (row: Row) =>
   /ancient mortar|dried boot|hexite|repaired shipwreck steering wheel|salvaged pirate.?s? weapon|silken hexmoth|scroll|uncharted|winter snow|\b(unpack|packs?|packages?)\b/i.test(
     [row.name, ...row.ingredients.map((item: Row) => item.name)].join(" "),
@@ -147,6 +215,7 @@ function tree(
     )
     .sort(
       (a, b) =>
+        Number(Boolean(b.primaryRoute)) - Number(Boolean(a.primaryRoute)) ||
         Number(special(a)) - Number(special(b)) ||
         a.outputQuantity - b.outputQuantity ||
         a.ingredients.length - b.ingredients.length ||

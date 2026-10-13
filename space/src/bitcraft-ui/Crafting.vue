@@ -16,23 +16,17 @@
 
     <form @submit.prevent="submit" class="index-panel max-w-3xl">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <label class="field-label">Recipe search</label>
+        <label for="crafting-search" class="field-label">Recipe search</label>
         <span class="tag" :class="snapshot?.available ? 'tag--success' : ''">{{
           snapshotLabel
         }}</span>
       </div>
-      <div class="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px_auto]">
+      <div class="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
         <TextInput
+          id="crafting-search"
           v-model.trim="form.q"
           type="text"
           placeholder="Timber, pickaxe, plank, ingot..."
-        />
-        <TextInput
-          v-model.number="form.quantity"
-          type="number"
-          min="1"
-          max="999999"
-          inputmode="numeric"
         />
         <AppButton type="submit" variant="primary" :disabled="searching">{{
           searching ? "Searching..." : "Search"
@@ -65,7 +59,10 @@
     <div
       class="mt-5 grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]"
     >
-      <section class="surface-section min-w-0">
+      <section
+        class="surface-section min-w-0 crafting-matches"
+        :class="{ 'crafting-matches--collapsed': detail && !showMatches }"
+      >
         <div class="surface-section__header">
           <div class="surface-section__copy">
             <h2 class="surface-section__title">Matches</h2>
@@ -75,6 +72,15 @@
               }}
             </p>
           </div>
+          <button
+            v-if="detail"
+            type="button"
+            class="crafting-change-item"
+            :aria-expanded="showMatches"
+            @click="showMatches = !showMatches"
+          >
+            {{ showMatches ? "Hide matches" : "Change item" }}
+          </button>
         </div>
 
         <div class="surface-section__body">
@@ -137,45 +143,71 @@
         </div>
       </section>
 
-      <section class="surface-section min-w-0">
+      <section
+        ref="recipePanel"
+        class="surface-section min-w-0 crafting-selected"
+      >
         <div v-if="detail">
-          <div class="surface-section__header">
-            <span
-              class="crafting-detail-icon"
-              :style="itemFrameStyle(detail.item)"
-              aria-hidden="true"
-            >
-              <img
-                v-if="itemIconUrl(detail.item)"
-                :src="itemIconUrl(detail.item)"
-                alt=""
-                loading="lazy"
-                @error="hideBrokenIcon(detail.item.iconAssetName)"
-              />
-              <span v-else>{{ itemInitials(detail.item.name) }}</span>
-            </span>
-            <div class="surface-section__copy">
-              <h2 class="surface-section__title">{{ detail.item.name }}</h2>
-              <p class="surface-section__subtitle">
-                <span>{{
-                  detail.item.kind === "cargo" ? "Cargo" : "Item"
-                }}</span>
-                <span v-if="detail.item.category">
-                  · {{ detail.item.category }}</span
-                >
-                <BitcraftTierBadge
-                  v-if="hasTier(detail.item.tier)"
-                  class="crafting-detail-tier"
-                  :tier="detail.item.tier"
+          <div class="crafting-target-bar">
+            <div class="surface-section__header">
+              <span
+                class="crafting-detail-icon"
+                :style="itemFrameStyle(detail.item)"
+                aria-hidden="true"
+              >
+                <img
+                  v-if="itemIconUrl(detail.item)"
+                  :src="itemIconUrl(detail.item)"
+                  alt=""
+                  loading="lazy"
+                  @error="hideBrokenIcon(detail.item.iconAssetName)"
                 />
-                <span
-                  v-if="detail.item.rarity"
-                  class="crafting-detail-rarity bitcraft-rarity-badge"
-                  :style="rarityStyle(detail.item.rarity)"
-                >
-                  {{ detail.item.rarity }}
-                </span>
-              </p>
+                <span v-else>{{ itemInitials(detail.item.name) }}</span>
+              </span>
+              <div class="surface-section__copy">
+                <h2 class="surface-section__title">{{ detail.item.name }}</h2>
+                <p class="surface-section__subtitle">
+                  <span>{{
+                    detail.item.kind === "cargo" ? "Cargo" : "Item"
+                  }}</span>
+                  <span v-if="detail.item.category">
+                    · {{ detail.item.category }}</span
+                  >
+                  <BitcraftTierBadge
+                    v-if="hasTier(detail.item.tier)"
+                    class="crafting-detail-tier"
+                    :tier="detail.item.tier"
+                  />
+                  <span
+                    v-if="detail.item.rarity"
+                    class="crafting-detail-rarity bitcraft-rarity-badge"
+                    :style="rarityStyle(detail.item.rarity)"
+                  >
+                    {{ detail.item.rarity }}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div class="crafting-target-controls">
+              <label for="crafting-quantity" class="field-label"
+                >How many?</label
+              >
+              <TextInput
+                id="crafting-quantity"
+                v-model.number="form.quantity"
+                type="number"
+                min="1"
+                max="999999"
+                inputmode="numeric"
+                @change="updateQuantity"
+              />
+              <span class="text-muted-2 text-sm"
+                >{{ desiredQuantity }}
+                {{
+                  desiredQuantity === 1 ? "target item" : "target items"
+                }}</span
+              >
             </div>
           </div>
 
@@ -193,6 +225,7 @@
             >
               <CraftingRecipeTree
                 :recipes="detail.recipeTree"
+                :target="detail.item"
                 :desired-quantity="desiredQuantity"
                 :storage-key="recipeStorageKey"
                 :inventory="inventory"
@@ -215,7 +248,7 @@
 
 <script setup>
 import { route } from "/src/bitcraft-ui/navigation";
-import { computed, reactive, ref, watch } from "vue";
+import { computed, nextTick, reactive, ref, watch } from "vue";
 import { Link, router } from "/src/bitcraft-ui/navigation";
 import AuthenticatedLayout from "/src/bitcraft-ui/Layout.vue";
 import AppButton from "/src/bitcraft-ui/shared/ui/AppButton.vue";
@@ -246,6 +279,18 @@ const form = reactive({
 });
 const brokenIconAssets = ref(new Set());
 const searching = ref(false);
+const showMatches = ref(!props.detail);
+const recipePanel = ref(null);
+watch(
+  () => props.detail?.item?.id,
+  async (id, previous) => {
+    if (!id || id === previous) return;
+    showMatches.value = false;
+    await nextTick();
+    if (window.matchMedia("(max-width: 1279px)").matches)
+      recipePanel.value?.scrollIntoView({ block: "start" });
+  },
+);
 
 watch(
   () => props.filters,
@@ -260,7 +305,7 @@ watch(
 const selectedItemId = computed(() => Number(props.filters.itemId));
 const selectedItemKind = computed(() => props.filters.itemKind ?? "item");
 const desiredQuantity = computed(() =>
-  Math.max(1, Number(props.filters.quantity ?? 1) || 1),
+  Math.min(999999, Math.max(1, Math.floor(Number(form.quantity) || 1))),
 );
 const recipeStorageKey = computed(() => {
   if (!props.detail?.item?.id) {
@@ -330,6 +375,16 @@ const submit = () => {
   });
 };
 
+const updateQuantity = () => {
+  form.quantity = desiredQuantity.value;
+  if (!props.detail) return;
+  router.get(
+    route("bitcraft.crafting"),
+    { ...selectedParams(props.detail.item), q: props.filters.q },
+    { preserveState: true, replace: true },
+  );
+};
+
 const selectedParams = (item) => {
   const params = {
     includeHousing: form.includeHousing ? "1" : undefined,
@@ -379,6 +434,59 @@ const hasTier = (tier) => hasBitcraftTier(tier);
 </script>
 
 <style scoped>
+.crafting-matches {
+  align-self: start;
+}
+.crafting-matches .surface-section__body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.crafting-selected.surface-section {
+  overflow: visible;
+  scroll-margin-top: 84px;
+}
+.crafting-target-bar {
+  position: sticky;
+  top: 12px;
+  z-index: 20;
+  background: var(--bg-surface);
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 6px 12px rgb(0 0 0 / 0.2);
+}
+@media (max-width: 1023px) {
+  .crafting-target-bar {
+    top: 64px;
+  }
+}
+.crafting-target-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 0;
+  padding: 12px 20px;
+}
+.crafting-target-controls .input {
+  width: 100px;
+}
+.crafting-change-item {
+  display: none;
+  border: 1px solid rgb(var(--border-color-rgb) / 0.8);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--accent-cyan);
+  cursor: pointer;
+}
+@media (max-width: 1279px) {
+  .crafting-change-item {
+    display: inline-flex;
+  }
+  .crafting-matches--collapsed .surface-section__body {
+    display: none;
+  }
+}
+
 .crafting-match {
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr);

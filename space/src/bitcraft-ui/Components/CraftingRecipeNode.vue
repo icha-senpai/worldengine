@@ -1,14 +1,18 @@
 <template>
-  <div class="crafting-node" :class="{ 'crafting-node--root': root }">
+  <div
+    class="crafting-node"
+    :class="{ 'crafting-node--root': root, 'crafting-node--deep': depth >= 2 }"
+  >
     <div class="crafting-node__recipe">
       <div class="crafting-node__recipe-head">
-        <h4>{{ activeRecipe.name }}</h4>
+        <h4>{{ activeRecipe.name.replace(/^craft\s+/i, "") }}</h4>
 
         <SelectInput
           v-if="hasAlternatives"
           v-model.number="selectedAlternativeIndex"
           class="crafting-node__route-select"
           aria-label="Recipe route"
+          :title="routeLabel(activeRecipe)"
         >
           <option
             v-for="(alternative, index) in alternatives"
@@ -25,10 +29,15 @@
         class="crafting-node__meta"
       >
         <span v-if="recipeMeta">{{ recipeMeta }}</span>
-        <span v-if="activeRecipe.outputQuantity"
+        <span v-if="activeRecipe.gathering"
+          >Gather {{ formatQuantity(desiredQuantity) }}</span
+        >
+        <span v-else-if="activeRecipe.outputQuantity"
           >Makes {{ formatQuantity(activeRecipe.outputQuantity) }}</span
         >
-        <span v-if="batches > 1">{{ formatQuantity(batches) }} batches</span>
+        <span v-if="!activeRecipe.gathering && batches > 1"
+          >{{ formatQuantity(batches) }} batches</span
+        >
       </div>
     </div>
 
@@ -43,7 +52,10 @@
         <details
           v-if="ingredient.recipes?.length"
           class="crafting-ingredient"
-          open
+          :open="tree?.isExpanded(ingredientPath(ingredient)) ?? false"
+          @toggle="
+            tree?.setExpanded(ingredientPath(ingredient), $event.target.open)
+          "
         >
           <summary class="crafting-ingredient__row">
             <span
@@ -74,9 +86,21 @@
                 class="crafting-ingredient__meta"
                 >{{ ingredientMeta(ingredient) }}</span
               >
+              <span v-if="stockAvailable" class="crafting-ingredient__stock">
+                Need {{ formatQuantity(scaledQuantity(ingredient.quantity)) }} ·
+                Held {{ formatQuantity(heldQuantity(ingredient)) }} ·
+                <span
+                  :class="{
+                    'crafting-ingredient__missing':
+                      missingQuantity(ingredient) > 0,
+                  }"
+                  >Missing
+                  {{ formatQuantity(missingQuantity(ingredient)) }}</span
+                >
+              </span>
             </span>
             <BitcraftTierBadge
-              v-if="hasTier(ingredient.tier)"
+              v-if="hasTier(ingredient.tier) && Number(ingredient.tier) > 0"
               class="crafting-ingredient__tier"
               :tier="ingredient.tier"
             />
@@ -91,6 +115,8 @@
               v-for="childRecipe in ingredient.recipes"
               :key="childRecipe.id ?? childRecipe.name"
               :recipe="childRecipe"
+              :depth="depth + 1"
+              :path="`${ingredientPath(ingredient)}/${childRecipe.id ?? childRecipe.name}`"
               :desired-quantity="scaledQuantity(ingredient.quantity)"
               @route-selected="emit('route-selected', $event)"
             />
@@ -127,9 +153,21 @@
                 class="crafting-ingredient__meta"
                 >{{ ingredientMeta(ingredient) }}</span
               >
+              <span v-if="stockAvailable" class="crafting-ingredient__stock">
+                Need {{ formatQuantity(scaledQuantity(ingredient.quantity)) }} ·
+                Held {{ formatQuantity(heldQuantity(ingredient)) }} ·
+                <span
+                  :class="{
+                    'crafting-ingredient__missing':
+                      missingQuantity(ingredient) > 0,
+                  }"
+                  >Missing
+                  {{ formatQuantity(missingQuantity(ingredient)) }}</span
+                >
+              </span>
             </span>
             <BitcraftTierBadge
-              v-if="hasTier(ingredient.tier)"
+              v-if="hasTier(ingredient.tier) && Number(ingredient.tier) > 0"
               class="crafting-ingredient__tier"
               :tier="ingredient.tier"
             />
@@ -140,7 +178,7 @@
               :disabled="isBranchLoading(ingredient)"
               @click.stop="loadBranch(ingredient)"
             >
-              {{ isBranchLoading(ingredient) ? "Loading..." : "Load" }}
+              {{ isBranchLoading(ingredient) ? "Loading..." : "Load recipe" }}
             </button>
           </div>
           <p v-if="branchError(ingredient)" class="crafting-ingredient__error">
@@ -156,13 +194,20 @@
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
-import { computed, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import BitcraftTierBadge from "/src/bitcraft-ui/Components/BitcraftTierBadge.vue";
 import {
   bitcraftItemFrameStyle,
   bitjitaAssetUrl,
   hasBitcraftTier,
 } from "/src/bitcraft-ui/bitjitaAssets.js";
+
+import {
+  craftingTreeContext,
+  defaultRecipeIndex,
+  formatCraftDuration,
+  recipeRouteLabel,
+} from "../craftingTree.js";
 
 defineOptions({ name: "CraftingRecipeNode" });
 
@@ -172,10 +217,16 @@ const props = defineProps({
   recipe: { type: Object, required: true },
   desiredQuantity: { type: Number, default: 1 },
   root: { type: Boolean, default: false },
+  depth: { type: Number, default: 0 },
+  path: { type: String, default: "root" },
 });
 
+const tree = inject(craftingTreeContext, null);
+
 const selectedAlternativeIndex = ref(
-  Number(props.recipe.selectedAlternativeIndex ?? 0),
+  Number(
+    props.recipe.selectedAlternativeIndex ?? defaultRecipeIndex(props.recipe),
+  ),
 );
 const brokenIconAssets = ref(new Set());
 const loadingBranches = ref(new Set());
@@ -205,7 +256,7 @@ watch(
   () => props.recipe,
   () => {
     selectedAlternativeIndex.value = Number(
-      props.recipe.selectedAlternativeIndex ?? 0,
+      props.recipe.selectedAlternativeIndex ?? defaultRecipeIndex(props.recipe),
     );
   },
 );
@@ -237,22 +288,26 @@ const recipeMeta = computed(() =>
   [
     activeRecipe.value.station,
     activeRecipe.value.skill,
-    activeRecipe.value.duration ? `${activeRecipe.value.duration}s` : null,
+    formatCraftDuration(activeRecipe.value.duration),
   ]
     .filter(Boolean)
     .join(" · "),
 );
 
-const routeLabel = (recipe) =>
-  [
-    recipe.name,
-    recipe.station,
-    recipe.outputQuantity
-      ? `Makes ${formatQuantity(recipe.outputQuantity)}`
-      : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+const routeLabel = recipeRouteLabel;
+const ingredientPath = (ingredient) =>
+  `${props.path}/${activeRecipe.value.id ?? activeRecipe.value.name}/${ingredient.kind}:${ingredient.id}`;
+const stockAvailable = computed(
+  () => tree?.inventory.value && !tree.inventory.value.error,
+);
+const heldQuantity = (ingredient) =>
+  Number(
+    tree?.inventory.value?.quantities?.[
+      `${ingredient.kind}:${ingredient.id}`
+    ] ?? 0,
+  );
+const missingQuantity = (ingredient) =>
+  Math.max(0, scaledQuantity(ingredient.quantity) - heldQuantity(ingredient));
 
 const ingredientMeta = (ingredient) =>
   [ingredient.kind === "cargo" ? "Cargo" : null].filter(Boolean).join(" · ");
@@ -327,7 +382,9 @@ const loadBranch = async (ingredient) => {
 
     const payload = await response.json();
     ingredient.recipes = Array.isArray(payload.recipes) ? payload.recipes : [];
+    tree?.prepareRecipes(ingredient.recipes);
     ingredient.recipesDeferred = false;
+    tree?.setExpanded(ingredientPath(ingredient), true);
 
     if (!ingredient.recipes.length) {
       setBranchError(
@@ -395,7 +452,7 @@ const scaledQuantity = (quantity) => {
   font-size: 14px;
   font-weight: 700;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .crafting-node__route-select {
@@ -593,11 +650,14 @@ details > .crafting-ingredient__row {
   font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.25;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .crafting-ingredient__name strong {
   display: inline-block;
+  min-width: 3ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
   margin-right: 7px;
   border-radius: 4px;
   background: rgb(var(--bg-surface-rgb) / 0.78);
@@ -614,6 +674,16 @@ details > .crafting-ingredient__row {
   font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 650;
+}
+
+.crafting-ingredient__stock {
+  color: var(--text-muted-2);
+  font-size: 11px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.crafting-ingredient__missing {
+  color: var(--accent-pink);
 }
 
 .crafting-ingredient__tier {
@@ -737,6 +807,31 @@ details:not([open]) > .crafting-ingredient__row .crafting-ingredient__chevron {
     padding-left: 10px;
   }
 
+  .crafting-node--deep > .crafting-node__ingredients,
+  .crafting-node--deep
+    > .crafting-node__ingredients
+    > .crafting-ingredient
+    > .crafting-ingredient__children {
+    margin-left: 0;
+    padding-left: 0;
+  }
+  .crafting-node--deep > .crafting-node__ingredients::before,
+  .crafting-node--deep
+    > .crafting-node__ingredients
+    > .crafting-ingredient::before,
+  .crafting-node--deep
+    > .crafting-node__ingredients
+    > .crafting-ingredient::after,
+  .crafting-node--deep
+    > .crafting-node__ingredients
+    > .crafting-ingredient
+    > .crafting-ingredient__row::before,
+  .crafting-node--deep
+    > .crafting-node__ingredients
+    > .crafting-ingredient
+    > .crafting-ingredient__children::before {
+    display: none;
+  }
   .crafting-ingredient__tier {
     display: none;
   }

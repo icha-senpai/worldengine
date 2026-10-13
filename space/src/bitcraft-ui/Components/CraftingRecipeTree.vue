@@ -5,9 +5,25 @@
     aria-label="Crafting tree"
   >
     <header class="crafting-tree__header">
-      <h3>Crafting</h3>
+      <h3>Crafting plan</h3>
 
       <div class="crafting-tree__actions">
+        <template v-if="activeTab === 'tree'">
+          <button
+            type="button"
+            class="crafting-tree__load-all"
+            @click="setAllExpanded(true)"
+          >
+            Expand all
+          </button>
+          <button
+            type="button"
+            class="crafting-tree__load-all"
+            @click="setAllExpanded(false)"
+          >
+            Collapse all
+          </button>
+        </template>
         <button
           type="button"
           class="crafting-tree__load-all"
@@ -23,24 +39,21 @@
           aria-label="Recipe views"
         >
           <button
+            v-for="tab in tabs"
+            :key="tab.key"
             type="button"
             role="tab"
+            :id="`${viewId}-${tab.key}-tab`"
+            :aria-controls="`${viewId}-${tab.key}-panel`"
             class="crafting-tree__tab"
-            :class="{ 'crafting-tree__tab--active': activeTab === 'tree' }"
-            :aria-selected="activeTab === 'tree' ? 'true' : 'false'"
-            @click="activeTab = 'tree'"
+            :class="{ 'crafting-tree__tab--active': activeTab === tab.key }"
+            :aria-selected="activeTab === tab.key"
+            :tabindex="activeTab === tab.key ? 0 : -1"
+            @click="activeTab = tab.key"
+            @keydown.left.prevent="switchTab(-1)"
+            @keydown.right.prevent="switchTab(1)"
           >
-            Tree
-          </button>
-          <button
-            type="button"
-            role="tab"
-            class="crafting-tree__tab"
-            :class="{ 'crafting-tree__tab--active': activeTab === 'totals' }"
-            :aria-selected="activeTab === 'totals' ? 'true' : 'false'"
-            @click="activeTab = 'totals'"
-          >
-            Totals
+            {{ tab.label }}
           </button>
         </div>
       </div>
@@ -49,7 +62,12 @@
     <p v-if="loadAllError" class="crafting-tree__load-error">
       {{ loadAllError }}
     </p>
-    <p v-if="inventory" class="crafting-tree__load-error">
+    <p
+      v-if="inventory"
+      :class="
+        inventory.error ? 'crafting-tree__load-error' : 'crafting-tree__note'
+      "
+    >
       {{
         inventory.error ||
         `Stock for ${inventory.username}. Held quantities do not reserve materials.`
@@ -58,7 +76,40 @@
     </p>
 
     <div
+      v-show="activeTab === 'steps'"
+      class="crafting-tree__panel crafting-tree__panel--steps"
+      role="tabpanel"
+      :id="`${viewId}-steps-panel`"
+      :aria-labelledby="`${viewId}-steps-tab`"
+      :aria-busy="loadingAllBranches"
+    >
+      <p
+        v-if="loadingAllBranches || deferredBranchCount"
+        class="crafting-material-warning"
+        role="status"
+      >
+        {{
+          loadingAllBranches
+            ? "Loading the remaining recipe branches…"
+            : `${deferredBranchCount} branches still unloaded. Load them to see the remaining prerequisites.`
+        }}
+      </p>
+      <CraftingPlanSteps
+        :steps="planSteps"
+        :completed="completedSteps"
+        :loading="loadingAllBranches"
+        v-model:group-by-station="groupByStation"
+        v-model:hide-completed="hideCompleted"
+        @complete="setStepComplete"
+        @reset="resetChecklist"
+        @route-selected="handleRouteSelected"
+      />
+    </div>
+
+    <div
       v-show="activeTab === 'tree'"
+      :id="`${viewId}-tree-panel`"
+      :aria-labelledby="`${viewId}-tree-tab`"
       class="crafting-tree__panel crafting-tree__panel--tree"
       role="tabpanel"
     >
@@ -66,6 +117,7 @@
         v-for="recipe in recipeTree"
         :key="recipe.id ?? recipe.name"
         :recipe="recipe"
+        :path="String(recipe.id ?? recipe.name)"
         :desired-quantity="desiredQuantity"
         root
         @route-selected="handleRouteSelected"
@@ -74,9 +126,45 @@
 
     <div
       v-show="activeTab === 'totals'"
+      :id="`${viewId}-totals-panel`"
+      :aria-labelledby="`${viewId}-totals-tab`"
       class="crafting-tree__panel crafting-tree__panel--totals"
       role="tabpanel"
     >
+      <div class="crafting-material-controls">
+        <label
+          >Show
+          <select
+            v-model="materialMode"
+            class="input"
+            aria-label="Material list scope"
+          >
+            <option value="immediate">Immediate ingredients</option>
+            <option value="base">Base materials</option>
+          </select>
+        </label>
+        <label v-if="inventory && !inventory.error"
+          ><input v-model="missingOnly" type="checkbox" /> Missing only</label
+        >
+      </div>
+      <p
+        v-if="materialMode === 'base' && deferredBranchCount"
+        class="crafting-material-warning"
+        role="status"
+      >
+        {{ deferredBranchCount }} branch{{
+          deferredBranchCount === 1 ? "" : "es"
+        }}
+        still unloaded. This list includes intermediate ingredients until their
+        recipes are loaded.
+      </p>
+      <p class="crafting-material-note">
+        {{
+          materialMode === "base"
+            ? "Deepest ingredients in the selected routes, including existing tools and containers."
+            : "Ingredients for the target recipe, without expanding their crafting steps."
+        }}
+      </p>
       <div v-if="totalGroups.length" class="crafting-totals">
         <section
           v-for="group in totalGroups"
@@ -118,37 +206,31 @@
                   itemMeta(item)
                 }}</span>
               </span>
-              <strong class="crafting-total__quantity"
-                >{{ formatQuantity(item.quantity) }}x</strong
-              >
-              <small
-                v-if="inventory && !inventory.error"
-                class="crafting-total__quantity"
-              >
-                Held
-                {{
-                  formatQuantity(
-                    inventory.quantities[`${item.kind}:${item.id}`] ?? 0,
-                  )
-                }}
-                · Missing
-                {{
-                  formatQuantity(
-                    Math.max(
-                      0,
-                      item.quantity -
-                        (inventory.quantities[`${item.kind}:${item.id}`] ?? 0),
-                    ),
-                  )
-                }}
-              </small>
+              <span class="crafting-total__numbers">
+                <strong>Need {{ formatQuantity(item.quantity) }}</strong>
+                <template v-if="inventory && !inventory.error">
+                  <span>Held {{ formatQuantity(heldQuantity(item)) }}</span>
+                  <span
+                    :class="{
+                      'crafting-stock-missing': missingQuantity(item) > 0,
+                    }"
+                    >Missing {{ formatQuantity(missingQuantity(item)) }}</span
+                  >
+                </template>
+              </span>
             </div>
           </div>
         </section>
       </div>
 
       <div v-else class="empty-state-panel">
-        <p class="text-muted-3 text-sm font-ui">No ingredients found.</p>
+        <p class="text-muted-3 text-sm font-ui">
+          {{
+            missingOnly
+              ? "Nothing missing from this material list."
+              : "No ingredients found."
+          }}
+        </p>
       </div>
     </div>
   </section>
@@ -161,8 +243,16 @@
 <script setup>
 import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, provide, ref, useId, watch } from "vue";
 import CraftingRecipeNode from "./CraftingRecipeNode.vue";
+import CraftingPlanSteps from "./CraftingPlanSteps.vue";
+import {
+  craftingTreeContext,
+  defaultRecipeIndex,
+  selectedRecipe,
+  materialTotals,
+  craftingSteps,
+} from "../craftingTree.js";
 import {
   bitcraftItemFrameStyle,
   bitjitaAssetUrl,
@@ -173,14 +263,72 @@ const props = defineProps({
   desiredQuantity: { type: Number, default: 1 },
   storageKey: { type: String, default: null },
   inventory: { type: Object, default: null },
+  target: { type: Object, default: () => ({}) },
 });
 
-const activeTab = ref("tree");
+const viewId = useId();
+const tabs = [
+  { key: "steps", label: "Crafting steps" },
+  { key: "totals", label: "Materials" },
+  { key: "tree", label: "Tree" },
+];
+const activeTab = ref("steps");
+const treeRevision = ref(0);
+const completedSteps = ref({});
+const groupByStation = ref(false);
+const hideCompleted = ref(false);
+const planSteps = computed(() =>
+  craftingSteps(recipeTree.value, props.desiredQuantity, props.target),
+);
+const setStepComplete = ({ step, checked }) => {
+  const next = { ...completedSteps.value };
+  if (checked) next[step.key] = step.completionSignature;
+  else delete next[step.key];
+  completedSteps.value = next;
+  persistRecipeState();
+};
+const resetChecklist = () => {
+  completedSteps.value = {};
+  persistRecipeState();
+};
+const switchTab = async (offset) => {
+  const index = tabs.findIndex((tab) => tab.key === activeTab.value);
+  activeTab.value = tabs[(index + offset + tabs.length) % tabs.length].key;
+  await nextTick();
+  document.getElementById(`${viewId}-${activeTab.value}-tab`)?.focus();
+};
 const recipeTree = ref([]);
 const brokenIconAssets = ref(new Set());
 const loadingAllBranches = ref(false);
 const loadAllError = ref(null);
 const selectedRoutes = ref({});
+const expansionState = ref({});
+const expandByDefault = ref(false);
+const materialMode = ref("base");
+const missingOnly = ref(false);
+
+const setExpanded = (key, open) => {
+  if ((expansionState.value[key] ?? expandByDefault.value) === open) return;
+  expansionState.value = { ...expansionState.value, [key]: open };
+  persistRecipeState();
+};
+const setAllExpanded = (open) => {
+  expansionState.value = {};
+  expandByDefault.value = open;
+  persistRecipeState();
+};
+provide(craftingTreeContext, {
+  isExpanded: (key) => expansionState.value[key] ?? expandByDefault.value,
+  setExpanded,
+  prepareRecipes: (recipes) => applyPersistedSelections(recipes),
+  inventory: computed(() => props.inventory),
+});
+const heldQuantity = (item) =>
+  Number(
+    props.inventory?.quantities?.[`${item.kind ?? "item"}:${item.id}`] ?? 0,
+  );
+const missingQuantity = (item) =>
+  Math.max(0, item.quantity - heldQuantity(item));
 
 const deferredIngredients = computed(() =>
   collectDeferredIngredients(recipeTree.value),
@@ -202,17 +350,17 @@ const loadAllLabel = computed(() => {
 });
 
 const itemTotals = computed(() => {
-  const totals = new Map();
-
-  recipeTree.value.forEach((recipe) => {
-    addRecipeTotals(totals, recipe, props.desiredQuantity);
-  });
-
-  return [...totals.values()].sort(
-    (left, right) =>
-      tierNumber(left) - tierNumber(right) ||
-      left.name.localeCompare(right.name),
-  );
+  return materialTotals(
+    recipeTree.value,
+    props.desiredQuantity,
+    materialMode.value,
+  )
+    .filter((item) => !missingOnly.value || missingQuantity(item) > 0)
+    .sort(
+      (left, right) =>
+        tierNumber(left) - tierNumber(right) ||
+        left.name.localeCompare(right.name),
+    );
 });
 
 const totalGroups = computed(() => {
@@ -259,74 +407,14 @@ const totalGroups = computed(() => {
   return groups;
 });
 
-const addRecipeTotals = (totals, recipe, desiredQuantity) => {
-  const activeRecipe = selectedRecipe(recipe);
-  const outputQuantity = positiveNumber(activeRecipe?.outputQuantity, 1);
-  const batches = Math.max(
-    1,
-    Math.ceil(positiveNumber(desiredQuantity, 1) / outputQuantity),
-  );
-
-  for (const ingredient of activeRecipe?.ingredients ?? []) {
-    const requiredQuantity = positiveNumber(ingredient.quantity, 1) * batches;
-    const childRecipes = Array.isArray(ingredient.recipes)
-      ? ingredient.recipes
-      : [];
-
-    if (
-      childRecipes.some((child) => selectedRecipe(child)?.ingredients?.length)
-    ) {
-      childRecipes.forEach((childRecipe) =>
-        addRecipeTotals(totals, childRecipe, requiredQuantity),
-      );
-      continue;
-    }
-
-    addIngredientTotal(totals, ingredient, requiredQuantity);
-  }
-};
-
-const selectedRecipe = (recipe) => {
-  const alternatives =
-    Array.isArray(recipe?.alternatives) && recipe.alternatives.length
-      ? recipe.alternatives
-      : [recipe];
-  const selectedIndex = Number(recipe?.selectedAlternativeIndex ?? 0);
-
-  return alternatives[selectedIndex] ?? alternatives[0] ?? recipe;
-};
-
-const addIngredientTotal = (totals, ingredient, quantity) => {
-  const key = `${ingredient.kind ?? "item"}:${ingredient.id ?? ingredient.name}`;
-  const existing = totals.get(key);
-
-  if (existing) {
-    existing.quantity += quantity;
-    existing.deferred =
-      existing.deferred || Boolean(ingredient.recipesDeferred);
-    return;
-  }
-
-  totals.set(key, {
-    key,
-    id: ingredient.id,
-    kind: ingredient.kind,
-    name: ingredient.name ?? "Unknown item",
-    quantity,
-    category: ingredient.category,
-    tier: ingredient.tier,
-    rarity: ingredient.rarity,
-    iconAssetName: ingredient.iconAssetName,
-    deferred: Boolean(ingredient.recipesDeferred),
-  });
-};
-
 const handleRouteSelected = ({ recipe, index }) => {
   recipe.selectedAlternativeIndex = Number(index) || 0;
   selectedRoutes.value = {
     ...selectedRoutes.value,
     [recipeSelectionKey(recipe)]: recipe.selectedAlternativeIndex,
   };
+  applyPersistedSelections(recipeTree.value);
+  loadAllError.value = null;
   persistRecipeState();
 };
 
@@ -334,6 +422,12 @@ const restorePersistedState = () => {
   const state = readPersistedState();
   selectedRoutes.value = state.routes;
   activeTab.value = state.activeTab;
+  expansionState.value = state.expansion;
+  expandByDefault.value = state.expandByDefault;
+  materialMode.value = state.materialMode;
+  completedSteps.value = state.completedSteps;
+  groupByStation.value = state.groupByStation;
+  hideCompleted.value = state.hideCompleted;
 };
 
 const applyPersistedSelections = (recipes) => {
@@ -346,6 +440,8 @@ const applyPersistedSelections = (recipes) => {
 
     if (Number.isInteger(index) && alternatives[index]) {
       recipe.selectedAlternativeIndex = index;
+    } else {
+      recipe.selectedAlternativeIndex = defaultRecipeIndex(recipe);
     }
 
     for (const alternative of alternatives) {
@@ -365,9 +461,11 @@ const readPersistedState = () => {
     const state = JSON.parse(
       window.localStorage.getItem(props.storageKey) ?? "{}",
     );
-    const activeTab = ["tree", "totals"].includes(state.activeTab)
-      ? state.activeTab
-      : "tree";
+    const activeTab =
+      state.planVersion === 1 &&
+      ["steps", "tree", "totals"].includes(state.activeTab)
+        ? state.activeTab
+        : "steps";
     const routes =
       state.routes &&
       typeof state.routes === "object" &&
@@ -375,7 +473,31 @@ const readPersistedState = () => {
         ? state.routes
         : {};
 
-    return { activeTab, routes };
+    const expansion =
+      state.expansion &&
+      typeof state.expansion === "object" &&
+      !Array.isArray(state.expansion)
+        ? Object.fromEntries(
+            Object.entries(state.expansion).filter(
+              ([, open]) => typeof open === "boolean",
+            ),
+          )
+        : {};
+    return {
+      activeTab,
+      routes,
+      expansion,
+      expandByDefault: state.expandByDefault === true,
+      materialMode: state.materialMode === "immediate" ? "immediate" : "base",
+      completedSteps:
+        state.completedSteps &&
+        typeof state.completedSteps === "object" &&
+        !Array.isArray(state.completedSteps)
+          ? state.completedSteps
+          : {},
+      groupByStation: state.groupByStation === true,
+      hideCompleted: state.hideCompleted === true,
+    };
   } catch (error) {
     return defaultPersistedState();
   }
@@ -386,18 +508,35 @@ const persistRecipeState = () => {
     return;
   }
 
-  window.localStorage.setItem(
-    props.storageKey,
-    JSON.stringify({
-      activeTab: activeTab.value,
-      routes: selectedRoutes.value,
-    }),
-  );
+  try {
+    window.localStorage.setItem(
+      props.storageKey,
+      JSON.stringify({
+        planVersion: 1,
+        activeTab: activeTab.value,
+        completedSteps: completedSteps.value,
+        groupByStation: groupByStation.value,
+        hideCompleted: hideCompleted.value,
+        routes: selectedRoutes.value,
+        expansion: expansionState.value,
+        expandByDefault: expandByDefault.value,
+        materialMode: materialMode.value,
+      }),
+    );
+  } catch {
+    // The plan remains usable when browser storage is unavailable.
+  }
 };
 
 const defaultPersistedState = () => ({
-  activeTab: "tree",
+  activeTab: "steps",
+  completedSteps: {},
+  groupByStation: false,
+  hideCompleted: false,
   routes: {},
+  expansion: {},
+  expandByDefault: false,
+  materialMode: "base",
 });
 
 const recipeSelectionKey = (recipe) =>
@@ -440,9 +579,10 @@ const loadAllBranches = async () => {
   loadingAllBranches.value = true;
   loadAllError.value = null;
   const requestedKeys = new Set();
+  const revision = treeRevision.value;
 
   try {
-    while (true) {
+    while (revision === treeRevision.value) {
       const batch = uniqueDeferredIngredients()
         .filter((ingredient) => !requestedKeys.has(branchKey(ingredient)))
         .slice(0, 8);
@@ -453,18 +593,22 @@ const loadAllBranches = async () => {
 
       batch.forEach((ingredient) => requestedKeys.add(branchKey(ingredient)));
       await Promise.all(
-        batch.map((ingredient) => loadBranchForIngredient(ingredient)),
+        batch.map((ingredient) =>
+          loadBranchForIngredient(ingredient, revision),
+        ),
       );
     }
 
+    if (revision !== treeRevision.value) return;
     if (deferredBranchCount.value > 0) {
       loadAllError.value =
         "Loaded available branches. Some repeated branches are still deferred.";
     }
   } catch (error) {
-    loadAllError.value = "Could not load every branch.";
+    if (revision === treeRevision.value)
+      loadAllError.value = "Could not load every branch.";
   } finally {
-    loadingAllBranches.value = false;
+    if (revision === treeRevision.value) loadingAllBranches.value = false;
   }
 };
 
@@ -484,7 +628,10 @@ const uniqueDeferredIngredients = () => {
   });
 };
 
-const loadBranchForIngredient = async (ingredient) => {
+const loadBranchForIngredient = async (
+  ingredient,
+  revision = treeRevision.value,
+) => {
   const response = await fetch(
     route("bitcraft.crafting.branch", {
       itemId: ingredient.id,
@@ -503,7 +650,8 @@ const loadBranchForIngredient = async (ingredient) => {
   }
 
   const payload = await response.json();
-  applyBranchPayload(branchKey(ingredient), payload);
+  if (revision === treeRevision.value)
+    applyBranchPayload(branchKey(ingredient), payload);
 };
 
 const applyBranchPayload = (key, payload) => {
@@ -521,12 +669,6 @@ const applyBranchPayload = (key, payload) => {
 
 const branchKey = (ingredient) => `${ingredient.kind}:${ingredient.id}`;
 
-const positiveNumber = (value, fallback) => {
-  const number = Number(value);
-
-  return Number.isFinite(number) && number > 0 ? number : fallback;
-};
-
 const formatQuantity = (quantity) =>
   new Intl.NumberFormat(undefined, {
     maximumFractionDigits: 2,
@@ -536,7 +678,8 @@ const itemMeta = (item) =>
   [
     item.kind === "cargo" ? "Cargo" : "Item",
     item.rarity,
-    item.deferred ? "Deferred" : null,
+    item.deferred ? "Recipe not loaded" : null,
+    /tool/i.test(item.category ?? "") ? "Existing tool" : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -576,6 +719,8 @@ const itemFrameStyle = (item) =>
 watch(
   () => props.recipes,
   (recipes) => {
+    treeRevision.value += 1;
+    loadingAllBranches.value = false;
     recipeTree.value = JSON.parse(JSON.stringify(recipes ?? []));
     applyPersistedSelections(recipeTree.value);
     loadAllError.value = null;
@@ -592,7 +737,29 @@ watch(
   { immediate: true },
 );
 
-watch(activeTab, persistRecipeState);
+watch(
+  [activeTab, materialMode, groupByStation, hideCompleted],
+  persistRecipeState,
+);
+watch(
+  [activeTab, recipeTree, deferredBranchCount],
+  () => {
+    if (
+      activeTab.value === "steps" &&
+      deferredBranchCount.value &&
+      !loadingAllBranches.value &&
+      !loadAllError.value
+    )
+      loadAllBranches();
+  },
+  { flush: "post", immediate: true },
+);
+watch(
+  () => props.inventory,
+  () => {
+    missingOnly.value = false;
+  },
+);
 </script>
 
 <style scoped>
@@ -654,6 +821,7 @@ watch(activeTab, persistRecipeState);
   opacity: 0.55;
 }
 
+.crafting-tree__note,
 .crafting-tree__load-error {
   margin: 0;
   border-bottom: 1px solid rgb(var(--border-color-rgb) / 0.58);
@@ -662,6 +830,10 @@ watch(activeTab, persistRecipeState);
   font-size: 12px;
   font-weight: 650;
   padding: 10px 14px;
+}
+
+.crafting-tree__note {
+  color: var(--text-muted-2);
 }
 
 .crafting-tree__tabs {
@@ -700,9 +872,9 @@ watch(activeTab, persistRecipeState);
 .crafting-tree__panel--tree {
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  scrollbar-gutter: stable;
 }
 
+.crafting-tree__panel--steps,
 .crafting-tree__panel--totals {
   padding: 12px;
 }
@@ -796,13 +968,46 @@ watch(activeTab, persistRecipeState);
   font-size: 11px;
 }
 
-.crafting-total__quantity {
-  color: var(--text-primary);
-  font-family: var(--font-ui);
-  font-size: 13px;
-  white-space: nowrap;
+.crafting-total__numbers {
+  display: grid;
+  gap: 3px;
+  text-align: right;
+  color: var(--text-muted-2);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
-
+.crafting-stock-missing {
+  color: var(--accent-pink);
+}
+.crafting-material-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+}
+.crafting-material-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.crafting-material-controls select {
+  width: auto;
+  max-width: 100%;
+}
+.crafting-material-warning,
+.crafting-material-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted-2);
+}
+.crafting-material-warning {
+  padding: 10px;
+  border: 1px solid rgb(var(--accent-cyan-rgb) / 0.4);
+  border-radius: 6px;
+  color: var(--accent-cyan);
+}
 @media (max-width: 640px) {
   .crafting-tree__header {
     align-items: flex-start;
@@ -823,8 +1028,12 @@ watch(activeTab, persistRecipeState);
     height: 32px;
   }
 
-  .crafting-total__quantity {
+  .crafting-total__numbers {
     grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    text-align: left;
   }
 }
 </style>
