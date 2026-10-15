@@ -21,3 +21,23 @@ dotenvy = "=0.15.7"
 tracing = "=0.1.44"
 tracing-subscriber = { version = "=0.3.23", features = ["env-filter"] }
 image = { version = "=0.25.10", default-features = false, features = ["png"] }
+
+[profile.dev]
+debug = 0
+strip = "debuginfo"
+incremental = false
+
+[profile.test]
+debug = 0
+strip = "debuginfo"
+incremental = false
+
+[profile.release]
+debug = 0
+strip = "debuginfo"
+incremental = false
+
+[profile.bench]
+debug = 0
+strip = "debuginfo"
+incremental = false

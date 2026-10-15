@@ -28,6 +28,20 @@ export const AchievementDefinition = __t.object("AchievementDefinition", {
 });
 export type AchievementDefinition = __Infer<typeof AchievementDefinition>;
 
+export const AchievementDelivery = __t.object("AchievementDelivery", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  achievementId: __t.u32(),
+  discordUserId: __t.u64(),
+  createdAt: __t.timestamp(),
+  availableAt: __t.timestamp(),
+  channelId: __t.u64(),
+  leaseOwner: __t.identity(),
+  leaseNonce: __t.u128(),
+  attempts: __t.u32(),
+});
+export type AchievementDelivery = __Infer<typeof AchievementDelivery>;
+
 export const AchievementProgress = __t.object("AchievementProgress", {
   key: __t.u128(),
   playerId: __t.u64(),
@@ -35,6 +49,13 @@ export const AchievementProgress = __t.object("AchievementProgress", {
   current: __t.u64(),
 });
 export type AchievementProgress = __Infer<typeof AchievementProgress>;
+
+export const AchievementRoute = __t.object("AchievementRoute", {
+  discordUserId: __t.u64(),
+  channelId: __t.u64(),
+  updatedAt: __t.timestamp(),
+});
+export type AchievementRoute = __Infer<typeof AchievementRoute>;
 
 export const ActionNonce = __t.object("ActionNonce", {
   identity: __t.identity(),
@@ -259,6 +280,15 @@ export const DeploymentOwner = __t.object("DeploymentOwner", {
 });
 export type DeploymentOwner = __Infer<typeof DeploymentOwner>;
 
+export const DocksideStatus = __t.object("DocksideStatus", {
+  available: __t.bool(),
+  totalClaims: __t.u64(),
+  stamps: __t.u8(),
+  nextReward: __t.u64(),
+  nextResetAt: __t.timestamp(),
+});
+export type DocksideStatus = __Infer<typeof DocksideStatus>;
+
 export const EarnedAchievement = __t.object("EarnedAchievement", {
   key: __t.u128(),
   playerId: __t.u64(),
@@ -309,6 +339,12 @@ export const ItemStack = __t.object("ItemStack", {
   quantity: __t.u64(),
 });
 export type ItemStack = __Infer<typeof ItemStack>;
+
+export const JournalCount = __t.object("JournalCount", {
+  playerId: __t.u64(),
+  total: __t.u64(),
+});
+export type JournalCount = __Infer<typeof JournalCount>;
 
 export const JournalEntry = __t.object("JournalEntry", {
   key: __t.string(),
@@ -485,6 +521,57 @@ export const QualityDefinition = __t.object("QualityDefinition", {
 });
 export type QualityDefinition = __Infer<typeof QualityDefinition>;
 
+export const QuestCalendar = __t.object("QuestCalendar", {
+  singleton: __t.u8(),
+  day: __t.i64(),
+  week: __t.i64(),
+  nextWeekAt: __t.timestamp(),
+});
+export type QuestCalendar = __Infer<typeof QuestCalendar>;
+
+export const QuestClaim = __t.object("QuestClaim", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  questId: __t.u32(),
+  baitId: __t.u32(),
+  deliveredCatchId: __t.option(__t.u64()),
+  claimedAt: __t.timestamp(),
+});
+export type QuestClaim = __Infer<typeof QuestClaim>;
+
+export const QuestDefinition = __t.object("QuestDefinition", {
+  questId: __t.u32(),
+  chain: __t.string(),
+  name: __t.string(),
+  giver: __t.string(),
+  dialogue: __t.string(),
+  conclusion: __t.string(),
+  objective: __t.string(),
+  goal: __t.string(),
+  target: __t.u64(),
+  biomeId: __t.u32(),
+  previousQuestId: __t.u32(),
+  weekly: __t.bool(),
+  coins: __t.u64(),
+  tin: __t.u64(),
+  scrap: __t.u64(),
+  baitChoices: __t.array(__t.u32()),
+  baitPacks: __t.u32(),
+  achievementId: __t.u32(),
+});
+export type QuestDefinition = __Infer<typeof QuestDefinition>;
+
+export const QuestStatus = __t.object("QuestStatus", {
+  questId: __t.u32(),
+  cycle: __t.u64(),
+  current: __t.u64(),
+  unlocked: __t.bool(),
+  claimed: __t.bool(),
+  deliverySpeciesIds: __t.array(__t.u32()),
+  week: __t.i64(),
+});
+export type QuestStatus = __Infer<typeof QuestStatus>;
+
 export const RankMaximum = __t.object("RankMaximum", {
   key: __t.u128(),
   playerId: __t.u64(),
@@ -520,6 +607,16 @@ export const RecentCatch = __t.object("RecentCatch", {
   xpGranted: __t.u64(),
 });
 export type RecentCatch = __Infer<typeof RecentCatch>;
+
+export const RepeatQuestProgress = __t.object("RepeatQuestProgress", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  questId: __t.u32(),
+  cycle: __t.u64(),
+  current: __t.u64(),
+  speciesIds: __t.array(__t.u32()),
+});
+export type RepeatQuestProgress = __Infer<typeof RepeatQuestProgress>;
 
 export const RodBonuses = __t.object("RodBonuses", {
   rodId: __t.u32(),
@@ -679,4 +776,15 @@ export const UpgradeQuote = __t.object("UpgradeQuote", {
   consumed: __t.bool(),
 });
 export type UpgradeQuote = __Infer<typeof UpgradeQuote>;
+
+export const WeeklyQuestProgress = __t.object("WeeklyQuestProgress", {
+  playerId: __t.u64(),
+  week: __t.i64(),
+  fishCount: __t.u64(),
+  junkCount: __t.u64(),
+  speciesIds: __t.array(__t.u32()),
+  claimedQuestId: __t.u32(),
+  baitId: __t.u32(),
+});
+export type WeeklyQuestProgress = __Infer<typeof WeeklyQuestProgress>;
 

@@ -7,6 +7,7 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
     if ctx.sender() != ctx.database_identity() {
         return Err("SCHEDULER_REQUIRED".into());
     }
+    crate::quests::refresh_calendar(ctx);
     for row in ctx
         .db
         .shop_quote()

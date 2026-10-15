@@ -10,9 +10,9 @@ Equipped titles use the existing achievement definition and medal artwork. `Titl
 
 ## Checks
 
-- `npx tsx scripts/portraits-proof.ts`: previous module to new module with a linked player, a cast and an equipped title; all 52 old tables retained; trusted bot/OAuth updates; browser denial; hash validation; missing-player denial; static/animated URLs; both default-avatar formulas; no-op replay; public subscription updates.
+- `npm run rust:script -- scripts/portraits-proof.ts`: previous module to new module with a linked player, a cast and an equipped title; all 52 old tables retained; trusted bot/OAuth updates; browser denial; hash validation; missing-player denial; static/animated URLs; both default-avatar formulas; no-op replay; public subscription updates.
 - `node scripts/portrait-preservation.mjs before|after DATABASE [SERVER] [FILE]`: canonical comparison of all old tables excluding scheduled maintenance and the one new portrait table. Unsafe JSON integers retain their original source text.
-- `cargo test -p account-link --locked`: existing CSRF, cookie, session and OAuth tests, including authenticated animated-avatar metadata extraction.
+- `npm run rust:run -- test -p account-link --locked`: existing CSRF, cookie, session and OAuth tests, including authenticated animated-avatar metadata extraction.
 - Script/Svelte checks, website build and Rust workspace checks; native clients rebuilt from the regenerated bindings.
 - Desktop/mobile browser validation covers actual portraits, title/earned-medal previews, Escape and focus restoration, reduced-motion still portraits, failed image fallback and layout width.
 

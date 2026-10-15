@@ -536,6 +536,1632 @@
         }
       }
     },
+    "claim_member_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "player_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "user_name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "inventory_permission",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "build_permission",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "officer_permission",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "co_owner_permission",
+              "type": {
+                "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_tech_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "learned",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            },
+            {
+              "name": "researching",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "start_timestamp",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "__timestamp_micros_since_unix_epoch__",
+                      "type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "scheduled_id",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "U64": []
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_tech_desc": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "description",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "tier",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "tech_type",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "Undefined",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "TierUpgrade",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "MemberCount",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "MaxSupplies",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "ClaimArea",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Settlement",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Forestry",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Carpentry",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Masonry",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Mining",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Smithing",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Scholar",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Leatherworking",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Hunting",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Tailoring",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Farming",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Fishing",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Foraging",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Empire",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "TownBank",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "LargeHouse",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "TownMarket",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "supplies_cost",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "research_time",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "requirements",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            },
+            {
+              "name": "input",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "item_id",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "quantity",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "item_type",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "Item",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "Cargo",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "name": "durability",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "some",
+                                "type": {
+                                  "I32": []
+                                }
+                              },
+                              {
+                                "name": "none",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "members",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "area",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "supplies",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "xp_to_mint_hex_coin",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "unlocks_techs",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "building_desc": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "functions",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "function_type",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "level",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "crafting_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "storage_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "cargo_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "refining_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "refining_cargo_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "item_slot_size",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "cargo_slot_size",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "trade_orders",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "allowed_item_id_per_slot",
+                        "type": {
+                          "Array": {
+                            "I32": []
+                          }
+                        }
+                      },
+                      {
+                        "name": "concurrent_crafts_per_player",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "terraform",
+                        "type": {
+                          "Bool": []
+                        }
+                      },
+                      {
+                        "name": "housing_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "housing_income",
+                        "type": {
+                          "U32": []
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "description",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "rested_buff_duration",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "light_radius",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "model_asset_name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "icon_asset_name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "unenterable",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "wilderness",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "footprint",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "x",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "z",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "footprint_type",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "Hitbox",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "Walkable",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "Perimeter",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "WalkableResource",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "max_health",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "ignore_damage",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "defense_level",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "decay",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "maintenance",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "build_permission",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "None",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Claim",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Empire",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "All",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "interact_permission",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "None",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Claim",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "Empire",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "All",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "has_action",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "show_in_compendium",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "is_ruins",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "not_deconstructible",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "destroy_on_unclaim",
+              "type": {
+                "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_tile_cost": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "tile_count",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "cost_per_tile",
+              "type": {
+                "F32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "parameters_desc": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "version",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "default_speed",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "surface_type",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "Ground",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "Lake",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "River",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "Ocean",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "OceanBiome",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "Swamp",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "name": "speed",
+                        "type": {
+                          "F32": []
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "default_num_inventory_pockets",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "tech_time_power_exponent",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "tech_time_log_base",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "min_seconds_to_passive_regen_health",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "min_seconds_to_passive_regen_stamina",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "repair_building_duration",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "repair_building_max_repair_percent",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "repair_building_show_damage_percent",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "environment_debuff_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "discovery_range",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "max_build_range",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "deconstruct_default_time",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "respawn_seconds",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "daytime",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "nighttime",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "resources_regen_loops",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "selected_traveler_order_count",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "resources_regen_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "building_decay_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "max_traded_items",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "max_trade_distance_large_tiles",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "min_distance_between_claims",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "starting_supplies",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "show_shield_bar_percent",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "swim_sprint_speed_multiplier",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "loot_chest_despawn_time_seconds",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "deployable_disembark_max_elevation",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "default_num_toolbelt_pockets",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "resource_growth_tick_rate_milliseconds",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "rent_deposit_days",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "rent_collection_time_of_day",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "rent_eviction_compensation",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "max_rental_deposit_days",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "recommended_achievements",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_decay_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_siege_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_siege_raise_pct",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "empire_default_nobility_threshold",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_shard_cost",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_starting_shards",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_node_max_energy",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_node_starting_energy",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_min_siege_distance",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_max_siege_distance",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "daily_shards",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "hexite_capsule_supply_cost",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "hexite_capsule_shard_cost",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "hexite_capsule_craft_time_seconds",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "crafting_lock_duration_secs",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "starving_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "starving_damage",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "claim_stability_param_m",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "claim_stability_param_b",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "player_regen_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "enemy_regen_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "teleportation_energy_regen_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "auto_respawn_attempts",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "player_pathfinding_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "nearby_flame_buff_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "floating_origin_distance_threshold",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "withdraw_from_deployables_range",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "deposit_to_deployables_range",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "sign_in_aggro_immunity",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "respawn_aggro_immunity",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "new_user_aggro_immunity",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "terraform_experience_per_progress",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "dropped_inventory_ownership_seconds",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "dropped_inventory_despawn_seconds",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "traveler_tasks_per_npc",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "traveler_tasks_times_of_day",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            },
+            {
+              "name": "teleport_channel_time_home",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "teleport_channel_time_waystone",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "teleportation_home_energy_cost",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "teleportation_base_energy_cost",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "teleportation_cost_per_large_tile",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "teleportation_full_inventory_multiplier",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "region_crossover_distance_large_tiles",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "item_recovery_range",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "quick_board_range",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "duel_range",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "duel_out_of_range_grace_period_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "player_housing_eviction_time_minutes",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "player_housing_income_time_of_day",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "co_owner_take_ownership_supply_time",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "officer_take_ownership_supply_time",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "member_take_ownership_supply_time",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_starting_currency",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "empire_rename_currency_cost",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "empire_move_capital_currency_cost",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "hexite_capsule_currency_cost",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "prospecting_herd_immunity_secs",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "rp_walk_speed",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "traveler_task_weekly_credits",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "Array": {
+                          "Product": {
+                            "elements": [
+                              {
+                                "name": "traveler_type",
+                                "type": {
+                                  "Sum": {
+                                    "variants": [
+                                      {
+                                        "name": "None",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "Rumbagh",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "Svim",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "Heimlich",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "Twins",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "Brico",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "Tamer",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "Slayer",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              {
+                                "name": "weekly_task_credits",
+                                "type": {
+                                  "I32": []
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "traveler_task_reroll_credit_cost",
+              "type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
     "claim_local_state": {
       "key": [
         0
@@ -1720,6 +3346,1632 @@
               "name": "neutral",
               "type": {
                 "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_member_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "player_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "user_name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "inventory_permission",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "build_permission",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "officer_permission",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "co_owner_permission",
+              "type": {
+                "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_tech_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "learned",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            },
+            {
+              "name": "researching",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "start_timestamp",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "__timestamp_micros_since_unix_epoch__",
+                      "type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "scheduled_id",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "U64": []
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_tech_desc": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "description",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "tier",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "tech_type",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "undefined",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "tierUpgrade",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "memberCount",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "maxSupplies",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "claimArea",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "settlement",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "forestry",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "carpentry",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "masonry",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "mining",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "smithing",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "scholar",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "leatherworking",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "hunting",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "tailoring",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "farming",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "fishing",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "foraging",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "empire",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "townBank",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "largeHouse",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "townMarket",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "supplies_cost",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "research_time",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "requirements",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            },
+            {
+              "name": "input",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "item_id",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "quantity",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "item_type",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "item",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "cargo",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "name": "durability",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "some",
+                                "type": {
+                                  "I32": []
+                                }
+                              },
+                              {
+                                "name": "none",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "members",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "area",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "supplies",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "xp_to_mint_hex_coin",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "unlocks_techs",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "building_desc": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "functions",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "function_type",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "level",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "crafting_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "storage_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "cargo_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "refining_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "refining_cargo_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "item_slot_size",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "cargo_slot_size",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "trade_orders",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "allowed_item_id_per_slot",
+                        "type": {
+                          "Array": {
+                            "I32": []
+                          }
+                        }
+                      },
+                      {
+                        "name": "concurrent_crafts_per_player",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "terraform",
+                        "type": {
+                          "Bool": []
+                        }
+                      },
+                      {
+                        "name": "housing_slots",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "housing_income",
+                        "type": {
+                          "U32": []
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "description",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "rested_buff_duration",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "light_radius",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "model_asset_name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "icon_asset_name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "unenterable",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "wilderness",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "footprint",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "x",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "z",
+                        "type": {
+                          "I32": []
+                        }
+                      },
+                      {
+                        "name": "footprint_type",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "hitbox",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "walkable",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "perimeter",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "walkableResource",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "max_health",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "ignore_damage",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "defense_level",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "decay",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "maintenance",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "build_permission",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "claim",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "empire",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "all",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "interact_permission",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "claim",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "empire",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "all",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "has_action",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "show_in_compendium",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "is_ruins",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "not_deconstructible",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "destroy_on_unclaim",
+              "type": {
+                "Bool": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "claim_tile_cost": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "tile_count",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "cost_per_tile",
+              "type": {
+                "F32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "parameters_desc": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "version",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "default_speed",
+              "type": {
+                "Array": {
+                  "Product": {
+                    "elements": [
+                      {
+                        "name": "surface_type",
+                        "type": {
+                          "Sum": {
+                            "variants": [
+                              {
+                                "name": "ground",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "lake",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "river",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "ocean",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "oceanBiome",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "swamp",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "name": "speed",
+                        "type": {
+                          "F32": []
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "name": "default_num_inventory_pockets",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "tech_time_power_exponent",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "tech_time_log_base",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "min_seconds_to_passive_regen_health",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "min_seconds_to_passive_regen_stamina",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "repair_building_duration",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "repair_building_max_repair_percent",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "repair_building_show_damage_percent",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "environment_debuff_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "discovery_range",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "max_build_range",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "deconstruct_default_time",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "respawn_seconds",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "daytime",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "nighttime",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "resources_regen_loops",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "selected_traveler_order_count",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "resources_regen_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "building_decay_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "max_traded_items",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "max_trade_distance_large_tiles",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "min_distance_between_claims",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "starting_supplies",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "show_shield_bar_percent",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "swim_sprint_speed_multiplier",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "loot_chest_despawn_time_seconds",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "deployable_disembark_max_elevation",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "default_num_toolbelt_pockets",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "resource_growth_tick_rate_milliseconds",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "rent_deposit_days",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "rent_collection_time_of_day",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "rent_eviction_compensation",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "max_rental_deposit_days",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "recommended_achievements",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_decay_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_siege_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_siege_raise_pct",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "empire_default_nobility_threshold",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_shard_cost",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_starting_shards",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_node_max_energy",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_node_starting_energy",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_min_siege_distance",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_max_siege_distance",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "daily_shards",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "hexite_capsule_supply_cost",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "hexite_capsule_shard_cost",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "hexite_capsule_craft_time_seconds",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "crafting_lock_duration_secs",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "starving_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "starving_damage",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "claim_stability_param_m",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "claim_stability_param_b",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "player_regen_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "enemy_regen_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "teleportation_energy_regen_tick_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "auto_respawn_attempts",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "player_pathfinding_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "nearby_flame_buff_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "floating_origin_distance_threshold",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "withdraw_from_deployables_range",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "deposit_to_deployables_range",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "sign_in_aggro_immunity",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "respawn_aggro_immunity",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "new_user_aggro_immunity",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "terraform_experience_per_progress",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "dropped_inventory_ownership_seconds",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "dropped_inventory_despawn_seconds",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "traveler_tasks_per_npc",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "traveler_tasks_times_of_day",
+              "type": {
+                "Array": {
+                  "I32": []
+                }
+              }
+            },
+            {
+              "name": "teleport_channel_time_home",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "teleport_channel_time_waystone",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "teleportation_home_energy_cost",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "teleportation_base_energy_cost",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "teleportation_cost_per_large_tile",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "teleportation_full_inventory_multiplier",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "region_crossover_distance_large_tiles",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "item_recovery_range",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "quick_board_range",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "duel_range",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "duel_out_of_range_grace_period_millis",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "player_housing_eviction_time_minutes",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "player_housing_income_time_of_day",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "co_owner_take_ownership_supply_time",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "officer_take_ownership_supply_time",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "member_take_ownership_supply_time",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_starting_currency",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "empire_rename_currency_cost",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "empire_move_capital_currency_cost",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "hexite_capsule_currency_cost",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "prospecting_herd_immunity_secs",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "rp_walk_speed",
+              "type": {
+                "F32": []
+              }
+            },
+            {
+              "name": "traveler_task_weekly_credits",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "Array": {
+                          "Product": {
+                            "elements": [
+                              {
+                                "name": "traveler_type",
+                                "type": {
+                                  "Sum": {
+                                    "variants": [
+                                      {
+                                        "name": "none",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "rumbagh",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "svim",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "heimlich",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "twins",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "brico",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "tamer",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "slayer",
+                                        "type": {
+                                          "Product": {
+                                            "elements": []
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              {
+                                "name": "weekly_task_credits",
+                                "type": {
+                                  "I32": []
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "traveler_task_reroll_credit_cost",
+              "type": {
+                "I32": []
               }
             }
           ]

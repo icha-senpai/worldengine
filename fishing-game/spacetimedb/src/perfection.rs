@@ -321,6 +321,7 @@ pub fn activate_perfect_catches(ctx: &ReducerContext) -> Result<(), String> {
                 achievement_id: 19,
                 completed_at: at,
             });
+            crate::notifications::enqueue(ctx, key);
         }
     }
     Ok(())

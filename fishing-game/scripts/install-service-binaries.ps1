@@ -3,8 +3,8 @@ param([string]$BotBinary, [string]$LinkerBinary)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $binRoot = Join-Path $projectRoot '.runtime\bin'
-if (!$BotBinary) { $BotBinary = Join-Path $projectRoot 'target\release\discord-bot.exe' }
-if (!$LinkerBinary) { $LinkerBinary = Join-Path $projectRoot 'target\release\account-link.exe' }
+if (!$BotBinary) { $BotBinary = Join-Path $projectRoot '.local\rust-artifacts\discord-bot.exe' }
+if (!$LinkerBinary) { $LinkerBinary = Join-Path $projectRoot '.local\rust-artifacts\account-link.exe' }
 New-Item -ItemType Directory -Path $binRoot -Force | Out-Null
 $sources = @{'discord-bot.exe' = $BotBinary; 'account-link.exe' = $LinkerBinary}
 foreach ($name in $sources.Keys) {

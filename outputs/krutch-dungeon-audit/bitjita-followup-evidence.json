@@ -1,0 +1,420 @@
+{
+  "checkedAtUtc": "2026-10-15T05:49:59.253252+00:00",
+  "player": {
+    "username": "Krutch",
+    "entityId": "648518346354619877"
+  },
+  "findings": {
+    "t7EnemyType": 40,
+    "t7WireName": "SpiderDungeonSpiderNest",
+    "historicalT7GlobalRecordsExist": true,
+    "playerSpecificT7CountEstablished": false,
+    "leaderboardEnemyTypeStrIgnoredInTest": true,
+    "dungeonBoardPlayerIdAndEnemyTypeIgnoredInTest": true,
+    "globalTotalsAreNotPlayerTotals": true,
+    "confirmedDeathValidationOfArchivedRowsNotEstablished": true
+  },
+  "requests": {
+    "dungeon_board": {
+      "url": "https://bitjita.com/api/dungeons",
+      "response": {
+        "stats": {
+          "total": 72,
+          "open": 72,
+          "cleared": 0,
+          "closed": 0
+        },
+        "dungeonTypes": [
+          {
+            "buildingDescId": 1785852446,
+            "name": "Giant Skitch Dungeon",
+            "description": "Ancient Ruins",
+            "instances": 32,
+            "openInstances": 32,
+            "clearedInstances": 0,
+            "closedInstances": 0,
+            "enemies": [
+              {
+                "enemyType": 36,
+                "enemyTypeStr": "CrabDungeonCrabBoss",
+                "name": "Giant Skitch",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 36932,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-15 04:29:03.612241+00",
+                "uniqueKillers": 6101
+              }
+            ],
+            "totalKills": 36932,
+            "recentKillsTotal": 0,
+            "lastKillAt": "2026-10-15 04:29:03.612241+00",
+            "inProgress": false
+          },
+          {
+            "buildingDescId": 208697589,
+            "name": "Sentinel Dungeon",
+            "description": "Ancient Ruins",
+            "instances": 24,
+            "openInstances": 24,
+            "clearedInstances": 0,
+            "closedInstances": 0,
+            "enemies": [
+              {
+                "enemyType": 33,
+                "enemyTypeStr": "SentinelDungeonJakyl",
+                "name": "Subterranean Jakyl",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 333127,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-15 02:01:48.593259+00",
+                "uniqueKillers": 1697
+              },
+              {
+                "enemyType": 34,
+                "enemyTypeStr": "SentinelDungeonSkitch",
+                "name": "Subterranean Skitch",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 327035,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-15 02:04:06.603103+00",
+                "uniqueKillers": 1411
+              },
+              {
+                "enemyType": 32,
+                "enemyTypeStr": "Sentinel",
+                "name": "Feral Sentinel",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 32186,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-15 02:17:02.560316+00",
+                "uniqueKillers": 1450
+              },
+              {
+                "enemyType": 35,
+                "enemyTypeStr": "SentinelDungeonLargeJakyl",
+                "name": "Subterranean Jakyl Protector",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 28333,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-15 02:04:47.361751+00",
+                "uniqueKillers": 1430
+              }
+            ],
+            "totalKills": 720681,
+            "recentKillsTotal": 0,
+            "lastKillAt": "2026-10-15 02:17:02.560316+00",
+            "inProgress": false
+          },
+          {
+            "buildingDescId": 1084069097,
+            "name": "Araknir Dungeon",
+            "description": "Ancient Ruins",
+            "instances": 16,
+            "openInstances": 16,
+            "clearedInstances": 0,
+            "closedInstances": 0,
+            "enemies": [
+              {
+                "enemyType": 40,
+                "enemyTypeStr": "SpiderDungeonSpiderNest",
+                "name": "Araknir Nest",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 34483,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-14 23:40:12.404304+00",
+                "uniqueKillers": 688
+              }
+            ],
+            "totalKills": 34483,
+            "recentKillsTotal": 0,
+            "lastKillAt": "2026-10-14 23:40:12.404304+00",
+            "inProgress": false
+          }
+        ],
+        "liveActivity": {
+          "totalActiveFighters": 2,
+          "totalActiveEnemies": 2,
+          "activeInstances": 2
+        },
+        "filter": {
+          "regionId": null,
+          "status": null
+        }
+      }
+    },
+    "dungeon_board_player_filter_attempt": {
+      "url": "https://bitjita.com/api/dungeons?playerId=648518346354619877&enemyType=40",
+      "response": {
+        "stats": {
+          "total": 72,
+          "open": 72,
+          "cleared": 0,
+          "closed": 0
+        },
+        "dungeonTypes": [
+          {
+            "buildingDescId": 1785852446,
+            "name": "Giant Skitch Dungeon",
+            "description": "Ancient Ruins",
+            "instances": 32,
+            "openInstances": 32,
+            "clearedInstances": 0,
+            "closedInstances": 0,
+            "enemies": [
+              {
+                "enemyType": 36,
+                "enemyTypeStr": "CrabDungeonCrabBoss",
+                "name": "Giant Skitch",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 36932,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-15 04:29:03.612241+00",
+                "uniqueKillers": 6101
+              }
+            ],
+            "totalKills": 36932,
+            "recentKillsTotal": 0,
+            "lastKillAt": "2026-10-15 04:29:03.612241+00",
+            "inProgress": false
+          },
+          {
+            "buildingDescId": 208697589,
+            "name": "Sentinel Dungeon",
+            "description": "Ancient Ruins",
+            "instances": 24,
+            "openInstances": 24,
+            "clearedInstances": 0,
+            "closedInstances": 0,
+            "enemies": [
+              {
+                "enemyType": 33,
+                "enemyTypeStr": "SentinelDungeonJakyl",
+                "name": "Subterranean Jakyl",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 333127,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-15 02:01:48.593259+00",
+                "uniqueKillers": 1697
+              },
+              {
+                "enemyType": 34,
+                "enemyTypeStr": "SentinelDungeonSkitch",
+                "name": "Subterranean Skitch",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 327035,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-15 02:04:06.603103+00",
+                "uniqueKillers": 1411
+              },
+              {
+                "enemyType": 32,
+                "enemyTypeStr": "Sentinel",
+                "name": "Feral Sentinel",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 32186,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-15 02:17:02.560316+00",
+                "uniqueKillers": 1450
+              },
+              {
+                "enemyType": 35,
+                "enemyTypeStr": "SentinelDungeonLargeJakyl",
+                "name": "Subterranean Jakyl Protector",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 28333,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-15 02:04:47.361751+00",
+                "uniqueKillers": 1430
+              }
+            ],
+            "totalKills": 720681,
+            "recentKillsTotal": 0,
+            "lastKillAt": "2026-10-15 02:17:02.560316+00",
+            "inProgress": false
+          },
+          {
+            "buildingDescId": 1084069097,
+            "name": "Araknir Dungeon",
+            "description": "Ancient Ruins",
+            "instances": 16,
+            "openInstances": 16,
+            "clearedInstances": 0,
+            "closedInstances": 0,
+            "enemies": [
+              {
+                "enemyType": 40,
+                "enemyTypeStr": "SpiderDungeonSpiderNest",
+                "name": "Araknir Nest",
+                "tier": 1,
+                "rarity": "Common",
+                "kills": 34483,
+                "recentKills": 0,
+                "lastKillAt": "2026-10-14 23:40:12.404304+00",
+                "uniqueKillers": 688
+              }
+            ],
+            "totalKills": 34483,
+            "recentKillsTotal": 0,
+            "lastKillAt": "2026-10-14 23:40:12.404304+00",
+            "inProgress": false
+          }
+        ],
+        "liveActivity": {
+          "totalActiveFighters": 1,
+          "totalActiveEnemies": 1,
+          "activeInstances": 1
+        },
+        "filter": {
+          "regionId": null,
+          "status": null
+        }
+      }
+    },
+    "krutch_all": {
+      "url": "https://bitjita.com/api/leaderboard/kills?search=Krutch&filter=all&range=all",
+      "response": {
+        "players": [
+          {
+            "entityId": "648518346354619877",
+            "username": "Krutch",
+            "kills": 27445,
+            "uniqueEnemies": 26399,
+            "totalContribution": 13033130,
+            "rank": 1
+          }
+        ],
+        "count": 1,
+        "searchCount": 1,
+        "filter": "all",
+        "range": "all",
+        "globalStats": {
+          "totalKills": 27445,
+          "totalContribution": 13033130,
+          "maxKills": 27445,
+          "maxContribution": 13033130
+        },
+        "pagination": {
+          "page": 1,
+          "pageSize": 100,
+          "totalPages": 1,
+          "hasNext": false,
+          "hasPrev": false
+        }
+      }
+    },
+    "krutch_bosses": {
+      "url": "https://bitjita.com/api/leaderboard/kills?search=Krutch&filter=bosses&range=all",
+      "response": {
+        "players": [
+          {
+            "entityId": "648518346354619877",
+            "username": "Krutch",
+            "kills": 25265,
+            "uniqueEnemies": 24280,
+            "totalContribution": 11939005,
+            "rank": 1
+          }
+        ],
+        "count": 1,
+        "searchCount": 1,
+        "filter": "bosses",
+        "range": "all",
+        "globalStats": {
+          "totalKills": 25265,
+          "totalContribution": 11939005,
+          "maxKills": 25265,
+          "maxContribution": 11939005
+        },
+        "pagination": {
+          "page": 1,
+          "pageSize": 100,
+          "totalPages": 1,
+          "hasNext": false,
+          "hasPrev": false
+        }
+      }
+    },
+    "krutch_t7_filter_attempt": {
+      "url": "https://bitjita.com/api/leaderboard/kills?search=Krutch&filter=all&range=all&enemyTypeStr=SpiderDungeonSpiderNest",
+      "response": {
+        "players": [
+          {
+            "entityId": "648518346354619877",
+            "username": "Krutch",
+            "kills": 27445,
+            "uniqueEnemies": 26399,
+            "totalContribution": 13033130,
+            "rank": 1
+          }
+        ],
+        "count": 1,
+        "searchCount": 1,
+        "filter": "all",
+        "range": "all",
+        "globalStats": {
+          "totalKills": 27445,
+          "totalContribution": 13033130,
+          "maxKills": 27445,
+          "maxContribution": 13033130
+        },
+        "pagination": {
+          "page": 1,
+          "pageSize": 100,
+          "totalPages": 1,
+          "hasNext": false,
+          "hasPrev": false
+        }
+      }
+    },
+    "krutch_enemy_knowledge": {
+      "url": "https://bitjita.com/api/players/648518346354619877/knowledges/enemy",
+      "response": {
+        "key": "enemy",
+        "label": "Enemies",
+        "hydrated": true,
+        "total": 30,
+        "acquired": 30,
+        "discovered": 0,
+        "entries": [
+          {
+            "id": 40,
+            "state": "Acquired",
+            "name": "Araknir Nest"
+          },
+          {
+            "id": 32,
+            "state": "Acquired",
+            "name": "Feral Sentinel"
+          }
+        ]
+      }
+    }
+  },
+  "frontendEvidence": {
+    "dungeonPage": "https://bitjita.com/dungeons",
+    "leaderboardAsset": "https://bitjita.com/_app/immutable/nodes/55.DXaUvlwT.js",
+    "leaderboardFilters": [
+      "all",
+      "bosses"
+    ],
+    "leaderboardLiveBossEnemyTypes": [
+      "Sentinel"
+    ],
+    "dungeonBoardAsset": "https://bitjita.com/_app/immutable/nodes/38.C8Vl_N-b.js",
+    "dungeonBoardServerFilters": [
+      "regionId",
+      "status"
+    ]
+  }
+}

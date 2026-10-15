@@ -1,3 +1,4 @@
+import { moduleArtifactPath, requireRustWorkflow, rustTargetPath } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -7,12 +8,14 @@ import { pathToFileURL } from 'node:url';
 import catalog from '../content/species.json';
 import rules from '../content/game-rules.json';
 
+requireRustWorkflow();
+
 const uri='http://127.0.0.1:3127';
 const database=`fishbound-proof-focus-${Date.now()}`;
 assert(/^fishbound-proof-focus-\d+$/.test(database));
 const oldWasm=resolve('.local/pre-collection-focus-fixture.wasm');
 const { DbConnection: OldDbConnection } = await import(pathToFileURL(resolve('.local/pre-collection-focus-bindings/index.ts')).href);
-const newWasm=resolve('spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm');
+const newWasm=moduleArtifactPath();
 function run(command:string,args:string[]) { const r=spawnSync(command,args,{encoding:'utf8',windowsHide:true}); if(r.status!==0) throw Error(r.stderr||r.stdout); return r.stdout; }
 const call=(name:string,args:string[]=[])=>run('spacetime',['call','--server',uri,'--no-config','--yes',database,name,...args]);
 const publish=(wasm:string)=>run('spacetime',['publish','--server',uri,'--no-config','--yes=skip-login,migrate,break-clients','--delete-data=never','--bin-path',wasm,database]);
@@ -85,9 +88,9 @@ try {
   await writeFile(root+'/Cargo.toml',(await readFile('spacetimedb/Cargo.toml','utf8')).replace('name = "fishing-game-module"','name = "fishing-focus-proof"').replace('path = "../crates/game-rules"',`path = ${rustPath('crates/game-rules')}`).replace('crate-type = ["cdylib"]','crate-type = ["cdylib"]\npath = "lib.rs"')+'\n[workspace]\n');
   await writeFile(root+'/Cargo.lock',(await readFile('spacetimedb/Cargo.lock','utf8')).replace('name = "fishing-game-module"','name = "fishing-focus-proof"'));
   await writeFile(root+'/lib.rs',(await readFile('spacetimedb/src/lib.rs','utf8')).replace(/^mod (\w+);$/gm,(_,name)=>`#[path = ${rustPath(`spacetimedb/src/${name}.rs`)}]\nmod ${name};`)+`\ninclude!(${rustPath('scripts/fixtures/crafting-boundary.rs')});\ninclude!(${rustPath('scripts/fixtures/collection-focus.rs')});\n`);
-  run('cargo',['build','--manifest-path',root+'/Cargo.toml','--target-dir',resolve('spacetimedb/target'),'--target','wasm32-unknown-unknown','--release','--locked']);
+  run('cargo',['build','--manifest-path',root+'/Cargo.toml','--target-dir',rustTargetPath(),'--target','wasm32-unknown-unknown','--release','--locked']);
   bot.disconnect(); guest.disconnect();
-  publish(resolve('spacetimedb/target/wasm32-unknown-unknown/release/fishing_focus_proof.wasm'));
+  publish(rustTargetPath('wasm32-unknown-unknown', 'release', 'fishing_focus_proof.wasm'));
   const nextBot=await connect(DbConnection,['my_service','adapter_player','adapter_collection_focus','adapter_collection','adapter_cast_pulls','adapter_cast_equipment','adapter_baits','bait_definition','game_config']);
   bot=nextBot.c;
   guest=(await connect(DbConnection,['public_profile','my_collection_focus'])).c;

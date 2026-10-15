@@ -24,7 +24,7 @@
 
 <div class="scene" class:compact class:moving>
   <div class="pond-art" aria-hidden="true">
-  <svg viewBox="0 0 640 360" preserveAspectRatio="xMidYMid slice" shape-rendering="crispEdges">
+  <svg viewBox={compact ? '0 110 640 220' : '0 20 640 320'} preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">
     <rect width="640" height="360" fill="#efb777" />
     <rect y="80" width="640" height="65" fill="#f6c889" />
     <rect x="446" y="46" width="64" height="64" fill="#fff0ad" />
@@ -50,26 +50,34 @@
     <rect class="bobber" x="181" y="222" width="10" height="5" fill="#fff1ce" />
     <path class="rings" d="M172 240h29v3h-29zm-8-4h7v3h-7zm38 0h7v3h-7z" fill="#94b9a5" />
     <path d="M517 178h23v4h-23zm6-4h10v4h-10zm-75 114h27v4h-27zm7-4h12v4h-12z" fill="#648d61" />
+    <image class="swimmer koi" href="/fish/koi.png" x="310" y="210" width="92" height="70" />
+    <image class="swimmer minnow" href="/fish/minnow.png" x="465" y="212" width="48" height="38" />
   </svg>
-  <img class="swimmer koi" src="/fish/koi.png" alt="" />
-  <img class="swimmer minnow" src="/fish/minnow.png" alt="" />
-  <span class="scene-label">A good day to cast.</span>
   </div>
-  <button class="motion-toggle" aria-label="Pond animation" aria-pressed={moving} onclick={toggleMotion}><span aria-hidden="true">{moving ? 'Ⅱ' : '▶'}</span> {moving ? 'Pause pond' : 'Animate pond'}</button>
+  <div class="scene-controls">
+    <button class="motion-toggle" type="button" aria-label={moving ? 'Pause pond animation' : 'Play pond animation'} title={moving ? 'Pause pond animation' : 'Play pond animation'} onclick={toggleMotion}>
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+        {#if moving}<path d="M6 4h4v16H6zm8 0h4v16h-4z" />{:else}<path d="m7 3 14 9-14 9z" />{/if}
+      </svg>
+    </button>
+    <span class="scene-label">A good day to cast.</span>
+  </div>
 </div>
 
 <style>
-  .scene{position:relative;min-height:270px;height:100%;overflow:hidden;border:4px solid var(--wood-dark);box-shadow:inset 0 0 0 3px #ffe7a6,0 5px 0 #132e29;isolation:isolate;background:#376c72}
-  svg{display:block;width:100%;height:100%;position:absolute;inset:0}
-  .swimmer{position:absolute;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(3px 5px 0 #163e4855)}
-  .koi{width:92px;height:70px;left:49%;top:61%}
-  .minnow{width:48px;height:38px;left:73%;top:59%;opacity:.8;transform:scaleX(-1)}
-  .scene-label{position:absolute;right:14px;bottom:14px;padding:6px 10px;background:#203e37e8;color:#f4dfac;font-family:var(--font-game);font-size:19px;border:2px solid #779164}
-  .motion-toggle{position:absolute;left:14px;bottom:14px;min-height:36px;padding:6px 10px;background:#203e37e8;color:#f4dfac;font-family:var(--font-game);font-size:18px;border:2px solid #779164;cursor:pointer}
-  .motion-toggle:hover{background:#31584b}.motion-toggle:focus-visible{outline:3px solid #ffe7a6;outline-offset:3px}
-  .compact{min-height:205px}.compact .koi{width:72px;height:58px}
-  @media(max-width:600px){.scene-label{font-size:15px;right:10px;bottom:10px}.motion-toggle{font-size:15px;left:10px;bottom:10px}.koi{top:54%}}
-  @media(max-width:360px){.scene-label{display:none}}
+  .scene{position:relative;align-self:center;justify-self:center;min-width:0;width:100%;max-width:560px;overflow:hidden;border:4px solid var(--wood-dark);box-shadow:0 5px 0 var(--site-base);isolation:isolate;background:var(--paper-light)}
+  .pond-art{position:relative;aspect-ratio:2/1;background:#376c72}
+  .pond-art>svg{display:block;width:100%;height:100%;position:absolute;inset:0}
+  .swimmer{image-rendering:pixelated;filter:drop-shadow(3px 5px 0 #163e4855)}
+  .minnow{opacity:.8;transform-box:fill-box;transform-origin:center;transform:scaleX(-1)}
+  .scene-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-top:2px solid var(--paper-edge);background:var(--paper-light);color:var(--ink)}
+  .scene-label{font-family:var(--font-game);font-size:17px;line-height:1.4;text-align:right}
+  .motion-toggle{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:8px;background:var(--gold);color:var(--button-ink);border:2px solid var(--control-border);border-radius:2px;cursor:pointer}
+  .motion-toggle>svg{width:22px;height:22px}
+  .motion-toggle:hover{background:var(--button-hover)}.motion-toggle:focus-visible{outline:3px solid var(--control-focus);outline-offset:2px}
+  .compact{max-width:none}
+  .compact .pond-art{aspect-ratio:32/11}
+  @media(max-width:600px){.scene-label{font-size:14px}.scene-controls{padding:6px 8px}}
   /* The user's explicit pond choice overrides the global reduced-motion rule
      for these gentle effects only. Other UI motion still follows the system. */
   .moving .koi{animation:drift 7s ease-in-out infinite !important}

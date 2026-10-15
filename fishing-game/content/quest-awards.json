@@ -1,0 +1,47 @@
+[
+  {
+    "achievement_id": 9001,
+    "title": "Dock Regular",
+    "motif": "A warm mug on dock planks."
+  },
+  {
+    "achievement_id": 9002,
+    "title": "River Storyteller",
+    "motif": "A golden fish over river waves."
+  },
+  {
+    "achievement_id": 9003,
+    "title": "Reed Whisperer",
+    "motif": "Reeds surrounding a missing supply crate."
+  },
+  {
+    "achievement_id": 9004,
+    "title": "Moonlit Chronicler",
+    "motif": "A crescent moon over an open journal."
+  },
+  {
+    "achievement_id": 9005,
+    "title": "Tidekeeper",
+    "motif": "An anchor and a small sea shell."
+  },
+  {
+    "achievement_id": 9006,
+    "title": "Icebound Angler",
+    "motif": "A crystal snowflake above an icebound fish."
+  },
+  {
+    "achievement_id": 9007,
+    "title": "Deepwater Correspondent",
+    "motif": "A sealed letter above a glowing deep sea vent."
+  },
+  {
+    "achievement_id": 9008,
+    "title": "Dockside Tinkerer",
+    "motif": "Crossed workshop tools with a fishing hook."
+  },
+  {
+    "achievement_id": 9009,
+    "title": "Keen Eye",
+    "motif": "A magnifying glass framing a golden star."
+  }
+]

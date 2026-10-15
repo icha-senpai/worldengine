@@ -1,0 +1,234 @@
+{
+  "checkedAtUtc": "2026-10-15T05:36:41.520027+00:00",
+  "playerEntityId": "648518346354619877",
+  "dungeon": "T7 Araknir",
+  "dungeonSource": "https://bitcraftonline.com/news/threaded-wilds",
+  "relatedQuests": [
+    {
+      "entityId": "648518347719394502",
+      "playerEntityId": "648518346354619877",
+      "questChainDescId": 613811784,
+      "stageId": -1,
+      "completed": true,
+      "stageRewardsAwarded": [],
+      "tracked": false,
+      "regionId": 9,
+      "createdAt": "2026-10-15 04:13:49.797323+00",
+      "updatedAt": "2026-10-15 04:13:49.797323+00",
+      "questName": "Creepy Crawlies",
+      "isHint": false,
+      "isSecret": false,
+      "unstartable": false,
+      "stages": [
+        1202128155,
+        255775847,
+        1112848585,
+        1092871980,
+        250533757,
+        1217949939,
+        481743859,
+        1202153164,
+        2057560391,
+        1646941204
+      ],
+      "requirements": [
+        {
+          "type": "QuestChain",
+          "value": 809605965
+        }
+      ],
+      "rewards": [
+        {
+          "type": "ItemStack",
+          "item_id": 113,
+          "quantity": 1,
+          "item_type": "Item",
+          "durability": 0
+        },
+        {
+          "type": "ItemStack",
+          "item_id": 1621872821,
+          "quantity": 1,
+          "item_type": "Item",
+          "durability": 0
+        }
+      ],
+      "implicitRewards": [],
+      "currentStageName": null,
+      "currentStageConditions": [],
+      "totalStages": 10,
+      "currentStageIndex": 10
+    }
+  ],
+  "questStagesFromOctober8Snapshot": [
+    {
+      "id": 250533757,
+      "chain_desc_id": 613811784,
+      "name": "Collect Venomous Stinger - Bug Mask Unlock",
+      "completion_conditions": [
+        {
+          "ItemStack_": {
+            "item_stack": {
+              "item_id": 1288720282,
+              "quantity": 1,
+              "item_type": "Item",
+              "durability": 0
+            },
+            "is_consumed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": 255775847,
+      "chain_desc_id": 613811784,
+      "name": "Twins First Dialogue - Bug Mask Unlock",
+      "completion_conditions": []
+    },
+    {
+      "id": 481743859,
+      "chain_desc_id": 613811784,
+      "name": "Collect Wasp Queen Crown - Bug Mask Unlock",
+      "completion_conditions": [
+        {
+          "ItemStack_": {
+            "item_stack": {
+              "item_id": 1107203842,
+              "quantity": 1,
+              "item_type": "Item",
+              "durability": 0
+            },
+            "is_consumed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": 1092871980,
+      "chain_desc_id": 613811784,
+      "name": "Twins Second Dialogue - Bug Mask Unlock",
+      "completion_conditions": []
+    },
+    {
+      "id": 1112848585,
+      "chain_desc_id": 613811784,
+      "name": "Collect Pincers for the Twins - Bug Mask Unlock",
+      "completion_conditions": [
+        {
+          "ItemStack_": {
+            "item_stack": {
+              "item_id": 1918454706,
+              "quantity": 1,
+              "item_type": "Item",
+              "durability": 0
+            },
+            "is_consumed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": 1202128155,
+      "chain_desc_id": 613811784,
+      "name": "Talk to the Twins - Bug Mask Unlock",
+      "completion_conditions": []
+    },
+    {
+      "id": 1202153164,
+      "chain_desc_id": 613811784,
+      "name": "Twin Fourth Dialogue - Bug Mask Unlock",
+      "completion_conditions": []
+    },
+    {
+      "id": 1217949939,
+      "chain_desc_id": 613811784,
+      "name": "Twin Third Dialogue - Bug Mask Unlock",
+      "completion_conditions": []
+    },
+    {
+      "id": 1646941204,
+      "chain_desc_id": 613811784,
+      "name": "Twin Final Dialogue - Bug Mask Unlock",
+      "completion_conditions": []
+    },
+    {
+      "id": 2057560391,
+      "chain_desc_id": 613811784,
+      "name": "Collect Araknir Exoskeleton - Bug Mask Unlock",
+      "completion_conditions": [
+        {
+          "ItemStack_": {
+            "item_stack": {
+              "item_id": 1411766088,
+              "quantity": 1,
+              "item_type": "Item",
+              "durability": 0
+            },
+            "is_consumed": true
+          }
+        }
+      ]
+    }
+  ],
+  "filterChecks": {
+    "/api/leaderboard/kills?search=Krutch&filter=araknir&range=all": {
+      "players": [
+        {
+          "entityId": "648518346354619877",
+          "username": "Krutch",
+          "kills": 27445,
+          "uniqueEnemies": 26399,
+          "totalContribution": 13033130,
+          "rank": 1
+        }
+      ],
+      "count": 1,
+      "searchCount": 1,
+      "filter": "araknir",
+      "range": "all",
+      "globalStats": {
+        "totalKills": 27445,
+        "totalContribution": 13033130,
+        "maxKills": 27445,
+        "maxContribution": 13033130
+      },
+      "pagination": {
+        "page": 1,
+        "pageSize": 100,
+        "totalPages": 1,
+        "hasNext": false,
+        "hasPrev": false
+      }
+    },
+    "/api/leaderboard/kills?search=Krutch&filter=all&range=all&enemyTypeStr=SpiderDungeonSpiderNest": {
+      "players": [
+        {
+          "entityId": "648518346354619877",
+          "username": "Krutch",
+          "kills": 27445,
+          "uniqueEnemies": 26399,
+          "totalContribution": 13033130,
+          "rank": 1
+        }
+      ],
+      "count": 1,
+      "searchCount": 1,
+      "filter": "all",
+      "range": "all",
+      "globalStats": {
+        "totalKills": 27445,
+        "totalContribution": 13033130,
+        "maxKills": 27445,
+        "maxContribution": 13033130
+      },
+      "pagination": {
+        "page": 1,
+        "pageSize": 100,
+        "totalPages": 1,
+        "hasNext": false,
+        "hasPrev": false
+      }
+    }
+  },
+  "limitation": "Checked leaderboard parameters do not provide a verified enemy-type-specific T7 total. Boss live-feed frontend selects Sentinel; backend boss filter scope not independently established."
+}

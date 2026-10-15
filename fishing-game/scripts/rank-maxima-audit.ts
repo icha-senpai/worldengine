@@ -1,3 +1,4 @@
+import { requireRustWorkflow } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
@@ -7,6 +8,8 @@ import crafting from '../content/crafting.json';
 import rules from '../content/game-rules.json';
 import { baselineLoadout, castChance, perfectCatchOdds, rankMaximumOdds, rankSpreads, weightRangeAtLength, type RateLoadout } from '../apps/web/src/lib/game/compendium';
 import { bestPerfectLoadout } from '../apps/web/src/lib/game/compendium-loadouts';
+
+requireRustWorkflow();
 
 const trophy = crafting.baits.find(row => row.key === 'trophy-chum')!;
 const before: RateLoadout = {...bestPerfectLoadout, rulesVersion:11};

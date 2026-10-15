@@ -1,6 +1,8 @@
 # Keeping BitCraft on SpacetimeDB within a small disk budget
 
-Updated October 12, 2026. SpacetimeDB 2.10.2 remains the only application database. No SQLite service or secondary database was introduced.
+Updated October 14, 2026. SpacetimeDB 2.12.0 remains the only application database. No SQLite service or secondary database was introduced.
+
+Boss opts out of automatic deployment backups and retained rollback sets. Git provides source history. Routine work leaves no dated backups, previous builds or ad hoc audit reports. Database maintenance uses a temporary verified export to transfer live application state; successful restoration removes it. An unfinished rebuild retains its required export until recovery succeeds. Current bindings, sealed module bundles, collector identities, bounded service logs and health/crash status are operational files and remain protected.
 
 The incident was primarily accumulated transaction history: about 61.5 GB of commit logs and 7.9 GB of snapshots in the BitCraft replica. Deleting expired application rows does not reclaim that history. [SpacetimeDB documents its uncompacted commit log here](https://spacetimedb.com/docs/reference/internals/commitlog/).
 
@@ -8,6 +10,8 @@ The incident was primarily accumulated transaction history: about 61.5 GB of com
 
 | Data | Retention |
 | --- | --- |
+| Boss encounter details | Up to 30 days / 20,000 encounters / 32 MB conservative accounting; all four boss tables are checkpointed and verified during maintenance |
+| Boss leaderboard totals and coverage | Compact totals survive encounter expiry; player/boss scores share a 40,000-row budget, with recording paused visibly if exhausted. See [boss recording](boss-recording.md) |
 | Guides, drafts, guide metadata, administrator grants | Preserved and verified during every rebuild |
 | Widget profiles, ownership and settings | Preserved and verified, including existing share links |
 | Private provider configuration | Preserved; excluded from public status output |
@@ -17,11 +21,32 @@ The incident was primarily accumulated transaction history: about 61.5 GB of com
 | Regional market books and barter stalls | Individual order/exchange records; small book/stall headers and shared claim/owner labels. Updates send changed orders and cancellations. Latest state is checkpointed. |
 | Inventory, craft and API response caches | Existing bounded scopes and TTLs; rebuilt as needed |
 | Raw relay tables and frames | Memory only; no archived raw frame history |
+| Claim ownership/member/supply events | Up to 30 days, newest 50,000 events globally, and 50 million payload characters; preserved in maintenance checkpoints |
+| Claim baseline and coverage | Current qualifying owned claims in the nine active regions; at most 20,000 rows / 20 million payload characters; preserved in maintenance checkpoints |
+| Claim supply status | One compact current supply/upkeep record per tracked claim, capped at 20,000 rows; preserved in maintenance checkpoints |
 | Old collector-side checkpoints | Removed; latest market preservation uses the verified maintenance checkpoint instead |
 
 Market filtering, sorting before pagination, targeted item refreshes and regional coverage continue to use the same frontend contracts. A whole-region publication is required once per subscription generation. Subsequent publications contain changes and cancellations. Merely changing source row iteration order does not produce a publication. Directory membership uses a stable generation marker: the five-minute directory check changes existing item records only when their data changes.
 
 ## Disk management
+
+### Claim history
+
+`/bitcraft/claim-history` records meaningful changes only for **T4+ claims with both a regular waystone and a functional bank**. Town Banks and Ancient Banks qualify; ruined waystones and bank decorations do not. Tier and building changes explicitly start or stop tracking, including on reconnect, without inventing claim creation/removal. The final transaction of a qualifying claim remains evidence even if that transaction removes a required building. Neutral structures and removed island regions are excluded.
+
+The relay still supplies discovery state so newly eligible claims can enter automatically. Unqualified claims do not receive persistent baselines or new history. Lower-tier/unequipped metadata is sent once during reconnect reconciliation to distinguish a downgrade from disappearance. Building subscriptions are filtered to the three qualifying building definitions. Existing history is preserved under its original retention limits; older events appear for claims whose qualification is established by the new baseline or retained eligibility evidence. Legacy baselines without structure counts gain the new criteria without fabricating hundreds of tracking-start events. The collector compares whole transactions, does not merge successive changes, and retains no raw frame archive. Routine supply decreases replace only the compact current supply status; they do not create timeline events. Unchanged status does not write another row.
+
+The tracked list shows current supplies, hourly upkeep, remaining time and an estimated run-out date, sorted by expiry by default. Filters cover region, claim/owner, low supplies, observed empty, stale readings and unknown estimates. Clicking a claim opens tabs for all history, ownership, members, supplies, claim changes and recording gaps; Recent changes retains access to claims that left tracking. Upkeep uses the native tile-cost thresholds, claim shape, building maintenance and upkeep interval. Estimated run-out is the observation time plus supplies divided by hourly upkeep. Hourly tick phase and deduction rounding make this approximate. A passed estimate does not prove the claim expired. Missing inputs remain unknown; disconnected or unreconciled generations are marked stale. Supply status is removed when its claim leaves tracking.
+
+The first snapshot establishes a baseline, not invented historical claim creations. Every later connection generation records a coverage gap and reconciles saved rosters/owners. Reconciled changes have uncertain timing and never receive a possible outsider takeover flag. Live flags require a changed owner absent from the preceding roster and known non-positive supplies. They do not establish intent; member departures do not distinguish leaving from removal. Times are observation times, and preceding roster evidence contains bounded samples rather than unlimited full copies.
+
+History is private at the table level and read through a bounded, paginated public procedure. Only authorized collectors with a valid storage lease can ingest it. Sequence checks reject missing/out-of-order batches and deduplicate retries. Each regional queue is capped at 16 MB / 2,000 batches; publication failure retires the collection cycle so the next baseline exposes the gap. Collection heartbeats prune expired history even when the region has no meaningful changes. Age, count, or payload limits can shorten the available history; the UI reports discarded events per region.
+
+All three `claim_history_*` tables and `claim_supply_status` are included in the existing chunked maintenance checkpoint and explicit table policy. The logical limits are not physical disk quotas; transaction logs and snapshots remain under the existing guard below. The October 14 source check found 823 qualifying claims among 1,829 owned claims, with upkeep available for every qualifying claim. That is a starting-state measurement, not a long-term growth forecast.
+
+Use `npm run bitcraft:claims-status` for recording coverage, `npm run test:claims-live` for a read-only source/schema check, and `npm run test:claims-server` for isolated additive migration and maintenance preservation checks. Browser fixture databases are disposable and must be removed with the existing identity-verified test cleanup helper immediately after verification.
+
+Personal claim stars are browser-local preferences, capped at 200 per database. The public `read_starred_claims` procedure reads only the supplied shortlist, current status and the latest retained event for each selected claim. It writes no tables, skips regional recording events for update badges, and returns unavailable claims without silently dropping their stars. Current-value differences and events newer than the user's last viewed marker produce update indicators while the page polls every 15 seconds. The shortlist does not expand history collection beyond the qualifying claim rule.
 
 The manager measures each managed BitCraft database's active replica (logs, snapshots and module logs), its retained-state backups, sealed module artifacts and any old collector checkpoints. The budget is **3,000,000,000 bytes per database**, with maintenance triggered at **2,000,000,000 bytes per database**. These are decimal GB. Main and test files are counted independently. Each worker's service logs are separately trimmed to sixteen files of at most approximately 1 MB each.
 
@@ -38,7 +63,7 @@ At the maintenance threshold:
 5. Restore application records in an owner-only atomic transaction, then restore the latest market checkpoint in bounded, idempotent owner-only chunks while ordinary writes remain paused.
 6. Compare every retained field with the backup, including ownership, timestamps and private configuration.
 7. Remove only the exact retired replica directory after successful verification. SpacetimeDB's reset creates a replacement replica but leaves the old files behind.
-8. Keep the two latest retained-state exports, update the replica binding and reconnect the collector. Latest market orders and barter remain available; relays reconnect and reconcile. Other rebuildable feeds reload.
+8. Update the replica binding, remove completed retained-state exports and reconnect the collector. Latest market orders and barter remain available; relays reconnect and reconcile. Other rebuildable feeds reload. Recovery removes its temporary export after the same preservation checks succeed.
 
 Updates pause during this process. Existing market and barter records are restored before collection resumes. Coverage reports reconnecting until new regional generations reconcile; retained records remain available throughout that gap. XP history is retained, but a new source generation still follows the existing continuity rules; it must not fabricate gains across a gap.
 
@@ -52,11 +77,13 @@ The October 12 folder audit found an old whole-server upgrade backup, timestampe
 
 The gameplay, catalog, economy migration and load-test scripts now use `runTemporaryDatabaseTest` from `scripts/temporary-database.ts`. It requires an unused timestamped test name, wraps setup as well as execution in cleanup, deletes through the database API/CLI, verifies HTTP 404, then removes only replicas with the matching snapshot identity. Persistent database names, mismatched identities and linked paths are rejected. Owned temporary module-source folders are also removed. Forced process termination can still bypass JavaScript cleanup, so periodic orphan audits remain useful. Historical published module files require a separate reference audit and offline cleanup; there is no automatic whole-folder size ceiling.
 
-`scripts/sql-backup.ts` preserves the exact CLI JSON bytes and hashes the saved file, avoiding formatting mismatches and large-integer rounding. The local Evergather backup wrappers now use it. Four older Evergather manifests were reconciled against their original compact-CLI checksums, then updated to hash the saved files while retaining `originalCliSha256`. These are per-database exports, not an atomic whole-server backup or a proven restore drill; retain the whole-server rollback copy until replacement recovery coverage is verified.
+`scripts/sql-backup.ts` preserves exact CLI JSON bytes when an export is explicitly requested, avoiding formatting mismatches and large-integer rounding. Old Evergather exports and completed maintenance exports are disposable after their checks finish. The legacy economy migration test reconstructs its temporary source fixture from Git history and removes it afterward.
+
+Preview Space's scoped artifact cleanup with `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/cleanup-local-artifacts.ps1`. Stop only the owned main/test collectors with `scripts/collector-services.ps1` before using `-Apply`, then start them again. Cleanup refuses pending maintenance, linked paths and files referenced by active processes. It removes old backup folders, completed state exports, retired diagnostic archives, one-off runtime scripts/reports and browser/performance scratch. It preserves active database files, current builds, installed tools, credentials, identities, sealed modules, dependencies and requested design/PDF/research outputs. It saves no cleanup report.
 
 `space-bitcraft-tools` runs the full relay/API collector. `space-bitcraft-checks`, used by the frontend on port 5181, runs the same storage monitor and verified maintenance code in `--storage-only` mode. That test worker measures storage and renews its short write lease, but does not establish duplicate global relay subscriptions or poll the market. Test UI requests can update the test database while its guard is healthy. If either worker stops, ordinary writes to its own database become blocked when the 20-second lease expires.
 
-The workers have separate PID files, readiness files, logs, replica bindings and backups. The Start/Stop/Restart launchers manage both. Publishing one BitCraft module stops and resumes only that database's worker, then seals the corresponding module artifact.
+The workers have separate PID files, readiness files, logs, replica bindings and temporary maintenance exports. The Start/Stop/Restart launchers manage both. Publishing one BitCraft module stops and resumes only that database's worker, then seals the corresponding module artifact.
 
 Manage just the test guard without starting a frontend:
 
@@ -100,15 +127,15 @@ Native player admission retains at most 30 active players including pending disc
 
 Relay sockets use `ws` with a 64 MB transport frame ceiling, no per-message compression, and WebSocket ping/pong checks every 30 seconds. A missing pong closes the connection on the next check; quiet scopes that answer pings remain connected. These transport control frames do not call database reducers or change database heartbeat intervals. Snapshot frames are limited to 300,000 operations and five million decoded values; conservative wire-size accounting limits a scope to 256 MB and aggregate cached plus staged data to 768 MB. These are accounting limits, not an exact process heap quota. Over-budget frames are rejected before staging a complete decoded snapshot, and invalid caches are released.
 
-The worker owns `worker.stdout.log` and `worker.stderr.log` in its diagnostics directory. It rotates closed 2 MB segments for verified asynchronous compression. It never truncates a live redirected output file. Legacy service output is archived only before worker launch. Archiving is independent of the storage lease monitor, which tolerates replica files disappearing during normal retirement. Local authorization also has a 15-second CLI timeout.
+The worker owns `worker.stdout.log` and `worker.stderr.log` in its diagnostics directory. It discards closed retired 2 MB segments and keeps current output bounded. It never truncates a live redirected output file. Legacy service output is pruned only before worker launch. Diagnostic cleanup is independent of the storage lease monitor, which tolerates replica files disappearing during normal retirement. Local authorization also has a 15-second CLI timeout.
 
 The supervisor backs off and retries transient worker-launch/archive-preflight failures. Incomplete database rebuilds still block collection pending explicit recovery. Regression coverage includes admission changes, expired/hung discovery, late publication failures, lossless log rotation, healthy quiet sockets, dead transports, oversized/malformed frames, and a real failed test-worker preflight followed by recovery.
 
-### Compressed diagnostic history
+### Bounded diagnostics without history archives
 
-Diagnostic logs rotate at their existing small limits (2 MB event logs and 2 MB worker output), before reaching the requested 1 GB ceiling. Retired event-log segments, reports and worker output are archived with maximum gzip compression (level 9). Compression streams files rather than loading large inputs into RAM. Before removing a source, the archive is decompressed and checked against its original byte count and SHA-256 hash; a sidecar records the sizes and checksum. Compression or verification failure preserves the source.
+Diagnostic logs rotate at their existing small limits (2 MB event logs and 2 MB worker output). Current event files, aggregate health and the small recent crash-report set remain available. Retired event segments, reports and worker output are discarded without creating compressed copies or sidecars.
 
-Archives are flat `archive-*.gz` files under each database's diagnostics directory and count toward its physical storage budget. Retention keeps at most 100 archive pairs and 250 MB of compressed archives/sidecars per database, removing the oldest pairs first. An individual archive that cannot fit that allowance is rejected and its source remains available. Interrupted compression leaves a pending source; the next worker startup clears abandoned temporary outputs and retries pending sources. Active SpaceTimeDB transaction logs are never compressed or moved by this feature.
+Legacy `archive-*.gz` pairs are removed on worker startup, along with closed pending segments and abandoned temporary archive outputs. The compatibility archive helper retains zero archive pairs. Active SpaceTimeDB transaction logs are never compressed, moved or pruned by this feature.
 
 ## Commands and recovery
 

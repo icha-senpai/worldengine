@@ -1,3 +1,4 @@
+import { moduleArtifactPath, requireRustWorkflow, rustTargetPath } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -7,12 +8,14 @@ import { pathToFileURL } from 'node:url';
 import catalog from '../content/species.json';
 import rules from '../content/game-rules.json';
 
+requireRustWorkflow();
+
 const uri='http://127.0.0.1:3127';
 const database=`fishbound-proof-multi-bait-${Date.now()}`;
 assert(/^fishbound-proof-multi-bait-\d+$/.test(database));
 const oldWasm=resolve('.local/pre-multi-bait-fixture.wasm');
 const { DbConnection: OldDbConnection } = await import(pathToFileURL(resolve('.local/pre-multi-bait-bindings/index.ts')).href);
-const newWasm=resolve('spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm');
+const newWasm=moduleArtifactPath();
 function run(command:string,args:string[]) { const r=spawnSync(command,args,{encoding:'utf8',windowsHide:true}); if(r.status!==0) throw Error(r.stderr||r.stdout); return r.stdout; }
 const call=(name:string,args:string[]=[])=>run('spacetime',['call','--server',uri,'--no-config','--yes',database,name,...args]);
 const publish=(wasm:string)=>run('spacetime',['publish','--server',uri,'--no-config','--yes=skip-login,migrate,break-clients','--delete-data=never','--bin-path',wasm,database]);
@@ -69,8 +72,8 @@ try {
   await writeFile(root+'/Cargo.toml',(await readFile('spacetimedb/Cargo.toml','utf8')).replace('name = "fishing-game-module"','name = "fishing-multi-bait-proof"').replace('path = "../crates/game-rules"',`path = ${rustPath('crates/game-rules')}`).replace('crate-type = ["cdylib"]','crate-type = ["cdylib"]\npath = "lib.rs"')+'\n[workspace]\n');
   await writeFile(root+'/Cargo.lock',(await readFile('spacetimedb/Cargo.lock','utf8')).replace('name = "fishing-game-module"','name = "fishing-multi-bait-proof"'));
   await writeFile(root+'/lib.rs',(await readFile('spacetimedb/src/lib.rs','utf8')).replace(/^mod (\w+);$/gm,(_,name)=>`#[path = ${rustPath(`spacetimedb/src/${name}.rs`)}]\nmod ${name};`)+`\ninclude!(${rustPath('scripts/fixtures/crafting-boundary.rs')});\ninclude!(${rustPath('scripts/fixtures/multi-bait.rs')});\n`);
-  run('cargo',['build','--manifest-path',root+'/Cargo.toml','--target-dir',resolve('spacetimedb/target'),'--target','wasm32-unknown-unknown','--release','--locked']);
-  publish(resolve('spacetimedb/target/wasm32-unknown-unknown/release/fishing_multi_bait_proof.wasm'));
+  run('cargo',['build','--manifest-path',root+'/Cargo.toml','--target-dir',rustTargetPath(),'--target','wasm32-unknown-unknown','--release','--locked']);
+  publish(rustTargetPath('wasm32-unknown-unknown', 'release', 'fishing_multi_bait_proof.wasm'));
   const queries=['my_service','adapter_player','adapter_baits','adapter_bait_loadout','adapter_cast_equipment','adapter_cast_pulls','adapter_items','adapter_receipt','adapter_collection','game_config','public_profile','bait_definition','rod_definition','rod_bonuses','quality_definition'];
   const {c:bot}=await connect(DbConnection,queries);
   call('configure_service',[JSON.stringify(bot.identity.toHexString()),JSON.stringify({discordAdapter:{}}),'true']);

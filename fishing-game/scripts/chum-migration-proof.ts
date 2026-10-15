@@ -1,6 +1,9 @@
+import { moduleArtifactPath, requireRustWorkflow } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
+
+requireRustWorkflow();
 
 const database=`fishbound-proof-chum-migration-${Date.now()}`;
 const uri='http://127.0.0.1:3127';
@@ -26,7 +29,7 @@ try {
   const a=args();await bot.reducers.selectDiscordPlayer(a);await bot.reducers.equipBaitFromDiscord({...a,baitId:1});await bot.reducers.fishFromDiscord({...a,guildId:5n,channelId:42n});
   call('activate_xp_progression');
   console.log(run(process.execPath,['scripts/xp-preservation.mjs','before',database]).trim());bot.disconnect();
-  publish('spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm');
+  publish(moduleArtifactPath());
   assert(query('bait_definition').every((b:any)=>b.resource_quantity===0));
   assert(query('cast_equipment_receipt').every((r:any)=>r.bait_quantity===0));
   const guest=await connect();await assert.rejects(guest.reducers.activateXpProgression({}),/OWNER_REQUIRED/);

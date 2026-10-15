@@ -1,3 +1,4 @@
+import { requireRustWorkflow } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import {writeFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
@@ -6,6 +7,8 @@ import world from '../content/world.json';
 import crafting from '../content/crafting.json';
 import rules from '../content/game-rules.json';
 import {castChance,rankSpreads,rankMaximumOdds,perfectCatchOdds,weightRangeAtLength,type RateLoadout} from '../apps/web/src/lib/game/compendium';
+requireRustWorkflow();
+
 const proof:any[]=[];
 const summaries:any[]=[];
 for(const bait of crafting.baits.filter(b=>[3,4,5].includes(b.baitId))) {

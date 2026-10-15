@@ -7,10 +7,14 @@ import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
 import AuthorizeCollectorReducer from "../authorize_collector_reducer";
+import BossHeartbeatReducer from "../boss_heartbeat_reducer";
 import CollectionFailureReducer from "../collection_failure_reducer";
 import CollectorHeartbeatReducer from "../collector_heartbeat_reducer";
 import ConfigureProviderReducer from "../configure_provider_reducer";
 import GrantGuideAdministratorReducer from "../grant_guide_administrator_reducer";
+import IngestBossDefeatsReducer from "../ingest_boss_defeats_reducer";
+import IngestClaimHistoryReducer from "../ingest_claim_history_reducer";
+import IngestClaimSuppliesReducer from "../ingest_claim_supplies_reducer";
 import IngestCollectionReducer from "../ingest_collection_reducer";
 import IngestMarketBookReducer from "../ingest_market_book_reducer";
 import IngestMarketDirectoryReducer from "../ingest_market_directory_reducer";
@@ -27,10 +31,14 @@ import StorageLeaseReducer from "../storage_lease_reducer";
 import TouchCollectionReducer from "../touch_collection_reducer";
 
 export type AuthorizeCollectorParams = __Infer<typeof AuthorizeCollectorReducer>;
+export type BossHeartbeatParams = __Infer<typeof BossHeartbeatReducer>;
 export type CollectionFailureParams = __Infer<typeof CollectionFailureReducer>;
 export type CollectorHeartbeatParams = __Infer<typeof CollectorHeartbeatReducer>;
 export type ConfigureProviderParams = __Infer<typeof ConfigureProviderReducer>;
 export type GrantGuideAdministratorParams = __Infer<typeof GrantGuideAdministratorReducer>;
+export type IngestBossDefeatsParams = __Infer<typeof IngestBossDefeatsReducer>;
+export type IngestClaimHistoryParams = __Infer<typeof IngestClaimHistoryReducer>;
+export type IngestClaimSuppliesParams = __Infer<typeof IngestClaimSuppliesReducer>;
 export type IngestCollectionParams = __Infer<typeof IngestCollectionReducer>;
 export type IngestMarketBookParams = __Infer<typeof IngestMarketBookReducer>;
 export type IngestMarketDirectoryParams = __Infer<typeof IngestMarketDirectoryReducer>;

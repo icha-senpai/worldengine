@@ -38,11 +38,11 @@ The Records book retains species records and the original four leaderboards, and
 
 ## Verification and deployment
 
-- `npx tsx scripts/statistics-proof.ts`: isolated fixture WASM, guaranteed double pulls in all three categories, cast/sale replays, sold weight, sale totals and maxima, rank pairs, relative length, UTC date deduplication, favorite biome, owner authorization and repeated recovery.
-- `npx tsx scripts/statistics-migration-proof.ts`: previous production WASM with saved player/catch data, additive publication with `--delete-data=never`, historical recovery and canonical equality of all 49 existing tables except scheduled maintenance.
+- `npm run rust:script -- scripts/statistics-proof.ts`: isolated fixture WASM, guaranteed double pulls in all three categories, cast/sale replays, sold weight, sale totals and maxima, rank pairs, relative length, UTC date deduplication, favorite biome, owner authorization and repeated recovery.
+- `npm run rust:script -- scripts/statistics-migration-proof.ts`: previous production WASM with saved player/catch data, additive publication with `--delete-data=never`, historical recovery and canonical equality of all 49 existing tables except scheduled maintenance.
 - `node scripts/statistics-preservation.mjs before|after DATABASE [SERVER] [FILE]`: read-only canonical comparison of every retained table. Snapshots are evidence, not a replacement for a restorable runtime backup.
 - Regenerate bindings from the built WASM, run Svelte checks/build, Rust workspace checks and rules tests, and rebuild the Discord executable before restarting the owned clients.
-- Before live publication, cold-copy the owned runtime directory and verify a second copy on an isolated listener against the saved table snapshot. Retain the old WASM and the cold backup. Apply the additive module, backfill existing players, compare retained rows, and verify live desktop/mobile views and service readiness.
+- Before schema changes, rehearse preservation in an isolated proof database. Apply the additive module, backfill existing players, compare retained rows, and verify live desktop/mobile views and service readiness. Remove temporary verification files afterward; runtime backups require an explicit request from Boss.
 
 No catch odds, reward values, cooldowns, gear, progression or wallets are changed by this feature.
 

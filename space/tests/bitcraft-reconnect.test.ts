@@ -12,6 +12,14 @@ vi.mock("../src/bindings/bitcraft", () => ({
           callbacks.token = token;
           return builder;
         },
+        withAutomaticReconnect: () => {
+          callbacks.automatic = true;
+          return builder;
+        },
+        onAutomaticReconnect: (fn: any) => {
+          callbacks.reconnected = fn;
+          return builder;
+        },
         onConnect: (fn: any) => {
           callbacks.connected = fn;
           return builder;
@@ -35,18 +43,28 @@ vi.mock("../src/bindings/bitcraft", () => ({
           const conn: any = {
             isActive: true,
             isSocketClosed: false,
+            isReconnecting: false,
             db: {
               collectionFeed: table(),
               marketStatus: table(),
               relayStatus: table(),
             },
-            subscriptionBuilder: () => ({
-              subscribe: (queries: string[]) => {
-                const sub = { queries, unsubscribe: vi.fn() };
-                subscriptions.push(sub);
-                return sub;
-              },
-            }),
+            subscriptionBuilder: () => {
+              let applied: (() => void) | undefined;
+              const builder: any = {
+                onApplied: (fn: () => void) => {
+                  applied = fn;
+                  return builder;
+                },
+                subscribe: (queries: string[]) => {
+                  const sub = { queries, unsubscribe: vi.fn(), applied };
+                  subscriptions.push(sub);
+                  if (applied) queueMicrotask(applied);
+                  return sub;
+                },
+              };
+              return builder;
+            },
             disconnect: () => {
               conn.isActive = false;
               conn.isSocketClosed = true;
@@ -73,7 +91,7 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
-it("reconnects after maintenance with the same identity and restores watched XP subscriptions", async () => {
+it("keeps the connection and watched subscriptions through SDK recovery, including offline unsubscription", async () => {
   vi.useFakeTimers();
   const values = new Map<string, string>();
   const storage = {
@@ -84,7 +102,9 @@ it("reconnects after maintenance with the same identity and restores watched XP 
   vi.stubGlobal("sessionStorage", storage);
   vi.stubGlobal(
     "window",
-    Object.assign(new EventTarget(), { location: new URL("https://space.test") }),
+    Object.assign(new EventTarget(), {
+      location: new URL("https://space.test"),
+    }),
   );
   vi.stubGlobal(
     "document",
@@ -94,16 +114,31 @@ it("reconnects after maintenance with the same identity and restores watched XP 
   const first = await app.connectBitcraft();
   await app.observeCollection("relaySkills|player/1/skills");
   const closeMarket = await app.subscribeStoredMarket(() => {});
-  expect(fake.attempts[0].subscriptions).toHaveLength(2);
-  first.disconnect();
+  const attempt = fake.attempts[0];
+  expect(attempt.callbacks.automatic).toBe(true);
+  expect(attempt.subscriptions).toHaveLength(3);
+  first.isActive = false;
+  first.isSocketClosed = true;
+  first.isReconnecting = true;
+  attempt.callbacks.closed(first, Error("Network lost"), 1, 1000);
   expect(app.bitcraftConnected.value).toBe(false);
+  expect(app.bitcraftReconnecting.value).toBe(true);
+  expect(await app.connectBitcraft()).toBe(first);
   closeMarket();
-  await vi.advanceTimersByTimeAsync(1000);
-  expect(fake.attempts).toHaveLength(2);
+  expect(attempt.subscriptions[2].unsubscribe).toHaveBeenCalledOnce();
+  await vi.advanceTimersByTimeAsync(30000);
+  expect(fake.attempts).toHaveLength(1);
+  first.isActive = true;
+  first.isSocketClosed = false;
+  first.isReconnecting = false;
+  attempt.callbacks.reconnected(first, {}, "retained-browser-identity");
+  attempt.subscriptions[0].applied();
   expect(app.bitcraftConnected.value).toBe(true);
-  expect(fake.attempts[1].callbacks.token).toBe("retained-browser-identity");
-  expect(fake.attempts[1].subscriptions[0].queries[0]).toContain(
+  expect(app.bitcraftReconnecting.value).toBe(false);
+  expect(attempt.subscriptions[1].queries[0]).toContain(
     "relaySkills|player/1/skills",
   );
-  expect(await app.connectBitcraft()).toBe(fake.attempts[1].conn);
+  expect(attempt.subscriptions[1].unsubscribe).not.toHaveBeenCalled();
+  expect(first.db.collectionFeed.onInsert).toHaveBeenCalledOnce();
+  expect(await app.connectBitcraft()).toBe(first);
 });

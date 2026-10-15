@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import pinned from "./relay-wire-contract.json";
 export type RelayRow = Record<string, any>;
 export type RelayTables = Map<string, Map<string, RelayRow>>;
+export type RelayChange = { table: string; row: RelayRow };
 type WireType = any;
 export const TRADING_TABLES = [
   "sell_order_state",
@@ -138,7 +139,7 @@ export function relayRowKey(
     .map((i: number) => String(row[d.type.Product.elements[i].name]))
     .join(":");
 }
-function schemaContract(schema: any, name: string): any {
+export function schemaContract(schema: any, name: string): any {
   const table = schema.tables.find((t: any) => t.name === name);
   if (!table) throw Error("Missing relay table: " + name);
   const expand = (t: any, depth = 0): any => {
@@ -191,7 +192,11 @@ export class RelaySubscription {
     readonly provider: "bitconnect" | "bitsync",
     readonly region: number,
     readonly queries: string[],
-    readonly changed: (snapshot: boolean, tables: string[]) => void,
+    readonly changed: (
+      snapshot: boolean,
+      tables: string[],
+      changes: RelayChange[],
+    ) => void,
     readonly failed: (error: string) => void,
   ) {}
   async start() {
@@ -301,6 +306,7 @@ export class RelaySubscription {
             charge: string;
             bytes: number;
           }[] = [];
+          const changedRows: RelayChange[] = [];
           let stagedBytes = 0;
           const decodeBudget = { remaining: 5_000_000 };
           const projected = new Map<string, number | undefined>();
@@ -333,6 +339,7 @@ export class RelaySubscription {
                   ),
                   key = relayRowKey(table.table_name, row, this.provider);
                 const charge = `${table.table_name}:${key}`;
+                changedRows.push({ table: table.table_name, row });
                 account(charge, undefined);
                 changes.push({ rows, key, charge, bytes: 0 });
               }
@@ -357,6 +364,7 @@ export class RelaySubscription {
                   ),
                   key = relayRowKey(table.table_name, row, this.provider),
                   charge = `${table.table_name}:${key}`;
+                changedRows.push({ table: table.table_name, row });
                 account(charge, bytes);
                 if (projectedRows > 300000)
                   throw Error("Relay scope exceeded its row cap.");
@@ -393,6 +401,7 @@ export class RelaySubscription {
             this.changed(
               Boolean(initial),
               (update.tables ?? []).map((t: any) => t.table_name),
+              changedRows,
             );
         } catch (error) {
           this.disconnect((error as Error).message);

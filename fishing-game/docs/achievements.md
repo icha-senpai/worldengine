@@ -10,18 +10,24 @@ including after a fish sale or title change. One earned badge supplies one title
 the linked website lets you select a title or clear it back to Angler.
 
 Newly earned badges announce publicly in Discord with the angler's name, badge
-artwork, achievement name, description and earned title. The bot observes
-committed award inserts, including website purchases and upgrades. Initial
-subscriptions, reconnects and receipt replays do not announce existing badges.
+artwork, achievement name, description and earned title. New awards enqueue a
+private pending delivery in the same transaction, including website purchases
+and upgrades. Owner backfills, initial subscriptions, reconnects and receipt
+replays do not queue historical badges.
 Announcing an award never changes the award, player stats or fishing rules.
 
-Announcements use each angler's most recent Discord command channel. Channel
-history is saved locally in `.local/achievement-notification-routes.json`, scoped
-to the configured database, and survives bot restarts. Existing anglers were
-seeded from their latest retained fishing receipts. New anglers establish their
-channel with their first bot command. If no channel is known, or Discord cannot
-deliver the embed, the badge remains earned; a missing destination is logged.
-Delivery retries use an enforced Discord nonce derived from the award key.
+Announcements use a known Discord command channel. Local channel history in
+`.local/achievement-notification-routes.json` seeds a private database route when
+a delivery needs it. Pending deliveries and their database routes survive bot
+restarts. Missing routes keep a delivery pending until a destination is known.
+Only an active Discord adapter can read, lease or acknowledge deliveries.
+The bot checks pending work every five seconds, leases each attempt for two
+minutes, and removes the pending row after Discord accepts the post. Failures
+remain pending for a later attempt. Award state never depends on delivery.
+An enforced Discord nonce derived from the award key suppresses short retries.
+Delivery is at least once: a crash after Discord accepts a message but before
+its acknowledgement reaches the database can still cause a duplicate after
+Discord's nonce-deduplication window. It is not an exactly-once guarantee.
 
 The owner can run `python scripts/bootstrap-achievement-channels.py DATABASE`
 while the bot is stopped to seed missing channel history from retained casts.
@@ -73,9 +79,11 @@ unchanged. Never reset the database or run proof-only helpers on live players.
 
 The website Anglers book searches names or game IDs, with 12-entry desktop and
 4-entry phone pages. Profile links use ?angler=GAME_ID#anglers. /profile accepts
-that game ID; /leaderboard lists it beside each public standing.
+that game ID and shares a public embed with portrait, selected title and badge,
+level, lifetime fish and public collection/record statistics. Wallet and inventory
+stay private. Standings and game IDs are available on the website.
 
-Verification: npx tsx scripts/social-proof.ts builds a separate test module with
+Verification: npm run rust:script -- scripts/social-proof.ts builds a separate test module with
 owner-only fixture controls and a new loopback proof database. It exercises
 retroactive credit, the original milestones, title validation, cosmetic-only backfill,
 sale races, reconnects, scoped views and revocation. Fixture controls never enter
@@ -122,7 +130,7 @@ Deployment: publish the additive WASM, then run
 bounded backfill seeds the catalog and grants retrospective credit, preserving
 existing earned dates and gameplay. No database reset is needed.
 
-Verification: `npx tsx scripts/biome-achievements-proof.ts` covers partial
+Verification: `npm run rust:script -- scripts/biome-achievements-proof.ts` covers partial
 collections, duplicates, rank separation, a real final-species cast, all rank
 and biome boundaries, optional bonus separation, title selection, private
 progress and idempotent cosmetic backfill. The separate

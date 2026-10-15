@@ -1,8 +1,11 @@
+import { requireRustWorkflow, rustTargetPath } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
 import type { Identity } from 'spacetimedb';
+
+requireRustWorkflow();
 
 const uri = process.env.TEST_SPACETIMEDB_URI ?? 'http://127.0.0.1:3127';
 assert(new URL(uri).hostname === '127.0.0.1', 'Integration tests require an isolated loopback host');
@@ -319,7 +322,7 @@ try {
     assert.equal(resumed.connection.db.myRecentCatches.count(), 1n);
   });
   await checks('native Rust adapter commits, replays, serializes selected accounts, and reconnects', async () => {
-    const result = spawnSync('target/debug/adapter-proof.exe', [], { encoding: 'utf8', windowsHide: true,
+    const result = spawnSync(rustTargetPath('debug', 'adapter-proof.exe'), [], { encoding: 'utf8', windowsHide: true,
       env: { ...process.env, TEST_SPACETIMEDB_URI: uri, TEST_SPACETIMEDB_DATABASE: database, TEST_BOT_TOKEN: bot.token } });
     assert.equal(result.status, 0, result.stderr || result.stdout);
   });

@@ -1,4 +1,27 @@
 import { tradeRecord, tradeReference } from "./trade-schema";
+import { bossDefeat, bossScore, bossTotals, bossRegion } from "./boss-schema";
+import {
+  saveBossDefeats,
+  saveBossCoverage,
+  queryBossBoard,
+  queryBossDefeat,
+} from "./boss-history";
+import {
+  claimHistoryState,
+  claimHistoryEvent,
+  claimHistoryRegion,
+  claimSupplyStatus,
+} from "./claim-history-schema";
+import {
+  ingestClaimHistory as saveClaimHistory,
+  readClaimHistory as queryClaimHistory,
+  pruneClaimHistory,
+  ingestClaimSupplies as saveClaimSupplies,
+  readTrackedClaims as queryTrackedClaims,
+  readTrackedClaimHistory as queryTrackedClaimHistory,
+  readStarredClaims as queryStarredClaims,
+  claimUpdates,
+} from "./claim-history";
 import { checkpointPage, restoreCheckpointPage } from "./market-checkpoint";
 import { applyOrderDelta } from "./trade-delta";
 import {
@@ -175,6 +198,14 @@ const storageState = table(
   { id: t.u32().primaryKey(), writableUntil: t.u64() },
 );
 const db = schema({
+  bossDefeat,
+  bossScore,
+  bossTotals,
+  bossRegion,
+  claimSupplyStatus,
+  claimHistoryState,
+  claimHistoryEvent,
+  claimHistoryRegion,
   storageState,
   snapshot,
   budget,
@@ -204,6 +235,21 @@ const db = schema({
   tradeReference,
 });
 export default db;
+export const claimChanges = db.anonymousView(
+  { name: "claim_changes", public: true },
+  t.array(
+    t.row("ClaimChangeRevisionRow", {
+      key: t.string().primaryKey(),
+      epoch: t.string(),
+      sequence: t.u32(),
+      complete: t.bool(),
+      claims: t.u32(),
+      supplies: t.u32(),
+      supplyVersion: t.string(),
+    }),
+  ),
+  claimUpdates,
+);
 type Ctx = ReducerCtx<InferSchema<typeof db>>;
 function refresh(ctx: Ctx, key: string, fallback: any = {}) {
   fallback ??= {};
@@ -926,6 +972,108 @@ function requireMarketCollector(ctx: Ctx) {
   if (!ctx.db.collectorIdentity.identity.find(ctx.sender))
     throw new SenderError("Collector authorization required.");
 }
+export const ingestBossDefeats = db.reducer(
+  { regionId: t.u32(), epoch: t.string(), payload: t.string() },
+  (ctx, args) => {
+    requireMarketCollector(ctx);
+    marketInput(() => saveBossDefeats(ctx, args));
+  },
+);
+export const bossHeartbeat = db.reducer(
+  { regionId: t.u32(), epoch: t.string(), ready: t.bool(), error: t.string() },
+  (ctx, args) => {
+    requireMarketCollector(ctx);
+    marketInput(() => saveBossCoverage(ctx, args));
+  },
+);
+export const readBossBoard = db.procedure(
+  {
+    enemyType: t.u32(),
+    query: t.string(),
+    sort: t.string(),
+    page: t.u32(),
+    limit: t.u32(),
+  },
+  t.string(),
+  (ctx, args) =>
+    ctx.withTx((tx) => marketInput(() => queryBossBoard(tx, args))),
+);
+export const readBossDefeat = db.procedure(
+  { key: t.string() },
+  t.string(),
+  (ctx, args) =>
+    ctx.withTx((tx) => marketInput(() => queryBossDefeat(tx, args.key))),
+);
+export const ingestClaimHistory = db.reducer(
+  {
+    regionId: t.u32(),
+    epoch: t.string(),
+    sequence: t.u32(),
+    initial: t.bool(),
+    complete: t.bool(),
+    payload: t.string(),
+    observedAt: t.u64(),
+  },
+  (ctx, args) => {
+    requireMarketCollector(ctx);
+    marketInput(() => saveClaimHistory(ctx, args));
+  },
+);
+export const readClaimHistory = db.procedure(
+  {
+    query: t.string(),
+    regionId: t.u32(),
+    kind: t.string(),
+    before: t.string(),
+    limit: t.u32(),
+  },
+  t.string(),
+  (ctx, args) =>
+    ctx.withTx((tx) => marketInput(() => queryClaimHistory(tx, args))),
+);
+export const ingestClaimSupplies = db.reducer(
+  {
+    regionId: t.u32(),
+    epoch: t.string(),
+    payload: t.string(),
+    observedAt: t.u64(),
+  },
+  (ctx, args) => {
+    requireMarketCollector(ctx);
+    marketInput(() => saveClaimSupplies(ctx, args));
+  },
+);
+export const readTrackedClaims = db.procedure(
+  {
+    query: t.string(),
+    regionId: t.u32(),
+    sort: t.string(),
+    risk: t.string(),
+    page: t.u32(),
+    limit: t.u32(),
+  },
+  t.string(),
+  (ctx, args) =>
+    ctx.withTx((tx) => marketInput(() => queryTrackedClaims(tx, args))),
+);
+export const readTrackedClaimHistory = db.procedure(
+  {
+    claimId: t.string(),
+    regionId: t.u32(),
+    group: t.string(),
+    before: t.string(),
+    limit: t.u32(),
+  },
+  t.string(),
+  (ctx, args) =>
+    ctx.withTx((tx) => marketInput(() => queryTrackedClaimHistory(tx, args))),
+);
+export const readStarredClaims = db.procedure(
+  { claims: t.string() },
+  t.string(),
+  (ctx, args) =>
+    ctx.withTx((tx) => marketInput(() => queryStarredClaims(tx, args))),
+);
 function marketInput<T>(parse: () => T): T {
   try {
     return parse();
@@ -1048,7 +1196,7 @@ export const relayHeartbeat = db.reducer(
     requireWrites(ctx);
     requireMarketCollector(ctx);
     if (
-      !/^(trading:\d+|player:\d{1,24})$/.test(args.key) ||
+      !/^(trading:\d+|claims:\d+|player:\d{1,24})$/.test(args.key) ||
       !["bitconnect", "bitsync"].includes(args.provider) ||
       !CURRENT_REGIONS[args.regionId] ||
       args.epoch.length > 80 ||
@@ -1063,6 +1211,7 @@ export const relayHeartbeat = db.reducer(
     };
     if (previous) ctx.db.relayStatus.key.update(row);
     else ctx.db.relayStatus.insert(row);
+    if (args.key.startsWith("claims:")) pruneClaimHistory(ctx);
   },
 );
 export const ingestRelayTrading = db.reducer(

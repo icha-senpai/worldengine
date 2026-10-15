@@ -1,6 +1,9 @@
 use crate::{accounts::current_player, tables::*};
 use spacetimedb::{ReducerContext, Table, ViewContext};
-use std::{cmp::Ordering, collections::HashSet};
+use std::{
+    cmp::Ordering,
+    collections::{BinaryHeap, HashSet},
+};
 
 fn name(ctx: &ReducerContext, species: Option<u32>, outcome: &str) -> String {
     species
@@ -47,6 +50,26 @@ pub fn save_pull(ctx: &ReducerContext, pull: &CastPull) {
             &pull.receipt,
             Some(pull.receipt.xp_granted),
         ));
+        let previous = ctx.db.journal_count().player_id().find(pull.player_id);
+        let total = previous.as_ref().map_or_else(
+            || {
+                ctx.db
+                    .journal_entry()
+                    .player_id()
+                    .filter(pull.player_id)
+                    .count() as u64
+            },
+            |row| row.total + 1,
+        );
+        let row = JournalCount {
+            player_id: pull.player_id,
+            total,
+        };
+        if previous.is_some() {
+            ctx.db.journal_count().player_id().update(row);
+        } else {
+            ctx.db.journal_count().insert(row);
+        }
     }
 }
 
@@ -192,6 +215,36 @@ pub fn backfill_journal(ctx: &ReducerContext, player_id: u64) -> Result<(), Stri
         player_id,
         completed_at: ctx.timestamp,
     });
+    update_count(ctx, player_id);
+    Ok(())
+}
+
+fn update_count(ctx: &ReducerContext, player_id: u64) {
+    let row = JournalCount {
+        player_id,
+        total: ctx.db.journal_entry().player_id().filter(player_id).count() as u64,
+    };
+    if ctx.db.journal_count().player_id().find(player_id).is_some() {
+        ctx.db.journal_count().player_id().update(row);
+    } else {
+        ctx.db.journal_count().insert(row);
+    }
+}
+
+#[spacetimedb::reducer]
+pub fn activate_history_queries(ctx: &ReducerContext) -> Result<(), String> {
+    if !ctx
+        .db
+        .deployment_owner()
+        .singleton()
+        .find(1)
+        .is_some_and(|owner| owner.identity == ctx.sender())
+    {
+        return Err("OWNER_REQUIRED".into());
+    }
+    for player in ctx.db.player().iter() {
+        update_count(ctx, player.player_id);
+    }
     Ok(())
 }
 
@@ -300,45 +353,76 @@ pub fn my_journal(ctx: &ViewContext) -> Option<JournalPage> {
             rarity: String::new(),
             outcome: String::new(),
         });
-    let mut rows: Vec<_> = ctx
+    let total_entries = ctx
         .db
-        .journal_entry()
+        .journal_count()
         .player_id()
-        .filter(player_id)
-        .collect();
-    let total_entries = rows.len() as u64;
-    rows.retain(|e| {
+        .find(player_id)
+        .map_or_else(
+            || ctx.db.journal_entry().player_id().filter(player_id).count() as u64,
+            |row| row.total,
+        );
+    let source = || -> Box<dyn Iterator<Item = JournalEntry> + '_> {
+        if !q.rarity.is_empty() {
+            Box::new(
+                ctx.db
+                    .journal_entry()
+                    .by_player_rarity()
+                    .filter((player_id, &q.rarity)),
+            )
+        } else if !q.outcome.is_empty() {
+            Box::new(
+                ctx.db
+                    .journal_entry()
+                    .by_player_outcome()
+                    .filter((player_id, &q.outcome)),
+            )
+        } else {
+            Box::new(ctx.db.journal_entry().player_id().filter(player_id))
+        }
+    };
+    let matches = |e: &JournalEntry| {
         (q.search.is_empty() || e.name.to_lowercase().contains(&q.search))
             && (q.biome_id == 0 || e.biome_id == Some(q.biome_id))
             && (q.rarity.is_empty() || e.rarity == q.rarity)
             && (q.outcome.is_empty() || e.outcome == q.outcome)
-    });
-    rows.sort_by(|a, b| {
-        let order = match q.sort.as_str() {
-            "rank" => compare(rank(&a.rarity), rank(&b.rarity), q.descending),
-            "length" => compare(
-                (a.outcome == "fish").then_some(a.length_mm),
-                (b.outcome == "fish").then_some(b.length_mm),
-                q.descending,
-            ),
-            "weight" => compare(
-                (a.outcome == "fish").then_some(a.weight_g),
-                (b.outcome == "fish").then_some(b.weight_g),
-                q.descending,
-            ),
-            "xp" => compare(a.xp_granted, b.xp_granted, q.descending),
-            _ => compare(Some(a.caught_at), Some(b.caught_at), q.descending),
+    };
+    let matching_entries =
+        if q.search.is_empty() && q.biome_id == 0 && q.rarity.is_empty() && q.outcome.is_empty() {
+            total_entries
+        } else {
+            source().filter(matches).count() as u64
         };
-        order
-            .then_with(|| b.caught_at.cmp(&a.caught_at))
-            .then_with(|| b.key.cmp(&a.key))
-    });
-    let matching_entries = rows.len() as u64;
     let pages = matching_entries.div_ceil(u64::from(q.page_size)).max(1);
     let page = u64::from(q.page).min(pages) as u32;
+    let offset = u64::from(page - 1) * u64::from(q.page_size);
+    let from_end = offset > matching_entries / 2;
+    let keep = if from_end {
+        matching_entries - offset
+    } else {
+        (offset + u64::from(q.page_size)).min(matching_entries)
+    } as usize;
+    let mut heap: BinaryHeap<OrderedEntry<'_>> = BinaryHeap::new();
+    for entry in source().filter(matches) {
+        if keep == 0 {
+            break;
+        }
+        let row = OrderedEntry {
+            entry,
+            selection: &q,
+            reverse: from_end,
+        };
+        if heap.len() < keep {
+            heap.push(row);
+        } else if heap.peek().is_some_and(|worst| row < *worst) {
+            *heap.peek_mut().expect("nonempty bounded page") = row;
+        }
+    }
+    let mut rows: Vec<_> = heap.into_iter().map(|row| row.entry).collect();
+    rows.sort_by(|a, b| entry_order(a, b, &q));
     let entries = rows
         .into_iter()
-        .skip((u64::from(page - 1) * u64::from(q.page_size)) as usize)
+        .skip(if from_end { 0 } else { offset as usize })
         .take(q.page_size as usize)
         .collect();
     Some(JournalPage {
@@ -348,4 +432,48 @@ pub fn my_journal(ctx: &ViewContext) -> Option<JournalPage> {
         page,
         page_size: q.page_size,
     })
+}
+
+pub(crate) fn entry_order(a: &JournalEntry, b: &JournalEntry, q: &JournalSelection) -> Ordering {
+    let order = match q.sort.as_str() {
+        "rank" => compare(rank(&a.rarity), rank(&b.rarity), q.descending),
+        "length" => compare(
+            (a.outcome == "fish").then_some(a.length_mm),
+            (b.outcome == "fish").then_some(b.length_mm),
+            q.descending,
+        ),
+        "weight" => compare(
+            (a.outcome == "fish").then_some(a.weight_g),
+            (b.outcome == "fish").then_some(b.weight_g),
+            q.descending,
+        ),
+        "xp" => compare(a.xp_granted, b.xp_granted, q.descending),
+        _ => compare(Some(a.caught_at), Some(b.caught_at), q.descending),
+    };
+    order
+        .then_with(|| b.caught_at.cmp(&a.caught_at))
+        .then_with(|| b.key.cmp(&a.key))
+}
+
+struct OrderedEntry<'a> {
+    entry: JournalEntry,
+    selection: &'a JournalSelection,
+    reverse: bool,
+}
+impl PartialEq for OrderedEntry<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+impl Eq for OrderedEntry<'_> {}
+impl PartialOrd for OrderedEntry<'_> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for OrderedEntry<'_> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let order = entry_order(&self.entry, &other.entry, self.selection);
+        if self.reverse { order.reverse() } else { order }
+    }
 }

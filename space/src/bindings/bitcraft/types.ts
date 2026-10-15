@@ -16,6 +16,55 @@ export const Administrator = __t.object("Administrator", {
 });
 export type Administrator = __Infer<typeof Administrator>;
 
+export const BossDefeat = __t.object("BossDefeat", {
+  key: __t.string(),
+  regionId: __t.u32(),
+  enemyType: __t.u32(),
+  diedAt: __t.u64(),
+  payload: __t.string(),
+});
+export type BossDefeat = __Infer<typeof BossDefeat>;
+
+export const BossRegion = __t.object("BossRegion", {
+  key: __t.string(),
+  regionId: __t.u32(),
+  epoch: __t.string(),
+  ready: __t.bool(),
+  startedAt: __t.u64(),
+  connectedAt: __t.u64(),
+  heartbeatAt: __t.u64(),
+  gapStartedAt: __t.u64(),
+  lastGapEndedAt: __t.u64(),
+  gaps: __t.u32(),
+  error: __t.string(),
+});
+export type BossRegion = __Infer<typeof BossRegion>;
+
+export const BossScore = __t.object("BossScore", {
+  key: __t.string(),
+  enemyType: __t.u32(),
+  playerId: __t.string(),
+  name: __t.string(),
+  defeats: __t.u64(),
+  finalBlows: __t.u64(),
+  contribution: __t.f64(),
+  lastDefeatAt: __t.u64(),
+});
+export type BossScore = __Infer<typeof BossScore>;
+
+export const BossTotals = __t.object("BossTotals", {
+  key: __t.string(),
+  enemyType: __t.u32(),
+  defeats: __t.u64(),
+  players: __t.u32(),
+  detailCount: __t.u32(),
+  detailBytes: __t.u64(),
+  startedAt: __t.u64(),
+  prunedAt: __t.u64(),
+  prunedThrough: __t.u64(),
+});
+export type BossTotals = __Infer<typeof BossTotals>;
+
 export const Budget = __t.object("Budget", {
   id: __t.u32(),
   window: __t.u64(),
@@ -23,6 +72,62 @@ export const Budget = __t.object("Budget", {
   blockedUntil: __t.u64(),
 });
 export type Budget = __Infer<typeof Budget>;
+
+export const ClaimChangeRevisionRow = __t.object("ClaimChangeRevisionRow", {
+  key: __t.string(),
+  epoch: __t.string(),
+  sequence: __t.u32(),
+  complete: __t.bool(),
+  claims: __t.u32(),
+  supplies: __t.u32(),
+  supplyVersion: __t.string(),
+});
+export type ClaimChangeRevisionRow = __Infer<typeof ClaimChangeRevisionRow>;
+
+export const ClaimChanges = __t.object("ClaimChanges", {});
+export type ClaimChanges = __Infer<typeof ClaimChanges>;
+
+export const ClaimHistoryEvent = __t.object("ClaimHistoryEvent", {
+  key: __t.string(),
+  regionId: __t.u32(),
+  claimId: __t.string(),
+  kind: __t.string(),
+  observedAt: __t.u64(),
+  payload: __t.string(),
+});
+export type ClaimHistoryEvent = __Infer<typeof ClaimHistoryEvent>;
+
+export const ClaimHistoryRegion = __t.object("ClaimHistoryRegion", {
+  key: __t.string(),
+  regionId: __t.u32(),
+  epoch: __t.string(),
+  sequence: __t.u32(),
+  observedAt: __t.u64(),
+  startedAt: __t.u64(),
+  complete: __t.bool(),
+  prunedAt: __t.u64(),
+  discarded: __t.u64(),
+  reconciling: __t.bool(),
+});
+export type ClaimHistoryRegion = __Infer<typeof ClaimHistoryRegion>;
+
+export const ClaimHistoryState = __t.object("ClaimHistoryState", {
+  key: __t.string(),
+  regionId: __t.u32(),
+  payload: __t.string(),
+  epoch: __t.string(),
+  observedAt: __t.u64(),
+});
+export type ClaimHistoryState = __Infer<typeof ClaimHistoryState>;
+
+export const ClaimSupplyStatus = __t.object("ClaimSupplyStatus", {
+  key: __t.string(),
+  regionId: __t.u32(),
+  payload: __t.string(),
+  epoch: __t.string(),
+  observedAt: __t.u64(),
+});
+export type ClaimSupplyStatus = __Infer<typeof ClaimSupplyStatus>;
 
 export const CollectedEntity = __t.object("CollectedEntity", {
   key: __t.string(),

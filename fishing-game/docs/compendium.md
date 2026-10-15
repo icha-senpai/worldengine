@@ -60,7 +60,7 @@ card. Close button and backdrop clicks dismiss it. Background scroll is locked
 while open, the header stays visible as notes scroll, and leaving the Compendium
 tab closes the dialog. Opening/closing does not reset filters or pagination.
 
-`npx tsx scripts/compendium-proof.ts` cross-checks all 2,492 displayed rank ranges
+`npm run rust:script -- scripts/compendium-proof.ts` cross-checks all 2,492 displayed rank ranges
 against the real Rust generator's minimum/maximum endpoints and 498,400 sampled
 catches. It also checks distribution totals, biome pools, and exceptional odds.
 The Rust example is test-only and is never included in the deployed module.

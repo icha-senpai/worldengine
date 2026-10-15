@@ -10,16 +10,22 @@ pub mod achievement_collection_table;
 pub mod achievement_collection_type;
 pub mod achievement_definition_table;
 pub mod achievement_definition_type;
+pub mod achievement_delivery_type;
 pub mod achievement_progress_type;
+pub mod achievement_route_type;
+pub mod acknowledge_achievement_delivery_reducer;
 pub mod action_nonce_type;
 pub mod activate_achievements_reducer;
 pub mod activate_crafting_reducer;
+pub mod activate_history_queries_reducer;
 pub mod activate_perfect_catches_reducer;
+pub mod activate_quests_reducer;
 pub mod activate_rank_maxima_reducer;
 pub mod activate_rod_bonuses_reducer;
 pub mod activate_species_measurements_reducer;
 pub mod activate_trader_reducer;
 pub mod activate_xp_progression_reducer;
+pub mod adapter_achievement_deliveries_table;
 pub mod adapter_achievement_progress_table;
 pub mod adapter_bait_loadout_table;
 pub mod adapter_baits_table;
@@ -32,6 +38,7 @@ pub mod adapter_inventory_table;
 pub mod adapter_items_table;
 pub mod adapter_licences_table;
 pub mod adapter_player_table;
+pub mod adapter_quests_table;
 pub mod adapter_receipt_table;
 pub mod adapter_rods_table;
 pub mod adapter_sale_quote_table;
@@ -61,6 +68,10 @@ pub mod cast_equipment_receipt_type;
 pub mod cast_pull_type;
 pub mod change_loadout_from_discord_reducer;
 pub mod change_loadout_reducer;
+pub mod claim_achievement_delivery_reducer;
+pub mod claim_dockside_delivery_reducer;
+pub mod claim_quest_from_discord_reducer;
+pub mod claim_quest_reducer;
 pub mod collection_focus_preference_type;
 pub mod command_receipt_type;
 pub mod commit_inventory_action_reducer;
@@ -76,6 +87,7 @@ pub mod daily_delivery_type;
 pub mod daily_from_discord_reducer;
 pub mod daily_receipt_type;
 pub mod deployment_owner_type;
+pub mod dockside_status_type;
 pub mod earned_achievement_table;
 pub mod earned_achievement_type;
 pub mod economy_ledger_type;
@@ -88,6 +100,7 @@ pub mod fishing_day_type;
 pub mod game_config_table;
 pub mod game_config_type;
 pub mod item_stack_type;
+pub mod journal_count_type;
 pub mod journal_entry_type;
 pub mod journal_import_type;
 pub mod journal_page_type;
@@ -103,6 +116,7 @@ pub mod my_bait_loadout_table;
 pub mod my_baits_table;
 pub mod my_collection_focus_table;
 pub mod my_collection_table;
+pub mod my_dockside_table;
 pub mod my_inventory_table;
 pub mod my_items_table;
 pub mod my_journal_table;
@@ -111,6 +125,7 @@ pub mod my_licences_table;
 pub mod my_link_challenge_table;
 pub mod my_player_table;
 pub mod my_profile_table;
+pub mod my_quests_table;
 pub mod my_recent_catches_table;
 pub mod my_rods_table;
 pub mod my_service_table;
@@ -134,12 +149,20 @@ pub mod public_profile_table;
 pub mod public_profile_type;
 pub mod quality_definition_table;
 pub mod quality_definition_type;
+pub mod quest_calendar_table;
+pub mod quest_calendar_type;
+pub mod quest_claim_type;
+pub mod quest_definition_table;
+pub mod quest_definition_type;
+pub mod quest_status_type;
 pub mod rank_maximum_table;
 pub mod rank_maximum_type;
 pub mod rarity_definition_table;
 pub mod rarity_definition_type;
 pub mod rebuild_player_records_reducer;
 pub mod recent_catch_type;
+pub mod record_achievement_route_reducer;
+pub mod repeat_quest_progress_type;
 pub mod rod_bonuses_table;
 pub mod rod_bonuses_type;
 pub mod rod_definition_table;
@@ -170,21 +193,28 @@ pub mod sync_discord_portrait_reducer;
 pub mod trader_migration_type;
 pub mod unlink_browser_reducer;
 pub mod upgrade_quote_type;
+pub mod weekly_quest_progress_type;
 
 pub use achievement_collection_table::*;
 pub use achievement_collection_type::AchievementCollection;
 pub use achievement_definition_table::*;
 pub use achievement_definition_type::AchievementDefinition;
+pub use achievement_delivery_type::AchievementDelivery;
 pub use achievement_progress_type::AchievementProgress;
+pub use achievement_route_type::AchievementRoute;
+pub use acknowledge_achievement_delivery_reducer::acknowledge_achievement_delivery;
 pub use action_nonce_type::ActionNonce;
 pub use activate_achievements_reducer::activate_achievements;
 pub use activate_crafting_reducer::activate_crafting;
+pub use activate_history_queries_reducer::activate_history_queries;
 pub use activate_perfect_catches_reducer::activate_perfect_catches;
+pub use activate_quests_reducer::activate_quests;
 pub use activate_rank_maxima_reducer::activate_rank_maxima;
 pub use activate_rod_bonuses_reducer::activate_rod_bonuses;
 pub use activate_species_measurements_reducer::activate_species_measurements;
 pub use activate_trader_reducer::activate_trader;
 pub use activate_xp_progression_reducer::activate_xp_progression;
+pub use adapter_achievement_deliveries_table::*;
 pub use adapter_achievement_progress_table::*;
 pub use adapter_bait_loadout_table::*;
 pub use adapter_baits_table::*;
@@ -197,6 +227,7 @@ pub use adapter_inventory_table::*;
 pub use adapter_items_table::*;
 pub use adapter_licences_table::*;
 pub use adapter_player_table::*;
+pub use adapter_quests_table::*;
 pub use adapter_receipt_table::*;
 pub use adapter_rods_table::*;
 pub use adapter_sale_quote_table::*;
@@ -226,6 +257,10 @@ pub use cast_equipment_receipt_type::CastEquipmentReceipt;
 pub use cast_pull_type::CastPull;
 pub use change_loadout_from_discord_reducer::change_loadout_from_discord;
 pub use change_loadout_reducer::change_loadout;
+pub use claim_achievement_delivery_reducer::claim_achievement_delivery;
+pub use claim_dockside_delivery_reducer::claim_dockside_delivery;
+pub use claim_quest_from_discord_reducer::claim_quest_from_discord;
+pub use claim_quest_reducer::claim_quest;
 pub use collection_focus_preference_type::CollectionFocusPreference;
 pub use command_receipt_type::CommandReceipt;
 pub use commit_inventory_action_reducer::commit_inventory_action;
@@ -241,6 +276,7 @@ pub use daily_delivery_type::DailyDelivery;
 pub use daily_from_discord_reducer::daily_from_discord;
 pub use daily_receipt_type::DailyReceipt;
 pub use deployment_owner_type::DeploymentOwner;
+pub use dockside_status_type::DocksideStatus;
 pub use earned_achievement_table::*;
 pub use earned_achievement_type::EarnedAchievement;
 pub use economy_ledger_type::EconomyLedger;
@@ -253,6 +289,7 @@ pub use fishing_day_type::FishingDay;
 pub use game_config_table::*;
 pub use game_config_type::GameConfig;
 pub use item_stack_type::ItemStack;
+pub use journal_count_type::JournalCount;
 pub use journal_entry_type::JournalEntry;
 pub use journal_import_type::JournalImport;
 pub use journal_page_type::JournalPage;
@@ -268,6 +305,7 @@ pub use my_bait_loadout_table::*;
 pub use my_baits_table::*;
 pub use my_collection_focus_table::*;
 pub use my_collection_table::*;
+pub use my_dockside_table::*;
 pub use my_inventory_table::*;
 pub use my_items_table::*;
 pub use my_journal_table::*;
@@ -276,6 +314,7 @@ pub use my_licences_table::*;
 pub use my_link_challenge_table::*;
 pub use my_player_table::*;
 pub use my_profile_table::*;
+pub use my_quests_table::*;
 pub use my_recent_catches_table::*;
 pub use my_rods_table::*;
 pub use my_service_table::*;
@@ -299,12 +338,20 @@ pub use public_profile_table::*;
 pub use public_profile_type::PublicProfile;
 pub use quality_definition_table::*;
 pub use quality_definition_type::QualityDefinition;
+pub use quest_calendar_table::*;
+pub use quest_calendar_type::QuestCalendar;
+pub use quest_claim_type::QuestClaim;
+pub use quest_definition_table::*;
+pub use quest_definition_type::QuestDefinition;
+pub use quest_status_type::QuestStatus;
 pub use rank_maximum_table::*;
 pub use rank_maximum_type::RankMaximum;
 pub use rarity_definition_table::*;
 pub use rarity_definition_type::RarityDefinition;
 pub use rebuild_player_records_reducer::rebuild_player_records;
 pub use recent_catch_type::RecentCatch;
+pub use record_achievement_route_reducer::record_achievement_route;
+pub use repeat_quest_progress_type::RepeatQuestProgress;
 pub use rod_bonuses_table::*;
 pub use rod_bonuses_type::RodBonuses;
 pub use rod_definition_table::*;
@@ -335,6 +382,7 @@ pub use sync_discord_portrait_reducer::sync_discord_portrait;
 pub use trader_migration_type::TraderMigration;
 pub use unlink_browser_reducer::unlink_browser;
 pub use upgrade_quote_type::UpgradeQuote;
+pub use weekly_quest_progress_type::WeeklyQuestProgress;
 
 #[derive(Clone, PartialEq, Debug)]
 
@@ -344,9 +392,15 @@ pub use upgrade_quote_type::UpgradeQuote;
 /// to indicate which reducer caused the event.
 
 pub enum Reducer {
+    AcknowledgeAchievementDelivery {
+        key: u128,
+        lease_nonce: u128,
+    },
     ActivateAchievements,
     ActivateCrafting,
+    ActivateHistoryQueries,
     ActivatePerfectCatches,
+    ActivateQuests,
     ActivateRankMaxima,
     ActivateRodBonuses,
     ActivateSpeciesMeasurements,
@@ -374,6 +428,27 @@ pub enum Reducer {
         interaction_id: u64,
         biome_id: Option<u32>,
         rod_id: Option<u32>,
+    },
+    ClaimAchievementDelivery {
+        key: u128,
+        lease_nonce: u128,
+    },
+    ClaimDocksideDelivery,
+    ClaimQuest {
+        quest_id: u32,
+        bait_id: u32,
+        catch_id: Option<u64>,
+        expected_week: i64,
+        expected_cycle: u64,
+    },
+    ClaimQuestFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        quest_id: u32,
+        bait_id: u32,
+        catch_id: Option<u64>,
+        expected_week: i64,
+        expected_cycle: u64,
     },
     CommitInventoryAction {
         nonce: u128,
@@ -466,6 +541,10 @@ pub enum Reducer {
     RebuildPlayerRecords {
         player_id: u64,
     },
+    RecordAchievementRoute {
+        discord_user_id: u64,
+        channel_id: u64,
+    },
     SelectDiscordPlayer {
         discord_user_id: u64,
         display_name: String,
@@ -520,9 +599,12 @@ impl __sdk::InModule for Reducer {
 impl __sdk::Reducer for Reducer {
     fn reducer_name(&self) -> &'static str {
         match self {
+            Reducer::AcknowledgeAchievementDelivery { .. } => "acknowledge_achievement_delivery",
             Reducer::ActivateAchievements => "activate_achievements",
             Reducer::ActivateCrafting => "activate_crafting",
+            Reducer::ActivateHistoryQueries => "activate_history_queries",
             Reducer::ActivatePerfectCatches => "activate_perfect_catches",
+            Reducer::ActivateQuests => "activate_quests",
             Reducer::ActivateRankMaxima => "activate_rank_maxima",
             Reducer::ActivateRodBonuses => "activate_rod_bonuses",
             Reducer::ActivateSpeciesMeasurements => "activate_species_measurements",
@@ -535,6 +617,10 @@ impl __sdk::Reducer for Reducer {
             Reducer::BeginLinkChallenge => "begin_link_challenge",
             Reducer::ChangeLoadout { .. } => "change_loadout",
             Reducer::ChangeLoadoutFromDiscord { .. } => "change_loadout_from_discord",
+            Reducer::ClaimAchievementDelivery { .. } => "claim_achievement_delivery",
+            Reducer::ClaimDocksideDelivery => "claim_dockside_delivery",
+            Reducer::ClaimQuest { .. } => "claim_quest",
+            Reducer::ClaimQuestFromDiscord { .. } => "claim_quest_from_discord",
             Reducer::CommitInventoryAction { .. } => "commit_inventory_action",
             Reducer::CommitRodUpgrade { .. } => "commit_rod_upgrade",
             Reducer::CommitSaleFromDiscord { .. } => "commit_sale_from_discord",
@@ -557,6 +643,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::PrepareShopPurchase { .. } => "prepare_shop_purchase",
             Reducer::PrepareUpgradeFromDiscord { .. } => "prepare_upgrade_from_discord",
             Reducer::RebuildPlayerRecords { .. } => "rebuild_player_records",
+            Reducer::RecordAchievementRoute { .. } => "record_achievement_route",
             Reducer::SelectDiscordPlayer { .. } => "select_discord_player",
             Reducer::SelectJournal { .. } => "select_journal",
             Reducer::SetBaitSlot { .. } => "set_bait_slot",
@@ -572,15 +659,27 @@ impl __sdk::Reducer for Reducer {
     #[allow(clippy::clone_on_copy)]
     fn args_bsatn(&self) -> Result<Vec<u8>, __sats::bsatn::EncodeError> {
         match self {
+            Reducer::AcknowledgeAchievementDelivery { key, lease_nonce } => __sats::bsatn::to_vec(
+                &acknowledge_achievement_delivery_reducer::AcknowledgeAchievementDeliveryArgs {
+                    key: key.clone(),
+                    lease_nonce: lease_nonce.clone(),
+                },
+            ),
             Reducer::ActivateAchievements => {
                 __sats::bsatn::to_vec(&activate_achievements_reducer::ActivateAchievementsArgs {})
             }
             Reducer::ActivateCrafting => {
                 __sats::bsatn::to_vec(&activate_crafting_reducer::ActivateCraftingArgs {})
             }
+            Reducer::ActivateHistoryQueries => __sats::bsatn::to_vec(
+                &activate_history_queries_reducer::ActivateHistoryQueriesArgs {},
+            ),
             Reducer::ActivatePerfectCatches => __sats::bsatn::to_vec(
                 &activate_perfect_catches_reducer::ActivatePerfectCatchesArgs {},
             ),
+            Reducer::ActivateQuests => {
+                __sats::bsatn::to_vec(&activate_quests_reducer::ActivateQuestsArgs {})
+            }
             Reducer::ActivateRankMaxima => {
                 __sats::bsatn::to_vec(&activate_rank_maxima_reducer::ActivateRankMaximaArgs {})
             }
@@ -636,6 +735,47 @@ impl __sdk::Reducer for Reducer {
                     interaction_id: interaction_id.clone(),
                     biome_id: biome_id.clone(),
                     rod_id: rod_id.clone(),
+                },
+            ),
+            Reducer::ClaimAchievementDelivery { key, lease_nonce } => __sats::bsatn::to_vec(
+                &claim_achievement_delivery_reducer::ClaimAchievementDeliveryArgs {
+                    key: key.clone(),
+                    lease_nonce: lease_nonce.clone(),
+                },
+            ),
+            Reducer::ClaimDocksideDelivery => __sats::bsatn::to_vec(
+                &claim_dockside_delivery_reducer::ClaimDocksideDeliveryArgs {},
+            ),
+            Reducer::ClaimQuest {
+                quest_id,
+                bait_id,
+                catch_id,
+                expected_week,
+                expected_cycle,
+            } => __sats::bsatn::to_vec(&claim_quest_reducer::ClaimQuestArgs {
+                quest_id: quest_id.clone(),
+                bait_id: bait_id.clone(),
+                catch_id: catch_id.clone(),
+                expected_week: expected_week.clone(),
+                expected_cycle: expected_cycle.clone(),
+            }),
+            Reducer::ClaimQuestFromDiscord {
+                discord_user_id,
+                interaction_id,
+                quest_id,
+                bait_id,
+                catch_id,
+                expected_week,
+                expected_cycle,
+            } => __sats::bsatn::to_vec(
+                &claim_quest_from_discord_reducer::ClaimQuestFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    quest_id: quest_id.clone(),
+                    bait_id: bait_id.clone(),
+                    catch_id: catch_id.clone(),
+                    expected_week: expected_week.clone(),
+                    expected_cycle: expected_cycle.clone(),
                 },
             ),
             Reducer::CommitInventoryAction { nonce } => __sats::bsatn::to_vec(
@@ -815,6 +955,15 @@ impl __sdk::Reducer for Reducer {
                     player_id: player_id.clone(),
                 })
             }
+            Reducer::RecordAchievementRoute {
+                discord_user_id,
+                channel_id,
+            } => __sats::bsatn::to_vec(
+                &record_achievement_route_reducer::RecordAchievementRouteArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    channel_id: channel_id.clone(),
+                },
+            ),
             Reducer::SelectDiscordPlayer {
                 discord_user_id,
                 display_name,
@@ -910,6 +1059,7 @@ impl __sdk::Reducer for Reducer {
 pub struct DbUpdate {
     achievement_collection: __sdk::TableUpdate<AchievementCollection>,
     achievement_definition: __sdk::TableUpdate<AchievementDefinition>,
+    adapter_achievement_deliveries: __sdk::TableUpdate<AchievementDelivery>,
     adapter_achievement_progress: __sdk::TableUpdate<AchievementProgress>,
     adapter_bait_loadout: __sdk::TableUpdate<BaitLoadout>,
     adapter_baits: __sdk::TableUpdate<BaitStack>,
@@ -922,6 +1072,7 @@ pub struct DbUpdate {
     adapter_items: __sdk::TableUpdate<ItemStack>,
     adapter_licences: __sdk::TableUpdate<OwnedBiomeLicence>,
     adapter_player: __sdk::TableUpdate<Player>,
+    adapter_quests: __sdk::TableUpdate<QuestStatus>,
     adapter_receipt: __sdk::TableUpdate<CommandReceipt>,
     adapter_rods: __sdk::TableUpdate<OwnedRod>,
     adapter_sale_quote: __sdk::TableUpdate<SaleQuote>,
@@ -942,6 +1093,7 @@ pub struct DbUpdate {
     my_baits: __sdk::TableUpdate<BaitStack>,
     my_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
     my_collection_focus: __sdk::TableUpdate<CollectionFocusPreference>,
+    my_dockside: __sdk::TableUpdate<DocksideStatus>,
     my_inventory: __sdk::TableUpdate<OwnedSpecimen>,
     my_items: __sdk::TableUpdate<ItemStack>,
     my_journal: __sdk::TableUpdate<JournalPage>,
@@ -950,6 +1102,7 @@ pub struct DbUpdate {
     my_link_challenge: __sdk::TableUpdate<LinkChallenge>,
     my_player: __sdk::TableUpdate<Player>,
     my_profile: __sdk::TableUpdate<PublicProfile>,
+    my_quests: __sdk::TableUpdate<QuestStatus>,
     my_recent_catches: __sdk::TableUpdate<RecentCatch>,
     my_rods: __sdk::TableUpdate<OwnedRod>,
     my_service: __sdk::TableUpdate<ServicePrincipal>,
@@ -958,6 +1111,8 @@ pub struct DbUpdate {
     perfect_species: __sdk::TableUpdate<PerfectSpecies>,
     public_profile: __sdk::TableUpdate<PublicProfile>,
     quality_definition: __sdk::TableUpdate<QualityDefinition>,
+    quest_calendar: __sdk::TableUpdate<QuestCalendar>,
+    quest_definition: __sdk::TableUpdate<QuestDefinition>,
     rank_maximum: __sdk::TableUpdate<RankMaximum>,
     rarity_definition: __sdk::TableUpdate<RarityDefinition>,
     rod_bonuses: __sdk::TableUpdate<RodBonuses>,
@@ -981,6 +1136,11 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "achievement_definition" => db_update.achievement_definition.append(
                     achievement_definition_table::parse_table_update(table_update)?,
                 ),
+                "adapter_achievement_deliveries" => {
+                    db_update.adapter_achievement_deliveries.append(
+                        adapter_achievement_deliveries_table::parse_table_update(table_update)?,
+                    )
+                }
                 "adapter_achievement_progress" => db_update.adapter_achievement_progress.append(
                     adapter_achievement_progress_table::parse_table_update(table_update)?,
                 ),
@@ -1017,6 +1177,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_player" => db_update
                     .adapter_player
                     .append(adapter_player_table::parse_table_update(table_update)?),
+                "adapter_quests" => db_update
+                    .adapter_quests
+                    .append(adapter_quests_table::parse_table_update(table_update)?),
                 "adapter_receipt" => db_update
                     .adapter_receipt
                     .append(adapter_receipt_table::parse_table_update(table_update)?),
@@ -1077,6 +1240,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_collection_focus" => db_update
                     .my_collection_focus
                     .append(my_collection_focus_table::parse_table_update(table_update)?),
+                "my_dockside" => db_update
+                    .my_dockside
+                    .append(my_dockside_table::parse_table_update(table_update)?),
                 "my_inventory" => db_update
                     .my_inventory
                     .append(my_inventory_table::parse_table_update(table_update)?),
@@ -1101,6 +1267,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_profile" => db_update
                     .my_profile
                     .append(my_profile_table::parse_table_update(table_update)?),
+                "my_quests" => db_update
+                    .my_quests
+                    .append(my_quests_table::parse_table_update(table_update)?),
                 "my_recent_catches" => db_update
                     .my_recent_catches
                     .append(my_recent_catches_table::parse_table_update(table_update)?),
@@ -1125,6 +1294,12 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "quality_definition" => db_update
                     .quality_definition
                     .append(quality_definition_table::parse_table_update(table_update)?),
+                "quest_calendar" => db_update
+                    .quest_calendar
+                    .append(quest_calendar_table::parse_table_update(table_update)?),
+                "quest_definition" => db_update
+                    .quest_definition
+                    .append(quest_definition_table::parse_table_update(table_update)?),
                 "rank_maximum" => db_update
                     .rank_maximum
                     .append(rank_maximum_table::parse_table_update(table_update)?),
@@ -1232,6 +1407,12 @@ impl __sdk::DbUpdate for DbUpdate {
                 &self.quality_definition,
             )
             .with_updates_by_pk(|row| &row.quality_level);
+        diff.quest_calendar = cache
+            .apply_diff_to_table::<QuestCalendar>("quest_calendar", &self.quest_calendar)
+            .with_updates_by_pk(|row| &row.singleton);
+        diff.quest_definition = cache
+            .apply_diff_to_table::<QuestDefinition>("quest_definition", &self.quest_definition)
+            .with_updates_by_pk(|row| &row.quest_id);
         diff.rank_maximum = cache
             .apply_diff_to_table::<RankMaximum>("rank_maximum", &self.rank_maximum)
             .with_updates_by_pk(|row| &row.key);
@@ -1265,6 +1446,10 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.species_record = cache
             .apply_diff_to_table::<SpeciesRecord>("species_record", &self.species_record)
             .with_updates_by_pk(|row| &row.key);
+        diff.adapter_achievement_deliveries = cache.apply_diff_to_table::<AchievementDelivery>(
+            "adapter_achievement_deliveries",
+            &self.adapter_achievement_deliveries,
+        );
         diff.adapter_achievement_progress = cache.apply_diff_to_table::<AchievementProgress>(
             "adapter_achievement_progress",
             &self.adapter_achievement_progress,
@@ -1299,6 +1484,8 @@ impl __sdk::DbUpdate for DbUpdate {
             .apply_diff_to_table::<OwnedBiomeLicence>("adapter_licences", &self.adapter_licences);
         diff.adapter_player =
             cache.apply_diff_to_table::<Player>("adapter_player", &self.adapter_player);
+        diff.adapter_quests =
+            cache.apply_diff_to_table::<QuestStatus>("adapter_quests", &self.adapter_quests);
         diff.adapter_receipt =
             cache.apply_diff_to_table::<CommandReceipt>("adapter_receipt", &self.adapter_receipt);
         diff.adapter_rods =
@@ -1325,6 +1512,8 @@ impl __sdk::DbUpdate for DbUpdate {
             "my_collection_focus",
             &self.my_collection_focus,
         );
+        diff.my_dockside =
+            cache.apply_diff_to_table::<DocksideStatus>("my_dockside", &self.my_dockside);
         diff.my_inventory =
             cache.apply_diff_to_table::<OwnedSpecimen>("my_inventory", &self.my_inventory);
         diff.my_items = cache.apply_diff_to_table::<ItemStack>("my_items", &self.my_items);
@@ -1337,6 +1526,7 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.my_player = cache.apply_diff_to_table::<Player>("my_player", &self.my_player);
         diff.my_profile =
             cache.apply_diff_to_table::<PublicProfile>("my_profile", &self.my_profile);
+        diff.my_quests = cache.apply_diff_to_table::<QuestStatus>("my_quests", &self.my_quests);
         diff.my_recent_catches =
             cache.apply_diff_to_table::<RecentCatch>("my_recent_catches", &self.my_recent_catches);
         diff.my_rods = cache.apply_diff_to_table::<OwnedRod>("my_rods", &self.my_rods);
@@ -1358,6 +1548,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "achievement_definition" => db_update
                     .achievement_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_achievement_deliveries" => db_update
+                    .adapter_achievement_deliveries
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_achievement_progress" => db_update
                     .adapter_achievement_progress
@@ -1394,6 +1587,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_player" => db_update
                     .adapter_player
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_quests" => db_update
+                    .adapter_quests
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_receipt" => db_update
                     .adapter_receipt
@@ -1455,6 +1651,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_collection_focus" => db_update
                     .my_collection_focus
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_dockside" => db_update
+                    .my_dockside
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_inventory" => db_update
                     .my_inventory
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -1479,6 +1678,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_profile" => db_update
                     .my_profile
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_quests" => db_update
+                    .my_quests
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_recent_catches" => db_update
                     .my_recent_catches
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -1502,6 +1704,12 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "quality_definition" => db_update
                     .quality_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "quest_calendar" => db_update
+                    .quest_calendar
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "quest_definition" => db_update
+                    .quest_definition
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "rank_maximum" => db_update
                     .rank_maximum
@@ -1549,6 +1757,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "achievement_definition" => db_update
                     .achievement_definition
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_achievement_deliveries" => db_update
+                    .adapter_achievement_deliveries
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_achievement_progress" => db_update
                     .adapter_achievement_progress
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1584,6 +1795,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_player" => db_update
                     .adapter_player
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_quests" => db_update
+                    .adapter_quests
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_receipt" => db_update
                     .adapter_receipt
@@ -1645,6 +1859,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_collection_focus" => db_update
                     .my_collection_focus
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_dockside" => db_update
+                    .my_dockside
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_inventory" => db_update
                     .my_inventory
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1669,6 +1886,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_profile" => db_update
                     .my_profile
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_quests" => db_update
+                    .my_quests
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_recent_catches" => db_update
                     .my_recent_catches
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1692,6 +1912,12 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "quality_definition" => db_update
                     .quality_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "quest_calendar" => db_update
+                    .quest_calendar
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "quest_definition" => db_update
+                    .quest_definition
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "rank_maximum" => db_update
                     .rank_maximum
@@ -1737,6 +1963,7 @@ impl __sdk::DbUpdate for DbUpdate {
 pub struct AppliedDiff<'r> {
     achievement_collection: __sdk::TableAppliedDiff<'r, AchievementCollection>,
     achievement_definition: __sdk::TableAppliedDiff<'r, AchievementDefinition>,
+    adapter_achievement_deliveries: __sdk::TableAppliedDiff<'r, AchievementDelivery>,
     adapter_achievement_progress: __sdk::TableAppliedDiff<'r, AchievementProgress>,
     adapter_bait_loadout: __sdk::TableAppliedDiff<'r, BaitLoadout>,
     adapter_baits: __sdk::TableAppliedDiff<'r, BaitStack>,
@@ -1749,6 +1976,7 @@ pub struct AppliedDiff<'r> {
     adapter_items: __sdk::TableAppliedDiff<'r, ItemStack>,
     adapter_licences: __sdk::TableAppliedDiff<'r, OwnedBiomeLicence>,
     adapter_player: __sdk::TableAppliedDiff<'r, Player>,
+    adapter_quests: __sdk::TableAppliedDiff<'r, QuestStatus>,
     adapter_receipt: __sdk::TableAppliedDiff<'r, CommandReceipt>,
     adapter_rods: __sdk::TableAppliedDiff<'r, OwnedRod>,
     adapter_sale_quote: __sdk::TableAppliedDiff<'r, SaleQuote>,
@@ -1769,6 +1997,7 @@ pub struct AppliedDiff<'r> {
     my_baits: __sdk::TableAppliedDiff<'r, BaitStack>,
     my_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
     my_collection_focus: __sdk::TableAppliedDiff<'r, CollectionFocusPreference>,
+    my_dockside: __sdk::TableAppliedDiff<'r, DocksideStatus>,
     my_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
     my_items: __sdk::TableAppliedDiff<'r, ItemStack>,
     my_journal: __sdk::TableAppliedDiff<'r, JournalPage>,
@@ -1777,6 +2006,7 @@ pub struct AppliedDiff<'r> {
     my_link_challenge: __sdk::TableAppliedDiff<'r, LinkChallenge>,
     my_player: __sdk::TableAppliedDiff<'r, Player>,
     my_profile: __sdk::TableAppliedDiff<'r, PublicProfile>,
+    my_quests: __sdk::TableAppliedDiff<'r, QuestStatus>,
     my_recent_catches: __sdk::TableAppliedDiff<'r, RecentCatch>,
     my_rods: __sdk::TableAppliedDiff<'r, OwnedRod>,
     my_service: __sdk::TableAppliedDiff<'r, ServicePrincipal>,
@@ -1785,6 +2015,8 @@ pub struct AppliedDiff<'r> {
     perfect_species: __sdk::TableAppliedDiff<'r, PerfectSpecies>,
     public_profile: __sdk::TableAppliedDiff<'r, PublicProfile>,
     quality_definition: __sdk::TableAppliedDiff<'r, QualityDefinition>,
+    quest_calendar: __sdk::TableAppliedDiff<'r, QuestCalendar>,
+    quest_definition: __sdk::TableAppliedDiff<'r, QuestDefinition>,
     rank_maximum: __sdk::TableAppliedDiff<'r, RankMaximum>,
     rarity_definition: __sdk::TableAppliedDiff<'r, RarityDefinition>,
     rod_bonuses: __sdk::TableAppliedDiff<'r, RodBonuses>,
@@ -1815,6 +2047,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<AchievementDefinition>(
             "achievement_definition",
             &self.achievement_definition,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<AchievementDelivery>(
+            "adapter_achievement_deliveries",
+            &self.adapter_achievement_deliveries,
             event,
         );
         callbacks.invoke_table_row_callbacks::<AchievementProgress>(
@@ -1875,6 +2112,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<Player>(
             "adapter_player",
             &self.adapter_player,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<QuestStatus>(
+            "adapter_quests",
+            &self.adapter_quests,
             event,
         );
         callbacks.invoke_table_row_callbacks::<CommandReceipt>(
@@ -1961,6 +2203,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.my_collection_focus,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<DocksideStatus>(
+            "my_dockside",
+            &self.my_dockside,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<OwnedSpecimen>(
             "my_inventory",
             &self.my_inventory,
@@ -1985,6 +2232,7 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.my_profile,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<QuestStatus>("my_quests", &self.my_quests, event);
         callbacks.invoke_table_row_callbacks::<RecentCatch>(
             "my_recent_catches",
             &self.my_recent_catches,
@@ -2019,6 +2267,16 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<QualityDefinition>(
             "quality_definition",
             &self.quality_definition,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<QuestCalendar>(
+            "quest_calendar",
+            &self.quest_calendar,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<QuestDefinition>(
+            "quest_definition",
+            &self.quest_definition,
             event,
         );
         callbacks.invoke_table_row_callbacks::<RankMaximum>(
@@ -2724,6 +2982,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
     fn register_tables(client_cache: &mut __sdk::ClientCache<Self>) {
         achievement_collection_table::register_table(client_cache);
         achievement_definition_table::register_table(client_cache);
+        adapter_achievement_deliveries_table::register_table(client_cache);
         adapter_achievement_progress_table::register_table(client_cache);
         adapter_bait_loadout_table::register_table(client_cache);
         adapter_baits_table::register_table(client_cache);
@@ -2736,6 +2995,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_items_table::register_table(client_cache);
         adapter_licences_table::register_table(client_cache);
         adapter_player_table::register_table(client_cache);
+        adapter_quests_table::register_table(client_cache);
         adapter_receipt_table::register_table(client_cache);
         adapter_rods_table::register_table(client_cache);
         adapter_sale_quote_table::register_table(client_cache);
@@ -2756,6 +3016,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_baits_table::register_table(client_cache);
         my_collection_table::register_table(client_cache);
         my_collection_focus_table::register_table(client_cache);
+        my_dockside_table::register_table(client_cache);
         my_inventory_table::register_table(client_cache);
         my_items_table::register_table(client_cache);
         my_journal_table::register_table(client_cache);
@@ -2764,6 +3025,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_link_challenge_table::register_table(client_cache);
         my_player_table::register_table(client_cache);
         my_profile_table::register_table(client_cache);
+        my_quests_table::register_table(client_cache);
         my_recent_catches_table::register_table(client_cache);
         my_rods_table::register_table(client_cache);
         my_service_table::register_table(client_cache);
@@ -2772,6 +3034,8 @@ impl __sdk::SpacetimeModule for RemoteModule {
         perfect_species_table::register_table(client_cache);
         public_profile_table::register_table(client_cache);
         quality_definition_table::register_table(client_cache);
+        quest_calendar_table::register_table(client_cache);
+        quest_definition_table::register_table(client_cache);
         rank_maximum_table::register_table(client_cache);
         rarity_definition_table::register_table(client_cache);
         rod_bonuses_table::register_table(client_cache);
@@ -2785,6 +3049,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
     const ALL_TABLE_NAMES: &'static [&'static str] = &[
         "achievement_collection",
         "achievement_definition",
+        "adapter_achievement_deliveries",
         "adapter_achievement_progress",
         "adapter_bait_loadout",
         "adapter_baits",
@@ -2797,6 +3062,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_items",
         "adapter_licences",
         "adapter_player",
+        "adapter_quests",
         "adapter_receipt",
         "adapter_rods",
         "adapter_sale_quote",
@@ -2817,6 +3083,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_baits",
         "my_collection",
         "my_collection_focus",
+        "my_dockside",
         "my_inventory",
         "my_items",
         "my_journal",
@@ -2825,6 +3092,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_link_challenge",
         "my_player",
         "my_profile",
+        "my_quests",
         "my_recent_catches",
         "my_rods",
         "my_service",
@@ -2833,6 +3101,8 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "perfect_species",
         "public_profile",
         "quality_definition",
+        "quest_calendar",
+        "quest_definition",
         "rank_maximum",
         "rarity_definition",
         "rod_bonuses",

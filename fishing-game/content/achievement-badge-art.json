@@ -175,7 +175,7 @@
       "title": "Perfect Angler",
       "batch": "milestones-and-bonuses",
       "url": "/achievements/badge-19.png",
-      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Perfect catch. Meaning: exact maximum length and weight on the same fish. Central emblem: radiant pearl-white and gold fish beneath one large four-point star; gold medallion rim, deep plum field, royal-purple ribbon tails. Style reference: badge-10.png."
+      "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Perfect catch. Meaning: Catch a fish at its exact maximum catchable length and weight on the same specimen.\nCentral emblem: radiant pearl-white and gold fish beneath one large four-point star; gold medallion rim, deep plum field, royal-purple ribbon tails. Do not write the achievement name or any rank text into the image."
     },
     {
       "achievementId": 22,
@@ -1031,6 +1031,96 @@
       "batch": "all-waters",
       "url": "/achievements/badge-310.png",
       "prompt": "Use case: stylized-concept. Asset type: one individual achievement badge icon for the Fishbound fishing RPG, readable at 64 to 96 pixels. Style: crisp chunky 16-bit pixel art, visible square pixel blocks, dark stepped outlines, limited palette, warm handcrafted fantasy fishing-game feel. Shape: one compact round medallion with a slightly scalloped antique metal rim and two short ribbon tails below it, front-facing and symmetrical. Center the complete badge at about 80 percent of a square canvas, with generous empty transparent margins. Strong simple silhouette and a large legible central emblem; details must not become visual noise. Truly transparent background outside the badge. No words, letters, numbers, captions, watermark, external scene, people, extra badges or cropped edges. No smooth vector rendering, photorealism, blurry painting or checkerboard background.\nAchievement: Every fish, every rank. Meaning: Catch all 249 ordinary species across all biomes at every rank from F through UUR.\nCentral emblem: a globe made of seven flowing water bands with a fish silhouette at its center, ocean-blue and forest-green. Border and ribbon treatment: a full golden laurel wreath, an ornate prismatic crown and ten small jewel studs around the rim, clearly the ultimate completion medal. Do not write the achievement name or any rank text into the image."
+    },
+    {
+      "achievementId": 9001,
+      "key": "badge-9001",
+      "name": "A Favor Returned",
+      "title": "Dock Regular",
+      "batch": "quest-stories",
+      "url": "/achievements/badge-9001.png",
+      "generator": "scripts/build-quest-badges.py",
+      "prompt": "A warm mug on dock planks."
+    },
+    {
+      "achievementId": 9002,
+      "key": "badge-9002",
+      "name": "The One That Stayed",
+      "title": "River Storyteller",
+      "batch": "quest-stories",
+      "url": "/achievements/badge-9002.png",
+      "generator": "scripts/build-quest-badges.py",
+      "prompt": "A golden fish over river waves."
+    },
+    {
+      "achievementId": 9003,
+      "key": "badge-9003",
+      "name": "The Keeper of the Reeds",
+      "title": "Reed Whisperer",
+      "batch": "quest-stories",
+      "url": "/achievements/badge-9003.png",
+      "generator": "scripts/build-quest-badges.py",
+      "prompt": "Reeds surrounding a missing supply crate."
+    },
+    {
+      "achievementId": 9004,
+      "key": "badge-9004",
+      "name": "The Final Reflection",
+      "title": "Moonlit Chronicler",
+      "batch": "quest-stories",
+      "url": "/achievements/badge-9004.png",
+      "generator": "scripts/build-quest-badges.py",
+      "prompt": "A crescent moon over an open journal."
+    },
+    {
+      "achievementId": 9005,
+      "key": "badge-9005",
+      "name": "A Safe Harbor",
+      "title": "Tidekeeper",
+      "batch": "quest-stories",
+      "url": "/achievements/badge-9005.png",
+      "generator": "scripts/build-quest-badges.py",
+      "prompt": "An anchor and a small sea shell."
+    },
+    {
+      "achievementId": 9006,
+      "key": "badge-9006",
+      "name": "The Icewater Report",
+      "title": "Icebound Angler",
+      "batch": "quest-stories",
+      "url": "/achievements/badge-9006.png",
+      "generator": "scripts/build-quest-badges.py",
+      "prompt": "A crystal snowflake above an icebound fish."
+    },
+    {
+      "achievementId": 9007,
+      "key": "badge-9007",
+      "name": "Return to Sender",
+      "title": "Deepwater Correspondent",
+      "batch": "quest-stories",
+      "url": "/achievements/badge-9007.png",
+      "generator": "scripts/build-quest-badges.py",
+      "prompt": "A sealed letter above a glowing deep sea vent."
+    },
+    {
+      "achievementId": 9008,
+      "key": "badge-9008",
+      "name": "Built to Last",
+      "title": "Dockside Tinkerer",
+      "batch": "quest-stories",
+      "url": "/achievements/badge-9008.png",
+      "generator": "scripts/build-quest-badges.py",
+      "prompt": "Crossed workshop tools with a fishing hook."
+    },
+    {
+      "achievementId": 9009,
+      "key": "badge-9009",
+      "name": "Exactly Right",
+      "title": "Keen Eye",
+      "batch": "quest-stories",
+      "url": "/achievements/badge-9009.png",
+      "generator": "scripts/build-quest-badges.py",
+      "prompt": "A magnifying glass framing a golden star."
     }
   ]
 }

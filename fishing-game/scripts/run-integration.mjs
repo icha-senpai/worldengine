@@ -1,6 +1,9 @@
+import { moduleArtifactPath, requireRustWorkflow } from './rust-build.mjs';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+
+requireRustWorkflow();
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const uri = process.env.TEST_SPACETIMEDB_URI ?? 'http://127.0.0.1:3127';
@@ -14,7 +17,7 @@ run(process.execPath, ['scripts/generate-bindings.mjs']);
 run('cargo', ['build', '-p', 'game-client', '--bin', 'adapter-proof', '--locked']);
 const database = `fishbound-proof-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 run('spacetime', ['publish', '--server', uri, '--no-config', '--yes=skip-login', '--bin-path',
-  'spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm', database]);
+  moduleArtifactPath(), database]);
 mkdirSync(new URL('../.local/', import.meta.url), { recursive: true });
 writeFileSync(new URL('../.local/proof-database.txt', import.meta.url), `${database}\n`);
 run(process.execPath, ['node_modules/tsx/dist/cli.mjs', 'scripts/integration.ts'], {

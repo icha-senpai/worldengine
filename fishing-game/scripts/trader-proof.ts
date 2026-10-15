@@ -1,13 +1,16 @@
+import { requireRustWorkflow, rustTargetPath } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawnSync, spawn } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
 
+requireRustWorkflow();
+
 const uri = 'http://127.0.0.1:3127';
 const database = `fishbound-proof-trader-${Date.now()}`;
 const fixtureRoot = resolve('.local/trader-boundary-module');
-const targetRoot = resolve('spacetimedb/target');
+const targetRoot = rustTargetPath();
 const rustPath = (path: string) => JSON.stringify(resolve(path).replaceAll('\\', '/'));
 function run(command: string, args: string[]) {
   const result = spawnSync(command, args, { encoding: 'utf8', windowsHide: true });
@@ -168,7 +171,7 @@ try {
   assert.equal(bot.db.adapterLicences.count(), 0n, 'Re-running activation cannot grant new free licences');
   ownerCall('prepare_trader_player', ['9208', '10000000', '200000', '1']);
   const native = await new Promise<{ status: number | null; stdout: string; stderr: string }>((resolve, reject) => {
-    const child = spawn('target/debug/adapter-proof.exe', [], { windowsHide: true, env: {
+    const child = spawn(rustTargetPath('debug', 'adapter-proof.exe'), [], { windowsHide: true, env: {
       ...process.env, TEST_SPACETIMEDB_URI: uri, TEST_SPACETIMEDB_DATABASE: database, TEST_BOT_TOKEN: bot.token!, TEST_SHOP_PROOF: 'true'
     }});
     let stdout = ''; let stderr = '';

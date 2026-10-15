@@ -462,6 +462,15 @@ pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String
     }
     for definition in ctx.db.achievement_definition().iter() {
         let id = definition.achievement_id;
+        // Story awards are granted by the quest transaction, not catch milestones.
+        if ctx
+            .db
+            .quest_definition()
+            .iter()
+            .any(|quest| quest.achievement_id == id)
+        {
+            continue;
+        }
         let key = u128::from(player_id) << 32 | u128::from(id);
         let current =
             if let Some(collection) = ctx.db.achievement_collection().achievement_id().find(id) {
@@ -498,6 +507,7 @@ pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String
                 achievement_id: id,
                 completed_at: ctx.timestamp,
             });
+            crate::notifications::enqueue(ctx, key);
         }
     }
     Ok(())

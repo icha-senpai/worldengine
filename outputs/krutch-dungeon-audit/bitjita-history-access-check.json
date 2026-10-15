@@ -1,0 +1,94 @@
+{
+  "checkedAtUtc": "2026-10-15T07:11:53.046Z",
+  "player": {
+    "name": "Krutch",
+    "id": "648518346354619877"
+  },
+  "historicalSentinelRowsRetrieved": 0,
+  "verifiedKrutchSentinelDefeats": null,
+  "sentinelAggregate": {
+    "enemyType": 32,
+    "enemyTypeStr": "Sentinel",
+    "name": "Feral Sentinel",
+    "tier": 1,
+    "rarity": "Common",
+    "kills": 32186,
+    "recentKills": 0,
+    "lastKillAt": "2026-10-15 02:17:02.560316+00",
+    "uniqueKillers": 1450
+  },
+  "krutchBossFilter": {
+    "players": [
+      {
+        "entityId": "648518346354619877",
+        "username": "Krutch",
+        "kills": 25265,
+        "uniqueEnemies": 24280,
+        "totalContribution": 11939005,
+        "rank": 1
+      }
+    ],
+    "count": 1,
+    "searchCount": 1,
+    "filter": "bosses",
+    "range": "all",
+    "globalStats": {
+      "totalKills": 25265,
+      "totalContribution": 11939005,
+      "maxKills": 25265,
+      "maxContribution": 11939005
+    },
+    "pagination": {
+      "page": 1,
+      "pageSize": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrev": false
+    }
+  },
+  "globalBossFilterTotal": 757615,
+  "comparison": {
+    "sentinelBoss": 32186,
+    "sentinelDungeonIncludingTrash": 720681,
+    "giantSkitchBoss": 36934,
+    "araknirNest": 34483,
+    "sentinelDungeonPlusGiantSkitch": 757615
+  },
+  "observations": [
+    "The public client route manifest has no player combat/kill-history page.",
+    "The public API documentation has 82 entries and does not document kill-history or leaderboard/kills.",
+    "The dungeon and leaderboard clients consume summaries plus transient contribution_kill events, not an archived history query.",
+    "filter=Sentinel, filter=sentinel and filter=32 each return Krutch all-enemy totals (27445), despite echoing the supplied filter.",
+    "Hunting exposes a real paginated archive of drop-roll events, but its page explicitly excludes combat dungeon/boss kills. enemyType=32 and limit=1 were ignored by that endpoint.",
+    "regionId=9 narrows the dungeon entrance list but leaves the Feral Sentinel aggregate at the global total.",
+    "No public Bitjita application repository was found among the inspected BitJita organization repositories; its issues repository has no matching history-access discussion."
+  ],
+  "notFoundPathsObservedThisRun": [
+    "/api/players/648518346354619877/kills",
+    "/api/players/648518346354619877/contributions",
+    "/api/logs/kills",
+    "/api/kills",
+    "/api/contributions",
+    "/api/leaderboard/kills/648518346354619877",
+    "/api/contribution-kills",
+    "/api/logs/contributions",
+    "/api/kills/history",
+    "/api/leaderboard/kills/history",
+    "/api/openapi.json",
+    "/openapi.json",
+    "/api/dungeons/648518346353992899",
+    "/api/dungeons/648518346353992899/kills",
+    "/api/leaderboard/kills/events"
+  ],
+  "sources": [
+    "https://bitjita.com/docs/api",
+    "https://bitjita.com/api/dungeons",
+    "https://bitjita.com/api/leaderboard/kills?search=Krutch&filter=bosses&range=all",
+    "https://bitjita.com/players/648518346354619877/hunting",
+    "https://bitjita.com/_app/immutable/entry/app.DltOoX1v.js",
+    "https://bitjita.com/_app/immutable/nodes/38.C8Vl_N-b.js",
+    "https://bitjita.com/_app/immutable/nodes/55.DXaUvlwT.js",
+    "https://bitjita.com/_app/immutable/chunks/B6TZ4oMi2.js"
+  ],
+  "conclusion": "Public summary and transient event access confirmed; no usable historical Sentinel archive or player-specific Sentinel count found. Negative probes do not establish that no private archive or untested public route exists."
+}

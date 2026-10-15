@@ -1,4 +1,6 @@
 import { CollectorCycle } from "./bitcraft-collector-cycle";
+import { ClaimHistoryCollector } from "./bitcraft-claim-history-collector";
+import { BossCollector } from "./bitcraft-boss-collector";
 import { tradingDelta } from "./bitcraft-trading-delta";
 import { RelaySubscription, tradingQueries } from "./bitcraft-relay";
 import {
@@ -24,6 +26,8 @@ type Scope = {
   tradingGeneration?: string;
 };
 export class NativeRelayCollector {
+  private history?: ClaimHistoryCollector;
+  private bosses?: BossCollector;
   private scopes = new Map<string, Scope>();
   private discovering = new Map<string, CollectorCycle>();
   private admitted = new Map<string, bigint>();
@@ -125,6 +129,8 @@ export class NativeRelayCollector {
     return scope;
   }
   async start() {
+    this.history = new ClaimHistoryCollector(this.conn, this.epoch, this.cycle);
+    this.bosses = new BossCollector(this.conn, this.epoch, this.cycle);
     const configured = (
       process.env.BITCRAFT_RELAY_REGIONS ??
       Object.keys(CURRENT_REGIONS).join(",")
@@ -142,6 +148,8 @@ export class NativeRelayCollector {
         tradingQueries(),
       );
       await scope.relay.start();
+      if (!this.stopped) await this.history.start(region);
+      if (!this.stopped) await this.bosses.start(region);
       // Stagger connection handshakes; each scope still waits for a complete Applied.
       await new Promise((r) => setTimeout(r, 350));
     }
@@ -222,6 +230,8 @@ export class NativeRelayCollector {
   }
   async tick(watches: Watch[]) {
     if (this.stopped || this.cycle.stopped) return;
+    await this.history?.flush();
+    await this.bosses?.flush();
     const candidates = new Map<string, bigint>();
     for (const w of watches) {
       if (
@@ -381,6 +391,8 @@ export class NativeRelayCollector {
   }
   stop() {
     this.stopped = true;
+    this.history?.stop();
+    this.bosses?.stop();
     this.cycle.stop("Native collector stopped.");
     for (const discovery of this.discovering.values())
       discovery.stop("Native collector stopped.");

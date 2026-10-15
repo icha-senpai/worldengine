@@ -27,7 +27,9 @@ preservation, and all 15 global command-registration checks.
   and length/weight records that survive disposal.
 - One game shell with Camp, Tackle box, Collection, Journal, World map, Records,
   Trader, Compendium, Achievements and Anglers tabs. Lists have book pages: twelve entries on desktop and four on phones.
-- Fifteen Poise handlers: /fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /focus, /upgrade, /help.
+- Four Discord commands: /fish, /daily, /rod and a public profile embed. Other game management lives on the website.
+- [Quest stories and Dockside contracts](docs/quests.md): 38 permanent steps across nine chains, three unlimited repeatable jobs, three weekly reward choices, automatic progress and confirmed fish deliveries. Quest progress and reward management live on the website.
+- Footer theme picker: Dockside, Ocean, Rose, Cosmic and Neon Synthwave, each with light/dark modes and saved browser preferences. Themed pond controls, balanced pond sizes and mobile name-bar navigation are live.
 - Optional Collection Focus unlocks per biome after all its ordinary species are
   discovered. Duplicate ranks have a 20% chance to become a weighted missing rank
   of the same fish; toggle in the Compendium or with `/focus`.
@@ -42,7 +44,7 @@ preservation, and all 15 global command-registration checks.
   `/rod` publicly showcases an owned rod with a generated display card, its quality, and effective bonuses.
   Visible artwork is fitted proportionally, with crisp pixel scaling and clear rank labels.
 - Eighteen permanent cosmetic badges and selectable titles, with retroactive progress.
-- Public angler search/profiles and paged Discord standings; confirmed Discord sales protect favorites.
+- Public angler search/profiles and standings on the website, with public Discord profile cards. Website sale confirmations protect favorites.
 - Discord OAuth service, browser challenge proofs, single-use CSRF sessions,
   verified identity binding, replacement/revocation, and browser unlinking.
 - Automatic client reconnect, owner-controlled service roles, audit rows,
@@ -78,21 +80,23 @@ for local publication, service-role bootstrap, and credential configuration.
 
 The desktop launchers run installed native programs from `.runtime/bin`, independently
 of Cargo caches. After native changes, build both services with
-`cargo build -p discord-bot -p account-link --release --locked`, close the services,
+`npm run rust:build`, close the services,
 run `./scripts/install-service-binaries.ps1`, then start them. A build alone does
 not replace the deployed programs. See [runtime storage](docs/runtime-storage.md).
+Managed Rust commands clean their temporary build directories after completion;
+only the latest installable binaries/WASM remain in `.local/rust-artifacts`.
 
     npm run content:validate
     npm run check
     npm run build
     npm run rust:test
     npm run rust:check
-    cargo test -p discord-bot --locked
+    npm run rust:run -- test -p discord-bot --locked
     npm run bindings
     npm run test:integration
-    npx tsx scripts/trader-proof.ts
-    npx tsx scripts/crafting-proof.ts
-    npx tsx scripts/social-proof.ts
+    npm run rust:script -- scripts/trader-proof.ts
+    npm run rust:script -- scripts/crafting-proof.ts
+    npm run rust:script -- scripts/social-proof.ts
 
 Integration tests require the isolated loopback host on port 3127 and create
 a fresh proof database each time. No existing database is reset. Generated
@@ -100,11 +104,11 @@ contracts come from the compiled WASM; never edit them manually.
 
 Preview the exact Discord card renderer without credentials:
 
-    cargo run -p discord-bot --example render-catch-cards --locked
+    npm run rust:run -- run -p discord-bot --example render-catch-cards --locked
 
 This writes ten example cards and a contact sheet to ignored output/catch-cards.
 
-Preview rusted tin and scrap with `cargo run -p discord-bot --example render-material-cards --locked`.
+Preview rusted tin and scrap with `npm run rust:run -- run -p discord-bot --example render-material-cards --locked`.
 The PNGs are saved to ignored `output/material-cards`. The generated frame and its
 built-in imagegen prompt are in `assets/item-cards/salvage.png` and
 `docs/salvage-card-art-prompt.json`.

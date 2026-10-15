@@ -1,3 +1,4 @@
+import { requireRustWorkflow, rustTargetPath } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -5,10 +6,12 @@ import { spawnSync } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
 import type { JournalEntry } from '../packages/generated/src/types';
 
+requireRustWorkflow();
+
 const uri = 'http://127.0.0.1:3127';
 const database = `fishbound-proof-journal-${Date.now()}`;
 const fixtureRoot = resolve('.local/journal-boundary-module');
-const targetRoot = resolve('spacetimedb/target');
+const targetRoot = rustTargetPath();
 const rustPath = (path: string) => JSON.stringify(resolve(path).replaceAll('\\', '/'));
 function run(command: string, args: string[]) {
   const result = spawnSync(command, args, { encoding: 'utf8', windowsHide: true });

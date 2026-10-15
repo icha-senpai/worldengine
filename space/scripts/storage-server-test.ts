@@ -213,6 +213,21 @@ try {
     /Simulated interruption/,
   );
   binding = await recoverStorage(await readBinding(database, true));
+  assert.equal(
+    (await readdir(resolve(".runtime/bitcraft-storage"))).filter((name) =>
+      new RegExp(`^${database}-\\d+\\.json`).test(name),
+    ).length,
+    0,
+    "Successful recovery removes its temporary export",
+  );
+  binding = await rebuildStorage(binding);
+  assert.equal(
+    (await readdir(resolve(".runtime/bitcraft-storage"))).filter((name) =>
+      new RegExp(`^${database}-\\d+\\.json`).test(name),
+    ).length,
+    0,
+    "Successful maintenance removes its temporary export",
+  );
   assert.notEqual(binding.replica, oldReplica);
   await assert.rejects(
     readFile(resolve(replicas, oldReplica, "db.lock")),

@@ -1,0 +1,44 @@
+{
+  "checkedAtUtc": "2026-10-15T05:53:02.931264+00:00",
+  "globalAll": {
+    "players": [
+      {
+        "entityId": "1297036692700793783",
+        "username": "Nidalee",
+        "kills": 34252,
+        "uniqueEnemies": 32101,
+        "totalContribution": 28264192,
+        "rank": 1
+      }
+    ],
+    "count": 7562,
+    "searchCount": 7562,
+    "filter": "all",
+    "range": "all",
+    "globalStats": {
+      "totalKills": 1299749,
+      "totalContribution": 461722738.13590264,
+      "maxKills": 34252,
+      "maxContribution": 28264192
+    },
+    "pagination": {
+      "page": 1,
+      "pageSize": 1,
+      "totalPages": 7562,
+      "hasNext": true,
+      "hasPrev": false
+    }
+  },
+  "observedGlobalBossFilterTotal": 757614,
+  "observedDungeonRecords": {
+    "sentinelBoss": 32186,
+    "sentinelDungeonAllEnemies": 720681,
+    "giantSkitchBoss": 36932,
+    "araknirNest": 34483
+  },
+  "krutchBossFilter": {
+    "kills": 25265,
+    "uniqueEnemies": 24280
+  },
+  "conclusion": "No verified Sentinel-boss-only count for Krutch. Global comparison indicates the boss filter is unsuitable as a Sentinel-only metric; exact backend predicate not established."
+}

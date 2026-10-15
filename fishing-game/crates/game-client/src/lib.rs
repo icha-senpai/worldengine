@@ -83,7 +83,10 @@ pub struct AchievementUnlock {
 }
 
 pub struct Snapshot {
+    pub quests: Vec<QuestStatus>,
+    pub quest_definitions: Vec<QuestDefinition>,
     pub public_profiles: Vec<PublicProfile>,
+    pub portraits: Vec<AnglerPortrait>,
     pub standings: Vec<AnglerStanding>,
     pub statistics: Vec<AnglerStatistics>,
     pub records: Vec<SpeciesRecord>,
@@ -173,7 +176,8 @@ impl Client {
                 let error = connected.clone();
                 let mut queries = vec!["SELECT * FROM my_service"];
                 if role == ServiceRole::DiscordAdapter {
-                    queries.extend(["SELECT * FROM public_profile", "SELECT * FROM angler_standing", "SELECT * FROM angler_statistics", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM perfect_species", "SELECT * FROM rank_maximum", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
+                    queries.push("SELECT * FROM adapter_achievement_deliveries");
+                    queries.extend(["SELECT * FROM quest_definition", "SELECT * FROM adapter_quests", "SELECT * FROM public_profile", "SELECT * FROM angler_portrait", "SELECT * FROM angler_standing", "SELECT * FROM angler_statistics", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM perfect_species", "SELECT * FROM rank_maximum", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
                     queries.extend(["SELECT * FROM bait_definition", "SELECT * FROM quality_definition", "SELECT * FROM adapter_baits", "SELECT * FROM adapter_bait_loadout", "SELECT * FROM adapter_collection_focus", "SELECT * FROM adapter_items", "SELECT * FROM adapter_cast_pulls", "SELECT * FROM adapter_cast_equipment", "SELECT * FROM adapter_upgrade_quote", "SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
                         "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_bonuses", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
                 }
@@ -311,6 +315,94 @@ impl Client {
 
     pub fn subscribe_achievement_unlocks(&self) -> broadcast::Receiver<AchievementUnlock> {
         self.achievement_unlocks.subscribe()
+    }
+
+    pub fn pending_achievement_deliveries(&self) -> Vec<AchievementDelivery> {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_micros() as i64;
+        self.connection()
+            .db
+            .adapter_achievement_deliveries()
+            .iter()
+            .filter(|row| row.available_at.to_micros_since_unix_epoch() <= now)
+            .collect()
+    }
+
+    pub fn achievement_delivery_message(
+        &self,
+        row: &AchievementDelivery,
+    ) -> Option<AchievementUnlock> {
+        let connection = self.connection();
+        let definition = connection
+            .db
+            .achievement_definition()
+            .achievement_id()
+            .find(&row.achievement_id)?;
+        let display_name = connection
+            .db
+            .public_profile()
+            .player_id()
+            .find(&row.player_id)
+            .map_or_else(|| "Angler".into(), |profile| profile.display_name);
+        Some(AchievementUnlock {
+            key: row.key,
+            player_id: row.player_id,
+            discord_user_id: Some(row.discord_user_id),
+            display_name,
+            achievement_id: row.achievement_id,
+            name: definition.name,
+            description: definition.description,
+            title: definition.title,
+            bonus: definition.bonus,
+        })
+    }
+
+    pub async fn remember_achievement_route(
+        &self,
+        discord_user_id: u64,
+        channel_id: u64,
+    ) -> Result<(), Error> {
+        let connection = self.active_connection().await?;
+        let (sender, receiver) = oneshot::channel();
+        connection.reducers.record_achievement_route_then(
+            discord_user_id,
+            channel_id,
+            complete(sender),
+        )?;
+        receive(receiver).await
+    }
+
+    pub async fn claim_achievement_delivery(
+        &self,
+        key: u128,
+        nonce: u128,
+    ) -> Result<Option<AchievementDelivery>, Error> {
+        let connection = self.active_connection().await?;
+        let (sender, receiver) = oneshot::channel();
+        connection
+            .reducers
+            .claim_achievement_delivery_then(key, nonce, complete(sender))?;
+        receive(receiver).await?;
+        Ok(connection
+            .db
+            .adapter_achievement_deliveries()
+            .iter()
+            .find(|row| row.key == key && row.lease_nonce == nonce))
+    }
+
+    pub async fn acknowledge_achievement_delivery(
+        &self,
+        key: u128,
+        nonce: u128,
+    ) -> Result<(), Error> {
+        let connection = self.active_connection().await?;
+        let (sender, receiver) = oneshot::channel();
+        connection
+            .reducers
+            .acknowledge_achievement_delivery_then(key, nonce, complete(sender))?;
+        receive(receiver).await
     }
 
     pub fn known_player_id(&self, discord_user_id: u64) -> Option<u64> {
@@ -607,6 +699,53 @@ impl Client {
         .await
     }
 
+    pub async fn claim_quest(
+        &self,
+        discord_user_id: u64,
+        display_name: String,
+        interaction_id: u64,
+        quest_id: u32,
+        bait_id: u32,
+        catch_id: Option<u64>,
+        expected_week: i64,
+        expected_cycle: u64,
+    ) -> Result<Snapshot, Error> {
+        let _guard = self.selection_guard().await?;
+        let connection = self.active_connection().await?;
+        Self::player_once(
+            &connection,
+            discord_user_id,
+            display_name.clone(),
+            interaction_id,
+            None,
+            1,
+            false,
+        )
+        .await?;
+        let (sender, receiver) = oneshot::channel();
+        connection.reducers.claim_quest_from_discord_then(
+            discord_user_id,
+            interaction_id,
+            quest_id,
+            bait_id,
+            catch_id,
+            expected_week,
+            expected_cycle,
+            complete(sender),
+        )?;
+        receive(receiver).await?;
+        Self::player_once(
+            &connection,
+            discord_user_id,
+            display_name,
+            interaction_id,
+            None,
+            1,
+            false,
+        )
+        .await
+    }
+
     pub async fn set_collection_focus(
         &self,
         discord_user_id: u64,
@@ -747,7 +886,10 @@ impl Client {
             return Err("Cast status unavailable; retry with the same interaction ID".into());
         }
         Ok(Snapshot {
+            quests: connection.db.adapter_quests().iter().collect(),
+            quest_definitions: connection.db.quest_definition().iter().collect(),
             public_profiles: connection.db.public_profile().iter().collect(),
+            portraits: connection.db.angler_portrait().iter().collect(),
             standings: connection.db.angler_standing().iter().collect(),
             statistics: connection.db.angler_statistics().iter().collect(),
             records: connection.db.species_record().iter().collect(),

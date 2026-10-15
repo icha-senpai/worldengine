@@ -1,9 +1,12 @@
+import { requireRustWorkflow } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import catalog from '../content/species.json';
 import world from '../content/world.json';
 import { castChance, perfectCatchOdds, rankSpreads, weightRangeAtLength } from '../apps/web/src/lib/game/compendium';
+
+requireRustWorkflow();
 
 const reference = [];
 for (const fish of catalog.species) {

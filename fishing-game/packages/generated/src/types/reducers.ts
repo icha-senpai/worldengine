@@ -6,9 +6,12 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AcknowledgeAchievementDeliveryReducer from "../acknowledge_achievement_delivery_reducer";
 import ActivateAchievementsReducer from "../activate_achievements_reducer";
 import ActivateCraftingReducer from "../activate_crafting_reducer";
+import ActivateHistoryQueriesReducer from "../activate_history_queries_reducer";
 import ActivatePerfectCatchesReducer from "../activate_perfect_catches_reducer";
+import ActivateQuestsReducer from "../activate_quests_reducer";
 import ActivateRankMaximaReducer from "../activate_rank_maxima_reducer";
 import ActivateRodBonusesReducer from "../activate_rod_bonuses_reducer";
 import ActivateSpeciesMeasurementsReducer from "../activate_species_measurements_reducer";
@@ -21,6 +24,10 @@ import BackfillPlayerStatisticsReducer from "../backfill_player_statistics_reduc
 import BeginLinkChallengeReducer from "../begin_link_challenge_reducer";
 import ChangeLoadoutReducer from "../change_loadout_reducer";
 import ChangeLoadoutFromDiscordReducer from "../change_loadout_from_discord_reducer";
+import ClaimAchievementDeliveryReducer from "../claim_achievement_delivery_reducer";
+import ClaimDocksideDeliveryReducer from "../claim_dockside_delivery_reducer";
+import ClaimQuestReducer from "../claim_quest_reducer";
+import ClaimQuestFromDiscordReducer from "../claim_quest_from_discord_reducer";
 import CommitInventoryActionReducer from "../commit_inventory_action_reducer";
 import CommitRodUpgradeReducer from "../commit_rod_upgrade_reducer";
 import CommitSaleFromDiscordReducer from "../commit_sale_from_discord_reducer";
@@ -43,6 +50,7 @@ import PrepareShopFromDiscordReducer from "../prepare_shop_from_discord_reducer"
 import PrepareShopPurchaseReducer from "../prepare_shop_purchase_reducer";
 import PrepareUpgradeFromDiscordReducer from "../prepare_upgrade_from_discord_reducer";
 import RebuildPlayerRecordsReducer from "../rebuild_player_records_reducer";
+import RecordAchievementRouteReducer from "../record_achievement_route_reducer";
 import SelectDiscordPlayerReducer from "../select_discord_player_reducer";
 import SelectJournalReducer from "../select_journal_reducer";
 import SetBaitSlotReducer from "../set_bait_slot_reducer";
@@ -53,9 +61,12 @@ import SetCollectionFocusFromDiscordReducer from "../set_collection_focus_from_d
 import SyncDiscordPortraitReducer from "../sync_discord_portrait_reducer";
 import UnlinkBrowserReducer from "../unlink_browser_reducer";
 
+export type AcknowledgeAchievementDeliveryParams = __Infer<typeof AcknowledgeAchievementDeliveryReducer>;
 export type ActivateAchievementsParams = __Infer<typeof ActivateAchievementsReducer>;
 export type ActivateCraftingParams = __Infer<typeof ActivateCraftingReducer>;
+export type ActivateHistoryQueriesParams = __Infer<typeof ActivateHistoryQueriesReducer>;
 export type ActivatePerfectCatchesParams = __Infer<typeof ActivatePerfectCatchesReducer>;
+export type ActivateQuestsParams = __Infer<typeof ActivateQuestsReducer>;
 export type ActivateRankMaximaParams = __Infer<typeof ActivateRankMaximaReducer>;
 export type ActivateRodBonusesParams = __Infer<typeof ActivateRodBonusesReducer>;
 export type ActivateSpeciesMeasurementsParams = __Infer<typeof ActivateSpeciesMeasurementsReducer>;
@@ -68,6 +79,10 @@ export type BackfillPlayerStatisticsParams = __Infer<typeof BackfillPlayerStatis
 export type BeginLinkChallengeParams = __Infer<typeof BeginLinkChallengeReducer>;
 export type ChangeLoadoutParams = __Infer<typeof ChangeLoadoutReducer>;
 export type ChangeLoadoutFromDiscordParams = __Infer<typeof ChangeLoadoutFromDiscordReducer>;
+export type ClaimAchievementDeliveryParams = __Infer<typeof ClaimAchievementDeliveryReducer>;
+export type ClaimDocksideDeliveryParams = __Infer<typeof ClaimDocksideDeliveryReducer>;
+export type ClaimQuestParams = __Infer<typeof ClaimQuestReducer>;
+export type ClaimQuestFromDiscordParams = __Infer<typeof ClaimQuestFromDiscordReducer>;
 export type CommitInventoryActionParams = __Infer<typeof CommitInventoryActionReducer>;
 export type CommitRodUpgradeParams = __Infer<typeof CommitRodUpgradeReducer>;
 export type CommitSaleFromDiscordParams = __Infer<typeof CommitSaleFromDiscordReducer>;
@@ -90,6 +105,7 @@ export type PrepareShopFromDiscordParams = __Infer<typeof PrepareShopFromDiscord
 export type PrepareShopPurchaseParams = __Infer<typeof PrepareShopPurchaseReducer>;
 export type PrepareUpgradeFromDiscordParams = __Infer<typeof PrepareUpgradeFromDiscordReducer>;
 export type RebuildPlayerRecordsParams = __Infer<typeof RebuildPlayerRecordsReducer>;
+export type RecordAchievementRouteParams = __Infer<typeof RecordAchievementRouteReducer>;
 export type SelectDiscordPlayerParams = __Infer<typeof SelectDiscordPlayerReducer>;
 export type SelectJournalParams = __Infer<typeof SelectJournalReducer>;
 export type SetBaitSlotParams = __Infer<typeof SetBaitSlotReducer>;

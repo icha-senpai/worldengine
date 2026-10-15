@@ -1,157 +1,45 @@
-# Agreed Discord command plan
+# Discord commands
 
-Status: fifteen handlers (/fish, /daily, /profile, /inventory, /sell, /leaderboard, /collection, /biome, /gear, /rod, /shop, /bait, /focus, /upgrade, /help)
-are implemented. /biome accepts optional biome_id; /gear accepts optional rod_id.
-Meadow Pond and the starter Twig Rod are free. Later rods and permanent biome licences are bought from the camp trader after reaching their level requirements. Collection responses summarize seven
-biomes to stay within Discord message limits; the website shows the full book. All launch commands below are implemented. The fifteen commands are registered globally; matching legacy server copies are removed on startup.
-/profile accepts an optional public player_id from /leaderboard. Other profiles show only public progression, records, titles and badge counts; wallets and inventory remain private.
-This plan updates the original design specification's Discord command list.
-The local rules-12 candidate raises the angler level cap to 10,000. `/shop` item IDs 106/107/108 buy green/yellow/pink
-XP slime packs; `/bait` IDs 6/7/8 equip them. Each has ten uses and adds
-+25/+50/+100% fishing XP respectively. See [XP progression](xp-progression.md).
-Commands use plain Discord slash syntax. The `./` spelling in chat was only to
-avoid triggering another integration; it is not a bot prefix or alias.
+Discord keeps four commands. The website handles equipment, upgrades, bait,
+travel, quests, collections, sales and leaderboards.
 
-## Launch commands
-
-| Command | Intended behavior |
+| Command | Behavior |
 |---|---|
-| `/profile [player_id]` | Own progression and wallet; optional game ID opens another angler's public profile. Replies link directly to the angler's website profile instead of displaying their ID. |
-| `/fish` | Cast in the selected biome, with a global one-minute cooldown, and show the authoritative saved result. The rod name and quality used for the cast appear directly beneath the biome. Also shows angler level and XP remaining until the next level after the catch, or "Max level reached" at the level cap. |
-| `/daily` | Dockside Delivery: 100 coins, plus 250 every seventh claim; show stamps and next midnight-UTC reset. |
-| `/upgrade [rod_id]` | Confirm the next permanent quality for an owned rod; defaults to equipped rod. |
-| `/bait [bait_id]` | List owned uses or equip bait; ID 0 removes it. |
-| `/sell [catch_ids]` | Enter 1â€“50 catch IDs from /inventory, separated by spaces or commas. Preview exact payout, then confirm or cancel; favorites are protected. |
-| `/inventory` | Show owned catches, catch IDs, favorites, and total fish kept; provide management buttons. Storage is unlimited. |
-| `/collection` | Show discoveries, missing species, and personal length/weight records. |
-| `/biome` | Travel to a licensed biome when level and sequential licence qualify. |
-| `/gear` | Show rod ownership and equip purchased rods; does not grant free gear. |
-| `/rod [rod_id]` | Show off a rod in the channel with a generated display card, quality, power, bonus-pull chance, luck and catch-XP bonuses. Defaults to equipped rod; an optional rod ID may select any owned rod without equipping it. |
-| `/shop` | Browse the camp trader; `/shop [item_id]` previews a licence, rod or 10-use bait pack with buy/cancel buttons. |
-| `/leaderboard [category] [page] [species_id]` | Four global categories (discoveries, fish, UUR, records), ten anglers per page, shared places for ties. Optional species ID shows longest/heaviest records. |
-| `/help` | Explain commands, cooldowns, ranks, account linking, and getting started. Includes current rod IDs for `/gear`, `/rod` and `/upgrade`, bait IDs for `/bait`, and trader item IDs for `/shop`. |
+| `/fish` | Cast in the selected biome and show the saved result, rod, rewards and progression. The one-minute cooldown is shared with the website. |
+| `/daily` | Collect Dockside Delivery: 100 coins, plus 250 on every seventh lifetime claim. Resets at midnight UTC; missed days keep stamps. |
+| `/rod [rod_id]` | Publicly show the equipped rod, or any owned rod by ID, with its artwork, quality, power, bonus-pull chance, luck and XP bonuses. Find owned rod IDs in the website Tackle Box. |
+| `/profile [player_id]` | Publicly share your profile, or another angler's public game ID from the website. The embed shows their portrait, selected earned title and matching badge artwork, level, lifetime fish, ordinary discoveries, UUR catches, current records, badges earned and UUR perfected species. Wallets and inventory are omitted for everyone, including the invoker. |
 
-Use buttons, selects, and website links for follow-up actions where they keep
-commands short. Separate `/buy` and `/equip` commands are not needed for launch.
+The profile's name and title link directly to that angler's website profile.
+Anglers without a selected earned title show “Angler”; unavailable portraits or
+badges are omitted. Other players' portraits come from the existing public
+portrait projection; your own portrait uses your current Discord avatar.
 
-The shared green Fish again button casts for the member who clicks it. Successful
-button casts post a fresh channel message headed with that member's mention,
-without a reply link to the previous bot catch. The bot remains the message
-author. Both rich cards and the plain-text fallback keep the clickable button;
-the member's mention is displayed without sending a ping. Cooldown and rejected
-casts remain private. An enforced interaction nonce prevents duplicate catch
-posts on short delivery retries. If both public deliveries fail, the clicker
-receives a private notice that their cast is saved and available in inventory.
+Global registration replaces the old slash-command list. Startup also removes
+legacy Fishbound guild commands in the configured `DISCORD_GUILD_ID` and
+`DISCORD_GUILD_IDS` servers, including retired commands. Unrelated guild commands
+are preserved. Discord clients may briefly cache the previous menu.
 
-## Implementation order
+The retired commands are `/quests`, `/inventory`, `/sell`, `/leaderboard`,
+`/collection`, `/biome`, `/gear`, `/shop`, `/bait`, `/focus`, `/upgrade` and `/help`.
+Their game features remain available on the website. No rewards, inventory,
+progression or quests are removed.
 
-1. Complete the Phase 0 database, identity, service-role, receipt, and reconnect
-   proof before exposing gameplay commands.
-2. Build the Meadow Pond `/fish` slice with `/profile`, `/inventory`,
-   `/collection`, and `/help`. Inventory, collection, and help are the first
-   supporting commands so players can understand and manage their catches.
-3. Add progression/economy commands: `/daily`, `/sell`, `/upgrade`, `/biome`,
-   `/gear`, and `/shop`.
-4. Add `/leaderboard` once durable records and bounded public projections exist.
+## Fish again
 
-## Behavior decisions
+The green Fish again button remains. It casts for the member who clicks it and
+posts a fresh channel message without pinging that member. Cooldown and rejected
+casts stay private. The module's replay-safe interaction receipt prevents double
+rewards, and a Discord nonce prevents duplicate posts on short delivery retries.
+If public delivery fails, the cast remains saved and the member receives a private
+notice directing them to the website.
 
-- Accepted casts start a 60-second cooldown shared across guilds and clients.
-  SpaceTimeDB enforces it using server timestamps. Rejected casts and receipt
-  replays do not start a new cooldown. No bait reduces the cooldown in V1.
-- `/daily` is an optional reward with no streak penalty, missed-day punishment,
-  or requirement to log in every day. Dockside Delivery grants 100 coins, plus
-  250 on every seventh lifetime claim (350 that day; 950 per seven deliveries).
-  Claims need not be consecutive: missed days preserve stamps. Resets happen
-  at midnight UTC, once per Discord account across all servers. No XP, fish,
-  discovery, record, catch-odds, or cooldown changes. Repeated commands show
-  the next reset with a Discord relative timestamp. SpaceTimeDB owns eligibility,
-  the atomic wallet/ledger grant, and replay-safe seven-day receipts.
-- `/sell` protects favorites and shows the complete proposed payout before
-  confirmation. The module rechecks ownership, disposition, and favorites at
-  commit; a stale selection must not silently sell a different set of catches.
-- `/upgrade` shows the exact proposed cost and resulting benefit. Confirmation
-  rechecks the current rod level and recipe before spending resources.
-- Purchases, sales, upgrades, and daily claims need replay-safe receipts so
-  interaction retries cannot duplicate rewards or spending.
-- Biome, equipment, and shop components revalidate access, ownership, stock,
-  and costs in the module. Button IDs are references, not authority.
-- The bot transports player intent and renders confirmed module results.
-  It does not calculate catch outcomes or maintain a separate economy.
+## Authority and announcements
 
-## Later standalone commands
+The bot sends intent to SpaceTimeDB and renders committed results. Cooldowns,
+rewards and daily grants remain transactional and replay-safe. Command removal
+does not remove website reducers or account linking.
 
-`/release`, `/salvage`, and `/achievements` are accepted later additions.
-Initially, release and salvage can be inventory actions, and achievement
-progress can be reached from profile buttons or the website. Their domain
-behavior must exist before exposing either buttons or standalone commands.
-
-## Camp trader progression (owner update)
-
-Biome licences are permanent and bought in order. Licences and rods require
-the previous biome licence, except Glacial and Abyssal rods, which require coins
-only. Buying never equips or travels automatically.
-Both the website and `/shop` preview the server price before explicit confirmation.
-Quotes last two minutes and bind the caller, player, listing, price, and catalog
-version. Commit rechecks eligibility, wallet, and ownership; retries cannot spend
-again. The website World map travels using the current owned rod, preserving cooldown.
-
-| Destination | Licence level | Rod level | Licence | Rod | Combined coins |
-|---|---:|---:|---:|---:|---:|
-| Whispering River | 5 | None | 150 | 500 | 650 |
-| Hollow Marsh | 10 | None | 500 | 15,000 | 15,500 |
-| Moonlit Lake | 18 | None | 1,500 | 16,000 | 17,500 |
-| Sunken Coast | 28 | None | 4,000 | 33,000 | 37,000 |
-| Glacial Reach | 40 | None | 10,000 | 74,000 | 84,000 |
-| Abyssal Shelf | 55 | None | 25,000 | 130,000 | 155,000 |
-
-Rods require gold and the previous licence, except Glacial and Abyssal rods,
-which require coins only. No rod has a level requirement.
-Their material recipes vary by family. Prices are in `content/trader.json`. Existing rods are retained;
-the one-time transition grants licences through a player's furthest selected or
-discovered biome. New players and future unlocks require purchases. Neither
-purchase nor travel changes fishing cooldown, XP, odds, collection, or records.
-
-Crafting guarantees success and consumes the quoted tin/scrap recipe once.
-Each rod keeps its own quality permanently. Bonus pulls independently roll the
-same biome category pool, sharing one cooldown and one use per active bait slot. `/fish` delivers
-up to two saved reward-card attachments: a rarity card for each fish, or a salvage
-card showing the original rusted tin/scrap sprite for junk/treasure pulls. Saved
-item quantities, coins and XP remain in the embed text. Guaranteed resource-bait
-bonuses remain in the cast summary.
-No typical-size multipliers or internal catch-save IDs appear in these embeds.
-
-## Achievements and public profiles shipped
-
-The website Achievements book shows 16 ordinary milestones and two bonus badges,
-private progress, earned dates and selectable titles. /profile links to it.
-Titles and badges are cosmetic and permanent; existing players receive retroactive
-credit from lifetime counters and collection history, including sold fish.
-See [achievement catalog](achievements.md). The public Anglers book supports name
-or game-ID search, paged profiles, records and shareable profile links.
-
-Sale previews bind service identity, player, nonce and exact catch IDs for two
-minutes. Only the invoking Discord user can confirm. Commit rechecks ownership,
-favorites and the quoted total atomically; concurrent website/Discord sales pay
-once. Sale quotes are private and expired rows are pruned after a day.
-
-
-## Collection Focus (deployed October 12)
-
-`/focus enabled:true [biome_id]` enables missing-rank help after discovering all
-ordinary species in that licensed biome. Defaults to the current water.
-`enabled:false` disables it. The confirmation is private. This is the fifteenth
-global command. Discord API verification confirms its required `enabled` boolean
-and optional `biome_id`, with no duplicate server registrations.
-See [Collection Focus](collection-focus.md) for odds, unlocks and persistence.
-
-
-## Two bait slots (rules-14 candidate)
-
-`/bait bait_id:ID slot:1` or `slot:2` equips either slot, with no level or category
-restriction. Matching bait requires two shared uses. Omitting slot selects 1;
-`bait_id:0` clears only the specified slot. Catch summaries retain both bait
-names, remaining shared stock and material bonuses. The command count stays 15;
-its new optional integer slot argument is registered when deploying the bot.
-
-Deployed rules 15 adds rank-maxima and fully-maxed-species counters to both own and public `/profile` replies. Exact maxima at lower ranks receive a RANK MAXIMUM catch card; UUR retains the PERFECT CATCH badge card. No new slash command is required. See [rank maxima recognition](rank-maxima-recognition.md).
+Achievement announcements continue through the durable pending-delivery queue.
+See [achievements](achievements.md), [measurements](species-measurements.md),
+[quests](quests.md) and [rank maxima](rank-maxima-recognition.md).

@@ -1,13 +1,16 @@
+import { requireRustWorkflow, rustTargetPath } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawnSync, spawn } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
 
+requireRustWorkflow();
+
 const uri = 'http://127.0.0.1:3127';
 const database = `fishbound-proof-social-${Date.now()}`;
 const fixtureRoot = resolve('.local/social-boundary-module');
-const targetRoot = resolve('spacetimedb/target');
+const targetRoot = rustTargetPath();
 const rustPath = (path: string) => JSON.stringify(resolve(path).replaceAll('\\', '/'));
 function run(command: string, args: string[]) {
   const result = spawnSync(command, args, { encoding: 'utf8', windowsHide: true });
@@ -115,7 +118,7 @@ try {
   await writeFile('.local/achievement-catalog.json', JSON.stringify([...bot.db.achievementDefinition.iter()].sort((a,b)=>a.achievementId-b.achievementId),(_,value)=>typeof value==='bigint'?value.toString():value));
   ownerCall('proof_cast_setup',['9408','0','0']);args=await select(9408n);await bot.reducers.fishFromDiscord({...args,guildId:5n,channelId:42n});
   const native=await new Promise<{status:number|null,stdout:string,stderr:string}>((resolve,reject)=>{
-    const child=spawn('target/debug/adapter-proof.exe',[],{windowsHide:true,env:{...process.env,TEST_SPACETIMEDB_URI:uri,TEST_SPACETIMEDB_DATABASE:database,TEST_BOT_TOKEN:bot.token!,TEST_SOCIAL_PROOF:'true'}});
+    const child=spawn(rustTargetPath('debug', 'adapter-proof.exe'),[],{windowsHide:true,env:{...process.env,TEST_SPACETIMEDB_URI:uri,TEST_SPACETIMEDB_DATABASE:database,TEST_BOT_TOKEN:bot.token!,TEST_SOCIAL_PROOF:'true'}});
     let stdout='',stderr='';child.stdout.on('data',data=>stdout+=data);child.stderr.on('data',data=>stderr+=data);child.on('error',reject);child.on('close',status=>resolve({status,stdout,stderr}));
   });assert.equal(native.status,0,native.stderr||native.stdout);
   ownerCall('configure_service',[JSON.stringify(bot.identity!.toHexString()),JSON.stringify({discordAdapter:{}}),'false']);

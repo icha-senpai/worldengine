@@ -3,7 +3,8 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { ChevronDown, ChevronLeft, Menu, X, LogOut } from "@lucide/vue";
 import { localPlay, user, signOut } from "./auth";
-import { evergather, revision } from "./evergather";
+import { evergather, revision, evergatherReconnecting } from "./evergather";
+import { bitcraftReconnecting, bitcraftError } from "./bitcraft";
 import SidebarIconRail from "./components/SidebarIconRail.vue";
 
 const route = useRoute();
@@ -41,6 +42,8 @@ const tools = [
   ["guides", "Guides"],
   ["market", "Market Finder"],
   ["fishing-map", "Fishing Map"],
+  ["claim-history", "Claim History"],
+  ["bosses", "Boss Leaderboard"],
   ["barter-stalls", "Barter Stalls"],
   ["crafting", "Crafting Calculator"],
   ["open-crafts", "Open Crafts"],
@@ -54,6 +57,15 @@ const tools = [
 const inBitcraft = computed(() => route.path.startsWith("/bitcraft"));
 const inEvergather = computed(
   () => route.path.startsWith("/evergather") || route.path === "/auth/callback",
+);
+const connectionNotice = computed(() =>
+  inBitcraft.value
+    ? bitcraftReconnecting.value
+      ? "Reconnecting… Showing the last synced data."
+      : bitcraftError.value
+    : inEvergather.value && evergatherReconnecting.value
+      ? "Reconnecting… Showing the last synced data. Game actions are paused."
+      : "",
 );
 const activeLabel = computed(() =>
   inBitcraft.value
@@ -135,7 +147,12 @@ onUnmounted(() => document.removeEventListener("keydown", escapeMobile));
 </script>
 
 <template>
-  <RouterView v-if="home || widget" />
+  <template v-if="home || widget"
+    ><p v-if="connectionNotice" class="connection-notice" role="status">
+      {{ connectionNotice }}
+    </p>
+    <RouterView
+  /></template>
   <div v-else class="ichaa-shell">
     <header class="shell-mobile-header">
       <div class="shell-mobile-bar">
@@ -326,6 +343,21 @@ onUnmounted(() => document.removeEventListener("keydown", escapeMobile));
         />
       </button>
     </aside>
-    <main id="main-content" class="shell-main"><RouterView /></main>
+    <main id="main-content" class="shell-main">
+      <p v-if="connectionNotice" class="connection-notice" role="status">
+        {{ connectionNotice }}
+      </p>
+      <RouterView />
+    </main>
   </div>
 </template>
+<style scoped>
+.connection-notice {
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #efbe7e;
+  background: #332614;
+  border-bottom: 1px solid #80603b;
+}
+</style>

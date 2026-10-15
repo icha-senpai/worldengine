@@ -233,3 +233,6 @@ assert.equal(Math.max(...world.rods.map(r=>r.power))+maximumQuality.powerBonus,1
 assert.equal(Math.max(...world.rods.map(r=>r.luckBp))+maximumQuality.luckBp+5000,12000);
 assert.equal(Math.max(...world.rods.map(r=>r.xpBonusBp))+Math.max(...crafting.qualities.map(q=>q.xpBonusBp))+2*Math.max(...crafting.baits.map(b=>b.xpBonusBp)),30000);
 console.log('Crafting valid: seven permanent qualities, exact recipes, thirteen 10-use baits; two bait slots; maximum 92.5% bonus pull, +120% luck and +300% XP.');
+
+// Quest catalogs share the ordinary species, bait and progression contracts.
+await import('../scripts/quest-catalog.test.mjs');

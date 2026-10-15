@@ -42,7 +42,7 @@ Process records and stdout/stderr logs live in ignored .local. PID, executable,
 and process start time must match before a launcher stops a process.
 
 After source changes, run `npm run build` for the website or
-`cargo build -p account-link -p discord-bot --release --locked` for native
+`npm run rust:build` for native
 services. Close Fishbound, run `powershell -NoProfile -ExecutionPolicy Bypass
 -File scripts/install-service-binaries.ps1`, and start Fishbound again. Native
 programs run from `.runtime/bin`; Cargo `target` directories can be removed

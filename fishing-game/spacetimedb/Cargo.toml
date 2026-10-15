@@ -2,18 +2,45 @@
 name = "fishing-game-module"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.96"
+rust-version = "1.97"
 publish = false
 
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+module-tests = ["spacetimedb/test-utils", "dep:icu_calendar", "dep:icu_locale"]
+
 [dependencies]
-spacetimedb = "=2.10.2"
+spacetimedb = "=2.12.0"
 game-rules = { path = "../crates/game-rules" }
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.151"
 
+# The 2.12 native test harness embeds Temporal 0.1.2, whose unstable ICU API
+# requires the versions used in SpacetimeDB's own release lockfile.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+icu_calendar = { version = "=2.1.1", optional = true }
+icu_locale = { version = "=2.1.1", optional = true }
+
 [profile.release]
 lto = true
 opt-level = "s"
+debug = 0
+strip = "debuginfo"
+incremental = false
+
+[profile.dev]
+debug = 0
+strip = "debuginfo"
+incremental = false
+
+[profile.test]
+debug = 0
+strip = "debuginfo"
+incremental = false
+
+[profile.bench]
+debug = 0
+strip = "debuginfo"
+incremental = false

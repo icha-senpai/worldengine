@@ -1,5 +1,98 @@
 use spacetimedb::{Identity, SpacetimeType, Timestamp};
 
+/// Public quest text and rewards; progress and claims are caller-scoped.
+#[derive(serde::Deserialize)]
+#[spacetimedb::table(accessor = quest_definition, public)]
+pub struct QuestDefinition {
+    #[primary_key]
+    pub quest_id: u32,
+    pub chain: String,
+    pub name: String,
+    pub giver: String,
+    pub dialogue: String,
+    pub conclusion: String,
+    pub objective: String,
+    pub goal: String,
+    pub target: u64,
+    pub biome_id: u32,
+    pub previous_quest_id: u32,
+    #[index(btree)]
+    pub weekly: bool,
+    pub coins: u64,
+    pub tin: u64,
+    pub scrap: u64,
+    pub bait_choices: Vec<u32>,
+    pub bait_packs: u32,
+    pub achievement_id: u32,
+}
+
+#[spacetimedb::table(accessor = quest_claim)]
+pub struct QuestClaim {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub quest_id: u32,
+    pub bait_id: u32,
+    pub delivered_catch_id: Option<u64>,
+    pub claimed_at: Timestamp,
+}
+
+/// One current UTC-week row per player, replaced in place on the next week's cast.
+#[spacetimedb::table(accessor = weekly_quest_progress)]
+pub struct WeeklyQuestProgress {
+    #[primary_key]
+    pub player_id: u64,
+    pub week: i64,
+    pub fish_count: u64,
+    pub junk_count: u64,
+    pub species_ids: Vec<u32>,
+    pub claimed_quest_id: u32,
+    pub bait_id: u32,
+}
+
+/// One bounded active run per player/job; claims advance the cycle in place.
+#[spacetimedb::table(accessor = repeat_quest_progress)]
+pub struct RepeatQuestProgress {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub quest_id: u32,
+    pub cycle: u64,
+    pub current: u64,
+    pub species_ids: Vec<u32>,
+}
+
+#[derive(SpacetimeType)]
+pub struct QuestStatus {
+    pub quest_id: u32,
+    pub cycle: u64,
+    pub current: u64,
+    pub unlocked: bool,
+    pub claimed: bool,
+    pub delivery_species_ids: Vec<u32>,
+    pub week: i64,
+}
+
+#[derive(SpacetimeType)]
+pub struct DocksideStatus {
+    pub available: bool,
+    pub total_claims: u64,
+    pub stamps: u8,
+    pub next_reward: u64,
+    pub next_reset_at: Timestamp,
+}
+
+#[spacetimedb::table(accessor = quest_calendar, public)]
+pub struct QuestCalendar {
+    #[primary_key]
+    pub singleton: u8,
+    pub day: i64,
+    pub week: i64,
+    pub next_week_at: Timestamp,
+}
+
 #[spacetimedb::table(accessor = achievement_definition, public)]
 pub struct AchievementDefinition {
     #[primary_key]
@@ -513,7 +606,10 @@ pub struct RecentCatch {
 }
 
 /// Permanent per-pull history. Kept separate from inventory and retry receipts.
-#[spacetimedb::table(accessor = journal_entry)]
+#[spacetimedb::table(accessor = journal_entry,
+    index(accessor = by_player_rarity, btree(columns = [player_id, rarity])),
+    index(accessor = by_player_outcome, btree(columns = [player_id, outcome]))
+)]
 pub struct JournalEntry {
     #[primary_key]
     pub key: String,
@@ -545,6 +641,13 @@ pub struct JournalSelection {
     pub biome_id: u32,
     pub rarity: String,
     pub outcome: String,
+}
+
+#[spacetimedb::table(accessor = journal_count)]
+pub struct JournalCount {
+    #[primary_key]
+    pub player_id: u64,
+    pub total: u64,
 }
 
 #[spacetimedb::table(accessor = journal_import)]

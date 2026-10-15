@@ -66,6 +66,14 @@ const assets=rows('achievement_definition').sort((a,b)=>a[0]-b[0]).map(([achieve
   return {achievementId,key:`badge-${achievementId}`,name,title,batch,url:`/achievements/badge-${achievementId}.png`,prompt:`${style}\nAchievement: ${name}. Meaning: ${description}\nCentral emblem: ${subject}. Do not write the achievement name or any rank text into the image.`};
 });
 if(assets.length!==114)throw Error('Review catalog changes before generating another batch.');
+const questAwards=JSON.parse(readFileSync('content/quest-awards.json','utf8'));
+for (const quest of JSON.parse(readFileSync('content/quests.json','utf8')).filter(q=>q.achievement_id)) {
+  const award=questAwards.find(a=>a.achievement_id===quest.achievement_id);
+  if(!award)throw Error(`Missing quest award ${quest.achievement_id}`);
+  assets.push({achievementId:quest.achievement_id,key:`badge-${quest.achievement_id}`,name:quest.name,
+    title:award.title,batch:'quest-stories',url:`/achievements/badge-${quest.achievement_id}.png`,
+    generator:'scripts/build-quest-badges.py',prompt:award.motif});
+}
 const referencePromptPrefix='The attached badge is a style and layout reference only. Create a distinct new badge for this achievement, preserving the pixel scale, scalloped medallion shape and short ribbon tails. Replace the central emblem and metal/ribbon colors as described below. Do not carry over the pond lily pad or freshwater fish unless required by this achievement.';
 const plan={version:1,mode:'built-in image_gen',transparentBackground:true,style,styleReferenceAchievementId:10,referencePromptPrefix,assets};
 writeFileSync('content/achievement-badge-art.json',`${JSON.stringify(plan,null,2)}\n`);

@@ -207,6 +207,18 @@ pub fn grant_item(
     quantity: u64,
     operation_id: String,
 ) -> Result<(), String> {
+    grant_item_with_reason(ctx, player_id, slot, item, quantity, operation_id, "catch")
+}
+
+pub fn grant_item_with_reason(
+    ctx: &ReducerContext,
+    player_id: u64,
+    slot: u32,
+    item: &str,
+    quantity: u64,
+    operation_id: String,
+    reason: &str,
+) -> Result<(), String> {
     let key = u128::from(player_id) << 32 | u128::from(slot);
     if let Some(mut row) = ctx.db.item_stack().key().find(key) {
         row.quantity = row.quantity.checked_add(quantity).ok_or("ITEM_OVERFLOW")?;
@@ -225,7 +237,7 @@ pub fn grant_item(
         operation_id,
         item,
         i64::try_from(quantity).map_err(|_| "ITEM_OVERFLOW")?,
-        "catch",
+        reason,
     );
     Ok(())
 }

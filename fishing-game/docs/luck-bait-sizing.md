@@ -39,7 +39,7 @@ Trophy plus Pink Slime would cost 90 coins per accepted cast (50 + 40), retain T
 
 All 32 game-rules tests pass, including forced endpoint outcomes for every valid species/rank at 2/3/4/8 attempts without promotion. The sizing audit compared 14,952 displayed bands with Rust bounds, luck and endpoint probabilities, with 2,990,400 natural generated samples. The isolated crafting proof checks saved 2/3/4 attempt metadata, use consumption, XP rounding, all species pools, exact Trophy pricing and metadata activation.
 
-Reproduce odds with `npx tsx scripts/luck-bait-sizing-audit.ts`; raw all-biome odds and reference bounds are saved under `.local/luck-bait-sizing-*.json`. The income experiment is offline; its source and detailed results are under `.local/economy-xp-audit/` and `.local/luck-bait-sizing-income.json`.
+Reproduce odds with `npm run rust:script -- scripts/luck-bait-sizing-audit.ts`; raw all-biome odds and reference bounds are saved under `.local/luck-bait-sizing-*.json`. The income experiment is offline; its source and detailed results are under `.local/economy-xp-audit/` and `.local/luck-bait-sizing-income.json`.
 
 The audit was read-only. The tuning subsequently shipped on October 12 with
 rules 13, alongside Collection Focus and the extended level cap. Existing

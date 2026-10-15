@@ -9,6 +9,14 @@ export const router = createRouter({
     { path: "/", component: HomePage },
     { path: "/bitcraft", redirect: "/bitcraft/market" },
     {
+      path: "/bitcraft/:tool(bosses)",
+      component: () => import("./pages/BossLeaderboardPage.vue"),
+    },
+    {
+      path: "/bitcraft/:tool(claim-history)",
+      component: () => import("./pages/ClaimHistoryPage.vue"),
+    },
+    {
       path: "/bitcraft/:tool(fishing-map)",
       component: () => import("./pages/FishingMapPage.vue"),
     },

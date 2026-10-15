@@ -1,7 +1,10 @@
+import { moduleArtifactPath, requireRustWorkflow } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { writeFile } from 'node:fs/promises';
 import { DbConnection } from '../packages/generated/src/index';
+requireRustWorkflow();
+
 const uri = 'http://127.0.0.1:3127';
 const database = `fishbound-proof-portraits-${Date.now()}`;
 const connections: DbConnection[] = [];
@@ -31,7 +34,7 @@ try {
   await linker.c.reducers.completeAccountLink({challengeId:challenge.challengeId,proof:challenge.proof,verifiedDiscordUserId:user});
   await browser.c.reducers.equipTitle({achievementId:1});
   console.log(run(process.execPath,['scripts/portrait-preservation.mjs','before',database]).trim());
-  connections.forEach(c=>c.disconnect());publish('spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm');
+  connections.forEach(c=>c.disconnect());publish(moduleArtifactPath());
   const adapter=await connect(['angler_portrait'],bot.token);
   const publicView=await connect(['angler_portrait']);
   const account=await connect(['angler_portrait'],linker.token);

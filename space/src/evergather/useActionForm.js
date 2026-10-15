@@ -1,5 +1,9 @@
 import { nextTick, onScopeDispose, reactive, ref } from "vue";
-import { evergather } from "../evergather";
+import {
+  evergather,
+  evergatherConnected,
+  evergatherReconnecting,
+} from "../evergather";
 
 export const actionError = ref("");
 export const actionProcessing = ref(false);
@@ -33,9 +37,11 @@ export function useActionForm(initial) {
         if (active) options.onSuccess?.();
       } catch (error) {
         const message =
-          error instanceof Error
-            ? error.message
-            : "The action could not be completed.";
+          error?.name === "UnknownCallResultError"
+            ? "The connection dropped before this action was confirmed. Check your updated inventory and results before trying again."
+            : error instanceof Error
+              ? error.message
+              : "The action could not be completed.";
         actionError.value = message;
         form.errors = Object.fromEntries(
           [...Object.keys(initial), "listing", "_error"].map((key) => [
@@ -56,6 +62,10 @@ export function useActionForm(initial) {
 
 export async function executeAction(action, data, id) {
   const conn = evergather.value;
+  if (!evergatherConnected.value || evergatherReconnecting.value)
+    throw new Error(
+      "Reconnecting to Evergather. Wait for your saved state to refresh before taking an action.",
+    );
   if (!conn)
     throw new Error("Connect to Evergather before starting an action.");
   const reducers = conn.reducers;

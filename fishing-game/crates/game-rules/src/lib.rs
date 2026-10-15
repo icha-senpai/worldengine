@@ -5,6 +5,7 @@ pub mod collection_focus;
 pub mod daily;
 pub mod measurements;
 pub mod progression;
+pub mod quests;
 pub mod rods;
 pub mod sampling;
 pub mod trophy;

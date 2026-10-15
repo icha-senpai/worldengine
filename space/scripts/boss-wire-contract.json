@@ -1,0 +1,619 @@
+{
+  "enemy_state": {
+    "key": [
+      0
+    ],
+    "type": {
+      "Product": {
+        "elements": [
+          {
+            "name": "entity_id",
+            "type": {
+              "U64": []
+            }
+          },
+          {
+            "name": "herd_entity_id",
+            "type": {
+              "U64": []
+            }
+          },
+          {
+            "name": "direction",
+            "type": {
+              "I32": []
+            }
+          },
+          {
+            "name": "status",
+            "type": {
+              "Sum": {
+                "variants": [
+                  {
+                    "name": "inactive",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "idle",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "returningToIdle",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "evasive",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "investigating",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "fighting",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "retreating",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "last_ranged_attack_timestamp",
+            "type": {
+              "Product": {
+                "elements": [
+                  {
+                    "name": "__timestamp_micros_since_unix_epoch__",
+                    "type": {
+                      "I64": []
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "enemy_type",
+            "type": {
+              "Sum": {
+                "variants": [
+                  {
+                    "name": "none",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "practiceDummy",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "grassBird",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "desertBird",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "swampBird",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "goat",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "mountainGoat",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "deerFemale",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "deerMale",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "elk",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "boarFemale",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "boarMale",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "boarElder",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "plainsOx",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "tundraOx",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "jungleLargeBird",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "desertLargeBird",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "jakyl",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "alphaJakyl",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "kingJakyl",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "rockCrab",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "desertCrab",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "frostCrab",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "forestToad",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "swampToad",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "frostToad",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "umbura",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "alphaUmbura",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "kingUmbura",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "drone",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "soldier",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "queen",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "sentinel",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "sentinelDungeonJakyl",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "sentinelDungeonSkitch",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "sentinelDungeonLargeJakyl",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "crabDungeonCrabBoss",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "crabDungeonCrabTrash",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "spiderDungeonEliteSpider",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "spiderDungeonSmallSpider",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "spiderDungeonSpiderNest",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "enragedAlphaJakyl",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "deerSwift",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "crystalizedHexiteCrab",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "health_state": {
+    "key": [
+      0
+    ],
+    "type": {
+      "Product": {
+        "elements": [
+          {
+            "name": "entity_id",
+            "type": {
+              "U64": []
+            }
+          },
+          {
+            "name": "last_health_decrease_timestamp",
+            "type": {
+              "Product": {
+                "elements": [
+                  {
+                    "name": "__timestamp_micros_since_unix_epoch__",
+                    "type": {
+                      "I64": []
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "health",
+            "type": {
+              "F32": []
+            }
+          },
+          {
+            "name": "died_timestamp",
+            "type": {
+              "I32": []
+            }
+          }
+        ]
+      }
+    }
+  },
+  "contribution_state": {
+    "key": [
+      0
+    ],
+    "type": {
+      "Product": {
+        "elements": [
+          {
+            "name": "entity_id",
+            "type": {
+              "U64": []
+            }
+          },
+          {
+            "name": "player_entity_id",
+            "type": {
+              "U64": []
+            }
+          },
+          {
+            "name": "enemy_entity_id",
+            "type": {
+              "U64": []
+            }
+          },
+          {
+            "name": "contribution",
+            "type": {
+              "F32": []
+            }
+          }
+        ]
+      }
+    }
+  },
+  "player_username_state": {
+    "key": [
+      0
+    ],
+    "type": {
+      "Product": {
+        "elements": [
+          {
+            "name": "entity_id",
+            "type": {
+              "U64": []
+            }
+          },
+          {
+            "name": "username",
+            "type": {
+              "String": []
+            }
+          }
+        ]
+      }
+    }
+  },
+  "attack_event": {
+    "key": [],
+    "type": {
+      "Product": {
+        "elements": [
+          {
+            "name": "attacker_entity_id",
+            "type": {
+              "U64": []
+            }
+          },
+          {
+            "name": "defender_entity_id",
+            "type": {
+              "U64": []
+            }
+          },
+          {
+            "name": "combat_action_id",
+            "type": {
+              "I32": []
+            }
+          },
+          {
+            "name": "damage",
+            "type": {
+              "I32": []
+            }
+          },
+          {
+            "name": "is_crit",
+            "type": {
+              "Bool": []
+            }
+          },
+          {
+            "name": "is_dodge",
+            "type": {
+              "Bool": []
+            }
+          }
+        ]
+      }
+    }
+  }
+}

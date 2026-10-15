@@ -19,6 +19,14 @@ import { parseRelayJson } from "./bitcraft-relay";
 export const STORAGE_TARGET = 2_000_000_000;
 export const STORAGE_BUDGET = 3_000_000_000;
 const managedTables = new Set([
+  "boss_defeat", // Bounded encounter details; retained in checkpoint pages.
+  "boss_score", // Compact totals survive encounter expiry and maintenance.
+  "boss_totals",
+  "boss_region",
+  "claim_supply_status",
+  "claim_history_state",
+  "claim_history_event",
+  "claim_history_region",
   "administrator",
   "budget",
   "collected_entity",
@@ -50,6 +58,7 @@ const managedTables = new Set([
   "editable_guides",
   "published_guides",
   "visible_guide_metadata",
+  "claim_changes", // Derived invalidation view; rebuilt from retained claim rows.
 ]);
 const server = "http://127.0.0.1:3100";
 const cli =
@@ -268,13 +277,16 @@ export function canonicalState(state: State) {
     ),
   );
 }
-export async function exportState(database: string) {
+export async function exportState(
+  database: string,
+  tables: string[] = Object.keys(marketCheckpointTables),
+) {
   const payload = await ownerCall(database, "export_app_state", []);
   if (typeof payload !== "string")
     throw Error("Invalid state export response.");
   const state = parseRelayJson(payload) as State;
   let bytes = Buffer.byteLength(payload);
-  for (const table of Object.keys(marketCheckpointTables)) {
+  for (const table of tables) {
     state[table] = [];
     let after = "";
     while (true) {
@@ -648,17 +660,7 @@ export async function rebuildStorage(
   delete binding.pending;
   binding.program = (await databaseInfo(binding.database)).program;
   await atomicJson(path, binding);
-  const archives = (await readdir(maintenance))
-    .filter(
-      (name) =>
-        name.startsWith(binding.database + "-") && name.endsWith(".json"),
-    )
-    .sort()
-    .reverse();
-  for (const name of archives.slice(2)) {
-    await rm(join(maintenance, name));
-    await rm(join(maintenance, name + ".sha256"));
-  }
+  await removeCompletedStorageExports(binding.database);
   const usage = await storageUsage(binding);
   if (usage.bytes >= STORAGE_TARGET)
     throw Error("Rebuilt storage exceeds its budget; writes remain paused.");
@@ -736,6 +738,7 @@ export async function recoverStorage(binding: Binding) {
   delete binding.pending;
   binding.program = (await databaseInfo(binding.database)).program;
   await atomicJson(join(maintenance, binding.database + ".json"), binding);
+  await removeCompletedStorageExports(binding.database);
   if ((await storageUsage(binding)).bytes >= STORAGE_TARGET)
     throw Error(
       "Recovered storage still exceeds its budget; updates remain paused.",
@@ -744,6 +747,26 @@ export async function recoverStorage(binding: Binding) {
     "Retained records verified and pending storage rebuild recovered. Restart collection to resume updates.",
   );
   return binding;
+}
+
+export async function removeCompletedStorageExports(
+  database: string,
+  root = maintenance,
+) {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(database))
+    throw Error("Invalid database name.");
+  const binding = JSON.parse(
+    await readFile(join(root, database + ".json"), "utf8"),
+  ) as Binding;
+  if (binding.database !== database || binding.pending)
+    throw Error("An unfinished rebuild still needs its export.");
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    if (!new RegExp(`^${database}-\\d+\\.json(?:\\.sha256)?$`).test(entry.name))
+      continue;
+    if (!entry.isFile() || entry.isSymbolicLink())
+      throw Error("Unexpected linked maintenance export.");
+    await rm(join(root, entry.name));
+  }
 }
 
 if (

@@ -27,6 +27,7 @@ import { localPlay, user, authConfigured, authError, signIn } from "../auth";
 import {
   evergather,
   evergatherReady,
+  evergatherConnected,
   evergatherReconnecting,
   evergatherPanelReady,
   setEvergatherPanel,
@@ -429,7 +430,7 @@ function submitCharacter() {
   });
 }
 async function createCharacter() {
-  if (actionProcessing.value) return;
+  if (actionProcessing.value || !evergatherConnected.value) return;
   actionProcessing.value = true;
   actionError.value = "";
   try {
@@ -641,6 +642,8 @@ const quickTool = computed(() =>
   props.equipment.find((tool) => tool.skill === quickSkill.value?.skill),
 );
 const quickUnavailable = computed(() => {
+  if (!evergatherConnected.value || evergatherReconnecting.value)
+    return "Connection interrupted — review your state before resuming";
   if (
     quickTool.value?.is_broken &&
     ["gather", "activity", "craft"].includes(quickAction.value?.action)
@@ -866,12 +869,18 @@ onBeforeUnmount(() => {
           minlength="2"
           maxlength="40"
           autocomplete="nickname" /></label
-      ><button class="button gold" :disabled="actionProcessing">
+      ><button
+        class="button gold"
+        :disabled="actionProcessing || !evergatherConnected"
+      >
         Start your adventure
       </button>
     </form>
     <template v-else>
-      <div class="evergather-ui">
+      <fieldset
+        class="evergather-ui connection-gate"
+        :disabled="!evergatherConnected"
+      >
         <header class="game-hud">
           <div class="game-hud__identity">
             <h1>Evergather</h1>
@@ -1557,7 +1566,15 @@ onBeforeUnmount(() => {
             Choose an action to start. Its repeat controls will stay here.
           </p>
         </footer>
-      </div>
+      </fieldset>
     </template>
   </section>
 </template>
+<style scoped>
+.connection-gate {
+  min-width: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+</style>

@@ -2,41 +2,33 @@ import { ref } from "vue";
 import { DbConnection } from "./bindings/bitcraft";
 import { recordPageLifecycle } from "./pageLifecycle";
 import { spacetimeHost } from "./spacetimeHost";
+import { createConnectionRecovery } from "./connectionRecovery";
 export const bitcraftConnected = ref(false);
+export const bitcraftReconnecting = ref(false);
 export const bitcraftError = ref("");
 let connection: DbConnection | null = null;
 let connecting: Promise<DbConnection> | null = null;
-let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
-let reconnectDelay = 1000;
 let disposed = false;
-function scheduleReconnect() {
-  if (disposed || reconnectTimer) return;
-  reconnectTimer = setTimeout(() => {
-    reconnectTimer = undefined;
-    void connectBitcraft().catch(() => scheduleReconnect());
-  }, reconnectDelay);
-  reconnectDelay = Math.min(10000, reconnectDelay * 2);
-}
-const resumeConnection = () => {
-  if (!disposed && connection) void connectBitcraft().catch(() => {});
-};
-const visibleConnection = () => {
-  if (!document.hidden) resumeConnection();
-};
-if (typeof window !== "undefined") {
-  window.addEventListener("pageshow", resumeConnection);
-  document.addEventListener("visibilitychange", visibleConnection);
-}
+let retryInitial = false;
+// The SDK handles established connections. Only a failed first connection
+// needs an application retry, because SDK auto-reconnect deliberately excludes it.
+const initialRecovery = createConnectionRecovery(
+  () => {
+    void connectBitcraft().catch(() => {});
+  },
+  () => !disposed && retryInitial && !connecting && !connection?.isReconnecting,
+);
 import.meta.hot?.dispose(() => {
   disposed = true;
-  clearTimeout(reconnectTimer);
-  window.removeEventListener("pageshow", resumeConnection);
-  document.removeEventListener("visibilitychange", visibleConnection);
+  initialRecovery.stop();
   connection?.disconnect();
 });
 const identityKey = `space.bitcraft.identity:${import.meta.env.VITE_SPACETIMEDB_HOST || "local"}:${import.meta.env.VITE_BITCRAFT_DATABASE || "space-bitcraft-tools"}`;
 export function connectBitcraft(): Promise<DbConnection> {
-  if (connection?.isActive && !connection.isSocketClosed)
+  if (
+    connection?.isReconnecting ||
+    (connection?.isActive && !connection.isSocketClosed)
+  )
     return Promise.resolve(connection);
   if (connection?.isSocketClosed) connection.disconnect();
   if (connecting) return connecting;
@@ -46,7 +38,8 @@ export function connectBitcraft(): Promise<DbConnection> {
       if (connection === attempt) {
         connecting = null;
         attempt.disconnect();
-        scheduleReconnect();
+        retryInitial = true;
+        initialRecovery.schedule();
         reject(new Error("The live data connection timed out."));
       }
     }, 15000);
@@ -56,42 +49,67 @@ export function connectBitcraft(): Promise<DbConnection> {
         import.meta.env.VITE_BITCRAFT_DATABASE || "space-bitcraft-tools",
       )
       .withToken(localStorage.getItem(identityKey) || undefined)
+      .withAutomaticReconnect()
       .onConnect((conn, _identity, token) => {
         clearTimeout(timeout);
-        clearTimeout(reconnectTimer);
-        reconnectTimer = undefined;
-        reconnectDelay = 1000;
+        initialRecovery.reset();
+        retryInitial = false;
         const keys = [...observedFeeds.keys()];
         for (const close of observedFeeds.values()) close();
         observedFeeds.clear();
         observedConnection = conn;
         localStorage.setItem(identityKey, token);
-        bitcraftConnected.value = true;
         recordPageLifecycle("bitcraft-connected");
         bitcraftError.value = "";
         connecting = null;
         resolve(conn);
         for (const key of keys) void observeCollection(key).catch(() => {});
+        // A replay applies every subscription against one consistent snapshot.
+        // This small status subscription marks that snapshot ready without
+        // replacing connection objects or resubscribing page listeners.
+        conn
+          .subscriptionBuilder()
+          .onApplied(() => {
+            if (connection !== conn) return;
+            bitcraftConnected.value = true;
+            bitcraftReconnecting.value = false;
+            bitcraftError.value = "";
+            window.dispatchEvent(new Event("bitcraft-data-updated"));
+          })
+          .subscribe(["SELECT * FROM market_status WHERE key = 'market'"]);
       })
-      .onConnectError((_ctx, error) => {
+      .onAutomaticReconnect((conn, _identity, token) => {
+        if (connection !== conn) return;
+        localStorage.setItem(identityKey, token);
+        recordPageLifecycle("bitcraft-reconnected");
+      })
+      .onConnectError((_ctx, error, nextAttempt) => {
         clearTimeout(timeout);
         if (connection !== attempt) return;
-        scheduleReconnect();
+        if (nextAttempt !== undefined) {
+          bitcraftReconnecting.value = true;
+          return;
+        }
         recordPageLifecycle("bitcraft-connect-failed");
         bitcraftError.value = "The live data connection is unavailable.";
         connecting = null;
         reject(error);
+        if (retryInitial) initialRecovery.schedule();
       })
-      .onDisconnect(() => {
+      .onDisconnect((_ctx, _error, nextAttempt) => {
         clearTimeout(timeout);
         if (connection !== attempt) return;
         reject(new Error("The live data connection closed."));
-        scheduleReconnect();
         recordPageLifecycle("bitcraft-disconnected");
         bitcraftConnected.value = false;
+        bitcraftReconnecting.value = nextAttempt !== undefined;
+        if (nextAttempt === undefined)
+          bitcraftError.value =
+            "The live data connection closed. Refresh to reconnect.";
         connecting = null;
       })
       .build();
+    retryInitial = true;
   });
   return connecting;
 }
@@ -150,7 +168,7 @@ export async function subscribeData(
       `SELECT * FROM snapshot WHERE key = '${key.replace(/'/g, "''")}'`,
     ]);
   return () => {
-    if (conn.isActive) subscription.unsubscribe();
+    subscription.unsubscribe();
     conn.db.snapshot.removeOnInsert(update);
     conn.db.snapshot.removeOnUpdate(updateRow);
   };
@@ -185,7 +203,7 @@ export async function observeCollection(key: string) {
       `SELECT * FROM collection_feed WHERE key = '${key.replace(/'/g, "''")}'`,
     ]);
   observedFeeds.set(key, () => {
-    if (conn.isActive) subscription.unsubscribe();
+    subscription.unsubscribe();
     conn.db.collectionFeed.removeOnInsert(changed);
     conn.db.collectionFeed.removeOnUpdate(updated);
   });
@@ -206,7 +224,7 @@ export async function subscribeStoredMarket(changed: () => void) {
       "SELECT * FROM relay_status",
     ]);
   return () => {
-    if (conn.isActive) subscription.unsubscribe();
+    subscription.unsubscribe();
     conn.db.marketStatus.removeOnInsert(inserted);
     conn.db.marketStatus.removeOnUpdate(updated);
     conn.db.relayStatus.removeOnInsert(inserted);

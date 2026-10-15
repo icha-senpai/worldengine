@@ -1,5 +1,5 @@
-// Private backup and exact comparison of application records during publication.
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+// Temporary exact comparison of application records during publication.
+import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { ownerCall, canonicalState } from "./bitcraft-storage";
 const phase = process.argv[2];
@@ -39,6 +39,8 @@ for (const database of ["space-bitcraft-tools", "space-bitcraft-checks"]) {
       throw Error(
         "Application records changed unexpectedly during publication.",
       );
+    await rm(path);
+    await rm(path + ".sha256");
   }
   console.log(
     JSON.stringify({

@@ -18,7 +18,11 @@ function Assert-WorkspacePath([string]$Path) {
     $absolute = [IO.Path]::GetFullPath($Path)
     if (!$absolute.StartsWith($projectRoot + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Cleanup path escapes Fishbound' }
     $liveData = Join-Path $localRoot 'spacetimedb'
-    foreach ($protected in @($liveData, (Join-Path $projectRoot '.runtime'), (Join-Path $projectRoot 'apps\web\build'), (Join-Path $projectRoot 'node_modules'))) {
+    $runtimeRoot = Join-Path $projectRoot '.runtime'
+    $disposableRuntime = @((Join-Path $runtimeRoot 'maintenance'), (Join-Path $runtimeRoot 'web-upgrade-dialog'))
+    if (($absolute -ieq $runtimeRoot -or $absolute.StartsWith($runtimeRoot + '\', [StringComparison]::OrdinalIgnoreCase)) -and
+        !@($disposableRuntime | Where-Object { $absolute -ieq $_ -or $absolute.StartsWith($_ + '\', [StringComparison]::OrdinalIgnoreCase) }).Count) { throw 'Cleanup targets installed runtime' }
+    foreach ($protected in @($liveData, (Join-Path $localRoot 'rust-artifacts'), (Join-Path $projectRoot 'apps\web\build'), (Join-Path $projectRoot 'node_modules'))) {
         if ($absolute -ieq $protected -or $absolute.StartsWith($protected + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Cleanup targets live data, runtime or dependencies' }
     }
     $ancestor = $absolute
@@ -30,6 +34,12 @@ function Assert-WorkspacePath([string]$Path) {
 }
 
 function Assert-InactiveTarget([string]$Path) {
+    $ownerPath = Join-Path $Path '.fishbound-rust-owner.json'
+    if (Test-Path -LiteralPath $ownerPath -PathType Leaf) {
+        $owner = Get-Content -LiteralPath $ownerPath -Raw | ConvertFrom-Json
+        if ($owner.root -ine $projectRoot -or $owner.target -ine [IO.Path]::GetFullPath($Path) -or !$owner.pid) { throw 'Rust cache ownership is invalid' }
+        if (Get-Process -Id $owner.pid -ErrorAction SilentlyContinue) { throw "Active Rust workflow owns cleanup target: $Path" }
+    }
     foreach ($process in Get-CimInstance Win32_Process) {
         if ($process.ExecutablePath -and ($process.ExecutablePath -ieq $Path -or $process.ExecutablePath.StartsWith($Path + '\', [StringComparison]::OrdinalIgnoreCase))) { throw 'Cleanup would remove a running program' }
         if ($process.CommandLine -and $process.CommandLine.Replace('/', '\').IndexOf($Path, [StringComparison]::OrdinalIgnoreCase) -ge 0) { throw "Active process references cleanup target: $Path" }
@@ -99,55 +109,16 @@ foreach ($envFile in @((Join-Path $projectRoot '.env'), (Join-Path $projectRoot 
     }
 }
 
-$verified = @(Get-ChildItem -LiteralPath $deploymentRoot -Directory | Where-Object {
-    $acceptance = Join-Path $_.FullName 'acceptance.json'
-    $restore = Join-Path $_.FullName 'restore-verification.json'
-    if ((Test-Path -LiteralPath $acceptance) -and (Test-Path -LiteralPath $restore)) {
-        $a = Get-Content -LiteralPath $acceptance -Raw | ConvertFrom-Json
-        $r = Get-Content -LiteralPath $restore -Raw | ConvertFrom-Json
-        $a.preservation -and $a.site -eq 200 -and $r.match
-    }
-} | Sort-Object Name -Descending)
-# Sort by the timestamp suffix, not the feature name.
-$verified = @($verified | Sort-Object { $_.Name.Substring($_.Name.Length - 15) } -Descending)
-if ($verified.Count -lt 2) { throw 'Two verified rollback sets are required' }
-$keep = @($verified | Select-Object -First 2)
 $targets = @()
-foreach ($folder in Get-ChildItem -LiteralPath $deploymentRoot -Directory) {
-    if ($folder.Name -notmatch '^[a-z-]+-\d{8}-\d{6}$') { throw 'Unrecognized deployment directory' }
-    if ($keep.FullName -contains $folder.FullName) {
-        $partial = Join-Path $folder.FullName 'cold-data.partial.zip'
-        $archive = Join-Path $folder.FullName 'cold-data.zip'
-        $report = Join-Path $folder.FullName 'archive-verification.json'
-        if (Test-Path -LiteralPath $report) {
-            $verification = Get-Content -LiteralPath $report -Raw | ConvertFrom-Json
-            $file = if (Test-Path -LiteralPath $archive) { $archive } else { $partial }
-            if (!$verification.verified -or (Get-FileHash -LiteralPath $file).Hash -ine $verification.archiveSha256) { throw 'Backup archive verification failed' }
-            if ($Apply -and $file -eq $partial) { Move-Item -LiteralPath (Assert-WorkspacePath $partial) -Destination $archive }
-            if (Test-Path -LiteralPath (Join-Path $folder.FullName 'cold-data')) { $targets += Join-Path $folder.FullName 'cold-data' }
-        }
-        foreach ($duplicate in @('restore-check', 'retired-served-web-build', 'candidate-web-build')) {
-            $path = Join-Path $folder.FullName $duplicate
-            if (Test-Path -LiteralPath $path) { $targets += $path }
-        }
-        # Old clients and previous-web-build remain paired with the backup.
-    } else {
-        if ($Apply) {
-            $history = Join-Path $evidenceRoot ('deployment-history\' + $folder.Name)
-            New-Item -ItemType Directory -Path $history -Force | Out-Null
-            Get-ChildItem -LiteralPath $folder.FullName -File | Where-Object { $_.Name -match '(acceptance|verification|manifest|deployment|module-before).*\.json$' } |
-                ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $history $_.Name) }
-        }
-        $targets += $folder.FullName
-    }
+if (Test-Path -LiteralPath $deploymentRoot) { $targets += $deploymentRoot }
+foreach ($entry in Get-ChildItem -LiteralPath $evidenceRoot -Force) {
+    if ($entry.Name -ne 'cleanup-plan.json') { $targets += $entry.FullName }
 }
+$oldWeb = Join-Path $projectRoot '.runtime\web-upgrade-dialog'
+if (Test-Path -LiteralPath $oldWeb) { $targets += $oldWeb }
 foreach ($entry in Get-ChildItem -LiteralPath $localRoot -Force) {
-    if ($entry.Name -in @('spacetimedb', 'deployments', 'log-archive') -or $entry.Name -like 'pre-*' -or $entry.Name -in $protectedFiles -or $entry.Name -match '\.(token|key|pem|pfx)$') { continue }
+    if ($entry.Name -in @('spacetimedb', 'deployments', 'log-archive', 'rust-artifacts') -or $entry.Name -like 'pre-*' -or $entry.Name -in $protectedFiles -or $entry.Name -match '\.(token|key|pem|pfx)$') { continue }
     if (@($protectedPaths | Where-Object { $_ -ieq $entry.FullName -or $_.StartsWith($entry.FullName + '\', [StringComparison]::OrdinalIgnoreCase) }).Count) { continue }
-    if ($entry.Name -like 'current-*-deployment.txt') {
-        $pointsTo = (Get-Content -LiteralPath $entry.FullName -Raw).Trim()
-        if ($keep.FullName -contains $pointsTo) { continue }
-    }
     $targets += $entry.FullName
 }
 foreach ($relative in @('target', 'spacetimedb\target', 'apps\web\.svelte-kit', '.playwright-cli', 'output\playwright', 'output\catch-cards', 'output\material-cards', 'output\rod-cards', 'output\performance-cards', 'image.src)})')) {
@@ -163,7 +134,7 @@ foreach ($target in $targets) {
     foreach ($entry in $entries[$target]) { $bytes += $entry.bytes }
 }
 if ($Apply) {
-    if (@(Compare-Object $reviewedPlan.targets $targets).Count -or @(Compare-Object $reviewedPlan.retainedDeployments @($keep.Name)).Count) { throw 'Cleanup targets changed after preview' }
+    if (@(Compare-Object $reviewedPlan.targets $targets).Count) { throw 'Cleanup targets changed after preview' }
     foreach ($target in $targets) {
         $reviewed = @{}
         foreach ($entry in $reviewedPlan.entries.PSObject.Properties[$target].Value) { $reviewed[$entry.path] = $entry }
@@ -174,13 +145,13 @@ if ($Apply) {
         }
     }
 }
-@{apply = [bool]$Apply; retainedDeployments = @($keep.Name); bytes = $bytes; targets = $targets; entries = $entries} | ConvertTo-Json -Depth 6 -Compress |
+@{apply = [bool]$Apply; bytes = $bytes; targets = $targets; entries = $entries} | ConvertTo-Json -Depth 6 -Compress |
     Set-Content -LiteralPath (Join-Path $evidenceRoot 'cleanup-plan.json') -Encoding utf8
-Write-Output ("$($targets.Count) verified cleanup targets, {0:N2} GiB; keep $($keep.Name -join ', ')." -f ($bytes / 1GB))
+Write-Output ("$($targets.Count) verified cleanup targets, {0:N2} GiB; no deployment copies retained." -f ($bytes / 1GB))
 if (!$Apply) { Write-Output 'Inspection only. Use -Apply to remove these verified targets.'; return }
 foreach ($target in $targets) {
     Remove-VerifiedEntries $target $entries[$target]
 }
-@{completedAt = (Get-Date).ToUniversalTime().ToString('o'); bytesRemoved = $bytes; targetsRemoved = $targets.Count; retainedDeployments = @($keep.Name)} | ConvertTo-Json -Depth 4 |
-    Set-Content -LiteralPath (Join-Path $evidenceRoot 'cleanup-result.json') -Encoding utf8
-Write-Output 'Removed verified scratch/cache targets. Live data, installed programs, credentials, dependencies and two rollback sets retained.'
+Remove-Item -LiteralPath (Join-Path $evidenceRoot 'cleanup-plan.json') -Force
+if (!@(Get-ChildItem -LiteralPath $evidenceRoot -Force).Count) { Remove-Item -LiteralPath $evidenceRoot -Force }
+Write-Output 'Removed verified scratch/cache and deployment copies. Live data, installed programs, credentials and dependencies retained.'

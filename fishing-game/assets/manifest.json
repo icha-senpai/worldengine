@@ -3254,6 +3254,78 @@
       "height": 1254,
       "bytes": 1093336,
       "sha256": "a8806ff9a1616049e2fab29bf9f0333188c4ea5dd94b80e9de53ae644002023f"
+    },
+    {
+      "key": "badge-9001",
+      "url": "/achievements/badge-9001.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 1139,
+      "sha256": "c4f9ce9e220abce61157b3e5e22d31dddc3b132cfa4bd7ad6431ea4754d45fa1"
+    },
+    {
+      "key": "badge-9002",
+      "url": "/achievements/badge-9002.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 1116,
+      "sha256": "1a936a512fc07d9d023409c2981dca18fb6160d4b774f2ab2088110807d2b710"
+    },
+    {
+      "key": "badge-9003",
+      "url": "/achievements/badge-9003.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 1114,
+      "sha256": "fb90b702dfd50fd2774b39e40b54d5bad69979ff1e33f1088a2d294db05dcbde"
+    },
+    {
+      "key": "badge-9004",
+      "url": "/achievements/badge-9004.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 1163,
+      "sha256": "2554d866e2450dd8c8111805b4dd27cfa678a7b2e9f9a3b831ea99534d33b0ee"
+    },
+    {
+      "key": "badge-9005",
+      "url": "/achievements/badge-9005.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 1147,
+      "sha256": "24aade85b989d65ffe8e685a8b1bf31b5c8ede2b4af7ea61a8902bccad953085"
+    },
+    {
+      "key": "badge-9006",
+      "url": "/achievements/badge-9006.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 1106,
+      "sha256": "ed108b46c0d8c21f201b70286e6c0db5e2749ea8573098ed513c4a952509ca4f"
+    },
+    {
+      "key": "badge-9007",
+      "url": "/achievements/badge-9007.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 1145,
+      "sha256": "dfca6a6ed8fef198910131194fa1095d30ca5a22d3053950418eb91beeefb461"
+    },
+    {
+      "key": "badge-9008",
+      "url": "/achievements/badge-9008.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 1132,
+      "sha256": "c435759c14d91b30fc38e0c3b0ac9e12120968817ae79cfe0b33d0104a32f2f6"
+    },
+    {
+      "key": "badge-9009",
+      "url": "/achievements/badge-9009.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 1116,
+      "sha256": "146d1b0696acf6c222f397e36642f12208b50ff9aa6ffcb1228246667c46673a"
     }
   ]
 }

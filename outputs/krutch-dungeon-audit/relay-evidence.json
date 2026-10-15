@@ -1,0 +1,510 @@
+{
+  "checkedAtUtc": "2026-10-15T05:45:20.062500+00:00",
+  "schemaUrl": "https://relay.bitcraftsync.app:3009/v1/database/bitcraft-live-9/schema?version=9",
+  "selectedTables": [
+    {
+      "name": "contribution_state",
+      "access": {
+        "Public": []
+      },
+      "columns": {
+        "Product": {
+          "elements": [
+            {
+              "name": {
+                "some": "entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "player_entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "enemy_entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "contribution"
+              },
+              "algebraic_type": {
+                "F32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "enemy_despawn_event",
+      "access": {
+        "Public": []
+      },
+      "columns": {
+        "Product": {
+          "elements": [
+            {
+              "name": {
+                "some": "entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "enemy_type"
+              },
+              "algebraic_type": {
+                "Ref": 83
+              }
+            },
+            {
+              "name": {
+                "some": "despawn_timestamp"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "location"
+              },
+              "algebraic_type": {
+                "Ref": 1
+              }
+            },
+            {
+              "name": {
+                "some": "destination"
+              },
+              "algebraic_type": {
+                "Ref": 1
+              }
+            },
+            {
+              "name": {
+                "some": "movement_timestamp"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "enemy_despawn_timer",
+      "access": {
+        "Private": []
+      },
+      "columns": {
+        "Product": {
+          "elements": [
+            {
+              "name": {
+                "some": "scheduled_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "scheduled_at"
+              },
+              "algebraic_type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": {
+                        "some": "Interval"
+                      },
+                      "algebraic_type": {
+                        "Product": {
+                          "elements": [
+                            {
+                              "name": {
+                                "some": "__time_duration_micros__"
+                              },
+                              "algebraic_type": {
+                                "I64": []
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "name": {
+                        "some": "Time"
+                      },
+                      "algebraic_type": {
+                        "Product": {
+                          "elements": [
+                            {
+                              "name": {
+                                "some": "__timestamp_micros_since_unix_epoch__"
+                              },
+                              "algebraic_type": {
+                                "I64": []
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": {
+                "some": "attacker_entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "enemy_state",
+      "access": {
+        "Public": []
+      },
+      "columns": {
+        "Product": {
+          "elements": [
+            {
+              "name": {
+                "some": "entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "herd_entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "direction"
+              },
+              "algebraic_type": {
+                "I32": []
+              }
+            },
+            {
+              "name": {
+                "some": "status"
+              },
+              "algebraic_type": {
+                "Ref": 274
+              }
+            },
+            {
+              "name": {
+                "some": "last_ranged_attack_timestamp"
+              },
+              "algebraic_type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": {
+                        "some": "__timestamp_micros_since_unix_epoch__"
+                      },
+                      "algebraic_type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": {
+                "some": "enemy_type"
+              },
+              "algebraic_type": {
+                "Ref": 83
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "health_state",
+      "access": {
+        "Public": []
+      },
+      "columns": {
+        "Product": {
+          "elements": [
+            {
+              "name": {
+                "some": "entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "last_health_decrease_timestamp"
+              },
+              "algebraic_type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": {
+                        "some": "__timestamp_micros_since_unix_epoch__"
+                      },
+                      "algebraic_type": {
+                        "I64": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": {
+                "some": "health"
+              },
+              "algebraic_type": {
+                "F32": []
+              }
+            },
+            {
+              "name": {
+                "some": "died_timestamp"
+              },
+              "algebraic_type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "knowledge_enemy_state",
+      "access": {
+        "Public": []
+      },
+      "columns": {
+        "Product": {
+          "elements": [
+            {
+              "name": {
+                "some": "entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "entries"
+              },
+              "algebraic_type": {
+                "Array": {
+                  "Ref": 363
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "threat_state",
+      "access": {
+        "Public": []
+      },
+      "columns": {
+        "Product": {
+          "elements": [
+            {
+              "name": {
+                "some": "entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "owner_entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "target_entity_id"
+              },
+              "algebraic_type": {
+                "U64": []
+              }
+            },
+            {
+              "name": {
+                "some": "threat"
+              },
+              "algebraic_type": {
+                "F32": []
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "sourceDeathCode": "https://github.com/clockworklabs/BitCraftPublic/blob/master/BitCraftServer/packages/game/src/game/reducer_helpers/health_helpers.rs",
+  "eventRetentionReference": "https://relay.bitcraftsync.app/tutorial/connect.html",
+  "snapshots": [
+    {
+      "name": "bitsync",
+      "result": {
+        "database_update": {
+          "tables": [
+            {
+              "table_id": 4307,
+              "table_name": "knowledge_enemy_state",
+              "num_rows": 1,
+              "updates": [
+                {
+                  "deletes": [],
+                  "inserts": [
+                    "{\"entity_id\":648518346354619877,\"entries\":[[37,[2,[]]],[36,[2,[]]],[2,[2,[]]],[17,[2,[]]],[18,[2,[]]],[26,[2,[]]],[23,[2,[]]],[33,[2,[]]],[34,[2,[]]],[32,[2,[]]],[38,[2,[]]],[39,[2,[]]],[40,[2,[]]],[35,[2,[]]],[20,[2,[]]],[29,[2,[]]],[5,[2,[]]],[21,[2,[]]],[43,[2,[]]],[30,[2,[]]],[27,[2,[]]],[8,[2,[]]],[28,[2,[]]],[7,[2,[]]],[41,[2,[]]],[11,[2,[]]],[13,[2,[]]],[31,[2,[]]],[24,[2,[]]],[19,[2,[]]]]}"
+                  ]
+                }
+              ]
+            },
+            {
+              "table_id": 4272,
+              "table_name": "health_state",
+              "num_rows": 1,
+              "updates": [
+                {
+                  "deletes": [],
+                  "inserts": [
+                    "{\"entity_id\":648518346354619877,\"last_health_decrease_timestamp\":{\"__timestamp_micros_since_unix_epoch__\":1792030618754380},\"health\":240.0,\"died_timestamp\":1792030108}"
+                  ]
+                }
+              ]
+            },
+            {
+              "table_id": 4247,
+              "table_name": "enemy_state",
+              "num_rows": 0,
+              "updates": [
+                {
+                  "deletes": [],
+                  "inserts": []
+                }
+              ]
+            }
+          ]
+        },
+        "request_id": 1,
+        "total_host_execution_duration": {
+          "__time_duration_micros__": 575
+        }
+      }
+    },
+    {
+      "name": "bitconnect",
+      "result": {
+        "database_update": {
+          "tables": [
+            {
+              "table_id": 4307,
+              "table_name": "knowledge_enemy_state",
+              "num_rows": 1,
+              "updates": [
+                {
+                  "deletes": [],
+                  "inserts": [
+                    "[648518346354619877,[[37,[2,[]]],[36,[2,[]]],[2,[2,[]]],[17,[2,[]]],[18,[2,[]]],[26,[2,[]]],[23,[2,[]]],[33,[2,[]]],[34,[2,[]]],[32,[2,[]]],[38,[2,[]]],[39,[2,[]]],[40,[2,[]]],[35,[2,[]]],[20,[2,[]]],[29,[2,[]]],[5,[2,[]]],[21,[2,[]]],[43,[2,[]]],[30,[2,[]]],[27,[2,[]]],[8,[2,[]]],[28,[2,[]]],[7,[2,[]]],[41,[2,[]]],[11,[2,[]]],[13,[2,[]]],[31,[2,[]]],[24,[2,[]]],[19,[2,[]]]]]"
+                  ]
+                }
+              ]
+            },
+            {
+              "table_id": 4179,
+              "table_name": "contribution_state",
+              "num_rows": 0,
+              "updates": [
+                {
+                  "deletes": [],
+                  "inserts": []
+                }
+              ]
+            },
+            {
+              "table_id": 4272,
+              "table_name": "health_state",
+              "num_rows": 1,
+              "updates": [
+                {
+                  "deletes": [],
+                  "inserts": [
+                    "[648518346354619877,[1792030618754380],240.0,1792030108]"
+                  ]
+                }
+              ]
+            },
+            {
+              "table_id": 4247,
+              "table_name": "enemy_state",
+              "num_rows": 0,
+              "updates": [
+                {
+                  "deletes": [],
+                  "inserts": []
+                }
+              ]
+            }
+          ]
+        },
+        "request_id": 1,
+        "total_host_execution_duration": {
+          "__time_duration_micros__": 0
+        }
+      }
+    }
+  ]
+}

@@ -6,6 +6,23 @@ The Journal tab now keeps individual fish, rusted tin, and treasure results perm
 
 `select_journal` validates a linked caller's selection. `my_journal` exposes only that caller's bounded page and totals. It never exposes another player's history or downloads the whole lifetime journal into the browser. Page sizes are capped at 50; search is capped at 80 characters. Sorting uses the actual rank order F through UUR and integer measurements, with stable ties and unknown values last in either direction. Non-fish outcomes have no length, weight, or fish rank. Out-of-range pages are clamped.
 
+## Paging and subscriptions
+
+Journal queries use player/rank and player/outcome indexes for those filters,
+with an owner-maintained `journal_count` summary for exact totals. A bounded
+heap selects the requested page from the closer end of the ordering; the view
+does not allocate and sort every entry for ordinary first/last-page reads.
+Name and biome filters still inspect the selected candidate rows. Deep middle
+pages require a larger working window, so this is not constant-time paging.
+The owner-only `activate_history_queries` initializes exact counts from existing
+history and is safe to repeat. New pulls maintain counts transactionally.
+
+The website subscribes to `my_journal` only while the Journal tab is active.
+Inventory is loaded for Tackle box and quest deliveries; public angler and
+record directories follow their respective tabs. Small progress/catalog rows
+stay live across tabs. Changing views and reconnecting both wait for the active
+subscriptions before enabling game actions.
+
 ## Historical import
 
 The owner-only `backfill_journal(player_id)` reconciles retained cast pulls, command receipts, recent results, and owned fish. It matches overlaps as a multiset, preserving identical double pulls. A per-player import marker makes repeated calls harmless. The import only changes journal tables: XP, balances, inventory, collection, records, cooldowns, and equipment stay untouched.
@@ -17,8 +34,8 @@ After publishing the additive module update, run `node scripts/backfill-journal.
 ## Verification
 
 - `npm run test:integration` covers the existing gameplay contract plus journal privacy and revocation.
-- `npx tsx scripts/journal-proof.ts` exercises legacy overlaps, duplicate pulls, unknown fields, exact per-pull XP, replay, sales, ten sort directions, filters, bounded pages, and history beyond the recent-result cap. It ages retry receipts and waits for the real production scheduler to prune them while the permanent journal remains intact.
-- `npx tsx scripts/journal-migration-proof.ts` publishes the previous production artifact from `.local/pre-journal.wasm`, casts and links a browser, upgrades to the new module, imports history twice, and compares all 44 pre-existing tables.
+- `npm run rust:script -- scripts/journal-proof.ts` exercises legacy overlaps, duplicate pulls, unknown fields, exact per-pull XP, replay, sales, ten sort directions, filters, bounded pages, and history beyond the recent-result cap. It ages retry receipts and waits for the real production scheduler to prune them while the permanent journal remains intact.
+- `npm run rust:script -- scripts/journal-migration-proof.ts` publishes the previous production artifact from `.local/pre-journal.wasm`, casts and links a browser, upgrades to the new module, imports history twice, and compares all 44 pre-existing tables.
 - `node scripts/journal-preservation.mjs before fishbound-dev-local` / `after` checks that deployment and import preserve existing live gameplay data.
 
 All gameplay tests use separate `fishbound-proof-*` databases. Test fixture reducers are never part of production WASM.

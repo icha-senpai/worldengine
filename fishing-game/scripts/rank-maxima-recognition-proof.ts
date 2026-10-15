@@ -1,3 +1,4 @@
+import { moduleArtifactPath, requireRustWorkflow, rustTargetPath } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -6,12 +7,14 @@ import { DbConnection } from '../packages/generated/src/index';
 import { pathToFileURL } from 'node:url';
 import catalog from '../content/species.json';
 
+requireRustWorkflow();
+
 const uri='http://127.0.0.1:3127';
 const database=`fishbound-proof-rank-maxima-${Date.now()}`;
 assert(/^fishbound-proof-rank-maxima-\d+$/.test(database));
 const oldWasm=resolve('.local/pre-rank-maxima-fixture.wasm');
 const { DbConnection: OldDbConnection } = await import(pathToFileURL(resolve('.local/pre-rank-recognition-bindings/index.ts')).href);
-const newWasm=resolve('spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm');
+const newWasm=moduleArtifactPath();
 function run(command:string,args:string[]) { const r=spawnSync(command,args,{encoding:'utf8',windowsHide:true}); if(r.status!==0) throw Error(r.stderr||r.stdout); return r.stdout; }
 const call=(name:string,args:string[]=[])=>run('spacetime',['call','--server',uri,'--no-config','--yes',database,name,...args]);
 const publish=(wasm:string)=>run('spacetime',['publish','--server',uri,'--no-config','--yes=skip-login,migrate,break-clients','--delete-data=never','--bin-path',wasm,database]);
@@ -90,8 +93,8 @@ try {
   await writeFile(root+'/Cargo.toml',(await readFile('spacetimedb/Cargo.toml','utf8')).replace('name = "fishing-game-module"','name = "fishing-rank-new-proof"').replace('path = "../crates/game-rules"',`path = ${rustPath('crates/game-rules')}`).replace('crate-type = ["cdylib"]','crate-type = ["cdylib"]\npath = "lib.rs"')+'\n[workspace]\n');
   await writeFile(root+'/Cargo.lock',(await readFile('spacetimedb/Cargo.lock','utf8')).replace('name = "fishing-game-module"','name = "fishing-rank-new-proof"'));
   await writeFile(root+'/lib.rs',(await readFile('spacetimedb/src/lib.rs','utf8')).replace(/^mod (\w+);$/gm,(_,name)=>`#[path = ${rustPath(`spacetimedb/src/${name}.rs`)}]\nmod ${name};`)+`\ninclude!(${rustPath('scripts/fixtures/crafting-boundary.rs')});\ninclude!(${rustPath('scripts/fixtures/multi-bait.rs')});\ninclude!(${rustPath('scripts/fixtures/rank-maxima.rs')});\ninclude!(${rustPath('scripts/fixtures/rank-maxima-casting.rs')});\n`);
-  run('cargo',['build','--manifest-path',root+'/Cargo.toml','--target-dir',resolve('spacetimedb/target'),'--target','wasm32-unknown-unknown','--release','--locked']);
-  guest.disconnect();publish(resolve('spacetimedb/target/wasm32-unknown-unknown/release/fishing_rank_new_proof.wasm'));
+  run('cargo',['build','--manifest-path',root+'/Cargo.toml','--target-dir',rustTargetPath(),'--target','wasm32-unknown-unknown','--release','--locked']);
+  guest.disconnect();publish(rustTargetPath('wasm32-unknown-unknown', 'release', 'fishing_rank_new_proof.wasm'));
   const {c:bot}=await connect(DbConnection,['my_service','adapter_player','adapter_cast_pulls','rank_maximum']);
   call('configure_service',[JSON.stringify(bot.identity.toHexString()),JSON.stringify({discordAdapter:{}}),'true']);
   call('proof_rank_cast_setup',['9873',String(carp.speciesId)]);

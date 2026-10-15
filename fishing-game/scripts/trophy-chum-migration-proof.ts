@@ -1,7 +1,10 @@
+import { moduleArtifactPath, requireRustWorkflow } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
+
+requireRustWorkflow();
 
 const database = `fishbound-proof-trophy-migration-${Date.now()}`;
 const uri = 'http://127.0.0.1:3127';
@@ -99,7 +102,7 @@ try {
   call('activate_xp_progression');
   console.log(run(process.execPath, ['scripts/xp-preservation.mjs', 'before', database]).trim());
   bot.disconnect();
-  publish('spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm');
+  publish(moduleArtifactPath());
   assert(
     query('bait_definition').every(
       (b: any) => b.size_rolls === 1,

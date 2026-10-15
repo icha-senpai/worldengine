@@ -1,8 +1,11 @@
+import { moduleArtifactPath, requireRustWorkflow } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
 import { levelForXp, xpToNextLevel } from '../apps/web/src/lib/game/progression';
 import world from '../content/world.json';
+
+requireRustWorkflow();
 
 // Only this fresh proof database receives fixture mutations.
 const database=`fishbound-proof-xp-curve-${Date.now()}`;
@@ -43,7 +46,7 @@ try {
  const selected=[...bot.db.adapterPlayer.iter()][0];assert.equal(levelForXp(selected.totalXp,120,9)<40,true);assert.equal(levelForXp(selected.totalXp,120,10)>=55,true);
  await assert.rejects(prepareLicence(),/SHOP_LEVEL_REQUIRED/);
  console.log(run(process.execPath,['scripts/xp-preservation.mjs','before',database]).trim());const botToken=bot.token;bot.disconnect();
- publish('spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm');bot=await connect(botToken);await subscribe(bot);
+ publish(moduleArtifactPath());bot=await connect(botToken);await subscribe(bot);
  await assert.rejects(bot.reducers.prepareShopFromDiscord({...gateArgs,listingId:60}),/SHOP_LEVEL_REQUIRED/);
  const guest=await connect();await assert.rejects(guest.reducers.activateXpProgression({}),/OWNER_REQUIRED/);
  call('activate_xp_progression');await new Promise(resolve=>setTimeout(resolve,100));console.log(run(process.execPath,['scripts/xp-preservation.mjs','after',database]).trim());

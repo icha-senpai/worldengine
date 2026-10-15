@@ -1,12 +1,6 @@
 import { runTemporaryDatabaseTest } from "./temporary-database";
 import { execFileSync } from "node:child_process";
-import {
-  cpSync,
-  mkdirSync,
-  readdirSync,
-  existsSync,
-  readFileSync,
-} from "node:fs";
+import { cpSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import assert from "node:assert/strict";
 const cli = `${process.env.LOCALAPPDATA}/SpacetimeDB/bin/current/spacetimedb-cli.exe`;
@@ -24,35 +18,48 @@ await runTemporaryDatabaseTest(database, async (scope) => {
     JSON.parse(
       command(["sql", database, `SELECT * FROM ${table}`, "--format", "json"]),
     )[0].rows as unknown[][];
-  const base = resolve(".runtime/backups");
-  const legacy = readdirSync(base)
-    .map((name) => join(base, name, "module-src"))
-    .find(
-      (path) =>
-        existsSync(join(path, "content/evergather.json")) &&
-        !JSON.parse(readFileSync(join(path, "content/evergather.json"), "utf8"))
-          .economy_version,
-    );
-  if (!legacy)
-    throw Error(
-      "A pre-replacement Evergather backup is required for the migration check.",
-    );
   mkdirSync(".runtime", { recursive: true });
   const fixture = scope.fixture("legacy-economy-module-");
-  cpSync(legacy, join(fixture, "src"), { recursive: true });
+  // Git owns the legacy source; the test owns this temporary working fixture.
+  const revision = "106b6142189d478579ab6db37fb4a880ffe7b56c";
+  const files = execFileSync(
+    "git",
+    ["ls-tree", "-r", "--name-only", revision, "spacetimedb/src"],
+    { encoding: "utf8", windowsHide: true },
+  )
+    .trim()
+    .split(/\r?\n/);
+  if (
+    !files.length ||
+    files.some(
+      (file) => !file.startsWith("spacetimedb/src/") || file.includes(".."),
+    )
+  )
+    throw Error("Legacy module source is unavailable in Git history.");
+  for (const file of files) {
+    const target = join(fixture, file.slice("spacetimedb/".length));
+    mkdirSync(resolve(target, ".."), { recursive: true });
+    writeFileSync(
+      target,
+      execFileSync("git", ["show", `${revision}:space/${file}`], {
+        windowsHide: true,
+        maxBuffer: 64 * 1024 * 1024,
+      }),
+    );
+  }
   for (const file of ["package.json", "tsconfig.json"])
     cpSync(join("spacetimedb", file), join(fixture, file));
   command(["publish", database, "--module-path", fixture, "--yes"]);
   command(["call", database, "configure_local_play", "true"]);
   command(["call", database, "create_character", '"Migration Player"']);
-  for (let count = 0; count < 5; count++)
-    command([
-      "call",
-      database,
-      "perform_action",
-      '"gathering_actions"',
-      '"fish"',
-    ]);
+  // One real action seeds inventory and XP without bypassing the legacy cooldown.
+  command([
+    "call",
+    database,
+    "perform_action",
+    '"gathering_actions"',
+    '"fish"',
+  ]);
   command(["call", database, "list_item", '"river_minnow"', "1", "1"]);
   const beforePlayer = sql("player"),
     beforeSkills = sql("skill");
@@ -78,8 +85,10 @@ await runTemporaryDatabaseTest(database, async (scope) => {
   command(["call", database, "reset_item_economy", '"ten-tier-v1"']);
   assert.deepEqual(
     sql("player"),
-    beforePlayer,
-    "replacement preserves all character fields and gold",
+    beforePlayer.map((row) =>
+      row.map((value, index) => (index === 7 ? 0 : value)),
+    ),
+    "replacement preserves character fields and gold while resetting the old action cooldown",
   );
   assert.deepEqual(
     sql("skill"),

@@ -1,6 +1,6 @@
 # DataVerse Space
 
-Standalone Vue 3 + TypeScript frontend with two SpaceTimeDB 2.10 modules. BitCraft is public. Evergather currently uses remembered browser identities for local play; Discord through SpacetimeAuth can be restored later. The running app has no Laravel or PostgreSQL dependency. Existing ICHAA files and databases are left untouched.
+Standalone Vue 3 + TypeScript frontend with two SpaceTimeDB 2.12 modules. BitCraft is public. Evergather currently uses remembered browser identities for local play; Discord through SpacetimeAuth can be restored later. The running app has no Laravel or PostgreSQL dependency. Existing ICHAA files and databases are left untouched.
 
 ## Local development
 
@@ -13,7 +13,15 @@ preserve `.runtime/data`, and leave unrelated services alone. Starting twice
 reuses the running services. Logs
 are saved in `.runtime/services`. They do not publish or reset any databases.
 
-Use Node 24 and the SpaceTimeDB 2.10 CLI. From this folder:
+Use Node 24 and the SpaceTimeDB 2.12.0 CLI and SDK. From this folder:
+
+BitCraft and Evergather use SDK-managed recovery after an established connection
+drops. Cached data, open dialogs and page filters remain visible while live data
+resynchronizes. Evergather restores its connection-scoped view before enabling
+actions; auto-repeat stops on connection loss. Interrupted writes are never
+automatically repeated. Failed first connections retain the application's retry
+handling. Explicit sign-out, browser reloads and development-server reloads still
+follow their normal lifecycle.
 
 ```powershell
 npm install
@@ -43,6 +51,8 @@ The BitCraft XP tracker continues refreshing in hidden tabs and refreshes immedi
 `npx tsx scripts/xp-background-check.ts [Character]` checks the managed local app by disconnecting its tracker reader for 75 seconds, then verifying collection advanced and the rate/session restore from history. The default character is Icha.
 
 The existing local proxy can also serve https://space.test/evergather. ServBay's existing Cloudflare tunnel maps https://space.ichaa.dev to `space.test`. Vite allows both hostnames in development and preview and proxies `/v1` HTTP/WebSocket requests to SpaceTimeDB on port 3100. Public visitors use the site's secure WebSocket address; local development keeps the configured database address. ServBay, its Cloudflare tunnel, and the local app services must stay running for the public site to be available.
+
+The public [Boss Leaderboard](https://space.test/bitcraft/bosses) records confirmed Sentinel, Giant Skitch and Araknir Nest defeats through the managed collector, including contributors and final blows where observed. Recording runs independently of browser tabs. Detailed encounters have bounded retention; compact totals survive expiry and storage maintenance. See [boss recording](docs/boss-recording.md) for attribution, coverage and verification.
 
 ## Temporary local play
 
@@ -103,6 +113,14 @@ Search, board filters, show-more controls, repeat/auto-repeat, navigation restor
 The October 3 UI verification walked all 15 distinct source sections, plus each available Result placement in Space, at desktop and mobile sizes. A separate test character exercised customization persistence, gathering, activities, reward claims/title equip, shop materials/tools, crafting, job delivery, expeditions, tool equip/unequip, item listing/cancellation, and NPC selling. Screenshots and walkthrough output are under ignored `output/playwright`. Unit and isolated server checks cover presentation contracts, ownership, action rollback, pricing and trade fees.
 
 ### BitCraft UI
+
+Tracked Claims is available at `/bitcraft/claim-history`. Its searchable list shows supplies, hourly upkeep and estimated run-out dates, with low-supply and freshness filters. Click a claim for a tabbed dialog covering ownership, members, supplies, claim changes and recording gaps. Recent changes also includes claims that left tracking. Only T4+ claims with both a regular waystone and a functional bank in the nine current regions qualify. History retains up to 30 days / 50,000 meaningful events, including possible outsider takeover evidence. Baselines, current supply status, events and coverage survive storage maintenance. Expiry is an estimate, and missing or stale data stays visibly marked; see `docs/bitcraft-storage.md` for limits and verification commands.
+
+Star a claim in the list or its dialog to add it to the personal Tracked tab. Up to 200 stars are saved in this browser, separately for each database. A small subscribed `claim_changes` revision feed refreshes the visible list, shortlist and open dialog when recorded data changes. The browser receives bounded procedure pages rather than the complete history. A one-minute safety refresh handles freshness and time-based risk filters. New timeline entries merge with already loaded older pages. Changes to current supplies/details or newer recorded events show Updated until its All history view is opened. Countdown ticks and recording reconnects alone do not create update badges. Claims that leave the recording scope retain their star and available history. Stars do not broaden the collector's recording rule or create server-side preference rows.
+
+Claim-specific history and shortlist reads use the claim-ID index; regional lists filter by region before parsing and estimating rows. The revision view is derived from retained claim data and needs no additional checkpoint state. `npm test` includes native datastore tests for both Space modules, covering real transaction rollback, private views, authorization and deterministic storage-lease expiry.
+
+The Members tab shows the current recorded roster with named Storage, Build, Officer and Co-Owner permission columns. Player last-seen readings come from one shared cached claim-members request, fetched only when that tab is opened and checked while it remains visible. The timestamp describes reported activity anywhere in the world, not a claim visit. Missing values stay Unknown, delayed reads retain their warning, and the cached request refreshes about every five minutes. Last-seen enrichment does not alter membership evidence or create timeline events.
 
 The public ICHAA BitCraft pages are ported into `src/bitcraft-ui`; `BitcraftUiPage.vue` supplies their original prop contracts and navigation through SpaceTimeDB. The earlier generic BitCraft screens have been removed. Public definitions contain 9,094 catalog items and 504 gathering actions, with recipe alternatives, deferred ingredient branches, bait-processing outputs, and locally copied icons. The 19 published guides retain their rich documents, author labels and dates; inline item and activity cards use the same reader components.
 
@@ -247,6 +265,6 @@ SpacetimeDB remains the only database. The collector now publishes changed regio
 
 The collector now stores individual native market orders and barter exchanges, shares claim/owner labels, and reconstructs global books for reads. Barter legs use catalog IDs and quantities. Refresh timestamps, retry leases and feed errors use small status records, so unchanged responses do not rewrite large payloads. Always-on API seeds are regions, empires and levels; claim and stall pages are collected for requested searches/fallback scopes.
 
-Maintenance preserves the latest market dataset in bounded owner-only chunks alongside existing application and XP preservation. It hashes backups, checks every retained field, resumes interrupted restoration safely and removes only the verified retired replica. Main and test retain independent 2 GB maintenance targets and 3 GB monitored budgets; test stays in storage-only mode. See [the storage guide](docs/bitcraft-storage.md).
+Maintenance preserves the latest market dataset in bounded owner-only chunks alongside existing application and XP preservation. It hashes temporary exports, checks every retained field, resumes interrupted restoration safely and removes only the verified retired replica. Successful restoration removes the transfer export; deployment backups and diagnostic history archives are not retained automatically. Main and test retain independent 2 GB maintenance targets and 3 GB monitored budgets; test stays in storage-only mode. See [the storage guide](docs/bitcraft-storage.md).
 
 Repeatable diagnostics: `npx tsx scripts/relay-storage-audit.ts` reports aggregate logical payload sizes and physical disk use without exporting private payloads. `npx tsx scripts/relay-growth-sample.ts 360 steady` measures a live six-minute log-growth interval. `npm run test:refresh-cache-server` verifies unchanged-cache/feed writes using the live HTTPS regions API; the populated-market storage server test exercises interruption and exact recovery. Temporary market/relay test databases are removed by verified database/replica identity after checks.

@@ -1,0 +1,144 @@
+{
+  "checkedAtUtc": "2026-10-15T05:32:07.546248+00:00",
+  "player": {
+    "username": "Krutch",
+    "entityId": "648518346354619877"
+  },
+  "scope": "Bitjita Sentinel boss-filter contribution records; not verified completed dungeon counts",
+  "ranges": {
+    "all": {
+      "url": "https://bitjita.com/api/leaderboard/kills?search=Krutch&filter=bosses&range=all",
+      "response": {
+        "players": [
+          {
+            "entityId": "648518346354619877",
+            "username": "Krutch",
+            "kills": 25265,
+            "uniqueEnemies": 24280,
+            "totalContribution": 11939005,
+            "rank": 1
+          }
+        ],
+        "count": 1,
+        "searchCount": 1,
+        "filter": "bosses",
+        "range": "all",
+        "globalStats": {
+          "totalKills": 25265,
+          "totalContribution": 11939005,
+          "maxKills": 25265,
+          "maxContribution": 11939005
+        },
+        "pagination": {
+          "page": 1,
+          "pageSize": 100,
+          "totalPages": 1,
+          "hasNext": false,
+          "hasPrev": false
+        }
+      }
+    },
+    "30d": {
+      "url": "https://bitjita.com/api/leaderboard/kills?search=Krutch&filter=bosses&range=30d",
+      "response": {
+        "players": [
+          {
+            "entityId": "648518346354619877",
+            "username": "Krutch",
+            "kills": 2328,
+            "uniqueEnemies": 2302,
+            "totalContribution": 1376422.125,
+            "rank": 1
+          }
+        ],
+        "count": 1,
+        "searchCount": 1,
+        "filter": "bosses",
+        "range": "30d",
+        "globalStats": {
+          "totalKills": 2328,
+          "totalContribution": 1376422.125,
+          "maxKills": 2328,
+          "maxContribution": 1376422.125
+        },
+        "pagination": {
+          "page": 1,
+          "pageSize": 100,
+          "totalPages": 1,
+          "hasNext": false,
+          "hasPrev": false
+        }
+      }
+    },
+    "7d": {
+      "url": "https://bitjita.com/api/leaderboard/kills?search=Krutch&filter=bosses&range=7d",
+      "response": {
+        "players": [
+          {
+            "entityId": "648518346354619877",
+            "username": "Krutch",
+            "kills": 691,
+            "uniqueEnemies": 691,
+            "totalContribution": 372289.96875,
+            "rank": 1
+          }
+        ],
+        "count": 1,
+        "searchCount": 1,
+        "filter": "bosses",
+        "range": "7d",
+        "globalStats": {
+          "totalKills": 691,
+          "totalContribution": 372289.96875,
+          "maxKills": 691,
+          "maxContribution": 372289.96875
+        },
+        "pagination": {
+          "page": 1,
+          "pageSize": 100,
+          "totalPages": 1,
+          "hasNext": false,
+          "hasPrev": false
+        }
+      }
+    },
+    "1d": {
+      "url": "https://bitjita.com/api/leaderboard/kills?search=Krutch&filter=bosses&range=1d",
+      "response": {
+        "players": [
+          {
+            "entityId": "648518346354619877",
+            "username": "Krutch",
+            "kills": 183,
+            "uniqueEnemies": 183,
+            "totalContribution": 115204.40625,
+            "rank": 1
+          }
+        ],
+        "count": 1,
+        "searchCount": 1,
+        "filter": "bosses",
+        "range": "1d",
+        "globalStats": {
+          "totalKills": 183,
+          "totalContribution": 115204.40625,
+          "maxKills": 183,
+          "maxContribution": 115204.40625
+        },
+        "pagination": {
+          "page": 1,
+          "pageSize": 100,
+          "totalPages": 1,
+          "hasNext": false,
+          "hasPrev": false
+        }
+      }
+    }
+  },
+  "sourceChecks": {
+    "url": "https://raw.githubusercontent.com/clockworklabs/BitCraftPublic/master/BitCraftServer/packages/game/src/game/entities/contribution_state.rs",
+    "damageCreatesOrUpdatesContribution": true,
+    "idleResetCanClearContribution": true,
+    "notes": "Contribution is not intrinsically a permanent death ledger. Bitjita collector death-vs-reset validation was not available to verify."
+  }
+}

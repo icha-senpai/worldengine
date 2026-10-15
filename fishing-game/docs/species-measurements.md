@@ -55,7 +55,7 @@ which limits weight precision at the smallest sizes.
 ## Maintenance and safe activation
 
 Edit the CSV, run `node scripts/build-world-content.mjs`, and run
-`npm run content:validate` plus `cargo test -p game-rules --locked`. Missing,
+`npm run content:validate` plus `npm run rust:run -- test -p game-rules --locked`. Missing,
 duplicate, invalid or extra keys fail validation. Regeneration preserves
 explicit base prices instead of deriving prices from weight, so measurements
 do not silently rebalance XP, sale values or encounter tickets.

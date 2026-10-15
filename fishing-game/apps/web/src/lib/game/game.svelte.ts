@@ -1,9 +1,16 @@
 import { DbConnection } from '@fishing-game/generated';
+import type { SubscriptionHandle } from '@fishing-game/generated';
+import { coreQueries, viewQueries } from './subscriptions';
 import type { JournalPage } from '@fishing-game/generated/types';
 export type JournalQuery = { page: number; pageSize: number; sort: string; descending: boolean; search: string; biomeId: number; rarity: string; outcome: string };
 import type { ActionNonce, AnglerPortrait, AnglerStatistics, AnglerStanding, LegendaryFind, BiomeDefinition, RodDefinition, RarityDefinition, GameConfig, ItemStack, LinkChallenge, OwnedSpecimen, Player, PlayerSpeciesProgress, PublicProfile, RecentCatch, SpeciesDefinition, SpeciesRecord, ShopListing, ShopQuote, OwnedRod, OwnedBiomeLicence, RodBonuses } from '@fishing-game/generated/types';
 
 export class Game {
+  questDefinitions = $state.raw<import('@fishing-game/generated/types').QuestDefinition[]>([]);
+  quests = $state.raw<import('@fishing-game/generated/types').QuestStatus[]>([]);
+  questCalendar = $state.raw<import('@fishing-game/generated/types').QuestCalendar | null>(null);
+  dockside = $state.raw<import('@fishing-game/generated/types').DocksideStatus | null>(null);
+
   achievements = $state.raw<import('@fishing-game/generated/types').AchievementDefinition[]>([]);
   achievementCollections = $state.raw<import('@fishing-game/generated/types').AchievementCollection[]>([]);
   earnedAchievements = $state.raw<import('@fishing-game/generated/types').EarnedAchievement[]>([]);
@@ -22,6 +29,7 @@ export class Game {
   upgradeQuote = $state.raw<import('@fishing-game/generated/types').UpgradeQuote | null>(null);
   status = $state('Not connected');
   ready = $state(false);
+  reconnecting = $state(false);
   error = $state('');
   busy = $state(false);
   lastSync = $state<Date | null>(null);
@@ -54,14 +62,51 @@ export class Game {
   licences = $state.raw<OwnedBiomeLicence[]>([]);
   private connection: DbConnection | null = null;
   private generation = 0;
-  private recipesSubscribed = false;
+  sectionLoading = $state(false);
+  private coreReady = false;
+  private sectionReady = false;
+  private sectionSubscription: SubscriptionHandle | null = null;
+  private sectionKey = '';
+  private sectionRevision = 0;
+  private selectedView = 'camp';
   private retry: ReturnType<typeof setTimeout> | null = null;
   private attempts = 0;
   private uri = '';
   private database = '';
   private tokenKey = '';
+  private actionUnconfirmed = false;
+
+  setView(view: string) { this.selectedView = view; this.syncSection(); }
+  private finishRecovery() {
+    if (!this.coreReady || !this.sectionReady) return;
+    this.ready = true; this.reconnecting = false; this.sectionLoading = false;
+    this.status = 'Live'; this.attempts = 0;
+    if (!this.actionUnconfirmed) this.error = '';
+    this.refresh();
+  }
+  private syncSection() {
+    const connection = this.connection;
+    if (!connection?.isActive || !this.coreReady) return;
+    const queries = viewQueries(this.selectedView, this.player?.playerId, this.config?.version);
+    const key = JSON.stringify(queries);
+    if (key === this.sectionKey) return;
+    const revision = ++this.sectionRevision, generation = this.generation;
+    this.sectionSubscription?.unsubscribe();
+    this.sectionSubscription = null; this.sectionKey = key;
+    this.ready = false; this.sectionReady = false; this.sectionLoading = true;
+    this.status = 'Loading view…';
+    if (!queries.length) { this.sectionReady = true; this.finishRecovery(); return; }
+    this.sectionSubscription = connection.subscriptionBuilder().onApplied(() => {
+      if (revision !== this.sectionRevision || generation !== this.generation) return;
+      this.sectionReady = true; this.finishRecovery();
+    }).onError(() => {
+      if (revision !== this.sectionRevision || generation !== this.generation) return;
+      this.sectionLoading = false; this.error = 'This view could not load. Reconnect to try again.';
+    }).subscribe(queries);
+  }
 
   private clearPrivate() {
+    this.quests = []; this.dockside = null;
     this.achievementProgress = [];
     this.focusPreferences = []; this.ownedBaits = []; this.baitLoadout = null; this.upgradeQuote = null;
     this.player = null; this.profile = null; this.inventory = []; this.collection = [];
@@ -70,7 +115,11 @@ export class Game {
   }
   private refresh = () => {
     const connection = this.connection;
-    if (!connection || !this.ready) return;
+    if (!connection || !this.coreReady) return;
+    this.questDefinitions = [...connection.db.questDefinition.iter()].sort((a,b) => a.questId-b.questId);
+    this.quests = [...connection.db.myQuests.iter()];
+    this.questCalendar = [...connection.db.questCalendar.iter()][0] ?? null;
+    this.dockside = [...connection.db.myDockside.iter()][0] ?? null;
     this.achievements = [...connection.db.achievementDefinition.iter()].sort((a,b) => a.achievementId-b.achievementId);
     this.achievementCollections = [...connection.db.achievementCollection.iter()];
     this.earnedAchievements = [...connection.db.earnedAchievement.iter()];
@@ -98,15 +147,6 @@ export class Game {
     this.rarities = [...connection.db.rarityDefinition.iter()].sort((a, b) => a.ordinal - b.ordinal);
     this.items = [...connection.db.myItems.iter()];
     this.config = [...connection.db.gameConfig.iter()].sort((a,b) => b.version-a.version)[0] ?? null;
-    if ((this.config?.version ?? 0) >= 9 && !this.recipesSubscribed) {
-      this.recipesSubscribed = true;
-      const generation = this.generation;
-      connection.subscriptionBuilder().onApplied(() => {
-        if (generation === this.generation) this.refresh();
-      }).onError(() => {
-        if (generation === this.generation) this.error = 'The upgrade recipes could not load. Try reconnecting.';
-      }).subscribe(['SELECT * FROM rod_upgrade_recipe']);
-    }
     this.challenge = [...connection.db.myLinkChallenge.iter()][0] ?? null;
     this.action = [...connection.db.myAction.iter()][0] ?? null;
     this.shopQuote = [...connection.db.myShopQuote.iter()][0] ?? null;
@@ -120,6 +160,7 @@ export class Game {
     this.baitLoadout = [...connection.db.myBaitLoadout.iter()][0] ?? null;
     this.upgradeQuote = [...connection.db.myUpgradeQuote.iter()][0] ?? null;
     this.lastSync = new Date();
+    this.syncSection();
   };
   start(uri: string, database: string) {
     this.stop(); this.uri = uri; this.database = database; this.attempts = 0;
@@ -129,14 +170,27 @@ export class Game {
   }
   private connect() {
     const generation = ++this.generation;
-    this.recipesSubscribed = false;
+    this.coreReady = false; this.sectionReady = false; this.sectionKey = '';
+    this.sectionSubscription = null; this.sectionRevision++;
     this.connection?.disconnect(); this.connection = null;
     let token: string | undefined;
     try { token = localStorage.getItem(this.tokenKey) ?? undefined; } catch { /* Storage may be disabled. */ }
     this.status = this.attempts ? 'Reconnecting…' : 'Connecting…';
-    const lost = () => {
+    let connectedOnce = false;
+    const lost = (_context: unknown, _error: unknown, nextAttempt?: number) => {
       if (generation !== this.generation) return;
-      this.ready = false; this.clearPrivate(); this.status = 'Connection lost';
+      this.ready = false;
+      this.coreReady = false; this.sectionReady = false;
+      this.reconnecting = nextAttempt !== undefined;
+      this.status = this.reconnecting ? 'Reconnecting…' : 'Connection lost';
+      // Established connections retain their cache and are retried by the SDK.
+      // Application retries cover failed first connections only.
+      if (nextAttempt !== undefined) return;
+      if (connectedOnce) {
+        if (_error instanceof Error && _error.name === 'IdentityChangedError') this.clearPrivate();
+        this.error = 'The connection ended. Reconnect or sign in again to continue.';
+        return;
+      }
       if (this.retry) return;
       if (this.attempts < 5) {
         this.retry = setTimeout(() => {
@@ -145,25 +199,34 @@ export class Game {
         }, Math.min(1000 * 2 ** this.attempts++, 15000));
       } else { this.error = 'Could not reconnect. Try reconnecting below.'; }
     };
-    const connection = DbConnection.builder().withUri(this.uri).withDatabaseName(this.database).withToken(token)
+    const connection = DbConnection.builder().withUri(this.uri).withDatabaseName(this.database).withToken(token).withAutomaticReconnect()
       .onConnect((connection, _identity, newToken) => {
         if (generation !== this.generation) { connection.disconnect(); return; }
+        connectedOnce = true;
         try { localStorage.setItem(this.tokenKey, newToken); } catch { /* This session still works. */ }
         connection.subscriptionBuilder().onApplied(() => {
           if (generation !== this.generation) return;
-          this.ready = true; this.status = 'Live'; this.attempts = 0; this.error = ''; this.refresh();
+          this.coreReady = true;
+          this.refresh();
+          this.finishRecovery();
         }).onError(() => { this.error = 'The pond could not load your data.'; connection.disconnect(); })
-          .subscribe(['SELECT * FROM achievement_definition', 'SELECT * FROM achievement_collection', 'SELECT * FROM earned_achievement', 'SELECT * FROM perfect_species', 'SELECT * FROM rank_maximum', 'SELECT * FROM angler_title', 'SELECT * FROM my_achievement_progress', 'SELECT * FROM public_profile', 'SELECT * FROM angler_portrait', 'SELECT * FROM my_player', 'SELECT * FROM my_profile', 'SELECT * FROM my_inventory', 'SELECT * FROM my_collection', 'SELECT * FROM my_collection_focus',
-            'SELECT * FROM my_baits', 'SELECT * FROM my_bait_loadout', 'SELECT * FROM my_upgrade_quote', 'SELECT * FROM bait_definition', 'SELECT * FROM quality_definition', 'SELECT * FROM my_recent_catches', 'SELECT * FROM my_journal', 'SELECT * FROM my_link_challenge', 'SELECT * FROM my_action', 'SELECT * FROM my_items',
-            'SELECT * FROM species_definition', 'SELECT * FROM species_record', 'SELECT * FROM angler_standing', 'SELECT * FROM angler_statistics', 'SELECT * FROM legendary_find', 'SELECT * FROM game_config', 'SELECT * FROM biome_definition', 'SELECT * FROM my_rods', 'SELECT * FROM my_licences', 'SELECT * FROM my_shop_quote', 'SELECT * FROM shop_listing', 'SELECT * FROM rod_bonuses', 'SELECT * FROM rod_definition', 'SELECT * FROM rarity_definition']);
+          .subscribe(coreQueries);
+      }).onAutomaticReconnect((_connection, _identity, newToken) => {
+        if (generation !== this.generation) return;
+        try { localStorage.setItem(this.tokenKey, newToken); } catch { /* This session still works. */ }
+        this.status = 'Restoring live data…';
+        // Existing subscriptions and callbacks are replayed by the SDK.
+        // Their onApplied callback enables actions only after reconciliation.
       }).onConnectError(lost).onDisconnect(lost).build();
     this.connection = connection;
-    for (const table of [connection.db.achievementDefinition, connection.db.achievementCollection, connection.db.earnedAchievement, connection.db.perfectSpecies, connection.db.rankMaximum, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.anglerPortrait, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection, connection.db.myCollectionFocus,
+    for (const table of [connection.db.questDefinition, connection.db.questCalendar, connection.db.myQuests, connection.db.myDockside, connection.db.achievementDefinition, connection.db.achievementCollection, connection.db.earnedAchievement, connection.db.perfectSpecies, connection.db.rankMaximum, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.anglerPortrait, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection, connection.db.myCollectionFocus,
       connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.baitDefinition, connection.db.rodUpgradeRecipe, connection.db.qualityDefinition, connection.db.myRods, connection.db.myLicences, connection.db.myShopQuote, connection.db.shopListing, connection.db.myRecentCatches, connection.db.myJournal, connection.db.myLinkChallenge, connection.db.myAction, connection.db.myItems,
       connection.db.speciesDefinition, connection.db.speciesRecord, connection.db.anglerStanding, connection.db.anglerStatistics, connection.db.legendaryFind, connection.db.gameConfig, connection.db.biomeDefinition, connection.db.rodBonuses, connection.db.rodDefinition, connection.db.rarityDefinition]) {
       table.onInsert(this.refresh); table.onDelete(this.refresh);
     }
     for (const table of [connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.myRods, connection.db.baitDefinition, connection.db.rodUpgradeRecipe, connection.db.qualityDefinition]) table.onUpdate(this.refresh);
+    connection.db.questDefinition.onUpdate(this.refresh);
+    connection.db.questCalendar.onUpdate(this.refresh);
     connection.db.rodBonuses.onUpdate(this.refresh);
     connection.db.shopListing.onUpdate(this.refresh);
     connection.db.myItems.onUpdate(this.refresh);
@@ -187,9 +250,11 @@ export class Game {
   }
   stop() {
     this.generation++; if (this.retry) clearTimeout(this.retry);
-    this.retry = null; this.connection?.disconnect(); this.connection = null; this.ready = false; this.clearPrivate();
+    this.coreReady = false; this.sectionReady = false; this.sectionLoading = false;
+    this.sectionKey = ''; this.sectionSubscription = null; this.sectionRevision++;
+    this.retry = null; this.connection?.disconnect(); this.connection = null; this.ready = false; this.reconnecting = false; this.actionUnconfirmed = false; this.clearPrivate();
   }
-  reconnect() { this.start(this.uri, this.database); }
+  reconnect() { if (!this.connection?.isReconnecting) this.start(this.uri, this.database); }
   async queryJournal(query: JournalQuery) {
     if (!this.ready || !this.connection || !this.player) return;
     if (JSON.stringify(query) === this.journalLastQuery && !this.journalLoading) return;
@@ -214,10 +279,16 @@ export class Game {
     }
   }
   async run(action: (connection: DbConnection) => Promise<void>) {
-    if (!this.ready || !this.connection || this.busy) return;
-    this.busy = true; this.error = '';
+    if (!this.ready || !this.connection) { this.error = 'Wait for the connection to recover before taking an action.'; return; }
+    if (this.busy) return;
+    this.busy = true; this.error = ''; this.actionUnconfirmed = false;
     try { await action(this.connection); this.refresh(); }
     catch (error) {
+      if (error instanceof Error && error.name === 'UnknownCallResultError') {
+        this.actionUnconfirmed = true;
+        this.error = 'The connection dropped before this action was confirmed. Check your updated inventory and coins before trying again.';
+        return;
+      }
       const message = String(error);
       this.error = message.includes('INSUFFICIENT_MATERIALS') ? 'Gather more rusted tin and scrap before upgrading. Resource bait is available at the Trader.'
         : message.includes('MAX_QUALITY') ? 'This rod has already reached Prismatic quality.'
@@ -229,7 +300,15 @@ export class Game {
         : message.includes('BIOME_LICENCE_REQUIRED') ? 'Visit the camp trader for this biome licence first.'
         : message.includes('ROD_NOT_OWNED') ? 'Buy that rod from the camp trader before equipping it.'
         : message.includes('SHOP_LEVEL_REQUIRED') ? 'Reach the required angler level before buying this item.'
-        : message.includes('FAVORITE_PROTECTED') ? 'Favorites are protected. Unfavorite that catch before selling.'
+        : message.includes('FAVORITE_PROTECTED') ? 'Favorites are protected. Unfavorite that catch before handing it over.'
+        : message.includes('QUEST_RUN_CHANGED') ? 'This job was already claimed. Review the new run before claiming again.'
+        : message.includes('QUEST_WEEK_CHANGED') ? 'A new contract week started. Review the refreshed board.'
+        : message.includes('QUEST_WEEK_ALREADY_CLAIMED') ? 'You already collected a contract reward this week.'
+        : message.includes('QUEST_REWARD_CHOICE_REQUIRED') ? 'Choose one of the listed bait rewards.'
+        : message.includes('QUEST_LOCKED') ? 'Finish and claim the previous story step first.'
+        : message.includes('QUEST_WRONG_FISH') ? 'Choose an F, D or C rank specimen from the listed species.'
+        : message.includes('QUEST_NOT_READY') ? 'That objective is not complete yet.'
+        : message.includes('QUEST_DELIVERY_REQUIRED') ? 'Choose the fish you want to deliver.'
         : message.includes('BIOME_LEVEL_REQUIRED') || message.includes('ROD_LOCKED') ? 'Reach the required angler level to unlock this destination or rod.'
         : message.includes('BIOME_POWER_REQUIRED') ? 'Equip a stronger rod for this biome, or return to an earlier biome first.'
         : message.includes('ACTION_RATE_LIMITED') ? 'Give the previous action a moment before trying again.'
@@ -243,13 +322,26 @@ export class Game {
     } finally { this.busy = false; }
   }
   async prepareLink() {
-    if (this.challenge && !this.challenge.consumed && this.challenge.expiresAt.microsSinceUnixEpoch > BigInt(Date.now()) * 1000n) return;
+    if (!this.ready) { this.error = 'Wait for the connection to recover before linking your account.'; return; }
+    if (this.challenge && !this.challenge.consumed && this.challenge.expiresAt.microsSinceUnixEpoch > BigInt(Date.now()) * 1000n) {
+      // An interrupted request may already have created this challenge.
+      this.error = ''; this.actionUnconfirmed = false;
+      return;
+    }
     await this.run(connection => connection.reducers.beginLinkChallenge({}));
   }
   async changeLoadout(biomeId?: number, rodId?: number) {
     await this.run(connection => connection.reducers.changeLoadout({ biomeId, rodId }));
   }
   async previewPurchase(listingId: number) { await this.run(connection => connection.reducers.prepareShopPurchase({ listingId })); }
+  async claimQuest(questId: number, baitId: number, catchId: bigint | undefined, expectedWeek: bigint, expectedCycle: bigint) {
+    if (!this.ready || !this.connection || this.busy) return false;
+    await this.run(connection => connection.reducers.claimQuest({ questId, baitId, catchId, expectedWeek, expectedCycle }));
+    return !this.error;
+  }
+  async claimDockside() {
+    await this.run(connection => connection.reducers.claimDocksideDelivery({}));
+  }
   async purchase(listingId: number, quantity = 1) {
     if (!this.ready || !this.connection || this.busy) return false;
     const listing = this.listings.find(row => row.listingId === listingId);

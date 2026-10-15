@@ -3,12 +3,43 @@ import {
   canonicalState,
   safeReplicaPath,
   retainedStorageBytes,
+  removeCompletedStorageExports,
 } from "../scripts/bitcraft-storage";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { tradingDelta } from "../scripts/bitcraft-trading-delta";
 describe("bounded BitCraft storage", () => {
+  it("removes only completed exports and refuses pending recovery", async () => {
+    const root = await mkdtemp(join(tmpdir(), "bitcraft-export-cleanup-"));
+    const database = "space-bitcraft-tools";
+    const binding = join(root, database + ".json");
+    try {
+      await writeFile(
+        binding,
+        JSON.stringify({ database, pending: { backup: "retained" } }),
+      );
+      await writeFile(join(root, database + "-123.json"), "state");
+      await writeFile(join(root, database + "-123.json.sha256"), "hash");
+      await writeFile(join(root, database + ".bundle.js"), "sealed");
+      await writeFile(join(root, "space-bitcraft-checks-123.json"), "other");
+      await expect(
+        removeCompletedStorageExports(database, root),
+      ).rejects.toThrow("unfinished rebuild");
+      expect(await retainedStorageBytes(database, root)).toBeGreaterThan(10);
+      await writeFile(binding, JSON.stringify({ database }));
+      await removeCompletedStorageExports(database, root);
+      expect((await readdir(root)).sort()).toEqual(
+        [
+          "space-bitcraft-checks-123.json",
+          database + ".bundle.js",
+          database + ".json",
+        ].sort(),
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
   it("counts each database's artifacts independently", async () => {
     const root = await mkdtemp(join(tmpdir(), "bitcraft-budget-"));
     try {

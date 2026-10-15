@@ -1,3 +1,4 @@
+import { requireRustWorkflow } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
@@ -6,6 +7,8 @@ import world from '../content/world.json';
 import crafting from '../content/crafting.json';
 import { baselineLoadout, castChance, perfectCatchOdds, rankSpreads, weightRangeAtLength, type RateLoadout } from '../apps/web/src/lib/game/compendium';
 import { bestPerfectLoadout } from '../apps/web/src/lib/game/compendium-loadouts';
+
+requireRustWorkflow();
 
 assert.deepEqual([bestPerfectLoadout.power,bestPerfectLoadout.luckBp,bestPerfectLoadout.sizeRolls],[185,12000,16]);
 const loadouts: RateLoadout[] = [baselineLoadout,

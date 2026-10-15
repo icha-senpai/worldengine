@@ -1,14 +1,17 @@
+import { moduleArtifactPath, requireRustWorkflow } from './rust-build.mjs';
 // Publish an old production WASM to a new proof DB, then prove additive activation.
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
 
+requireRustWorkflow();
+
 const uri = 'http://127.0.0.1:3127';
 const database = `fishbound-proof-measurements-${Date.now()}`;
 const oldWasm = process.argv[2];
 assert(oldWasm, 'Pass the saved pre-update production WASM path');
-const nextWasm = 'spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm';
+const nextWasm = moduleArtifactPath();
 const catalog = JSON.parse(await readFile('content/species.json', 'utf8'));
 const thresholds = JSON.parse(await readFile('content/size-rules.json', 'utf8')).tiers;
 const tables = [...(await readFile('spacetimedb/src/tables.rs', 'utf8')).matchAll(/accessor = (\w+)/g)]

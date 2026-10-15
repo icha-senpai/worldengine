@@ -507,14 +507,6 @@ export const testOldVersion = db.reducer((ctx)=>{if(!ctx.db.security.id.find(1)!
     console.log(
       "PASS: all 38 real starter training paths, 380 equipment assemblies, destination/crafter gates, rarity commission chains and caps, exact repairs, starter gold-only repairs, supplies, buff isolation/charges/expiry/replacement/rollback, unlimited deliveries, expeditions, traded-tool gates, salvage, static definition feeds, non-destructive refresh, owner-only idempotent reset preserving characters/XP/gold.",
     );
-    writeFileSync(
-      ".runtime/last-economy-check.json",
-      JSON.stringify({
-        database,
-        fixture,
-        checkedAt: new Date().toISOString(),
-      }),
-    );
   } finally {
     for (const conn of clients) conn.disconnect();
   }

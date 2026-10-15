@@ -8,7 +8,7 @@ This reference separates the installed subscription foundation from optional exp
 
 **Storage update, October 8:** SpacetimeDB remains the only database. Market and barter updates now contain individual changed orders and cancellations; large payloads are separated from freshness bookkeeping. Worldwide API claim/stall scans are requested when needed rather than collected continuously. Storage maintenance starts around 2 GB within a 3 GB monitored budget per managed database. User records, XP history and the latest market dataset are checkpointed and verified before old storage is removed; relays then reconcile fresh generations. Read the [storage and recovery guide](bitcraft-storage.md) for retention and limits.
 
-**Test protection, October 8:** the persistent BitCraft test database has its own storage-only guard, with the same 2 GB maintenance threshold, 3 GB monitored budget and short write lease. It does not mirror global relay traffic while idle. Main and test startup, publication, logs, backups and storage accounting are managed separately.
+**Test protection, October 8:** the persistent BitCraft test database has its own storage-only guard, with the same 2 GB maintenance threshold, 3 GB monitored budget and short write lease. It does not mirror global relay traffic while idle. Main and test startup, publication, logs, temporary maintenance exports and storage accounting are managed separately.
 
 **Implementation status:** the local Space collector now subscribes natively to BITCONNECT trading state in all nine current regions and BitCraftSync XP for watched players. Inventory and craft changes trigger enriched API refreshes; house/claim joins and history still use APIs. Optional F cards remain separate choices, except the basic activity/stamina context now shown in XP Tracker. This is a local implementation, not a deployment or world-scale capacity guarantee.
 
@@ -20,6 +20,7 @@ This reference separates the installed subscription foundation from optional exp
 | Barter | Searchable exchanges, comparison rows, quantities, and fill estimates | BITCONNECT native player barter stalls and trade rows; shared APIs are retained for startup recovery and enrichment |
 | Player tools | Collected skills, inventories, housing, selected claim storage, and craft records where supported | Watched players and claims, not a complete world inventory mirror |
 | Activity and XP | Native watched XP, session totals, goals, character tabs, popout and OBS modes | Bounded history; source changes and gaps over two minutes restart the rate baseline |
+| Tracked claims and history | Native ownership, named roster, supply/upkeep status and claim changes for T4+ claims with both a waystone and a bank | Nine current regions; expiry-sorted list with tabbed history; compact current status and 30 days / 50,000 meaningful events with payload bounds, eligibility transitions, reconnect gaps and possible takeover evidence |
 | Nearby resources | Counts and nearest coordinates from a decoded 400 by 400 resource window | Periodic snapshots near the selected player's last known position; no interactive live map yet |
 | Reference data | Public item definitions, recipes, skills, guides, and mirrored assets | Definitions and assets have their own update cycle |
 

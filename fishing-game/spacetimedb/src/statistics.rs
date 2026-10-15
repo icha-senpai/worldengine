@@ -205,6 +205,7 @@ pub fn observe_pull(
     is_bonus: bool,
     sets_record: bool,
 ) -> Result<(), String> {
+    crate::quests::observe_pull(ctx, receipt)?;
     let mut stats = ctx
         .db
         .angler_statistics()

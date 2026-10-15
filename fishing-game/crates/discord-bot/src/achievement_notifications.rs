@@ -111,52 +111,57 @@ impl AchievementNotifications {
 
     pub fn start(self: &Arc<Self>, game: Arc<Client>, http: Arc<serenity::Http>, website: String) {
         let notifications = self.clone();
-        let mut unlocks = game.subscribe_achievement_unlocks();
         tokio::spawn(async move {
+            let mut interval = tokio::time::interval(Duration::from_secs(5));
             loop {
-                let unlock = match unlocks.recv().await {
-                    Ok(unlock) => unlock,
-                    Err(tokio::sync::broadcast::error::RecvError::Lagged(count)) => {
-                        tracing::warn!(count, "Achievement announcement queue lagged");
-                        continue;
-                    }
-                    Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
-                };
+                interval.tick().await;
                 if !game.ready() {
                     continue;
                 }
-                let Some((user, route)) = notifications.route(&unlock) else {
-                    tracing::info!(
-                        player_id = unlock.player_id,
-                        achievement_id = unlock.achievement_id,
-                        "Achievement earned before Discord channel is known"
-                    );
-                    continue;
-                };
-                notifications
-                    .remember_player(user, Some(unlock.player_id))
-                    .await;
-                // Discord's enforced nonce prevents duplicate posts during short delivery retries.
-                for attempt in 0..3 {
-                    match serenity::ChannelId::new(route.channel_id)
+                for pending in game.pending_achievement_deliveries() {
+                    let Some(unlock) = game.achievement_delivery_message(&pending) else {
+                        continue;
+                    };
+                    // Import a known local route when necessary. Once stored, the
+                    // database route is sufficient even if this file is unavailable.
+                    if let Some((user, route)) = notifications.route(&unlock) {
+                        if let Err(error) = game
+                            .remember_achievement_route(user, route.channel_id)
+                            .await
+                        {
+                            tracing::warn!(%error, "Achievement channel could not be synchronized");
+                            continue;
+                        }
+                    }
+                    let nonce = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_nanos()
+                        ^ (u128::from(std::process::id()) << 64);
+                    let delivery = match game.claim_achievement_delivery(pending.key, nonce).await {
+                        Ok(Some(delivery)) => delivery,
+                        Ok(None) => continue,
+                        Err(error) => {
+                            tracing::warn!(%error,"Achievement delivery lease unavailable");
+                            continue;
+                        }
+                    };
+                    match serenity::ChannelId::new(delivery.channel_id)
                         .send_message(&http, achievement_message(&unlock, &website))
                         .await
                     {
                         Ok(_) => {
-                            tracing::info!(
-                                player_id = unlock.player_id,
-                                achievement_id = unlock.achievement_id,
-                                channel_id = route.channel_id,
-                                "Achievement badge announced"
-                            );
-                            break;
-                        }
-                        Err(error) if attempt < 2 => {
-                            tracing::warn!(%error, attempt, achievement_id = unlock.achievement_id, "Retrying achievement announcement");
-                            tokio::time::sleep(Duration::from_secs(attempt + 1)).await;
+                            if let Err(error) = game
+                                .acknowledge_achievement_delivery(delivery.key, nonce)
+                                .await
+                            {
+                                tracing::warn!(%error,achievement_id=unlock.achievement_id,"Achievement posted; acknowledgement must recover");
+                            }
                         }
                         Err(error) => {
-                            tracing::warn!(%error, player_id = unlock.player_id, achievement_id = unlock.achievement_id, "Achievement badge delivery failed; award is retained")
+                            // The persisted lease expires; the row survives a bot
+                            // restart and remains eligible for a later attempt.
+                            tracing::warn!(%error,achievement_id=unlock.achievement_id,attempt=delivery.attempts,"Achievement delivery deferred; award and pending delivery retained");
                         }
                     }
                 }

@@ -11,11 +11,15 @@ mod inventory;
 mod journal;
 mod loadout;
 mod maintenance;
+mod notifications;
 mod perfection;
+mod quests;
 mod records;
 mod shop;
 mod statistics;
 mod tables;
+#[cfg(all(test, feature = "module-tests"))]
+mod tests;
 
 use spacetimedb::{ReducerContext, Table};
 use tables::*;
@@ -31,6 +35,7 @@ pub fn init(ctx: &ReducerContext) {
     crafting::seed(ctx);
     shop::seed(ctx);
     achievements::seed(ctx);
+    quests::seed(ctx);
     ctx.db.maintenance_job().insert(MaintenanceJob {
         scheduled_id: 1,
         scheduled_at: spacetimedb::TimeDuration::from_micros(60_000_000).into(),

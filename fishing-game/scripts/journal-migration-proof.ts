@@ -1,6 +1,9 @@
+import { moduleArtifactPath, requireRustWorkflow } from './rust-build.mjs';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { DbConnection } from '../packages/generated/src/index';
+requireRustWorkflow();
+
 const uri='http://127.0.0.1:3127';
 const database=`fishbound-proof-journal-migration-${Date.now()}`;
 const run=(command:string,args:string[])=>{const r=spawnSync(command,args,{encoding:'utf8',windowsHide:true});if(r.status!==0)throw Error(r.stderr||r.stdout);return r.stdout;};
@@ -26,7 +29,7 @@ try {
   await linker.reducers.completeAccountLink({challengeId:ch.challengeId,proof:ch.proof,verifiedDiscordUserId:9801n});
   connections.forEach(c=>c.disconnect());
   console.log(run(process.execPath,['scripts/journal-preservation.mjs','before',database]).trim());
-  publish('spacetimedb/target/wasm32-unknown-unknown/release/fishing_game_module.wasm');
+  publish(moduleArtifactPath());
   console.log(run(process.execPath,['scripts/backfill-journal.mjs',database]).trim());
   console.log(run(process.execPath,['scripts/journal-preservation.mjs','after',database]).trim());
   console.log(run(process.execPath,['scripts/backfill-journal.mjs',database]).trim());

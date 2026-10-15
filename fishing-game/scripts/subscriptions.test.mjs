@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { coreQueries, viewQueries } from '../apps/web/src/lib/game/subscriptions.ts';
+assert(!coreQueries.some(query => /my_inventory|my_journal|earned_achievement|public_profile|angler_statistics/.test(query)));
+assert.deepEqual(viewQueries('journal', 12n), ['SELECT * FROM my_journal']);
+assert(viewQueries('quests', 12n).includes('SELECT * FROM my_inventory'));
+assert(viewQueries('achievements', 12n).includes('SELECT * FROM earned_achievement WHERE player_id = 12'));
+assert(!viewQueries('achievements').some(query => /WHERE/.test(query)));
+assert(viewQueries('anglers').includes('SELECT * FROM earned_achievement'));
+assert(!viewQueries('inventory', 12n, 8).some(query => query.includes('rod_upgrade_recipe')));
+assert(viewQueries('inventory', 12n, 9).some(query => query.includes('rod_upgrade_recipe')));
+console.log('PASS tab subscriptions, player scopes and legacy recipe compatibility.');

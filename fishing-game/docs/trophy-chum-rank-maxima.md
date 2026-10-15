@@ -1,6 +1,6 @@
 # Trophy Chum: maxima at every rank
 
-Calculated 2026-10-12 from species/world catalog 5, crafting 6, and rules 12. This is a local candidate; rules 11 remains deployed until publication. Reproduce with `npx tsx scripts/rank-maxima-audit.ts`.
+Calculated 2026-10-12 from species/world catalog 5, crafting 6, and rules 12. This is a local candidate; rules 11 remains deployed until publication. Reproduce with `npm run rust:script -- scripts/rank-maxima-audit.ts`.
 
 Rules 12 extends the existing 1-in-5,000 paired-endpoint roll to F through UUR for multi-attempt bait (currently Trophy Chum). Fish and rank are selected first; all eight attempts stay within that rank and retain the heaviest specimen, with length breaking ties. Existing UUR perfect odds, eligibility and rewards are preserved. The bait now costs 500 coins per 10 uses and adds 25% luck. XP and sale-value formulas remain unchanged; the extra maximum-size outcomes can slightly raise their averages.
 

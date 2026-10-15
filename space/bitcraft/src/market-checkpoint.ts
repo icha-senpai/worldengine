@@ -1,5 +1,13 @@
 // Latest state only. Scheduling leases, raw frames and API responses are excluded.
 export const marketCheckpointTables = {
+  boss_defeat: "bossDefeat",
+  boss_score: "bossScore",
+  boss_totals: "bossTotals",
+  boss_region: "bossRegion",
+  claim_supply_status: "claimSupplyStatus",
+  claim_history_state: "claimHistoryState",
+  claim_history_event: "claimHistoryEvent",
+  claim_history_region: "claimHistoryRegion",
   market_item: "marketItem",
   market_meta: "marketMeta",
   market_summary: "marketSummaryRow",
@@ -80,6 +88,19 @@ export function restoreCheckpointPage(ctx: any, name: string, payload: string) {
       "retryAt",
       "revision",
       "updatedAt",
+      "startedAt",
+      "prunedAt",
+      "discarded",
+      "diedAt",
+      "defeats",
+      "finalBlows",
+      "lastDefeatAt",
+      "detailBytes",
+      "prunedThrough",
+      "connectedAt",
+      "heartbeatAt",
+      "gapStartedAt",
+      "lastGapEndedAt",
     ])
       if (field in row) row[field] = BigInt(row[field]);
     if (table[key].find(row[key])) table[key].update(row);
