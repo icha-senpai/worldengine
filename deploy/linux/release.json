@@ -1,0 +1,28 @@
+{
+  "spacetimeVersion": "2.12.0",
+  "modules": [
+    {
+      "key": "bitcraft", "database": "space-bitcraft-tools", "port": 3100,
+      "identity": "c200ac4bcd395a51ec81db018163fa50f276e445f311447d7d7d8c66c8e996b5",
+      "artifact": "space/bitcraft/dist/bundle.js", "kind": "js",
+      "hooks": [["prepare_claim_revisions"], ["storage_lease", 300], ["migrate_guides"], ["storage_lease", 0]],
+      "mutableTables": ["claim_revision", "storage_state"], "mutableColumns": {}
+    },
+    {
+      "key": "evergather", "database": "space-evergather", "port": 3100,
+      "identity": "c20066926956ef2cf4d5bf5632b7ed1606ed4bb5d2cf4a1a9db6332620f70c27",
+      "artifact": "space/spacetimedb/dist/bundle.js", "kind": "js",
+      "hooks": [["prepare_read_models"], ["refresh_content"]],
+      "mutableTables": ["catalog", "catalog_reference", "leaderboard", "market_order", "market_revision", "inventory_directory"],
+      "mutableColumns": {"player": ["next_action_at", "nextActionAt"]}
+    },
+    {
+      "key": "fishModule", "database": "fishbound-dev-local", "port": 3127,
+      "identity": "c2002230cb292d622fb9716c64c8c73f84b1934e4eb6e6db546fb271ab32e488",
+      "artifact": "fishing-game/.local/rust-artifacts/fishing_game_module.wasm", "kind": "wasm",
+      "hooks": [["activate_rod_bonuses"], ["activate_crafting"], ["activate_xp_progression"], ["activate_species_measurements"], ["activate_achievements"], ["activate_quests"], ["activate_history_queries"]],
+      "mutableTables": ["game_config", "rod_definition", "rod_bonuses", "quality_definition", "rod_upgrade_recipe", "bait_definition", "shop_listing", "biome_definition", "species_definition", "achievement_definition", "quest_definition", "quest_calendar", "journal_count", "maintenance_job", "action_nonce", "link_challenge", "shop_quote", "sale_quote", "upgrade_quote"],
+      "mutableColumns": {"public_profile": ["level"]}
+    }
+  ]
+}

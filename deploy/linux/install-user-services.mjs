@@ -3,9 +3,10 @@ import { execFileSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { installUpdateCommand } from './install-update.mjs';
 
 if (process.platform !== 'linux') throw new Error('Linux services only.');
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const root = process.env.DATAVERSE_CHECKOUT || resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 if (/\s/.test(root) || /\s/.test(process.execPath)) throw new Error('Deployment paths must not contain whitespace.');
 const space = resolve(root, 'space'), fish = resolve(root, 'fishing-game');
 const binary = '/stdb/bin/2.12.0/spacetimedb-standalone';
@@ -64,4 +65,5 @@ for (const [name, text] of Object.entries(units)) {
 const env = { ...process.env, XDG_RUNTIME_DIR: `/run/user/${process.getuid()}`,
   DBUS_SESSION_BUS_ADDRESS: `unix:path=/run/user/${process.getuid()}/bus` };
 execFileSync('systemctl', ['--user', 'daemon-reload'], { env, stdio: 'inherit' });
+await installUpdateCommand(root);
 console.log('Installed six user services. No services were started or enabled.');

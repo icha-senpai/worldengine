@@ -59,27 +59,57 @@ separate explicit transfer. Do not clear old site data or place tokens in URLs.
 
 ## Publishing source updates
 
-After an approved Git fast-forward, use the deployment user's Node environment:
+After testing locally and pushing your changes, SSH into the server and run:
 
 ```sh
-node deploy/linux/publish.mjs space
-node deploy/linux/publish.mjs fishbound
+dataverse-update
 ```
 
-`--build-only` performs dependency installation, required checks and a production
-build without changing published files. Completed publishing promotes a temporary
-stage and removes the previous build after success; it does not keep dated releases.
-Fishbound restarts only its website and restores the prior build if startup fails.
-Space uses its NGINX static directory. Source environments and application state
-are never copied from development as part of ordinary publishing.
+The same command updates both apps. It pulls Git with `--ff-only`, compares source
+and production-environment fingerprints, then builds only affected components.
+It includes dependent clients when modules change. There is no app/component
+selection to remember. If your current shell has not picked up `~/.local/bin`,
+use `~/.local/bin/dataverse-update` (or reconnect SSH).
 
-Rust program updates use `npm run rust:build` inside `fishing-game`. This produces
-Linux executables in `.local/rust-artifacts` and cleans its temporary Cargo output.
-Stop the affected user service, install the hash-verified program into `.runtime/bin`,
-then restart it. Database module publication is a separate data-preserving operation.
+- Websites: production dependency installation, checks, builds and promotion.
+- Collector: script checks, production configuration and an owned-service restart.
+- Bot/linker: managed Linux Rust builds, verified executable installation and restart.
+- Database modules: matching binding generation, publication with
+  `--delete-data=never`, release activation hooks, preserved identities/ownership
+  and retained-row comparisons before gameplay reopens. Local DBs are never copied.
+- User services: regenerate the managed units when their definitions change.
 
-Use `systemctl --user` for the `dataverse-*` services. On noninteractive SSH sessions,
-set `XDG_RUNTIME_DIR=/run/user/$(id -u)` and
-`DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus` if not already present.
-Remove `/var/www/dataverse/.maintenance` only after both production sites, live
-database connections, collector/storage guard and OAuth routing are verified.
+Builds and contract checks finish before the production switch. Module updates
+briefly put the public sites into maintenance and disconnect existing public
+database clients so retained state can be compared. The updater preserves server
+secrets, service identities and database files. It never resets a database or
+keeps dated release copies. A concurrent invocation exits instead of overlapping.
+
+An incompatible schema or preservation failure stops the update. If switching has
+started, maintenance remains on and writers stay stopped; fix the reported source
+problem, push it and rerun the same command. Do not bypass the failure with a reset.
+Failed pre-publication builds leave the current public build running. A dirty
+server source checkout is preserved and reported instead of being overwritten.
+
+The installer creates `~/.local/bin/dataverse-update` plus one active bootstrap
+installation under `~/.local/share/dataverse-update`. It prefers the freshly
+pulled updater source. `~/.local/state/dataverse-update/state.json` holds only the
+last successful component fingerprints and module versions. Temporary private
+row fingerprints are removed after success; unfinished ones remain for comparison.
+
+For diagnostics, `dataverse-update --plan` pulls and lists pending components
+without deploying; `--force` rebuilds/reapplies all components. `--no-pull` is for
+testing reviewed local deployment scripts, not normal publishing. Runtime/OS
+upgrades, DNS changes and new secrets remain explicit host setup work.
+
+Developers: `release.json` records the production database identities, activation
+hooks and the exact metadata tables/columns those hooks may change. Existing
+protected rows and values must remain present, including integers beyond JS's
+safe range. Update this definition and add the appropriate isolated migration
+proof when introducing a new activation or intentional persisted transformation.
+Do not add fixture/reset commands or blanket player-table exceptions. Commit
+regenerated client bindings with module changes; mismatched contracts stop before
+publication and generated source is returned to its original Git state.
+
+The lower-level `node deploy/linux/publish.mjs space|fishbound [--build-only]`
+commands remain available for focused maintenance. They only publish websites.
