@@ -1,5 +1,14 @@
 # Fishbound through ServBay and Cloudflare Tunnel
 
+Production now lives at `https://fishbound.ichaa.dev` on Linux. See
+[Linux hosting](../../deploy/linux/README.md) for production publishing and service
+management. ServBay's `Fishbound Public` entry forwards the old public website
+to that domain. Its old `/auth/discord/` route remains on the local linker for
+private development. `fishbound.test` stays on local Vite and the local database.
+Set `LOCAL_DISCORD_BOT_ENABLED=false` in the PC's root `.env` to prevent the
+Windows launchers from duplicating the production bot. The historical Windows
+public-build workflow below only manages the PC copy; it does not publish Linux.
+
 Public website: https://fish.ichaa.dev
 
 ServBay has two Fishbound entries. `Fishbound` at fishbound.test is private Vite

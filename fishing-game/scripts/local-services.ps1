@@ -161,7 +161,9 @@ function Start-GameServices {
         Wait-ForService 'linker' 'http://127.0.0.1:3001/health/ready'
     } else { Write-Host 'Account linker waits for Discord client ID and secret in .env.' }
     if ($Target -eq 'Linker') { return }
-    if ($config.DISCORD_BOT_TOKEN) {
+    if ($config.LOCAL_DISCORD_BOT_ENABLED -eq 'false') {
+        Write-Host 'Local Discord bot disabled; the production bot runs on the Linux server.'
+    } elseif ($config.DISCORD_BOT_TOKEN) {
         Start-TrackedProcess 'bot' (Join-Path $projectRoot '.runtime/bin/discord-bot.exe') @() $projectRoot
         Start-Sleep -Seconds 2
         if (!(Read-TrackedProcess 'bot')) { throw 'Bot exited. Check .local/bot.stderr.log.' }

@@ -39,6 +39,24 @@ maintenance artifacts and notification routes must be included in verification.
 Never run the same production Discord bot simultaneously on both machines.
 Temporary migration transfer files must be removed after successful verification.
 
+After cutover, set `LOCAL_DISCORD_BOT_ENABLED=false` in the Windows Fishbound
+root `.env`. The Windows launchers then keep the local database, linker and
+websites available without launching another copy of the production bot. Use a
+separate Discord application/token for local bot testing.
+
+The old ServBay public entries forward website requests to these production
+domains and reject their old database endpoints. Private `space.test` (5180),
+Space playtest (5181), and `fishbound.test` (5174) keep using local databases.
+The old Fishbound OAuth path remains on the local linker for private development;
+keep its Discord redirect registered alongside the new production callback.
+
+Browser storage belongs to an origin. The new domains do not automatically
+inherit remembered identities or preferences from the old domains. Fishbound
+users can link Discord again to reach their retained player. Space's anonymous
+tracker/Evergather identities remain in the old origin's browser storage; their
+database records are preserved, but moving an existing browser identity needs a
+separate explicit transfer. Do not clear old site data or place tokens in URLs.
+
 ## Publishing source updates
 
 After an approved Git fast-forward, use the deployment user's Node environment:
