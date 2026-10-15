@@ -11,6 +11,7 @@ import {
   claimHistoryEvent,
   claimHistoryRegion,
   claimSupplyStatus,
+  claimRevision,
 } from "./claim-history-schema";
 import {
   ingestClaimHistory as saveClaimHistory,
@@ -21,6 +22,7 @@ import {
   readTrackedClaimHistory as queryTrackedClaimHistory,
   readStarredClaims as queryStarredClaims,
   claimUpdates,
+  rebuildClaimRevisions,
 } from "./claim-history";
 import { checkpointPage, restoreCheckpointPage } from "./market-checkpoint";
 import { applyOrderDelta } from "./trade-delta";
@@ -93,7 +95,7 @@ import {
 } from "./collection-schema";
 import {
   collectionKey,
-  collectionInterval,
+  collectionExpiresAt,
   collectionWatchSeconds,
   projectCollection,
   observedRates,
@@ -203,6 +205,7 @@ const db = schema({
   bossTotals,
   bossRegion,
   claimSupplyStatus,
+  claimRevision,
   claimHistoryState,
   claimHistoryEvent,
   claimHistoryRegion,
@@ -251,6 +254,10 @@ export const claimChanges = db.anonymousView(
   claimUpdates,
 );
 type Ctx = ReducerCtx<InferSchema<typeof db>>;
+export const prepareClaimRevisions = db.reducer((ctx) => {
+  requireOwner(ctx);
+  rebuildClaimRevisions(ctx);
+});
 function refresh(ctx: Ctx, key: string, fallback: any = {}) {
   fallback ??= {};
   return (
@@ -289,6 +296,18 @@ function collectedFeed(ctx: Ctx, key: string) {
     expiresAt: status.expiresAt,
     error: status.error,
   };
+}
+function feedExpiresAt(
+  ctx: Ctx,
+  resource: string,
+  source: string,
+  observedAt: bigint,
+) {
+  return collectionExpiresAt(
+    resource,
+    observedAt,
+    source === "bitjita" ? settings(ctx, "bitjita").ttl[resource] : 0,
+  );
 }
 function requireWrites(ctx: Ctx) {
   if (
@@ -747,9 +766,12 @@ export const ingestCollection = db.reducer(
       resource: watch.resource,
       entityId: watch.entityId,
       receivedAt: ctx.timestamp.microsSinceUnixEpoch,
-      expiresAt:
-        args.observedAt +
-        BigInt(collectionInterval(watch.resource) * 3) * 1000000n,
+      expiresAt: feedExpiresAt(
+        ctx,
+        watch.resource,
+        args.source,
+        args.observedAt,
+      ),
       error: "",
     };
     if (!previous) ctx.db.collectionFeed.insert(row);
@@ -811,9 +833,12 @@ export const touchCollection = db.reducer(
       `feed|${args.key}`,
       {
         updatedAt: args.observedAt,
-        expiresAt:
-          args.observedAt +
-          BigInt(collectionInterval(feed.resource) * 3) * 1000000n,
+        expiresAt: feedExpiresAt(
+          ctx,
+          feed.resource,
+          feed.source,
+          args.observedAt,
+        ),
         error: "",
       },
       feed,

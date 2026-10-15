@@ -1,15 +1,38 @@
 import { shallowRef, ref, watch, type Ref } from "vue";
 import { DbConnection } from "./bindings/evergather";
+import type { Catalog } from "./bindings/evergather/types";
 import { user, localPlay } from "./auth";
 import { definitionTables, panelDefinitionQueries } from "./evergather/catalog";
 import { createConnectionRecovery } from "./connectionRecovery";
 import { recordPageLifecycle } from "./pageLifecycle";
 import { spacetimeHost } from "./spacetimeHost";
+import { loadMarketPage, marketListingsFor } from "./evergather/market";
 export const evergather = shallowRef<DbConnection | null>(null);
 export const evergatherConnected = ref(false);
 export const evergatherError = ref("");
 export const revision = ref(0);
 export const definitionRevision = ref(0);
+export const itemDefinitionRows = shallowRef<Catalog[]>([]);
+const itemDefinitionScopes = new Map<string, Catalog[]>();
+export function setItemDefinitions(scope: string, rows: Catalog[] = []) {
+  if (rows.length) itemDefinitionScopes.set(scope, rows);
+  else itemDefinitionScopes.delete(scope);
+  itemDefinitionRows.value = [
+    ...new Map(
+      [...itemDefinitionScopes.values()].flat().map((row) => [row.key, row]),
+    ).values(),
+  ];
+  definitionRevision.value++;
+}
+export async function fetchItemDefinitions(keys: string[]) {
+  if (!evergather.value || !evergatherConnected.value)
+    throw Error("Reconnect to load item details.");
+  return JSON.parse(
+    await evergather.value.procedures.readInventoryDetails({
+      items: JSON.stringify([...new Set(keys)]),
+    }),
+  ) as Catalog[];
+}
 export const evergatherReady = ref(false);
 export const evergatherPanelReady = ref(false);
 export const evergatherReconnecting = ref(false);
@@ -207,6 +230,40 @@ export function initializeEvergather(enabled: Ref<boolean>) {
           connection.db.marketSummary.onInsert(summaryChanged);
           connection.db.marketSummary.onUpdate(summaryChanged);
           connection.db.marketSummary.onDelete(summaryChanged);
+          let marketRefreshTimer: ReturnType<typeof setTimeout> | undefined;
+          async function refreshMarket() {
+            if (
+              currentGeneration !== generation ||
+              !evergatherConnected.value ||
+              gameWorkspace.value !== "trade" ||
+              gamePanel.value !== "marketplace"
+            )
+              return;
+            try {
+              const result = await loadMarketPage(connection, marketPage.value);
+              if (currentGeneration !== generation || !result) return;
+              for (const row of marketListingsFor(connection))
+                marketChanged(undefined, row);
+              if (result.page !== marketPage.value)
+                marketPage.value = result.page;
+              changed();
+            } catch (error) {
+              if (currentGeneration === generation)
+                evergatherError.value =
+                  error instanceof Error
+                    ? error.message
+                    : "Market listings could not be loaded.";
+            }
+          }
+          const scheduleMarketRefresh = () => {
+            if (marketRefreshTimer) clearTimeout(marketRefreshTimer);
+            marketRefreshTimer = setTimeout(() => {
+              marketRefreshTimer = undefined;
+              void refreshMarket();
+            }, 50);
+          };
+          connection.db.marketRevision.onInsert(scheduleMarketRefresh);
+          connection.db.marketRevision.onUpdate(scheduleMarketRefresh);
           let panelGeneration = 0;
           let panelScope = "";
           let panelSubscription: { unsubscribe(): void } | undefined;
@@ -242,7 +299,7 @@ export function initializeEvergather(enabled: Ref<boolean>) {
                   ...panelDefinitionQueries(workspace, panel),
                   ...(workspace === "trade" && panel === "marketplace"
                     ? [
-                        `SELECT * FROM market_page_listings WHERE page = ${page}`,
+                        "SELECT * FROM market_revision",
                         "SELECT * FROM my_market_listings",
                         "SELECT * FROM market_summary",
                         "SELECT * FROM trade",
@@ -259,11 +316,18 @@ export function initializeEvergather(enabled: Ref<boolean>) {
                 }
                 panelSubscription = connection
                   .subscriptionBuilder()
-                  .onApplied(() => {
+                  .onApplied(async () => {
                     if (
                       requested === panelGeneration &&
                       currentGeneration === generation
                     ) {
+                      if (workspace === "trade" && panel === "marketplace")
+                        await refreshMarket();
+                      if (
+                        requested !== panelGeneration ||
+                        currentGeneration !== generation
+                      )
+                        return;
                       panelScope = scope;
                       evergatherPanelReady.value = true;
                       changed();

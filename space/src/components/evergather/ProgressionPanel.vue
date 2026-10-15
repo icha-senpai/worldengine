@@ -1,13 +1,11 @@
 <template>
-  <section class="surface-section xl:col-span-2">
-    <div class="surface-section__header">
+  <section class="surface-section xl:col-span-2 ui-panel ui-panel--flush">
+    <div class="surface-section__header ui-panel-heading">
       <div class="surface-section__copy">
-        <span class="surface-section__title">Progression</span>
+        <span class="surface-section__title ui-section-title">Progression</span>
         <p class="surface-section__subtitle">
           Account Lv {{ progression.account_level }} ·
-          {{ unlockedAchievements }}/{{
-            progression.achievements.length
-          }}
+          {{ unlockedAchievements }}/{{ progression.achievements.length }}
           complete
         </p>
       </div>
@@ -22,7 +20,7 @@
       </div>
     </div>
 
-    <div class="surface-section__body">
+    <div class="surface-section__body ui-panel-body">
       <BoardLayout
         v-model:filter="selectedCategory"
         v-model:board="selectedBoard"
@@ -33,7 +31,9 @@
         state-label="Rewards"
       >
         <template #filters>
-          <aside class="rounded-md border border-border bg-surface-2 px-3 py-3">
+          <aside
+            class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
+          >
             <div class="flex items-center justify-between gap-3">
               <p class="text-sm font-ui text-primary">Achievement Path</p>
               <span class="tag"
@@ -48,7 +48,7 @@
                 v-for="category in categoryGroups"
                 :key="category.key"
                 type="button"
-                class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                class="grid gap-2 rounded-md border border-border bg-surface px-3 py-2 text-left transition hover:border-focus/60"
                 :class="{
                   'border-focus/70 bg-focus/10':
                     selectedCategory === category.key,
@@ -63,7 +63,7 @@
                     >{{ category.unlocked }}/{{ category.entries.length }}</span
                   >
                 </span>
-                <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                <span class="h-1.5 overflow-hidden rounded-full bg-canvas-2">
                   <span
                     class="block h-full rounded-full bg-focus"
                     :style="{ width: `${category.progress}%` }"
@@ -85,7 +85,7 @@
                 <div
                   v-for="reward in progression.claimed_rewards.slice(0, 4)"
                   :key="reward.achievement_key"
-                  class="rounded-md border border-border bg-canvas px-3 py-2"
+                  class="rounded-md border border-border bg-surface px-3 py-2 ui-panel ui-panel--compact"
                 >
                   <div class="flex flex-wrap items-center gap-2">
                     <p class="text-xs font-ui text-primary">
@@ -173,14 +173,14 @@
 
           <p
             v-if="claimForm.errors.achievement"
-            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-danger"
+            class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-danger ui-panel ui-panel--compact"
           >
             {{ claimForm.errors.achievement }}
           </p>
 
           <p
             v-if="!activeBoardEntries.length"
-            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
+            class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-muted-2 ui-panel ui-panel--compact"
           >
             {{ emptyBoardMessage }}
           </p>
@@ -190,7 +190,7 @@
               selectedBoard === 'next' &&
               activeBoardEntries.length > visibleBoardEntries.length
             "
-            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-xs text-muted-2"
+            class="rounded-md border border-border bg-surface px-3 py-3 text-xs text-muted-2 ui-panel ui-panel--compact"
           >
             Showing the closest milestones first. Use Show More when you want to
             keep browsing.
@@ -237,7 +237,7 @@
               <div
                 v-for="stat in featuredStats"
                 :key="stat.label"
-                class="rounded-md border border-border/70 bg-canvas px-3 py-2"
+                class="rounded-md border border-border/70 bg-surface px-3 py-2 ui-panel ui-panel--compact"
               >
                 <p class="text-lg font-ui text-primary">{{ stat.value }}</p>
                 <p
@@ -250,7 +250,9 @@
           </div>
 
           <div class="grid gap-4 md:grid-cols-2">
-            <div class="rounded-md border border-border bg-surface-2 px-4 py-4">
+            <div
+              class="rounded-md border border-border bg-surface px-4 py-4 ui-panel ui-panel--compact"
+            >
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <p
@@ -271,11 +273,13 @@
                 class="mt-3 grid gap-3"
                 @submit.prevent="updateRewardLoadout"
               >
-                <label class="grid gap-1">
-                  <span class="text-xs text-muted-2">Title slot</span>
+                <label class="grid gap-1 ui-field-label">
+                  <span class="text-xs text-muted-2 ui-field-label"
+                    >Title slot</span
+                  >
                   <SelectInput
                     v-model="loadoutForm.title_claim_key"
-                    class="rounded-md border-border bg-canvas text-xs text-primary focus:border-focus focus:ring-focus"
+                    class="rounded-md border-border bg-canvas-2 text-xs text-primary focus:border-focus focus:ring-focus"
                   >
                     <option value="">No earned title</option>
                     <option
@@ -307,7 +311,9 @@
               </form>
             </div>
 
-            <div class="rounded-md border border-border bg-surface-2 px-4 py-4">
+            <div
+              class="rounded-md border border-border bg-surface px-4 py-4 ui-panel ui-panel--compact"
+            >
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <p
@@ -651,6 +657,6 @@ function achievementTone(achievement) {
     return "border-focus/30 bg-focus/10";
   }
 
-  return "border-border bg-surface-2";
+  return "border-border bg-surface";
 }
 </script>

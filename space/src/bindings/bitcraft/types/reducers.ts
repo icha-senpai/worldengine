@@ -21,6 +21,7 @@ import IngestMarketDirectoryReducer from "../ingest_market_directory_reducer";
 import IngestRelayTradingReducer from "../ingest_relay_trading_reducer";
 import MarketRefreshFailureReducer from "../market_refresh_failure_reducer";
 import MigrateGuidesReducer from "../migrate_guides_reducer";
+import PrepareClaimRevisionsReducer from "../prepare_claim_revisions_reducer";
 import RelayHeartbeatReducer from "../relay_heartbeat_reducer";
 import RequestMarketRefreshReducer from "../request_market_refresh_reducer";
 import RestoreAppStateReducer from "../restore_app_state_reducer";
@@ -45,6 +46,7 @@ export type IngestMarketDirectoryParams = __Infer<typeof IngestMarketDirectoryRe
 export type IngestRelayTradingParams = __Infer<typeof IngestRelayTradingReducer>;
 export type MarketRefreshFailureParams = __Infer<typeof MarketRefreshFailureReducer>;
 export type MigrateGuidesParams = __Infer<typeof MigrateGuidesReducer>;
+export type PrepareClaimRevisionsParams = __Infer<typeof PrepareClaimRevisionsReducer>;
 export type RelayHeartbeatParams = __Infer<typeof RelayHeartbeatReducer>;
 export type RequestMarketRefreshParams = __Infer<typeof RequestMarketRefreshReducer>;
 export type RestoreAppStateParams = __Infer<typeof RestoreAppStateReducer>;

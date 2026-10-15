@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
       @keydown="panelKey"
     >
       <header>
-        <strong>{{ label }} color</strong
+        <strong class="ui-dialog-title">{{ label }} color</strong
         ><button
           type="button"
           aria-label="Close color picker"
@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
           }"
         />
       </div>
-      <label class="app-color-panel__hue-label"
+      <label class="app-color-panel__hue-label ui-field-label"
         >Hue
         <input
           v-model.number="hsv.h"
@@ -262,7 +262,7 @@ onBeforeUnmount(() => {
           @click="apply(swatch)"
         />
       </div>
-      <label class="app-color-panel__hex-label"
+      <label class="app-color-panel__hex-label ui-field-label"
         >Hex color
         <input
           ref="hexInput"
@@ -286,6 +286,7 @@ onBeforeUnmount(() => {
       </p>
       <div class="app-color-panel__rgb">
         <label
+          class="ui-field-label"
           v-for="(channel, key) in { r: 'Red', g: 'Green', b: 'Blue' }"
           :key="key"
           >{{ channel
@@ -314,7 +315,7 @@ onBeforeUnmount(() => {
   padding: 6px 8px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: var(--bg-surface);
+  background: var(--bg-canvas-2);
   color: var(--text-primary);
   cursor: pointer;
 }
@@ -322,7 +323,7 @@ onBeforeUnmount(() => {
   flex: 0 0 24px;
   width: 24px;
   height: 24px;
-  border: 1px solid rgb(255 255 255 / 0.25);
+  border: 1px solid rgb(var(--text-primary-rgb) / 0.25);
   border-radius: 5px;
 }
 .app-color-trigger__hex {
@@ -346,7 +347,7 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   background: var(--bg-surface);
   color: var(--text-primary);
-  box-shadow: 0 16px 40px rgb(0 0 0 / 0.5);
+  box-shadow: 0 16px 40px rgb(var(--bg-canvas-rgb) / 0.5);
   font-family: var(--font-ui);
   font-size: 12px;
 }
@@ -360,7 +361,7 @@ onBeforeUnmount(() => {
   height: 28px;
   border: 0;
   border-radius: 5px;
-  background: var(--bg-surface-3);
+  background: var(--bg-surface);
   color: var(--text-primary);
 }
 .app-color-panel__surface {
@@ -386,8 +387,6 @@ onBeforeUnmount(() => {
 .app-color-panel label {
   display: grid;
   gap: 5px;
-  color: var(--text-muted-3);
-  font-size: 11px;
 }
 .app-color-panel input:not([type="range"]) {
   width: 100%;
@@ -444,7 +443,7 @@ onBeforeUnmount(() => {
 .app-color-panel__swatches button {
   height: 26px;
   padding: 0;
-  border: 1px solid rgb(255 255 255 / 0.3);
+  border: 1px solid rgb(var(--text-primary-rgb) / 0.3);
   border-radius: 5px;
 }
 .app-color-panel__swatches button[aria-pressed="true"] {
@@ -464,7 +463,7 @@ onBeforeUnmount(() => {
   padding: 8px;
   border: 1px solid var(--border-color-2);
   border-radius: 6px;
-  background: var(--bg-surface-3);
+  background: var(--bg-surface);
   color: var(--accent-cyan);
 }
 </style>

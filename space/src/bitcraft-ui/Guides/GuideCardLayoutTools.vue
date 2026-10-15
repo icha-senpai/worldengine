@@ -66,7 +66,7 @@ function setWrap(wrap) {
     role="group"
     :aria-label="card.type === 'image' ? 'Image layout' : 'Card layout'"
   >
-    <label class="grid gap-1 text-xs text-muted-2">
+    <label class="grid gap-1 text-xs text-muted-2 ui-field-label">
       {{ card.type === "image" ? "Image alignment" : "Card alignment" }}
       <SelectInput
         :model-value="card.align"
@@ -77,8 +77,10 @@ function setWrap(wrap) {
         <option value="right">Right</option>
       </SelectInput>
     </label>
-    <label class="grid min-w-0 flex-1 gap-1 text-xs text-muted-2">
-      <span
+    <label
+      class="grid min-w-0 flex-1 gap-1 text-xs text-muted-2 ui-field-label"
+    >
+      <span class="ui-field-label"
         >{{ card.type === "image" ? "Image width" : "Card width" }}
         <span class="inline-block w-12 text-right">{{
           card.width === null ? "Auto" : `${card.width}%`
@@ -103,7 +105,7 @@ function setWrap(wrap) {
     >
       Reset size
     </button>
-    <label class="flex min-h-10 items-center gap-2 text-sm">
+    <label class="flex min-h-10 items-center gap-2 text-sm ui-field-label">
       <input
         type="checkbox"
         :checked="card.wrap"

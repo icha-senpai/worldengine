@@ -12,6 +12,7 @@ export const definitionTables = [
   "shopDefinitions",
   "achievementDefinitions",
   "inventoryGuideDefinitions",
+  "inventoryDirectory",
   "myReferenceCatalog",
 ] as const;
 
@@ -24,7 +25,7 @@ const panels: Record<string, string[]> = {
   "craft:jobs": ["job_definitions"],
   "craft:expeditions": ["expedition_definitions"],
   "trade:shop": ["shop_definitions"],
-  "trade:inventory": ["inventory_guide_definitions"],
+  "trade:inventory": ["inventory_directory"],
   "progress:skills": [
     "gathering_definitions",
     "activity_definitions",

@@ -1,4 +1,5 @@
 import bundled from "./content/catalog.json";
+import additions from "./content/catalog-additions.json";
 import guides from "./content/guides.json";
 import woodLogOutputs from "./content/wood-log-outputs.json";
 
@@ -10,9 +11,15 @@ const content = bundled as unknown as {
   entries: Row[];
   skills: Row[];
 };
-const itemMap = new Map(
+// Fill verified gaps without overriding definitions in a refreshed full export.
+const itemMap = new Map<string, Row>(
   content.items.map((item) => [`${item.kind}:${item.id}`, item]),
 );
+for (const item of additions.items) {
+  const key = `${item.kind}:${item.id}`;
+  if (!itemMap.has(key)) itemMap.set(key, item);
+}
+const catalogItems = [...itemMap.values()];
 const key = (row: Row) =>
   `${row.kind ?? row.itemType ?? row.item_type ?? "item"}:${row.id ?? row.itemId ?? row.item_id}`;
 function item(row: Row): Row {
@@ -110,7 +117,7 @@ function detail(kind: string, id: string) {
     /\s+bait$/i.test(target.name)
   ) {
     const bundleName = target.name.replace(/\s+bait$/i, " Bait and Shells");
-    const bundle = content.items.find(
+    const bundle = catalogItems.find(
       (row) =>
         row.name.toLowerCase() === bundleName.toLowerCase() &&
         String(row.category).toLowerCase() === "bait output",
@@ -262,7 +269,7 @@ function hasRecipes(item: Row) {
     ),
   );
 }
-const targets = content.items.filter(hasRecipes);
+const targets = catalogItems.filter(hasRecipes);
 export function catalogResponse(kind: string, id: string, q: string) {
   if (q.length > 120 || id.length > 80)
     throw new Error("Invalid catalog lookup.");
@@ -320,9 +327,9 @@ export function catalogResponse(kind: string, id: string, q: string) {
     };
   }
   if (kind === "inventory-items")
-    return content.items.map(({ description: _description, ...row }) => row);
+    return catalogItems.map(({ description: _description, ...row }) => row);
   if (kind === "items" || kind === "targets")
-    return (kind === "targets" ? targets : content.items)
+    return (kind === "targets" ? targets : catalogItems)
       .filter(
         (row) =>
           !needle ||

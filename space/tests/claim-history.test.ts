@@ -66,6 +66,7 @@ function context() {
       claimHistoryEvent: table(),
       claimHistoryRegion: table(),
       claimSupplyStatus: table(),
+      claimRevision: table(),
       relayStatus: table(),
     },
   };

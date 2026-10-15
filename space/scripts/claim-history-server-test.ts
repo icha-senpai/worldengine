@@ -40,6 +40,7 @@ const historyTables = new Set([
   "claim_history_state",
   "claim_history_event",
   "claim_history_region",
+  "claim_revision",
 ]);
 async function legacyExport() {
   const state = JSON.parse(

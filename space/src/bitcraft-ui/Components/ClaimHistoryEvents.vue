@@ -79,13 +79,13 @@ defineEmits(["inspect"]);
 .event {
   padding: 16px;
   margin: 12px 0;
-  border: 1px solid var(--border-color, #374151);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  background: var(--bg-secondary, #181c24);
+  background: var(--bg-surface);
   overflow-wrap: anywhere;
 }
 .event.flagged {
-  border-color: #c59345;
+  border-color: var(--warning);
 }
 header {
   display: flex;
@@ -96,7 +96,7 @@ time,
 .claim-link span,
 details {
   font-size: 12px;
-  color: var(--text-secondary, #a5aab5);
+  color: var(--text-muted);
 }
 .claim-link {
   display: flex;
@@ -106,7 +106,7 @@ details {
   margin-top: 10px;
 }
 .claim-link button {
-  color: var(--accent-color, #e9b56b);
+  color: var(--accent-cyan);
   background: transparent;
   border: 0;
   padding: 0;
@@ -121,7 +121,7 @@ details {
 .warning {
   display: block;
   font-size: 12px;
-  color: #e9b56b;
+  color: var(--warning);
   margin: 8px 0;
 }
 details {
@@ -133,7 +133,7 @@ summary {
 .empty {
   padding: 24px;
   text-align: center;
-  color: var(--text-secondary, #a5aab5);
+  color: var(--text-muted);
 }
 @media (max-width: 600px) {
   header {

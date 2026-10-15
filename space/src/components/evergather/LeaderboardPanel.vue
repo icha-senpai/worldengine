@@ -1,8 +1,10 @@
 <template>
-  <section class="surface-section xl:col-span-2">
-    <div class="surface-section__header">
+  <section class="surface-section xl:col-span-2 ui-panel ui-panel--flush">
+    <div class="surface-section__header ui-panel-heading">
       <div class="surface-section__copy">
-        <span class="surface-section__title">Leaderboards</span>
+        <span class="surface-section__title ui-section-title"
+          >Leaderboards</span
+        >
         <p class="surface-section__subtitle">
           {{ totalEntries }} top records (up to 20 per board) across
           {{ boardDefinitions.length }} boards.
@@ -10,11 +12,11 @@
       </div>
     </div>
 
-    <div class="surface-section__body">
+    <div class="surface-section__body ui-panel-body">
       <div class="game-board__toolbar">
-        <label class="game-select"
-          ><span class="sr-only">Ranking scope</span
-          ><select v-model="activeGroup">
+        <label class="game-select ui-field-label"
+          ><span class="sr-only ui-field-label">Ranking scope</span
+          ><SelectInput v-model="activeGroup">
             <option
               v-for="group in leaderboards.groups"
               :key="group.key"
@@ -22,11 +24,11 @@
             >
               {{ group.label }}
             </option>
-          </select></label
+          </SelectInput></label
         >
-        <label class="game-select"
-          ><span class="sr-only">Ranking board</span
-          ><select v-model="activeBoard">
+        <label class="game-select ui-field-label"
+          ><span class="sr-only ui-field-label">Ranking board</span
+          ><SelectInput v-model="activeBoard">
             <option
               v-for="board in activeBoards"
               :key="board.key"
@@ -34,11 +36,13 @@
             >
               {{ board.label }}
             </option>
-          </select></label
+          </SelectInput></label
         >
       </div>
       <div class="grid content-start gap-4">
-        <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+        <div
+          class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
+        >
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p class="text-sm font-ui text-primary">
@@ -55,10 +59,10 @@
             <article
               v-for="(entry, index) in activeEntries"
               :key="`${activeBoard}-${entry.id ?? entry.skill ?? index}`"
-              class="grid min-h-24 items-start gap-3 rounded-md border border-border bg-canvas px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem]"
+              class="grid min-h-24 items-start gap-3 rounded-md border border-border bg-surface px-3 py-3 md:grid-cols-[3rem_minmax(0,1fr)_7rem] ui-panel ui-panel--compact"
             >
               <div
-                class="grid h-9 w-9 place-items-center rounded-md border border-border bg-surface-2 text-sm font-ui text-primary"
+                class="grid h-9 w-9 place-items-center rounded-md border border-border bg-surface text-sm font-ui text-primary ui-panel ui-panel--compact"
               >
                 #{{ index + 1 }}
               </div>
@@ -101,7 +105,7 @@
           <div
             v-for="highlight in highlights"
             :key="highlight.label"
-            class="rounded-md border border-border bg-surface-2 px-3 py-3"
+            class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
           >
             <p class="text-xs uppercase tracking-[0.14em] text-muted-3">
               {{ highlight.label }}
@@ -118,6 +122,7 @@
 </template>
 
 <script setup>
+import SelectInput from "../../bitcraft-ui/shared/SelectInput.vue";
 import { computed, watch } from "vue";
 import { usePersistedPanelState } from "./usePanelState";
 

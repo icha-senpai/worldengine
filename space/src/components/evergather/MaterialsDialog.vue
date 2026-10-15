@@ -7,7 +7,12 @@ import {
   ref,
   watch,
 } from "vue";
-import { evergather, evergatherReady } from "../../evergather";
+import {
+  evergather,
+  evergatherReady,
+  fetchItemDefinitions,
+  setItemDefinitions,
+} from "../../evergather";
 import {
   actionProcessing,
   useActionForm,
@@ -30,6 +35,7 @@ const emit = defineEmits(["close", "complete"]);
 const dialog = ref(null);
 const loaded = ref(false);
 const loadError = ref("");
+const detailsRetry = ref(0);
 const trail = ref([]);
 const notice = ref("");
 const runningSource = ref("");
@@ -136,38 +142,58 @@ const form = useActionForm({
   item_key: "",
   quantity: 1,
 });
-let subscription;
 let subscriptionGeneration = 0;
-const queries = [
-  "gathering_definitions",
-  "activity_definitions",
-  "recipe_definitions",
-  "expedition_definitions",
-  "shop_definitions",
-  "job_definitions",
-  "equipment_definitions",
-  "inventory_guide_definitions",
-].map((table) => `SELECT * FROM ${table}`);
-
+// Keep commission choices available for the existing Earn gold helper without
+// subscribing to the full inventory/crafting guide.
 watch(
-  [evergather, evergatherReady],
-  ([connection, ready]) => {
+  [
+    () => evergather.value,
+    () => evergatherReady.value,
+    () => detailsRetry.value,
+  ],
+  ([connection, ready], _previous, onCleanup) => {
+    if (!connection || !ready) return;
+    const subscription = connection
+      .subscriptionBuilder()
+      .onError(() => {
+        loadError.value = "Gold commissions could not be loaded. Please retry.";
+      })
+      .subscribe("SELECT * FROM job_definitions");
+    onCleanup(() => subscription.unsubscribe());
+  },
+  { immediate: true },
+);
+watch(
+  [
+    () => evergather.value,
+    () => evergatherReady.value,
+    () => detailsRetry.value,
+    () =>
+      JSON.stringify(
+        [
+          ...new Set(
+            [...(activeTarget.value.materials ?? []), ...trail.value].map(
+              (item) => item.item_key,
+            ),
+          ),
+        ].sort(),
+      ),
+  ],
+  async ([connection, ready, _retry, keys]) => {
     const generation = ++subscriptionGeneration;
-    subscription?.unsubscribe();
-    subscription = undefined;
     loaded.value = false;
     loadError.value = "";
     if (!connection || !ready) return;
-    subscription = connection
-      .subscriptionBuilder()
-      .onApplied(() => {
-        if (generation === subscriptionGeneration) loaded.value = true;
-      })
-      .onError((_context, error) => {
-        if (generation === subscriptionGeneration)
-          loadError.value = error.message;
-      })
-      .subscribe(queries);
+    try {
+      const rows = await fetchItemDefinitions(JSON.parse(keys));
+      if (generation === subscriptionGeneration) {
+        setItemDefinitions("material-details", rows);
+        loaded.value = true;
+      }
+    } catch (error) {
+      if (generation === subscriptionGeneration)
+        loadError.value = error.message;
+    }
   },
   { immediate: true },
 );
@@ -253,7 +279,7 @@ onMounted(async () => {
 });
 onBeforeUnmount(() => {
   subscriptionGeneration++;
-  subscription?.unsubscribe();
+  setItemDefinitions("material-details");
   dialog.value?.close();
 });
 </script>
@@ -262,7 +288,7 @@ onBeforeUnmount(() => {
   <Teleport to="body">
     <dialog
       ref="dialog"
-      class="materials-dialog rounded-lg border border-border bg-surface-1 text-primary shadow-2xl"
+      class="materials-dialog rounded-lg border border-border bg-surface text-primary shadow-2xl"
       aria-labelledby="materials-dialog-title"
       @cancel.prevent="emit('close')"
       @click="$event.target === dialog && emit('close')"
@@ -272,7 +298,10 @@ onBeforeUnmount(() => {
           class="flex items-start justify-between gap-4 border-b border-border p-4"
         >
           <div class="min-w-0">
-            <h2 id="materials-dialog-title" class="font-ui text-base">
+            <h2
+              id="materials-dialog-title"
+              class="font-ui text-base ui-dialog-title"
+            >
               {{ activeTarget.label }} · {{ activeTarget.toolName }}
             </h2>
             <p class="mt-1 text-xs text-muted-2">
@@ -386,7 +415,7 @@ onBeforeUnmount(() => {
             <div
               v-for="item in activeTarget.materials"
               :key="item.item_key"
-              class="flex items-center justify-between gap-3 rounded-md border border-border bg-canvas p-3"
+              class="flex items-center justify-between gap-3 rounded-md border border-border bg-surface p-3 ui-panel ui-panel--compact"
             >
               <div class="min-w-0">
                 <p class="text-sm font-ui">{{ item.item_name }}</p>
@@ -421,6 +450,12 @@ onBeforeUnmount(() => {
 
           <p v-if="loadError" role="alert" class="mt-4 text-sm text-danger">
             {{ loadError }}
+            <button
+              class="app-btn app-btn--ghost app-btn--sm"
+              @click="detailsRetry++"
+            >
+              Retry
+            </button>
           </p>
           <p
             v-else-if="!loaded"
@@ -438,7 +473,7 @@ onBeforeUnmount(() => {
               >
                 Back
               </button>
-              <h3 class="text-sm font-ui">
+              <h3 class="text-sm font-ui ui-section-title">
                 Get {{ selectedMaterial.item_name }}
               </h3>
               <span class="tag"
@@ -475,7 +510,7 @@ onBeforeUnmount(() => {
               <article
                 v-for="source in availableSources"
                 :key="source.id"
-                class="rounded-md border border-border bg-surface-2 p-3"
+                class="rounded-md border border-border bg-surface p-3 ui-panel ui-panel--compact"
               >
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div class="min-w-0">
@@ -595,6 +630,6 @@ onBeforeUnmount(() => {
   margin: auto;
 }
 .materials-dialog::backdrop {
-  background: rgb(0 0 0 / 70%);
+  background: var(--overlay);
 }
 </style>

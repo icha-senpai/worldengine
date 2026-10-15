@@ -71,7 +71,7 @@ function confirmAction() {
       <div class="app-dialog__header">
         <div class="app-dialog__copy">
           <p class="app-dialog__eyebrow">{{ dialog.eyebrow }}</p>
-          <h3 class="app-dialog__title">{{ dialog.title }}</h3>
+          <h3 class="app-dialog__title ui-section-title">{{ dialog.title }}</h3>
           <p v-if="dialog.message" class="app-dialog__message">
             {{ dialog.message }}
           </p>
@@ -81,7 +81,7 @@ function confirmAction() {
       <div v-if="isPrompt" class="space-y-2">
         <label
           v-if="dialog.inputLabel"
-          class="field-label"
+          class="field-label ui-field-label"
           for="app-dialog-prompt"
         >
           {{ dialog.inputLabel }}

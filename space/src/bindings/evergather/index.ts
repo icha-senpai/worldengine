@@ -50,6 +50,7 @@ import EquipToolReducer from "./equip_tool_reducer";
 import ListItemReducer from "./list_item_reducer";
 import ListToolReducer from "./list_tool_reducer";
 import PerformActionReducer from "./perform_action_reducer";
+import PrepareReadModelsReducer from "./prepare_read_models_reducer";
 import RefreshContentReducer from "./refresh_content_reducer";
 import RemoveToolReducer from "./remove_tool_reducer";
 import RepairToolReducer from "./repair_tool_reducer";
@@ -66,6 +67,8 @@ import UpgradeToolTierReducer from "./upgrade_tool_tier_reducer";
 import UseConsumableReducer from "./use_consumable_reducer";
 
 // Import all procedure arg schemas
+import * as ReadInventoryDetailsProcedure from "./read_inventory_details_procedure";
+import * as ReadMarketListingsProcedure from "./read_market_listings_procedure";
 
 // Import all table schema definitions
 import AchievementDefinitionsRow from "./achievement_definitions_table";
@@ -75,12 +78,14 @@ import CoreDefinitionsRow from "./core_definitions_table";
 import EquipmentDefinitionsRow from "./equipment_definitions_table";
 import ExpeditionDefinitionsRow from "./expedition_definitions_table";
 import GatheringDefinitionsRow from "./gathering_definitions_table";
+import InventoryDirectoryRow from "./inventory_directory_table";
 import InventoryGuideDefinitionsRow from "./inventory_guide_definitions_table";
 import JobDefinitionsRow from "./job_definitions_table";
 import LeaderboardRow from "./leaderboard_table";
 import ListingRow from "./listing_table";
 import MarketListingsRow from "./market_listings_table";
 import MarketPageListingsRow from "./market_page_listings_table";
+import MarketRevisionRow from "./market_revision_table";
 import MarketSummaryRow from "./market_summary_table";
 import MyAchievementsRow from "./my_achievements_table";
 import MyBuffsRow from "./my_buffs_table";
@@ -142,6 +147,17 @@ const tablesSchema = __schema({
       { name: 'listing_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, ListingRow),
+  marketRevision: __table({
+    name: 'market_revision',
+    indexes: [
+      { accessor: 'id', name: 'market_revision_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+    ],
+    constraints: [
+      { name: 'market_revision_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, MarketRevisionRow),
   trade: __table({
     name: 'trade',
     indexes: [
@@ -195,6 +211,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, GatheringDefinitionsRow),
+  inventoryDirectory: __table({
+    name: 'inventory_directory',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, InventoryDirectoryRow),
   inventoryGuideDefinitions: __table({
     name: 'inventory_guide_definitions',
     indexes: [
@@ -355,6 +378,7 @@ const reducersSchema = __reducers(
   __reducerSchema("list_item", ListItemReducer),
   __reducerSchema("list_tool", ListToolReducer),
   __reducerSchema("perform_action", PerformActionReducer),
+  __reducerSchema("prepare_read_models", PrepareReadModelsReducer),
   __reducerSchema("refresh_content", RefreshContentReducer),
   __reducerSchema("remove_tool", RemoveToolReducer),
   __reducerSchema("repair_tool", RepairToolReducer),
@@ -373,6 +397,8 @@ const reducersSchema = __reducers(
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */
 const proceduresSchema = __procedures(
+  __procedureSchema("read_inventory_details", ReadInventoryDetailsProcedure.params, ReadInventoryDetailsProcedure.returnType),
+  __procedureSchema("read_market_listings", ReadMarketListingsProcedure.params, ReadMarketListingsProcedure.returnType),
 );
 
 /** The remote SpacetimeDB module schema, both runtime and type information. */

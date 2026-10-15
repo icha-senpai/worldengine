@@ -1,8 +1,8 @@
 <template>
-  <section class="surface-section xl:col-span-2">
-    <div class="surface-section__header">
+  <section class="surface-section xl:col-span-2 ui-panel ui-panel--flush">
+    <div class="surface-section__header ui-panel-heading">
       <div class="surface-section__copy">
-        <span class="surface-section__title">Marketplace</span>
+        <span class="surface-section__title ui-section-title">Marketplace</span>
         <p class="surface-section__subtitle">
           {{
             marketplace.pagination?.total ?? marketplace.active_listings.length
@@ -13,7 +13,7 @@
       </div>
     </div>
 
-    <div class="surface-section__body">
+    <div class="surface-section__body ui-panel-body">
       <div
         v-if="marketplace.pagination?.pages > 1"
         class="mb-4 flex items-center gap-3"
@@ -48,7 +48,9 @@
         @clear="clearFilters"
       >
         <template #filters
-          ><div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+          ><div
+            class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
+          >
             <div class="flex items-center justify-between gap-3">
               <p class="text-sm font-ui text-primary">Market Desk</p>
               <span class="tag">{{ activeBoardRecord.count }}</span>
@@ -59,7 +61,7 @@
                 v-for="board in boards"
                 :key="board.key"
                 type="button"
-                class="grid gap-1 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                class="grid gap-1 rounded-md border border-border bg-surface px-3 py-2 text-left transition hover:border-focus/60"
                 :class="{
                   'border-focus/70 bg-focus/10': activeBoard === board.key,
                 }"
@@ -97,7 +99,7 @@
 
         <form
           v-if="activeBoard === 'sell'"
-          class="rounded-md border border-border bg-surface-2 px-3 py-3"
+          class="rounded-md border border-border bg-surface px-3 py-3"
           @submit.prevent="submitListing"
         >
           <p class="text-sm font-ui text-primary">Sell</p>
@@ -107,7 +109,7 @@
               <button
                 type="button"
                 :disabled="listingForm.processing"
-                class="rounded-md border border-border bg-canvas px-3 py-2 text-xs font-ui text-muted-2"
+                class="rounded-md border border-border bg-surface px-3 py-2 text-xs font-ui text-muted-2"
                 :class="{
                   'border-focus/70 bg-focus/10 text-primary':
                     listingForm.listing_type === 'item',
@@ -119,7 +121,7 @@
               <button
                 type="button"
                 :disabled="listingForm.processing"
-                class="rounded-md border border-border bg-canvas px-3 py-2 text-xs font-ui text-muted-2"
+                class="rounded-md border border-border bg-surface px-3 py-2 text-xs font-ui text-muted-2"
                 :class="{
                   'border-focus/70 bg-focus/10 text-primary':
                     listingForm.listing_type === 'tool',
@@ -132,17 +134,17 @@
 
             <label
               v-if="listingForm.listing_type === 'item'"
-              class="grid gap-1"
+              class="grid gap-1 ui-field-label"
             >
               <span
-                class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                 >Item</span
               >
               <SelectInput
                 ref="listingSelect"
                 v-model="listingForm.item_key"
                 :disabled="listingForm.processing"
-                class="rounded-md border-border bg-surface text-sm text-primary focus:border-focus focus:ring-focus"
+                class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
               >
                 <option value="">Select item</option>
                 <option
@@ -156,16 +158,16 @@
               </SelectInput>
             </label>
 
-            <label v-else class="grid gap-1">
+            <label v-else class="grid gap-1 ui-field-label">
               <span
-                class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                 >Tool</span
               >
               <SelectInput
                 ref="listingSelect"
                 v-model.number="listingForm.tool_id"
                 :disabled="listingForm.processing"
-                class="rounded-md border-border bg-surface text-sm text-primary focus:border-focus focus:ring-focus"
+                class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
               >
                 <option value="">Select tool</option>
                 <option
@@ -182,9 +184,9 @@
             </label>
 
             <div class="grid gap-3 sm:grid-cols-2">
-              <label class="grid gap-1">
+              <label class="grid gap-1 ui-field-label">
                 <span
-                  class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                  class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                   >Quantity</span
                 >
                 <input
@@ -196,13 +198,13 @@
                     listingForm.listing_type === 'tool'
                   "
                   :max="selectedListingItem?.quantity ?? 999999"
-                  class="rounded-md border-border bg-surface text-sm text-primary focus:border-focus focus:ring-focus"
+                  class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
                 />
               </label>
 
-              <label class="grid gap-1">
+              <label class="grid gap-1 ui-field-label">
                 <span
-                  class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                  class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                   >Unit Price</span
                 >
                 <input
@@ -211,14 +213,14 @@
                   type="number"
                   :min="selectedListingEntry?.market_floor_price ?? 1"
                   :max="selectedListingEntry?.market_ceiling_price ?? 999999"
-                  class="rounded-md border-border bg-surface text-sm text-primary focus:border-focus focus:ring-focus"
+                  class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
                 />
               </label>
             </div>
 
             <div
               v-if="selectedListingEntry"
-              class="rounded-md border border-border bg-canvas px-3 py-3 text-xs text-muted-2"
+              class="rounded-md border border-border bg-surface px-3 py-3 text-xs text-muted-2 ui-panel ui-panel--compact"
             >
               <div class="flex items-center justify-between gap-3">
                 <span>Market range</span>
@@ -278,7 +280,7 @@
 
         <form
           v-else-if="activeBoard === 'vendor'"
-          class="rounded-md border border-border bg-surface-2 px-3 py-3"
+          class="rounded-md border border-border bg-surface px-3 py-3"
           @submit.prevent="sellToNpc"
         >
           <p class="text-sm font-ui text-primary">
@@ -289,16 +291,16 @@
           </p>
 
           <div class="mt-3 grid gap-3">
-            <label class="grid gap-1">
+            <label class="grid gap-1 ui-field-label">
               <span
-                class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                 >Item</span
               >
               <SelectInput
                 ref="vendorSelect"
                 v-model="vendorForm.item_key"
                 :disabled="vendorForm.processing"
-                class="rounded-md border-border bg-surface text-sm text-primary focus:border-focus focus:ring-focus"
+                class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
               >
                 <option value="">Select item</option>
                 <option
@@ -312,9 +314,9 @@
               </SelectInput>
             </label>
 
-            <label class="grid gap-1">
+            <label class="grid gap-1 ui-field-label">
               <span
-                class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                 >Quantity</span
               >
               <input
@@ -323,13 +325,13 @@
                 type="number"
                 min="1"
                 :max="selectedVendorItem?.quantity ?? 999999"
-                class="rounded-md border-border bg-surface text-sm text-primary focus:border-focus focus:ring-focus"
+                class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
               />
             </label>
 
             <div
               v-if="selectedVendorItem"
-              class="rounded-md border border-border bg-canvas px-3 py-3 text-xs text-muted-2"
+              class="rounded-md border border-border bg-surface px-3 py-3 text-xs text-muted-2 ui-panel ui-panel--compact"
             >
               <div class="flex items-center justify-between gap-3">
                 <span>Buyback</span>
@@ -382,7 +384,7 @@
           <article
             v-for="(row, index) in visibleMarketRows"
             :key="`${row.listing_type}-${row.item_key ?? row.item_name}`"
-            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem]"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem] ui-panel ui-panel--compact"
           >
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
@@ -416,7 +418,7 @@
 
           <p
             v-if="!visibleMarketRows.length"
-            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
+            class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-muted-2 ui-panel ui-panel--compact"
           >
             No market signals match.
           </p>
@@ -429,7 +431,7 @@
           <article
             v-for="(transaction, index) in visibleTransactions"
             :key="transaction.id"
-            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem]"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem] ui-panel ui-panel--compact"
           >
             <div class="min-w-0">
               <p class="truncate text-sm font-ui text-primary">
@@ -465,7 +467,7 @@
 
           <p
             v-if="!visibleTransactions.length"
-            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
+            class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-muted-2 ui-panel ui-panel--compact"
           >
             No sales match.
           </p>
@@ -475,7 +477,7 @@
           <article
             v-for="(listing, index) in visibleActiveListings"
             :key="listing.id"
-            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem]"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem] ui-panel ui-panel--compact"
           >
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
@@ -544,7 +546,7 @@
 
           <p
             v-if="!visibleActiveListings.length"
-            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
+            class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-muted-2 ui-panel ui-panel--compact"
           >
             {{
               searchTerm.trim()

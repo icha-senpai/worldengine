@@ -1,8 +1,10 @@
 <template>
-  <section class="surface-section xl:col-span-2">
-    <div class="surface-section__header">
+  <section class="surface-section xl:col-span-2 ui-panel ui-panel--flush">
+    <div class="surface-section__header ui-panel-heading">
       <div class="surface-section__copy">
-        <span class="surface-section__title">Skills & Professions</span>
+        <span class="surface-section__title ui-section-title"
+          >Skills & Professions</span
+        >
         <p class="surface-section__subtitle">
           {{ skills.length }} tracks · Level {{ catalog.pacing.max_level }} cap
           · {{ catalog.pacing.estimated_hours_to_level_100 }}h baseline curve.
@@ -10,13 +12,13 @@
       </div>
     </div>
 
-    <div class="surface-section__body">
+    <div class="surface-section__body ui-panel-body">
       <div class="flex flex-wrap gap-2">
         <button
           v-for="group in groupedSkills"
           :key="group.category"
           type="button"
-          class="rounded-md border border-border bg-surface-2 px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
+          class="rounded-md border border-border bg-surface px-3 py-2 text-xs font-ui text-muted-2 transition hover:border-focus/60 hover:text-primary"
           :class="{
             'border-focus/70 bg-focus/10 text-primary':
               selectedCategory === group.category,
@@ -27,9 +29,9 @@
         </button>
       </div>
 
-      <label class="game-select block mt-3"
-        ><span class="sr-only">Skill</span
-        ><select v-model="selectedSkillKey">
+      <label class="game-select block mt-3 ui-field-label"
+        ><span class="sr-only ui-field-label">Skill</span
+        ><SelectInput v-model="selectedSkillKey">
           <option
             v-for="skill in activeGroup.entries"
             :key="skill.skill"
@@ -37,13 +39,13 @@
           >
             {{ skill.label }} · Lv {{ skill.level }}
           </option>
-        </select></label
+        </SelectInput></label
       >
       <div class="mt-4 grid gap-4">
         <div class="grid gap-4">
           <article
             v-if="activeSkill"
-            class="rounded-md border border-border bg-surface-2 px-3 py-3"
+            class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
           >
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
@@ -90,7 +92,9 @@
             </div>
 
             <div class="mt-5 grid gap-4 lg:grid-cols-2">
-              <div class="rounded-md border border-border bg-canvas px-3 py-3">
+              <div
+                class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
+              >
                 <div class="flex items-center justify-between gap-3">
                   <p class="text-sm font-ui text-primary">Activity Tree</p>
                   <span class="tag"
@@ -104,7 +108,7 @@
                     v-for="board in skillActivityBoards"
                     :key="board.key"
                     type="button"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-2 text-left transition hover:border-focus/60"
+                    class="rounded-md border border-border bg-surface px-3 py-2 text-left transition hover:border-focus/60"
                     :class="{
                       'border-focus/70 bg-focus/10':
                         selectedSkillBoard === board.key,
@@ -124,7 +128,7 @@
                   <div
                     v-for="activity in visibleSkillActivities"
                     :key="`${activity.type}-${activity.label}`"
-                    class="grid gap-2 rounded-md border border-border bg-surface-2 px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto]"
+                    class="grid gap-2 rounded-md border border-border bg-surface px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto] ui-panel ui-panel--compact"
                   >
                     <div class="min-w-0">
                       <div class="flex flex-wrap items-center gap-2">
@@ -162,14 +166,16 @@
 
                   <p
                     v-if="!activeSkillBoard.entries.length"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
+                    class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-muted-2 ui-panel ui-panel--compact"
                   >
                     No activities listed.
                   </p>
                 </div>
               </div>
 
-              <div class="rounded-md border border-border bg-canvas px-3 py-3">
+              <div
+                class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
+              >
                 <div class="flex items-center justify-between gap-3">
                   <p class="text-sm font-ui text-primary">Unlock Tree</p>
                   <span class="tag"
@@ -181,7 +187,7 @@
                   <div
                     v-for="unlock in visibleSkillUnlocks"
                     :key="unlock.level"
-                    class="grid gap-2 rounded-md border border-border bg-surface-2 px-3 py-2 sm:grid-cols-[4rem_minmax(0,1fr)_auto]"
+                    class="grid gap-2 rounded-md border border-border bg-surface px-3 py-2 sm:grid-cols-[4rem_minmax(0,1fr)_auto] ui-panel ui-panel--compact"
                   >
                     <span class="text-xs font-ui text-primary"
                       >Lv {{ unlock.level }}</span
@@ -205,7 +211,7 @@
 
                   <p
                     v-if="!visibleSkillUnlocks.length"
-                    class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
+                    class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-muted-2 ui-panel ui-panel--compact"
                   >
                     No unlocks on this board.
                   </p>
@@ -216,7 +222,7 @@
 
           <p
             v-else
-            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
+            class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-muted-2 ui-panel ui-panel--compact"
           >
             No skills match.
           </p>
@@ -260,6 +266,7 @@
 </template>
 
 <script setup>
+import SelectInput from "../../bitcraft-ui/shared/SelectInput.vue";
 import { computed, ref, watch } from "vue";
 import { usePersistedPanelState } from "./usePanelState";
 

@@ -1,14 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { catalogResponse } from "../bitcraft/src/catalog";
 import bundled from "../bitcraft/src/content/catalog.json";
+import additions from "../bitcraft/src/content/catalog-additions.json";
 import { inventoryTracker } from "../src/bitcraft-ui/trackers";
 
 describe("inventory picker catalog", () => {
   it("includes every item and cargo beyond the usual search result limit", () => {
     const catalog = catalogResponse("inventory-items", "", "")!;
-    expect(catalog.length).toBe(bundled.items.length);
-    expect(catalog.map((row) => `${row.kind}:${row.id}`)).toEqual(
-      bundled.items.map((row) => `${row.kind}:${row.id}`),
+    const keys = new Set(
+      [...bundled.items, ...additions.items].map(
+        (row) => `${row.kind}:${row.id}`,
+      ),
+    );
+    expect(catalog.length).toBe(keys.size);
+    expect(new Set(catalog.map((row) => `${row.kind}:${row.id}`))).toEqual(
+      keys,
     );
     expect(catalog.some((row) => row.kind === "cargo")).toBe(true);
     expect(catalog[0]).not.toHaveProperty("description");

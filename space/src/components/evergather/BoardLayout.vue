@@ -1,4 +1,5 @@
 <script setup>
+import SelectInput from "../../bitcraft-ui/shared/SelectInput.vue";
 import { ref } from "vue";
 defineProps({
   filters: { type: Array, default: () => [] },
@@ -17,9 +18,9 @@ const dialog = ref(null);
 <template>
   <div class="game-board">
     <div class="game-board__toolbar">
-      <label v-if="filters.length" class="game-select">
-        <span class="sr-only">{{ label }}</span>
-        <select
+      <label v-if="filters.length" class="game-select ui-field-label">
+        <span class="sr-only ui-field-label">{{ label }}</span>
+        <SelectInput
           :value="filter"
           @change="emit('update:filter', $event.target.value)"
         >
@@ -31,14 +32,14 @@ const dialog = ref(null);
             {{ option.label
             }}{{ option.metaLabel ? ` · ${option.metaLabel}` : "" }}
           </option>
-        </select>
+        </SelectInput>
       </label>
       <div
         v-if="boards.length"
         class="game-board__states"
         :aria-label="stateLabel"
       >
-        <select
+        <SelectInput
           class="game-readiness-select"
           :aria-label="stateLabel"
           :value="board"
@@ -51,7 +52,7 @@ const dialog = ref(null);
           >
             {{ option.label }}
           </option>
-        </select>
+        </SelectInput>
         <button
           v-for="option in boards"
           :key="option.key"
@@ -91,8 +92,8 @@ const dialog = ref(null);
         aria-label="Filters"
         @click="$event.target === dialog && dialog.close()"
       >
-        <header class="game-dialog__header">
-          <strong>Filters & details</strong
+        <header class="game-dialog__header ui-panel-heading">
+          <strong class="ui-dialog-title">Filters & details</strong
           ><button
             class="app-btn app-btn--ghost app-btn--sm"
             @click="dialog.close()"
@@ -100,7 +101,9 @@ const dialog = ref(null);
             Done
           </button>
         </header>
-        <div class="game-dialog__body"><slot name="filters" /></div>
+        <div class="game-dialog__body ui-panel-body">
+          <slot name="filters" />
+        </div>
       </dialog>
     </Teleport>
   </div>

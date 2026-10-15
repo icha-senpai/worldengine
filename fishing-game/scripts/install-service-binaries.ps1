@@ -1,4 +1,4 @@
-param([string]$BotBinary, [string]$LinkerBinary)
+param([string]$BotBinary, [string]$LinkerBinary, [ValidateSet('All', 'Bot', 'Linker')][string]$Target = 'All')
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
@@ -7,6 +7,8 @@ if (!$BotBinary) { $BotBinary = Join-Path $projectRoot '.local\rust-artifacts\di
 if (!$LinkerBinary) { $LinkerBinary = Join-Path $projectRoot '.local\rust-artifacts\account-link.exe' }
 New-Item -ItemType Directory -Path $binRoot -Force | Out-Null
 $sources = @{'discord-bot.exe' = $BotBinary; 'account-link.exe' = $LinkerBinary}
+if ($Target -eq 'Bot') { $sources.Remove('account-link.exe') }
+if ($Target -eq 'Linker') { $sources.Remove('discord-bot.exe') }
 foreach ($name in $sources.Keys) {
     $source = [IO.Path]::GetFullPath($sources[$name])
     $destination = [IO.Path]::GetFullPath((Join-Path $binRoot $name))
@@ -17,6 +19,11 @@ foreach ($name in $sources.Keys) {
     }
 }
 $manifest = @()
+$manifestPath = Join-Path $binRoot 'installed.json'
+if ($Target -ne 'All' -and (Test-Path -LiteralPath $manifestPath)) {
+    $existing = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    $manifest = @($existing.programs | Where-Object { !$sources.ContainsKey($_.name) })
+}
 foreach ($name in $sources.Keys) {
     $source = [IO.Path]::GetFullPath($sources[$name])
     $destination = Join-Path $binRoot $name
@@ -28,5 +35,5 @@ foreach ($name in $sources.Keys) {
     $manifest += @{name = $name; sha256 = $hash; bytes = (Get-Item -LiteralPath $destination).Length}
 }
 @{installedAt = (Get-Date).ToUniversalTime().ToString('o'); programs = $manifest} | ConvertTo-Json -Depth 4 |
-    Set-Content -LiteralPath (Join-Path $binRoot 'installed.json') -Encoding utf8
-Write-Output 'Installed and hash-verified both services in .runtime/bin. Cargo target folders are build caches.'
+    Set-Content -LiteralPath $manifestPath -Encoding utf8
+Write-Output "Installed and hash-verified $($sources.Keys -join ', ') in .runtime/bin. Cargo target folders are build caches."

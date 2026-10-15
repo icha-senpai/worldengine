@@ -51,7 +51,7 @@ export function normalizeHex(value) {
     return `#${source.toUpperCase()}`;
   }
 
-  return "#1E293B";
+  return "#110A18";
 }
 
 export function hexToRgbObject(value) {

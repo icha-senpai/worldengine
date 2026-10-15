@@ -8,6 +8,7 @@ export const marketCheckpointTables = {
   claim_history_state: "claimHistoryState",
   claim_history_event: "claimHistoryEvent",
   claim_history_region: "claimHistoryRegion",
+  claim_revision: "claimRevision",
   market_item: "marketItem",
   market_meta: "marketMeta",
   market_summary: "marketSummaryRow",

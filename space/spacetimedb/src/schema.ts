@@ -139,6 +139,14 @@ export const listing = table(
     toolSnapshot: t.string().default(""),
   },
 );
+export const marketRevision = table(
+  { name: "market_revision", public: true },
+  { id: t.u32().primaryKey(), revision: t.u64() },
+);
+export const marketOrder = table(
+  { name: "market_order" },
+  { id: t.u64().primaryKey(), sortKey: t.string().index("btree") },
+);
 export const achievement = table(
   {
     name: "achievement",
@@ -243,6 +251,8 @@ export const buff = table(
   },
 );
 const db = schema({
+  marketRevision,
+  marketOrder,
   economyState,
   buff,
   catalogReference,

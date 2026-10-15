@@ -5,7 +5,7 @@ Standalone Vue 3 + TypeScript frontend with two SpaceTimeDB 2.12 modules. BitCra
 ## Local development
 
 On Windows, double-click `start-test.cmd`, `stop-test.cmd`, or `restart-test.cmd`
-to manage the existing local database and both frontends. The main app is at
+to manage the existing local database and both development frontends. The main dev app is at
 https://space.test/evergather (port 5180). The test UI is at
 http://127.0.0.1:5181/evergather and SpaceTimeDB listens on port 3100. These
 scripts use `.env.local` for the main app and `.env.playtest.local` for tests,
@@ -50,9 +50,13 @@ The BitCraft XP tracker continues refreshing in hidden tabs and refreshes immedi
 
 `npx tsx scripts/xp-background-check.ts [Character]` checks the managed local app by disconnecting its tracker reader for 75 seconds, then verifying collection advanced and the rate/session restore from history. The default character is Icha.
 
-The existing local proxy can also serve https://space.test/evergather. ServBay's existing Cloudflare tunnel maps https://space.ichaa.dev to `space.test`. Vite allows both hostnames in development and preview and proxies `/v1` HTTP/WebSocket requests to SpaceTimeDB on port 3100. Public visitors use the site's secure WebSocket address; local development keeps the configured database address. ServBay, its Cloudflare tunnel, and the local app services must stay running for the public site to be available.
+ServBay's `space` entry serves private development at https://space.test/evergather through Vite on 5180. It has no Cloudflare mapping. The separate `Space Public` entry serves `.runtime/published-web` at `space.pub.test`; Cloudflare maps https://space.ichaa.dev only to that Public entry. NGINX provides the SPA route fallback and proxies `/v1` HTTP/WebSocket requests directly to SpaceTimeDB on port 3100. Its source configuration is [deploy/servbay-space.conf](deploy/servbay-space.conf); apply it to `Space Public` through ServBay's website MCP/editor. The isolated playtest frontend remains on 5181 with the test databases. Existing main/live-feed and test database choices are unchanged by this hosting split.
 
-The public [Boss Leaderboard](https://space.test/bitcraft/bosses) records confirmed Sentinel, Giant Skitch and Araknir Nest defeats through the managed collector, including contributors and final blows where observed. Recording runs independently of browser tabs. Detailed encounters have bounded retention; compact totals survive expiry and storage maintenance. See [boss recording](docs/boss-recording.md) for attribution, coverage and verification.
+`npm run build` writes the private working `dist` directory and does not publish anything. Double-click `publish-space.cmd` (or run `npm run web:publish`) to build, stage and promote the public copy. Public build settings are kept separately in ignored `.runtime/public-web.env`, initialized from the existing main frontend settings; development environment edits do not overwrite that file. The publisher retains the previous directory only during the swap, then removes it after success. An interrupted swap refuses to continue until its remaining `publish-web-previous` is inspected. There are no dated releases or automatic deployment backups. Frontend publishing does not publish database modules, reset data, or restart collectors/dev servers.
+
+ServBay, its Cloudflare tunnel, SpaceTimeDB and the collector must stay running for live public data. Static public pages do not require Vite. Changing Cloudflare mappings requires restarting the versioned `cloudflared` service (major version `0`) through ServBay; the unversioned service action does not restart the active tunnel.
+
+The public [Boss Leaderboard](https://space.ichaa.dev/bitcraft/bosses) records confirmed Sentinel, Giant Skitch and Araknir Nest defeats through the managed collector, including contributors and final blows where observed. Recording runs independently of browser tabs. Detailed encounters have bounded retention; compact totals survive expiry and storage maintenance. See [boss recording](docs/boss-recording.md) for attribution, coverage and verification.
 
 ## Temporary local play
 
@@ -228,6 +232,8 @@ Fresh October 3 comparisons both used 30 clients and 91 seconds. The legacy path
 The comparison report is `output/performance/market-comparison-2026-10-03.json`, with source reports `space-evergather-loadtest-1791067873032.json` and `space-evergather-loadtest-1791068218862.json` in the same directory. Browser checks created 60 legitimate test listings, verified 50/10 public page windows, deduplicated own escrow, independent same-character tabs, automatic page adjustment as the market shrank to 50, cancellation cleanup, and no overflow at 375px. All 47 unit tests, isolated server checks and the production build passed. Main player progress was verified unchanged during publication. At this stage, the scoped catalog was the largest profiled view cost; the following change addresses it. Very large stored markets and sustained WAN workloads remain unbenchmarked.
 
 ### Whole-game definition feeds
+
+Current native module tests, populated migration proofs, repeatable benchmarks, and live public-subscription measurements are documented in [module profiling](docs/module-profiling.md). This includes compact claim revisions, indexed market pages and the complete inventory directory with selected item details. Temporary databases and owned proof artifacts are cleaned after verification.
 
 The application subscribes to shared anonymous definitions by game system, plus independent caller-owned player, skill, inventory, equipment, contract, reward and journal state. Public market pages and ranks remain panel-scoped. Definitions no longer depend on quantity, gold, XP or durability. The shared groups contain the current catalog payloads and metadata for the items those payloads reference.
 

@@ -1,5 +1,19 @@
 import { table, t } from "spacetimedb/server";
 
+// Small persisted invalidation state, separate from recording heartbeats.
+export const claimRevision = table(
+  { name: "claim_revision" },
+  {
+    key: t.string().primaryKey(),
+    epoch: t.string(),
+    sequence: t.u32(),
+    complete: t.bool(),
+    claims: t.u32(),
+    supplies: t.u32(),
+    supplyVersion: t.string(),
+  },
+);
+
 export const claimSupplyStatus = table(
   { name: "claim_supply_status" },
   {

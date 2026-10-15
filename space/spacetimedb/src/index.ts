@@ -33,6 +33,13 @@ import {
   syncCatalogReferences,
 } from "./catalog";
 import { toolPrices } from "./market";
+import {
+  indexListing,
+  bumpMarketRevision,
+  prepareMarketReads,
+  readMarketPage,
+} from "./market-reads";
+import { inventoryDirectoryRows, inventoryDetailRows } from "./inventory-reads";
 import type { Identity } from "spacetimedb";
 import {
   catalogKinds,
@@ -172,7 +179,32 @@ export const refreshContent = db.reducer((ctx) => {
   if (!ctx.db.security.id.find(1)!.owner.equals(ctx.sender))
     throw new SenderError("Only the database owner can import content.");
   seedContent(ctx);
+  bumpMarketRevision(ctx);
 });
+export const prepareReadModels = db.reducer((ctx) => {
+  if (!ctx.db.security.id.find(1)!.owner.equals(ctx.sender))
+    throw new SenderError("Only the database owner can prepare reads.");
+  prepareMarketReads(ctx);
+});
+export const readMarketListings = db.procedure(
+  { page: t.u32(), after: t.string(), revision: t.string() },
+  t.string(),
+  (ctx, args) =>
+    ctx.withTx((tx) => {
+      const page = readMarketPage(tx, args.page, args.after, args.revision);
+      return JSON.stringify(
+        {
+          ...page,
+          rows: page.rows.map((row) => ({
+            ...row,
+            seller: row.seller.toHexString(),
+            createdAt: String(row.createdAt.microsSinceUnixEpoch),
+          })),
+        },
+        (_key, value) => (typeof value === "bigint" ? String(value) : value),
+      );
+    }),
+);
 export const clearLeaderboards = db.reducer((ctx) => {
   if (!ctx.db.security.id.find(1)!.owner.equals(ctx.sender))
     throw new SenderError("Only the database owner can clear leaderboards.");
@@ -256,6 +288,9 @@ export const resetItemEconomy = db.reducer(
       );
     for (const row of [...ctx.db.listing.iter()])
       ctx.db.listing.id.delete(row.id);
+    for (const row of [...ctx.db.marketOrder.iter()])
+      ctx.db.marketOrder.id.delete(row.id);
+    bumpMarketRevision(ctx);
     for (const row of [...ctx.db.inventory.iter()])
       ctx.db.inventory.key.delete(row.key);
     for (const row of [...ctx.db.tool.iter()]) ctx.db.tool.id.delete(row.id);
@@ -1051,7 +1086,7 @@ export const listItem = db.reducer(
       ...stack,
       quantity: stack.quantity - BigInt(args.quantity),
     });
-    ctx.db.listing.insert({
+    const listed = ctx.db.listing.insert({
       id: 0n,
       seller: ctx.sender,
       sellerName: current.name,
@@ -1064,6 +1099,8 @@ export const listItem = db.reducer(
       toolSnapshot: "",
       createdAt: ctx.timestamp,
     });
+    indexListing(ctx, listed);
+    bumpMarketRevision(ctx);
     log(ctx, "market_listing", { label: `Listed ${stack.name}` }, 0, 0, [], {
       listing_type: "item",
       item_key: stack.itemKey,
@@ -1111,7 +1148,7 @@ export const listTool = db.reducer(
       rarityProgress: row.rarityProgress,
     };
     ctx.db.tool.id.update({ ...row, listed: true });
-    ctx.db.listing.insert({
+    const listed = ctx.db.listing.insert({
       id: 0n,
       seller: ctx.sender,
       sellerName: current.name,
@@ -1124,6 +1161,8 @@ export const listTool = db.reducer(
       toolSnapshot: JSON.stringify(snapshot),
       createdAt: ctx.timestamp,
     });
+    indexListing(ctx, listed);
+    bumpMarketRevision(ctx);
     log(ctx, "market_listing", { label: `Listed ${row.name}` }, 0, 0, [], {
       listing_type: "tool",
       item_key: row.itemKey,
@@ -1162,6 +1201,8 @@ export const buyListing = db.reducer({ id: t.u64() }, (ctx, { id }) => {
     });
   }
   ctx.db.listing.id.delete(id);
+  ctx.db.marketOrder.id.delete(id);
+  bumpMarketRevision(ctx);
   refreshLeaderboard(ctx, row.seller);
   if (row.toolId) syncCatalogReferences(ctx, row.seller);
   ctx.db.trade.insert({
@@ -1217,6 +1258,8 @@ export const cancelListing = db.reducer({ id: t.u64() }, (ctx, { id }) => {
     });
   }
   ctx.db.listing.id.delete(id);
+  ctx.db.marketOrder.id.delete(id);
+  bumpMarketRevision(ctx);
   log(ctx, "market_cancel", { label: `Cancelled ${row.name}` }, 0, 0, []);
 });
 export const sellToolToVendor = db.reducer({ id: t.u64() }, (ctx, { id }) => {
@@ -1714,6 +1757,17 @@ export const inventoryGuideDefinitions = db.anonymousView(
       true,
     ),
 );
+export const inventoryDirectory = db.anonymousView(
+  { name: "inventory_directory", public: true },
+  t.array(catalog.rowType),
+  inventoryDirectoryRows,
+);
+export const readInventoryDetails = db.procedure(
+  { items: t.string() },
+  t.string(),
+  (ctx, args) =>
+    ctx.withTx((tx) => JSON.stringify(inventoryDetailRows(tx, args.items))),
+);
 export const myReferenceCatalog = db.view(
   { name: "my_reference_catalog", public: true },
   t.array(catalog.rowType),
@@ -1868,7 +1922,7 @@ export const marketSummary = db.anonymousView(
     }),
   ),
   (ctx) => {
-    const total = [...ctx.db.listing.iter()].length;
+    const total = Number(ctx.db.listing.count());
     return [{ id: 0, total, pages: pageWindow(total, 1).pages }];
   },
 );
@@ -1885,7 +1939,7 @@ export const myMarketPage = db.view(
   (ctx) =>
     [...ctx.db.uiSession.byOwner.filter(ctx.sender)].map((scope) => {
       const window = pageWindow(
-        [...ctx.db.listing.iter()].length,
+        Number(ctx.db.listing.count()),
         scope.marketPage,
       );
       return {

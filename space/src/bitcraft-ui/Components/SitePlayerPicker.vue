@@ -74,7 +74,10 @@ function show() {
   <Modal :show="open" max-width="lg" @close="open = false">
     <section class="p-5 sm:p-6" aria-labelledby="site-player-title">
       <div class="flex items-center justify-between gap-3 mb-5">
-        <h2 id="site-player-title" class="text-lg font-semibold">
+        <h2
+          id="site-player-title"
+          class="text-lg font-semibold ui-dialog-title"
+        >
           Site player
         </h2>
         <AppButton variant="ghost" size="sm" @click="open = false"
@@ -82,8 +85,8 @@ function show() {
         >
       </div>
       <form class="flex gap-2" @submit.prevent="search">
-        <label class="min-w-0 flex-1">
-          <span class="field-label">Player name</span>
+        <label class="min-w-0 flex-1 ui-field-label">
+          <span class="field-label ui-field-label">Player name</span>
           <TextInput
             v-model="query"
             type="search"
@@ -161,6 +164,6 @@ function show() {
 }
 .player-result:hover,
 .player-result:focus-visible {
-  background: var(--bg-surface-2);
+  background: var(--control-hover);
 }
 </style>

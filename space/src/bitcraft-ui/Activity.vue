@@ -22,21 +22,21 @@
       >
         <form class="activity-setup" @submit.prevent="submitSetup(true)">
           <div class="activity-setup__grid">
-            <label>
-              <span>Title</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Title</span>
               <input v-model.trim="form.title" type="text" maxlength="80" />
             </label>
 
             <EmojiInput v-model="form.icons" />
 
-            <label>
-              <span>Character</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Character</span>
               <input v-model.trim="form.character" type="text" maxlength="80" />
               <SitePlayerDefaultButton @select="form.character = $event" />
             </label>
 
-            <label>
-              <span>Skill Scope</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Skill Scope</span>
               <SelectInput v-model="form.skill" class="input">
                 <option value="all">All skills</option>
                 <option
@@ -52,29 +52,29 @@
 
           <WidgetThemeControls :model="form" @update="updateTheme" />
           <fieldset class="xp-display-options">
-            <legend>Show in the tracker</legend>
-            <label
+            <legend class="ui-field-label">Show in the tracker</legend>
+            <label class="ui-field-label"
               ><input
                 v-model="form.showSession"
                 class="checkbox"
                 type="checkbox"
               />
               Session statistics</label
-            ><label
+            ><label class="ui-field-label"
               ><input
                 v-model="form.showActivity"
                 class="checkbox"
                 type="checkbox"
               />
               Activity and stamina</label
-            ><label
+            ><label class="ui-field-label"
               ><input
                 v-model="form.showGoals"
                 class="checkbox"
                 type="checkbox"
               />
               Additional skill goals</label
-            ><label
+            ><label class="ui-field-label"
               ><input
                 v-model="form.showCrafts"
                 class="checkbox"
@@ -85,8 +85,8 @@
           </fieldset>
 
           <div ref="pickerElement" class="activity-picker">
-            <label>
-              <span>XP / level goals</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">XP / level goals</span>
               <input
                 v-model.trim="form.skillSearch"
                 type="search"
@@ -122,7 +122,7 @@
           <div v-if="selectedSkillOptions.length" class="activity-selected">
             <span v-for="skill in selectedSkillOptions" :key="skill.id">
               <strong>{{ skill.name }}</strong>
-              <label>
+              <label class="ui-field-label">
                 <small>Goal level</small>
                 <input
                   v-model.number="form.skillGoalLevels[String(skill.id)]"
@@ -134,7 +134,7 @@
                   "
                 />
               </label>
-              <label>
+              <label class="ui-field-label">
                 <small>Goal XP</small>
                 <input
                   v-model.number="form.skillGoalXp[String(skill.id)]"
@@ -287,6 +287,10 @@
                         loading="lazy"
                         decoding="async"
                         @error="hideSourceIcon"
+                      />
+                      <BitcraftTierBadge
+                        v-if="hasBitcraftTier(primaryItem.tier)"
+                        :tier="primaryItem.tier"
                       />
                       <span>{{ primaryItem.name }}</span>
                     </span>
@@ -487,7 +491,8 @@ import { route } from "/src/bitcraft-ui/navigation";
 import { openWidget, widgetUrl, persistWidgetDraft } from "./widgets";
 import { restoreXpSession, trackerActivity } from "./xpSession";
 import { xpItemForSkill } from "./xpSource";
-import { bitcraftAssetUrl } from "./bitjitaAssets";
+import { bitcraftAssetUrl, hasBitcraftTier } from "./bitjitaAssets";
+import BitcraftTierBadge from "./Components/BitcraftTierBadge.vue";
 import {
   passiveDeadlines,
   passiveSecondsLeft,
@@ -1733,11 +1738,11 @@ const skillDetailLabel = (stat) => {
   min-width: 0;
   max-width: 100%;
 }
-.xp-source-item span {
+.xp-source-item > span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.xp-source-item img {
+.xp-source-item > img {
   flex: 0 0 28px;
   width: 28px;
   height: 28px;
@@ -1871,10 +1876,8 @@ const skillDetailLabel = (stat) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
   min-height: 40px;
   cursor: pointer;
-  color: var(--text-primary);
 }
 .activity-setup .xp-display-options input {
   width: 18px;
@@ -1938,13 +1941,7 @@ const skillDetailLabel = (stat) => {
   border: 1px solid rgb(var(--border-color-2-rgb) / 0.36);
   border-radius: 8px;
   padding: 12px;
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--bg-surface-3-rgb) / 0.26),
-      rgb(var(--bg-surface-rgb) / 0.94)
-    ),
-    var(--bg-surface);
+  background: var(--bg-surface);
 }
 
 .activity-setup__grid {
@@ -1957,14 +1954,6 @@ const skillDetailLabel = (stat) => {
 .activity-picker label {
   display: grid;
   gap: 6px;
-}
-
-.activity-setup span,
-.activity-picker span {
-  color: var(--text-muted-3);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
 }
 
 .activity-setup input:not([type="checkbox"]),
@@ -1994,7 +1983,7 @@ const skillDetailLabel = (stat) => {
   border: 1px solid rgb(var(--border-color-2-rgb) / 0.42);
   border-radius: 8px;
   background: var(--bg-surface);
-  box-shadow: 0 18px 38px rgb(0 0 0 / 0.32);
+  box-shadow: 0 18px 38px rgb(var(--bg-canvas-rgb) / 0.32);
 }
 
 .activity-picker__option {

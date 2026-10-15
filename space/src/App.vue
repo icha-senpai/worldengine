@@ -356,8 +356,8 @@ onUnmounted(() => document.removeEventListener("keydown", escapeMobile));
   margin: 0;
   padding: 10px 16px;
   font-size: 13px;
-  color: #efbe7e;
-  background: #332614;
-  border-bottom: 1px solid #80603b;
+  color: var(--warning);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color-2);
 }
 </style>

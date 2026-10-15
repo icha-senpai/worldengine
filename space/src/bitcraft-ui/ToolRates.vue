@@ -1,26 +1,17 @@
 <template>
   <AuthenticatedLayout>
     <template #header>
-      <div class="page-hero">
-        <div class="page-hero__copy">
-          <div class="page-hero__eyebrow">
-            <span>Bitcraft tools</span>
-          </div>
-          <h1 class="page-hero__title page-hero__title--lg">
-            Tool Rate Calculator
-          </h1>
-          <p class="page-hero__subtitle">
-            Extraction estimates from static BitCraft data.
-          </p>
-        </div>
-      </div>
+      <BitcraftPageHeader
+        title="Tool Rate Calculator"
+        description="Extraction estimates from static BitCraft data."
+      />
     </template>
 
-    <section class="index-panel">
+    <section class="index-panel ui-panel">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2
-            class="font-ui text-sm font-semibold uppercase tracking-[0.18em] text-muted-2"
+            class="font-ui text-sm font-semibold uppercase tracking-[0.18em] text-muted-2 ui-section-title"
           >
             Inputs
           </h2>
@@ -31,8 +22,10 @@
       </div>
 
       <div class="tool-rate-controls mt-4">
-        <label class="tool-rate-control tool-rate-control--search">
-          <span class="field-label">Search</span>
+        <label
+          class="tool-rate-control tool-rate-control--search ui-field-label"
+        >
+          <span class="field-label ui-field-label">Search</span>
           <TextInput
             v-model.trim="settings.search"
             type="search"
@@ -40,8 +33,8 @@
           />
         </label>
 
-        <label class="tool-rate-control">
-          <span class="field-label">Skill</span>
+        <label class="tool-rate-control ui-field-label">
+          <span class="field-label ui-field-label">Skill</span>
           <SelectInput v-model="settings.skill">
             <option value="">All skills</option>
             <option v-for="skill in skillOptions" :key="skill" :value="skill">
@@ -50,8 +43,8 @@
           </SelectInput>
         </label>
 
-        <label class="tool-rate-control">
-          <span class="field-label">Tool</span>
+        <label class="tool-rate-control ui-field-label">
+          <span class="field-label ui-field-label">Tool</span>
           <SelectInput v-model="settings.tool">
             <option value="">All tools</option>
             <option v-for="tool in toolOptions" :key="tool" :value="tool">
@@ -60,16 +53,16 @@
           </SelectInput>
         </label>
 
-        <label class="tool-rate-control">
-          <span class="field-label">Mode</span>
+        <label class="tool-rate-control ui-field-label">
+          <span class="field-label ui-field-label">Mode</span>
           <SelectInput v-model="settings.mode">
             <option value="sustained">Sustained</option>
             <option value="single">Single target</option>
           </SelectInput>
         </label>
 
-        <label class="tool-rate-control">
-          <span class="field-label">Power</span>
+        <label class="tool-rate-control ui-field-label">
+          <span class="field-label ui-field-label">Power</span>
           <TextInput
             v-model.number="settings.power"
             type="number"
@@ -79,8 +72,8 @@
           />
         </label>
 
-        <label class="tool-rate-control">
-          <span class="field-label">Gather speed %</span>
+        <label class="tool-rate-control ui-field-label">
+          <span class="field-label ui-field-label">Gather speed %</span>
           <TextInput
             v-model.number="settings.gatheringSpeed"
             type="number"
@@ -91,8 +84,8 @@
           />
         </label>
 
-        <label class="tool-rate-control">
-          <span class="field-label">Skill speed %</span>
+        <label class="tool-rate-control ui-field-label">
+          <span class="field-label ui-field-label">Skill speed %</span>
           <TextInput
             v-model.number="settings.skillSpeed"
             type="number"
@@ -103,8 +96,8 @@
           />
         </label>
 
-        <label class="tool-rate-control">
-          <span class="field-label">Minutes</span>
+        <label class="tool-rate-control ui-field-label">
+          <span class="field-label ui-field-label">Minutes</span>
           <TextInput
             v-model.number="settings.minutes"
             type="number"
@@ -115,8 +108,8 @@
           />
         </label>
 
-        <label class="tool-rate-control">
-          <span class="field-label">Crit chance %</span>
+        <label class="tool-rate-control ui-field-label">
+          <span class="field-label ui-field-label">Crit chance %</span>
           <TextInput
             v-model.number="settings.critChance"
             type="number"
@@ -127,8 +120,8 @@
           />
         </label>
 
-        <label class="tool-rate-control">
-          <span class="field-label">Crit multiplier</span>
+        <label class="tool-rate-control ui-field-label">
+          <span class="field-label ui-field-label">Crit multiplier</span>
           <TextInput
             v-model.number="settings.critMultiplier"
             type="number"
@@ -141,8 +134,11 @@
       </div>
     </section>
 
-    <section v-if="observations" class="surface-section mt-5">
-      <div class="surface-section__body">
+    <section
+      v-if="observations"
+      class="surface-section mt-5 ui-panel ui-panel--flush"
+    >
+      <div class="surface-section__body ui-panel-body">
         <p>Observed XP for {{ observations.username }}</p>
         <a href="/bitcraft/tool-rates?nearby=1" class="tag mt-2"
           >Nearby resources</a
@@ -161,8 +157,11 @@
         </div>
       </div>
     </section>
-    <section v-if="nearby || nearbyError" class="surface-section mt-5">
-      <div class="surface-section__body">
+    <section
+      v-if="nearby || nearbyError"
+      class="surface-section mt-5 ui-panel ui-panel--flush"
+    >
+      <div class="surface-section__body ui-panel-body">
         <p>Resources around the player's last known position</p>
         <button class="tag mt-2" @click="router.reload()">
           Refresh observations
@@ -179,10 +178,10 @@
         </p>
       </div>
     </section>
-    <section class="surface-section mt-5">
-      <div class="surface-section__header">
+    <section class="surface-section mt-5 ui-panel ui-panel--flush">
+      <div class="surface-section__header ui-panel-heading">
         <div class="surface-section__copy">
-          <h2 class="surface-section__title">Estimates</h2>
+          <h2 class="surface-section__title ui-section-title">Estimates</h2>
           <p class="surface-section__subtitle">
             {{ visibleRows.length }} of {{ entries.length }} tool actions
           </p>
@@ -195,12 +194,12 @@
         </SelectInput>
       </div>
 
-      <div class="surface-section__body">
+      <div class="surface-section__body ui-panel-body">
         <div v-if="visibleRows.length" class="grid gap-3">
           <article
             v-for="row in visibleRows"
             :key="row.entry.id"
-            class="tool-rate-card"
+            class="tool-rate-card ui-panel ui-panel--compact"
           >
             <div class="tool-rate-card__head">
               <span
@@ -219,7 +218,9 @@
               </span>
 
               <div class="min-w-0">
-                <h3 class="tool-rate-card__title">{{ row.entry.name }}</h3>
+                <h3 class="tool-rate-card__title ui-section-title">
+                  {{ row.entry.name }}
+                </h3>
                 <div class="mt-2 flex flex-wrap gap-2">
                   <span v-if="row.entry.skill?.name" class="tag">{{
                     row.entry.skill.name
@@ -329,6 +330,7 @@
 </template>
 
 <script setup>
+import BitcraftPageHeader from "./Components/BitcraftPageHeader.vue";
 import { computed, reactive, ref, watch } from "vue";
 import { router } from "./navigation";
 import AuthenticatedLayout from "/src/bitcraft-ui/Layout.vue";
@@ -600,16 +602,6 @@ const hideBrokenIcon = (assetName) => {
 .tool-rate-card {
   display: grid;
   gap: 14px;
-  border: 1px solid rgb(var(--border-color-rgb) / 0.72);
-  border-radius: 8px;
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--bg-surface-rgb) / 0.92),
-      rgb(var(--bg-surface-2-rgb) / 0.82)
-    ),
-    rgb(var(--bg-surface-rgb) / 0.9);
-  padding: 14px;
 }
 
 .tool-rate-card__head {
@@ -661,11 +653,6 @@ const hideBrokenIcon = (assetName) => {
 
 .tool-rate-card__title {
   overflow-wrap: anywhere;
-  color: var(--text-primary);
-  font-family: var(--font-ui);
-  font-size: 16px;
-  font-weight: 800;
-  line-height: 1.25;
 }
 
 .tool-rate-grid {
@@ -746,7 +733,7 @@ const hideBrokenIcon = (assetName) => {
     ),
     rgb(var(--bg-surface-rgb) / 0.7);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08),
     0 0 12px
       color-mix(
         in srgb,

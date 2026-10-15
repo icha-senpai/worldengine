@@ -24,7 +24,7 @@
         <div class="drawer-panel__header">
           <div class="drawer-panel__header-copy">
             <PageHeaderTrail v-if="trailItems.length" :items="trailItems" />
-            <h1 class="drawer-panel__title">{{ title }}</h1>
+            <h1 class="drawer-panel__title ui-dialog-title">{{ title }}</h1>
           </div>
 
           <slot name="header-actions">

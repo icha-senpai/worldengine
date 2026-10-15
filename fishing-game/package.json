@@ -16,6 +16,7 @@
     "check:scripts": "tsc --project scripts/tsconfig.json",
     "build": "npm run build --workspace @fishing-game/web",
     "preview": "npm run preview --workspace @fishing-game/web --",
+    "web:publish": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/publish-web.ps1",
     "assets:manifest": "node scripts/asset-manifest.mjs",
     "content:validate": "node content/validate.mjs",
     "module:build": "node scripts/rust-workflow.mjs module",

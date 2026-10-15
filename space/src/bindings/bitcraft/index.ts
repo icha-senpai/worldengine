@@ -49,6 +49,7 @@ import IngestMarketDirectoryReducer from "./ingest_market_directory_reducer";
 import IngestRelayTradingReducer from "./ingest_relay_trading_reducer";
 import MarketRefreshFailureReducer from "./market_refresh_failure_reducer";
 import MigrateGuidesReducer from "./migrate_guides_reducer";
+import PrepareClaimRevisionsReducer from "./prepare_claim_revisions_reducer";
 import RelayHeartbeatReducer from "./relay_heartbeat_reducer";
 import RequestMarketRefreshReducer from "./request_market_refresh_reducer";
 import RestoreAppStateReducer from "./restore_app_state_reducer";
@@ -291,6 +292,7 @@ const reducersSchema = __reducers(
   __reducerSchema("ingest_relay_trading", IngestRelayTradingReducer),
   __reducerSchema("market_refresh_failure", MarketRefreshFailureReducer),
   __reducerSchema("migrate_guides", MigrateGuidesReducer),
+  __reducerSchema("prepare_claim_revisions", PrepareClaimRevisionsReducer),
   __reducerSchema("relay_heartbeat", RelayHeartbeatReducer),
   __reducerSchema("request_market_refresh", RequestMarketRefreshReducer),
   __reducerSchema("restore_app_state", RestoreAppStateReducer),

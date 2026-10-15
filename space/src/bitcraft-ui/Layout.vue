@@ -12,10 +12,3 @@ import AppDialogHost from "./shared/ui/AppDialogHost.vue";
     <AppDialogHost />
   </div>
 </template>
-<style scoped>
-.bitcraft-page-header {
-  padding-bottom: 22px;
-  margin-bottom: 28px;
-  border-bottom: 1px solid var(--border-color);
-}
-</style>

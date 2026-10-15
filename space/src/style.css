@@ -4,6 +4,7 @@
 @import "./styles/evergather.css";
 @import "./styles/bitcraft.css";
 @import "./styles/controls.css";
+@import "./styles/components.css";
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
 @layer base {
@@ -64,15 +65,6 @@
     font-weight: 650;
     letter-spacing: -0.025em;
     margin-bottom: 14px;
-  }
-  h2 {
-    font-size: 20px;
-    font-weight: 650;
-    letter-spacing: 0;
-  }
-  h3 {
-    font-size: 16px;
-    font-weight: 600;
   }
   .muted {
     color: var(--muted);
@@ -157,7 +149,7 @@
   textarea {
     border: 1px solid var(--line);
     border-radius: 6px;
-    background: var(--bg-surface-2);
+    background: var(--bg-canvas-2);
     color: var(--text);
     padding: 11px 13px;
     min-width: 0;
@@ -172,8 +164,6 @@
   label {
     display: grid;
     gap: 8px;
-    color: var(--muted);
-    font-size: 12px;
   }
   .button {
     display: inline-flex;
@@ -193,7 +183,7 @@
   .button.quiet {
     border-color: var(--line);
     color: var(--text);
-    background: var(--bg-surface-2);
+    background: var(--bg-surface);
   }
   .button.gold {
     background: rgb(var(--accent-cyan-rgb) / 0.12);
@@ -201,11 +191,7 @@
     color: var(--gold);
   }
   .notice {
-    padding: 14px 18px;
-    border: 1px solid rgb(var(--warning-rgb) / 0.35);
-    border-radius: 6px;
     color: var(--text-muted);
-    background: rgb(var(--warning-rgb) / 0.08);
     font-size: 13px;
     line-height: 1.6;
     margin: 0 0 20px;
@@ -219,9 +205,6 @@
     line-height: 1.8;
   }
   .surface {
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--bg-surface);
     overflow: hidden;
   }
   .table-scroll {
@@ -249,7 +232,7 @@
     border-bottom: 0;
   }
   tbody tr:hover {
-    background: var(--bg-surface-2);
+    background: var(--control-hover);
   }
   .table-item {
     display: flex;
@@ -260,7 +243,7 @@
     width: 35px;
     height: 35px;
     border-radius: 5px;
-    background: var(--bg-surface-2);
+    background: var(--bg-surface);
     object-fit: contain;
   }
   .pager {

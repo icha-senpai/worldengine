@@ -1,14 +1,12 @@
 <template>
   <AuthenticatedLayout>
     <template #header>
-      <div class="page-hero">
-        <div class="page-hero__copy">
-          <div class="page-hero__eyebrow">
-            <span>{{ count }} {{ countLabel }}</span>
-          </div>
-          <h1 class="page-hero__title page-hero__title--lg">{{ title }}</h1>
-        </div>
-        <div v-if="createHref" class="page-hero__actions">
+      <BitcraftPageHeader
+        :title="title"
+        :eyebrow="`${count} ${countLabel}`"
+        :description="description"
+      >
+        <template v-if="createHref" #actions>
           <AppButton
             v-if="createHref"
             :href="createHref"
@@ -19,13 +17,13 @@
           >
             {{ createLabel }}
           </AppButton>
-        </div>
-      </div>
+        </template>
+      </BitcraftPageHeader>
     </template>
 
     <slot name="toolbar" />
 
-    <div v-if="items.length" class="index-surface">
+    <div v-if="items.length" class="index-surface ui-panel ui-panel--flush">
       <component
         :is="item.href ? DrawerLink : 'div'"
         v-for="item in items"
@@ -134,9 +132,11 @@ import { Link, usePage } from "/src/bitcraft-ui/navigation";
 import AuthenticatedLayout from "/src/bitcraft-ui/Layout.vue";
 import AppButton from "/src/bitcraft-ui/shared/ui/AppButton.vue";
 import DrawerLink from "/src/bitcraft-ui/shared/ui/DrawerLink.vue";
+import BitcraftPageHeader from "/src/bitcraft-ui/Components/BitcraftPageHeader.vue";
 
 const props = defineProps({
   title: { type: String, required: true },
+  description: { type: String, default: "" },
   count: { type: Number, default: 0 },
   countLabel: { type: String, default: "records" },
   createHref: { type: String, default: "" },

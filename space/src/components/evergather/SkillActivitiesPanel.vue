@@ -1,15 +1,17 @@
 <template>
-  <section class="surface-section">
-    <div class="surface-section__header">
+  <section class="surface-section ui-panel ui-panel--flush">
+    <div class="surface-section__header ui-panel-heading">
       <div class="surface-section__copy">
-        <span class="surface-section__title">Skill Activities</span>
+        <span class="surface-section__title ui-section-title"
+          >Skill Activities</span
+        >
         <p class="surface-section__subtitle">
           {{ unlockedCount }} unlocked · {{ activityStateLabel }}
         </p>
       </div>
     </div>
 
-    <div class="surface-section__body">
+    <div class="surface-section__body ui-panel-body">
       <BoardLayout
         :boards="activityBoards"
         v-model:board="selectedBoard"
@@ -19,7 +21,9 @@
         v-model:filter="selectedSkill"
       >
         <template #filters
-          ><div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+          ><div
+            class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
+          >
             <div class="flex items-center justify-between gap-3">
               <p class="text-sm font-ui text-primary">Activity Board</p>
               <span class="tag"
@@ -35,7 +39,7 @@
                 v-for="board in activityBoards"
                 :key="board.key"
                 type="button"
-                class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                class="rounded-md border border-border bg-surface px-3 py-2 text-left transition hover:border-focus/60"
                 :class="{
                   'border-focus/70 bg-focus/10': selectedBoard === board.key,
                 }"
@@ -50,14 +54,14 @@
               </button>
             </div>
 
-            <label class="mt-4 grid gap-1">
+            <label class="mt-4 grid gap-1 ui-field-label">
               <span
-                class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                 >Level Band</span
               >
               <SelectInput
                 v-model="selectedBand"
-                class="rounded-md border-border bg-canvas text-xs font-ui text-primary focus:border-focus focus:ring-focus"
+                class="rounded-md border-border bg-canvas-2 text-xs font-ui text-primary focus:border-focus focus:ring-focus"
               >
                 <option
                   v-for="filter in bandFilters"
@@ -74,7 +78,7 @@
                 v-for="filter in skillFilters"
                 :key="filter.key"
                 type="button"
-                class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                class="grid gap-2 rounded-md border border-border bg-surface px-3 py-2 text-left transition hover:border-focus/60"
                 :class="{
                   'border-focus/70 bg-focus/10': selectedSkill === filter.key,
                 }"
@@ -88,7 +92,7 @@
                     filter.metaLabel
                   }}</span>
                 </span>
-                <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                <span class="h-1.5 overflow-hidden rounded-full bg-canvas-2">
                   <span
                     class="block h-full rounded-full bg-focus"
                     :style="{ width: `${skillFilterProgress(filter)}%` }"
@@ -128,7 +132,7 @@
             )"
             :key="activity.key"
             type="button"
-            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 text-left transition hover:border-focus/60 disabled:cursor-not-allowed disabled:opacity-55 md:grid-cols-[minmax(0,1fr)_6.75rem]"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface px-3 py-3 text-left transition hover:border-focus/60 disabled:cursor-not-allowed disabled:opacity-55 md:grid-cols-[minmax(0,1fr)_6.75rem] ui-panel ui-panel--compact"
             :disabled="
               isActivityDisabled(activity) && !activity.requires_tool_repair
             "
@@ -219,7 +223,7 @@
 
           <p
             v-if="!visibleActivities.length"
-            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
+            class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-muted-2 ui-panel ui-panel--compact"
           >
             {{ emptyBoardMessage }}
           </p>

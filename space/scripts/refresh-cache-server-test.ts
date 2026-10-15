@@ -94,12 +94,71 @@ try {
     ),
     epoch = "cache-refresh-test-generation";
   await owner.reducers.collectorHeartbeat({ epoch, error: "" });
+  // Reproduce a directory older than the three-hour collector grace period
+  // that is still valid in the provider's configured 24-hour cache.
+  const agedAt = first.updatedAt - 5n * 3600000000n;
+  await owner.reducers.configureProvider({
+    name: "bitjita",
+    config: JSON.stringify(providerDefaults.bitjita),
+  });
   await owner.reducers.ingestCollection({
     key,
     source: "bitjita",
     epoch,
     payload: body,
-    observedAt: first.updatedAt,
+    observedAt: agedAt,
+  });
+  const aged = await request();
+  assert.ok(aged.key.startsWith("collection|"));
+  assert.equal(aged.payload, body);
+  assert.equal(aged.error, "");
+  assert.equal(
+    aged.updatedAt,
+    agedAt,
+    "Cache reuse must not invent a new fetch time.",
+  );
+  assert.deepEqual(await sql("SELECT expires_at FROM collection_feed"), [
+    [Number(agedAt + 86400000000n)],
+  ]);
+  await owner.reducers.touchCollection({ key, observedAt: agedAt });
+  assert.equal((await request()).updatedAt, agedAt);
+  assert.deepEqual(
+    await sql(
+      "SELECT expires_at FROM refresh_state WHERE key = 'feed|" + key + "'",
+    ),
+    [[Number(agedAt + 86400000000n)]],
+  );
+  await owner.reducers.configureProvider({
+    name: "bitjita",
+    config: JSON.stringify({
+      ...providerDefaults.bitjita,
+      ttl: { ...providerDefaults.bitjita.ttl, regions: 21600 },
+    }),
+  });
+  await owner.reducers.touchCollection({ key, observedAt: agedAt });
+  assert.deepEqual(
+    await sql(
+      "SELECT expires_at FROM refresh_state WHERE key = 'feed|" + key + "'",
+    ),
+    [[Number(agedAt + 21600000000n)]],
+  );
+  await owner.reducers.configureProvider({
+    name: "bitjita",
+    config: JSON.stringify({
+      ...providerDefaults.bitjita,
+      ttl: { ...providerDefaults.bitjita.ttl, regions: 1 },
+    }),
+  });
+  // Changing provider settings clears its cache. Refill it before measuring
+  // unchanged-response writes below.
+  const fresh = await request(true);
+  assert.equal(fresh.payload, first.payload);
+  await owner.reducers.ingestCollection({
+    key,
+    source: "bitjita",
+    epoch,
+    payload: body,
+    observedAt: fresh.updatedAt,
   });
   const cacheBefore = await sql("SELECT updated_at FROM snapshot");
   const feedBefore = await sql("SELECT observed_at FROM collection_feed");
@@ -148,6 +207,7 @@ try {
       apiPayloadBytes: Buffer.byteLength(first.payload),
       commitlogGrowthBytes: growth,
       unchangedCacheAndFeedRows: true,
+      cachedDirectoryFreshness: true,
     }),
   );
 } finally {

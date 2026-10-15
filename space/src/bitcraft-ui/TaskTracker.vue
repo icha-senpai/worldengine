@@ -20,8 +20,8 @@
       >
         <form class="task-tracker-setup" @submit.prevent="submitSetup(true)">
           <div class="task-tracker-setup__grid">
-            <label>
-              <span>Title</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Title</span>
               <input v-model.trim="form.title" type="text" maxlength="80" />
             </label>
 
@@ -31,8 +31,8 @@
           <WidgetThemeControls :model="form" @update="updateTheme" />
 
           <div class="task-tracker-entry">
-            <label>
-              <span>Task</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Task</span>
               <input
                 v-model.trim="form.taskText"
                 type="text"
@@ -421,13 +421,7 @@ onMounted(() => {
   border: 1px solid rgb(var(--border-color-2-rgb) / 0.36);
   border-radius: 8px;
   padding: 12px;
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--bg-surface-3-rgb) / 0.26),
-      rgb(var(--bg-surface-rgb) / 0.94)
-    ),
-    var(--bg-surface);
+  background: var(--bg-surface);
 }
 
 .task-tracker-setup__grid {
@@ -440,14 +434,6 @@ onMounted(() => {
 .task-tracker-entry label {
   display: grid;
   gap: 6px;
-}
-
-.task-tracker-setup label > span,
-.task-tracker-entry label > span {
-  color: var(--text-muted-3);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
 }
 
 .task-tracker-setup input,

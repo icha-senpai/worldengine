@@ -1,4 +1,211 @@
-/* Shared controls use browser semantics with Space's own visual treatment. */
+/* One visual language for native form semantics and our Vue controls. */
+:root {
+  --control-bg: var(--bg-canvas-2);
+  --control-hover: color-mix(
+    in srgb,
+    var(--accent-cyan) 10%,
+    var(--bg-surface)
+  );
+  --control-border: var(--border-color-2);
+  --control-radius: 8px;
+}
+
+@layer base {
+  button,
+  input,
+  select,
+  textarea,
+  summary {
+    accent-color: var(--accent-cyan);
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  summary,
+  input[type="checkbox"],
+  input[type="radio"] {
+    touch-action: manipulation;
+  }
+  button {
+    appearance: none;
+  }
+}
+
+::selection {
+  color: var(--text-primary);
+  background: rgb(var(--accent-cyan-rgb) / 0.35);
+}
+
+:root :is(.button, .app-btn, button[type="submit"], button[type="reset"]) {
+  min-height: 40px;
+  border-radius: var(--control-radius);
+  font-weight: 550;
+  box-shadow: none;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+:root
+  :is(
+    .app-btn--sm,
+    .app-btn--select,
+    .app-btn--select-solid,
+    .app-btn--select-danger
+  ) {
+  min-height: 32px;
+}
+:root :is(.app-btn--primary, .button.gold, .button:not(.quiet)) {
+  border: 1px solid var(--accent-cyan);
+  background: var(--accent-cyan);
+  color: var(--bg-canvas);
+}
+:root
+  :is(.app-btn--primary, .button.gold, .button:not(.quiet)):hover:not(
+    :disabled
+  ):not([aria-disabled="true"]) {
+  border-color: var(--accent-cyan-2);
+  background: var(--accent-cyan-2);
+  color: var(--bg-canvas);
+  transform: none;
+  box-shadow: none;
+}
+:root :is(.app-btn--ghost, .button.quiet) {
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  color: var(--text-primary);
+}
+:root
+  :is(.app-btn--ghost, .button.quiet):hover:not(:disabled):not(
+    [aria-disabled="true"]
+  ) {
+  border-color: var(--accent-cyan);
+  background: var(--control-hover);
+}
+:root
+  :is(.button, .app-btn)[aria-pressed="true"]:not(.app-btn--selected-danger) {
+  border-color: var(--accent-cyan);
+  background: var(--control-hover);
+  color: var(--accent-cyan-2);
+}
+:root :is(button, a[role="button"], .button, .app-btn):focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 3px;
+}
+:root :is(button, input, select, textarea):disabled,
+:root :is(.button, .app-btn)[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+:root
+  :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+        [type="color"]
+      ):not([type="hidden"]),
+    textarea
+  ) {
+  border-radius: var(--control-radius);
+  border-color: var(--control-border);
+  background-color: var(--control-bg);
+  color: var(--text-primary);
+  caret-color: var(--accent-cyan);
+  box-shadow: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+:root :is(input, textarea)::placeholder {
+  color: var(--text-muted-3);
+  opacity: 0.8;
+}
+:root :is(input, textarea):not(:disabled):not([readonly]):hover {
+  border-color: var(--accent-cyan);
+}
+:root :is(input, textarea)[readonly] {
+  border-style: dashed;
+  color: var(--text-muted);
+}
+:root :is(input, select, textarea):focus {
+  --tw-ring-color: var(--accent-cyan);
+  --tw-ring-offset-color: var(--bg-surface);
+  border-color: var(--accent-cyan);
+  caret-color: var(--accent-cyan);
+}
+:root :is(input, textarea):focus-visible {
+  outline: 2px solid rgb(var(--accent-cyan-rgb) / 0.45);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+:root
+  :is(input, textarea, .app-select__trigger):is(
+    [aria-invalid="true"],
+    :user-invalid
+  ),
+:root .input--error {
+  border-color: var(--danger);
+  outline-color: var(--danger);
+}
+:root input:autofill {
+  -webkit-text-fill-color: var(--text-primary);
+  box-shadow: inset 0 0 0 1000px var(--control-bg);
+}
+:root input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+}
+:root input[type="number"] {
+  appearance: textfield;
+}
+:root input[type="number"]::-webkit-inner-spin-button,
+:root input[type="number"]::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+:root input[type="search"]::-webkit-search-cancel-button {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-left: 8px;
+  background: var(--accent-cyan);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='black' stroke-width='2' stroke-linecap='round' d='m4 4 8 8M12 4l-8 8'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  cursor: pointer;
+}
+:root input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  background: var(--bg-surface);
+  color: var(--accent-cyan-2);
+  font: inherit;
+  cursor: pointer;
+}
+:root input[type="file"]::file-selector-button:hover {
+  background: var(--control-hover);
+  border-color: var(--accent-cyan);
+}
+:root input[type="color"] {
+  width: 44px;
+  height: 40px;
+  padding: 4px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius);
+  background: var(--control-bg);
+  cursor: pointer;
+}
+:root input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+:root input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 4px;
+}
+:root input[type="color"]::-moz-color-swatch {
+  border: 0;
+  border-radius: 4px;
+}
+
 :root input[type="checkbox"] {
   appearance: none;
   width: 18px;
@@ -10,24 +217,21 @@
   vertical-align: middle;
   border: 1px solid var(--border-color-2);
   border-radius: 4px;
-  background: var(--bg-surface-3);
+  background: var(--bg-canvas-2);
   cursor: pointer;
 }
 :root input[type="checkbox"]:checked {
   border-color: var(--accent-cyan);
-  background-color: color-mix(
-    in srgb,
-    var(--accent-cyan) 25%,
-    var(--bg-surface)
-  );
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23FFF6E6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E");
+  background-color: var(--accent-cyan);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23040306' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E");
   background-size: 12px 12px;
   background-repeat: no-repeat;
   background-position: center;
 }
 :root input[type="checkbox"]:indeterminate {
   border-color: var(--accent-cyan);
-  background-image: linear-gradient(var(--text-primary), var(--text-primary));
+  background-color: var(--accent-cyan);
+  background-image: linear-gradient(var(--bg-canvas), var(--bg-canvas));
   background-size: 10px 2px;
   background-repeat: no-repeat;
   background-position: center;
@@ -42,6 +246,127 @@
 :root input[type="checkbox"]:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+:root input[type="radio"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--control-border);
+  border-radius: 50%;
+  background: var(--control-bg);
+  vertical-align: middle;
+  cursor: pointer;
+}
+:root input[type="radio"]:checked {
+  border-color: var(--accent-cyan);
+  background-image: radial-gradient(
+    circle,
+    var(--accent-cyan) 0 4px,
+    transparent 5px
+  );
+}
+:root input[type="radio"]:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 3px;
+}
+
+/* Hue sliders keep their spectrum; ordinary sliders get the shared gold thumb. */
+:root input[type="range"]:not(.app-color-panel__hue) {
+  appearance: none;
+  height: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+:root
+  input[type="range"]:not(
+    .app-color-panel__hue
+  )::-webkit-slider-runnable-track {
+  height: 6px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--control-bg);
+}
+:root input[type="range"]:not(.app-color-panel__hue)::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 2px solid var(--accent-cyan-2);
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 1px 5px rgb(var(--bg-canvas-rgb) / 0.5);
+}
+:root input[type="range"]:not(.app-color-panel__hue)::-moz-range-track {
+  height: 6px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--control-bg);
+}
+:root input[type="range"]:not(.app-color-panel__hue)::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent-cyan-2);
+  border-radius: 50%;
+  background: var(--accent-cyan);
+}
+
+:root details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+:root details > summary::-webkit-details-marker {
+  display: none;
+}
+:root details > summary::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin: 0 10px 2px 2px;
+  border-right: 1.5px solid var(--accent-cyan);
+  border-bottom: 1.5px solid var(--accent-cyan);
+  transform: rotate(-45deg);
+}
+:root details[open] > summary::before {
+  transform: rotate(45deg);
+}
+:root summary:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 3px;
+}
+
+@media (pointer: coarse) {
+  :root :is(.button, .app-btn, .app-select__trigger) {
+    min-height: 44px;
+  }
+  :root
+    :is(
+      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+          [type="hidden"]
+        ),
+      textarea
+    ) {
+    font-size: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root :is(button, input, select, textarea, .app-select__chevron) {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  :root input:is([type="checkbox"], [type="radio"]) {
+    appearance: auto;
+  }
 }
 
 /* Style native scrolling so wheel, touch and keyboard behavior stays intact. */

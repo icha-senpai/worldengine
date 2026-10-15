@@ -26,8 +26,8 @@
               />
             </div>
 
-            <label class="editor-color-panel__hex">
-              <span class="sr-only">{{ modeLabel }} color</span>
+            <label class="editor-color-panel__hex ui-field-label">
+              <span class="sr-only ui-field-label">{{ modeLabel }} color</span>
               <input
                 v-model="draftHex"
                 type="text"
@@ -171,8 +171,8 @@
               </p>
 
               <div class="editor-color-panel__metrics">
-                <label class="editor-color-panel__metric">
-                  <span>Hue</span>
+                <label class="editor-color-panel__metric ui-field-label">
+                  <span class="ui-field-label">Hue</span>
                   <input
                     v-model="hsl.h"
                     type="number"
@@ -182,8 +182,8 @@
                     @change="applyHsl"
                   />
                 </label>
-                <label class="editor-color-panel__metric">
-                  <span>Sat</span>
+                <label class="editor-color-panel__metric ui-field-label">
+                  <span class="ui-field-label">Sat</span>
                   <input
                     v-model="hsl.s"
                     type="number"
@@ -193,8 +193,8 @@
                     @change="applyHsl"
                   />
                 </label>
-                <label class="editor-color-panel__metric">
-                  <span>Lum</span>
+                <label class="editor-color-panel__metric ui-field-label">
+                  <span class="ui-field-label">Lum</span>
                   <input
                     v-model="hsl.l"
                     type="number"
@@ -204,8 +204,8 @@
                     @change="applyHsl"
                   />
                 </label>
-                <label class="editor-color-panel__metric">
-                  <span>Red</span>
+                <label class="editor-color-panel__metric ui-field-label">
+                  <span class="ui-field-label">Red</span>
                   <input
                     v-model="rgb.r"
                     type="number"
@@ -215,8 +215,8 @@
                     @change="applyRgb"
                   />
                 </label>
-                <label class="editor-color-panel__metric">
-                  <span>Green</span>
+                <label class="editor-color-panel__metric ui-field-label">
+                  <span class="ui-field-label">Green</span>
                   <input
                     v-model="rgb.g"
                     type="number"
@@ -226,8 +226,8 @@
                     @change="applyRgb"
                   />
                 </label>
-                <label class="editor-color-panel__metric">
-                  <span>Blue</span>
+                <label class="editor-color-panel__metric ui-field-label">
+                  <span class="ui-field-label">Blue</span>
                   <input
                     v-model="rgb.b"
                     type="number"
@@ -265,7 +265,7 @@ import {
 
 const props = defineProps({
   mode: { type: String, required: true },
-  modelValue: { type: String, default: "#E7F9FF" },
+  modelValue: { type: String, default: "#FFF6E6" },
   presets: { type: Array, default: () => [] },
   storageKey: { type: String, default: "dataverse.editor.saved-colors" },
 });
@@ -296,7 +296,7 @@ const modeLabel = computed(() => {
 const normalizedColor = computed(() => normalizeHex(draftHex.value));
 const headerSwatches = computed(() => [
   { label: "Current", value: normalizedColor.value },
-  { label: "Accent", value: "#1E4DF2" },
+  { label: "Accent", value: "#D4A44A" },
 ]);
 
 const savedSlotNote = computed(

@@ -1,15 +1,17 @@
 <template>
-  <section class="surface-section xl:col-span-2">
-    <div class="surface-section__header">
+  <section class="surface-section xl:col-span-2 ui-panel ui-panel--flush">
+    <div class="surface-section__header ui-panel-heading">
       <div class="surface-section__copy">
-        <span class="surface-section__title">World Events</span>
+        <span class="surface-section__title ui-section-title"
+          >World Events</span
+        >
         <p class="surface-section__subtitle">
           {{ worldEvents.active.length }} active ·
           {{ worldEvents.upcoming.length }} upcoming
         </p>
       </div>
     </div>
-    <div class="surface-section__body">
+    <div class="surface-section__body ui-panel-body">
       <BoardLayout
         v-model:filter="selectedGroup"
         :filters="eventGroups"
@@ -24,7 +26,7 @@
             :class="
               selectedGroup === 'active'
                 ? 'border-success/40 bg-success/10'
-                : 'border-border bg-surface-2'
+                : 'border-border bg-surface'
             "
           >
             <div class="min-w-0">
@@ -49,7 +51,7 @@
               ><span class="tag">+{{ event.gold_bonus }} gold</span>
             </div>
           </article>
-          <p v-if="!activeGroup.events.length" class="game-notice">
+          <p v-if="!activeGroup.events.length" class="game-notice ui-notice">
             No events on this board.
           </p>
         </div>

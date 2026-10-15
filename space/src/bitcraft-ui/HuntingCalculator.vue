@@ -1,4 +1,5 @@
 <script setup>
+import BitcraftPageHeader from "./Components/BitcraftPageHeader.vue";
 import { computed, reactive } from "vue";
 import { router } from "/src/bitcraft-ui/navigation";
 import AuthenticatedLayout from "/src/bitcraft-ui/Layout.vue";
@@ -43,21 +44,14 @@ function resetGoatXp() {
 <template>
   <AuthenticatedLayout>
     <template #header>
-      <div class="page-hero">
-        <div class="page-hero__copy">
-          <div class="page-hero__eyebrow"><span>Bitcraft tools</span></div>
-          <h1 class="page-hero__title page-hero__title--lg">
-            Hunting XP Calculator
-          </h1>
-          <p class="page-hero__subtitle">
-            Plan how many animals to hunt or process to reach your next goal.
-          </p>
-        </div>
-      </div>
+      <BitcraftPageHeader
+        title="Hunting XP Calculator"
+        description="Plan how many animals to hunt or process to reach your next goal."
+      />
     </template>
 
     <div class="grid gap-5">
-      <section class="index-panel">
+      <section class="index-panel ui-panel">
         <button
           v-if="playerSkill"
           type="button"
@@ -74,13 +68,15 @@ function resetGoatXp() {
           Use {{ playerSkill.username }}'s Hunting level {{ playerSkill.level }}
         </button>
         <h2
-          class="font-ui text-sm font-semibold uppercase tracking-[0.18em] text-muted-2"
+          class="font-ui text-sm font-semibold uppercase tracking-[0.18em] text-muted-2 ui-section-title"
         >
           Your goal
         </h2>
         <div class="mt-4 grid gap-4 sm:grid-cols-3">
-          <label class="grid gap-2">
-            <span class="field-label">Current Hunting level</span>
+          <label class="grid gap-2 ui-field-label">
+            <span class="field-label ui-field-label"
+              >Current Hunting level</span
+            >
             <TextInput
               v-model.number="settings.currentLevel"
               type="number"
@@ -89,8 +85,10 @@ function resetGoatXp() {
               step="1"
             />
           </label>
-          <label class="grid gap-2">
-            <span class="field-label">XP earned toward next level</span>
+          <label class="grid gap-2 ui-field-label">
+            <span class="field-label ui-field-label"
+              >XP earned toward next level</span
+            >
             <TextInput
               v-model.number="settings.currentXp"
               type="number"
@@ -98,8 +96,8 @@ function resetGoatXp() {
               step="1"
             />
           </label>
-          <label class="grid gap-2">
-            <span class="field-label">Target Hunting level</span>
+          <label class="grid gap-2 ui-field-label">
+            <span class="field-label ui-field-label">Target Hunting level</span>
             <TextInput
               v-model.number="settings.targetLevel"
               type="number"
@@ -115,10 +113,10 @@ function resetGoatXp() {
         </p>
       </section>
 
-      <section class="index-panel">
+      <section class="index-panel ui-panel">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2
-            class="font-ui text-sm font-semibold uppercase tracking-[0.18em] text-muted-2"
+            class="font-ui text-sm font-semibold uppercase tracking-[0.18em] text-muted-2 ui-section-title"
           >
             XP per animal
           </h2>
@@ -127,16 +125,16 @@ function resetGoatXp() {
           </button>
         </div>
         <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <label class="grid gap-2">
-            <span class="field-label">Your work</span>
+          <label class="grid gap-2 ui-field-label">
+            <span class="field-label ui-field-label">Your work</span>
             <SelectInput v-model="settings.mode">
               <option value="both">Hunt and process</option>
               <option value="processing">Process only (hire a hunter)</option>
               <option value="hunting">Hunt only</option>
             </SelectInput>
           </label>
-          <label class="grid gap-2">
-            <span class="field-label">XP values</span>
+          <label class="grid gap-2 ui-field-label">
+            <span class="field-label ui-field-label">XP values</span>
             <SelectInput v-model="settings.xpMode">
               <option value="base">Base estimates, before XP bonuses</option>
               <option value="observed">
@@ -144,8 +142,8 @@ function resetGoatXp() {
               </option>
             </SelectInput>
           </label>
-          <label class="grid gap-2">
-            <span class="field-label">XP bonus (%)</span>
+          <label class="grid gap-2 ui-field-label">
+            <span class="field-label ui-field-label">XP bonus (%)</span>
             <TextInput
               v-model.number="settings.bonus"
               type="number"
@@ -154,8 +152,8 @@ function resetGoatXp() {
               :disabled="settings.xpMode === 'observed'"
             />
           </label>
-          <label class="grid gap-2">
-            <span class="field-label">XP per kill</span>
+          <label class="grid gap-2 ui-field-label">
+            <span class="field-label ui-field-label">XP per kill</span>
             <TextInput
               v-model.number="settings.killXp"
               type="number"
@@ -163,8 +161,10 @@ function resetGoatXp() {
               step="0.01"
             />
           </label>
-          <label class="grid gap-2">
-            <span class="field-label">XP per fully processed carcass</span>
+          <label class="grid gap-2 ui-field-label">
+            <span class="field-label ui-field-label"
+              >XP per fully processed carcass</span
+            >
             <TextInput
               v-model.number="settings.processingXp"
               type="number"
@@ -189,7 +189,7 @@ function resetGoatXp() {
         </p>
       </section>
 
-      <section class="index-panel" aria-live="polite">
+      <section class="index-panel ui-panel" aria-live="polite">
         <template v-if="error">
           <p role="alert" class="text-sm text-muted-2">{{ error }}</p>
           <button
@@ -204,13 +204,15 @@ function resetGoatXp() {
         <template v-else>
           <div class="grid gap-5 sm:grid-cols-2">
             <div>
-              <p class="field-label">XP still needed</p>
+              <p class="field-label ui-field-label">XP still needed</p>
               <p class="mt-2 text-3xl font-semibold" data-test="remaining-xp">
                 {{ number(result.remainingXp) }}
               </p>
             </div>
             <div>
-              <p class="field-label">{{ selected.label }} · animals needed</p>
+              <p class="field-label ui-field-label">
+                {{ selected.label }} · animals needed
+              </p>
               <p class="mt-2 text-3xl font-semibold" data-test="animal-count">
                 {{ selected.count === null ? "—" : number(selected.count) }}
               </p>
@@ -230,7 +232,9 @@ function resetGoatXp() {
               :key="scenario.mode"
               class="rounded-xl border border-border p-4"
             >
-              <h2 class="font-semibold">{{ scenario.label }}</h2>
+              <h2 class="font-semibold ui-section-title">
+                {{ scenario.label }}
+              </h2>
               <p class="mt-2 text-xl">
                 {{ scenario.count === null ? "—" : number(scenario.count) }}
                 animals

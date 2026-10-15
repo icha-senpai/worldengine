@@ -31,8 +31,8 @@ async function toggle() {
       Search
     </button>
     <div class="game-search__field">
-      <label class="game-search__input"
-        ><span class="sr-only">Search {{ label }}</span
+      <label class="game-search__input ui-field-label"
+        ><span class="sr-only ui-field-label">Search {{ label }}</span
         ><input
           ref="input"
           :value="modelValue"

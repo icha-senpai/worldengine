@@ -6,6 +6,7 @@ import {
 } from "../src/bitcraft-ui/trackers";
 import {
   barterRows,
+  itemsFromListings,
   normalizeOrderBook,
   stallClaims,
 } from "../src/bitcraft-ui/market";
@@ -15,6 +16,68 @@ import { validateWidget } from "../bitcraft/src/widgets";
 import { catalogResponse } from "../bitcraft/src/catalog";
 
 describe("ICHAA BitCraft contracts", () => {
+  it("aggregates listings with stable buy extremes and separate item/cargo totals", () => {
+    const listing = (side, price, quantity, extra = {}) => ({
+      itemId: 7,
+      itemType: "item",
+      itemName: "Plank",
+      side,
+      price,
+      quantity,
+      ...extra,
+    });
+    const [item, cargo] = itemsFromListings([
+      listing("sell", 12, 2),
+      listing("sell", 8, 3),
+      listing("buy", 6, 10),
+      listing("buy", "9", 4),
+      listing("buy", 9, 50),
+      listing("buy", 3, 2),
+      listing("buy", null, 100),
+      listing("buy", "invalid", 200),
+      listing("buy", Infinity, 300),
+      listing("buy", 90, 1, { itemType: "cargo", itemName: "Frames" }),
+    ]);
+    expect(item).toMatchObject({
+      id: 7,
+      name: "Plank",
+      kind: "item",
+      sellOrderCount: 2,
+      sellOrderQuantity: 5,
+      buyOrderCount: 7,
+      buyOrderQuantity: 666,
+      lowestSellPrice: 8,
+      highestBuyPrice: "9",
+      highestBuyQuantity: 4,
+      highestBuyLineTotal: 36,
+      lowestBuyPrice: 3,
+      lowestBuyQuantity: 2,
+      lowestBuyLineTotal: 6,
+      largestBuyOrderPrice: 9,
+      largestBuyOrderQuantity: 50,
+      largestBuyOrderLineTotal: 450,
+      smallestBuyOrderPrice: 3,
+      smallestBuyOrderQuantity: 2,
+      smallestBuyOrderLineTotal: 6,
+    });
+    expect(cargo).toMatchObject({
+      id: 7,
+      name: "Frames",
+      kind: "cargo",
+      buyOrderCount: 1,
+      buyOrderQuantity: 1,
+      highestBuyPrice: 90,
+      lowestSellPrice: null,
+    });
+    expect(itemsFromListings([listing("sell", null, 8)])[0]).toMatchObject({
+      highestBuyPrice: null,
+      highestBuyQuantity: null,
+      highestBuyLineTotal: null,
+      lowestBuyPrice: null,
+      largestBuyOrderQuantity: null,
+      smallestBuyOrderPrice: null,
+    });
+  });
   const player = {
     entityId: "1224979098725428189",
     username: "Icha",

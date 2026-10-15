@@ -216,7 +216,9 @@ function selectCard() {
         <p class="text-xs text-muted-2">
           {{ isCrafting ? "Crafting" : "Gathering estimate" }}
         </p>
-        <h3 class="break-words text-base font-semibold">{{ title }}</h3>
+        <h3 class="break-words text-base font-semibold ui-section-title">
+          {{ title }}
+        </h3>
         <p v-if="recipe" class="mt-1 text-xs text-muted-2">
           {{ recipe.craftingStation || "No station required"
           }}<template v-if="recipe.skillName">
@@ -259,7 +261,7 @@ function selectCard() {
       <div v-if="isCrafting" class="mt-4 flex flex-wrap items-end gap-4">
         <label
           v-if="data.recipes.length > 1"
-          class="grid min-w-0 max-w-full gap-1 text-xs text-muted-2"
+          class="grid min-w-0 max-w-full gap-1 text-xs text-muted-2 ui-field-label"
         >
           Recipe
           <SelectInput
@@ -276,7 +278,9 @@ function selectCard() {
             </option>
           </SelectInput>
         </label>
-        <label class="grid w-36 max-w-full gap-1 text-xs text-muted-2">
+        <label
+          class="grid w-36 max-w-full gap-1 text-xs text-muted-2 ui-field-label"
+        >
           Desired quantity
           <TextInput
             :model-value="settings.quantity"
@@ -299,7 +303,7 @@ function selectCard() {
           <label
             v-for="field in fields"
             :key="field.key"
-            class="grid min-w-0 gap-1 text-xs text-muted-2"
+            class="grid min-w-0 gap-1 text-xs text-muted-2 ui-field-label"
           >
             {{ field.label }}
             <TextInput
@@ -313,7 +317,7 @@ function selectCard() {
             />
           </label>
           <label
-            class="guide-activity-card__target grid min-w-0 gap-1 text-xs text-muted-2"
+            class="guide-activity-card__target grid min-w-0 gap-1 text-xs text-muted-2 ui-field-label"
           >
             Target
             <SelectInput
@@ -394,7 +398,7 @@ function selectCard() {
           <strong>{{ number(item.expected) }}</strong>
           <label
             v-if="isCrafting"
-            class="grid w-20 shrink-0 gap-1 text-xs text-muted-2"
+            class="grid w-20 shrink-0 gap-1 text-xs text-muted-2 ui-field-label"
           >
             Owned
             <TextInput
@@ -418,7 +422,7 @@ function selectCard() {
           >
         </div>
       </div>
-      <label class="mt-4 flex items-center gap-2 text-sm">
+      <label class="mt-4 flex items-center gap-2 text-sm ui-field-label">
         <input
           :checked="settings.market"
           type="checkbox"

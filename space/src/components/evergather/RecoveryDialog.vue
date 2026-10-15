@@ -123,7 +123,7 @@ function complete() {
     @close="emit('close')"
     @complete="complete"
   />
-  <div v-else role="status" class="game-notice">
+  <div v-else role="status" class="game-notice ui-notice">
     This selection is unavailable.
     <button class="app-btn app-btn--ghost app-btn--sm" @click="emit('close')">
       Close

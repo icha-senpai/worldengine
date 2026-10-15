@@ -71,6 +71,7 @@ await runTemporaryDatabaseTest(database, async (scope) => {
               "SELECT * FROM market_page_listings WHERE page = 1",
               "SELECT * FROM my_market_listings",
               "SELECT * FROM market_summary",
+              "SELECT * FROM market_revision",
               `SELECT * FROM my_catalog WHERE connection_key = '${conn.connectionId.toHexString()}'`,
               `SELECT * FROM market_listings WHERE connection_key = '${conn.connectionId.toHexString()}'`,
               `SELECT * FROM my_market_page WHERE connection_key = '${conn.connectionId.toHexString()}'`,
@@ -310,6 +311,17 @@ await runTemporaryDatabaseTest(database, async (scope) => {
     const listing = [...first.db.listing.iter()].find((row) =>
       row.seller.equals(first.identity!),
     )!;
+    const indexed = JSON.parse(
+      await second.procedures.readMarketListings({
+        page: 1,
+        after: "",
+        revision: "",
+      }),
+    );
+    assert.ok(
+      indexed.rows.some((row: any) => row.id === String(listing.id)),
+      "new listing appears in the indexed page",
+    );
     await eventually(() =>
       [...first.db.myMarketListings.iter()].some(
         (row) => row.id === listing.id,
@@ -343,6 +355,21 @@ await runTemporaryDatabaseTest(database, async (scope) => {
       /not yours/,
     );
     await second.reducers.buyListing({ id: listing.id });
+    const afterSale = JSON.parse(
+      await second.procedures.readMarketListings({
+        page: 1,
+        after: "",
+        revision: "",
+      }),
+    );
+    assert.ok(
+      !afterSale.rows.some((row: any) => row.id === String(listing.id)),
+      "sold listing leaves the indexed page",
+    );
+    assert.ok(
+      BigInt(afterSale.revision) > BigInt(indexed.revision),
+      "sale invalidates market cursors",
+    );
     await eventually(
       () =>
         ![

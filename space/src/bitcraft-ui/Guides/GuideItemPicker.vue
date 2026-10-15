@@ -103,7 +103,10 @@ onBeforeUnmount(() => {
   <Modal :show="show" @close="show = false">
     <section class="p-5" aria-labelledby="guide-item-picker-title">
       <div class="mb-4 flex items-center justify-between gap-3">
-        <h2 id="guide-item-picker-title" class="font-ui text-lg font-semibold">
+        <h2
+          id="guide-item-picker-title"
+          class="font-ui text-lg font-semibold ui-dialog-title"
+        >
           Insert item card
         </h2>
         <button
@@ -114,7 +117,9 @@ onBeforeUnmount(() => {
           Cancel
         </button>
       </div>
-      <label for="guide-item-search" class="field-label">Search items</label>
+      <label for="guide-item-search" class="field-label ui-field-label"
+        >Search items</label
+      >
       <TextInput
         id="guide-item-search"
         v-model="query"
@@ -149,7 +154,7 @@ onBeforeUnmount(() => {
             v-for="item in items"
             :key="`${item.kind}:${item.id}`"
             type="button"
-            class="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-surface-2 focus-visible:outline-focus"
+            class="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-(--control-hover) focus-visible:outline-focus"
             :aria-label="`Insert ${item.name}, ${item.kind}, ${hasBitcraftTier(item.tier) ? `tier ${item.tier}` : 'no tier'}`"
             @click="insert(item)"
           >

@@ -1,11 +1,11 @@
 <template>
   <section
     v-if="recipeTree.length"
-    class="crafting-tree"
+    class="crafting-tree ui-panel ui-panel--flush"
     aria-label="Crafting tree"
   >
-    <header class="crafting-tree__header">
-      <h3>Crafting plan</h3>
+    <header class="crafting-tree__header ui-panel-heading">
+      <h3 class="ui-section-title">Crafting plan</h3>
 
       <div class="crafting-tree__actions">
         <template v-if="activeTab === 'tree'">
@@ -34,7 +34,7 @@
         </button>
 
         <div
-          class="crafting-tree__tabs"
+          class="crafting-tree__tabs ui-tabs"
           role="tablist"
           aria-label="Recipe views"
         >
@@ -132,18 +132,18 @@
       role="tabpanel"
     >
       <div class="crafting-material-controls">
-        <label
+        <label class="ui-field-label"
           >Show
-          <select
+          <SelectInput
             v-model="materialMode"
             class="input"
             aria-label="Material list scope"
           >
             <option value="immediate">Immediate ingredients</option>
             <option value="base">Base materials</option>
-          </select>
+          </SelectInput>
         </label>
-        <label v-if="inventory && !inventory.error"
+        <label class="ui-field-label" v-if="inventory && !inventory.error"
           ><input v-model="missingOnly" type="checkbox" /> Missing only</label
         >
       </div>
@@ -241,6 +241,7 @@
 </template>
 
 <script setup>
+import SelectInput from "../shared/SelectInput.vue";
 import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
 import { computed, nextTick, provide, ref, useId, watch } from "vue";
@@ -764,23 +765,12 @@ watch(
 
 <style scoped>
 .crafting-tree {
-  border: 1px solid rgb(var(--border-color-rgb) / 0.8);
-  border-radius: 8px;
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--bg-surface-2-rgb) / 0.34),
-      rgb(var(--bg-surface-rgb) / 0.94)
-    ),
-    var(--bg-surface);
   min-width: 0;
   overflow: hidden;
   width: 100%;
 }
 
 .crafting-tree__header {
-  border-bottom: 1px solid rgb(var(--border-color-rgb) / 0.72);
-  padding: 12px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -789,10 +779,6 @@ watch(
 
 .crafting-tree__header h3 {
   margin: 0;
-  color: var(--text-primary);
-  font-family: var(--font-ui);
-  font-size: 14px;
-  font-weight: 700;
 }
 
 .crafting-tree__actions {
@@ -842,25 +828,12 @@ watch(
   gap: 4px;
   border: 1px solid rgb(var(--border-color-rgb) / 0.7);
   border-radius: 8px;
-  background: rgb(var(--bg-surface-rgb) / 0.58);
+  background: var(--bg-surface);
   padding: 3px;
 }
 
 .crafting-tree__tab {
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-muted);
   cursor: pointer;
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 700;
-  padding: 5px 10px;
-}
-
-.crafting-tree__tab--active {
-  background: rgb(var(--accent-cyan-rgb) / 0.16);
-  color: var(--text-primary);
 }
 
 .crafting-tree__panel {
@@ -923,7 +896,7 @@ watch(
   gap: 10px;
   border: 1px solid rgb(var(--border-color-rgb) / 0.62);
   border-radius: 8px;
-  background: rgb(var(--bg-surface-rgb) / 0.72);
+  background: var(--bg-surface);
   padding: 8px 10px;
 }
 
@@ -935,7 +908,7 @@ watch(
   height: 36px;
   border: 1px solid rgb(var(--border-color-rgb) / 0.74);
   border-radius: 7px;
-  background: rgb(var(--bg-surface-2-rgb) / 0.64);
+  background: var(--bg-surface);
   color: var(--text-muted);
   font-family: var(--font-ui);
   font-size: 11px;
@@ -991,7 +964,7 @@ watch(
   align-items: center;
   gap: 8px;
 }
-.crafting-material-controls select {
+.crafting-material-controls .app-select {
   width: auto;
   max-width: 100%;
 }

@@ -282,28 +282,38 @@ export function barterRows(raw, filters = {}) {
 }
 export function itemsFromListings(rows) {
   const grouped = new Map();
+  const buyExtremes = [
+    ["highestBuy", "price", true],
+    ["lowestBuy", "price", false],
+    ["largestBuyOrder", "quantity", true],
+    ["smallestBuyOrder", "quantity", false],
+  ];
   for (const row of rows) {
     const kind = itemKind(row.itemType ?? row.itemKind),
       groupKey = stackKey({ kind, id: row.itemId });
-    const group = grouped.get(groupKey) ?? {
-      id: row.itemId,
-      name: row.itemName,
-      kind,
-      type: kind,
-      category:
-        row.itemCategory ??
-        row.itemTag ??
-        (kind === "cargo" ? "Cargo" : "Item"),
-      tier: row.itemTier,
-      rarity: row.itemRarityStr ?? row.itemRarity,
-      iconAssetName: row.itemIconAssetName ?? row.iconAssetName,
-      sellOrderCount: 0,
-      buyOrderCount: 0,
-      sellOrderQuantity: 0,
-      buyOrderQuantity: 0,
-      lowestSellPrice: null,
-      highestBuyPrice: null,
+    const entry = grouped.get(groupKey) ?? {
+      bestBuys: {},
+      group: {
+        id: row.itemId,
+        name: row.itemName,
+        kind,
+        type: kind,
+        category:
+          row.itemCategory ??
+          row.itemTag ??
+          (kind === "cargo" ? "Cargo" : "Item"),
+        tier: row.itemTier,
+        rarity: row.itemRarityStr ?? row.itemRarity,
+        iconAssetName: row.itemIconAssetName ?? row.iconAssetName,
+        sellOrderCount: 0,
+        buyOrderCount: 0,
+        sellOrderQuantity: 0,
+        buyOrderQuantity: 0,
+        lowestSellPrice: null,
+        highestBuyPrice: null,
+      },
     };
+    const { group, bestBuys } = entry;
     group[row.side + "OrderCount"]++;
     group[row.side + "OrderQuantity"] += Number(row.quantity ?? 0);
     if (
@@ -319,30 +329,28 @@ export function itemsFromListings(rows) {
             ? Math.min(group[field], row.price)
             : Math.max(group[field], row.price);
     }
-    grouped.set(groupKey, group);
+    if (
+      row.side === "buy" &&
+      row.price !== null &&
+      row.price !== undefined &&
+      Number.isFinite(Number(row.price))
+    ) {
+      // Track each item's best buys while visiting its listings once. Strict
+      // comparisons retain the first order when prices or quantities tie.
+      for (const [prefix, key, desc] of buyExtremes) {
+        const best = bestBuys[prefix];
+        if (
+          !best ||
+          (Number(row[key]) - Number(best[key])) * (desc ? -1 : 1) < 0
+        )
+          bestBuys[prefix] = row;
+      }
+    }
+    grouped.set(groupKey, entry);
   }
-  for (const group of grouped.values()) {
-    const buys = rows.filter(
-      (row) =>
-        itemKind(row.itemType ?? row.itemKind) === group.kind &&
-        String(row.itemId) === String(group.id) &&
-        row.side === "buy",
-    );
-    for (const [prefix, key, desc] of [
-      ["highestBuy", "price", true],
-      ["lowestBuy", "price", false],
-      ["largestBuyOrder", "quantity", true],
-      ["smallestBuyOrder", "quantity", false],
-    ]) {
-      const pricedBuys = buys.filter(
-        (row) =>
-          row.price !== null &&
-          row.price !== undefined &&
-          Number.isFinite(Number(row.price)),
-      );
-      const best = [...pricedBuys].sort(
-        (a, b) => (Number(a[key]) - Number(b[key])) * (desc ? -1 : 1),
-      )[0];
+  for (const { group, bestBuys } of grouped.values()) {
+    for (const [prefix] of buyExtremes) {
+      const best = bestBuys[prefix];
       group[prefix + "Price"] = best?.price ?? null;
       group[prefix + "Quantity"] = best?.quantity ?? null;
       group[prefix + "LineTotal"] = best
@@ -350,7 +358,7 @@ export function itemsFromListings(rows) {
         : null;
     }
   }
-  return [...grouped.values()];
+  return [...grouped.values()].map(({ group }) => group);
 }
 
 const isHexCoin = (stack) => stack.kind === "item" && Number(stack.id) === 1;

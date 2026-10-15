@@ -1,4 +1,5 @@
 <script setup>
+import BitcraftPageHeader from "./Components/BitcraftPageHeader.vue";
 import { route } from "/src/bitcraft-ui/navigation";
 import { computed, reactive, ref, watch } from "vue";
 import { Head, router, usePage } from "/src/bitcraft-ui/navigation";
@@ -67,15 +68,18 @@ watch(
   <Head title="Open Crafts" />
   <AuthenticatedLayout>
     <template #header>
-      <h1 class="text-2xl font-semibold">Open Crafts</h1>
-      <p class="mt-2 text-sm text-muted">
-        Public crafting jobs
-        <span v-if="selected">for {{ selected.username }}</span>
-      </p>
+      <BitcraftPageHeader
+        title="Open Crafts"
+        :description="
+          selected
+            ? `Public crafting jobs for ${selected.username}`
+            : 'Public crafting jobs'
+        "
+      />
     </template>
     <form class="craft-filters" @submit.prevent="submit()">
-      <label class="craft-search">
-        <span class="field-label">Item, claim or owner</span>
+      <label class="craft-search ui-field-label">
+        <span class="field-label ui-field-label">Item, claim or owner</span>
         <TextInput
           v-model="form.q"
           type="search"
@@ -83,8 +87,8 @@ watch(
           class="w-full"
         />
       </label>
-      <label>
-        <span class="field-label">Skill</span>
+      <label class="ui-field-label">
+        <span class="field-label ui-field-label">Skill</span>
         <SelectInput v-model="form.skill" class="w-full" @change="submit()">
           <option value="">All skills</option>
           <option
@@ -96,8 +100,8 @@ watch(
           </option>
         </SelectInput>
       </label>
-      <label>
-        <span class="field-label">Region</span>
+      <label class="ui-field-label">
+        <span class="field-label ui-field-label">Region</span>
         <SelectInput v-model="form.region" class="w-full" @change="submit()">
           <option value="">All regions</option>
           <option v-for="region in regionOptions" :key="region" :value="region">
@@ -105,8 +109,8 @@ watch(
           </option>
         </SelectInput>
       </label>
-      <label>
-        <span class="field-label">Sort</span>
+      <label class="ui-field-label">
+        <span class="field-label ui-field-label">Sort</span>
         <SelectInput v-model="form.sort" class="w-full" @change="submit()">
           <option value="xp">Remaining XP</option>
           <option value="levels">Levels gained</option>
@@ -118,7 +122,7 @@ watch(
         >Search</AppButton
       >
       <div class="craft-toggles">
-        <label
+        <label class="ui-field-label"
           ><input
             v-model="form.levelUps"
             type="checkbox"
@@ -127,7 +131,7 @@ watch(
           />
           Level-ups only</label
         >
-        <label
+        <label class="ui-field-label"
           ><input
             v-model="form.meetsLevel"
             type="checkbox"
@@ -136,7 +140,7 @@ watch(
           />
           Level requirements met</label
         >
-        <label
+        <label class="ui-field-label"
           ><input
             v-model="form.mine"
             type="checkbox"

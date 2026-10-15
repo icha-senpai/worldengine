@@ -60,6 +60,7 @@ function clearSearch() {
     <Head title="BitCraft Guides" />
     <ScaffoldIndexPage
       title="BitCraft Guides"
+      description="Browse community guides for BitCraft."
       :count="guides.total"
       count-label="guides"
       :items="items"
@@ -78,7 +79,9 @@ function clearSearch() {
           @submit.prevent="applySearch"
         >
           <div class="min-w-0 flex-1 basis-64">
-            <label for="guide-search" class="field-label">Search guides</label>
+            <label for="guide-search" class="field-label ui-field-label"
+              >Search guides</label
+            >
             <TextInput
               id="guide-search"
               v-model="search.q"

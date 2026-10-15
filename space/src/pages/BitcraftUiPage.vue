@@ -61,17 +61,25 @@ const currentProps = ref(null),
   loading = ref(false);
 let generation = 0;
 const widgetRevision = ref(0);
+const pageKey = computed(
+  () => `${tool.value}:${route.params.guide ?? ""}:${setup.value}`,
+);
 const componentKey = computed(
   () =>
-    `${tool.value}:${route.params.guide ?? ""}:${setup.value}:${["activity", "inventory", "passive-crafts"].includes(tool.value) ? `${route.fullPath}:${widgetRevision.value}` : ""}`,
+    `${pageKey.value}:${["activity", "inventory", "passive-crafts"].includes(tool.value) ? `${route.fullPath}:${widgetRevision.value}` : ""}`,
 );
-let renderedKey = "";
+const renderedKey = ref("");
+let renderedPage = "";
 let widgetSettings = "";
 async function load(refreshMarket = true) {
   const request = ++generation;
+  const requestPage = pageKey.value;
+  const requestKey = componentKey.value;
   loading.value = true;
   error.value = "";
-  if (renderedKey !== componentKey.value) currentProps.value = null;
+  // Keep the current tracker mounted while its saved setup or filters load.
+  // A different tool or presentation still gets its own loading screen.
+  if (renderedPage !== requestPage) currentProps.value = null;
   try {
     const props = await pageProps(
       ["guide", "guideEditor"].includes(tool.value) ? "guides" : tool.value,
@@ -83,7 +91,8 @@ async function load(refreshMarket = true) {
     );
     if (request !== generation) return;
     currentProps.value = props;
-    renderedKey = componentKey.value;
+    renderedKey.value = requestKey;
+    renderedPage = requestPage;
     if (route.query.profile)
       widgetSettings = JSON.stringify(
         await readWidget(tool.value, String(route.query.profile)),
@@ -179,7 +188,11 @@ onBeforeUnmount(() => {
     }"
     :aria-busy="loading"
   >
-    <p v-if="pageState.error" class="surface-section p-5" role="alert">
+    <p
+      v-if="pageState.error"
+      class="surface-section p-5 ui-panel ui-panel--flush"
+      role="alert"
+    >
       {{ pageState.error }}
     </p>
     <p v-if="loading && !currentProps" class="bitcraft-loading" role="status">
@@ -187,14 +200,18 @@ onBeforeUnmount(() => {
         tool === "market" ? "Reading the stored market…" : "Loading BitCraft…"
       }}
     </p>
-    <div v-if="error" class="surface-section p-5" role="alert">
+    <div
+      v-if="error"
+      class="surface-section p-5 ui-panel ui-panel--flush"
+      role="alert"
+    >
       <p>{{ error }}</p>
       <button class="app-btn app-btn--ghost" @click="load">Try again</button>
     </div>
     <component
       v-if="component && currentProps"
       :is="component"
-      :key="componentKey"
+      :key="renderedKey"
       v-bind="currentProps"
     />
   </div>

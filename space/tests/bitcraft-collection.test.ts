@@ -3,6 +3,7 @@ import {
   projectCollection,
   collectionKey,
   collectionInterval,
+  collectionExpiresAt,
   collectionWatchSeconds,
   observedRates,
 } from "../bitcraft/src/collection";
@@ -13,8 +14,30 @@ import {
   relayCrafts,
 } from "../src/bitcraft-ui/relay";
 import { inventoryTracker } from "../src/bitcraft-ui/trackers";
+import { providerDefaults } from "../bitcraft/src/providers";
 
 describe("shared BitCraft collection", () => {
+  it("keeps cached directories valid without advancing their observation time", () => {
+    const observedAt = 1000000n;
+    for (const resource of ["regions", "levels"]) {
+      const expiresAt = collectionExpiresAt(
+        resource,
+        observedAt,
+        providerDefaults.bitjita.ttl[resource],
+      );
+      expect(expiresAt).toBe(observedAt + 86400000000n);
+      expect(expiresAt).toBeGreaterThan(observedAt + 5n * 3600000000n);
+      expect(expiresAt).toBeLessThan(observedAt + 25n * 3600000000n);
+      expect(collectionExpiresAt(resource, observedAt, 21600)).toBe(
+        observedAt + 21600000000n,
+      );
+    }
+  });
+  it("preserves polling grace periods for short caches and native feeds", () => {
+    expect(collectionExpiresAt("regions", 0n, 1)).toBe(10800000000n);
+    expect(collectionExpiresAt("relaySkills", 0n)).toBe(30000000n);
+    expect(collectionExpiresAt("relayPlayer", 0n)).toBe(30000000n);
+  });
   it("keeps XP collecting for a bounded background session without extending other feeds", () => {
     expect(collectionWatchSeconds("relaySkills")).toBe(21600);
     expect(collectionWatchSeconds("relaySession")).toBe(600);

@@ -23,21 +23,21 @@
           @submit.prevent="submitSetup(true)"
         >
           <div class="inventory-tracker-setup__grid">
-            <label>
-              <span>Title</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Title</span>
               <input v-model.trim="form.title" type="text" maxlength="80" />
             </label>
 
             <EmojiInput v-model="form.icons" />
 
-            <label>
-              <span>Character</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Character</span>
               <input v-model.trim="form.character" type="text" maxlength="80" />
               <SitePlayerDefaultButton @select="form.character = $event" />
             </label>
 
-            <label>
-              <span>Default Need</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Default Need</span>
               <input
                 v-model.number="form.need"
                 type="number"
@@ -45,15 +45,17 @@
                 max="999999999"
               />
             </label>
-            <label>
-              <span>Housing storage</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Housing storage</span>
               <SelectInput v-model="form.includeHousing">
                 <option :value="false">Personal inventory only</option>
                 <option :value="true">Include housing</option>
               </SelectInput>
             </label>
-            <label>
-              <span>Shared claim storage (optional claim ID)</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label"
+                >Shared claim storage (optional claim ID)</span
+              >
               <input
                 v-model.trim="form.storageClaimId"
                 type="text"
@@ -69,8 +71,8 @@
           <WidgetThemeControls :model="form" @update="updateTheme" />
 
           <div ref="pickerElement" class="inventory-tracker-picker">
-            <label>
-              <span>Item / cargo</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Item / cargo</span>
               <input
                 v-model.trim="form.itemSearch"
                 type="search"
@@ -116,7 +118,7 @@
           <div v-if="selectedOptions.length" class="inventory-tracker-selected">
             <span v-for="option in selectedOptions" :key="option.key">
               <strong>{{ option.name }}</strong>
-              <label>
+              <label class="ui-field-label">
                 <small>Need</small>
                 <input
                   v-model.number="form.itemNeeds[option.key]"
@@ -715,13 +717,7 @@ onBeforeUnmount(() => {
   border: 1px solid rgb(var(--border-color-2-rgb) / 0.36);
   border-radius: 8px;
   padding: 12px;
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--bg-surface-3-rgb) / 0.26),
-      rgb(var(--bg-surface-rgb) / 0.94)
-    ),
-    var(--bg-surface);
+  background: var(--bg-surface);
 }
 
 .inventory-tracker-setup__grid {
@@ -734,14 +730,6 @@ onBeforeUnmount(() => {
 .inventory-tracker-picker label {
   display: grid;
   gap: 6px;
-}
-
-.inventory-tracker-setup span,
-.inventory-tracker-picker span {
-  color: var(--text-muted-3);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
 }
 
 .inventory-tracker-setup input {
@@ -769,7 +757,7 @@ onBeforeUnmount(() => {
   border: 1px solid rgb(var(--border-color-2-rgb) / 0.42);
   border-radius: 8px;
   background: var(--bg-surface);
-  box-shadow: 0 18px 38px rgb(0 0 0 / 0.32);
+  box-shadow: 0 18px 38px rgb(var(--bg-canvas-rgb) / 0.32);
 }
 
 .inventory-tracker-picker__option {

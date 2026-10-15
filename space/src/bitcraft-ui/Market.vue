@@ -11,6 +11,7 @@ import {
 import { bitcraftFetch } from "./api";
 import { route, router } from "./navigation";
 import AuthenticatedLayout from "./Layout.vue";
+import BitcraftPageHeader from "./Components/BitcraftPageHeader.vue";
 import AppButton from "./shared/ui/AppButton.vue";
 import TextInput from "./shared/TextInput.vue";
 import SelectInput from "./shared/SelectInput.vue";
@@ -702,33 +703,41 @@ onBeforeUnmount(() => {
 
 <template>
   <AuthenticatedLayout>
+    <template #header>
+      <BitcraftPageHeader
+        :title="isBarter ? 'Barter exchanges' : 'Market'"
+        :description="
+          isBarter
+            ? 'Browse barter stalls and find item exchanges.'
+            : 'Find items, compare prices, and inspect market orders.'
+        "
+      >
+        <template #actions>
+          <div class="trade-freshness" role="status">
+            <span>{{ scopeLabel }}</span
+            ><span v-if="searching">{{
+              isBarter ? "Refreshing…" : "Reading stored market…"
+            }}</span
+            ><span v-else-if="market.storage?.pending && form.q"
+              >Refreshing {{ market.storage.pending }} matching items…</span
+            ><span v-else-if="cache.delayed">Refresh delayed</span
+            ><span v-else-if="updated"
+              >{{ market.storage ? "Stored · " : "" }}Updated
+              {{ updated }}</span
+            ><span v-else>Waiting for data</span>
+          </div>
+        </template>
+      </BitcraftPageHeader>
+    </template>
     <div class="trade-workspace">
-      <header class="trade-heading">
-        <div>
-          <p class="trade-eyebrow">BitCraft tools</p>
-          <h1>{{ isBarter ? "Barter exchanges" : "Market" }}</h1>
-        </div>
-        <div class="trade-freshness" role="status">
-          <span>{{ scopeLabel }}</span
-          ><span v-if="searching">{{
-            isBarter ? "Refreshing…" : "Reading stored market…"
-          }}</span
-          ><span v-else-if="market.storage?.pending && form.q"
-            >Refreshing {{ market.storage.pending }} matching items…</span
-          ><span v-else-if="cache.delayed">Refresh delayed</span
-          ><span v-else-if="updated"
-            >{{ market.storage ? "Stored · " : "" }}Updated {{ updated }}</span
-          ><span v-else>Waiting for data</span>
-        </div>
-      </header>
       <form
-        class="trade-search"
+        class="trade-search ui-panel"
         @submit.prevent="submit"
         :aria-busy="searching"
       >
         <div class="trade-primary-fields">
-          <label class="field-group trade-query"
-            ><span class="field-label">{{
+          <label class="field-group trade-query ui-field-label"
+            ><span class="field-label ui-field-label">{{
               isBarter ? "Find an item in either side" : "Find an item"
             }}</span
             ><TextInput
@@ -736,8 +745,8 @@ onBeforeUnmount(() => {
               type="search"
               placeholder="Plank, ore, tools…"
           /></label>
-          <label class="field-group"
-            ><span class="field-label">Region</span
+          <label class="field-group ui-field-label"
+            ><span class="field-label ui-field-label">Region</span
             ><SelectInput v-model="regionSelection" aria-label="Region">
               <option value="">All regions</option>
               <option
@@ -751,8 +760,8 @@ onBeforeUnmount(() => {
               </option></SelectInput
             ></label
           >
-          <label class="field-group"
-            ><span class="field-label">{{
+          <label class="field-group ui-field-label"
+            ><span class="field-label ui-field-label">{{
               isBarter ? "Bundles" : "Quantity"
             }}</span
             ><TextInput
@@ -787,8 +796,8 @@ onBeforeUnmount(() => {
               I want to sell
             </button>
           </div>
-          <label v-else class="trade-type"
-            ><span class="field-label">Exchange type</span
+          <label v-else class="trade-type ui-field-label"
+            ><span class="field-label ui-field-label">Exchange type</span
             ><SelectInput v-model="exchangeType"
               ><option value="">All exchanges</option>
               <option value="coins">Coin trades</option>
@@ -797,7 +806,7 @@ onBeforeUnmount(() => {
               <option value="one-sided">One-sided listings</option></SelectInput
             ></label
           >
-          <label class="trade-check"
+          <label class="trade-check ui-field-label"
             ><input
               v-model="availableOnly"
               type="checkbox"
@@ -824,8 +833,8 @@ onBeforeUnmount(() => {
             >
           </summary>
           <div class="trade-advanced-fields">
-            <label class="field-group"
-              ><span class="field-label">Category</span
+            <label class="field-group ui-field-label"
+              ><span class="field-label ui-field-label">Category</span
               ><SelectInput v-model="form.category" @change="submit"
                 ><option value="">All categories</option>
                 <option v-for="category in categories" :key="category">
@@ -833,8 +842,8 @@ onBeforeUnmount(() => {
                 </option></SelectInput
               ></label
             >
-            <label class="field-group"
-              ><span class="field-label">Claim name</span
+            <label class="field-group ui-field-label"
+              ><span class="field-label ui-field-label">Claim name</span
               ><TextInput
                 v-model.trim="form.claimQ"
                 placeholder="Holmgard, Rivendell…"
@@ -843,24 +852,24 @@ onBeforeUnmount(() => {
                   submit();
                 "
             /></label>
-            <label class="field-group"
-              ><span class="field-label">Empire</span
+            <label class="field-group ui-field-label"
+              ><span class="field-label ui-field-label">Empire</span
               ><TextInput
                 v-model.trim="form.empire"
                 placeholder="Empire name"
                 @input="form.empireEntityId = ''"
                 @change="submit"
             /></label>
-            <label class="field-group"
-              ><span class="field-label">Claim ID</span
+            <label class="field-group ui-field-label"
+              ><span class="field-label ui-field-label">Claim ID</span
               ><TextInput
                 v-model.trim="form.claimEntityId"
                 inputmode="numeric"
                 placeholder="Exact claim ID"
                 @change="submit"
             /></label>
-            <label v-if="isBarter" class="field-group"
-              ><span class="field-label">Item position</span
+            <label v-if="isBarter" class="field-group ui-field-label"
+              ><span class="field-label ui-field-label">Item position</span
               ><SelectInput v-model="form.side" @change="submit"
                 ><option value="">Given or received</option>
                 <option value="sell">You receive the item</option>
@@ -915,7 +924,7 @@ onBeforeUnmount(() => {
         >
           <div class="trade-results-heading">
             <div>
-              <h2>
+              <h2 class="ui-section-title">
                 {{ isBarter ? "Compare exact exchanges" : "Compare items" }}
               </h2>
               <p>
@@ -938,8 +947,9 @@ onBeforeUnmount(() => {
                 >
               </p>
             </div>
-            <label v-if="!isBarter" class="trade-sort"
-              ><span class="field-label">Sort all matching items</span
+            <label v-if="!isBarter" class="trade-sort ui-field-label"
+              ><span class="field-label ui-field-label"
+                >Sort all matching items</span
               ><SelectInput
                 v-model="sort"
                 @change="
@@ -1171,26 +1181,6 @@ onBeforeUnmount(() => {
   min-width: 0;
   font-family: var(--font-ui, inherit);
 }
-.trade-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin: 14px 0 22px;
-}
-.trade-eyebrow {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--text-muted-2);
-  margin: 0 0 6px;
-}
-.trade-heading h1 {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
 .trade-freshness {
   display: flex;
   flex-wrap: wrap;
@@ -1200,10 +1190,6 @@ onBeforeUnmount(() => {
   color: var(--text-muted-2);
 }
 .trade-search {
-  padding: 18px;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  background: var(--bg-surface-2);
   margin-bottom: 22px;
 }
 .trade-primary-fields {
@@ -1244,8 +1230,6 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 12px;
-  color: var(--text-muted-2);
   margin-left: auto;
   min-height: 32px;
 }
@@ -1327,9 +1311,6 @@ onBeforeUnmount(() => {
   margin-bottom: 16px;
 }
 .trade-results-heading h2 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
   margin: 0 0 6px;
 }
 .trade-results-heading p {
@@ -1495,19 +1476,8 @@ onBeforeUnmount(() => {
   }
 }
 @media (max-width: 600px) {
-  .trade-heading {
-    align-items: flex-start;
-    flex-direction: column;
-    margin-bottom: 16px;
-  }
-  .trade-heading h1 {
-    font-size: 24px;
-  }
   .trade-freshness {
     justify-content: flex-start;
-  }
-  .trade-search {
-    padding: 13px;
   }
   .trade-primary-fields {
     grid-template-columns: minmax(0, 1fr) 90px;

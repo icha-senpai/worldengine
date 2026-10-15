@@ -1,4 +1,5 @@
 <script setup>
+import BitcraftPageHeader from "../bitcraft-ui/Components/BitcraftPageHeader.vue";
 import {
   computed,
   onMounted,
@@ -434,26 +435,29 @@ onBeforeUnmount(() => {
 <template>
   <Layout>
     <template #header>
-      <div class="fishing-heading">
-        <div>
-          <p class="fishing-eyebrow">BITCRAFT · OCEAN FISHING</p>
-          <h1>Fishing Map</h1>
-          <p>Find a school. Read the water. Plan the chase.</p>
-        </div>
-        <span class="fishing-live" :class="{ connected: status === 'live' }">{{
-          statusLabel
-        }}</span>
-      </div>
+      <BitcraftPageHeader
+        title="Fishing Map"
+        eyebrow="BitCraft · Ocean fishing"
+        description="Find a school. Read the water. Plan the chase."
+      >
+        <template #actions>
+          <span
+            class="fishing-live"
+            :class="{ connected: status === 'live' }"
+            >{{ statusLabel }}</span
+          >
+        </template>
+      </BitcraftPageHeader>
     </template>
     <div class="fishing-toolbar">
-      <label
+      <label class="ui-field-label"
         >Region<SelectInput v-model="region" aria-label="Fishing region"
           ><option v-for="[id, name] in REGIONS" :key="id" :value="id">
             {{ name }} (R{{ id }})
           </option></SelectInput
         ></label
       >
-      <label
+      <label class="ui-field-label"
         >Fish tier<SelectInput v-model="tier" aria-label="Fish tier"
           ><option :value="0">All tiers</option>
           <option v-for="n in 10" :key="n" :value="n">
@@ -461,7 +465,7 @@ onBeforeUnmount(() => {
           </option></SelectInput
         ></label
       >
-      <label
+      <label class="ui-field-label"
         >Schools<SelectInput v-model="schoolType" aria-label="School type"
           ><option value="all">All schools</option>
           <option value="ordinary">Ordinary · needs chum</option>
@@ -469,8 +473,9 @@ onBeforeUnmount(() => {
         ></label
       >
       <div class="fishing-toggles">
-        <label><input v-model="showDepth" type="checkbox" /> Water depth</label
-        ><label
+        <label class="ui-field-label"
+          ><input v-model="showDepth" type="checkbox" /> Water depth</label
+        ><label class="ui-field-label"
           ><input v-model="showFish" type="checkbox" /> Fish schools</label
         >
       </div>
@@ -515,8 +520,8 @@ onBeforeUnmount(() => {
         </div>
       </section>
       <aside class="fishing-sidebar">
-        <section class="fishing-card fishing-legend">
-          <h2>Water depth</h2>
+        <section class="fishing-card fishing-legend ui-panel">
+          <h2 class="ui-section-title">Water depth</h2>
           <p>All regions join into one permanent, detailed map.</p>
           <div
             v-for="[color, label] in [
@@ -534,13 +539,16 @@ onBeforeUnmount(() => {
             pre-rendered from a fixed snapshot; fish schools update live.</small
           >
         </section>
-        <section v-if="inspected" class="fishing-card">
-          <h2>Water inspection</h2>
+        <section v-if="inspected" class="fishing-card ui-panel">
+          <h2 class="ui-section-title">Water inspection</h2>
           <p>{{ coordinates(inspected) }}</p>
           <strong>{{ depthText(inspectedDepth) }}</strong>
           <p v-if="inspectedDepth === null">Zoom in here to load terrain.</p>
         </section>
-        <section v-if="selected" class="fishing-card fishing-selection">
+        <section
+          v-if="selected"
+          class="fishing-card fishing-selection ui-panel"
+        >
           <div class="fishing-card-top">
             <span class="fishing-tier" :style="{ color: FISH_COLOR }"
               >T{{ selected.tier }}</span
@@ -556,7 +564,7 @@ onBeforeUnmount(() => {
               >×</AppButton
             >
           </div>
-          <h2>{{ selected.name }}</h2>
+          <h2 class="ui-section-title">{{ selected.name }}</h2>
           <p>
             {{
               selected.chummed
@@ -591,8 +599,8 @@ onBeforeUnmount(() => {
             copied ? "Link copied" : "Copy location link"
           }}</AppButton>
         </section>
-        <section class="fishing-card fishing-nearby">
-          <h2>
+        <section class="fishing-card fishing-nearby ui-panel">
+          <h2 class="ui-section-title">
             Schools in view
             <span>{{
               inView.length === 50 ? "50 nearest" : inView.length
@@ -651,25 +659,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.fishing-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-}
-.fishing-heading h1 {
-  font-size: 30px;
-  font-weight: 750;
-  margin: 3px 0 6px;
-}
-.fishing-heading p {
-  color: var(--text-muted);
-  margin: 0;
-}
-.fishing-eyebrow {
-  font-size: 11px;
-  letter-spacing: 0.14em;
-}
 .fishing-live {
   font-size: 12px;
   border: 1px solid var(--border-color);
@@ -678,8 +667,8 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 .fishing-live.connected {
-  color: #7cd7b4;
-  background: #17453655;
+  color: var(--success);
+  background: rgb(var(--success-rgb) / 0.15);
 }
 .fishing-toolbar {
   display: grid;
@@ -694,8 +683,6 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
 }
 .fishing-toggles {
   display: flex;
@@ -707,7 +694,6 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
   white-space: nowrap;
 }
 .fishing-workspace {
@@ -721,15 +707,15 @@ onBeforeUnmount(() => {
   overflow: hidden;
   border-radius: 14px;
   border: 1px solid var(--border-color);
-  background: #122430;
+  background: var(--bg-canvas-2);
 }
 .fishing-map {
   height: 690px;
   min-height: 460px;
-  background: #122430;
+  background: var(--bg-canvas-2);
 }
 .fishing-map:focus-visible {
-  outline: 3px solid #9c88e0;
+  outline: 3px solid var(--accent-cyan);
   outline-offset: -3px;
 }
 .fishing-map-actions {
@@ -739,7 +725,7 @@ onBeforeUnmount(() => {
   z-index: 450;
   display: flex;
   gap: 6px;
-  background: var(--surface-card, #242a35);
+  background: var(--bg-surface);
   padding: 5px;
   border: 1px solid var(--border-color);
   border-radius: 10px;
@@ -751,10 +737,10 @@ onBeforeUnmount(() => {
   right: 12px;
   z-index: 450;
   padding: 8px 12px;
-  background: #17232ee8;
-  border: 1px solid #ffffff20;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: #d8e7ee;
+  color: var(--text-primary);
   font-size: 12px;
   pointer-events: none;
 }
@@ -763,15 +749,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 14px;
 }
-.fishing-card {
-  padding: 17px;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  background: var(--surface-card, var(--bg-secondary));
-}
 .fishing-card h2 {
-  font-size: 15px;
-  font-weight: 700;
   margin: 0 0 8px;
 }
 .fishing-card p {
@@ -812,11 +790,11 @@ onBeforeUnmount(() => {
   font-size: 12px;
 }
 .fishing-selection {
-  border-color: #ad98d666;
+  border-color: rgb(var(--accent-cyan-rgb) / 0.4);
 }
 .fishing-ring {
-  background: #7b68b01a;
-  border: 1px solid #ad98d633;
+  background: rgb(var(--accent-cyan-rgb) / 0.1);
+  border: 1px solid rgb(var(--accent-cyan-rgb) / 0.2);
   border-radius: 8px;
   padding: 11px;
   margin: 12px 0;
@@ -834,11 +812,6 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-.fishing-nearby h2 > span {
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--text-muted);
 }
 .fishing-school-list {
   max-height: 300px;
@@ -860,11 +833,11 @@ onBeforeUnmount(() => {
 }
 .fishing-school-list button:hover,
 .fishing-school-list button.active {
-  background: #8973bd20;
-  border-color: #ad98d655;
+  background: rgb(var(--accent-cyan-rgb) / 0.12);
+  border-color: rgb(var(--accent-cyan-rgb) / 0.33);
 }
 .fishing-school-list button:focus-visible {
-  outline: 2px solid #ad98d6;
+  outline: 2px solid var(--accent-cyan);
 }
 .fishing-school-list strong {
   display: block;
@@ -883,12 +856,12 @@ onBeforeUnmount(() => {
   border-radius: 50%;
 }
 .fishing-school-dot.chummed {
-  outline: 2px solid #fff3d6;
+  outline: 2px solid var(--text-primary);
   outline-offset: 2px;
 }
 .fishing-notice {
   padding: 12px;
-  background: #b49a5930;
+  background: rgb(var(--warning-rgb) / 0.18);
   border-radius: 8px;
   font-size: 12px;
   margin-bottom: 16px;
@@ -906,14 +879,23 @@ onBeforeUnmount(() => {
   text-decoration: underline;
 }
 .fishing-map :deep(.leaflet-tooltip) {
-  background: #202c3a;
-  color: #e7edf4;
-  border-color: #536275;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-color-2);
   font-family: inherit;
   font-size: 12px;
 }
 .fishing-map :deep(.leaflet-tooltip-top:before) {
-  border-top-color: #536275;
+  border-top-color: var(--border-color-2);
+}
+.fishing-map :deep(.leaflet-tooltip-bottom:before) {
+  border-bottom-color: var(--border-color-2);
+}
+.fishing-map :deep(.leaflet-tooltip-left:before) {
+  border-left-color: var(--border-color-2);
+}
+.fishing-map :deep(.leaflet-tooltip-right:before) {
+  border-right-color: var(--border-color-2);
 }
 @media (max-width: 1100px) {
   .fishing-toolbar {
@@ -932,12 +914,6 @@ onBeforeUnmount(() => {
   }
 }
 @media (max-width: 760px) {
-  .fishing-heading {
-    align-items: flex-start;
-  }
-  .fishing-heading h1 {
-    font-size: 25px;
-  }
   .fishing-live {
     font-size: 10px;
     padding: 6px 8px;
@@ -980,9 +956,6 @@ onBeforeUnmount(() => {
 @media (max-width: 430px) {
   .fishing-sidebar {
     grid-template-columns: 1fr;
-  }
-  .fishing-heading p:not(.fishing-eyebrow) {
-    font-size: 12px;
   }
   .fishing-map-status {
     font-size: 10px;

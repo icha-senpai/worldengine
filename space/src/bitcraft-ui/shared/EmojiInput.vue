@@ -167,7 +167,7 @@ onBeforeUnmount(() => document.removeEventListener("focusin", keepFocus));
 
 <template>
   <div class="emoji-input">
-    <span class="emoji-input__label">Emojis</span>
+    <span class="emoji-input__label ui-field-label">Emojis</span>
     <div class="emoji-input__controls">
       <button
         ref="trigger"
@@ -218,7 +218,7 @@ onBeforeUnmount(() => document.removeEventListener("focusin", keepFocus));
         >
           <header>
             <div>
-              <strong>Choose emojis</strong>
+              <strong class="ui-dialog-title">Choose emojis</strong>
               <p>Find a little personality for your widget.</p>
             </div>
             <button
@@ -348,10 +348,6 @@ onBeforeUnmount(() => document.removeEventListener("focusin", keepFocus));
   min-width: 0;
 }
 .emoji-input__label {
-  color: var(--text-muted-3);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
 }
 .emoji-input__controls {
   display: flex;
@@ -367,7 +363,7 @@ onBeforeUnmount(() => document.removeEventListener("focusin", keepFocus));
 .emoji-picker button {
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: var(--bg-surface-2);
+  background: var(--bg-canvas-2);
   color: var(--text-primary);
   min-height: 36px;
   padding: 6px 10px;
@@ -376,7 +372,7 @@ onBeforeUnmount(() => document.removeEventListener("focusin", keepFocus));
 .emoji-input button:hover,
 .emoji-picker button:hover {
   border-color: var(--accent-cyan);
-  background: var(--bg-surface-3);
+  background: var(--control-hover);
 }
 .emoji-input button:focus-visible,
 .emoji-picker button:focus-visible,
@@ -404,7 +400,7 @@ onBeforeUnmount(() => document.removeEventListener("focusin", keepFocus));
   display: grid;
   place-items: center;
   padding: 12px;
-  background: rgb(0 0 0 / 0.6);
+  background: var(--overlay-2);
 }
 .emoji-picker {
   display: flex;
@@ -418,7 +414,7 @@ onBeforeUnmount(() => document.removeEventListener("focusin", keepFocus));
   border-radius: 16px;
   background: var(--bg-surface);
   color: var(--text-primary);
-  box-shadow: 0 20px 80px rgb(0 0 0 / 0.5);
+  box-shadow: 0 20px 80px rgb(var(--bg-canvas-rgb) / 0.5);
 }
 .emoji-picker header,
 .emoji-picker footer {
@@ -469,7 +465,7 @@ onBeforeUnmount(() => document.removeEventListener("focusin", keepFocus));
 }
 .emoji-picker__grid button[aria-pressed="true"] {
   border-color: var(--accent-cyan);
-  background: var(--bg-surface-3);
+  background: var(--control-hover);
 }
 .emoji-picker__notice {
   margin: 0;

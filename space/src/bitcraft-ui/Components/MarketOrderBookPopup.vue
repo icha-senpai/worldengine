@@ -20,7 +20,7 @@
 
     <section
       v-if="orderBook?.item"
-      class="market-order-item"
+      class="market-order-item ui-panel"
       data-test="order-book-item"
     >
       <span
@@ -60,7 +60,9 @@
     </section>
 
     <section class="market-summary-grid" data-test="order-book-summary">
-      <div class="market-summary-card market-summary-card--sell">
+      <div
+        class="market-summary-card market-summary-card--sell ui-panel ui-panel--compact"
+      >
         <span class="market-summary-card__label">Best sell</span>
         <strong>{{ formatCoins(bestSellPrice) }}</strong>
         <span>{{
@@ -69,7 +71,9 @@
             : "No sell orders"
         }}</span>
       </div>
-      <div class="market-summary-card market-summary-card--buy">
+      <div
+        class="market-summary-card market-summary-card--buy ui-panel ui-panel--compact"
+      >
         <span class="market-summary-card__label">Best buy</span>
         <strong>{{ formatCoins(bestBuyPrice) }}</strong>
         <span>{{
@@ -78,12 +82,12 @@
             : "No buy orders"
         }}</span>
       </div>
-      <div class="market-summary-card">
+      <div class="market-summary-card ui-panel ui-panel--compact">
         <span class="market-summary-card__label">Spread</span>
         <strong>{{ formatCoins(spreadValue) }}</strong>
         <span>{{ spreadPercentLabel }}</span>
       </div>
-      <div class="market-summary-card">
+      <div class="market-summary-card ui-panel ui-panel--compact">
         <span class="market-summary-card__label">Liquidity</span>
         <strong>{{ formatCount(totalSellQuantity + totalBuyQuantity) }}</strong>
         <span
@@ -116,10 +120,10 @@
     </div>
 
     <div class="grid gap-4 xl:grid-cols-2">
-      <section class="market-order-table-panel">
-        <div class="market-order-table-panel__header">
+      <section class="market-order-table-panel ui-panel ui-panel--flush">
+        <div class="market-order-table-panel__header ui-panel-heading">
           <div>
-            <h3 class="surface-section__title">Sell Orders</h3>
+            <h3 class="surface-section__title ui-section-title">Sell Orders</h3>
             <p class="mt-1 text-xs font-ui text-muted-2">
               {{ formatCount(filteredSellOrders.length) }} shown
             </p>
@@ -163,8 +167,8 @@
           class="cost-calculator"
           data-test="cost-to-buy"
         >
-          <label class="cost-calculator__field">
-            <span>Cost to buy</span>
+          <label class="cost-calculator__field ui-field-label">
+            <span class="ui-field-label">Cost to buy</span>
             <input
               v-model.trim="buyQuantity"
               type="number"
@@ -180,10 +184,10 @@
         </div>
       </section>
 
-      <section class="market-order-table-panel">
-        <div class="market-order-table-panel__header">
+      <section class="market-order-table-panel ui-panel ui-panel--flush">
+        <div class="market-order-table-panel__header ui-panel-heading">
           <div>
-            <h3 class="surface-section__title">Buy Orders</h3>
+            <h3 class="surface-section__title ui-section-title">Buy Orders</h3>
             <p class="mt-1 text-xs font-ui text-muted-2">
               {{ formatCount(filteredBuyOrders.length) }} shown
             </p>
@@ -226,12 +230,12 @@
 
     <section
       v-if="regionRows.length"
-      class="market-order-table-panel mt-4"
+      class="market-order-table-panel mt-4 ui-panel ui-panel--flush"
       data-test="order-book-regions"
     >
-      <div class="market-order-table-panel__header">
+      <div class="market-order-table-panel__header ui-panel-heading">
         <div>
-          <h3 class="surface-section__title">By Region</h3>
+          <h3 class="surface-section__title ui-section-title">By Region</h3>
           <p class="mt-1 text-xs font-ui text-muted-2">
             Best visible orders grouped by region.
           </p>
@@ -273,7 +277,9 @@
       <div class="mb-3 border-b border-border pb-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="min-w-0">
-            <h3 class="surface-section__title">Package Orders</h3>
+            <h3 class="surface-section__title ui-section-title">
+              Package Orders
+            </h3>
             <p class="mt-1 text-xs font-ui text-muted-2">
               {{ packageInfoLabel }}
             </p>
@@ -283,9 +289,11 @@
       </div>
 
       <div class="grid gap-4 xl:grid-cols-2">
-        <section class="market-order-table-panel">
-          <div class="market-order-table-panel__header">
-            <h3 class="surface-section__title">Package Sell Orders</h3>
+        <section class="market-order-table-panel ui-panel ui-panel--flush">
+          <div class="market-order-table-panel__header ui-panel-heading">
+            <h3 class="surface-section__title ui-section-title">
+              Package Sell Orders
+            </h3>
             <span class="tag tag--success">sell</span>
           </div>
           <OrderTable
@@ -299,9 +307,11 @@
           />
         </section>
 
-        <section class="market-order-table-panel">
-          <div class="market-order-table-panel__header">
-            <h3 class="surface-section__title">Package Buy Orders</h3>
+        <section class="market-order-table-panel ui-panel ui-panel--flush">
+          <div class="market-order-table-panel__header ui-panel-heading">
+            <h3 class="surface-section__title ui-section-title">
+              Package Buy Orders
+            </h3>
             <span class="tag tag--warn">buy</span>
           </div>
           <OrderTable
@@ -318,11 +328,13 @@
     </section>
 
     <section
-      class="market-order-table-panel mt-4"
+      class="market-order-table-panel mt-4 ui-panel ui-panel--flush"
       data-test="order-book-detail"
     >
-      <div class="market-order-table-panel__header">
-        <h3 class="surface-section__title">Order Book Detail</h3>
+      <div class="market-order-table-panel__header ui-panel-heading">
+        <h3 class="surface-section__title ui-section-title">
+          Order Book Detail
+        </h3>
         <span class="tag">stats</span>
       </div>
       <div class="market-detail-grid">
@@ -1082,10 +1094,6 @@ Metric.props = {
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
-  border: 1px solid rgb(var(--border-color-2-rgb) / 0.2);
-  border-radius: 8px;
-  background: rgb(var(--bg-surface-rgb) / 0.72);
-  padding: 12px;
 }
 
 .market-order-item__icon {
@@ -1116,7 +1124,7 @@ Metric.props = {
     ),
     rgb(var(--bg-surface-rgb) / 0.92);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08),
     0 0 12px
       color-mix(
         in srgb,
@@ -1164,7 +1172,7 @@ Metric.props = {
     ),
     rgb(var(--bg-surface-rgb) / 0.7);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08),
     0 0 12px
       color-mix(
         in srgb,
@@ -1186,10 +1194,6 @@ Metric.props = {
 
 .market-summary-card {
   min-width: 0;
-  border: 1px solid rgb(var(--border-color-2-rgb) / 0.24);
-  border-radius: 8px;
-  background: rgb(var(--bg-surface-2-rgb) / 0.66);
-  padding: 12px;
 }
 
 .market-summary-card strong {
@@ -1230,9 +1234,6 @@ Metric.props = {
   --market-buy-color: var(--success);
 
   overflow: hidden;
-  border: 1px solid rgb(var(--border-color-2-rgb) / 0.2);
-  border-radius: 8px;
-  background: rgb(var(--bg-surface-rgb) / 0.72);
   color: var(--text-primary);
 }
 
@@ -1241,8 +1242,6 @@ Metric.props = {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid rgb(var(--border-color-2-rgb) / 0.18);
-  padding: 12px;
 }
 
 .market-order-filters {
@@ -1259,7 +1258,7 @@ Metric.props = {
   width: 100%;
   border: 1px solid rgb(var(--border-color-2-rgb) / 0.36);
   border-radius: 6px;
-  background: rgb(var(--bg-surface-2-rgb) / 0.74);
+  background: var(--bg-canvas-2);
   color: var(--text-primary);
   caret-color: var(--accent-cyan);
   font-size: 12px;
@@ -1330,11 +1329,11 @@ Metric.props = {
 }
 
 .market-order-table tbody tr:hover {
-  background: rgb(var(--bg-surface-3-rgb) / 0.22);
+  background: var(--control-hover);
 }
 
 .market-table-scroll :deep(.market-order-table tbody tr:hover) {
-  background: rgb(var(--bg-surface-3-rgb) / 0.22);
+  background: var(--control-hover);
 }
 
 .market-order-table td.text-danger strong {
@@ -1431,17 +1430,10 @@ Metric.props = {
   padding: 12px;
 }
 
-.market-detail-metric {
-  border: 1px solid rgb(var(--border-color-2-rgb) / 0.18);
-  border-radius: 6px;
-  background: rgb(var(--bg-surface-2-rgb) / 0.54);
-  padding: 10px;
-}
-
 .market-detail-grid :deep(.market-detail-metric) {
   border: 1px solid rgb(var(--border-color-2-rgb) / 0.18);
   border-radius: 6px;
-  background: rgb(var(--bg-surface-2-rgb) / 0.54);
+  background: var(--bg-surface);
   padding: 10px;
 }
 

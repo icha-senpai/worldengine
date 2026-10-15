@@ -101,13 +101,13 @@ export function useRichTextEditorControls(
   );
 
   const currentTextColor = computed(
-    () => editor.value?.getAttributes("textStyle").color || "#E7F9FF",
+    () => editor.value?.getAttributes("textStyle").color || "#FFF6E6",
   );
   const currentHighlightColor = computed(
-    () => editor.value?.getAttributes("highlight").color || "#FCD34D",
+    () => editor.value?.getAttributes("highlight").color || "#7C5F34",
   );
   const currentFieldColor = computed(
-    () => editor.value?.getAttributes("textStyle").fieldColor || "#1E4DF2",
+    () => editor.value?.getAttributes("textStyle").fieldColor || "#342621",
   );
 
   const typeOptions = computed(() => [

@@ -1,4 +1,6 @@
 <script setup>
+import BitcraftPageHeader from "../bitcraft-ui/Components/BitcraftPageHeader.vue";
+import SelectInput from "../bitcraft-ui/shared/SelectInput.vue";
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { connectBitcraft } from "../bitcraft";
@@ -532,26 +534,24 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <main class="claims-page">
-    <header class="page-heading">
-      <div>
-        <h1>Tracked Claims</h1>
-        <p>
-          T4+ claims with both a waystone and a bank. Check supplies and open a
-          claim’s history.
-        </p>
-      </div>
-      <div class="heading-actions">
-        <button class="button" @click="openHistory()">Recent changes</button
-        ><button
-          class="button"
-          :disabled="loading || starsLoading"
-          @click="refresh()"
-        >
-          {{ loading ? "Loading…" : "Refresh" }}
-        </button>
-      </div>
-    </header>
-    <section class="coverage" aria-label="Recording coverage">
+    <BitcraftPageHeader
+      title="Tracked Claims"
+      description="T4+ claims with both a waystone and a bank. Check supplies and open a claim’s history."
+    >
+      <template #actions>
+        <div class="heading-actions">
+          <button class="button" @click="openHistory()">Recent changes</button
+          ><button
+            class="button"
+            :disabled="loading || starsLoading"
+            @click="refresh()"
+          >
+            {{ loading ? "Loading…" : "Refresh" }}
+          </button>
+        </div>
+      </template>
+    </BitcraftPageHeader>
+    <section class="coverage ui-panel" aria-label="Recording coverage">
       <strong>{{ tracked.toLocaleString() }} qualifying claims</strong
       ><span>{{ readyCount }} / 9 regions recording</span
       ><small v-if="updated">Checked at {{ updated }}</small>
@@ -565,7 +565,7 @@ onBeforeUnmount(() => {
         >
       </div>
     </section>
-    <nav class="tabs list-tabs" aria-label="Claim lists">
+    <nav class="tabs list-tabs ui-tabs" aria-label="Claim lists">
       <button
         :class="{ active: listView === 'all' }"
         :aria-pressed="listView === 'all'"
@@ -595,14 +595,14 @@ onBeforeUnmount(() => {
       {{ starError || starLoadError }}
     </p>
     <form class="filters" @submit.prevent="loadList()">
-      <label
+      <label class="ui-field-label"
         >Claim or owner<input
           v-model="query"
           maxlength="160"
           placeholder="Search name or ID…"
       /></label>
-      <label
-        >Region<select v-model="region">
+      <label class="ui-field-label"
+        >Region<SelectInput v-model="region">
           <option :value="0">All current regions</option>
           <option
             v-for="(name, id) in CURRENT_REGIONS"
@@ -611,25 +611,25 @@ onBeforeUnmount(() => {
           >
             {{ name }}
           </option>
-        </select></label
+        </SelectInput></label
       >
-      <label
-        >Supply status<select v-model="risk">
+      <label class="ui-field-label"
+        >Supply status<SelectInput v-model="risk">
           <option value="">All tracked claims</option>
           <option value="soon">Within 24 hours</option>
           <option value="week">Within 7 days</option>
           <option value="empty">Out of supplies</option>
           <option value="stale">Stale readings</option>
           <option value="unknown">Unknown estimates</option>
-        </select></label
+        </SelectInput></label
       >
-      <label
-        >Sort<select v-model="sort">
+      <label class="ui-field-label"
+        >Sort<SelectInput v-model="sort">
           <option value="expiry">Soonest expiry</option>
           <option value="supplies">Lowest supplies</option>
           <option value="name">Claim name</option>
           <option value="tier">Highest tier</option>
-        </select></label
+        </SelectInput></label
       >
     </form>
     <p class="note">
@@ -757,7 +757,9 @@ onBeforeUnmount(() => {
       <section class="claim-dialog">
         <header class="dialog-heading">
           <div>
-            <h2 id="claim-history-dialog-title">{{ dialogTitle }}</h2>
+            <h2 class="ui-dialog-title" id="claim-history-dialog-title">
+              {{ dialogTitle }}
+            </h2>
             <p v-if="currentClaim">
               T{{ currentClaim.tier }} · {{ currentClaim.regionName }} · Owner
               {{ currentClaim.ownerName }}
@@ -792,7 +794,7 @@ onBeforeUnmount(() => {
             </button>
           </div>
         </header>
-        <div v-if="currentClaim" class="claim-stats">
+        <div v-if="currentClaim" class="claim-stats ui-panel ui-panel--compact">
           <div>
             <small>Supplies</small
             ><strong>{{ number(currentClaim.supplies) }}</strong>
@@ -824,7 +826,11 @@ onBeforeUnmount(() => {
             }}
           </p>
         </div>
-        <nav class="tabs" role="tablist" aria-label="Claim history tabs">
+        <nav
+          class="tabs ui-tabs"
+          role="tablist"
+          aria-label="Claim history tabs"
+        >
           <button
             v-for="(tab, index) in tabs"
             :id="`claim-tab-${tab[0]}`"
@@ -853,7 +859,7 @@ onBeforeUnmount(() => {
         >
           <details
             v-if="group === 'members' && selected && members.length"
-            class="roster"
+            class="roster ui-panel ui-panel--compact"
             open
           >
             <summary>Current roster ({{ members.length }} members)</summary>
@@ -957,26 +963,17 @@ onBeforeUnmount(() => {
 </template>
 <style scoped>
 .claims-page {
-  max-width: 1450px;
-  margin: auto;
-  padding: 24px;
-  color: var(--text-primary, #e5e7eb);
+  width: 100%;
+  color: var(--text-primary);
 }
-.page-heading,
 .dialog-heading {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 20px;
 }
-.page-heading h1 {
-  font-size: 28px;
-  font-weight: 650;
-  margin: 0 0 8px;
-}
-.page-heading p,
 .dialog-heading p {
-  color: var(--text-secondary, #a5aab5);
+  color: var(--text-muted);
   margin: 8px 0;
 }
 .heading-actions {
@@ -990,10 +987,6 @@ onBeforeUnmount(() => {
   gap: 12px;
   align-items: center;
   margin: 24px 0;
-  padding: 20px;
-  border: 1px solid var(--border-color, #374151);
-  border-radius: 12px;
-  background: var(--bg-secondary, #181c24);
 }
 .coverage small {
   margin-left: auto;
@@ -1008,12 +1001,12 @@ onBeforeUnmount(() => {
   font-size: 12px;
   padding: 5px 9px;
   border-radius: 6px;
-  background: #8a592126;
-  color: #e9b56b;
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
 }
 .regions span.ready {
-  background: #20865c26;
-  color: #79d7aa;
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
 }
 .filters {
   display: grid;
@@ -1024,26 +1017,28 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 13px;
 }
-.filters input,
-.filters select {
+.filters .app-select {
+  width: 100%;
+  min-width: 0;
+}
+.filters input {
   width: 100%;
   min-width: 0;
   padding: 10px;
-  border: 1px solid var(--border-color, #374151);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: var(--bg-secondary, #181c24);
+  background: var(--bg-canvas-2);
   color: inherit;
 }
 .note {
   font-size: 12px;
   line-height: 1.6;
-  color: var(--text-secondary, #a5aab5);
+  color: var(--text-muted);
   margin: 18px 0;
 }
 .error {
-  color: #f2a8a8;
+  color: var(--danger);
 }
 .empty {
   padding: 30px;
@@ -1051,7 +1046,7 @@ onBeforeUnmount(() => {
 }
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--border-color, #374151);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
 }
 table {
@@ -1064,13 +1059,13 @@ td {
   text-align: left;
   padding: 13px 12px;
   vertical-align: top;
-  border-bottom: 1px solid var(--border-color, #374151);
+  border-bottom: 1px solid var(--border-color);
 }
 th {
   white-space: nowrap;
   font-size: 12px;
-  color: var(--text-secondary, #a5aab5);
-  background: var(--bg-secondary, #181c24);
+  color: var(--text-muted);
+  background: var(--bg-surface);
 }
 td:first-child {
   min-width: 230px;
@@ -1079,14 +1074,14 @@ td:first-child {
 td small {
   display: block;
   font-size: 11px;
-  color: var(--text-secondary, #a5aab5);
+  color: var(--text-muted);
   margin-top: 6px;
 }
 .claim-button {
   background: transparent;
   border: 0;
   padding: 0;
-  color: var(--accent-color, #e9b56b);
+  color: var(--accent-cyan);
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -1113,26 +1108,26 @@ td small {
   flex-shrink: 0;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--border-color, #374151);
+  border: 1px solid var(--border-color);
   border-radius: 7px;
-  color: var(--text-secondary, #a5aab5);
+  color: var(--text-muted);
   background: transparent;
   cursor: pointer;
 }
 .star-button.selected,
 .dialog-star[aria-pressed="true"] {
-  color: #efbe7e;
+  color: var(--accent-cyan-2);
 }
 .star-button:hover {
-  background: #b3812526;
+  background: color-mix(in srgb, var(--accent-cyan) 15%, transparent);
 }
 .update-badge {
   display: inline-block;
   margin: 6px 0 0;
   padding: 3px 6px;
   border-radius: 5px;
-  color: #79d7aa;
-  background: #20865c26;
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 15%, transparent);
   font-size: 11px;
 }
 .list-tabs {
@@ -1142,19 +1137,19 @@ td small {
   margin: 0 0 0 8px;
 }
 tr.urgent {
-  background: #a35f171a;
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
 }
 .urgent td:nth-child(5) {
-  color: #efbe7e;
+  color: var(--accent-cyan-2);
 }
 .stale {
-  color: #e9b56b;
+  color: var(--warning);
 }
 .button {
   padding: 9px 14px;
-  border: 1px solid var(--border-color, #374151);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: var(--bg-secondary, #181c24);
+  background: var(--bg-surface);
   color: inherit;
   cursor: pointer;
 }
@@ -1175,21 +1170,16 @@ tr.urgent {
 }
 .claim-dialog {
   padding: 24px;
-  color: var(--text-primary, #e5e7eb);
+  color: var(--text-primary);
 }
 .dialog-heading h2 {
-  font-size: 24px;
-  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .claim-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  padding: 16px;
   margin: 18px 0;
-  border: 1px solid var(--border-color, #374151);
-  border-radius: 10px;
 }
 .claim-stats small,
 .claim-stats strong {
@@ -1197,7 +1187,7 @@ tr.urgent {
 }
 .claim-stats small {
   font-size: 12px;
-  color: var(--text-secondary, #a5aab5);
+  color: var(--text-muted);
   margin-bottom: 6px;
 }
 .claim-stats strong {
@@ -1213,27 +1203,14 @@ tr.urgent {
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-color, #374151);
+  border-bottom: 1px solid var(--border-color);
 }
 .tabs button {
   white-space: nowrap;
-  padding: 9px 13px;
-  border-radius: 7px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: inherit;
   cursor: pointer;
-}
-.tabs button.active {
-  background: #b3812526;
-  border-color: #b3812570;
-  color: #efbe7e;
 }
 .roster {
   margin-top: 16px;
-  padding: 12px;
-  border: 1px solid var(--border-color, #374151);
-  border-radius: 8px;
 }
 .roster summary {
   cursor: pointer;
@@ -1251,16 +1228,16 @@ tr.urgent {
   min-width: 160px;
 }
 .member-table .granted {
-  color: #79d7aa;
+  color: var(--success);
 }
 .member-table .denied,
 .activity-updated {
-  color: var(--text-secondary, #a5aab5);
+  color: var(--text-muted);
 }
 .owner-label {
   display: inline-block;
   font-size: 10px;
-  color: #efbe7e;
+  color: var(--accent-cyan-2);
   margin-left: 8px;
 }
 @media (max-width: 850px) {
@@ -1272,12 +1249,8 @@ tr.urgent {
   }
 }
 @media (max-width: 600px) {
-  .claims-page,
   .claim-dialog {
     padding: 16px;
-  }
-  .page-heading {
-    flex-direction: column;
   }
   .heading-actions {
     width: 100%;
@@ -1287,9 +1260,6 @@ tr.urgent {
   }
   .filters {
     grid-template-columns: 1fr;
-  }
-  .dialog-heading h2 {
-    font-size: 20px;
   }
   .table-wrap {
     max-width: 100%;

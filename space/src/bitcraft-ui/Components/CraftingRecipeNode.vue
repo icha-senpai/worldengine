@@ -464,7 +464,7 @@ const scaledQuantity = (quantity) => {
 .crafting-node__route-select :deep(.app-select__trigger) {
   border: 1px solid rgb(var(--border-color-rgb) / 0.82);
   border-radius: 6px;
-  background: rgb(var(--bg-surface-rgb) / 0.94);
+  background: var(--bg-canvas-2);
   color: var(--text-primary);
   font-family: var(--font-ui);
   font-size: 12px;
@@ -482,7 +482,7 @@ const scaledQuantity = (quantity) => {
 .crafting-node__meta span {
   border: 1px solid rgb(var(--border-color-rgb) / 0.72);
   border-radius: 5px;
-  background: rgb(var(--bg-surface-3-rgb) / 0.34);
+  background: var(--bg-surface);
   color: var(--text-muted-2);
   font-family: var(--font-ui);
   font-size: 11px;
@@ -555,13 +555,7 @@ const scaledQuantity = (quantity) => {
   min-width: 0;
   border: 1px solid rgb(var(--border-color-2-rgb) / 0.62);
   border-radius: 8px;
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--bg-surface-3-rgb) / 0.44),
-      rgb(var(--bg-surface-2-rgb) / 0.8)
-    ),
-    var(--bg-surface-2);
+  background: var(--bg-surface);
   color: var(--text-primary);
   cursor: default;
   list-style: none;
@@ -577,7 +571,7 @@ const scaledQuantity = (quantity) => {
   height: 9px;
   border: 1px solid var(--crafting-connector);
   border-radius: 999px;
-  background: var(--bg-surface-2);
+  background: var(--bg-surface);
   box-shadow: 0 0 0 3px var(--bg-surface);
   transform: translateY(-50%);
 }
@@ -616,7 +610,7 @@ details > .crafting-ingredient__row {
     ),
     rgb(var(--bg-surface-rgb) / 0.92);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08),
     0 0 12px
       color-mix(
         in srgb,

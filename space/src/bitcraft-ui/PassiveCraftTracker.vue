@@ -20,14 +20,14 @@
       >
         <form class="passive-craft-setup" @submit.prevent="submitSetup(true)">
           <div class="passive-craft-setup__grid">
-            <label>
-              <span>Character</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Character</span>
               <input v-model.trim="form.character" type="text" maxlength="80" />
               <SitePlayerDefaultButton @select="form.character = $event" />
             </label>
 
-            <label>
-              <span>Title</span>
+            <label class="ui-field-label">
+              <span class="ui-field-label">Title</span>
               <input v-model.trim="form.title" type="text" maxlength="80" />
             </label>
 
@@ -564,13 +564,7 @@ onBeforeUnmount(() => {
   border: 1px solid rgb(var(--border-color-2-rgb) / 0.36);
   border-radius: 8px;
   padding: 12px;
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--bg-surface-3-rgb) / 0.26),
-      rgb(var(--bg-surface-rgb) / 0.94)
-    ),
-    var(--bg-surface);
+  background: var(--bg-surface);
 }
 
 .passive-craft-setup__grid {
@@ -582,13 +576,6 @@ onBeforeUnmount(() => {
 .passive-craft-setup label {
   display: grid;
   gap: 6px;
-}
-
-.passive-craft-setup span {
-  color: var(--text-muted-3);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
 }
 
 .passive-craft-setup input {
@@ -818,5 +805,4 @@ onBeforeUnmount(() => {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-
 </style>

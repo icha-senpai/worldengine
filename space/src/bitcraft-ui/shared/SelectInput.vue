@@ -13,9 +13,10 @@ import {
 
 defineOptions({ inheritAttrs: false });
 const props = defineProps({
-  modelValue: { default: undefined },
-  value: { default: undefined },
+  modelValue: { type: [String, Number, Boolean, Object], default: undefined },
+  value: { type: [String, Number, Boolean, Object], default: undefined },
   disabled: Boolean,
+  required: Boolean,
   name: String,
   modelModifiers: { type: Object, default: () => ({}) },
 });
@@ -30,6 +31,10 @@ const open = ref(false);
 const activeIndex = ref(-1);
 const label = ref("");
 const menuStyle = ref({});
+const menuTarget = ref("body");
+const validationError = ref("");
+let parentForm;
+let parentDialog;
 let search = "";
 let searchAt = 0;
 
@@ -38,7 +43,7 @@ function textContent(nodes) {
   if (!Array.isArray(nodes)) return typeof nodes === "string" ? nodes : "";
   return nodes.map((node) => textContent(node.children)).join("");
 }
-function readOptions(nodes, result = []) {
+function readOptions(nodes, result = [], groupDisabled = false) {
   for (const node of nodes ?? []) {
     if (node.type === "option") {
       const text = textContent(node.children).trim().replace(/\s+/g, " ");
@@ -47,9 +52,19 @@ function readOptions(nodes, result = []) {
           ? node.props.value
           : text,
         label: text,
-        disabled: node.props?.disabled === "" || Boolean(node.props?.disabled),
+        disabled:
+          groupDisabled ||
+          node.props?.disabled === "" ||
+          Boolean(node.props?.disabled),
       });
-    } else if (Array.isArray(node.children)) readOptions(node.children, result);
+    } else if (Array.isArray(node.children))
+      readOptions(
+        node.children,
+        result,
+        groupDisabled ||
+          (node.type === "optgroup" &&
+            (node.props?.disabled === "" || Boolean(node.props?.disabled))),
+      );
   }
   return result;
 }
@@ -59,11 +74,14 @@ const currentValue = computed(() =>
   props.modelValue !== undefined ? props.modelValue : props.value,
 );
 function selectedIndex() {
-  return optionCache.items.findIndex(
-    (option) =>
-      option.value === currentValue.value ||
-      String(option.value) === String(currentValue.value),
+  const exact = optionCache.items.findIndex(
+    (option) => option.value === currentValue.value,
   );
+  return exact >= 0
+    ? exact
+    : optionCache.items.findIndex(
+        (option) => String(option.value) === String(currentValue.value),
+      );
 }
 function selectedLabel() {
   optionCache.items = readOptions(slots.default?.());
@@ -87,8 +105,8 @@ function positionMenu() {
     left: `${Math.max(12, Math.min(rect.left, window.innerWidth - width - 12))}px`,
     maxHeight: `${Math.max(60, Math.min(280, placeAbove ? above - 6 : below - 6))}px`,
     ...(placeAbove
-      ? { bottom: `${window.innerHeight - rect.top + 6}px` }
-      : { top: `${rect.bottom + 6}px` }),
+      ? { bottom: `${window.innerHeight - rect.top + 6}px`, top: "auto" }
+      : { top: `${rect.bottom + 6}px`, bottom: "auto" }),
   };
 }
 function revealActive() {
@@ -106,12 +124,18 @@ function showMenu() {
       ? selectedIndex()
       : optionCache.items.findIndex((option) => !option.disabled);
   positionMenu();
-  revealActive();
+  nextTick(() => {
+    if (!open.value || !menu.value) return;
+    menu.value.showPopover?.();
+    positionMenu();
+    revealActive();
+  });
 }
 function closeMenu(restoreFocus = false) {
+  menu.value?.hidePopover?.();
   open.value = false;
   search = "";
-  if (restoreFocus) trigger.value?.focus();
+  if (restoreFocus === true) trigger.value?.focus();
 }
 function choose(index) {
   const option = optionCache.items[index];
@@ -126,6 +150,7 @@ function choose(index) {
     value = Number(value);
   emit("update:modelValue", value);
   emit("change", { target: { value } });
+  validationError.value = "";
   closeMenu(true);
 }
 function move(direction) {
@@ -191,6 +216,20 @@ function outsidePointer(event) {
   )
     closeMenu();
 }
+function onInvalid(event) {
+  event.preventDefault();
+  validationError.value = event.target.validationMessage;
+  trigger.value?.focus();
+}
+const initialValue = currentValue.value;
+function onReset() {
+  validationError.value = "";
+  closeMenu();
+  emit("update:modelValue", initialValue);
+}
+watch(currentValue, () => {
+  validationError.value = "";
+});
 watch(
   () => props.disabled,
   (disabled) => {
@@ -198,6 +237,11 @@ watch(
   },
 );
 onMounted(() => {
+  parentDialog = root.value?.closest("dialog");
+  menuTarget.value = parentDialog ?? "body";
+  parentDialog?.addEventListener("close", closeMenu);
+  parentForm = root.value?.closest("form");
+  parentForm?.addEventListener("reset", onReset);
   const parentLabel = root.value?.closest("label");
   label.value = parentLabel
     ? Array.from(parentLabel.childNodes)
@@ -213,6 +257,8 @@ onMounted(() => {
   window.addEventListener("scroll", positionMenu, true);
 });
 onBeforeUnmount(() => {
+  parentDialog?.removeEventListener("close", closeMenu);
+  parentForm?.removeEventListener("reset", onReset);
   document.removeEventListener("pointerdown", outsidePointer);
   window.removeEventListener("resize", positionMenu);
   window.removeEventListener("scroll", positionMenu, true);
@@ -222,13 +268,6 @@ defineExpose({ focus: (options) => trigger.value?.focus(options) });
 
 <template>
   <div ref="root" class="app-select" :class="attrs.class" :style="attrs.style">
-    <input
-      v-if="name"
-      type="hidden"
-      :name="name"
-      :value="currentValue"
-      :disabled="disabled"
-    />
     <button
       ref="trigger"
       v-bind="buttonAttrs()"
@@ -238,6 +277,13 @@ defineExpose({ focus: (options) => trigger.value?.focus(options) });
       :disabled="disabled"
       :aria-label="attrs['aria-label'] || label"
       :aria-expanded="open"
+      :aria-required="required || undefined"
+      :aria-invalid="validationError ? true : attrs['aria-invalid']"
+      :aria-describedby="
+        [attrs['aria-describedby'], validationError ? `${id}-error` : null]
+          .filter(Boolean)
+          .join(' ') || undefined
+      "
       aria-haspopup="listbox"
       :aria-controls="`${id}-listbox`"
       :aria-activedescendant="
@@ -256,12 +302,44 @@ defineExpose({ focus: (options) => trigger.value?.focus(options) });
         <path d="m4 6 4 4 4-4" />
       </svg>
     </button>
-    <Teleport to="body">
+    <select
+      v-if="name || required"
+      class="app-select__native"
+      tabindex="-1"
+      aria-hidden="true"
+      :name="name"
+      :required="required"
+      :disabled="disabled"
+      @invalid="onInvalid"
+      @change="choose(Number($event.target.selectedOptions[0].dataset.index))"
+    >
+      <option v-if="selectedIndex() < 0" value="" selected disabled />
+      <option
+        v-for="(option, index) in optionCache.items"
+        :key="index"
+        :value="option.value"
+        :data-index="index"
+        :disabled="option.disabled"
+        :selected="selectedIndex() === index"
+      >
+        {{ option.label }}
+      </option>
+    </select>
+    <p
+      v-if="validationError"
+      :id="`${id}-error`"
+      class="app-select__error"
+      role="alert"
+    >
+      {{ validationError }}
+    </p>
+    <Teleport :to="menuTarget">
       <div
         v-if="open"
         :id="`${id}-listbox`"
         ref="menu"
         class="app-select-menu"
+        popover="manual"
         role="listbox"
         :aria-label="attrs['aria-label'] || label"
         :style="menuStyle"
@@ -295,8 +373,24 @@ defineExpose({ focus: (options) => trigger.value?.focus(options) });
 
 <style scoped>
 .app-select {
+  position: relative;
   min-width: 0;
   width: 100%;
+}
+.app-select__native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  pointer-events: none;
+}
+.app-select__error {
+  margin: 6px 0 0;
+  color: var(--danger);
+  font-size: 12px;
 }
 .app-select.input {
   height: auto;
@@ -315,7 +409,7 @@ defineExpose({ focus: (options) => trigger.value?.focus(options) });
   padding: 9px 12px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: var(--bg-surface);
+  background: var(--bg-canvas-2);
   color: var(--text-primary);
   font: inherit;
   font-size: 13px;
@@ -356,6 +450,8 @@ defineExpose({ focus: (options) => trigger.value?.focus(options) });
 }
 .app-select-menu {
   position: fixed;
+  inset: auto;
+  margin: 0;
   z-index: 2000;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -364,7 +460,7 @@ defineExpose({ focus: (options) => trigger.value?.focus(options) });
   border-radius: 10px;
   background: var(--bg-surface);
   color: var(--text-primary);
-  box-shadow: 0 12px 35px rgb(0 0 0 / 0.45);
+  box-shadow: 0 12px 35px rgb(var(--bg-canvas-rgb) / 0.45);
   font-family: var(--font-ui);
   font-size: 13px;
 }
@@ -379,7 +475,7 @@ defineExpose({ focus: (options) => trigger.value?.focus(options) });
   overflow-wrap: anywhere;
 }
 .app-select-menu__option.is-active {
-  background: var(--bg-surface-3);
+  background: var(--control-hover, var(--bg-canvas-2));
   outline: 1px solid var(--border-color);
 }
 .app-select-menu__option.is-selected {

@@ -730,7 +730,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
     "expedition",
   );
   addPath((entry) => [entry], shop.offers, "Shop", "sources", "shop");
-  const owned = inventory.map((item) => {
+  const guideItem = (item) => {
     const index = paths.get(item.item_key) ?? { sources: [], sinks: [] };
     const sources = index.sources.sort(
       (a, b) => a.required_level - b.required_level,
@@ -762,7 +762,11 @@ export function presentEvergather(rows, content, now = Date.now()) {
       best_sink: sinks[0],
       best_fallback_sink: fallback[0],
     };
-  });
+  };
+  const owned = inventory.map(guideItem);
+  const directory = entries("item_directory").map((item) =>
+    guideItem(describeItem(item, inventoryByKey[item.item_key] ?? 0)),
+  );
   const skillRows = Object.entries(definitions).map(([key, definition]) => ({
     ...definition,
     ...progress(key),
@@ -953,6 +957,7 @@ export function presentEvergather(rows, content, now = Date.now()) {
     },
     item_guide: {
       owned,
+      directory,
       owned_categories: [...new Set(owned.map((item) => item.item_class))].map(
         (key) => ({
           key,

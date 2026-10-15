@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
       <div class="mb-4 flex items-center justify-between gap-3">
         <h2
           id="guide-activity-picker-title"
-          class="font-ui text-lg font-semibold"
+          class="font-ui text-lg font-semibold ui-dialog-title"
         >
           {{ activity === "crafting" ? "Crafting card" : "Gathering card" }}
         </h2>
@@ -165,7 +165,7 @@ onBeforeUnmount(() => {
         </button>
       </div>
       <template v-if="!chosen">
-        <label for="guide-activity-search" class="field-label">{{
+        <label for="guide-activity-search" class="field-label ui-field-label">{{
           activity === "crafting"
             ? "Search recipe outputs"
             : "Search gathering actions"
@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
             v-for="recipe in recipes"
             :key="recipe.id"
             type="button"
-            class="block w-full px-2 py-3 text-left hover:bg-surface-2"
+            class="block w-full px-2 py-3 text-left hover:bg-(--control-hover)"
             :aria-label="`Insert recipe ${recipe.recipeName}`"
             @click="insert(recipe.id, recipe.recipeName)"
           >
@@ -230,7 +230,7 @@ onBeforeUnmount(() => {
             v-for="item in items"
             :key="`${item.kind || activity}:${item.id}`"
             type="button"
-            class="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-surface-2"
+            class="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-(--control-hover)"
             :aria-label="`Choose ${item.name}`"
             @click="choose(item)"
           >

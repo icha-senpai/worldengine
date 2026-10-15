@@ -25,6 +25,7 @@ pub struct Config {
     redirect_uri: String,
     website: String,
     website_origin: String,
+    additional_origins: Vec<String>,
     secure_cookie: bool,
     token_url: String,
     user_url: String,
@@ -56,23 +57,67 @@ impl Config {
         if redirect.path() != "/auth/discord/callback" {
             return Err("DISCORD_REDIRECT_URI must end in /auth/discord/callback".into());
         }
+        let additional_origins = parse_additional_origins(
+            &std::env::var("ACCOUNT_LINK_ALLOWED_ORIGINS").unwrap_or_default(),
+        )?;
         Ok(Self {
             client_id: required("DISCORD_CLIENT_ID")?,
             client_secret: required("DISCORD_CLIENT_SECRET")?,
             redirect_uri,
             website_origin: website_url.origin().ascii_serialization(),
+            additional_origins,
             website,
             secure_cookie: redirect.scheme() == "https",
             token_url: "https://discord.com/api/oauth2/token".into(),
             user_url: "https://discord.com/api/v10/users/@me".into(),
         })
     }
+
+    fn return_website(&self, origin: Option<&str>) -> Option<String> {
+        let origin = origin?;
+        if origin == self.website_origin {
+            Some(self.website.clone())
+        } else if self
+            .additional_origins
+            .iter()
+            .any(|allowed| allowed == origin)
+        {
+            Some(format!("{origin}/"))
+        } else {
+            None
+        }
+    }
+}
+
+fn parse_additional_origins(value: &str) -> Result<Vec<String>, Error> {
+    let mut origins = Vec::new();
+    for value in value
+        .split(',')
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        let url = Url::parse(value)?;
+        let loopback = matches!(url.host_str(), Some("localhost" | "127.0.0.1" | "[::1]"));
+        if (url.scheme() != "https" && !(url.scheme() == "http" && loopback))
+            || url.host_str().is_none()
+            || !url.username().is_empty()
+            || url.password().is_some()
+            || url.path() != "/"
+            || url.query().is_some()
+            || url.fragment().is_some()
+        {
+            return Err("ACCOUNT_LINK_ALLOWED_ORIGINS must contain plain HTTPS origins, except loopback development".into());
+        }
+        origins.push(url.origin().ascii_serialization());
+    }
+    Ok(origins)
 }
 struct Session {
     state: String,
     challenge_id: u64,
     proof: u128,
     expires: Instant,
+    website: String,
 }
 pub struct State {
     config: Config,
@@ -150,11 +195,11 @@ pub async fn start(
     headers: HeaderMap,
     Form(input): Form<Start>,
 ) -> Response {
-    if headers
-        .get(header::ORIGIN)
-        .and_then(|value| value.to_str().ok())
-        != Some(&state.config.website_origin)
-    {
+    let Some(website) = state.config.return_website(
+        headers
+            .get(header::ORIGIN)
+            .and_then(|value| value.to_str().ok()),
+    ) else {
         return protected(
             (
                 StatusCode::FORBIDDEN,
@@ -162,7 +207,7 @@ pub async fn start(
             )
                 .into_response(),
         );
-    }
+    };
     let Ok(proof) = input.proof.parse::<u128>() else {
         return protected((StatusCode::BAD_REQUEST, "Invalid linking challenge.").into_response());
     };
@@ -202,6 +247,7 @@ pub async fn start(
                 challenge_id: input.challenge_id,
                 proof,
                 expires: Instant::now() + Duration::from_secs(600),
+                website,
             },
         );
     }
@@ -320,7 +366,7 @@ pub async fn callback(
                     {
                         tracing::warn!(%error, "Verified Discord portrait could not refresh");
                     }
-                    Redirect::to(&state.config.website).into_response()
+                    Redirect::to(&session.website).into_response()
                 }
                 Err(_) => {
                     tracing::warn!("Verified account challenge could not be linked");
@@ -363,12 +409,14 @@ mod tests {
                 challenge_id: 1,
                 proof: 42,
                 expires: Instant::now() + Duration::from_secs(60),
+                website: "https://fishbound.test/".into(),
             },
         );
         assert!(take_session(&mut sessions, "other-cookie", "csrf").is_none());
         assert!(take_session(&mut sessions, "cookie", "wrong-state").is_none());
         let session = take_session(&mut sessions, "cookie", "csrf").unwrap();
         assert_eq!((session.challenge_id, session.proof), (1, 42));
+        assert_eq!(session.website, "https://fishbound.test/");
         assert!(take_session(&mut sessions, "cookie", "csrf").is_none());
         sessions.insert(
             "expired".into(),
@@ -377,6 +425,7 @@ mod tests {
                 challenge_id: 1,
                 proof: 42,
                 expires: Instant::now() - Duration::from_secs(1),
+                website: "https://fishbound.test/".into(),
             },
         );
         assert!(take_session(&mut sessions, "expired", "csrf").is_none());
@@ -442,10 +491,30 @@ mod tests {
             redirect_uri: "http://localhost/auth/discord/callback".into(),
             website: "http://localhost".into(),
             website_origin: "http://localhost".into(),
+            additional_origins: vec!["https://fishbound.test".into()],
             secure_cookie: false,
             token_url: format!("http://{address}/token"),
             user_url: format!("http://{address}/user"),
         };
+        assert_eq!(
+            config.return_website(Some("http://localhost")).as_deref(),
+            Some("http://localhost")
+        );
+        assert_eq!(
+            config
+                .return_website(Some("https://fishbound.test"))
+                .as_deref(),
+            Some("https://fishbound.test/")
+        );
+        for origin in [
+            None,
+            Some("null"),
+            Some("https://untrusted.test"),
+            Some("https://fishbound.test.untrusted.test"),
+            Some("https://fishbound.test:8443"),
+        ] {
+            assert!(config.return_website(origin).is_none());
+        }
         let user = verified_user(&reqwest::Client::new(), &config, "proof-code")
             .await
             .unwrap();
@@ -456,5 +525,23 @@ mod tests {
         );
         assert_eq!(user.discriminator.as_deref(), Some("0"));
         server.abort();
+    }
+    #[test]
+    fn additional_origins_are_explicit_plain_origins() {
+        assert!(parse_additional_origins("").unwrap().is_empty());
+        assert_eq!(
+            parse_additional_origins(" https://fishbound.test/, http://127.0.0.1:5174 ").unwrap(),
+            vec!["https://fishbound.test", "http://127.0.0.1:5174"]
+        );
+        for value in [
+            "*",
+            "http://untrusted.test",
+            "https://user@fishbound.test",
+            "https://fishbound.test/redirect",
+            "https://fishbound.test?redirect=evil",
+            "https://fishbound.test#redirect",
+        ] {
+            assert!(parse_additional_origins(value).is_err(), "{value}");
+        }
     }
 }

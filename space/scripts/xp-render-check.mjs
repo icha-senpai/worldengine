@@ -69,6 +69,10 @@ try {
           target = fixtures.empty;
         else if (source.endsWith("TrackerRefreshStatus.vue"))
           target = pathToFileURL(resolve(renderDirectory, "status.mjs")).href;
+        else if (source.endsWith("BitcraftTierBadge.vue"))
+          target = pathToFileURL(resolve(renderDirectory, "tier-badge.mjs")).href;
+        else if (source === "/src/bitcraft-ui/bitjitaAssets.js")
+          target = pathToFileURL(resolve("src/bitcraft-ui/bitjitaAssets.js")).href;
         else
           target = pathToFileURL(
             resolve("src/bitcraft-ui", source + ".js"),
@@ -84,6 +88,10 @@ try {
   await compile(
     "src/bitcraft-ui/Components/TrackerRefreshStatus.vue",
     "status",
+  );
+  await compile(
+    "src/bitcraft-ui/Components/BitcraftTierBadge.vue",
+    "tier-badge",
   );
   const Activity = await compile("src/bitcraft-ui/Activity.vue", "activity");
   const progressCases = [

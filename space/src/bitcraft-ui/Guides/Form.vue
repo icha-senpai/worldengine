@@ -1,4 +1,5 @@
 <script setup>
+import BitcraftPageHeader from "../Components/BitcraftPageHeader.vue";
 import { route } from "../navigation";
 import { computed, defineAsyncComponent, ref } from "vue";
 import { Head, useForm } from "/src/bitcraft-ui/navigation";
@@ -60,14 +61,10 @@ function save() {
   <AuthenticatedLayout>
     <Head :title="guide ? 'Edit guide' : 'New guide'" />
     <template #header>
-      <div class="page-hero">
-        <div class="page-hero__copy">
-          <div class="page-hero__eyebrow"><span>BitCraft Guides</span></div>
-          <h1 class="page-hero__title">
-            {{ guide ? "Edit guide" : "New guide" }}
-          </h1>
-        </div>
-      </div>
+      <BitcraftPageHeader
+        :title="guide ? 'Edit guide' : 'New guide'"
+        eyebrow="BitCraft Guides"
+      />
     </template>
 
     <form
@@ -75,7 +72,9 @@ function save() {
       @submit.prevent="save"
     >
       <div>
-        <label for="guide-title" class="field-label">Title</label>
+        <label for="guide-title" class="field-label ui-field-label"
+          >Title</label
+        >
         <TextInput
           id="guide-title"
           v-model="form.title"
@@ -90,7 +89,9 @@ function save() {
         class="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
       >
         <div>
-          <label for="guide-summary" class="field-label">Summary</label>
+          <label for="guide-summary" class="field-label ui-field-label"
+            >Summary</label
+          >
           <TextareaInput
             id="guide-summary"
             v-model="form.summary"
@@ -102,7 +103,9 @@ function save() {
           <InputError :message="form.errors.summary" class="mt-2" />
         </div>
         <div>
-          <label for="guide-category" class="field-label">Category</label>
+          <label for="guide-category" class="field-label ui-field-label"
+            >Category</label
+          >
           <TextInput
             id="guide-category"
             v-model="form.category"
@@ -115,8 +118,14 @@ function save() {
       </div>
       <section class="min-w-0">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <label for="guide-content" class="field-label">Content</label>
-          <div class="flex gap-1" role="tablist" aria-label="Guide editor mode">
+          <label for="guide-content" class="field-label ui-field-label"
+            >Content</label
+          >
+          <div
+            class="flex gap-1 ui-tabs"
+            role="tablist"
+            aria-label="Guide editor mode"
+          >
             <button
               id="guide-write-tab"
               type="button"
@@ -187,7 +196,7 @@ function save() {
         class="flex flex-wrap items-center justify-between gap-4 border-t border-border py-5"
       >
         <div>
-          <label class="flex items-center gap-3 text-sm">
+          <label class="flex items-center gap-3 text-sm ui-field-label">
             <input
               v-model="form.is_published"
               type="checkbox"

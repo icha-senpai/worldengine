@@ -9,23 +9,57 @@ export const HISTORY_MIN_TIER = 4;
 // A small public invalidation feed. Clients keep paginated procedure reads;
 // raw rosters, supplies and the complete event history are never replicated.
 export function claimUpdates(ctx: any) {
-  return [...ctx.db.claimHistoryRegion.iter()].map((region: any) => {
-    const supplies = [
-      ...ctx.db.claimSupplyStatus.regionId.filter(region.regionId),
-    ];
-    return {
-      key: region.key,
-      epoch: region.epoch,
-      sequence: region.sequence,
-      complete: region.complete,
-      claims: [...ctx.db.claimHistoryState.regionId.filter(region.regionId)]
-        .length,
-      supplies: supplies.length,
-      supplyVersion: supplies
-        .reduce((sum: bigint, row: any) => sum + row.observedAt, 0n)
-        .toString(),
-    };
-  });
+  return [...ctx.db.claimRevision.iter()];
+}
+
+function refreshClaimRevision(
+  ctx: any,
+  regionId: number,
+  changed = true,
+  rebuild = false,
+) {
+  const region = ctx.db.claimHistoryRegion.key.find(String(regionId));
+  if (!region) return;
+  const previous = ctx.db.claimRevision.key.find(region.key);
+  if (
+    !rebuild &&
+    !changed &&
+    previous &&
+    previous.epoch === region.epoch &&
+    previous.complete === region.complete
+  )
+    return;
+  const supplies = [
+    ...ctx.db.claimSupplyStatus.regionId.filter(region.regionId),
+  ];
+  const row = {
+    key: region.key,
+    epoch: region.epoch,
+    sequence: region.sequence,
+    complete: region.complete,
+    claims: [...ctx.db.claimHistoryState.regionId.filter(region.regionId)]
+      .length,
+    supplies: supplies.length,
+    supplyVersion: previous
+      ? (BigInt(previous.supplyVersion) + 1n).toString()
+      : supplies
+          .reduce((sum: bigint, row: any) => sum + row.observedAt, 0n)
+          .toString(),
+  };
+  if (rebuild && previous) {
+    const comparable = { ...row, supplyVersion: previous.supplyVersion };
+    if (JSON.stringify(comparable) === JSON.stringify(previous)) return;
+  }
+  if (previous) ctx.db.claimRevision.key.update(row);
+  else ctx.db.claimRevision.insert(row);
+}
+
+export function rebuildClaimRevisions(ctx: any) {
+  for (const region of ctx.db.claimHistoryRegion.iter())
+    refreshClaimRevision(ctx, region.regionId, false, true);
+  for (const row of ctx.db.claimRevision.iter())
+    if (!ctx.db.claimHistoryRegion.key.find(row.key))
+      ctx.db.claimRevision.key.delete(row.key);
 }
 export type ClaimMember = { id: string; name: string; permissions: string };
 export type ClaimState = {
@@ -393,6 +427,7 @@ export function ingestClaimHistory(
   if (previous) ctx.db.claimHistoryRegion.key.update(region);
   else ctx.db.claimHistoryRegion.insert(region);
   if (
+    (changes.length || (args.initial && args.complete)) &&
     [...ctx.db.claimHistoryState.iter()].reduce(
       (n: number, r: any) => n + r.payload.length,
       0,
@@ -400,6 +435,11 @@ export function ingestClaimHistory(
   )
     throw Error("Claim baseline exceeds its storage budget.");
   pruneClaimHistory(ctx, eventIndex > 0);
+  refreshClaimRevision(
+    ctx,
+    args.regionId,
+    changes.length > 0 || eventIndex > 0 || args.initial,
+  );
 }
 
 export function pruneClaimHistory(ctx: any, force = false) {
@@ -439,6 +479,8 @@ export function pruneClaimHistory(ctx: any, force = false) {
         discarded:
           region.discarded + BigInt(discarded.get(region.regionId) ?? 0),
       });
+    for (const regionId of discarded.keys())
+      refreshClaimRevision(ctx, regionId);
   }
 }
 
@@ -599,6 +641,7 @@ export function ingestClaimSupplies(
   if (!Array.isArray(rows) || rows.length > 200)
     throw Error("Invalid claim supply batch.");
   const seen = new Set();
+  let changed = false;
   for (const change of rows) {
     if (!/^\d{1,24}$/.test(change.claimId) || seen.has(change.claimId))
       throw Error("Invalid claim supply ID.");
@@ -608,7 +651,10 @@ export function ingestClaimSupplies(
       previous = ctx.db.claimSupplyStatus.key.find(key);
     const supply = change.supply as ClaimSupply | null;
     if (!supply || !state || !isTrackedClaim(JSON.parse(state.payload))) {
-      ctx.db.claimSupplyStatus.key.delete(key);
+      if (previous) {
+        ctx.db.claimSupplyStatus.key.delete(key);
+        changed = true;
+      }
       continue;
     }
     if (
@@ -654,7 +700,9 @@ export function ingestClaimSupplies(
         throw Error("Claim supply limit reached.");
       ctx.db.claimSupplyStatus.insert(row);
     }
+    changed = true;
   }
+  refreshClaimRevision(ctx, args.regionId, changed);
 }
 
 function trackedClaimSummary(

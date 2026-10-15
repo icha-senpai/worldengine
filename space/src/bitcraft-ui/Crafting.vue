@@ -1,22 +1,17 @@
 <template>
   <AuthenticatedLayout>
     <template #header>
-      <div class="page-hero">
-        <div class="page-hero__copy">
-          <div class="page-hero__eyebrow">
-            <span>Bitcraft tools</span>
-          </div>
-          <h1 class="page-hero__title page-hero__title--lg">
-            Crafting Calculator
-          </h1>
-          <p class="page-hero__subtitle">Search for recipes.</p>
-        </div>
-      </div>
+      <BitcraftPageHeader
+        title="Crafting Calculator"
+        description="Search for recipes."
+      />
     </template>
 
-    <form @submit.prevent="submit" class="index-panel max-w-3xl">
+    <form @submit.prevent="submit" class="index-panel max-w-3xl ui-panel">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <label for="crafting-search" class="field-label">Recipe search</label>
+        <label for="crafting-search" class="field-label ui-field-label"
+          >Recipe search</label
+        >
         <span class="tag" :class="snapshot?.available ? 'tag--success' : ''">{{
           snapshotLabel
         }}</span>
@@ -33,11 +28,11 @@
         }}</AppButton>
       </div>
       <div class="mt-3 flex flex-wrap gap-3">
-        <label class="field-label"
+        <label class="field-label ui-field-label"
           ><input v-model="form.includeHousing" type="checkbox" /> Include
           housing stock</label
         >
-        <label class="field-label"
+        <label class="field-label ui-field-label"
           >Shared claim stock
           <TextInput
             v-model.trim="form.storageClaimId"
@@ -60,12 +55,12 @@
       class="mt-5 grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]"
     >
       <section
-        class="surface-section min-w-0 crafting-matches"
+        class="surface-section min-w-0 crafting-matches ui-panel ui-panel--flush"
         :class="{ 'crafting-matches--collapsed': detail && !showMatches }"
       >
-        <div class="surface-section__header">
+        <div class="surface-section__header ui-panel-heading">
           <div class="surface-section__copy">
-            <h2 class="surface-section__title">Matches</h2>
+            <h2 class="surface-section__title ui-section-title">Matches</h2>
             <p class="surface-section__subtitle">
               {{ items.length }} recipe target{{
                 items.length === 1 ? "" : "s"
@@ -83,8 +78,11 @@
           </button>
         </div>
 
-        <div class="surface-section__body">
-          <div v-if="items.length" class="index-surface index-surface--nested">
+        <div class="surface-section__body ui-panel-body">
+          <div
+            v-if="items.length"
+            class="index-surface index-surface--nested ui-panel ui-panel--flush"
+          >
             <Link
               v-for="item in items"
               :key="`${item.kind}:${item.id}`"
@@ -145,11 +143,11 @@
 
       <section
         ref="recipePanel"
-        class="surface-section min-w-0 crafting-selected"
+        class="surface-section min-w-0 crafting-selected ui-panel ui-panel--flush"
       >
         <div v-if="detail">
           <div class="crafting-target-bar">
-            <div class="surface-section__header">
+            <div class="surface-section__header ui-panel-heading">
               <span
                 class="crafting-detail-icon"
                 :style="itemFrameStyle(detail.item)"
@@ -165,7 +163,9 @@
                 <span v-else>{{ itemInitials(detail.item.name) }}</span>
               </span>
               <div class="surface-section__copy">
-                <h2 class="surface-section__title">{{ detail.item.name }}</h2>
+                <h2 class="surface-section__title ui-section-title">
+                  {{ detail.item.name }}
+                </h2>
                 <p class="surface-section__subtitle">
                   <span>{{
                     detail.item.kind === "cargo" ? "Cargo" : "Item"
@@ -190,7 +190,7 @@
             </div>
 
             <div class="crafting-target-controls">
-              <label for="crafting-quantity" class="field-label"
+              <label for="crafting-quantity" class="field-label ui-field-label"
                 >How many?</label
               >
               <TextInput
@@ -211,7 +211,7 @@
             </div>
           </div>
 
-          <div class="surface-section__body">
+          <div class="surface-section__body ui-panel-body">
             <p
               v-if="detail.item.description"
               class="prose-wrap text-sm leading-relaxed text-muted-2"
@@ -234,7 +234,7 @@
           </div>
         </div>
 
-        <div v-else class="surface-section__body">
+        <div v-else class="surface-section__body ui-panel-body">
           <div class="empty-state-panel">
             <p class="text-muted-3 text-sm font-ui">
               Select an item or cargo target to inspect its recipes.
@@ -247,6 +247,7 @@
 </template>
 
 <script setup>
+import BitcraftPageHeader from "./Components/BitcraftPageHeader.vue";
 import { route } from "/src/bitcraft-ui/navigation";
 import { computed, nextTick, reactive, ref, watch } from "vue";
 import { Link, router } from "/src/bitcraft-ui/navigation";
@@ -451,7 +452,7 @@ const hasTier = (tier) => hasBitcraftTier(tier);
   z-index: 20;
   background: var(--bg-surface);
   border-radius: 8px 8px 0 0;
-  box-shadow: 0 6px 12px rgb(0 0 0 / 0.2);
+  box-shadow: 0 6px 12px rgb(var(--bg-canvas-rgb) / 0.2);
 }
 @media (max-width: 1023px) {
   .crafting-target-bar {
@@ -520,7 +521,7 @@ const hasTier = (tier) => hasBitcraftTier(tier);
     ),
     rgb(var(--bg-surface-rgb) / 0.92);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08),
     0 0 12px
       color-mix(
         in srgb,
@@ -580,7 +581,7 @@ const hasTier = (tier) => hasBitcraftTier(tier);
     ),
     rgb(var(--bg-surface-rgb) / 0.7);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08),
     0 0 12px
       color-mix(
         in srgb,

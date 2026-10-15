@@ -7,7 +7,9 @@
             <p v-if="eyebrow" class="page-hero__eyebrow mb-1">
               <span>{{ eyebrow }}</span>
             </p>
-            <h2 class="surface-section__title prose-wrap">{{ title }}</h2>
+            <h2 class="surface-section__title prose-wrap ui-dialog-title">
+              {{ title }}
+            </h2>
             <p v-if="subtitle" class="surface-section__subtitle prose-wrap">
               {{ subtitle }}
             </p>

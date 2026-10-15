@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import BitcraftPageHeader from "../bitcraft-ui/Components/BitcraftPageHeader.vue";
+import SelectInput from "../bitcraft-ui/shared/SelectInput.vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { connectBitcraft } from "../bitcraft";
 import { BOSSES } from "../../bitcraft/src/bosses";
@@ -134,49 +136,48 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="boss-board">
-    <header class="boss-heading">
-      <div>
-        <p class="eyebrow">BitCraft · Combat records</p>
-        <h1>Boss Leaderboard</h1>
-        <p class="muted">
-          Confirmed boss defeats and the players who contributed when they died.
-        </p>
-      </div>
-      <button class="button quiet" :disabled="loading" @click="load()">
-        {{ loading ? "Refreshing…" : "Refresh" }}
-      </button>
-    </header>
-    <p v-if="error" class="notice error" role="alert">
+    <BitcraftPageHeader
+      title="Boss Leaderboard"
+      eyebrow="BitCraft · Combat records"
+      description="Confirmed boss defeats and the players who contributed when they died."
+    >
+      <template #actions>
+        <button class="button quiet" :disabled="loading" @click="load()">
+          {{ loading ? "Refreshing…" : "Refresh" }}
+        </button>
+      </template>
+    </BitcraftPageHeader>
+    <p v-if="error" class="notice error ui-notice" role="alert">
       {{ error }} Showing the last successful results.
     </p>
     <div class="boss-stats">
-      <div>
+      <div class="ui-panel">
         <span>Recorded defeats</span
         ><strong>{{ number(board?.totals.defeats) }}</strong>
       </div>
-      <div>
+      <div class="ui-panel">
         <span>Contributors</span
         ><strong>{{ number(board?.totals.players) }}</strong>
       </div>
-      <div>
+      <div class="ui-panel">
         <span>Regions recording</span
         ><strong>{{ recording }} / {{ regions.length }}</strong>
       </div>
-      <div>
+      <div class="ui-panel">
         <span>Tracking began</span
         ><strong class="stat-date">{{
           date(board?.tracking.startedAt)
         }}</strong>
       </div>
     </div>
-    <p class="notice">
+    <p class="notice ui-notice">
       Rankings count defeats you contributed to, starting when our recorder
       began. Final blows are credited only when the fatal attack is observed in
       the death transaction. Missing final blows remain unknown.
     </p>
-    <section class="boss-panel" aria-labelledby="rankings-title">
+    <section class="boss-panel ui-panel" aria-labelledby="rankings-title">
       <div class="panel-title">
-        <h2 id="rankings-title">Rankings</h2>
+        <h2 class="ui-section-title" id="rankings-title">Rankings</h2>
         <span class="muted">{{
           updated
             ? `Updated ${updated} · every 10s while visible`
@@ -184,22 +185,22 @@ onBeforeUnmount(() => {
         }}</span>
       </div>
       <div class="boss-filters">
-        <label
-          >Boss<select v-model.number="boss">
+        <label class="ui-field-label"
+          >Boss<SelectInput v-model.number="boss">
             <option :value="0">All bosses</option>
             <option v-for="(b, id) in BOSSES" :key="id" :value="Number(id)">
               {{ b.name }} · T{{ b.tier }}
             </option>
-          </select></label
+          </SelectInput></label
         >
-        <label
-          >Rank by<select v-model="sort">
+        <label class="ui-field-label"
+          >Rank by<SelectInput v-model="sort">
             <option value="defeats">Defeats contributed to</option>
             <option value="finalBlows">Confirmed final blows</option>
             <option value="contribution">Contribution</option>
-          </select></label
+          </SelectInput></label
         >
-        <label class="search"
+        <label class="search ui-field-label"
           >Player<input
             v-model="query"
             placeholder="Search name or player ID"
@@ -273,9 +274,9 @@ onBeforeUnmount(() => {
         percentage. The same defeat can credit several players.
       </p>
     </section>
-    <section class="boss-panel" aria-labelledby="recent-title">
+    <section class="boss-panel ui-panel" aria-labelledby="recent-title">
       <div class="panel-title">
-        <h2 id="recent-title">Recent defeats</h2>
+        <h2 class="ui-section-title" id="recent-title">Recent defeats</h2>
         <span class="muted">{{ bossName(boss) }} · latest 25</span>
       </div>
       <div class="table-scroll">
@@ -313,7 +314,7 @@ onBeforeUnmount(() => {
         Leaderboard totals survive detail expiry.
       </p>
     </section>
-    <details class="boss-panel coverage">
+    <details class="boss-panel coverage ui-panel">
       <summary>
         Recording coverage · {{ recording }} of {{ regions.length }} regions
         connected
@@ -342,7 +343,7 @@ onBeforeUnmount(() => {
     <Modal :show="Boolean(selected)" max-width="3xl" @close="close">
       <div class="encounter">
         <div class="panel-title">
-          <h2>
+          <h2 class="ui-dialog-title">
             {{ encounter ? bossName(encounter.enemyType) : "Boss encounter" }}
           </h2>
           <button class="button quiet" @click="close">Close</button>
@@ -396,12 +397,9 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .boss-board {
-  max-width: 1500px;
-  margin: 0 auto;
-  padding: 30px;
-  color: #e2e8f0;
+  width: 100%;
+  color: var(--text-primary);
 }
-.boss-heading,
 .panel-title,
 .pagination {
   display: flex;
@@ -409,37 +407,18 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 16px;
 }
-h1 {
-  font-size: 30px;
-  font-weight: 700;
-  margin: 4px 0 8px;
-}
-h2 {
-  font-size: 19px;
-  font-weight: 650;
-}
-.eyebrow {
-  color: #a5b4fc;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 11px;
-}
 .muted {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 13px;
 }
 .notice {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 14px 17px;
   margin: 20px 0;
   font-size: 13px;
   line-height: 1.6;
 }
 .error {
-  border-color: #f87171;
-  color: #fecaca;
+  border-color: var(--danger-3);
+  color: var(--danger-2);
 }
 .boss-stats {
   display: grid;
@@ -447,18 +426,9 @@ h2 {
   gap: 12px;
   margin-top: 24px;
 }
-.boss-stats > div,
-.boss-panel {
-  background: #111827;
-  border: 1px solid #293548;
-  border-radius: 12px;
-}
-.boss-stats > div {
-  padding: 18px;
-}
 .boss-stats span {
   display: block;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 12px;
 }
 .boss-stats strong {
@@ -471,7 +441,6 @@ h2 {
   line-height: 1.5;
 }
 .boss-panel {
-  padding: 20px;
   margin: 20px 0;
   min-width: 0;
 }
@@ -489,21 +458,21 @@ label {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  font-size: 12px;
-  color: #cbd5e1;
 }
 label.search {
   flex: 1;
   min-width: 190px;
 }
-select,
 input {
-  background: #0b1220;
-  border: 1px solid #475569;
+  background: var(--bg-canvas-2);
+  border: 1px solid var(--border-color-2);
   border-radius: 7px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   padding: 9px 12px;
   font-size: 13px;
+  min-width: 180px;
+}
+.app-select {
   min-width: 180px;
 }
 .table-scroll {
@@ -517,22 +486,22 @@ table {
   font-size: 13px;
 }
 th {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 500;
   font-size: 12px;
 }
 th,
 td {
   padding: 13px 12px;
-  border-bottom: 1px solid #293548;
+  border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
 }
 td.strong {
   font-weight: 700;
-  color: #c7d2fe;
+  color: var(--accent-cyan-2);
 }
 a {
-  color: #c7d2fe;
+  color: var(--accent-cyan-2);
 }
 a:hover {
   text-decoration: underline;
@@ -541,7 +510,7 @@ a:hover {
   text-align: center;
   padding: 34px 16px;
   white-space: normal;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 .pagination {
   margin-top: 16px;
@@ -551,16 +520,16 @@ a:hover {
   gap: 8px;
 }
 .button {
-  border: 1px solid #475569;
+  border: 1px solid var(--border-color-2);
   border-radius: 7px;
   padding: 8px 12px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 12px;
   cursor: pointer;
-  background: #1e293b;
+  background: var(--bg-surface);
 }
 .button:hover {
-  background: #334155;
+  background: var(--control-hover);
 }
 .button:disabled {
   opacity: 0.4;
@@ -589,54 +558,45 @@ a:hover {
   gap: 10px;
   padding: 12px 0;
   font-size: 12px;
-  border-top: 1px solid #293548;
+  border-top: 1px solid var(--border-color);
 }
 .status-dot {
   width: 7px;
   height: 7px;
-  background: #f59e0b;
+  background: var(--warning);
   border-radius: 50%;
 }
 .status-dot.ready {
-  background: #4ade80;
+  background: var(--success);
 }
 .coverage-error {
   flex-basis: 100%;
-  color: #fbbf24;
+  color: var(--warning);
 }
 .encounter {
   padding: 24px;
-  background: #111827;
-  color: #e2e8f0;
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
 .encounter p {
   margin: 12px 0;
   overflow-wrap: anywhere;
 }
 @media (max-width: 750px) {
-  .boss-board {
-    padding: 18px 12px;
-  }
   .boss-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .boss-panel {
-    padding: 14px;
   }
   .boss-filters label {
     flex: 1 1 100%;
     min-width: 0;
   }
-  select,
+  .app-select,
   input {
     min-width: 0;
     width: 100%;
   }
   .pagination {
     flex-wrap: wrap;
-  }
-  h1 {
-    font-size: 25px;
   }
 }
 </style>

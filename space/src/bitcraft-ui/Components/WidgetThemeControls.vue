@@ -1,9 +1,9 @@
 <template>
   <fieldset class="bitcraft-widget-theme">
-    <legend>Visuals</legend>
+    <legend class="ui-field-label">Visuals</legend>
 
-    <label>
-      <span>Theme</span>
+    <label class="ui-field-label">
+      <span class="ui-field-label">Theme</span>
       <SelectInput :value="model.theme" class="input" @change="setTheme">
         <option
           v-for="theme in bitcraftWidgetThemes"
@@ -15,8 +15,8 @@
       </SelectInput>
     </label>
 
-    <label v-for="field in colorFields" :key="field.key">
-      <span>{{ field.label }}</span>
+    <label class="ui-field-label" v-for="field in colorFields" :key="field.key">
+      <span class="ui-field-label">{{ field.label }}</span>
       <ColorInput
         :model-value="model[field.key]"
         :label="field.label"
@@ -24,8 +24,8 @@
       />
     </label>
 
-    <label>
-      <span>Width</span>
+    <label class="ui-field-label">
+      <span class="ui-field-label">Width</span>
       <input
         :value="model.width"
         type="number"
@@ -36,8 +36,8 @@
       />
     </label>
 
-    <label>
-      <span>Scale</span>
+    <label class="ui-field-label">
+      <span class="ui-field-label">Scale</span>
       <input
         :value="model.fontScale"
         type="number"
@@ -48,8 +48,8 @@
       />
     </label>
 
-    <label>
-      <span>Radius</span>
+    <label class="ui-field-label">
+      <span class="ui-field-label">Radius</span>
       <input
         :value="model.radius"
         type="number"
@@ -60,8 +60,8 @@
       />
     </label>
 
-    <label>
-      <span>Opacity</span>
+    <label class="ui-field-label">
+      <span class="ui-field-label">Opacity</span>
       <input
         :value="model.panelOpacity"
         type="number"
@@ -119,23 +119,12 @@ const setTheme = (event) => {
 
 .bitcraft-widget-theme legend {
   padding: 0 6px;
-  color: var(--text-muted-3);
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
 }
 
 .bitcraft-widget-theme label {
   display: grid;
   gap: 6px;
   min-width: 0;
-}
-
-.bitcraft-widget-theme span {
-  color: var(--text-muted-3);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
 }
 
 .bitcraft-widget-theme input,

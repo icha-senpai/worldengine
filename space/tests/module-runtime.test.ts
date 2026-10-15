@@ -99,6 +99,7 @@ describe("BitCraft module with the native datastore", () => {
         payload: "{}",
         observedAt: ctx.timestamp.microsSinceUnixEpoch,
       });
+      module.prepareClaimRevisions(ctx, {});
     });
     const after = module.claimChanges(test.anonymousViewContext());
     expect(after[0].supplyVersion).not.toBe(before[0].supplyVersion);

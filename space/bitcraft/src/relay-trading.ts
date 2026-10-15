@@ -83,10 +83,19 @@ export function assembleRelayTrading(
     buildings = rows("building_state"),
     nicknames = rows("building_nickname_state"),
     stalls = new Map<string, Row>();
-  const stack = (item: Row) => ({
-    ...metadata("item", String(item.item_id)),
-    quantity: item.quantity,
-  });
+  const stack = (item: Row) => {
+    // Cargo stacks can be embedded in *_items as well as the legacy ID arrays.
+    const kind = Object.prototype.hasOwnProperty.call(
+      item.item_type ?? {},
+      "Cargo",
+    )
+      ? "cargo"
+      : "item";
+    return {
+      ...metadata(kind, String(item.item_id)),
+      quantity: item.quantity,
+    };
+  };
   const cargo = (id: any) => ({
     ...metadata("cargo", String(id)),
     quantity: 1,
@@ -98,10 +107,18 @@ export function assembleRelayTrading(
     // Traveler/NPC recipes may have effectively infinite stock and no bundles.
     if (!shop || !place || row.traveler_trade_order_id?.some !== undefined)
       continue;
-    const offerItems = (row.offer_items ?? []).map(stack),
-      requiredItems = (row.required_items ?? []).map(stack),
-      offerCargo = (row.offer_cargo_id ?? []).map(cargo),
-      requiredCargo = (row.required_cargo_id ?? []).map(cargo);
+    const offered = ((row.offer_items ?? []) as Row[]).map(stack),
+      required = ((row.required_items ?? []) as Row[]).map(stack),
+      offerItems = offered.filter((item) => item.kind === "item"),
+      requiredItems = required.filter((item) => item.kind === "item"),
+      offerCargo = [
+        ...offered.filter((item) => item.kind === "cargo"),
+        ...(row.offer_cargo_id ?? []).map(cargo),
+      ],
+      requiredCargo = [
+        ...required.filter((item) => item.kind === "cargo"),
+        ...(row.required_cargo_id ?? []).map(cargo),
+      ];
     if (
       !(
         offerItems.length +

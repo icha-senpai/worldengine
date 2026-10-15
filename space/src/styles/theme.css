@@ -52,6 +52,16 @@
 }
 
 :root {
+  --ui-label-size: 12px;
+  --ui-label-weight: 500;
+  --ui-label-color: var(--text-muted);
+  --ui-section-size: 16px;
+  --ui-dialog-size: 20px;
+  --ui-heading-weight: 650;
+  --ui-panel-radius: 12px;
+  --ui-panel-padding: 20px;
+  --ui-panel-compact-padding: 12px;
+  --ui-panel-border: var(--border-color);
   --bg-canvas: #040306;
   --bg-canvas-rgb: 4 3 6;
   --bg-canvas-2: #09050c;

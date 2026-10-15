@@ -1,4 +1,7 @@
-param([ValidateSet('Start', 'Close', 'Restart')][string]$Action = 'Start')
+param(
+    [ValidateSet('Start', 'Close', 'Restart')][string]$Action = 'Start',
+    [ValidateSet('All', 'Web', 'Dev', 'Linker')][string]$Target = 'All'
+)
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
@@ -80,7 +83,8 @@ function Start-TrackedProcess([string]$Name, [string]$Executable, [string[]]$Arg
 }
 
 function Close-GameServices {
-    foreach ($serviceName in @('bot', 'linker', 'web')) {
+    $names = if ($Target -eq 'Web') { @('web') } elseif ($Target -eq 'Dev') { @('dev-web') } elseif ($Target -eq 'Linker') { @('linker') } else { @('bot', 'linker', 'web', 'dev-web') }
+    foreach ($serviceName in $names) {
         $recordPath = Join-Path $stateRoot "$serviceName-process.json"
         $record = if (Test-Path -LiteralPath $recordPath) { Get-Content -LiteralPath $recordPath -Raw | ConvertFrom-Json } else { $null }
         $trackedProcess = Read-TrackedProcess $serviceName
@@ -140,18 +144,23 @@ function Start-GameServices {
         for ($attempt = 0; $attempt -lt 30 -and !(Test-LocalPort 3127); $attempt++) { Start-Sleep -Milliseconds 500 }
         if (!(Test-LocalPort 3127)) { throw 'Database startup failed. Check .local/database.stderr.log.' }
     }
-    $nodeExecutable = 'C:\ServBay\packages\node\current\node.exe'
-    $webDirectory = Join-Path $projectRoot 'apps/web'
-    if (!(Test-Path -LiteralPath (Join-Path $webDirectory 'build/index.js'))) { throw 'Run npm run build first.' }
-    if ((Test-LocalPort 5173) -and !(Read-TrackedProcess 'web')) { throw 'Port 5173 belongs to an untracked process; it was left alone.' }
-    Start-TrackedProcess 'web' $nodeExecutable @('--env-file=.env', 'build/index.js') $webDirectory
-    Wait-ForService 'web' 'http://127.0.0.1:5173/'
+    if ($Target -ne 'Linker') {
+        $nodeExecutable = 'C:\ServBay\packages\node\current\node.exe'
+        $published = Join-Path $projectRoot '.runtime/published-web/index.js'
+        if (!(Test-Path -LiteralPath $published)) { throw 'Run publish-fishbound.cmd first.' }
+        if ((Test-LocalPort 5173) -and !(Read-TrackedProcess 'web')) { throw 'Port 5173 belongs to an untracked process; it was left alone.' }
+        Start-TrackedProcess 'web' $nodeExecutable @('--env-file=.env', $published) (Split-Path $published -Parent)
+        Wait-ForService 'web' 'http://127.0.0.1:5173/'
+    }
+
+    if ($Target -eq 'Web') { return }
 
     if ($config.DISCORD_CLIENT_ID -and $config.DISCORD_CLIENT_SECRET) {
         if ((Test-LocalPort 3001) -and !(Read-TrackedProcess 'linker')) { throw 'Port 3001 belongs to an untracked process; it was left alone.' }
         Start-TrackedProcess 'linker' (Join-Path $projectRoot '.runtime/bin/account-link.exe') @() $projectRoot
         Wait-ForService 'linker' 'http://127.0.0.1:3001/health/ready'
     } else { Write-Host 'Account linker waits for Discord client ID and secret in .env.' }
+    if ($Target -eq 'Linker') { return }
     if ($config.DISCORD_BOT_TOKEN) {
         Start-TrackedProcess 'bot' (Join-Path $projectRoot '.runtime/bin/discord-bot.exe') @() $projectRoot
         Start-Sleep -Seconds 2
@@ -161,5 +170,17 @@ function Start-GameServices {
     Write-Host 'ServBay manages the Fishbound site and cloudflared tunnel.'
 }
 
+function Start-DevWebsite {
+    $nodeExecutable = 'C:\ServBay\packages\node\current\node.exe'
+    $vite = Join-Path $projectRoot 'node_modules/vite/bin/vite.js'
+    if ((Test-LocalPort 5174) -and !(Read-TrackedProcess 'dev-web')) { throw 'Port 5174 belongs to an untracked process; it was left alone.' }
+    Start-TrackedProcess 'dev-web' $nodeExecutable @($vite, 'dev', '--host', '127.0.0.1', '--port', '5174', '--strictPort') (Join-Path $projectRoot 'apps/web')
+    Wait-ForService 'dev-web' 'http://127.0.0.1:5174/'
+    Write-Host 'Private development website: https://fishbound.test/'
+}
+
 if ($Action -eq 'Close' -or $Action -eq 'Restart') { Close-GameServices }
-if ($Action -eq 'Start' -or $Action -eq 'Restart') { Start-GameServices }
+if ($Action -eq 'Start' -or $Action -eq 'Restart') {
+    if ($Target -ne 'Dev') { Start-GameServices }
+    if ($Target -notin @('Web', 'Linker')) { Start-DevWebsite }
+}

@@ -1,12 +1,12 @@
 <template>
-  <section class="surface-section xl:col-span-2">
-    <div class="surface-section__header">
-      <span class="surface-section__title">Gear</span>
+  <section class="surface-section xl:col-span-2 ui-panel ui-panel--flush">
+    <div class="surface-section__header ui-panel-heading">
+      <span class="surface-section__title ui-section-title">Gear</span>
       <p class="surface-section__subtitle">
         {{ equipment.length }} equipped · {{ storedTools.length }} stored
       </p>
     </div>
-    <div class="surface-section__body">
+    <div class="surface-section__body ui-panel-body">
       <BoardLayout
         :filters="categoryFilters"
         v-model:filter="selectedCategory"
@@ -27,7 +27,7 @@
           <article
             v-for="entry in displayedEquipment"
             :key="entry.tool.tool_id"
-            class="game-tool-row"
+            class="game-tool-row ui-panel ui-panel--compact"
           >
             <div class="game-tool-row__summary">
               <div class="min-w-0">
@@ -199,7 +199,7 @@
           <article
             v-for="tool in displayedInventoryTools"
             :key="tool.tool_id"
-            class="game-tool-row"
+            class="game-tool-row ui-panel ui-panel--compact"
           >
             <div class="flex flex-wrap items-center justify-between gap-2">
               <strong>{{ tool.item_name }}</strong

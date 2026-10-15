@@ -31,7 +31,10 @@ async function copy() {
   <span v-if="error" role="alert">{{ error }}</span>
   <Modal :show="show" @close="show = false">
     <section class="space-y-4 p-5" aria-labelledby="editor-access-title">
-      <h2 id="editor-access-title" class="font-ui text-lg font-semibold">
+      <h2
+        id="editor-access-title"
+        class="font-ui text-lg font-semibold ui-dialog-title"
+      >
         Enable guide editing
       </h2>
       <p>

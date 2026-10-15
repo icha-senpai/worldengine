@@ -10,6 +10,7 @@ import { installCollectorConsole } from "./collector-log";
 import { pruneSchedule } from "./collector-scheduler";
 import { CollectorCycle } from "./bitcraft-collector-cycle";
 import { CollectorDiagnostics } from "./collector-diagnostics";
+import { spacetimeCli } from "./spacetime-config";
 import {
   mkdir,
   readFile,
@@ -185,15 +186,9 @@ async function connect(cycle: CollectorCycle) {
             reject(new Error("Automatic authorization is local-only."));
             return;
           }
-          const cli =
-            process.env.SPACETIME_CLI ||
-            resolve(
-              process.env.LOCALAPPDATA ?? ".",
-              "SpacetimeDB/bin/current/spacetimedb-cli.exe",
-            );
           try {
             execFileSync(
-              cli,
+              spacetimeCli,
               [
                 "call",
                 database,

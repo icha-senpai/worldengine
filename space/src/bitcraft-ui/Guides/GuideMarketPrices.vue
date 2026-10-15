@@ -94,7 +94,7 @@ const number = (value) =>
     aria-label="Market prices"
   >
     <div class="guide-market__controls grid gap-3">
-      <label class="grid min-w-0 gap-1 text-xs text-muted-2">
+      <label class="grid min-w-0 gap-1 text-xs text-muted-2 ui-field-label">
         Market item
         <SelectInput v-model="selected" class="w-full">
           <option v-for="[key, item] in options" :key="key" :value="key">
@@ -102,7 +102,7 @@ const number = (value) =>
           </option>
         </SelectInput>
       </label>
-      <label class="grid min-w-0 gap-1 text-xs text-muted-2">
+      <label class="grid min-w-0 gap-1 text-xs text-muted-2 ui-field-label">
         Region
         <TextInput
           :model-value="region"

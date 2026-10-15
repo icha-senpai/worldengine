@@ -141,7 +141,7 @@ const subtitle = computed(() =>
 
 <template>
   <aside
-    class="trade-inspector"
+    class="trade-inspector ui-panel"
     aria-label="Selected trade details"
     :aria-busy="loading || refreshing"
   >
@@ -155,7 +155,7 @@ const subtitle = computed(() =>
       >
       <header class="inspector-heading">
         <div>
-          <h2 id="trade-detail-heading" tabindex="-1">
+          <h2 class="ui-section-title" id="trade-detail-heading" tabindex="-1">
             {{ exchange ? "Exchange bundle" : item.name }}
           </h2>
           <p>
@@ -179,7 +179,7 @@ const subtitle = computed(() =>
       </p>
       <div
         v-if="!exchange && book"
-        class="inspector-tabs"
+        class="inspector-tabs ui-tabs"
         aria-label="Detail view"
       >
         <button
@@ -221,7 +221,7 @@ const subtitle = computed(() =>
           >
         </div>
         <section class="inspector-stacks">
-          <h3>You give</h3>
+          <h3 class="ui-section-title">You give</h3>
           <p v-if="!bundle.give.length" class="inspector-status">
             No cost listed
           </p>
@@ -231,7 +231,7 @@ const subtitle = computed(() =>
           </div>
         </section>
         <section class="inspector-stacks">
-          <h3>You get</h3>
+          <h3 class="ui-section-title">You get</h3>
           <p v-if="!bundle.get.length" class="inspector-status">
             No returned items listed
           </p>
@@ -271,7 +271,7 @@ const subtitle = computed(() =>
       </template>
       <template v-else-if="book && tab === 'history'">
         <section class="inspector-history">
-          <h3>Completed coin trades</h3>
+          <h3 class="ui-section-title">Completed coin trades</h3>
           <template v-if="history"
             ><div>
               <span>24h average</span
@@ -301,8 +301,8 @@ const subtitle = computed(() =>
         </section>
       </template>
       <template v-else-if="book">
-        <label class="inspector-claim-filter"
-          ><span
+        <label class="inspector-claim-filter ui-field-label"
+          ><span class="ui-field-label"
             >Claim · {{ count(orders.length) }} orders across
             {{ count(claimOptions.length) }} claims</span
           ><SelectInput
@@ -318,8 +318,8 @@ const subtitle = computed(() =>
             </option></SelectInput
           ></label
         >
-        <label class="inspector-claim-filter">
-          <span>Sort all matching orders</span>
+        <label class="inspector-claim-filter ui-field-label">
+          <span class="ui-field-label">Sort all matching orders</span>
           <SelectInput
             v-model="orderSort"
             aria-label="Sort all matching orders"
@@ -351,7 +351,9 @@ const subtitle = computed(() =>
             offers</span
           >
         </div>
-        <h3>{{ intent === "buy" ? "Sellers" : "Buyers" }} in this view</h3>
+        <h3 class="ui-section-title">
+          {{ intent === "buy" ? "Sellers" : "Buyers" }} in this view
+        </h3>
         <div v-if="sortedOrders.length" class="inspector-orders">
           <article
             v-for="order in visibleOrders"
@@ -424,10 +426,6 @@ const subtitle = computed(() =>
 
 <style scoped>
 .trade-inspector {
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 20px;
   min-width: 0;
   font-size: 13px;
   color: var(--text-primary);
@@ -444,8 +442,6 @@ const subtitle = computed(() =>
   min-width: 0;
 }
 .inspector-heading h2 {
-  font-size: 17px;
-  font-weight: 600;
   margin: 0;
   overflow-wrap: anywhere;
 }
@@ -459,20 +455,7 @@ const subtitle = computed(() =>
 }
 .inspector-tabs {
   display: flex;
-  gap: 8px;
   margin: 15px 0;
-}
-.inspector-tabs button {
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 5px;
-  font-size: 12px;
-  color: var(--text-muted-2);
-}
-.inspector-tabs button[aria-pressed="true"] {
-  color: var(--accent-cyan);
-  background: rgb(var(--accent-cyan-rgb) / 0.1);
-  border-color: var(--accent-cyan);
 }
 .inspector-estimate,
 .bundle-summary {
@@ -500,9 +483,6 @@ const subtitle = computed(() =>
   font-weight: 500;
 }
 .trade-inspector h3 {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted-2);
   margin: 0 0 10px;
 }
 .inspector-orders {
@@ -601,8 +581,6 @@ const subtitle = computed(() =>
   flex-direction: column;
   gap: 8px;
   margin-bottom: 20px;
-  font-size: 11px;
-  color: var(--text-muted-2);
 }
 .inspector-claim-filter :deep(select) {
   width: 100%;
@@ -629,12 +607,6 @@ const subtitle = computed(() =>
   }
 }
 @media (max-width: 600px) {
-  .trade-inspector {
-    padding: 16px;
-  }
-  .inspector-tabs button {
-    min-height: 44px;
-  }
   .inspector-location a {
     min-height: 36px;
     padding: 5px 0;

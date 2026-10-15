@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2023", "DOM"],
+    "baseUrl": ".",
+    "paths": {
+      "spacetimedb": ["./node_modules/spacetimedb/dist/index.d.ts"],
+      "spacetimedb/*": ["./node_modules/spacetimedb/dist/*"]
+    }
+  },
+  "include": [
+    "tests/collection-runtime.test.ts",
+    "tests/evergather-market-runtime.test.ts",
+    "tests/module-profile.bench.ts",
+    "tests/read-models-runtime.test.ts",
+    "vitest.profile.config.ts"
+  ]
+}

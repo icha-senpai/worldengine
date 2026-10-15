@@ -15,6 +15,12 @@ import {
 } from "node:fs/promises";
 import { resolve, join, relative, isAbsolute } from "node:path";
 import { parseRelayJson } from "./bitcraft-relay";
+import {
+  spacetimeCli,
+  spacetimeConfig,
+  spacetimeData,
+  spacetimeServer,
+} from "./spacetime-config";
 
 export const STORAGE_TARGET = 2_000_000_000;
 export const STORAGE_BUDGET = 3_000_000_000;
@@ -27,6 +33,7 @@ const managedTables = new Set([
   "claim_history_state",
   "claim_history_event",
   "claim_history_region",
+  "claim_revision",
   "administrator",
   "budget",
   "collected_entity",
@@ -60,14 +67,9 @@ const managedTables = new Set([
   "visible_guide_metadata",
   "claim_changes", // Derived invalidation view; rebuilt from retained claim rows.
 ]);
-const server = "http://127.0.0.1:3100";
-const cli =
-  process.env.SPACETIME_CLI ||
-  resolve(
-    process.env.LOCALAPPDATA ?? ".",
-    "SpacetimeDB/bin/current/spacetimedb-cli.exe",
-  );
-const replicas = resolve(".runtime/data/replicas");
+const server = spacetimeServer;
+const cli = spacetimeCli;
+const replicas = resolve(spacetimeData, "replicas");
 const maintenance = resolve(".runtime/bitcraft-storage");
 type Binding = {
   database: string;
@@ -202,10 +204,14 @@ async function atomicJson(path: string, value: unknown) {
   await rename(path + ".tmp", path);
 }
 export async function ownerToken() {
-  const config = await readFile(
-    resolve(process.env.LOCALAPPDATA ?? ".", "SpacetimeDB/config/cli.toml"),
-    "utf8",
-  );
+  if (process.env.SPACETIME_OWNER_TOKEN_FILE) {
+    const token = (
+      await readFile(process.env.SPACETIME_OWNER_TOKEN_FILE, "utf8")
+    ).trim();
+    if (!token) throw Error("The configured owner token file is empty.");
+    return token;
+  }
+  const config = await readFile(spacetimeConfig, "utf8");
   const raw = config.match(
     /^spacetimedb_token\s*=\s*("(?:[^"\\]|\\.)*")/m,
   )?.[1];

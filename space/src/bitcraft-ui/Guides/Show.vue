@@ -4,6 +4,7 @@ import { Head, Link } from "/src/bitcraft-ui/navigation";
 import AuthenticatedLayout from "/src/bitcraft-ui/Layout.vue";
 import AppButton from "/src/bitcraft-ui/shared/ui/AppButton.vue";
 import GuideContent from "./GuideContent.vue";
+import BitcraftPageHeader from "../Components/BitcraftPageHeader.vue";
 
 defineProps({
   guide: { type: Object, required: true },
@@ -17,17 +18,14 @@ const formatDate = (value) => new Date(value).toLocaleDateString();
   <AuthenticatedLayout>
     <Head :title="guide.title" />
     <template #header>
-      <div class="page-hero">
-        <div class="page-hero__copy min-w-0">
-          <Link
-            :href="route('bitcraft.guides.index')"
-            class="text-sm text-focus hover:underline"
+      <BitcraftPageHeader :title="guide.title" eyebrow="BitCraft Guides">
+        <template #eyebrow>
+          <Link :href="route('bitcraft.guides.index')" class="hover:underline"
             >Back to guides</Link
           >
-          <h1 class="page-hero__title mt-3 break-words">{{ guide.title }}</h1>
-          <div
-            class="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-2"
-          >
+        </template>
+        <template #meta>
+          <div class="flex flex-wrap items-center gap-2">
             <span v-if="guide.category" class="tag max-w-full break-words">{{
               guide.category
             }}</span>
@@ -38,15 +36,15 @@ const formatDate = (value) => new Date(value).toLocaleDateString();
             >
             <span>Updated {{ formatDate(guide.updated_at) }}</span>
           </div>
-        </div>
-        <div v-if="canManage" class="page-hero__actions">
+        </template>
+        <template v-if="canManage" #actions>
           <AppButton
             :href="route('bitcraft.guides.edit', guide.id)"
             variant="primary"
             >Edit guide</AppButton
           >
-        </div>
-      </div>
+        </template>
+      </BitcraftPageHeader>
     </template>
 
     <article

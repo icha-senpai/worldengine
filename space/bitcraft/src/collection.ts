@@ -42,6 +42,18 @@ export function collectionInterval(resource: string) {
   if (["levels", "regions", "empires"].includes(resource)) return 3600;
   return 300;
 }
+export function collectionExpiresAt(
+  resource: string,
+  observedAt: bigint,
+  cacheSeconds = 0,
+) {
+  // Cached data keeps its original observation time, even when the collector
+  // polls more often than the upstream cache expires.
+  return (
+    observedAt +
+    BigInt(Math.max(collectionInterval(resource) * 3, cacheSeconds)) * 1000000n
+  );
+}
 export function collectionKey(resource: string, path: string) {
   return `${resource}|${path}`;
 }

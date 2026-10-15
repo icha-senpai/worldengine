@@ -97,6 +97,9 @@ export const Inventory = __t.object("Inventory", {
 });
 export type Inventory = __Infer<typeof Inventory>;
 
+export const InventoryDirectory = __t.object("InventoryDirectory", {});
+export type InventoryDirectory = __Infer<typeof InventoryDirectory>;
+
 export const InventoryGuideDefinitions = __t.object("InventoryGuideDefinitions", {});
 export type InventoryGuideDefinitions = __Infer<typeof InventoryGuideDefinitions>;
 
@@ -154,6 +157,12 @@ export type MarketListing = __Infer<typeof MarketListing>;
 export const MarketListings = __t.object("MarketListings", {});
 export type MarketListings = __Infer<typeof MarketListings>;
 
+export const MarketOrder = __t.object("MarketOrder", {
+  id: __t.u64(),
+  sortKey: __t.string(),
+});
+export type MarketOrder = __Infer<typeof MarketOrder>;
+
 export const MarketPage = __t.object("MarketPage", {
   connectionKey: __t.string(),
   page: __t.u32(),
@@ -181,6 +190,12 @@ export type MarketPageListing = __Infer<typeof MarketPageListing>;
 
 export const MarketPageListings = __t.object("MarketPageListings", {});
 export type MarketPageListings = __Infer<typeof MarketPageListings>;
+
+export const MarketRevision = __t.object("MarketRevision", {
+  id: __t.u32(),
+  revision: __t.u64(),
+});
+export type MarketRevision = __Infer<typeof MarketRevision>;
 
 export const MarketSummary = __t.object("MarketSummary", {});
 export type MarketSummary = __Infer<typeof MarketSummary>;

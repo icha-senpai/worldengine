@@ -9,6 +9,8 @@ import {
   mergeRegionalBook,
   validateRelayTrading,
 } from "../bitcraft/src/relay-trading";
+import { catalogResponse } from "../bitcraft/src/catalog";
+import { barterRows } from "../src/bitcraft-ui/market";
 const table = (rows: any[]) =>
   new Map(rows.map((r) => [r.entity_id ?? r.building_entity_id, r]));
 function fixture() {
@@ -132,6 +134,59 @@ describe("native relay projection", () => {
     expect(validateRelayTrading(8, data).stalls).toHaveLength(1);
     data.books["item:7"].sellOrders[0].regionId = 9;
     expect(() => validateRelayTrading(8, data)).toThrow(/region boundary/);
+  });
+  it("preserves typed cargo quantities and separates overlapping item IDs in barter bundles", () => {
+    const tables = fixture();
+    const order = tables.get("trade_order_state")!.get("32")!;
+    // Real wire decoding produces these Item/Cargo tagged objects. Both kinds
+    // may occur inside *_items, in addition to the legacy cargo ID arrays.
+    order.offer_items = [
+      { item_id: 7000, quantity: 5, item_type: { Cargo: {} } },
+      { item_id: 1, quantity: 2, item_type: { Cargo: {} } },
+      { item_id: 1, quantity: 3, item_type: { Item: {} } },
+    ];
+    order.offer_cargo_id = [1200];
+    order.required_items = [
+      { item_id: 1201, quantity: 4, item_type: { Cargo: {} } },
+    ];
+    const data = assembleRelayTrading(tables, 8, (kind, id) =>
+      catalogResponse("item-info", `${kind}:${id}`, ""),
+    );
+    const trade = data.stalls[0].orders[0];
+    expect(trade.offerItems).toMatchObject([
+      { id: "1", kind: "item", name: "Hex Coin", quantity: 3 },
+    ]);
+    expect(trade.offerCargo).toMatchObject([
+      { id: "7000", kind: "cargo", name: "Rough Cloth Tarp", quantity: 5 },
+      { id: "1", kind: "cargo", quantity: 2 },
+      { id: "1200", kind: "cargo", name: "Rough Timber", quantity: 1 },
+    ]);
+    expect(trade.requiredItems).toEqual([]);
+    expect(trade.requiredCargo).toMatchObject([
+      { id: "1201", kind: "cargo", name: "Simple Timber", quantity: 4 },
+    ]);
+    expect(validateRelayTrading(8, data).stalls).toHaveLength(1);
+    const listing = barterRows(
+      { stalls: data.stalls },
+      { q: "Rough Cloth Tarp" },
+    );
+    expect(listing.exchanges).toHaveLength(1);
+    expect(listing.exchanges[0].offerStacks).toContainEqual(
+      expect.objectContaining({ kind: "cargo", id: "7000", quantity: 5 }),
+    );
+    expect(listing.exchanges[0].exchangeType).toBe("mixed");
+  });
+  it("resolves the Titan Emperor catalog gaps without guessing cargo from an item ID", () => {
+    expect(catalogResponse("items", "", "Titan Emperor")).toHaveLength(6);
+    expect(catalogResponse("item-info", "item:1197952569", "")).toMatchObject({
+      name: "Titan Emperor Tunic",
+      category: "Premium Cosmetic",
+      iconAssetName: "PremiumIcons/TitanEmperorTorso",
+    });
+    expect(catalogResponse("item-info", "item:7000", "")).toBeNull();
+    expect(catalogResponse("item-info", "cargo:7000", "")).toMatchObject({
+      name: "Rough Cloth Tarp",
+    });
   });
   it("retains the native authority against late API responses and reconciles cancellations", () => {
     const base = {

@@ -1,8 +1,10 @@
 <template>
-  <section class="surface-section xl:col-span-2">
-    <div class="surface-section__header">
+  <section class="surface-section xl:col-span-2 ui-panel ui-panel--flush">
+    <div class="surface-section__header ui-panel-heading">
       <div class="surface-section__copy">
-        <span class="surface-section__title">Latest Result</span>
+        <span class="surface-section__title ui-section-title"
+          >Latest Result</span
+        >
         <p class="surface-section__subtitle">
           {{ result.label
           }}<span v-if="contextLabel"> · {{ contextLabel }}</span>
@@ -11,10 +13,12 @@
       <span class="tag capitalize">{{ resultTypeLabel }}</span>
     </div>
 
-    <div class="surface-section__body">
+    <div class="surface-section__body ui-panel-body">
       <div class="grid gap-4">
         <div class="grid gap-4">
-          <div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+          <div
+            class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
+          >
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div class="min-w-0">
                 <p class="truncate text-sm font-ui text-primary">
@@ -31,7 +35,7 @@
               <div
                 v-for="row in summaryRows"
                 :key="row.label"
-                class="rounded-md border border-border bg-canvas px-3 py-3"
+                class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
               >
                 <p class="text-xs uppercase tracking-[0.14em] text-muted-3">
                   {{ row.label }}
@@ -45,7 +49,7 @@
               <article
                 v-for="(row, index) in detailRows"
                 :key="row.key"
-                class="grid gap-3 rounded-md border border-border bg-canvas px-3 py-3 md:grid-cols-[minmax(0,1fr)_auto]"
+                class="grid gap-3 rounded-md border border-border bg-surface px-3 py-3 md:grid-cols-[minmax(0,1fr)_auto] ui-panel ui-panel--compact"
               >
                 <div class="min-w-0">
                   <div class="flex flex-wrap items-center gap-2">
@@ -68,7 +72,7 @@
               <article
                 v-for="(item, index) in resultItems"
                 :key="`${item.kind}-${item.item_key ?? item.label}-${index}`"
-                class="grid gap-3 rounded-md border border-border bg-canvas px-3 py-3 md:grid-cols-[minmax(0,1fr)_auto]"
+                class="grid gap-3 rounded-md border border-border bg-surface px-3 py-3 md:grid-cols-[minmax(0,1fr)_auto] ui-panel ui-panel--compact"
               >
                 <div class="min-w-0">
                   <div class="flex flex-wrap items-center gap-2">

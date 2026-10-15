@@ -302,7 +302,7 @@ function closeOnResize() {
 .sidebar-icon-rail__control:hover,
 .sidebar-icon-rail__control.open {
   color: var(--text-primary);
-  background: var(--bg-surface-3);
+  background: var(--control-hover);
   border-color: var(--border-color);
 }
 .sidebar-icon-rail__control.active {
@@ -334,12 +334,12 @@ function closeOnResize() {
   max-width: 240px;
   padding: 7px 10px;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--bg-surface-3);
+  border-radius: var(--control-radius);
+  background: var(--bg-surface);
   color: var(--text-primary);
   font-size: 12px;
   pointer-events: none;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
+  box-shadow: 0 4px 12px rgb(var(--bg-canvas-rgb) / 0.25);
 }
 .sidebar-icon-rail__control:hover + .sidebar-icon-rail__tooltip,
 .sidebar-icon-rail__control:focus-visible + .sidebar-icon-rail__tooltip {
@@ -357,7 +357,7 @@ function closeOnResize() {
   border-radius: 6px;
   background: var(--bg-surface);
   color: var(--text-primary);
-  box-shadow: 0 10px 32px rgb(0 0 0 / 0.4);
+  box-shadow: 0 10px 32px rgb(var(--bg-canvas-rgb) / 0.4);
 }
 .sidebar-icon-rail__flyout-heading {
   flex-shrink: 0;

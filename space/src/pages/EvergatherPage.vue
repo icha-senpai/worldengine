@@ -35,6 +35,7 @@ import {
   evergatherError,
   revision,
   definitionRevision,
+  itemDefinitionRows,
 } from "../evergather";
 import {
   useActionForm,
@@ -67,6 +68,7 @@ const catalog = computed(() => {
   return readCatalog(
     [
       ...definitionRowsFor(evergather.value),
+      ...itemDefinitionRows.value,
       ...marketListingsFor(evergather.value).map((row) => ({
         key: `item_metadata:${row.itemKey}:${row.rarity}`,
         kind: "item_metadata",
@@ -617,7 +619,13 @@ const materialSources = computed(() => ({
   expeditions: props.expeditions,
   offers: props.shop.offers,
   tools: [...props.equipment, ...props.tool_inventory],
-  inventory: props.item_guide.owned,
+  inventory: [
+    ...new Map(
+      [...(props.item_guide.directory ?? []), ...props.item_guide.owned].map(
+        (item) => [item.item_key, item],
+      ),
+    ).values(),
+  ],
   result: props.last_result,
 }));
 const quickCollections = computed(() => ({
@@ -824,7 +832,7 @@ onBeforeUnmount(() => {
     <div
       v-if="actionError || evergatherError"
       role="alert"
-      class="notice flex items-center justify-between gap-3"
+      class="notice flex items-center justify-between gap-3 ui-notice"
     >
       <span>{{ actionError || evergatherError }}</span>
       <button
@@ -854,17 +862,17 @@ onBeforeUnmount(() => {
     >
     <form
       v-else-if="!player"
-      class="surface create-character"
+      class="surface create-character ui-panel ui-panel--flush"
       @submit.prevent="createCharacter"
     >
       <p class="eyebrow">Datacrypt</p>
       <h1>Evergather</h1>
-      <h2>Create your character</h2>
-      <label
+      <h2 class="ui-section-title">Create your character</h2>
+      <label class="ui-field-label"
         >Character name<TextInput
           v-model="newName"
           type="text"
-          class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
+          class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
           required
           minlength="2"
           maxlength="40"
@@ -995,7 +1003,7 @@ onBeforeUnmount(() => {
         </nav>
         <p
           v-if="!evergatherPanelReady"
-          class="surface-section p-5"
+          class="surface-section p-5 ui-panel ui-panel--flush"
           role="status"
         >
           Loading panel…
@@ -1006,11 +1014,11 @@ onBeforeUnmount(() => {
         >
           <section
             v-if="activePanel === 'overview' && activeSubPanel === 'character'"
-            class="surface-section xl:col-span-2"
+            class="surface-section xl:col-span-2 ui-panel ui-panel--flush"
           >
-            <div class="surface-section__header">
+            <div class="surface-section__header ui-panel-heading">
               <div class="surface-section__copy">
-                <span class="surface-section__title">{{
+                <span class="surface-section__title ui-section-title">{{
                   player.display_name
                 }}</span>
                 <p class="surface-section__subtitle">
@@ -1024,9 +1032,9 @@ onBeforeUnmount(() => {
               </span>
             </div>
 
-            <div class="surface-section__body">
+            <div class="surface-section__body ui-panel-body">
               <div class="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
-                <div class="rounded-md border border-border bg-surface-2 p-4">
+                <div class="rounded-md border border-border bg-surface p-4">
                   <div
                     class="relative mx-auto grid aspect-square w-full max-w-44 place-items-center rounded-md border"
                     :class="avatarPaletteClass"
@@ -1080,15 +1088,15 @@ onBeforeUnmount(() => {
 
                 <form class="grid gap-4" @submit.prevent="submitCharacter">
                   <div class="grid gap-3 sm:grid-cols-2">
-                    <label class="grid gap-1">
+                    <label class="grid gap-1 ui-field-label">
                       <span
-                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                         >Name</span
                       >
                       <input
                         v-model="characterForm.display_name"
                         type="text"
-                        class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
+                        class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
                       />
                       <span
                         v-if="characterForm.errors.display_name"
@@ -1098,15 +1106,15 @@ onBeforeUnmount(() => {
                       </span>
                     </label>
 
-                    <label class="grid gap-1">
+                    <label class="grid gap-1 ui-field-label">
                       <span
-                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                         >Title</span
                       >
                       <input
                         v-model="characterForm.title"
                         type="text"
-                        class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
+                        class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
                       />
                       <span
                         v-if="characterForm.errors.title"
@@ -1116,14 +1124,14 @@ onBeforeUnmount(() => {
                       </span>
                     </label>
 
-                    <label class="grid gap-1">
+                    <label class="grid gap-1 ui-field-label">
                       <span
-                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                         >Species</span
                       >
                       <SelectInput
                         v-model="characterForm.species"
-                        class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
+                        class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
                       >
                         <option
                           v-for="option in character_options.species"
@@ -1141,15 +1149,15 @@ onBeforeUnmount(() => {
                       </span>
                     </label>
 
-                    <label class="grid gap-1">
+                    <label class="grid gap-1 ui-field-label">
                       <span
-                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                         >Pronouns</span
                       >
                       <input
                         v-model="characterForm.pronouns"
                         type="text"
-                        class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
+                        class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
                       />
                       <span
                         v-if="characterForm.errors.pronouns"
@@ -1159,14 +1167,14 @@ onBeforeUnmount(() => {
                       </span>
                     </label>
 
-                    <label class="grid gap-1 sm:col-span-2">
+                    <label class="grid gap-1 sm:col-span-2 ui-field-label">
                       <span
-                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                         >Home Region</span
                       >
                       <SelectInput
                         v-model="characterForm.home_region"
-                        class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
+                        class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
                       >
                         <option
                           v-for="option in character_options.home_regions"
@@ -1189,15 +1197,15 @@ onBeforeUnmount(() => {
                     <label
                       v-for="field in appearanceFields"
                       :key="field.key"
-                      class="grid gap-1"
+                      class="grid gap-1 ui-field-label"
                     >
                       <span
-                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3"
+                        class="text-xs font-ui uppercase tracking-[0.14em] text-muted-3 ui-field-label"
                         >{{ field.label }}</span
                       >
                       <SelectInput
                         v-model="characterForm.appearance[field.key]"
-                        class="rounded-md border-border bg-surface-2 text-sm text-primary focus:border-focus focus:ring-focus"
+                        class="rounded-md border-border bg-canvas-2 text-sm text-primary focus:border-focus focus:ring-focus"
                       >
                         <option
                           v-for="option in character_options.appearance[
@@ -1418,17 +1426,21 @@ onBeforeUnmount(() => {
           <template
             v-if="activePanel === 'progress' && activeSubPanel === 'recent'"
           >
-            <section class="surface-section xl:col-span-2">
-              <div class="surface-section__header">
+            <section
+              class="surface-section xl:col-span-2 ui-panel ui-panel--flush"
+            >
+              <div class="surface-section__header ui-panel-heading">
                 <div class="surface-section__copy">
-                  <span class="surface-section__title">Recent Actions</span>
+                  <span class="surface-section__title ui-section-title"
+                    >Recent Actions</span
+                  >
                   <p class="surface-section__subtitle">
                     {{ summary.action_count }} logged actions.
                   </p>
                 </div>
               </div>
 
-              <div class="surface-section__body">
+              <div class="surface-section__body ui-panel-body">
                 <div class="grid gap-3">
                   <p class="text-xs text-muted-2">
                     {{ recent_actions.length }} recent ·
@@ -1439,7 +1451,7 @@ onBeforeUnmount(() => {
                     <article
                       v-for="entry in recent_actions"
                       :key="entry.id"
-                      class="grid gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_auto]"
+                      class="grid gap-3 rounded-md border border-border bg-surface px-3 py-3 md:grid-cols-[minmax(0,1fr)_auto]"
                     >
                       <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">
@@ -1471,7 +1483,7 @@ onBeforeUnmount(() => {
 
                   <p
                     v-else
-                    class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
+                    class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-muted-2"
                   >
                     No actions yet.
                   </p>
@@ -1575,6 +1587,6 @@ onBeforeUnmount(() => {
   min-width: 0;
   border: 0;
   margin: 0;
-  padding: 0;
+  padding: 0 0 180px;
 }
 </style>

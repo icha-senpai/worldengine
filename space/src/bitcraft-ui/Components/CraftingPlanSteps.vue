@@ -2,7 +2,7 @@
   <div class="crafting-plan">
     <div class="crafting-plan__toolbar">
       <span>{{ completeCount }} / {{ steps.length }} steps complete</span>
-      <label
+      <label class="ui-field-label"
         ><input
           type="checkbox"
           :checked="groupByStation"
@@ -10,7 +10,7 @@
         />
         Group by station</label
       >
-      <label
+      <label class="ui-field-label"
         ><input
           type="checkbox"
           :checked="hideCompleted"
@@ -301,7 +301,7 @@ const formatQuantity = (value) =>
 }
 .crafting-plan__step {
   border: 1px solid rgb(var(--border-color-rgb) / 0.65);
-  background: rgb(var(--bg-surface-2-rgb) / 0.6);
+  background: var(--bg-surface);
   border-radius: 8px;
   padding: 10px;
   min-width: 0;

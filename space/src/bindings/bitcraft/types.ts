@@ -120,6 +120,17 @@ export const ClaimHistoryState = __t.object("ClaimHistoryState", {
 });
 export type ClaimHistoryState = __Infer<typeof ClaimHistoryState>;
 
+export const ClaimRevision = __t.object("ClaimRevision", {
+  key: __t.string(),
+  epoch: __t.string(),
+  sequence: __t.u32(),
+  complete: __t.bool(),
+  claims: __t.u32(),
+  supplies: __t.u32(),
+  supplyVersion: __t.string(),
+});
+export type ClaimRevision = __Infer<typeof ClaimRevision>;
+
 export const ClaimSupplyStatus = __t.object("ClaimSupplyStatus", {
   key: __t.string(),
   regionId: __t.u32(),

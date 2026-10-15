@@ -2,11 +2,14 @@
 
 Public website: https://fish.ichaa.dev
 
-ServBay owns the Fishbound NGINX site at fishbound.test, its local certificate,
-and the cloudflared tunnel mapping. The existing test.ichaa.dev mapping remains.
+ServBay has two Fishbound entries. `Fishbound` at fishbound.test is private Vite
+development on 5174 and has no Cloudflare mapping. `Fishbound Public` at
+fish.pub.test proxies the published Node server on 5173. Cloudflare maps
+fish.ichaa.dev only to that Public entry. Other apps' tunnel mappings remain.
 The canonical application origin and Discord login callback use the public HTTPS
-hostname. Root .env holds native service settings; apps/web/.env holds public
-browser settings plus the production Node host/port. Existing Discord secrets
+hostname. Root .env holds native service settings; apps/web/.env holds development
+website settings. Public settings are kept separately in `.local/public-web.env`
+and copied into the published website's `.env`. Existing Discord secrets
 were preserved and remain in ignored configuration files.
 
 ## Services and routes
@@ -24,15 +27,17 @@ Other `/v1/` routes return 404. The public browser uses
 continue connecting directly to loopback. NGINX forwards WebSocket upgrade
 headers and keeps long-lived subscriptions open. Authentication routes disable
 access logging so callback codes and short-lived WebSocket tokens are not logged.
-The managed site's source configuration is deploy/servbay-fishbound.conf.
+The Public entry's source configuration is deploy/servbay-fishbound.conf.
 Use ServBay's website editor/MCP to apply changes; its generated files are not
 the configuration source.
 
 ## Double-click launchers
 
-- start-fishbound.cmd starts the production website, account linker, and bot.
+- start-fishbound.cmd starts the published website, private dev website, account linker, and bot.
 - close-fishbound.cmd closes only those tracked game processes.
 - restart-fishbound.cmd closes and starts those game processes.
+- start-fishbound-dev.cmd, close-fishbound-dev.cmd and restart-fishbound-dev.cmd manage only private Vite development.
+- publish-fishbound.cmd (or npm run web:publish) checks/builds, promotes the public copy and restarts only the published website.
 
 The launchers leave shared ServBay/NGINX/cloudflared and the local database running.
 Start also brings up the existing isolated database data directory if port 3127
@@ -41,12 +46,25 @@ reuse tracked services; occupied untracked website/linker ports are left alone.
 Process records and stdout/stderr logs live in ignored .local. PID, executable,
 and process start time must match before a launcher stops a process.
 
-After source changes, run `npm run build` for the website or
-`npm run rust:build` for native
+Ordinary `npm run check` and `npm run build` validate the website and write only
+the private working `apps/web/build` directory. They do not update the published
+copy in `.runtime/published-web`. Use `publish-fishbound.cmd` when ready to publish:
+it checks/builds with `.local/public-web.env`, stages a complete copy, stops only
+the tracked public Node server, swaps the directories and verifies startup. A
+failed startup restores the previous directory; successful publication removes
+it. There are no dated releases or retained deployment backups. Routine Start
+does not build or publish. `-UseExistingBuild` is a PowerShell bootstrap option
+for an already verified build, not the normal publish workflow.
+
+Use `npm run rust:build` for native
 services. Close Fishbound, run `powershell -NoProfile -ExecutionPolicy Bypass
 -File scripts/install-service-binaries.ps1`, and start Fishbound again. Native
 programs run from `.runtime/bin`; Cargo `target` directories can be removed
-without breaking service startup. The website runs its built Node server, with apps/web/.env loaded.
+without breaking service startup. The public Node server and its environment
+snapshot run from `.runtime/published-web`; Vite uses `apps/web/.env`. This
+hosting split does not create a second persistent game database or change the
+public Discord callback. Existing isolated database proofs remain the path for
+backend changes.
 ServBay itself must be running with the Fishbound website and cloudflared enabled.
 
 ## Discord callback
@@ -55,6 +73,14 @@ In the application's Discord Developer Portal, open OAuth2, add this exact
 redirect URI, and save:
 
     https://fish.ichaa.dev/auth/discord/callback
+
+The account linker accepts the canonical `WEBSITE_URL` origin. To link from
+private development as well, set `ACCOUNT_LINK_ALLOWED_ORIGINS=https://fishbound.test`
+in the service `.env` and restart the account linker. Additional origins must be
+explicit HTTPS origins (HTTP is allowed for loopback development only). The
+verified OAuth session remembers its starting origin and returns there after
+linking; the registered Discord callback remains the public URL above. Unknown
+origins remain rejected.
 
 The owner added this callback and enabled command registration. Both were
 verified through Discord's API after restarting the services.

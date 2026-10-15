@@ -1,15 +1,15 @@
 <template>
-  <section class="surface-section">
-    <div class="surface-section__header">
+  <section class="surface-section ui-panel ui-panel--flush">
+    <div class="surface-section__header ui-panel-heading">
       <div class="surface-section__copy">
-        <span class="surface-section__title">Jobs</span>
+        <span class="surface-section__title ui-section-title">Jobs</span>
         <p class="surface-section__subtitle">
           {{ readyCount }} ready · {{ jobs.length }} commissions.
         </p>
       </div>
     </div>
 
-    <div class="surface-section__body">
+    <div class="surface-section__body ui-panel-body">
       <BoardLayout
         :boards="jobBoards"
         v-model:board="selectedBoard"
@@ -19,7 +19,9 @@
         v-model:filter="selectedFilter"
       >
         <template #filters
-          ><div class="rounded-md border border-border bg-surface-2 px-3 py-3">
+          ><div
+            class="rounded-md border border-border bg-surface px-3 py-3 ui-panel ui-panel--compact"
+          >
             <div class="flex items-center justify-between gap-3">
               <p class="text-sm font-ui text-primary">Commission Board</p>
               <span class="tag"
@@ -35,7 +37,7 @@
                 v-for="board in jobBoards"
                 :key="board.key"
                 type="button"
-                class="rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                class="rounded-md border border-border bg-surface px-3 py-2 text-left transition hover:border-focus/60"
                 :class="{
                   'border-focus/70 bg-focus/10': selectedBoard === board.key,
                 }"
@@ -55,7 +57,7 @@
                 v-for="filter in filters"
                 :key="filter.key"
                 type="button"
-                class="grid gap-2 rounded-md border border-border bg-canvas px-3 py-2 text-left transition hover:border-focus/60"
+                class="grid gap-2 rounded-md border border-border bg-surface px-3 py-2 text-left transition hover:border-focus/60"
                 :class="{
                   'border-focus/70 bg-focus/10': selectedFilter === filter.key,
                 }"
@@ -69,7 +71,7 @@
                     filter.metaLabel
                   }}</span>
                 </span>
-                <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                <span class="h-1.5 overflow-hidden rounded-full bg-canvas-2">
                   <span
                     class="block h-full rounded-full bg-focus"
                     :style="{ width: `${filterProgress(filter)}%` }"
@@ -101,7 +103,7 @@
           <article
             v-for="(job, index) in preferredEntries(visibleJobs, 'job')"
             :key="job.key"
-            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem]"
+            class="grid game-action-row items-start gap-3 rounded-md border border-border bg-surface px-3 py-3 md:grid-cols-[minmax(0,1fr)_9rem] ui-panel ui-panel--compact"
             :class="{ 'opacity-70': !job.is_unlocked }"
           >
             <div class="min-w-0">
@@ -129,7 +131,7 @@
                       {{ job.progress_quantity }} / {{ job.progress_required }}
                     </span>
                   </div>
-                  <span class="h-1.5 overflow-hidden rounded-full bg-surface-1">
+                  <span class="h-1.5 overflow-hidden rounded-full bg-canvas-2">
                     <span
                       class="block h-full rounded-full bg-focus"
                       :style="{ width: `${job.progress_percent ?? 0}%` }"
@@ -215,7 +217,7 @@
 
           <p
             v-if="!visibleJobs.length"
-            class="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm text-muted-2"
+            class="rounded-md border border-border bg-surface px-3 py-3 text-sm text-muted-2 ui-panel ui-panel--compact"
           >
             {{ emptyBoardMessage }}
           </p>

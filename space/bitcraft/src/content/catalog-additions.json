@@ -1,0 +1,72 @@
+{
+  "source": "https://bitjita.com/api/items/{id}",
+  "verifiedAt": "2026-10-15T17:05:54.496Z",
+  "items": [
+    {
+      "id": 1197952569,
+      "kind": "item",
+      "name": "Titan Emperor Tunic",
+      "category": "Premium Cosmetic",
+      "tag": "Premium Cosmetic",
+      "tier": -1,
+      "rarity": "Mythic",
+      "description": "",
+      "iconAssetName": "PremiumIcons/TitanEmperorTorso"
+    },
+    {
+      "id": 725898672,
+      "kind": "item",
+      "name": "Titan Emperor Pants",
+      "category": "Premium Cosmetic",
+      "tag": "Premium Cosmetic",
+      "tier": -1,
+      "rarity": "Mythic",
+      "description": "",
+      "iconAssetName": "PremiumIcons/TitanEmperorLegs"
+    },
+    {
+      "id": 373124625,
+      "kind": "item",
+      "name": "Titan Emperor Gloves",
+      "category": "Premium Cosmetic",
+      "tag": "Premium Cosmetic",
+      "tier": -1,
+      "rarity": "Mythic",
+      "description": "",
+      "iconAssetName": "PremiumIcons/TitanEmperorHands"
+    },
+    {
+      "id": 56956406,
+      "kind": "item",
+      "name": "Titan Emperor Shoes",
+      "category": "Premium Cosmetic",
+      "tag": "Premium Cosmetic",
+      "tier": -1,
+      "rarity": "Mythic",
+      "description": "",
+      "iconAssetName": "PremiumIcons/TitanEmperorFeet"
+    },
+    {
+      "id": 568128963,
+      "kind": "item",
+      "name": "Titan Emperor Belt",
+      "category": "Premium Cosmetic",
+      "tag": "Premium Cosmetic",
+      "tier": -1,
+      "rarity": "Mythic",
+      "description": "",
+      "iconAssetName": "PremiumIcons/TitanEmperorBelt"
+    },
+    {
+      "id": 1764171516,
+      "kind": "item",
+      "name": "Titan Emperor Circlet",
+      "category": "Premium Cosmetic",
+      "tag": "Premium Cosmetic",
+      "tier": -1,
+      "rarity": "Mythic",
+      "description": "",
+      "iconAssetName": "PremiumIcons/TitanEmperorHat"
+    }
+  ]
+}

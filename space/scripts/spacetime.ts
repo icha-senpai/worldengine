@@ -2,15 +2,10 @@ import { sealPublishedModule } from "./bitcraft-storage";
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { spacetimeCli, spacetimeServer } from "./spacetime-config";
 
-const installed = resolve(
-  process.env.LOCALAPPDATA ?? ".",
-  "SpacetimeDB/bin/current/spacetimedb-cli.exe",
-);
-const cli =
-  process.env.SPACETIME_CLI ||
-  (existsSync(installed) ? installed : "spacetime");
-const server = "http://127.0.0.1:3100";
+const cli = spacetimeCli;
+const server = spacetimeServer;
 const modules = [
   {
     path: "spacetimedb",
@@ -68,13 +63,32 @@ async function publishModules(selected: typeof modules) {
         module.database,
         "--module-path",
         module.path,
+        "--delete-data=never",
         "--server",
         server,
         "--yes",
         "--no-config",
       ]);
       if (module.path === "bitcraft")
+        run([
+          "call",
+          module.database,
+          "prepare_claim_revisions",
+          "--server",
+          server,
+          "--no-config",
+        ]);
+      if (module.path === "bitcraft")
         await sealPublishedModule(module.database);
+      if (module.path === "spacetimedb")
+        run([
+          "call",
+          module.database,
+          "prepare_read_models",
+          "--server",
+          server,
+          "--no-config",
+        ]);
     }
   } finally {
     for (const target of resume) collector("Start", target);
@@ -128,6 +142,11 @@ switch (task) {
   case "publish-bitcraft":
     await publishModules(
       modules.filter((module) => module.path === "bitcraft"),
+    );
+    break;
+  case "publish-evergather":
+    await publishModules(
+      modules.filter((module) => module.path === "spacetimedb"),
     );
     break;
   case "publish-bitcraft-test":

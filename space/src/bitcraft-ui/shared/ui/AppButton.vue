@@ -69,6 +69,7 @@ const componentAttrs = computed(() => ({
     ? {
         href: props.href,
         "aria-disabled": props.disabled || undefined,
+        tabindex: props.disabled ? -1 : attrs.tabindex,
       }
     : {
         type: props.type,
@@ -92,7 +93,12 @@ const shouldStartDrawerNavigation = computed(
 );
 
 function handleClick(event) {
-  if (!isLink.value || props.disabled) {
+  if (props.disabled) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    return;
+  }
+  if (!isLink.value) {
     return;
   }
 
