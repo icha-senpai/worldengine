@@ -11,6 +11,10 @@ import { readWidget } from "../bitcraft-ui/widgets";
 import { useRoute } from "vue-router";
 import { pageProps } from "../bitcraft-ui/api";
 import {
+  isConnectionReadError,
+  useBitcraftReadRecovery,
+} from "../bitcraft-ui/useBitcraftReadRecovery";
+import {
   pageState,
   setPageLoader,
   trackPageLoad,
@@ -71,10 +75,28 @@ const componentKey = computed(
 const renderedKey = ref("");
 let renderedPage = "";
 let widgetSettings = "";
+let disconnectRevision = 0;
+watch(
+  bitcraftConnected,
+  (connected) => {
+    if (!connected) disconnectRevision++;
+  },
+  { flush: "sync" },
+);
+const readRecovery = useBitcraftReadRecovery(
+  () => load(),
+  () => !loading.value,
+);
 async function load(refreshMarket = true) {
   const request = ++generation;
   const requestPage = pageKey.value;
   const requestKey = componentKey.value;
+  const startedDisconnected = !bitcraftConnected.value;
+  const startedRevision = disconnectRevision;
+  const interrupted = () =>
+    startedDisconnected ||
+    !bitcraftConnected.value ||
+    startedRevision !== disconnectRevision;
   loading.value = true;
   error.value = "";
   // Keep the current tracker mounted while its saved setup or filters load.
@@ -90,6 +112,18 @@ async function load(refreshMarket = true) {
       { refreshMarket },
     );
     if (request !== generation) return;
+    const readError =
+      props.error ||
+      props.snapshot?.error ||
+      props.playerError ||
+      props.nearbyError ||
+      props.inventory?.error;
+    if (
+      readError &&
+      (interrupted() || isConnectionReadError({ message: readError }))
+    )
+      readRecovery.failed();
+    else readRecovery.succeeded();
     currentProps.value = props;
     renderedKey.value = requestKey;
     renderedPage = requestPage;
@@ -100,10 +134,17 @@ async function load(refreshMarket = true) {
     pageState.props = { ...pageState.props, ...props };
     pageState.url = route.fullPath;
   } catch (failure) {
-    if (request === generation)
+    if (request === generation) {
       error.value = failure.message ?? "This tool could not load.";
+      if (interrupted() || isConnectionReadError(failure))
+        readRecovery.failed();
+      else readRecovery.succeeded();
+    }
   } finally {
-    if (request === generation) loading.value = false;
+    if (request === generation) {
+      loading.value = false;
+      readRecovery.schedule();
+    }
   }
 }
 let marketSubscription = 0,
@@ -146,7 +187,10 @@ watch(
 setPageLoader(() => trackPageLoad(load()));
 watch(
   () => route.fullPath,
-  () => trackPageLoad(load()),
+  () => {
+    readRecovery.succeeded();
+    return trackPageLoad(load());
+  },
   { immediate: true },
 );
 const profileTimer = setInterval(async () => {

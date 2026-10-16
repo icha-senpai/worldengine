@@ -4,7 +4,10 @@ import type { Catalog } from "./bindings/evergather/types";
 import { user, localPlay } from "./auth";
 import { definitionTables, panelDefinitionQueries } from "./evergather/catalog";
 import { createConnectionRecovery } from "./connectionRecovery";
-import { recordPageLifecycle } from "./pageLifecycle";
+import {
+  recordConnectionLifecycle,
+  recordPageLifecycle,
+} from "./pageLifecycle";
 import { spacetimeHost } from "./spacetimeHost";
 import { loadMarketPage, marketListingsFor } from "./evergather/market";
 export const evergather = shallowRef<DbConnection | null>(null);
@@ -402,22 +405,32 @@ export function initializeEvergather(enabled: Ref<boolean>) {
                 "Your view could not be restored. Reconnect before taking an action.";
             });
         })
-        .onConnectError((_ctx, _error, nextAttempt) => {
+        .onConnectError((_ctx, error, nextAttempt, delayMs) => {
           if (currentGeneration === generation) {
             connectionPending = false;
             evergatherReconnecting.value =
               nextAttempt !== undefined || retryInitial;
-            recordPageLifecycle("evergather-connect-failed");
+            recordConnectionLifecycle(
+              "evergather-connect-failed",
+              error,
+              nextAttempt,
+              delayMs,
+            );
             evergatherError.value = localPlay
               ? "Evergather could not connect. Check that the database is running and local play is enabled."
               : "Evergather could not connect. Please try signing in again.";
             if (retryInitial && nextAttempt === undefined) recovery.schedule();
           }
         })
-        .onDisconnect((_ctx, _error, nextAttempt) => {
+        .onDisconnect((_ctx, error, nextAttempt, delayMs) => {
           if (currentGeneration === generation) {
             connectionPending = false;
-            recordPageLifecycle("evergather-disconnected");
+            recordConnectionLifecycle(
+              "evergather-disconnected",
+              error,
+              nextAttempt,
+              delayMs,
+            );
             evergatherConnected.value = false;
             coreApplied = false;
             evergatherReconnecting.value = nextAttempt !== undefined;

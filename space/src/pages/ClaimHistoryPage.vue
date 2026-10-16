@@ -9,6 +9,7 @@ import Modal from "../bitcraft-ui/shared/Modal.vue";
 import ClaimHistoryEvents from "../bitcraft-ui/Components/ClaimHistoryEvents.vue";
 import { Star } from "@lucide/vue";
 import { live } from "../bitcraft-ui/api";
+import { useBitcraftReadRecovery } from "../bitcraft-ui/useBitcraftReadRecovery";
 import {
   CLAIM_PERMISSIONS,
   permissionFlags,
@@ -316,6 +317,20 @@ async function refresh() {
   await Promise.all([loadList(), loadStars()]);
 }
 let changeSubscription, changeConnection, changeTimer;
+let subscribingChanges = false;
+const changeRecovery = useBitcraftReadRecovery(
+  subscribeChanges,
+  () => !disposed && !subscribingChanges && !changeSubscription,
+);
+function closeChanges() {
+  if (changeSubscription && !changeSubscription.isEnded())
+    changeSubscription.unsubscribe();
+  changeSubscription = undefined;
+  changeConnection?.db.claimChanges.removeOnInsert(scheduleLiveRefresh);
+  changeConnection?.db.claimChanges.removeOnUpdate(scheduleLiveRefresh);
+  changeConnection?.db.claimChanges.removeOnDelete(scheduleLiveRefresh);
+  changeConnection = undefined;
+}
 function scheduleLiveRefresh() {
   clearTimeout(changeTimer);
   changeTimer = setTimeout(() => {
@@ -325,20 +340,42 @@ function scheduleLiveRefresh() {
   }, 100);
 }
 async function subscribeChanges() {
-  const conn = await connectBitcraft();
-  if (disposed) return;
-  changeConnection = conn;
-  conn.db.claimChanges.onInsert(scheduleLiveRefresh);
-  conn.db.claimChanges.onUpdate(scheduleLiveRefresh);
-  conn.db.claimChanges.onDelete(scheduleLiveRefresh);
-  changeSubscription = conn
-    .subscriptionBuilder()
-    .onApplied(scheduleLiveRefresh)
-    .onError(() => {
-      if (!disposed)
-        error.value = "Live claim updates are unavailable. Refresh to retry.";
-    })
-    .subscribe(["SELECT * FROM claim_changes"]);
+  if (disposed || subscribingChanges || changeSubscription) return;
+  subscribingChanges = true;
+  try {
+    const conn = await connectBitcraft();
+    if (disposed) return;
+    changeConnection = conn;
+    conn.db.claimChanges.onInsert(scheduleLiveRefresh);
+    conn.db.claimChanges.onUpdate(scheduleLiveRefresh);
+    conn.db.claimChanges.onDelete(scheduleLiveRefresh);
+    changeSubscription = conn
+      .subscriptionBuilder()
+      .onApplied(() => {
+        if (disposed) return;
+        changeRecovery.succeeded();
+        scheduleLiveRefresh();
+      })
+      .onError(() => {
+        closeChanges();
+        if (!disposed) {
+          error.value =
+            "Live claim updates are delayed. Reconnecting automatically.";
+          changeRecovery.failed();
+        }
+      })
+      .subscribe(["SELECT * FROM claim_changes"]);
+  } catch {
+    closeChanges();
+    if (!disposed) {
+      error.value =
+        "Live claim updates could not connect. Reconnecting automatically.";
+      changeRecovery.failed();
+    }
+  } finally {
+    subscribingChanges = false;
+    changeRecovery.schedule();
+  }
 }
 async function loadList() {
   const request = ++listRequest;
@@ -502,9 +539,7 @@ watch(group, () => {
 });
 onMounted(() => {
   void refresh();
-  void subscribeChanges().catch(() => {
-    if (!disposed) error.value = "Live claim updates could not connect.";
-  });
+  void subscribeChanges();
   interval = setInterval(() => {
     activityClock.value = Date.now();
     if (!activityLoading.value && Date.now() - activityChecked >= 60_000)
@@ -526,10 +561,7 @@ onBeforeUnmount(() => {
   clearTimeout(debounce);
   clearInterval(interval);
   clearTimeout(changeTimer);
-  changeSubscription?.unsubscribe();
-  changeConnection?.db.claimChanges.removeOnInsert(scheduleLiveRefresh);
-  changeConnection?.db.claimChanges.removeOnUpdate(scheduleLiveRefresh);
-  changeConnection?.db.claimChanges.removeOnDelete(scheduleLiveRefresh);
+  closeChanges();
 });
 </script>
 <template>

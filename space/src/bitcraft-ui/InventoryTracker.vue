@@ -239,6 +239,8 @@ import WidgetSetupDrawer from "./Components/WidgetSetupDrawer.vue";
 import WidgetThemeControls from "./Components/WidgetThemeControls.vue";
 import WidgetPageShell from "./Components/WidgetPageShell.vue";
 import TrackerRefreshStatus from "./Components/TrackerRefreshStatus.vue";
+import { bitcraftConnected } from "../bitcraft";
+import { useTrackerSnapshot } from "./useTrackerSnapshot";
 import { createTrackerPoller, retryAfterSeconds } from "./trackerPolling";
 import {
   normalizeWidgetTheme,
@@ -265,11 +267,15 @@ const page = usePage();
 const POLL_INTERVAL_MS = 15000;
 const STORAGE_KEY = "bitcraft.inventoryTracker.lastSetup";
 
-const tracker = ref(props.snapshot.tracker);
-const options = ref(props.snapshot.options ?? []);
-const error = ref(props.snapshot.error);
-const sampledAt = ref(props.snapshot.sampledAt);
-const refreshStatus = ref(props.snapshot.refresh ?? {});
+const {
+  tracker,
+  options,
+  error,
+  sampledAt,
+  refreshStatus,
+  applySnapshot,
+  markDelayed,
+} = useTrackerSnapshot(props.snapshot, bitcraftConnected);
 const pickerOpen = ref(false);
 const visibleOptionCount = ref(100);
 const pickerElement = ref(null);
@@ -620,7 +626,7 @@ const refresh = async () => {
     });
 
     if (response.status === 429) {
-      refreshStatus.value = { ...refreshStatus.value, delayed: true };
+      markDelayed();
       return retryAfterSeconds(response);
     }
 
@@ -629,32 +635,16 @@ const refresh = async () => {
     }
 
     const payload = await response.json();
-    refreshStatus.value = payload.refresh ?? {};
-    if (payload.tracker) {
-      tracker.value = payload.tracker;
-      sampledAt.value = payload.sampledAt;
-      options.value = payload.options ?? options.value;
-    }
-    error.value = payload.error;
+    applySnapshot(payload);
     return refreshStatus.value.retryAfter ?? 0;
   } catch {
-    error.value =
-      "Tracker refresh failed. Waiting for the next provider check.";
+    markDelayed("Tracker refresh paused. Showing the last available data.");
   }
 };
 
 const polling = createTrackerPoller(refresh, POLL_INTERVAL_MS);
 
-watch(
-  () => props.snapshot,
-  (snapshot) => {
-    tracker.value = snapshot.tracker;
-    options.value = snapshot.options ?? [];
-    error.value = snapshot.error;
-    sampledAt.value = snapshot.sampledAt;
-    refreshStatus.value = snapshot.refresh ?? {};
-  },
-);
+watch(() => props.snapshot, applySnapshot);
 
 watch(form, saveSetup, { deep: true });
 

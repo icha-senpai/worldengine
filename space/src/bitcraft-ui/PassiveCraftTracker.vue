@@ -168,6 +168,8 @@ import WidgetSetupDrawer from "./Components/WidgetSetupDrawer.vue";
 import WidgetThemeControls from "./Components/WidgetThemeControls.vue";
 import WidgetPageShell from "./Components/WidgetPageShell.vue";
 import TrackerRefreshStatus from "./Components/TrackerRefreshStatus.vue";
+import { bitcraftConnected } from "../bitcraft";
+import { useTrackerSnapshot } from "./useTrackerSnapshot";
 import { createTrackerPoller, retryAfterSeconds } from "./trackerPolling";
 import {
   passiveDeadlines,
@@ -194,10 +196,8 @@ const page = usePage();
 const POLL_INTERVAL_MS = 15000;
 const STORAGE_KEY = "bitcraft.passiveCraftTracker.lastSetup";
 
-const tracker = ref(props.snapshot.tracker);
-const error = ref(props.snapshot.error);
-const sampledAt = ref(props.snapshot.sampledAt);
-const refreshStatus = ref(props.snapshot.refresh ?? {});
+const { tracker, error, sampledAt, refreshStatus, applySnapshot, markDelayed } =
+  useTrackerSnapshot(props.snapshot, bitcraftConnected);
 const now = ref(Date.now());
 const deadlines = ref(
   passiveDeadlines(tracker.value?.groups, new Map(), now.value),
@@ -314,11 +314,19 @@ const estimatedFinishLabel = (entry) => {
     minute: "2-digit",
   }).format(new Date(finish));
 };
-const updateTracker = (value) => {
-  now.value = Date.now();
-  deadlines.value = passiveDeadlines(value?.groups, deadlines.value, now.value);
-  tracker.value = value;
-};
+watch(
+  tracker,
+  (value, previous) => {
+    now.value = Date.now();
+    const samePlayer = value?.player?.entityId === previous?.player?.entityId;
+    deadlines.value = passiveDeadlines(
+      value?.groups,
+      samePlayer ? deadlines.value : new Map(),
+      now.value,
+    );
+  },
+  { flush: "sync" },
+);
 const claimName = (group) =>
   group?.claim?.name ||
   (group?.claimEntityId ? `Claim ${group.claimEntityId}` : "Unknown claim");
@@ -459,7 +467,7 @@ const refresh = async () => {
     });
 
     if (response.status === 429) {
-      refreshStatus.value = { ...refreshStatus.value, delayed: true };
+      markDelayed();
       return retryAfterSeconds(response);
     }
 
@@ -468,29 +476,16 @@ const refresh = async () => {
     }
 
     const payload = await response.json();
-    refreshStatus.value = payload.refresh ?? {};
-    if (payload.tracker) {
-      updateTracker(payload.tracker);
-      sampledAt.value = payload.sampledAt;
-    }
-    error.value = payload.error;
+    applySnapshot(payload);
     return refreshStatus.value.retryAfter ?? 0;
   } catch {
-    error.value = "Tracker refresh failed. Waiting for the next Relay check.";
+    markDelayed("Tracker refresh paused. Showing the last available data.");
   }
 };
 
 const polling = createTrackerPoller(refresh, POLL_INTERVAL_MS);
 
-watch(
-  () => props.snapshot,
-  (snapshot) => {
-    updateTracker(snapshot.tracker);
-    error.value = snapshot.error;
-    sampledAt.value = snapshot.sampledAt;
-    refreshStatus.value = snapshot.refresh ?? {};
-  },
-);
+watch(() => props.snapshot, applySnapshot);
 
 watch(
   () => props.filters,

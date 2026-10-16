@@ -205,6 +205,69 @@ try {
       `XP ${mode}: ${name}${reconnecting ? " during reconnect" : ""} renders ${percent}% successfully.`,
     );
   }
+  const connection = await import(fixtures.bitcraft);
+  connection.bitcraftConnected.value = false;
+  const item = {
+    key: "item:1",
+    name: "Fixture Planks",
+    quantity: 40,
+    need: 100,
+    remaining: 60,
+    sources: [],
+    tier: 2,
+  };
+  for (const [name, tracker, text] of [
+    [
+      "InventoryTracker",
+      { player: { entityId: "20", username: "Icha" }, items: [item] },
+      "40 / 100",
+    ],
+    [
+      "PassiveCraftTracker",
+      {
+        player: { entityId: "20", username: "Icha" },
+        crafts: [],
+        groups: [
+          {
+            key: "craft",
+            name: "Fixture Planks",
+            output: item,
+            totalOutputQuantity: 5,
+            estimatedRemainingSeconds: 120,
+            timerSource: "recipe",
+            outputs: [],
+          },
+        ],
+      },
+      "2m 0s left",
+    ],
+  ]) {
+    const component = await compile(`src/bitcraft-ui/${name}.vue`, name);
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(component, {
+            filters: { setup: false, character: "Icha", widgetEditable: false },
+            snapshot: {
+              tracker,
+              sampledAt: "2026-10-16T18:00:00Z",
+              refresh: {},
+            },
+            snapshotUrl: "/fixture-snapshot",
+          }),
+      }),
+    );
+    assert(html.includes("Refresh delayed."), `${name}: disconnected status`);
+    assert(html.includes("Fixture Planks"), `${name}: last known item/craft`);
+    assert(html.includes(text), `${name}: last known quantity/timer`);
+    assert(
+      html.includes('datetime="2026-10-16T18:00:00Z"'),
+      `${name}: observation timestamp`,
+    );
+    console.log(
+      `${name}: retained data and delayed status render successfully.`,
+    );
+  }
 } finally {
   await rm(renderDirectory, { recursive: true, force: true });
 }
