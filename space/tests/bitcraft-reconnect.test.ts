@@ -44,6 +44,9 @@ vi.mock("../src/bindings/bitcraft", () => ({
             isActive: true,
             isSocketClosed: false,
             isReconnecting: false,
+            procedures: {
+              requestData: vi.fn().mockResolvedValue({ payload: "fixture" }),
+            },
             db: {
               collectionFeed: table(),
               marketStatus: table(),
@@ -123,7 +126,15 @@ it("keeps the connection and watched subscriptions through SDK recovery, includi
   attempt.callbacks.closed(first, Error("Network lost"), 1, 1000);
   expect(app.bitcraftConnected.value).toBe(false);
   expect(app.bitcraftReconnecting.value).toBe(true);
-  expect(await app.connectBitcraft()).toBe(first);
+  let recovered = false;
+  const waiting = app.connectBitcraft().then((conn) => {
+    recovered = true;
+    return conn;
+  });
+  const request = app.requestData("regions");
+  await Promise.resolve();
+  expect(recovered).toBe(false);
+  expect(first.procedures.requestData).not.toHaveBeenCalled();
   closeMarket();
   expect(attempt.subscriptions[2].unsubscribe).toHaveBeenCalledOnce();
   await vi.advanceTimersByTimeAsync(30000);
@@ -132,13 +143,45 @@ it("keeps the connection and watched subscriptions through SDK recovery, includi
   first.isSocketClosed = false;
   first.isReconnecting = false;
   attempt.callbacks.reconnected(first, {}, "retained-browser-identity");
+  await Promise.resolve();
+  expect(recovered).toBe(false);
+  expect(first.procedures.requestData).not.toHaveBeenCalled();
   attempt.subscriptions[0].applied();
   expect(app.bitcraftConnected.value).toBe(true);
   expect(app.bitcraftReconnecting.value).toBe(false);
+  expect(await waiting).toBe(first);
+  await expect(request).resolves.toEqual({ payload: "fixture" });
+  expect(first.procedures.requestData).toHaveBeenCalledOnce();
   expect(attempt.subscriptions[1].queries[0]).toContain(
     "relaySkills|player/1/skills",
   );
   expect(attempt.subscriptions[1].unsubscribe).not.toHaveBeenCalled();
   expect(first.db.collectionFeed.onInsert).toHaveBeenCalledOnce();
   expect(await app.connectBitcraft()).toBe(first);
+
+  first.isActive = false;
+  first.isSocketClosed = true;
+  first.isReconnecting = true;
+  attempt.callbacks.closed(
+    first,
+    Error("WebSocket closed (code 1006: private token must not be stored)"),
+    1,
+    1000,
+  );
+  const timedOut = app.requestData("regions");
+  const rejected = expect(timedOut).rejects.toThrow("still reconnecting");
+  await vi.advanceTimersByTimeAsync(60000);
+  await rejected;
+  expect(fake.attempts).toHaveLength(1);
+  expect(first.procedures.requestData).toHaveBeenCalledOnce();
+  const retry = app.connectBitcraft();
+  const terminal = expect(retry).rejects.toThrow("Refresh to reconnect");
+  first.isReconnecting = false;
+  attempt.callbacks.closed(first, Error("WebSocket closed (code 1008)"));
+  await terminal;
+  const trail = JSON.parse(values.get("space.pageLifecycle")!);
+  expect(
+    trail.some((e: any) => e.closeCode === 1006 && e.retryAttempt === 1),
+  ).toBe(true);
+  expect(JSON.stringify(trail)).not.toContain("private token");
 });

@@ -19,6 +19,9 @@ const fixtures = {
   api: data(
     'export const bitcraftFetch=()=>{throw Error("Unexpected network access during render")};',
   ),
+  bitcraft: data(
+    `import {ref} from ${JSON.stringify(import.meta.resolve("vue"))};export const bitcraftConnected=ref(true);export const bitcraftReconnecting=ref(false);`,
+  ),
   widgets: data(
     'export const openWidget=()=>{};export const widgetUrl=async()=>"";export const persistWidgetDraft=()=>{};',
   ),
@@ -51,6 +54,7 @@ try {
         if (source === "vue" || source === "vue/server-renderer")
           target = import.meta.resolve(source);
         else if (source === "/src/bitcraft-ui/api") target = fixtures.api;
+        else if (source === "../bitcraft") target = fixtures.bitcraft;
         else if (source === "/src/bitcraft-ui/navigation")
           target = fixtures.navigation;
         else if (source === "./widgets") target = fixtures.widgets;
@@ -70,9 +74,13 @@ try {
         else if (source.endsWith("TrackerRefreshStatus.vue"))
           target = pathToFileURL(resolve(renderDirectory, "status.mjs")).href;
         else if (source.endsWith("BitcraftTierBadge.vue"))
-          target = pathToFileURL(resolve(renderDirectory, "tier-badge.mjs")).href;
+          target = pathToFileURL(
+            resolve(renderDirectory, "tier-badge.mjs"),
+          ).href;
         else if (source === "/src/bitcraft-ui/bitjitaAssets.js")
-          target = pathToFileURL(resolve("src/bitcraft-ui/bitjitaAssets.js")).href;
+          target = pathToFileURL(
+            resolve("src/bitcraft-ui/bitjitaAssets.js"),
+          ).href;
         else
           target = pathToFileURL(
             resolve("src/bitcraft-ui", source + ".js"),
@@ -106,13 +114,15 @@ try {
     { name: "goal reached", xp: 2000000, targetXp: 2000000, percent: 100 },
     { name: "goal exceeded", xp: 2000001, targetXp: 2000000, percent: 100 },
   ];
-  for (const { mode, name, xp, targetXp, percent } of [
-    "full",
-    "popout",
-    "obs",
-  ].flatMap((mode) =>
-    progressCases.map((scenario) => ({ mode, ...scenario })),
-  )) {
+  for (const { mode, name, xp, targetXp, percent, reconnecting = false } of [
+    ...["full", "popout", "obs"].flatMap((mode) =>
+      progressCases.map((scenario) => ({ mode, ...scenario })),
+    ),
+    { mode: "full", ...progressCases[0], reconnecting: true },
+  ]) {
+    const connection = await import(fixtures.bitcraft);
+    connection.bitcraftConnected.value = !reconnecting;
+    connection.bitcraftReconnecting.value = reconnecting;
     const html = await renderToString(
       createSSRApp({
         render: () =>
@@ -154,6 +164,7 @@ try {
                 ],
                 activity: {
                   signed_in: true,
+                  stamina: { current: 40, max: 100 },
                   actions: [
                     { action_type: "Craft", ends_at_ms: Date.now() - 6000 },
                   ],
@@ -177,6 +188,9 @@ try {
       `${mode}: ${name} remaining XP`,
     );
     assert(html.includes("Session XP"));
+    assert(html.includes("Stamina 40 / 100"));
+    assert(html.includes(reconnecting ? "Last known activity" : "Signed in"));
+    if (reconnecting) assert(html.includes("Refresh delayed"));
     assert(html.includes('class="xp-working">Craft</p>'));
     assert(!html.includes("Add tracked character"));
     if (mode === "obs") {
@@ -187,7 +201,9 @@ try {
       assert(html.includes("Reset session"));
       assert(html.includes("Tracked characters"));
     }
-    console.log(`XP ${mode}: ${name} renders ${percent}% successfully.`);
+    console.log(
+      `XP ${mode}: ${name}${reconnecting ? " during reconnect" : ""} renders ${percent}% successfully.`,
+    );
   }
 } finally {
   await rm(renderDirectory, { recursive: true, force: true });

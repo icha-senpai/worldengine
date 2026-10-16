@@ -1,6 +1,9 @@
 import { ref } from "vue";
 import { DbConnection } from "./bindings/bitcraft";
-import { recordPageLifecycle } from "./pageLifecycle";
+import {
+  recordConnectionLifecycle,
+  recordPageLifecycle,
+} from "./pageLifecycle";
 import { spacetimeHost } from "./spacetimeHost";
 import { createConnectionRecovery } from "./connectionRecovery";
 export const bitcraftConnected = ref(false);
@@ -10,6 +13,54 @@ let connection: DbConnection | null = null;
 let connecting: Promise<DbConnection> | null = null;
 let disposed = false;
 let retryInitial = false;
+let readiness: {
+  conn: DbConnection;
+  promise: Promise<DbConnection>;
+  resolve: (conn: DbConnection) => void;
+  reject: (error: Error) => void;
+  timer: ReturnType<typeof setTimeout>;
+} | null = null;
+function finishReadiness(conn: DbConnection, error?: Error) {
+  if (readiness?.conn !== conn) return;
+  const pending = readiness;
+  readiness = null;
+  clearTimeout(pending.timer);
+  if (error) pending.reject(error);
+  else pending.resolve(conn);
+}
+function waitForReadiness(conn: DbConnection): Promise<DbConnection> {
+  if (
+    conn === connection &&
+    conn.isActive &&
+    !conn.isSocketClosed &&
+    bitcraftConnected.value &&
+    !bitcraftReconnecting.value
+  )
+    return Promise.resolve(conn);
+  if (readiness?.conn === conn) return readiness.promise;
+  if (readiness)
+    finishReadiness(
+      readiness.conn,
+      new Error("The live data connection was replaced."),
+    );
+  let resolve!: (conn: DbConnection) => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<DbConnection>((done, fail) => {
+    resolve = done;
+    reject = fail;
+  });
+  const timer = setTimeout(() => {
+    recordPageLifecycle("bitcraft-readiness-timeout");
+    finishReadiness(
+      conn,
+      new Error(
+        "Live data is still reconnecting. Waiting for the next refresh.",
+      ),
+    );
+  }, 60000);
+  readiness = { conn, promise, resolve, reject, timer };
+  return promise;
+}
 // The SDK handles established connections. Only a failed first connection
 // needs an application retry, because SDK auto-reconnect deliberately excludes it.
 const initialRecovery = createConnectionRecovery(
@@ -21,6 +72,11 @@ const initialRecovery = createConnectionRecovery(
 import.meta.hot?.dispose(() => {
   disposed = true;
   initialRecovery.stop();
+  if (readiness)
+    finishReadiness(
+      readiness.conn,
+      new Error("The live data connection was closed."),
+    );
   connection?.disconnect();
 });
 const identityKey = `space.bitcraft.identity:${import.meta.env.VITE_SPACETIMEDB_HOST || "local"}:${import.meta.env.VITE_BITCRAFT_DATABASE || "space-bitcraft-tools"}`;
@@ -29,9 +85,9 @@ export function connectBitcraft(): Promise<DbConnection> {
     connection?.isReconnecting ||
     (connection?.isActive && !connection.isSocketClosed)
   )
-    return Promise.resolve(connection);
+    return waitForReadiness(connection);
   if (connection?.isSocketClosed) connection.disconnect();
-  if (connecting) return connecting;
+  if (connecting) return connecting.then(waitForReadiness);
   connecting = new Promise((resolve, reject) => {
     let attempt: DbConnection;
     const timeout = setTimeout(() => {
@@ -74,6 +130,7 @@ export function connectBitcraft(): Promise<DbConnection> {
             bitcraftConnected.value = true;
             bitcraftReconnecting.value = false;
             bitcraftError.value = "";
+            finishReadiness(conn);
             window.dispatchEvent(new Event("bitcraft-data-updated"));
           })
           .subscribe(["SELECT * FROM market_status WHERE key = 'market'"]);
@@ -83,35 +140,51 @@ export function connectBitcraft(): Promise<DbConnection> {
         localStorage.setItem(identityKey, token);
         recordPageLifecycle("bitcraft-reconnected");
       })
-      .onConnectError((_ctx, error, nextAttempt) => {
+      .onConnectError((_ctx, error, nextAttempt, delayMs) => {
         clearTimeout(timeout);
         if (connection !== attempt) return;
+        recordConnectionLifecycle(
+          "bitcraft-connect-failed",
+          error,
+          nextAttempt,
+          delayMs,
+        );
         if (nextAttempt !== undefined) {
           bitcraftReconnecting.value = true;
           return;
         }
-        recordPageLifecycle("bitcraft-connect-failed");
         bitcraftError.value = "The live data connection is unavailable.";
         connecting = null;
         reject(error);
+        finishReadiness(
+          attempt,
+          new Error("The live data connection is unavailable."),
+        );
         if (retryInitial) initialRecovery.schedule();
       })
-      .onDisconnect((_ctx, _error, nextAttempt) => {
+      .onDisconnect((_ctx, error, nextAttempt, delayMs) => {
         clearTimeout(timeout);
         if (connection !== attempt) return;
         reject(new Error("The live data connection closed."));
-        recordPageLifecycle("bitcraft-disconnected");
+        recordConnectionLifecycle(
+          "bitcraft-disconnected",
+          error,
+          nextAttempt,
+          delayMs,
+        );
         bitcraftConnected.value = false;
         bitcraftReconnecting.value = nextAttempt !== undefined;
-        if (nextAttempt === undefined)
+        if (nextAttempt === undefined) {
           bitcraftError.value =
             "The live data connection closed. Refresh to reconnect.";
+          finishReadiness(attempt, new Error(bitcraftError.value));
+        }
         connecting = null;
       })
       .build();
     retryInitial = true;
   });
-  return connecting;
+  return connecting.then(waitForReadiness);
 }
 export async function requestData(
   resource: string,

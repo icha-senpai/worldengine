@@ -243,7 +243,11 @@
           v-if="tracker?.activity && form.showActivity"
           class="activity-widget__warning"
         >
-          {{ tracker.activity.signed_in ? "Signed in" : "Last known activity" }}
+          {{
+            tracker.activity.signed_in && !activityDelayed
+              ? "Signed in"
+              : "Last known activity"
+          }}
           <template v-if="tracker.activity.stamina">
             · Stamina {{ Math.round(tracker.activity.stamina.current) }} /
             {{ Math.round(tracker.activity.stamina.max) }}
@@ -251,9 +255,7 @@
           <template v-if="tracker.activity.target?.name">
             · {{ tracker.activity.target.name }}</template
           >
-          <template v-if="tracker.activity.delayed">
-            · Refresh delayed</template
-          >
+          <template v-if="activityDelayed"> · Refresh delayed</template>
         </p>
 
         <div v-if="blockingError" class="activity-widget__error">
@@ -512,6 +514,8 @@ import WidgetSetupDrawer from "./Components/WidgetSetupDrawer.vue";
 import WidgetThemeControls from "./Components/WidgetThemeControls.vue";
 import WidgetPageShell from "./Components/WidgetPageShell.vue";
 import TrackerRefreshStatus from "./Components/TrackerRefreshStatus.vue";
+import { retainActivityTracker } from "./activitySnapshot";
+import { bitcraftConnected, bitcraftReconnecting } from "../bitcraft";
 import { createTrackerPoller, retryAfterSeconds } from "./trackerPolling";
 import {
   activitySkillRate,
@@ -548,6 +552,13 @@ const tracker = ref(props.snapshot.tracker);
 const error = ref(props.snapshot.error);
 const sampledAt = ref(props.snapshot.sampledAt);
 const refreshStatus = ref(props.snapshot.refresh ?? {});
+const activityDelayed = computed(
+  () =>
+    tracker.value?.activity?.delayed ||
+    refreshStatus.value.delayed ||
+    bitcraftReconnecting.value ||
+    !bitcraftConnected.value,
+);
 const samples = ref([]);
 const now = ref(new Date());
 const passiveCraftGroups = computed(
@@ -1005,10 +1016,13 @@ const refresh = async () => {
     }
 
     const payload = await response.json();
-    refreshStatus.value = payload.refresh ?? {};
+    refreshStatus.value = {
+      ...payload.refresh,
+      delayed: Boolean(payload.refresh?.delayed || !payload.tracker),
+    };
+    tracker.value = retainActivityTracker(tracker.value, payload.tracker);
 
     if (payload.tracker) {
-      tracker.value = payload.tracker;
       sampledAt.value = payload.sampledAt;
       addSample(
         payload.tracker,
@@ -1022,8 +1036,9 @@ const refresh = async () => {
     error.value = payload.error;
     return refreshStatus.value.retryAfter ?? 0;
   } catch {
-    error.value =
-      "Tracker refresh failed. Waiting for the next provider check.";
+    tracker.value = retainActivityTracker(tracker.value, null);
+    refreshStatus.value = { ...refreshStatus.value, delayed: true };
+    error.value = "Tracker refresh paused. Showing the last available data.";
   }
 };
 
@@ -1348,10 +1363,13 @@ const closePickerOnOutsidePointer = (event) => {
 watch(
   () => props.snapshot,
   (snapshot) => {
-    tracker.value = snapshot.tracker;
+    tracker.value = retainActivityTracker(tracker.value, snapshot.tracker);
     error.value = snapshot.error;
-    sampledAt.value = snapshot.sampledAt;
-    refreshStatus.value = snapshot.refresh ?? {};
+    if (snapshot.tracker) sampledAt.value = snapshot.sampledAt;
+    refreshStatus.value = {
+      ...snapshot.refresh,
+      delayed: Boolean(snapshot.refresh?.delayed || !snapshot.tracker),
+    };
     addSample(
       snapshot.tracker,
       snapshot.sampledAt,

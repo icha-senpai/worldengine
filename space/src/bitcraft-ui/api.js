@@ -1007,7 +1007,7 @@ export async function trackerSnapshot(tool, filters) {
       error: error.message,
       sampledAt,
       refresh: {
-        delayed: Boolean(error.retryAfter),
+        delayed: true,
         retryAfter: error.retryAfter ?? 0,
       },
     };
