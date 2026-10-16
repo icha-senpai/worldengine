@@ -1,5 +1,6 @@
 import { CURRENT_REGIONS } from "./relay-trading";
 import { claimSupplyEstimate, type ClaimSupply } from "./claim-supplies";
+import { observeClaimDecay, type ClaimDecayTiming } from "./claim-decay";
 
 export const HISTORY_DAYS = 30;
 export const HISTORY_EVENT_LIMIT = 50_000;
@@ -642,6 +643,11 @@ export function ingestClaimSupplies(
     throw Error("Invalid claim supply batch.");
   const seen = new Set();
   let changed = false;
+  const decayRow = ctx.db.claimDecayRegion.key.find(String(args.regionId));
+  let decay: ClaimDecayTiming | null = decayRow
+    ? JSON.parse(decayRow.payload)
+    : null;
+  const previousDecay = decay;
   for (const change of rows) {
     if (!/^\d{1,24}$/.test(change.claimId) || seen.has(change.claimId))
       throw Error("Invalid claim supply ID.");
@@ -679,6 +685,9 @@ export function ingestClaimSupplies(
           supply.tickMillis > 86_400_000))
     )
       throw Error("Invalid claim supplies.");
+    const oldSupply: ClaimSupply | null = previous
+      ? JSON.parse(previous.payload)
+      : null;
     const payload = JSON.stringify(supply);
     if (payload.length > 1000)
       throw Error("Claim supplies exceed their budget.");
@@ -687,6 +696,16 @@ export function ingestClaimSupplies(
     // freshness comes from the recording heartbeat, separate from value age.
     if (previous?.payload === payload && previous.epoch === args.epoch)
       continue;
+    if (previous?.epoch === args.epoch)
+      decay = observeClaimDecay(
+        decay,
+        oldSupply!,
+        supply,
+        args.epoch,
+        Number(args.observedAt / 1000n),
+        Number(previous.observedAt / 1000n),
+        Number(ctx.timestamp.microsSinceUnixEpoch / 1000n),
+      );
     const row = {
       key,
       regionId: args.regionId,
@@ -702,6 +721,11 @@ export function ingestClaimSupplies(
     }
     changed = true;
   }
+  if (decay !== previousDecay) {
+    const row = { key: String(args.regionId), payload: JSON.stringify(decay) };
+    if (decayRow) ctx.db.claimDecayRegion.key.update(row);
+    else ctx.db.claimDecayRegion.insert(row);
+  }
   refreshClaimRevision(ctx, args.regionId, changed);
 }
 
@@ -716,6 +740,7 @@ function trackedClaimSummary(
   const supply = supplyRow
     ? (JSON.parse(supplyRow.payload) as ClaimSupply)
     : null;
+  const decay = ctx.db.claimDecayRegion.key.find(String(row.regionId));
   return {
     id: state.id,
     name: state.name,
@@ -737,6 +762,8 @@ function trackedClaimSummary(
       !!recording?.ready &&
         supplyRow?.epoch ===
           ctx.db.claimHistoryRegion.key.find(String(row.regionId))?.epoch,
+      decay ? JSON.parse(decay.payload) : null,
+      ctx.db.claimHistoryRegion.key.find(String(row.regionId))?.epoch ?? "",
     ),
   };
 }

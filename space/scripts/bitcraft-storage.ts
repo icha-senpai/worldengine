@@ -25,6 +25,7 @@ import {
 export const STORAGE_TARGET = 2_000_000_000;
 export const STORAGE_BUDGET = 3_000_000_000;
 const managedTables = new Set([
+  "claim_decay_region",
   "boss_defeat", // Bounded encounter details; retained in checkpoint pages.
   "boss_score", // Compact totals survive encounter expiry and maintenance.
   "boss_totals",

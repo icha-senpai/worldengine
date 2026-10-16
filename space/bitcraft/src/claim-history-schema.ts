@@ -1,5 +1,10 @@
 import { table, t } from "spacetimedb/server";
 
+export const claimDecayRegion = table(
+  { name: "claim_decay_region" },
+  { key: t.string().primaryKey(), payload: t.string() },
+);
+
 // Small persisted invalidation state, separate from recording heartbeats.
 export const claimRevision = table(
   { name: "claim_revision" },

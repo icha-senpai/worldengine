@@ -23,6 +23,7 @@
     "test:relay-server": "tsx scripts/relay-server-test.ts",
     "test:relay-live": "tsx scripts/relay-smoke-test.ts",
     "test:claims-server": "tsx scripts/claim-history-server-test.ts",
+    "test:claim-decay-server": "tsx scripts/claim-decay-server-test.ts",
     "test:claims-live": "tsx scripts/claim-history-live-check.ts",
     "bitcraft:claims-status": "tsx scripts/claim-history-status.ts",
     "test:xp-render": "node scripts/xp-render-check.mjs",

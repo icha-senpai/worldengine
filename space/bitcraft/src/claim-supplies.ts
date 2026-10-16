@@ -1,3 +1,5 @@
+import { claimDecayForecast, type ClaimDecayTiming } from "./claim-decay";
+
 export type ClaimSupply = {
   claimId: string;
   supplies: number;
@@ -50,13 +52,26 @@ export function claimSupplyEstimate(
   observedAt: bigint,
   now: bigint,
   ready: boolean,
+  timing: ClaimDecayTiming | null = null,
+  epoch = "",
 ) {
   const rate = supply?.upkeepPerHour ?? null;
+  const decay = claimDecayForecast(
+    timing,
+    supply,
+    Number(observedAt / 1000n),
+    Number(now / 1000n),
+    ready,
+    epoch,
+  );
   const expiresAt =
-    supply && supply.supplies > 0 && rate !== null && rate > 0
+    decay.expiresAt ??
+    (supply && supply.supplies > 0 && rate !== null && rate > 0
       ? Number(observedAt / 1000n) + (supply.supplies / rate) * 3_600_000
-      : null;
+      : null);
   return {
+    ...decay,
+    estimateBasis: decay.expiresAt !== null ? "regional_tick" : "hourly_rate",
     supplies: supply?.supplies ?? null,
     upkeepPerHour: rate,
     tileCount: supply?.tileCount ?? null,

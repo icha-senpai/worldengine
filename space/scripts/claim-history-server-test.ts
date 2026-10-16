@@ -36,6 +36,7 @@ const publish = (artifact: string) =>
     "--no-config",
   ]);
 const historyTables = new Set([
+  "claim_decay_region",
   "claim_supply_status",
   "claim_history_state",
   "claim_history_event",

@@ -1,5 +1,6 @@
 // Latest state only. Scheduling leases, raw frames and API responses are excluded.
 export const marketCheckpointTables = {
+  claim_decay_region: "claimDecayRegion",
   boss_defeat: "bossDefeat",
   boss_score: "bossScore",
   boss_totals: "bossTotals",

@@ -12,6 +12,7 @@ import {
   claimHistoryRegion,
   claimSupplyStatus,
   claimRevision,
+  claimDecayRegion,
 } from "./claim-history-schema";
 import {
   ingestClaimHistory as saveClaimHistory,
@@ -206,6 +207,7 @@ const db = schema({
   bossRegion,
   claimSupplyStatus,
   claimRevision,
+  claimDecayRegion,
   claimHistoryState,
   claimHistoryEvent,
   claimHistoryRegion,

@@ -87,6 +87,12 @@ export type ClaimChangeRevisionRow = __Infer<typeof ClaimChangeRevisionRow>;
 export const ClaimChanges = __t.object("ClaimChanges", {});
 export type ClaimChanges = __Infer<typeof ClaimChanges>;
 
+export const ClaimDecayRegion = __t.object("ClaimDecayRegion", {
+  key: __t.string(),
+  payload: __t.string(),
+});
+export type ClaimDecayRegion = __Infer<typeof ClaimDecayRegion>;
+
 export const ClaimHistoryEvent = __t.object("ClaimHistoryEvent", {
   key: __t.string(),
   regionId: __t.u32(),

@@ -825,6 +825,19 @@ onBeforeUnmount(() => {
                 : "Supply estimates are awaiting a current reading."
             }}
           </p>
+          <p v-else-if="currentClaim.decayTimingStatus === 'observed'">
+            Next estimated supply decay:
+            {{ timestamp(currentClaim.nextDecayAt) }}. Regional timing observed
+            across {{ currentClaim.decayConfirmations }} claims.
+          </p>
+          <p
+            v-else-if="
+              currentClaim.supplies > 0 && currentClaim.upkeepPerHour > 0
+            "
+          >
+            Learning regional decay timing. Run-out currently uses hourly
+            upkeep.
+          </p>
         </div>
         <nav
           class="tabs ui-tabs"
