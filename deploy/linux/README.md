@@ -22,6 +22,10 @@ Use `node deploy/linux/install-user-services.mjs` as the deployment user. The si
 services are installed under `~/.config/systemd/user`; they are not started or
 enabled automatically. No general passwordless sudo permission is added.
 
+The Space collector unit includes `--authorize`: storage maintenance rebuilds its
+temporary authorization table, so the owner must authorize the saved collector
+identity again on each connection. Keep this option when regenerating the unit.
+
 Keep server-only environments outside Git:
 
 | File | Purpose |

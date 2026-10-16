@@ -40,7 +40,8 @@ const units = {
     `${binary} start --data-dir=${space}/.runtime/data --jwt-key-dir=${keys} --listen-addr=127.0.0.1:3100`,
     { condition: `${space}/.runtime/data/control-db` }),
   'dataverse-space-collector.service': unit('Space BitCraft collector and storage guard', space,
-    `${process.execPath} --import tsx scripts/bitcraft-collector.ts`,
+    // Maintenance resets collector authorization; renew it on every connection.
+    `${process.execPath} --import tsx scripts/bitcraft-collector.ts --authorize`,
     { after: 'dataverse-space-db.service', environment: `${space}/.runtime/production-collector.env` }),
   'dataverse-fish-db.service': unit('Fishbound production database', fish,
     `${binary} start --data-dir=${fish}/.local/spacetimedb --jwt-key-dir=${keys} --listen-addr=127.0.0.1:3127`,
