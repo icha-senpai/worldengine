@@ -75,7 +75,8 @@
           </span>
           <span class="crafting-plan__quantity">
             <strong
-              >{{ step.active.gathering ? "Gather" : "Make" }}
+              >{{ step.estimated ? "Est. " : ""
+              }}{{ step.active.gathering ? "Gather" : "Make" }}
               {{
                 formatQuantity(
                   step.active.gathering ? step.quantity : step.produced,
@@ -87,8 +88,10 @@
               {{ step.batches === 1 ? "batch" : "batches" }}</span
             >
             <span v-if="!step.active.gathering && step.produced > step.quantity"
-              >Need {{ formatQuantity(step.quantity) }} ·
-              {{ formatQuantity(step.produced - step.quantity) }} extra</span
+              >{{ step.estimated ? "Estimated need" : "Need" }}
+              {{ formatQuantity(step.quantity) }} ·
+              {{ formatQuantity(step.produced - step.quantity) }}
+              {{ step.estimated ? "estimated extra" : "extra" }}</span
             >
           </span>
         </div>
@@ -163,6 +166,7 @@
           <CraftingRecipeNode
             :recipe="step.recipe"
             :desired-quantity="step.inspectionQuantity"
+            :estimated="step.estimated"
             :path="`${step.path}/inspection`"
             root
             @route-selected="emit('route-selected', $event)"

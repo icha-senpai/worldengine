@@ -8,6 +8,71 @@ import {
   recipeRouteLabel,
 } from "../src/bitcraft-ui/craftingTree.js";
 import { catalogResponse } from "../bitcraft/src/catalog";
+import craftingData from "../bitcraft/src/content/crafting-catalog.json";
+import { defaultRouteIndex } from "../bitcraft/src/crafting/model";
+
+describe("package material alternatives", () => {
+  it("uses normal acquisition routes for every recovered package-only material", () => {
+    let checked = 0;
+    for (const [target, routes] of Object.entries(craftingData.recipes)) {
+      if (
+        !routes.some((r) => r.action === "unpack") ||
+        !routes.some((r) => r.preference !== "secondary")
+      )
+        continue;
+      expect(routes[defaultRouteIndex(routes)].action, target).not.toBe(
+        "unpack",
+      );
+      const reversed = [...routes].reverse();
+      expect(reversed[defaultRouteIndex(reversed)].id, target).toBe(
+        routes[defaultRouteIndex(routes)].id,
+      );
+      checked++;
+    }
+    expect(checked).toBeGreaterThan(137);
+  });
+
+  it("digs clay and smashes stone chunks into pebbles across all ten tiers", () => {
+    for (const category of ["Clay", "Pebbles"]) {
+      const items = catalogResponse(
+        "targets",
+        "",
+        category === "Clay" ? "Clay Lump" : "Pebbles",
+      ).filter(
+        (row) =>
+          row.kind === "item" &&
+          row.category === category &&
+          (category === "Clay" ? /Clay Lump$/ : /Pebbles$/).test(row.name),
+      );
+      expect(items).toHaveLength(10);
+      for (const item of items) {
+        const { recipeTree } = catalogResponse("detail", `item:${item.id}`, "");
+        const route = selectedRecipe(recipeTree[0]);
+        if (category === "Clay") {
+          expect(route.gathering, item.name).toBe(true);
+          expect(route.name, item.name).toBe(`Dig ${item.name}`);
+          expect(route.ingredients).toEqual([]);
+          expect(route.outputQuantity).toBeCloseTo(0.98);
+        } else {
+          expect(route.name, item.name).toMatch(
+            /^Smash .+Stone Chunk into .+Pebbles$/,
+          );
+          expect(route.ingredients[0].kind).toBe("cargo");
+          expect(route.ingredients[0].name, item.name).toBe(
+            item.name.replace("Pebbles", "Stone Chunk"),
+          );
+          const totals = materialTotals(
+            recipeTree,
+            route.outputQuantity * 2,
+            "immediate",
+          );
+          expect(totals[0].quantity).toBe(2);
+        }
+        expect(recipeRouteLabel(route)).toContain("Average yield");
+      }
+    }
+  });
+});
 
 describe("wood log sourcing", () => {
   const logs = catalogResponse("targets", "", "Wood Log").filter(
@@ -61,6 +126,80 @@ describe("wood log sourcing", () => {
   });
 });
 
+describe("Ancient Mortar recipe alternatives", () => {
+  const gypsite = catalogResponse("targets", "", "Gypsite").filter(
+    (row) => row.kind === "item" && row.category === "Gypsite",
+  );
+  const bricks = catalogResponse("targets", "", "Brick").filter(
+    (row) =>
+      row.kind === "item" &&
+      row.category === "Brick" &&
+      !/^Unfired /i.test(row.name),
+  );
+  const usesMortar = (recipe) =>
+    recipe.ingredients.some((item) => item.name === "Ancient Mortar");
+
+  it("defaults all ten Gypsite tiers to gathering instead of consuming bricks and Ancient Mortar", () => {
+    expect(gypsite).toHaveLength(10);
+    for (const item of gypsite) {
+      const root = catalogResponse("detail", `item:${item.id}`, "")
+        .recipeTree[0];
+      expect(selectedRecipe(root).name, item.name).toBe(`Dig ${item.name}`);
+      const alternative = root.alternatives.find(usesMortar);
+      expect(alternative, item.name).toBeDefined();
+      expect(recipeRouteLabel(alternative)).toContain("Uses Ancient Mortar");
+      // The default must not depend on the catalog's alternative ordering.
+      root.alternatives.reverse();
+      expect(selectedRecipe(root).name, item.name).toBe(`Dig ${item.name}`);
+      root.selectedAlternativeIndex = root.alternatives.findIndex(usesMortar);
+      expect(materialTotals([root], 1, "immediate")).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: "Ancient Mortar", quantity: 20 }),
+          expect.objectContaining({
+            name: item.name.replace("Gypsite", "Brick"),
+            quantity: 10,
+          }),
+        ]),
+      );
+    }
+  });
+
+  it("keeps both brick baking routes selectable with their correct output and material quantities", () => {
+    expect(bricks).toHaveLength(10);
+    for (const item of bricks) {
+      const root = catalogResponse("detail", `item:${item.id}`, "")
+        .recipeTree[0];
+      expect(selectedRecipe(root).name, item.name).toBe(`Bake ${item.name}`);
+      expect(selectedRecipe(root).outputQuantity, item.name).toBe(1);
+      expect(usesMortar(selectedRecipe(root)), item.name).toBe(false);
+      expect(
+        materialTotals([root], 3, "immediate").some(
+          (row) => row.name === "Ancient Mortar",
+        ),
+      ).toBe(false);
+      root.selectedAlternativeIndex = root.alternatives.findIndex(usesMortar);
+      expect(selectedRecipe(root).outputQuantity, item.name).toBe(2);
+      expect(recipeRouteLabel(selectedRecipe(root))).toContain(
+        "Uses Ancient Mortar",
+      );
+      expect(materialTotals([root], 3, "immediate")).toContainEqual(
+        expect.objectContaining({
+          name: "Ancient Mortar",
+          quantity: (Number(item.tier) + 1) * 2,
+        }),
+      );
+    }
+  });
+
+  it("retains an Ancient Mortar recipe when it is the only available route", () => {
+    const route = {
+      name: "Craft item",
+      ingredients: [{ name: "Ancient Mortar", quantity: 2 }],
+    };
+    expect(selectedRecipe(route)).toBe(route);
+  });
+});
+
 describe("crafting plan", () => {
   const ore = { kind: "cargo", id: 1, name: "Ore", quantity: 3 };
   const ingot = {
@@ -71,6 +210,35 @@ describe("crafting plan", () => {
     recipes: [{ outputQuantity: 2, ingredients: [ore] }],
   };
   const recipe = { outputQuantity: 2, ingredients: [ingot] };
+
+  it("keeps fractional average yields consistent in totals and steps and marks their prerequisites as estimates", () => {
+    const input = {
+      kind: "item",
+      id: 4,
+      name: "Raw material",
+      quantity: 1,
+      recipes: [
+        { id: "gather", action: "gather", outputQuantity: 1, ingredients: [] },
+      ],
+    };
+    const average = {
+      id: "average",
+      outputQuantity: 0.5,
+      averageOutput: true,
+      ingredients: [input],
+    };
+    expect(materialTotals([average], 1, "immediate")[0]).toMatchObject({
+      quantity: 2,
+      estimated: true,
+    });
+    const steps = craftingSteps([average], 1);
+    expect(steps.at(-1)).toMatchObject({
+      batches: 2,
+      produced: 1,
+      estimated: true,
+    });
+    expect(steps[0]).toMatchObject({ quantity: 2, estimated: true });
+  });
 
   it("rounds batches at each step and distinguishes immediate ingredients from base materials", () => {
     expect(materialTotals([recipe], 3, "immediate")[0].quantity).toBe(10);
@@ -104,12 +272,18 @@ describe("crafting plan", () => {
       alternatives: [
         {
           name: "Recraft Pickaxe",
+          action: "recraft",
           outputQuantity: 1,
           ingredients: [
             { kind: "item", id: 4, name: "Existing pickaxe", quantity: 1 },
           ],
         },
-        { name: "Craft Pickaxe", outputQuantity: 1, ingredients: [ore] },
+        {
+          name: "Craft Pickaxe",
+          action: "craft",
+          outputQuantity: 1,
+          ingredients: [ore],
+        },
       ],
     };
     expect(defaultRecipeIndex(routes)).toBe(1);

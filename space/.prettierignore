@@ -7,3 +7,6 @@ package-lock.json
 AGENTS.md
 CLAUDE.md
 output
+
+bitcraft/src/content/crafting-catalog.json
+src/bitcraft-ui/craftingLegacyRoutes.json

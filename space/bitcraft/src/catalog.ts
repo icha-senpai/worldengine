@@ -1,7 +1,9 @@
 import bundled from "./content/catalog.json";
 import additions from "./content/catalog-additions.json";
 import guides from "./content/guides.json";
-import woodLogOutputs from "./content/wood-log-outputs.json";
+import craftingData from "./content/crafting-catalog.json";
+import type { CraftingCatalog, ItemKey } from "./crafting/model";
+import { createCraftingCatalog, type CraftingItem } from "./crafting/catalog";
 
 type Row = Record<string, any>;
 const content = bundled as unknown as {
@@ -20,6 +22,10 @@ for (const item of additions.items) {
   if (!itemMap.has(key)) itemMap.set(key, item);
 }
 const catalogItems = [...itemMap.values()];
+const crafting = createCraftingCatalog(
+  craftingData as unknown as CraftingCatalog,
+  (key) => itemMap.get(key) as CraftingItem | undefined,
+);
 const key = (row: Row) =>
   `${row.kind ?? row.itemType ?? row.item_type ?? "item"}:${row.id ?? row.itemId ?? row.item_id}`;
 function item(row: Row): Row {
@@ -33,7 +39,9 @@ function item(row: Row): Row {
     quantity: Number(row.quantity ?? 1),
   };
 }
-function recipe(row: Row, source: string, target: Row) {
+// Activity cards retain their original upstream IDs and metadata. Planning uses
+// the typed generated graph below.
+function activityCardRecipe(row: Row, source: string, target: Row) {
   const outputs = (
     row.craftedItems ??
     row.outputs ??
@@ -73,201 +81,16 @@ function recipe(row: Row, source: string, target: Row) {
   };
 }
 function detail(kind: string, id: string) {
-  const raw = content.details[`${kind}:${id}`];
-  if (!raw) return null;
-  const target = item(raw[kind] ?? raw.item ?? raw.cargo);
-  const craftingRecipes: Row[] = (raw.craftingRecipes ?? []).map((row: Row) =>
-    recipe(row, "crafting", target),
-  );
-  const woodLogOutput = woodLogOutputs.outputs.find(
-    (row) => kind === "item" && row.itemId === Number(target.id),
-  );
-  if (woodLogOutput) {
-    for (const option of craftingRecipes) {
-      if (
-        option.ingredients.some((input: Row) =>
-          /wood log package$/i.test(input.name),
-        )
-      )
-        option.secondaryRoute = true;
-    }
-    const bundle = itemMap.get(`item:${woodLogOutput.outputItemId}`);
-    const bundleData = content.details[`item:${woodLogOutput.outputItemId}`];
-    if (bundle && bundleData) {
-      for (const rawRecipe of bundleData.craftingRecipes ?? []) {
-        const normalized = recipe(rawRecipe, "wood-log-output", bundle);
-        if (
-          !normalized.outputs.some((output: Row) => key(output) === key(bundle))
-        )
-          continue;
-        craftingRecipes.push({
-          ...normalized,
-          id: `${normalized.id}:${key(target)}:wood-log-output`,
-          name: `Split ${normalized.ingredients[0]?.name ?? "trunk"} into ${target.name}`,
-          outputQuantity: woodLogOutput.quantity,
-          outputs: [{ ...target, quantity: woodLogOutput.quantity }],
-          primaryRoute: true,
-        });
+  const result = crafting.detail(`${kind}:${id}` as ItemKey);
+  return result
+    ? {
+        ...result,
+        marketStats: content.details[`${kind}:${id}`]?.marketStats ?? {},
       }
-    }
-  }
-  if (
-    kind === "item" &&
-    String(target.category).toLowerCase() === "bait" &&
-    /\s+bait$/i.test(target.name)
-  ) {
-    const bundleName = target.name.replace(/\s+bait$/i, " Bait and Shells");
-    const bundle = catalogItems.find(
-      (row) =>
-        row.name.toLowerCase() === bundleName.toLowerCase() &&
-        String(row.category).toLowerCase() === "bait output",
-    );
-    const bundleData = bundle ? content.details[key(bundle)] : null;
-    const expected =
-      (bundleData?.itemListPossibilities ?? [])
-        .filter(
-          (row: Row) =>
-            String(row.targetId) === String(target.id) && !row.isCargo,
-        )
-        .reduce(
-          (sum: number, row: Row) =>
-            sum + Number(row.quantity) * Number(row.chance ?? 1),
-          0,
-        ) || 2;
-    for (const rawRecipe of bundleData?.craftingRecipes ?? []) {
-      const normalized = recipe(rawRecipe, "bait-output", bundle!);
-      if (
-        !normalized.outputs.some((output: Row) => key(output) === key(bundle!))
-      )
-        continue;
-      craftingRecipes.push({
-        ...normalized,
-        id: `${normalized.id}:${key(target)}:bait-output`,
-        outputQuantity: expected,
-        outputs: [{ ...target, quantity: expected }],
-      });
-    }
-  }
-  const extractionRecipes: Row[] = (raw.extractionRecipes ?? []).map(
-    (row: Row) => {
-      const normalized = recipe(row, "extraction", target);
-      if (kind === "cargo" && target.category === "Trunk") {
-        const entry = content.entries.find(
-          (entry) => Number(entry.id) === Number(normalized.id),
-        );
-        if (entry) return { ...normalized, name: entry.name, gathering: true };
-      }
-      return normalized;
-    },
-  );
-  if (kind === "cargo" && target.category === "Trunk") {
-    for (const source of woodLogOutputs.trunkSources.filter(
-      (source) => source.itemId === Number(target.id),
-    )) {
-      const normalized = {
-        id: source.id,
-        source: "tree-trunk",
-        name: source.name,
-        station: null,
-        skill: source.skill,
-        duration: source.duration,
-        outputQuantity: source.quantity,
-        outputs: [{ ...target, quantity: source.quantity }],
-        ingredients: [],
-        gathering: true,
-        primaryRoute: true,
-      };
-      const index = extractionRecipes.findIndex(
-        (option) => Number(option.id) === source.id,
-      );
-      if (index < 0) extractionRecipes.push(normalized);
-      else extractionRecipes[index] = normalized;
-    }
-  }
-  return {
-    item: target,
-    craftingRecipes,
-    extractionRecipes,
-    marketStats: raw.marketStats ?? {},
-  };
+    : null;
 }
-
-const special = (row: Row) =>
-  /ancient mortar|dried boot|hexite|repaired shipwreck steering wheel|salvaged pirate.?s? weapon|silken hexmoth|scroll|uncharted|winter snow|\b(unpack|packs?|packages?)\b/i.test(
-    [row.name, ...row.ingredients.map((item: Row) => item.name)].join(" "),
-  );
-function tree(
-  target: Row,
-  depth: number,
-  seen: Set<string>,
-  budget: { remaining: number },
-  root = false,
-): Row[] {
-  if (depth >= 16 || budget.remaining <= 0) return [];
-  const data = detail(target.kind, String(target.id));
-  if (!data) return [];
-  let recipes = [...data.craftingRecipes, ...data.extractionRecipes].filter(
-    (row) =>
-      row.outputs.some((output: Row) => key(output) === key(target)) &&
-      !/construction materials pack/i.test(
-        [row.name, ...row.ingredients.map((item: Row) => item.name)].join(" "),
-      ),
-  );
-  const ordinary = recipes.filter((row) => !special(row));
-  if (!ordinary.length && !root) return [];
-  recipes = recipes
-    .filter(
-      (row) =>
-        !row.ingredients.some((input: Row) => key(input) === key(target)),
-    )
-    .sort(
-      (a, b) =>
-        Number(Boolean(b.primaryRoute)) - Number(Boolean(a.primaryRoute)) ||
-        Number(special(a)) - Number(special(b)) ||
-        a.outputQuantity - b.outputQuantity ||
-        a.ingredients.length - b.ingredients.length ||
-        a.name.localeCompare(b.name),
-    );
-  const nodes = recipes
-    .map((row) => {
-      if (budget.remaining-- <= 0) return null;
-      return {
-        ...row,
-        ingredients: row.ingredients.map((ingredient: Row) => {
-          const targetKey = key(ingredient);
-          if (seen.has(targetKey))
-            return { ...ingredient, recipes: [], cycle: true };
-          const nextSeen = new Set(seen);
-          nextSeen.add(targetKey);
-          if (depth >= 2 || budget.remaining <= 0)
-            return {
-              ...ingredient,
-              recipes: [],
-              recipesDeferred: hasRecipes(ingredient),
-            };
-          return {
-            ...ingredient,
-            recipes: tree(ingredient, depth + 1, nextSeen, budget),
-          };
-        }),
-      };
-    })
-    .filter(Boolean) as Row[];
-  if (!nodes.length) return [];
-  return [
-    { ...nodes[0], ...(nodes.length > 1 ? { alternatives: nodes } : {}) },
-  ];
-}
-function hasRecipes(item: Row) {
-  const data = detail(item.kind, String(item.id));
-  return Boolean(
-    data &&
-    [...data.craftingRecipes, ...data.extractionRecipes].some(
-      (row) =>
-        row.outputs.some((output: Row) => key(output) === key(item)) &&
-        !/construction materials pack/i.test(row.name),
-    ),
-  );
+function hasRecipes(row: Row) {
+  return crafting.hasRecipes(key(row) as ItemKey);
 }
 const targets = catalogItems.filter(hasRecipes);
 export function catalogResponse(kind: string, id: string, q: string) {
@@ -314,7 +137,7 @@ export function catalogResponse(kind: string, id: string, q: string) {
     return {
       item: target,
       recipes: recipes.map((row: Row) => {
-        const normalized = recipe(row, "crafting", target);
+        const normalized = activityCardRecipe(row, "crafting", target);
         return {
           ...row,
           recipeName: normalized.name,
@@ -344,7 +167,7 @@ export function catalogResponse(kind: string, id: string, q: string) {
     if (!data) return null;
     return {
       ...data,
-      recipeTree: tree(data.item, 0, new Set([id]), { remaining: 250 }, true),
+      recipeTree: crafting.tree(id as ItemKey),
     };
   }
   if (kind === "card") {
@@ -364,7 +187,7 @@ export function catalogResponse(kind: string, id: string, q: string) {
       );
       if (row) {
         const target = item(raw.item ?? raw.cargo);
-        const normalized = recipe(row, "crafting", target);
+        const normalized = activityCardRecipe(row, "crafting", target);
         return {
           activity: "crafting",
           target,

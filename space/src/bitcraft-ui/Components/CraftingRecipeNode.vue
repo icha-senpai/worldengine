@@ -33,7 +33,8 @@
           >Gather {{ formatQuantity(desiredQuantity) }}</span
         >
         <span v-else-if="activeRecipe.outputQuantity"
-          >Makes {{ formatQuantity(activeRecipe.outputQuantity) }}</span
+          >{{ activeRecipe.averageOutput ? "Average yield" : "Makes" }}
+          {{ formatQuantity(activeRecipe.outputQuantity) }}</span
         >
         <span v-if="!activeRecipe.gathering && batches > 1"
           >{{ formatQuantity(batches) }} batches</span
@@ -87,8 +88,9 @@
                 >{{ ingredientMeta(ingredient) }}</span
               >
               <span v-if="stockAvailable" class="crafting-ingredient__stock">
-                Need {{ formatQuantity(scaledQuantity(ingredient.quantity)) }} ·
-                Held {{ formatQuantity(heldQuantity(ingredient)) }} ·
+                {{ estimatedRequirements ? "Estimated need" : "Need" }}
+                {{ formatQuantity(scaledQuantity(ingredient.quantity)) }} · Held
+                {{ formatQuantity(heldQuantity(ingredient)) }} ·
                 <span
                   :class="{
                     'crafting-ingredient__missing':
@@ -118,6 +120,7 @@
               :depth="depth + 1"
               :path="`${ingredientPath(ingredient)}/${childRecipe.id ?? childRecipe.name}`"
               :desired-quantity="scaledQuantity(ingredient.quantity)"
+              :estimated="estimatedRequirements"
               @route-selected="emit('route-selected', $event)"
             />
           </div>
@@ -154,8 +157,9 @@
                 >{{ ingredientMeta(ingredient) }}</span
               >
               <span v-if="stockAvailable" class="crafting-ingredient__stock">
-                Need {{ formatQuantity(scaledQuantity(ingredient.quantity)) }} ·
-                Held {{ formatQuantity(heldQuantity(ingredient)) }} ·
+                {{ estimatedRequirements ? "Estimated need" : "Need" }}
+                {{ formatQuantity(scaledQuantity(ingredient.quantity)) }} · Held
+                {{ formatQuantity(heldQuantity(ingredient)) }} ·
                 <span
                   :class="{
                     'crafting-ingredient__missing':
@@ -191,9 +195,8 @@
 </template>
 
 <script setup>
+import { recipeBatches } from "../../../bitcraft/src/crafting/model";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
-import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
-import { route } from "/src/bitcraft-ui/navigation";
 import { computed, inject, ref, watch } from "vue";
 import BitcraftTierBadge from "/src/bitcraft-ui/Components/BitcraftTierBadge.vue";
 import {
@@ -219,6 +222,7 @@ const props = defineProps({
   root: { type: Boolean, default: false },
   depth: { type: Number, default: 0 },
   path: { type: String, default: "root" },
+  estimated: { type: Boolean, default: false },
 });
 
 const tree = inject(craftingTreeContext, null);
@@ -253,7 +257,7 @@ const activeRecipe = computed(
 );
 
 watch(
-  () => props.recipe,
+  () => props.recipe.selectedAlternativeIndex,
   () => {
     selectedAlternativeIndex.value = Number(
       props.recipe.selectedAlternativeIndex ?? defaultRecipeIndex(props.recipe),
@@ -275,14 +279,15 @@ const formatQuantity = (quantity) => {
   return new Intl.NumberFormat().format(number);
 };
 
-const batches = computed(() => {
-  const outputQuantity = Math.max(
-    1,
-    Number(activeRecipe.value.outputQuantity ?? 1) || 1,
-  );
-
-  return Math.max(1, Math.ceil(props.desiredQuantity / outputQuantity));
-});
+const batches = computed(() =>
+  recipeBatches(
+    props.desiredQuantity,
+    Number(activeRecipe.value.outputQuantity),
+  ),
+);
+const estimatedRequirements = computed(
+  () => props.estimated || Boolean(activeRecipe.value.averageOutput),
+);
 
 const recipeMeta = computed(() =>
   [
@@ -365,32 +370,11 @@ const loadBranch = async (ingredient) => {
   clearBranchError(ingredient);
 
   try {
-    const url = route("bitcraft.crafting.branch", {
-      itemId: ingredient.id,
-      itemKind: ingredient.kind,
-    });
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Branch request failed.");
-    }
-
-    const payload = await response.json();
-    ingredient.recipes = Array.isArray(payload.recipes) ? payload.recipes : [];
-    tree?.prepareRecipes(ingredient.recipes);
-    ingredient.recipesDeferred = false;
+    await tree?.loadBranch(ingredient);
     tree?.setExpanded(ingredientPath(ingredient), true);
 
     if (!ingredient.recipes.length) {
-      setBranchError(
-        ingredient,
-        payload.error ?? "No crafting steps found for this branch.",
-      );
+      setBranchError(ingredient, "No crafting steps found for this branch.");
     }
   } catch (error) {
     setBranchError(ingredient, "Could not load this branch.");

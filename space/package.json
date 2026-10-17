@@ -32,6 +32,7 @@
     "spacetime:auth": "tsx scripts/spacetime.ts auth",
     "spacetime:local": "tsx scripts/spacetime.ts local",
     "format": "prettier --write src scripts tests spacetimedb/src bitcraft/src",
+    "bitcraft:catalog": "tsx scripts/import-crafting-catalog.ts",
     "bitcraft:admin": "tsx scripts/bitcraft-admin.ts",
     "bitcraft:providers": "tsx scripts/bitcraft-providers.ts",
     "bitcraft:collector": "tsx scripts/bitcraft-collector.ts",

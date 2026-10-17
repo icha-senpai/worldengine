@@ -357,7 +357,7 @@ describe("ICHAA BitCraft contracts", () => {
     expect(
       data.craftingRecipes.some(
         (row) =>
-          row.source === "bait-output" &&
+          row.source === "crafting" &&
           row.outputQuantity === 2 &&
           row.ingredients.length > 0,
       ),

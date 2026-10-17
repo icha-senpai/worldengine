@@ -1,13 +1,14 @@
+import {
+  defaultRouteIndex,
+  recipeBatches,
+} from "../../bitcraft/src/crafting/model";
+
 export const craftingTreeContext = Symbol("craftingTree");
 
 export function defaultRecipeIndex(recipe) {
-  const alternatives = recipe?.alternatives ?? [recipe];
-  const primaryIndex = alternatives.findIndex((option) => option?.primaryRoute);
-  if (primaryIndex >= 0) return primaryIndex;
-  const index = alternatives.findIndex((option) =>
-    /^craft\s/i.test(option?.name ?? ""),
+  return defaultRouteIndex(
+    recipe?.alternatives?.length ? recipe.alternatives : [recipe],
   );
-  return index < 0 ? 0 : index;
 }
 
 export function selectedRecipe(recipe) {
@@ -23,15 +24,21 @@ export function selectedRecipe(recipe) {
 
 export function recipeRouteLabel(recipe) {
   const name = String(recipe?.name ?? "Recipe");
-  const action = /^recraft\s/i.test(name)
-    ? "Recraft existing"
-    : /^craft\s/i.test(name)
-      ? "Craft new"
-      : name;
+  const action =
+    recipe.action === "recraft"
+      ? "Recraft existing"
+      : recipe.action === "craft"
+        ? "Craft new"
+        : name;
   return [
     action,
     recipe.station,
-    Number(recipe.outputQuantity) > 1 ? `Makes ${recipe.outputQuantity}` : null,
+    recipe.usesAncientMortar ? "Uses Ancient Mortar" : null,
+    recipe.averageOutput
+      ? `Average yield ${recipe.outputQuantity}`
+      : Number(recipe.outputQuantity) > 1
+        ? `Makes ${recipe.outputQuantity}`
+        : null,
     recipe.primaryRoute
       ? "Primary"
       : recipe.secondaryRoute
@@ -55,12 +62,10 @@ const positiveQuantity = (value) =>
 
 export function materialTotals(recipes, desiredQuantity, mode = "base") {
   const totals = new Map();
-  function add(recipe, quantity) {
+  function add(recipe, quantity, estimated = false) {
     const active = selectedRecipe(recipe);
-    const batches = Math.max(
-      1,
-      Math.ceil(quantity / positiveQuantity(active?.outputQuantity)),
-    );
+    estimated ||= Boolean(active?.averageOutput);
+    const batches = recipeBatches(quantity, active?.outputQuantity);
     for (const ingredient of active?.ingredients ?? []) {
       const required = positiveQuantity(ingredient.quantity) * batches;
       const children = ingredient.recipes ?? [];
@@ -68,7 +73,7 @@ export function materialTotals(recipes, desiredQuantity, mode = "base") {
         mode === "base" &&
         children.some((child) => selectedRecipe(child)?.ingredients?.length)
       ) {
-        children.forEach((child) => add(child, required));
+        children.forEach((child) => add(child, required, estimated));
         continue;
       }
       const key = `${ingredient.kind ?? "item"}:${ingredient.id ?? ingredient.name}`;
@@ -76,6 +81,7 @@ export function materialTotals(recipes, desiredQuantity, mode = "base") {
       if (existing) {
         existing.quantity += required;
         existing.deferred ||= Boolean(ingredient.recipesDeferred);
+        existing.estimated ||= estimated;
       } else {
         totals.set(key, {
           ...ingredient,
@@ -83,6 +89,7 @@ export function materialTotals(recipes, desiredQuantity, mode = "base") {
           key,
           quantity: required,
           deferred: Boolean(ingredient.recipesDeferred),
+          estimated,
         });
       }
     }
@@ -96,9 +103,10 @@ export function materialTotals(recipes, desiredQuantity, mode = "base") {
 // Combine compatible occurrences without changing the calculator's batch rounding.
 export function craftingSteps(recipes, desiredQuantity, target = {}) {
   const steps = new Map();
-  function collect(recipe, quantity, item, path, ancestors) {
+  function collect(recipe, quantity, item, path, ancestors, estimated = false) {
     const active = selectedRecipe(recipe);
     if (!active) return null;
+    estimated ||= Boolean(active.averageOutput);
     const key = JSON.stringify([
       active.id,
       active.name,
@@ -111,12 +119,7 @@ export function craftingSteps(recipes, desiredQuantity, target = {}) {
       ]),
     ]);
     if (ancestors.has(key)) return null;
-    const batches = Math.max(
-      1,
-      Math.ceil(
-        positiveQuantity(quantity) / positiveQuantity(active.outputQuantity),
-      ),
-    );
+    const batches = recipeBatches(quantity, active.outputQuantity);
     let step = steps.get(key);
     if (!step) {
       step = {
@@ -130,10 +133,12 @@ export function craftingSteps(recipes, desiredQuantity, target = {}) {
         batches: 0,
         ingredients: new Map(),
         dependencies: new Set(),
+        estimated: false,
       };
       steps.set(key, step);
     }
     step.quantity += positiveQuantity(quantity);
+    step.estimated ||= estimated;
     step.batches += batches;
     const nextAncestors = new Set([...ancestors, key]);
     for (const ingredient of active.ingredients ?? []) {
@@ -154,6 +159,7 @@ export function craftingSteps(recipes, desiredQuantity, target = {}) {
           ingredient,
           childPath,
           nextAncestors,
+          estimated,
         );
         if (dependency) step.dependencies.add(dependency);
       }

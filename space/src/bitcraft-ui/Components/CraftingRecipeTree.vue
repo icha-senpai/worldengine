@@ -242,15 +242,12 @@
 
 <script setup>
 import SelectInput from "../shared/SelectInput.vue";
-import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
-import { route } from "/src/bitcraft-ui/navigation";
+import { useCraftingPlan } from "../useCraftingPlan";
 import { computed, nextTick, provide, ref, useId, watch } from "vue";
 import CraftingRecipeNode from "./CraftingRecipeNode.vue";
 import CraftingPlanSteps from "./CraftingPlanSteps.vue";
 import {
   craftingTreeContext,
-  defaultRecipeIndex,
-  selectedRecipe,
   materialTotals,
   craftingSteps,
 } from "../craftingTree.js";
@@ -273,55 +270,45 @@ const tabs = [
   { key: "totals", label: "Materials" },
   { key: "tree", label: "Tree" },
 ];
-const activeTab = ref("steps");
-const treeRevision = ref(0);
-const completedSteps = ref({});
-const groupByStation = ref(false);
-const hideCompleted = ref(false);
+const {
+  recipeTree,
+  activeTab,
+  completedSteps,
+  groupByStation,
+  hideCompleted,
+  expansionState,
+  expandByDefault,
+  materialMode,
+  loadingAllBranches,
+  loadAllError,
+  deferredBranchCount,
+  loadAllLabel,
+  handleRouteSelected,
+  setStepComplete,
+  resetChecklist,
+  setExpanded,
+  setAllExpanded,
+  prepareRecipes,
+  loadAllBranches,
+  loadBranchForIngredient,
+} = useCraftingPlan(props);
 const planSteps = computed(() =>
   craftingSteps(recipeTree.value, props.desiredQuantity, props.target),
 );
-const setStepComplete = ({ step, checked }) => {
-  const next = { ...completedSteps.value };
-  if (checked) next[step.key] = step.completionSignature;
-  else delete next[step.key];
-  completedSteps.value = next;
-  persistRecipeState();
-};
-const resetChecklist = () => {
-  completedSteps.value = {};
-  persistRecipeState();
-};
 const switchTab = async (offset) => {
   const index = tabs.findIndex((tab) => tab.key === activeTab.value);
   activeTab.value = tabs[(index + offset + tabs.length) % tabs.length].key;
   await nextTick();
   document.getElementById(`${viewId}-${activeTab.value}-tab`)?.focus();
 };
-const recipeTree = ref([]);
 const brokenIconAssets = ref(new Set());
-const loadingAllBranches = ref(false);
-const loadAllError = ref(null);
-const selectedRoutes = ref({});
-const expansionState = ref({});
-const expandByDefault = ref(false);
-const materialMode = ref("base");
 const missingOnly = ref(false);
 
-const setExpanded = (key, open) => {
-  if ((expansionState.value[key] ?? expandByDefault.value) === open) return;
-  expansionState.value = { ...expansionState.value, [key]: open };
-  persistRecipeState();
-};
-const setAllExpanded = (open) => {
-  expansionState.value = {};
-  expandByDefault.value = open;
-  persistRecipeState();
-};
 provide(craftingTreeContext, {
   isExpanded: (key) => expansionState.value[key] ?? expandByDefault.value,
   setExpanded,
-  prepareRecipes: (recipes) => applyPersistedSelections(recipes),
+  prepareRecipes,
+  loadBranch: loadBranchForIngredient,
   inventory: computed(() => props.inventory),
 });
 const heldQuantity = (item) =>
@@ -330,25 +317,6 @@ const heldQuantity = (item) =>
   );
 const missingQuantity = (item) =>
   Math.max(0, item.quantity - heldQuantity(item));
-
-const deferredIngredients = computed(() =>
-  collectDeferredIngredients(recipeTree.value),
-);
-
-const deferredBranchCount = computed(
-  () =>
-    new Set(
-      deferredIngredients.value.map((ingredient) => branchKey(ingredient)),
-    ).size,
-);
-
-const loadAllLabel = computed(() => {
-  if (deferredBranchCount.value === 0) {
-    return "All loaded";
-  }
-
-  return `Load all (${deferredBranchCount.value})`;
-});
 
 const itemTotals = computed(() => {
   return materialTotals(
@@ -408,268 +376,6 @@ const totalGroups = computed(() => {
   return groups;
 });
 
-const handleRouteSelected = ({ recipe, index }) => {
-  recipe.selectedAlternativeIndex = Number(index) || 0;
-  selectedRoutes.value = {
-    ...selectedRoutes.value,
-    [recipeSelectionKey(recipe)]: recipe.selectedAlternativeIndex,
-  };
-  applyPersistedSelections(recipeTree.value);
-  loadAllError.value = null;
-  persistRecipeState();
-};
-
-const restorePersistedState = () => {
-  const state = readPersistedState();
-  selectedRoutes.value = state.routes;
-  activeTab.value = state.activeTab;
-  expansionState.value = state.expansion;
-  expandByDefault.value = state.expandByDefault;
-  materialMode.value = state.materialMode;
-  completedSteps.value = state.completedSteps;
-  groupByStation.value = state.groupByStation;
-  hideCompleted.value = state.hideCompleted;
-};
-
-const applyPersistedSelections = (recipes) => {
-  for (const recipe of recipes ?? []) {
-    const index = Number(selectedRoutes.value[recipeSelectionKey(recipe)]);
-    const alternatives =
-      Array.isArray(recipe.alternatives) && recipe.alternatives.length
-        ? recipe.alternatives
-        : [recipe];
-
-    if (Number.isInteger(index) && alternatives[index]) {
-      recipe.selectedAlternativeIndex = index;
-    } else {
-      recipe.selectedAlternativeIndex = defaultRecipeIndex(recipe);
-    }
-
-    for (const alternative of alternatives) {
-      for (const ingredient of alternative.ingredients ?? []) {
-        applyPersistedSelections(ingredient.recipes ?? []);
-      }
-    }
-  }
-};
-
-const readPersistedState = () => {
-  if (!props.storageKey || typeof window === "undefined") {
-    return defaultPersistedState();
-  }
-
-  try {
-    const state = JSON.parse(
-      window.localStorage.getItem(props.storageKey) ?? "{}",
-    );
-    const activeTab =
-      state.planVersion === 1 &&
-      ["steps", "tree", "totals"].includes(state.activeTab)
-        ? state.activeTab
-        : "steps";
-    const routes =
-      state.routes &&
-      typeof state.routes === "object" &&
-      !Array.isArray(state.routes)
-        ? state.routes
-        : {};
-
-    const expansion =
-      state.expansion &&
-      typeof state.expansion === "object" &&
-      !Array.isArray(state.expansion)
-        ? Object.fromEntries(
-            Object.entries(state.expansion).filter(
-              ([, open]) => typeof open === "boolean",
-            ),
-          )
-        : {};
-    return {
-      activeTab,
-      routes,
-      expansion,
-      expandByDefault: state.expandByDefault === true,
-      materialMode: state.materialMode === "immediate" ? "immediate" : "base",
-      completedSteps:
-        state.completedSteps &&
-        typeof state.completedSteps === "object" &&
-        !Array.isArray(state.completedSteps)
-          ? state.completedSteps
-          : {},
-      groupByStation: state.groupByStation === true,
-      hideCompleted: state.hideCompleted === true,
-    };
-  } catch (error) {
-    return defaultPersistedState();
-  }
-};
-
-const persistRecipeState = () => {
-  if (!props.storageKey || typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    window.localStorage.setItem(
-      props.storageKey,
-      JSON.stringify({
-        planVersion: 1,
-        activeTab: activeTab.value,
-        completedSteps: completedSteps.value,
-        groupByStation: groupByStation.value,
-        hideCompleted: hideCompleted.value,
-        routes: selectedRoutes.value,
-        expansion: expansionState.value,
-        expandByDefault: expandByDefault.value,
-        materialMode: materialMode.value,
-      }),
-    );
-  } catch {
-    // The plan remains usable when browser storage is unavailable.
-  }
-};
-
-const defaultPersistedState = () => ({
-  activeTab: "steps",
-  completedSteps: {},
-  groupByStation: false,
-  hideCompleted: false,
-  routes: {},
-  expansion: {},
-  expandByDefault: false,
-  materialMode: "base",
-});
-
-const recipeSelectionKey = (recipe) =>
-  [
-    recipe?.id ?? "",
-    recipe?.name ?? "",
-    recipe?.station ?? "",
-    recipe?.outputQuantity ?? "",
-  ].join("|");
-
-const collectDeferredIngredients = (recipes) => {
-  const ingredients = [];
-
-  for (const recipe of recipes ?? []) {
-    collectDeferredIngredientsFromRecipe(recipe, ingredients);
-  }
-
-  return ingredients;
-};
-
-const collectDeferredIngredientsFromRecipe = (recipe, ingredients) => {
-  const activeRecipe = selectedRecipe(recipe);
-
-  for (const ingredient of activeRecipe?.ingredients ?? []) {
-    if (ingredient.recipesDeferred && ingredient.id && ingredient.kind) {
-      ingredients.push(ingredient);
-    }
-
-    for (const childRecipe of ingredient.recipes ?? []) {
-      collectDeferredIngredientsFromRecipe(childRecipe, ingredients);
-    }
-  }
-};
-
-const loadAllBranches = async () => {
-  if (loadingAllBranches.value || deferredBranchCount.value === 0) {
-    return;
-  }
-
-  loadingAllBranches.value = true;
-  loadAllError.value = null;
-  const requestedKeys = new Set();
-  const revision = treeRevision.value;
-
-  try {
-    while (revision === treeRevision.value) {
-      const batch = uniqueDeferredIngredients()
-        .filter((ingredient) => !requestedKeys.has(branchKey(ingredient)))
-        .slice(0, 8);
-
-      if (!batch.length) {
-        break;
-      }
-
-      batch.forEach((ingredient) => requestedKeys.add(branchKey(ingredient)));
-      await Promise.all(
-        batch.map((ingredient) =>
-          loadBranchForIngredient(ingredient, revision),
-        ),
-      );
-    }
-
-    if (revision !== treeRevision.value) return;
-    if (deferredBranchCount.value > 0) {
-      loadAllError.value =
-        "Loaded available branches. Some repeated branches are still deferred.";
-    }
-  } catch (error) {
-    if (revision === treeRevision.value)
-      loadAllError.value = "Could not load every branch.";
-  } finally {
-    if (revision === treeRevision.value) loadingAllBranches.value = false;
-  }
-};
-
-const uniqueDeferredIngredients = () => {
-  const seen = new Set();
-
-  return deferredIngredients.value.filter((ingredient) => {
-    const key = branchKey(ingredient);
-
-    if (seen.has(key)) {
-      return false;
-    }
-
-    seen.add(key);
-
-    return true;
-  });
-};
-
-const loadBranchForIngredient = async (
-  ingredient,
-  revision = treeRevision.value,
-) => {
-  const response = await fetch(
-    route("bitcraft.crafting.branch", {
-      itemId: ingredient.id,
-      itemKind: ingredient.kind,
-    }),
-    {
-      headers: {
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error("Branch request failed.");
-  }
-
-  const payload = await response.json();
-  if (revision === treeRevision.value)
-    applyBranchPayload(branchKey(ingredient), payload);
-};
-
-const applyBranchPayload = (key, payload) => {
-  const recipes = Array.isArray(payload.recipes) ? payload.recipes : [];
-
-  deferredIngredients.value
-    .filter((ingredient) => branchKey(ingredient) === key)
-    .forEach((ingredient) => {
-      const branchRecipes = JSON.parse(JSON.stringify(recipes));
-      applyPersistedSelections(branchRecipes);
-      ingredient.recipes = branchRecipes;
-      ingredient.recipesDeferred = false;
-    });
-};
-
-const branchKey = (ingredient) => `${ingredient.kind}:${ingredient.id}`;
-
 const formatQuantity = (quantity) =>
   new Intl.NumberFormat(undefined, {
     maximumFractionDigits: 2,
@@ -680,6 +386,7 @@ const itemMeta = (item) =>
     item.kind === "cargo" ? "Cargo" : "Item",
     item.rarity,
     item.deferred ? "Recipe not loaded" : null,
+    item.estimated ? "Estimated requirements" : null,
     /tool/i.test(item.category ?? "") ? "Existing tool" : null,
   ]
     .filter(Boolean)
@@ -717,44 +424,6 @@ const itemIconUrl = (item) => {
 
 const itemFrameStyle = (item) =>
   bitcraftItemFrameStyle(item?.tier, item?.rarity);
-watch(
-  () => props.recipes,
-  (recipes) => {
-    treeRevision.value += 1;
-    loadingAllBranches.value = false;
-    recipeTree.value = JSON.parse(JSON.stringify(recipes ?? []));
-    applyPersistedSelections(recipeTree.value);
-    loadAllError.value = null;
-  },
-  { immediate: true },
-);
-
-watch(
-  () => props.storageKey,
-  () => {
-    restorePersistedState();
-    applyPersistedSelections(recipeTree.value);
-  },
-  { immediate: true },
-);
-
-watch(
-  [activeTab, materialMode, groupByStation, hideCompleted],
-  persistRecipeState,
-);
-watch(
-  [activeTab, recipeTree, deferredBranchCount],
-  () => {
-    if (
-      activeTab.value === "steps" &&
-      deferredBranchCount.value &&
-      !loadingAllBranches.value &&
-      !loadAllError.value
-    )
-      loadAllBranches();
-  },
-  { flush: "post", immediate: true },
-);
 watch(
   () => props.inventory,
   () => {
