@@ -1,5 +1,20 @@
 import { connectBitcraft } from "../bitcraft";
 import { pageState } from "./navigation";
+import { browserStorage } from "./trackerSetup";
+function stored(key) {
+  try {
+    return browserStorage()?.getItem(key) ?? null;
+  } catch {
+    return null;
+  }
+}
+function remember(key, value) {
+  try {
+    browserStorage()?.setItem(key, value);
+  } catch {
+    /* Server profile saving remains available. */
+  }
+}
 const kinds = ["activity", "inventory", "passive-crafts", "tasks"];
 const saveQueues = new Map();
 const draftTimers = new Map();
@@ -24,7 +39,7 @@ export async function readWidget(kind, token, { draft = true } = {}) {
   let settings = payload.settings;
   if (draft && payload.editable) {
     try {
-      const pending = localStorage.getItem(draftKey(kind, token));
+      const pending = stored(draftKey(kind, token));
       if (pending) {
         settings = JSON.parse(pending);
         persistWidgetDraft(kind, settings, token);
@@ -38,7 +53,7 @@ export async function readWidget(kind, token, { draft = true } = {}) {
 export function persistWidgetDraft(kind, settings, token) {
   if (!token) return;
   const key = draftKey(kind, token);
-  localStorage.setItem(key, JSON.stringify(cleanSettings(settings)));
+  remember(key, JSON.stringify(cleanSettings(settings)));
   clearTimeout(draftTimers.get(key));
   draftTimers.set(
     key,
@@ -52,20 +67,25 @@ export function persistWidgetDraft(kind, settings, token) {
 }
 export async function saveWidget(kind, settings, token) {
   const storageKey = `space.bitcraft.widget:${kind}:${settings.source || "default"}`;
-  token = token || localStorage.getItem(storageKey) || crypto.randomUUID();
+  token = token || stored(storageKey) || crypto.randomUUID();
   const key = draftKey(kind, token);
   clearTimeout(draftTimers.get(key));
   draftTimers.delete(key);
-  const pendingDraft = localStorage.getItem(key);
+  const pendingDraft = stored(key);
   const serialized = JSON.stringify(cleanSettings(settings));
   const work = (saveQueues.get(key) || Promise.resolve())
     .catch(() => {})
     .then(async () => {
       const conn = await connectBitcraft();
       await conn.reducers.saveWidget({ kind, token, settings: serialized });
-      localStorage.setItem(storageKey, token);
-      if (pendingDraft && localStorage.getItem(key) === pendingDraft)
-        localStorage.removeItem(key);
+      remember(storageKey, token);
+      if (pendingDraft && stored(key) === pendingDraft) {
+        try {
+          browserStorage()?.removeItem(key);
+        } catch {
+          /* Keep a harmless draft if deletion is blocked. */
+        }
+      }
       if (pageState.error === saveError) pageState.error = "";
     });
   saveQueues.set(key, work);

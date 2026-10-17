@@ -142,10 +142,11 @@
 </template>
 
 <script setup>
+import { useTrackerRefresh } from "./trackerRefresh";
+import { createTrackerSetup } from "./trackerSetup";
 import EmojiInput from "./shared/EmojiInput.vue";
 import EmojiDisplay from "./shared/EmojiDisplay.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
-import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
 import { openWidget, persistWidgetDraft } from "./widgets";
 import {
@@ -170,7 +171,7 @@ import WidgetPageShell from "./Components/WidgetPageShell.vue";
 import TrackerRefreshStatus from "./Components/TrackerRefreshStatus.vue";
 import { bitcraftConnected } from "../bitcraft";
 import { useTrackerSnapshot } from "./useTrackerSnapshot";
-import { createTrackerPoller, retryAfterSeconds } from "./trackerPolling";
+import { createTrackerPoller } from "./trackerPolling";
 import {
   passiveDeadlines,
   passiveSecondsLeft,
@@ -204,7 +205,6 @@ const deadlines = ref(
 );
 const brokenIcons = ref(new Set());
 let countdownTimer;
-let restoredSetup = false;
 
 const form = reactive({
   source: props.filters.source ?? "default",
@@ -369,14 +369,6 @@ const payload = (setup) => ({
   setup: setup ? 1 : 0,
 });
 
-const browserStorage = () => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return window.localStorage;
-};
-
 const normalizeSetup = (setup) => ({
   source:
     typeof setup.source === "string" && setup.source.trim()
@@ -394,39 +386,16 @@ const normalizeSetup = (setup) => ({
   ...normalizeWidgetTheme(setup),
 });
 
-const loadSetup = () => {
-  const storage = browserStorage();
-
-  if (!storage) {
-    return null;
-  }
-
-  try {
-    const saved = storage.getItem(STORAGE_KEY);
-    return saved ? normalizeSetup(JSON.parse(saved)) : null;
-  } catch {
-    return null;
-  }
-};
-
-const saveSetup = (persistProfile = true) => {
-  const storage = browserStorage();
-
-  if (!storage || !restoredSetup) {
-    return;
-  }
-
-  if (props.filters.widgetEditable === false) return;
-  if (props.filters.setup) {
-    storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
-    if (persistProfile)
-      persistWidgetDraft(
-        "passive-crafts",
-        payload(true),
-        props.filters.profile,
-      );
-  }
-};
+const setupPersistence = createTrackerSetup({
+  key: STORAGE_KEY,
+  normalize: normalizeSetup,
+  form,
+  filters: () => props.filters,
+  payload: (...args) => payload(...args),
+  kind: "passive-crafts",
+  saveDraft: persistWidgetDraft,
+});
+const { loadSetup, saveSetup } = setupPersistence;
 
 const submitSetup = (setup) => {
   saveSetup();
@@ -457,31 +426,11 @@ const openWidgetMode = () => {
   });
 };
 
-const refresh = async () => {
-  try {
-    const response = await fetch(props.snapshotUrl, {
-      headers: {
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-    });
-
-    if (response.status === 429) {
-      markDelayed();
-      return retryAfterSeconds(response);
-    }
-
-    if (!response.ok) {
-      throw new Error(`Snapshot request failed with ${response.status}`);
-    }
-
-    const payload = await response.json();
-    applySnapshot(payload);
-    return refreshStatus.value.retryAfter ?? 0;
-  } catch {
-    markDelayed("Tracker refresh paused. Showing the last available data.");
-  }
-};
+const refresh = useTrackerRefresh({
+  url: () => props.snapshotUrl,
+  apply: applySnapshot,
+  delayed: markDelayed,
+});
 
 const polling = createTrackerPoller(refresh, POLL_INTERVAL_MS);
 
@@ -507,7 +456,7 @@ onMounted(() => {
   const savedSetup = loadSetup();
   const params = new URLSearchParams(window.location.search);
 
-  restoredSetup = true;
+  setupPersistence.enable();
 
   if (
     !params.has("profile") &&

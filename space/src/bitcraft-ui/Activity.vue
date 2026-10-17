@@ -485,6 +485,8 @@
 </template>
 
 <script setup>
+import { useTrackerRefresh } from "./trackerRefresh";
+import { browserStorage, createTrackerSetup } from "./trackerSetup";
 import EmojiInput from "./shared/EmojiInput.vue";
 import EmojiDisplay from "./shared/EmojiDisplay.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
@@ -516,7 +518,7 @@ import WidgetPageShell from "./Components/WidgetPageShell.vue";
 import TrackerRefreshStatus from "./Components/TrackerRefreshStatus.vue";
 import { retainActivityTracker } from "./activitySnapshot";
 import { bitcraftConnected, bitcraftReconnecting } from "../bitcraft";
-import { createTrackerPoller, retryAfterSeconds } from "./trackerPolling";
+import { createTrackerPoller } from "./trackerPolling";
 import {
   activitySkillRate,
   appendActivitySample,
@@ -591,7 +593,6 @@ const pickerElement = ref(null);
 const lastActiveSkillStats = ref([]);
 const lastActiveSkillStatsAt = ref(0);
 let clockTimer = null;
-let restoredSetup = false;
 
 const parseSkillKeys = (value) => {
   const keys = Array.isArray(value) ? value : String(value ?? "").split(",");
@@ -991,31 +992,10 @@ const addSample = (
   saveSamples();
 };
 
-const refresh = async () => {
-  try {
-    const url = new URL(props.pollUrl, window.location.origin);
-    url.searchParams.set("_", Date.now().toString());
-
-    const response = await fetch(url.toString(), {
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        "Cache-Control": "no-cache",
-        Pragma: "no-cache",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-    });
-
-    if (response.status === 429) {
-      refreshStatus.value = { ...refreshStatus.value, delayed: true };
-      return retryAfterSeconds(response);
-    }
-
-    if (!response.ok) {
-      throw new Error(`Snapshot request failed with ${response.status}`);
-    }
-
-    const payload = await response.json();
+const refresh = useTrackerRefresh({
+  url: () => props.pollUrl,
+  noCache: true,
+  apply: (payload) => {
     refreshStatus.value = {
       ...payload.refresh,
       delayed: Boolean(payload.refresh?.delayed || !payload.tracker),
@@ -1034,13 +1014,12 @@ const refresh = async () => {
     }
 
     error.value = payload.error;
-    return refreshStatus.value.retryAfter ?? 0;
-  } catch {
-    tracker.value = retainActivityTracker(tracker.value, null);
+  },
+  delayed: (message) => {
     refreshStatus.value = { ...refreshStatus.value, delayed: true };
-    error.value = "Tracker refresh paused. Showing the last available data.";
-  }
-};
+    if (message) error.value = message;
+  },
+});
 
 const polling = createTrackerPoller(refresh, POLL_INTERVAL_MS, {
   pauseWhenHidden: false,
@@ -1050,7 +1029,7 @@ onMounted(() => {
   const savedSetup = loadSetup();
   const params = new URLSearchParams(window.location.search);
 
-  restoredSetup = true;
+  setupPersistence.enable();
 
   if (
     !params.has("profile") &&
@@ -1138,14 +1117,6 @@ const payload = (setup) => ({
   setup: setup ? 1 : 0,
 });
 
-const browserStorage = () => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return window.localStorage;
-};
-
 const sampleStorageKey = () => {
   const url = new URL(props.pollUrl, window.location.origin);
 
@@ -1216,35 +1187,16 @@ const normalizeSetup = (setup) => ({
   ...normalizeWidgetTheme(setup),
 });
 
-const loadSetup = () => {
-  const storage = browserStorage();
-
-  if (!storage) {
-    return null;
-  }
-
-  try {
-    const saved = storage.getItem(STORAGE_KEY);
-    return saved ? normalizeSetup(JSON.parse(saved)) : null;
-  } catch {
-    return null;
-  }
-};
-
-const saveSetup = (persistProfile = true) => {
-  const storage = browserStorage();
-
-  if (!storage || !restoredSetup) {
-    return;
-  }
-
-  if (props.filters.widgetEditable === false) return;
-  if (props.filters.setup) {
-    storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
-    if (persistProfile)
-      persistWidgetDraft("activity", payload(true), props.filters.profile);
-  }
-};
+const setupPersistence = createTrackerSetup({
+  key: STORAGE_KEY,
+  normalize: normalizeSetup,
+  form,
+  filters: () => props.filters,
+  payload: (...args) => payload(...args),
+  kind: "activity",
+  saveDraft: persistWidgetDraft,
+});
+const { loadSetup, saveSetup } = setupPersistence;
 
 const updateTheme = (updates) => {
   Object.assign(form, updates);

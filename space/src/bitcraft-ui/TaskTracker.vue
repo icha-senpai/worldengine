@@ -118,6 +118,7 @@
 </template>
 
 <script setup>
+import { createTrackerSetup } from "./trackerSetup";
 import EmojiInput from "./shared/EmojiInput.vue";
 import EmojiDisplay from "./shared/EmojiDisplay.vue";
 import { route } from "/src/bitcraft-ui/navigation";
@@ -138,7 +139,6 @@ const props = defineProps({
 });
 
 const STORAGE_KEY = "bitcraft.taskTracker.lastSetup";
-let restoredSetup = false;
 
 const newTaskId = () =>
   `task-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -227,55 +227,27 @@ const normalizeSetup = (setup) => ({
   ...normalizeWidgetTheme(setup),
 });
 
-const browserStorage = () => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return window.localStorage;
-};
-
-const loadSetup = () => {
-  const storage = browserStorage();
-
-  if (!storage) {
-    return null;
-  }
-
-  try {
-    const existing = storage.getItem(STORAGE_KEY);
-    if (!existing) {
-      const legacy = JSON.parse(
-        storage.getItem("space.bitcraft.tasks") ?? "[]",
-      );
-      if (Array.isArray(legacy) && legacy.length)
-        return normalizeSetup({
-          tasks: legacy.map((task) => ({
+const setupPersistence = createTrackerSetup({
+  key: STORAGE_KEY,
+  normalize: normalizeSetup,
+  form,
+  filters: () => props.filters,
+  payload: (...args) => payload(...args),
+  kind: "tasks",
+  saveDraft: persistWidgetDraft,
+  legacy: (store) => {
+    const tasks = JSON.parse(store.getItem("space.bitcraft.tasks") ?? "[]");
+    return Array.isArray(tasks) && tasks.length
+      ? {
+          tasks: tasks.map((task) => ({
             ...task,
             text: task.text ?? task.label ?? "",
           })),
-        });
-    }
-    return existing ? normalizeSetup(JSON.parse(existing)) : null;
-  } catch {
-    return null;
-  }
-};
-
-const saveSetup = (persistProfile = true) => {
-  const storage = browserStorage();
-
-  if (!storage || !restoredSetup) {
-    return;
-  }
-
-  if (props.filters.widgetEditable === false) return;
-  if (props.filters.setup) {
-    storage.setItem(STORAGE_KEY, JSON.stringify(normalizeSetup(form)));
-    if (persistProfile)
-      persistWidgetDraft("tasks", payload(true), props.filters.profile);
-  }
-};
+        }
+      : null;
+  },
+});
+const { loadSetup, saveSetup } = setupPersistence;
 
 const updateTheme = (updates) => {
   Object.assign(form, updates);
@@ -376,7 +348,7 @@ onMounted(() => {
   const savedSetup = loadSetup();
   const params = new URLSearchParams(window.location.search);
 
-  restoredSetup = true;
+  setupPersistence.enable();
 
   if (
     !params.has("profile") &&

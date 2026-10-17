@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useRetainedRead } from "../bitcraft-ui/useRetainedRead";
+import { createTrackerPoller } from "../bitcraft-ui/trackerPolling";
 import BitcraftPageHeader from "../bitcraft-ui/Components/BitcraftPageHeader.vue";
 import SelectInput from "../bitcraft-ui/shared/SelectInput.vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
@@ -19,11 +21,7 @@ const loading = ref(false),
   detailError = ref("");
 const updated = ref(""),
   detailLoading = ref(false);
-let disposed = false,
-  request = 0,
-  detailRequest = 0;
-let poll: ReturnType<typeof setInterval>,
-  debounce: ReturnType<typeof setTimeout>;
+let debounce: ReturnType<typeof setTimeout>;
 const number = (value: any) =>
   new Intl.NumberFormat().format(Number(value ?? 0));
 const date = (value: any) =>
@@ -49,13 +47,12 @@ const participants = computed(() =>
     (a, b) => b.contribution - a.contribution,
   ),
 );
-async function load(background = false) {
-  if (loading.value && background) return;
-  const current = ++request;
-  loading.value = true;
-  try {
+const boardRead = useRetainedRead({
+  loading,
+  error,
+  read: async () => {
     const conn = await connectBitcraft();
-    const result = JSON.parse(
+    return JSON.parse(
       await conn.procedures.readBossBoard({
         enemyType: boss.value,
         query: query.value.trim(),
@@ -64,42 +61,42 @@ async function load(background = false) {
         limit: 50,
       }),
     );
-    if (disposed || current !== request) return;
+  },
+  apply: (result: any) => {
     board.value = result;
     page.value = result.page;
-    error.value = "";
     updated.value = new Date().toLocaleTimeString();
-  } catch (e: any) {
-    if (!disposed && current === request)
-      error.value = e.message || "Boss records are unavailable.";
-  } finally {
-    if (current === request) loading.value = false;
-  }
-}
-async function open(key: string) {
-  selected.value = key;
-  encounter.value = null;
-  detailError.value = "";
-  detailLoading.value = true;
-  const current = ++detailRequest;
-  try {
+  },
+  fallback: "Boss records are unavailable.",
+});
+const detailRead = useRetainedRead({
+  loading: detailLoading,
+  error: detailError,
+  canRead: () => Boolean(selected.value),
+  read: async (key: string) => {
     const conn = await connectBitcraft();
-    const data = JSON.parse(await conn.procedures.readBossDefeat({ key }));
-    if (disposed || current !== detailRequest) return;
+    return JSON.parse(await conn.procedures.readBossDefeat({ key }));
+  },
+  apply: (data: any) => {
     encounter.value = data;
     if (!data)
       detailError.value =
         "This encounter is outside the retained history window.";
-  } catch (e: any) {
-    if (!disposed && current === detailRequest)
-      detailError.value = e.message || "Encounter unavailable.";
-  } finally {
-    if (current === detailRequest) detailLoading.value = false;
-  }
+  },
+  fallback: "Encounter unavailable.",
+});
+async function load(background = false) {
+  if (loading.value && background) return;
+  await boardRead.run();
+}
+async function open(key: string) {
+  selected.value = key;
+  encounter.value = null;
+  await detailRead.run(key);
 }
 function close() {
   selected.value = "";
-  detailRequest++;
+  detailRead.invalidate();
 }
 function changePage(next: number) {
   page.value = next;
@@ -116,21 +113,14 @@ watch(query, () => {
     void load();
   }, 300);
 });
-function visibleRefresh() {
-  if (!document.hidden) void load(true);
-}
+const polling = createTrackerPoller(() => load(true), 10000);
 onMounted(() => {
   void load();
-  poll = setInterval(visibleRefresh, 10000);
-  document.addEventListener("visibilitychange", visibleRefresh);
+  polling.start();
 });
 onBeforeUnmount(() => {
-  disposed = true;
-  request++;
-  detailRequest++;
-  clearInterval(poll);
+  polling.stop();
   clearTimeout(debounce);
-  document.removeEventListener("visibilitychange", visibleRefresh);
 });
 </script>
 

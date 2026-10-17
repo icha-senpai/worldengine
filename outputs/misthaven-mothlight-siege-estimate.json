@@ -1,0 +1,80 @@
+{
+  "observedAt": "2026-10-17T20:36:49.501Z",
+  "scope": "Misthaven storage, Krutch and Kiyri public inventories, and Tidesong treasury/foundry",
+  "energy": {
+    "Krutch": 43942,
+    "Kiyri": 9532,
+    "TidesongTreasury": 1149,
+    "combined": 54623
+  },
+  "foundCapsules": 0,
+  "foundryQueued": 0,
+  "misthaven": {
+    "supplies": 39740,
+    "hourlyUpkeep": 38.125,
+    "reserveHours": 400,
+    "capsulesSupplyLimit": 69
+  },
+  "towers": [
+    {
+      "entityId": "648518346353700092",
+      "locationX": 26916,
+      "locationZ": 9312,
+      "locationDimension": 1,
+      "energy": 7801,
+      "upkeep": 1,
+      "active": true,
+      "nickname": "Fallen Empire's Watchtower",
+      "siege": [],
+      "nominalCapsulesWithoutDefensiveReinforcement": 8
+    },
+    {
+      "entityId": "648518346353716964",
+      "locationX": 26910,
+      "locationZ": 8934,
+      "locationDimension": 1,
+      "energy": 7802,
+      "upkeep": 1,
+      "active": true,
+      "nickname": "Fallen Empire's Watchtower",
+      "siege": [],
+      "nominalCapsulesWithoutDefensiveReinforcement": 8
+    },
+    {
+      "entityId": "648518346353747896",
+      "locationX": 27765,
+      "locationZ": 8754,
+      "locationDimension": 1,
+      "energy": 7856,
+      "upkeep": 1,
+      "active": true,
+      "nickname": "Fallen Empire's Watchtower",
+      "siege": [],
+      "nominalCapsulesWithoutDefensiveReinforcement": 8
+    },
+    {
+      "entityId": "648518346353733836",
+      "locationX": 27702,
+      "locationZ": 9384,
+      "locationDimension": 1,
+      "energy": 8483,
+      "upkeep": 1,
+      "active": true,
+      "nickname": "Fallen Empire's Watchtower",
+      "siege": [],
+      "nominalCapsulesWithoutDefensiveReinforcement": 9
+    }
+  ],
+  "capsuleCost": {
+    "energy": 100,
+    "supplies": 350,
+    "seconds": 600
+  },
+  "assumptions": [
+    "No defender reinforcement",
+    "1000 siege charge per capsule from relay empire_supplies_desc",
+    "Siege engines and their construction materials excluded",
+    "Indexed public inventories may lag or omit holdings"
+  ],
+  "totalNominalCapsules": 33
+}

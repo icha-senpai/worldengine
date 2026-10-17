@@ -1,4 +1,5 @@
 <script setup>
+import { useRetainedRead } from "../bitcraft-ui/useRetainedRead";
 import BitcraftPageHeader from "../bitcraft-ui/Components/BitcraftPageHeader.vue";
 import SelectInput from "../bitcraft-ui/shared/SelectInput.vue";
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
@@ -222,9 +223,7 @@ async function loadMemberActivity() {
     if (request === activityRequest) activityLoading.value = false;
   }
 }
-let listRequest = 0,
-  historyRequest = 0,
-  debounce,
+let debounce,
   interval,
   disposed = false;
 const readyCount = computed(() => coverage.value.filter((r) => r.ready).length);
@@ -377,13 +376,12 @@ async function subscribeChanges() {
     changeRecovery.schedule();
   }
 }
-async function loadList() {
-  const request = ++listRequest;
-  loading.value = true;
-  error.value = "";
-  try {
+const listRead = useRetainedRead({
+  loading,
+  error,
+  read: async () => {
     const conn = await connectBitcraft();
-    const data = JSON.parse(
+    return JSON.parse(
       await conn.procedures.readTrackedClaims({
         query: query.value.trim(),
         regionId: Number(region.value),
@@ -393,7 +391,8 @@ async function loadList() {
         limit: 50,
       }),
     );
-    if (disposed || request !== listRequest) return;
+  },
+  apply: (data) => {
     claims.value = data.claims;
     coverage.value = data.coverage;
     total.value = data.total;
@@ -401,22 +400,19 @@ async function loadList() {
     pages.value = data.pages;
     if (listView.value === "all") page.value = data.page;
     updated.value = new Date().toLocaleTimeString();
-  } catch (e) {
-    if (!disposed && request === listRequest)
-      error.value = e.message || "Tracked claims are unavailable.";
-  } finally {
-    if (request === listRequest) loading.value = false;
-  }
+  },
+  fallback: "Tracked claims are unavailable.",
+});
+async function loadList() {
+  await listRead.run();
 }
-async function loadHistory(more = false, markRead = false, live = false) {
-  if (!showHistory.value) return;
-  const request = ++historyRequest,
-    selection = selected.value;
-  historyLoading.value = true;
-  historyError.value = "";
-  try {
+const historyRead = useRetainedRead({
+  loading: historyLoading,
+  error: historyError,
+  canRead: () => showHistory.value,
+  read: async (more, markRead, live, selection) => {
     const conn = await connectBitcraft();
-    const data = JSON.parse(
+    return JSON.parse(
       selection
         ? await conn.procedures.readTrackedClaimHistory({
             claimId: selection.id,
@@ -433,7 +429,8 @@ async function loadHistory(more = false, markRead = false, live = false) {
             limit: 100,
           }),
     );
-    if (disposed || request !== historyRequest || !showHistory.value) return;
+  },
+  apply: (data, more, markRead, live, selection) => {
     if (live && moreLoaded.value) {
       const merged = new Map(
         [...events.value, ...data.events].map((event) => [event.key, event]),
@@ -454,12 +451,11 @@ async function loadHistory(more = false, markRead = false, live = false) {
     members.value = data.members ?? [];
     if (selection && group.value === "all" && !more && markRead)
       markStarViewed(selection, data);
-  } catch (e) {
-    if (!disposed && request === historyRequest)
-      historyError.value = e.message || "History is unavailable.";
-  } finally {
-    if (request === historyRequest) historyLoading.value = false;
-  }
+  },
+  fallback: "History is unavailable.",
+});
+async function loadHistory(more = false, markRead = false, live = false) {
+  await historyRead.run(more, markRead, live, selected.value);
 }
 function openHistory(claim = null) {
   activityRequest++;
@@ -482,7 +478,7 @@ function closeHistory() {
   activityRequest++;
   activityLoading.value = false;
   showHistory.value = false;
-  historyRequest++;
+  historyRead.invalidate();
   historyLoading.value = false;
 }
 function inspectEvent(e) {
@@ -554,8 +550,8 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
   disposed = true;
-  listRequest++;
-  historyRequest++;
+  listRead.invalidate();
+  historyRead.invalidate();
   starRequest++;
   activityRequest++;
   clearTimeout(debounce);

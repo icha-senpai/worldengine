@@ -1,3 +1,18 @@
+// Editable planning preset; it is not a live measurement of the selected player.
+export const nubiGoatPreset = {
+  killXp: 386.1,
+  processingXp: 198,
+  xpMode: "base",
+  bonus: 0,
+};
+export const huntingDefaults = {
+  currentLevel: 37,
+  currentXp: 5080,
+  targetLevel: 40,
+  ...nubiGoatPreset,
+  mode: "both",
+};
+
 export function calculateHuntingXp(levels, settings) {
   const thresholds = new Map(
     levels

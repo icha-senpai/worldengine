@@ -1,0 +1,469 @@
+{
+  "observedAt": "2026-10-17T20:24:10.439Z",
+  "empireId": "309104",
+  "inventoryMatches": [
+    {
+      "id": "864691128472668165",
+      "name": "Nedned2k",
+      "keys": [
+        "inventories",
+        "items",
+        "cargos",
+        "availableRegions"
+      ],
+      "hits": [
+        {
+          "path": ".inventories.15.pockets.1.contents",
+          "itemId": 828972621,
+          "itemType": 0,
+          "quantity": 19928
+        },
+        {
+          "path": ".inventories.27.pockets.43.contents",
+          "itemId": 2000000,
+          "itemType": 1,
+          "quantity": 20
+        }
+      ],
+      "locations": [
+        {
+          "inventory": {
+            "entityId": "864691128472668167",
+            "playerOwnerEntityId": "0",
+            "ownerEntityId": "864691128472668165",
+            "inventoryIndex": 2,
+            "cargoIndex": 2,
+            "buildingName": null,
+            "claimEntityId": null,
+            "claimName": null,
+            "claimLocationX": null,
+            "claimLocationZ": null,
+            "claimLocationDimension": null,
+            "regionId": 9,
+            "inventoryName": "Wallet",
+            "appearanceOverrideId": null,
+            "overrideIconAssetName": null,
+            "overrideModelAddress": null
+          },
+          "matches": [
+            {
+              "itemId": 828972621,
+              "itemType": 0,
+              "quantity": 19928
+            }
+          ]
+        },
+        {
+          "inventory": {
+            "entityId": "648518346385358263",
+            "ownerEntityId": "648518346385358263",
+            "inventoryName": "Nedned2k's Personal Cache (II)",
+            "playerOwnerEntityId": "864691128472668165",
+            "inventoryIndex": 0,
+            "cargoIndex": 48,
+            "regionId": 9,
+            "appearanceOverrideId": null,
+            "overrideIconAssetName": null,
+            "overrideModelAddress": null
+          },
+          "matches": [
+            {
+              "itemId": 2000000,
+              "itemType": 1,
+              "quantity": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1297036692699950980",
+      "name": "Onnen",
+      "keys": [
+        "inventories",
+        "items",
+        "cargos",
+        "availableRegions"
+      ],
+      "hits": [
+        {
+          "path": ".inventories.9.pockets.1.contents",
+          "itemId": 828972621,
+          "itemType": 0,
+          "quantity": 225
+        }
+      ],
+      "locations": [
+        {
+          "inventory": {
+            "entityId": "1297036692699950982",
+            "playerOwnerEntityId": "0",
+            "ownerEntityId": "1297036692699950980",
+            "inventoryIndex": 2,
+            "cargoIndex": 2,
+            "buildingName": null,
+            "claimEntityId": null,
+            "claimName": null,
+            "claimLocationX": null,
+            "claimLocationZ": null,
+            "claimLocationDimension": null,
+            "regionId": 18,
+            "inventoryName": "Wallet",
+            "appearanceOverrideId": null,
+            "overrideIconAssetName": null,
+            "overrideModelAddress": null
+          },
+          "matches": [
+            {
+              "itemId": 828972621,
+              "itemType": 0,
+              "quantity": 225
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1369094286737080438",
+      "name": "Gammadex",
+      "keys": [
+        "inventories",
+        "items",
+        "cargos",
+        "availableRegions"
+      ],
+      "hits": []
+    },
+    {
+      "id": "648518346363843897",
+      "name": "inosukesama",
+      "keys": [
+        "inventories",
+        "items",
+        "cargos",
+        "availableRegions"
+      ],
+      "hits": [
+        {
+          "path": ".inventories.1.pockets.1.contents",
+          "itemId": 828972621,
+          "itemType": 0,
+          "quantity": 8
+        }
+      ],
+      "locations": [
+        {
+          "inventory": {
+            "entityId": "648518346363843899",
+            "playerOwnerEntityId": "0",
+            "ownerEntityId": "648518346363843897",
+            "inventoryIndex": 2,
+            "cargoIndex": 2,
+            "buildingName": null,
+            "claimEntityId": null,
+            "claimName": null,
+            "claimLocationX": null,
+            "claimLocationZ": null,
+            "claimLocationDimension": null,
+            "regionId": 9,
+            "inventoryName": "Wallet",
+            "appearanceOverrideId": null,
+            "overrideIconAssetName": null,
+            "overrideModelAddress": null
+          },
+          "matches": [
+            {
+              "itemId": 828972621,
+              "itemType": 0,
+              "quantity": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1224979098681756535",
+      "name": "maliciousme",
+      "keys": [
+        "inventories",
+        "items",
+        "cargos",
+        "availableRegions"
+      ],
+      "hits": []
+    },
+    {
+      "id": "648518352717844142",
+      "name": "Saturis",
+      "keys": [
+        "inventories",
+        "items",
+        "cargos",
+        "availableRegions"
+      ],
+      "hits": [
+        {
+          "path": ".inventories.1.pockets.1.contents",
+          "itemId": 828972621,
+          "itemType": 0,
+          "quantity": 12
+        }
+      ],
+      "locations": [
+        {
+          "inventory": {
+            "entityId": "648518352717844144",
+            "playerOwnerEntityId": "0",
+            "ownerEntityId": "648518352717844142",
+            "inventoryIndex": 2,
+            "cargoIndex": 2,
+            "buildingName": null,
+            "claimEntityId": null,
+            "claimName": null,
+            "claimLocationX": null,
+            "claimLocationZ": null,
+            "claimLocationDimension": null,
+            "regionId": 9,
+            "inventoryName": "Wallet",
+            "appearanceOverrideId": null,
+            "overrideIconAssetName": null,
+            "overrideModelAddress": null
+          },
+          "matches": [
+            {
+              "itemId": 828972621,
+              "itemType": 0,
+              "quantity": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "504403158290370451",
+      "name": "Aevn",
+      "keys": [
+        "inventories",
+        "items",
+        "cargos",
+        "availableRegions"
+      ],
+      "hits": [
+        {
+          "path": ".inventories.0.pockets.1.contents",
+          "itemId": 828972621,
+          "itemType": 0,
+          "quantity": 8
+        }
+      ],
+      "locations": [
+        {
+          "inventory": {
+            "entityId": "504403158290370453",
+            "playerOwnerEntityId": "0",
+            "ownerEntityId": "504403158290370451",
+            "inventoryIndex": 2,
+            "cargoIndex": 2,
+            "buildingName": null,
+            "claimEntityId": null,
+            "claimName": null,
+            "claimLocationX": null,
+            "claimLocationZ": null,
+            "claimLocationDimension": null,
+            "regionId": 9,
+            "inventoryName": "Wallet",
+            "appearanceOverrideId": null,
+            "overrideIconAssetName": null,
+            "overrideModelAddress": null
+          },
+          "matches": [
+            {
+              "itemId": 828972621,
+              "itemType": 0,
+              "quantity": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "648518346375601934",
+      "name": "Azrina",
+      "keys": [
+        "inventories",
+        "items",
+        "cargos",
+        "availableRegions"
+      ],
+      "hits": [
+        {
+          "path": ".inventories.4.pockets.1.contents",
+          "itemId": 828972621,
+          "itemType": 0,
+          "quantity": 30
+        }
+      ],
+      "locations": [
+        {
+          "inventory": {
+            "entityId": "648518346375601936",
+            "playerOwnerEntityId": "0",
+            "ownerEntityId": "648518346375601934",
+            "inventoryIndex": 2,
+            "cargoIndex": 2,
+            "buildingName": null,
+            "claimEntityId": null,
+            "claimName": null,
+            "claimLocationX": null,
+            "claimLocationZ": null,
+            "claimLocationDimension": null,
+            "regionId": 9,
+            "inventoryName": "Wallet",
+            "appearanceOverrideId": null,
+            "overrideIconAssetName": null,
+            "overrideModelAddress": null
+          },
+          "matches": [
+            {
+              "itemId": 828972621,
+              "itemType": 0,
+              "quantity": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "648518346375576917",
+      "name": "Sinful",
+      "keys": [
+        "inventories",
+        "items",
+        "cargos",
+        "availableRegions"
+      ],
+      "hits": [
+        {
+          "path": ".inventories.3.pockets.1.contents",
+          "itemId": 828972621,
+          "itemType": 0,
+          "quantity": 12
+        }
+      ],
+      "locations": [
+        {
+          "inventory": {
+            "entityId": "648518346375576919",
+            "playerOwnerEntityId": "0",
+            "ownerEntityId": "648518346375576917",
+            "inventoryIndex": 2,
+            "cargoIndex": 2,
+            "buildingName": null,
+            "claimEntityId": null,
+            "claimName": null,
+            "claimLocationX": null,
+            "claimLocationZ": null,
+            "claimLocationDimension": null,
+            "regionId": 9,
+            "inventoryName": "Wallet",
+            "appearanceOverrideId": null,
+            "overrideIconAssetName": null,
+            "overrideModelAddress": null
+          },
+          "matches": [
+            {
+              "itemId": 828972621,
+              "itemType": 0,
+              "quantity": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "648518346363844280",
+      "name": "Nefertetra",
+      "keys": [
+        "inventories",
+        "items",
+        "cargos",
+        "availableRegions"
+      ],
+      "hits": [
+        {
+          "path": ".inventories.2.pockets.1.contents",
+          "itemId": 828972621,
+          "itemType": 0,
+          "quantity": 16
+        }
+      ],
+      "locations": [
+        {
+          "inventory": {
+            "entityId": "648518346363844282",
+            "playerOwnerEntityId": "0",
+            "ownerEntityId": "648518346363844280",
+            "inventoryIndex": 2,
+            "cargoIndex": 2,
+            "buildingName": null,
+            "claimEntityId": null,
+            "claimName": null,
+            "claimLocationX": null,
+            "claimLocationZ": null,
+            "claimLocationDimension": null,
+            "regionId": 9,
+            "inventoryName": "Wallet",
+            "appearanceOverrideId": null,
+            "overrideIconAssetName": null,
+            "overrideModelAddress": null
+          },
+          "matches": [
+            {
+              "itemId": 828972621,
+              "itemType": 0,
+              "quantity": 16
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "claim": "648518346354641225",
+      "buildings": 22,
+      "hits": [
+        {
+          "path": ".buildings.4.inventory.0.contents",
+          "item_id": 2000000,
+          "quantity": 56,
+          "item_type": "cargo"
+        }
+      ]
+    },
+    {
+      "claim": "648518346379899925",
+      "buildings": 13,
+      "hits": []
+    }
+  ],
+  "calculations": {
+    "empireEnergy": 7149,
+    "memberEnergy": 20239,
+    "combinedEnergy": 27388,
+    "readyFoundryCapsules": 25,
+    "reserveCapsules": 56,
+    "memberCapsules": 20,
+    "confirmedCapsules": 101,
+    "queued": 0,
+    "capitalSupplies": 15409,
+    "capitalHourlyUpkeep": 17.35,
+    "securityReserveHours": 144,
+    "securityReserveSupplies": 2498.4,
+    "additionalCapsulesWithCurrentSupplies": 36,
+    "additionalCapsulesTreasuryOnly": 71,
+    "additionalCapsulesCombinedEnergy": 273,
+    "capsuleSeconds": 600,
+    "capsuleSupplyCost": 350,
+    "capsuleEnergyCost": 100,
+    "capsuleTowerEnergy": 1000
+  }
+}

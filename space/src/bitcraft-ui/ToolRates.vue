@@ -7,6 +7,11 @@
       />
     </template>
 
+    <CalculatorDataContext
+      source="Static action definitions"
+      :snapshot="snapshot"
+      note="Estimates use your inputs and recorded action definitions. Measured player XP rates are shown separately."
+    />
     <section class="index-panel ui-panel">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -16,9 +21,6 @@
             Inputs
           </h2>
         </div>
-        <span class="tag" :class="snapshot?.available ? 'tag--success' : ''">{{
-          snapshotLabel
-        }}</span>
       </div>
 
       <div class="tool-rate-controls mt-4">
@@ -330,8 +332,10 @@
 </template>
 
 <script setup>
+import CalculatorDataContext from "./Components/CalculatorDataContext.vue";
+import { useCalculatorSettings } from "./calculatorSettings";
 import BitcraftPageHeader from "./Components/BitcraftPageHeader.vue";
-import { computed, reactive, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import { router } from "./navigation";
 import AuthenticatedLayout from "/src/bitcraft-ui/Layout.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
@@ -343,7 +347,7 @@ import {
   bitjitaAssetUrl,
   hasBitcraftTier,
 } from "/src/bitcraft-ui/bitjitaAssets.js";
-import { estimateGathering } from "./gatheringEstimates";
+import { estimateGathering, gatheringDefaults } from "./gatheringEstimates";
 
 const props = defineProps({
   entries: { type: Array, default: () => [] },
@@ -353,31 +357,21 @@ const props = defineProps({
   nearbyError: { type: String, default: null },
 });
 
-const storageKey = "bitcraft.tool-rates.settings";
-const savedSettings = readSettings();
-const settings = reactive({
-  search: "",
-  skill: "",
-  tool: "",
-  mode: "sustained",
-  power: 33,
-  gatheringSpeed: 16,
-  skillSpeed: 0,
-  minutes: 30,
-  critChance: 0,
-  critMultiplier: 1,
-  sort: "default",
-  ...savedSettings,
-});
-const brokenIconAssets = ref(new Set());
-
-watch(
-  settings,
-  () => {
-    window.localStorage?.setItem(storageKey, JSON.stringify({ ...settings }));
+const settings = useCalculatorSettings(
+  "bitcraft.tool-rates.settings",
+  {
+    search: "",
+    skill: "",
+    tool: "",
+    ...gatheringDefaults,
+    sort: "default",
   },
-  { deep: true },
+  {
+    mode: ["sustained", "single"],
+    sort: ["default", "output", "xp", "actions"],
+  },
 );
+const brokenIconAssets = ref(new Set());
 
 const skillOptions = computed(() =>
   uniqueOptions(props.entries.map((entry) => entry.skill?.name)),
@@ -385,28 +379,6 @@ const skillOptions = computed(() =>
 const toolOptions = computed(() =>
   uniqueOptions(props.entries.map((entry) => entry.tool?.name)),
 );
-
-const snapshotLabel = computed(() => {
-  if (!props.snapshot?.available) {
-    return "Static data unavailable";
-  }
-
-  if (!props.snapshot.generatedAt) {
-    return "Static snapshot";
-  }
-
-  const date = new Date(props.snapshot.generatedAt);
-
-  if (Number.isNaN(date.getTime())) {
-    return "Static snapshot";
-  }
-
-  return `Snapshot ${date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })}`;
-});
 
 const estimatedRows = computed(() =>
   props.entries.map((entry, index) => ({
@@ -509,18 +481,6 @@ function uniqueOptions(values) {
   return [...new Set(values.filter(Boolean))].sort((a, b) =>
     String(a).localeCompare(String(b)),
   );
-}
-
-function readSettings() {
-  if (typeof window === "undefined") {
-    return {};
-  }
-
-  try {
-    return JSON.parse(window.localStorage?.getItem(storageKey) ?? "{}") ?? {};
-  } catch {
-    return {};
-  }
 }
 
 const formatNumber = (value) =>

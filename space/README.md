@@ -2,6 +2,8 @@
 
 Standalone Vue 3 + TypeScript frontend with two SpaceTimeDB 2.12 modules. BitCraft is public. Evergather currently uses remembered browser identities for local play; Discord through SpacetimeAuth can be restored later. The running app has no Laravel or PostgreSQL dependency. Existing ICHAA files and databases are left untouched.
 
+See [BitCraft tool boundaries](docs/bitcraft-tool-architecture.md) for shared tracker, data, history, market and calculator infrastructure.
+
 ## Local development
 
 On Windows, double-click `start-test.cmd`, `stop-test.cmd`, or `restart-test.cmd`

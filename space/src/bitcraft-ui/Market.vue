@@ -1,4 +1,5 @@
 <script setup>
+import { useMarketBooks } from "./useMarketBooks";
 import {
   computed,
   nextTick,
@@ -8,7 +9,6 @@ import {
   ref,
   watch,
 } from "vue";
-import { bitcraftFetch } from "./api";
 import { route, router } from "./navigation";
 import AuthenticatedLayout from "./Layout.vue";
 import BitcraftPageHeader from "./Components/BitcraftPageHeader.vue";
@@ -23,7 +23,7 @@ import {
   bitjitaAssetUrl,
   hasBitcraftTier,
 } from "./bitjitaAssets";
-import { normalizeOrderBook, sortTradingRows } from "./market";
+import { sortTradingRows } from "./market";
 
 const props = defineProps({
   filters: { type: Object, default: () => ({}) },
@@ -67,20 +67,13 @@ const intent = ref("buy"),
 const exchangeType = ref(""),
   availableOnly = ref(true),
   sort = ref("price");
-const selectedKey = ref(""),
-  selectedBook = ref(null),
-  bookLoading = ref(false),
-  lookupWarning = ref("");
+const selectedKey = ref("");
 const searching = ref(false),
   popupOpen = ref(false),
   detailsTab = ref("offers");
-const books = new Map(),
-  brokenIcons = ref(new Set());
+const brokenIcons = ref(new Set());
 let searchTimer,
-  lookupGeneration = 0,
-  selectedBookScope = "",
-  syncing = false,
-  destroyed = false;
+  syncing = false;
 const storageKey = computed(() => `space.bitcraft.trading.${props.tool.key}`);
 const resultScope = computed(() =>
   JSON.stringify([
@@ -94,6 +87,27 @@ const resultScope = computed(() =>
   ]),
 );
 const itemKey = (item) => `${item.kind ?? item.type ?? "item"}:${item.id}`;
+const {
+  selectedBook,
+  bookLoading,
+  lookupWarning,
+  knownBook,
+  selectBook,
+  loadHistory,
+  invalidate,
+  clearBooks,
+} = useMarketBooks({
+  props,
+  isBarter,
+  resultScope: () => resultScope.value,
+  payload,
+  selected: () => selected.value,
+  selectedKey,
+  popupOpen,
+  detailsTab,
+  rowKey: (row) => rowKey(row),
+  remember,
+});
 const count = (value) =>
   value === null || value === undefined || value === ""
     ? "—"
@@ -334,39 +348,6 @@ function claimHref(order) {
     claimEntityId: order.claimEntityId,
   });
 }
-function knownBook(item) {
-  const cached = books.get(`${resultScope.value}:${itemKey(item)}`);
-  if (
-    cached &&
-    (!props.market.storage ||
-      String(cached.observedAt) === String(item.observedAt))
-  )
-    return cached;
-  const provided = props.market.orderBooks?.[itemKey(item)];
-  if (provided) return provided;
-  if (
-    props.market.orderBook &&
-    itemKey(props.market.orderBook.item) === itemKey(item)
-  )
-    return props.market.orderBook;
-  if (
-    !props.market.storage &&
-    (props.market.orderScope === "claims" || props.market.claim)
-  ) {
-    const listings = (props.market.listings ?? []).filter(
-      (row) =>
-        String(row.itemId) === String(item.id) &&
-        String(row.itemType ?? row.itemKind ?? "item") ===
-          String(item.kind ?? "item"),
-    );
-    return normalizeOrderBook({
-      item,
-      sellOrders: listings.filter((row) => row.side === "sell"),
-      buyOrders: listings.filter((row) => row.side === "buy"),
-    });
-  }
-  return null;
-}
 function bestClaim(item) {
   const storedName =
     intent.value === "buy" ? item.bestSellClaimName : item.bestBuyClaimName;
@@ -395,17 +376,6 @@ function bestClaim(item) {
   return sorted[0]?.claimName || sorted[0]?.locationName || "—";
 }
 async function select(row, moveToDetails = false) {
-  const request = ++lookupGeneration;
-  const changed = selectedKey.value !== rowKey(row);
-  const scope = resultScope.value;
-  const retainedBook =
-    !changed && selectedBookScope === scope ? selectedBook.value : null;
-  selectedKey.value = rowKey(row);
-  lookupWarning.value = "";
-  if (changed) {
-    popupOpen.value = false;
-    detailsTab.value = "offers";
-  }
   if (moveToDetails && window.innerWidth <= 1000) {
     nextTick(() =>
       document
@@ -413,113 +383,15 @@ async function select(row, moveToDetails = false) {
         ?.scrollIntoView({ block: "start" }),
     );
   }
-  bookLoading.value = false;
-  if (isBarter.value) {
-    selectedBook.value = null;
-    remember();
-    return;
-  }
-  const cachedBook = knownBook(row);
-  // Stored revisions refresh the same selection in place. Only a new item or
-  // filter scope should replace its details with the initial loading state.
-  selectedBook.value = cachedBook ?? retainedBook;
-  selectedBookScope = scope;
-  if (cachedBook) {
-    if (detailsTab.value === "history" || popupOpen.value) loadHistory();
-    remember();
-    return;
-  }
-  bookLoading.value = true;
-  try {
-    const response = await bitcraftFetch(
-      route("bitcraft.market.order-book", {
-        ...payload(),
-        itemId: row.id,
-        itemKind: row.kind ?? "item",
-        history: "0",
-      }),
-    );
-    const data = await response.json();
-    if (
-      request !== lookupGeneration ||
-      scope !== resultScope.value ||
-      destroyed
-    )
-      return;
-    if (!response.ok || !data.orderBook)
-      throw new Error(data.error || "Order details could not refresh.");
-    const book = {
-      ...data.orderBook,
-      ...(retainedBook?.historyLoaded
-        ? {
-            history: retainedBook.history,
-            historyDelayed: retainedBook.historyDelayed,
-          }
-        : {}),
-    };
-    books.set(`${scope}:${itemKey(row)}`, book);
-    selectedBook.value = book;
-    if (data.refresh?.delayed)
-      lookupWarning.value =
-        "Refresh delayed. Showing previously fetched orders.";
-    if (detailsTab.value === "history" || popupOpen.value) await loadHistory();
-  } catch (error) {
-    if (request === lookupGeneration && !destroyed)
-      lookupWarning.value = error.message || "Order details could not refresh.";
-  } finally {
-    if (request === lookupGeneration && !destroyed) bookLoading.value = false;
-    remember();
-  }
+  await selectBook(row);
 }
-async function loadHistory() {
-  if (isBarter.value || !selected.value || selectedBook.value?.historyLoaded)
-    return;
-  const row = selected.value;
-  const scope = resultScope.value;
-  const request = ++lookupGeneration;
-  bookLoading.value = true;
-  try {
-    const response = await bitcraftFetch(
-      route("bitcraft.market.order-book", {
-        ...payload(),
-        itemId: row.id,
-        itemKind: row.kind ?? "item",
-      }),
-    );
-    const data = await response.json();
-    if (
-      request !== lookupGeneration ||
-      scope !== resultScope.value ||
-      destroyed
-    )
-      return;
-    if (!response.ok || !data.orderBook)
-      throw new Error(data.error || "History could not refresh.");
-    const book = {
-      ...selectedBook.value,
-      history: data.orderBook.history,
-      historyDelayed: data.orderBook.historyDelayed,
-      historyLoaded: true,
-    };
-    books.set(`${scope}:${itemKey(row)}`, book);
-    selectedBook.value = book;
-  } catch (error) {
-    if (request === lookupGeneration && !destroyed)
-      lookupWarning.value = error.message;
-  } finally {
-    if (request === lookupGeneration && !destroyed) bookLoading.value = false;
-  }
-}
-watch(detailsTab, (tab) => {
-  if (tab === "history") loadHistory();
-});
 watch(availableOnly, () => {
   marketPage.value = 1;
   remember();
 });
 watch(resultScope, () => {
   marketPage.value = 1;
-  books.clear();
+  clearBooks();
 });
 watch(marketPages, (pages) => {
   marketPage.value = Math.min(marketPage.value, pages);
@@ -605,7 +477,7 @@ watch(
   [rows, resultScope],
   () => {
     if (!rows.value.length) {
-      ++lookupGeneration;
+      invalidate();
       selectedBook.value = null;
       bookLoading.value = false;
       popupOpen.value = false;
@@ -693,8 +565,7 @@ onMounted(() => {
   window.addEventListener("pagehide", remember);
 });
 onBeforeUnmount(() => {
-  destroyed = true;
-  ++lookupGeneration;
+  invalidate();
   clearTimeout(searchTimer);
   remember();
   window.removeEventListener("pagehide", remember);

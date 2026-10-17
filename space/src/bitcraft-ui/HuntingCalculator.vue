@@ -1,27 +1,29 @@
 <script setup>
+import CalculatorDataContext from "./Components/CalculatorDataContext.vue";
+import { useCalculatorSettings } from "./calculatorSettings";
 import BitcraftPageHeader from "./Components/BitcraftPageHeader.vue";
-import { computed, reactive } from "vue";
+import { computed } from "vue";
 import { router } from "/src/bitcraft-ui/navigation";
 import AuthenticatedLayout from "/src/bitcraft-ui/Layout.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import TextInput from "/src/bitcraft-ui/shared/TextInput.vue";
-import { calculateHuntingXp } from "./huntingXp";
+import {
+  calculateHuntingXp,
+  huntingDefaults,
+  nubiGoatPreset,
+} from "./huntingXp";
 
 const props = defineProps({
   levels: { type: Array, default: () => [] },
+  refresh: { type: Object, default: () => ({}) },
   error: { type: String, default: null },
   playerSkill: { type: Object, default: null },
 });
-const settings = reactive({
-  currentLevel: 37,
-  currentXp: 5080,
-  targetLevel: 40,
-  killXp: 386.1,
-  processingXp: 198,
-  bonus: 0,
-  mode: "both",
-  xpMode: "base",
-});
+const settings = useCalculatorSettings(
+  "bitcraft.hunting.settings",
+  huntingDefaults,
+  { mode: ["both", "processing", "hunting"], xpMode: ["base", "observed"] },
+);
 const result = computed(() => calculateHuntingXp(props.levels, settings));
 const selected = computed(() =>
   result.value.scenarios?.find((row) => row.mode === settings.mode),
@@ -34,10 +36,7 @@ const number = (value) =>
   new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
 
 function resetGoatXp() {
-  settings.killXp = 386.1;
-  settings.processingXp = 198;
-  settings.xpMode = "base";
-  settings.bonus = 0;
+  Object.assign(settings, nubiGoatPreset);
 }
 </script>
 
@@ -51,6 +50,11 @@ function resetGoatXp() {
     </template>
 
     <div class="grid gap-5">
+      <CalculatorDataContext
+        source="Editable XP preset and level thresholds"
+        :refresh="refresh"
+        note="XP per animal is an editable planning input. Check the Nubi Goat preset against your own observed XP; counts are estimates."
+      />
       <section class="index-panel ui-panel">
         <button
           v-if="playerSkill"
