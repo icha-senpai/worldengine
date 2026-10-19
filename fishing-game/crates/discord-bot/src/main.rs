@@ -66,6 +66,16 @@ async fn log_timing(ctx: Context<'_>, stage: &str, started: Instant, success: bo
     tracing::info!(command = %ctx.command().name, interaction_id = interaction_id(ctx).ok(), stage, elapsed_ms = started.elapsed().as_millis() as u64, command_ms, success, "Discord command timing");
 }
 
+fn log_fish_again_timing(interaction_id: u64, stage: &str, started: Instant, success: bool) {
+    tracing::info!(
+        interaction_id,
+        stage,
+        elapsed_ms = started.elapsed().as_millis() as u64,
+        success,
+        "Fish again stage timing"
+    );
+}
+
 async fn acknowledge(ctx: Context<'_>, ephemeral: bool) -> Result<(), Error> {
     let started = Instant::now();
     let result = if ephemeral {
@@ -472,7 +482,8 @@ async fn handle_event(
         fish_again(framework.serenity_context, interaction, framework.user_data).await
     {
         tracing::warn!(%error, interaction_id=interaction.id.get(), "Fish again unavailable");
-        let _ = interaction
+        let reply_started = Instant::now();
+        let reply = interaction
             .create_followup(
                 framework.serenity_context,
                 serenity::CreateInteractionResponseFollowup::new()
@@ -481,6 +492,12 @@ async fn handle_event(
                     .allowed_mentions(serenity::CreateAllowedMentions::new()),
             )
             .await;
+        log_fish_again_timing(
+            interaction.id.get(),
+            "send_error",
+            reply_started,
+            reply.is_ok(),
+        );
     }
     Ok(())
 }
@@ -490,13 +507,15 @@ async fn fish_again(
     interaction: &serenity::ComponentInteraction,
     data: &Data,
 ) -> Result<(), Error> {
+    let total_started = Instant::now();
     let user_id = match discord_bot::fish_again::caster(
         &interaction.data.custom_id,
         interaction.user.id.get(),
     ) {
         Ok(user_id) => user_id,
         Err(message) => {
-            interaction
+            let ack_started = Instant::now();
+            let ack = interaction
                 .create_response(
                     ctx,
                     serenity::CreateInteractionResponse::Message(
@@ -506,20 +525,36 @@ async fn fish_again(
                             .allowed_mentions(serenity::CreateAllowedMentions::new()),
                     ),
                 )
-                .await?;
+                .await;
+            log_fish_again_timing(
+                interaction.id.get(),
+                "acknowledge_rejected",
+                ack_started,
+                ack.is_ok(),
+            );
+            ack?;
             return Ok(());
         }
     };
     // Acknowledge the click without editing the existing catch or its button.
-    interaction
+    let ack_started = Instant::now();
+    let ack = interaction
         .create_response(ctx, serenity::CreateInteractionResponse::Acknowledge)
-        .await?;
+        .await;
+    log_fish_again_timing(
+        interaction.id.get(),
+        "acknowledge",
+        ack_started,
+        ack.is_ok(),
+    );
+    ack?;
     let started = Instant::now();
     data.achievement_notifications.record_channel(
         user_id,
         interaction.channel_id.get(),
         data.game.known_player_id(user_id),
     );
+    let game_started = Instant::now();
     let result = {
         let _permit = data
             .pending
@@ -536,11 +571,13 @@ async fn fish_again(
             )
             .await
     };
+    log_fish_again_timing(interaction.id.get(), "game", game_started, result.is_ok());
     let result = match result {
         Ok(result) => result,
         Err(error) => {
             tracing::warn!(%error, interaction_id=interaction.id.get(), "Fish again rejected or unavailable");
-            interaction
+            let reply_started = Instant::now();
+            let reply = interaction
                 .create_followup(
                     ctx,
                     serenity::CreateInteractionResponseFollowup::new()
@@ -548,14 +585,22 @@ async fn fish_again(
                         .ephemeral(true)
                         .allowed_mentions(serenity::CreateAllowedMentions::new()),
                 )
-                .await?;
+                .await;
+            log_fish_again_timing(
+                interaction.id.get(),
+                "send_rejection",
+                reply_started,
+                reply.is_ok(),
+            );
+            reply?;
             return Ok(());
         }
     };
     data.achievement_notifications
         .remember_player(user_id, Some(result.player.player_id))
         .await;
-    if let Err(error) = data
+    let portrait_started = Instant::now();
+    let portrait = data
         .game
         .sync_portrait(
             user_id,
@@ -565,13 +610,28 @@ async fn fish_again(
                 .discriminator
                 .map_or(0, |value| value.get()),
         )
-        .await
-    {
+        .await;
+    log_fish_again_timing(
+        interaction.id.get(),
+        "portrait",
+        portrait_started,
+        portrait.is_ok(),
+    );
+    if let Err(error) = portrait {
         tracing::warn!(%error, "Discord portrait refresh unavailable");
     }
-    let response = catch_reply(data, &result, Some(user_id)).await?;
+    let render_started = Instant::now();
+    let response = catch_reply(data, &result, Some(user_id)).await;
+    log_fish_again_timing(
+        interaction.id.get(),
+        "render",
+        render_started,
+        response.is_ok(),
+    );
+    let response = response?;
     let source = serenity::MessageReference::from(interaction.message.as_ref());
-    if let Err(error) = interaction
+    let send_started = Instant::now();
+    let delivery = interaction
         .channel_id
         .send_message(
             ctx,
@@ -581,10 +641,17 @@ async fn fish_again(
                 interaction.id.get(),
             ),
         )
-        .await
-    {
+        .await;
+    log_fish_again_timing(
+        interaction.id.get(),
+        "send_card",
+        send_started,
+        delivery.is_ok(),
+    );
+    if let Err(error) = delivery {
         tracing::warn!(%error, "Fish again catch card delivery failed");
-        if let Err(error) = interaction
+        let text_started = Instant::now();
+        let text_delivery = interaction
             .channel_id
             .send_message(
                 ctx,
@@ -594,21 +661,36 @@ async fn fish_again(
                     interaction.id.get(),
                 ),
             )
-            .await
-        {
+            .await;
+        log_fish_again_timing(
+            interaction.id.get(),
+            "send_text",
+            text_started,
+            text_delivery.is_ok(),
+        );
+        if let Err(error) = text_delivery {
             tracing::warn!(%error, "Fish again text delivery failed");
-            interaction.create_followup(
+            let notice_started = Instant::now();
+            let notice = interaction.create_followup(
                 ctx,
                 serenity::CreateInteractionResponseFollowup::new()
                     .content("Your cast was saved, but I couldn't post the catch in this channel. You can see it on the website.")
                     .ephemeral(true)
                     .allowed_mentions(serenity::CreateAllowedMentions::new()),
-            ).await?;
+            ).await;
+            log_fish_again_timing(
+                interaction.id.get(),
+                "send_notice",
+                notice_started,
+                notice.is_ok(),
+            );
+            notice?;
         }
     }
     tracing::info!(
         interaction_id = interaction.id.get(),
         elapsed_ms = started.elapsed().as_millis() as u64,
+        total_ms = total_started.elapsed().as_millis() as u64,
         "Fish again complete"
     );
     Ok(())

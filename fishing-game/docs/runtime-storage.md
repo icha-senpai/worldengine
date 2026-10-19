@@ -1,5 +1,28 @@
 # Runtime programs and disposable files
 
+## Discord timing diagnostics
+
+The production bot writes timing events to its existing systemd journal. Inspect
+them with `journalctl --user -u dataverse-fish-bot --since "1 hour ago"`; add `-f`
+to follow new activity.
+
+`Fish again stage timing` records `interaction_id`, `stage`, `elapsed_ms` and
+`success`. Normal casts log `acknowledge`, `game`, `portrait`, `render` and
+`send_card`. Rejected clicks and failed deliveries also time the applicable
+`acknowledge_rejected`, `send_rejection`, `send_text`, `send_notice` or `send_error`
+request. Use the interaction ID to group stages from concurrent casts. Artwork
+cache/generation details and database request/queue timings remain separate.
+
+`send_card` measures the complete Discord send operation, including attachment
+upload, HTTP queue/rate-limit waits and retries performed by the library. It does
+not distinguish network time from Discord server processing. `Fish again complete`
+keeps its existing `elapsed_ms` measured after acknowledgement and adds `total_ms`
+from handler entry, including acknowledgement. These are server-observed durations,
+not the user's click-to-display time. Timing logs contain no message content or
+credentials and require a newly built/deployed bot to take effect.
+
+## Build and cleanup
+
 Fishbound starts the Discord bot and account linker from `.runtime/bin`, using
 the existing project working directory, environment files and credentials.
 `scripts/install-service-binaries.ps1` copies built programs, checks their hashes,
