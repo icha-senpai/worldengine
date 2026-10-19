@@ -176,7 +176,12 @@ export async function storedMarketPage(filters, { refreshMarket = true } = {}) {
         data.claims.find(
           (claim) => String(claim.entityId) === String(filters.claimEntityId),
         ) ?? null;
-    if (refreshMarket && (String(filters.q ?? "").trim() || filters.itemId)) {
+    const relay = data.storage.relay;
+    if (
+      refreshMarket &&
+      (!relay || relay.ready < relay.total) &&
+      (String(filters.q ?? "").trim() || filters.itemId)
+    ) {
       // Queuing is quick, shared and coalesced. Never wait for upstream HTTP.
       await conn.reducers
         .requestMarketRefresh({
@@ -184,9 +189,10 @@ export async function storedMarketPage(filters, { refreshMarket = true } = {}) {
           itemId: String(filters.itemId ?? ""),
           kind: filters.itemKind || "item",
         })
-        .catch(() => {
-          data.storage.error =
-            "Item refresh could not be queued. Stored matches remain available.";
+        .catch((error) => {
+          data.storage.error = String(error).includes("Narrow your item search")
+            ? "Narrow your item search to refresh at most 50 matching items. Stored matches remain available."
+            : "Item refresh could not be queued. Stored matches remain available.";
         });
     }
     const refresh = {

@@ -20,6 +20,7 @@
     "test:catalog-server": "tsx scripts/server-catalog-test.ts",
     "test:bitcraft-server": "tsx scripts/bitcraft-server-test.ts",
     "test:market-server": "tsx scripts/market-store-server-test.ts",
+    "test:market-fallback-server": "tsx scripts/market-fallback-server-test.ts",
     "test:relay-server": "tsx scripts/relay-server-test.ts",
     "test:relay-live": "tsx scripts/relay-smoke-test.ts",
     "test:claims-server": "tsx scripts/claim-history-server-test.ts",

@@ -49,6 +49,10 @@ The incident was primarily accumulated transaction history: about 61.5 GB of com
 
 Market filtering, sorting before pagination, targeted item refreshes and regional coverage continue to use the same frontend contracts. A whole-region publication is required once per subscription generation. Subsequent publications contain changes and cancellations. Merely changing source row iteration order does not produce a publication. Directory membership uses a stable generation marker: the five-minute directory check changes existing item records only when their data changes.
 
+Item searches use the shared API queue only when trading relay coverage is incomplete. A query may refresh at most 50 matching item/cargo books; repeated searches share the pending work and 30-second freshness window. Unfiltered, region-only and claim-only browsing reads stored orders and does not queue an API order-book crawl. The normal market directory check remains enabled. Healthy regional snapshots override API orders. During an outage, an item-specific API snapshot supplies the missing regions, including confirmed empty results; the stored book records its fallback regions and API observation time. A recovered complete relay snapshot takes authority back and removes that region's fallback, even when it has no offers. Other regions' live updates cannot consume a pending API request or erase its fallback. Coverage still reports the unavailable relay; API fallback does not imply a live subscription.
+
+`npm run test:market-fallback-server` uses the existing sealed main module to seed a disposable database, upgrades it without deleting data, compares populated market/widget/ownership fields, and exercises targeted fallback, shared refreshes, cancellations and recovery without upstream HTTP calls. It removes its database, verified replica and temporary binding afterward. It does not publish the main or test databases.
+
 ## Disk management
 
 ### Claim history

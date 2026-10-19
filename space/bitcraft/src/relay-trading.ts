@@ -235,10 +235,22 @@ export function validateRelayTrading(regionId: number, raw: Row) {
 export function mergeRegionalBook(
   key: string,
   base: Row,
-  regions: { regionId: number; books: Record<string, Row> }[],
+  regions: { regionId: number; books: Record<string, Row>; ready?: boolean }[],
 ) {
-  const authoritative = new Set(regions.map((r) => r.regionId));
+  // A targeted API response can cover an unavailable relay. A complete live
+  // snapshot always takes authority back, including an empty book/cancellation.
+  const fallback = new Set<number>(base.apiFallbackRegions ?? []);
+  const active = regions.filter(
+    (r) => r.ready !== false || !fallback.has(r.regionId),
+  );
+  const authoritative = new Set(active.map((r) => r.regionId));
   const book = { ...base };
+  const remaining = [...fallback].filter((id) => !authoritative.has(id));
+  if (remaining.length) book.apiFallbackRegions = remaining;
+  else {
+    delete book.apiFallbackRegions;
+    delete book.apiFallbackAt;
+  }
   for (const field of [
     "sellOrders",
     "buyOrders",
@@ -249,7 +261,7 @@ export function mergeRegionalBook(
       ...(base[field] ?? []).filter(
         (r: Row) => !authoritative.has(Number(r.regionId)),
       ),
-      ...regions.flatMap((r) => r.books[key]?.[field] ?? []),
+      ...active.flatMap((r) => r.books[key]?.[field] ?? []),
     ];
   return book;
 }

@@ -217,4 +217,54 @@ describe("native relay projection", () => {
       ]).sellOrders.map((r: any) => r.entityId),
     ).toEqual(["elsewhere"]);
   });
+  it("uses targeted API orders for unavailable regions until a live snapshot recovers", () => {
+    const base = {
+      item: { id: "7" },
+      apiFallbackRegions: [7],
+      sellOrders: [
+        { entityId: "api7", regionId: 7 },
+        { entityId: "api8", regionId: 8 },
+      ],
+    };
+    const regions = [
+      {
+        regionId: 7,
+        ready: false,
+        books: {
+          "item:7": { sellOrders: [{ entityId: "stale7", regionId: 7 }] },
+        },
+      },
+      {
+        regionId: 8,
+        ready: true,
+        books: {
+          "item:7": { sellOrders: [{ entityId: "live8", regionId: 8 }] },
+        },
+      },
+    ];
+    const book = mergeRegionalBook("item:7", base, regions);
+    expect(book.sellOrders.map((r: any) => r.entityId)).toEqual([
+      "api7",
+      "live8",
+    ]);
+    expect(book.apiFallbackRegions).toEqual([7]);
+    const emptyApi = mergeRegionalBook(
+      "item:7",
+      { ...base, sellOrders: [] },
+      regions,
+    );
+    expect(emptyApi.sellOrders.map((r: any) => r.entityId)).toEqual(["live8"]);
+    const recovered = mergeRegionalBook("item:7", book, [
+      { regionId: 7, ready: true, books: {} },
+      regions[1]!,
+    ]);
+    expect(recovered.sellOrders.map((r: any) => r.entityId)).toEqual(["live8"]);
+    expect(recovered.apiFallbackRegions).toBeUndefined();
+    // A later outage must not resurrect a previously cancelled API offer.
+    expect(
+      mergeRegionalBook("item:7", recovered, [
+        { regionId: 7, ready: false, books: {} },
+      ]).sellOrders,
+    ).toEqual(recovered.sellOrders);
+  });
 });

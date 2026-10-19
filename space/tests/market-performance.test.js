@@ -120,6 +120,17 @@ describe("stored market browsing", () => {
     expect(requestMarketRefresh).not.toHaveBeenCalled();
     expect(requestData).not.toHaveBeenCalled();
   });
+  it("does not request API fallback for a healthy selected relay region", async () => {
+    const implementation = readMarket.getMockImplementation();
+    readMarket.mockImplementation(async (args) => {
+      const data = JSON.parse(await implementation(args));
+      data.storage.relay = { ready: 1, total: 1 };
+      return JSON.stringify(data);
+    });
+    await marketPage("market", { q: "Plank", region: "Solmere" });
+    expect(requestMarketRefresh).not.toHaveBeenCalled();
+    expect(requestData).not.toHaveBeenCalled();
+  });
   it("keeps stored matches and regions available when refresh queuing fails", async () => {
     requestMarketRefresh.mockRejectedValueOnce(new Error("Offline"));
     const result = await marketPage("market", {
@@ -133,6 +144,18 @@ describe("stored market browsing", () => {
     expect(result.market.storage.error).toContain(
       "Stored matches remain available",
     );
+    expect(requestData).not.toHaveBeenCalled();
+  });
+  it("asks for a narrower search when the shared refresh limit is exceeded", async () => {
+    requestMarketRefresh.mockRejectedValueOnce(
+      new Error(
+        "Narrow your item search to refresh at most 50 matching items.",
+      ),
+    );
+    const result = await marketPage("market", { q: "a" });
+    expect(result.market.items).toHaveLength(85);
+    expect(result.market.storage.error).toContain("50 matching items");
+    expect(result.refresh.delayed).toBe(true);
     expect(requestData).not.toHaveBeenCalled();
   });
   it("uses empire membership metadata to scope stored orders without fetching market data", async () => {

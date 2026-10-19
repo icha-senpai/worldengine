@@ -1,8 +1,8 @@
 import { isVisibleRegionRecord } from "./regions";
 type Row = Record<string, any>;
 export const MARKET_DISCOVERY_SECONDS = 300;
-export const MARKET_ROLLING_SECONDS = 1800;
 export const MARKET_SEARCH_SECONDS = 30;
+export const MARKET_SEARCH_ITEMS = 50;
 
 export function marketIdentity(kind: string, value: unknown) {
   if (!["item", "cargo"].includes(kind))

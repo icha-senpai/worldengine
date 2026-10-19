@@ -50,6 +50,7 @@ import {
   storeStall,
   loadStall,
   clearTradeScope,
+  orderFields,
 } from "./trade-storage";
 import { upstreamRequest } from "./requests";
 import {
@@ -89,8 +90,8 @@ import {
   marketIdentity as parseMarketIdentity,
   marketWorkPriority,
   MARKET_DISCOVERY_SECONDS,
-  MARKET_ROLLING_SECONDS,
   MARKET_SEARCH_SECONDS,
+  MARKET_SEARCH_ITEMS,
 } from "./market-store";
 import {
   collectorIdentity,
@@ -1214,6 +1215,10 @@ function enforceTradingBudget(ctx: Ctx) {
 function nativeRegions(ctx: Ctx, keys?: Set<string>) {
   const regions = [...ctx.db.relayRegion.iter()].map((row) => ({
     regionId: row.regionId,
+    ready: nativeTradingReady(
+      ctx,
+      ctx.db.relayStatus.key.find(`trading:${row.regionId}`),
+    ),
     books: {} as Record<string, any>,
   }));
   const rows = keys
@@ -1230,6 +1235,7 @@ function nativeBook(ctx: Ctx, key: string, book: Record<string, any>) {
   return mergeRegionalBook(key, book, nativeRegions(ctx, new Set([key])));
 }
 function nativeTradingReady(ctx: Ctx, status: any) {
+  if (!status) return false;
   const region = ctx.db.relayRegion.regionId.find(status.regionId);
   return (
     status.ready &&
@@ -1237,6 +1243,24 @@ function nativeTradingReady(ctx: Ctx, status: any) {
     region?.epoch === status.epoch &&
     status.heartbeatAt + 70000000n > ctx.timestamp.microsSinceUnixEpoch
   );
+}
+function storeMarketBook(ctx: Ctx, key: string, book: Record<string, any>) {
+  const fallback = new Set<number>(book.apiFallbackRegions ?? []);
+  if (
+    ctx.db.relayRegion.count() ===
+      BigInt(Object.keys(CURRENT_REGIONS).length) &&
+    !fallback.size
+  ) {
+    clearTradeScope(ctx, `api:${key}`);
+    return JSON.stringify(emptyMarketBook(marketDisplayItem(book.item)));
+  }
+  const retained = { ...book };
+  if (fallback.size && ctx.db.relayRegion.count() > 0n)
+    for (const side of orderFields)
+      retained[side] = (book[side] ?? []).filter((order: any) =>
+        fallback.has(Number(order.regionId)),
+      );
+  return storeBook(ctx, `api:${key}`, retained).payload;
 }
 export const relayHeartbeat = db.reducer(
   {
@@ -1376,6 +1400,14 @@ export const ingestRelayTrading = db.reducer(
       ]),
     );
     const affected = new Set<string>(removedBooks);
+    // A recovered region may now have zero offers for an API-backed item.
+    if (reset)
+      for (const item of ctx.db.marketItem.iter())
+        if (
+          item.book &&
+          JSON.parse(item.book).apiFallbackRegions?.includes(args.regionId)
+        )
+          affected.add(item.key);
     for (const [itemKey, book] of Object.entries(data.books)) {
       const compact = storeBook(
         ctx,
@@ -1458,21 +1490,15 @@ export const ingestRelayTrading = db.reducer(
           marketSummary(book).sellOrderCount +
           marketSummary(book).buyOrderCount,
         ),
-        book:
-          ctx.db.relayRegion.count() ===
-          BigInt(Object.keys(CURRENT_REGIONS).length)
-            ? JSON.stringify(emptyMarketBook(marketDisplayItem(book.item)))
-            : storeBook(ctx, `api:${key}`, book).payload,
-        observedAt: args.observedAt,
+        book: storeMarketBook(ctx, key, book),
+        observedAt:
+          stored && stored.requestedAt > stored.observedAt
+            ? stored.observedAt
+            : args.observedAt,
         requestedAt: stored?.requestedAt ?? 0n,
         retryAt: stored?.retryAt ?? 0n,
         error: stored?.error ?? "",
       };
-      if (
-        ctx.db.relayRegion.count() ===
-        BigInt(Object.keys(CURRENT_REGIONS).length)
-      )
-        clearTradeScope(ctx, `api:${key}`);
       if (stored) ctx.db.marketItem.key.update(next);
       else ctx.db.marketItem.insert(next);
       saveMarketSummaries(ctx, key, book, args.observedAt);
@@ -1486,10 +1512,7 @@ export const ingestRelayTrading = db.reducer(
           ? loadBook(ctx, item.book)
           : emptyMarketBook(JSON.parse(item.metadata));
         const book = mergeRegionalBook(item.key, base, regions),
-          encoded = JSON.stringify(
-            emptyMarketBook(marketDisplayItem(book.item)),
-          );
-        clearTradeScope(ctx, `api:${item.key}`);
+          encoded = storeMarketBook(ctx, item.key, book);
         if (!item.observedAt || encoded !== item.book) {
           ctx.db.marketItem.key.update({
             ...item,
@@ -1607,7 +1630,11 @@ export const ingestMarketDirectory = db.reducer(
           observedAt = old?.observedAt ?? 0n;
         // A full index confirming no offers is enough for a previously empty
         // item. Previously populated books require their own complete refresh.
-        if (!active && (!book || !old?.bookHasOrders)) {
+        if (
+          !active &&
+          (!book || !old?.bookHasOrders) &&
+          !(book && JSON.parse(book).apiFallbackRegions?.length)
+        ) {
           const empty = JSON.stringify(
             emptyMarketBook(marketDisplayItem(item)),
           );
@@ -1658,12 +1685,7 @@ export const ingestMarketDirectory = db.reducer(
                     marketSummary(loadBook(ctx, book)).buyOrderCount,
                   )
                 : false,
-          book: book
-            ? ctx.db.relayRegion.count() ===
-              BigInt(Object.keys(CURRENT_REGIONS).length)
-              ? JSON.stringify(emptyMarketBook(marketDisplayItem(item)))
-              : storeBook(ctx, `api:${item.key}`, loadBook(ctx, book)).payload
-            : "",
+          book: book ? storeMarketBook(ctx, item.key, loadBook(ctx, book)) : "",
           observedAt,
           requestedAt: old?.requestedAt ?? 0n,
           retryAt: old?.retryAt ?? 0n,
@@ -1768,26 +1790,29 @@ export const ingestMarketBook = db.reducer(
       throw new SenderError("Invalid market snapshot.");
     if (args.observedAt < previous.observedAt)
       throw new SenderError("Market snapshot is out of order.");
-    const book = nativeBook(
-      ctx,
-      key,
-      marketInput(() =>
-        marketBook(
-          args.kind,
-          args.id,
-          JSON.parse(args.payload),
-          JSON.parse(previous.metadata),
-        ),
+    const apiBook = marketInput(() =>
+      marketBook(
+        args.kind,
+        args.id,
+        JSON.parse(args.payload),
+        JSON.parse(previous.metadata),
       ),
     );
+    apiBook.apiFallbackRegions = Object.keys(CURRENT_REGIONS)
+      .map(Number)
+      .filter(
+        (regionId) =>
+          !nativeTradingReady(
+            ctx,
+            ctx.db.relayStatus.key.find(`trading:${regionId}`),
+          ),
+      );
+    apiBook.apiFallbackAt = String(args.observedAt);
+    const book = nativeBook(ctx, key, apiBook);
     saveMarketSummaries(ctx, key, book, args.observedAt);
     ctx.db.marketItem.key.update({
       ...previous,
-      book:
-        ctx.db.relayRegion.count() ===
-        BigInt(Object.keys(CURRENT_REGIONS).length)
-          ? JSON.stringify(emptyMarketBook(marketDisplayItem(book.item)))
-          : storeBook(ctx, `api:${key}`, book).payload,
+      book: storeMarketBook(ctx, key, book),
       bookHasOrders: Boolean(
         marketSummary(book).sellOrderCount + marketSummary(book).buyOrderCount,
       ),
@@ -1820,21 +1845,42 @@ export const requestMarketRefresh = db.reducer(
     if (args.itemId) marketIdentity(args.kind, args.itemId);
     const now = ctx.timestamp.microsSinceUnixEpoch,
       status = currentMarketStatus(ctx);
-    let queued = false;
-    for (const row of ctx.db.marketItem.iter()) {
-      if (
-        row.indexAt !== status.indexAt ||
-        !marketMatches(
+    const unavailable = Object.keys(CURRENT_REGIONS)
+      .map(Number)
+      .filter(
+        (regionId) =>
+          !nativeTradingReady(
+            ctx,
+            ctx.db.relayStatus.key.find(`trading:${regionId}`),
+          ),
+      );
+    if (!unavailable.length) return;
+    const matches = [...ctx.db.marketItem.iter()].filter(
+      (row) =>
+        row.indexAt === status.indexAt &&
+        marketMatches(
           JSON.parse(row.metadata),
           args.query,
           args.itemId,
           args.kind,
-        )
-      )
-        continue;
+        ),
+    );
+    if (matches.length > MARKET_SEARCH_ITEMS)
+      throw new SenderError(
+        "Narrow your item search to refresh at most 50 matching items.",
+      );
+    let queued = false;
+    for (const row of matches) {
+      const book = row.book ? JSON.parse(row.book) : null;
+      const refreshedAt =
+        ctx.db.relayRegion.count() > 0n
+          ? unavailable.every((id) => book?.apiFallbackRegions?.includes(id))
+            ? BigInt(book?.apiFallbackAt ?? 0)
+            : 0n
+          : row.observedAt;
       if (
         row.requestedAt > row.observedAt ||
-        row.observedAt + BigInt(MARKET_SEARCH_SECONDS) * 1000000n > now
+        refreshedAt + BigInt(MARKET_SEARCH_SECONDS) * 1000000n > now
       )
         continue;
       ctx.db.marketItem.key.update({ ...row, requestedAt: now });
@@ -1902,21 +1948,14 @@ export const marketCollectionWork = db.procedure({}, t.string(), (ctx) =>
       (row) =>
         row.indexAt === status.indexAt &&
         row.retryAt <= now &&
-        (marketWorkPriority(row)
-          ? row.observedAt + BigInt(MARKET_SEARCH_SECONDS) * 1000000n <= now
-          : (row.indexHasOrders || row.bookHasOrders) &&
-            tx.db.relayRegion.count() <
-              BigInt(Object.keys(CURRENT_REGIONS).length) &&
-            row.observedAt + BigInt(MARKET_ROLLING_SECONDS) * 1000000n <= now),
+        marketWorkPriority(row),
     );
-    books.sort(
-      (a, b) =>
-        Number(marketWorkPriority(b)) - Number(marketWorkPriority(a)) ||
-        (a.observedAt < b.observedAt
-          ? -1
-          : a.observedAt > b.observedAt
-            ? 1
-            : a.key.localeCompare(b.key)),
+    books.sort((a, b) =>
+      a.observedAt < b.observedAt
+        ? -1
+        : a.observedAt > b.observedAt
+          ? 1
+          : a.key.localeCompare(b.key),
     );
     for (const row of books.slice(0, Math.max(0, 2 - work.length))) {
       const [kind, id] = row.key.split(":");
