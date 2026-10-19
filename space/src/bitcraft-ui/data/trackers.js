@@ -238,6 +238,13 @@ async function trackerPassive(player) {
 }
 export async function trackerSnapshot(tool, filters) {
   const sampledAt = new Date().toISOString();
+  if (!filters.character?.trim())
+    return {
+      tracker: null,
+      error: "Enter a character name or ID to start tracking.",
+      sampledAt,
+      refresh: { delayed: false },
+    };
   try {
     const playerResponse = await trackerPlayer(tool, filters.character),
       player = playerResponse?.data.player;

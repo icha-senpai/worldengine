@@ -116,11 +116,24 @@ try {
     { name: "goal reached", xp: 2000000, targetXp: 2000000, percent: 100 },
     { name: "goal exceeded", xp: 2000001, targetXp: 2000000, percent: 100 },
   ];
-  for (const { mode, name, xp, targetXp, percent, reconnecting = false } of [
+  for (const {
+    mode,
+    name,
+    xp,
+    targetXp,
+    percent,
+    reconnecting = false,
+    showCalendar = true,
+  } of [
     ...["full", "popout", "obs"].flatMap((mode) =>
       progressCases.map((scenario) => ({ mode, ...scenario })),
     ),
     { mode: "full", ...progressCases[0], reconnecting: true },
+    ...["full", "popout", "obs"].map((mode) => ({
+      mode,
+      ...progressCases[0],
+      showCalendar: false,
+    })),
   ]) {
     const connection = await import(fixtures.bitcraft);
     connection.bitcraftConnected.value = !reconnecting;
@@ -137,6 +150,7 @@ try {
               skill: "all",
               skillKeys: "3",
               widgetEditable: false,
+              showCalendar,
             },
             snapshot: {
               sampledAt: new Date().toISOString(),
@@ -219,19 +233,22 @@ try {
     assert(html.includes('class="xp-working">Craft</p>'));
     assert(!html.includes("Add tracked character"));
     if (mode === "obs") {
-      assert(!html.includes("Calendar XP"));
       assert(!html.includes("Reset session"));
       assert(!html.includes("Tracked characters"));
       assert(html.includes("activity-source--obs"));
     } else {
-      assert(html.includes("Calendar XP"));
+      assert(html.includes("Reset session"));
+      assert(html.includes("Tracked characters"));
+    }
+    if (showCalendar) {
+      assert(html.includes('aria-label="Calendar XP gains"'));
       assert(html.includes("+12,345"));
       assert(html.includes("+54,321"));
       assert(html.includes("Partial · since"));
       assert(html.includes("No baseline yet"));
       assert(html.includes("Approx. · boundary samples"));
-      assert(html.includes("Reset session"));
-      assert(html.includes("Tracked characters"));
+    } else {
+      assert(!html.includes('aria-label="Calendar XP gains"'));
     }
     console.log(
       `XP ${mode}: ${name}${reconnecting ? " during reconnect" : ""} renders ${percent}% successfully.`,

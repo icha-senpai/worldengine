@@ -208,7 +208,7 @@ let countdownTimer;
 
 const form = reactive({
   source: props.filters.source ?? "default",
-  character: props.filters.character ?? "icha",
+  character: props.filters.character ?? "",
   title: props.filters.title ?? "Passive Crafts",
   icons: props.filters.icons ?? "",
   ...normalizeWidgetTheme(props.filters),
@@ -377,7 +377,7 @@ const normalizeSetup = (setup) => ({
   character:
     typeof setup.character === "string" && setup.character.trim()
       ? setup.character.trim()
-      : "icha",
+      : "",
   title:
     typeof setup.title === "string" && setup.title.trim()
       ? setup.title.trim()
@@ -440,7 +440,7 @@ watch(
   () => props.filters,
   (filters) => {
     form.source = filters.source ?? "default";
-    form.character = filters.character ?? "icha";
+    form.character = filters.character ?? "";
     form.title = filters.title ?? "Passive Crafts";
     form.icons = filters.icons ?? "";
     Object.assign(form, normalizeWidgetTheme(filters));

@@ -31,8 +31,14 @@
 
             <label class="ui-field-label">
               <span class="ui-field-label">Character</span>
-              <input v-model.trim="form.character" type="text" maxlength="80" />
-              <SitePlayerDefaultButton @select="form.character = $event" />
+              <input
+                :value="form.character"
+                type="text"
+                maxlength="80"
+                placeholder="Enter a character name or ID"
+                @change="setPrimaryCharacter($event.target.value.trim())"
+              />
+              <SitePlayerDefaultButton @select="setPrimaryCharacter" />
             </label>
 
             <label class="ui-field-label">
@@ -54,6 +60,13 @@
           <fieldset class="xp-display-options">
             <legend class="ui-field-label">Show in the tracker</legend>
             <label class="ui-field-label"
+              ><input
+                v-model="form.showCalendar"
+                class="checkbox"
+                type="checkbox"
+              />
+              Calendar XP</label
+            ><label class="ui-field-label"
               ><input
                 v-model="form.showSession"
                 class="checkbox"
@@ -345,7 +358,7 @@
             </div>
           </div>
           <section
-            v-if="presentation !== 'obs'"
+            v-if="form.showCalendar"
             class="xp-calendar"
             aria-label="Calendar XP gains"
           >
@@ -504,7 +517,7 @@
           <button @click="resetSession">Reset session</button
           ><button
             v-if="
-              watchedCharacters.length > 1 && filters.widgetEditable !== false
+              watchedCharacters.length > 0 && filters.widgetEditable !== false
             "
             @click="removeCharacter"
           >
@@ -573,7 +586,7 @@ import {
 const props = defineProps({
   filters: {
     type: Object,
-    default: () => ({ character: "icha", skill: "all" }),
+    default: () => ({ character: "", skill: "all" }),
   },
   snapshot: {
     type: Object,
@@ -717,7 +730,7 @@ const formatGoalMap = (goals) =>
 
 const form = reactive({
   source: props.filters.source ?? "default",
-  character: props.filters.character ?? "icha",
+  character: props.filters.character ?? "",
   skill: props.filters.skill ?? "all",
   title: props.filters.title ?? "XP Goals",
   icons: props.filters.icons ?? "",
@@ -725,9 +738,8 @@ const form = reactive({
   skillKeys: parseSkillKeys(props.filters.skillKeys ?? ""),
   skillGoalLevels: parseGoalMap(props.filters.skillGoalLevels ?? ""),
   skillGoalXp: parseGoalMap(props.filters.skillGoalXp ?? ""),
-  characters: String(
-    props.filters.characters ?? props.filters.character ?? "icha",
-  ),
+  characters: String(props.filters.characters ?? props.filters.character ?? ""),
+  showCalendar: ![false, "false", "0"].includes(props.filters.showCalendar),
   showSession: ![false, "false", "0"].includes(props.filters.showSession),
   showActivity: ![false, "false", "0"].includes(props.filters.showActivity),
   showGoals: ![false, "false", "0"].includes(props.filters.showGoals),
@@ -875,6 +887,12 @@ function characterLabel(character) {
     character
   );
 }
+function setPrimaryCharacter(character) {
+  form.characters = watchedCharacters.value
+    .filter((value) => value !== form.character)
+    .join(",");
+  form.character = character;
+}
 function switchCharacter(character) {
   if (character === form.character) return;
   form.character = character;
@@ -895,9 +913,8 @@ function addCharacter() {
 }
 function removeCharacter() {
   const remaining = watchedCharacters.value.filter((c) => c !== form.character);
-  if (!remaining.length) return;
   form.characters = remaining.join(",");
-  form.character = remaining[0];
+  form.character = remaining[0] ?? "";
   submitSetup(setupPageVisible.value);
 }
 async function refreshBackground() {
@@ -1104,13 +1121,14 @@ onMounted(() => {
 
   if (
     !params.has("profile") &&
+    !params.has("character") &&
     !params.has("source") &&
     !params.has("skillKeys") &&
     savedSetup
   ) {
     Object.assign(form, savedSetup);
     if (page.props.bitcraft?.player && !params.has("character"))
-      form.character = props.filters.character;
+      setPrimaryCharacter(props.filters.character);
     submitSetup(Boolean(props.filters.setup));
 
     return;
@@ -1180,6 +1198,7 @@ const payload = (setup) => ({
   skillGoalXp: formatGoalMap(form.skillGoalXp),
   ...widgetThemePayload(form),
   characters: watchedCharacters.value.join(","),
+  showCalendar: form.showCalendar,
   showSession: form.showSession,
   showActivity: form.showActivity,
   showGoals: form.showGoals,
@@ -1235,7 +1254,7 @@ const normalizeSetup = (setup) => ({
   character:
     typeof setup.character === "string" && setup.character.trim()
       ? setup.character.trim()
-      : "icha",
+      : "",
   skill:
     typeof setup.skill === "string" && setup.skill.trim()
       ? setup.skill.trim()
@@ -1250,7 +1269,8 @@ const normalizeSetup = (setup) => ({
   skillKeys: parseSkillKeys(setup.skillKeys),
   skillGoalLevels: parseGoalMap(setup.skillGoalLevels),
   skillGoalXp: parseGoalMap(setup.skillGoalXp),
-  characters: String(setup.characters || setup.character || "icha"),
+  characters: String(setup.characters || setup.character || ""),
+  showCalendar: ![false, "false", "0"].includes(setup.showCalendar),
   showSession: setup.showSession !== false,
   showActivity: setup.showActivity !== false,
   showGoals: setup.showGoals !== false,
@@ -1841,6 +1861,10 @@ const skillDetailLabel = (stat) => {
   display: grid;
   gap: 10px;
   padding-block: 16px;
+}
+.xp-calendar__heading,
+.xp-calendar > small {
+  padding-inline: 22px;
 }
 .xp-calendar__heading {
   display: grid;

@@ -5,7 +5,7 @@ export function filtersFor(tool, query, setup) {
     character:
       pageState.props.bitcraft.player?.entityId ||
       localStorage.getItem("space.bitcraft.player") ||
-      "icha",
+      "",
     skill: "all",
     title: {
       activity: "XP Goals",

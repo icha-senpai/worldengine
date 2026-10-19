@@ -336,7 +336,7 @@ const formatItemNeeds = (needs) =>
 
 const form = reactive({
   source: props.filters.source ?? "default",
-  character: props.filters.character ?? "icha",
+  character: props.filters.character ?? "",
   title: props.filters.title ?? "Fishing Day!",
   icons: props.filters.icons ?? "",
   itemSearch: props.filters.itemSearch ?? "",
@@ -526,7 +526,7 @@ const normalizeSetup = (setup) => ({
   character:
     typeof setup.character === "string" && setup.character.trim()
       ? setup.character.trim()
-      : "icha",
+      : "",
   title:
     typeof setup.title === "string" && setup.title.trim()
       ? setup.title.trim()
