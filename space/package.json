@@ -27,6 +27,7 @@
     "test:claims-live": "tsx scripts/claim-history-live-check.ts",
     "bitcraft:claims-status": "tsx scripts/claim-history-status.ts",
     "test:xp-render": "node scripts/xp-render-check.mjs",
+    "test:daily-xp-server": "tsx scripts/daily-xp-server-test.ts",
     "bitcraft:relay-schema": "node scripts/relay-schema.mjs",
     "spacetime:start": "tsx scripts/spacetime.ts start",
     "spacetime:auth": "tsx scripts/spacetime.ts auth",

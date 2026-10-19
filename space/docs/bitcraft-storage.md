@@ -1,5 +1,26 @@
 # Keeping BitCraft on SpacetimeDB within a small disk budget
 
+## Calendar XP
+
+The XP tracker shows Today, Yesterday and This Week in America/Chicago time,
+with Monday-start weeks. Selected characters retain an eight-day collection
+lease after their last visit; the native collector's 30-character admission
+limit is unchanged. This does not subscribe to every player's XP.
+
+Calendar baselines use `collection_sample` rows under a separate `dailyXp|`
+scope, storing opening/latest per-skill XP once per minute, one row per observed
+character/day. They are retained for 35 days within the existing 6,000-row cap;
+short rate samples are evicted before calendar rows under pressure. Existing
+maintenance export/restore includes them without a schema or binding change.
+The six-hour rate-history window remains unchanged.
+
+First observations and unobserved day boundaries are marked Partial. Adjacent
+observations within two minutes of Central midnight split at that observation,
+so covered periods are approximate, not exact midnight measurements. Backward,
+missing-skill and out-of-order snapshots cannot increase recorded gains.
+No historical full-day values are fabricated. Normal collection must remain
+available; an expired lease or admission limit can leave periods partial.
+
 Updated October 14, 2026. SpacetimeDB 2.12.0 remains the only application database. No SQLite service or secondary database was introduced.
 
 Boss opts out of automatic deployment backups and retained rollback sets. Git provides source history. Routine work leaves no dated backups, previous builds or ad hoc audit reports. Database maintenance uses a temporary verified export to transfer live application state; successful restoration removes it. An unfinished rebuild retains its required export until recovery succeeds. Current bindings, sealed module bundles, collector identities, bounded service logs and health/crash status are operational files and remain protected.

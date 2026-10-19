@@ -36,6 +36,12 @@ import {
   type ReducerCtx,
 } from "spacetimedb/server";
 import { TimeDuration } from "spacetimedb";
+import {
+  DAILY_XP_PREFIX,
+  DAILY_XP_RETENTION_MS,
+  recordDailyXp,
+  dailyXpSummary,
+} from "./daily-xp";
 import { encodeRetainedState, restoreRetainedState } from "./maintenance";
 import {
   storeBook,
@@ -604,7 +610,13 @@ export const collectorHeartbeat = db.reducer(
       previous.heartbeatAt / 60000000n !== row.heartbeatAt / 60000000n
     )
       for (const sample of ctx.db.collectionSample.iter())
-        if (sample.observedAt + 21600000000n < row.heartbeatAt)
+        if (
+          sample.observedAt +
+            (sample.scope.startsWith(DAILY_XP_PREFIX)
+              ? BigInt(DAILY_XP_RETENTION_MS) * 1000n
+              : 21600000000n) <
+          row.heartbeatAt
+        )
           ctx.db.collectionSample.key.delete(sample.key);
     if (previous) ctx.db.collectionStatus.key.update(row);
     else ctx.db.collectionStatus.insert(row);
@@ -792,6 +804,13 @@ export const ingestCollection = db.reducer(
     );
 
     const skills = projected.filter((row) => row.kind === "skill");
+    if (watch.resource === "relaySkills" && args.source === "relay")
+      recordDailyXp(
+        ctx,
+        args.key,
+        args.observedAt,
+        Object.fromEntries(skills.map((row) => [row.entityId, row.quantity])),
+      );
     if (skills.length || watch.resource === "relaySkills") {
       const key = `${args.key}|${args.source}|${args.epoch}|${args.observedAt / 60000000n}`;
       const sample = {
@@ -807,8 +826,12 @@ export const ingestCollection = db.reducer(
       if (ctx.db.collectionSample.key.find(key))
         ctx.db.collectionSample.key.update(sample);
       else {
-        if (ctx.db.collectionSample.count() >= 6000n) {
-          const oldest = [...ctx.db.collectionSample.iter()].reduce((a, b) =>
+        while (ctx.db.collectionSample.count() >= 6000n) {
+          const all = [...ctx.db.collectionSample.iter()];
+          const rates = all.filter(
+            (row) => !row.scope.startsWith(DAILY_XP_PREFIX),
+          );
+          const oldest = (rates.length ? rates : all).reduce((a, b) =>
             a.observedAt < b.observedAt ? a : b,
           );
           ctx.db.collectionSample.key.delete(oldest.key);
@@ -885,6 +908,12 @@ export const collectionHistory = db.procedure(
         samples,
         rates: fresh ? observedRates(samples) : [],
         fresh: Boolean(fresh),
+        calendar: dailyXpSummary(
+          [...tx.db.collectionSample.scope.filter(DAILY_XP_PREFIX + scope)].map(
+            (row) => JSON.parse(row.payload),
+          ),
+          Number(ctx.timestamp.microsSinceUnixEpoch / 1000n),
+        ),
       });
     });
   },

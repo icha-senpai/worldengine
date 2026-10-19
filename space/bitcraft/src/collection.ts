@@ -58,8 +58,9 @@ export function collectionKey(resource: string, path: string) {
   return `${resource}|${path}`;
 }
 export function collectionWatchSeconds(resource: string) {
-  // XP collection outlives a suspended browser tab, bounded by history retention.
-  return resource === "relaySkills" ? 6 * 60 * 60 : 10 * 60;
+  // Selected XP characters keep collecting across daily and weekly boundaries.
+  // Leases expire eight days after the last view; collector admission stays capped.
+  return resource === "relaySkills" ? 8 * 24 * 60 * 60 : 10 * 60;
 }
 export function observedRates(
   samples: Array<{

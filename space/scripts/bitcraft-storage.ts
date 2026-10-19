@@ -415,7 +415,10 @@ export async function registerBinding(database: string, replica: string) {
   );
   return binding;
 }
-export async function disposeStorageTest(binding: Binding) {
+export async function disposeStorageTest(
+  binding: Binding,
+  deleteDatabase?: (database: string) => Promise<void>,
+) {
   if (
     !/^space-(storage|market|relay)-checks-\d+$/.test(binding.database) ||
     binding.pending
@@ -426,11 +429,15 @@ export async function disposeStorageTest(binding: Binding) {
     (await replicaIdentity(binding.replica)) !== binding.identity
   )
     throw Error("Temporary database and replica identities do not match.");
-  execFileSync(
-    cli,
-    ["delete", binding.database, "--server", server, "--yes", "--no-config"],
-    { stdio: "pipe", windowsHide: true },
-  );
+  if (deleteDatabase) await deleteDatabase(binding.database);
+  else
+    execFileSync(
+      cli,
+      ["delete", binding.database, "--server", server, "--yes", "--no-config"],
+      { stdio: "pipe", windowsHide: true },
+    );
+  if ((await fetch(`${server}/v1/database/${binding.database}`)).status !== 404)
+    throw Error("Temporary database is still active; leaving replica intact.");
   await rm(safeReplicaPath(binding.replica), {
     recursive: true,
     force: false,

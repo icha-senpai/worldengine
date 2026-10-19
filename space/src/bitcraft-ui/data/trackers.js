@@ -296,6 +296,7 @@ export async function trackerSnapshot(tool, filters) {
           passiveCrafts: crafts.tracker?.crafts ?? [],
           passiveCraftGroups: crafts.tracker?.groups ?? [],
           craftsDelayed: crafts.refresh.delayed,
+          xpCalendar: history?.calendar ?? null,
         },
         error: playerResponse.error || response.error,
         sampledAt: playerResponse.refresh.updatedAt ?? sampledAt,

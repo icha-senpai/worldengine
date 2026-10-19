@@ -19,6 +19,7 @@ const fixtures = {
   api: data(
     'export const bitcraftFetch=()=>{throw Error("Unexpected network access during render")};',
   ),
+  refresh: data("export const useTrackerRefresh=()=>()=>{};"),
   bitcraft: data(
     `import {ref} from ${JSON.stringify(import.meta.resolve("vue"))};export const bitcraftConnected=ref(true);export const bitcraftReconnecting=ref(false);`,
   ),
@@ -58,6 +59,7 @@ try {
         else if (source === "/src/bitcraft-ui/navigation")
           target = fixtures.navigation;
         else if (source === "./widgets") target = fixtures.widgets;
+        else if (source === "./trackerRefresh") target = fixtures.refresh;
         else if (source.endsWith("WidgetPageShell.vue"))
           target = fixtures.shell;
         else if (
@@ -142,6 +144,29 @@ try {
               refresh: { delayed: false },
               tracker: {
                 player: { entityId: "20", username: "Icha" },
+                xpCalendar: {
+                  periods: [
+                    {
+                      label: "Today",
+                      available: true,
+                      partial: true,
+                      firstAt: Date.parse("2026-10-18T18:00:00Z"),
+                      xp: { 3: 12345 },
+                    },
+                    {
+                      label: "Yesterday",
+                      available: false,
+                      partial: true,
+                      xp: {},
+                    },
+                    {
+                      label: "This Week",
+                      available: true,
+                      partial: false,
+                      xp: { 3: 54321 },
+                    },
+                  ],
+                },
                 skills: [
                   {
                     id: 3,
@@ -194,10 +219,17 @@ try {
     assert(html.includes('class="xp-working">Craft</p>'));
     assert(!html.includes("Add tracked character"));
     if (mode === "obs") {
+      assert(!html.includes("Calendar XP"));
       assert(!html.includes("Reset session"));
       assert(!html.includes("Tracked characters"));
       assert(html.includes("activity-source--obs"));
     } else {
+      assert(html.includes("Calendar XP"));
+      assert(html.includes("+12,345"));
+      assert(html.includes("+54,321"));
+      assert(html.includes("Partial · since"));
+      assert(html.includes("No baseline yet"));
+      assert(html.includes("Approx. · boundary samples"));
       assert(html.includes("Reset session"));
       assert(html.includes("Tracked characters"));
     }

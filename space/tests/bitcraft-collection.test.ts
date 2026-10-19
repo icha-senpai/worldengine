@@ -39,7 +39,7 @@ describe("shared BitCraft collection", () => {
     expect(collectionExpiresAt("relayPlayer", 0n)).toBe(30000000n);
   });
   it("keeps XP collecting for a bounded background session without extending other feeds", () => {
-    expect(collectionWatchSeconds("relaySkills")).toBe(21600);
+    expect(collectionWatchSeconds("relaySkills")).toBe(8 * 86400);
     expect(collectionWatchSeconds("relaySession")).toBe(600);
     expect(collectionWatchSeconds("relayInventories")).toBe(600);
   });

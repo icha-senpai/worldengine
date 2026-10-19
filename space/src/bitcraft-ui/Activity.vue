@@ -344,6 +344,45 @@
               }}</span>
             </div>
           </div>
+          <section
+            v-if="presentation !== 'obs'"
+            class="xp-calendar"
+            aria-label="Calendar XP gains"
+          >
+            <div class="xp-calendar__heading">
+              <strong
+                >Calendar XP ·
+                {{
+                  form.skill === "all" ? "All skills" : "Selected skill"
+                }}</strong
+              >
+              <small>Central time · weeks start Monday · observed gains</small>
+            </div>
+            <div class="xp-stats-strip">
+              <div v-for="period in calendarPeriods" :key="period.label">
+                <span>{{ period.label }}</span>
+                <strong>{{
+                  period.available
+                    ? "+" + formatNumber(calendarXp(period))
+                    : "—"
+                }}</strong>
+                <small>{{
+                  !period.available
+                    ? "No baseline yet"
+                    : period.partial
+                      ? "Partial · since " + calendarSince(period.firstAt)
+                      : "Approx. · boundary samples"
+                }}</small>
+              </div>
+            </div>
+            <small v-if="activityDelayed"
+              >Refresh delayed; showing last observed totals.</small
+            >
+            <small v-else
+              >Tracks after you close the page for eight days after your last
+              visit. First days and collection gaps may be partial.</small
+            >
+          </section>
           <div v-if="form.showSession" class="xp-stats-strip">
             <div>
               <span>Session XP</span
@@ -563,6 +602,38 @@ const activityDelayed = computed(
 );
 const samples = ref([]);
 const now = ref(new Date());
+const calendarPeriods = computed(() => {
+  const calendar = tracker.value?.xpCalendar;
+  const day = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Chicago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now.value);
+  if (calendar?.periods && (!calendar.playerDay || calendar.playerDay === day))
+    return calendar.periods;
+  return ["Today", "Yesterday", "This Week"].map((label) => ({
+    label,
+    available: false,
+  }));
+});
+const calendarXp = (period) =>
+  form.skill === "all"
+    ? Object.entries(period.xp ?? {}).reduce(
+        (sum, [id, value]) => sum + (id === "1" ? 0 : Number(value)),
+        0,
+      )
+    : Number(period.xp?.[form.skill] ?? 0);
+const calendarSince = (at) =>
+  at
+    ? new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Chicago",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }).format(new Date(at))
+    : "first observation";
 const passiveCraftGroups = computed(
   () => tracker.value?.passiveCraftGroups ?? [],
 );
@@ -1765,6 +1836,27 @@ const skillDetailLabel = (stat) => {
   border-block: 1px solid
     color-mix(in srgb, var(--tracker-border) 25%, transparent);
   background: color-mix(in srgb, var(--tracker-border) 5%, transparent);
+}
+.xp-calendar {
+  display: grid;
+  gap: 10px;
+  padding-block: 16px;
+}
+.xp-calendar__heading {
+  display: grid;
+  gap: 6px;
+}
+.xp-calendar small {
+  color: var(--tracker-muted);
+  font-size: 11px;
+}
+.xp-calendar .xp-stats-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 520px) {
+  .xp-calendar .xp-stats-strip {
+    grid-template-columns: 1fr;
+  }
 }
 .xp-stats-strip > div {
   display: grid;
