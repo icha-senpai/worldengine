@@ -221,6 +221,9 @@ pub fn grant_item_with_reason(
 ) -> Result<(), String> {
     let key = u128::from(player_id) << 32 | u128::from(slot);
     if let Some(mut row) = ctx.db.item_stack().key().find(key) {
+        if row.item != item {
+            return Err("ITEM_SLOT_MISMATCH".into());
+        }
         row.quantity = row.quantity.checked_add(quantity).ok_or("ITEM_OVERFLOW")?;
         ctx.db.item_stack().key().update(row);
     } else {
