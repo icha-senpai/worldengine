@@ -1,5 +1,14 @@
 # Keeping BitCraft on SpacetimeDB within a small disk budget
 
+## Collector connection sessions
+
+Every database connection cycle uses a fresh collector epoch, including reconnects
+within the same worker process. Regional relay counters restart with each cycle;
+the fresh epoch prevents claim-history event IDs from colliding with retained
+events from an earlier cycle. Existing history remains intact, and reconnection
+still records an explicit coverage gap. Readiness, heartbeats, API publications
+and native relay publications all use the same current cycle epoch.
+
 ## Calendar XP
 
 The XP tracker shows Today, Yesterday and This Week in America/Chicago time,

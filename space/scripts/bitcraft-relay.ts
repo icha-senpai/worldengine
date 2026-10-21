@@ -214,7 +214,10 @@ export class RelaySubscription {
         `${host}/v1/database/bitcraft-live-${this.region}/schema?version=9`,
         { signal: AbortSignal.any([abort.signal, AbortSignal.timeout(15000)]) },
       );
-      if (!response.ok) throw Error("Relay schema unavailable.");
+      if (!response.ok)
+        throw Error(
+          `Relay schema unavailable (HTTP ${response.status}; bitcraft-live-${this.region}).`,
+        );
       const schema = await response.json();
       const names = [
         ...new Set(

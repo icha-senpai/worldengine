@@ -104,6 +104,31 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.useRealTimers();
 });
+test("a missing regional database reports its HTTP status without publishing an empty snapshot", async () => {
+  vi.useFakeTimers();
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => ({ ok: false, status: 404 })),
+  );
+  const failed = vi.fn(),
+    changed = vi.fn();
+  const subscription = new RelaySubscription(
+    "bitconnect",
+    7,
+    ["SELECT * FROM player_username_state"],
+    changed,
+    failed,
+  );
+  relays.push(subscription);
+  await subscription.start();
+  expect(subscription.ready).toBe(false);
+  expect(failed).toHaveBeenCalledWith(
+    "Relay schema unavailable (HTTP 404; bitcraft-live-7).",
+  );
+  expect(changed).not.toHaveBeenCalled();
+  expect(mocks.sockets).toHaveLength(0);
+});
+
 test("a quiet relay remains ready when transport pongs arrive", async () => {
   const { subscription, socket, failed } = await relay();
   initial(socket, [["1", "Player"]]);
