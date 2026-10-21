@@ -3,7 +3,8 @@
 /tmp/
 /lootun-analysis/
 /ichaa/
-
+fishing-game/docs
+fishing-game/scripts
 # Generated output, at any level of the workspace.
 output/
 .playwright-cli/

@@ -6,6 +6,8 @@ assert(viewQueries('quests', 12n).includes('SELECT * FROM my_inventory'));
 assert(viewQueries('achievements', 12n).includes('SELECT * FROM earned_achievement WHERE player_id = 12'));
 assert(!viewQueries('achievements').some(query => /WHERE/.test(query)));
 assert(viewQueries('anglers').includes('SELECT * FROM earned_achievement'));
+assert(viewQueries('anglers').includes('SELECT * FROM angler_standing'),
+  'Angler profiles need lifetime UUR catches and records held without visiting Records first');
 assert(!viewQueries('inventory', 12n, 8).some(query => query.includes('rod_upgrade_recipe')));
 assert(viewQueries('inventory', 12n, 9).some(query => query.includes('rod_upgrade_recipe')));
 console.log('PASS tab subscriptions, player scopes and legacy recipe compatibility.');

@@ -16,7 +16,7 @@ export function viewQueries(view: string, playerId?: bigint, version = 0): strin
     collection: ['my_collection_focus'], compendium: ['my_collection_focus'],
     trader: version >= 9 ? ['rod_upgrade_recipe'] : [],
     records: ['species_record', 'angler_standing', 'angler_statistics', 'legendary_find'],
-    anglers: ['public_profile', 'angler_portrait', 'angler_statistics', 'species_record',
+    anglers: ['public_profile', 'angler_portrait', 'angler_standing', 'angler_statistics', 'species_record',
       'achievement_definition', 'earned_achievement', 'perfect_species', 'rank_maximum', 'angler_title'],
     achievements: ['achievement_definition', 'achievement_collection', 'my_achievement_progress'],
   };
