@@ -169,6 +169,9 @@ export class ClaimHistoryCollector {
           // Retire the generation on a failed write. The next baseline must
           // reconcile stored state and explicitly expose the recording gap.
           scope.error = (error as Error).message;
+          console.error(
+            `Claim history publication region ${scope.relay.region}: ${scope.error.slice(0, 240)}`,
+          );
           this.cycle.stop("Claim recording publication failed; reconnecting.");
           throw error;
         }

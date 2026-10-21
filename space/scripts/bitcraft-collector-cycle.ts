@@ -1,7 +1,12 @@
+import { randomUUID } from "node:crypto";
+
 // Disconnecting the SDK does not necessarily settle an outstanding reducer or
 // procedure promise. A collection cycle must be interruptible independently so
 // maintenance can reach the next preflight instead of waiting on that promise.
 export class CollectorCycle {
+  // Relay generation counters restart with each cycle. Fence all publications
+  // with a fresh epoch so retained event IDs cannot be reused after reconnect.
+  readonly epoch = randomUUID();
   private controller = new AbortController();
 
   get signal() {

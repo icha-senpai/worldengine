@@ -5,7 +5,7 @@ import {
   ownerCall,
 } from "./bitcraft-storage";
 import { execFileSync } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import { installCollectorConsole } from "./collector-log";
 import { pruneSchedule } from "./collector-scheduler";
 import { CollectorCycle } from "./bitcraft-collector-cycle";
@@ -53,7 +53,7 @@ const serviceName =
       : `collector-${database}`;
 const diagnostics = new CollectorDiagnostics(database);
 installCollectorConsole(diagnostics.directory);
-async function markReady() {
+async function markReady(epoch: string) {
   diagnostics.phase("ready");
   diagnostics.event("ready");
   diagnostics.sample();
@@ -94,7 +94,6 @@ process.on("SIGTERM", () => {
   stopping = true;
   activeCycle?.stop("Collector stopped.");
 });
-const epoch = randomUUID();
 process.on("exit", (code) => {
   console.log(`Collector process exiting with code ${code}.`);
 });
@@ -279,7 +278,7 @@ async function collect(
               conn.reducers.ingestCollection({
                 key,
                 source,
-                epoch,
+                epoch: cycle.epoch,
                 payload: response.payload,
                 observedAt: response.updatedAt,
               }),
@@ -291,7 +290,7 @@ async function collect(
           conn.reducers.ingestCollection({
             key,
             source,
-            epoch,
+            epoch: cycle.epoch,
             payload: response.payload,
             observedAt: response.updatedAt,
           }),
@@ -450,6 +449,7 @@ const sleep = (ms: number) =>
 let once = process.argv.includes("--once");
 while (!stopping) {
   const cycle = new CollectorCycle();
+  const epoch = cycle.epoch;
   activeCycle = cycle;
   let conn: DbConnection | undefined;
   let native: NativeRelayCollector | undefined;
@@ -524,7 +524,7 @@ while (!stopping) {
     storageReady = true;
     if (storageOnly) {
       console.log(`BitCraft storage guard ready for ${database}.`);
-      await markReady();
+      await markReady(epoch);
       while (!stopping && !cycle.stopped) await cycle.wait(() => sleep(1000));
       continue;
     }
@@ -553,7 +553,7 @@ while (!stopping) {
           console.error(`Native relay startup: ${error.message}`),
         );
     }
-    await markReady();
+    await markReady(epoch);
     while (!stopping && !cycle.stopped && conn.isActive) {
       await cycle.wait(() =>
         conn!.reducers.collectorHeartbeat({ epoch, error: "" }),
