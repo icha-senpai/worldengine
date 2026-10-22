@@ -16,7 +16,7 @@ if [[ " ${*} " != *" --no-pull "* ]]; then
         exit 1
     fi
     if [[ "$(git config --bool core.sparseCheckout || true)" == true ]]; then
-        git sparse-checkout add deploy/linux
+        git sparse-checkout add deploy/linux shared
     fi
     git pull --ff-only
 fi

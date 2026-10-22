@@ -11,6 +11,7 @@ function publicUrl(value: string | undefined) {
   return value;
 }
 export const variables = defineEnvVars({
+  PUBLIC_DEPLOY_COMMIT: { public: true, static: true, schema: (value: string | undefined) => value ?? 'development' },
   PUBLIC_SPACETIMEDB_URI: { public: true, schema: publicUrl },
   PUBLIC_SPACETIMEDB_DATABASE: { public: true, schema: (value: string | undefined) => value ?? '' },
   PUBLIC_ACCOUNT_LINK_URL: { public: true, schema: publicUrl },

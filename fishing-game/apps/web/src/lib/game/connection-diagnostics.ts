@@ -1,9 +1,8 @@
-import * as env from "$app/env/public";
+import { PUBLIC_DEPLOY_COMMIT } from "$app/env/public";
 import { createConnectionDiagnostics } from "../../../../../../shared/connection-diagnostics";
 
 export const connectionDiagnostics = createConnectionDiagnostics(
   "fishbound",
-  Object.entries(env).find(([key]) => key === "PUBLIC_DEPLOY_COMMIT")?.[1] ??
-    "development",
+  PUBLIC_DEPLOY_COMMIT,
   "fishbound.pageLifecycle",
 );
