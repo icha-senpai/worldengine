@@ -1,5 +1,8 @@
 # Linux hosting
 
+For browser-to-backend disconnect investigations, see
+[connection diagnostics](connection-diagnostics.md).
+
 These scripts deploy the two applications independently from this checkout.
 They supplement the Windows/ServBay launchers, which remain local development tools.
 

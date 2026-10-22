@@ -12,6 +12,12 @@ test('a website-only update does not publish databases or rebuild native program
   const plan = deploymentPlan({ ...baseline, spaceWeb: 'new' }, baseline);
   assert.deepEqual(Object.keys(plan).filter(key => plan[key]), ['spaceWeb']);
 });
+
+test('shared browser connection diagnostics invalidate both websites only', () => {
+  const files = new Map([['shared/connection-events.ts', Buffer.from('new diagnostics')]]);
+  const changed = Object.keys(groups).filter(key => sourceFingerprint(files, groups[key]) !== sourceFingerprint(new Map(), groups[key]));
+  assert.deepEqual(changed, ['spaceWeb', 'fishWeb']);
+});
 test('module changes include the affected clients and leave the other application alone', () => {
   const plan = deploymentPlan({ ...baseline, fishModule: 'new' }, baseline);
   assert.deepEqual(Object.keys(plan).filter(key => plan[key]), ['fishModule', 'native', 'fishWeb']);

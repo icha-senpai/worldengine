@@ -3,6 +3,7 @@
   import { onMount, tick, untrack } from 'svelte';
   import * as env from '$app/env/public';
   import { Game } from './game.svelte';
+  import { connectionDiagnostics } from './connection-diagnostics';
   import PondScene from './PondScene.svelte';
   import Compendium from './Compendium.svelte';
   import Records from './Records.svelte';
@@ -114,6 +115,7 @@
     if (!game.error) { selected = selected.filter(id => !soldIds.includes(id)); showQuote = false; }
   }
   onMount(() => {
+    const stopDiagnostics = connectionDiagnostics.initialize();
     const compactScreen = window.matchMedia('(max-width: 600px)');
     const resizePages = () => {
       menuOpen = false;
@@ -127,7 +129,7 @@
     window.addEventListener('hashchange', readView);
     game.start(env.PUBLIC_SPACETIMEDB_URI ?? '', env.PUBLIC_SPACETIMEDB_DATABASE ?? '');
     const timer = setInterval(() => { now = Date.now(); }, 1000);
-    return () => { clearInterval(timer); game.stop(); compactScreen.removeEventListener('change', resizePages); window.removeEventListener('popstate', readView); window.removeEventListener('hashchange', readView); };
+    return () => { stopDiagnostics(); clearInterval(timer); game.stop(); compactScreen.removeEventListener('change', resizePages); window.removeEventListener('popstate', readView); window.removeEventListener('hashchange', readView); };
   });
 </script>
 

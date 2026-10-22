@@ -18,7 +18,8 @@ export async function buildWebsite(app, root = checkout) {
   const settings = parseEnv(await readFile(environmentPath, 'utf8'));
   const allowed = key => app === 'space' ? key.startsWith('VITE_') : key.startsWith('PUBLIC_') || ['HOST', 'PORT', 'NODE_ENV'].includes(key);
   if (Object.keys(settings).some(key => !allowed(key))) throw new Error('Unexpected private setting in public website environment.');
-  const env = { ...process.env, ...settings };
+  const release = execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  const env = { ...process.env, ...settings, [app === 'space' ? 'VITE_DEPLOY_COMMIT' : 'PUBLIC_DEPLOY_COMMIT']: release };
   const run = (command, args) => new Promise((accept, reject) => {
     const child = spawn(command, args, { cwd: project, env, stdio: 'inherit' });
     child.on('error', reject);
@@ -70,7 +71,10 @@ export async function publishWebsite(app, root = checkout) {
     };
     await readable(stage);
   }
-  if (app === 'fishbound') await writeFile(resolve(stage, '.env'), await readFile(environmentPath), { mode: 0o600 });
+  if (app === 'fishbound') {
+    const release = execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+    await writeFile(resolve(stage, '.env'), (await readFile(environmentPath, 'utf8')).trimEnd() + `\nPUBLIC_DEPLOY_COMMIT=${release}\n`, { mode: 0o600 });
+  }
   const serviceEnv = { ...process.env, XDG_RUNTIME_DIR: `/run/user/${process.getuid()}`,
     DBUS_SESSION_BUS_ADDRESS: `unix:path=/run/user/${process.getuid()}/bus` };
   const service = action => execFileSync('systemctl', ['--user', action, 'dataverse-fish-web.service'], { env: serviceEnv, stdio: 'inherit' });

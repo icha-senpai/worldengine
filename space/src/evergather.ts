@@ -109,6 +109,8 @@ export function initializeEvergather(enabled: Ref<boolean>) {
       const synchronized = () => {
         if (currentGeneration !== generation || !coreApplied || restoringScope)
           return;
+        if (!evergatherReady.value || evergatherReconnecting.value)
+          recordPageLifecycle("evergather-ready");
         evergatherReady.value = true;
         evergatherConnected.value = true;
         evergatherReconnecting.value = false;
@@ -146,7 +148,9 @@ export function initializeEvergather(enabled: Ref<boolean>) {
           connectionPending = false;
           retryInitial = false;
           recovery.reset();
-          recordPageLifecycle("evergather-connected");
+          recordPageLifecycle("evergather-connected", {
+            connectionId: connection.connectionId?.toHexString(),
+          });
           evergatherConnected.value = true;
           evergatherError.value = "";
           const changed = () => {
@@ -384,7 +388,9 @@ export function initializeEvergather(enabled: Ref<boolean>) {
           if (localPlay) localStorage.setItem(localTokenKey, issuedToken);
           coreApplied = false;
           restoringScope = true;
-          recordPageLifecycle("evergather-reconnected");
+          recordPageLifecycle("evergather-reconnected", {
+            connectionId: connection.connectionId?.toHexString(),
+          });
           // UI scope belongs to the server ConnectionId. Restore it before the
           // SDK sends its subscription replay; this is an idempotent view setting.
           void connection.reducers

@@ -23,6 +23,11 @@ const allServices = ['dataverse-space-db', 'dataverse-space-collector', 'dataver
 const wait = ms => new Promise(done => setTimeout(done, ms));
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const git = args => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 }).trim();
+function deploymentEvent(event, components) {
+  const record = JSON.stringify({ type: 'dataverse-deployment', at: new Date().toISOString(), event, commit: git(['rev-parse', '--short=12', 'HEAD']), components });
+  console.log(record);
+  try { execFileSync('logger', ['--tag', 'dataverse-update', '--', record], { stdio: 'ignore' }); } catch { /* Diagnostics must not block an update. */ }
+}
 async function exists(path) {
   try { await lstat(path); return true; } catch (error) { if (error.code === 'ENOENT') return false; throw error; }
 }
@@ -125,7 +130,7 @@ async function main() {
   const pending = await json(pendingPath, null);
   const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: root, maxBuffer: 20 * 1024 * 1024 }).toString().split('\0').filter(Boolean);
   const files = new Map();
-  for (const name of tracked.filter(name => name.startsWith('space/') || name.startsWith('fishing-game/') || name.startsWith('deploy/linux/'))) {
+  for (const name of tracked.filter(name => name.startsWith('space/') || name.startsWith('fishing-game/') || name.startsWith('deploy/linux/') || name.startsWith('shared/connection-'))) {
     await regular(resolve(root, name));
     files.set(name, digest(await readFile(resolve(root, name))));
   }
@@ -181,6 +186,7 @@ async function main() {
       await writeFile(maintenance, '', { mode: 0o600 });
       // NGINX's worker needs to be able to stat the flag; its content is empty.
       await chmod(maintenance, 0o644);
+      deploymentEvent('maintenance-start', changed);
       const stop = [];
       if (plan.collector || plan.bitcraft || plan.evergather) stop.push('dataverse-space-collector');
       if (plan.native || plan.fishModule) stop.push('dataverse-fish-bot', 'dataverse-fish-linker');
@@ -214,6 +220,7 @@ async function main() {
     if (applying) {
       await regular(maintenance);
       await unlink(maintenance);
+      deploymentEvent('maintenance-end', changed);
     }
     for (const host of ['bitcraft.ichaa.dev', 'fishbound.ichaa.dev']) await retry(host, () => originHealthy(host), 15000);
     const programs = {};
@@ -227,6 +234,7 @@ async function main() {
     console.log('Update complete. Both public sites and production services are healthy.');
   } catch (error) {
     if (applying) {
+      deploymentEvent('update-failed', changed);
       await writeFile(maintenance, '', { mode: 0o644 });
       services('stop', ['dataverse-space-collector', 'dataverse-fish-bot', 'dataverse-fish-linker', 'dataverse-fish-web']);
       console.error('Update stopped safely. Public maintenance remains enabled; private preservation fingerprints are retained. Fix the reported failure and run dataverse-update again.');

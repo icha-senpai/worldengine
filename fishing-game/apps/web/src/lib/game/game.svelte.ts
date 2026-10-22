@@ -1,6 +1,7 @@
 import { DbConnection } from '@fishing-game/generated';
 import type { SubscriptionHandle } from '@fishing-game/generated';
 import { coreQueries, viewQueries } from './subscriptions';
+import { connectionDiagnostics } from './connection-diagnostics';
 import type { JournalPage } from '@fishing-game/generated/types';
 export type JournalQuery = { page: number; pageSize: number; sort: string; descending: boolean; search: string; biomeId: number; rarity: string; outcome: string };
 import type { ActionNonce, AnglerPortrait, AnglerStatistics, AnglerStanding, LegendaryFind, BiomeDefinition, RodDefinition, RarityDefinition, GameConfig, ItemStack, LinkChallenge, OwnedSpecimen, Player, PlayerSpeciesProgress, PublicProfile, RecentCatch, SpeciesDefinition, SpeciesRecord, ShopListing, ShopQuote, OwnedRod, OwnedBiomeLicence, RodBonuses } from '@fishing-game/generated/types';
@@ -79,6 +80,7 @@ export class Game {
   setView(view: string) { this.selectedView = view; this.syncSection(); }
   private finishRecovery() {
     if (!this.coreReady || !this.sectionReady) return;
+    if (this.reconnecting || !this.ready) connectionDiagnostics.record('fishbound-ready');
     this.ready = true; this.reconnecting = false; this.sectionLoading = false;
     this.status = 'Live'; this.attempts = 0;
     if (!this.actionUnconfirmed) this.error = '';
@@ -102,6 +104,7 @@ export class Game {
     }).onError(() => {
       if (revision !== this.sectionRevision || generation !== this.generation) return;
       this.sectionLoading = false; this.error = 'This view could not load. Reconnect to try again.';
+      connectionDiagnostics.record('fishbound-subscription-failed');
     }).subscribe(queries);
   }
 
@@ -177,8 +180,9 @@ export class Game {
     try { token = localStorage.getItem(this.tokenKey) ?? undefined; } catch { /* Storage may be disabled. */ }
     this.status = this.attempts ? 'Reconnecting…' : 'Connecting…';
     let connectedOnce = false;
-    const lost = (_context: unknown, _error: unknown, nextAttempt?: number) => {
+    const lost = (_context: unknown, _error: unknown, nextAttempt?: number, delayMs?: number) => {
       if (generation !== this.generation) return;
+      connectionDiagnostics.failure(connectedOnce ? 'fishbound-disconnected' : 'fishbound-connect-failed', _error, nextAttempt, delayMs);
       this.ready = false;
       this.coreReady = false; this.sectionReady = false;
       this.reconnecting = nextAttempt !== undefined;
@@ -203,16 +207,18 @@ export class Game {
       .onConnect((connection, _identity, newToken) => {
         if (generation !== this.generation) { connection.disconnect(); return; }
         connectedOnce = true;
+        connectionDiagnostics.record('fishbound-connected', { connectionId: connection.connectionId.toHexString() });
         try { localStorage.setItem(this.tokenKey, newToken); } catch { /* This session still works. */ }
         connection.subscriptionBuilder().onApplied(() => {
           if (generation !== this.generation) return;
           this.coreReady = true;
           this.refresh();
           this.finishRecovery();
-        }).onError(() => { this.error = 'The pond could not load your data.'; connection.disconnect(); })
+        }).onError(() => { connectionDiagnostics.record('fishbound-subscription-failed'); this.error = 'The pond could not load your data.'; connection.disconnect(); })
           .subscribe(coreQueries);
       }).onAutomaticReconnect((_connection, _identity, newToken) => {
         if (generation !== this.generation) return;
+        connectionDiagnostics.record('fishbound-reconnected', { connectionId: _connection.connectionId.toHexString() });
         try { localStorage.setItem(this.tokenKey, newToken); } catch { /* This session still works. */ }
         this.status = 'Restoring live data…';
         // Existing subscriptions and callbacks are replayed by the SDK.

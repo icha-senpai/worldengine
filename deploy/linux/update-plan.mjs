@@ -7,8 +7,8 @@ export const groups = {
   fishModule: ['fishing-game/spacetimedb/', 'fishing-game/crates/game-rules/', 'fishing-game/content/', 'fishing-game/Cargo.', 'fishing-game/rust-toolchain'],
   collector: ['space/scripts/', 'space/src/bindings/bitcraft/', 'space/bitcraft/src/', 'space/package'],
   native: ['fishing-game/crates/', 'fishing-game/content/', 'fishing-game/Cargo.', 'fishing-game/rust-toolchain'],
-  spaceWeb: ['space/'],
-  fishWeb: ['fishing-game/apps/', 'fishing-game/packages/', 'fishing-game/assets/', 'fishing-game/content/', 'fishing-game/package', 'fishing-game/scripts/asset-manifest.mjs'],
+  spaceWeb: ['space/', 'shared/connection-'],
+  fishWeb: ['fishing-game/apps/', 'fishing-game/packages/', 'fishing-game/assets/', 'fishing-game/content/', 'fishing-game/package', 'fishing-game/scripts/asset-manifest.mjs', 'shared/connection-'],
   services: ['deploy/linux/install-user-services.mjs'],
 };
 export function sourceFingerprint(files, prefixes, extra = '') {

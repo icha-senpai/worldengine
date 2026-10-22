@@ -115,7 +115,9 @@ export function connectBitcraft(): Promise<DbConnection> {
         observedFeeds.clear();
         observedConnection = conn;
         localStorage.setItem(identityKey, token);
-        recordPageLifecycle("bitcraft-connected");
+        recordPageLifecycle("bitcraft-connected", {
+          connectionId: conn.connectionId?.toHexString(),
+        });
         bitcraftError.value = "";
         connecting = null;
         resolve(conn);
@@ -127,6 +129,7 @@ export function connectBitcraft(): Promise<DbConnection> {
           .subscriptionBuilder()
           .onApplied(() => {
             if (connection !== conn) return;
+            recordPageLifecycle("bitcraft-ready");
             bitcraftConnected.value = true;
             bitcraftReconnecting.value = false;
             bitcraftError.value = "";
@@ -138,7 +141,9 @@ export function connectBitcraft(): Promise<DbConnection> {
       .onAutomaticReconnect((conn, _identity, token) => {
         if (connection !== conn) return;
         localStorage.setItem(identityKey, token);
-        recordPageLifecycle("bitcraft-reconnected");
+        recordPageLifecycle("bitcraft-reconnected", {
+          connectionId: conn.connectionId?.toHexString(),
+        });
       })
       .onConnectError((_ctx, error, nextAttempt, delayMs) => {
         clearTimeout(timeout);
