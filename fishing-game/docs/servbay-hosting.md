@@ -40,6 +40,20 @@ The Public entry's source configuration is deploy/servbay-fishbound.conf.
 Use ServBay's website editor/MCP to apply changes; its generated files are not
 the configuration source.
 
+## Browser suspension
+
+A healthy connection stays open when its tab becomes hidden. If the browser
+freezes the page, or a connection fails while hidden, Fishbound closes the SDK
+connection and cancels retries while retaining the last displayed data. Brief
+background resumes do not reconnect. Returning to a visible tab opens one fresh
+connection using the same identity, reloads the selected view, and enables
+actions only after subscriptions are ready. Pending actions are never replayed;
+an uncertain result still requires checking the refreshed state. Page disposal
+removes the lifecycle listeners. This requires no browser-setting changes.
+
+Verify with `npm run test:connection-lifecycle`, `npm run test:subscriptions`,
+`npm run check`, and `npm run build`.
+
 ## Double-click launchers
 
 - start-fishbound.cmd starts the published website, private dev website, account linker, and bot.

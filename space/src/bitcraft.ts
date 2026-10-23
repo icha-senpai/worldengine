@@ -6,6 +6,7 @@ import {
 } from "./pageLifecycle";
 import { spacetimeHost } from "./spacetimeHost";
 import { createConnectionRecovery } from "./connectionRecovery";
+import { connectionLifecycle } from "../../shared/connection-lifecycle";
 export const bitcraftConnected = ref(false);
 export const bitcraftReconnecting = ref(false);
 export const bitcraftError = ref("");
@@ -13,6 +14,11 @@ let connection: DbConnection | null = null;
 let connecting: Promise<DbConnection> | null = null;
 let disposed = false;
 let retryInitial = false;
+let suspended = false;
+let resumeNeeded = false;
+let sessionToken: string | undefined;
+let cancelAttempt: ((error: Error) => void) | null = null;
+const connectionListeners = new Set<(conn: DbConnection) => void>();
 let readiness: {
   conn: DbConnection;
   promise: Promise<DbConnection>;
@@ -67,10 +73,45 @@ const initialRecovery = createConnectionRecovery(
   () => {
     void connectBitcraft().catch(() => {});
   },
-  () => !disposed && retryInitial && !connecting && !connection?.isReconnecting,
+  () =>
+    !disposed &&
+    !suspended &&
+    retryInitial &&
+    !connecting &&
+    !connection?.isReconnecting,
+);
+const lifecycle = connectionLifecycle(
+  () => {
+    resumeNeeded = Boolean(connection || connecting || retryInitial);
+    suspended = true;
+    initialRecovery.cancel();
+    const previous = connection;
+    connection = null;
+    cancelAttempt?.(
+      new Error("Live data is paused while this tab is inactive."),
+    );
+    cancelAttempt = null;
+    if (readiness)
+      finishReadiness(
+        readiness.conn,
+        new Error("Live data is paused while this tab is inactive."),
+      );
+    connecting = null;
+    retryInitial = false;
+    bitcraftConnected.value = false;
+    bitcraftReconnecting.value = resumeNeeded;
+    previous?.disconnect();
+  },
+  () => {
+    suspended = false;
+    if (!resumeNeeded) return;
+    retryInitial = true;
+    void connectBitcraft().catch(() => {});
+  },
 );
 import.meta.hot?.dispose(() => {
   disposed = true;
+  lifecycle.dispose();
   initialRecovery.stop();
   if (readiness)
     finishReadiness(
@@ -81,6 +122,10 @@ import.meta.hot?.dispose(() => {
 });
 const identityKey = `space.bitcraft.identity:${import.meta.env.VITE_SPACETIMEDB_HOST || "local"}:${import.meta.env.VITE_BITCRAFT_DATABASE || "space-bitcraft-tools"}`;
 export function connectBitcraft(): Promise<DbConnection> {
+  if (disposed || suspended)
+    return Promise.reject(
+      new Error("Live data is paused while this tab is inactive."),
+    );
   if (
     connection?.isReconnecting ||
     (connection?.isActive && !connection.isSocketClosed)
@@ -88,6 +133,12 @@ export function connectBitcraft(): Promise<DbConnection> {
     return waitForReadiness(connection);
   if (connection?.isSocketClosed) connection.disconnect();
   if (connecting) return connecting.then(waitForReadiness);
+  let token = sessionToken;
+  try {
+    token ??= localStorage.getItem(identityKey) || undefined;
+  } catch {
+    /* Retain the current session when storage is unavailable. */
+  }
   connecting = new Promise((resolve, reject) => {
     let attempt: DbConnection;
     const timeout = setTimeout(() => {
@@ -99,28 +150,43 @@ export function connectBitcraft(): Promise<DbConnection> {
         reject(new Error("The live data connection timed out."));
       }
     }, 15000);
+    cancelAttempt = (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    };
     connection = attempt = DbConnection.builder()
       .withUri(spacetimeHost)
       .withDatabaseName(
         import.meta.env.VITE_BITCRAFT_DATABASE || "space-bitcraft-tools",
       )
-      .withToken(localStorage.getItem(identityKey) || undefined)
+      .withToken(token)
       .withAutomaticReconnect()
       .onConnect((conn, _identity, token) => {
         clearTimeout(timeout);
+        if (connection !== conn) {
+          conn.disconnect();
+          return;
+        }
+        cancelAttempt = null;
+        sessionToken = token;
         initialRecovery.reset();
         retryInitial = false;
         const keys = [...observedFeeds.keys()];
         for (const close of observedFeeds.values()) close();
         observedFeeds.clear();
         observedConnection = conn;
-        localStorage.setItem(identityKey, token);
+        try {
+          localStorage.setItem(identityKey, token);
+        } catch {
+          /* Session identity is retained in memory. */
+        }
         recordPageLifecycle("bitcraft-connected", {
           connectionId: conn.connectionId?.toHexString(),
         });
         bitcraftError.value = "";
         connecting = null;
         resolve(conn);
+        for (const rebind of connectionListeners) rebind(conn);
         for (const key of keys) void observeCollection(key).catch(() => {});
         // A replay applies every subscription against one consistent snapshot.
         // This small status subscription marks that snapshot ready without
@@ -140,7 +206,12 @@ export function connectBitcraft(): Promise<DbConnection> {
       })
       .onAutomaticReconnect((conn, _identity, token) => {
         if (connection !== conn) return;
-        localStorage.setItem(identityKey, token);
+        sessionToken = token;
+        try {
+          localStorage.setItem(identityKey, token);
+        } catch {
+          /* Session identity is retained in memory. */
+        }
         recordPageLifecycle("bitcraft-reconnected", {
           connectionId: conn.connectionId?.toHexString(),
         });
@@ -154,6 +225,13 @@ export function connectBitcraft(): Promise<DbConnection> {
           nextAttempt,
           delayMs,
         );
+        if (
+          document.hidden &&
+          !(error instanceof Error && error.name === "IdentityChangedError")
+        ) {
+          lifecycle.suspend();
+          return;
+        }
         if (nextAttempt !== undefined) {
           bitcraftReconnecting.value = true;
           return;
@@ -177,6 +255,13 @@ export function connectBitcraft(): Promise<DbConnection> {
           nextAttempt,
           delayMs,
         );
+        if (
+          document.hidden &&
+          !(error instanceof Error && error.name === "IdentityChangedError")
+        ) {
+          lifecycle.suspend();
+          return;
+        }
         bitcraftConnected.value = false;
         bitcraftReconnecting.value = nextAttempt !== undefined;
         if (nextAttempt === undefined) {
@@ -207,6 +292,19 @@ export async function requestData(
     options: JSON.stringify(options),
   });
 }
+async function bindSubscription(bind: (conn: DbConnection) => () => void) {
+  const conn = await connectBitcraft();
+  let close = bind(conn);
+  const rebind = (next: DbConnection) => {
+    close();
+    close = bind(next);
+  };
+  connectionListeners.add(rebind);
+  return () => {
+    connectionListeners.delete(rebind);
+    close();
+  };
+}
 export async function subscribeData(
   key: string,
   changed: (row: {
@@ -216,40 +314,41 @@ export async function subscribeData(
     error: string;
   }) => void,
 ) {
-  const conn = await connectBitcraft();
-  const update = (
-    _ctx: unknown,
-    row: {
-      key: string;
-      payload: string;
-      updatedAt: bigint;
-      retryAt: bigint;
-      error: string;
-    },
-  ) => {
-    if (row.key === key) changed(row);
-  };
-  conn.db.snapshot.onInsert(update);
-  const updateRow = (
-    _ctx: unknown,
-    _old: unknown,
-    row: Parameters<typeof update>[1],
-  ) => update(_ctx, row);
-  conn.db.snapshot.onUpdate(updateRow);
-  const subscription = conn
-    .subscriptionBuilder()
-    .onApplied(() => {
-      const row = conn.db.snapshot.key.find(key);
-      if (row) changed(row);
-    })
-    .subscribe([
-      `SELECT * FROM snapshot WHERE key = '${key.replace(/'/g, "''")}'`,
-    ]);
-  return () => {
-    subscription.unsubscribe();
-    conn.db.snapshot.removeOnInsert(update);
-    conn.db.snapshot.removeOnUpdate(updateRow);
-  };
+  return bindSubscription((conn) => {
+    const update = (
+      _ctx: unknown,
+      row: {
+        key: string;
+        payload: string;
+        updatedAt: bigint;
+        retryAt: bigint;
+        error: string;
+      },
+    ) => {
+      if (row.key === key) changed(row);
+    };
+    conn.db.snapshot.onInsert(update);
+    const updateRow = (
+      _ctx: unknown,
+      _old: unknown,
+      row: Parameters<typeof update>[1],
+    ) => update(_ctx, row);
+    conn.db.snapshot.onUpdate(updateRow);
+    const subscription = conn
+      .subscriptionBuilder()
+      .onApplied(() => {
+        const row = conn.db.snapshot.key.find(key);
+        if (row) changed(row);
+      })
+      .subscribe([
+        `SELECT * FROM snapshot WHERE key = '${key.replace(/'/g, "''")}'`,
+      ]);
+    return () => {
+      subscription.unsubscribe();
+      conn.db.snapshot.removeOnInsert(update);
+      conn.db.snapshot.removeOnUpdate(updateRow);
+    };
+  });
 }
 
 const observedFeeds = new Map<string, () => void>();
@@ -288,24 +387,25 @@ export async function observeCollection(key: string) {
 }
 
 export async function subscribeStoredMarket(changed: () => void) {
-  const conn = await connectBitcraft();
-  const inserted = () => changed();
-  const updated = () => changed();
-  conn.db.marketStatus.onInsert(inserted);
-  conn.db.marketStatus.onUpdate(updated);
-  conn.db.relayStatus.onInsert(inserted);
-  conn.db.relayStatus.onUpdate(updated);
-  const subscription = conn
-    .subscriptionBuilder()
-    .subscribe([
-      "SELECT * FROM market_status WHERE key = 'market'",
-      "SELECT * FROM relay_status",
-    ]);
-  return () => {
-    subscription.unsubscribe();
-    conn.db.marketStatus.removeOnInsert(inserted);
-    conn.db.marketStatus.removeOnUpdate(updated);
-    conn.db.relayStatus.removeOnInsert(inserted);
-    conn.db.relayStatus.removeOnUpdate(updated);
-  };
+  return bindSubscription((conn) => {
+    const inserted = () => changed();
+    const updated = () => changed();
+    conn.db.marketStatus.onInsert(inserted);
+    conn.db.marketStatus.onUpdate(updated);
+    conn.db.relayStatus.onInsert(inserted);
+    conn.db.relayStatus.onUpdate(updated);
+    const subscription = conn
+      .subscriptionBuilder()
+      .subscribe([
+        "SELECT * FROM market_status WHERE key = 'market'",
+        "SELECT * FROM relay_status",
+      ]);
+    return () => {
+      subscription.unsubscribe();
+      conn.db.marketStatus.removeOnInsert(inserted);
+      conn.db.marketStatus.removeOnUpdate(updated);
+      conn.db.relayStatus.removeOnInsert(inserted);
+      conn.db.relayStatus.removeOnUpdate(updated);
+    };
+  });
 }

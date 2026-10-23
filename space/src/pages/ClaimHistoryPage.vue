@@ -10,7 +10,6 @@ import Modal from "../bitcraft-ui/shared/Modal.vue";
 import ClaimHistoryEvents from "../bitcraft-ui/Components/ClaimHistoryEvents.vue";
 import { Star } from "@lucide/vue";
 import { live } from "../bitcraft-ui/api";
-import { useBitcraftReadRecovery } from "../bitcraft-ui/useBitcraftReadRecovery";
 import {
   CLAIM_PERMISSIONS,
   permissionFlags,
@@ -163,6 +162,7 @@ const claims = ref([]),
   tracked = ref(0),
   pages = ref(1),
   loading = ref(false),
+  refreshing = ref(false),
   error = ref(""),
   updated = ref("");
 const showHistory = ref(false),
@@ -190,8 +190,15 @@ const activity = ref({}),
   activityUpdated = ref(""),
   activityDelayed = ref(false),
   activityClock = ref(Date.now());
-let activityRequest = 0,
-  activityChecked = 0;
+let activityRequest = 0;
+const refreshBusy = computed(
+  () =>
+    refreshing.value ||
+    loading.value ||
+    starsLoading.value ||
+    historyLoading.value ||
+    activityLoading.value,
+);
 const roster = computed(() =>
   members.value
     .map((member) => ({
@@ -208,7 +215,6 @@ async function loadMemberActivity() {
     claim = selected.value;
   activityLoading.value = true;
   activityError.value = "";
-  activityChecked = Date.now();
   try {
     const response = await live("relayClaimMembers", claim.id);
     if (disposed || request !== activityRequest || !showHistory.value) return;
@@ -313,67 +319,18 @@ const displayTotal = computed(() =>
       : claims.value,
   );
 async function refresh() {
-  await Promise.all([loadList(), loadStars()]);
-}
-let changeSubscription, changeConnection, changeTimer;
-let subscribingChanges = false;
-const changeRecovery = useBitcraftReadRecovery(
-  subscribeChanges,
-  () => !disposed && !subscribingChanges && !changeSubscription,
-);
-function closeChanges() {
-  if (changeSubscription && !changeSubscription.isEnded())
-    changeSubscription.unsubscribe();
-  changeSubscription = undefined;
-  changeConnection?.db.claimChanges.removeOnInsert(scheduleLiveRefresh);
-  changeConnection?.db.claimChanges.removeOnUpdate(scheduleLiveRefresh);
-  changeConnection?.db.claimChanges.removeOnDelete(scheduleLiveRefresh);
-  changeConnection = undefined;
-}
-function scheduleLiveRefresh() {
-  clearTimeout(changeTimer);
-  changeTimer = setTimeout(() => {
-    if (disposed) return;
-    void refresh();
-    if (showHistory.value) void loadHistory(false, false, true);
-  }, 100);
-}
-async function subscribeChanges() {
-  if (disposed || subscribingChanges || changeSubscription) return;
-  subscribingChanges = true;
+  if (refreshBusy.value) return;
+  refreshing.value = true;
   try {
-    const conn = await connectBitcraft();
-    if (disposed) return;
-    changeConnection = conn;
-    conn.db.claimChanges.onInsert(scheduleLiveRefresh);
-    conn.db.claimChanges.onUpdate(scheduleLiveRefresh);
-    conn.db.claimChanges.onDelete(scheduleLiveRefresh);
-    changeSubscription = conn
-      .subscriptionBuilder()
-      .onApplied(() => {
-        if (disposed) return;
-        changeRecovery.succeeded();
-        scheduleLiveRefresh();
-      })
-      .onError(() => {
-        closeChanges();
-        if (!disposed) {
-          error.value =
-            "Live claim updates are delayed. Reconnecting automatically.";
-          changeRecovery.failed();
-        }
-      })
-      .subscribe(["SELECT * FROM claim_changes"]);
-  } catch {
-    closeChanges();
-    if (!disposed) {
-      error.value =
-        "Live claim updates could not connect. Reconnecting automatically.";
-      changeRecovery.failed();
-    }
+    await Promise.all([
+      loadList(),
+      loadStars(),
+      ...(showHistory.value
+        ? [loadHistory(false, false, true), loadMemberActivity()]
+        : []),
+    ]);
   } finally {
-    subscribingChanges = false;
-    changeRecovery.schedule();
+    refreshing.value = false;
   }
 }
 const listRead = useRetainedRead({
@@ -464,7 +421,6 @@ function openHistory(claim = null) {
   activityError.value = "";
   activityUpdated.value = "";
   activityDelayed.value = false;
-  activityChecked = 0;
   selected.value = claim;
   currentClaim.value = claim && "supplies" in claim ? claim : null;
   members.value = [];
@@ -535,17 +491,9 @@ watch(group, () => {
 });
 onMounted(() => {
   void refresh();
-  void subscribeChanges();
   interval = setInterval(() => {
     activityClock.value = Date.now();
-    if (!activityLoading.value && Date.now() - activityChecked >= 60_000)
-      void loadMemberActivity();
-    if (!loading.value) void loadList();
-    if (!starsLoading.value) void loadStars();
-    if (showHistory.value && !historyLoading.value && !moreLoaded.value)
-      void loadHistory();
-    // Time-based risk filters and freshness can change without database writes.
-    // This is a slow safety refresh; recorded changes arrive through subscriptions.
+    // Only advance relative-time labels; data is refreshed on user request.
   }, 60000);
 });
 onBeforeUnmount(() => {
@@ -556,8 +504,6 @@ onBeforeUnmount(() => {
   activityRequest++;
   clearTimeout(debounce);
   clearInterval(interval);
-  clearTimeout(changeTimer);
-  closeChanges();
 });
 </script>
 <template>
@@ -571,10 +517,11 @@ onBeforeUnmount(() => {
           <button class="button" @click="openHistory()">Recent changes</button
           ><button
             class="button"
-            :disabled="loading || starsLoading"
+            :disabled="refreshBusy"
+            :aria-busy="refreshing"
             @click="refresh()"
           >
-            {{ loading ? "Loading…" : "Refresh" }}
+            {{ refreshing ? "Refreshing…" : "Refresh" }}
           </button>
         </div>
       </template>
@@ -593,6 +540,12 @@ onBeforeUnmount(() => {
         >
       </div>
     </section>
+    <p class="note">
+      This page shows a snapshot. Use Refresh for the latest recorded data.
+      Supply upkeep ticks hourly; refills and other claim changes can happen
+      between ticks. A claim’s history shows its next estimated decay time when
+      regional timing is known.
+    </p>
     <nav class="tabs list-tabs ui-tabs" aria-label="Claim lists">
       <button
         :class="{ active: listView === 'all' }"
@@ -615,9 +568,9 @@ onBeforeUnmount(() => {
     </nav>
     <p v-if="listView === 'tracked'" class="note">
       Star claims to keep them here. This browser saves your shortlist and
-      checks it every 15 seconds while this page is open. “Updated” clears when
-      you open the claim’s history. Claims outside the recording scope keep
-      their star and retained history.
+      checks it when you refresh. “Updated” clears when you open the claim’s
+      history. Claims outside the recording scope keep their star and retained
+      history.
     </p>
     <p v-if="starError || starLoadError" class="error" role="alert">
       {{ starError || starLoadError }}
@@ -745,7 +698,7 @@ onBeforeUnmount(() => {
             <td>
               <span :class="{ stale: claim.supplyStatus !== 'ready' }">{{
                 claim.supplyStatus === "ready"
-                  ? "Live"
+                  ? "Recorded"
                   : claim.supplyStatus === "stale"
                     ? "Stale"
                     : "Awaiting data"
@@ -801,6 +754,14 @@ onBeforeUnmount(() => {
             </p>
           </div>
           <div class="dialog-actions">
+            <button
+              class="button"
+              :disabled="refreshBusy"
+              :aria-busy="refreshing"
+              @click="refresh()"
+            >
+              {{ refreshing ? "Refreshing…" : "Refresh" }}
+            </button>
             <button
               v-if="selected"
               class="button dialog-star"
@@ -907,7 +868,7 @@ onBeforeUnmount(() => {
             <p class="note">
               Last seen is the player’s latest reported activity, anywhere in
               the world. Missing timestamps remain Unknown. Activity readings
-              refresh about every five minutes.
+              are checked when you open this tab or press Refresh.
             </p>
             <p v-if="activityLoading" class="note" role="status">
               Checking member activity…

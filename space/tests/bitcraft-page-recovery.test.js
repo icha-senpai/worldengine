@@ -175,83 +175,110 @@ it("does not automatically retry access errors or a page that has been left", as
   await vi.advanceTimersByTimeAsync(30000);
   expect(mocks.pageProps).toHaveBeenCalledTimes(2);
 });
-it("retries Claim History subscription setup, cleans failed listeners and retains a recovered subscription", async () => {
-  const subscriptions = [];
-  const table = Object.fromEntries(
-    [
-      "onInsert",
-      "onUpdate",
-      "onDelete",
-      "removeOnInsert",
-      "removeOnUpdate",
-      "removeOnDelete",
-    ].map((name) => [name, vi.fn()]),
-  );
-  const conn = {
-    db: { claimChanges: table },
+function claimConnection() {
+  return {
     procedures: {
-      readTrackedClaims: vi.fn().mockResolvedValue(
-        JSON.stringify({
-          claims: [],
-          coverage: [],
-          total: 0,
-          trackedClaims: 0,
-          pages: 1,
-          page: 1,
-        }),
-      ),
+      readTrackedClaims: vi
+        .fn()
+        .mockResolvedValue(
+          JSON.stringify({
+            claims: [],
+            coverage: [],
+            total: 0,
+            trackedClaims: 0,
+            pages: 1,
+            page: 1,
+          }),
+        ),
+      readStarredClaims: vi
+        .fn()
+        .mockResolvedValue(JSON.stringify({ claims: [] })),
+      readTrackedClaimHistory: vi
+        .fn()
+        .mockResolvedValue(
+          JSON.stringify({
+            events: [],
+            next: "",
+            claim: { id: "1", regionId: 9, name: "A", supplies: 200 },
+            members: [],
+          }),
+        ),
     },
-    subscriptionBuilder() {
-      const sub = {
-        ended: false,
-        unsubscribe: vi.fn(),
-        isEnded: () => sub.ended,
-      };
-      const builder = {
-        onApplied(fn) {
-          sub.applied = fn;
-          return builder;
-        },
-        onError(fn) {
-          sub.error = fn;
-          return builder;
-        },
-        subscribe() {
-          subscriptions.push(sub);
-          return sub;
-        },
-      };
-      return builder;
-    },
+    subscriptionBuilder: vi.fn(),
   };
-  // The list read succeeds; the separate first subscription connection fails.
-  mocks.connect
-    .mockResolvedValueOnce(conn)
-    .mockRejectedValueOnce(Error("The live data connection timed out."))
-    .mockResolvedValue(conn);
-  mount(ClaimHistoryPage);
+}
+it("keeps Claim History snapshots stable until the user requests a refresh", async () => {
+  const conn = claimConnection();
+  mocks.connect.mockResolvedValue(conn);
+  const page = mount(ClaimHistoryPage);
   await settle();
-  expect(subscriptions).toHaveLength(0);
-  await vi.advanceTimersByTimeAsync(1000);
-  expect(subscriptions).toHaveLength(1);
-  subscriptions[0].ended = true;
-  subscriptions[0].error();
-  expect(table.removeOnInsert).toHaveBeenCalledOnce();
-  expect(subscriptions[0].unsubscribe).not.toHaveBeenCalled();
-  await vi.advanceTimersByTimeAsync(2000);
-  expect(subscriptions).toHaveLength(2);
-  subscriptions[1].applied();
+  expect(conn.procedures.readTrackedClaims).toHaveBeenCalledOnce();
+  await vi.advanceTimersByTimeAsync(2 * 60 * 60 * 1000);
+  window.dispatchEvent(new Event("focus"));
+  document.dispatchEvent(new Event("visibilitychange"));
   bitcraftConnected.value = false;
   await nextTick();
   bitcraftConnected.value = true;
   await nextTick();
-  await vi.advanceTimersByTimeAsync(1000);
-  expect(subscriptions).toHaveLength(2);
-  expect(table.onInsert).toHaveBeenCalledTimes(2);
-  app.unmount();
-  app = null;
-  expect(subscriptions[1].unsubscribe).toHaveBeenCalledOnce();
-  expect(table.removeOnInsert).toHaveBeenCalledTimes(2);
   await vi.advanceTimersByTimeAsync(30000);
-  expect(subscriptions).toHaveLength(2);
+  expect(conn.procedures.readTrackedClaims).toHaveBeenCalledOnce();
+  expect(conn.subscriptionBuilder).not.toHaveBeenCalled();
+  await page.refresh();
+  expect(conn.procedures.readTrackedClaims).toHaveBeenCalledTimes(2);
+  page.query = "new filter";
+  await nextTick();
+  await vi.advanceTimersByTimeAsync(300);
+  expect(conn.procedures.readTrackedClaims).toHaveBeenCalledTimes(3);
+});
+it("refreshes claims, stars and open history together without discarding older events", async () => {
+  const conn = claimConnection();
+  mocks.connect.mockResolvedValue(conn);
+  const page = mount(ClaimHistoryPage);
+  await settle();
+  page.openHistory({ id: "1", regionId: 9, name: "A" });
+  await settle();
+  page.stars = [
+    { id: "1", regionId: 9, name: "A", seenSnapshot: "already seen" },
+  ];
+  page.events = [{ key: "older", observedAt: "10" }];
+  page.moreLoaded = true;
+  page.next = "older-cursor";
+  conn.procedures.readTrackedClaimHistory.mockResolvedValue(
+    JSON.stringify({
+      events: [{ key: "new", observedAt: "20" }],
+      next: "new-cursor",
+      claim: { id: "1", regionId: 9, name: "A", supplies: 100 },
+      members: [],
+    }),
+  );
+  let finish;
+  conn.procedures.readTrackedClaims.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const pending = page.refresh();
+  await settle();
+  expect(page.refreshing).toBe(true);
+  await page.refresh();
+  expect(conn.procedures.readTrackedClaims).toHaveBeenCalledTimes(2);
+  expect(conn.procedures.readStarredClaims).toHaveBeenCalledOnce();
+  expect(conn.procedures.readTrackedClaimHistory).toHaveBeenCalledTimes(2);
+  finish(
+    JSON.stringify({
+      claims: [],
+      coverage: [],
+      total: 0,
+      trackedClaims: 0,
+      pages: 1,
+      page: 1,
+    }),
+  );
+  await pending;
+  expect(page.refreshing).toBe(false);
+  expect(page.currentClaim.supplies).toBe(100);
+  expect(page.events.map((event) => event.key)).toEqual(["new", "older"]);
+  expect(page.next).toBe("older-cursor");
+  expect(page.stars[0].seenSnapshot).toBe("already seen");
 });

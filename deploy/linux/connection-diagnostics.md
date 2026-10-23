@@ -51,6 +51,16 @@ errors are a separate connection layer and remain in collector diagnostics.
 
 ## Browser evidence and limits
 
+Fishbound, BitCraft and Evergather share freeze-aware connection lifecycle
+handling. Healthy hidden tabs stay connected. A freeze or hidden transport loss
+pauses the application connection and retries until the page becomes visible;
+brief background resumes do not reopen it. Returning restores the same identity,
+subscriptions and selected view. Last displayed data is retained and actions
+remain blocked until fresh data is ready. An intentional freeze pause is recorded
+by the page lifecycle events rather than a fabricated network-failure event.
+The optional independent diagnostic sockets are separate from this application
+lifecycle and can still report background probe failures.
+
 The latest 200 safe events remain in `sessionStorage` under `space.pageLifecycle`
 or `fishbound.pageLifecycle`. The pending-upload queue holds at most 100 events
 and survives reloads in the same tab. Uploads contain at most ten events, omit

@@ -2,6 +2,7 @@ import { DbConnection } from '@fishing-game/generated';
 import type { SubscriptionHandle } from '@fishing-game/generated';
 import { coreQueries, viewQueries } from './subscriptions';
 import { connectionDiagnostics } from './connection-diagnostics';
+import { connectionLifecycle } from '../../../../../../shared/connection-lifecycle';
 import type { JournalPage } from '@fishing-game/generated/types';
 export type JournalQuery = { page: number; pageSize: number; sort: string; descending: boolean; search: string; biomeId: number; rarity: string; outcome: string };
 import type { ActionNonce, AnglerPortrait, AnglerStatistics, AnglerStanding, LegendaryFind, BiomeDefinition, RodDefinition, RarityDefinition, GameConfig, ItemStack, LinkChallenge, OwnedSpecimen, Player, PlayerSpeciesProgress, PublicProfile, RecentCatch, SpeciesDefinition, SpeciesRecord, ShopListing, ShopQuote, OwnedRod, OwnedBiomeLicence, RodBonuses } from '@fishing-game/generated/types';
@@ -75,6 +76,8 @@ export class Game {
   private uri = '';
   private database = '';
   private tokenKey = '';
+  private sessionToken: string | undefined;
+  private lifecycle: ReturnType<typeof connectionLifecycle> | null = null;
   private actionUnconfirmed = false;
 
   setView(view: string) { this.selectedView = view; this.syncSection(); }
@@ -169,20 +172,46 @@ export class Game {
     this.stop(); this.uri = uri; this.database = database; this.attempts = 0;
     if (!uri || !database) { this.status = 'The pond is being prepared'; return; }
     this.tokenKey = `fishbound:${uri}:${database}:identity`;
+    this.lifecycle = connectionLifecycle(() => this.pauseConnection(), () => {
+      this.attempts = 1;
+      this.connect();
+    });
     this.connect();
+  }
+  private pauseConnection() {
+    // Invalidate callbacks before disconnecting: this is an intentional pause,
+    // not another network failure. Keep rendered state until fresh data applies.
+    this.generation++;
+    if (this.retry) clearTimeout(this.retry);
+    this.retry = null;
+    this.ready = false; this.reconnecting = true;
+    this.coreReady = false; this.sectionReady = false; this.sectionLoading = false;
+    this.sectionKey = ''; this.sectionSubscription = null; this.sectionRevision++;
+    this.journalLastQuery = '';
+    const connection = this.connection;
+    this.connection = null;
+    connection?.disconnect();
+    this.status = 'Paused while this tab is inactive';
   }
   private connect() {
     const generation = ++this.generation;
     this.coreReady = false; this.sectionReady = false; this.sectionKey = '';
     this.sectionSubscription = null; this.sectionRevision++;
     this.connection?.disconnect(); this.connection = null;
-    let token: string | undefined;
-    try { token = localStorage.getItem(this.tokenKey) ?? undefined; } catch { /* Storage may be disabled. */ }
+    let token = this.sessionToken;
+    try { token ??= localStorage.getItem(this.tokenKey) ?? undefined; } catch { /* Storage may be disabled. */ }
     this.status = this.attempts ? 'Reconnecting…' : 'Connecting…';
     let connectedOnce = false;
     const lost = (event: 'fishbound-disconnected' | 'fishbound-connect-failed', _context: unknown, _error: unknown, nextAttempt?: number, delayMs?: number) => {
       if (generation !== this.generation) return;
       connectionDiagnostics.failure(event, _error, nextAttempt, delayMs);
+      if (_error instanceof Error && _error.name === 'IdentityChangedError') {
+        this.clearPrivate();
+      } else if (document.visibilityState === 'hidden') {
+        // Stop SDK/application retry timers until the user returns to the tab.
+        this.lifecycle?.suspend();
+        return;
+      }
       this.ready = false;
       this.coreReady = false; this.sectionReady = false;
       this.reconnecting = nextAttempt !== undefined;
@@ -191,7 +220,6 @@ export class Game {
       // Application retries cover failed first connections only.
       if (nextAttempt !== undefined) return;
       if (connectedOnce) {
-        if (_error instanceof Error && _error.name === 'IdentityChangedError') this.clearPrivate();
         this.error = 'The connection ended. Reconnect or sign in again to continue.';
         return;
       }
@@ -207,6 +235,7 @@ export class Game {
       .onConnect((connection, _identity, newToken) => {
         if (generation !== this.generation) { connection.disconnect(); return; }
         connectedOnce = true;
+        this.sessionToken = newToken;
         connectionDiagnostics.record('fishbound-connected', { connectionId: connection.connectionId.toHexString() });
         try { localStorage.setItem(this.tokenKey, newToken); } catch { /* This session still works. */ }
         connection.subscriptionBuilder().onApplied(() => {
@@ -214,10 +243,14 @@ export class Game {
           this.coreReady = true;
           this.refresh();
           this.finishRecovery();
-        }).onError(() => { connectionDiagnostics.record('fishbound-subscription-failed'); this.error = 'The pond could not load your data.'; connection.disconnect(); })
+        }).onError(() => {
+          if (generation !== this.generation) return;
+          connectionDiagnostics.record('fishbound-subscription-failed'); this.error = 'The pond could not load your data.'; connection.disconnect();
+        })
           .subscribe(coreQueries);
       }).onAutomaticReconnect((_connection, _identity, newToken) => {
         if (generation !== this.generation) return;
+        this.sessionToken = newToken;
         connectionDiagnostics.record('fishbound-reconnected', { connectionId: _connection.connectionId.toHexString() });
         try { localStorage.setItem(this.tokenKey, newToken); } catch { /* This session still works. */ }
         this.status = 'Restoring live data…';
@@ -256,6 +289,7 @@ export class Game {
     connection.db.myInventory.onUpdate(this.refresh);
   }
   stop() {
+    this.lifecycle?.dispose(); this.lifecycle = null; this.sessionToken = undefined;
     this.generation++; if (this.retry) clearTimeout(this.retry);
     this.coreReady = false; this.sectionReady = false; this.sectionLoading = false;
     this.sectionKey = ''; this.sectionSubscription = null; this.sectionRevision++;

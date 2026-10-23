@@ -4,6 +4,7 @@ import type { Catalog } from "./bindings/evergather/types";
 import { user, localPlay } from "./auth";
 import { definitionTables, panelDefinitionQueries } from "./evergather/catalog";
 import { createConnectionRecovery } from "./connectionRecovery";
+import { connectionLifecycle } from "../../shared/connection-lifecycle";
 import {
   recordConnectionLifecycle,
   recordPageLifecycle,
@@ -58,6 +59,9 @@ export function initializeEvergather(enabled: Ref<boolean>) {
   let stopPanelWatch: (() => void) | undefined;
   let connectionPending = false;
   let retryInitial = false;
+  let suspended = false;
+  let resumeCached = false;
+  let localSessionToken: string | undefined;
   const reconnectRevision = ref(0);
   const recovery = createConnectionRecovery(
     () => {
@@ -65,14 +69,38 @@ export function initializeEvergather(enabled: Ref<boolean>) {
     },
     () =>
       enabled.value &&
+      !suspended &&
       retryInitial &&
       (localPlay || Boolean(user.value?.id_token)) &&
       !connectionPending &&
       !active?.isReconnecting,
   );
+  const lifecycle = connectionLifecycle(
+    () => {
+      suspended = true;
+      recovery.cancel();
+      generation++;
+      stopPanelWatch?.();
+      stopPanelWatch = undefined;
+      const previous = active;
+      active = null;
+      connectionPending = false;
+      retryInitial = false;
+      evergatherConnected.value = false;
+      evergatherReconnecting.value = Boolean(previous);
+      previous?.disconnect();
+    },
+    () => {
+      suspended = false;
+      resumeCached = true;
+      reconnectRevision.value++;
+    },
+  );
   const stopConnectionWatch = watch(
     [user, enabled, reconnectRevision],
     ([value, isEnabled]) => {
+      const retainCache = resumeCached && Boolean(evergather.value);
+      resumeCached = false;
       recovery.cancel();
       stopPanelWatch?.();
       stopPanelWatch = undefined;
@@ -81,25 +109,29 @@ export function initializeEvergather(enabled: Ref<boolean>) {
       active = null;
       connectionPending = false;
       retryInitial = false;
-      evergather.value = null;
+      if (!retainCache) evergather.value = null;
       evergatherConnected.value = false;
-      evergatherReady.value = false;
+      if (!retainCache) evergatherReady.value = false;
       evergatherPanelReady.value = false;
       revision.value++;
       definitionRevision.value++;
       if (!isEnabled || (!localPlay && !value?.id_token)) {
+        evergather.value = null;
+        evergatherReady.value = false;
         recovery.reset();
         evergatherReconnecting.value = false;
         return;
       }
+      if (suspended) return;
       let token = value?.id_token;
       if (localPlay) {
         try {
-          token = localStorage.getItem(localTokenKey) ?? undefined;
+          token =
+            localSessionToken ??
+            localStorage.getItem(localTokenKey) ??
+            undefined;
         } catch {
-          evergatherError.value =
-            "Allow browser storage to save your local character.";
-          return;
+          token = localSessionToken;
         }
       }
       connectionPending = true;
@@ -111,6 +143,7 @@ export function initializeEvergather(enabled: Ref<boolean>) {
           return;
         if (!evergatherReady.value || evergatherReconnecting.value)
           recordPageLifecycle("evergather-ready");
+        evergather.value = conn;
         evergatherReady.value = true;
         evergatherConnected.value = true;
         evergatherReconnecting.value = false;
@@ -123,9 +156,15 @@ export function initializeEvergather(enabled: Ref<boolean>) {
         .withToken(token)
         .withAutomaticReconnect()
         .withTokenProvider(async () => {
-          const next = localPlay
-            ? localStorage.getItem(localTokenKey)
-            : user.value?.id_token;
+          let next = user.value?.id_token;
+          if (localPlay) {
+            next = localSessionToken;
+            try {
+              next ??= localStorage.getItem(localTokenKey) ?? undefined;
+            } catch {
+              /* Session identity is retained in memory. */
+            }
+          }
           if (!next) throw new Error("Sign in again to reconnect.");
           return next;
         })
@@ -135,23 +174,21 @@ export function initializeEvergather(enabled: Ref<boolean>) {
             return;
           }
           if (localPlay) {
+            localSessionToken = issuedToken;
             try {
               localStorage.setItem(localTokenKey, issuedToken);
             } catch {
-              evergatherError.value =
-                "Allow browser storage to save your local character.";
-              connection.disconnect();
-              return;
+              // Keep the same character through tab suspension in this session.
             }
           }
-          evergather.value = connection;
+          if (!retainCache) evergather.value = connection;
           connectionPending = false;
           retryInitial = false;
           recovery.reset();
           recordPageLifecycle("evergather-connected", {
             connectionId: connection.connectionId?.toHexString(),
           });
-          evergatherConnected.value = true;
+          evergatherConnected.value = !retainCache;
           evergatherError.value = "";
           const changed = () => {
             revision.value++;
@@ -385,7 +422,14 @@ export function initializeEvergather(enabled: Ref<boolean>) {
         })
         .onAutomaticReconnect((connection, _identity, issuedToken) => {
           if (currentGeneration !== generation) return;
-          if (localPlay) localStorage.setItem(localTokenKey, issuedToken);
+          if (localPlay) {
+            localSessionToken = issuedToken;
+            try {
+              localStorage.setItem(localTokenKey, issuedToken);
+            } catch {
+              /* Session identity is retained in memory. */
+            }
+          }
           coreApplied = false;
           restoringScope = true;
           recordPageLifecycle("evergather-reconnected", {
@@ -422,6 +466,13 @@ export function initializeEvergather(enabled: Ref<boolean>) {
               nextAttempt,
               delayMs,
             );
+            if (
+              document.hidden &&
+              !(error instanceof Error && error.name === "IdentityChangedError")
+            ) {
+              lifecycle.suspend();
+              return;
+            }
             evergatherError.value = localPlay
               ? "Evergather could not connect. Check that the database is running and local play is enabled."
               : "Evergather could not connect. Please try signing in again.";
@@ -437,6 +488,13 @@ export function initializeEvergather(enabled: Ref<boolean>) {
               nextAttempt,
               delayMs,
             );
+            if (
+              document.hidden &&
+              !(error instanceof Error && error.name === "IdentityChangedError")
+            ) {
+              lifecycle.suspend();
+              return;
+            }
             evergatherConnected.value = false;
             coreApplied = false;
             evergatherReconnecting.value = nextAttempt !== undefined;
@@ -451,6 +509,7 @@ export function initializeEvergather(enabled: Ref<boolean>) {
     { immediate: true },
   );
   import.meta.hot?.dispose(() => {
+    lifecycle.dispose();
     recovery.stop();
     stopConnectionWatch();
     generation++;
