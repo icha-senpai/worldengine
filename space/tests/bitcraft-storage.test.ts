@@ -4,12 +4,49 @@ import {
   safeReplicaPath,
   retainedStorageBytes,
   removeCompletedStorageExports,
+  storageLimits,
 } from "../scripts/bitcraft-storage";
 import { mkdtemp, rm, writeFile, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { tradingDelta } from "../scripts/bitcraft-trading-delta";
 describe("bounded BitCraft storage", () => {
+  it("keeps local defaults and accepts production storage limits", () => {
+    expect(storageLimits({})).toEqual({
+      targetBytes: 2_000_000_000,
+      budgetBytes: 3_000_000_000,
+    });
+    expect(
+      storageLimits({
+        SPACE_STORAGE_TARGET_BYTES: "6000000000",
+        SPACE_STORAGE_BUDGET_BYTES: "7000000000",
+      }),
+    ).toEqual({ targetBytes: 6_000_000_000, budgetBytes: 7_000_000_000 });
+  });
+  it("rejects invalid limits before the storage guard starts", () => {
+    for (const value of [
+      "",
+      "0",
+      "-1",
+      "NaN",
+      "Infinity",
+      "1.5",
+      "9007199254740992",
+    ]) {
+      expect(() =>
+        storageLimits({ SPACE_STORAGE_TARGET_BYTES: value }),
+      ).toThrow();
+      expect(() =>
+        storageLimits({ SPACE_STORAGE_BUDGET_BYTES: value }),
+      ).toThrow();
+    }
+    expect(() =>
+      storageLimits({ SPACE_STORAGE_TARGET_BYTES: "3000000000" }),
+    ).toThrow();
+    expect(() =>
+      storageLimits({ SPACE_STORAGE_TARGET_BYTES: "6000000000" }),
+    ).toThrow();
+  });
   it("removes only completed exports and refuses pending recovery", async () => {
     const root = await mkdtemp(join(tmpdir(), "bitcraft-export-cleanup-"));
     const database = "space-bitcraft-tools";

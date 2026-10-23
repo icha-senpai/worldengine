@@ -22,8 +22,25 @@ import {
   spacetimeServer,
 } from "./spacetime-config";
 
-export const STORAGE_TARGET = 2_000_000_000;
-export const STORAGE_BUDGET = 3_000_000_000;
+export function storageLimits(env: NodeJS.ProcessEnv = process.env) {
+  const targetBytes = Number(env.SPACE_STORAGE_TARGET_BYTES ?? 2_000_000_000);
+  const budgetBytes = Number(env.SPACE_STORAGE_BUDGET_BYTES ?? 3_000_000_000);
+  if (
+    !Number.isSafeInteger(targetBytes) ||
+    targetBytes <= 0 ||
+    !Number.isSafeInteger(budgetBytes) ||
+    budgetBytes <= targetBytes
+  ) {
+    throw Error(
+      "Storage limits must be positive whole bytes with budget above target.",
+    );
+  }
+  return { targetBytes, budgetBytes };
+}
+
+const limits = storageLimits();
+export const STORAGE_TARGET = limits.targetBytes;
+export const STORAGE_BUDGET = limits.budgetBytes;
 const managedTables = new Set([
   "claim_decay_region",
   "boss_defeat", // Bounded encounter details; retained in checkpoint pages.

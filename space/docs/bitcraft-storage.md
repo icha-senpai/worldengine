@@ -1,5 +1,13 @@
 # Keeping BitCraft on SpacetimeDB within a small disk budget
 
+The default local maintenance trigger is 2 GB with a 3 GB budget. Production can
+override these with `SPACE_STORAGE_TARGET_BYTES` and `SPACE_STORAGE_BUDGET_BYTES`
+in its collector environment; both are positive whole decimal bytes, and the
+budget must exceed the trigger. Production is configured for a 6 GB trigger and
+7 GB budget. The collector and any manual maintenance/status commands must use
+the same environment. The existing write lease, free-space checks and verified
+preservation process still apply.
+
 ## Collector connection sessions
 
 Every database connection cycle uses a fresh collector epoch, including reconnects

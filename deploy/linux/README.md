@@ -39,6 +39,14 @@ Keep server-only environments outside Git:
 | `fishing-game/.local/production-services.env` | Native Discord credentials, loopback database and canonical production website/callback |
 | `~/.config/spacetime-production/` | Migrated database signing keys and owner credentials; private to the deployment user |
 
+Production BitCraft storage uses `SPACE_STORAGE_TARGET_BYTES=6000000000` and
+`SPACE_STORAGE_BUDGET_BYTES=7000000000` in `space/.runtime/production-collector.env`.
+These decimal-byte settings trigger maintenance at 6 GB with a 7 GB budget.
+Without overrides, local development keeps its 2 GB trigger and 3 GB budget.
+Changing these settings requires restarting the collector, not the database.
+For a manual storage-status command, load the same production environment so
+the command reports the collector's configured thresholds.
+
 Restore and verify existing database state before enabling application services.
 Do not initialize empty replacements for the existing player/tracker databases.
 Database identities, ownership, stored records, service identities, current sealed
