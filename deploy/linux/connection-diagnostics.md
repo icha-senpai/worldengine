@@ -164,3 +164,42 @@ the managed site. Expiry leaves small managed helper/unit files for inspection
 and reuse, but creates no backup or recovery archive. Staged installer copies
 are disposable after activation; preserve the root-owned expiry helper until
 the capture has been disabled.
+
+## Compare routes and transport settings
+
+`connection-route-test.mjs` runs a finite comparison against every advertised
+Cloudflare address. It tests TLS 1.2/1.3, passive automatic pong replies and
+15/30-second client pings, with direct-origin controls for both sites. It records
+TCP errors such as `ECONNRESET` independently of the WebSocket close code, along
+with event-loop delay and time since the last server ping. No authentication,
+table subscriptions or gameplay calls are sent.
+
+```sh
+node deploy/linux/connection-route-test.mjs --root /path/to/dataverse --output /path/to/owned/route-test.jsonl --minutes 15
+```
+
+The output must not already exist. Use `--server` on the production host to
+compare its IPv4 Cloudflare routes and loopback origin. That mode deliberately
+omits IPv6 because this host has no outbound IPv6 route. Captures stop after
+1–30 minutes, do not reconnect failed sockets, and write a bounded number of
+metadata records. Keep one current evidence set; remove or replace it after
+review rather than accumulating dated copies.
+
+For the account-side audit, `inspect-cloudflare.ps1` prompts securely for a
+temporary, zone-scoped read-only API token and saves only sanitized findings
+under the existing PC diagnostic directory. It never saves the token or raw
+request headers/rule expressions. Grant Zone Read, DNS Read, Zone Settings Read,
+Analytics Read, Firewall Services Read, Zone WAF Read and Workers Routes Read
+for `ichaa.dev` only. Unsupported plan features or insufficient permissions are
+reported as incomplete checks, not empty/healthy results. GraphQL POST requests
+contain queries only; this helper never changes Cloudflare configuration.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy/linux/inspect-cloudflare.ps1
+```
+
+Cloudflare raw per-request logs and termination details may require additional
+plan/access capabilities. A successful settings audit cannot guarantee that
+Cloudflare exposes the internal reason for a connection reset. Preserve original
+Ray IDs and UTC timestamps for provider escalation. Direct-origin controls can
+validate a potential bypass without changing public DNS or user sessions.
