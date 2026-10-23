@@ -2,8 +2,9 @@
 
 Space (BitCraft and Evergather) and Fishbound record connection events in their
 browser tab and send batches to Fishbound's existing web service in production.
-No new service, database table, Cloudflare setting or NGINX route is required.
-This is event logging; it does not poll users continuously or record gameplay.
+Baseline event reporting needs no extra service or database table. An optional,
+72-hour transport capture adds independent probes and safe proxy/TCP metadata.
+Neither mode records gameplay or sends account credentials to the probes.
 
 Events include the original UTC time, a random tab session, deployed Git revision,
 connection channel, last accepted socket's random ConnectionId (to match database
@@ -73,3 +74,93 @@ and browser extensions may all limit available evidence.
 shared diagnostic code changes. No database publication or native rebuild is
 needed for this instrumentation. Refresh existing tabs after deployment so they
 load the reporting code.
+
+## Temporary transport capture
+
+Run the reviewed installer as the deployment user first, then activate the
+privileged layers in an interactive SSH terminal:
+
+```sh
+python3 deploy/linux/install-connection-diagnostics.py --user-service
+sudo python3 deploy/linux/install-connection-diagnostics.py --apply
+```
+
+The installer previews its NGINX changes, validates the configuration before
+reloading, and restores the previous configuration in memory if validation or
+reload fails. It preserves application routing, authentication and timeouts.
+It does not restart applications or databases. It refuses unmanaged targets.
+The root-owned expiry timer removes capture routes/logging after 72 hours and
+stops the diagnostic services. An early stop is:
+
+```sh
+sudo python3 /usr/local/lib/dataverse-connection-diagnostics/install-connection-diagnostics.py --disable
+```
+
+The independent service opens one unauthenticated, unsubscribed socket for each
+of BitCraft, Evergather and Fishbound through public IPv4, public IPv6, direct
+origin HTTPS and database loopback. TLS verification stays enabled. If a host
+has no IPv6 route, that route is explicitly recorded as unavailable and excluded
+from failure incidents until the next monitor start. Samples every minute show
+socket state, ping/pong counts, RTT, reconnect count, host memory/load, cumulative
+TCP counters and service restart state. On a failure it checks HTTP through both
+Cloudflare and the origin. Protocol pings run every 30 seconds; these probes test
+transport continuity, not subscriptions or gameplay correctness.
+
+NGINX sends allowlisted JSON to loopback UDP, collected by the diagnostic service
+in the existing bounded system journal. Records contain the actual socket's
+random connection ID, original WebSocket CF-Ray, request ID, handshake status,
+duration, upstream timing/byte counts and peer port. Full URLs, query strings,
+IP addresses, cookies and authorization headers are excluded. These records
+arrive when the origin request ends, possibly after the browser reports failure.
+No broad access logging is enabled on credential-bearing routes.
+Those routes also suppress NGINX's free-text error log during capture, because
+it can include a token-bearing request URL. Structured status/timing records
+remain available, including unsuccessful handshakes.
+
+The TCP helper runs as the deployment user with only `CAP_NET_RAW`, reads tcpdump
+text internally and emits only FIN/RST timestamps, direction, address family and
+ports for owned server endpoints. No PCAP, packet body or address is written.
+Capture output is rate limited at the receiver. A single reset is evidence of a
+TCP boundary event; it does not by itself identify the original application cause.
+
+After deploying the shared browser code, a page starts a separate native socket
+only if `/_connection-health` advertises an active capture deadline. It records
+raw close codes/cleanliness, frame counts/age and event-loop delay, with a bounded
+HTTP control check after failures. This does not wrap or alter SDK sockets. A
+successful native probe beside a failing SDK narrows the investigation toward
+the SDK/session/subscription path; it does not prove which code is responsible.
+
+For an independent PC observation, use the existing Node runtime:
+
+```sh
+node deploy/linux/connection-monitor.mjs --root /path/to/dataverse --pc --until 2026-10-26T01:50:00Z --output /path/to/dataverse/space/.runtime/connection-diagnostics/pc.jsonl
+```
+
+Choose a future UTC deadline no more than seven days away. The observer exits
+at that deadline. Its JSONL rotates at 2 MB with two retained segments (roughly
+6 MB total); it creates no dated archives. PC probes include both public address
+families and direct origin, with no database-loopback route. They remain
+independent of the browser, which helps separate browser-only behavior from a
+machine/network-wide interruption.
+
+Read a correlated incident report, without dumping raw identity-bearing DB logs:
+
+```sh
+python3 ~/.local/share/dataverse-connection-diagnostics/connection-report.py --since '30 minutes ago'
+journalctl --user -u dataverse-connection-diagnostics -f -o cat
+```
+
+The report matches actual connection IDs, original handshake records, nearby
+independent probe samples/failures, same-tab lifecycle events and matching TCP
+peer ports. It limits each journal read to 50,000 records. A PC JSONL copied to a
+temporary server location can be included with `--pc-log`; remove that transfer
+after reading it. The probes and TCP watcher cannot see the browser-to-Cloudflare
+TCP boundary. Browser-only low-level network errors may still need a short browser
+NetLog capture if this evidence does not narrow the cause sufficiently.
+
+The optional helper installation is separate from routine `dataverse-update`.
+Do not rerun the base hosting bootstrap during an active capture; it regenerates
+the managed site. Expiry leaves small managed helper/unit files for inspection
+and reuse, but creates no backup or recovery archive. Staged installer copies
+are disposable after activation; preserve the root-owned expiry helper until
+the capture has been disabled.

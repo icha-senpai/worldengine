@@ -4,6 +4,7 @@ import {
   type ConnectionEvent,
   type DiagnosticSite,
 } from "./connection-events";
+import { startConnectionProbe } from "./connection-probe";
 
 export function createConnectionDiagnostics(
   site: DiagnosticSite,
@@ -18,6 +19,10 @@ export function createConnectionDiagnostics(
     sending = false;
   const lost = new Map<string, number>();
   const transports = new Map<string, string>();
+  let probes: ReturnType<typeof startConnectionProbe>[] = [];
+  let lastTick = Date.now();
+  let lastTickLag = 0,
+    lastTickLagAt = 0;
   const read = (key: string) => {
     try {
       return sessionStorage.getItem(key);
@@ -131,6 +136,7 @@ export function createConnectionDiagnostics(
       transports.set(channel, details.connectionId);
     if (event.endsWith("-disconnected") || event.endsWith("-connect-failed")) {
       if (!lost.has(channel)) lost.set(channel, Date.now());
+      for (const probe of probes) probe.check();
     }
     const recovered = event.endsWith("-ready") ? lost.get(channel) : undefined;
     const row = cleanConnectionEvent({
@@ -147,6 +153,11 @@ export function createConnectionDiagnostics(
           : document.hidden
             ? "hidden"
             : "visible",
+      eventLoopLagMs: Math.max(
+        0,
+        Date.now() - lastTick - 1000,
+        Date.now() - lastTickLagAt < 60000 ? lastTickLag : 0,
+      ),
       ...(recovered === undefined
         ? {}
         : { recoveryMs: Date.now() - recovered }),
@@ -174,6 +185,18 @@ export function createConnectionDiagnostics(
         (document as Document & { wasDiscarded?: boolean }).wasDiscarded ??
         false,
     });
+    lastTick = Date.now();
+    const tick = setInterval(() => {
+      const lag = Math.max(0, Date.now() - lastTick - 1000);
+      if (lag > 1000) {
+        lastTickLag = lag;
+        lastTickLagAt = Date.now();
+      }
+      lastTick = Date.now();
+    }, 1000);
+    probes = [startConnectionProbe(site, record)];
+    if (site === "space")
+      probes.push(startConnectionProbe(site, record, "evergather"));
     const visibility = () =>
       record(document.hidden ? "tab-hidden" : "tab-visible");
     const online = () => {
@@ -204,6 +227,9 @@ export function createConnectionDiagnostics(
     window.addEventListener("pagehide", pagehide);
     window.addEventListener("pageshow", pageshow);
     return () => {
+      clearInterval(tick);
+      for (const probe of probes) probe.stop();
+      probes = [];
       document.removeEventListener("visibilitychange", visibility);
       document.removeEventListener("freeze", freeze);
       document.removeEventListener("resume", resume);

@@ -18,6 +18,11 @@ export const connectionEvents = new Set([
     `${channel}-connect-failed`,
     `${channel}-readiness-timeout`,
     `${channel}-subscription-failed`,
+    `${channel}-probe-open`,
+    `${channel}-probe-close`,
+    `${channel}-probe-error`,
+    `${channel}-probe-http`,
+    `${channel}-probe-sample`,
   ]),
 ]);
 export type ConnectionEvent = {
@@ -26,6 +31,9 @@ export type ConnectionEvent = {
   sequence: number;
   release?: string;
   connectionId?: string;
+  probeConnectionId?: string;
+  requestId?: string;
+  probeCfRay?: string;
   reason?: string;
   errorType?: string;
   closeCode?: number;
@@ -37,6 +45,13 @@ export type ConnectionEvent = {
   visibility?: string;
   navigation?: string;
   discarded?: boolean;
+  wasClean?: boolean;
+  socketAgeMs?: number;
+  lastFrameAgoMs?: number;
+  receivedFrames?: number;
+  probeState?: number;
+  probeDurationMs?: number;
+  eventLoopLagMs?: number;
 };
 export type ConnectionReport = {
   version: 1;
@@ -141,6 +156,14 @@ export function cleanConnectionEvent(
     /^[a-f0-9]{32}$/.test(row.connectionId)
   )
     result.connectionId = row.connectionId;
+  for (const key of ["probeConnectionId", "requestId"] as const)
+    if (typeof row[key] === "string" && /^[a-f0-9]{32}$/.test(row[key]))
+      result[key] = row[key];
+  if (
+    typeof row.probeCfRay === "string" &&
+    /^[a-f0-9]{8,32}-[A-Z]{3}$/.test(row.probeCfRay)
+  )
+    result.probeCfRay = row.probeCfRay;
   if (
     typeof row.release === "string" &&
     /^(?:[a-f0-9]{7,40}|development|unknown)$/.test(row.release)
@@ -163,6 +186,12 @@ export function cleanConnectionEvent(
     ["retryAttempt", 0, 100000],
     ["retryDelayMs", 0, 86400000],
     ["recoveryMs", 0, 86400000],
+    ["socketAgeMs", 0, 7 * 86400000],
+    ["lastFrameAgoMs", 0, 7 * 86400000],
+    ["receivedFrames", 0, 1000000000],
+    ["probeState", 0, 3],
+    ["probeDurationMs", 0, 86400000],
+    ["eventLoopLagMs", 0, 86400000],
   ] as const)
     if (
       typeof row[key] === "number" &&
@@ -173,6 +202,7 @@ export function cleanConnectionEvent(
       (result as any)[key] = Math.round(row[key]);
   if (typeof row.online === "boolean") result.online = row.online;
   if (typeof row.discarded === "boolean") result.discarded = row.discarded;
+  if (typeof row.wasClean === "boolean") result.wasClean = row.wasClean;
   return result;
 }
 
