@@ -1,6 +1,9 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { createConnectionDiagnostics } from "../../shared/connection-diagnostics";
-import { cleanConnectionReport } from "../../shared/connection-events";
+import {
+  cleanConnectionReport,
+  connectionFailure,
+} from "../../shared/connection-events";
 import { createConnectionEventReceiver } from "../../fishing-game/apps/web/src/lib/server/connection-events";
 
 afterEach(() => {
@@ -152,13 +155,65 @@ function browser() {
     getItem: (key: string) => storage.get(key) ?? null,
     setItem: (key: string, value: string) => storage.set(key, value),
   });
-  vi.stubGlobal("window", {
-    location: { origin: "https://bitcraft.ichaa.dev" },
-  });
+  vi.stubGlobal(
+    "window",
+    Object.assign(new EventTarget(), {
+      location: { origin: "https://bitcraft.ichaa.dev" },
+    }),
+  );
   vi.stubGlobal("navigator", { onLine: true, userAgent: "Edg/100" });
-  vi.stubGlobal("document", { hidden: false });
+  vi.stubGlobal(
+    "document",
+    Object.assign(new EventTarget(), { hidden: false }),
+  );
   return storage;
 }
+
+it("preserves freeze timestamps when upload fails and sends them on resume", async () => {
+  const storage = browser();
+  const fetch = vi.fn().mockRejectedValue(new Error("suspended"));
+  vi.stubGlobal("fetch", fetch);
+  const diagnostics = createConnectionDiagnostics(
+    "space",
+    "9a405ff6",
+    "test.trail",
+  );
+  const cleanup = diagnostics.initialize();
+  document.dispatchEvent(new Event("freeze"));
+  await vi.advanceTimersByTimeAsync(0);
+  expect(JSON.parse(storage.get("test.trail.pending")!).at(-1).event).toBe(
+    "page-frozen",
+  );
+  vi.setSystemTime(Date.now() + 60000);
+  fetch.mockResolvedValue({ ok: true });
+  document.dispatchEvent(new Event("resume"));
+  await vi.advanceTimersByTimeAsync(0);
+  const input = JSON.parse(fetch.mock.calls.at(-1)![1].body);
+  expect(cleanConnectionReport(input)).not.toBeNull();
+  const lifecycle = input.events.filter((r: any) =>
+    ["page-frozen", "page-resumed"].includes(r.event),
+  );
+  expect(lifecycle.map((r: any) => r.event)).toEqual([
+    "page-frozen",
+    "page-resumed",
+  ]);
+  expect(Date.parse(lifecycle[1].at) - Date.parse(lifecycle[0].at)).toBe(60000);
+  expect(JSON.parse(storage.get("test.trail.pending")!)).toEqual([]);
+  cleanup();
+  document.dispatchEvent(new Event("freeze"));
+  expect(JSON.parse(storage.get("test.trail")!).at(-1).event).toBe(
+    "page-resumed",
+  );
+});
+
+it("distinguishes a busy reconnect session from an unexplained transport failure", () => {
+  const context = connectionFailure(new Error("Session busy"), 1, 1000);
+  expect(context).toMatchObject({ reason: "session_busy", retryAttempt: 1 });
+  expect(
+    cleanConnectionReport(report([{ ...event(), ...context }]))?.events[0]
+      ?.reason,
+  ).toBe("session_busy");
+});
 
 it("retains failed uploads across reloads, then sends without credentials or raw errors", async () => {
   const storage = browser();

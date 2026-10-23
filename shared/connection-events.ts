@@ -2,6 +2,8 @@ export type DiagnosticSite = "space" | "fishbound";
 export const connectionEvents = new Set([
   "page-loaded",
   "page-restored",
+  "page-frozen",
+  "page-resumed",
   "page-hidden",
   "tab-visible",
   "tab-hidden",
@@ -47,6 +49,7 @@ export type ConnectionReport = {
 const reasons = [
   "socket_closed",
   "tab_suspended",
+  "session_busy",
   "protocol_error",
   "identity_changed",
   "authentication",
@@ -76,23 +79,25 @@ export function connectionFailure(
   const close = /^WebSocket closed \(code (\d{4})(?:[:)]|$)/.exec(message);
   const reason = close
     ? "socket_closed"
-    : message === "WebSocket closed while suspended"
-      ? "tab_suspended"
-      : message === "Invalid server message" ||
-          value?.name === "WebSocketProtocolError"
-        ? "protocol_error"
-        : value?.name === "IdentityChangedError"
-          ? "identity_changed"
-          : value?.name === "WebSocketTokenError"
-            ? "authentication"
-            : /timed out/i.test(message)
-              ? "timeout"
-              : message === "WebSocket error" ||
-                  /failed to fetch|networkerror/i.test(message)
-                ? "transport_error"
-                : error
-                  ? "other_error"
-                  : "closed";
+    : message === "Session busy"
+      ? "session_busy"
+      : message === "WebSocket closed while suspended"
+        ? "tab_suspended"
+        : message === "Invalid server message" ||
+            value?.name === "WebSocketProtocolError"
+          ? "protocol_error"
+          : value?.name === "IdentityChangedError"
+            ? "identity_changed"
+            : value?.name === "WebSocketTokenError"
+              ? "authentication"
+              : /timed out/i.test(message)
+                ? "timeout"
+                : message === "WebSocket error" ||
+                    /failed to fetch|networkerror/i.test(message)
+                  ? "transport_error"
+                  : error
+                    ? "other_error"
+                    : "closed";
   return {
     reason,
     errorType: errors.includes(value?.name ?? "") ? value!.name : "Error",

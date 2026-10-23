@@ -181,6 +181,14 @@ export function createConnectionDiagnostics(
       void flush();
     };
     const offline = () => record("browser-offline");
+    const freeze = () => {
+      record("page-frozen");
+      void flush();
+    };
+    const resume = () => {
+      record("page-resumed");
+      void flush();
+    };
     const pagehide = () => {
       record("page-hidden");
       void flush();
@@ -189,12 +197,16 @@ export function createConnectionDiagnostics(
       if (event.persisted) record("page-restored");
     };
     document.addEventListener("visibilitychange", visibility);
+    document.addEventListener("freeze", freeze);
+    document.addEventListener("resume", resume);
     window.addEventListener("online", online);
     window.addEventListener("offline", offline);
     window.addEventListener("pagehide", pagehide);
     window.addEventListener("pageshow", pageshow);
     return () => {
       document.removeEventListener("visibilitychange", visibility);
+      document.removeEventListener("freeze", freeze);
+      document.removeEventListener("resume", resume);
       window.removeEventListener("online", online);
       window.removeEventListener("offline", offline);
       window.removeEventListener("pagehide", pagehide);

@@ -180,9 +180,9 @@ export class Game {
     try { token = localStorage.getItem(this.tokenKey) ?? undefined; } catch { /* Storage may be disabled. */ }
     this.status = this.attempts ? 'Reconnecting…' : 'Connecting…';
     let connectedOnce = false;
-    const lost = (_context: unknown, _error: unknown, nextAttempt?: number, delayMs?: number) => {
+    const lost = (event: 'fishbound-disconnected' | 'fishbound-connect-failed', _context: unknown, _error: unknown, nextAttempt?: number, delayMs?: number) => {
       if (generation !== this.generation) return;
-      connectionDiagnostics.failure(connectedOnce ? 'fishbound-disconnected' : 'fishbound-connect-failed', _error, nextAttempt, delayMs);
+      connectionDiagnostics.failure(event, _error, nextAttempt, delayMs);
       this.ready = false;
       this.coreReady = false; this.sectionReady = false;
       this.reconnecting = nextAttempt !== undefined;
@@ -223,7 +223,8 @@ export class Game {
         this.status = 'Restoring live data…';
         // Existing subscriptions and callbacks are replayed by the SDK.
         // Their onApplied callback enables actions only after reconciliation.
-      }).onConnectError(lost).onDisconnect(lost).build();
+      }).onConnectError((...args) => lost('fishbound-connect-failed', ...args))
+      .onDisconnect((...args) => lost('fishbound-disconnected', ...args)).build();
     this.connection = connection;
     for (const table of [connection.db.questDefinition, connection.db.questCalendar, connection.db.myQuests, connection.db.myDockside, connection.db.achievementDefinition, connection.db.achievementCollection, connection.db.earnedAchievement, connection.db.perfectSpecies, connection.db.rankMaximum, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.anglerPortrait, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection, connection.db.myCollectionFocus,
       connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.baitDefinition, connection.db.rodUpgradeRecipe, connection.db.qualityDefinition, connection.db.myRods, connection.db.myLicences, connection.db.myShopQuote, connection.db.shopListing, connection.db.myRecentCatches, connection.db.myJournal, connection.db.myLinkChallenge, connection.db.myAction, connection.db.myItems,

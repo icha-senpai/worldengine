@@ -13,6 +13,12 @@ again. Page reload, tab restore, visibility and online/offline events provide
 context. Tokens, cookies, account/player IDs, URLs, raw error messages and
 WebSocket close-reason text are omitted. These reports are untrusted observations.
 
+Browser `freeze` and `resume` events are recorded when the browser exposes them,
+with the original timestamps retained across delayed uploads. Their absence does
+not rule out suspension or tab discarding. A rejected reconnect whose previous
+session is still closing is classified as `session_busy`; Fishbound reports failed
+reconnect attempts separately from established-socket disconnects.
+
 The receiver logs its receipt time, checks the three production database module
 metadata endpoints over loopback, and adds the maintenance-flag state. These
 checks describe receipt time, which may be later than a queued disconnect event.
