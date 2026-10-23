@@ -36,6 +36,29 @@ function setup() {
   return projection;
 }
 describe("confirmed boss death projection", () => {
+  it.each([
+    "distractedSagiBird",
+    "distractedNubiGoat",
+    "distractedCervus",
+    "distractedScrofa",
+    "distractedOx",
+    "distractedYagiGoat",
+    "distractedJungleTerrorBird",
+    "distractedElderScrofa",
+    "distractedTundraOx",
+    "distractedDesertTerrorbird",
+  ])("ignores %s while recording a boss in the same transaction", (tag) => {
+    const p = setup();
+    const defeats = p.apply([
+      change("enemy_state", boss(200n, tag)),
+      change("contribution_state", credit(10n, 100, 200n)),
+      change("health_state", dead(1800000001, 200n)),
+      change("health_state", dead()),
+    ]);
+    expect(defeats).toHaveLength(1);
+    expect(defeats[0].enemyType).toBe(32);
+    expect(defeats[0].enemyId).toBe("100");
+  });
   it("captures cumulative contributors and a final attack in the death transaction, excluding trash", () => {
     const p = setup();
     const result = p.apply([

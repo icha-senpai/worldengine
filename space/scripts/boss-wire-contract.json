@@ -460,6 +460,86 @@
                         "elements": []
                       }
                     }
+                  },
+                  {
+                    "name": "distractedSagiBird",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "distractedNubiGoat",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "distractedCervus",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "distractedScrofa",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "distractedOx",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "distractedYagiGoat",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "distractedJungleTerrorBird",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "distractedElderScrofa",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "distractedTundraOx",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "distractedDesertTerrorbird",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
                   }
                 ]
               }

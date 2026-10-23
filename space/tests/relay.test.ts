@@ -105,6 +105,53 @@ function fixture() {
   ]);
 }
 describe("native relay projection", () => {
+  it("decodes platform footprints without shifting claim building fields", () => {
+    const wire = [
+      205715693,
+      [],
+      "Waystone",
+      "",
+      0,
+      0,
+      "",
+      "",
+      false,
+      false,
+      [
+        [2, 3, [4, []]],
+        [0, 0, [0, []]],
+      ],
+      100,
+      false,
+      0,
+      0.5,
+      12.5,
+      [1, []],
+      [3, []],
+      false,
+      true,
+      false,
+      false,
+      true,
+    ];
+    const row = decodeRelayRow("building_desc", wire, "bitsync");
+    expect(row).toMatchObject({
+      id: 205715693,
+      name: "Waystone",
+      footprint: [
+        { x: 2, z: 3, footprint_type: { platform: {} } },
+        { x: 0, z: 0, footprint_type: { hitbox: {} } },
+      ],
+      maintenance: 12.5,
+      build_permission: { claim: {} },
+      interact_permission: { all: {} },
+      destroy_on_unclaim: true,
+    });
+    wire[10] = [[2, 3, [5, []]]];
+    expect(() => decodeRelayRow("building_desc", wire, "bitsync")).toThrow(
+      "Unknown relay variant",
+    );
+  });
   it("preserves exact u64 wire IDs and decodes positional rows", () => {
     const parsed = parseRelayJson(
       "[1297036692719788627,20,10,7,0,3,50,[1791410000000000],0]",
