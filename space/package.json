@@ -17,6 +17,7 @@
     "typecheck:scripts": "tsc --project scripts/tsconfig.json",
     "typecheck:module-tests": "tsc --project tsconfig.module-tests.json",
     "test:server": "tsx scripts/server-test.ts",
+    "test:discord-accounts": "tsx scripts/discord-account-server-test.ts",
     "test:catalog-server": "tsx scripts/server-catalog-test.ts",
     "test:bitcraft-server": "tsx scripts/bitcraft-server-test.ts",
     "test:market-server": "tsx scripts/market-store-server-test.ts",

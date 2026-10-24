@@ -35,14 +35,18 @@ import {
 
 // Import all reducer arg schemas
 import AcceptJobReducer from "./accept_job_reducer";
+import BeginDiscordLinkReducer from "./begin_discord_link_reducer";
 import BuyListingReducer from "./buy_listing_reducer";
 import BuyShopOfferReducer from "./buy_shop_offer_reducer";
 import CancelListingReducer from "./cancel_listing_reducer";
 import ClaimAchievementReducer from "./claim_achievement_reducer";
 import ClearLeaderboardsReducer from "./clear_leaderboards_reducer";
+import CompleteDiscordLinkReducer from "./complete_discord_link_reducer";
 import CompleteJobReducer from "./complete_job_reducer";
 import ConfigureAuthReducer from "./configure_auth_reducer";
+import ConfigureDiscordLinkerReducer from "./configure_discord_linker_reducer";
 import ConfigureLocalPlayReducer from "./configure_local_play_reducer";
+import ConfirmDiscordCharacterReducer from "./confirm_discord_character_reducer";
 import CraftReducer from "./craft_reducer";
 import CreateCharacterReducer from "./create_character_reducer";
 import CustomizeCharacterReducer from "./customize_character_reducer";
@@ -61,6 +65,7 @@ import RunExpeditionReducer from "./run_expedition_reducer";
 import SellToVendorReducer from "./sell_to_vendor_reducer";
 import SellToolToVendorReducer from "./sell_tool_to_vendor_reducer";
 import SetUiScopeReducer from "./set_ui_scope_reducer";
+import SignOutDiscordReducer from "./sign_out_discord_reducer";
 import UpdateCharacterReducer from "./update_character_reducer";
 import UpgradeToolRarityReducer from "./upgrade_tool_rarity_reducer";
 import UpgradeToolTierReducer from "./upgrade_tool_tier_reducer";
@@ -91,6 +96,8 @@ import MyAchievementsRow from "./my_achievements_table";
 import MyBuffsRow from "./my_buffs_table";
 import MyCatalogRow from "./my_catalog_table";
 import MyContractsRow from "./my_contracts_table";
+import MyDiscordAccountRow from "./my_discord_account_table";
+import MyDiscordChallengeRow from "./my_discord_challenge_table";
 import MyInventoryRow from "./my_inventory_table";
 import MyMarketListingsRow from "./my_market_listings_table";
 import MyMarketPageRow from "./my_market_page_table";
@@ -281,6 +288,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyContractsRow),
+  myDiscordAccount: __table({
+    name: 'my_discord_account',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyDiscordAccountRow),
+  myDiscordChallenge: __table({
+    name: 'my_discord_challenge',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyDiscordChallengeRow),
   myInventory: __table({
     name: 'my_inventory',
     indexes: [
@@ -363,14 +384,18 @@ const tablesSchema = __schema({
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("accept_job", AcceptJobReducer),
+  __reducerSchema("begin_discord_link", BeginDiscordLinkReducer),
   __reducerSchema("buy_listing", BuyListingReducer),
   __reducerSchema("buy_shop_offer", BuyShopOfferReducer),
   __reducerSchema("cancel_listing", CancelListingReducer),
   __reducerSchema("claim_achievement", ClaimAchievementReducer),
   __reducerSchema("clear_leaderboards", ClearLeaderboardsReducer),
+  __reducerSchema("complete_discord_link", CompleteDiscordLinkReducer),
   __reducerSchema("complete_job", CompleteJobReducer),
   __reducerSchema("configure_auth", ConfigureAuthReducer),
+  __reducerSchema("configure_discord_linker", ConfigureDiscordLinkerReducer),
   __reducerSchema("configure_local_play", ConfigureLocalPlayReducer),
+  __reducerSchema("confirm_discord_character", ConfirmDiscordCharacterReducer),
   __reducerSchema("craft", CraftReducer),
   __reducerSchema("create_character", CreateCharacterReducer),
   __reducerSchema("customize_character", CustomizeCharacterReducer),
@@ -389,6 +414,7 @@ const reducersSchema = __reducers(
   __reducerSchema("sell_to_vendor", SellToVendorReducer),
   __reducerSchema("sell_tool_to_vendor", SellToolToVendorReducer),
   __reducerSchema("set_ui_scope", SetUiScopeReducer),
+  __reducerSchema("sign_out_discord", SignOutDiscordReducer),
   __reducerSchema("update_character", UpdateCharacterReducer),
   __reducerSchema("upgrade_tool_rarity", UpgradeToolRarityReducer),
   __reducerSchema("upgrade_tool_tier", UpgradeToolTierReducer),

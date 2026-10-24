@@ -212,6 +212,10 @@ async function main() {
         await run('python3', [resolve(scripts, 'database.py'), 'verify', module.key, proof]);
       }
       if (plan.native) for (const name of ['discord-bot', 'account-link']) await installNative(name);
+      const accountEnvironment = await productionEnvironment(resolve(fish, '.local/production-services.env'));
+      if (accountEnvironment.EVERGATHER_WEBSITE_URL && (plan.native || plan.evergather))
+        await run(process.execPath, ['--import', 'tsx', 'scripts/configure-discord-linker.ts'], space,
+          { ...accountEnvironment, SPACETIME_CLI: cli, SPACETIME_CONFIG_FILE: config });
       if (plan.spaceWeb) await publishWebsite('space', root);
       if (plan.fishWeb) await publishWebsite('fishbound', root);
     }

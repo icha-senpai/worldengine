@@ -1,4 +1,5 @@
 <script setup>
+import DiscordAccount from "../components/evergather/DiscordAccount.vue";
 import PanelSearch from "../components/evergather/PanelSearch.vue";
 import InventoryPanel from "../components/evergather/InventoryPanel.vue";
 import RecoveryDialog from "../components/evergather/RecoveryDialog.vue";
@@ -829,6 +830,7 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <section class="page">
+    <DiscordAccount />
     <div
       v-if="actionError || evergatherError"
       role="alert"
@@ -861,7 +863,10 @@ onBeforeUnmount(() => {
       </p></template
     >
     <form
-      v-else-if="!player"
+      v-else-if="
+        !player &&
+        ![...(evergather?.db.myDiscordAccount.iter() ?? [])][0]?.needsSignIn
+      "
       class="surface create-character ui-panel ui-panel--flush"
       @submit.prevent="createCharacter"
     >
@@ -884,7 +889,7 @@ onBeforeUnmount(() => {
         Start your adventure
       </button>
     </form>
-    <template v-else>
+    <template v-else-if="player">
       <fieldset
         class="evergather-ui connection-gate"
         :disabled="!evergatherConnected"

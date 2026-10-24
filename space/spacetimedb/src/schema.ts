@@ -250,7 +250,43 @@ export const buff = table(
     charges: t.u32(),
   },
 );
+export const discordChallenge = table(
+  { name: "discord_challenge" },
+  {
+    challengeId: t.u64().primaryKey().autoInc(),
+    browser: t.identity().unique(),
+    proof: t.string(),
+    createdAt: t.u64(),
+    expiresAt: t.u64(),
+    status: t.string(),
+    verifiedDiscordId: t.string(),
+  },
+);
 const db = schema({
+  discordAccount: table(
+    { name: "discord_account" },
+    {
+      discordId: t.string().primaryKey(),
+      owner: t.identity().unique(),
+      linkedAt: t.timestamp(),
+    },
+  ),
+  accountSession: table(
+    { name: "account_session" },
+    {
+      identity: t.identity().primaryKey(),
+      owner: t.identity(),
+      discordId: t.string(),
+    },
+  ),
+  discordLinker: table(
+    { name: "discord_linker" },
+    {
+      identity: t.identity().primaryKey(),
+      active: t.bool(),
+    },
+  ),
+  discordChallenge,
   marketRevision,
   marketOrder,
   economyState,

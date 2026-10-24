@@ -4,7 +4,7 @@ import { nextTick, ref } from "vue";
 const fake = vi.hoisted(() => ({ attempts: [] as any[] }));
 vi.mock("../src/auth", async () => {
   const { ref } = await import("vue");
-  return { user: ref(null), localPlay: true };
+  return { user: ref(null), localPlay: true, discordLinkConfigured: false };
 });
 vi.mock("../src/evergather/market", () => ({
   loadMarketPage: vi.fn(),

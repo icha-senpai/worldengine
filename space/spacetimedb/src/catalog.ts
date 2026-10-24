@@ -6,6 +6,7 @@ import type {
 } from "spacetimedb/server";
 import type { Identity } from "spacetimedb";
 import db from "./schema";
+import { accountOwner, actingOwner } from "./accounts";
 import { referencedItems } from "./performance";
 
 type Schema = InferSchema<typeof db>;
@@ -36,11 +37,13 @@ export function definitionRows(ctx: Reader, kinds: string[], allItems = false) {
 }
 
 export function referenceRows(ctx: ViewCtx<Schema>) {
+  const owner = accountOwner(ctx);
+  if (!owner) return [];
   const selected = new Map<
     string,
     NonNullable<ReturnType<typeof ctx.db.catalog.key.find>>
   >();
-  for (const reference of ctx.db.catalogReference.byOwner.filter(ctx.sender)) {
+  for (const reference of ctx.db.catalogReference.byOwner.filter(owner)) {
     const keys =
       reference.kind === "item_metadata"
         ? rarities.map(
@@ -59,7 +62,7 @@ export function referenceRows(ctx: ViewCtx<Schema>) {
 // writes, so spending or gathering another unit and tool wear leave views alone.
 export function syncCatalogReferences(
   ctx: ReducerCtx<Schema>,
-  owner: Identity = ctx.sender,
+  owner: Identity = actingOwner(ctx),
 ) {
   const desired = new Map<
     string,

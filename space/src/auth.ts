@@ -4,6 +4,10 @@ import { UserManager, WebStorageStateStore, type User } from "oidc-client-ts";
 export const user = shallowRef<User | null>(null);
 export const authError = shallowRef("");
 export const localPlay = import.meta.env.VITE_EVERGATHER_LOCAL_PLAY === "true";
+export const discordLinkUrl = (
+  import.meta.env.VITE_EVERGATHER_ACCOUNT_LINK_URL ?? ""
+).replace(/\/$/, "");
+export const discordLinkConfigured = Boolean(discordLinkUrl);
 export const authConfigured = Boolean(
   import.meta.env.VITE_AUTH_CLIENT_ID?.trim(),
 );

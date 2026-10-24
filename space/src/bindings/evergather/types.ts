@@ -10,6 +10,13 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const AccountSession = __t.object("AccountSession", {
+  identity: __t.identity(),
+  owner: __t.identity(),
+  discordId: __t.string(),
+});
+export type AccountSession = __Infer<typeof AccountSession>;
+
 export const Achievement = __t.object("Achievement", {
   key: __t.string(),
   owner: __t.identity(),
@@ -70,6 +77,39 @@ export type Contract = __Infer<typeof Contract>;
 
 export const CoreDefinitions = __t.object("CoreDefinitions", {});
 export type CoreDefinitions = __Infer<typeof CoreDefinitions>;
+
+export const DiscordAccount = __t.object("DiscordAccount", {
+  discordId: __t.string(),
+  owner: __t.identity(),
+  linkedAt: __t.timestamp(),
+});
+export type DiscordAccount = __Infer<typeof DiscordAccount>;
+
+export const DiscordAccountStatus = __t.object("DiscordAccountStatus", {
+  id: __t.u32(),
+  linked: __t.bool(),
+  needsSignIn: __t.bool(),
+  discordId: __t.string(),
+  characterName: __t.string(),
+});
+export type DiscordAccountStatus = __Infer<typeof DiscordAccountStatus>;
+
+export const DiscordChallenge = __t.object("DiscordChallenge", {
+  challengeId: __t.u64(),
+  browser: __t.identity(),
+  proof: __t.string(),
+  createdAt: __t.u64(),
+  expiresAt: __t.u64(),
+  status: __t.string(),
+  verifiedDiscordId: __t.string(),
+});
+export type DiscordChallenge = __Infer<typeof DiscordChallenge>;
+
+export const DiscordLinker = __t.object("DiscordLinker", {
+  identity: __t.identity(),
+  active: __t.bool(),
+});
+export type DiscordLinker = __Infer<typeof DiscordLinker>;
 
 export const EconomyState = __t.object("EconomyState", {
   id: __t.u32(),
@@ -218,6 +258,12 @@ export type MyCatalog = __Infer<typeof MyCatalog>;
 
 export const MyContracts = __t.object("MyContracts", {});
 export type MyContracts = __Infer<typeof MyContracts>;
+
+export const MyDiscordAccount = __t.object("MyDiscordAccount", {});
+export type MyDiscordAccount = __Infer<typeof MyDiscordAccount>;
+
+export const MyDiscordChallenge = __t.object("MyDiscordChallenge", {});
+export type MyDiscordChallenge = __Infer<typeof MyDiscordChallenge>;
 
 export const MyInventory = __t.object("MyInventory", {});
 export type MyInventory = __Infer<typeof MyInventory>;

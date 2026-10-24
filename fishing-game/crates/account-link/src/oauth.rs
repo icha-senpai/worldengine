@@ -112,10 +112,111 @@ fn parse_additional_origins(value: &str) -> Result<Vec<String>, Error> {
     }
     Ok(origins)
 }
+enum LinkTarget {
+    Fishbound { proof: u128 },
+    Evergather { proof: String },
+}
+struct Evergather {
+    website: String,
+    origin: String,
+    additional_origins: Vec<String>,
+    uri: String,
+    database: String,
+    token: String,
+}
+impl Evergather {
+    fn from_env() -> Result<Option<Self>, Error> {
+        let Some(website) = std::env::var("EVERGATHER_WEBSITE_URL")
+            .ok()
+            .filter(|v| !v.is_empty())
+        else {
+            return Ok(None);
+        };
+        let url = Url::parse(&website)?;
+        let origin = url.origin().ascii_serialization();
+        parse_additional_origins(&origin)?;
+        if url.path() != "/evergather"
+            || url.query().is_some()
+            || url.fragment().is_some()
+            || !url.username().is_empty()
+            || url.password().is_some()
+        {
+            return Err(
+                "EVERGATHER_WEBSITE_URL must end in /evergather without query parameters".into(),
+            );
+        }
+        let uri = required("EVERGATHER_SPACETIMEDB_URI")?;
+        let backend = Url::parse(&uri)?;
+        if backend.scheme() != "http"
+            || backend.host_str() != Some("127.0.0.1")
+            || backend.port() != Some(3100)
+            || backend.path() != "/"
+            || backend.query().is_some()
+            || backend.fragment().is_some()
+            || !backend.username().is_empty()
+            || backend.password().is_some()
+        {
+            return Err("Evergather linking requires the loopback 3100 database endpoint".into());
+        }
+        let database = required("EVERGATHER_DATABASE")?;
+        if database.is_empty()
+            || !database
+                .bytes()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'-')
+        {
+            return Err("Invalid Evergather database name".into());
+        }
+        Ok(Some(Self {
+            website,
+            origin,
+            uri,
+            database,
+            additional_origins: parse_additional_origins(
+                &std::env::var("EVERGATHER_ALLOWED_ORIGINS").unwrap_or_default(),
+            )?,
+            token: game_client::service_token("EVERGATHER_LINKER_TOKEN")?,
+        }))
+    }
+    fn return_website(&self, origin: Option<&str>) -> Option<String> {
+        let origin = origin?;
+        if origin == self.origin {
+            Some(self.website.clone())
+        } else if self
+            .additional_origins
+            .iter()
+            .any(|allowed| allowed == origin)
+        {
+            Some(format!("{origin}/evergather"))
+        } else {
+            None
+        }
+    }
+    async fn complete(
+        &self,
+        http: &reqwest::Client,
+        challenge: u64,
+        discord_id: &str,
+        proof: &str,
+    ) -> Result<(), Error> {
+        // Identity is verified by Discord above. Only this backend service's
+        // scoped principal may complete the browser's private database challenge.
+        http.post(format!(
+            "{}/v1/database/{}/call/complete_discord_link",
+            self.uri.trim_end_matches('/'),
+            self.database
+        ))
+        .bearer_auth(&self.token)
+        .json(&serde_json::json!([challenge, discord_id, proof]))
+        .send()
+        .await?
+        .error_for_status()?;
+        Ok(())
+    }
+}
 struct Session {
     state: String,
     challenge_id: u64,
-    proof: u128,
+    target: LinkTarget,
     expires: Instant,
     website: String,
 }
@@ -124,12 +225,14 @@ pub struct State {
     http: reqwest::Client,
     sessions: Mutex<HashMap<String, Session>>,
     pub game: Arc<Client>,
+    evergather: Option<Evergather>,
 }
 impl State {
     pub fn new(config: Config, game: Arc<Client>) -> Result<Self, Error> {
         Ok(Self {
             config,
             game,
+            evergather: Evergather::from_env()?,
             sessions: Mutex::new(HashMap::new()),
             http: reqwest::Client::builder()
                 .redirect(reqwest::redirect::Policy::none())
@@ -142,6 +245,7 @@ impl State {
 pub struct Start {
     challenge_id: u64,
     proof: String,
+    application: Option<String>,
 }
 #[derive(Deserialize)]
 pub struct Callback {
@@ -195,26 +299,50 @@ pub async fn start(
     headers: HeaderMap,
     Form(input): Form<Start>,
 ) -> Response {
-    let Some(website) = state.config.return_website(
-        headers
-            .get(header::ORIGIN)
-            .and_then(|value| value.to_str().ok()),
-    ) else {
+    let origin = headers
+        .get(header::ORIGIN)
+        .and_then(|value| value.to_str().ok());
+    let (website, target) = match input.application.as_deref().unwrap_or("fishbound") {
+        "fishbound" => (
+            state.config.return_website(origin),
+            input
+                .proof
+                .parse::<u128>()
+                .ok()
+                .map(|proof| LinkTarget::Fishbound { proof }),
+        ),
+        "evergather" => (
+            state
+                .evergather
+                .as_ref()
+                .and_then(|e| e.return_website(origin)),
+            (input.proof.len() == 64
+                && input
+                    .proof
+                    .bytes()
+                    .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c)))
+            .then(|| LinkTarget::Evergather {
+                proof: input.proof.clone(),
+            }),
+        ),
+        _ => (None, None),
+    };
+    let Some(website) = website else {
         return protected(
             (
                 StatusCode::FORBIDDEN,
-                "Open account linking from the Fishbound website.",
+                "Open account linking from the matching game website.",
             )
                 .into_response(),
         );
     };
-    let Ok(proof) = input.proof.parse::<u128>() else {
+    let Some(target) = target else {
         return protected((StatusCode::BAD_REQUEST, "Invalid linking challenge.").into_response());
     };
     if input.challenge_id == 0 {
         return protected((StatusCode::BAD_REQUEST, "Invalid linking challenge.").into_response());
     }
-    if !state.game.ready() {
+    if matches!(&target, LinkTarget::Fishbound { .. }) && !state.game.ready() {
         return protected(
             (
                 StatusCode::SERVICE_UNAVAILABLE,
@@ -245,7 +373,7 @@ pub async fn start(
             Session {
                 state: csrf.clone(),
                 challenge_id: input.challenge_id,
-                proof,
+                target,
                 expires: Instant::now() + Duration::from_secs(600),
                 website,
             },
@@ -339,45 +467,62 @@ pub async fn callback(
         .filter(|code| !code.is_empty() && code.len() <= 2048)
     {
         match verified_user(&state.http, &state.config, &code).await {
-            Ok(user) => match state
-                .game
-                .link(
-                    session.challenge_id,
-                    user.id.parse().expect("verified Discord ID"),
-                    session.proof,
-                )
-                .await
-            {
-                Ok(()) => {
-                    let discriminator = user
-                        .discriminator
-                        .as_deref()
-                        .unwrap_or("0")
-                        .parse()
-                        .unwrap_or(0);
-                    if let Err(error) = state
-                        .game
-                        .sync_portrait(
-                            user.id.parse().expect("verified Discord ID"),
-                            user.avatar,
-                            discriminator,
-                        )
-                        .await
-                    {
-                        tracing::warn!(%error, "Verified Discord portrait could not refresh");
+            Ok(user) => {
+                let linked = match &session.target {
+                    LinkTarget::Fishbound { proof } => {
+                        state
+                            .game
+                            .link(
+                                session.challenge_id,
+                                user.id.parse().expect("verified Discord ID"),
+                                *proof,
+                            )
+                            .await
                     }
-                    Redirect::to(&session.website).into_response()
+                    LinkTarget::Evergather { proof } => match &state.evergather {
+                        Some(backend) => {
+                            backend
+                                .complete(&state.http, session.challenge_id, &user.id, proof)
+                                .await
+                        }
+                        None => Err("Evergather linking is unavailable".into()),
+                    },
+                };
+                match linked {
+                    Ok(()) => {
+                        if matches!(&session.target, LinkTarget::Fishbound { .. }) {
+                            let discriminator = user
+                                .discriminator
+                                .as_deref()
+                                .unwrap_or("0")
+                                .parse()
+                                .unwrap_or(0);
+                            if state
+                                .game
+                                .sync_portrait(
+                                    user.id.parse().expect("verified Discord ID"),
+                                    user.avatar,
+                                    discriminator,
+                                )
+                                .await
+                                .is_err()
+                            {
+                                tracing::warn!("Verified Discord portrait could not refresh");
+                            }
+                        }
+                        Redirect::to(&session.website).into_response()
+                    }
+                    Err(_) => {
+                        tracing::warn!("Verified account challenge could not be linked");
+                        (StatusCode::CONFLICT, "This account-link request expired or conflicts with an existing account. Return to the game and try again.").into_response()
+                    }
                 }
-                Err(_) => {
-                    tracing::warn!("Verified account challenge could not be linked");
-                    (StatusCode::CONFLICT, "This linking challenge expired, was used, or belongs to a different account. Start again from Fishbound.").into_response()
-                }
-            },
+            }
             Err(_) => {
                 tracing::warn!("Discord OAuth verification failed");
                 (
                     StatusCode::BAD_GATEWAY,
-                    "Discord login could not be verified. Start again from Fishbound.",
+                    "Discord login could not be verified. Return to the game and try again.",
                 )
                     .into_response()
             }
@@ -385,7 +530,7 @@ pub async fn callback(
     } else {
         (
             StatusCode::BAD_REQUEST,
-            "Discord login was cancelled. Return to Fishbound to try again.",
+            "Discord login was cancelled. Return to the game to try again.",
         )
             .into_response()
     };
@@ -399,6 +544,89 @@ pub async fn callback(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[tokio::test]
+    async fn evergather_dispatches_verified_identity_to_its_own_backend() {
+        use axum::{Json, Router, routing::post};
+        let app = Router::new().route(
+            "/v1/database/ever-test/call/complete_discord_link",
+            post(
+                |headers: HeaderMap, Json(body): Json<serde_json::Value>| async move {
+                    assert_eq!(
+                        headers.get(header::AUTHORIZATION).unwrap(),
+                        "Bearer ever-token"
+                    );
+                    assert_eq!(body, serde_json::json!([17, "8001", "a".repeat(64)]));
+                    StatusCode::OK
+                },
+            ),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        let backend = Evergather {
+            website: "https://bitcraft.test/evergather".into(),
+            origin: "https://bitcraft.test".into(),
+            additional_origins: vec!["https://space.test".into()],
+            uri: format!("http://{address}"),
+            database: "ever-test".into(),
+            token: "ever-token".into(),
+        };
+        assert_eq!(
+            backend
+                .return_website(Some("https://space.test"))
+                .as_deref(),
+            Some("https://space.test/evergather")
+        );
+        assert_eq!(
+            backend
+                .return_website(Some("https://bitcraft.test"))
+                .as_deref(),
+            Some("https://bitcraft.test/evergather")
+        );
+        for origin in [
+            None,
+            Some("null"),
+            Some("https://fishbound.test"),
+            Some("https://space.test.evil.test"),
+        ] {
+            assert!(backend.return_website(origin).is_none());
+        }
+        backend
+            .complete(&reqwest::Client::new(), 17, "8001", &"a".repeat(64))
+            .await
+            .unwrap();
+        let unavailable = Evergather {
+            database: "missing".into(),
+            ..backend
+        };
+        assert!(
+            unavailable
+                .complete(&reqwest::Client::new(), 17, "8001", &"a".repeat(64))
+                .await
+                .is_err()
+        );
+        let mut sessions = HashMap::new();
+        sessions.insert(
+            "ever-cookie".into(),
+            Session {
+                state: "csrf".into(),
+                challenge_id: 17,
+                target: LinkTarget::Evergather {
+                    proof: "a".repeat(64),
+                },
+                expires: Instant::now() + Duration::from_secs(60),
+                website: "https://space.test/evergather".into(),
+            },
+        );
+        let session = take_session(&mut sessions, "ever-cookie", "csrf").unwrap();
+        assert!(
+            matches!(session.target, LinkTarget::Evergather { proof } if proof == "a".repeat(64))
+        );
+        assert_eq!(session.website, "https://space.test/evergather");
+        server.abort();
+    }
     #[test]
     fn callbacks_require_matching_cookie_state_and_unexpired_single_use_session() {
         let mut sessions = HashMap::new();
@@ -407,7 +635,7 @@ mod tests {
             Session {
                 state: "csrf".into(),
                 challenge_id: 1,
-                proof: 42,
+                target: LinkTarget::Fishbound { proof: 42 },
                 expires: Instant::now() + Duration::from_secs(60),
                 website: "https://fishbound.test/".into(),
             },
@@ -415,7 +643,11 @@ mod tests {
         assert!(take_session(&mut sessions, "other-cookie", "csrf").is_none());
         assert!(take_session(&mut sessions, "cookie", "wrong-state").is_none());
         let session = take_session(&mut sessions, "cookie", "csrf").unwrap();
-        assert_eq!((session.challenge_id, session.proof), (1, 42));
+        assert_eq!(session.challenge_id, 1);
+        assert!(matches!(
+            session.target,
+            LinkTarget::Fishbound { proof: 42 }
+        ));
         assert_eq!(session.website, "https://fishbound.test/");
         assert!(take_session(&mut sessions, "cookie", "csrf").is_none());
         sessions.insert(
@@ -423,7 +655,7 @@ mod tests {
             Session {
                 state: "csrf".into(),
                 challenge_id: 1,
-                proof: 42,
+                target: LinkTarget::Fishbound { proof: 42 },
                 expires: Instant::now() - Duration::from_secs(1),
                 website: "https://fishbound.test/".into(),
             },

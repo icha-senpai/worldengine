@@ -1,7 +1,7 @@
 import { shallowRef, ref, watch, type Ref } from "vue";
 import { DbConnection } from "./bindings/evergather";
 import type { Catalog } from "./bindings/evergather/types";
-import { user, localPlay } from "./auth";
+import { user, localPlay, discordLinkConfigured } from "./auth";
 import { definitionTables, panelDefinitionQueries } from "./evergather/catalog";
 import { createConnectionRecovery } from "./connectionRecovery";
 import { connectionLifecycle } from "../../shared/connection-lifecycle";
@@ -193,6 +193,16 @@ export function initializeEvergather(enabled: Ref<boolean>) {
           const changed = () => {
             revision.value++;
           };
+          if (discordLinkConfigured) {
+            for (const table of [
+              connection.db.myDiscordAccount,
+              connection.db.myDiscordChallenge,
+            ]) {
+              table.onInsert(changed);
+              table.onUpdate(changed);
+              table.onDelete(changed);
+            }
+          }
           for (const name of [
             "topLeaderboard",
             "trade",
@@ -418,6 +428,12 @@ export function initializeEvergather(enabled: Ref<boolean>) {
               "SELECT * FROM my_contracts",
               "SELECT * FROM my_achievements",
               "SELECT * FROM my_buffs",
+              ...(discordLinkConfigured
+                ? [
+                    "SELECT * FROM my_discord_account",
+                    "SELECT * FROM my_discord_challenge",
+                  ]
+                : []),
             ]);
         })
         .onAutomaticReconnect((connection, _identity, issuedToken) => {

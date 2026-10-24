@@ -41,6 +41,16 @@ import {
 } from "./market-reads";
 import { inventoryDirectoryRows, inventoryDetailRows } from "./inventory-reads";
 import type { Identity } from "spacetimedb";
+import { accountOwner, actingOwner, ownedView } from "./accounts";
+export {
+  configureDiscordLinker,
+  beginDiscordLink,
+  completeDiscordLink,
+  confirmDiscordCharacter,
+  signOutDiscord,
+  myDiscordAccount,
+  myDiscordChallenge,
+} from "./accounts";
 import {
   catalogKinds,
   referencedItems,
@@ -371,7 +381,7 @@ export const onDisconnect = db.clientDisconnected((ctx) => {
 });
 function character(ctx: Ctx) {
   authenticated(ctx);
-  const row = ctx.db.player.owner.find(ctx.sender);
+  const row = ctx.db.player.owner.find(actingOwner(ctx));
   if (!row) throw new SenderError("Create your character first.");
   return row;
 }
@@ -381,7 +391,7 @@ function definition(ctx: Ctx, kind: string, key: string): Definition {
   return JSON.parse(row.payload) as Definition;
 }
 function ownerKey(ctx: Ctx, key: string) {
-  return `${ctx.sender.toHexString()}:${key}`;
+  return `${actingOwner(ctx).toHexString()}:${key}`;
 }
 function xp(ctx: Ctx, name: string) {
   return Number(ctx.db.skill.key.find(ownerKey(ctx, name))?.experience ?? 0n);
@@ -397,7 +407,7 @@ function grantXp(ctx: Ctx, name: string, amount: number) {
   const current = ctx.db.skill.key.find(key);
   const next = {
     key,
-    owner: ctx.sender,
+    owner: actingOwner(ctx),
     skill: name,
     experience: (current?.experience ?? 0n) + BigInt(amount),
   };
@@ -410,7 +420,7 @@ function grantItem(ctx: Ctx, item: Item) {
   const current = ctx.db.inventory.key.find(key);
   const next = {
     key,
-    owner: ctx.sender,
+    owner: actingOwner(ctx),
     itemKey: item.item_key,
     name: item.item_name,
     rarity: item.rarity ?? "common",
@@ -477,7 +487,7 @@ function log(
 ) {
   ctx.db.result.insert({
     id: 0n,
-    owner: ctx.sender,
+    owner: actingOwner(ctx),
     kind,
     label: value.label,
     skill: value.skill ?? "",
@@ -487,19 +497,20 @@ function log(
     createdAt: ctx.timestamp,
     details: JSON.stringify(details),
   });
-  const history = [...ctx.db.result.byOwner.filter(ctx.sender)].sort((a, b) =>
-    a.createdAt.microsSinceUnixEpoch < b.createdAt.microsSinceUnixEpoch
-      ? -1
-      : a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch
-        ? 1
-        : Number(a.id - b.id),
+  const history = [...ctx.db.result.byOwner.filter(actingOwner(ctx))].sort(
+    (a, b) =>
+      a.createdAt.microsSinceUnixEpoch < b.createdAt.microsSinceUnixEpoch
+        ? -1
+        : a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch
+          ? 1
+          : Number(a.id - b.id),
   );
   for (const row of history.slice(0, -30)) ctx.db.result.id.delete(row.id);
-  const current = ctx.db.player.owner.find(ctx.sender)!;
+  const current = ctx.db.player.owner.find(actingOwner(ctx))!;
   const metrics = JSON.parse(current.metrics) as Record<string, number>;
   metrics[kind] = (metrics[kind] ?? 0) + 1;
   ctx.db.player.owner.update({ ...current, metrics: JSON.stringify(metrics) });
-  for (const contract of ctx.db.contract.byOwner.filter(ctx.sender)) {
+  for (const contract of ctx.db.contract.byOwner.filter(actingOwner(ctx))) {
     if (!contract.active) continue;
     const job = definition(ctx, "job_contracts", contract.jobKey);
     const objective = job.objective ?? {};
@@ -524,17 +535,17 @@ function log(
         ),
       });
   }
-  refreshLeaderboard(ctx, ctx.sender, true);
+  refreshLeaderboard(ctx, actingOwner(ctx), true);
   syncCatalogReferences(ctx);
 }
 function equipped(ctx: Ctx, name: string) {
-  return [...ctx.db.tool.byOwner.filter(ctx.sender)].find(
+  return [...ctx.db.tool.byOwner.filter(actingOwner(ctx))].find(
     (row) => row.equipped && row.skill === name,
   );
 }
 function ownedTool(ctx: Ctx, id: bigint) {
   const row = ctx.db.tool.id.find(id);
-  if (!row || !row.owner.equals(ctx.sender))
+  if (!row || !row.owner.equals(actingOwner(ctx)))
     throw new SenderError("That tool is not yours.");
   if (row.listed)
     throw new SenderError("Cancel this tool's listing before using it.");
@@ -593,7 +604,7 @@ function baseMaterial(row: Tool): Item {
 }
 function restoreStarter(ctx: Ctx, row: Tool) {
   if (!row.equipped) return;
-  const starter = [...ctx.db.tool.byOwner.filter(ctx.sender)].find(
+  const starter = [...ctx.db.tool.byOwner.filter(actingOwner(ctx))].find(
     (value) => value.skill === row.skill && value.origin === "starter",
   );
   if (starter) ctx.db.tool.id.update({ ...starter, equipped: true });
@@ -605,7 +616,7 @@ function addTool(
   skillName: string,
   tierLevel: number,
   origin: string,
-  owner: Identity = ctx.sender,
+  owner: Identity = actingOwner(ctx),
 ) {
   const maximum = maxDurability(tierLevel, value.rarity ?? "common");
   const experience =
@@ -640,7 +651,7 @@ function addTool(
 }
 function chargedBonus(ctx: Ctx, skillName: string, effect: string) {
   let percent = 0;
-  for (const row of [...ctx.db.buff.byOwner.filter(ctx.sender)]) {
+  for (const row of [...ctx.db.buff.byOwner.filter(actingOwner(ctx))]) {
     if (row.effect !== effect || (row.skill && row.skill !== skillName))
       continue;
     percent += row.percent;
@@ -665,7 +676,7 @@ export const useConsumable = db.reducer(
     const currentLevel = requiredSkill
       ? levelForXp(xp(ctx, requiredSkill))
       : Math.max(
-          ...[...ctx.db.skill.byOwner.filter(ctx.sender)].map((row) =>
+          ...[...ctx.db.skill.byOwner.filter(actingOwner(ctx))].map((row) =>
             levelForXp(Number(row.experience)),
           ),
         );
@@ -679,7 +690,7 @@ export const useConsumable = db.reducer(
     const key = ownerKey(ctx, String(rule.family));
     const row = {
       key,
-      owner: ctx.sender,
+      owner: actingOwner(ctx),
       itemKey,
       name: String(rule.item_name),
       family: String(rule.family),
@@ -706,10 +717,10 @@ export const createCharacter = db.reducer(
       throw new SenderError(
         "Use a character name between 2 and 40 characters.",
       );
-    if (ctx.db.player.owner.find(ctx.sender))
+    if (ctx.db.player.owner.find(actingOwner(ctx)))
       throw new SenderError("You already have a character.");
     ctx.db.player.insert({
-      owner: ctx.sender,
+      owner: actingOwner(ctx),
       name,
       species: "human",
       region: "moonwake_coast",
@@ -726,7 +737,7 @@ export const createCharacter = db.reducer(
     for (const [skillName, starter] of Object.entries(content.starter_tools)) {
       addTool(ctx, starter, skillName, 0, "starter");
     }
-    refreshLeaderboard(ctx, ctx.sender);
+    refreshLeaderboard(ctx, actingOwner(ctx));
     syncCatalogReferences(ctx);
   },
 );
@@ -747,7 +758,7 @@ export const updateCharacter = db.reducer(
       throw new SenderError("Check your character name and title.");
     if (
       args.title &&
-      ![...ctx.db.achievement.byOwner.filter(ctx.sender)].some(
+      ![...ctx.db.achievement.byOwner.filter(actingOwner(ctx))].some(
         (row) => row.title === args.title,
       )
     )
@@ -767,7 +778,7 @@ export const updateCharacter = db.reducer(
     )
       throw new SenderError("Choose a listed species and home region.");
     ctx.db.player.owner.update({ ...current, ...args, name: args.name.trim() });
-    refreshLeaderboard(ctx, ctx.sender);
+    refreshLeaderboard(ctx, actingOwner(ctx));
     log(
       ctx,
       "reward_loadout",
@@ -831,7 +842,7 @@ export const customizeCharacter = db.reducer(
         ),
       ),
     });
-    refreshLeaderboard(ctx, ctx.sender);
+    refreshLeaderboard(ctx, actingOwner(ctx));
   },
 );
 export const acceptJob = db.reducer({ key: t.string() }, (ctx, { key }) => {
@@ -848,7 +859,7 @@ export const acceptJob = db.reducer({ key: t.string() }, (ctx, { key }) => {
     throw new SenderError("This contract is already active.");
   const row = {
     key: recordKey,
-    owner: ctx.sender,
+    owner: actingOwner(ctx),
     jobKey: key,
     acceptedAt: ctx.timestamp,
     progress: 0,
@@ -1063,7 +1074,8 @@ export const listItem = db.reducer(
   (ctx, args) => {
     const current = character(ctx);
     if (
-      [...ctx.db.listing.seller.filter(ctx.sender)].length >= MAX_OWN_LISTINGS
+      [...ctx.db.listing.seller.filter(actingOwner(ctx))].length >=
+      MAX_OWN_LISTINGS
     )
       throw new SenderError(
         "Cancel or sell a listing before adding more (100 active listings per character).",
@@ -1088,7 +1100,7 @@ export const listItem = db.reducer(
     });
     const listed = ctx.db.listing.insert({
       id: 0n,
-      seller: ctx.sender,
+      seller: actingOwner(ctx),
       sellerName: current.name,
       itemKey: stack.itemKey,
       name: stack.name,
@@ -1116,7 +1128,8 @@ export const listTool = db.reducer(
   (ctx, args) => {
     const current = character(ctx);
     if (
-      [...ctx.db.listing.seller.filter(ctx.sender)].length >= MAX_OWN_LISTINGS
+      [...ctx.db.listing.seller.filter(actingOwner(ctx))].length >=
+      MAX_OWN_LISTINGS
     )
       throw new SenderError(
         "Cancel or sell a listing before adding more (100 active listings per character).",
@@ -1150,7 +1163,7 @@ export const listTool = db.reducer(
     ctx.db.tool.id.update({ ...row, listed: true });
     const listed = ctx.db.listing.insert({
       id: 0n,
-      seller: ctx.sender,
+      seller: actingOwner(ctx),
       sellerName: current.name,
       itemKey: row.itemKey,
       name: row.name,
@@ -1176,7 +1189,7 @@ export const buyListing = db.reducer({ id: t.u64() }, (ctx, { id }) => {
   const current = character(ctx);
   const row = ctx.db.listing.id.find(id);
   if (!row) throw new SenderError("That listing has already sold.");
-  if (row.seller.equals(ctx.sender))
+  if (row.seller.equals(actingOwner(ctx)))
     throw new SenderError("Cancel your own listing to reclaim it.");
   const cost = row.quantity * row.unitPrice;
   if (current.gold < cost) throw new SenderError("Not enough gold.");
@@ -1188,7 +1201,7 @@ export const buyListing = db.reducer({ id: t.u64() }, (ctx, { id }) => {
     const instance = listedTool(ctx, row.toolId, row.seller);
     ctx.db.tool.id.update({
       ...instance,
-      owner: ctx.sender,
+      owner: actingOwner(ctx),
       listed: false,
       equipped: false,
     });
@@ -1244,10 +1257,10 @@ export const buyListing = db.reducer({ id: t.u64() }, (ctx, { id }) => {
 export const cancelListing = db.reducer({ id: t.u64() }, (ctx, { id }) => {
   character(ctx);
   const row = ctx.db.listing.id.find(id);
-  if (!row || !row.seller.equals(ctx.sender))
+  if (!row || !row.seller.equals(actingOwner(ctx)))
     throw new SenderError("That listing is not yours.");
   if (row.toolId) {
-    const instance = listedTool(ctx, row.toolId, ctx.sender);
+    const instance = listedTool(ctx, row.toolId, actingOwner(ctx));
     ctx.db.tool.id.update({ ...instance, listed: false });
   } else {
     grantItem(ctx, {
@@ -1328,7 +1341,7 @@ export const completeJob = db.reducer({ key: t.string() }, (ctx, { key }) => {
   ctx.db.player.owner.update({ ...current, gold: current.gold + BigInt(gold) });
   const record = {
     key: recordKey,
-    owner: ctx.sender,
+    owner: actingOwner(ctx),
     jobKey: key,
     acceptedAt: previous?.acceptedAt ?? ctx.timestamp,
     progress: previous?.progress ?? 0,
@@ -1357,7 +1370,7 @@ export const equipTool = db.reducer(
         skill: row.skill,
         required_level: row.tierLevel,
       });
-      for (const current of ctx.db.tool.byOwner.filter(ctx.sender))
+      for (const current of ctx.db.tool.byOwner.filter(actingOwner(ctx)))
         if (current.skill === row.skill && current.equipped)
           ctx.db.tool.id.update({ ...current, equipped: false });
     } else restoreStarter(ctx, row);
@@ -1579,10 +1592,10 @@ export const claimAchievement = db.reducer(
     const unlocked = achievementUnlocked(key, value, {
       metrics: JSON.parse(current.metrics),
       gold: Number(current.gold),
-      inventory: [...ctx.db.inventory.byOwner.filter(ctx.sender)],
-      tools: [...ctx.db.tool.byOwner.filter(ctx.sender)],
-      skills: [...ctx.db.skill.byOwner.filter(ctx.sender)],
-      equipped: [...ctx.db.tool.byOwner.filter(ctx.sender)].filter(
+      inventory: [...ctx.db.inventory.byOwner.filter(actingOwner(ctx))],
+      tools: [...ctx.db.tool.byOwner.filter(actingOwner(ctx))],
+      skills: [...ctx.db.skill.byOwner.filter(actingOwner(ctx))],
+      equipped: [...ctx.db.tool.byOwner.filter(actingOwner(ctx))].filter(
         (row) => row.equipped,
       ).length,
       categories: Object.fromEntries(
@@ -1599,7 +1612,7 @@ export const claimAchievement = db.reducer(
     const reward = value.reward as { title: string; gold: number };
     ctx.db.achievement.insert({
       key: recordKey,
-      owner: ctx.sender,
+      owner: actingOwner(ctx),
       achievementKey: key,
       title: reward.title,
       claimedAt: ctx.timestamp,
@@ -1614,22 +1627,26 @@ export const claimAchievement = db.reducer(
 export const myPlayer = db.view(
   { name: "my_player", public: true },
   t.option(player.rowType),
-  (ctx) => ctx.db.player.owner.find(ctx.sender) ?? undefined,
+  (ctx) => {
+    const owner = accountOwner(ctx);
+    return owner ? (ctx.db.player.owner.find(owner) ?? undefined) : undefined;
+  },
 );
 export const mySkills = db.view(
   { name: "my_skills", public: true },
   t.array(skill.rowType),
-  (ctx) => [...ctx.db.skill.byOwner.filter(ctx.sender)],
+  (ctx) => ownedView(ctx, (owner) => [...ctx.db.skill.byOwner.filter(owner)]),
 );
 export const myInventory = db.view(
   { name: "my_inventory", public: true },
   t.array(inventory.rowType),
-  (ctx) => [...ctx.db.inventory.byOwner.filter(ctx.sender)],
+  (ctx) =>
+    ownedView(ctx, (owner) => [...ctx.db.inventory.byOwner.filter(owner)]),
 );
 export const myBuffs = db.view(
   { name: "my_buffs", public: true },
   t.array(buff.rowType),
-  (ctx) => [...ctx.db.buff.byOwner.filter(ctx.sender)],
+  (ctx) => ownedView(ctx, (owner) => [...ctx.db.buff.byOwner.filter(owner)]),
 );
 export const myTools = db.view(
   { name: "my_tools", public: true },
@@ -1642,24 +1659,28 @@ export const myTools = db.view(
     }),
   ),
   (ctx) =>
-    [...ctx.db.tool.byOwner.filter(ctx.sender)]
-      .filter((row) => !row.listed)
-      .map((row) => ({ ...row, ...pricesForTool(row) })),
+    ownedView(ctx, (owner) =>
+      [...ctx.db.tool.byOwner.filter(owner)]
+        .filter((row) => !row.listed)
+        .map((row) => ({ ...row, ...pricesForTool(row) })),
+    ),
 );
 export const myResults = db.view(
   { name: "my_results", public: true },
   t.array(result.rowType),
-  (ctx) => [...ctx.db.result.byOwner.filter(ctx.sender)],
+  (ctx) => ownedView(ctx, (owner) => [...ctx.db.result.byOwner.filter(owner)]),
 );
 export const myContracts = db.view(
   { name: "my_contracts", public: true },
   t.array(contract.rowType),
-  (ctx) => [...ctx.db.contract.byOwner.filter(ctx.sender)],
+  (ctx) =>
+    ownedView(ctx, (owner) => [...ctx.db.contract.byOwner.filter(owner)]),
 );
 export const myAchievements = db.view(
   { name: "my_achievements", public: true },
   t.array(achievement.rowType),
-  (ctx) => [...ctx.db.achievement.byOwner.filter(ctx.sender)],
+  (ctx) =>
+    ownedView(ctx, (owner) => [...ctx.db.achievement.byOwner.filter(owner)]),
 );
 
 export const setUiScope = db.reducer(
@@ -1800,11 +1821,17 @@ export const myCatalog = db.view(
           selected.set(row.key, row);
         if (content[kind]) referencedItems(content[kind], items);
       }
-      for (const row of ctx.db.inventory.byOwner.filter(ctx.sender))
+      for (const row of ownedView(ctx, (owner) => [
+        ...ctx.db.inventory.byOwner.filter(owner),
+      ]))
         items.add(row.itemKey);
-      for (const row of ctx.db.tool.byOwner.filter(ctx.sender))
+      for (const row of ownedView(ctx, (owner) => [
+        ...ctx.db.tool.byOwner.filter(owner),
+      ]))
         items.add(row.itemKey);
-      for (const row of ctx.db.achievement.byOwner.filter(ctx.sender)) {
+      for (const row of ownedView(ctx, (owner) => [
+        ...ctx.db.achievement.byOwner.filter(owner),
+      ])) {
         const definition = ctx.db.catalog.key.find(
           `achievements:${row.achievementKey}`,
         );
@@ -1867,7 +1894,9 @@ export const marketListings = db.view(
           .slice(window.offset, window.offset + MARKET_PAGE_SIZE)
           .map((row) => [row.id, row]),
       );
-      for (const row of ctx.db.listing.seller.filter(ctx.sender))
+      for (const row of ownedView(ctx, (owner) => [
+        ...ctx.db.listing.seller.filter(owner),
+      ]))
         selected.set(row.id, row);
       return [...selected.values()].map((row) => ({
         ...row,
@@ -1904,13 +1933,15 @@ export const myMarketListings = db.view(
   { name: "my_market_listings", public: true },
   t.array(marketRow),
   (ctx) =>
-    [...ctx.db.listing.seller.filter(ctx.sender)].map((row) => ({
-      ...row,
-      page: 0,
-      metadata:
-        ctx.db.catalog.key.find(`item_metadata:${row.itemKey}:${row.rarity}`)
-          ?.payload ?? "{}",
-    })),
+    ownedView(ctx, (owner) =>
+      [...ctx.db.listing.seller.filter(owner)].map((row) => ({
+        ...row,
+        page: 0,
+        metadata:
+          ctx.db.catalog.key.find(`item_metadata:${row.itemKey}:${row.rarity}`)
+            ?.payload ?? "{}",
+      })),
+    ),
 );
 export const marketSummary = db.anonymousView(
   { name: "market_summary", public: true },

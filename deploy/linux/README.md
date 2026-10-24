@@ -13,6 +13,9 @@ They supplement the Windows/ServBay launchers, which remain local development to
 - Fishbound account linker: loopback 3001. Discord's production callback is
   `https://fishbound.ichaa.dev/auth/discord/callback`.
 
+Evergather can share this OAuth service for persistent Discord accounts without
+guild membership. See [account activation and preservation](../../space/docs/discord-accounts.md).
+
 ## First setup
 
 Install the pinned Node/Rust toolchains and SpacetimeDB first. Run the reviewed
