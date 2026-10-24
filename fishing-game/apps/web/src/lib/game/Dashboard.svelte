@@ -5,6 +5,7 @@
   import { Game } from './game.svelte';
   import { connectionDiagnostics } from './connection-diagnostics';
   import PondScene from './PondScene.svelte';
+  import CastCooldown from './CastCooldown.svelte';
   import Compendium from './Compendium.svelte';
   import Records from './Records.svelte';
   import Trader from './Trader.svelte';
@@ -59,7 +60,6 @@
   const maxima = $derived(rankMaximaSummary(game.rankMaxima, game.species, game.player?.playerId));
   const discoveries = $derived(game.collection.filter(row => ordinary.some(fish => fish.speciesId === row.speciesId)).length);
   const book = $derived(game.species.filter(fish => (!bookBiome || fish.biomeId === bookBiome) && (!bookTier || fish.allowedRarities.includes(bookTier)) && fish.name.toLowerCase().includes(bookQuery.trim().toLowerCase())));
-  const remaining = $derived(game.player ? Math.max(0, Math.ceil(Number(game.player.nextCastAt.microsSinceUnixEpoch / 1000n - BigInt(now)) / 1000)) : 0);
   const quote = $derived(showQuote && game.action?.kind === 'sell' && !game.action.consumed ? game.action : null);
   const selectedOwned = $derived(selected.filter(id => game.inventory.some(fish => fish.catchId === id && !fish.favorite)));
   const saleBatch = $derived(selectedOwned.slice(0, saleBatchSize));
@@ -160,7 +160,7 @@
       <div><AnglerLevel totalXp={game.player.totalXp} levelCap={game.config?.levelCap ?? world.levelCap} rulesVersion={game.config?.version ?? 9} /></div>
       <div><span>◈ COIN POUCH</span><strong>{game.player.coins.toString()}</strong><small>For your next adventure</small></div>
       <div><span>▤ COLLECTION BOOK</span><strong>{discoveries}<em> / {ordinary.length}</em></strong><progress value={discoveries} max={ordinary.length || 249} aria-label="Ordinary species discovered"></progress><small>Two bonus discoveries await</small></div>
-      <div><span>⌛ NEXT CAST</span><strong>{remaining ? remaining + 's' : 'Ready!'}</strong><small>Use /fish in Discord</small></div>
+      <div><span>⌛ NEXT CAST</span><strong><CastCooldown nextCastAt={game.player?.nextCastAt.microsSinceUnixEpoch ?? null} /></strong><small>Use /fish in Discord</small></div>
     </section>
   {/if}
 

@@ -30,6 +30,7 @@
     "test:module": "node scripts/rust-workflow.mjs script scripts/module-tests.mjs",
     "test:subscriptions": "node scripts/subscriptions.test.mjs",
     "test:connection-lifecycle": "node scripts/connection-lifecycle.test.mjs",
+    "test:server-clock": "node tests/server-clock.test.mjs",
     "test:integration": "node scripts/rust-workflow.mjs script scripts/run-integration.mjs",
     "test:quests": "node scripts/quest-catalog.test.mjs && node scripts/rust-workflow.mjs script scripts/quests-proof.ts",
     "service:create": "tsx scripts/create-service.mjs"
