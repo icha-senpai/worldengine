@@ -1078,7 +1078,7 @@ async fn main() -> Result<(), Error> {
                 Ok(Data {
                     game,
                     website,
-                    pending: tokio::sync::Semaphore::new(32),
+                    pending: tokio::sync::Semaphore::new(discord_bot::MAX_PENDING_GAME_REQUESTS),
                     catch_art: CatchArt::new(assets),
                     achievement_notifications,
                 })

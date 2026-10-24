@@ -5,3 +5,6 @@ pub mod measurements;
 pub mod perfect_catch;
 pub mod profile_card;
 pub mod sale_ids;
+
+/// Shared with the isolated load harness so admission matches the live bot.
+pub const MAX_PENDING_GAME_REQUESTS: usize = 32;
