@@ -1,6 +1,13 @@
 //! Shared equipment math for independent mixed pulls and graded rank luck.
 pub fn luck_weights(tickets: &[(u64, u8)], luck_bp: u32) -> Result<Vec<u64>, String> {
-    if luck_bp > 12_000 || tickets.iter().any(|(_, score)| *score > 9) {
+    if luck_bp > 12_000 {
+        return Err("INVALID_ROD_LUCK".into());
+    }
+    graded_luck_weights(tickets, luck_bp)
+}
+
+pub(crate) fn graded_luck_weights(tickets: &[(u64, u8)], luck_bp: u32) -> Result<Vec<u64>, String> {
+    if tickets.iter().any(|(_, score)| *score > 9) {
         return Err("INVALID_ROD_LUCK".into());
     }
     let total = tickets

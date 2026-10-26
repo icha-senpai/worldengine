@@ -68,6 +68,14 @@ fn owned(ctx: &ReducerContext, player_id: u64, listing: &ShopListing) -> bool {
     if listing.kind == "bait" {
         return false;
     }
+    if matches!(listing.kind.as_str(), "boat" | "net") {
+        return ctx
+            .db
+            .owned_haul_equipment()
+            .key()
+            .find((u128::from(player_id) << 32) | u128::from(listing.target_id))
+            .is_some();
+    }
     if listing.kind == "licence" {
         owns_licence(ctx, player_id, listing.target_id)
     } else {
@@ -80,6 +88,21 @@ fn owned(ctx: &ReducerContext, player_id: u64, listing: &ShopListing) -> bool {
 }
 
 fn eligible(ctx: &ReducerContext, player: &Player, listing: &ShopListing) -> Result<(), String> {
+    match listing.kind.as_str() {
+        "boat" | "net" => {
+            let definition = ctx
+                .db
+                .haul_equipment_definition()
+                .equipment_id()
+                .find(listing.target_id)
+                .ok_or("SHOP_ITEM_UNAVAILABLE")?;
+            if definition.kind != listing.kind {
+                return Err("SHOP_ITEM_UNAVAILABLE".into());
+            }
+        }
+        "rod" | "licence" | "bait" => {}
+        _ => return Err("SHOP_ITEM_UNAVAILABLE".into()),
+    }
     if level_for_xp_for_version(player.total_xp, config(ctx).level_cap, config(ctx).version)
         < listing.minimum_level
     {
@@ -207,6 +230,13 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128, quantity: u32) -> R
         });
     } else if listing.kind == "bait" {
         crate::crafting::grant_bait(ctx, player_id, listing.target_id, quantity)?;
+    } else if matches!(listing.kind.as_str(), "boat" | "net") {
+        ctx.db.owned_haul_equipment().insert(OwnedHaulEquipment {
+            key: ownership_key,
+            player_id,
+            equipment_id: listing.target_id,
+            upgrade_level: 0,
+        });
     } else {
         ctx.db.owned_rod().insert(OwnedRod {
             key: ownership_key,

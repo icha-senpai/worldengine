@@ -3,6 +3,7 @@
 pub mod baits;
 pub mod collection_focus;
 pub mod daily;
+pub mod hauls;
 pub mod measurements;
 pub mod progression;
 pub mod quests;

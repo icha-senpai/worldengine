@@ -71,6 +71,7 @@ pub fn ensure_player(
         rod_id: 1,
         upgrade_level: 0,
     });
+    crate::haul_equipment::grant_starters(ctx, player.player_id);
     ctx.db.public_profile().insert(PublicProfile {
         player_id: player.player_id,
         display_name: name,

@@ -201,6 +201,7 @@ pub struct RarityDefinition {
 }
 
 #[spacetimedb::table(accessor = game_config, public)]
+#[derive(Clone)]
 pub struct GameConfig {
     #[primary_key]
     pub version: u32,
@@ -234,6 +235,7 @@ pub struct Player {
 }
 
 #[spacetimedb::table(accessor = biome_definition, public)]
+#[derive(Clone)]
 pub struct BiomeDefinition {
     #[primary_key]
     pub biome_id: u32,
@@ -273,6 +275,65 @@ pub struct OwnedRod {
     pub player_id: u64,
     pub rod_id: u32,
     pub upgrade_level: u8,
+}
+
+// Boats and nets use separate ownership/loadout tables so existing rod, bait,
+// player and catch schemas remain unchanged.
+#[spacetimedb::table(accessor = haul_equipment_definition, public)]
+pub struct HaulEquipmentDefinition {
+    #[primary_key]
+    pub equipment_id: u32,
+    pub kind: String,
+    pub name: String,
+    pub sprite_asset: String,
+    #[default(0)]
+    pub luck_bp: u32,
+    #[default(0)]
+    pub xp_bonus_bp: u32,
+    #[default(0)]
+    pub rod_id: u32,
+    #[default(1)]
+    pub quality_bonus_multiplier: u32,
+}
+
+#[spacetimedb::table(accessor = owned_haul_equipment)]
+pub struct OwnedHaulEquipment {
+    #[primary_key]
+    pub key: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub equipment_id: u32,
+    #[default(0)]
+    pub upgrade_level: u8,
+}
+
+#[spacetimedb::table(accessor = haul_upgrade_quote)]
+pub struct HaulUpgradeQuote {
+    #[primary_key]
+    pub key: String,
+    pub identity: Identity,
+    pub player_id: u64,
+    #[unique]
+    pub nonce: u128,
+    pub equipment_id: u32,
+    pub rod_id: u32,
+    pub from_quality: u8,
+    pub recipe_version: u32,
+    pub quality_version: u32,
+    pub tin_cost: u64,
+    pub scrap_cost: u64,
+    pub created_at: Timestamp,
+    #[index(btree)]
+    pub expires_at: Timestamp,
+    pub consumed: bool,
+}
+
+#[spacetimedb::table(accessor = haul_loadout)]
+pub struct HaulLoadout {
+    #[primary_key]
+    pub player_id: u64,
+    pub boat_id: u32,
+    pub net_id: u32,
 }
 
 #[spacetimedb::table(accessor = player_identity)]

@@ -8,6 +8,11 @@ export type JournalQuery = { page: number; pageSize: number; sort: string; desce
 import type { ActionNonce, AnglerPortrait, AnglerStatistics, AnglerStanding, LegendaryFind, BiomeDefinition, RodDefinition, RarityDefinition, GameConfig, ItemStack, LinkChallenge, OwnedSpecimen, Player, PlayerSpeciesProgress, PublicProfile, RecentCatch, SpeciesDefinition, SpeciesRecord, ShopListing, ShopQuote, OwnedRod, OwnedBiomeLicence, RodBonuses } from '@fishing-game/generated/types';
 
 export class Game {
+  haulEquipment = $state.raw<import('@fishing-game/generated/types').HaulEquipmentDefinition[]>([]);
+  ownedHaulEquipment = $state.raw<import('@fishing-game/generated/types').OwnedHaulEquipment[]>([]);
+  haulTrips = $state.raw<import('@fishing-game/generated/types').HaulTrip[]>([]);
+  haulLoadout = $state.raw<import('@fishing-game/generated/types').HaulLoadout | null>(null);
+  haulUpgradeQuote = $state.raw<import('@fishing-game/generated/types').HaulUpgradeQuote | null>(null);
   questDefinitions = $state.raw<import('@fishing-game/generated/types').QuestDefinition[]>([]);
   quests = $state.raw<import('@fishing-game/generated/types').QuestStatus[]>([]);
   questCalendar = $state.raw<import('@fishing-game/generated/types').QuestCalendar | null>(null);
@@ -112,6 +117,8 @@ export class Game {
   }
 
   private clearPrivate() {
+    this.ownedHaulEquipment = []; this.haulLoadout = null; this.haulTrips = [];
+    this.haulUpgradeQuote = null;
     this.quests = []; this.dockside = null;
     this.achievementProgress = [];
     this.focusPreferences = []; this.ownedBaits = []; this.baitLoadout = null; this.upgradeQuote = null;
@@ -158,6 +165,11 @@ export class Game {
     this.shopQuote = [...connection.db.myShopQuote.iter()][0] ?? null;
     this.listings = [...connection.db.shopListing.iter()].sort((a,b) => a.listingId - b.listingId);
     this.ownedRods = [...connection.db.myRods.iter()];
+    this.haulEquipment = [...connection.db.haulEquipmentDefinition.iter()].sort((a,b) => a.equipmentId-b.equipmentId);
+    this.ownedHaulEquipment = [...connection.db.myHaulEquipment.iter()];
+    this.haulTrips = [...connection.db.myHaulTrips.iter()];
+    this.haulLoadout = [...connection.db.myHaulLoadout.iter()][0] ?? null;
+    this.haulUpgradeQuote = [...connection.db.myHaulUpgradeQuote.iter()][0] ?? null;
     this.licences = [...connection.db.myLicences.iter()];
     this.baits = [...connection.db.baitDefinition.iter()].sort((a,b) => a.baitId-b.baitId);
     this.rodRecipes = [...connection.db.rodUpgradeRecipe.iter()];
@@ -260,6 +272,7 @@ export class Game {
       .onDisconnect((...args) => lost('fishbound-disconnected', ...args)).build();
     this.connection = connection;
     for (const table of [connection.db.questDefinition, connection.db.questCalendar, connection.db.myQuests, connection.db.myDockside, connection.db.achievementDefinition, connection.db.achievementCollection, connection.db.earnedAchievement, connection.db.perfectSpecies, connection.db.rankMaximum, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.anglerPortrait, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection, connection.db.myCollectionFocus,
+      connection.db.haulEquipmentDefinition, connection.db.myHaulEquipment, connection.db.myHaulLoadout, connection.db.myHaulUpgradeQuote, connection.db.myHaulTrips,
       connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.baitDefinition, connection.db.rodUpgradeRecipe, connection.db.qualityDefinition, connection.db.myRods, connection.db.myLicences, connection.db.myShopQuote, connection.db.shopListing, connection.db.myRecentCatches, connection.db.myJournal, connection.db.myLinkChallenge, connection.db.myAction, connection.db.myItems,
       connection.db.speciesDefinition, connection.db.speciesRecord, connection.db.anglerStanding, connection.db.anglerStatistics, connection.db.legendaryFind, connection.db.gameConfig, connection.db.biomeDefinition, connection.db.rodBonuses, connection.db.rodDefinition, connection.db.rarityDefinition]) {
       table.onInsert(this.refresh); table.onDelete(this.refresh);
@@ -269,6 +282,11 @@ export class Game {
     connection.db.questCalendar.onUpdate(this.refresh);
     connection.db.rodBonuses.onUpdate(this.refresh);
     connection.db.shopListing.onUpdate(this.refresh);
+    connection.db.haulEquipmentDefinition.onUpdate(this.refresh);
+    connection.db.myHaulLoadout.onUpdate(this.refresh);
+    connection.db.myHaulEquipment.onUpdate(this.refresh);
+    connection.db.myHaulUpgradeQuote.onUpdate(this.refresh);
+    connection.db.myHaulTrips.onUpdate(this.refresh);
     connection.db.myItems.onUpdate(this.refresh);
     connection.db.speciesRecord.onUpdate(this.refresh);
     connection.db.anglerStanding.onUpdate(this.refresh);
@@ -332,7 +350,7 @@ export class Game {
       }
       const message = String(error);
       this.error = message.includes('INSUFFICIENT_MATERIALS') ? 'Gather more rusted tin and scrap before upgrading. Resource bait is available at the Trader.'
-        : message.includes('MAX_QUALITY') ? 'This rod has already reached Prismatic quality.'
+        : message.includes('MAX_QUALITY') ? 'This equipment has already reached Prismatic quality.'
         : message.includes('BAIT_NOT_OWNED') ? 'This slot needs stocked bait. Matching bait in both slots requires two shared uses.'
         : message.includes('INSUFFICIENT_COINS') ? 'Your coin pouch is a little short. Sell catches or collect /daily, then visit the trader again.'
         : message.includes('ALREADY_OWNED') ? 'You already own this. Your collection of gear has refreshed.'
@@ -340,6 +358,8 @@ export class Game {
         : message.includes('PREVIOUS_LICENCE_REQUIRED') ? 'Buy the previous biome licence before continuing your journey.'
         : message.includes('BIOME_LICENCE_REQUIRED') ? 'Visit the camp trader for this biome licence first.'
         : message.includes('ROD_NOT_OWNED') ? 'Buy that rod from the camp trader before equipping it.'
+        : message.includes('EQUIPMENT_NOT_OWNED') ? 'Buy that boat or net from the camp trader before equipping it.'
+        : message.includes('EQUIPMENT_UNAVAILABLE') ? 'Your boat and net gear could not load. Reconnect and try again.'
         : message.includes('SHOP_LEVEL_REQUIRED') ? 'Reach the required angler level before buying this item.'
         : message.includes('FAVORITE_PROTECTED') ? 'Favorites are protected. Unfavorite that catch before handing it over.'
         : message.includes('QUEST_RUN_CHANGED') ? 'This job was already claimed. Review the new run before claiming again.'
@@ -374,6 +394,9 @@ export class Game {
   async changeLoadout(biomeId?: number, rodId?: number) {
     await this.run(connection => connection.reducers.changeLoadout({ biomeId, rodId }));
   }
+  async equipHaulEquipment(equipmentId: number) {
+    await this.run(connection => connection.reducers.equipHaulEquipment({ equipmentId }));
+  }
   async previewPurchase(listingId: number) { await this.run(connection => connection.reducers.prepareShopPurchase({ listingId })); }
   async claimQuest(questId: number, baitId: number, catchId: bigint | undefined, expectedWeek: bigint, expectedCycle: bigint) {
     if (!this.ready || !this.connection || this.busy) return false;
@@ -401,6 +424,15 @@ export class Game {
   async equipTitle(achievementId: number) { await this.run(connection => connection.reducers.equipTitle({ achievementId })); }
   async previewUpgrade(rodId: number) { await this.run(connection => connection.reducers.prepareRodUpgrade({ rodId })); }
   async confirmUpgrade(nonce: bigint) { await this.run(connection => connection.reducers.commitRodUpgrade({ nonce })); }
+  async previewHaulUpgrade(equipmentId: number) { await this.run(connection => connection.reducers.prepareHaulUpgrade({ equipmentId })); }
+  async confirmHaulUpgrade(nonce: bigint) { await this.run(connection => connection.reducers.commitHaulUpgrade({ nonce })); }
+  haulStats(equipmentId: number) {
+    const base = this.haulEquipment.find(row => row.equipmentId === equipmentId);
+    const level = this.ownedHaulEquipment.find(row => row.equipmentId === equipmentId)?.upgradeLevel ?? 0;
+    const quality = this.qualities.find(row => row.qualityLevel === level);
+    const qualityMultiplier = base?.qualityBonusMultiplier ?? 1;
+    return { quality, qualityMultiplier, luckBp: (base?.luckBp ?? 0) + (quality?.luckBp ?? 0) * qualityMultiplier, xpBonusBp: (base?.xpBonusBp ?? 0) + (quality?.xpBonusBp ?? 0) * qualityMultiplier };
+  }
   rodStats(rodId: number) {
     const rod = this.rods.find(row => row.rodId === rodId);
     const base = this.rodBonuses.find(row => row.rodId === rodId);

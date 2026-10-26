@@ -6,6 +6,7 @@ export const coreQueries = [
   'my_bait_loadout', 'my_items', 'species_definition', 'game_config',
   'biome_definition', 'rod_definition', 'rod_bonuses', 'rarity_definition',
   'bait_definition', 'quality_definition', 'shop_listing',
+  'haul_equipment_definition', 'my_haul_equipment', 'my_haul_loadout', 'my_haul_upgrade_quote', 'my_haul_trips',
 ].map(table => `SELECT * FROM ${table}`);
 
 export function viewQueries(view: string, playerId?: bigint, version = 0): string[] {

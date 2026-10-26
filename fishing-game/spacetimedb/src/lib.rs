@@ -7,6 +7,8 @@ mod content;
 mod crafting;
 mod daily;
 mod gear;
+mod haul_equipment;
+mod hauls;
 mod inventory;
 mod journal;
 mod loadout;
@@ -32,6 +34,7 @@ pub fn init(ctx: &ReducerContext) {
     });
     content::seed(ctx);
     gear::seed(ctx);
+    haul_equipment::seed(ctx);
     crafting::seed(ctx);
     shop::seed(ctx);
     achievements::seed(ctx);

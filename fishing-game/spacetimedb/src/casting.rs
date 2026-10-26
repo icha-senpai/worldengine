@@ -1,3 +1,4 @@
+use crate::hauls::haul_request;
 use crate::{
     accounts::{config, ensure_player, require_service},
     tables::*,
@@ -20,6 +21,15 @@ pub fn fish_from_discord(
     require_service(ctx, ServiceRole::DiscordAdapter)?;
     if channel_id == 0 {
         return Err("INVALID_CHANNEL".into());
+    }
+    if ctx
+        .db
+        .haul_request()
+        .interaction_id()
+        .find(interaction_id)
+        .is_some()
+    {
+        return Err("REQUEST_CONFLICT".into());
     }
     if ctx
         .db
@@ -46,7 +56,7 @@ pub fn fish_from_discord(
         return Ok(());
     }
     check_interaction_freshness(interaction_id, ctx.timestamp.to_micros_since_unix_epoch())?;
-    let mut player = ensure_player(ctx, discord_user_id, "Angler")?;
+    let player = ensure_player(ctx, discord_user_id, "Angler")?;
     let rules = config(ctx);
     if ctx.timestamp < player.next_cast_at {
         return Err(format!(
@@ -103,7 +113,6 @@ pub fn fish_from_discord(
     }
     let collection_focus_enabled =
         crate::collection_focus::active(ctx, player.player_id, biome.biome_id, &species);
-    let mut collection_focus_rerolls = 0;
     let bait = crate::crafting::consume_bait(ctx, player.player_id)?;
     let power = rod
         .power
@@ -127,6 +136,85 @@ pub fn fish_from_discord(
     } else {
         1
     };
+    resolve(
+        ctx,
+        CastPlan {
+            player,
+            biome,
+            rules,
+            interaction_id,
+            guild_id,
+            channel_id,
+            command: "fish".into(),
+            equipment_id: rod.rod_id,
+            quality_level: quality.quality_level,
+            power,
+            luck_bp,
+            xp_bonus_bp,
+            bait,
+            pull_count,
+            collection_focus_enabled,
+        },
+    )
+}
+
+/// Shared reward pipeline: hauls get the same specimens, discoveries, records,
+/// quests and journal entries as rod fishing, without consuming rod bait/cooldown.
+pub(crate) struct CastPlan {
+    pub player: Player,
+    pub biome: BiomeDefinition,
+    pub rules: GameConfig,
+    pub interaction_id: u64,
+    pub guild_id: Option<u64>,
+    pub channel_id: u64,
+    pub command: String,
+    pub equipment_id: u32,
+    pub quality_level: u8,
+    pub power: u32,
+    pub luck_bp: u32,
+    pub xp_bonus_bp: u32,
+    pub bait: crate::crafting::UsedBaits,
+    pub pull_count: usize,
+    pub collection_focus_enabled: bool,
+}
+
+pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String> {
+    let CastPlan {
+        mut player,
+        biome,
+        rules,
+        interaction_id,
+        guild_id,
+        channel_id,
+        command,
+        equipment_id,
+        quality_level,
+        power,
+        luck_bp,
+        xp_bonus_bp,
+        bait,
+        pull_count,
+        collection_focus_enabled,
+    } = plan;
+    let normal_cast = command == "fish";
+    let species: Vec<_> = ctx
+        .db
+        .species_definition()
+        .biome_id()
+        .filter(biome.biome_id)
+        .collect();
+    if species.is_empty() {
+        return Err("CONTENT_UNAVAILABLE".into());
+    }
+    let mut rng = ctx.rng();
+    let mut collection_focus_rerolls = 0;
+    let xp_reward = |base| {
+        if normal_cast {
+            game_rules::rods::fishing_xp(base, xp_bonus_bp)
+        } else {
+            game_rules::hauls::fishing_xp(base, xp_bonus_bp)
+        }
+    };
     let mut changed_record_holders = Vec::new();
     let mut total_base_xp = 0u64;
     let mut total_coins = 0u64;
@@ -140,10 +228,10 @@ pub fn fish_from_discord(
         let mut receipt = CommandReceipt {
             interaction_id,
             player_id: player.player_id,
-            discord_user_id,
+            discord_user_id: player.discord_user_id,
             guild_id,
             channel_id,
-            command: "fish".into(),
+            command: command.clone(),
             caught_at: ctx.timestamp,
             outcome: String::new(),
             catch_id: None,
@@ -160,7 +248,7 @@ pub fn fish_from_discord(
             item_granted: String::new(),
             item_quantity: 0,
             biome_id: biome.biome_id,
-            rod_id: rod.rod_id,
+            rod_id: equipment_id,
         };
         match category {
             0 => {
@@ -187,7 +275,11 @@ pub fn fish_from_discord(
                         ))
                     })
                     .collect::<Result<_, String>>()?;
-                let weights = game_rules::rods::luck_weights(&tickets, luck_bp)?;
+                let weights = if normal_cast {
+                    game_rules::rods::luck_weights(&tickets, luck_bp)?
+                } else {
+                    game_rules::hauls::luck_weights(&tickets, luck_bp)?
+                };
                 let mut band = &bands[sample(&weights, &mut rng)?];
                 let definition = species
                     .iter()
@@ -426,7 +518,7 @@ pub fn fish_from_discord(
                 )?;
             }
         }
-        crate::statistics::observe_pull(ctx, &receipt, pull > 0, sets_record)?;
+        crate::statistics::observe_pull(ctx, &receipt, normal_cast && pull > 0, sets_record)?;
         total_base_xp = total_base_xp
             .checked_add(receipt.xp_granted)
             .ok_or("XP_OVERFLOW")?;
@@ -442,7 +534,7 @@ pub fn fish_from_discord(
             receipt,
         });
     }
-    let total_xp = game_rules::rods::fishing_xp(total_base_xp, xp_bonus_bp)?;
+    let total_xp = xp_reward(total_base_xp)?;
     let mut allocated_xp = 0u64;
     let mut pulls: Vec<_> = ctx
         .db
@@ -455,7 +547,7 @@ pub fn fish_from_discord(
         pull.receipt.xp_granted = if index + 1 == pull_count {
             total_xp - allocated_xp
         } else {
-            game_rules::rods::fishing_xp(pull.base_xp, xp_bonus_bp)?
+            xp_reward(pull.base_xp)?
         };
         allocated_xp += pull.receipt.xp_granted;
         crate::journal::save_pull(ctx, &pull);
@@ -496,7 +588,7 @@ pub fn fish_from_discord(
             interaction_id,
             caught_at: ctx.timestamp,
             player_id: player.player_id,
-            quality_level: quality.quality_level,
+            quality_level,
             power,
             luck_bp,
             xp_bonus_bp,
@@ -543,8 +635,10 @@ pub fn fish_from_discord(
         .completed_casts
         .checked_add(1)
         .ok_or("COUNT_OVERFLOW")?;
-    player.next_cast_at = ctx.timestamp
-        + TimeDuration::from_micros(i64::from(rules.cast_cooldown_seconds) * 1_000_000);
+    if normal_cast {
+        player.next_cast_at = ctx.timestamp
+            + TimeDuration::from_micros(i64::from(rules.cast_cooldown_seconds) * 1_000_000);
+    }
     let mut profile = ctx
         .db
         .public_profile()

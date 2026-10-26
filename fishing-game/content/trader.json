@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "listings": [
     {
       "listingId": 20,
@@ -250,6 +250,126 @@
       "minimumLevel": 1,
       "previousBiomeId": 1,
       "biomeId": 1
+    },
+    {
+      "listingId": 1102,
+      "kind": "boat",
+      "targetId": 102,
+      "name": "River Boat",
+      "priceCoins": 500,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 2
+    },
+    {
+      "listingId": 1103,
+      "kind": "boat",
+      "targetId": 103,
+      "name": "Marsh Boat",
+      "priceCoins": 15000,
+      "minimumLevel": 1,
+      "previousBiomeId": 2,
+      "biomeId": 3
+    },
+    {
+      "listingId": 1104,
+      "kind": "boat",
+      "targetId": 104,
+      "name": "Moonwood Boat",
+      "priceCoins": 16000,
+      "minimumLevel": 1,
+      "previousBiomeId": 3,
+      "biomeId": 4
+    },
+    {
+      "listingId": 1105,
+      "kind": "boat",
+      "targetId": 105,
+      "name": "Tide Boat",
+      "priceCoins": 33000,
+      "minimumLevel": 1,
+      "previousBiomeId": 4,
+      "biomeId": 5
+    },
+    {
+      "listingId": 1106,
+      "kind": "boat",
+      "targetId": 106,
+      "name": "Glacial Boat",
+      "priceCoins": 74000,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 6
+    },
+    {
+      "listingId": 1107,
+      "kind": "boat",
+      "targetId": 107,
+      "name": "Abyssal Boat",
+      "priceCoins": 130000,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 7
+    },
+    {
+      "listingId": 1202,
+      "kind": "net",
+      "targetId": 202,
+      "name": "River Net",
+      "priceCoins": 500,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 2
+    },
+    {
+      "listingId": 1203,
+      "kind": "net",
+      "targetId": 203,
+      "name": "Marsh Net",
+      "priceCoins": 15000,
+      "minimumLevel": 1,
+      "previousBiomeId": 2,
+      "biomeId": 3
+    },
+    {
+      "listingId": 1204,
+      "kind": "net",
+      "targetId": 204,
+      "name": "Moonwood Net",
+      "priceCoins": 16000,
+      "minimumLevel": 1,
+      "previousBiomeId": 3,
+      "biomeId": 4
+    },
+    {
+      "listingId": 1205,
+      "kind": "net",
+      "targetId": 205,
+      "name": "Tide Net",
+      "priceCoins": 33000,
+      "minimumLevel": 1,
+      "previousBiomeId": 4,
+      "biomeId": 5
+    },
+    {
+      "listingId": 1206,
+      "kind": "net",
+      "targetId": 206,
+      "name": "Glacial Net",
+      "priceCoins": 74000,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 6
+    },
+    {
+      "listingId": 1207,
+      "kind": "net",
+      "targetId": 207,
+      "name": "Abyssal Net",
+      "priceCoins": 130000,
+      "minimumLevel": 1,
+      "previousBiomeId": 1,
+      "biomeId": 7
     }
   ]
 }

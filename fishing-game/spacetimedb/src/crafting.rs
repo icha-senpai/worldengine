@@ -390,14 +390,22 @@ fn material(ctx: &ReducerContext, player_id: u64, slot: u32) -> u64 {
 fn recipe_key(rod_id: u32, quality: u8) -> u64 {
     (u64::from(rod_id) << 8) | u64::from(quality)
 }
-fn recipe(ctx: &ReducerContext, rod_id: u32, quality: u8) -> Result<RodUpgradeRecipe, String> {
+pub(crate) fn recipe(
+    ctx: &ReducerContext,
+    rod_id: u32,
+    quality: u8,
+) -> Result<RodUpgradeRecipe, String> {
     ctx.db
         .rod_upgrade_recipe()
         .key()
         .find(recipe_key(rod_id, quality))
         .ok_or("RECIPE_UNAVAILABLE".into())
 }
-fn affordable(ctx: &ReducerContext, player_id: u64, q: &RodUpgradeRecipe) -> Result<(), String> {
+pub(crate) fn affordable(
+    ctx: &ReducerContext,
+    player_id: u64,
+    q: &RodUpgradeRecipe,
+) -> Result<(), String> {
     if material(ctx, player_id, 2) < q.tin_cost || material(ctx, player_id, 1) < q.scrap_cost {
         return Err("INSUFFICIENT_MATERIALS".into());
     }
@@ -457,12 +465,13 @@ fn prepare(ctx: &ReducerContext, player_id: u64, rod_id: u32) -> Result<(), Stri
     }
     Ok(())
 }
-fn spend(
+pub(crate) fn spend(
     ctx: &ReducerContext,
     player_id: u64,
     slot: u32,
     amount: u64,
     operation: &str,
+    reason: &str,
 ) -> Result<(), String> {
     let key = u128::from(player_id) << 32 | u128::from(slot);
     let mut row = ctx
@@ -481,7 +490,7 @@ fn spend(
         operation.into(),
         &row.item,
         -i64::try_from(amount).map_err(|_| "ITEM_OVERFLOW")?,
-        "rod_upgrade",
+        reason,
     );
     ctx.db.item_stack().key().update(row);
     Ok(())
@@ -527,8 +536,15 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
     }
     affordable(ctx, player_id, &cost)?;
     let operation = format!("upgrade:{nonce}");
-    spend(ctx, player_id, 2, cost.tin_cost, &operation)?;
-    spend(ctx, player_id, 1, cost.scrap_cost, &operation)?;
+    spend(ctx, player_id, 2, cost.tin_cost, &operation, "rod_upgrade")?;
+    spend(
+        ctx,
+        player_id,
+        1,
+        cost.scrap_cost,
+        &operation,
+        "rod_upgrade",
+    )?;
     rod.upgrade_level = next.quality_level;
     ctx.db.owned_rod().key().update(rod);
     crate::inventory::ledger(

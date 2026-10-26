@@ -20,8 +20,8 @@
       "key": "fishModule", "database": "fishbound-dev-local", "port": 3127,
       "identity": "c2002230cb292d622fb9716c64c8c73f84b1934e4eb6e6db546fb271ab32e488",
       "artifact": "fishing-game/.local/rust-artifacts/fishing_game_module.wasm", "kind": "wasm",
-      "hooks": [["activate_rod_bonuses"], ["activate_crafting"], ["activate_xp_progression"], ["activate_species_measurements"], ["activate_achievements"], ["activate_quests"], ["activate_history_queries"]],
-      "mutableTables": ["game_config", "rod_definition", "rod_bonuses", "quality_definition", "rod_upgrade_recipe", "bait_definition", "shop_listing", "biome_definition", "species_definition", "achievement_definition", "quest_definition", "quest_calendar", "journal_count", "maintenance_job", "action_nonce", "link_challenge", "shop_quote", "sale_quote", "upgrade_quote"],
+      "hooks": [["activate_rod_bonuses"], ["activate_crafting"], ["activate_xp_progression"], ["activate_species_measurements"], ["activate_achievements"], ["activate_quests"], ["activate_history_queries"], ["activate_haul_equipment"]],
+      "mutableTables": ["game_config", "rod_definition", "rod_bonuses", "quality_definition", "rod_upgrade_recipe", "bait_definition", "haul_equipment_definition", "shop_listing", "biome_definition", "species_definition", "achievement_definition", "quest_definition", "quest_calendar", "journal_count", "maintenance_job", "action_nonce", "link_challenge", "shop_quote", "sale_quote", "upgrade_quote", "haul_upgrade_quote"],
       "mutableColumns": {"public_profile": ["level"]}
     }
   ]

@@ -332,6 +332,95 @@ export const GameConfig = __t.object("GameConfig", {
 });
 export type GameConfig = __Infer<typeof GameConfig>;
 
+export const HaulEquipmentDefinition = __t.object("HaulEquipmentDefinition", {
+  equipmentId: __t.u32(),
+  kind: __t.string(),
+  name: __t.string(),
+  spriteAsset: __t.string(),
+  luckBp: __t.u32(),
+  xpBonusBp: __t.u32(),
+  rodId: __t.u32(),
+  qualityBonusMultiplier: __t.u32(),
+});
+export type HaulEquipmentDefinition = __Infer<typeof HaulEquipmentDefinition>;
+
+export const HaulJob = __t.object("HaulJob", {
+  scheduledId: __t.u64(),
+  scheduledAt: __t.scheduleAt(),
+});
+export type HaulJob = __Infer<typeof HaulJob>;
+
+export const HaulLoadout = __t.object("HaulLoadout", {
+  playerId: __t.u64(),
+  boatId: __t.u32(),
+  netId: __t.u32(),
+});
+export type HaulLoadout = __Infer<typeof HaulLoadout>;
+
+export const HaulRequest = __t.object("HaulRequest", {
+  interactionId: __t.u64(),
+  tripId: __t.u64(),
+  discordUserId: __t.u64(),
+  guildId: __t.option(__t.u64()),
+  channelId: __t.u64(),
+  kind: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type HaulRequest = __Infer<typeof HaulRequest>;
+
+export const HaulTrip = __t.object("HaulTrip", {
+  interactionId: __t.u64(),
+  playerId: __t.u64(),
+  discordUserId: __t.u64(),
+  guildId: __t.option(__t.u64()),
+  channelId: __t.u64(),
+  kind: __t.string(),
+  equipmentId: __t.u32(),
+  equipmentName: __t.string(),
+  qualityLevel: __t.u8(),
+  luckBp: __t.u32(),
+  xpBonusBp: __t.u32(),
+  get biome() {
+    return BiomeDefinition;
+  },
+  get rules() {
+    return GameConfig;
+  },
+  collectionFocusEnabled: __t.bool(),
+  startedAt: __t.timestamp(),
+  dueAt: __t.timestamp(),
+  completedAt: __t.option(__t.timestamp()),
+  status: __t.string(),
+  get results() {
+    return __t.array(CommandReceipt);
+  },
+  totalXp: __t.u64(),
+  totalCoins: __t.u64(),
+  availableAt: __t.timestamp(),
+  leaseOwner: __t.identity(),
+  leaseNonce: __t.u128(),
+  attempts: __t.u32(),
+});
+export type HaulTrip = __Infer<typeof HaulTrip>;
+
+export const HaulUpgradeQuote = __t.object("HaulUpgradeQuote", {
+  key: __t.string(),
+  identity: __t.identity(),
+  playerId: __t.u64(),
+  nonce: __t.u128(),
+  equipmentId: __t.u32(),
+  rodId: __t.u32(),
+  fromQuality: __t.u8(),
+  recipeVersion: __t.u32(),
+  qualityVersion: __t.u32(),
+  tinCost: __t.u64(),
+  scrapCost: __t.u64(),
+  createdAt: __t.timestamp(),
+  expiresAt: __t.timestamp(),
+  consumed: __t.bool(),
+});
+export type HaulUpgradeQuote = __Infer<typeof HaulUpgradeQuote>;
+
 export const ItemStack = __t.object("ItemStack", {
   key: __t.u128(),
   playerId: __t.u64(),
@@ -425,6 +514,14 @@ export const OwnedBiomeLicence = __t.object("OwnedBiomeLicence", {
   biomeId: __t.u32(),
 });
 export type OwnedBiomeLicence = __Infer<typeof OwnedBiomeLicence>;
+
+export const OwnedHaulEquipment = __t.object("OwnedHaulEquipment", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  equipmentId: __t.u32(),
+  upgradeLevel: __t.u8(),
+});
+export type OwnedHaulEquipment = __Infer<typeof OwnedHaulEquipment>;
 
 export const OwnedRod = __t.object("OwnedRod", {
   key: __t.u128(),

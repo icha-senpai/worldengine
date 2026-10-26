@@ -1,0 +1,112 @@
+{
+  "tool": "built-in image_gen",
+  "transparentBackground": true,
+  "status": "Artwork only; gameplay is not implemented by this asset set.",
+  "designIntent": {
+    "boatDurationMinutes": 10,
+    "boatOutcomes": 10,
+    "netDurationMinutes": 4,
+    "netOutcomes": 4,
+    "bait": false
+  },
+  "prompts": [
+    {
+      "kind": "boats",
+      "key": "twig",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite: a humble starter WOODEN DINGHY. The attached Twig fishing rod is STYLE AND MATERIAL REFERENCE ONLY, do not draw a fishing rod. Match its crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited warm palette, stepped pixel highlights and handcrafted RPG item aesthetic. One complete small open rowboat, warm tan and brown rough wooden planks, simple rope bindings and two plain wooden bench seats, a pair of oars resting inside. Three-quarter isometric view from above, bow points upper right, centered square canvas, occupies 80% with generous transparent margins. Genuinely transparent alpha background. Entire boat visible, no water, no wake, no people, no fish, no bait, no scenery, no text, no UI frame, no ground shadow, no photorealism, no smooth vector illustration. This is the first tier of a seven-tier boat set.",
+      "reference": "assets/rods/twig.png",
+      "asset": "assets/boats/twig.png"
+    },
+    {
+      "kind": "nets",
+      "key": "twig",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete deployable CIRCULAR CAST FISHING NET, not a long-handled landing net. A folded-over shallow bell-shaped bundle of diamond-mesh netting, shown in a three-quarter isometric view, with a curved weighted circular hem spread into a readable oval, a single retrieval rope neatly coiled beside its top. Mesh has genuine transparent holes, chunky clear pixel strands and a few sturdy sinkers, compact readable inventory silhouette. Theme material colors apply to the cord, weights, reinforcing rim and small tied ornament. No pole, no handle, no fishing rod, no hoop scoop, no captured animals. Keep the whole net and rope inside canvas with at least 8% transparent padding on every side. Starter tier: humble tan wood, brown bindings, natural cream rope. Plain practical handmade equipment.",
+      "reference": "assets/rods/twig.png",
+      "asset": "assets/nets/twig.png"
+    },
+    {
+      "kind": "boats",
+      "key": "river",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete small open fishing boat, three-quarter isometric view from above, bow points upper right, interior and bench seats visible, two oars neatly resting inside. Same overall open-rowboat design language across all tiers, increasingly refined craftsmanship, no mast or sails, not a ship or vehicle scene. Keep hull wholly inside canvas with at least 8% transparent padding on every side. River tier: polished honey-brown wood, forest-green wraps or trim, modest brass fittings. Well-crafted freshwater equipment.",
+      "reference": "assets/rods/river.png",
+      "asset": "assets/boats/river.png"
+    },
+    {
+      "kind": "nets",
+      "key": "river",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete deployable CIRCULAR CAST FISHING NET, not a long-handled landing net. A folded-over shallow bell-shaped bundle of diamond-mesh netting, shown in a three-quarter isometric view, with a curved weighted circular hem spread into a readable oval, a single retrieval rope neatly coiled beside its top. Mesh has genuine transparent holes, chunky clear pixel strands and a few sturdy sinkers, compact readable inventory silhouette. Theme material colors apply to the cord, weights, reinforcing rim and small tied ornament. No pole, no handle, no fishing rod, no hoop scoop, no captured animals. Keep the whole net and rope inside canvas with at least 8% transparent padding on every side. River tier: polished honey-brown wood, forest-green wraps or trim, modest brass fittings. Well-crafted freshwater equipment.",
+      "reference": "assets/rods/river.png",
+      "asset": "assets/nets/river.png"
+    },
+    {
+      "kind": "boats",
+      "key": "marsh",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete small open fishing boat, three-quarter isometric view from above, bow points upper right, interior and bench seats visible, two oars neatly resting inside. Same overall open-rowboat design language across all tiers, increasingly refined craftsmanship, no mast or sails, not a ship or vehicle scene. Keep hull wholly inside canvas with at least 8% transparent padding on every side. Marsh tier: weathered dark wood and olive reeds, moss-green bindings, aged bronze fittings. Rugged swamp equipment.",
+      "reference": "assets/rods/marsh.png",
+      "asset": "assets/boats/marsh.png"
+    },
+    {
+      "kind": "nets",
+      "key": "marsh",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete deployable CIRCULAR CAST FISHING NET, not a long-handled landing net. A folded-over shallow bell-shaped bundle of diamond-mesh netting, shown in a three-quarter isometric view, with a curved weighted circular hem spread into a readable oval, a single retrieval rope neatly coiled beside its top. Mesh has genuine transparent holes, chunky clear pixel strands and a few sturdy sinkers, compact readable inventory silhouette. Theme material colors apply to the cord, weights, reinforcing rim and small tied ornament. No pole, no handle, no fishing rod, no hoop scoop, no captured animals. Keep the whole net and rope inside canvas with at least 8% transparent padding on every side. Marsh tier: weathered dark wood and olive reeds, moss-green bindings, aged bronze fittings. Rugged swamp equipment.",
+      "reference": "assets/rods/marsh.png",
+      "asset": "assets/nets/marsh.png"
+    },
+    {
+      "kind": "boats",
+      "key": "moonwood",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete small open fishing boat, three-quarter isometric view from above, bow points upper right, interior and bench seats visible, two oars neatly resting inside. Same overall open-rowboat design language across all tiers, increasingly refined craftsmanship, no mast or sails, not a ship or vehicle scene. Keep hull wholly inside canvas with at least 8% transparent padding on every side. Moonwood tier: enchanted dusky purple wood, silver fittings, restrained violet gems and a small pale crescent-moon ornament. Elegant moonlit fantasy equipment.",
+      "reference": "assets/rods/moonwood.png",
+      "asset": "assets/boats/moonwood.png"
+    },
+    {
+      "kind": "nets",
+      "key": "moonwood",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete deployable CIRCULAR CAST FISHING NET, not a long-handled landing net. A folded-over shallow bell-shaped bundle of diamond-mesh netting, shown in a three-quarter isometric view, with a curved weighted circular hem spread into a readable oval, a single retrieval rope neatly coiled beside its top. Mesh has genuine transparent holes, chunky clear pixel strands and a few sturdy sinkers, compact readable inventory silhouette. Theme material colors apply to the cord, weights, reinforcing rim and small tied ornament. No pole, no handle, no fishing rod, no hoop scoop, no captured animals. Keep the whole net and rope inside canvas with at least 8% transparent padding on every side. Moonwood tier: enchanted dusky purple wood, silver fittings, restrained violet gems and a small pale crescent-moon ornament. Elegant moonlit fantasy equipment.",
+      "reference": "assets/rods/moonwood.png",
+      "asset": "assets/nets/moonwood.png"
+    },
+    {
+      "kind": "boats",
+      "key": "tide",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete small open fishing boat, three-quarter isometric view from above, bow points upper right, interior and bench seats visible, two oars neatly resting inside. Same overall open-rowboat design language across all tiers, increasingly refined craftsmanship, no mast or sails, not a ship or vehicle scene. Keep hull wholly inside canvas with at least 8% transparent padding on every side. Tide tier: deep ocean blue and teal materials, brass fittings, small coral-red accents and wave motifs. Robust coastal equipment.",
+      "reference": "assets/rods/tide.png",
+      "asset": "assets/boats/tide.png"
+    },
+    {
+      "kind": "nets",
+      "key": "tide",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete deployable CIRCULAR CAST FISHING NET, not a long-handled landing net. A folded-over shallow bell-shaped bundle of diamond-mesh netting, shown in a three-quarter isometric view, with a curved weighted circular hem spread into a readable oval, a single retrieval rope neatly coiled beside its top. Mesh has genuine transparent holes, chunky clear pixel strands and a few sturdy sinkers, compact readable inventory silhouette. Theme material colors apply to the cord, weights, reinforcing rim and small tied ornament. No pole, no handle, no fishing rod, no hoop scoop, no captured animals. Keep the whole net and rope inside canvas with at least 8% transparent padding on every side. Tide tier: deep ocean blue and teal materials, brass fittings, small coral-red accents and wave motifs. Robust coastal equipment.",
+      "reference": "assets/rods/tide.png",
+      "asset": "assets/nets/tide.png"
+    },
+    {
+      "kind": "boats",
+      "key": "glacial",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete small open fishing boat, three-quarter isometric view from above, bow points upper right, interior and bench seats visible, two oars neatly resting inside. Same overall open-rowboat design language across all tiers, increasingly refined craftsmanship, no mast or sails, not a ship or vehicle scene. Keep hull wholly inside canvas with at least 8% transparent padding on every side. Glacial tier: ice-blue crystal and frosted blue materials, silver fittings, angular pale cyan crystal accents. Powerful frozen-water equipment.",
+      "reference": "assets/rods/glacial.png",
+      "asset": "assets/boats/glacial.png"
+    },
+    {
+      "kind": "nets",
+      "key": "glacial",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete deployable CIRCULAR CAST FISHING NET, not a long-handled landing net. A folded-over shallow bell-shaped bundle of diamond-mesh netting, shown in a three-quarter isometric view, with a curved weighted circular hem spread into a readable oval, a single retrieval rope neatly coiled beside its top. Mesh has genuine transparent holes, chunky clear pixel strands and a few sturdy sinkers, compact readable inventory silhouette. Theme material colors apply to the cord, weights, reinforcing rim and small tied ornament. No pole, no handle, no fishing rod, no hoop scoop, no captured animals. Keep the whole net and rope inside canvas with at least 8% transparent padding on every side. Glacial tier: ice-blue crystal and frosted blue materials, silver fittings, angular pale cyan crystal accents. Powerful frozen-water equipment.",
+      "reference": "assets/rods/glacial.png",
+      "asset": "assets/nets/glacial.png"
+    },
+    {
+      "kind": "boats",
+      "key": "abyssal",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete small open fishing boat, three-quarter isometric view from above, bow points upper right, interior and bench seats visible, two oars neatly resting inside. Same overall open-rowboat design language across all tiers, increasingly refined craftsmanship, no mast or sails, not a ship or vehicle scene. Keep hull wholly inside canvas with at least 8% transparent padding on every side. Abyssal endgame tier: black obsidian and charcoal materials, dark silver fittings, violet crystals, crimson cord bindings. Formidable deep-sea equipment, strong readable silhouette, restrained magical details.",
+      "reference": "assets/rods/abyssal.png",
+      "asset": "assets/boats/abyssal.png"
+    },
+    {
+      "kind": "nets",
+      "key": "abyssal",
+      "prompt": "Use case: stylized-concept. Create ONE Fishbound fantasy fishing-game equipment inventory sprite. Input rod is STYLE AND MATERIAL REFERENCE ONLY: do not draw a fishing rod. Match crisp chunky 16-bit pixel art, clearly visible square pixels, dark pixel outlines, limited palette, stepped pixel highlights and handcrafted RPG item aesthetic. Centered square canvas, entire object visible, fills about 80% with generous transparent margin. Genuinely transparent alpha background. No text, letters, UI frame, scenery, water, fish, bait, people, ground shadow, photorealism, smooth vector illustration or backdrop. Subject: ONE complete deployable CIRCULAR CAST FISHING NET, not a long-handled landing net. A folded-over shallow bell-shaped bundle of diamond-mesh netting, shown in a three-quarter isometric view, with a curved weighted circular hem spread into a readable oval, a single retrieval rope neatly coiled beside its top. Mesh has genuine transparent holes, chunky clear pixel strands and a few sturdy sinkers, compact readable inventory silhouette. Theme material colors apply to the cord, weights, reinforcing rim and small tied ornament. No pole, no handle, no fishing rod, no hoop scoop, no captured animals. Keep the whole net and rope inside canvas with at least 8% transparent padding on every side. Abyssal endgame tier: black obsidian and charcoal materials, dark silver fittings, violet crystals, crimson cord bindings. Formidable deep-sea equipment, strong readable silhouette, restrained magical details.",
+      "reference": "assets/rods/abyssal.png",
+      "asset": "assets/nets/abyssal.png"
+    }
+  ]
+}

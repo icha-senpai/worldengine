@@ -1,0 +1,145 @@
+{
+  "version": 3,
+  "equipment": [
+    {
+      "equipmentId": 101,
+      "rodId": 1,
+      "kind": "boat",
+      "name": "Twig Boat",
+      "spriteAsset": "/boats/twig.png",
+      "luckBp": 0,
+      "xpBonusBp": 0,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 102,
+      "rodId": 2,
+      "kind": "boat",
+      "name": "River Boat",
+      "spriteAsset": "/boats/river.png",
+      "luckBp": 4200,
+      "xpBonusBp": 5800,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 103,
+      "rodId": 3,
+      "kind": "boat",
+      "name": "Marsh Boat",
+      "spriteAsset": "/boats/marsh.png",
+      "luckBp": 8400,
+      "xpBonusBp": 11600,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 104,
+      "rodId": 4,
+      "kind": "boat",
+      "name": "Moonwood Boat",
+      "spriteAsset": "/boats/moonwood.png",
+      "luckBp": 12600,
+      "xpBonusBp": 17400,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 105,
+      "rodId": 5,
+      "kind": "boat",
+      "name": "Tide Boat",
+      "spriteAsset": "/boats/tide.png",
+      "luckBp": 16800,
+      "xpBonusBp": 23200,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 106,
+      "rodId": 6,
+      "kind": "boat",
+      "name": "Glacial Boat",
+      "spriteAsset": "/boats/glacial.png",
+      "luckBp": 21000,
+      "xpBonusBp": 29000,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 107,
+      "rodId": 7,
+      "kind": "boat",
+      "name": "Abyssal Boat",
+      "spriteAsset": "/boats/abyssal.png",
+      "luckBp": 25200,
+      "xpBonusBp": 34800,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 201,
+      "rodId": 1,
+      "kind": "net",
+      "name": "Twig Net",
+      "spriteAsset": "/nets/twig.png",
+      "luckBp": 0,
+      "xpBonusBp": 0,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 202,
+      "rodId": 2,
+      "kind": "net",
+      "name": "River Net",
+      "spriteAsset": "/nets/river.png",
+      "luckBp": 2100,
+      "xpBonusBp": 2900,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 203,
+      "rodId": 3,
+      "kind": "net",
+      "name": "Marsh Net",
+      "spriteAsset": "/nets/marsh.png",
+      "luckBp": 4200,
+      "xpBonusBp": 5800,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 204,
+      "rodId": 4,
+      "kind": "net",
+      "name": "Moonwood Net",
+      "spriteAsset": "/nets/moonwood.png",
+      "luckBp": 6300,
+      "xpBonusBp": 8700,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 205,
+      "rodId": 5,
+      "kind": "net",
+      "name": "Tide Net",
+      "spriteAsset": "/nets/tide.png",
+      "luckBp": 8400,
+      "xpBonusBp": 11600,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 206,
+      "rodId": 6,
+      "kind": "net",
+      "name": "Glacial Net",
+      "spriteAsset": "/nets/glacial.png",
+      "luckBp": 10500,
+      "xpBonusBp": 14500,
+      "qualityBonusMultiplier": 2
+    },
+    {
+      "equipmentId": 207,
+      "rodId": 7,
+      "kind": "net",
+      "name": "Abyssal Net",
+      "spriteAsset": "/nets/abyssal.png",
+      "luckBp": 12600,
+      "xpBonusBp": 17400,
+      "qualityBonusMultiplier": 2
+    }
+  ]
+}

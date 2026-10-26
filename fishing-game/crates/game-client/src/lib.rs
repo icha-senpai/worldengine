@@ -176,7 +176,7 @@ impl Client {
                 let error = connected.clone();
                 let mut queries = vec!["SELECT * FROM my_service"];
                 if role == ServiceRole::DiscordAdapter {
-                    queries.push("SELECT * FROM adapter_achievement_deliveries");
+                    queries.extend(["SELECT * FROM adapter_achievement_deliveries", "SELECT * FROM adapter_haul_work", "SELECT * FROM adapter_haul_status"]);
                     queries.extend(["SELECT * FROM quest_definition", "SELECT * FROM adapter_quests", "SELECT * FROM public_profile", "SELECT * FROM angler_portrait", "SELECT * FROM angler_standing", "SELECT * FROM angler_statistics", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM perfect_species", "SELECT * FROM rank_maximum", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
                     queries.extend(["SELECT * FROM bait_definition", "SELECT * FROM quality_definition", "SELECT * FROM adapter_baits", "SELECT * FROM adapter_bait_loadout", "SELECT * FROM adapter_collection_focus", "SELECT * FROM adapter_items", "SELECT * FROM adapter_cast_pulls", "SELECT * FROM adapter_cast_equipment", "SELECT * FROM adapter_upgrade_quote", "SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
                         "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_bonuses", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
@@ -440,6 +440,116 @@ impl Client {
             }
         }
         unreachable!("bounded transport retry")
+    }
+
+    pub async fn start_haul(
+        &self,
+        discord_user_id: u64,
+        display_name: String,
+        interaction_id: u64,
+        guild_id: Option<u64>,
+        channel_id: u64,
+        kind: String,
+    ) -> Result<HaulTrip, Error> {
+        let _guard = self.selection_guard().await?;
+        for attempt in 0..2 {
+            let connection = self.active_connection().await?;
+            let result = async {
+                Self::player_once(
+                    &connection,
+                    discord_user_id,
+                    display_name.clone(),
+                    interaction_id,
+                    guild_id,
+                    channel_id,
+                    false,
+                )
+                .await?;
+                let (sender, receiver) = oneshot::channel();
+                connection.reducers.start_haul_from_discord_then(
+                    discord_user_id,
+                    interaction_id,
+                    guild_id,
+                    channel_id,
+                    kind.clone(),
+                    complete(sender),
+                )?;
+                receive(receiver).await?;
+                connection
+                    .db
+                    .adapter_haul_status()
+                    .iter()
+                    .find(|row| row.discord_user_id == discord_user_id && row.kind == kind)
+                    .ok_or_else(|| {
+                        "Haul status unavailable; retry the command to check your trip".into()
+                    })
+            }
+            .await;
+            if result.is_ok() || connection.is_active() || attempt == 1 {
+                return result;
+            }
+        }
+        unreachable!("bounded transport retry")
+    }
+
+    pub fn pending_hauls(&self) -> Vec<HaulTrip> {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_micros() as i64;
+        self.connection()
+            .db
+            .adapter_haul_work()
+            .iter()
+            .filter(|row| row.available_at.to_micros_since_unix_epoch() <= now)
+            .collect()
+    }
+
+    pub async fn finish_haul(&self, interaction_id: u64) -> Result<(), Error> {
+        let connection = self.active_connection().await?;
+        let (sender, receiver) = oneshot::channel();
+        connection
+            .reducers
+            .finish_haul_from_adapter_then(interaction_id, complete(sender))?;
+        receive(receiver).await
+    }
+
+    pub async fn claim_haul(
+        &self,
+        interaction_id: u64,
+        nonce: u128,
+    ) -> Result<Option<HaulTrip>, Error> {
+        let connection = self.active_connection().await?;
+        let (sender, receiver) = oneshot::channel();
+        connection
+            .reducers
+            .claim_haul_delivery_then(interaction_id, nonce, complete(sender))?;
+        receive(receiver).await?;
+        Ok(connection.db.adapter_haul_work().iter().find(|row| {
+            row.interaction_id == interaction_id
+                && row.status == "ready"
+                && row.lease_nonce == nonce
+        }))
+    }
+
+    pub async fn acknowledge_haul(&self, interaction_id: u64, nonce: u128) -> Result<(), Error> {
+        let connection = self.active_connection().await?;
+        let (sender, receiver) = oneshot::channel();
+        connection.reducers.acknowledge_haul_delivery_then(
+            interaction_id,
+            nonce,
+            complete(sender),
+        )?;
+        receive(receiver).await
+    }
+
+    pub fn haul_species_name(&self, species_id: u32) -> String {
+        self.connection()
+            .db
+            .species_definition()
+            .species_id()
+            .find(&species_id)
+            .map_or_else(|| "Fish".into(), |row| row.name)
     }
 
     pub async fn daily(

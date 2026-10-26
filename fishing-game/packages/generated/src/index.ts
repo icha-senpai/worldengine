@@ -35,8 +35,10 @@ import {
 
 // Import all reducer arg schemas
 import AcknowledgeAchievementDeliveryReducer from "./acknowledge_achievement_delivery_reducer";
+import AcknowledgeHaulDeliveryReducer from "./acknowledge_haul_delivery_reducer";
 import ActivateAchievementsReducer from "./activate_achievements_reducer";
 import ActivateCraftingReducer from "./activate_crafting_reducer";
+import ActivateHaulEquipmentReducer from "./activate_haul_equipment_reducer";
 import ActivateHistoryQueriesReducer from "./activate_history_queries_reducer";
 import ActivatePerfectCatchesReducer from "./activate_perfect_catches_reducer";
 import ActivateQuestsReducer from "./activate_quests_reducer";
@@ -54,8 +56,10 @@ import ChangeLoadoutReducer from "./change_loadout_reducer";
 import ChangeLoadoutFromDiscordReducer from "./change_loadout_from_discord_reducer";
 import ClaimAchievementDeliveryReducer from "./claim_achievement_delivery_reducer";
 import ClaimDocksideDeliveryReducer from "./claim_dockside_delivery_reducer";
+import ClaimHaulDeliveryReducer from "./claim_haul_delivery_reducer";
 import ClaimQuestReducer from "./claim_quest_reducer";
 import ClaimQuestFromDiscordReducer from "./claim_quest_from_discord_reducer";
+import CommitHaulUpgradeReducer from "./commit_haul_upgrade_reducer";
 import CommitInventoryActionReducer from "./commit_inventory_action_reducer";
 import CommitRodUpgradeReducer from "./commit_rod_upgrade_reducer";
 import CommitSaleFromDiscordReducer from "./commit_sale_from_discord_reducer";
@@ -68,9 +72,12 @@ import ConfigureServiceReducer from "./configure_service_reducer";
 import DailyFromDiscordReducer from "./daily_from_discord_reducer";
 import EquipBaitReducer from "./equip_bait_reducer";
 import EquipBaitFromDiscordReducer from "./equip_bait_from_discord_reducer";
+import EquipHaulEquipmentReducer from "./equip_haul_equipment_reducer";
 import EquipTitleReducer from "./equip_title_reducer";
+import FinishHaulFromAdapterReducer from "./finish_haul_from_adapter_reducer";
 import FishFromDiscordReducer from "./fish_from_discord_reducer";
 import MigrateUnlimitedInventoryReducer from "./migrate_unlimited_inventory_reducer";
+import PrepareHaulUpgradeReducer from "./prepare_haul_upgrade_reducer";
 import PrepareInventoryActionReducer from "./prepare_inventory_action_reducer";
 import PrepareRodUpgradeReducer from "./prepare_rod_upgrade_reducer";
 import PrepareSaleFromDiscordReducer from "./prepare_sale_from_discord_reducer";
@@ -86,6 +93,7 @@ import SetBaitSlotFromDiscordReducer from "./set_bait_slot_from_discord_reducer"
 import SetCatchFavoriteReducer from "./set_catch_favorite_reducer";
 import SetCollectionFocusReducer from "./set_collection_focus_reducer";
 import SetCollectionFocusFromDiscordReducer from "./set_collection_focus_from_discord_reducer";
+import StartHaulFromDiscordReducer from "./start_haul_from_discord_reducer";
 import SyncDiscordPortraitReducer from "./sync_discord_portrait_reducer";
 import UnlinkBrowserReducer from "./unlink_browser_reducer";
 
@@ -103,6 +111,8 @@ import AdapterCastPullsRow from "./adapter_cast_pulls_table";
 import AdapterCollectionRow from "./adapter_collection_table";
 import AdapterCollectionFocusRow from "./adapter_collection_focus_table";
 import AdapterDailyReceiptRow from "./adapter_daily_receipt_table";
+import AdapterHaulStatusRow from "./adapter_haul_status_table";
+import AdapterHaulWorkRow from "./adapter_haul_work_table";
 import AdapterInventoryRow from "./adapter_inventory_table";
 import AdapterItemsRow from "./adapter_items_table";
 import AdapterLicencesRow from "./adapter_licences_table";
@@ -121,6 +131,7 @@ import BaitDefinitionRow from "./bait_definition_table";
 import BiomeDefinitionRow from "./biome_definition_table";
 import EarnedAchievementRow from "./earned_achievement_table";
 import GameConfigRow from "./game_config_table";
+import HaulEquipmentDefinitionRow from "./haul_equipment_definition_table";
 import LegendaryFindRow from "./legendary_find_table";
 import MyAchievementProgressRow from "./my_achievement_progress_table";
 import MyActionRow from "./my_action_table";
@@ -129,6 +140,10 @@ import MyBaitsRow from "./my_baits_table";
 import MyCollectionRow from "./my_collection_table";
 import MyCollectionFocusRow from "./my_collection_focus_table";
 import MyDocksideRow from "./my_dockside_table";
+import MyHaulEquipmentRow from "./my_haul_equipment_table";
+import MyHaulLoadoutRow from "./my_haul_loadout_table";
+import MyHaulTripsRow from "./my_haul_trips_table";
+import MyHaulUpgradeQuoteRow from "./my_haul_upgrade_quote_table";
 import MyInventoryRow from "./my_inventory_table";
 import MyItemsRow from "./my_items_table";
 import MyJournalRow from "./my_journal_table";
@@ -275,6 +290,17 @@ const tablesSchema = __schema({
       { name: 'game_config_version_key', constraint: 'unique', columns: ['version'] },
     ],
   }, GameConfigRow),
+  haulEquipmentDefinition: __table({
+    name: 'haul_equipment_definition',
+    indexes: [
+      { accessor: 'equipment_id', name: 'haul_equipment_definition_equipment_id_idx_btree', algorithm: 'btree', columns: [
+        'equipmentId',
+      ] },
+    ],
+    constraints: [
+      { name: 'haul_equipment_definition_equipment_id_key', constraint: 'unique', columns: ['equipmentId'] },
+    ],
+  }, HaulEquipmentDefinitionRow),
   legendaryFind: __table({
     name: 'legendary_find',
     indexes: [
@@ -518,6 +544,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterDailyReceiptRow),
+  adapterHaulStatus: __table({
+    name: 'adapter_haul_status',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterHaulStatusRow),
+  adapterHaulWork: __table({
+    name: 'adapter_haul_work',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterHaulWorkRow),
   adapterInventory: __table({
     name: 'adapter_inventory',
     indexes: [
@@ -637,6 +677,34 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyDocksideRow),
+  myHaulEquipment: __table({
+    name: 'my_haul_equipment',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyHaulEquipmentRow),
+  myHaulLoadout: __table({
+    name: 'my_haul_loadout',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyHaulLoadoutRow),
+  myHaulTrips: __table({
+    name: 'my_haul_trips',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyHaulTripsRow),
+  myHaulUpgradeQuote: __table({
+    name: 'my_haul_upgrade_quote',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyHaulUpgradeQuoteRow),
   myInventory: __table({
     name: 'my_inventory',
     indexes: [
@@ -740,8 +808,10 @@ const tablesSchema = __schema({
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("acknowledge_achievement_delivery", AcknowledgeAchievementDeliveryReducer),
+  __reducerSchema("acknowledge_haul_delivery", AcknowledgeHaulDeliveryReducer),
   __reducerSchema("activate_achievements", ActivateAchievementsReducer),
   __reducerSchema("activate_crafting", ActivateCraftingReducer),
+  __reducerSchema("activate_haul_equipment", ActivateHaulEquipmentReducer),
   __reducerSchema("activate_history_queries", ActivateHistoryQueriesReducer),
   __reducerSchema("activate_perfect_catches", ActivatePerfectCatchesReducer),
   __reducerSchema("activate_quests", ActivateQuestsReducer),
@@ -759,8 +829,10 @@ const reducersSchema = __reducers(
   __reducerSchema("change_loadout_from_discord", ChangeLoadoutFromDiscordReducer),
   __reducerSchema("claim_achievement_delivery", ClaimAchievementDeliveryReducer),
   __reducerSchema("claim_dockside_delivery", ClaimDocksideDeliveryReducer),
+  __reducerSchema("claim_haul_delivery", ClaimHaulDeliveryReducer),
   __reducerSchema("claim_quest", ClaimQuestReducer),
   __reducerSchema("claim_quest_from_discord", ClaimQuestFromDiscordReducer),
+  __reducerSchema("commit_haul_upgrade", CommitHaulUpgradeReducer),
   __reducerSchema("commit_inventory_action", CommitInventoryActionReducer),
   __reducerSchema("commit_rod_upgrade", CommitRodUpgradeReducer),
   __reducerSchema("commit_sale_from_discord", CommitSaleFromDiscordReducer),
@@ -773,9 +845,12 @@ const reducersSchema = __reducers(
   __reducerSchema("daily_from_discord", DailyFromDiscordReducer),
   __reducerSchema("equip_bait", EquipBaitReducer),
   __reducerSchema("equip_bait_from_discord", EquipBaitFromDiscordReducer),
+  __reducerSchema("equip_haul_equipment", EquipHaulEquipmentReducer),
   __reducerSchema("equip_title", EquipTitleReducer),
+  __reducerSchema("finish_haul_from_adapter", FinishHaulFromAdapterReducer),
   __reducerSchema("fish_from_discord", FishFromDiscordReducer),
   __reducerSchema("migrate_unlimited_inventory", MigrateUnlimitedInventoryReducer),
+  __reducerSchema("prepare_haul_upgrade", PrepareHaulUpgradeReducer),
   __reducerSchema("prepare_inventory_action", PrepareInventoryActionReducer),
   __reducerSchema("prepare_rod_upgrade", PrepareRodUpgradeReducer),
   __reducerSchema("prepare_sale_from_discord", PrepareSaleFromDiscordReducer),
@@ -791,6 +866,7 @@ const reducersSchema = __reducers(
   __reducerSchema("set_catch_favorite", SetCatchFavoriteReducer),
   __reducerSchema("set_collection_focus", SetCollectionFocusReducer),
   __reducerSchema("set_collection_focus_from_discord", SetCollectionFocusFromDiscordReducer),
+  __reducerSchema("start_haul_from_discord", StartHaulFromDiscordReducer),
   __reducerSchema("sync_discord_portrait", SyncDiscordPortraitReducer),
   __reducerSchema("unlink_browser", UnlinkBrowserReducer),
 );
@@ -821,6 +897,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "earned_achievement": Omit<typeof tablesSchema.schemaType.tables["earnedAchievement"], "accessorName"> & { readonly accessorName: "earned_achievement" };
     /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
     readonly "game_config": Omit<typeof tablesSchema.schemaType.tables["gameConfig"], "accessorName"> & { readonly accessorName: "game_config" };
+    /** @deprecated Use `haulEquipmentDefinition` instead. This alias will be removed in the next major version. */
+    readonly "haul_equipment_definition": Omit<typeof tablesSchema.schemaType.tables["haulEquipmentDefinition"], "accessorName"> & { readonly accessorName: "haul_equipment_definition" };
     /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
     readonly "legendary_find": Omit<typeof tablesSchema.schemaType.tables["legendaryFind"], "accessorName"> & { readonly accessorName: "legendary_find" };
     /** @deprecated Use `perfectSpecies` instead. This alias will be removed in the next major version. */
@@ -869,6 +947,10 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "adapter_collection_focus": Omit<typeof tablesSchema.schemaType.tables["adapterCollectionFocus"], "accessorName"> & { readonly accessorName: "adapter_collection_focus" };
     /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
     readonly "adapter_daily_receipt": Omit<typeof tablesSchema.schemaType.tables["adapterDailyReceipt"], "accessorName"> & { readonly accessorName: "adapter_daily_receipt" };
+    /** @deprecated Use `adapterHaulStatus` instead. This alias will be removed in the next major version. */
+    readonly "adapter_haul_status": Omit<typeof tablesSchema.schemaType.tables["adapterHaulStatus"], "accessorName"> & { readonly accessorName: "adapter_haul_status" };
+    /** @deprecated Use `adapterHaulWork` instead. This alias will be removed in the next major version. */
+    readonly "adapter_haul_work": Omit<typeof tablesSchema.schemaType.tables["adapterHaulWork"], "accessorName"> & { readonly accessorName: "adapter_haul_work" };
     /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
     readonly "adapter_inventory": Omit<typeof tablesSchema.schemaType.tables["adapterInventory"], "accessorName"> & { readonly accessorName: "adapter_inventory" };
     /** @deprecated Use `adapterItems` instead. This alias will be removed in the next major version. */
@@ -903,6 +985,14 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_collection_focus": Omit<typeof tablesSchema.schemaType.tables["myCollectionFocus"], "accessorName"> & { readonly accessorName: "my_collection_focus" };
     /** @deprecated Use `myDockside` instead. This alias will be removed in the next major version. */
     readonly "my_dockside": Omit<typeof tablesSchema.schemaType.tables["myDockside"], "accessorName"> & { readonly accessorName: "my_dockside" };
+    /** @deprecated Use `myHaulEquipment` instead. This alias will be removed in the next major version. */
+    readonly "my_haul_equipment": Omit<typeof tablesSchema.schemaType.tables["myHaulEquipment"], "accessorName"> & { readonly accessorName: "my_haul_equipment" };
+    /** @deprecated Use `myHaulLoadout` instead. This alias will be removed in the next major version. */
+    readonly "my_haul_loadout": Omit<typeof tablesSchema.schemaType.tables["myHaulLoadout"], "accessorName"> & { readonly accessorName: "my_haul_loadout" };
+    /** @deprecated Use `myHaulTrips` instead. This alias will be removed in the next major version. */
+    readonly "my_haul_trips": Omit<typeof tablesSchema.schemaType.tables["myHaulTrips"], "accessorName"> & { readonly accessorName: "my_haul_trips" };
+    /** @deprecated Use `myHaulUpgradeQuote` instead. This alias will be removed in the next major version. */
+    readonly "my_haul_upgrade_quote": Omit<typeof tablesSchema.schemaType.tables["myHaulUpgradeQuote"], "accessorName"> & { readonly accessorName: "my_haul_upgrade_quote" };
     /** @deprecated Use `myInventory` instead. This alias will be removed in the next major version. */
     readonly "my_inventory": Omit<typeof tablesSchema.schemaType.tables["myInventory"], "accessorName"> & { readonly accessorName: "my_inventory" };
     /** @deprecated Use `myItems` instead. This alias will be removed in the next major version. */
@@ -959,6 +1049,7 @@ const tableAccessorAliases = {
   "biome_definition": "biomeDefinition",
   "earned_achievement": "earnedAchievement",
   "game_config": "gameConfig",
+  "haul_equipment_definition": "haulEquipmentDefinition",
   "legendary_find": "legendaryFind",
   "perfect_species": "perfectSpecies",
   "public_profile": "publicProfile",
@@ -983,6 +1074,8 @@ const tableAccessorAliases = {
   "adapter_collection": "adapterCollection",
   "adapter_collection_focus": "adapterCollectionFocus",
   "adapter_daily_receipt": "adapterDailyReceipt",
+  "adapter_haul_status": "adapterHaulStatus",
+  "adapter_haul_work": "adapterHaulWork",
   "adapter_inventory": "adapterInventory",
   "adapter_items": "adapterItems",
   "adapter_licences": "adapterLicences",
@@ -1000,6 +1093,10 @@ const tableAccessorAliases = {
   "my_collection": "myCollection",
   "my_collection_focus": "myCollectionFocus",
   "my_dockside": "myDockside",
+  "my_haul_equipment": "myHaulEquipment",
+  "my_haul_loadout": "myHaulLoadout",
+  "my_haul_trips": "myHaulTrips",
+  "my_haul_upgrade_quote": "myHaulUpgradeQuote",
   "my_inventory": "myInventory",
   "my_items": "myItems",
   "my_journal": "myJournal",
@@ -1054,6 +1151,8 @@ export type DbView = __DbViewBase & {
   readonly "earned_achievement": __DbViewBase["earnedAchievement"];
   /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
   readonly "game_config": __DbViewBase["gameConfig"];
+  /** @deprecated Use `haulEquipmentDefinition` instead. This alias will be removed in the next major version. */
+  readonly "haul_equipment_definition": __DbViewBase["haulEquipmentDefinition"];
   /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
   readonly "legendary_find": __DbViewBase["legendaryFind"];
   /** @deprecated Use `perfectSpecies` instead. This alias will be removed in the next major version. */
@@ -1102,6 +1201,10 @@ export type DbView = __DbViewBase & {
   readonly "adapter_collection_focus": __DbViewBase["adapterCollectionFocus"];
   /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_daily_receipt": __DbViewBase["adapterDailyReceipt"];
+  /** @deprecated Use `adapterHaulStatus` instead. This alias will be removed in the next major version. */
+  readonly "adapter_haul_status": __DbViewBase["adapterHaulStatus"];
+  /** @deprecated Use `adapterHaulWork` instead. This alias will be removed in the next major version. */
+  readonly "adapter_haul_work": __DbViewBase["adapterHaulWork"];
   /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
   readonly "adapter_inventory": __DbViewBase["adapterInventory"];
   /** @deprecated Use `adapterItems` instead. This alias will be removed in the next major version. */
@@ -1136,6 +1239,14 @@ export type DbView = __DbViewBase & {
   readonly "my_collection_focus": __DbViewBase["myCollectionFocus"];
   /** @deprecated Use `myDockside` instead. This alias will be removed in the next major version. */
   readonly "my_dockside": __DbViewBase["myDockside"];
+  /** @deprecated Use `myHaulEquipment` instead. This alias will be removed in the next major version. */
+  readonly "my_haul_equipment": __DbViewBase["myHaulEquipment"];
+  /** @deprecated Use `myHaulLoadout` instead. This alias will be removed in the next major version. */
+  readonly "my_haul_loadout": __DbViewBase["myHaulLoadout"];
+  /** @deprecated Use `myHaulTrips` instead. This alias will be removed in the next major version. */
+  readonly "my_haul_trips": __DbViewBase["myHaulTrips"];
+  /** @deprecated Use `myHaulUpgradeQuote` instead. This alias will be removed in the next major version. */
+  readonly "my_haul_upgrade_quote": __DbViewBase["myHaulUpgradeQuote"];
   /** @deprecated Use `myInventory` instead. This alias will be removed in the next major version. */
   readonly "my_inventory": __DbViewBase["myInventory"];
   /** @deprecated Use `myItems` instead. This alias will be removed in the next major version. */
@@ -1188,6 +1299,8 @@ export type Tables = __TablesBase & {
   readonly "earned_achievement": __TablesBase["earnedAchievement"];
   /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
   readonly "game_config": __TablesBase["gameConfig"];
+  /** @deprecated Use `haulEquipmentDefinition` instead. This alias will be removed in the next major version. */
+  readonly "haul_equipment_definition": __TablesBase["haulEquipmentDefinition"];
   /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
   readonly "legendary_find": __TablesBase["legendaryFind"];
   /** @deprecated Use `perfectSpecies` instead. This alias will be removed in the next major version. */
@@ -1236,6 +1349,10 @@ export type Tables = __TablesBase & {
   readonly "adapter_collection_focus": __TablesBase["adapterCollectionFocus"];
   /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_daily_receipt": __TablesBase["adapterDailyReceipt"];
+  /** @deprecated Use `adapterHaulStatus` instead. This alias will be removed in the next major version. */
+  readonly "adapter_haul_status": __TablesBase["adapterHaulStatus"];
+  /** @deprecated Use `adapterHaulWork` instead. This alias will be removed in the next major version. */
+  readonly "adapter_haul_work": __TablesBase["adapterHaulWork"];
   /** @deprecated Use `adapterInventory` instead. This alias will be removed in the next major version. */
   readonly "adapter_inventory": __TablesBase["adapterInventory"];
   /** @deprecated Use `adapterItems` instead. This alias will be removed in the next major version. */
@@ -1270,6 +1387,14 @@ export type Tables = __TablesBase & {
   readonly "my_collection_focus": __TablesBase["myCollectionFocus"];
   /** @deprecated Use `myDockside` instead. This alias will be removed in the next major version. */
   readonly "my_dockside": __TablesBase["myDockside"];
+  /** @deprecated Use `myHaulEquipment` instead. This alias will be removed in the next major version. */
+  readonly "my_haul_equipment": __TablesBase["myHaulEquipment"];
+  /** @deprecated Use `myHaulLoadout` instead. This alias will be removed in the next major version. */
+  readonly "my_haul_loadout": __TablesBase["myHaulLoadout"];
+  /** @deprecated Use `myHaulTrips` instead. This alias will be removed in the next major version. */
+  readonly "my_haul_trips": __TablesBase["myHaulTrips"];
+  /** @deprecated Use `myHaulUpgradeQuote` instead. This alias will be removed in the next major version. */
+  readonly "my_haul_upgrade_quote": __TablesBase["myHaulUpgradeQuote"];
   /** @deprecated Use `myInventory` instead. This alias will be removed in the next major version. */
   readonly "my_inventory": __TablesBase["myInventory"];
   /** @deprecated Use `myItems` instead. This alias will be removed in the next major version. */

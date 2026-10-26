@@ -8,6 +8,7 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
         return Err("SCHEDULER_REQUIRED".into());
     }
     crate::quests::refresh_calendar(ctx);
+    crate::hauls::prune_delivered(ctx);
     for row in ctx
         .db
         .shop_quote()
@@ -37,6 +38,15 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
         .take(1000)
     {
         ctx.db.upgrade_quote().key().delete(row.key);
+    }
+    for row in ctx
+        .db
+        .haul_upgrade_quote()
+        .expires_at()
+        .filter(..ctx.timestamp)
+        .take(1000)
+    {
+        ctx.db.haul_upgrade_quote().key().delete(row.key);
     }
     for row in ctx.db.cast_pull().caught_at().filter(..week).take(1000) {
         ctx.db.cast_pull().key().delete(row.key);

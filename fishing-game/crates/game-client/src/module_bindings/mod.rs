@@ -14,9 +14,11 @@ pub mod achievement_delivery_type;
 pub mod achievement_progress_type;
 pub mod achievement_route_type;
 pub mod acknowledge_achievement_delivery_reducer;
+pub mod acknowledge_haul_delivery_reducer;
 pub mod action_nonce_type;
 pub mod activate_achievements_reducer;
 pub mod activate_crafting_reducer;
+pub mod activate_haul_equipment_reducer;
 pub mod activate_history_queries_reducer;
 pub mod activate_perfect_catches_reducer;
 pub mod activate_quests_reducer;
@@ -34,6 +36,8 @@ pub mod adapter_cast_pulls_table;
 pub mod adapter_collection_focus_table;
 pub mod adapter_collection_table;
 pub mod adapter_daily_receipt_table;
+pub mod adapter_haul_status_table;
+pub mod adapter_haul_work_table;
 pub mod adapter_inventory_table;
 pub mod adapter_items_table;
 pub mod adapter_licences_table;
@@ -70,10 +74,12 @@ pub mod change_loadout_from_discord_reducer;
 pub mod change_loadout_reducer;
 pub mod claim_achievement_delivery_reducer;
 pub mod claim_dockside_delivery_reducer;
+pub mod claim_haul_delivery_reducer;
 pub mod claim_quest_from_discord_reducer;
 pub mod claim_quest_reducer;
 pub mod collection_focus_preference_type;
 pub mod command_receipt_type;
+pub mod commit_haul_upgrade_reducer;
 pub mod commit_inventory_action_reducer;
 pub mod commit_rod_upgrade_reducer;
 pub mod commit_sale_from_discord_reducer;
@@ -93,12 +99,21 @@ pub mod earned_achievement_type;
 pub mod economy_ledger_type;
 pub mod equip_bait_from_discord_reducer;
 pub mod equip_bait_reducer;
+pub mod equip_haul_equipment_reducer;
 pub mod equip_title_reducer;
+pub mod finish_haul_from_adapter_reducer;
 pub mod fish_from_discord_reducer;
 pub mod fishing_biome_activity_type;
 pub mod fishing_day_type;
 pub mod game_config_table;
 pub mod game_config_type;
+pub mod haul_equipment_definition_table;
+pub mod haul_equipment_definition_type;
+pub mod haul_job_type;
+pub mod haul_loadout_type;
+pub mod haul_request_type;
+pub mod haul_trip_type;
+pub mod haul_upgrade_quote_type;
 pub mod item_stack_type;
 pub mod journal_count_type;
 pub mod journal_entry_type;
@@ -117,6 +132,10 @@ pub mod my_baits_table;
 pub mod my_collection_focus_table;
 pub mod my_collection_table;
 pub mod my_dockside_table;
+pub mod my_haul_equipment_table;
+pub mod my_haul_loadout_table;
+pub mod my_haul_trips_table;
+pub mod my_haul_upgrade_quote_table;
 pub mod my_inventory_table;
 pub mod my_items_table;
 pub mod my_journal_table;
@@ -132,6 +151,7 @@ pub mod my_service_table;
 pub mod my_shop_quote_table;
 pub mod my_upgrade_quote_table;
 pub mod owned_biome_licence_type;
+pub mod owned_haul_equipment_type;
 pub mod owned_rod_type;
 pub mod owned_specimen_type;
 pub mod perfect_species_table;
@@ -139,6 +159,7 @@ pub mod perfect_species_type;
 pub mod player_identity_type;
 pub mod player_species_progress_type;
 pub mod player_type;
+pub mod prepare_haul_upgrade_reducer;
 pub mod prepare_inventory_action_reducer;
 pub mod prepare_rod_upgrade_reducer;
 pub mod prepare_sale_from_discord_reducer;
@@ -189,6 +210,7 @@ pub mod species_rank_definition_table;
 pub mod species_rank_definition_type;
 pub mod species_record_table;
 pub mod species_record_type;
+pub mod start_haul_from_discord_reducer;
 pub mod sync_discord_portrait_reducer;
 pub mod trader_migration_type;
 pub mod unlink_browser_reducer;
@@ -203,9 +225,11 @@ pub use achievement_delivery_type::AchievementDelivery;
 pub use achievement_progress_type::AchievementProgress;
 pub use achievement_route_type::AchievementRoute;
 pub use acknowledge_achievement_delivery_reducer::acknowledge_achievement_delivery;
+pub use acknowledge_haul_delivery_reducer::acknowledge_haul_delivery;
 pub use action_nonce_type::ActionNonce;
 pub use activate_achievements_reducer::activate_achievements;
 pub use activate_crafting_reducer::activate_crafting;
+pub use activate_haul_equipment_reducer::activate_haul_equipment;
 pub use activate_history_queries_reducer::activate_history_queries;
 pub use activate_perfect_catches_reducer::activate_perfect_catches;
 pub use activate_quests_reducer::activate_quests;
@@ -223,6 +247,8 @@ pub use adapter_cast_pulls_table::*;
 pub use adapter_collection_focus_table::*;
 pub use adapter_collection_table::*;
 pub use adapter_daily_receipt_table::*;
+pub use adapter_haul_status_table::*;
+pub use adapter_haul_work_table::*;
 pub use adapter_inventory_table::*;
 pub use adapter_items_table::*;
 pub use adapter_licences_table::*;
@@ -259,10 +285,12 @@ pub use change_loadout_from_discord_reducer::change_loadout_from_discord;
 pub use change_loadout_reducer::change_loadout;
 pub use claim_achievement_delivery_reducer::claim_achievement_delivery;
 pub use claim_dockside_delivery_reducer::claim_dockside_delivery;
+pub use claim_haul_delivery_reducer::claim_haul_delivery;
 pub use claim_quest_from_discord_reducer::claim_quest_from_discord;
 pub use claim_quest_reducer::claim_quest;
 pub use collection_focus_preference_type::CollectionFocusPreference;
 pub use command_receipt_type::CommandReceipt;
+pub use commit_haul_upgrade_reducer::commit_haul_upgrade;
 pub use commit_inventory_action_reducer::commit_inventory_action;
 pub use commit_rod_upgrade_reducer::commit_rod_upgrade;
 pub use commit_sale_from_discord_reducer::commit_sale_from_discord;
@@ -282,12 +310,21 @@ pub use earned_achievement_type::EarnedAchievement;
 pub use economy_ledger_type::EconomyLedger;
 pub use equip_bait_from_discord_reducer::equip_bait_from_discord;
 pub use equip_bait_reducer::equip_bait;
+pub use equip_haul_equipment_reducer::equip_haul_equipment;
 pub use equip_title_reducer::equip_title;
+pub use finish_haul_from_adapter_reducer::finish_haul_from_adapter;
 pub use fish_from_discord_reducer::fish_from_discord;
 pub use fishing_biome_activity_type::FishingBiomeActivity;
 pub use fishing_day_type::FishingDay;
 pub use game_config_table::*;
 pub use game_config_type::GameConfig;
+pub use haul_equipment_definition_table::*;
+pub use haul_equipment_definition_type::HaulEquipmentDefinition;
+pub use haul_job_type::HaulJob;
+pub use haul_loadout_type::HaulLoadout;
+pub use haul_request_type::HaulRequest;
+pub use haul_trip_type::HaulTrip;
+pub use haul_upgrade_quote_type::HaulUpgradeQuote;
 pub use item_stack_type::ItemStack;
 pub use journal_count_type::JournalCount;
 pub use journal_entry_type::JournalEntry;
@@ -306,6 +343,10 @@ pub use my_baits_table::*;
 pub use my_collection_focus_table::*;
 pub use my_collection_table::*;
 pub use my_dockside_table::*;
+pub use my_haul_equipment_table::*;
+pub use my_haul_loadout_table::*;
+pub use my_haul_trips_table::*;
+pub use my_haul_upgrade_quote_table::*;
 pub use my_inventory_table::*;
 pub use my_items_table::*;
 pub use my_journal_table::*;
@@ -321,6 +362,7 @@ pub use my_service_table::*;
 pub use my_shop_quote_table::*;
 pub use my_upgrade_quote_table::*;
 pub use owned_biome_licence_type::OwnedBiomeLicence;
+pub use owned_haul_equipment_type::OwnedHaulEquipment;
 pub use owned_rod_type::OwnedRod;
 pub use owned_specimen_type::OwnedSpecimen;
 pub use perfect_species_table::*;
@@ -328,6 +370,7 @@ pub use perfect_species_type::PerfectSpecies;
 pub use player_identity_type::PlayerIdentity;
 pub use player_species_progress_type::PlayerSpeciesProgress;
 pub use player_type::Player;
+pub use prepare_haul_upgrade_reducer::prepare_haul_upgrade;
 pub use prepare_inventory_action_reducer::prepare_inventory_action;
 pub use prepare_rod_upgrade_reducer::prepare_rod_upgrade;
 pub use prepare_sale_from_discord_reducer::prepare_sale_from_discord;
@@ -378,6 +421,7 @@ pub use species_rank_definition_table::*;
 pub use species_rank_definition_type::SpeciesRankDefinition;
 pub use species_record_table::*;
 pub use species_record_type::SpeciesRecord;
+pub use start_haul_from_discord_reducer::start_haul_from_discord;
 pub use sync_discord_portrait_reducer::sync_discord_portrait;
 pub use trader_migration_type::TraderMigration;
 pub use unlink_browser_reducer::unlink_browser;
@@ -396,8 +440,13 @@ pub enum Reducer {
         key: u128,
         lease_nonce: u128,
     },
+    AcknowledgeHaulDelivery {
+        interaction_id: u64,
+        lease_nonce: u128,
+    },
     ActivateAchievements,
     ActivateCrafting,
+    ActivateHaulEquipment,
     ActivateHistoryQueries,
     ActivatePerfectCatches,
     ActivateQuests,
@@ -434,6 +483,10 @@ pub enum Reducer {
         lease_nonce: u128,
     },
     ClaimDocksideDelivery,
+    ClaimHaulDelivery {
+        interaction_id: u64,
+        lease_nonce: u128,
+    },
     ClaimQuest {
         quest_id: u32,
         bait_id: u32,
@@ -449,6 +502,9 @@ pub enum Reducer {
         catch_id: Option<u64>,
         expected_week: i64,
         expected_cycle: u64,
+    },
+    CommitHaulUpgrade {
+        nonce: u128,
     },
     CommitInventoryAction {
         nonce: u128,
@@ -502,8 +558,14 @@ pub enum Reducer {
         interaction_id: u64,
         bait_id: u32,
     },
+    EquipHaulEquipment {
+        equipment_id: u32,
+    },
     EquipTitle {
         achievement_id: u32,
+    },
+    FinishHaulFromAdapter {
+        interaction_id: u64,
     },
     FishFromDiscord {
         discord_user_id: u64,
@@ -512,6 +574,9 @@ pub enum Reducer {
         channel_id: u64,
     },
     MigrateUnlimitedInventory,
+    PrepareHaulUpgrade {
+        equipment_id: u32,
+    },
     PrepareInventoryAction {
         kind: String,
         catch_ids: Vec<u64>,
@@ -584,6 +649,13 @@ pub enum Reducer {
         biome_id: u32,
         enabled: bool,
     },
+    StartHaulFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        guild_id: Option<u64>,
+        channel_id: u64,
+        kind: String,
+    },
     SyncDiscordPortrait {
         discord_user_id: u64,
         avatar_hash: Option<String>,
@@ -600,8 +672,10 @@ impl __sdk::Reducer for Reducer {
     fn reducer_name(&self) -> &'static str {
         match self {
             Reducer::AcknowledgeAchievementDelivery { .. } => "acknowledge_achievement_delivery",
+            Reducer::AcknowledgeHaulDelivery { .. } => "acknowledge_haul_delivery",
             Reducer::ActivateAchievements => "activate_achievements",
             Reducer::ActivateCrafting => "activate_crafting",
+            Reducer::ActivateHaulEquipment => "activate_haul_equipment",
             Reducer::ActivateHistoryQueries => "activate_history_queries",
             Reducer::ActivatePerfectCatches => "activate_perfect_catches",
             Reducer::ActivateQuests => "activate_quests",
@@ -619,8 +693,10 @@ impl __sdk::Reducer for Reducer {
             Reducer::ChangeLoadoutFromDiscord { .. } => "change_loadout_from_discord",
             Reducer::ClaimAchievementDelivery { .. } => "claim_achievement_delivery",
             Reducer::ClaimDocksideDelivery => "claim_dockside_delivery",
+            Reducer::ClaimHaulDelivery { .. } => "claim_haul_delivery",
             Reducer::ClaimQuest { .. } => "claim_quest",
             Reducer::ClaimQuestFromDiscord { .. } => "claim_quest_from_discord",
+            Reducer::CommitHaulUpgrade { .. } => "commit_haul_upgrade",
             Reducer::CommitInventoryAction { .. } => "commit_inventory_action",
             Reducer::CommitRodUpgrade { .. } => "commit_rod_upgrade",
             Reducer::CommitSaleFromDiscord { .. } => "commit_sale_from_discord",
@@ -633,9 +709,12 @@ impl __sdk::Reducer for Reducer {
             Reducer::DailyFromDiscord { .. } => "daily_from_discord",
             Reducer::EquipBait { .. } => "equip_bait",
             Reducer::EquipBaitFromDiscord { .. } => "equip_bait_from_discord",
+            Reducer::EquipHaulEquipment { .. } => "equip_haul_equipment",
             Reducer::EquipTitle { .. } => "equip_title",
+            Reducer::FinishHaulFromAdapter { .. } => "finish_haul_from_adapter",
             Reducer::FishFromDiscord { .. } => "fish_from_discord",
             Reducer::MigrateUnlimitedInventory => "migrate_unlimited_inventory",
+            Reducer::PrepareHaulUpgrade { .. } => "prepare_haul_upgrade",
             Reducer::PrepareInventoryAction { .. } => "prepare_inventory_action",
             Reducer::PrepareRodUpgrade { .. } => "prepare_rod_upgrade",
             Reducer::PrepareSaleFromDiscord { .. } => "prepare_sale_from_discord",
@@ -651,6 +730,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::SetCatchFavorite { .. } => "set_catch_favorite",
             Reducer::SetCollectionFocus { .. } => "set_collection_focus",
             Reducer::SetCollectionFocusFromDiscord { .. } => "set_collection_focus_from_discord",
+            Reducer::StartHaulFromDiscord { .. } => "start_haul_from_discord",
             Reducer::SyncDiscordPortrait { .. } => "sync_discord_portrait",
             Reducer::UnlinkBrowser => "unlink_browser",
             _ => unreachable!(),
@@ -665,12 +745,24 @@ impl __sdk::Reducer for Reducer {
                     lease_nonce: lease_nonce.clone(),
                 },
             ),
+            Reducer::AcknowledgeHaulDelivery {
+                interaction_id,
+                lease_nonce,
+            } => __sats::bsatn::to_vec(
+                &acknowledge_haul_delivery_reducer::AcknowledgeHaulDeliveryArgs {
+                    interaction_id: interaction_id.clone(),
+                    lease_nonce: lease_nonce.clone(),
+                },
+            ),
             Reducer::ActivateAchievements => {
                 __sats::bsatn::to_vec(&activate_achievements_reducer::ActivateAchievementsArgs {})
             }
             Reducer::ActivateCrafting => {
                 __sats::bsatn::to_vec(&activate_crafting_reducer::ActivateCraftingArgs {})
             }
+            Reducer::ActivateHaulEquipment => __sats::bsatn::to_vec(
+                &activate_haul_equipment_reducer::ActivateHaulEquipmentArgs {},
+            ),
             Reducer::ActivateHistoryQueries => __sats::bsatn::to_vec(
                 &activate_history_queries_reducer::ActivateHistoryQueriesArgs {},
             ),
@@ -746,6 +838,13 @@ impl __sdk::Reducer for Reducer {
             Reducer::ClaimDocksideDelivery => __sats::bsatn::to_vec(
                 &claim_dockside_delivery_reducer::ClaimDocksideDeliveryArgs {},
             ),
+            Reducer::ClaimHaulDelivery {
+                interaction_id,
+                lease_nonce,
+            } => __sats::bsatn::to_vec(&claim_haul_delivery_reducer::ClaimHaulDeliveryArgs {
+                interaction_id: interaction_id.clone(),
+                lease_nonce: lease_nonce.clone(),
+            }),
             Reducer::ClaimQuest {
                 quest_id,
                 bait_id,
@@ -778,6 +877,11 @@ impl __sdk::Reducer for Reducer {
                     expected_cycle: expected_cycle.clone(),
                 },
             ),
+            Reducer::CommitHaulUpgrade { nonce } => {
+                __sats::bsatn::to_vec(&commit_haul_upgrade_reducer::CommitHaulUpgradeArgs {
+                    nonce: nonce.clone(),
+                })
+            }
             Reducer::CommitInventoryAction { nonce } => __sats::bsatn::to_vec(
                 &commit_inventory_action_reducer::CommitInventoryActionArgs {
                     nonce: nonce.clone(),
@@ -877,11 +981,21 @@ impl __sdk::Reducer for Reducer {
                     bait_id: bait_id.clone(),
                 })
             }
+            Reducer::EquipHaulEquipment { equipment_id } => {
+                __sats::bsatn::to_vec(&equip_haul_equipment_reducer::EquipHaulEquipmentArgs {
+                    equipment_id: equipment_id.clone(),
+                })
+            }
             Reducer::EquipTitle { achievement_id } => {
                 __sats::bsatn::to_vec(&equip_title_reducer::EquipTitleArgs {
                     achievement_id: achievement_id.clone(),
                 })
             }
+            Reducer::FinishHaulFromAdapter { interaction_id } => __sats::bsatn::to_vec(
+                &finish_haul_from_adapter_reducer::FinishHaulFromAdapterArgs {
+                    interaction_id: interaction_id.clone(),
+                },
+            ),
             Reducer::FishFromDiscord {
                 discord_user_id,
                 interaction_id,
@@ -896,6 +1010,11 @@ impl __sdk::Reducer for Reducer {
             Reducer::MigrateUnlimitedInventory => __sats::bsatn::to_vec(
                 &migrate_unlimited_inventory_reducer::MigrateUnlimitedInventoryArgs {},
             ),
+            Reducer::PrepareHaulUpgrade { equipment_id } => {
+                __sats::bsatn::to_vec(&prepare_haul_upgrade_reducer::PrepareHaulUpgradeArgs {
+                    equipment_id: equipment_id.clone(),
+                })
+            }
             Reducer::PrepareInventoryAction {
                 kind,
                 catch_ids,
@@ -1036,6 +1155,21 @@ impl __sdk::Reducer for Reducer {
                     enabled: enabled.clone(),
                 },
             ),
+            Reducer::StartHaulFromDiscord {
+                discord_user_id,
+                interaction_id,
+                guild_id,
+                channel_id,
+                kind,
+            } => {
+                __sats::bsatn::to_vec(&start_haul_from_discord_reducer::StartHaulFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    guild_id: guild_id.clone(),
+                    channel_id: channel_id.clone(),
+                    kind: kind.clone(),
+                })
+            }
             Reducer::SyncDiscordPortrait {
                 discord_user_id,
                 avatar_hash,
@@ -1068,6 +1202,8 @@ pub struct DbUpdate {
     adapter_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
     adapter_collection_focus: __sdk::TableUpdate<CollectionFocusPreference>,
     adapter_daily_receipt: __sdk::TableUpdate<DailyReceipt>,
+    adapter_haul_status: __sdk::TableUpdate<HaulTrip>,
+    adapter_haul_work: __sdk::TableUpdate<HaulTrip>,
     adapter_inventory: __sdk::TableUpdate<OwnedSpecimen>,
     adapter_items: __sdk::TableUpdate<ItemStack>,
     adapter_licences: __sdk::TableUpdate<OwnedBiomeLicence>,
@@ -1086,6 +1222,7 @@ pub struct DbUpdate {
     biome_definition: __sdk::TableUpdate<BiomeDefinition>,
     earned_achievement: __sdk::TableUpdate<EarnedAchievement>,
     game_config: __sdk::TableUpdate<GameConfig>,
+    haul_equipment_definition: __sdk::TableUpdate<HaulEquipmentDefinition>,
     legendary_find: __sdk::TableUpdate<LegendaryFind>,
     my_achievement_progress: __sdk::TableUpdate<AchievementProgress>,
     my_action: __sdk::TableUpdate<ActionNonce>,
@@ -1094,6 +1231,10 @@ pub struct DbUpdate {
     my_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
     my_collection_focus: __sdk::TableUpdate<CollectionFocusPreference>,
     my_dockside: __sdk::TableUpdate<DocksideStatus>,
+    my_haul_equipment: __sdk::TableUpdate<OwnedHaulEquipment>,
+    my_haul_loadout: __sdk::TableUpdate<HaulLoadout>,
+    my_haul_trips: __sdk::TableUpdate<HaulTrip>,
+    my_haul_upgrade_quote: __sdk::TableUpdate<HaulUpgradeQuote>,
     my_inventory: __sdk::TableUpdate<OwnedSpecimen>,
     my_items: __sdk::TableUpdate<ItemStack>,
     my_journal: __sdk::TableUpdate<JournalPage>,
@@ -1165,6 +1306,12 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_daily_receipt" => db_update.adapter_daily_receipt.append(
                     adapter_daily_receipt_table::parse_table_update(table_update)?,
                 ),
+                "adapter_haul_status" => db_update
+                    .adapter_haul_status
+                    .append(adapter_haul_status_table::parse_table_update(table_update)?),
+                "adapter_haul_work" => db_update
+                    .adapter_haul_work
+                    .append(adapter_haul_work_table::parse_table_update(table_update)?),
                 "adapter_inventory" => db_update
                     .adapter_inventory
                     .append(adapter_inventory_table::parse_table_update(table_update)?),
@@ -1219,6 +1366,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "game_config" => db_update
                     .game_config
                     .append(game_config_table::parse_table_update(table_update)?),
+                "haul_equipment_definition" => db_update.haul_equipment_definition.append(
+                    haul_equipment_definition_table::parse_table_update(table_update)?,
+                ),
                 "legendary_find" => db_update
                     .legendary_find
                     .append(legendary_find_table::parse_table_update(table_update)?),
@@ -1243,6 +1393,18 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_dockside" => db_update
                     .my_dockside
                     .append(my_dockside_table::parse_table_update(table_update)?),
+                "my_haul_equipment" => db_update
+                    .my_haul_equipment
+                    .append(my_haul_equipment_table::parse_table_update(table_update)?),
+                "my_haul_loadout" => db_update
+                    .my_haul_loadout
+                    .append(my_haul_loadout_table::parse_table_update(table_update)?),
+                "my_haul_trips" => db_update
+                    .my_haul_trips
+                    .append(my_haul_trips_table::parse_table_update(table_update)?),
+                "my_haul_upgrade_quote" => db_update.my_haul_upgrade_quote.append(
+                    my_haul_upgrade_quote_table::parse_table_update(table_update)?,
+                ),
                 "my_inventory" => db_update
                     .my_inventory
                     .append(my_inventory_table::parse_table_update(table_update)?),
@@ -1392,6 +1554,12 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.game_config = cache
             .apply_diff_to_table::<GameConfig>("game_config", &self.game_config)
             .with_updates_by_pk(|row| &row.version);
+        diff.haul_equipment_definition = cache
+            .apply_diff_to_table::<HaulEquipmentDefinition>(
+                "haul_equipment_definition",
+                &self.haul_equipment_definition,
+            )
+            .with_updates_by_pk(|row| &row.equipment_id);
         diff.legendary_find = cache
             .apply_diff_to_table::<LegendaryFind>("legendary_find", &self.legendary_find)
             .with_updates_by_pk(|row| &row.key);
@@ -1476,6 +1644,10 @@ impl __sdk::DbUpdate for DbUpdate {
             "adapter_daily_receipt",
             &self.adapter_daily_receipt,
         );
+        diff.adapter_haul_status =
+            cache.apply_diff_to_table::<HaulTrip>("adapter_haul_status", &self.adapter_haul_status);
+        diff.adapter_haul_work =
+            cache.apply_diff_to_table::<HaulTrip>("adapter_haul_work", &self.adapter_haul_work);
         diff.adapter_inventory = cache
             .apply_diff_to_table::<OwnedSpecimen>("adapter_inventory", &self.adapter_inventory);
         diff.adapter_items =
@@ -1514,6 +1686,18 @@ impl __sdk::DbUpdate for DbUpdate {
         );
         diff.my_dockside =
             cache.apply_diff_to_table::<DocksideStatus>("my_dockside", &self.my_dockside);
+        diff.my_haul_equipment = cache.apply_diff_to_table::<OwnedHaulEquipment>(
+            "my_haul_equipment",
+            &self.my_haul_equipment,
+        );
+        diff.my_haul_loadout =
+            cache.apply_diff_to_table::<HaulLoadout>("my_haul_loadout", &self.my_haul_loadout);
+        diff.my_haul_trips =
+            cache.apply_diff_to_table::<HaulTrip>("my_haul_trips", &self.my_haul_trips);
+        diff.my_haul_upgrade_quote = cache.apply_diff_to_table::<HaulUpgradeQuote>(
+            "my_haul_upgrade_quote",
+            &self.my_haul_upgrade_quote,
+        );
         diff.my_inventory =
             cache.apply_diff_to_table::<OwnedSpecimen>("my_inventory", &self.my_inventory);
         diff.my_items = cache.apply_diff_to_table::<ItemStack>("my_items", &self.my_items);
@@ -1576,6 +1760,12 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_daily_receipt" => db_update
                     .adapter_daily_receipt
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_haul_status" => db_update
+                    .adapter_haul_status
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_haul_work" => db_update
+                    .adapter_haul_work
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_inventory" => db_update
                     .adapter_inventory
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -1630,6 +1820,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "game_config" => db_update
                     .game_config
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "haul_equipment_definition" => db_update
+                    .haul_equipment_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "legendary_find" => db_update
                     .legendary_find
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -1653,6 +1846,18 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_dockside" => db_update
                     .my_dockside
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_haul_equipment" => db_update
+                    .my_haul_equipment
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_haul_loadout" => db_update
+                    .my_haul_loadout
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_haul_trips" => db_update
+                    .my_haul_trips
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_haul_upgrade_quote" => db_update
+                    .my_haul_upgrade_quote
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_inventory" => db_update
                     .my_inventory
@@ -1784,6 +1989,12 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_daily_receipt" => db_update
                     .adapter_daily_receipt
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_haul_status" => db_update
+                    .adapter_haul_status
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_haul_work" => db_update
+                    .adapter_haul_work
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_inventory" => db_update
                     .adapter_inventory
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1838,6 +2049,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "game_config" => db_update
                     .game_config
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "haul_equipment_definition" => db_update
+                    .haul_equipment_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "legendary_find" => db_update
                     .legendary_find
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -1861,6 +2075,18 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_dockside" => db_update
                     .my_dockside
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_haul_equipment" => db_update
+                    .my_haul_equipment
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_haul_loadout" => db_update
+                    .my_haul_loadout
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_haul_trips" => db_update
+                    .my_haul_trips
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_haul_upgrade_quote" => db_update
+                    .my_haul_upgrade_quote
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_inventory" => db_update
                     .my_inventory
@@ -1972,6 +2198,8 @@ pub struct AppliedDiff<'r> {
     adapter_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
     adapter_collection_focus: __sdk::TableAppliedDiff<'r, CollectionFocusPreference>,
     adapter_daily_receipt: __sdk::TableAppliedDiff<'r, DailyReceipt>,
+    adapter_haul_status: __sdk::TableAppliedDiff<'r, HaulTrip>,
+    adapter_haul_work: __sdk::TableAppliedDiff<'r, HaulTrip>,
     adapter_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
     adapter_items: __sdk::TableAppliedDiff<'r, ItemStack>,
     adapter_licences: __sdk::TableAppliedDiff<'r, OwnedBiomeLicence>,
@@ -1990,6 +2218,7 @@ pub struct AppliedDiff<'r> {
     biome_definition: __sdk::TableAppliedDiff<'r, BiomeDefinition>,
     earned_achievement: __sdk::TableAppliedDiff<'r, EarnedAchievement>,
     game_config: __sdk::TableAppliedDiff<'r, GameConfig>,
+    haul_equipment_definition: __sdk::TableAppliedDiff<'r, HaulEquipmentDefinition>,
     legendary_find: __sdk::TableAppliedDiff<'r, LegendaryFind>,
     my_achievement_progress: __sdk::TableAppliedDiff<'r, AchievementProgress>,
     my_action: __sdk::TableAppliedDiff<'r, ActionNonce>,
@@ -1998,6 +2227,10 @@ pub struct AppliedDiff<'r> {
     my_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
     my_collection_focus: __sdk::TableAppliedDiff<'r, CollectionFocusPreference>,
     my_dockside: __sdk::TableAppliedDiff<'r, DocksideStatus>,
+    my_haul_equipment: __sdk::TableAppliedDiff<'r, OwnedHaulEquipment>,
+    my_haul_loadout: __sdk::TableAppliedDiff<'r, HaulLoadout>,
+    my_haul_trips: __sdk::TableAppliedDiff<'r, HaulTrip>,
+    my_haul_upgrade_quote: __sdk::TableAppliedDiff<'r, HaulUpgradeQuote>,
     my_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
     my_items: __sdk::TableAppliedDiff<'r, ItemStack>,
     my_journal: __sdk::TableAppliedDiff<'r, JournalPage>,
@@ -2094,6 +2327,16 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.adapter_daily_receipt,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<HaulTrip>(
+            "adapter_haul_status",
+            &self.adapter_haul_status,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<HaulTrip>(
+            "adapter_haul_work",
+            &self.adapter_haul_work,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<OwnedSpecimen>(
             "adapter_inventory",
             &self.adapter_inventory,
@@ -2176,6 +2419,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             event,
         );
         callbacks.invoke_table_row_callbacks::<GameConfig>("game_config", &self.game_config, event);
+        callbacks.invoke_table_row_callbacks::<HaulEquipmentDefinition>(
+            "haul_equipment_definition",
+            &self.haul_equipment_definition,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<LegendaryFind>(
             "legendary_find",
             &self.legendary_find,
@@ -2206,6 +2454,26 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<DocksideStatus>(
             "my_dockside",
             &self.my_dockside,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<OwnedHaulEquipment>(
+            "my_haul_equipment",
+            &self.my_haul_equipment,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<HaulLoadout>(
+            "my_haul_loadout",
+            &self.my_haul_loadout,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<HaulTrip>(
+            "my_haul_trips",
+            &self.my_haul_trips,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<HaulUpgradeQuote>(
+            "my_haul_upgrade_quote",
+            &self.my_haul_upgrade_quote,
             event,
         );
         callbacks.invoke_table_row_callbacks::<OwnedSpecimen>(
@@ -2991,6 +3259,8 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_collection_table::register_table(client_cache);
         adapter_collection_focus_table::register_table(client_cache);
         adapter_daily_receipt_table::register_table(client_cache);
+        adapter_haul_status_table::register_table(client_cache);
+        adapter_haul_work_table::register_table(client_cache);
         adapter_inventory_table::register_table(client_cache);
         adapter_items_table::register_table(client_cache);
         adapter_licences_table::register_table(client_cache);
@@ -3009,6 +3279,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         biome_definition_table::register_table(client_cache);
         earned_achievement_table::register_table(client_cache);
         game_config_table::register_table(client_cache);
+        haul_equipment_definition_table::register_table(client_cache);
         legendary_find_table::register_table(client_cache);
         my_achievement_progress_table::register_table(client_cache);
         my_action_table::register_table(client_cache);
@@ -3017,6 +3288,10 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_collection_table::register_table(client_cache);
         my_collection_focus_table::register_table(client_cache);
         my_dockside_table::register_table(client_cache);
+        my_haul_equipment_table::register_table(client_cache);
+        my_haul_loadout_table::register_table(client_cache);
+        my_haul_trips_table::register_table(client_cache);
+        my_haul_upgrade_quote_table::register_table(client_cache);
         my_inventory_table::register_table(client_cache);
         my_items_table::register_table(client_cache);
         my_journal_table::register_table(client_cache);
@@ -3058,6 +3333,8 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_collection",
         "adapter_collection_focus",
         "adapter_daily_receipt",
+        "adapter_haul_status",
+        "adapter_haul_work",
         "adapter_inventory",
         "adapter_items",
         "adapter_licences",
@@ -3076,6 +3353,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "biome_definition",
         "earned_achievement",
         "game_config",
+        "haul_equipment_definition",
         "legendary_find",
         "my_achievement_progress",
         "my_action",
@@ -3084,6 +3362,10 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_collection",
         "my_collection_focus",
         "my_dockside",
+        "my_haul_equipment",
+        "my_haul_loadout",
+        "my_haul_trips",
+        "my_haul_upgrade_quote",
         "my_inventory",
         "my_items",
         "my_journal",

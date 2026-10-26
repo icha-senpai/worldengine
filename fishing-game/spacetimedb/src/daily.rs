@@ -1,3 +1,4 @@
+use crate::hauls::haul_request;
 use crate::{
     accounts::{ensure_player, require_service, service_can_read},
     inventory::ledger,
@@ -18,6 +19,15 @@ pub fn daily_from_discord(
     channel_id: u64,
 ) -> Result<(), String> {
     require_service(ctx, ServiceRole::DiscordAdapter)?;
+    if ctx
+        .db
+        .haul_request()
+        .interaction_id()
+        .find(interaction_id)
+        .is_some()
+    {
+        return Err("REQUEST_CONFLICT".into());
+    }
     if channel_id == 0 {
         return Err("INVALID_CHANNEL".into());
     }

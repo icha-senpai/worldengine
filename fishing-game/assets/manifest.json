@@ -2186,6 +2186,122 @@
       "sha256": "deab754507cafdcedf169044d5b2e0f20e47e3b1b473f9439a6e8ddc321ec0b8"
     }
   ],
+  "boats": [
+    {
+      "key": "abyssal",
+      "url": "/boats/abyssal.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1131302,
+      "sha256": "125d158c215b026a4e43154ddd42200c2f55b0c419cfa2102eb6c31475992bc3"
+    },
+    {
+      "key": "glacial",
+      "url": "/boats/glacial.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1143052,
+      "sha256": "a4327b3e91fb08d1298cb2cbf0e0705ddee904c4055a88a049e8c2eac31177ad"
+    },
+    {
+      "key": "marsh",
+      "url": "/boats/marsh.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1242835,
+      "sha256": "12a4d7fe2a93eaf54385778bf6def841f51f3772f6ee3105ae9115074d83a774"
+    },
+    {
+      "key": "moonwood",
+      "url": "/boats/moonwood.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1169379,
+      "sha256": "bd16dcf7a684103b89355be981cd733b13e720e2e6f66fec9f226f3fe7c68fa1"
+    },
+    {
+      "key": "river",
+      "url": "/boats/river.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1076049,
+      "sha256": "311ce82df15e845464e5ded959a411e3bd21b9fd50a4492e155889040a7c194a"
+    },
+    {
+      "key": "tide",
+      "url": "/boats/tide.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1205365,
+      "sha256": "781a6cb1e9b746276cc2c27f2c991468f8e9deed4f7fa78649559c151bbbdc69"
+    },
+    {
+      "key": "twig",
+      "url": "/boats/twig.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1224164,
+      "sha256": "d784b8059e5cc82d1928ee74bb9b593a64b198afacd732a5f4c580cac6e0a2fd"
+    }
+  ],
+  "nets": [
+    {
+      "key": "abyssal",
+      "url": "/nets/abyssal.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1364669,
+      "sha256": "ca54fea9903aa83e2946f2617bf232e555cca0e4bd873c015445e71311fefbf6"
+    },
+    {
+      "key": "glacial",
+      "url": "/nets/glacial.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1673157,
+      "sha256": "e8d8ed2ea04a4b75e5fa3e4939ddeb800770be2ad82675fa42e639baf16c58b6"
+    },
+    {
+      "key": "marsh",
+      "url": "/nets/marsh.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1356259,
+      "sha256": "b847d5e144345f5836e9d50de24b07b4c0897e0947e84ce4e4cd99998c579a3a"
+    },
+    {
+      "key": "moonwood",
+      "url": "/nets/moonwood.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1442852,
+      "sha256": "67ec619fd8e7bfea7b554afb7005bcae44548ace012380007745bea6bac2e010"
+    },
+    {
+      "key": "river",
+      "url": "/nets/river.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1560690,
+      "sha256": "dc7ea22361380b2b59f017e5d6b7bac11d5e93a06b964c41b7bdf2c7c423a32e"
+    },
+    {
+      "key": "tide",
+      "url": "/nets/tide.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1387369,
+      "sha256": "2e9d450f5674f42d06e57f7327b5e8215a675e80188cff6432456d95d0c342b3"
+    },
+    {
+      "key": "twig",
+      "url": "/nets/twig.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1608120,
+      "sha256": "bed272474dc4332fec798e9f2fcb9d4c52a0b2bb5d5720424abac739490c837d"
+    }
+  ],
   "licences": [
     {
       "key": "abyssal-shelf",

@@ -162,20 +162,45 @@ for (let i = 0; i < sizes.tiers.length; i++) {
 console.log('Species-relative length and weight thresholds valid; all 2,492 size bands are reachable.');
 
 const trader = JSON.parse(await readFile(new URL('./trader.json', import.meta.url), 'utf8'));
-assert.equal(trader.listings.length, 25);
+assert.equal(trader.listings.length, 37);
 assert.equal(new Set(trader.listings.map(row => row.listingId)).size, trader.listings.length);
 for (const listing of trader.listings) {
-  assert(['rod', 'licence', 'bait'].includes(listing.kind));
+  assert(['rod', 'licence', 'bait', 'boat', 'net'].includes(listing.kind));
   assert(Number.isSafeInteger(listing.priceCoins) && listing.priceCoins > 0);
   const biome = world.biomes.find(row => row.biomeId === listing.biomeId);
-  const coinsOnlyRod = listing.kind === 'rod' && [6, 7].includes(listing.targetId);
+  const isHaul = listing.kind === 'boat' || listing.kind === 'net';
+  const familyId = isHaul ? listing.targetId % 100 : listing.targetId;
+  const coinsOnlyRod = ['rod', 'boat', 'net'].includes(listing.kind) && [6, 7].includes(familyId);
   assert(biome && listing.previousBiomeId === (coinsOnlyRod ? 1 : Math.max(1, biome.biomeId - 1)));
-  if (listing.kind !== 'rod') assert.equal(listing.minimumLevel, biome.minimumLevel);
+  if (!['rod', 'boat', 'net'].includes(listing.kind)) assert.equal(listing.minimumLevel, biome.minimumLevel);
   if (listing.kind === 'bait') { assert(listing.targetId >= 1 && listing.targetId <= 13); continue; }
   if (listing.kind === 'licence') assert.equal(listing.targetId, biome.biomeId);
-  else assert(world.rods.some(row => row.rodId === listing.targetId && row.minimumLevel === listing.minimumLevel && row.power >= biome.requiredPower));
+  else assert(world.rods.some(row => row.rodId === familyId && row.minimumLevel === listing.minimumLevel && row.power >= biome.requiredPower));
 }
-console.log('Trader catalog valid: six permanent licences, six purchasable rods and thirteen repeatable bait offers.');
+console.log('Trader catalog valid: six licences, six rods, six boats, six nets and thirteen bait offers.');
+
+const haul = JSON.parse(await readFile(new URL('./haul-equipment.json', import.meta.url), 'utf8'));
+assert.equal(haul.equipment.length, 14);
+assert.equal(new Set(haul.equipment.map(row => row.equipmentId)).size, 14);
+for (const [kind, base, folder] of [['boat', 100, 'boats'], ['net', 200, 'nets']]) {
+  for (const rod of world.rods) {
+    const row = haul.equipment.find(row => row.equipmentId === base + rod.rodId);
+    assert(row && row.kind === kind && row.rodId === rod.rodId, `Missing ${kind} family ${rod.rodId}`);
+    const baseMultiplier = kind === 'boat' ? 4 : 2;
+    assert.equal(row.luckBp, rod.luckBp * baseMultiplier, `${row.name} base luck multiplier`);
+    assert.equal(row.xpBonusBp, rod.xpBonusBp * baseMultiplier, `${row.name} base XP multiplier`);
+    assert.equal(row.qualityBonusMultiplier, 2, `${row.name} doubles quality bonuses independently of its base`);
+    assert(!('power' in row) && !('powerBonus' in row), 'Boats and nets do not grant bonus pulls');
+    assert(manifest[folder].some(asset => asset.url === row.spriteAsset), `Missing ${row.name} artwork`);
+    const offer = trader.listings.find(offer => offer.kind === kind && offer.targetId === row.equipmentId);
+    if (rod.rodId === 1) { assert(!offer, 'Starter boats and nets are granted free'); continue; }
+    const rodOffer = trader.listings.find(offer => offer.kind === 'rod' && offer.targetId === rod.rodId);
+    assert(offer && offer.name === row.name);
+    for (const field of ['priceCoins', 'minimumLevel', 'previousBiomeId', 'biomeId'])
+      assert.equal(offer[field], rodOffer[field], `${row.name} must match its rod's ${field}`);
+  }
+}
+console.log('Boat/net equipment valid: seven illustrated families each, free starters and matching rod prices/gates.');
 
 const equipmentArt = JSON.parse(await readFile(new URL('./equipment-art.json', import.meta.url), 'utf8'));
 assert.deepEqual(equipmentArt.licences.map(row => row.biomeId), trader.listings.filter(row => row.kind === 'licence').map(row => row.targetId));
@@ -223,6 +248,11 @@ for (const bait of crafting.baits) {
 }
 assert(world.biomes.every(b => b.requiredPower === 0));
 const maximumQuality = crafting.qualities.at(-1);
+for (const [kind, luckBp, xpBonusBp] of [['boat', 26600, 37400], ['net', 14000, 20000]]) {
+  const abyssal = haul.equipment.find(row => row.kind === kind && row.rodId === 7);
+  assert.equal(abyssal.luckBp + maximumQuality.luckBp * abyssal.qualityBonusMultiplier, luckBp);
+  assert.equal(abyssal.xpBonusBp + maximumQuality.xpBonusBp * abyssal.qualityBonusMultiplier, xpBonusBp);
+}
 for (let i = 1; i < world.rods.length; i++) {
   const previous = world.rods[i - 1], next = world.rods[i];
   assert(next.power > previous.power + maximumQuality.powerBonus, `Common ${next.name} must beat previous Prismatic power`);

@@ -1,6 +1,8 @@
 pub mod achievement_notifications;
 pub mod catch_art;
 pub mod fish_again;
+pub mod haul_again;
+pub mod haul_notifications;
 pub mod measurements;
 pub mod perfect_catch;
 pub mod profile_card;

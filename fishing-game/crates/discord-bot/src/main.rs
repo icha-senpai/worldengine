@@ -213,6 +213,45 @@ async fn fish(ctx: Context<'_>) -> Result<(), Error> {
     }
 }
 
+/// Send your boat on a ten-minute trip for ten catches. Fish normally meanwhile.
+#[poise::command(slash_command)]
+async fn fishboat(ctx: Context<'_>) -> Result<(), Error> {
+    start_haul(ctx, "boat").await
+}
+
+/// Cast a net for four minutes and four catches. No bait required.
+#[poise::command(slash_command)]
+async fn fishnet(ctx: Context<'_>) -> Result<(), Error> {
+    start_haul(ctx, "net").await
+}
+
+async fn start_haul(ctx: Context<'_>, kind: &str) -> Result<(), Error> {
+    acknowledge(ctx, false).await?;
+    let _permit = match ctx.data().pending.try_acquire() {
+        Ok(permit) => permit,
+        Err(_) => return reply(ctx, "The pond is busy; try again shortly.").await,
+    };
+    match ctx
+        .data()
+        .game
+        .start_haul(
+            ctx.author().id.get(),
+            ctx.author().name.clone(),
+            interaction_id(ctx)?,
+            ctx.guild_id().map(|id| id.get()),
+            ctx.channel_id().get(),
+            kind.into(),
+        )
+        .await
+    {
+        Ok(trip) => reply(ctx, discord_bot::haul_again::status(&trip)?).await,
+        Err(error) => {
+            tracing::warn!(%error, kind, "Haul request rejected");
+            reply(ctx, rejection(&error)).await
+        }
+    }
+}
+
 struct CatchReply {
     rich: poise::CreateReply,
     fallback: poise::CreateReply,
@@ -470,18 +509,21 @@ async fn handle_event(
     else {
         return Ok(());
     };
-    if interaction.message.author.id != framework.bot_id()
-        || !interaction
-            .data
-            .custom_id
-            .starts_with(discord_bot::fish_again::PREFIX)
-    {
+    if interaction.message.author.id != framework.bot_id() {
         return Ok(());
     }
-    if let Err(error) =
+    let custom_id = &interaction.data.custom_id;
+    let is_haul = custom_id.starts_with(discord_bot::haul_again::PREFIX);
+    if !is_haul && !custom_id.starts_with(discord_bot::fish_again::PREFIX) {
+        return Ok(());
+    }
+    let result = if is_haul {
+        haul_again(framework.serenity_context, interaction, framework.user_data).await
+    } else {
         fish_again(framework.serenity_context, interaction, framework.user_data).await
-    {
-        tracing::warn!(%error, interaction_id=interaction.id.get(), "Fish again unavailable");
+    };
+    if let Err(error) = result {
+        tracing::warn!(%error, interaction_id=interaction.id.get(), "Fishing repeat button unavailable");
         let reply_started = Instant::now();
         let reply = interaction
             .create_followup(
@@ -499,6 +541,72 @@ async fn handle_event(
             reply.is_ok(),
         );
     }
+    Ok(())
+}
+
+async fn haul_again(
+    ctx: &serenity::Context,
+    interaction: &serenity::ComponentInteraction,
+    data: &Data,
+) -> Result<(), Error> {
+    let (user_id, kind) = match discord_bot::haul_again::request(
+        &interaction.data.custom_id,
+        interaction.user.id.get(),
+    ) {
+        Ok(request) => request,
+        Err(message) => {
+            interaction
+                .create_response(
+                    ctx,
+                    serenity::CreateInteractionResponse::Message(
+                        serenity::CreateInteractionResponseMessage::new()
+                            .content(message)
+                            .ephemeral(true)
+                            .allowed_mentions(serenity::CreateAllowedMentions::new()),
+                    ),
+                )
+                .await?;
+            return Ok(());
+        }
+    };
+    // Keep the completed haul and its reusable button intact. Each click is a
+    // new interaction; the module deduplicates retries and reports active trips.
+    interaction
+        .create_response(ctx, serenity::CreateInteractionResponse::Acknowledge)
+        .await?;
+    let trip = {
+        let _permit = data
+            .pending
+            .try_acquire()
+            .map_err(|_| "The pond is busy; try again shortly")?;
+        data.achievement_notifications.record_channel(
+            user_id,
+            interaction.channel_id.get(),
+            data.game.known_player_id(user_id),
+        );
+        data.game
+            .start_haul(
+                user_id,
+                interaction.user.name.clone(),
+                interaction.id.get(),
+                interaction.guild_id.map(|id| id.get()),
+                interaction.channel_id.get(),
+                kind.into(),
+            )
+            .await?
+    };
+    data.achievement_notifications
+        .remember_player(user_id, Some(trip.player_id))
+        .await;
+    interaction
+        .create_followup(
+            ctx,
+            serenity::CreateInteractionResponseFollowup::new()
+                .content(discord_bot::haul_again::status(&trip)?)
+                .ephemeral(true)
+                .allowed_mentions(serenity::CreateAllowedMentions::new()),
+        )
+        .await?;
     Ok(())
 }
 
@@ -915,13 +1023,15 @@ fn rod_stats(result: &Snapshot, rod_id: u32) -> (&str, u32, u32, u32) {
 }
 
 fn commands() -> Vec<poise::Command<Data, Error>> {
-    vec![fish(), daily(), rod(), profile()]
+    vec![fish(), fishboat(), fishnet(), daily(), rod(), profile()]
 }
 
 fn is_fishbound_command(name: &str) -> bool {
     matches!(
         name,
         "fish"
+            | "fishboat"
+            | "fishnet"
             | "daily"
             | "rod"
             | "profile"
@@ -952,13 +1062,16 @@ mod command_tests {
     use super::*;
 
     #[test]
-    fn only_the_four_kept_commands_are_exposed() {
+    fn fishing_commands_include_independent_timed_hauls() {
         let commands = commands();
         let names: Vec<&str> = commands
             .iter()
             .map(|command| command.name.as_ref())
             .collect();
-        assert_eq!(names, ["fish", "daily", "rod", "profile"]);
+        assert_eq!(
+            names,
+            ["fish", "fishboat", "fishnet", "daily", "rod", "profile"]
+        );
         assert!(
             commands
                 .iter()
@@ -1075,6 +1188,7 @@ async fn main() -> Result<(), Error> {
                 tracing::info!("Discord adapter ready");
                 let achievement_notifications = Arc::new(AchievementNotifications::load(required("SPACETIMEDB_DATABASE")?, ".local/achievement-notification-routes.json".into()));
                 achievement_notifications.start(game.clone(), ctx.http.clone(), website.clone());
+                discord_bot::haul_notifications::start(game.clone(), ctx.http.clone(), website.clone());
                 Ok(Data {
                     game,
                     website,

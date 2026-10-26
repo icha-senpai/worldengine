@@ -81,8 +81,8 @@ The callback must point at the Axum service. PUBLIC_ACCOUNT_LINK_URL points at
 that service; WEBSITE_URL must match the website Origin exactly. Public internet
 URLs require HTTPS. The localhost exception is for development.
 
-Set DISCORD_REGISTER_COMMANDS=true to register the four commands globally:
-`/fish`, `/daily`, `/rod` and `/profile`. Registration replaces the previous
+Set DISCORD_REGISTER_COMMANDS=true to register the six commands globally:
+`/fish`, `/fishboat`, `/fishnet`, `/daily`, `/rod` and `/profile`. Registration replaces the previous
 command list. DISCORD_GUILD_ID and comma-separated DISCORD_GUILD_IDS identify
 servers where startup removes legacy Fishbound guild commands, including retired
 commands; unrelated guild commands are preserved. Startup creates no server

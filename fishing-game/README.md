@@ -21,13 +21,20 @@ preservation, and all 15 global command-registration checks.
 - Private accounts and inventory, scoped subscriptions, durable cast results, safe retries.
 - Junk stacks and immediate treasure rewards with economy ledger entries.
 - Thirteen repeatable 10-use bait packs and permanent Common-to-Prismatic quality per rod.
+- Seven illustrated boat and net families, with matching rod prices, free Twig
+  starters, separate Trader shelves and owned-equipment selectors in the Tackle
+  box. Nets have twice the corresponding rod's base luck/XP and boats have four
+  times the base bonuses. Both have separate Common-to-Prismatic upgrades using
+  the same family recipes, with doubled quality luck/XP bonuses.
+  `/fishboat` takes ten minutes for ten catches; `/fishnet` takes four minutes
+  for four catches, alongside normal fishing. Neither uses power or bait. [Equipment scope and activation](docs/boat-and-net-equipment.md).
 - Power can add one independent mixed pull; both pulls share cooldown and one bait use.
 - Confirmed tin/scrap crafting; biome access uses level and licences instead of power.
 - Website dashboard, collection, permanent sortable catch journal, favorites, sale preview/confirmation,
   and length/weight records that survive disposal.
 - One game shell with Camp, Tackle box, Collection, Journal, World map, Records,
   Trader, Compendium, Achievements and Anglers tabs. Lists have book pages: twelve entries on desktop and four on phones.
-- Four Discord commands: /fish, /daily, /rod and a public profile embed. Other game management lives on the website.
+- Six Discord commands: /fish, /fishboat, /fishnet, /daily, /rod and a public profile embed. Other game management lives on the website.
 - [Quest stories and Dockside contracts](docs/quests.md): 38 permanent steps across nine chains, three unlimited repeatable jobs, three weekly reward choices, automatic progress and confirmed fish deliveries. Quest progress and reward management live on the website.
 - Footer theme picker: Dockside, Ocean, Rose, Cosmic and Neon Synthwave, each with light/dark modes and saved browser preferences. Themed pond controls, balanced pond sizes and mobile name-bar navigation are live.
 - Optional Collection Focus unlocks per biome after all its ordinary species are
