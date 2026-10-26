@@ -1,6 +1,7 @@
 import { Node } from "@tiptap/core";
 import {
   bitcraftAssetUrl,
+  bitcraftItemFrameStyle,
   hasBitcraftTier,
 } from "/src/bitcraft-ui/bitjitaAssets";
 import "./guideItemCard.css";
@@ -81,7 +82,13 @@ export const BitcraftItem = Node.create({
       },
       [
         "span",
-        { class: "guide-item-card__icon", "aria-hidden": "true" },
+        {
+          class: "guide-item-card__icon bitcraft-item-icon",
+          "aria-hidden": "true",
+          style: Object.entries(bitcraftItemFrameStyle(item.tier, item.rarity))
+            .map(([key, value]) => `${key}: ${value}`)
+            .join("; "),
+        },
         iconUrl?.startsWith("/bitcraft-assets/")
           ? ["img", { src: iconUrl, alt: "", loading: "lazy" }]
           : ["span", {}, initials],

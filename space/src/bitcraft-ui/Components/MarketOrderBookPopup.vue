@@ -24,7 +24,7 @@
       data-test="order-book-item"
     >
       <span
-        class="market-order-item__icon"
+        class="market-order-item__icon bitcraft-item-icon"
         :style="orderBookItemFrameStyle"
         aria-hidden="true"
       >
@@ -1103,44 +1103,11 @@ Metric.props = {
   height: 52px;
   flex-shrink: 0;
   place-items: center;
-  overflow: hidden;
-  border: 1px solid
-    var(--bitcraft-item-frame-border, rgb(var(--border-color-rgb) / 0.7));
-  border-radius: 6px;
-  background:
-    radial-gradient(
-      circle at 35% 25%,
-      var(--bitcraft-item-frame-bg, rgb(var(--accent-cyan-rgb) / 0.2)),
-      transparent 42%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(
-        in srgb,
-        var(--bitcraft-item-frame-accent, transparent) 12%,
-        transparent
-      ),
-      transparent
-    ),
-    rgb(var(--bg-surface-rgb) / 0.92);
-  box-shadow:
-    inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08),
-    0 0 12px
-      color-mix(
-        in srgb,
-        var(--bitcraft-item-frame-accent, transparent) 20%,
-        transparent
-      );
+
   color: var(--bitcraft-item-frame-text, var(--text-muted-3));
   font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 800;
-}
-
-.market-order-item__icon img {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
 }
 
 .market-order-item__copy {

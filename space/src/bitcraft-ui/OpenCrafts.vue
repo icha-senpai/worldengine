@@ -8,7 +8,7 @@ import TextInput from "/src/bitcraft-ui/shared/TextInput.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import AppButton from "/src/bitcraft-ui/shared/ui/AppButton.vue";
 import TrackerRefreshStatus from "./Components/TrackerRefreshStatus.vue";
-import { bitcraftAssetUrl } from "./bitjitaAssets";
+import { bitcraftAssetUrl, bitcraftItemFrameStyle } from "./bitjitaAssets";
 
 const props = defineProps({
   filters: Object,
@@ -206,7 +206,14 @@ watch(
               <td>
                 <div class="craft-item">
                   <img
+                    class="bitcraft-item-image"
                     v-if="bitcraftAssetUrl(craft.outputs[0]?.iconAssetName)"
+                    :style="
+                      bitcraftItemFrameStyle(
+                        craft.outputs[0]?.tier,
+                        craft.outputs[0]?.rarity,
+                      )
+                    "
                     :src="bitcraftAssetUrl(craft.outputs[0]?.iconAssetName)"
                     alt=""
                     width="36"
@@ -433,7 +440,7 @@ watch(
 }
 .craft-item img {
   flex: 0 0 36px;
-  object-fit: contain;
+  object-fit: cover;
 }
 .craft-details-button {
   width: 28px;

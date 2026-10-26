@@ -49,7 +49,7 @@
             @change="emit('complete', { step, checked: $event.target.checked })"
           />
           <span
-            class="crafting-plan__icon"
+            class="crafting-plan__icon bitcraft-item-icon"
             :style="bitcraftItemFrameStyle(step.item.tier, step.item.rarity)"
             aria-hidden="true"
           >
@@ -324,15 +324,6 @@ const formatQuantity = (value) =>
   height: 34px;
   display: grid;
   place-items: center;
-  border: 1px solid
-    var(--bitcraft-item-frame-border, rgb(var(--border-color-rgb) / 0.7));
-  border-radius: 6px;
-  background: var(--bitcraft-item-frame-bg, transparent);
-}
-.crafting-plan__icon img {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
 }
 .crafting-plan__copy,
 .crafting-plan__quantity {
@@ -398,10 +389,6 @@ const formatQuantity = (value) =>
   .crafting-plan__icon {
     width: 30px;
     height: 30px;
-  }
-  .crafting-plan__icon img {
-    width: 26px;
-    height: 26px;
   }
   .crafting-plan__quantity {
     grid-column: 3;

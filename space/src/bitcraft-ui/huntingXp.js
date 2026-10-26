@@ -11,7 +11,33 @@ export const huntingDefaults = {
   targetLevel: 40,
   ...nubiGoatPreset,
   mode: "both",
+  method: "wild",
+  lureAnimal: "",
+  lureTier: 1,
+  lureAnimals: 0,
+  lureXp: 0,
+  lureGapSeconds: 0,
 };
+
+export function calibrateLureSession(lures, huntingXp, carcasses) {
+  const values = [lures, huntingXp, carcasses];
+  const [count, xp, animals] = values.map(Number);
+  if (
+    values.some((value) => value === "" || value == null) ||
+    !Number.isSafeInteger(count) ||
+    count < 1 ||
+    !Number.isFinite(xp) ||
+    xp < 0 ||
+    !Number.isSafeInteger(animals) ||
+    animals < 1
+  ) {
+    return {
+      error:
+        "Enter whole lures and carcasses above zero, and non-negative hunting XP.",
+    };
+  }
+  return { error: null, lureXp: xp / count, lureAnimals: animals / count };
+}
 
 export function calculateHuntingXp(levels, settings) {
   const thresholds = new Map(
@@ -27,14 +53,35 @@ export function calculateHuntingXp(levels, settings) {
   const currentLevel = Number(settings.currentLevel);
   const targetLevel = Number(settings.targetLevel);
   const currentXp = Number(settings.currentXp);
-  const killXp = Number(settings.killXp);
+  const lure = settings.method === "lure";
+  const animalsPerLure = Number(settings.lureAnimals);
+  const lureXp = Number(settings.lureXp);
+  const lureGap = Number(settings.lureGapSeconds);
+  if (
+    lure &&
+    ([settings.lureAnimals, settings.lureXp, settings.lureGapSeconds].some(
+      (value) => value === "" || value == null,
+    ) ||
+      !Number.isFinite(animalsPerLure) ||
+      animalsPerLure <= 0 ||
+      !Number.isFinite(lureXp) ||
+      lureXp < 0 ||
+      !Number.isFinite(lureGap) ||
+      lureGap < 0)
+  ) {
+    return {
+      error:
+        "Enter animals collected per lure above zero, and non-negative lure XP and time between lures.",
+    };
+  }
+  const killXp = lure ? lureXp / animalsPerLure : Number(settings.killXp);
   const processingXp = Number(settings.processingXp);
   const bonus = settings.xpMode === "observed" ? 0 : Number(settings.bonus);
   const inputs = [
     settings.currentLevel,
     settings.targetLevel,
     settings.currentXp,
-    settings.killXp,
+    lure ? settings.lureXp : settings.killXp,
     settings.processingXp,
   ];
 
@@ -89,14 +136,18 @@ export function calculateHuntingXp(levels, settings) {
     {
       mode: "both",
       label: "Hunt and process",
-      xp: (killXp + processingXp) * multiplier,
+      xp: killXp * (lure ? 1 : multiplier) + processingXp * multiplier,
     },
     {
       mode: "processing",
       label: "Process only",
       xp: processingXp * multiplier,
     },
-    { mode: "hunting", label: "Hunt only", xp: killXp * multiplier },
+    {
+      mode: "hunting",
+      label: "Hunt only",
+      xp: killXp * (lure ? 1 : multiplier),
+    },
   ].map((row) => ({
     ...row,
     count:
@@ -107,10 +158,33 @@ export function calculateHuntingXp(levels, settings) {
           : null,
   }));
 
+  if (lure) {
+    for (const row of scenarios) {
+      row.xpPerLure = row.xp * animalsPerLure;
+      row.lures =
+        remainingXp === 0
+          ? 0
+          : row.xpPerLure > 0
+            ? Math.ceil(remainingXp / row.xpPerLure)
+            : null;
+      row.carcasses = row.lures === null ? null : row.lures * animalsPerLure;
+      row.huntingSeconds =
+        row.lures === null
+          ? null
+          : row.lures * 120 + Math.max(0, row.lures - 1) * lureGap;
+    }
+  }
+
   if (
     scenarios.some(
       (row) =>
         !Number.isFinite(row.xp) ||
+        (lure &&
+          (!Number.isFinite(row.xpPerLure) ||
+            (row.lures !== null &&
+              (!Number.isSafeInteger(row.lures) ||
+                !Number.isFinite(row.huntingSeconds) ||
+                !Number.isFinite(row.carcasses))))) ||
         (row.count !== null && !Number.isSafeInteger(row.count)),
     )
   ) {

@@ -227,6 +227,9 @@ try {
       `${mode}: ${name} remaining XP`,
     );
     assert(html.includes("Session XP"));
+    assert(html.includes("Current pace · XP / hour"));
+    assert(html.includes("Overall:"));
+    assert(html.includes("Active time to goal"));
     assert(html.includes("Stamina 40 / 100"));
     assert(html.includes(reconnecting ? "Last known activity" : "Signed in"));
     if (reconnecting) assert(html.includes("Refresh delayed"));

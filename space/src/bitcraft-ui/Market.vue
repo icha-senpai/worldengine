@@ -912,7 +912,7 @@ onBeforeUnmount(() => {
               <template v-else>
                 <span class="trade-item"
                   ><span
-                    class="trade-icon"
+                    class="trade-icon bitcraft-item-icon"
                     :style="bitcraftItemFrameStyle(row.tier, row.rarity)"
                     aria-hidden="true"
                     ><img
@@ -1254,15 +1254,8 @@ onBeforeUnmount(() => {
   place-items: center;
   width: 38px;
   height: 38px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  overflow: hidden;
+
   font-size: 12px;
-}
-.trade-icon img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
 }
 .trade-item small {
   display: flex;

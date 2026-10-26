@@ -6,6 +6,7 @@ import Modal from "/src/bitcraft-ui/shared/Modal.vue";
 import TextInput from "/src/bitcraft-ui/shared/TextInput.vue";
 import {
   bitcraftAssetUrl,
+  bitcraftItemFrameStyle,
   hasBitcraftTier,
 } from "/src/bitcraft-ui/bitjitaAssets";
 
@@ -159,7 +160,8 @@ onBeforeUnmount(() => {
             @click="insert(item)"
           >
             <span
-              class="flex size-12 shrink-0 items-center justify-center bg-canvas"
+              class="bitcraft-item-icon flex size-12 shrink-0 items-center justify-center"
+              :style="bitcraftItemFrameStyle(item.tier, item.rarity)"
               aria-hidden="true"
             >
               <img
@@ -167,7 +169,6 @@ onBeforeUnmount(() => {
                 :src="bitcraftAssetUrl(item.iconAssetName)"
                 alt=""
                 loading="lazy"
-                class="size-10 object-contain"
               />
               <span v-else>{{ item.name.slice(0, 2) }}</span>
             </span>

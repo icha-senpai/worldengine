@@ -187,7 +187,7 @@
               class="crafting-total"
             >
               <span
-                class="crafting-total__icon"
+                class="crafting-total__icon bitcraft-item-icon"
                 :style="itemFrameStyle(item)"
                 aria-hidden="true"
               >
@@ -575,20 +575,11 @@ watch(
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid rgb(var(--border-color-rgb) / 0.74);
-  border-radius: 7px;
-  background: var(--bg-surface);
+
   color: var(--text-muted);
   font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 800;
-  overflow: hidden;
-}
-
-.crafting-total__icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .crafting-total__copy {

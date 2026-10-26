@@ -36,6 +36,7 @@
     "spacetime:local": "tsx scripts/spacetime.ts local",
     "format": "prettier --write src scripts tests spacetimedb/src bitcraft/src",
     "bitcraft:catalog": "tsx scripts/import-crafting-catalog.ts",
+    "bitcraft:snapshot": "node scripts/import-bitcraft-snapshot.mjs",
     "bitcraft:admin": "tsx scripts/bitcraft-admin.ts",
     "bitcraft:providers": "tsx scripts/bitcraft-providers.ts",
     "bitcraft:collector": "tsx scripts/bitcraft-collector.ts",

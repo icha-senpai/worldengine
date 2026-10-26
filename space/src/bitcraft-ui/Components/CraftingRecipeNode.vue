@@ -60,7 +60,7 @@
         >
           <summary class="crafting-ingredient__row">
             <span
-              class="crafting-ingredient__icon"
+              class="crafting-ingredient__icon bitcraft-item-icon"
               :style="ingredientFrameStyle(ingredient)"
               aria-hidden="true"
             >
@@ -129,7 +129,7 @@
         <div v-else class="crafting-ingredient">
           <div class="crafting-ingredient__row">
             <span
-              class="crafting-ingredient__icon"
+              class="crafting-ingredient__icon bitcraft-item-icon"
               :style="ingredientFrameStyle(ingredient)"
               aria-hidden="true"
             >
@@ -574,46 +574,11 @@ details > .crafting-ingredient__row {
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid
-    var(--bitcraft-item-frame-border, rgb(var(--border-color-rgb) / 0.7));
-  border-radius: 6px;
-  background:
-    radial-gradient(
-      circle at 35% 25%,
-      var(--bitcraft-item-frame-bg, rgb(var(--accent-cyan-rgb) / 0.2)),
-      transparent 42%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(
-        in srgb,
-        var(--bitcraft-item-frame-accent, transparent) 12%,
-        transparent
-      ),
-      transparent
-    ),
-    rgb(var(--bg-surface-rgb) / 0.92);
-  box-shadow:
-    inset 0 1px 0 rgb(var(--text-primary-rgb) / 0.08),
-    0 0 12px
-      color-mix(
-        in srgb,
-        var(--bitcraft-item-frame-accent, transparent) 20%,
-        transparent
-      );
+
   color: var(--bitcraft-item-frame-text, var(--text-muted-2));
   font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 800;
-  overflow: hidden;
-}
-
-.crafting-ingredient__icon img {
-  position: absolute;
-  inset: 3px;
-  width: calc(100% - 6px);
-  height: calc(100% - 6px);
-  object-fit: contain;
 }
 
 .crafting-ingredient__copy {

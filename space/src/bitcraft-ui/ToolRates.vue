@@ -205,7 +205,7 @@
           >
             <div class="tool-rate-card__head">
               <span
-                class="tool-rate-card__icon"
+                class="tool-rate-card__icon bitcraft-item-icon"
                 :style="itemFrameStyle(row.entry.resource)"
                 aria-hidden="true"
               >
@@ -577,38 +577,11 @@ const hideBrokenIcon = (assetName) => {
   place-items: center;
   width: 46px;
   height: 46px;
-  border: 1px solid
-    var(--bitcraft-item-frame-border, rgb(var(--border-color-rgb) / 0.7));
-  border-radius: 6px;
-  background:
-    radial-gradient(
-      circle at 35% 25%,
-      var(--bitcraft-item-frame-bg, rgb(var(--accent-cyan-rgb) / 0.2)),
-      transparent 42%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(
-        in srgb,
-        var(--bitcraft-item-frame-accent, transparent) 12%,
-        transparent
-      ),
-      transparent
-    ),
-    rgb(var(--bg-surface-rgb) / 0.92);
+
   color: var(--bitcraft-item-frame-text, var(--text-muted-2));
   font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 800;
-  overflow: hidden;
-}
-
-.tool-rate-card__icon img {
-  position: absolute;
-  inset: 4px;
-  width: calc(100% - 8px);
-  height: calc(100% - 8px);
-  object-fit: contain;
 }
 
 .tool-rate-card__title {

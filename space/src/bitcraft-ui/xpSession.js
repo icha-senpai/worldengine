@@ -1,3 +1,5 @@
+import { updateXpPace } from "./xpPace.js";
+
 function validXpSession(session) {
   return (
     session &&
@@ -70,6 +72,7 @@ export function updateXpSession(previous, sample) {
     at: sample.at,
     sourceKey: sample.sourceKey,
     xp: trusted,
+    pace: updateXpPace(previous?.pace, { ...sample, xp: trusted }),
     gained: base.gained + gained,
     activeMs:
       base.activeMs +
@@ -96,7 +99,7 @@ export function restoreXpSession(previous, current, history = []) {
         sample.playerId === current.playerId &&
         sample.sourceKey === current.sourceKey &&
         sample.at > session.at &&
-        sample.at <= current.at
+        sample.at < current.at
       )
         session = updateXpSession(session, { ...sample, xp: sample.xpBySkill });
     }

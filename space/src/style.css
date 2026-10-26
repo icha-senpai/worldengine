@@ -3,6 +3,7 @@
 @import "./styles/ichaa.css";
 @import "./styles/evergather.css";
 @import "./styles/bitcraft.css";
+@import "./styles/bitcraft-item-icons.css";
 @import "./styles/controls.css";
 @import "./styles/components.css";
 @plugin "@tailwindcss/forms";

@@ -4,7 +4,10 @@ import { bitcraftFetch as fetch } from "../api";
 import { onBeforeUnmount, ref, watch } from "vue";
 import Modal from "/src/bitcraft-ui/shared/Modal.vue";
 import TextInput from "/src/bitcraft-ui/shared/TextInput.vue";
-import { bitcraftAssetUrl } from "/src/bitcraft-ui/bitjitaAssets";
+import {
+  bitcraftAssetUrl,
+  bitcraftItemFrameStyle,
+} from "/src/bitcraft-ui/bitjitaAssets";
 import { gatheringDefaults } from "/src/bitcraft-ui/gatheringEstimates";
 
 const props = defineProps({ editor: { type: Object, default: null } });
@@ -236,10 +239,11 @@ onBeforeUnmount(() => {
           >
             <img
               v-if="bitcraftAssetUrl(item.iconAssetName)"
+              :style="bitcraftItemFrameStyle(item.tier, item.rarity)"
               :src="bitcraftAssetUrl(item.iconAssetName)"
               alt=""
               loading="lazy"
-              class="size-10 shrink-0 object-contain"
+              class="bitcraft-item-image size-10 shrink-0"
             />
             <span class="min-w-0 flex-1">
               <span class="block break-words text-sm font-semibold">{{

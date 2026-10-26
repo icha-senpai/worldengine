@@ -2,13 +2,14 @@
 import CalculatorDataContext from "./Components/CalculatorDataContext.vue";
 import { useCalculatorSettings } from "./calculatorSettings";
 import BitcraftPageHeader from "./Components/BitcraftPageHeader.vue";
-import { computed } from "vue";
+import { computed, reactive, ref } from "vue";
 import { router } from "/src/bitcraft-ui/navigation";
 import AuthenticatedLayout from "/src/bitcraft-ui/Layout.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
 import TextInput from "/src/bitcraft-ui/shared/TextInput.vue";
 import {
   calculateHuntingXp,
+  calibrateLureSession,
   huntingDefaults,
   nubiGoatPreset,
 } from "./huntingXp";
@@ -22,8 +23,32 @@ const props = defineProps({
 const settings = useCalculatorSettings(
   "bitcraft.hunting.settings",
   huntingDefaults,
-  { mode: ["both", "processing", "hunting"], xpMode: ["base", "observed"] },
+  {
+    mode: ["both", "processing", "hunting"],
+    xpMode: ["base", "observed"],
+    method: ["wild", "lure"],
+  },
 );
+const lureMode = computed(() => settings.method === "lure");
+const calibration = reactive({ lures: "", xp: "", carcasses: "" });
+const calibrationMessage = ref("");
+const calibrationError = ref(false);
+function applyCalibration() {
+  const sample = calibrateLureSession(
+    calibration.lures,
+    calibration.xp,
+    calibration.carcasses,
+  );
+  calibrationError.value = Boolean(sample.error);
+  if (sample.error) {
+    calibrationMessage.value = sample.error;
+    return;
+  }
+  settings.lureAnimals = sample.lureAnimals;
+  settings.lureXp = sample.lureXp;
+  calibrationMessage.value =
+    "Session averages applied. Hunting XP already includes your bonuses.";
+}
 const result = computed(() => calculateHuntingXp(props.levels, settings));
 const selected = computed(() =>
   result.value.scenarios?.find((row) => row.mode === settings.mode),
@@ -51,11 +76,26 @@ function resetGoatXp() {
 
     <div class="grid gap-5">
       <CalculatorDataContext
-        source="Editable XP preset and level thresholds"
+        :source="
+          lureMode
+            ? 'Measured lure averages and level thresholds'
+            : 'Editable XP preset and level thresholds'
+        "
         :refresh="refresh"
-        note="XP per animal is an editable planning input. Check the Nubi Goat preset against your own observed XP; counts are estimates."
+        :note="
+          lureMode
+            ? 'Lure results use your personal hunting XP and cargo yield. Group damage and gear change your results; measure several lures for a steadier average.'
+            : 'XP per animal is an editable planning input. Check the Nubi Goat preset against your own observed XP; counts are estimates.'
+        "
       />
       <section class="index-panel ui-panel">
+        <label class="mb-4 grid gap-2 ui-field-label">
+          <span>Hunting method</span>
+          <SelectInput v-model="settings.method">
+            <option value="wild">Wild hunting</option>
+            <option value="lure">Lure hunting</option>
+          </SelectInput>
+        </label>
         <button
           v-if="playerSkill"
           type="button"
@@ -117,14 +157,121 @@ function resetGoatXp() {
         </p>
       </section>
 
+      <section v-if="lureMode" class="index-panel ui-panel">
+        <h2 class="text-sm font-semibold ui-section-title">
+          Lure hunting · 2 minutes per lure
+        </h2>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <label class="grid gap-2 ui-field-label">
+            <span>Animal / lure name</span>
+            <TextInput
+              v-model="settings.lureAnimal"
+              placeholder="For example, Nubi Goat"
+            />
+          </label>
+          <label class="grid gap-2 ui-field-label">
+            <span>Lure tier</span>
+            <SelectInput v-model.number="settings.lureTier">
+              <option v-for="tier in 10" :key="tier" :value="tier">
+                Tier {{ tier }}
+              </option>
+            </SelectInput>
+          </label>
+          <label class="grid gap-2 ui-field-label">
+            <span>Average carcasses collected per lure</span>
+            <TextInput
+              v-model.number="settings.lureAnimals"
+              type="number"
+              min="0"
+              step="any"
+            />
+          </label>
+          <label class="grid gap-2 ui-field-label">
+            <span>Your hunting XP per lure (observed)</span>
+            <TextInput
+              v-model.number="settings.lureXp"
+              type="number"
+              min="0"
+              step="any"
+            />
+          </label>
+          <label class="grid gap-2 ui-field-label">
+            <span>Seconds between lures</span>
+            <TextInput
+              v-model.number="settings.lureGapSeconds"
+              type="number"
+              min="0"
+              step="1"
+            />
+          </label>
+        </div>
+        <p class="mt-3 text-sm text-muted-3">
+          Animal and tier label your measurements; they do not supply an assumed
+          spawn rate or XP value. Count the cargo you personally collected, and
+          hunting XP before processing it.
+        </p>
+        <details class="mt-5">
+          <summary class="cursor-pointer text-sm font-semibold">
+            Calibrate from a lure session
+          </summary>
+          <form
+            class="mt-4 grid gap-4 sm:grid-cols-3"
+            @submit.prevent="applyCalibration"
+          >
+            <label class="grid gap-2 ui-field-label"
+              ><span>Lures used</span
+              ><TextInput
+                v-model.number="calibration.lures"
+                type="number"
+                min="1"
+                step="1"
+                required
+            /></label>
+            <label class="grid gap-2 ui-field-label"
+              ><span>Hunting XP gained (before processing)</span
+              ><TextInput
+                v-model.number="calibration.xp"
+                type="number"
+                min="0"
+                step="any"
+                required
+            /></label>
+            <label class="grid gap-2 ui-field-label"
+              ><span>Total carcasses collected</span
+              ><TextInput
+                v-model.number="calibration.carcasses"
+                type="number"
+                min="1"
+                step="1"
+                required
+            /></label>
+            <button type="submit" class="btn btn--secondary">
+              Use session averages
+            </button>
+          </form>
+          <p
+            v-if="calibrationMessage"
+            :role="calibrationError ? 'alert' : 'status'"
+            class="mt-3 text-sm text-muted-3"
+          >
+            {{ calibrationMessage }}
+          </p>
+        </details>
+      </section>
+
       <section class="index-panel ui-panel">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2
             class="font-ui text-sm font-semibold uppercase tracking-[0.18em] text-muted-2 ui-section-title"
           >
-            XP per animal
+            {{ lureMode ? "Work and processing XP" : "XP per animal" }}
           </h2>
-          <button class="btn btn--secondary" type="button" @click="resetGoatXp">
+          <button
+            v-if="!lureMode"
+            class="btn btn--secondary"
+            type="button"
+            @click="resetGoatXp"
+          >
             Use Nubi goat estimates
           </button>
         </div>
@@ -138,7 +285,9 @@ function resetGoatXp() {
             </SelectInput>
           </label>
           <label class="grid gap-2 ui-field-label">
-            <span class="field-label ui-field-label">XP values</span>
+            <span class="field-label ui-field-label">{{
+              lureMode ? "Processing XP values" : "XP values"
+            }}</span>
             <SelectInput v-model="settings.xpMode">
               <option value="base">Base estimates, before XP bonuses</option>
               <option value="observed">
@@ -156,7 +305,7 @@ function resetGoatXp() {
               :disabled="settings.xpMode === 'observed'"
             />
           </label>
-          <label class="grid gap-2 ui-field-label">
+          <label v-if="!lureMode" class="grid gap-2 ui-field-label">
             <span class="field-label ui-field-label">XP per kill</span>
             <TextInput
               v-model.number="settings.killXp"
@@ -177,12 +326,18 @@ function resetGoatXp() {
             />
           </label>
         </div>
-        <p class="mt-3 text-sm text-muted-3">
+        <p v-if="!lureMode" class="mt-3 text-sm text-muted-3">
           Nubi defaults are about 386.1 kill XP and 198 processing XP. Shot
           damage, rounding, and processing crits change actual gains. For a
           closer estimate, measure several animals, enter the average XP for
           each stage, and choose observed XP. You can use the same fields for
           other animals.
+        </p>
+        <p v-else class="mt-3 text-sm text-muted-3">
+          The XP bonus applies only to base processing XP. Lure hunting XP is
+          always observed and already includes bonuses. Replace the processing
+          preset with your animal's measured average; group cargo does not imply
+          equal hunting XP.
         </p>
         <p
           v-if="settings.xpMode === 'observed'"
@@ -206,6 +361,68 @@ function resetGoatXp() {
           </button>
         </template>
         <template v-else>
+          <div
+            v-if="lureMode"
+            class="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            data-test="lure-results"
+          >
+            <div>
+              <p class="field-label ui-field-label">
+                {{ settings.lureAnimal || "Lure hunting" }} · Tier
+                {{ settings.lureTier }}
+              </p>
+              <p class="mt-2 text-3xl font-semibold">
+                {{ selected.lures === null ? "—" : number(selected.lures) }}
+                lures
+              </p>
+            </div>
+            <div>
+              <p class="field-label ui-field-label">
+                {{
+                  settings.mode === "processing"
+                    ? "Processing XP from each lure’s cargo"
+                    : "XP per lure"
+                }}
+              </p>
+              <p class="mt-2 text-xl">{{ number(selected.xpPerLure) }}</p>
+              <p class="mt-1 text-sm text-muted-3">
+                {{ number(result.scenarios[2].xpPerLure) }} hunting +
+                {{ number(result.scenarios[1].xpPerLure) }} processing XP
+                available per lure
+              </p>
+            </div>
+            <div>
+              <p class="field-label ui-field-label">
+                Expected carcasses collected
+              </p>
+              <p class="mt-2 text-xl">
+                {{
+                  selected.carcasses === null ? "—" : number(selected.carcasses)
+                }}
+              </p>
+            </div>
+            <div>
+              <p class="field-label ui-field-label">
+                {{
+                  settings.mode === "processing"
+                    ? "Hunting time to supply cargo"
+                    : "Estimated hunting time"
+                }}
+              </p>
+              <p class="mt-2 text-xl">
+                {{
+                  selected.huntingSeconds === null
+                    ? "—"
+                    : number(selected.huntingSeconds / 60) + " min"
+                }}
+              </p>
+            </div>
+            <p class="text-sm text-muted-3 sm:col-span-2 lg:col-span-4">
+              Rounded up to full two-minute lures, plus gaps between them.
+              Processing time is not included. Expected yield is an average, not
+              a guaranteed spawn count.
+            </p>
+          </div>
           <div class="grid gap-5 sm:grid-cols-2">
             <div>
               <p class="field-label ui-field-label">XP still needed</p>
@@ -245,6 +462,12 @@ function resetGoatXp() {
               </p>
               <p class="mt-1 text-sm text-muted-3">
                 {{ number(scenario.xp) }} XP per animal
+              </p>
+              <p v-if="lureMode" class="mt-1 text-sm text-muted-3">
+                {{
+                  scenario.lures === null ? "—" : number(scenario.lures)
+                }}
+                lures
               </p>
             </div>
           </div>

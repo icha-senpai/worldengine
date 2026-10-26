@@ -86,17 +86,20 @@
             <div class="passive-craft-widget__row">
               <div class="passive-craft-widget__item">
                 <p>
-                  <img
+                  <span
                     v-if="itemIconUrl(group.output)"
-                    class="passive-craft-widget__icon"
-                    :src="itemIconUrl(group.output)"
-                    alt=""
-                    width="32"
-                    height="32"
-                    loading="lazy"
-                    decoding="async"
-                    @error="hideBrokenIcon(group.output?.iconAssetName)"
-                  />
+                    class="passive-craft-widget__icon bitcraft-item-icon"
+                  >
+                    <img
+                      :src="itemIconUrl(group.output)"
+                      alt=""
+                      width="38"
+                      height="38"
+                      loading="lazy"
+                      decoding="async"
+                      @error="hideBrokenIcon(group.output?.iconAssetName)"
+                    />
+                  </span>
                   <BitcraftTierBadge
                     v-if="hasTier(group.output?.tier)"
                     :tier="group.output.tier"
@@ -636,10 +639,9 @@ onBeforeUnmount(() => {
 }
 
 .passive-craft-widget__icon {
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
 }
 
 .passive-craft-widget__count {

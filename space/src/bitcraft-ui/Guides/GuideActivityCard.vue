@@ -5,7 +5,10 @@ import { computed, onBeforeUnmount, reactive, ref, watch } from "vue";
 import { NodeViewWrapper, nodeViewProps } from "@tiptap/vue-3";
 import TextInput from "/src/bitcraft-ui/shared/TextInput.vue";
 import SelectInput from "/src/bitcraft-ui/shared/SelectInput.vue";
-import { bitcraftAssetUrl } from "/src/bitcraft-ui/bitjitaAssets";
+import {
+  bitcraftAssetUrl,
+  bitcraftItemFrameStyle,
+} from "/src/bitcraft-ui/bitjitaAssets";
 import {
   estimateGathering,
   gatheringDefaults,
@@ -202,7 +205,11 @@ function selectCard() {
     contenteditable="false"
   >
     <header class="flex items-start gap-3" @click="selectCard">
-      <span class="guide-activity-card__icon" aria-hidden="true">
+      <span
+        class="guide-activity-card__icon bitcraft-item-icon"
+        :style="bitcraftItemFrameStyle(target?.tier, target?.rarity)"
+        aria-hidden="true"
+      >
         <img
           v-if="icon(target)"
           :src="icon(target)"
@@ -360,7 +367,9 @@ function selectCard() {
           class="guide-activity-card__row"
         >
           <img
+            class="bitcraft-item-image"
             v-if="icon(item)"
+            :style="bitcraftItemFrameStyle(item.tier, item.rarity)"
             :src="icon(item)"
             alt=""
             loading="lazy"
@@ -386,7 +395,9 @@ function selectCard() {
           class="guide-activity-card__row"
         >
           <img
+            class="bitcraft-item-image"
             v-if="icon(item)"
+            :style="bitcraftItemFrameStyle(item.tier, item.rarity)"
             :src="icon(item)"
             alt=""
             loading="lazy"
@@ -470,12 +481,6 @@ function selectCard() {
   width: 48px;
   height: 48px;
   flex: 0 0 48px;
-  background: var(--bg-canvas);
-}
-.guide-activity-card__icon img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
 }
 .guide-activity-card__controls {
   display: grid;
@@ -497,7 +502,7 @@ function selectCard() {
   width: 28px;
   height: 28px;
   flex: 0 0 28px;
-  object-fit: contain;
+  object-fit: cover;
 }
 .guide-activity-card :deep(.input) {
   min-width: 0;

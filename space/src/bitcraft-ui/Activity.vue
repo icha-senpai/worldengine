@@ -293,16 +293,26 @@
                   <template v-if="primaryItem">
                     <span aria-hidden="true">-</span>
                     <span class="xp-source-item">
-                      <img
+                      <span
                         v-if="sourceIconUrl"
-                        :src="sourceIconUrl"
-                        alt=""
-                        width="28"
-                        height="28"
-                        loading="lazy"
-                        decoding="async"
-                        @error="hideSourceIcon"
-                      />
+                        class="xp-source-icon bitcraft-item-icon"
+                        :style="
+                          bitcraftItemFrameStyle(
+                            primaryItem.tier,
+                            primaryItem.rarity,
+                          )
+                        "
+                      >
+                        <img
+                          :src="sourceIconUrl"
+                          alt=""
+                          width="38"
+                          height="38"
+                          loading="lazy"
+                          decoding="async"
+                          @error="hideSourceIcon"
+                        />
+                      </span>
                       <BitcraftTierBadge
                         v-if="hasBitcraftTier(primaryItem.tier)"
                         :tier="primaryItem.tier"
@@ -403,19 +413,31 @@
               ><small>Observed gains</small>
             </div>
             <div>
-              <span>XP / hour</span><strong>{{ measuredRate }}</strong
+              <span>Current pace · XP / hour</span
+              ><strong>{{ measuredRate }}</strong
               ><small>{{
-                refreshStatus.delayed ? "Refresh delayed" : "Continuous samples"
+                paceDelayed
+                  ? "Data delayed"
+                  : primaryStat?.paused
+                    ? "Paused · last active pace"
+                    : primaryStat?.warming
+                      ? "Sampling complete XP intervals"
+                      : "Active skilling pace"
               }}</small>
+              <small>Overall: {{ overallRate }} XP/hr · includes breaks</small>
             </div>
             <div>
-              <span>Time to goal</span
+              <span>Active time to goal</span
               ><strong>{{
-                primaryStat && !refreshStatus.delayed
+                primaryStat && !paceDelayed
                   ? skillTimeRemainingLabel(primaryStat)
                   : "—"
               }}</strong
-              ><small>At measured rate</small>
+              ><small>{{
+                primaryStat?.paused
+                  ? "When you resume skilling"
+                  : "Breaks excluded"
+              }}</small>
             </div>
             <div>
               <span>Active time</span><strong>{{ sessionClock }}</strong
@@ -546,8 +568,13 @@ import { bitcraftFetch as fetch } from "/src/bitcraft-ui/api";
 import { route } from "/src/bitcraft-ui/navigation";
 import { openWidget, widgetUrl, persistWidgetDraft } from "./widgets";
 import { restoreXpSession, trackerActivity } from "./xpSession";
+import { paceActivity, skillPace } from "./xpPace";
 import { xpItemForSkill } from "./xpSource";
-import { bitcraftAssetUrl, hasBitcraftTier } from "./bitjitaAssets";
+import {
+  bitcraftAssetUrl,
+  bitcraftItemFrameStyle,
+  hasBitcraftTier,
+} from "./bitjitaAssets";
 import BitcraftTierBadge from "./Components/BitcraftTierBadge.vue";
 import {
   passiveDeadlines,
@@ -572,7 +599,6 @@ import { retainActivityTracker } from "./activitySnapshot";
 import { bitcraftConnected, bitcraftReconnecting } from "../bitcraft";
 import { createTrackerPoller } from "./trackerPolling";
 import {
-  activitySkillRate,
   appendActivitySample,
   restoreActivitySamples,
   normalizeActivitySamples,
@@ -609,6 +635,12 @@ const refreshStatus = ref(props.snapshot.refresh ?? {});
 const activityDelayed = computed(
   () =>
     tracker.value?.activity?.delayed ||
+    refreshStatus.value.delayed ||
+    bitcraftReconnecting.value ||
+    !bitcraftConnected.value,
+);
+const paceDelayed = computed(
+  () =>
     refreshStatus.value.delayed ||
     bitcraftReconnecting.value ||
     !bitcraftConnected.value,
@@ -864,13 +896,22 @@ const hideSourceIcon = () => {
   ]);
 };
 const measuredRate = computed(() =>
-  refreshStatus.value.delayed
+  paceDelayed.value
     ? "—"
-    : samples.value.length >= 2 &&
-        skillStats.value.some((s) => s.minutesSampled >= 1)
+    : primaryStat.value?.minutesSampled >= 1
       ? formatCompact(primaryStat.value?.hourRate ?? totalStats.value.hourRate)
       : "Sampling",
 );
+const overallRate = computed(() => {
+  if (paceDelayed.value) return "—";
+  const pace = session.value?.pace;
+  if (!pace || pace.observedMs < 60000) return "Sampling";
+  const rate = primaryStat.value
+    ? primaryStat.value.overallHourRate
+    : (Object.values(pace.gains).reduce((sum, xp) => sum + xp, 0) * 3600000) /
+      pace.observedMs;
+  return rate == null ? "Sampling" : formatCompact(rate);
+});
 const sessionClock = computed(() => {
   const seconds = Math.floor((session.value?.activeMs || 0) / 1000);
   return `${String(Math.floor(seconds / 3600)).padStart(2, "0")}:${String(Math.floor(seconds / 60) % 60).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
@@ -938,6 +979,11 @@ async function refreshBackground() {
           playerId: String(player.entityId),
           sourceKey: snapshot.sampleSourceKey,
           at: Date.parse(snapshot.sampledAt),
+          paceActivity: paceActivity(
+            snapshot.tracker.activity,
+            Date.parse(snapshot.sampledAt),
+            snapshot.tracker.xpSource,
+          ),
           xp: Object.fromEntries(
             trackerSkills(snapshot.tracker)
               .filter((s) => s.xpKnown !== false)
@@ -1058,6 +1104,11 @@ const addSample = (
     at: sampledTime,
     playerId: String(nextTracker.player?.entityId ?? ""),
     sourceKey,
+    paceActivity: paceActivity(
+      nextTracker.activity,
+      sampledTime,
+      nextTracker.xpSource,
+    ),
     xpBySkill: Object.fromEntries(
       trackerSkills(nextTracker)
         .filter((skill) => skill.xpKnown !== false && skill.xp != null)
@@ -1428,7 +1479,7 @@ watch(form, saveSetup, { deep: true });
 const skillStats = computed(() =>
   skills.value.map((skill) => ({
     skill,
-    ...activitySkillRate(samples.value, String(skill.id)),
+    ...skillPace(session.value?.pace, String(skill.id)),
     progressPercent: Math.max(
       0,
       Math.min(100, Number(skill.progressPercent ?? 0)),
@@ -1582,7 +1633,7 @@ const totalXpRateLabel = computed(
 );
 const totalRecentXpLabel = computed(
   () =>
-    `${formatNumber(totalStats.value.xpDelta)} recent XP across ${activeSkillStats.value.length} skill${activeSkillStats.value.length === 1 ? "" : "s"}`,
+    `${formatNumber(totalStats.value.xpDelta)} sampled XP across ${activeSkillStats.value.length} skill${activeSkillStats.value.length === 1 ? "" : "s"}`,
 );
 const blockingError = computed(() => Boolean(error.value && !tracker.value));
 const waitingLabel = computed(() =>
@@ -1621,7 +1672,7 @@ const skillTimeRemainingLabel = (stat) => {
 const skillPrimaryLabel = (stat) =>
   skillTimeRemainingLabel(stat) ?? skillRateLabel(stat);
 const skillCountLabel = (stat) =>
-  stat.targetXp || stat.skill.nextLevel ? "Time Left" : "Current Rate";
+  stat.targetXp || stat.skill.nextLevel ? "Active Time Left" : "Current Rate";
 const skillGoalLabel = (stat) => {
   if (stat.goal?.level) {
     return `${stat.skill.name} ${stat.goal.level}`;
@@ -1803,11 +1854,10 @@ const skillDetailLabel = (stat) => {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.xp-source-item > img {
-  flex: 0 0 28px;
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
+.xp-source-icon {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
 }
 .xp-hero p {
   font-size: 12px;

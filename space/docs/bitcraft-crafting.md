@@ -10,8 +10,10 @@ cycle-aware trees. The UI does not infer recipe preference from display names.
 Run from `space/`, using the public static-data directory:
 
 ```powershell
-npm run bitcraft:catalog -- ../tmp/BitCraft_GameData-20261008-fishing/static
-npm run bitcraft:catalog -- ../tmp/BitCraft_GameData-20261008-fishing/static --check
+npm run bitcraft:snapshot -- ../tmp/bitcraft-static-20261022
+npm run bitcraft:catalog -- ../tmp/bitcraft-static-20261022
+npm run bitcraft:snapshot -- ../tmp/bitcraft-static-20261022 --check
+npm run bitcraft:catalog -- ../tmp/bitcraft-static-20261022 --check
 ```
 
 The importer reads the checked-in public UI export (`catalog.json` and
@@ -19,8 +21,23 @@ The importer reads the checked-in public UI export (`catalog.json` and
 the public item, item-list, resource, extraction and skill definitions. It
 resolves output bundles through one general path and includes eligible resource
 destruction rewards. This replaces the separate wood-log, bait and package
-material runtime enrichments. Refreshing the base UI export still uses
-`scripts/export-bitcraft-ui.php`; regenerate the crafting graph afterwards.
+material runtime enrichments. Refresh the base UI export first with
+`scripts/import-bitcraft-snapshot.mjs`; it reads the public `cereal/cs` JSON
+directly, without Laravel or a player database. The old PHP exporter is a legacy
+reference and must not overwrite a newer snapshot.
+
+The current release is October 22, 2026, pinned to
+[`e92453d5c29fb4c165ee126615b08f55c8959c8d`](https://github.com/BitCraftToolBox/BitCraft_GameData/tree/e92453d5c29fb4c165ee126615b08f55c8959c8d/static).
+Download the eight tables listed in `snapshotTables` plus `item_list_desc.json`
+from that same commit into a disposable directory. Add `source.json` with
+`repository`, `commit`, and `generatedAt` (the release commit timestamp, currently
+`2026-10-22T16:47:05Z`). Never replace that date with the local import time.
+The exported catalogue retains the release identity and SHA-256 of every input
+table. Regenerate both artifacts together, inspect omissions, run the calculator
+and catalog tests, and publish the local BitCraft module to activate the data.
+The temporary source directory can be removed after checks pass; deployments
+use the committed artifacts. This updates reference data, not retained player,
+market, claim, or XP history.
 
 The result is `bitcraft/src/content/crafting-catalog.json`. It contains source
 hashes, stable route IDs, typed classifications, quantities and any omitted
