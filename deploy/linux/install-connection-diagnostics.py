@@ -10,6 +10,7 @@ import pwd
 import re
 import shutil
 import subprocess
+from hosting_security import patch_site as patch_security
 
 HEADER = '# Managed Dataverse connection diagnostics.\n'
 ACCESS = 'access_log syslog:server=127.0.0.1:5514,tag=dataverse_ws,nohostname dataverse_socket;'
@@ -81,6 +82,9 @@ def patch_site(text, until):
     text, count = re.subn(r'(    if \(-f /var/www/dataverse/\.maintenance\) \{ return 503; \}\n)', lambda m: m[1] + health, text)
     if count != 2:
         raise RuntimeError('Expected exactly two HTTPS virtual hosts')
+    # Preserve security headers in diagnostic locations with their own add_header.
+    if '/etc/nginx/snippets/dataverse-' in text:
+        text = patch_security(text)
     return text
 
 

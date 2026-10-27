@@ -215,6 +215,7 @@ pub mod sync_discord_portrait_reducer;
 pub mod trader_migration_type;
 pub mod unlink_browser_reducer;
 pub mod upgrade_quote_type;
+pub mod validate_link_challenge_procedure;
 pub mod weekly_quest_progress_type;
 
 pub use achievement_collection_table::*;
@@ -426,6 +427,7 @@ pub use sync_discord_portrait_reducer::sync_discord_portrait;
 pub use trader_migration_type::TraderMigration;
 pub use unlink_browser_reducer::unlink_browser;
 pub use upgrade_quote_type::UpgradeQuote;
+pub use validate_link_challenge_procedure::validate_link_challenge;
 pub use weekly_quest_progress_type::WeeklyQuestProgress;
 
 #[derive(Clone, PartialEq, Debug)]

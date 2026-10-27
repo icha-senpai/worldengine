@@ -145,6 +145,21 @@ export const completeDiscordLink = db.reducer(
     attach(ctx, row, args.discordId);
   },
 );
+export const validateDiscordChallenge = db.procedure(
+  { challengeId: t.u64(), proof: t.string() },
+  t.bool(),
+  (ctx, args) =>
+    ctx.withTx((tx) => {
+      if (!tx.db.discordLinker.identity.find(ctx.sender)?.active) return false;
+      const row = tx.db.discordChallenge.challengeId.find(args.challengeId);
+      return Boolean(
+        row &&
+        row.status === "pending" &&
+        row.expiresAt > tx.timestamp.microsSinceUnixEpoch &&
+        row.proof === args.proof,
+      );
+    }),
+);
 export const confirmDiscordCharacter = db.reducer(
   { challengeId: t.u64(), useDiscordCharacter: t.bool() },
   (ctx, args) => {

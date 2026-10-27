@@ -74,6 +74,7 @@ import UseConsumableReducer from "./use_consumable_reducer";
 // Import all procedure arg schemas
 import * as ReadInventoryDetailsProcedure from "./read_inventory_details_procedure";
 import * as ReadMarketListingsProcedure from "./read_market_listings_procedure";
+import * as ValidateDiscordChallengeProcedure from "./validate_discord_challenge_procedure";
 
 // Import all table schema definitions
 import AchievementDefinitionsRow from "./achievement_definitions_table";
@@ -425,6 +426,7 @@ const reducersSchema = __reducers(
 const proceduresSchema = __procedures(
   __procedureSchema("read_inventory_details", ReadInventoryDetailsProcedure.params, ReadInventoryDetailsProcedure.returnType),
   __procedureSchema("read_market_listings", ReadMarketListingsProcedure.params, ReadMarketListingsProcedure.returnType),
+  __procedureSchema("validate_discord_challenge", ValidateDiscordChallengeProcedure.params, ValidateDiscordChallengeProcedure.returnType),
 );
 
 /** The remote SpacetimeDB module schema, both runtime and type information. */

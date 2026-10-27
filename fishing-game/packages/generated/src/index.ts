@@ -98,6 +98,7 @@ import SyncDiscordPortraitReducer from "./sync_discord_portrait_reducer";
 import UnlinkBrowserReducer from "./unlink_browser_reducer";
 
 // Import all procedure arg schemas
+import * as ValidateLinkChallengeProcedure from "./validate_link_challenge_procedure";
 
 // Import all table schema definitions
 import AchievementCollectionRow from "./achievement_collection_table";
@@ -873,6 +874,7 @@ const reducersSchema = __reducers(
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */
 const proceduresSchema = __procedures(
+  __procedureSchema("validate_link_challenge", ValidateLinkChallengeProcedure.params, ValidateLinkChallengeProcedure.returnType),
 );
 
 type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "tables"> & {

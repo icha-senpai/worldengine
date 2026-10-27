@@ -3,9 +3,9 @@
 import argparse
 import os
 from pathlib import Path
-import pwd
 import shutil
 import subprocess
+from hosting_security import HEADER as SECURITY_HEADER, DIRECTORY, MAP_PATH, DOMAINS as SECURITY_DOMAINS, headers, http_config, patch_site
 
 HEADER = "# Managed Dataverse Linux hosting.\n"
 DOMAINS = ["bitcraft.ichaa.dev", "fishbound.ichaa.dev"]
@@ -15,17 +15,17 @@ def run(*args):
     subprocess.run(args, check=True)
 
 
-def managed_file(path, text):
+def managed_file(path, text, marker=HEADER):
     path = Path(path)
     if path.is_symlink():
         raise RuntimeError(f"Linked configuration refused: {path}")
-    if path.exists() and not path.read_text().startswith(HEADER):
+    if path.exists() and not path.read_text().startswith(marker):
         raise RuntimeError(f"Unmanaged configuration preserved: {path}")
     stage = path.with_suffix(path.suffix + ".new")
     if stage.exists():
         raise RuntimeError(f"Unfinished configuration stage: {stage}")
     with stage.open("x") as file:
-        file.write(HEADER + text)
+        file.write(text if text.startswith(marker) else marker + text)
     stage.chmod(0o644)
     stage.replace(path)
 
@@ -77,6 +77,7 @@ def https_site(domain, body):
 
 
 def main():
+    import pwd
     parser = argparse.ArgumentParser()
     parser.add_argument("--user", default="icha")
     args = parser.parse_args()
@@ -154,7 +155,11 @@ def main():
     location / {
 """ + proxy(5173) + """    }
 """
-    managed_file(site, http_site(True) + https_site(DOMAINS[0], bitcraft) + https_site(DOMAINS[1], fish))
+    managed_file(MAP_PATH, http_config(), SECURITY_HEADER)
+    Path(DIRECTORY).mkdir(parents=True, exist_ok=True)
+    for domain in SECURITY_DOMAINS:
+        managed_file(Path(DIRECTORY) / f'dataverse-{domain}-security.conf', headers(domain), SECURITY_HEADER)
+    managed_file(site, patch_site(HEADER + http_site(True) + https_site(DOMAINS[0], bitcraft) + https_site(DOMAINS[1], fish)))
     hook = Path("/etc/letsencrypt/renewal-hooks/deploy/dataverse-nginx")
     hook.parent.mkdir(parents=True, exist_ok=True)
     if hook.exists() and "Dataverse" not in hook.read_text():

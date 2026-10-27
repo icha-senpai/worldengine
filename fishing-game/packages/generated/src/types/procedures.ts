@@ -6,5 +6,8 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all procedure arg schemas
+import * as ValidateLinkChallengeProcedure from "../validate_link_challenge_procedure";
 
+export type ValidateLinkChallengeArgs = __Infer<typeof ValidateLinkChallengeProcedure.params>;
+export type ValidateLinkChallengeResult = __Infer<typeof ValidateLinkChallengeProcedure.returnType>;
 

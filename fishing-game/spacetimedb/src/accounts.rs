@@ -326,6 +326,22 @@ pub fn complete_account_link(
     Ok(())
 }
 
+/// Only the trusted linker can check a proof. No session or player state changes.
+#[spacetimedb::procedure]
+pub fn validate_link_challenge(
+    ctx: &mut spacetimedb::ProcedureContext,
+    challenge_id: u64,
+    proof: u128,
+) -> bool {
+    ctx.with_tx(|ctx| {
+        if require_service(ctx, ServiceRole::AccountLinker).is_err() {
+            return false;
+        }
+        ctx.db.link_challenge().challenge_id().find(challenge_id)
+            .is_some_and(|row| !row.consumed && row.expires_at > ctx.timestamp && row.proof == proof)
+    })
+}
+
 #[spacetimedb::view(accessor = my_profile, public)]
 pub fn my_profile(ctx: &ViewContext) -> Option<PublicProfile> {
     ctx.db

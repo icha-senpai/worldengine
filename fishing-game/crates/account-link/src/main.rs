@@ -1,3 +1,4 @@
+mod limits;
 mod oauth;
 use axum::{
     Router,
@@ -46,10 +47,13 @@ async fn main() -> Result<(), Error> {
         .with_state(Arc::new(state));
     let listener = tokio::net::TcpListener::bind(&bind).await?;
     tracing::info!(%bind, "Account-link service ready");
-    axum::serve(listener, app)
-        .with_graceful_shutdown(async {
-            tokio::signal::ctrl_c().await.ok();
-        })
-        .await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+    )
+    .with_graceful_shutdown(async {
+        tokio::signal::ctrl_c().await.ok();
+    })
+    .await?;
     Ok(())
 }

@@ -46,6 +46,7 @@ export {
   configureDiscordLinker,
   beginDiscordLink,
   completeDiscordLink,
+  validateDiscordChallenge,
   confirmDiscordCharacter,
   signOutDiscord,
   myDiscordAccount,

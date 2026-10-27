@@ -8,7 +8,7 @@ let command;
 let commandArgs;
 let artifacts = [];
 if (mode === 'cargo' && args.length) {
-  if (!['build', 'check', 'test', 'run', 'clippy', 'fmt', 'metadata'].includes(args[0])) throw new Error('Use a Cargo build, check, test, run, clippy, fmt or metadata command.');
+  if (!['build', 'check', 'test', 'run', 'clippy', 'fmt', 'metadata', 'update'].includes(args[0])) throw new Error('Use a Cargo build, check, test, run, clippy, fmt, metadata or update command.');
   command = 'cargo';
   commandArgs = args;
   if (args.some(arg => arg === '--target-dir' || arg.startsWith('--target-dir='))) throw new Error('The workflow owns its target directory; remove --target-dir.');

@@ -131,3 +131,34 @@ publication and generated source is returned to its original Git state.
 
 The lower-level `node deploy/linux/publish.mjs space|fishbound [--build-only]`
 commands remain available for focused maintenance. They only publish websites.
+
+## Security configuration
+
+Publish the challenge-validation procedures together with the updated account
+linker through `dataverse-update`. Validation is read-only; no saved tables,
+player state or activation hooks change. The linker fails closed if the new
+procedures are unavailable. Login limits are separate for each game, with eight
+starts per client per minute and 120 per game per minute. Sessions are created
+only for valid pending proofs, deduplicated per challenge and capped per game.
+
+Apply the reviewed NGINX configuration once as a host administrator:
+
+```sh
+sudo python3 deploy/linux/harden-host.py --apply
+```
+
+Without `--apply` this previews the paths. It preserves existing proxy routes and
+diagnostics, validates NGINX before reloading, and restores the previous files if
+validation fails. It does not enable maintenance or restart databases. Bootstrap
+installs the same configuration on new hosts. Do not rerun bootstrap for this update.
+
+Headers include HSTS, MIME protection, framing protection, referrer policy and
+CSP. Standalone Space widget URLs remain embeddable; gameplay and editor pages
+cannot be framed. Fishbound uses a per-response SvelteKit script nonce. NGINX
+overwrites `X-Real-IP`; the loopback linker trusts it only from loopback peers.
+Keep this header when changing proxies. If a CDN is introduced, configure its
+trusted client-address handling in NGINX rather than trusting arbitrary headers.
+
+The Discord bot now uses the platform TLS backend already used by the native
+database SDK. Keep the host's CA certificates/OpenSSL packages current. The OAuth
+HTTP client retains rustls with patched verifier and root-store dependencies.

@@ -248,6 +248,40 @@ await runTemporaryDatabaseTest(database, async (scope) => {
       },
     );
     const proof = await begin(original.c);
+    const validate = async (token: string, value = proof) => {
+      const response = await fetch(
+        `${server}/v1/database/${database}/call/validate_discord_challenge`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: `[${value.challengeId},${JSON.stringify(value.proof)}]`,
+        },
+      );
+      assert(response.ok, "Challenge validation transport must succeed");
+      return response.json();
+    };
+    assert.equal(
+      await validate(outsider.token),
+      false,
+      "Only the scoped linker can validate a proof",
+    );
+    assert.equal(
+      await validate(linker.token, { ...proof, proof: "0".repeat(64) }),
+      false,
+    );
+    assert.equal(
+      await validate(linker.token, { ...proof, challengeId: 0n }),
+      false,
+    );
+    assert.equal(await validate(linker.token), true);
+    assert.equal(
+      await validate(linker.token),
+      true,
+      "Validation is read-only and does not consume the challenge",
+    );
     assert.equal(
       (await complete(outsider.token, proof)).ok,
       false,
@@ -267,6 +301,11 @@ await runTemporaryDatabaseTest(database, async (scope) => {
     );
     const saved = snapshot(original.c);
     assert.equal((await complete(linker.token, proof)).ok, true);
+    assert.equal(
+      await validate(linker.token),
+      false,
+      "Used challenges cannot allocate another OAuth session",
+    );
     await until(
       () => [...original.c.db.myDiscordAccount.iter()][0]?.linked === true,
     );
@@ -499,4 +538,3 @@ await runTemporaryDatabaseTest(database, async (scope) => {
     await sleep(150);
   }
 });
-

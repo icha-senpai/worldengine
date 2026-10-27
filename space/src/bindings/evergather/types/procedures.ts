@@ -8,9 +8,12 @@ import { type Infer as __Infer } from "spacetimedb";
 // Import all procedure arg schemas
 import * as ReadInventoryDetailsProcedure from "../read_inventory_details_procedure";
 import * as ReadMarketListingsProcedure from "../read_market_listings_procedure";
+import * as ValidateDiscordChallengeProcedure from "../validate_discord_challenge_procedure";
 
 export type ReadInventoryDetailsArgs = __Infer<typeof ReadInventoryDetailsProcedure.params>;
 export type ReadInventoryDetailsResult = __Infer<typeof ReadInventoryDetailsProcedure.returnType>;
 export type ReadMarketListingsArgs = __Infer<typeof ReadMarketListingsProcedure.params>;
 export type ReadMarketListingsResult = __Infer<typeof ReadMarketListingsProcedure.returnType>;
+export type ValidateDiscordChallengeArgs = __Infer<typeof ValidateDiscordChallengeProcedure.params>;
+export type ValidateDiscordChallengeResult = __Infer<typeof ValidateDiscordChallengeProcedure.returnType>;
 

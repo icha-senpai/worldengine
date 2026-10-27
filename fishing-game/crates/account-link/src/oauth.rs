@@ -1,5 +1,6 @@
+use crate::limits::{Application, LoginLimits};
 use axum::{
-    extract::{Form, Query, State as ExtractState},
+    extract::{ConnectInfo, Form, Query, State as ExtractState},
     http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{IntoResponse, Redirect, Response},
 };
@@ -8,6 +9,7 @@ use rand::Rng;
 use serde::Deserialize;
 use std::{
     collections::HashMap,
+    net::{IpAddr, SocketAddr},
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
@@ -115,6 +117,74 @@ fn parse_additional_origins(value: &str) -> Result<Vec<String>, Error> {
 enum LinkTarget {
     Fishbound { proof: u128 },
     Evergather { proof: String },
+}
+impl LinkTarget {
+    fn application(&self) -> Application {
+        match self {
+            Self::Fishbound { .. } => Application::Fishbound,
+            Self::Evergather { .. } => Application::Evergather,
+        }
+    }
+}
+
+// These calls use scoped linker credentials and return only a boolean. They
+// never allocate OAuth sessions or expose the browser's proof in a URL.
+async fn validate_challenge(
+    http: &reqwest::Client,
+    uri: &str,
+    database: &str,
+    token: &str,
+    function: &str,
+    body: String,
+) -> Result<bool, Error> {
+    Ok(http
+        .post(format!(
+            "{}/v1/database/{database}/call/{function}",
+            uri.trim_end_matches('/')
+        ))
+        .bearer_auth(token)
+        .header(header::CONTENT_TYPE, "application/json")
+        .body(body)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<bool>()
+        .await?)
+}
+
+struct Fishbound {
+    uri: String,
+    database: String,
+    token: String,
+}
+impl Fishbound {
+    fn from_env() -> Result<Self, Error> {
+        let uri = required("SPACETIMEDB_URI")?;
+        let url = Url::parse(&uri)?;
+        if url.scheme() != "http"
+            || url.host_str() != Some("127.0.0.1")
+            || url.port() != Some(3127)
+            || url.path() != "/"
+            || url.query().is_some()
+            || url.fragment().is_some()
+            || !url.username().is_empty()
+            || url.password().is_some()
+        {
+            return Err("Fishbound linking requires the loopback 3127 database endpoint".into());
+        }
+        let database = required("SPACETIMEDB_DATABASE")?;
+        if !database
+            .bytes()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'-')
+        {
+            return Err("Invalid Fishbound database name".into());
+        }
+        Ok(Self {
+            uri,
+            database,
+            token: game_client::service_token("SPACETIMEDB_LINKER_TOKEN")?,
+        })
+    }
 }
 struct Evergather {
     website: String,
@@ -224,6 +294,8 @@ pub struct State {
     config: Config,
     http: reqwest::Client,
     sessions: Mutex<HashMap<String, Session>>,
+    limits: Mutex<LoginLimits>,
+    fishbound: Fishbound,
     pub game: Arc<Client>,
     evergather: Option<Evergather>,
 }
@@ -234,6 +306,8 @@ impl State {
             game,
             evergather: Evergather::from_env()?,
             sessions: Mutex::new(HashMap::new()),
+            limits: Mutex::new(LoginLimits::default()),
+            fishbound: Fishbound::from_env()?,
             http: reqwest::Client::builder()
                 .redirect(reqwest::redirect::Policy::none())
                 .timeout(Duration::from_secs(10))
@@ -276,6 +350,18 @@ fn session_cookie(headers: &HeaderMap) -> Option<&str> {
         .split(';')
         .find_map(|cookie| cookie.trim().strip_prefix("fishbound_oauth="))
 }
+fn client_address(peer: SocketAddr, headers: &HeaderMap) -> IpAddr {
+    if peer.ip().is_loopback() {
+        if let Some(ip) = headers
+            .get("x-real-ip")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.parse().ok())
+        {
+            return ip;
+        }
+    }
+    peer.ip()
+}
 fn cookie(value: &str, secure: bool, clear: bool) -> HeaderValue {
     HeaderValue::from_str(&format!(
         "fishbound_oauth={value}; Path=/auth/discord; Max-Age={}; HttpOnly; SameSite=Lax{}",
@@ -296,6 +382,7 @@ fn protected(mut response: Response) -> Response {
 }
 pub async fn start(
     ExtractState(state): ExtractState<Arc<State>>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
     headers: HeaderMap,
     Form(input): Form<Start>,
 ) -> Response {
@@ -342,6 +429,23 @@ pub async fn start(
     if input.challenge_id == 0 {
         return protected((StatusCode::BAD_REQUEST, "Invalid linking challenge.").into_response());
     }
+    // Only the loopback reverse proxy may supply the address, and it overwrites
+    // this header. Arbitrary remote peers cannot choose their rate-limit key.
+    let client = client_address(peer, &headers);
+    if !state.limits.lock().expect("limits mutex").allow(
+        target.application(),
+        client,
+        Instant::now(),
+    ) {
+        return protected(
+            (
+                StatusCode::TOO_MANY_REQUESTS,
+                [(header::RETRY_AFTER, "60")],
+                "Too many login attempts. Try again in a minute.",
+            )
+                .into_response(),
+        );
+    }
     if matches!(&target, LinkTarget::Fishbound { .. }) && !state.game.ready() {
         return protected(
             (
@@ -351,12 +455,74 @@ pub async fn start(
                 .into_response(),
         );
     }
+    let valid = match &target {
+        LinkTarget::Fishbound { proof } => {
+            validate_challenge(
+                &state.http,
+                &state.fishbound.uri,
+                &state.fishbound.database,
+                &state.fishbound.token,
+                "validate_link_challenge",
+                format!("[{},{}]", input.challenge_id, proof),
+            )
+            .await
+        }
+        LinkTarget::Evergather { proof } => {
+            let backend = state
+                .evergather
+                .as_ref()
+                .expect("configured Evergather origin");
+            validate_challenge(
+                &state.http,
+                &backend.uri,
+                &backend.database,
+                &backend.token,
+                "validate_discord_challenge",
+                serde_json::to_string(&(input.challenge_id, proof)).expect("challenge JSON"),
+            )
+            .await
+        }
+    };
+    match valid {
+        Ok(true) => {}
+        Ok(false) => {
+            return protected(
+                (
+                    StatusCode::BAD_REQUEST,
+                    "Invalid or expired linking challenge. Start again from the game.",
+                )
+                    .into_response(),
+            );
+        }
+        Err(_) => {
+            return protected(
+                (
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    "Account linking is temporarily unavailable.",
+                )
+                    .into_response(),
+            );
+        }
+    }
     let session_id = format!("{:032x}", rand::thread_rng().r#gen::<u128>());
     let csrf = format!("{:032x}", rand::thread_rng().r#gen::<u128>());
     {
         let mut sessions = state.sessions.lock().expect("sessions mutex");
         sessions.retain(|_, session| session.expires > Instant::now());
-        if sessions.len() >= 1024 {
+        if let Some(old) = session_cookie(&headers) {
+            sessions.remove(old);
+        }
+        // Repeated starts for the same verified challenge replace its session.
+        sessions.retain(|_, session| {
+            session.challenge_id != input.challenge_id
+                || session.target.application() != target.application()
+        });
+        if sessions
+            .values()
+            .filter(|session| session.target.application() == target.application())
+            .count()
+            >= 512
+        {
             return protected(
                 (
                     StatusCode::TOO_MANY_REQUESTS,
@@ -364,9 +530,6 @@ pub async fn start(
                 )
                     .into_response(),
             );
-        }
-        if let Some(old) = session_cookie(&headers) {
-            sessions.remove(old);
         }
         sessions.insert(
             session_id.clone(),
@@ -544,6 +707,67 @@ pub async fn callback(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn remote_peers_cannot_spoof_the_rate_limit_address() {
+        let mut headers = HeaderMap::new();
+        headers.insert("x-real-ip", HeaderValue::from_static("192.0.2.2"));
+        assert_eq!(
+            client_address("198.51.100.1:1234".parse().unwrap(), &headers),
+            "198.51.100.1".parse::<IpAddr>().unwrap()
+        );
+        assert_eq!(
+            client_address("127.0.0.1:1234".parse().unwrap(), &headers),
+            "192.0.2.2".parse::<IpAddr>().unwrap()
+        );
+        headers.insert("x-real-ip", HeaderValue::from_static("invalid"));
+        assert!(client_address("127.0.0.1:1234".parse().unwrap(), &headers).is_loopback());
+    }
+    #[tokio::test]
+    async fn validation_sends_service_auth_and_exact_proof_and_fails_closed() {
+        use axum::{Router, routing::post};
+        let app = Router::new().route(
+            "/v1/database/proof/call/validate_link_challenge",
+            post(|headers: HeaderMap, body: String| async move {
+                assert_eq!(
+                    headers.get(header::AUTHORIZATION).unwrap(),
+                    "Bearer test-token"
+                );
+                assert_eq!(body, "[17,340282366920938463463374607431768211455]");
+                "false"
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let uri = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        let http = reqwest::Client::new();
+        assert!(
+            !validate_challenge(
+                &http,
+                &uri,
+                "proof",
+                "test-token",
+                "validate_link_challenge",
+                format!("[17,{}]", u128::MAX)
+            )
+            .await
+            .unwrap()
+        );
+        assert!(
+            validate_challenge(
+                &http,
+                &uri,
+                "missing",
+                "test-token",
+                "validate_link_challenge",
+                "[]".into()
+            )
+            .await
+            .is_err()
+        );
+        server.abort();
+    }
     #[tokio::test]
     async fn evergather_dispatches_verified_identity_to_its_own_backend() {
         use axum::{Json, Router, routing::post};
