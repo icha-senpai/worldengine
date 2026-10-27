@@ -25,7 +25,9 @@ def headers(domain):
         raise ValueError('Unknown security-header site')
     # Fishbound supplies an additional nonce-based script policy in SvelteKit.
     # Space has no inline scripts. Rich text needs inline styles and HTTPS images.
-    scripts = "'self' 'unsafe-inline'" if domain == DOMAINS[1] else "'self'"
+    # The SpacetimeDB browser SDK builds table serializers with new Function(),
+    # so both sites must allow first-party eval for subscriptions to connect.
+    scripts = "'self' 'unsafe-inline' 'unsafe-eval'" if domain == DOMAINS[1] else "'self' 'unsafe-eval'"
     ancestors = '$dataverse_frame_ancestors' if domain == DOMAINS[0] else "'none'"
     framing = '$dataverse_frame_options' if domain == DOMAINS[0] else 'DENY'
     csp = (f"default-src 'self'; script-src {scripts}; style-src 'self' 'unsafe-inline'; "

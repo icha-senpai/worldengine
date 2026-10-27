@@ -32,6 +32,7 @@ class HostingSecurity(unittest.TestCase):
             for header in ['Strict-Transport-Security', 'X-Content-Type-Options', 'X-Frame-Options', 'Referrer-Policy', 'Permissions-Policy', 'Content-Security-Policy']:
                 self.assertIn('add_header ' + header, headers(domain))
             self.assertIn("script-src 'self'", headers(domain))
+            self.assertIn("'unsafe-eval'", headers(domain))
         self.assertEqual(secured.count('proxy_set_header X-Real-IP $remote_addr;'), 2)
         self.assertIn('location / { return 301 https://$host$request_uri; }', secured)
 
