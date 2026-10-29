@@ -1,5 +1,6 @@
 <script lang="ts">
   import { baitEffect } from './bait-effects';
+  import { equipmentComparison } from './trader-equipment';
   import type { Game } from './game.svelte.ts';
   import type { ShopListing } from '@fishing-game/generated/types';
   import PageTurner from './PageTurner.svelte';
@@ -70,8 +71,6 @@
     ? modifiers(row.targetId)?.spriteAsset
     : haulGear(row) ? game.haulEquipment.find(gear => gear.equipmentId === row.targetId)?.spriteAsset
     : row.kind === 'bait' ? game.baits.find(bait => bait.baitId === row.targetId)?.spriteAsset : equipmentArt.licences.find(licence => licence.biomeId === row.targetId)?.spriteAsset;
-  const equipped = $derived(game.rods.find(row => row.rodId === game.player?.equippedRodId));
-  const delta = (id: number) => { if (!equipped) return ''; const next = game.rodStats(id); const current = game.rodStats(equipped.rodId); const signed = (n:number) => (n>=0?'+':'')+n; return `${signed(next.power-current.power)} power · ${signed((next.luckBp-current.luckBp)/100)}% luck · ${signed((next.xpBonusBp-current.xpBonusBp)/100)}% XP vs equipped`; };
   const level = $derived(game.profile?.level ?? 1);
   const owned = (row: ShopListing) => row.kind === 'bait' ? false : row.kind === 'rod' ? game.ownedRods.some(rod => rod.rodId === row.targetId) : haulGear(row) ? game.ownedHaulEquipment.some(gear => gear.equipmentId === row.targetId) : game.licences.some(licence => licence.biomeId === row.targetId);
   const reason = (row: ShopListing, quantity = 1) => !game.player ? 'Link Discord to buy' : owned(row) ? 'Owned' : level < row.minimumLevel ? 'Requires level ' + row.minimumLevel : row.previousBiomeId > 1 && !game.licences.some(licence => licence.biomeId === row.previousBiomeId) ? 'Previous licence needed' : game.player.coins < row.priceCoins * BigInt(quantity) ? 'Need ' + (row.priceCoins * BigInt(quantity) - game.player.coins).toString() + ' more coins' : '';
@@ -119,9 +118,10 @@
   <div class="goods">
     {#each offers.slice((page - 1) * pageSize, page * pageSize) as row (row.listingId)}
       {@const status = reason(row)}
+      {@const comparison = equipmentComparison(game, row)}
       <article class:owned={owned(row)} aria-label={row.name} aria-busy={buying === row.listingId}>
         <div class="item-art" aria-hidden="true">{#if artwork(row)}<img src={artwork(row)} alt="" width="96" height="96" />{:else}▤{/if}</div>
-        <div><small>{(row.kind === 'rod' || haulGear(row)) && row.minimumLevel === 1 ? 'GOLD PURCHASE' : 'LEVEL ' + row.minimumLevel} · {game.biomes.find(b => b.biomeId === row.biomeId)?.name}</small><h3>{row.name}</h3>{#if row.kind === 'bait'}<p class="stock">In your tackle box: {(game.ownedBaits.find(b => b.baitId === row.targetId)?.usesLeft ?? 0n).toString()} uses</p>{/if}<p>{row.kind === 'licence' ? 'A permanent pass to these waters.' : row.kind === 'bait' ? packUses(row) + ' uses per pack · ' + baitEffect(game.baits.find(b => b.baitId === row.targetId)) : haulGear(row) ? haulBonuses(row) : 'Power ' + game.rodStats(row.targetId).power + ' · ' + game.rodStats(row.targetId).power/2 + '% bonus pull · +' + game.rodStats(row.targetId).luckBp/100 + '% luck · +' + game.rodStats(row.targetId).xpBonusBp/100 + '% fishing XP'}</p>{#if row.kind === 'rod' && delta(row.targetId)}<p class="comparison">{delta(row.targetId)}</p>{/if}</div>
+        <div><small>{(row.kind === 'rod' || haulGear(row)) && row.minimumLevel === 1 ? 'GOLD PURCHASE' : 'LEVEL ' + row.minimumLevel} · {game.biomes.find(b => b.biomeId === row.biomeId)?.name}</small><h3>{row.name}</h3>{#if row.kind === 'bait'}<p class="stock">In your tackle box: {(game.ownedBaits.find(b => b.baitId === row.targetId)?.usesLeft ?? 0n).toString()} uses</p>{/if}<p>{row.kind === 'licence' ? 'A permanent pass to these waters.' : row.kind === 'bait' ? packUses(row) + ' uses per pack · ' + baitEffect(game.baits.find(b => b.baitId === row.targetId)) : haulGear(row) ? haulBonuses(row) : 'Power ' + game.rodStats(row.targetId).power + ' · ' + game.rodStats(row.targetId).power/2 + '% bonus pull · +' + game.rodStats(row.targetId).luckBp/100 + '% luck · +' + game.rodStats(row.targetId).xpBonusBp/100 + '% fishing XP'}</p>{#if comparison}<p class="comparison">{comparison}</p>{/if}</div>
         {#if row.kind === 'bait'}
           <div class="bait-purchases" role="group" aria-label={'Buy ' + row.name}>
             {#each quantities as quantity}

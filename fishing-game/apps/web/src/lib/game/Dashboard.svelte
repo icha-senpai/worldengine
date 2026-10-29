@@ -22,7 +22,7 @@
   import ThemeToggle from './ThemeToggle.svelte';
   import { rankMaximaSummary } from './rank-maxima';
   type CampView = 'camp' | 'quests' | 'inventory' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium' | 'trader' | 'achievements' | 'anglers';
-  let { initialView = 'camp' } = $props<{ initialView?: CampView }>();
+  let { initialView = 'camp' }: { initialView?: CampView } = $props();
   const tabs: { id: CampView; label: string; personal?: boolean }[] = [
     { id: 'camp', label: 'Camp' }, { id: 'quests', label: 'Quests', personal: true }, { id: 'trader', label: 'Trader' }, { id: 'inventory', label: 'Tackle box', personal: true },
     { id: 'collection', label: 'Collection', personal: true }, { id: 'journal', label: 'Journal', personal: true },
@@ -46,6 +46,13 @@
   let pageSize = $state(12);
   let selected = $state<bigint[]>([]);
   let showQuote = $state(false);
+  type TackleView = 'gear' | 'materials' | 'fish';
+  const tackleTabs: { id: TackleView; label: string }[] = [{ id: 'gear', label: 'Gear / Bait' }, { id: 'materials', label: 'Mats' }, { id: 'fish', label: 'Fish' }];
+  let tackleView = $state<TackleView>('gear');
+  let tackleRevision = 0;
+  let devLoginAvailable = $state(false);
+  let devLoginBusy = $state(false);
+  let devLoginError = $state('');
   let bookBiome = $state(1);
   let bookTier = $state('');
   let bookQuery = $state('');
@@ -102,12 +109,36 @@
     openView(available[next].id);
     document.getElementById('tab-' + available[next].id)?.focus();
   }
+  function selectTackleView(view: TackleView) {
+    if (view !== tackleView) { showQuote = false; tackleRevision++; }
+    tackleView = view;
+  }
+  function tackleTabKey(event: KeyboardEvent, id: TackleView) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const index = tackleTabs.findIndex(tab => tab.id === id);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tackleTabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tackleTabs.length) % tackleTabs.length;
+    selectTackleView(tackleTabs[next].id);
+    document.getElementById('tackle-tab-' + tackleTabs[next].id)?.focus();
+  }
   async function link() {
     await game.prepareLink();
     await tick();
     if (game.challenge && !game.challenge.consumed && !game.error) linkForm.requestSubmit();
   }
-  async function preview() { await game.previewSale(saleBatch); showQuote = !game.error; }
+  async function devLogin() {
+    devLoginBusy = true; devLoginError = '';
+    try {
+      await game.prepareLink();
+      await tick();
+      if (!game.challenge || game.challenge.consumed || game.error) { devLoginError = 'Dev login is not available right now.'; return; }
+      const response = await fetch('/api/dev-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ challengeId: game.challenge.challengeId.toString(), proof: game.challenge.proof.toString() }) });
+      if (response.status === 204) window.location.reload();
+      else devLoginError = 'Dev login failed. Try again.';
+    } catch { devLoginError = 'Dev login failed. Try again.'; }
+    finally { devLoginBusy = false; }
+  }
+  async function preview() { const revision = tackleRevision; await game.previewSale(saleBatch); showQuote = !game.error && tackleRevision === revision && tackleView === 'fish'; }
   async function confirm() {
     if (!quote) return;
     const soldIds = quote.catchIds;
@@ -124,6 +155,7 @@
     };
     resizePages();
     compactScreen.addEventListener('change', resizePages);
+    devLoginAvailable = import.meta.env.DEV && (env.PUBLIC_SPACETIMEDB_URI ?? '') === 'wss://fishbound.test' && (env.PUBLIC_SPACETIMEDB_DATABASE ?? '') === 'fishbound-dev-local' && ['https://fishbound.test', 'http://127.0.0.1:5174', 'http://localhost:5174'].includes(window.location.origin);
     readView();
     window.addEventListener('popstate', readView);
     window.addEventListener('hashchange', readView);
@@ -150,6 +182,9 @@
       {/each}
     </div>
   </nav>
+  {#if devLoginAvailable}
+    <p class="dev-login">DEV · Local data only{#if game.player} · linked as {game.profile?.displayName ?? game.player.displayName}{:else} · <button class="dev-login-button" disabled={!game.ready || game.busy || devLoginBusy} onclick={devLogin}>{devLoginBusy ? 'Linking…' : 'Use icha_'}</button>{#if devLoginError}<small class="dev-login-error" role="alert">{devLoginError}</small>{/if}{/if}</p>
+  {/if}
   <header class="camp-banner" class:compact-banner={visibleView !== 'camp'}>
     <div class="camp-intro"><p class="eyebrow">{currentBiome?.name ?? 'SEVEN WATERS, ONE JOURNEY'}</p><h1>{visibleView === 'camp' ? 'Fishbound' : viewLabel}</h1>{#if visibleView === 'camp'}<p class="intro">Your next keeper is out there.</p><p class="cast-hint">Cast with <code>/fish</code> in Discord <span>·</span> One cast every minute</p><a class="book-link" href="#compendium" onclick={event => { event.preventDefault(); openView('compendium'); }}>Open the fish compendium <span aria-hidden="true">→</span></a>{/if}</div>
     <PondScene compact={visibleView !== 'camp'} />
@@ -176,7 +211,8 @@
   <div class="view-panel" role="tabpanel" id="camp-panel" aria-labelledby={'tab-' + visibleView} tabindex="0" hidden={visibleView === 'compendium'}>
   {#if visibleView === 'camp'}
     <section class="welcome" aria-labelledby="welcome"><div><p class="eyebrow">A FRESH PAGE IN YOUR FISHING JOURNAL</p><h2 id="welcome">{game.player ? 'Back at the pond.' : 'Grab a rod. Make a little history.'}</h2>{#if game.player}<p>Your {currentRod?.name ?? 'rod'} is ready for {currentBiome?.name ?? 'the pond'}. Open your tackle box to manage your catches, or turn a page in your collection book.</p>{:else}<p>Use <code>/fish</code> in Discord, then link your account to open your tackle box, collection book, and personal records.</p>{/if}<p class="muted">251 species. Seven waters. Start with the 28 fish waiting in Meadow Pond.</p></div>
-      <div class="login">{#if game.player}<button onclick={() => openView('inventory')}>Open tackle box →</button><button class="secondary" onclick={() => openView('collection')}>Open collection book →</button>{:else}<button disabled={!game.ready || game.busy || !env.PUBLIC_ACCOUNT_LINK_URL} onclick={link}>{game.busy ? 'Preparing…' : 'Link Discord account →'}</button><small>{!env.PUBLIC_ACCOUNT_LINK_URL ? 'Discord sign-in will be available soon.' : game.ready ? 'One account, shared between Discord and this browser.' : 'Account linking becomes available when the pond is connected.'}</small>{/if}</div>
+      <div class="login">{#if game.player}<button onclick={() => openView('inventory')}>Open tackle box →</button><button class="secondary" onclick={() => openView('collection')}>Open collection book →</button>{:else}<button disabled={!game.ready || game.busy || devLoginBusy || !env.PUBLIC_ACCOUNT_LINK_URL} onclick={link}>{game.busy ? 'Preparing…' : 'Link Discord account →'}</button><small>{!env.PUBLIC_ACCOUNT_LINK_URL ? 'Discord sign-in will be available soon.' : game.ready ? 'One account, shared between Discord and this browser.' : 'Account linking becomes available when the pond is connected.'}</small>{/if}</div>
+
     </section>
     <TraderStall onclick={() => openView('trader')} />
   {/if}
@@ -184,27 +220,43 @@
   {#if visibleView === 'quests' && game.player}<Quests {game} />{/if}
   {#if game.player}
     {#if visibleView === 'inventory'}
-    <section aria-labelledby="inventory"><div class="section-heading"><div><p class="eyebrow">KEEP THE GOOD ONES</p><h2 id="inventory">Your tackle box <span>{game.inventory.length} fish kept</span></h2></div><button class="secondary" disabled={!selectedOwned.length || game.busy || !game.ready} onclick={preview}>Preview sale ({saleBatch.length}{selectedOwned.length > saleBatchSize ? ' of ' + selectedOwned.length : ''})</button></div>
-      {#if game.inventory.length}
-        <div class="quick-select" aria-label="Quick fish selection">
-          <label for="selection-rank">Quick select by rank<select id="selection-rank" bind:value={selectionRank} disabled={game.busy || !game.ready}><option value="">Choose a rank…</option>{#each ranks as rank}<option value={rank}>{rank} ({selectable.filter(fish => fish.rarity === rank).length})</option>{/each}</select></label>
-          <button class="secondary" disabled={!selectionRank || !selectable.some(fish => fish.rarity === selectionRank) || game.busy || !game.ready} onclick={() => quickSelect(selectionRank)}>Select rank</button>
-          <button class="secondary" disabled={!selectable.length || game.busy || !game.ready} onclick={() => { selectionRank = ''; quickSelect(); }}>Select all</button>
-          <button class="secondary" disabled={!selected.length || game.busy || !game.ready} onclick={() => { selectionRank = ''; selected = []; showQuote = false; }}>Clear selection</button>
-          <p class="muted" aria-live="polite">{selectedOwned.length} selected across all pages. Favorites stay protected.{#if selectedOwned.length > saleBatchSize} Preview and sell up to {saleBatchSize} at a time; the rest stay selected.{/if}</p>
+    <section aria-labelledby="inventory"><div class="section-heading"><div><p class="eyebrow">KEEP THE GOOD ONES</p><h2 id="inventory">Your tackle box <span>{game.inventory.length} fish kept</span></h2></div></div>
+      <div class="tackle-tabs" role="tablist" aria-label="Tackle box sections">
+        {#each tackleTabs as tab}<button id={'tackle-tab-' + tab.id} role="tab" aria-selected={tackleView === tab.id} aria-controls={'tackle-panel-' + tab.id} tabindex={tackleView === tab.id ? 0 : -1} onclick={() => selectTackleView(tab.id)} onkeydown={event => tackleTabKey(event, tab.id)}>{tab.label}</button>{/each}
+      </div>
+      {#if tackleView === 'gear'}
+        <div class="tackle-panel" role="tabpanel" id="tackle-panel-gear" aria-labelledby="tackle-tab-gear" tabindex="0">
+          <Gear {game} />
         </div>
       {/if}
-      {#if quote}
-        <div class="sale" role="status"><div><strong>Sell {quote.catchIds.length} selected {quote.catchIds.length === 1 ? 'catch' : 'catches'} for {quote.quotedCoins.toString()} coins?</strong><p>{quote.catchIds.map(id => { const fish = game.inventory.find(row => row.catchId === id); return '#' + id + ' ' + (fish ? speciesName(fish.speciesId) : '(catch changed)'); }).join(' · ')}</p><small>Discoveries and records remain. Favorites are protected. Preview expires at {time(quote.expiresAt.microsSinceUnixEpoch)}.</small></div><div class="sale-actions"><button disabled={game.busy || !game.ready || quote.expiresAt.microsSinceUnixEpoch <= BigInt(now) * 1000n} onclick={confirm}>Confirm sale · {quote.quotedCoins.toString()} coins</button><button class="secondary" onclick={() => { showQuote = false; }}>Cancel</button></div></div>
+      {#if tackleView === 'materials'}
+        <div class="tackle-panel" role="tabpanel" id="tackle-panel-materials" aria-labelledby="tackle-tab-materials" tabindex="0">
+          <TackleBoxItems items={game.items} />
+        </div>
       {/if}
-      <Gear {game} />
-      <TackleBoxItems items={game.items} />
-      {#if !game.inventory.length}<p class="empty">Your next catch could be the keeper. Try <code>/fish</code> in Discord.</p>{:else}<div class="catch-grid">
-        {#each game.inventory.slice((inventoryPage - 1) * inventoryPageSize, inventoryPage * inventoryPageSize) as fish (fish.catchId)}
-          <article class="catch" class:favorite={fish.favorite}><div class="catch-tools"><label><input type="checkbox" checked={selected.includes(fish.catchId)} disabled={fish.favorite || game.busy || !game.ready} onchange={() => select(fish.catchId)} /><span class="sr-only">Select catch #{fish.catchId.toString()}</span></label><button class="star" class:active={fish.favorite} disabled={game.busy || !game.ready} onclick={() => { showQuote = false; game.favorite(fish); }} aria-label={(fish.favorite ? 'Unfavorite' : 'Favorite') + ' catch #' + fish.catchId}>{fish.favorite ? '★' : '☆'}</button></div><div class="fish-art"><img src={sprite(fish.speciesId)} alt={speciesName(fish.speciesId)} /><span>{fish.rarity} RANK</span></div><p class="grade">{grades[fish.sizeGrade]}</p><h3>{speciesName(fish.speciesId)}</h3><p class="measure">{formatLength(fish.lengthMm)} <span>·</span> {formatWeight(fish.weightG)}</p><p class="relative-size">{(fish.lengthMm / (game.species.find(row => row.speciesId === fish.speciesId)?.typicalLengthMm ?? fish.lengthMm)).toFixed(2)}× typical length<br />{(Number(fish.weightG) / Number(game.species.find(row => row.speciesId === fish.speciesId)?.typicalWeightG ?? fish.weightG)).toFixed(2)}× typical weight</p><div class="catch-footer"><span>#{fish.catchId.toString()}</span><span>{fish.saleValueCoins.toString()} coins</span></div></article>
-        {/each}
-      </div>{/if}
-      <PageTurner bind:page={inventoryPage} total={game.inventory.length} pageSize={inventoryPageSize} label="Tackle box pages" />
+      {#if tackleView === 'fish'}
+        <div class="tackle-panel" role="tabpanel" id="tackle-panel-fish" aria-labelledby="tackle-tab-fish" tabindex="0">
+          <div class="fish-actions"><button class="secondary" disabled={!selectedOwned.length || game.busy || !game.ready} onclick={preview}>Preview sale ({saleBatch.length}{selectedOwned.length > saleBatchSize ? ' of ' + selectedOwned.length : ''})</button></div>
+          {#if game.inventory.length}
+            <div class="quick-select" aria-label="Quick fish selection">
+              <label for="selection-rank">Quick select by rank<select id="selection-rank" bind:value={selectionRank} disabled={game.busy || !game.ready}><option value="">Choose a rank…</option>{#each ranks as rank}<option value={rank}>{rank} ({selectable.filter(fish => fish.rarity === rank).length})</option>{/each}</select></label>
+              <button class="secondary" disabled={!selectionRank || !selectable.some(fish => fish.rarity === selectionRank) || game.busy || !game.ready} onclick={() => quickSelect(selectionRank)}>Select rank</button>
+              <button class="secondary" disabled={!selectable.length || game.busy || !game.ready} onclick={() => { selectionRank = ''; quickSelect(); }}>Select all</button>
+              <button class="secondary" disabled={!selected.length || game.busy || !game.ready} onclick={() => { selectionRank = ''; selected = []; showQuote = false; }}>Clear selection</button>
+              <p class="muted" aria-live="polite">{selectedOwned.length} selected across all pages. Favorites stay protected.{#if selectedOwned.length > saleBatchSize} Preview and sell up to {saleBatchSize} at a time; the rest stay selected.{/if}</p>
+            </div>
+          {/if}
+          {#if quote}
+            <div class="sale" role="status"><div><strong>Sell {quote.catchIds.length} selected {quote.catchIds.length === 1 ? 'catch' : 'catches'} for {quote.quotedCoins.toString()} coins?</strong><p>{quote.catchIds.map(id => { const fish = game.inventory.find(row => row.catchId === id); return '#' + id + ' ' + (fish ? speciesName(fish.speciesId) : '(catch changed)'); }).join(' · ')}</p><small>Discoveries and records remain. Favorites are protected. Preview expires at {time(quote.expiresAt.microsSinceUnixEpoch)}.</small></div><div class="sale-actions"><button disabled={game.busy || !game.ready || quote.expiresAt.microsSinceUnixEpoch <= BigInt(now) * 1000n} onclick={confirm}>Confirm sale · {quote.quotedCoins.toString()} coins</button><button class="secondary" onclick={() => { showQuote = false; }}>Cancel</button></div></div>
+          {/if}
+          {#if !game.inventory.length}<p class="empty">Your next catch could be the keeper. Try <code>/fish</code> in Discord.</p>{:else}<div class="catch-grid">
+            {#each game.inventory.slice((inventoryPage - 1) * inventoryPageSize, inventoryPage * inventoryPageSize) as fish (fish.catchId)}
+              <article class="catch" class:favorite={fish.favorite}><div class="catch-tools"><label><input type="checkbox" checked={selected.includes(fish.catchId)} disabled={fish.favorite || game.busy || !game.ready} onchange={() => select(fish.catchId)} /><span class="sr-only">Select catch #{fish.catchId.toString()}</span></label><button class="star" class:active={fish.favorite} disabled={game.busy || !game.ready} onclick={() => { showQuote = false; game.favorite(fish); }} aria-label={(fish.favorite ? 'Unfavorite' : 'Favorite') + ' catch #' + fish.catchId}>{fish.favorite ? '★' : '☆'}</button></div><div class="fish-art"><img src={sprite(fish.speciesId)} alt={speciesName(fish.speciesId)} /><span>{fish.rarity} RANK</span></div><p class="grade">{grades[fish.sizeGrade]}</p><h3>{speciesName(fish.speciesId)}</h3><p class="measure">{formatLength(fish.lengthMm)} <span>·</span> {formatWeight(fish.weightG)}</p><p class="relative-size">{(fish.lengthMm / (game.species.find(row => row.speciesId === fish.speciesId)?.typicalLengthMm ?? fish.lengthMm)).toFixed(2)}× typical length<br />{(Number(fish.weightG) / Number(game.species.find(row => row.speciesId === fish.speciesId)?.typicalWeightG ?? fish.weightG)).toFixed(2)}× typical weight</p><div class="catch-footer"><span>#{fish.catchId.toString()}</span><span>{fish.saleValueCoins.toString()} coins</span></div></article>
+            {/each}
+          </div>{/if}
+          <PageTurner bind:page={inventoryPage} total={game.inventory.length} pageSize={inventoryPageSize} label="Tackle box pages" />
+        </div>
+      {/if}
     </section>
 
     {/if}
@@ -284,6 +336,7 @@
   .secondary:hover:not(:disabled){background:var(--paper-light)}
   .welcome{display:grid;grid-template-columns:1.7fr 1fr;gap:32px;padding:36px}.welcome p{font-size:17px;line-height:1.7}.welcome h2{margin-bottom:12px}
   .login{display:flex;flex-direction:column;justify-content:center;gap:16px;max-width:380px}.login small{font-size:16px;line-height:1.6;color:var(--ink-muted)}
+  .dev-login{margin-top:20px;font-size:14px;line-height:1.6;color:var(--site-text)}.dev-login-button{font-size:16px;padding:6px 12px}.dev-login-error{display:block;color:var(--site-text);margin-top:6px}
   .notice{padding:16px;border:3px solid #835a41;background:var(--panel-inset);color:var(--ink);font-size:17px}
   .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;padding:0;background:var(--wood);color:var(--site-text);box-shadow:inset 0 0 0 2px var(--panel-highlight),0 5px 0 var(--site-base)}.stats::before,.stats::after{display:none}
   .stats>div{padding:20px 24px;border-right:2px solid var(--paper-edge);min-width:0}.stats>div:last-child{border:0}
@@ -329,6 +382,13 @@
   .camp-tabs button:hover:not(:disabled):not([aria-selected=true]){background:var(--nav-hover)}
   .camp-tabs button[aria-selected=true]{background:var(--paper);color:var(--ink);border-color:var(--paper-edge);box-shadow:inset 0 -3px 0 var(--panel-highlight)}
   .camp-tabs button:disabled{opacity:.45;filter:none;box-shadow:none}
+  .tackle-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 22px;padding:10px;background:var(--wood-dark);border:2px solid var(--paper-edge);box-shadow:0 4px 0 var(--site-base)}
+  .tackle-tabs button{padding:10px 16px;font-size:21px;background:var(--wood);color:var(--site-text);border-color:var(--paper-edge);box-shadow:none}
+  .tackle-tabs button:hover:not(:disabled):not([aria-selected=true]){background:var(--nav-hover)}
+  .tackle-tabs button[aria-selected=true]{background:var(--paper);color:var(--ink);border-color:var(--paper-edge);box-shadow:inset 0 -3px 0 var(--panel-highlight)}
+  .tackle-tabs button:disabled{opacity:.45;filter:none;box-shadow:none}
+  .tackle-panel{min-width:0}
+  .fish-actions{display:flex;justify-content:flex-end;margin-bottom:20px}
   .view-panel{margin-top:18px}.view-panel>section{margin-top:0}
   @media(max-width:600px){
     nav{gap:8px}
@@ -346,5 +406,9 @@
     .mobile-navigation button:disabled{opacity:.45}
     .compact-banner{grid-template-columns:1fr;padding:16px}.compact-banner h1{font-size:30px}
     .camp-tabs{display:none}.view-panel{margin-top:14px}
+    .tackle-tabs{gap:4px;padding:8px}
+    .tackle-tabs button{flex:1;min-height:44px;padding:10px 8px;font-size:17px}
+    .fish-actions{justify-content:stretch}
+    .fish-actions button{width:100%}
   }
 </style>
