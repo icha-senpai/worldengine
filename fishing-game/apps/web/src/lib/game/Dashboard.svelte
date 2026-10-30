@@ -6,6 +6,7 @@
   import { connectionDiagnostics } from './connection-diagnostics';
   import PondScene from './PondScene.svelte';
   import CastCooldown from './CastCooldown.svelte';
+  import { runningHaulDeadline } from './activity-timers';
   import Compendium from './Compendium.svelte';
   import Records from './Records.svelte';
   import Trader from './Trader.svelte';
@@ -50,6 +51,8 @@
   const tackleTabs: { id: TackleView; label: string }[] = [{ id: 'gear', label: 'Gear / Bait' }, { id: 'materials', label: 'Mats' }, { id: 'fish', label: 'Fish' }];
   let tackleView = $state<TackleView>('gear');
   let tackleRevision = 0;
+  const boatDeadline = $derived(runningHaulDeadline(game.haulTrips, 'boat'));
+  const netDeadline = $derived(runningHaulDeadline(game.haulTrips, 'net'));
   let devLoginAvailable = $state(false);
   let devLoginBusy = $state(false);
   let devLoginError = $state('');
@@ -195,7 +198,9 @@
       <div><AnglerLevel totalXp={game.player.totalXp} levelCap={game.config?.levelCap ?? world.levelCap} rulesVersion={game.config?.version ?? 9} /></div>
       <div><span>◈ COIN POUCH</span><strong>{game.player.coins.toString()}</strong><small>For your next adventure</small></div>
       <div><span>▤ COLLECTION BOOK</span><strong>{discoveries}<em> / {ordinary.length}</em></strong><progress value={discoveries} max={ordinary.length || 249} aria-label="Ordinary species discovered"></progress><small>Two bonus discoveries await</small></div>
-      <div><span>⌛ NEXT CAST</span><strong><CastCooldown nextCastAt={game.player?.nextCastAt.microsSinceUnixEpoch ?? null} /></strong><small>Use /fish in Discord</small></div>
+      <div><span>⌛ NEXT CAST</span><strong class="timer-value"><CastCooldown nextCastAt={game.player?.nextCastAt.microsSinceUnixEpoch ?? null} /></strong><small>Use /fish in Discord</small></div>
+      <div><span>🚣 BOAT HAUL</span><strong class="timer-value">{#if boatDeadline === null}Ready!{:else}<CastCooldown nextCastAt={boatDeadline} formatMinutes={true} zeroLabel="Finishing…" />{/if}</strong><small>Use /fishboat in Discord</small></div>
+      <div><span>🕸 NET HAUL</span><strong class="timer-value">{#if netDeadline === null}Ready!{:else}<CastCooldown nextCastAt={netDeadline} formatMinutes={true} zeroLabel="Finishing…" />{/if}</strong><small>Use /fishnet in Discord</small></div>
     </section>
   {/if}
 
@@ -338,7 +343,9 @@
   .login{display:flex;flex-direction:column;justify-content:center;gap:16px;max-width:380px}.login small{font-size:16px;line-height:1.6;color:var(--ink-muted)}
   .dev-login{margin-top:20px;font-size:14px;line-height:1.6;color:var(--site-text)}.dev-login-button{font-size:16px;padding:6px 12px}.dev-login-error{display:block;color:var(--site-text);margin-top:6px}
   .notice{padding:16px;border:3px solid #835a41;background:var(--panel-inset);color:var(--ink);font-size:17px}
-  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;padding:0;background:var(--wood);color:var(--site-text);box-shadow:inset 0 0 0 2px var(--panel-highlight),0 5px 0 var(--site-base)}.stats::before,.stats::after{display:none}
+  .stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;padding:0;background:var(--wood);color:var(--site-text);box-shadow:inset 0 0 0 2px var(--panel-highlight),0 5px 0 var(--site-base)}.stats::before,.stats::after{display:none}
+  .stats .timer-value{font-size:clamp(18px,1.5vw,32px)}
+  @media(max-width:1200px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.stats>div:nth-child(3n){border-right:0}.stats>div:nth-child(-n+3){border-bottom:2px solid var(--paper-edge)}.stats .timer-value{font-size:32px}}
   .stats>div{padding:20px 24px;border-right:2px solid var(--paper-edge);min-width:0}.stats>div:last-child{border:0}
   .stats span{font-family:var(--font-game);font-size:19px;color:var(--site-text)}.stats strong{font-family:var(--font-game);font-weight:500;font-size:42px;display:block;margin:8px 0;line-height:1.15;text-shadow:2px 2px 0 var(--site-base);overflow-wrap:anywhere}.stats em{font-size:26px;font-style:normal;color:var(--site-muted)}.stats small{font-size:14px;color:var(--site-text);display:block}
   progress{display:block;width:100%;height:8px;accent-color:var(--gold);border:1px solid var(--site-base);margin:8px 0;background:var(--site-base)}progress::-webkit-progress-bar{background:var(--site-base)}progress::-webkit-progress-value{background:var(--gold)}
@@ -372,8 +379,8 @@
   .biome-grid article.active{border-color:var(--control-accent);box-shadow:inset 0 0 0 2px var(--panel-highlight),3px 4px 0 var(--wood-dark)}.biome-grid small{font-family:var(--font-game);font-size:17px;color:var(--ink)}.biome-grid p{font-size:16px;color:var(--ink);line-height:1.7}.biome-grid button{margin-top:8px}
   footer{border-top:1px solid var(--paper-edge);margin-top:38px;padding:24px 0 32px;display:flex;justify-content:space-between;gap:16px;color:var(--site-muted);font-size:14px}footer>div{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}.text-button{color:var(--site-text);background:transparent;border:0;font-family:var(--font-body);font-size:14px;padding:0;box-shadow:none}.text-button:hover:not(:disabled){background:transparent}
   .sr-only{position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden}
-  @media(max-width:850px){main{padding:16px 18px 0}nav{gap:5px;padding:10px}.brand{font-size:26px}nav a{font-size:18px;padding:6px 8px}.connection{margin-left:auto}.camp-banner{gap:20px;padding:18px;grid-template-columns:1fr 1fr}.camp-intro{padding:0}h1{font-size:clamp(34px,5vw,44px)}.intro{font-size:18px}.cast-hint span{display:none}.book-link{font-size:18px;gap:10px}section{padding:22px}.collection-grid{grid-template-columns:1fr}.stats>div{padding:18px 16px}.stats span{font-size:16px}}
-  @media(max-width:600px){main{padding:12px 12px 0}nav{gap:2px}.brand{width:100%;margin:0 0 4px;font-size:26px}nav a{font-size:17px;padding:6px 7px}.connection{font-size:12px;padding:4px 6px}.camp-banner{grid-template-columns:1fr;padding:16px;margin:22px 0;gap:20px}.camp-intro{padding:8px}h1{font-size:clamp(28px,9vw,38px)}.cast-hint{font-size:14px}.welcome{grid-template-columns:1fr;gap:20px;padding:22px}.login{max-width:none}.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(2){border-right:0}.stats>div:nth-child(-n+2){border-bottom:2px solid var(--paper-edge)}.stats>div{padding:18px}.stats strong{font-size:clamp(18px,5.5vw,24px);overflow-wrap:anywhere}.section-heading{align-items:flex-start;flex-wrap:wrap}section{padding:20px;margin-top:22px}h2{font-size:30px}.catch-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.catch{padding:10px}.catch h3{font-size:20px;overflow-wrap:anywhere}.fish-art{height:105px}.fish-art img{width:95px;height:80px}.fish-art>span{font-size:14px}.measure{font-size:12px}.relative-size{font-size:12px}.catch-footer{font-size:12px}.collection-entry{padding:12px;gap:10px}.collection-entry>img{width:50px;height:50px}.sale-actions{flex-wrap:wrap}footer{flex-direction:column}footer>div{justify-content:space-between}.filters{gap:12px}.filters>div{flex:1;min-width:110px}.filters>div:last-child{flex-basis:100%}.filters input{width:100%}}
+  @media(max-width:850px){main{padding:16px 18px 0}nav{gap:5px;padding:10px}.brand{font-size:26px}nav a{font-size:18px;padding:6px 8px}.connection{margin-left:auto}.camp-banner{gap:20px;padding:18px;grid-template-columns:1fr 1fr}.camp-intro{padding:0}h1{font-size:clamp(34px,5vw,44px)}.intro{font-size:18px}.cast-hint span{display:none}.book-link{font-size:18px;gap:10px}section{padding:22px}.collection-grid{grid-template-columns:1fr}.stats>div{padding:18px 16px}.stats span{font-size:16px}.stats .timer-value{font-size:24px}}
+  @media(max-width:600px){main{padding:12px 12px 0}nav{gap:2px}.brand{width:100%;margin:0 0 4px;font-size:26px}nav a{font-size:17px;padding:6px 7px}.connection{font-size:12px;padding:4px 6px}.camp-banner{grid-template-columns:1fr;padding:16px;margin:22px 0;gap:20px}.camp-intro{padding:8px}h1{font-size:clamp(28px,9vw,38px)}.cast-hint{font-size:14px}.welcome{grid-template-columns:1fr;gap:20px;padding:22px}.login{max-width:none}.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(odd){border-right:2px solid var(--paper-edge)}.stats>div:nth-child(even){border-right:0}.stats>div:nth-child(-n+4){border-bottom:2px solid var(--paper-edge)}.stats>div{padding:18px}.stats strong{font-size:clamp(18px,5.5vw,24px);overflow-wrap:anywhere}.stats .timer-value{font-size:clamp(18px,5.5vw,24px)}.section-heading{align-items:flex-start;flex-wrap:wrap}section{padding:20px;margin-top:22px}h2{font-size:30px}.catch-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.catch{padding:10px}.catch h3{font-size:20px;overflow-wrap:anywhere}.fish-art{height:105px}.fish-art img{width:95px;height:80px}.fish-art>span{font-size:14px}.measure{font-size:12px}.relative-size{font-size:12px}.catch-footer{font-size:12px}.collection-entry{padding:12px;gap:10px}.collection-entry>img{width:50px;height:50px}.sale-actions{flex-wrap:wrap}footer{flex-direction:column}footer>div{justify-content:space-between}.filters{gap:12px}.filters>div{flex:1;min-width:110px}.filters>div:last-child{flex-basis:100%}.filters input{width:100%}}
 
   .compact-banner{padding:20px 30px;margin:20px 0;grid-template-columns:minmax(0,1fr) clamp(280px,30vw,360px);gap:20px}
   .compact-banner .camp-intro{padding:0}.compact-banner .eyebrow{margin-bottom:4px}.compact-banner h1{font-size:clamp(30px,3.2vw,46px);margin:0;line-height:1.1;overflow-wrap:anywhere}

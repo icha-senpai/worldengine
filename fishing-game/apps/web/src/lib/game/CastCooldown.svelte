@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { ServerClock, remainingCooldownSeconds } from './server-clock';
+  import { formatCooldownSeconds } from './activity-timers';
 
-  let { nextCastAt }: { nextCastAt: bigint | null } = $props();
+  let { nextCastAt, zeroLabel = 'Ready!', formatMinutes = false }: { nextCastAt: bigint | null; zeroLabel?: string; formatMinutes?: boolean } = $props();
   const clock = new ServerClock();
   let revision = $state(0);
   let clockFailed = $state(false);
@@ -59,4 +60,4 @@
   });
 </script>
 
-{#if remaining === null}{clockFailed ? 'Time unavailable' : 'Syncing…'}{:else}{remaining ? remaining + 's' : 'Ready!'}{/if}
+{#if remaining === null}{clockFailed ? 'Time unavailable' : 'Syncing…'}{:else}{remaining ? formatCooldownSeconds(remaining, formatMinutes) : zeroLabel}{/if}
