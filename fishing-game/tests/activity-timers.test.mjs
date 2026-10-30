@@ -28,6 +28,10 @@ assert.equal(runningHaulDeadline([trip('wagon', 'running', 100, 200_000)], 'boat
 
 assert.equal(formatCooldownSeconds(600, true), '10m 00s');
 assert.equal(formatCooldownSeconds(545, true), '9m 05s');
+assert.equal(formatCooldownSeconds(3_660, true), '1h 1m');
+assert.equal(formatCooldownSeconds(86_400, true), '1d 0h');
+assert.equal(formatCooldownSeconds(172_800, true), '2d 0h');
+assert.equal(formatCooldownSeconds(3_599, true), '59m 59s');
 assert.equal(formatCooldownSeconds(60, true), '1m 00s');
 assert.equal(formatCooldownSeconds(59, true), '59s');
 assert.equal(formatCooldownSeconds(1, true), '1s');

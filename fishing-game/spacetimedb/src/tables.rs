@@ -647,6 +647,8 @@ pub struct CastEquipmentReceipt {
     pub secondary_bait_item: String,
     #[default(0)]
     pub secondary_bait_quantity: u64,
+    #[default(0)]
+    pub reinforcement_level: u8,
 }
 
 #[spacetimedb::table(accessor = recent_catch)]
@@ -855,6 +857,7 @@ pub struct LegendaryFind {
 }
 
 #[spacetimedb::table(accessor = species_definition, public)]
+#[derive(Clone)]
 pub struct SpeciesDefinition {
     #[primary_key]
     pub species_id: u32,
@@ -877,6 +880,7 @@ pub struct SpeciesDefinition {
 }
 
 #[spacetimedb::table(accessor = species_rank_definition, public)]
+#[derive(Clone)]
 pub struct SpeciesRankDefinition {
     #[primary_key]
     pub key: u64,

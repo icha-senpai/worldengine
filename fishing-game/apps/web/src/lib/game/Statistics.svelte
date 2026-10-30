@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { AnglerStatistics, BiomeDefinition, SpeciesDefinition } from '@fishing-game/generated/types';
+  import type { AnglerStatistics, BiomeDefinition, RaidStatistics, SpeciesDefinition } from '@fishing-game/generated/types';
   import { formatLength, formatWeight } from './measurements';
-  let { stats, species, biomes }: { stats: AnglerStatistics; species: SpeciesDefinition[]; biomes: BiomeDefinition[] } = $props();
+  let { stats, species, biomes, raidStats }: { stats: AnglerStatistics; species: SpeciesDefinition[]; biomes: BiomeDefinition[]; raidStats?: RaidStatistics } = $props();
   const ranks = ['F', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'UR', 'UUR'];
   const fishName = (id?: number) => species.find(row => row.speciesId === id)?.name ?? 'None yet';
   const date = (micros: bigint) => new Date(Number(micros / 1000n)).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -28,6 +28,13 @@
     <div><dt>Best relative size · length</dt><dd>{stats.bestRelativeSpeciesId === undefined ? 'None yet' : `${(Number(stats.bestRelativeLengthMillionths) / 1000000).toFixed(2)}× typical`}<small>{fishName(stats.bestRelativeSpeciesId)}{#if stats.bestRelativeSpeciesId !== undefined} · {formatLength(stats.bestRelativeLengthMm)} · {formatWeight(stats.bestRelativeWeightG)}{/if}</small></dd></div>
     <div><dt>Record-setting catches</dt><dd>{stats.recordsSet.toLocaleString()}<small>Tracked since {date(stats.recordsTrackedSince.microsSinceUnixEpoch)}</small></dd></div>
   </dl>
+  <h4>Raid expeditions</h4>
+  <dl>
+    <div><dt>Community expeditions completed</dt><dd>{raidStats?.communityCompletions ?? 0n}</dd></div>
+    <div><dt>Personal raids completed</dt><dd>{raidStats?.personalCompletions ?? 0n}</dd></div>
+    <div><dt>Special encounters completed</dt><dd>{raidStats?.specialCompletions ?? 0n}</dd></div>
+    <div><dt>Mastered raid bosses</dt><dd>{raidStats?.masteredBosses ?? 0n} / 249</dd></div>
+  </dl>
   <div class="rank-totals" aria-label="Lifetime catches by rank">{#each ranks as rank, i}<span><b>{rank}</b>{(stats.rankCounts[i] ?? 0n).toLocaleString()}</span>{/each}</div>
   <h4>The coin trail</h4>
   <dl>
@@ -35,7 +42,7 @@
     <div><dt>Most expensive fish</dt><dd>{stats.biggestSingleSale.toLocaleString()} coins<small>Highest catch value, kept or sold</small></dd></div>
     <div><dt>Biggest sale batch{stats.saleHistoryComplete ? '' : ' · recorded'}</dt><dd>{stats.biggestSaleBatch.toLocaleString()} coins</dd></div>
   </dl>
-  <p>Bonus pulls are extra rod catches, divided by all casts. Each completed boat or net haul counts as one cast, not as bonus pulls. Rank totals and collection pairs remain after selling. One catch counts once when it establishes or breaks either global species record.</p>
+  <p>Bonus pulls are extra rod catches, divided by all casts. Each completed boat or net haul counts as one cast, not as bonus pulls. A special raid fish counts as one catch activity and never as a bonus pull. Rank totals and collection pairs remain after selling. One catch counts once when it establishes or breaks either global species record.</p>
   {#if !stats.historyComplete || !stats.biomeHistoryComplete || !stats.bonusHistoryComplete}<p>Older journal coverage is incomplete. Recorded weight, days, biome activity and bonus types reflect surviving history plus every new cast. {stats.recordedCasts.toLocaleString()} of {stats.totalCasts.toLocaleString()} casts have journal evidence.</p>{/if}
   {#if !stats.saleHistoryComplete}<p>Older sale history is incomplete. Earnings and batch records include surviving sale receipts plus new sales; fish-value and record-setting records use catch evidence independently of sales.</p>{/if}
 </div>

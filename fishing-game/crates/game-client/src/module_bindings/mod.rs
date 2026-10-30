@@ -22,6 +22,7 @@ pub mod activate_haul_equipment_reducer;
 pub mod activate_history_queries_reducer;
 pub mod activate_perfect_catches_reducer;
 pub mod activate_quests_reducer;
+pub mod activate_raids_reducer;
 pub mod activate_rank_maxima_reducer;
 pub mod activate_rod_bonuses_reducer;
 pub mod activate_species_measurements_reducer;
@@ -43,7 +44,10 @@ pub mod adapter_items_table;
 pub mod adapter_licences_table;
 pub mod adapter_player_table;
 pub mod adapter_quests_table;
+pub mod adapter_raid_actions_table;
+pub mod adapter_raid_attempts_table;
 pub mod adapter_receipt_table;
+pub mod adapter_rod_reinforcements_table;
 pub mod adapter_rods_table;
 pub mod adapter_sale_quote_table;
 pub mod adapter_shop_quote_table;
@@ -68,6 +72,8 @@ pub mod bait_stack_type;
 pub mod begin_link_challenge_reducer;
 pub mod biome_definition_table;
 pub mod biome_definition_type;
+pub mod cancel_raid_from_discord_reducer;
+pub mod cancel_raid_reducer;
 pub mod cast_equipment_receipt_type;
 pub mod cast_pull_type;
 pub mod change_loadout_from_discord_reducer;
@@ -77,6 +83,8 @@ pub mod claim_dockside_delivery_reducer;
 pub mod claim_haul_delivery_reducer;
 pub mod claim_quest_from_discord_reducer;
 pub mod claim_quest_reducer;
+pub mod claim_raid_from_discord_reducer;
+pub mod claim_raid_reducer;
 pub mod collection_focus_preference_type;
 pub mod command_receipt_type;
 pub mod commit_haul_upgrade_reducer;
@@ -87,11 +95,15 @@ pub mod commit_shop_from_discord_reducer;
 pub mod commit_shop_purchase_quantity_reducer;
 pub mod commit_shop_purchase_reducer;
 pub mod commit_upgrade_from_discord_reducer;
+pub mod community_raid_event_table;
+pub mod community_raid_event_type;
 pub mod complete_account_link_reducer;
 pub mod configure_service_reducer;
 pub mod daily_delivery_type;
 pub mod daily_from_discord_reducer;
 pub mod daily_receipt_type;
+pub mod deploy_raid_from_discord_reducer;
+pub mod deploy_raid_reducer;
 pub mod deployment_owner_type;
 pub mod dockside_status_type;
 pub mod earned_achievement_table;
@@ -146,7 +158,10 @@ pub mod my_link_challenge_table;
 pub mod my_player_table;
 pub mod my_profile_table;
 pub mod my_quests_table;
+pub mod my_raid_actions_table;
+pub mod my_raid_attempts_table;
 pub mod my_recent_catches_table;
+pub mod my_rod_reinforcements_table;
 pub mod my_rods_table;
 pub mod my_service_table;
 pub mod my_shop_quote_table;
@@ -160,8 +175,12 @@ pub mod perfect_species_type;
 pub mod player_identity_type;
 pub mod player_species_progress_type;
 pub mod player_type;
+pub mod prepare_community_raid_from_discord_reducer;
+pub mod prepare_community_raid_reducer;
 pub mod prepare_haul_upgrade_reducer;
 pub mod prepare_inventory_action_reducer;
+pub mod prepare_raid_from_discord_reducer;
+pub mod prepare_raid_reducer;
 pub mod prepare_rod_upgrade_reducer;
 pub mod prepare_sale_from_discord_reducer;
 pub mod prepare_shop_from_discord_reducer;
@@ -177,6 +196,16 @@ pub mod quest_claim_type;
 pub mod quest_definition_table;
 pub mod quest_definition_type;
 pub mod quest_status_type;
+pub mod raid_action_receipt_type;
+pub mod raid_attempt_type;
+pub mod raid_badge_table;
+pub mod raid_badge_type;
+pub mod raid_catch_counter_type;
+pub mod raid_grade_definition_table;
+pub mod raid_grade_definition_type;
+pub mod raid_job_type;
+pub mod raid_statistics_table;
+pub mod raid_statistics_type;
 pub mod rank_maximum_table;
 pub mod rank_maximum_type;
 pub mod rarity_definition_table;
@@ -184,11 +213,16 @@ pub mod rarity_definition_type;
 pub mod rebuild_player_records_reducer;
 pub mod recent_catch_type;
 pub mod record_achievement_route_reducer;
+pub mod refine_raid_material_from_discord_reducer;
+pub mod refine_raid_material_reducer;
+pub mod reinforce_rod_from_discord_reducer;
+pub mod reinforce_rod_reducer;
 pub mod repeat_quest_progress_type;
 pub mod rod_bonuses_table;
 pub mod rod_bonuses_type;
 pub mod rod_definition_table;
 pub mod rod_definition_type;
+pub mod rod_reinforcement_type;
 pub mod rod_upgrade_recipe_table;
 pub mod rod_upgrade_recipe_type;
 pub mod sale_quote_type;
@@ -235,6 +269,7 @@ pub use activate_haul_equipment_reducer::activate_haul_equipment;
 pub use activate_history_queries_reducer::activate_history_queries;
 pub use activate_perfect_catches_reducer::activate_perfect_catches;
 pub use activate_quests_reducer::activate_quests;
+pub use activate_raids_reducer::activate_raids;
 pub use activate_rank_maxima_reducer::activate_rank_maxima;
 pub use activate_rod_bonuses_reducer::activate_rod_bonuses;
 pub use activate_species_measurements_reducer::activate_species_measurements;
@@ -256,7 +291,10 @@ pub use adapter_items_table::*;
 pub use adapter_licences_table::*;
 pub use adapter_player_table::*;
 pub use adapter_quests_table::*;
+pub use adapter_raid_actions_table::*;
+pub use adapter_raid_attempts_table::*;
 pub use adapter_receipt_table::*;
+pub use adapter_rod_reinforcements_table::*;
 pub use adapter_rods_table::*;
 pub use adapter_sale_quote_table::*;
 pub use adapter_shop_quote_table::*;
@@ -281,6 +319,8 @@ pub use bait_stack_type::BaitStack;
 pub use begin_link_challenge_reducer::begin_link_challenge;
 pub use biome_definition_table::*;
 pub use biome_definition_type::BiomeDefinition;
+pub use cancel_raid_from_discord_reducer::cancel_raid_from_discord;
+pub use cancel_raid_reducer::cancel_raid;
 pub use cast_equipment_receipt_type::CastEquipmentReceipt;
 pub use cast_pull_type::CastPull;
 pub use change_loadout_from_discord_reducer::change_loadout_from_discord;
@@ -290,6 +330,8 @@ pub use claim_dockside_delivery_reducer::claim_dockside_delivery;
 pub use claim_haul_delivery_reducer::claim_haul_delivery;
 pub use claim_quest_from_discord_reducer::claim_quest_from_discord;
 pub use claim_quest_reducer::claim_quest;
+pub use claim_raid_from_discord_reducer::claim_raid_from_discord;
+pub use claim_raid_reducer::claim_raid;
 pub use collection_focus_preference_type::CollectionFocusPreference;
 pub use command_receipt_type::CommandReceipt;
 pub use commit_haul_upgrade_reducer::commit_haul_upgrade;
@@ -300,11 +342,15 @@ pub use commit_shop_from_discord_reducer::commit_shop_from_discord;
 pub use commit_shop_purchase_quantity_reducer::commit_shop_purchase_quantity;
 pub use commit_shop_purchase_reducer::commit_shop_purchase;
 pub use commit_upgrade_from_discord_reducer::commit_upgrade_from_discord;
+pub use community_raid_event_table::*;
+pub use community_raid_event_type::CommunityRaidEvent;
 pub use complete_account_link_reducer::complete_account_link;
 pub use configure_service_reducer::configure_service;
 pub use daily_delivery_type::DailyDelivery;
 pub use daily_from_discord_reducer::daily_from_discord;
 pub use daily_receipt_type::DailyReceipt;
+pub use deploy_raid_from_discord_reducer::deploy_raid_from_discord;
+pub use deploy_raid_reducer::deploy_raid;
 pub use deployment_owner_type::DeploymentOwner;
 pub use dockside_status_type::DocksideStatus;
 pub use earned_achievement_table::*;
@@ -359,7 +405,10 @@ pub use my_link_challenge_table::*;
 pub use my_player_table::*;
 pub use my_profile_table::*;
 pub use my_quests_table::*;
+pub use my_raid_actions_table::*;
+pub use my_raid_attempts_table::*;
 pub use my_recent_catches_table::*;
+pub use my_rod_reinforcements_table::*;
 pub use my_rods_table::*;
 pub use my_service_table::*;
 pub use my_shop_quote_table::*;
@@ -373,8 +422,12 @@ pub use perfect_species_type::PerfectSpecies;
 pub use player_identity_type::PlayerIdentity;
 pub use player_species_progress_type::PlayerSpeciesProgress;
 pub use player_type::Player;
+pub use prepare_community_raid_from_discord_reducer::prepare_community_raid_from_discord;
+pub use prepare_community_raid_reducer::prepare_community_raid;
 pub use prepare_haul_upgrade_reducer::prepare_haul_upgrade;
 pub use prepare_inventory_action_reducer::prepare_inventory_action;
+pub use prepare_raid_from_discord_reducer::prepare_raid_from_discord;
+pub use prepare_raid_reducer::prepare_raid;
 pub use prepare_rod_upgrade_reducer::prepare_rod_upgrade;
 pub use prepare_sale_from_discord_reducer::prepare_sale_from_discord;
 pub use prepare_shop_from_discord_reducer::prepare_shop_from_discord;
@@ -390,6 +443,16 @@ pub use quest_claim_type::QuestClaim;
 pub use quest_definition_table::*;
 pub use quest_definition_type::QuestDefinition;
 pub use quest_status_type::QuestStatus;
+pub use raid_action_receipt_type::RaidActionReceipt;
+pub use raid_attempt_type::RaidAttempt;
+pub use raid_badge_table::*;
+pub use raid_badge_type::RaidBadge;
+pub use raid_catch_counter_type::RaidCatchCounter;
+pub use raid_grade_definition_table::*;
+pub use raid_grade_definition_type::RaidGradeDefinition;
+pub use raid_job_type::RaidJob;
+pub use raid_statistics_table::*;
+pub use raid_statistics_type::RaidStatistics;
 pub use rank_maximum_table::*;
 pub use rank_maximum_type::RankMaximum;
 pub use rarity_definition_table::*;
@@ -397,11 +460,16 @@ pub use rarity_definition_type::RarityDefinition;
 pub use rebuild_player_records_reducer::rebuild_player_records;
 pub use recent_catch_type::RecentCatch;
 pub use record_achievement_route_reducer::record_achievement_route;
+pub use refine_raid_material_from_discord_reducer::refine_raid_material_from_discord;
+pub use refine_raid_material_reducer::refine_raid_material;
+pub use reinforce_rod_from_discord_reducer::reinforce_rod_from_discord;
+pub use reinforce_rod_reducer::reinforce_rod;
 pub use repeat_quest_progress_type::RepeatQuestProgress;
 pub use rod_bonuses_table::*;
 pub use rod_bonuses_type::RodBonuses;
 pub use rod_definition_table::*;
 pub use rod_definition_type::RodDefinition;
+pub use rod_reinforcement_type::RodReinforcement;
 pub use rod_upgrade_recipe_table::*;
 pub use rod_upgrade_recipe_type::RodUpgradeRecipe;
 pub use sale_quote_type::SaleQuote;
@@ -454,6 +522,7 @@ pub enum Reducer {
     ActivateHistoryQueries,
     ActivatePerfectCatches,
     ActivateQuests,
+    ActivateRaids,
     ActivateRankMaxima,
     ActivateRodBonuses,
     ActivateSpeciesMeasurements,
@@ -472,6 +541,15 @@ pub enum Reducer {
         player_id: u64,
     },
     BeginLinkChallenge,
+    CancelRaid {
+        request_id: u64,
+        attempt_id: u128,
+    },
+    CancelRaidFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        attempt_id: u128,
+    },
     ChangeLoadout {
         biome_id: Option<u32>,
         rod_id: Option<u32>,
@@ -506,6 +584,15 @@ pub enum Reducer {
         catch_id: Option<u64>,
         expected_week: i64,
         expected_cycle: u64,
+    },
+    ClaimRaid {
+        request_id: u64,
+        attempt_id: u128,
+    },
+    ClaimRaidFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        attempt_id: u128,
     },
     CommitHaulUpgrade {
         nonce: u128,
@@ -554,6 +641,15 @@ pub enum Reducer {
         guild_id: Option<u64>,
         channel_id: u64,
     },
+    DeployRaid {
+        request_id: u64,
+        attempt_id: u128,
+    },
+    DeployRaidFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        attempt_id: u128,
+    },
     EquipBait {
         bait_id: u32,
     },
@@ -578,6 +674,15 @@ pub enum Reducer {
         channel_id: u64,
     },
     MigrateUnlimitedInventory,
+    PrepareCommunityRaid {
+        request_id: u64,
+        event_id: u64,
+    },
+    PrepareCommunityRaidFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        event_id: u64,
+    },
     PrepareHaulUpgrade {
         equipment_id: u32,
     },
@@ -585,6 +690,17 @@ pub enum Reducer {
         kind: String,
         catch_ids: Vec<u64>,
         favorite: bool,
+    },
+    PrepareRaid {
+        request_id: u64,
+        species_id: u32,
+        grade: u8,
+    },
+    PrepareRaidFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        species_id: u32,
+        grade: u8,
     },
     PrepareRodUpgrade {
         rod_id: u32,
@@ -613,6 +729,30 @@ pub enum Reducer {
     RecordAchievementRoute {
         discord_user_id: u64,
         channel_id: u64,
+    },
+    RefineRaidMaterial {
+        request_id: u64,
+        material_id: u8,
+        from_grade: u8,
+        batches: u32,
+    },
+    RefineRaidMaterialFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        material_id: u8,
+        from_grade: u8,
+        batches: u32,
+    },
+    ReinforceRod {
+        request_id: u64,
+        rod_id: u32,
+        expected_level: u8,
+    },
+    ReinforceRodFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        rod_id: u32,
+        expected_level: u8,
     },
     SelectDiscordPlayer {
         discord_user_id: u64,
@@ -683,6 +823,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateHistoryQueries => "activate_history_queries",
             Reducer::ActivatePerfectCatches => "activate_perfect_catches",
             Reducer::ActivateQuests => "activate_quests",
+            Reducer::ActivateRaids => "activate_raids",
             Reducer::ActivateRankMaxima => "activate_rank_maxima",
             Reducer::ActivateRodBonuses => "activate_rod_bonuses",
             Reducer::ActivateSpeciesMeasurements => "activate_species_measurements",
@@ -693,6 +834,8 @@ impl __sdk::Reducer for Reducer {
             Reducer::BackfillPlayerAchievements { .. } => "backfill_player_achievements",
             Reducer::BackfillPlayerStatistics { .. } => "backfill_player_statistics",
             Reducer::BeginLinkChallenge => "begin_link_challenge",
+            Reducer::CancelRaid { .. } => "cancel_raid",
+            Reducer::CancelRaidFromDiscord { .. } => "cancel_raid_from_discord",
             Reducer::ChangeLoadout { .. } => "change_loadout",
             Reducer::ChangeLoadoutFromDiscord { .. } => "change_loadout_from_discord",
             Reducer::ClaimAchievementDelivery { .. } => "claim_achievement_delivery",
@@ -700,6 +843,8 @@ impl __sdk::Reducer for Reducer {
             Reducer::ClaimHaulDelivery { .. } => "claim_haul_delivery",
             Reducer::ClaimQuest { .. } => "claim_quest",
             Reducer::ClaimQuestFromDiscord { .. } => "claim_quest_from_discord",
+            Reducer::ClaimRaid { .. } => "claim_raid",
+            Reducer::ClaimRaidFromDiscord { .. } => "claim_raid_from_discord",
             Reducer::CommitHaulUpgrade { .. } => "commit_haul_upgrade",
             Reducer::CommitInventoryAction { .. } => "commit_inventory_action",
             Reducer::CommitRodUpgrade { .. } => "commit_rod_upgrade",
@@ -711,6 +856,8 @@ impl __sdk::Reducer for Reducer {
             Reducer::CompleteAccountLink { .. } => "complete_account_link",
             Reducer::ConfigureService { .. } => "configure_service",
             Reducer::DailyFromDiscord { .. } => "daily_from_discord",
+            Reducer::DeployRaid { .. } => "deploy_raid",
+            Reducer::DeployRaidFromDiscord { .. } => "deploy_raid_from_discord",
             Reducer::EquipBait { .. } => "equip_bait",
             Reducer::EquipBaitFromDiscord { .. } => "equip_bait_from_discord",
             Reducer::EquipHaulEquipment { .. } => "equip_haul_equipment",
@@ -718,8 +865,14 @@ impl __sdk::Reducer for Reducer {
             Reducer::FinishHaulFromAdapter { .. } => "finish_haul_from_adapter",
             Reducer::FishFromDiscord { .. } => "fish_from_discord",
             Reducer::MigrateUnlimitedInventory => "migrate_unlimited_inventory",
+            Reducer::PrepareCommunityRaid { .. } => "prepare_community_raid",
+            Reducer::PrepareCommunityRaidFromDiscord { .. } => {
+                "prepare_community_raid_from_discord"
+            }
             Reducer::PrepareHaulUpgrade { .. } => "prepare_haul_upgrade",
             Reducer::PrepareInventoryAction { .. } => "prepare_inventory_action",
+            Reducer::PrepareRaid { .. } => "prepare_raid",
+            Reducer::PrepareRaidFromDiscord { .. } => "prepare_raid_from_discord",
             Reducer::PrepareRodUpgrade { .. } => "prepare_rod_upgrade",
             Reducer::PrepareSaleFromDiscord { .. } => "prepare_sale_from_discord",
             Reducer::PrepareShopFromDiscord { .. } => "prepare_shop_from_discord",
@@ -727,6 +880,10 @@ impl __sdk::Reducer for Reducer {
             Reducer::PrepareUpgradeFromDiscord { .. } => "prepare_upgrade_from_discord",
             Reducer::RebuildPlayerRecords { .. } => "rebuild_player_records",
             Reducer::RecordAchievementRoute { .. } => "record_achievement_route",
+            Reducer::RefineRaidMaterial { .. } => "refine_raid_material",
+            Reducer::RefineRaidMaterialFromDiscord { .. } => "refine_raid_material_from_discord",
+            Reducer::ReinforceRod { .. } => "reinforce_rod",
+            Reducer::ReinforceRodFromDiscord { .. } => "reinforce_rod_from_discord",
             Reducer::SelectDiscordPlayer { .. } => "select_discord_player",
             Reducer::SelectJournal { .. } => "select_journal",
             Reducer::SetBaitSlot { .. } => "set_bait_slot",
@@ -776,6 +933,9 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateQuests => {
                 __sats::bsatn::to_vec(&activate_quests_reducer::ActivateQuestsArgs {})
             }
+            Reducer::ActivateRaids => {
+                __sats::bsatn::to_vec(&activate_raids_reducer::ActivateRaidsArgs {})
+            }
             Reducer::ActivateRankMaxima => {
                 __sats::bsatn::to_vec(&activate_rank_maxima_reducer::ActivateRankMaximaArgs {})
             }
@@ -814,6 +974,24 @@ impl __sdk::Reducer for Reducer {
             Reducer::BeginLinkChallenge => {
                 __sats::bsatn::to_vec(&begin_link_challenge_reducer::BeginLinkChallengeArgs {})
             }
+            Reducer::CancelRaid {
+                request_id,
+                attempt_id,
+            } => __sats::bsatn::to_vec(&cancel_raid_reducer::CancelRaidArgs {
+                request_id: request_id.clone(),
+                attempt_id: attempt_id.clone(),
+            }),
+            Reducer::CancelRaidFromDiscord {
+                discord_user_id,
+                interaction_id,
+                attempt_id,
+            } => __sats::bsatn::to_vec(
+                &cancel_raid_from_discord_reducer::CancelRaidFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    attempt_id: attempt_id.clone(),
+                },
+            ),
             Reducer::ChangeLoadout { biome_id, rod_id } => {
                 __sats::bsatn::to_vec(&change_loadout_reducer::ChangeLoadoutArgs {
                     biome_id: biome_id.clone(),
@@ -881,6 +1059,24 @@ impl __sdk::Reducer for Reducer {
                     expected_cycle: expected_cycle.clone(),
                 },
             ),
+            Reducer::ClaimRaid {
+                request_id,
+                attempt_id,
+            } => __sats::bsatn::to_vec(&claim_raid_reducer::ClaimRaidArgs {
+                request_id: request_id.clone(),
+                attempt_id: attempt_id.clone(),
+            }),
+            Reducer::ClaimRaidFromDiscord {
+                discord_user_id,
+                interaction_id,
+                attempt_id,
+            } => {
+                __sats::bsatn::to_vec(&claim_raid_from_discord_reducer::ClaimRaidFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    attempt_id: attempt_id.clone(),
+                })
+            }
             Reducer::CommitHaulUpgrade { nonce } => {
                 __sats::bsatn::to_vec(&commit_haul_upgrade_reducer::CommitHaulUpgradeArgs {
                     nonce: nonce.clone(),
@@ -969,6 +1165,24 @@ impl __sdk::Reducer for Reducer {
                 guild_id: guild_id.clone(),
                 channel_id: channel_id.clone(),
             }),
+            Reducer::DeployRaid {
+                request_id,
+                attempt_id,
+            } => __sats::bsatn::to_vec(&deploy_raid_reducer::DeployRaidArgs {
+                request_id: request_id.clone(),
+                attempt_id: attempt_id.clone(),
+            }),
+            Reducer::DeployRaidFromDiscord {
+                discord_user_id,
+                interaction_id,
+                attempt_id,
+            } => __sats::bsatn::to_vec(
+                &deploy_raid_from_discord_reducer::DeployRaidFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    attempt_id: attempt_id.clone(),
+                },
+            ),
             Reducer::EquipBait { bait_id } => {
                 __sats::bsatn::to_vec(&equip_bait_reducer::EquipBaitArgs {
                     bait_id: bait_id.clone(),
@@ -1014,6 +1228,24 @@ impl __sdk::Reducer for Reducer {
             Reducer::MigrateUnlimitedInventory => __sats::bsatn::to_vec(
                 &migrate_unlimited_inventory_reducer::MigrateUnlimitedInventoryArgs {},
             ),
+            Reducer::PrepareCommunityRaid {
+                request_id,
+                event_id,
+            } => __sats::bsatn::to_vec(&prepare_community_raid_reducer::PrepareCommunityRaidArgs {
+                request_id: request_id.clone(),
+                event_id: event_id.clone(),
+            }),
+            Reducer::PrepareCommunityRaidFromDiscord {
+                discord_user_id,
+                interaction_id,
+                event_id,
+            } => __sats::bsatn::to_vec(
+                &prepare_community_raid_from_discord_reducer::PrepareCommunityRaidFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    event_id: event_id.clone(),
+                },
+            ),
             Reducer::PrepareHaulUpgrade { equipment_id } => {
                 __sats::bsatn::to_vec(&prepare_haul_upgrade_reducer::PrepareHaulUpgradeArgs {
                     equipment_id: equipment_id.clone(),
@@ -1028,6 +1260,28 @@ impl __sdk::Reducer for Reducer {
                     kind: kind.clone(),
                     catch_ids: catch_ids.clone(),
                     favorite: favorite.clone(),
+                },
+            ),
+            Reducer::PrepareRaid {
+                request_id,
+                species_id,
+                grade,
+            } => __sats::bsatn::to_vec(&prepare_raid_reducer::PrepareRaidArgs {
+                request_id: request_id.clone(),
+                species_id: species_id.clone(),
+                grade: grade.clone(),
+            }),
+            Reducer::PrepareRaidFromDiscord {
+                discord_user_id,
+                interaction_id,
+                species_id,
+                grade,
+            } => __sats::bsatn::to_vec(
+                &prepare_raid_from_discord_reducer::PrepareRaidFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    species_id: species_id.clone(),
+                    grade: grade.clone(),
                 },
             ),
             Reducer::PrepareRodUpgrade { rod_id } => {
@@ -1085,6 +1339,54 @@ impl __sdk::Reducer for Reducer {
                 &record_achievement_route_reducer::RecordAchievementRouteArgs {
                     discord_user_id: discord_user_id.clone(),
                     channel_id: channel_id.clone(),
+                },
+            ),
+            Reducer::RefineRaidMaterial {
+                request_id,
+                material_id,
+                from_grade,
+                batches,
+            } => __sats::bsatn::to_vec(&refine_raid_material_reducer::RefineRaidMaterialArgs {
+                request_id: request_id.clone(),
+                material_id: material_id.clone(),
+                from_grade: from_grade.clone(),
+                batches: batches.clone(),
+            }),
+            Reducer::RefineRaidMaterialFromDiscord {
+                discord_user_id,
+                interaction_id,
+                material_id,
+                from_grade,
+                batches,
+            } => __sats::bsatn::to_vec(
+                &refine_raid_material_from_discord_reducer::RefineRaidMaterialFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    material_id: material_id.clone(),
+                    from_grade: from_grade.clone(),
+                    batches: batches.clone(),
+                },
+            ),
+            Reducer::ReinforceRod {
+                request_id,
+                rod_id,
+                expected_level,
+            } => __sats::bsatn::to_vec(&reinforce_rod_reducer::ReinforceRodArgs {
+                request_id: request_id.clone(),
+                rod_id: rod_id.clone(),
+                expected_level: expected_level.clone(),
+            }),
+            Reducer::ReinforceRodFromDiscord {
+                discord_user_id,
+                interaction_id,
+                rod_id,
+                expected_level,
+            } => __sats::bsatn::to_vec(
+                &reinforce_rod_from_discord_reducer::ReinforceRodFromDiscordArgs {
+                    discord_user_id: discord_user_id.clone(),
+                    interaction_id: interaction_id.clone(),
+                    rod_id: rod_id.clone(),
+                    expected_level: expected_level.clone(),
                 },
             ),
             Reducer::SelectDiscordPlayer {
@@ -1213,7 +1515,10 @@ pub struct DbUpdate {
     adapter_licences: __sdk::TableUpdate<OwnedBiomeLicence>,
     adapter_player: __sdk::TableUpdate<Player>,
     adapter_quests: __sdk::TableUpdate<QuestStatus>,
+    adapter_raid_actions: __sdk::TableUpdate<RaidActionReceipt>,
+    adapter_raid_attempts: __sdk::TableUpdate<RaidAttempt>,
     adapter_receipt: __sdk::TableUpdate<CommandReceipt>,
+    adapter_rod_reinforcements: __sdk::TableUpdate<RodReinforcement>,
     adapter_rods: __sdk::TableUpdate<OwnedRod>,
     adapter_sale_quote: __sdk::TableUpdate<SaleQuote>,
     adapter_shop_quote: __sdk::TableUpdate<ShopQuote>,
@@ -1224,6 +1529,7 @@ pub struct DbUpdate {
     angler_title: __sdk::TableUpdate<AnglerTitle>,
     bait_definition: __sdk::TableUpdate<BaitDefinition>,
     biome_definition: __sdk::TableUpdate<BiomeDefinition>,
+    community_raid_event: __sdk::TableUpdate<CommunityRaidEvent>,
     earned_achievement: __sdk::TableUpdate<EarnedAchievement>,
     game_config: __sdk::TableUpdate<GameConfig>,
     haul_equipment_definition: __sdk::TableUpdate<HaulEquipmentDefinition>,
@@ -1248,7 +1554,10 @@ pub struct DbUpdate {
     my_player: __sdk::TableUpdate<Player>,
     my_profile: __sdk::TableUpdate<PublicProfile>,
     my_quests: __sdk::TableUpdate<QuestStatus>,
+    my_raid_actions: __sdk::TableUpdate<RaidActionReceipt>,
+    my_raid_attempts: __sdk::TableUpdate<RaidAttempt>,
     my_recent_catches: __sdk::TableUpdate<RecentCatch>,
+    my_rod_reinforcements: __sdk::TableUpdate<RodReinforcement>,
     my_rods: __sdk::TableUpdate<OwnedRod>,
     my_service: __sdk::TableUpdate<ServicePrincipal>,
     my_shop_quote: __sdk::TableUpdate<ShopQuote>,
@@ -1258,6 +1567,9 @@ pub struct DbUpdate {
     quality_definition: __sdk::TableUpdate<QualityDefinition>,
     quest_calendar: __sdk::TableUpdate<QuestCalendar>,
     quest_definition: __sdk::TableUpdate<QuestDefinition>,
+    raid_badge: __sdk::TableUpdate<RaidBadge>,
+    raid_grade_definition: __sdk::TableUpdate<RaidGradeDefinition>,
+    raid_statistics: __sdk::TableUpdate<RaidStatistics>,
     rank_maximum: __sdk::TableUpdate<RankMaximum>,
     rarity_definition: __sdk::TableUpdate<RarityDefinition>,
     rod_bonuses: __sdk::TableUpdate<RodBonuses>,
@@ -1331,9 +1643,18 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_quests" => db_update
                     .adapter_quests
                     .append(adapter_quests_table::parse_table_update(table_update)?),
+                "adapter_raid_actions" => db_update.adapter_raid_actions.append(
+                    adapter_raid_actions_table::parse_table_update(table_update)?,
+                ),
+                "adapter_raid_attempts" => db_update.adapter_raid_attempts.append(
+                    adapter_raid_attempts_table::parse_table_update(table_update)?,
+                ),
                 "adapter_receipt" => db_update
                     .adapter_receipt
                     .append(adapter_receipt_table::parse_table_update(table_update)?),
+                "adapter_rod_reinforcements" => db_update.adapter_rod_reinforcements.append(
+                    adapter_rod_reinforcements_table::parse_table_update(table_update)?,
+                ),
                 "adapter_rods" => db_update
                     .adapter_rods
                     .append(adapter_rods_table::parse_table_update(table_update)?),
@@ -1364,6 +1685,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "biome_definition" => db_update
                     .biome_definition
                     .append(biome_definition_table::parse_table_update(table_update)?),
+                "community_raid_event" => db_update.community_raid_event.append(
+                    community_raid_event_table::parse_table_update(table_update)?,
+                ),
                 "earned_achievement" => db_update
                     .earned_achievement
                     .append(earned_achievement_table::parse_table_update(table_update)?),
@@ -1436,9 +1760,18 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_quests" => db_update
                     .my_quests
                     .append(my_quests_table::parse_table_update(table_update)?),
+                "my_raid_actions" => db_update
+                    .my_raid_actions
+                    .append(my_raid_actions_table::parse_table_update(table_update)?),
+                "my_raid_attempts" => db_update
+                    .my_raid_attempts
+                    .append(my_raid_attempts_table::parse_table_update(table_update)?),
                 "my_recent_catches" => db_update
                     .my_recent_catches
                     .append(my_recent_catches_table::parse_table_update(table_update)?),
+                "my_rod_reinforcements" => db_update.my_rod_reinforcements.append(
+                    my_rod_reinforcements_table::parse_table_update(table_update)?,
+                ),
                 "my_rods" => db_update
                     .my_rods
                     .append(my_rods_table::parse_table_update(table_update)?),
@@ -1466,6 +1799,15 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "quest_definition" => db_update
                     .quest_definition
                     .append(quest_definition_table::parse_table_update(table_update)?),
+                "raid_badge" => db_update
+                    .raid_badge
+                    .append(raid_badge_table::parse_table_update(table_update)?),
+                "raid_grade_definition" => db_update.raid_grade_definition.append(
+                    raid_grade_definition_table::parse_table_update(table_update)?,
+                ),
+                "raid_statistics" => db_update
+                    .raid_statistics
+                    .append(raid_statistics_table::parse_table_update(table_update)?),
                 "rank_maximum" => db_update
                     .rank_maximum
                     .append(rank_maximum_table::parse_table_update(table_update)?),
@@ -1549,6 +1891,12 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.biome_definition = cache
             .apply_diff_to_table::<BiomeDefinition>("biome_definition", &self.biome_definition)
             .with_updates_by_pk(|row| &row.biome_id);
+        diff.community_raid_event = cache
+            .apply_diff_to_table::<CommunityRaidEvent>(
+                "community_raid_event",
+                &self.community_raid_event,
+            )
+            .with_updates_by_pk(|row| &row.event_id);
         diff.earned_achievement = cache
             .apply_diff_to_table::<EarnedAchievement>(
                 "earned_achievement",
@@ -1585,6 +1933,18 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.quest_definition = cache
             .apply_diff_to_table::<QuestDefinition>("quest_definition", &self.quest_definition)
             .with_updates_by_pk(|row| &row.quest_id);
+        diff.raid_badge = cache
+            .apply_diff_to_table::<RaidBadge>("raid_badge", &self.raid_badge)
+            .with_updates_by_pk(|row| &row.key);
+        diff.raid_grade_definition = cache
+            .apply_diff_to_table::<RaidGradeDefinition>(
+                "raid_grade_definition",
+                &self.raid_grade_definition,
+            )
+            .with_updates_by_pk(|row| &row.grade);
+        diff.raid_statistics = cache
+            .apply_diff_to_table::<RaidStatistics>("raid_statistics", &self.raid_statistics)
+            .with_updates_by_pk(|row| &row.player_id);
         diff.rank_maximum = cache
             .apply_diff_to_table::<RankMaximum>("rank_maximum", &self.rank_maximum)
             .with_updates_by_pk(|row| &row.key);
@@ -1662,8 +2022,20 @@ impl __sdk::DbUpdate for DbUpdate {
             cache.apply_diff_to_table::<Player>("adapter_player", &self.adapter_player);
         diff.adapter_quests =
             cache.apply_diff_to_table::<QuestStatus>("adapter_quests", &self.adapter_quests);
+        diff.adapter_raid_actions = cache.apply_diff_to_table::<RaidActionReceipt>(
+            "adapter_raid_actions",
+            &self.adapter_raid_actions,
+        );
+        diff.adapter_raid_attempts = cache.apply_diff_to_table::<RaidAttempt>(
+            "adapter_raid_attempts",
+            &self.adapter_raid_attempts,
+        );
         diff.adapter_receipt =
             cache.apply_diff_to_table::<CommandReceipt>("adapter_receipt", &self.adapter_receipt);
+        diff.adapter_rod_reinforcements = cache.apply_diff_to_table::<RodReinforcement>(
+            "adapter_rod_reinforcements",
+            &self.adapter_rod_reinforcements,
+        );
         diff.adapter_rods =
             cache.apply_diff_to_table::<OwnedRod>("adapter_rods", &self.adapter_rods);
         diff.adapter_sale_quote =
@@ -1715,8 +2087,16 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.my_profile =
             cache.apply_diff_to_table::<PublicProfile>("my_profile", &self.my_profile);
         diff.my_quests = cache.apply_diff_to_table::<QuestStatus>("my_quests", &self.my_quests);
+        diff.my_raid_actions = cache
+            .apply_diff_to_table::<RaidActionReceipt>("my_raid_actions", &self.my_raid_actions);
+        diff.my_raid_attempts =
+            cache.apply_diff_to_table::<RaidAttempt>("my_raid_attempts", &self.my_raid_attempts);
         diff.my_recent_catches =
             cache.apply_diff_to_table::<RecentCatch>("my_recent_catches", &self.my_recent_catches);
+        diff.my_rod_reinforcements = cache.apply_diff_to_table::<RodReinforcement>(
+            "my_rod_reinforcements",
+            &self.my_rod_reinforcements,
+        );
         diff.my_rods = cache.apply_diff_to_table::<OwnedRod>("my_rods", &self.my_rods);
         diff.my_service =
             cache.apply_diff_to_table::<ServicePrincipal>("my_service", &self.my_service);
@@ -1785,8 +2165,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_quests" => db_update
                     .adapter_quests
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_raid_actions" => db_update
+                    .adapter_raid_actions
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_raid_attempts" => db_update
+                    .adapter_raid_attempts
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_receipt" => db_update
                     .adapter_receipt
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_rod_reinforcements" => db_update
+                    .adapter_rod_reinforcements
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_rods" => db_update
                     .adapter_rods
@@ -1817,6 +2206,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "biome_definition" => db_update
                     .biome_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "community_raid_event" => db_update
+                    .community_raid_event
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "earned_achievement" => db_update
                     .earned_achievement
@@ -1890,8 +2282,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_quests" => db_update
                     .my_quests
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_raid_actions" => db_update
+                    .my_raid_actions
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_raid_attempts" => db_update
+                    .my_raid_attempts
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_recent_catches" => db_update
                     .my_recent_catches
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_rod_reinforcements" => db_update
+                    .my_rod_reinforcements
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_rods" => db_update
                     .my_rods
@@ -1919,6 +2320,15 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "quest_definition" => db_update
                     .quest_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "raid_badge" => db_update
+                    .raid_badge
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "raid_grade_definition" => db_update
+                    .raid_grade_definition
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "raid_statistics" => db_update
+                    .raid_statistics
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "rank_maximum" => db_update
                     .rank_maximum
@@ -2014,8 +2424,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_quests" => db_update
                     .adapter_quests
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_raid_actions" => db_update
+                    .adapter_raid_actions
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_raid_attempts" => db_update
+                    .adapter_raid_attempts
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_receipt" => db_update
                     .adapter_receipt
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_rod_reinforcements" => db_update
+                    .adapter_rod_reinforcements
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_rods" => db_update
                     .adapter_rods
@@ -2046,6 +2465,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "biome_definition" => db_update
                     .biome_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "community_raid_event" => db_update
+                    .community_raid_event
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "earned_achievement" => db_update
                     .earned_achievement
@@ -2119,8 +2541,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_quests" => db_update
                     .my_quests
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_raid_actions" => db_update
+                    .my_raid_actions
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_raid_attempts" => db_update
+                    .my_raid_attempts
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_recent_catches" => db_update
                     .my_recent_catches
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_rod_reinforcements" => db_update
+                    .my_rod_reinforcements
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_rods" => db_update
                     .my_rods
@@ -2148,6 +2579,15 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "quest_definition" => db_update
                     .quest_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "raid_badge" => db_update
+                    .raid_badge
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "raid_grade_definition" => db_update
+                    .raid_grade_definition
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "raid_statistics" => db_update
+                    .raid_statistics
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "rank_maximum" => db_update
                     .rank_maximum
@@ -2209,7 +2649,10 @@ pub struct AppliedDiff<'r> {
     adapter_licences: __sdk::TableAppliedDiff<'r, OwnedBiomeLicence>,
     adapter_player: __sdk::TableAppliedDiff<'r, Player>,
     adapter_quests: __sdk::TableAppliedDiff<'r, QuestStatus>,
+    adapter_raid_actions: __sdk::TableAppliedDiff<'r, RaidActionReceipt>,
+    adapter_raid_attempts: __sdk::TableAppliedDiff<'r, RaidAttempt>,
     adapter_receipt: __sdk::TableAppliedDiff<'r, CommandReceipt>,
+    adapter_rod_reinforcements: __sdk::TableAppliedDiff<'r, RodReinforcement>,
     adapter_rods: __sdk::TableAppliedDiff<'r, OwnedRod>,
     adapter_sale_quote: __sdk::TableAppliedDiff<'r, SaleQuote>,
     adapter_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
@@ -2220,6 +2663,7 @@ pub struct AppliedDiff<'r> {
     angler_title: __sdk::TableAppliedDiff<'r, AnglerTitle>,
     bait_definition: __sdk::TableAppliedDiff<'r, BaitDefinition>,
     biome_definition: __sdk::TableAppliedDiff<'r, BiomeDefinition>,
+    community_raid_event: __sdk::TableAppliedDiff<'r, CommunityRaidEvent>,
     earned_achievement: __sdk::TableAppliedDiff<'r, EarnedAchievement>,
     game_config: __sdk::TableAppliedDiff<'r, GameConfig>,
     haul_equipment_definition: __sdk::TableAppliedDiff<'r, HaulEquipmentDefinition>,
@@ -2244,7 +2688,10 @@ pub struct AppliedDiff<'r> {
     my_player: __sdk::TableAppliedDiff<'r, Player>,
     my_profile: __sdk::TableAppliedDiff<'r, PublicProfile>,
     my_quests: __sdk::TableAppliedDiff<'r, QuestStatus>,
+    my_raid_actions: __sdk::TableAppliedDiff<'r, RaidActionReceipt>,
+    my_raid_attempts: __sdk::TableAppliedDiff<'r, RaidAttempt>,
     my_recent_catches: __sdk::TableAppliedDiff<'r, RecentCatch>,
+    my_rod_reinforcements: __sdk::TableAppliedDiff<'r, RodReinforcement>,
     my_rods: __sdk::TableAppliedDiff<'r, OwnedRod>,
     my_service: __sdk::TableAppliedDiff<'r, ServicePrincipal>,
     my_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
@@ -2254,6 +2701,9 @@ pub struct AppliedDiff<'r> {
     quality_definition: __sdk::TableAppliedDiff<'r, QualityDefinition>,
     quest_calendar: __sdk::TableAppliedDiff<'r, QuestCalendar>,
     quest_definition: __sdk::TableAppliedDiff<'r, QuestDefinition>,
+    raid_badge: __sdk::TableAppliedDiff<'r, RaidBadge>,
+    raid_grade_definition: __sdk::TableAppliedDiff<'r, RaidGradeDefinition>,
+    raid_statistics: __sdk::TableAppliedDiff<'r, RaidStatistics>,
     rank_maximum: __sdk::TableAppliedDiff<'r, RankMaximum>,
     rarity_definition: __sdk::TableAppliedDiff<'r, RarityDefinition>,
     rod_bonuses: __sdk::TableAppliedDiff<'r, RodBonuses>,
@@ -2366,9 +2816,24 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.adapter_quests,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<RaidActionReceipt>(
+            "adapter_raid_actions",
+            &self.adapter_raid_actions,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<RaidAttempt>(
+            "adapter_raid_attempts",
+            &self.adapter_raid_attempts,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<CommandReceipt>(
             "adapter_receipt",
             &self.adapter_receipt,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<RodReinforcement>(
+            "adapter_rod_reinforcements",
+            &self.adapter_rod_reinforcements,
             event,
         );
         callbacks.invoke_table_row_callbacks::<OwnedRod>("adapter_rods", &self.adapter_rods, event);
@@ -2415,6 +2880,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<BiomeDefinition>(
             "biome_definition",
             &self.biome_definition,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<CommunityRaidEvent>(
+            "community_raid_event",
+            &self.community_raid_event,
             event,
         );
         callbacks.invoke_table_row_callbacks::<EarnedAchievement>(
@@ -2505,9 +2975,24 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             event,
         );
         callbacks.invoke_table_row_callbacks::<QuestStatus>("my_quests", &self.my_quests, event);
+        callbacks.invoke_table_row_callbacks::<RaidActionReceipt>(
+            "my_raid_actions",
+            &self.my_raid_actions,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<RaidAttempt>(
+            "my_raid_attempts",
+            &self.my_raid_attempts,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<RecentCatch>(
             "my_recent_catches",
             &self.my_recent_catches,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<RodReinforcement>(
+            "my_rod_reinforcements",
+            &self.my_rod_reinforcements,
             event,
         );
         callbacks.invoke_table_row_callbacks::<OwnedRod>("my_rods", &self.my_rods, event);
@@ -2549,6 +3034,17 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<QuestDefinition>(
             "quest_definition",
             &self.quest_definition,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<RaidBadge>("raid_badge", &self.raid_badge, event);
+        callbacks.invoke_table_row_callbacks::<RaidGradeDefinition>(
+            "raid_grade_definition",
+            &self.raid_grade_definition,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<RaidStatistics>(
+            "raid_statistics",
+            &self.raid_statistics,
             event,
         );
         callbacks.invoke_table_row_callbacks::<RankMaximum>(
@@ -3270,7 +3766,10 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_licences_table::register_table(client_cache);
         adapter_player_table::register_table(client_cache);
         adapter_quests_table::register_table(client_cache);
+        adapter_raid_actions_table::register_table(client_cache);
+        adapter_raid_attempts_table::register_table(client_cache);
         adapter_receipt_table::register_table(client_cache);
+        adapter_rod_reinforcements_table::register_table(client_cache);
         adapter_rods_table::register_table(client_cache);
         adapter_sale_quote_table::register_table(client_cache);
         adapter_shop_quote_table::register_table(client_cache);
@@ -3281,6 +3780,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         angler_title_table::register_table(client_cache);
         bait_definition_table::register_table(client_cache);
         biome_definition_table::register_table(client_cache);
+        community_raid_event_table::register_table(client_cache);
         earned_achievement_table::register_table(client_cache);
         game_config_table::register_table(client_cache);
         haul_equipment_definition_table::register_table(client_cache);
@@ -3305,7 +3805,10 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_player_table::register_table(client_cache);
         my_profile_table::register_table(client_cache);
         my_quests_table::register_table(client_cache);
+        my_raid_actions_table::register_table(client_cache);
+        my_raid_attempts_table::register_table(client_cache);
         my_recent_catches_table::register_table(client_cache);
+        my_rod_reinforcements_table::register_table(client_cache);
         my_rods_table::register_table(client_cache);
         my_service_table::register_table(client_cache);
         my_shop_quote_table::register_table(client_cache);
@@ -3315,6 +3818,9 @@ impl __sdk::SpacetimeModule for RemoteModule {
         quality_definition_table::register_table(client_cache);
         quest_calendar_table::register_table(client_cache);
         quest_definition_table::register_table(client_cache);
+        raid_badge_table::register_table(client_cache);
+        raid_grade_definition_table::register_table(client_cache);
+        raid_statistics_table::register_table(client_cache);
         rank_maximum_table::register_table(client_cache);
         rarity_definition_table::register_table(client_cache);
         rod_bonuses_table::register_table(client_cache);
@@ -3344,7 +3850,10 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_licences",
         "adapter_player",
         "adapter_quests",
+        "adapter_raid_actions",
+        "adapter_raid_attempts",
         "adapter_receipt",
+        "adapter_rod_reinforcements",
         "adapter_rods",
         "adapter_sale_quote",
         "adapter_shop_quote",
@@ -3355,6 +3864,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "angler_title",
         "bait_definition",
         "biome_definition",
+        "community_raid_event",
         "earned_achievement",
         "game_config",
         "haul_equipment_definition",
@@ -3379,7 +3889,10 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_player",
         "my_profile",
         "my_quests",
+        "my_raid_actions",
+        "my_raid_attempts",
         "my_recent_catches",
+        "my_rod_reinforcements",
         "my_rods",
         "my_service",
         "my_shop_quote",
@@ -3389,6 +3902,9 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "quality_definition",
         "quest_calendar",
         "quest_definition",
+        "raid_badge",
+        "raid_grade_definition",
+        "raid_statistics",
         "rank_maximum",
         "rarity_definition",
         "rod_bonuses",

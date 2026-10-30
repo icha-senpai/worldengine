@@ -2,10 +2,11 @@ import catalog from '../../../../../content/species.json';
 import world from '../../../../../content/world.json';
 import sizeRules from '../../../../../content/size-rules.json';
 import gameRules from '../../../../../content/game-rules.json';
+import raidRules from '../../../../../content/raids.json';
 
 export type CatalogFish = typeof catalog.species[number];
 export type CollectionFocus = { biomeIds: readonly number[]; rankMasks: Readonly<Record<number, number>> };
-export type RateLoadout = { name: string; power: number; luckBp: number; sizeRolls: number; rulesVersion: number; focus?: CollectionFocus };
+export type RateLoadout = { name: string; power: number; luckBp: number; sizeRolls: number; rulesVersion: number; reinforcementLevel?: number; focus?: CollectionFocus };
 export const baselineLoadout: RateLoadout = {
   name: 'Common Twig Rod · no bait', power: world.rods[0].power, luckBp: 0, sizeRolls: 1, rulesVersion: gameRules.version,
 };
@@ -45,6 +46,12 @@ function focusActive(fish: CatalogFish, loadout: RateLoadout) {
   return loadout.rulesVersion >= 13 && fish.countsForOrdinaryCollectionCompletion && !!loadout.focus?.biomeIds.includes(fish.biomeId);
 }
 
+function reinforcementGrade(loadout: RateLoadout) {
+  return loadout.rulesVersion >= raidRules.rulesVersion
+    ? raidRules.grades[(loadout.reinforcementLevel ?? 0) - 1]
+    : undefined;
+}
+
 /** Keep species/category mass fixed; redistribute only duplicates of this fish. */
 function pullBands(fish: CatalogFish, loadout: RateLoadout, mask = rankMask(fish, loadout)) {
   const base = adjustedPool(fish.biomeId, loadout.luckBp).get(fish.speciesId)!;
@@ -56,7 +63,8 @@ function pullBands(fish: CatalogFish, loadout: RateLoadout, mask = rankMask(fish
     else missing += chance;
   }
   const active = focusActive(fish, loadout) && missing > 0;
-  return new Map([...base].map(([rank, chance]) => [rank, chance * fishChance * (!active ? 1 : mask & (1 << ranks.indexOf(rank)) ? 0.8 : 1 + 0.2 * duplicates / missing)]));
+  const proc = (reinforcementGrade(loadout)?.focusChanceBp ?? gameRules.collectionFocusBp) / 10_000;
+  return new Map([...base].map(([rank, chance]) => [rank, chance * fishChance * (!active ? 1 : mask & (1 << ranks.indexOf(rank)) ? 1 - proc : 1 + proc * duplicates / missing)]));
 }
 
 function pullChance(fish: CatalogFish, rarity: string | undefined, loadout: RateLoadout) {
@@ -65,16 +73,19 @@ function pullChance(fish: CatalogFish, rarity: string | undefined, loadout: Rate
 }
 
 /** The first pull updates collection before the second. Exclude first hits. */
-function outcomeChance(fish: CatalogFish, rarity: string, sizeChance: number, loadout: RateLoadout) {
-  if (!focusActive(fish, loadout)) return chancePerCast(pullChance(fish, rarity, loadout) * sizeChance, loadout);
+function outcomeChance(fish: CatalogFish, rarity: string, sizeChance: number | ((mask: number) => number), loadout: RateLoadout) {
   const mask = rankMask(fish, loadout);
+  const sizeAt = typeof sizeChance === 'function' ? sizeChance : () => sizeChance;
+  const firstSize = sizeAt(mask);
+  if (!focusActive(fish, loadout)) return chancePerCast(pullChance(fish, rarity, loadout) * firstSize, loadout);
   const first = pullBands(fish, loadout, mask);
-  const hit = (first.get(rarity) ?? 0) * sizeChance;
+  const hit = (first.get(rarity) ?? 0) * firstSize;
   const speciesChance = [...first.values()].reduce((sum, value) => sum + value, 0);
   let secondAfterMiss = (1 - speciesChance) * hit;
   for (const [rank, chance] of first) {
-    const next = pullBands(fish, loadout, mask | (1 << ranks.indexOf(rank)));
-    secondAfterMiss += chance * (rank === rarity ? 1 - sizeChance : 1) * (next.get(rarity) ?? 0) * sizeChance;
+    const nextMask = mask | (1 << ranks.indexOf(rank));
+    const next = pullBands(fish, loadout, nextMask);
+    secondAfterMiss += chance * (rank === rarity ? 1 - firstSize : 1) * (next.get(rarity) ?? 0) * sizeAt(nextMask);
   }
   return hit + loadout.power / 200 * secondAfterMiss;
 }
@@ -102,9 +113,16 @@ export function rankMaximumOdds(fish: CatalogFish, rarity: string, loadout = bas
   const attemptChance = endpointChance + (1 - endpointChance) * naturalSizeChance;
   // A perfect has the greatest weight and length, so it always survives the
   // heaviest-then-longest selection across Trophy Chum's size attempts.
-  const sizeChance = -Math.expm1(loadout.sizeRolls * Math.log1p(-attemptChance));
+  const baseSizeChance = -Math.expm1(loadout.sizeRolls * Math.log1p(-attemptChance));
+  const fullMask = (1 << ranks.length) - 1;
+  const sizeAt = (mask: number) => {
+    const bonus = rarity === 'UUR' && focusActive(fish, loadout) && (mask & fullMask) === fullMask
+      ? reinforcementGrade(loadout)?.perfectBonusRolls ?? 0 : 0;
+    return bonus ? -Math.expm1(Math.log1p(-baseSizeChance) + bonus * Math.log1p(-1 / gameRules.perfectRollOneIn)) : baseSizeChance;
+  };
+  const sizeChance = sizeAt(rankMask(fish, loadout));
   return { maxLengthMm: band.maxLengthMm, maxWeightG: weights.max, naturalSizeChance, attemptChance, sizeChance,
-    chancePerCast: outcomeChance(fish, rarity, sizeChance, loadout) };
+    chancePerCast: outcomeChance(fish, rarity, sizeAt, loadout) };
 }
 
 /** Official perfect-catch credit still requires the species' UUR maxima. */

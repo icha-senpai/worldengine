@@ -6,6 +6,7 @@ pub mod daily;
 pub mod hauls;
 pub mod measurements;
 pub mod progression;
+pub mod raids;
 pub mod quests;
 pub mod rods;
 pub mod sampling;

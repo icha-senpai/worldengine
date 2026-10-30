@@ -2,6 +2,8 @@
   import manifest from '../../../../../assets/manifest.json';
   import catalog from '../../../../../content/species.json';
   import world from '../../../../../content/world.json';
+  import gameRules from '../../../../../content/game-rules.json';
+  import raidRules from '../../../../../content/raids.json';
   import PageTurner from './PageTurner.svelte';
   import FishDetails from './FishDetails.svelte';
   import { baselineLoadout, castChance, formatOdds, formatPercent, perfectCatchOdds } from './compendium';
@@ -26,6 +28,13 @@
   const focusAvailable = $derived(!!game?.ready && !!game.player && (game.config?.version ?? 0) >= 13);
   const focusLicensed = $derived(focusBiomeId === 1 || !!game?.licences.some((row: { biomeId: number }) => row.biomeId === focusBiomeId));
   const focusUnlocked = $derived(focusDiscovered === focusSpecies.length && focusLicensed);
+  const reinforcementLevel = $derived(loadout.reinforcementLevel ?? 0);
+  const reinforcementGrade = $derived(reinforcementLevel
+    ? raidRules.grades[reinforcementLevel - 1]?.name ?? 'reinforced'
+    : 'unreinforced');
+  const focusChanceBp = $derived(reinforcementLevel
+    ? raidRules.grades[reinforcementLevel - 1]?.focusChanceBp ?? gameRules.collectionFocusBp
+    : gameRules.collectionFocusBp);
   let selected = $state<typeof catalog.species[number] | null>(null);
   $effect(() => { if (!active) selected = null; });
   const species = $derived(catalog.species.map(entry => ({ ...entry, perfect: perfectCatchOdds(entry, loadout), asset: manifest.fish.find(asset => asset.key === entry.spriteKey)! })));
@@ -47,9 +56,9 @@
   <div class="collection-focus">
     <label for="collection-focus-toggle"><input id="collection-focus-toggle" type="checkbox" checked={focusEnabled} disabled={!focusAvailable || (!focusUnlocked && !focusEnabled) || game?.busy} onchange={event => game?.setCollectionFocus(focusBiomeId, event.currentTarget.checked)} /> Collection Focus · {focusBiome.name}</label>
     <p>{#if !game?.player}Link Discord to track your collection and unlock this mode.{:else if !focusAvailable}Collection Focus is awaiting the game update.{:else if !focusLicensed}Purchase this biome’s licence to use Collection Focus.{:else if !focusUnlocked}{focusDiscovered} / {focusSpecies.length} ordinary species discovered. Discover them all in this biome to unlock.{:else}{focusEnabled ? 'On' : 'Off'} · All {focusSpecies.length} ordinary species discovered.{/if}</p>
-    <p>A duplicate rank has a 20% chance to become a missing rank of the same fish, weighted by its normal rank odds. Free to toggle; applies to Discord casts. Fihs and the Sock keep their normal odds.</p>
+    <p>{reinforcementGrade} rod Focus chance: {focusChanceBp / 100}% for missing-rank rerolls when enabled in a mastered biome. Reinforced endpoint bonus rolls apply only to a selected ordinary UUR fish after all ten ranks of that species are recorded; special species are excluded. Known ranks can lose odds. Free to toggle; applies to Discord casts. Fihs and the Sock retain their normal odds.</p>
   </div>
-  <p class="loadout" aria-live="polite"><strong>{loadout.name}</strong><span>+{formatPercent(loadout.luckBp / 100)} luck · {formatPercent(loadout.power / 2)} bonus pull · {loadout.sizeRolls} size {loadout.sizeRolls === 1 ? 'attempt' : 'attempts'}</span></p>
+  <p class="loadout" aria-live="polite"><strong>{loadout.name}{rateMode === 'best' ? ' · UUR-reinforced' : ''}</strong><span>+{formatPercent(loadout.luckBp / 100)} luck · {formatPercent(loadout.power / 2)} bonus pull · {loadout.sizeRolls} size {loadout.sizeRolls === 1 ? 'attempt' : 'attempts'}</span></p>
   <p class="count">{fish.length} matching fish. Rates are per accepted cast in each fish's biome{rarity ? ' at the selected rank' : ', across all eligible ranks'}, using the loadout above.{rateMode === 'best' ? ' Uses the strongest gear and two Trophy Chums, whether or not you own them.' : ''}</p>
   {#if rateMode !== 'baseline' && loadout.focus?.biomeIds.length}<p class="count">Rates include your enabled Collection Focus settings and current collected ranks. Focus helps missing ranks; it can lower the odds of ranks you already have, including UUR.</p>{/if}
   <p class="count perfect-note">✦ Perfect rates always refer to both exact maximum measurements at UUR, regardless of the rank filter. They include natural perfects, the UUR perfect roll, and any extra size attempts.</p>

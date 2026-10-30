@@ -13,6 +13,8 @@
   import Quests from './Quests.svelte';
   import TraderStall from './TraderStall.svelte';
   import PageTurner from './PageTurner.svelte';
+  import RaidWorkshop from './RaidWorkshop.svelte';
+  import SectionTabs from './SectionTabs.svelte';
   import TackleBoxItems from './TackleBoxItems.svelte';
   import Gear from './Gear.svelte';
   import Achievements from './Achievements.svelte';
@@ -22,6 +24,8 @@
   import Journal from './Journal.svelte';
   import ThemeToggle from './ThemeToggle.svelte';
   import { rankMaximaSummary } from './rank-maxima';
+  import RaidMastery from './RaidMastery.svelte';
+  import { totalOrdinaryRaidSeals } from './raid-progress';
   type CampView = 'camp' | 'quests' | 'inventory' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium' | 'trader' | 'achievements' | 'anglers';
   let { initialView = 'camp' }: { initialView?: CampView } = $props();
   const tabs: { id: CampView; label: string; personal?: boolean }[] = [
@@ -47,11 +51,13 @@
   let pageSize = $state(12);
   let selected = $state<bigint[]>([]);
   let showQuote = $state(false);
-  type TackleView = 'gear' | 'materials' | 'fish';
-  const tackleTabs: { id: TackleView; label: string }[] = [{ id: 'gear', label: 'Gear / Bait' }, { id: 'materials', label: 'Mats' }, { id: 'fish', label: 'Fish' }];
+  type TackleView = 'gear' | 'materials' | 'fish' | 'workshop';
+  const tackleTabs: { id: TackleView; label: string }[] = [{ id: 'gear', label: 'Gear / Bait' }, { id: 'materials', label: 'Mats' }, { id: 'fish', label: 'Fish' }, { id: 'workshop', label: 'Raid Workshop' }];
   let tackleView = $state<TackleView>('gear');
   let tackleRevision = 0;
   const boatDeadline = $derived(runningHaulDeadline(game.haulTrips, 'boat'));
+  const boatRaid = $derived(game.raidAttempts.find(row =>
+    row.status === 'deployed' || row.status === 'running'));
   const netDeadline = $derived(runningHaulDeadline(game.haulTrips, 'net'));
   let devLoginAvailable = $state(false);
   let devLoginBusy = $state(false);
@@ -66,8 +72,11 @@
   const currentBiome = $derived(game.biomes.find(row => row.biomeId === game.player?.selectedBiomeId));
   const currentRod = $derived(game.rods.find(row => row.rodId === game.player?.equippedRodId));
   const ordinary = $derived(game.species.filter(row => row.countsForOrdinaryCollectionCompletion));
+  const ordinarySpeciesIds = $derived(new Set(ordinary.map(row => row.speciesId)));
   const perfected = $derived(new Set(game.perfectSpecies.filter(row => row.playerId === game.player?.playerId).map(row => row.speciesId)));
   const maxima = $derived(rankMaximaSummary(game.rankMaxima, game.species, game.player?.playerId));
+  const raidStats = $derived(game.raidStatistics.find(row => row.playerId === game.player?.playerId));
+  const raidSeals = $derived(totalOrdinaryRaidSeals(game.raidBadges, ordinarySpeciesIds, game.player?.playerId));
   const discoveries = $derived(game.collection.filter(row => ordinary.some(fish => fish.speciesId === row.speciesId)).length);
   const book = $derived(game.species.filter(fish => (!bookBiome || fish.biomeId === bookBiome) && (!bookTier || fish.allowedRarities.includes(bookTier)) && fish.name.toLowerCase().includes(bookQuery.trim().toLowerCase())));
   const quote = $derived(showQuote && game.action?.kind === 'sell' && !game.action.consumed ? game.action : null);
@@ -115,14 +124,6 @@
   function selectTackleView(view: TackleView) {
     if (view !== tackleView) { showQuote = false; tackleRevision++; }
     tackleView = view;
-  }
-  function tackleTabKey(event: KeyboardEvent, id: TackleView) {
-    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-    event.preventDefault();
-    const index = tackleTabs.findIndex(tab => tab.id === id);
-    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tackleTabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tackleTabs.length) % tackleTabs.length;
-    selectTackleView(tackleTabs[next].id);
-    document.getElementById('tackle-tab-' + tackleTabs[next].id)?.focus();
   }
   async function link() {
     await game.prepareLink();
@@ -196,10 +197,10 @@
   {#if game.player}
     <section class="stats" aria-label="Your progress">
       <div><AnglerLevel totalXp={game.player.totalXp} levelCap={game.config?.levelCap ?? world.levelCap} rulesVersion={game.config?.version ?? 9} /></div>
-      <div><span>◈ COIN POUCH</span><strong>{game.player.coins.toString()}</strong><small>For your next adventure</small></div>
+      <div><span>◈ COIN POUCH</span><strong class="coin-value">{game.player.coins.toString()}</strong><small>For your next adventure</small></div>
       <div><span>▤ COLLECTION BOOK</span><strong>{discoveries}<em> / {ordinary.length}</em></strong><progress value={discoveries} max={ordinary.length || 249} aria-label="Ordinary species discovered"></progress><small>Two bonus discoveries await</small></div>
       <div><span>⌛ NEXT CAST</span><strong class="timer-value"><CastCooldown nextCastAt={game.player?.nextCastAt.microsSinceUnixEpoch ?? null} /></strong><small>Use /fish in Discord</small></div>
-      <div><span>🚣 BOAT HAUL</span><strong class="timer-value">{#if boatDeadline === null}Ready!{:else}<CastCooldown nextCastAt={boatDeadline} formatMinutes={true} zeroLabel="Finishing…" />{/if}</strong><small>Use /fishboat in Discord</small></div>
+      <div><span>{boatRaid ? '🚣 BOAT RAID' : '🚣 BOAT HAUL'}</span><strong class="timer-value">{#if boatRaid?.status === 'deployed'}Launch <CastCooldown nextCastAt={boatRaid.startsAt.microsSinceUnixEpoch} formatMinutes={true} zeroLabel="Starting…" />{:else if boatRaid?.status === 'running'}Raid end <CastCooldown nextCastAt={boatRaid.endsAt.microsSinceUnixEpoch} formatMinutes={true} zeroLabel="Settling…" />{:else if boatDeadline === null}Ready!{:else}<CastCooldown nextCastAt={boatDeadline} formatMinutes={true} zeroLabel="Finishing…" />{/if}</strong><small>{boatRaid ? 'Your boat is committed to this raid.' : 'Use /fishboat in Discord'}</small></div>
       <div><span>🕸 NET HAUL</span><strong class="timer-value">{#if netDeadline === null}Ready!{:else}<CastCooldown nextCastAt={netDeadline} formatMinutes={true} zeroLabel="Finishing…" />{/if}</strong><small>Use /fishnet in Discord</small></div>
     </section>
   {/if}
@@ -226,9 +227,7 @@
   {#if game.player}
     {#if visibleView === 'inventory'}
     <section aria-labelledby="inventory"><div class="section-heading"><div><p class="eyebrow">KEEP THE GOOD ONES</p><h2 id="inventory">Your tackle box <span>{game.inventory.length} fish kept</span></h2></div></div>
-      <div class="tackle-tabs" role="tablist" aria-label="Tackle box sections">
-        {#each tackleTabs as tab}<button id={'tackle-tab-' + tab.id} role="tab" aria-selected={tackleView === tab.id} aria-controls={'tackle-panel-' + tab.id} tabindex={tackleView === tab.id ? 0 : -1} onclick={() => selectTackleView(tab.id)} onkeydown={event => tackleTabKey(event, tab.id)}>{tab.label}</button>{/each}
-      </div>
+      <SectionTabs tabs={tackleTabs} value={tackleView} prefix="tackle" label="Tackle box sections" onselect={selectTackleView} />
       {#if tackleView === 'gear'}
         <div class="tackle-panel" role="tabpanel" id="tackle-panel-gear" aria-labelledby="tackle-tab-gear" tabindex="0">
           <Gear {game} />
@@ -237,6 +236,11 @@
       {#if tackleView === 'materials'}
         <div class="tackle-panel" role="tabpanel" id="tackle-panel-materials" aria-labelledby="tackle-tab-materials" tabindex="0">
           <TackleBoxItems items={game.items} />
+        </div>
+      {/if}
+      {#if tackleView === 'workshop'}
+        <div class="tackle-panel" role="tabpanel" id="tackle-panel-workshop" aria-labelledby="tackle-tab-workshop" tabindex="0">
+          <RaidWorkshop {game} />
         </div>
       {/if}
       {#if tackleView === 'fish'}
@@ -267,9 +271,32 @@
     {/if}
     {#if visibleView === 'collection'}
     <section aria-labelledby="collection"><div class="section-heading"><div><p class="eyebrow">EVERY DISCOVERY COUNTS</p><h2 id="collection">Collection book</h2></div><span class="muted">{discoveries} of {ordinary.length} ordinary species discovered · ✦ {perfected.size} UUR perfected · {maxima.count} rank maxima · {maxima.fullyMaxedSpecies} fully maxed species</span></div>
+      <p class="muted">{game.raidsSupported ? `Raid mastery: ${raidStats?.masteredBosses ?? 0n} / 249 bosses · ${raidSeals} / 2,490 grade seals` : 'Raid seals await the module update.'}</p>
       <div class="filters"><div><label for="book-biome">Biome</label><select id="book-biome" bind:value={bookBiome} onchange={() => bookPage = 1}><option value={0}>All waters</option>{#each game.biomes as biome}<option value={biome.biomeId}>{biome.name}</option>{/each}</select></div><div><label for="book-rank">Rank</label><select id="book-rank" bind:value={bookTier} onchange={() => bookPage = 1}><option value="">All ranks</option>{#each ['F','D','C','B','A','S','SS','SSS','UR','UUR'] as tier}<option value={tier}>{tier}</option>{/each}</select></div><div><label for="book-search">Find a fish</label><input id="book-search" type="search" placeholder="Name…" bind:value={bookQuery} oninput={() => bookPage = 1} /></div></div>
       <p class="muted">Showing {book.length} species. Ordinary ranks come from length and weight relative to each species; both must meet the rank minimum. Fihs and Nidalees Lost Sock are bonus discoveries. ✓ means caught; ✦ means one catch reached both exact maxima for that rank. Marks remain after selling.</p>{#if bookTier}<p class="muted">{bookTier}: {rankMinimums(bookTier)}.</p>{/if}<div class="collection-grid">
-      {#each book.slice((bookPage - 1) * pageSize, bookPage * pageSize) as fish (fish.speciesId)}{@const discovery = game.collection.find(row => row.speciesId === fish.speciesId)}{@const caughtAtRank = !!discovery && (!bookTier || discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(bookTier)] > 0n)}<article class="collection-entry" class:undiscovered={!caughtAtRank}><img src={fish.spriteAsset} alt={fish.name} loading="lazy" /><div><small>{bookTier ? bookTier + ' RANK' : fish.allowedRarities.length === 10 ? 'F THROUGH UUR' : fish.allowedRarities[0] + ' ONLY'}{fish.countsForOrdinaryCollectionCompletion ? '' : ' · BONUS'}</small><h3>{fish.name}{#if bookTier ? maxima.marks.has(`${fish.speciesId}:${bookTier}`) : perfected.has(fish.speciesId)} <span class="perfect-mark" aria-label={bookTier ? bookTier + ' rank maximum' : 'UUR perfected species'} title="One catch at both exact maximum measurements">✦</span>{/if}</h3><p>{game.biomes.find(b => b.biomeId === fish.biomeId)?.name}</p>{#if discovery}<p>{bookTier ? discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(bookTier)].toString() + ' caught at ' + bookTier : discovery.count.toString() + ' caught across ranks'} · best across ranks {formatLength(discovery.bestLengthMm)} / {formatWeight(discovery.bestWeightG)}</p>{:else}<p>Waiting for your first discovery</p>{/if}<p class="maxima-count">✦ {fish.allowedRarities.filter(rank => maxima.marks.has(`${fish.speciesId}:${rank}`)).length} / {fish.allowedRarities.length} rank maxima</p><div class="rank-progress" aria-label="Ranks caught and maxima">{#each fish.allowedRarities as rank}<span class:maxed={maxima.marks.has(`${fish.speciesId}:${rank}`)} title={maxima.marks.has(`${fish.speciesId}:${rank}`) ? rank + ' rank maximum: one catch at both exact maximum measurements' : rankMinimums(rank)} class:earned={!!discovery && discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(rank)] > 0n}>{rank}{maxima.marks.has(`${fish.speciesId}:${rank}`) ? ' ✦' : discovery && discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(rank)] > 0n ? ' ✓' : ' ○'}</span>{/each}</div></div><span class="discovered" aria-label={caughtAtRank ? 'Discovered at selected rank' : 'Undiscovered at selected rank'}>{caughtAtRank ? '✓' : '○'}</span></article>{/each}
+      {#each book.slice((bookPage - 1) * pageSize, bookPage * pageSize) as fish (fish.speciesId)}
+        {@const discovery = game.collection.find(row => row.speciesId === fish.speciesId)}
+        {@const caughtAtRank = !!discovery && (!bookTier || discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(bookTier)] > 0n)}
+        <article class="collection-entry" class:undiscovered={!caughtAtRank}>
+          <img src={fish.spriteAsset} alt={fish.name} loading="lazy" />
+          <div>
+            <small>{bookTier ? bookTier + ' RANK' : fish.allowedRarities.length === 10 ? 'F THROUGH UUR' : fish.allowedRarities[0] + ' ONLY'}{fish.countsForOrdinaryCollectionCompletion ? '' : ' · BONUS'}</small>
+            <h3>{fish.name}{#if bookTier ? maxima.marks.has(`${fish.speciesId}:${bookTier}`) : perfected.has(fish.speciesId)} <span class="perfect-mark" aria-label={bookTier ? bookTier + ' rank maximum' : 'UUR perfected species'} title="One catch at both exact maximum measurements">✦</span>{/if}</h3>
+            <p>{game.biomes.find(b => b.biomeId === fish.biomeId)?.name}</p>
+            {#if discovery}
+              <p>{bookTier ? discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(bookTier)].toString() + ' caught at ' + bookTier : discovery.count.toString() + ' caught across ranks'} · best across ranks {formatLength(discovery.bestLengthMm)} / {formatWeight(discovery.bestWeightG)}</p>
+            {:else}<p>Waiting for your first discovery</p>{/if}
+            <p class="maxima-count">✦ {fish.allowedRarities.filter(rank => maxima.marks.has(`${fish.speciesId}:${rank}`)).length} / {fish.allowedRarities.length} rank maxima</p>
+            <div class="rank-progress" aria-label="Ranks caught and maxima">
+              {#each fish.allowedRarities as rank}
+                <span class:maxed={maxima.marks.has(`${fish.speciesId}:${rank}`)} title={maxima.marks.has(`${fish.speciesId}:${rank}`) ? rank + ' rank maximum: one catch at both exact maximum measurements' : rankMinimums(rank)} class:earned={!!discovery && discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(rank)] > 0n}>{rank}{maxima.marks.has(`${fish.speciesId}:${rank}`) ? ' ✦' : discovery && discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(rank)] > 0n ? ' ✓' : ' ○'}</span>
+              {/each}
+            </div>
+            <RaidMastery {game} speciesId={fish.speciesId} />
+          </div>
+          <span class="discovered" aria-label={caughtAtRank ? 'Discovered at selected rank' : 'Undiscovered at selected rank'}>{caughtAtRank ? '✓' : '○'}</span>
+        </article>
+      {/each}
       {#if !book.length}<p class="muted">No fish match these filters.</p>{/if}
     </div><PageTurner bind:page={bookPage} total={book.length} {pageSize} label="Collection pages" /></section>
 
@@ -344,7 +371,7 @@
   .dev-login{margin-top:20px;font-size:14px;line-height:1.6;color:var(--site-text)}.dev-login-button{font-size:16px;padding:6px 12px}.dev-login-error{display:block;color:var(--site-text);margin-top:6px}
   .notice{padding:16px;border:3px solid #835a41;background:var(--panel-inset);color:var(--ink);font-size:17px}
   .stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;padding:0;background:var(--wood);color:var(--site-text);box-shadow:inset 0 0 0 2px var(--panel-highlight),0 5px 0 var(--site-base)}.stats::before,.stats::after{display:none}
-  .stats .timer-value{font-size:clamp(18px,1.5vw,32px)}
+  .stats .timer-value{font-size:clamp(18px,1.5vw,32px)}.stats .coin-value{font-size:clamp(18px,2.2vw,30px)}
   @media(max-width:1200px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.stats>div:nth-child(3n){border-right:0}.stats>div:nth-child(-n+3){border-bottom:2px solid var(--paper-edge)}.stats .timer-value{font-size:32px}}
   .stats>div{padding:20px 24px;border-right:2px solid var(--paper-edge);min-width:0}.stats>div:last-child{border:0}
   .stats span{font-family:var(--font-game);font-size:19px;color:var(--site-text)}.stats strong{font-family:var(--font-game);font-weight:500;font-size:42px;display:block;margin:8px 0;line-height:1.15;text-shadow:2px 2px 0 var(--site-base);overflow-wrap:anywhere}.stats em{font-size:26px;font-style:normal;color:var(--site-muted)}.stats small{font-size:14px;color:var(--site-text);display:block}
@@ -389,11 +416,6 @@
   .camp-tabs button:hover:not(:disabled):not([aria-selected=true]){background:var(--nav-hover)}
   .camp-tabs button[aria-selected=true]{background:var(--paper);color:var(--ink);border-color:var(--paper-edge);box-shadow:inset 0 -3px 0 var(--panel-highlight)}
   .camp-tabs button:disabled{opacity:.45;filter:none;box-shadow:none}
-  .tackle-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 22px;padding:10px;background:var(--wood-dark);border:2px solid var(--paper-edge);box-shadow:0 4px 0 var(--site-base)}
-  .tackle-tabs button{padding:10px 16px;font-size:21px;background:var(--wood);color:var(--site-text);border-color:var(--paper-edge);box-shadow:none}
-  .tackle-tabs button:hover:not(:disabled):not([aria-selected=true]){background:var(--nav-hover)}
-  .tackle-tabs button[aria-selected=true]{background:var(--paper);color:var(--ink);border-color:var(--paper-edge);box-shadow:inset 0 -3px 0 var(--panel-highlight)}
-  .tackle-tabs button:disabled{opacity:.45;filter:none;box-shadow:none}
   .tackle-panel{min-width:0}
   .fish-actions{display:flex;justify-content:flex-end;margin-bottom:20px}
   .view-panel{margin-top:18px}.view-panel>section{margin-top:0}
@@ -413,8 +435,6 @@
     .mobile-navigation button:disabled{opacity:.45}
     .compact-banner{grid-template-columns:1fr;padding:16px}.compact-banner h1{font-size:30px}
     .camp-tabs{display:none}.view-panel{margin-top:14px}
-    .tackle-tabs{gap:4px;padding:8px}
-    .tackle-tabs button{flex:1;min-height:44px;padding:10px 8px;font-size:17px}
     .fish-actions{justify-content:stretch}
     .fish-actions button{width:100%}
   }

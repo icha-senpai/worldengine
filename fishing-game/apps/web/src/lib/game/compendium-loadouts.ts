@@ -2,12 +2,14 @@ import { equippedBaits, stackedBaitBonuses } from './bait-loadout';
 import catalog from '../../../../../content/species.json';
 import world from '../../../../../content/world.json';
 import crafting from '../../../../../content/crafting.json';
+import raidRules from '../../../../../content/raids.json';
 import { baselineLoadout, type CollectionFocus, type RateLoadout } from './compendium';
 import type { BaitDefinition, BaitLoadout, BaitStack, GameConfig, Player, QualityDefinition, RodDefinition } from '@fishing-game/generated/types';
 
 type EquippedRateState = {
   collection?: { speciesId: number; count: bigint; rankCounts: bigint[] }[];
   focusPreferences?: { biomeId: number; enabled: boolean }[];
+  rodReinforcements?: { rodId: number; level: number }[];
   ready: boolean;
   player: Pick<Player, 'equippedRodId'> | null;
   rods: Pick<RodDefinition, 'rodId' | 'name'>[];
@@ -29,6 +31,7 @@ export const bestPerfectLoadout: RateLoadout = {
   luckBp: rod.luckBp + quality.luckBp + bait.luckBp * 2,
   sizeRolls: bait.sizeRolls * 2,
   rulesVersion: baselineLoadout.rulesVersion,
+  reinforcementLevel: raidRules.grades.length,
 };
 
 
@@ -53,6 +56,7 @@ export function equippedLoadout(game?: EquippedRateState): RateLoadout | null {
     luckBp: stats.luckBp + bonuses.luckBp,
     sizeRolls: bonuses.sizeRolls,
     rulesVersion: game.config?.version ?? baselineLoadout.rulesVersion,
+    reinforcementLevel: game.rodReinforcements?.find(row => row.rodId === rod.rodId)?.level ?? 0,
     focus: collectionFocusContext(game),
   };
 }

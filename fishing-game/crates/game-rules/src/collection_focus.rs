@@ -12,6 +12,19 @@ pub fn reroll(
     known: &[bool],
     rng: &mut impl Rng,
 ) -> Result<u8, &'static str> {
+    reroll_with_chance(selected, ranks, known, CHANCE_BP, rng)
+}
+
+pub fn reroll_with_chance(
+    selected: u8,
+    ranks: &[(u8, u64)],
+    known: &[bool],
+    chance_bp: u32,
+    rng: &mut impl Rng,
+) -> Result<u8, &'static str> {
+    if chance_bp > 10_000 {
+        return Err("INVALID_COLLECTION_FOCUS");
+    }
     if usize::from(selected) >= known.len()
         || ranks
             .iter()
@@ -26,7 +39,7 @@ pub fn reroll(
         .iter()
         .filter(|(rank, weight)| *weight > 0 && !known[usize::from(*rank)])
         .collect();
-    if missing.is_empty() || rng.gen_range(0..10_000u32) >= CHANCE_BP {
+    if missing.is_empty() || rng.gen_range(0..10_000u32) >= chance_bp {
         return Ok(selected);
     }
     let weights: Vec<_> = missing.iter().map(|(_, weight)| *weight).collect();

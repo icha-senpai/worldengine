@@ -262,6 +262,10 @@ fn plan(player: crate::tables::Player, biome: crate::tables::BiomeDefinition, ru
         power: 0, luck_bp: 0, xp_bonus_bp: 0,
         bait: crate::crafting::UsedBaits { primary: Default::default(), secondary: Default::default(), luck_bp: 0, xp_bonus_bp: 0, size_rolls: 1 },
         pull_count: pulls, collection_focus_enabled: false,
+        reinforcement_level: 0, special_raid_species_id: None,
+        special_raid_species_definition: None, special_raid_rank_definition: None,
+        special_raid_band: None, special_raid_maximum_roll_one_in: 0,
+        content_version: crate::content::CONTENT_VERSION,
     }
 }
 fn running_trip(test: &TestContext, player_id: u64, id: u64, kind: &str, name: &str) {

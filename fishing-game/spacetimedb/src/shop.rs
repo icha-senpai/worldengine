@@ -65,7 +65,7 @@ pub fn owns_licence(ctx: &ReducerContext, player_id: u64, biome_id: u32) -> bool
 }
 
 fn owned(ctx: &ReducerContext, player_id: u64, listing: &ShopListing) -> bool {
-    if listing.kind == "bait" {
+    if matches!(listing.kind.as_str(), "bait" | "raid_supply") {
         return false;
     }
     if matches!(listing.kind.as_str(), "boat" | "net") {
@@ -101,6 +101,15 @@ fn eligible(ctx: &ReducerContext, player: &Player, listing: &ShopListing) -> Res
             }
         }
         "rod" | "licence" | "bait" => {}
+        "raid_supply" => {
+            let supply = game_rules::raids::catalog().supply;
+            if listing.listing_id != supply.listing_id
+                || listing.target_id != supply.target_id
+                || listing.price_coins != supply.price_coins
+            {
+                return Err("SHOP_ITEM_UNAVAILABLE".into());
+            }
+        }
         _ => return Err("SHOP_ITEM_UNAVAILABLE".into()),
     }
     if level_for_xp_for_version(player.total_xp, config(ctx).level_cap, config(ctx).version)
@@ -197,7 +206,7 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128, quantity: u32) -> R
         .listing_id()
         .find(quote.listing_id)
         .ok_or("SHOP_ITEM_UNAVAILABLE")?;
-    if listing.kind != "bait" && quantity != 1 {
+    if !matches!(listing.kind.as_str(), "bait" | "raid_supply") && quantity != 1 {
         return Err("SHOP_QUANTITY_INVALID".into());
     }
     if listing.catalog_version != quote.catalog_version || listing.price_coins != quote.quoted_coins
@@ -230,6 +239,20 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128, quantity: u32) -> R
         });
     } else if listing.kind == "bait" {
         crate::crafting::grant_bait(ctx, player_id, listing.target_id, quantity)?;
+    } else if listing.kind == "raid_supply" {
+        let supply = game_rules::raids::catalog().supply;
+        let units = u64::from(quantity)
+            .checked_mul(u64::from(supply.units_per_purchase))
+            .ok_or("ITEM_OVERFLOW")?;
+        crate::inventory::grant_item_with_reason(
+            ctx,
+            player_id,
+            supply.slot,
+            &supply.item,
+            units,
+            format!("shop:{nonce}"),
+            "raid_supply_purchase",
+        )?;
     } else if matches!(listing.kind.as_str(), "boat" | "net") {
         ctx.db.owned_haul_equipment().insert(OwnedHaulEquipment {
             key: ownership_key,
@@ -254,14 +277,16 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128, quantity: u32) -> R
         -coin_delta,
         "trader_purchase",
     );
-    ledger(
-        ctx,
-        player_id,
-        operation,
-        &format!("{}_{}", listing.kind, listing.target_id),
-        i64::from(quantity),
-        "trader_purchase",
-    );
+    if listing.kind != "raid_supply" {
+        ledger(
+            ctx,
+            player_id,
+            operation,
+            &format!("{}_{}", listing.kind, listing.target_id),
+            i64::from(quantity),
+            "trader_purchase",
+        );
+    }
     quote.consumed = true;
     ctx.db.shop_quote().key().update(quote);
     crate::achievements::refresh_player(ctx, player_id)

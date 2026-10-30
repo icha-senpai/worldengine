@@ -29,4 +29,5 @@ export default __t.row({
   secondaryBaitUsesLeft: __t.u64().name("secondary_bait_uses_left"),
   secondaryBaitItem: __t.string().name("secondary_bait_item"),
   secondaryBaitQuantity: __t.u64().name("secondary_bait_quantity"),
+  reinforcementLevel: __t.u8().name("reinforcement_level"),
 });

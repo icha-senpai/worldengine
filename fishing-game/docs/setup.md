@@ -294,7 +294,6 @@ other bait and no bait receive one attempt. Natural perfects remain possible.
 Before live publication, run the isolated crafting and Trophy migration proofs,
 including old-schema history backfill, owner rejection and replay checks.
 
-
 ## Website appearance
 
 The footer theme picker offers Dockside, Ocean, Rose, Cosmic and Neon Synthwave.

@@ -1,6 +1,7 @@
 node_modules/
 target/
 .svelte-kit/
+.svelte-kit-proof/
 build/
 .env
 .env.*

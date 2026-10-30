@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { readMeasurements } from './measurements.mjs';
+import { validateRaids } from './raids.mjs';
 
 const content = JSON.parse(await readFile(new URL('./rarities.json', import.meta.url), 'utf8'));
 const manifest = JSON.parse(await readFile(new URL('../assets/manifest.json', import.meta.url), 'utf8'));
@@ -8,6 +9,8 @@ const catalog = JSON.parse(await readFile(new URL('./species.json', import.meta.
 const rules = JSON.parse(await readFile(new URL('./game-rules.json', import.meta.url), 'utf8'));
 const pond = JSON.parse(await readFile(new URL('./meadow-pond.json', import.meta.url), 'utf8'));
 const world = JSON.parse(await readFile(new URL('./world.json', import.meta.url), 'utf8'));
+const raidEconomy = await validateRaids();
+console.log(`Raid economy valid: ${raidEconomy.ladderHours} hour ladder, refining remains viable at every grade.`);
 assert.equal(rules.castCooldownSeconds, 60, 'The global cast cooldown must be one minute');
 console.log(`Game rules valid: ${rules.castCooldownSeconds}-second cast cooldown.`);
 const order = ['F', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'UR', 'UUR'];
@@ -92,7 +95,7 @@ for (const fish of catalog.species) {
 }
 console.log(`Measurements valid: ${measurements.size} explicit species baselines, no generic fallback.`);
 assert.equal(world.version, catalog.version);
-assert.equal(rules.version, 16);
+assert.equal(rules.version, 17);
 assert.equal(rules.collectionFocusBp, 2000);
 assert.equal(rules.perfectRollOneIn,5000);
 assert.match(await readFile(new URL('../crates/game-rules/src/trophy.rs', import.meta.url),'utf8'),/PERFECT_ROLL_ONE_IN: u32 = 5_000/);

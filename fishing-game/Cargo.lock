@@ -860,6 +860,7 @@ name = "game-rules"
 version = "0.1.0"
 dependencies = [
  "rand 0.8.8",
+ "serde",
  "serde_json",
 ]
 

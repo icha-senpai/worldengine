@@ -8,7 +8,9 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
         return Err("SCHEDULER_REQUIRED".into());
     }
     crate::quests::refresh_calendar(ctx);
+    crate::raids::refresh_calendar(ctx)?;
     crate::hauls::prune_delivered(ctx);
+    crate::raids::prune_history(ctx);
     for row in ctx
         .db
         .shop_quote()

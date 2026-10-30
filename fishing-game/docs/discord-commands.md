@@ -3,6 +3,9 @@
 Discord keeps six commands. The website handles equipment, upgrades, bait,
 travel, quests, collections, sales and leaderboards.
 
+The local rules-17 candidate adds the `/raid` group described below. It is not
+registered on production until the approved coordinated deployment.
+
 | Command | Behavior |
 |---|---|
 | `/fish` | Cast in the selected biome and show the saved result, rod, rewards and progression. The one-minute cooldown is shared with the website. |
@@ -26,6 +29,35 @@ The retired commands are `/quests`, `/inventory`, `/sell`, `/leaderboard`,
 `/collection`, `/biome`, `/gear`, `/shop`, `/bait`, `/focus`, `/upgrade` and `/help`.
 Their game features remain available on the website. No rewards, inventory,
 progression or quests are removed.
+
+## Raid Group (Local Candidate)
+
+All raid replies are ephemeral. These commands use the same authoritative
+state as the website Quest board; retries reuse the Discord interaction ID.
+
+| Command | Behavior |
+|---|---|
+| `/raid list` | Page through naturally discovered targets, next grades, special encounters and community events. |
+| `/raid start` | Prepare an ordinary or special encounter using an exact species name or known numeric ID; ordinary grades unlock in order. |
+| `/raid community` | Prepare participation in a listed community event. |
+| `/raid deploy` | Commit the prepared boat before launch; consumes Expedition Chum. |
+| `/raid status` | Show the active expedition, recent results, materials and reinforcement. |
+| `/raid collect` | Settle a due deployed/running attempt if scheduled completion is delayed; never pays twice. |
+| `/raid withdraw` | Require explicit confirmation before cancellation or partial withdrawal. |
+| `/raid refine` | Combine 60 fillets or scales into 50 of the next grade, plus five coins per batch; the destination grade must already be cleared. |
+| `/raid reinforce` | Reinforce the equipped or selected owned rod by one grade using its captured current level. Quality remains separate. |
+
+Preparing is not deploying. A forgotten deployment misses the raid and earns no
+seal or specimen. Deployed/running raids occupy the normal boat slot; rod casts
+and nets remain available. Full completion settles offline, with capped rewards.
+The website Trader sells five-unit Expedition Chum crates on the bait and raid
+supplies shelves; it cannot be equipped as fishing bait.
+
+Fihs and Nidalees Lost Sock require natural discovery and use special encounters,
+not material ladders. Community raids grant bragging rights and a public
+completion statistic, not materials required for ordinary rod progression.
+See [raid rules and reinforcement](raids-and-reinforcement.md) for the schedule,
+grade ladder, collection seals and per-rod Focus benefits.
 
 ## Fish again
 

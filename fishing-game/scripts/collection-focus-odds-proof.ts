@@ -20,7 +20,7 @@ function branches(fish:CatalogFish,base:RateLoadout,mask:number) {
 }
 let checked=0;
 for(const fish of catalog.species.filter(f=>f.countsForOrdinaryCollectionCompletion)) {
-  for(const mask of [1,511,512,1023]) for(const base of [{...baselineLoadout,power:200},bestPerfectLoadout]) {
+  for(const mask of [1,511,512,1023]) for(const base of [{...baselineLoadout,power:200},{...bestPerfectLoadout,reinforcementLevel:0}]) {
     const focus={biomeIds:[fish.biomeId],rankMasks:{[fish.speciesId]:mask}};
     const loadout={...base,focus};
     close(castChance(fish,undefined,loadout),castChance(fish,undefined,base));

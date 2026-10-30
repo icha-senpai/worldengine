@@ -26,6 +26,18 @@ export function viewQueries(view: string, playerId?: bigint, version = 0): strin
     for (const table of ['earned_achievement', 'perfect_species', 'rank_maximum', 'angler_title'])
       queries.push(`SELECT * FROM ${table} WHERE player_id = ${playerId}`);
   }
+  if (version >= 17) {
+    queries.push(
+      'SELECT * FROM raid_grade_definition',
+      'SELECT * FROM community_raid_event',
+      'SELECT * FROM my_raid_attempts',
+      'SELECT * FROM my_raid_actions',
+      'SELECT * FROM my_rod_reinforcements',
+    );
+    if (playerId !== undefined) queries.push(`SELECT * FROM raid_badge WHERE player_id = ${playerId}`);
+    if (['anglers', 'records'].includes(view)) queries.push('SELECT * FROM raid_statistics');
+    else if (playerId !== undefined) queries.push(`SELECT * FROM raid_statistics WHERE player_id = ${playerId}`);
+  }
   if (view === 'inventory' && version >= 9) queries.push('SELECT * FROM rod_upgrade_recipe');
   return queries;
 }

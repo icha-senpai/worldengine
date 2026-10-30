@@ -2354,6 +2354,14 @@
   ],
   "baits": [
     {
+      "key": "expedition-chum",
+      "url": "/baits/expedition-chum.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 49335,
+      "sha256": "fb928bf826174a7e897ad3dd0836fa2e3ab7ab76ba553064bfb4b91dedcb3b24"
+    },
+    {
       "key": "green-slime",
       "url": "/baits/green-slime.png",
       "width": 1254,
@@ -3442,6 +3450,250 @@
       "height": 192,
       "bytes": 1116,
       "sha256": "146d1b0696acf6c222f397e36642f12208b50ff9aa6ffcb1228246667c46673a"
+    }
+  ],
+  "raidSeals": [
+    {
+      "key": "a",
+      "url": "/raid-seals/a.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 53119,
+      "sha256": "cc3067df5c041410845987dcebdefdf4b65c5f63f5f8bbcff5d51d45ab872036"
+    },
+    {
+      "key": "b",
+      "url": "/raid-seals/b.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 45694,
+      "sha256": "e20c022f35d04b50615c1770606f0fa50c9cabfe3455400ca3a82b71d3a38178"
+    },
+    {
+      "key": "c",
+      "url": "/raid-seals/c.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 45741,
+      "sha256": "9fbffc5c0c19fe6c232a81cac4d01d3ea7193f678e7fce45274a0eb1ea0952be"
+    },
+    {
+      "key": "d",
+      "url": "/raid-seals/d.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 45099,
+      "sha256": "4a50719001a9e59cddc92e9b5e9c7ead35ae0c39634ddbcf796c48ea49412aca"
+    },
+    {
+      "key": "f",
+      "url": "/raid-seals/f.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 44632,
+      "sha256": "870eefab7da9882ae423d60f2bc90ed5f80fa16be71042c06b4f9dd404115fd2"
+    },
+    {
+      "key": "s",
+      "url": "/raid-seals/s.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 45405,
+      "sha256": "0620eeec49e3f1539f5b1cae7fb9736997c470ee828578e23486577c9c1e939a"
+    },
+    {
+      "key": "ss",
+      "url": "/raid-seals/ss.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 45563,
+      "sha256": "59b0847284272a85802efa5377dc2286f3a462870506182bee9912eb8f0ff0e1"
+    },
+    {
+      "key": "sss",
+      "url": "/raid-seals/sss.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 47521,
+      "sha256": "e52551a8701df888c97f439f525717805032280d6ab7e3d7d6a39e6ec9a011bc"
+    },
+    {
+      "key": "ur",
+      "url": "/raid-seals/ur.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 46842,
+      "sha256": "af4e3cebd095ccf26b95815dad5375c07cf35b11638a10764ca2dba282ef3617"
+    },
+    {
+      "key": "uur",
+      "url": "/raid-seals/uur.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 48105,
+      "sha256": "f10a824bb76a9d1ddc1dc514fcf9d8785d40c26a2d031ad39b012443ed36ac1c"
+    }
+  ],
+  "raidMaterials": [
+    {
+      "key": "fillets-a",
+      "url": "/raid-materials/fillets-a.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 32177,
+      "sha256": "d5e2894a026cc44b357d87beae8b39f860bb7f9b7186b45a4bdeaf4523501c09"
+    },
+    {
+      "key": "fillets-b",
+      "url": "/raid-materials/fillets-b.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 32823,
+      "sha256": "ea19e0a7fa1408c53c27e332e154cfeb1b6f3004b531ba5324b50354ece4d581"
+    },
+    {
+      "key": "fillets-c",
+      "url": "/raid-materials/fillets-c.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 32898,
+      "sha256": "880a831b561de8998d082adc07395e88a4ff4b30f17cf4ad6ae7f7ca5daeef8b"
+    },
+    {
+      "key": "fillets-d",
+      "url": "/raid-materials/fillets-d.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 32823,
+      "sha256": "124fbaab8956358fd1858a55bdaa6d891cd9e4292d8b671b358d32b5ad65c17f"
+    },
+    {
+      "key": "fillets-f",
+      "url": "/raid-materials/fillets-f.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 41040,
+      "sha256": "436e6e7024e5c088f6f3f8d47fcf8204e9ec2adafeb319f2c5c19e0479624a8f"
+    },
+    {
+      "key": "fillets-s",
+      "url": "/raid-materials/fillets-s.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 32622,
+      "sha256": "d5405dc87f00e2d1072f34e4dffc455a5b9defc562396aadac1492a16b702202"
+    },
+    {
+      "key": "fillets-ss",
+      "url": "/raid-materials/fillets-ss.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 33018,
+      "sha256": "dd3ffeb0511676a967c27d69e3f9497e99e061a004e949e9611ae2c365db3bf4"
+    },
+    {
+      "key": "fillets-sss",
+      "url": "/raid-materials/fillets-sss.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 33795,
+      "sha256": "2ee6c69b9556fd8742bf00ce7646abaedeb1ba29754c93fb2a494c45f5fcb2d1"
+    },
+    {
+      "key": "fillets-ur",
+      "url": "/raid-materials/fillets-ur.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 33182,
+      "sha256": "c6be06e0ed5245b7c368d2756c1f0fcca7a0ee0838983236e95186a067d932d6"
+    },
+    {
+      "key": "fillets-uur",
+      "url": "/raid-materials/fillets-uur.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 33580,
+      "sha256": "9910cd8118b242c237d916a4962c74bed86101f9a5f4f73228d2ead104480da8"
+    },
+    {
+      "key": "scales-a",
+      "url": "/raid-materials/scales-a.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 27678,
+      "sha256": "fad82c47c3acbe76760d358240eef049fb110f55c3256ba376890efe6bb749e9"
+    },
+    {
+      "key": "scales-b",
+      "url": "/raid-materials/scales-b.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 27851,
+      "sha256": "8c5317c45ca9432a242d197a3efaf8f16be5aaea2f9e2ae8d61512093eaae477"
+    },
+    {
+      "key": "scales-c",
+      "url": "/raid-materials/scales-c.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 27994,
+      "sha256": "813bc84befb511b3a3079ca652d5686e1226550e3ed92229b4e14614dafaa717"
+    },
+    {
+      "key": "scales-d",
+      "url": "/raid-materials/scales-d.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 28085,
+      "sha256": "a3f5b0205f7251652de854e321625d7e997abe56122370c7a7527b54ff037073"
+    },
+    {
+      "key": "scales-f",
+      "url": "/raid-materials/scales-f.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 35689,
+      "sha256": "bbcca659d7014c0030a721b0c5ac60c8a88d01c3625c5c74cde9b24cd98a60bd"
+    },
+    {
+      "key": "scales-s",
+      "url": "/raid-materials/scales-s.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 27505,
+      "sha256": "c394ce494a40f409901a6f5c09ead4cb13016b09916d61efb1ef5d0164975739"
+    },
+    {
+      "key": "scales-ss",
+      "url": "/raid-materials/scales-ss.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 28237,
+      "sha256": "7da0c71feade144054d84b499fc46044697a4aefdd92d92e29193601c17b043f"
+    },
+    {
+      "key": "scales-sss",
+      "url": "/raid-materials/scales-sss.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 31515,
+      "sha256": "ed66da0dcd1140281e35a2bbed2931a705b7a4c433e089ff5d875f3d9921f070"
+    },
+    {
+      "key": "scales-ur",
+      "url": "/raid-materials/scales-ur.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 29619,
+      "sha256": "01581dd50ea9cf54194d435c1f0d5a0bfcbcdedfbf605c6e96cc8f977b95db1f"
+    },
+    {
+      "key": "scales-uur",
+      "url": "/raid-materials/scales-uur.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 32281,
+      "sha256": "bdc0653674835398a7183c58a3785bea56cc8129320f6bd7325178fd5c059ec6"
     }
   ]
 }

@@ -1,4 +1,5 @@
 use crate::hauls::haul_request;
+use crate::raids::rod_reinforcement;
 use crate::{
     accounts::{config, ensure_player, require_service},
     tables::*,
@@ -93,6 +94,19 @@ pub fn fish_from_discord(
         .quality_level()
         .find(owned.upgrade_level)
         .ok_or("QUALITY_UNAVAILABLE")?;
+    let reinforcement_level =
+        if rules.version >= game_rules::raids::catalog().rules_version {
+        ctx.db
+            .rod_reinforcement()
+            .key()
+            .find(owned.key)
+            .map_or(0, |row| row.level)
+    } else {
+        0
+    };
+    if reinforcement_level > game_rules::raids::MAX_REINFORCEMENT_LEVEL {
+        return Err("INVALID_REINFORCEMENT".into());
+    }
     if level_for_xp_for_version(player.total_xp, rules.level_cap, rules.version)
         < biome.minimum_level
     {
@@ -154,6 +168,13 @@ pub fn fish_from_discord(
             bait,
             pull_count,
             collection_focus_enabled,
+            reinforcement_level,
+            special_raid_species_id: None,
+            special_raid_species_definition: None,
+            special_raid_rank_definition: None,
+            special_raid_band: None,
+            special_raid_maximum_roll_one_in: 0,
+            content_version: crate::content::CONTENT_VERSION,
         },
     )
 }
@@ -176,6 +197,13 @@ pub(crate) struct CastPlan {
     pub bait: crate::crafting::UsedBaits,
     pub pull_count: usize,
     pub collection_focus_enabled: bool,
+    pub reinforcement_level: u8,
+    pub special_raid_species_id: Option<u32>,
+    pub special_raid_species_definition: Option<SpeciesDefinition>,
+    pub special_raid_rank_definition: Option<SpeciesRankDefinition>,
+    pub special_raid_band: Option<u8>,
+    pub special_raid_maximum_roll_one_in: u32,
+    pub content_version: u32,
 }
 
 pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String> {
@@ -195,16 +223,75 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
         bait,
         pull_count,
         collection_focus_enabled,
+        reinforcement_level,
+        special_raid_species_id,
+        special_raid_species_definition,
+        special_raid_rank_definition,
+        special_raid_band,
+        special_raid_maximum_roll_one_in,
+        content_version,
     } = plan;
     let normal_cast = command == "fish";
+    let special_raid = command == "fishraid";
+    if !matches!(command.as_str(), "fish" | "fishboat" | "fishnet" | "fishraid")
+        || special_raid != special_raid_species_id.is_some()
+        || special_raid != special_raid_species_definition.is_some()
+        || special_raid != special_raid_rank_definition.is_some()
+        || special_raid != special_raid_band.is_some()
+        || (special_raid
+            && (pull_count != 1
+                || reinforcement_level != 0
+                || rules.version < game_rules::raids::catalog().rules_version
+                || xp_bonus_bp != 0
+                || bait.primary.bait_id != 0
+                || bait.secondary.bait_id != 0
+                || !bait.primary.resource_item.is_empty()
+                || !bait.secondary.resource_item.is_empty()
+                || special_raid_maximum_roll_one_in == 0))
+        || ((!normal_cast || rules.version < game_rules::raids::catalog().rules_version)
+            && reinforcement_level != 0)
+        || pull_count == 0
+    {
+        return Err("INVALID_CAST_PLAN".into());
+    }
     let species: Vec<_> = ctx
         .db
         .species_definition()
         .biome_id()
         .filter(biome.biome_id)
         .collect();
-    if species.is_empty() {
+    if species.is_empty() && !special_raid {
         return Err("CONTENT_UNAVAILABLE".into());
+    }
+    if special_raid
+        && special_raid_species_definition
+            .as_ref()
+            .is_none_or(|row| row.species_id != special_raid_species_id.unwrap_or_default())
+    {
+        return Err("INVALID_SPECIAL_RAID".into());
+    }
+    if let (Some(species_id), Some(species), Some(rank), Some(band)) = (
+        special_raid_species_id,
+        special_raid_species_definition.as_ref(),
+        special_raid_rank_definition.as_ref(),
+        special_raid_band,
+    ) {
+        let legal_band = match (species.key.as_str(), species_id) {
+            ("fihs", 74) => 9,
+            ("nidalees-lost-sock", 165) => 0,
+            _ => return Err("INVALID_SPECIAL_RAID".into()),
+        };
+        if band != legal_band
+            || rank.species_id != species_id
+            || rank.ordinal != legal_band
+            || !species
+                .allowed_rarities
+                .iter()
+                .any(|rarity| rarity == &rank.rarity)
+            || rank.rarity != game_rules::RARITY_TIERS[usize::from(legal_band)]
+        {
+            return Err("INVALID_SPECIAL_RAID".into());
+        }
     }
     let mut rng = ctx.rng();
     let mut collection_focus_rerolls = 0;
@@ -221,10 +308,14 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
     crate::statistics::observe_cast(ctx, player.player_id, biome.biome_id)?;
     for pull in 0..pull_count {
         let mut sets_record = false;
-        let category = sample(
-            &[biome.fish_weight, biome.junk_weight, biome.treasure_weight],
-            &mut rng,
-        )?;
+        let category = if special_raid {
+            0
+        } else {
+            sample(
+                &[biome.fish_weight, biome.junk_weight, biome.treasure_weight],
+                &mut rng,
+            )?
+        };
         let mut receipt = CommandReceipt {
             interaction_id,
             player_id: player.player_id,
@@ -244,7 +335,7 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
             coins_granted: 0,
             sale_value_coins: 0,
             rules_version: rules.version,
-            content_version: crate::content::CONTENT_VERSION,
+            content_version,
             item_granted: String::new(),
             item_quantity: 0,
             biome_id: biome.biome_id,
@@ -252,40 +343,69 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
         };
         match category {
             0 => {
-                let bands: Vec<_> = ctx
-                    .db
-                    .species_rank_definition()
-                    .biome_id()
-                    .filter(biome.biome_id)
-                    .collect();
-                let tickets: Vec<_> = bands
-                    .iter()
-                    .map(|band| {
-                        let definition = species
-                            .iter()
-                            .find(|row| row.species_id == band.species_id)
-                            .ok_or("CONTENT_UNAVAILABLE")?;
-                        Ok((
-                            band.encounter_weight,
-                            if definition.key == "nidalees-lost-sock" {
-                                9
-                            } else {
-                                band.ordinal
-                            },
-                        ))
-                    })
-                    .collect::<Result<_, String>>()?;
-                let weights = if normal_cast {
-                    game_rules::rods::luck_weights(&tickets, luck_bp)?
+                let bands: Vec<_> = if special_raid {
+                    vec![special_raid_rank_definition
+                        .clone()
+                        .ok_or("INVALID_SPECIAL_RAID")?]
                 } else {
-                    game_rules::hauls::luck_weights(&tickets, luck_bp)?
+                    ctx.db
+                        .species_rank_definition()
+                        .biome_id()
+                        .filter(biome.biome_id)
+                        .collect()
                 };
-                let mut band = &bands[sample(&weights, &mut rng)?];
-                let definition = species
-                    .iter()
-                    .find(|row| row.species_id == band.species_id)
-                    .ok_or("CONTENT_UNAVAILABLE")?;
-                if collection_focus_enabled && definition.counts_for_ordinary_collection_completion
+                if bands.is_empty() {
+                    return Err("CONTENT_UNAVAILABLE".into());
+                }
+                let mut weights = Vec::new();
+                let band_index = if special_raid {
+                    let band = special_raid_band.ok_or("INVALID_SPECIAL_RAID")?;
+                    if bands[0].species_id != special_raid_species_id.unwrap_or_default()
+                        || bands[0].ordinal != band
+                    {
+                        return Err("INVALID_SPECIAL_RAID".into());
+                    }
+                    0
+                } else {
+                    let tickets: Vec<_> = bands
+                        .iter()
+                        .map(|band| {
+                            let definition = species
+                                .iter()
+                                .find(|row| row.species_id == band.species_id)
+                                .ok_or("CONTENT_UNAVAILABLE")?;
+                            Ok((
+                                band.encounter_weight,
+                                if definition.key == "nidalees-lost-sock" {
+                                    9
+                                } else {
+                                    band.ordinal
+                                },
+                            ))
+                        })
+                        .collect::<Result<_, String>>()?;
+                    weights = if normal_cast {
+                        game_rules::rods::luck_weights(&tickets, luck_bp)?
+                    } else {
+                        game_rules::hauls::luck_weights(&tickets, luck_bp)?
+                    };
+                    sample(&weights, &mut rng)?
+                };
+                let mut band = &bands[band_index];
+                let definition = if special_raid {
+                    special_raid_species_definition
+                        .as_ref()
+                        .ok_or("INVALID_SPECIAL_RAID")?
+                } else {
+                    species
+                        .iter()
+                        .find(|row| row.species_id == band.species_id)
+                        .ok_or("CONTENT_UNAVAILABLE")?
+                };
+                let mut all_ranks_known = false;
+                if !special_raid
+                    && collection_focus_enabled
+                    && definition.counts_for_ordinary_collection_completion
                 {
                     let progress_key =
                         (u128::from(player.player_id) << 32) | u128::from(definition.species_id);
@@ -297,18 +417,33 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                             })
                         })
                         .collect();
+                    all_ranks_known =
+                        known.len() == 10 && known.iter().all(|rank_is_known| *rank_is_known);
                     let ranks: Vec<_> = bands
                         .iter()
                         .zip(&weights)
                         .filter(|(row, _)| row.species_id == definition.species_id)
                         .map(|(row, weight)| (row.ordinal, *weight))
                         .collect();
-                    let ordinal = game_rules::collection_focus::reroll(
-                        band.ordinal,
-                        &ranks,
-                        &known,
-                        &mut rng,
-                    )?;
+                    let ordinal = if normal_cast
+                        && rules.version >= game_rules::raids::catalog().rules_version
+                        && reinforcement_level > 0
+                    {
+                        game_rules::collection_focus::reroll_with_chance(
+                            band.ordinal,
+                            &ranks,
+                            &known,
+                            game_rules::raids::focus_chance_bp(reinforcement_level)?,
+                            &mut rng,
+                        )?
+                    } else {
+                        game_rules::collection_focus::reroll(
+                            band.ordinal,
+                            &ranks,
+                            &known,
+                            &mut rng,
+                        )?
+                    };
                     if ordinal != band.ordinal {
                         collection_focus_rerolls += 1;
                         band = bands
@@ -327,20 +462,53 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                     min_weight_g: definition.min_weight_g,
                     max_weight_g: definition.max_weight_g,
                 };
-                let measurements = game_rules::trophy::generate(
-                    model,
-                    band.ordinal,
-                    bait.size_rolls,
-                    rules.version,
-                    &mut rng,
-                )?;
+                let measurements = if special_raid {
+                    game_rules::raids::special_measurements_with_probability(
+                        model,
+                        special_raid_band.ok_or("INVALID_SPECIAL_RAID")?,
+                        special_raid_maximum_roll_one_in,
+                        &mut rng,
+                    )?
+                } else if normal_cast
+                    && rules.version >= game_rules::raids::catalog().rules_version
+                    && reinforcement_level > 0
+                    && collection_focus_enabled
+                    && definition.counts_for_ordinary_collection_completion
+                    && all_ranks_known
+                    && band.ordinal == 9
+                {
+                    game_rules::raids::reinforced_measurements(
+                        model,
+                        band.ordinal,
+                        bait.size_rolls,
+                        rules.version,
+                        game_rules::raids::perfect_bonus_rolls(reinforcement_level)?,
+                        &mut rng,
+                    )?
+                } else {
+                    game_rules::trophy::generate(
+                        model,
+                        band.ordinal,
+                        bait.size_rolls,
+                        rules.version,
+                        &mut rng,
+                    )?
+                };
                 let ordinal = classify_rarity(model, measurements)?;
-                let rank = ctx
-                    .db
-                    .species_rank_definition()
-                    .key()
-                    .find(u64::from(definition.species_id) * 10 + u64::from(ordinal))
-                    .ok_or("CONTENT_UNAVAILABLE")?;
+                if special_raid && ordinal != band.ordinal {
+                    return Err("INVALID_SPECIAL_RAID".into());
+                }
+                let rank = if special_raid {
+                    special_raid_rank_definition
+                        .clone()
+                        .ok_or("INVALID_SPECIAL_RAID")?
+                } else {
+                    ctx.db
+                        .species_rank_definition()
+                        .key()
+                        .find(u64::from(definition.species_id) * 10 + u64::from(ordinal))
+                        .ok_or("CONTENT_UNAVAILABLE")?
+                };
                 if !definition.allowed_rarities.contains(&rank.rarity) {
                     return Err("CONTENT_UNAVAILABLE".into());
                 }
@@ -367,7 +535,7 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                     sale_value_coins: sale_value,
                     favorite: false,
                     rules_version: rules.version,
-                    content_version: crate::content::CONTENT_VERSION,
+                    content_version,
                     biome_id: biome.biome_id,
                     source_guild_id: guild_id,
                 });
@@ -420,7 +588,7 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                             catch_id: specimen.catch_id,
                             caught_at: ctx.timestamp,
                             rules_version: rules.version,
-                            content_version: crate::content::CONTENT_VERSION,
+                            content_version,
                         };
                         if let Some(previous) = previous {
                             changed_record_holders.push(previous.player_id);
@@ -599,6 +767,7 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
             bait_size_rolls: bait.size_rolls,
             collection_focus_enabled,
             collection_focus_rerolls,
+            reinforcement_level,
             secondary_bait_id: bait.secondary.bait_id,
             secondary_bait_uses_left: bait.secondary.uses_left,
             secondary_bait_item: bait.secondary.resource_item,

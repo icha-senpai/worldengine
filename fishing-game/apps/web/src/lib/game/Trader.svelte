@@ -4,7 +4,10 @@
   import type { Game } from './game.svelte.ts';
   import type { ShopListing } from '@fishing-game/generated/types';
   import PageTurner from './PageTurner.svelte';
+  import RaidArt from './RaidArt.svelte';
   import equipmentArt from '../../../../../content/equipment-art.json';
+  import raidPolicy from '../../../../../content/raids.json';
+  import { raidArtwork } from './raid-art';
   let { game, pageSize = 12 }: { game: Game; pageSize?: number } = $props();
   let shelf = $state('licence');
   let page = $state(1);
@@ -16,6 +19,7 @@
   let dialog: HTMLDialogElement;
   let cancelButton = $state<HTMLButtonElement>();
   const totalCost = $derived(pending ? pending.listing.priceCoins * BigInt(pending.quantity) : 0n);
+  const supplyBalance = $derived(game.items.find(row => row.item === 'raid_supplies')?.quantity ?? 0n);
   const balanceAfter = $derived(game.player && game.player.coins >= totalCost ? game.player.coins - totalCost : null);
   const purchaseProblem = $derived.by(() => {
     if (!pending) return '';
@@ -43,11 +47,17 @@
     return () => { document.body.style.overflow = overflow; };
   });
   const quantities = [1, 5, 10];
+  const raidSupply = (row: ShopListing) => row.kind === 'raid_supply';
+  const quantityOffer = (row: ShopListing) => row.kind === 'bait' || raidSupply(row);
+  const quantityLabel = (row: ShopListing, quantity: number) =>
+    `${quantity} ${raidSupply(row) ? quantity === 1 ? 'crate' : 'crates' : quantity === 1 ? 'pack' : 'packs'}`;
+  const quantityUnits = (row: ShopListing, quantity: number) =>
+    raidSupply(row) ? BigInt(raidPolicy.supply.unitsPerPurchase * quantity) : packUses(row) * BigInt(quantity);
   const baitGroup = (row: ShopListing) => {
     const bait = game.baits.find(bait => bait.baitId === row.targetId);
     return bait?.resourceItem === 'rusted_tin' ? 0 : bait?.resourceItem === 'scrap' ? 1 : (bait?.sizeRolls ?? 1) > 1 ? 2 : 3;
   };
-  const offers = $derived(game.listings.filter(row => row.kind === shelf).sort((a, b) => {
+  const offers = $derived(game.listings.filter(row => row.kind === shelf || shelf === 'bait' && raidSupply(row)).sort((a, b) => {
     if (shelf === 'bait') {
       const group = baitGroup(a) - baitGroup(b);
       if (group) return group;
@@ -59,7 +69,7 @@
     }
     return a.listingId - b.listingId;
   }));
-  const packUses = (row: ShopListing) => game.baits.find(bait => bait.baitId === row.targetId)?.usesPerPurchase ?? 10n;
+  const packUses = (row: ShopListing) => raidSupply(row) ? 5n : game.baits.find(bait => bait.baitId === row.targetId)?.usesPerPurchase ?? 10n;
   const modifiers = (id: number) => game.rodBonuses.find(row => row.rodId === id);
   const haulGear = (row: ShopListing) => row.kind === 'boat' || row.kind === 'net';
   const haulBonuses = (row: ShopListing) => {
@@ -67,13 +77,15 @@
     const stats = game.haulStats(row.targetId);
     return gear ? `${stats.quality?.name ?? 'Common'} · +${stats.luckBp / 100}% luck · +${stats.xpBonusBp / 100}% fishing XP · no bait required.` : 'Loading equipment bonuses…';
   };
-  const artwork = (row: ShopListing) => row.kind === 'rod'
+  const artwork = (row: ShopListing) => row.kind === 'raid_supply'
+    ? raidArtwork('supply')
+    : row.kind === 'rod'
     ? modifiers(row.targetId)?.spriteAsset
     : haulGear(row) ? game.haulEquipment.find(gear => gear.equipmentId === row.targetId)?.spriteAsset
     : row.kind === 'bait' ? game.baits.find(bait => bait.baitId === row.targetId)?.spriteAsset : equipmentArt.licences.find(licence => licence.biomeId === row.targetId)?.spriteAsset;
   const level = $derived(game.profile?.level ?? 1);
-  const owned = (row: ShopListing) => row.kind === 'bait' ? false : row.kind === 'rod' ? game.ownedRods.some(rod => rod.rodId === row.targetId) : haulGear(row) ? game.ownedHaulEquipment.some(gear => gear.equipmentId === row.targetId) : game.licences.some(licence => licence.biomeId === row.targetId);
-  const reason = (row: ShopListing, quantity = 1) => !game.player ? 'Link Discord to buy' : owned(row) ? 'Owned' : level < row.minimumLevel ? 'Requires level ' + row.minimumLevel : row.previousBiomeId > 1 && !game.licences.some(licence => licence.biomeId === row.previousBiomeId) ? 'Previous licence needed' : game.player.coins < row.priceCoins * BigInt(quantity) ? 'Need ' + (row.priceCoins * BigInt(quantity) - game.player.coins).toString() + ' more coins' : '';
+  const owned = (row: ShopListing) => row.kind === 'bait' || raidSupply(row) ? false : row.kind === 'rod' ? game.ownedRods.some(rod => rod.rodId === row.targetId) : haulGear(row) ? game.ownedHaulEquipment.some(gear => gear.equipmentId === row.targetId) : game.licences.some(licence => licence.biomeId === row.targetId);
+  const reason = (row: ShopListing, quantity = 1) => !game.player ? 'Link Discord to buy' : raidSupply(row) && !game.raidsSupported ? 'Raid supplies await the module update' : owned(row) ? 'Owned' : level < row.minimumLevel ? 'Requires level ' + row.minimumLevel : row.previousBiomeId > 1 && !game.licences.some(licence => licence.biomeId === row.previousBiomeId) ? 'Previous licence needed' : game.player.coins < row.priceCoins * BigInt(quantity) ? 'Need ' + (row.priceCoins * BigInt(quantity) - game.player.coins).toString() + ' more coins' : '';
   function requestPurchase(row: ShopListing, quantity = 1) {
     if (pending || buying !== null || game.busy || !game.ready || reason(row, quantity) || !game.player) return;
     purchaseError = ''; bought = '';
@@ -100,7 +112,8 @@
     buying = row.listingId; buyingQuantity = quantity; bought = '';
     try {
       if (await game.purchase(row.listingId, quantity)) {
-        bought = row.kind === 'bait' ? `${row.name}: ${quantity} ${quantity === 1 ? 'pack' : 'packs'} · ${packUses(row) * BigInt(quantity)} uses added. Equip bait in your Tackle box.`
+        bought = raidSupply(row) ? `${row.name}: ${quantity} ${quantity === 1 ? 'crate' : 'crates'} · ${quantityUnits(row, quantity)} units added for boat raids.`
+          : row.kind === 'bait' ? `${row.name}: ${quantity} ${quantity === 1 ? 'pack' : 'packs'} · ${packUses(row) * BigInt(quantity)} uses added. Equip bait in your Tackle box.`
           : row.name + (row.kind === 'rod' || haulGear(row) ? ' is yours! Equip it in your Tackle box.' : ' is yours! Your World map has updated.');
         return true;
       }
@@ -111,22 +124,28 @@
 
 <section class="trader" aria-labelledby="trader-title">
   <header><div><p class="eyebrow">THE CAMP TRADER</p><h2 id="trader-title">A new stretch of water awaits.</h2><p>“A good rod, a proper licence… and a little luck. What'll it be, angler?”</p></div><div class="pouch"><small>YOUR COIN POUCH</small><strong>{game.player?.coins.toString() ?? '—'}</strong></div></header>
-  <div class="shelves" aria-label="Trader shelves"><button aria-pressed={shelf === 'licence'} onclick={() => { shelf = 'licence'; page = 1; }}>▤ Biome licences</button><button aria-pressed={shelf === 'rod'} onclick={() => { shelf = 'rod'; page = 1; }}>🎣 Fishing rods</button><button aria-pressed={shelf === 'boat'} onclick={() => { shelf = 'boat'; page = 1; }}>🚣 Boats</button><button aria-pressed={shelf === 'net'} onclick={() => { shelf = 'net'; page = 1; }}>🕸 Nets</button><button aria-pressed={shelf === 'bait'} onclick={() => { shelf = 'bait'; page = 1; }}>🪱 Bait</button></div>
+  <div class="shelves" aria-label="Trader shelves"><button aria-pressed={shelf === 'licence'} onclick={() => { shelf = 'licence'; page = 1; }}>▤ Biome licences</button><button aria-pressed={shelf === 'rod'} onclick={() => { shelf = 'rod'; page = 1; }}>🎣 Fishing rods</button><button aria-pressed={shelf === 'boat'} onclick={() => { shelf = 'boat'; page = 1; }}>🚣 Boats</button><button aria-pressed={shelf === 'net'} onclick={() => { shelf = 'net'; page = 1; }}>🕸 Nets</button><button aria-pressed={shelf === 'bait'} onclick={() => { shelf = 'bait'; page = 1; }}>🪱 Bait</button><button aria-pressed={shelf === 'raid_supply'} onclick={() => { shelf = 'raid_supply'; page = 1; }}>⚓ Raid Supplies</button></div>
   <p class="note">Licences are permanent. Buy each water's licence, then travel on the World map with any owned rod. Boats and nets are permanent gear; equip them in your Tackle box. Neither uses bait. Bait comes in packs of 10 uses for rod fishing. Meadow Pond and your Twig Rod, Boat and Net are free.</p>
+  {#if shelf === 'raid_supply'}<p class="note">Expedition Chum is a raid supply only; it never enters your fishing bait loadout.</p>{/if}
   {#if !game.player}<p class="note">Link your Discord account from Camp to shop with your fishing coins.</p>{/if}
   {#if bought}<p class="success" role="status">✓ {bought}</p>{/if}
   <div class="goods">
     {#each offers.slice((page - 1) * pageSize, page * pageSize) as row (row.listingId)}
       {@const status = reason(row)}
-      {@const comparison = equipmentComparison(game, row)}
+      {@const comparison = raidSupply(row) ? '' : equipmentComparison(game, row)}
       <article class:owned={owned(row)} aria-label={row.name} aria-busy={buying === row.listingId}>
+        {#if raidSupply(row)}
+          <div class="item-art" aria-hidden="true"><RaidArt kind="supply" size={96} /></div>
+          <div class="listing-details"><small>RAID SUPPLY · EXPEDITION CHUM</small><h3>{row.name}</h3><p>{raidPolicy.supply.unitsPerPurchase} units per crate · raid supplies only; no fishing bait slot or cast bonuses.</p><p class="stock">Stored: {supplyBalance} units</p></div>
+        {:else}
         <div class="item-art" aria-hidden="true">{#if artwork(row)}<img src={artwork(row)} alt="" width="96" height="96" />{:else}▤{/if}</div>
         <div><small>{(row.kind === 'rod' || haulGear(row)) && row.minimumLevel === 1 ? 'GOLD PURCHASE' : 'LEVEL ' + row.minimumLevel} · {game.biomes.find(b => b.biomeId === row.biomeId)?.name}</small><h3>{row.name}</h3>{#if row.kind === 'bait'}<p class="stock">In your tackle box: {(game.ownedBaits.find(b => b.baitId === row.targetId)?.usesLeft ?? 0n).toString()} uses</p>{/if}<p>{row.kind === 'licence' ? 'A permanent pass to these waters.' : row.kind === 'bait' ? packUses(row) + ' uses per pack · ' + baitEffect(game.baits.find(b => b.baitId === row.targetId)) : haulGear(row) ? haulBonuses(row) : 'Power ' + game.rodStats(row.targetId).power + ' · ' + game.rodStats(row.targetId).power/2 + '% bonus pull · +' + game.rodStats(row.targetId).luckBp/100 + '% luck · +' + game.rodStats(row.targetId).xpBonusBp/100 + '% fishing XP'}</p>{#if comparison}<p class="comparison">{comparison}</p>{/if}</div>
-        {#if row.kind === 'bait'}
+        {/if}
+        {#if quantityOffer(row)}
           <div class="bait-purchases" role="group" aria-label={'Buy ' + row.name}>
             {#each quantities as quantity}
               {@const blocked = reason(row, quantity)}
-              <button disabled={!!blocked || game.busy || !game.ready || buying !== null} title={blocked || undefined} onclick={() => requestPurchase(row, quantity)} aria-haspopup="dialog" aria-label={'Buy ' + quantity + (quantity === 1 ? ' pack' : ' packs') + ' of ' + row.name + ' · ' + row.priceCoins * BigInt(quantity) + ' coins'}><span>{buying === row.listingId && buyingQuantity === quantity ? 'Buying…' : 'Buy ' + quantity}</span><small>{packUses(row) * BigInt(quantity)} uses</small><small>{(row.priceCoins * BigInt(quantity)).toString()} coins</small></button>
+              <button disabled={!!blocked || game.busy || !game.ready || buying !== null} title={blocked || undefined} onclick={() => requestPurchase(row, quantity)} aria-haspopup="dialog" aria-label={'Buy ' + quantityLabel(row, quantity) + ' of ' + row.name + ' · ' + row.priceCoins * BigInt(quantity) + ' coins'}><span>{buying === row.listingId && buyingQuantity === quantity ? 'Buying…' : 'Buy ' + quantity}</span><small>{quantityUnits(row, quantity)} {raidSupply(row) ? 'units' : 'uses'}</small><small>{(row.priceCoins * BigInt(quantity)).toString()} coins</small></button>
             {/each}
           </div>
           {#if status}<p class="purchase-status">{status}</p>{/if}
@@ -148,7 +167,11 @@
     <p id="purchase-description">Review your purchase. Coins are spent when you confirm.</p>
     <div class="purchase-item">
       {#if artwork(pending.listing)}<img src={artwork(pending.listing)} alt="" width="90" height="90" />{/if}
+      {#if raidSupply(pending.listing)}
+        <div><h3>{pending.listing.name}</h3><p>{quantityLabel(pending.listing, pending.quantity)} · {quantityUnits(pending.listing, pending.quantity)} Expedition Chum units for raids only. No fishing bait or cast bonuses.</p></div>
+      {:else}
       <div><h3>{pending.listing.name}</h3><p>{pending.listing.kind === 'bait' ? `${pending.quantity} ${pending.quantity === 1 ? 'pack' : 'packs'} · ${pending.usesPerPack * BigInt(pending.quantity)} uses` : pending.listing.kind === 'licence' ? '1 licence · permanent access' : `1 ${pending.listing.kind} · permanent gear`}</p></div>
+      {/if}
     </div>
     <dl><div><dt>Total cost</dt><dd>{totalCost.toLocaleString()} coins</dd></div><div><dt>Coins after purchase</dt><dd>{balanceAfter?.toLocaleString() ?? '—'}</dd></div></dl>
     {#if purchaseProblem || purchaseError}<p class="purchase-error" role="alert">{purchaseProblem || purchaseError}</p>{/if}

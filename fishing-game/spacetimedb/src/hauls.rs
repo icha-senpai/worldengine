@@ -113,6 +113,9 @@ pub fn start_haul_from_discord(
         ctx.timestamp.to_micros_since_unix_epoch(),
     )?;
     let player = ensure_player(ctx, discord_user_id, "Angler")?;
+    if kind == "boat" && crate::raids::boat_locked_by_raid(ctx, player.player_id) {
+        return Err("BOAT_IN_RAID".into());
+    }
     // Repeating a command while underway reports the existing trip, without restarting.
     if let Some(active) = ctx
         .db
@@ -282,6 +285,13 @@ fn finish(ctx: &ReducerContext, interaction_id: u64) -> Result<(), String> {
             },
             pull_count,
             collection_focus_enabled: trip.collection_focus_enabled,
+            reinforcement_level: 0,
+            special_raid_species_id: None,
+            special_raid_species_definition: None,
+            special_raid_rank_definition: None,
+            special_raid_band: None,
+            special_raid_maximum_roll_one_in: 0,
+            content_version: crate::content::CONTENT_VERSION,
         },
     )?;
     let receipt = ctx

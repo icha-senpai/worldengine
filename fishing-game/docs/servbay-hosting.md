@@ -21,6 +21,12 @@ website settings. Public settings are kept separately in `.local/public-web.env`
 and copied into the published website's `.env`. Existing Discord secrets
 were preserved and remain in ignored configuration files.
 
+Private Vite on port 5174 uses `.svelte-kit`. Isolated proof Vite uses the
+separate `.svelte-kit-proof` cache and must be the only proof instance on strict
+port 5175. Pass proof URI, database, and account-link overrides only to that
+child process; do not change private `.env` files or reuse generated files
+between the caches.
+
 ## Services and routes
 
 | Public route | Local service |

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "rulesVersion": 17,
+  "deploymentWindowSeconds": 600,
+  "requestLifetimeSeconds": 86400,
+  "historyRetentionDays": 30,
+  "supply": {
+    "listingId": 150,
+    "targetId": 900,
+    "item": "raid_supplies",
+    "slot": 900,
+    "name": "Expedition Chum",
+    "description": "Packed bait and provisions for a boat raid. Does not occupy a fishing bait slot.",
+    "priceCoins": 100,
+    "unitsPerPurchase": 5
+  },
+  "materials": [
+    { "id": 0, "key": "fillets", "name": "Raid Fillets", "slotBase": 1000 },
+    { "id": 1, "key": "scales", "name": "Raid Scales", "slotBase": 1100 }
+  ],
+  "refining": {
+    "inputQuantity": 60,
+    "outputQuantity": 50,
+    "coinsPerBatch": 5,
+    "maximumBatches": 100
+  },
+  "grades": [
+    { "grade": 0, "name": "F", "durationSeconds": 3600, "supplyUnits": 1, "fillets": 60, "scales": 40, "reinforceCoins": 50, "focusChanceBp": 2300, "perfectBonusRolls": 1 },
+    { "grade": 1, "name": "D", "durationSeconds": 7200, "supplyUnits": 1, "fillets": 108, "scales": 72, "reinforceCoins": 100, "focusChanceBp": 2600, "perfectBonusRolls": 2 },
+    { "grade": 2, "name": "C", "durationSeconds": 10800, "supplyUnits": 2, "fillets": 147, "scales": 99, "reinforceCoins": 200, "focusChanceBp": 2900, "perfectBonusRolls": 3 },
+    { "grade": 3, "name": "B", "durationSeconds": 14400, "supplyUnits": 2, "fillets": 176, "scales": 120, "reinforceCoins": 400, "focusChanceBp": 3200, "perfectBonusRolls": 4 },
+    { "grade": 4, "name": "A", "durationSeconds": 21600, "supplyUnits": 3, "fillets": 240, "scales": 162, "reinforceCoins": 800, "focusChanceBp": 3500, "perfectBonusRolls": 5 },
+    { "grade": 5, "name": "S", "durationSeconds": 28800, "supplyUnits": 4, "fillets": 288, "scales": 192, "reinforceCoins": 1600, "focusChanceBp": 3800, "perfectBonusRolls": 6 },
+    { "grade": 6, "name": "SS", "durationSeconds": 43200, "supplyUnits": 6, "fillets": 384, "scales": 252, "reinforceCoins": 3200, "focusChanceBp": 4100, "perfectBonusRolls": 7 },
+    { "grade": 7, "name": "SSS", "durationSeconds": 64800, "supplyUnits": 8, "fillets": 522, "scales": 342, "reinforceCoins": 6400, "focusChanceBp": 4400, "perfectBonusRolls": 8 },
+    { "grade": 8, "name": "UR", "durationSeconds": 86400, "supplyUnits": 12, "fillets": 624, "scales": 408, "reinforceCoins": 12800, "focusChanceBp": 4700, "perfectBonusRolls": 9 },
+    { "grade": 9, "name": "UUR", "durationSeconds": 108000, "supplyUnits": 15, "fillets": 720, "scales": 480, "reinforceCoins": 25600, "focusChanceBp": 5000, "perfectBonusRolls": 10 }
+  ],
+  "rewardBonusDivisor": 4,
+  "community": {
+    "startDaysUtc": [1, 16],
+    "durationSeconds": 345600,
+    "signupSeconds": 86400,
+    "supplyUnits": 10,
+    "names": ["The Deepwater Convergence", "The Midnight Undertow"]
+  },
+  "special": {
+    "durationSeconds": 172800,
+    "supplyUnits": 20,
+    "maximumFish": 1,
+    "maximumRollOneIn": 5000,
+    "requiresSpeciesDiscovery": true,
+    "speciesKeys": ["fihs", "nidalees-lost-sock"]
+  }
+}

@@ -25,6 +25,7 @@ pub struct CastEquipmentReceipt {
     pub secondary_bait_uses_left: u64,
     pub secondary_bait_item: String,
     pub secondary_bait_quantity: u64,
+    pub reinforcement_level: u8,
 }
 
 impl __sdk::InModule for CastEquipmentReceipt {
@@ -53,6 +54,7 @@ pub struct CastEquipmentReceiptCols {
     pub secondary_bait_uses_left: __sdk::__query_builder::Col<CastEquipmentReceipt, u64>,
     pub secondary_bait_item: __sdk::__query_builder::Col<CastEquipmentReceipt, String>,
     pub secondary_bait_quantity: __sdk::__query_builder::Col<CastEquipmentReceipt, u64>,
+    pub reinforcement_level: __sdk::__query_builder::Col<CastEquipmentReceipt, u8>,
 }
 
 impl __sdk::__query_builder::HasCols for CastEquipmentReceipt {
@@ -91,6 +93,10 @@ impl __sdk::__query_builder::HasCols for CastEquipmentReceipt {
             secondary_bait_quantity: __sdk::__query_builder::Col::new(
                 table_name,
                 "secondary_bait_quantity",
+            ),
+            reinforcement_level: __sdk::__query_builder::Col::new(
+                table_name,
+                "reinforcement_level",
             ),
         }
     }

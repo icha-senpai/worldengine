@@ -202,6 +202,7 @@ export const CastEquipmentReceipt = __t.object("CastEquipmentReceipt", {
   secondaryBaitUsesLeft: __t.u64(),
   secondaryBaitItem: __t.string(),
   secondaryBaitQuantity: __t.u64(),
+  reinforcementLevel: __t.u8(),
 });
 export type CastEquipmentReceipt = __Infer<typeof CastEquipmentReceipt>;
 
@@ -251,6 +252,15 @@ export const CommandReceipt = __t.object("CommandReceipt", {
   rodId: __t.u32(),
 });
 export type CommandReceipt = __Infer<typeof CommandReceipt>;
+
+export const CommunityRaidEvent = __t.object("CommunityRaidEvent", {
+  eventId: __t.u64(),
+  name: __t.string(),
+  signupAt: __t.timestamp(),
+  startsAt: __t.timestamp(),
+  endsAt: __t.timestamp(),
+});
+export type CommunityRaidEvent = __Infer<typeof CommunityRaidEvent>;
 
 export const DailyDelivery = __t.object("DailyDelivery", {
   playerId: __t.u64(),
@@ -675,6 +685,127 @@ export const QuestStatus = __t.object("QuestStatus", {
 });
 export type QuestStatus = __Infer<typeof QuestStatus>;
 
+export const RaidActionReceipt = __t.object("RaidActionReceipt", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  requestId: __t.u64(),
+  kind: __t.string(),
+  fingerprint: __t.string(),
+  attemptId: __t.option(__t.u128()),
+  result: __t.string(),
+  createdAt: __t.timestamp(),
+  expiresAt: __t.timestamp(),
+});
+export type RaidActionReceipt = __Infer<typeof RaidActionReceipt>;
+
+export const RaidAttempt = __t.object("RaidAttempt", {
+  id: __t.u128(),
+  playerId: __t.u64(),
+  kind: __t.string(),
+  speciesId: __t.option(__t.u32()),
+  grade: __t.option(__t.u8()),
+  eventId: __t.option(__t.u64()),
+  boatId: __t.u32(),
+  boatName: __t.string(),
+  boatQualityLevel: __t.u8(),
+  catalogVersion: __t.u32(),
+  contentVersion: __t.u32(),
+  rulesVersion: __t.u32(),
+  status: __t.string(),
+  preparedAt: __t.timestamp(),
+  deploymentDeadline: __t.timestamp(),
+  startsAt: __t.timestamp(),
+  endsAt: __t.timestamp(),
+  deployedAt: __t.option(__t.timestamp()),
+  startedAt: __t.option(__t.timestamp()),
+  settledAt: __t.option(__t.timestamp()),
+  durationSeconds: __t.u32(),
+  supplyUnits: __t.u32(),
+  supplySlot: __t.u32(),
+  supplyItem: __t.string(),
+  baseFillets: __t.u64(),
+  baseScales: __t.u64(),
+  fullFillets: __t.u64(),
+  fullScales: __t.u64(),
+  maximumFillets: __t.u64(),
+  maximumScales: __t.u64(),
+  filletsSlot: __t.u32(),
+  filletsItem: __t.string(),
+  scalesSlot: __t.u32(),
+  scalesItem: __t.string(),
+  rewardBonusDivisor: __t.u64(),
+  specialMaximumRollOneIn: __t.u32(),
+  specialFishCount: __t.u8(),
+  specialBand: __t.option(__t.u8()),
+  get specialSpecies() {
+    return __t.option(SpeciesDefinition);
+  },
+  get specialRank() {
+    return __t.option(SpeciesRankDefinition);
+  },
+  get specialBiome() {
+    return __t.option(BiomeDefinition);
+  },
+  get specialRules() {
+    return __t.option(GameConfig);
+  },
+  awardedFillets: __t.u64(),
+  awardedScales: __t.u64(),
+  catchId: __t.option(__t.u64()),
+  pruneAt: __t.timestamp(),
+});
+export type RaidAttempt = __Infer<typeof RaidAttempt>;
+
+export const RaidBadge = __t.object("RaidBadge", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  speciesId: __t.u32(),
+  clearedGrades: __t.u8(),
+  successfulClears: __t.u64(),
+  specialCompletions: __t.u64(),
+  firstClearAt: __t.option(__t.timestamp()),
+  latestClearAt: __t.option(__t.timestamp()),
+});
+export type RaidBadge = __Infer<typeof RaidBadge>;
+
+export const RaidCatchCounter = __t.object("RaidCatchCounter", {
+  singleton: __t.u8(),
+  nextSequence: __t.u64(),
+});
+export type RaidCatchCounter = __Infer<typeof RaidCatchCounter>;
+
+export const RaidGradeDefinition = __t.object("RaidGradeDefinition", {
+  grade: __t.u8(),
+  catalogVersion: __t.u32(),
+  name: __t.string(),
+  durationSeconds: __t.u32(),
+  supplyUnits: __t.u32(),
+  fillets: __t.u64(),
+  scales: __t.u64(),
+  reinforceCoins: __t.u64(),
+  focusChanceBp: __t.u32(),
+  perfectBonusRolls: __t.u8(),
+});
+export type RaidGradeDefinition = __Infer<typeof RaidGradeDefinition>;
+
+export const RaidJob = __t.object("RaidJob", {
+  scheduledId: __t.u64(),
+  attemptId: __t.u128(),
+  phase: __t.string(),
+  scheduledAt: __t.scheduleAt(),
+});
+export type RaidJob = __Infer<typeof RaidJob>;
+
+export const RaidStatistics = __t.object("RaidStatistics", {
+  playerId: __t.u64(),
+  displayName: __t.string(),
+  personalCompletions: __t.u64(),
+  specialCompletions: __t.u64(),
+  communityCompletions: __t.u64(),
+  masteredBosses: __t.u64(),
+});
+export type RaidStatistics = __Infer<typeof RaidStatistics>;
+
 export const RankMaximum = __t.object("RankMaximum", {
   key: __t.u128(),
   playerId: __t.u64(),
@@ -737,6 +868,15 @@ export const RodDefinition = __t.object("RodDefinition", {
   minimumLevel: __t.u32(),
 });
 export type RodDefinition = __Infer<typeof RodDefinition>;
+
+export const RodReinforcement = __t.object("RodReinforcement", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  rodId: __t.u32(),
+  level: __t.u8(),
+  updatedAt: __t.timestamp(),
+});
+export type RodReinforcement = __Infer<typeof RodReinforcement>;
 
 export const RodUpgradeRecipe = __t.object("RodUpgradeRecipe", {
   key: __t.u64(),

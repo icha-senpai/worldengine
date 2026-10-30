@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { AnglerStatistics, AnglerStanding, LegendaryFind, BiomeDefinition, SpeciesDefinition, SpeciesRecord } from '@fishing-game/generated/types';
+  import type { AnglerStatistics, AnglerStanding, LegendaryFind, BiomeDefinition, RaidStatistics, SpeciesDefinition, SpeciesRecord } from '@fishing-game/generated/types';
   import Statistics from './Statistics.svelte';
   import PageTurner from './PageTurner.svelte';
   import { formatLength, formatWeight } from './measurements';
@@ -9,6 +9,7 @@
     records: SpeciesRecord[];
     standings: AnglerStanding[];
     statistics: AnglerStatistics[];
+    raidStatistics: RaidStatistics[];
     legendaryFinds: LegendaryFind[];
     biomes: BiomeDefinition[];
     player: { playerId: bigint } | null;
@@ -166,7 +167,7 @@
     <div class="your-position" aria-live="polite"><span>YOUR POSITION</span>{#if game.player}<strong>{ownRank ? '#' + ownRank.rank : 'Unranked'}</strong><span>{ownStanding ? score(ownStanding) : '0'} {activeCategory.unit}</span>{:else}<span>Link Discord to see where you stand.</span>{/if}</div>
   </div>
 
-  {#if game.statistics.find(row => row.playerId === game.player?.playerId)}<h3>Your fishing story</h3><Statistics stats={game.statistics.find(row => row.playerId === game.player?.playerId)!} species={game.species} biomes={game.biomes} />{/if}
+  {#if game.statistics.find(row => row.playerId === game.player?.playerId)}<h3>Your fishing story</h3><Statistics stats={game.statistics.find(row => row.playerId === game.player?.playerId)!} species={game.species} biomes={game.biomes} raidStats={game.raidStatistics.find(row => row.playerId === game.player?.playerId)} />{/if}
 
   <aside class="legendary" aria-labelledby="legendary-heading">
     <div class="legendary-heading"><span aria-hidden="true">✦</span><div><p class="eyebrow">THE ONES YOU TELL STORIES ABOUT</p><h3 id="legendary-heading">Legendary Finds</h3></div><span aria-hidden="true">✦</span></div>

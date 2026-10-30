@@ -42,6 +42,7 @@ import ActivateHaulEquipmentReducer from "./activate_haul_equipment_reducer";
 import ActivateHistoryQueriesReducer from "./activate_history_queries_reducer";
 import ActivatePerfectCatchesReducer from "./activate_perfect_catches_reducer";
 import ActivateQuestsReducer from "./activate_quests_reducer";
+import ActivateRaidsReducer from "./activate_raids_reducer";
 import ActivateRankMaximaReducer from "./activate_rank_maxima_reducer";
 import ActivateRodBonusesReducer from "./activate_rod_bonuses_reducer";
 import ActivateSpeciesMeasurementsReducer from "./activate_species_measurements_reducer";
@@ -52,6 +53,8 @@ import BackfillJournalReducer from "./backfill_journal_reducer";
 import BackfillPlayerAchievementsReducer from "./backfill_player_achievements_reducer";
 import BackfillPlayerStatisticsReducer from "./backfill_player_statistics_reducer";
 import BeginLinkChallengeReducer from "./begin_link_challenge_reducer";
+import CancelRaidReducer from "./cancel_raid_reducer";
+import CancelRaidFromDiscordReducer from "./cancel_raid_from_discord_reducer";
 import ChangeLoadoutReducer from "./change_loadout_reducer";
 import ChangeLoadoutFromDiscordReducer from "./change_loadout_from_discord_reducer";
 import ClaimAchievementDeliveryReducer from "./claim_achievement_delivery_reducer";
@@ -59,6 +62,8 @@ import ClaimDocksideDeliveryReducer from "./claim_dockside_delivery_reducer";
 import ClaimHaulDeliveryReducer from "./claim_haul_delivery_reducer";
 import ClaimQuestReducer from "./claim_quest_reducer";
 import ClaimQuestFromDiscordReducer from "./claim_quest_from_discord_reducer";
+import ClaimRaidReducer from "./claim_raid_reducer";
+import ClaimRaidFromDiscordReducer from "./claim_raid_from_discord_reducer";
 import CommitHaulUpgradeReducer from "./commit_haul_upgrade_reducer";
 import CommitInventoryActionReducer from "./commit_inventory_action_reducer";
 import CommitRodUpgradeReducer from "./commit_rod_upgrade_reducer";
@@ -70,6 +75,8 @@ import CommitUpgradeFromDiscordReducer from "./commit_upgrade_from_discord_reduc
 import CompleteAccountLinkReducer from "./complete_account_link_reducer";
 import ConfigureServiceReducer from "./configure_service_reducer";
 import DailyFromDiscordReducer from "./daily_from_discord_reducer";
+import DeployRaidReducer from "./deploy_raid_reducer";
+import DeployRaidFromDiscordReducer from "./deploy_raid_from_discord_reducer";
 import EquipBaitReducer from "./equip_bait_reducer";
 import EquipBaitFromDiscordReducer from "./equip_bait_from_discord_reducer";
 import EquipHaulEquipmentReducer from "./equip_haul_equipment_reducer";
@@ -77,8 +84,12 @@ import EquipTitleReducer from "./equip_title_reducer";
 import FinishHaulFromAdapterReducer from "./finish_haul_from_adapter_reducer";
 import FishFromDiscordReducer from "./fish_from_discord_reducer";
 import MigrateUnlimitedInventoryReducer from "./migrate_unlimited_inventory_reducer";
+import PrepareCommunityRaidReducer from "./prepare_community_raid_reducer";
+import PrepareCommunityRaidFromDiscordReducer from "./prepare_community_raid_from_discord_reducer";
 import PrepareHaulUpgradeReducer from "./prepare_haul_upgrade_reducer";
 import PrepareInventoryActionReducer from "./prepare_inventory_action_reducer";
+import PrepareRaidReducer from "./prepare_raid_reducer";
+import PrepareRaidFromDiscordReducer from "./prepare_raid_from_discord_reducer";
 import PrepareRodUpgradeReducer from "./prepare_rod_upgrade_reducer";
 import PrepareSaleFromDiscordReducer from "./prepare_sale_from_discord_reducer";
 import PrepareShopFromDiscordReducer from "./prepare_shop_from_discord_reducer";
@@ -86,6 +97,10 @@ import PrepareShopPurchaseReducer from "./prepare_shop_purchase_reducer";
 import PrepareUpgradeFromDiscordReducer from "./prepare_upgrade_from_discord_reducer";
 import RebuildPlayerRecordsReducer from "./rebuild_player_records_reducer";
 import RecordAchievementRouteReducer from "./record_achievement_route_reducer";
+import RefineRaidMaterialReducer from "./refine_raid_material_reducer";
+import RefineRaidMaterialFromDiscordReducer from "./refine_raid_material_from_discord_reducer";
+import ReinforceRodReducer from "./reinforce_rod_reducer";
+import ReinforceRodFromDiscordReducer from "./reinforce_rod_from_discord_reducer";
 import SelectDiscordPlayerReducer from "./select_discord_player_reducer";
 import SelectJournalReducer from "./select_journal_reducer";
 import SetBaitSlotReducer from "./set_bait_slot_reducer";
@@ -119,7 +134,10 @@ import AdapterItemsRow from "./adapter_items_table";
 import AdapterLicencesRow from "./adapter_licences_table";
 import AdapterPlayerRow from "./adapter_player_table";
 import AdapterQuestsRow from "./adapter_quests_table";
+import AdapterRaidActionsRow from "./adapter_raid_actions_table";
+import AdapterRaidAttemptsRow from "./adapter_raid_attempts_table";
 import AdapterReceiptRow from "./adapter_receipt_table";
+import AdapterRodReinforcementsRow from "./adapter_rod_reinforcements_table";
 import AdapterRodsRow from "./adapter_rods_table";
 import AdapterSaleQuoteRow from "./adapter_sale_quote_table";
 import AdapterShopQuoteRow from "./adapter_shop_quote_table";
@@ -130,6 +148,7 @@ import AnglerStatisticsRow from "./angler_statistics_table";
 import AnglerTitleRow from "./angler_title_table";
 import BaitDefinitionRow from "./bait_definition_table";
 import BiomeDefinitionRow from "./biome_definition_table";
+import CommunityRaidEventRow from "./community_raid_event_table";
 import EarnedAchievementRow from "./earned_achievement_table";
 import GameConfigRow from "./game_config_table";
 import HaulEquipmentDefinitionRow from "./haul_equipment_definition_table";
@@ -154,7 +173,10 @@ import MyLinkChallengeRow from "./my_link_challenge_table";
 import MyPlayerRow from "./my_player_table";
 import MyProfileRow from "./my_profile_table";
 import MyQuestsRow from "./my_quests_table";
+import MyRaidActionsRow from "./my_raid_actions_table";
+import MyRaidAttemptsRow from "./my_raid_attempts_table";
 import MyRecentCatchesRow from "./my_recent_catches_table";
+import MyRodReinforcementsRow from "./my_rod_reinforcements_table";
 import MyRodsRow from "./my_rods_table";
 import MyServiceRow from "./my_service_table";
 import MyShopQuoteRow from "./my_shop_quote_table";
@@ -164,6 +186,9 @@ import PublicProfileRow from "./public_profile_table";
 import QualityDefinitionRow from "./quality_definition_table";
 import QuestCalendarRow from "./quest_calendar_table";
 import QuestDefinitionRow from "./quest_definition_table";
+import RaidBadgeRow from "./raid_badge_table";
+import RaidGradeDefinitionRow from "./raid_grade_definition_table";
+import RaidStatisticsRow from "./raid_statistics_table";
 import RankMaximumRow from "./rank_maximum_table";
 import RarityDefinitionRow from "./rarity_definition_table";
 import RodBonusesRow from "./rod_bonuses_table";
@@ -266,6 +291,26 @@ const tablesSchema = __schema({
       { name: 'biome_definition_biome_id_key', constraint: 'unique', columns: ['biomeId'] },
     ],
   }, BiomeDefinitionRow),
+  communityRaidEvent: __table({
+    name: 'community_raid_event',
+    indexes: [
+      { accessor: 'ends_at', name: 'community_raid_event_ends_at_idx_btree', algorithm: 'btree', columns: [
+        'endsAt',
+      ] },
+      { accessor: 'event_id', name: 'community_raid_event_event_id_idx_btree', algorithm: 'btree', columns: [
+        'eventId',
+      ] },
+      { accessor: 'signup_at', name: 'community_raid_event_signup_at_idx_btree', algorithm: 'btree', columns: [
+        'signupAt',
+      ] },
+      { accessor: 'starts_at', name: 'community_raid_event_starts_at_idx_btree', algorithm: 'btree', columns: [
+        'startsAt',
+      ] },
+    ],
+    constraints: [
+      { name: 'community_raid_event_event_id_key', constraint: 'unique', columns: ['eventId'] },
+    ],
+  }, CommunityRaidEventRow),
   earnedAchievement: __table({
     name: 'earned_achievement',
     indexes: [
@@ -374,6 +419,42 @@ const tablesSchema = __schema({
       { name: 'quest_definition_quest_id_key', constraint: 'unique', columns: ['questId'] },
     ],
   }, QuestDefinitionRow),
+  raidBadge: __table({
+    name: 'raid_badge',
+    indexes: [
+      { accessor: 'key', name: 'raid_badge_key_idx_btree', algorithm: 'btree', columns: [
+        'key',
+      ] },
+      { accessor: 'player_id', name: 'raid_badge_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'raid_badge_key_key', constraint: 'unique', columns: ['key'] },
+    ],
+  }, RaidBadgeRow),
+  raidGradeDefinition: __table({
+    name: 'raid_grade_definition',
+    indexes: [
+      { accessor: 'grade', name: 'raid_grade_definition_grade_idx_btree', algorithm: 'btree', columns: [
+        'grade',
+      ] },
+    ],
+    constraints: [
+      { name: 'raid_grade_definition_grade_key', constraint: 'unique', columns: ['grade'] },
+    ],
+  }, RaidGradeDefinitionRow),
+  raidStatistics: __table({
+    name: 'raid_statistics',
+    indexes: [
+      { accessor: 'player_id', name: 'raid_statistics_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'raid_statistics_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, RaidStatisticsRow),
   rankMaximum: __table({
     name: 'rank_maximum',
     indexes: [
@@ -594,6 +675,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterQuestsRow),
+  adapterRaidActions: __table({
+    name: 'adapter_raid_actions',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterRaidActionsRow),
+  adapterRaidAttempts: __table({
+    name: 'adapter_raid_attempts',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterRaidAttemptsRow),
   adapterReceipt: __table({
     name: 'adapter_receipt',
     indexes: [
@@ -601,6 +696,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterReceiptRow),
+  adapterRodReinforcements: __table({
+    name: 'adapter_rod_reinforcements',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterRodReinforcementsRow),
   adapterRods: __table({
     name: 'adapter_rods',
     indexes: [
@@ -769,6 +871,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyQuestsRow),
+  myRaidActions: __table({
+    name: 'my_raid_actions',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyRaidActionsRow),
+  myRaidAttempts: __table({
+    name: 'my_raid_attempts',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyRaidAttemptsRow),
   myRecentCatches: __table({
     name: 'my_recent_catches',
     indexes: [
@@ -776,6 +892,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyRecentCatchesRow),
+  myRodReinforcements: __table({
+    name: 'my_rod_reinforcements',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyRodReinforcementsRow),
   myRods: __table({
     name: 'my_rods',
     indexes: [
@@ -816,6 +939,7 @@ const reducersSchema = __reducers(
   __reducerSchema("activate_history_queries", ActivateHistoryQueriesReducer),
   __reducerSchema("activate_perfect_catches", ActivatePerfectCatchesReducer),
   __reducerSchema("activate_quests", ActivateQuestsReducer),
+  __reducerSchema("activate_raids", ActivateRaidsReducer),
   __reducerSchema("activate_rank_maxima", ActivateRankMaximaReducer),
   __reducerSchema("activate_rod_bonuses", ActivateRodBonusesReducer),
   __reducerSchema("activate_species_measurements", ActivateSpeciesMeasurementsReducer),
@@ -826,6 +950,8 @@ const reducersSchema = __reducers(
   __reducerSchema("backfill_player_achievements", BackfillPlayerAchievementsReducer),
   __reducerSchema("backfill_player_statistics", BackfillPlayerStatisticsReducer),
   __reducerSchema("begin_link_challenge", BeginLinkChallengeReducer),
+  __reducerSchema("cancel_raid", CancelRaidReducer),
+  __reducerSchema("cancel_raid_from_discord", CancelRaidFromDiscordReducer),
   __reducerSchema("change_loadout", ChangeLoadoutReducer),
   __reducerSchema("change_loadout_from_discord", ChangeLoadoutFromDiscordReducer),
   __reducerSchema("claim_achievement_delivery", ClaimAchievementDeliveryReducer),
@@ -833,6 +959,8 @@ const reducersSchema = __reducers(
   __reducerSchema("claim_haul_delivery", ClaimHaulDeliveryReducer),
   __reducerSchema("claim_quest", ClaimQuestReducer),
   __reducerSchema("claim_quest_from_discord", ClaimQuestFromDiscordReducer),
+  __reducerSchema("claim_raid", ClaimRaidReducer),
+  __reducerSchema("claim_raid_from_discord", ClaimRaidFromDiscordReducer),
   __reducerSchema("commit_haul_upgrade", CommitHaulUpgradeReducer),
   __reducerSchema("commit_inventory_action", CommitInventoryActionReducer),
   __reducerSchema("commit_rod_upgrade", CommitRodUpgradeReducer),
@@ -844,6 +972,8 @@ const reducersSchema = __reducers(
   __reducerSchema("complete_account_link", CompleteAccountLinkReducer),
   __reducerSchema("configure_service", ConfigureServiceReducer),
   __reducerSchema("daily_from_discord", DailyFromDiscordReducer),
+  __reducerSchema("deploy_raid", DeployRaidReducer),
+  __reducerSchema("deploy_raid_from_discord", DeployRaidFromDiscordReducer),
   __reducerSchema("equip_bait", EquipBaitReducer),
   __reducerSchema("equip_bait_from_discord", EquipBaitFromDiscordReducer),
   __reducerSchema("equip_haul_equipment", EquipHaulEquipmentReducer),
@@ -851,8 +981,12 @@ const reducersSchema = __reducers(
   __reducerSchema("finish_haul_from_adapter", FinishHaulFromAdapterReducer),
   __reducerSchema("fish_from_discord", FishFromDiscordReducer),
   __reducerSchema("migrate_unlimited_inventory", MigrateUnlimitedInventoryReducer),
+  __reducerSchema("prepare_community_raid", PrepareCommunityRaidReducer),
+  __reducerSchema("prepare_community_raid_from_discord", PrepareCommunityRaidFromDiscordReducer),
   __reducerSchema("prepare_haul_upgrade", PrepareHaulUpgradeReducer),
   __reducerSchema("prepare_inventory_action", PrepareInventoryActionReducer),
+  __reducerSchema("prepare_raid", PrepareRaidReducer),
+  __reducerSchema("prepare_raid_from_discord", PrepareRaidFromDiscordReducer),
   __reducerSchema("prepare_rod_upgrade", PrepareRodUpgradeReducer),
   __reducerSchema("prepare_sale_from_discord", PrepareSaleFromDiscordReducer),
   __reducerSchema("prepare_shop_from_discord", PrepareShopFromDiscordReducer),
@@ -860,6 +994,10 @@ const reducersSchema = __reducers(
   __reducerSchema("prepare_upgrade_from_discord", PrepareUpgradeFromDiscordReducer),
   __reducerSchema("rebuild_player_records", RebuildPlayerRecordsReducer),
   __reducerSchema("record_achievement_route", RecordAchievementRouteReducer),
+  __reducerSchema("refine_raid_material", RefineRaidMaterialReducer),
+  __reducerSchema("refine_raid_material_from_discord", RefineRaidMaterialFromDiscordReducer),
+  __reducerSchema("reinforce_rod", ReinforceRodReducer),
+  __reducerSchema("reinforce_rod_from_discord", ReinforceRodFromDiscordReducer),
   __reducerSchema("select_discord_player", SelectDiscordPlayerReducer),
   __reducerSchema("select_journal", SelectJournalReducer),
   __reducerSchema("set_bait_slot", SetBaitSlotReducer),
@@ -895,6 +1033,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "bait_definition": Omit<typeof tablesSchema.schemaType.tables["baitDefinition"], "accessorName"> & { readonly accessorName: "bait_definition" };
     /** @deprecated Use `biomeDefinition` instead. This alias will be removed in the next major version. */
     readonly "biome_definition": Omit<typeof tablesSchema.schemaType.tables["biomeDefinition"], "accessorName"> & { readonly accessorName: "biome_definition" };
+    /** @deprecated Use `communityRaidEvent` instead. This alias will be removed in the next major version. */
+    readonly "community_raid_event": Omit<typeof tablesSchema.schemaType.tables["communityRaidEvent"], "accessorName"> & { readonly accessorName: "community_raid_event" };
     /** @deprecated Use `earnedAchievement` instead. This alias will be removed in the next major version. */
     readonly "earned_achievement": Omit<typeof tablesSchema.schemaType.tables["earnedAchievement"], "accessorName"> & { readonly accessorName: "earned_achievement" };
     /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
@@ -913,6 +1053,12 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "quest_calendar": Omit<typeof tablesSchema.schemaType.tables["questCalendar"], "accessorName"> & { readonly accessorName: "quest_calendar" };
     /** @deprecated Use `questDefinition` instead. This alias will be removed in the next major version. */
     readonly "quest_definition": Omit<typeof tablesSchema.schemaType.tables["questDefinition"], "accessorName"> & { readonly accessorName: "quest_definition" };
+    /** @deprecated Use `raidBadge` instead. This alias will be removed in the next major version. */
+    readonly "raid_badge": Omit<typeof tablesSchema.schemaType.tables["raidBadge"], "accessorName"> & { readonly accessorName: "raid_badge" };
+    /** @deprecated Use `raidGradeDefinition` instead. This alias will be removed in the next major version. */
+    readonly "raid_grade_definition": Omit<typeof tablesSchema.schemaType.tables["raidGradeDefinition"], "accessorName"> & { readonly accessorName: "raid_grade_definition" };
+    /** @deprecated Use `raidStatistics` instead. This alias will be removed in the next major version. */
+    readonly "raid_statistics": Omit<typeof tablesSchema.schemaType.tables["raidStatistics"], "accessorName"> & { readonly accessorName: "raid_statistics" };
     /** @deprecated Use `rankMaximum` instead. This alias will be removed in the next major version. */
     readonly "rank_maximum": Omit<typeof tablesSchema.schemaType.tables["rankMaximum"], "accessorName"> & { readonly accessorName: "rank_maximum" };
     /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
@@ -963,8 +1109,14 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "adapter_player": Omit<typeof tablesSchema.schemaType.tables["adapterPlayer"], "accessorName"> & { readonly accessorName: "adapter_player" };
     /** @deprecated Use `adapterQuests` instead. This alias will be removed in the next major version. */
     readonly "adapter_quests": Omit<typeof tablesSchema.schemaType.tables["adapterQuests"], "accessorName"> & { readonly accessorName: "adapter_quests" };
+    /** @deprecated Use `adapterRaidActions` instead. This alias will be removed in the next major version. */
+    readonly "adapter_raid_actions": Omit<typeof tablesSchema.schemaType.tables["adapterRaidActions"], "accessorName"> & { readonly accessorName: "adapter_raid_actions" };
+    /** @deprecated Use `adapterRaidAttempts` instead. This alias will be removed in the next major version. */
+    readonly "adapter_raid_attempts": Omit<typeof tablesSchema.schemaType.tables["adapterRaidAttempts"], "accessorName"> & { readonly accessorName: "adapter_raid_attempts" };
     /** @deprecated Use `adapterReceipt` instead. This alias will be removed in the next major version. */
     readonly "adapter_receipt": Omit<typeof tablesSchema.schemaType.tables["adapterReceipt"], "accessorName"> & { readonly accessorName: "adapter_receipt" };
+    /** @deprecated Use `adapterRodReinforcements` instead. This alias will be removed in the next major version. */
+    readonly "adapter_rod_reinforcements": Omit<typeof tablesSchema.schemaType.tables["adapterRodReinforcements"], "accessorName"> & { readonly accessorName: "adapter_rod_reinforcements" };
     /** @deprecated Use `adapterRods` instead. This alias will be removed in the next major version. */
     readonly "adapter_rods": Omit<typeof tablesSchema.schemaType.tables["adapterRods"], "accessorName"> & { readonly accessorName: "adapter_rods" };
     /** @deprecated Use `adapterSaleQuote` instead. This alias will be removed in the next major version. */
@@ -1013,8 +1165,14 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_profile": Omit<typeof tablesSchema.schemaType.tables["myProfile"], "accessorName"> & { readonly accessorName: "my_profile" };
     /** @deprecated Use `myQuests` instead. This alias will be removed in the next major version. */
     readonly "my_quests": Omit<typeof tablesSchema.schemaType.tables["myQuests"], "accessorName"> & { readonly accessorName: "my_quests" };
+    /** @deprecated Use `myRaidActions` instead. This alias will be removed in the next major version. */
+    readonly "my_raid_actions": Omit<typeof tablesSchema.schemaType.tables["myRaidActions"], "accessorName"> & { readonly accessorName: "my_raid_actions" };
+    /** @deprecated Use `myRaidAttempts` instead. This alias will be removed in the next major version. */
+    readonly "my_raid_attempts": Omit<typeof tablesSchema.schemaType.tables["myRaidAttempts"], "accessorName"> & { readonly accessorName: "my_raid_attempts" };
     /** @deprecated Use `myRecentCatches` instead. This alias will be removed in the next major version. */
     readonly "my_recent_catches": Omit<typeof tablesSchema.schemaType.tables["myRecentCatches"], "accessorName"> & { readonly accessorName: "my_recent_catches" };
+    /** @deprecated Use `myRodReinforcements` instead. This alias will be removed in the next major version. */
+    readonly "my_rod_reinforcements": Omit<typeof tablesSchema.schemaType.tables["myRodReinforcements"], "accessorName"> & { readonly accessorName: "my_rod_reinforcements" };
     /** @deprecated Use `myRods` instead. This alias will be removed in the next major version. */
     readonly "my_rods": Omit<typeof tablesSchema.schemaType.tables["myRods"], "accessorName"> & { readonly accessorName: "my_rods" };
     /** @deprecated Use `myService` instead. This alias will be removed in the next major version. */
@@ -1049,6 +1207,7 @@ const tableAccessorAliases = {
   "angler_title": "anglerTitle",
   "bait_definition": "baitDefinition",
   "biome_definition": "biomeDefinition",
+  "community_raid_event": "communityRaidEvent",
   "earned_achievement": "earnedAchievement",
   "game_config": "gameConfig",
   "haul_equipment_definition": "haulEquipmentDefinition",
@@ -1058,6 +1217,9 @@ const tableAccessorAliases = {
   "quality_definition": "qualityDefinition",
   "quest_calendar": "questCalendar",
   "quest_definition": "questDefinition",
+  "raid_badge": "raidBadge",
+  "raid_grade_definition": "raidGradeDefinition",
+  "raid_statistics": "raidStatistics",
   "rank_maximum": "rankMaximum",
   "rarity_definition": "rarityDefinition",
   "rod_bonuses": "rodBonuses",
@@ -1083,7 +1245,10 @@ const tableAccessorAliases = {
   "adapter_licences": "adapterLicences",
   "adapter_player": "adapterPlayer",
   "adapter_quests": "adapterQuests",
+  "adapter_raid_actions": "adapterRaidActions",
+  "adapter_raid_attempts": "adapterRaidAttempts",
   "adapter_receipt": "adapterReceipt",
+  "adapter_rod_reinforcements": "adapterRodReinforcements",
   "adapter_rods": "adapterRods",
   "adapter_sale_quote": "adapterSaleQuote",
   "adapter_shop_quote": "adapterShopQuote",
@@ -1108,7 +1273,10 @@ const tableAccessorAliases = {
   "my_player": "myPlayer",
   "my_profile": "myProfile",
   "my_quests": "myQuests",
+  "my_raid_actions": "myRaidActions",
+  "my_raid_attempts": "myRaidAttempts",
   "my_recent_catches": "myRecentCatches",
+  "my_rod_reinforcements": "myRodReinforcements",
   "my_rods": "myRods",
   "my_service": "myService",
   "my_shop_quote": "myShopQuote",
@@ -1149,6 +1317,8 @@ export type DbView = __DbViewBase & {
   readonly "bait_definition": __DbViewBase["baitDefinition"];
   /** @deprecated Use `biomeDefinition` instead. This alias will be removed in the next major version. */
   readonly "biome_definition": __DbViewBase["biomeDefinition"];
+  /** @deprecated Use `communityRaidEvent` instead. This alias will be removed in the next major version. */
+  readonly "community_raid_event": __DbViewBase["communityRaidEvent"];
   /** @deprecated Use `earnedAchievement` instead. This alias will be removed in the next major version. */
   readonly "earned_achievement": __DbViewBase["earnedAchievement"];
   /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
@@ -1167,6 +1337,12 @@ export type DbView = __DbViewBase & {
   readonly "quest_calendar": __DbViewBase["questCalendar"];
   /** @deprecated Use `questDefinition` instead. This alias will be removed in the next major version. */
   readonly "quest_definition": __DbViewBase["questDefinition"];
+  /** @deprecated Use `raidBadge` instead. This alias will be removed in the next major version. */
+  readonly "raid_badge": __DbViewBase["raidBadge"];
+  /** @deprecated Use `raidGradeDefinition` instead. This alias will be removed in the next major version. */
+  readonly "raid_grade_definition": __DbViewBase["raidGradeDefinition"];
+  /** @deprecated Use `raidStatistics` instead. This alias will be removed in the next major version. */
+  readonly "raid_statistics": __DbViewBase["raidStatistics"];
   /** @deprecated Use `rankMaximum` instead. This alias will be removed in the next major version. */
   readonly "rank_maximum": __DbViewBase["rankMaximum"];
   /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
@@ -1217,8 +1393,14 @@ export type DbView = __DbViewBase & {
   readonly "adapter_player": __DbViewBase["adapterPlayer"];
   /** @deprecated Use `adapterQuests` instead. This alias will be removed in the next major version. */
   readonly "adapter_quests": __DbViewBase["adapterQuests"];
+  /** @deprecated Use `adapterRaidActions` instead. This alias will be removed in the next major version. */
+  readonly "adapter_raid_actions": __DbViewBase["adapterRaidActions"];
+  /** @deprecated Use `adapterRaidAttempts` instead. This alias will be removed in the next major version. */
+  readonly "adapter_raid_attempts": __DbViewBase["adapterRaidAttempts"];
   /** @deprecated Use `adapterReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_receipt": __DbViewBase["adapterReceipt"];
+  /** @deprecated Use `adapterRodReinforcements` instead. This alias will be removed in the next major version. */
+  readonly "adapter_rod_reinforcements": __DbViewBase["adapterRodReinforcements"];
   /** @deprecated Use `adapterRods` instead. This alias will be removed in the next major version. */
   readonly "adapter_rods": __DbViewBase["adapterRods"];
   /** @deprecated Use `adapterSaleQuote` instead. This alias will be removed in the next major version. */
@@ -1267,8 +1449,14 @@ export type DbView = __DbViewBase & {
   readonly "my_profile": __DbViewBase["myProfile"];
   /** @deprecated Use `myQuests` instead. This alias will be removed in the next major version. */
   readonly "my_quests": __DbViewBase["myQuests"];
+  /** @deprecated Use `myRaidActions` instead. This alias will be removed in the next major version. */
+  readonly "my_raid_actions": __DbViewBase["myRaidActions"];
+  /** @deprecated Use `myRaidAttempts` instead. This alias will be removed in the next major version. */
+  readonly "my_raid_attempts": __DbViewBase["myRaidAttempts"];
   /** @deprecated Use `myRecentCatches` instead. This alias will be removed in the next major version. */
   readonly "my_recent_catches": __DbViewBase["myRecentCatches"];
+  /** @deprecated Use `myRodReinforcements` instead. This alias will be removed in the next major version. */
+  readonly "my_rod_reinforcements": __DbViewBase["myRodReinforcements"];
   /** @deprecated Use `myRods` instead. This alias will be removed in the next major version. */
   readonly "my_rods": __DbViewBase["myRods"];
   /** @deprecated Use `myService` instead. This alias will be removed in the next major version. */
@@ -1297,6 +1485,8 @@ export type Tables = __TablesBase & {
   readonly "bait_definition": __TablesBase["baitDefinition"];
   /** @deprecated Use `biomeDefinition` instead. This alias will be removed in the next major version. */
   readonly "biome_definition": __TablesBase["biomeDefinition"];
+  /** @deprecated Use `communityRaidEvent` instead. This alias will be removed in the next major version. */
+  readonly "community_raid_event": __TablesBase["communityRaidEvent"];
   /** @deprecated Use `earnedAchievement` instead. This alias will be removed in the next major version. */
   readonly "earned_achievement": __TablesBase["earnedAchievement"];
   /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
@@ -1315,6 +1505,12 @@ export type Tables = __TablesBase & {
   readonly "quest_calendar": __TablesBase["questCalendar"];
   /** @deprecated Use `questDefinition` instead. This alias will be removed in the next major version. */
   readonly "quest_definition": __TablesBase["questDefinition"];
+  /** @deprecated Use `raidBadge` instead. This alias will be removed in the next major version. */
+  readonly "raid_badge": __TablesBase["raidBadge"];
+  /** @deprecated Use `raidGradeDefinition` instead. This alias will be removed in the next major version. */
+  readonly "raid_grade_definition": __TablesBase["raidGradeDefinition"];
+  /** @deprecated Use `raidStatistics` instead. This alias will be removed in the next major version. */
+  readonly "raid_statistics": __TablesBase["raidStatistics"];
   /** @deprecated Use `rankMaximum` instead. This alias will be removed in the next major version. */
   readonly "rank_maximum": __TablesBase["rankMaximum"];
   /** @deprecated Use `rarityDefinition` instead. This alias will be removed in the next major version. */
@@ -1365,8 +1561,14 @@ export type Tables = __TablesBase & {
   readonly "adapter_player": __TablesBase["adapterPlayer"];
   /** @deprecated Use `adapterQuests` instead. This alias will be removed in the next major version. */
   readonly "adapter_quests": __TablesBase["adapterQuests"];
+  /** @deprecated Use `adapterRaidActions` instead. This alias will be removed in the next major version. */
+  readonly "adapter_raid_actions": __TablesBase["adapterRaidActions"];
+  /** @deprecated Use `adapterRaidAttempts` instead. This alias will be removed in the next major version. */
+  readonly "adapter_raid_attempts": __TablesBase["adapterRaidAttempts"];
   /** @deprecated Use `adapterReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_receipt": __TablesBase["adapterReceipt"];
+  /** @deprecated Use `adapterRodReinforcements` instead. This alias will be removed in the next major version. */
+  readonly "adapter_rod_reinforcements": __TablesBase["adapterRodReinforcements"];
   /** @deprecated Use `adapterRods` instead. This alias will be removed in the next major version. */
   readonly "adapter_rods": __TablesBase["adapterRods"];
   /** @deprecated Use `adapterSaleQuote` instead. This alias will be removed in the next major version. */
@@ -1415,8 +1617,14 @@ export type Tables = __TablesBase & {
   readonly "my_profile": __TablesBase["myProfile"];
   /** @deprecated Use `myQuests` instead. This alias will be removed in the next major version. */
   readonly "my_quests": __TablesBase["myQuests"];
+  /** @deprecated Use `myRaidActions` instead. This alias will be removed in the next major version. */
+  readonly "my_raid_actions": __TablesBase["myRaidActions"];
+  /** @deprecated Use `myRaidAttempts` instead. This alias will be removed in the next major version. */
+  readonly "my_raid_attempts": __TablesBase["myRaidAttempts"];
   /** @deprecated Use `myRecentCatches` instead. This alias will be removed in the next major version. */
   readonly "my_recent_catches": __TablesBase["myRecentCatches"];
+  /** @deprecated Use `myRodReinforcements` instead. This alias will be removed in the next major version. */
+  readonly "my_rod_reinforcements": __TablesBase["myRodReinforcements"];
   /** @deprecated Use `myRods` instead. This alias will be removed in the next major version. */
   readonly "my_rods": __TablesBase["myRods"];
   /** @deprecated Use `myService` instead. This alias will be removed in the next major version. */

@@ -115,6 +115,24 @@ pub struct Snapshot {
     pub listings: Vec<ShopListing>,
     pub config: GameConfig,
     pub receipt: Option<CommandReceipt>,
+    pub raid_attempts: Vec<RaidAttempt>,
+    pub raid_actions: Vec<RaidActionReceipt>,
+    pub raid_grades: Vec<RaidGradeDefinition>,
+    pub community_raids: Vec<CommunityRaidEvent>,
+    pub raid_badges: Vec<RaidBadge>,
+    pub rod_reinforcements: Vec<RodReinforcement>,
+    pub raid_statistics: Vec<RaidStatistics>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum RaidAction {
+    Prepare { species_id: u32, grade: u8 },
+    PrepareCommunity { event_id: u64 },
+    Deploy { attempt_id: u128 },
+    Cancel { attempt_id: u128 },
+    Claim { attempt_id: u128 },
+    Refine { material_id: u8, from_grade: u8, batches: u32 },
+    Reinforce { rod_id: u32, expected_level: u8 },
 }
 
 impl Client {
@@ -180,6 +198,8 @@ impl Client {
                     queries.extend(["SELECT * FROM quest_definition", "SELECT * FROM adapter_quests", "SELECT * FROM public_profile", "SELECT * FROM angler_portrait", "SELECT * FROM angler_standing", "SELECT * FROM angler_statistics", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM perfect_species", "SELECT * FROM rank_maximum", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
                     queries.extend(["SELECT * FROM bait_definition", "SELECT * FROM quality_definition", "SELECT * FROM adapter_baits", "SELECT * FROM adapter_bait_loadout", "SELECT * FROM adapter_collection_focus", "SELECT * FROM adapter_items", "SELECT * FROM adapter_cast_pulls", "SELECT * FROM adapter_cast_equipment", "SELECT * FROM adapter_upgrade_quote", "SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
                         "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_bonuses", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
+                    queries.extend(["SELECT * FROM adapter_raid_attempts", "SELECT * FROM adapter_raid_actions", "SELECT * FROM adapter_rod_reinforcements",
+                        "SELECT * FROM raid_grade_definition", "SELECT * FROM community_raid_event", "SELECT * FROM raid_badge", "SELECT * FROM raid_statistics"]);
                 }
                 conn.subscription_builder().on_applied(move |ctx| {
                     let authorized = ctx.db.my_service().iter().any(|service| service.active && service.role == role);
@@ -856,6 +876,110 @@ impl Client {
         .await
     }
 
+    pub async fn raid_action(
+        &self,
+        discord_user_id: u64,
+        display_name: String,
+        interaction_id: u64,
+        action: RaidAction,
+    ) -> Result<Snapshot, Error> {
+        let _guard = self.selection_guard().await?;
+        for retry in 0..2 {
+            let connection = self.active_connection().await?;
+            let result = async {
+                Self::player_once(
+                    &connection,
+                    discord_user_id,
+                    display_name.clone(),
+                    interaction_id,
+                    None,
+                    1,
+                    false,
+                )
+                .await?;
+                let (sender, receiver) = oneshot::channel();
+                match action {
+                    RaidAction::Prepare { species_id, grade } => {
+                        connection.reducers.prepare_raid_from_discord_then(
+                            discord_user_id,
+                            interaction_id,
+                            species_id,
+                            grade,
+                            complete(sender),
+                        )?;
+                    }
+                    RaidAction::PrepareCommunity { event_id } => {
+                        connection.reducers.prepare_community_raid_from_discord_then(
+                            discord_user_id,
+                            interaction_id,
+                            event_id,
+                            complete(sender),
+                        )?;
+                    }
+                    RaidAction::Deploy { attempt_id } => {
+                        connection.reducers.deploy_raid_from_discord_then(
+                            discord_user_id,
+                            interaction_id,
+                            attempt_id,
+                            complete(sender),
+                        )?;
+                    }
+                    RaidAction::Cancel { attempt_id } => {
+                        connection.reducers.cancel_raid_from_discord_then(
+                            discord_user_id,
+                            interaction_id,
+                            attempt_id,
+                            complete(sender),
+                        )?;
+                    }
+                    RaidAction::Claim { attempt_id } => {
+                        connection.reducers.claim_raid_from_discord_then(
+                            discord_user_id,
+                            interaction_id,
+                            attempt_id,
+                            complete(sender),
+                        )?;
+                    }
+                    RaidAction::Refine { material_id, from_grade, batches } => {
+                        connection.reducers.refine_raid_material_from_discord_then(
+                            discord_user_id,
+                            interaction_id,
+                            material_id,
+                            from_grade,
+                            batches,
+                            complete(sender),
+                        )?;
+                    }
+                    RaidAction::Reinforce { rod_id, expected_level } => {
+                        connection.reducers.reinforce_rod_from_discord_then(
+                            discord_user_id,
+                            interaction_id,
+                            rod_id,
+                            expected_level,
+                            complete(sender),
+                        )?;
+                    }
+                }
+                receive(receiver).await?;
+                Self::player_once(
+                    &connection,
+                    discord_user_id,
+                    display_name.clone(),
+                    interaction_id,
+                    None,
+                    1,
+                    false,
+                )
+                .await
+            }
+            .await;
+            if result.is_ok() || connection.is_active() || retry == 1 {
+                return result;
+            }
+        }
+        unreachable!("bounded raid-action retry reuses its interaction ID")
+    }
+
     pub async fn set_collection_focus(
         &self,
         discord_user_id: u64,
@@ -988,6 +1112,7 @@ impl Client {
             .iter()
             .find(|row| row.discord_user_id == discord_user_id)
             .ok_or("Player view unavailable")?;
+        let selected_player_id = player.player_id;
         let receipt =
             connection.db.adapter_receipt().iter().find(|row| {
                 row.interaction_id == interaction_id && row.player_id == player.player_id
@@ -1033,6 +1158,23 @@ impl Client {
                 .iter()
                 .max_by_key(|row| row.version)
                 .ok_or("Rules unavailable")?,
+            raid_attempts: connection.db.adapter_raid_attempts().iter().collect(),
+            raid_actions: connection.db.adapter_raid_actions().iter().collect(),
+            raid_grades: connection.db.raid_grade_definition().iter().collect(),
+            community_raids: connection.db.community_raid_event().iter().collect(),
+            raid_badges: connection
+                .db
+                .raid_badge()
+                .iter()
+                .filter(|row| row.player_id == selected_player_id)
+                .collect(),
+            rod_reinforcements: connection.db.adapter_rod_reinforcements().iter().collect(),
+            raid_statistics: connection
+                .db
+                .raid_statistics()
+                .iter()
+                .filter(|row| row.player_id == selected_player_id)
+                .collect(),
         })
     }
 

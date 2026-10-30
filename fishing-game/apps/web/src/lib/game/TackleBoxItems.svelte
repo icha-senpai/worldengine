@@ -1,10 +1,24 @@
 <script lang="ts">
   import type { ItemStack } from '@fishing-game/generated/types';
+  import policy from '../../../../../content/raids.json';
+  import { itemSlot } from './raid-items';
+  import { raidArtwork } from './raid-art';
 
   let { items }: { items: ItemStack[] } = $props();
-  const definitions: Record<string, { name: string; image: string; kind: string }> = {
+  const definitions: Record<string, { name: string; image?: string; kind: string }> = {
     rusted_tin: { name: 'Rusted tin', image: '/items/rusted-tin.png', kind: 'Junk' },
-    scrap: { name: 'Scrap', image: '/items/scrap.png', kind: 'Material' }
+    scrap: { name: 'Scrap', image: '/items/scrap.png', kind: 'Material' },
+    raid_supplies: { name: 'Expedition Chum', image: raidArtwork('supply') ?? '', kind: 'Raid supply' }
+  };
+  const raidMaterial = (slot: number) => {
+    const material = policy.materials.find(row => slot >= row.slotBase && slot < row.slotBase + policy.grades.length);
+    if (!material) return undefined;
+    const grade = slot - material.slotBase;
+    return {
+      name: `${material.name} · ${policy.grades[grade].name}`,
+      kind: 'Raid material',
+      image: raidArtwork(material.key, grade)
+    };
   };
   const stacks = $derived(items.filter(item => item.quantity > 0n).slice().sort((a, b) => a.item.localeCompare(b.item)));
 </script>
@@ -15,11 +29,14 @@
     <div class="item-grid">
       {#each stacks as item (item.key)}
         {@const definition = definitions[item.item]}
-        <article class="item-stack" aria-label={(definition?.name ?? item.item.replaceAll('_', ' ')) + ': ' + item.quantity.toString()}>
+        {@const raidDefinition = raidMaterial(itemSlot(item.key))}
+        {@const displayName = definition?.name ?? raidDefinition?.name ?? item.item.replaceAll('_', ' ')}
+        {@const image = definition?.image || raidDefinition?.image}
+        <article class="item-stack" aria-label={displayName + ': ' + item.quantity.toString()}>
           <div class="item-art" aria-hidden="true">
-            {#if definition}<img src={definition.image} alt="" width="96" height="96" />{:else}<span>✦</span>{/if}
+            {#if image}<img src={image} alt="" width="96" height="96" />{:else}<span>{item.item === 'raid_supplies' ? '⚓' : '?'}</span>{/if}
           </div>
-          <div class="item-info"><small>{definition?.kind ?? 'Item'}</small><h4>{definition?.name ?? item.item.replaceAll('_', ' ')}</h4></div>
+          <div class="item-info"><small>{definition?.kind ?? raidDefinition?.kind ?? 'Item'}</small><h4>{displayName}</h4></div>
           <div class="quantity"><small>Owned</small><strong>×{item.quantity.toString()}</strong></div>
         </article>
       {/each}

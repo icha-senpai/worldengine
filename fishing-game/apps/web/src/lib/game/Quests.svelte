@@ -2,7 +2,19 @@
   import type { Game } from './game.svelte';
   import type { QuestDefinition } from '@fishing-game/generated/types';
   import { formatLength, formatWeight } from './measurements';
+  import RaidBoard from './RaidBoard.svelte';
+  import SectionTabs from './SectionTabs.svelte';
   let { game }: { game: Game } = $props();
+  type QuestSection = 'raids' | 'community' | 'dailies' | 'quests';
+  const questTabs: { id: QuestSection; label: string }[] = [
+    { id: 'raids', label: 'Raids' },
+    { id: 'community', label: 'Community Expeditions' },
+    { id: 'dailies', label: 'Dailies' },
+    { id: 'quests', label: 'Quests' }
+  ];
+  let questSection = $state<QuestSection>('raids');
+  const raidMode = $derived(questSection === 'community' ? 'community' : 'raids');
+  function openActiveRaid() { questSection = 'raids'; }
   let choices = $state<Record<number, number>>({});
   let catches = $state<Record<number, string>>({});
   let pending = $state<{ definition: QuestDefinition; baitId: number; catchId: bigint | undefined; week: bigint; cycle: bigint } | null>(null);
@@ -82,19 +94,35 @@
 {/snippet}
 
 <section class="quest-board" aria-label="Quests and Dockside contracts">
-  <section class="dockside" aria-labelledby="dockside-heading">
-    <h2 id="dockside-heading">Dockside Delivery</h2>
-    {#if game.dockside}
-      <article class="daily"><div><h3>Daily supply parcel</h3><p>Missed days never erase stamps.</p><p><strong>{game.dockside.stamps}/7 stamps</strong> · +250 gold on the seventh stamp.</p></div><button class="game-button" disabled={!game.ready || game.busy || !game.dockside.available} onclick={() => game.claimDockside()}>{game.dockside.available ? `Collect ${game.dockside.nextReward} gold` : 'Collected today'}</button></article>
-    {/if}
-    {@render questChain('Dockside Contracts')}
-    {@render questChain('Dockside Jobs')}
-  </section>
-  <section class="stories" aria-labelledby="stories-heading">
-    <div class="board-intro"><p class="eyebrow">A FEW FAMILIAR FACES</p><h2 id="stories-heading">Stories from the dock</h2><p>Open a story, then a part to read and claim. Your progress counts automatically. Only confirmed deliveries take a fish from your tackle box.</p></div>
-    {#each storyChains as chain}{@render questChain(chain)}{/each}
-  </section>
-  {#if !game.questDefinitions.length}<p class="empty">The quest board is being prepared.</p>{/if}
+  <SectionTabs tabs={questTabs} value={questSection} prefix="quest" label="Quest sections" onselect={value => questSection = value} />
+  {#if questSection === 'raids' || questSection === 'community'}
+    <div role="tabpanel" id={`quest-panel-${questSection}`} aria-labelledby={`quest-tab-${questSection}`} tabindex="0">
+      <RaidBoard {game} mode={raidMode} onOpenActive={openActiveRaid} />
+    </div>
+  {:else if questSection === 'dailies'}
+    <div class="daily-section" role="tabpanel" id="quest-panel-dailies" aria-labelledby="quest-tab-dailies" tabindex="0">
+      <h2 id="dailies-heading">Dailies</h2>
+      {#if game.dockside}
+        <article class="daily"><div><h3>Daily supply parcel</h3><p>Missed days never erase stamps.</p><p><strong>{game.dockside.stamps}/7 stamps</strong> · +250 gold on the seventh stamp.</p></div><button class="game-button" disabled={!game.ready || game.busy || !game.dockside.available} onclick={() => game.claimDockside()}>{game.dockside.available ? `Collect ${game.dockside.nextReward} gold` : 'Collected today'}</button></article>
+      {:else}
+        <p class="muted">Loading your daily supply parcel…</p>
+      {/if}
+    </div>
+  {:else}
+    <div class="quest-content" role="tabpanel" id="quest-panel-quests" aria-labelledby="quest-tab-quests" tabindex="0">
+      <h2>Quests</h2>
+      <section class="dockside" aria-labelledby="dockside-heading">
+        <h2 id="dockside-heading">Dockside Delivery</h2>
+        {@render questChain('Dockside Contracts')}
+        {@render questChain('Dockside Jobs')}
+      </section>
+      <section class="stories" aria-labelledby="stories-heading">
+        <div class="board-intro"><p class="eyebrow">A FEW FAMILIAR FACES</p><h2 id="stories-heading">Stories from the dock</h2><p>Open a story, then a part to read and claim. Your progress counts automatically. Only confirmed deliveries take a fish from your tackle box.</p></div>
+        {#each storyChains as chain}{@render questChain(chain)}{/each}
+      </section>
+      {#if !game.questDefinitions.length}<p class="empty">The quest board is being prepared.</p>{/if}
+    </div>
+  {/if}
 </section>
 
 <dialog bind:this={confirmation} oncancel={() => pending = null} aria-labelledby="quest-confirm-title">

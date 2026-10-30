@@ -1,3 +1,5 @@
+mod raid_commands;
+
 use discord_bot::achievement_notifications::AchievementNotifications;
 use discord_bot::catch_art::{CatchArt, Material, ROD_QUALITY_COLORS, rank_color};
 use discord_bot::measurements::{format_length, format_weight};
@@ -934,9 +936,30 @@ async fn rod(
         .find(|row| row.rod_id == id)
         .ok_or("Missing rod")?;
     let (quality, power, luck, xp) = rod_stats(&result, id);
+    let reinforcement_level = result
+        .rod_reinforcements
+        .iter()
+        .find(|row| row.rod_id == id)
+        .map_or(0, |row| row.level);
+    let reinforcement = reinforcement_level
+        .checked_sub(1)
+        .and_then(|grade| result.raid_grades.iter().find(|row| row.grade == grade))
+        .map_or_else(|| "Unreinforced".into(), |grade| format!("{}-reinforced", grade.name));
+    let focus = reinforcement_level
+        .checked_sub(1)
+        .and_then(|grade| result.raid_grades.iter().find(|row| row.grade == grade))
+        .map_or_else(
+            || "Unreinforced rods keep the base missing-rank Collection Focus behavior and have no reinforcement endpoint bonus rolls.".into(),
+            |grade| format!(
+                "This rod provides {}% missing-rank Focus chance when Focus is enabled for a mastered biome. Its {} authored UUR endpoint bonus rolls apply only to an ordinary fish currently at UUR after all ten ranks of that species are recorded. Special species are excluded.",
+                grade.focus_chance_bp / 100,
+                grade.perfect_bonus_rolls,
+            ),
+        );
     let description = format!(
-        "**{} {}**\n{} · shown by **{}**\n\n**{} power** · **{:.1}%** bonus-pull chance\n**+{:.1}% luck** · **+{:.1}% catch XP**",
+        "**{} {} {}**\n{} · shown by **{}**\n\n**{} power** · **{:.1}%** bonus-pull chance\n**+{:.1}% luck** · **+{:.1}% catch XP**\n\n**Collection Focus** · {}",
         quality,
+        reinforcement,
         definition.name,
         if id == result.player.equipped_rod_id {
             "Equipped"
@@ -948,6 +971,7 @@ async fn rod(
         power as f64 / 2.0,
         luck as f64 / 100.0,
         xp as f64 / 100.0,
+        focus,
     );
     let color = ROD_QUALITY_COLORS
         .get(usize::from(owned.upgrade_level))
@@ -1023,7 +1047,7 @@ fn rod_stats(result: &Snapshot, rod_id: u32) -> (&str, u32, u32, u32) {
 }
 
 fn commands() -> Vec<poise::Command<Data, Error>> {
-    vec![fish(), fishboat(), fishnet(), daily(), rod(), profile()]
+    vec![fish(), fishboat(), fishnet(), daily(), rod(), profile(), raid_commands::raid()]
 }
 
 fn is_fishbound_command(name: &str) -> bool {
@@ -1035,6 +1059,7 @@ fn is_fishbound_command(name: &str) -> bool {
             | "daily"
             | "rod"
             | "profile"
+            | "raid"
             | "quests"
             | "shop"
             | "inventory"
@@ -1070,13 +1095,12 @@ mod command_tests {
             .collect();
         assert_eq!(
             names,
-            ["fish", "fishboat", "fishnet", "daily", "rod", "profile"]
+            ["fish", "fishboat", "fishnet", "daily", "rod", "profile", "raid"]
         );
-        assert!(
-            commands
-                .iter()
-                .all(|command| command.slash_action.is_some() && command.subcommands.is_empty())
-        );
+        assert!(commands.iter().filter(|command| command.name != "raid")
+            .all(|command| command.slash_action.is_some() && command.subcommands.is_empty()));
+        let raid = commands.iter().find(|command| command.name == "raid").unwrap();
+        assert_eq!(raid.subcommands.len(), 9);
     }
 
     #[test]
@@ -1094,6 +1118,7 @@ mod command_tests {
             "biome",
             "inventory",
             "leaderboard",
+            "raid",
         ] {
             assert!(is_fishbound_command(name));
         }
