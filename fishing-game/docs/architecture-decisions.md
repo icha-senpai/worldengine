@@ -2,7 +2,7 @@
 
 1. Follow the asynchronous collection-game architecture: Rust authority, Rust
    Discord adapter, SvelteKit companion. A canvas engine is unnecessary.
-2. Pin the CLI, module crate, native SDK, and npm SDK to SpaceTimeDB 2.10.2.
+2. Pin the CLI, module crate, native SDK, and npm SDK to SpaceTimeDB 2.12.0.
    Build the module separately for WASM; native checks cover rules and services.
 3. Use Serenity 0.12.5 with Poise 0.7.0. Poise's optional cache/chrono defaults
    are disabled; panic handling is enabled. Read interaction IDs directly from
@@ -21,7 +21,7 @@
 7. Generate TypeScript in packages/generated and Rust in crates/game-client from
    the built WASM. The SDK skips raw private tables while generating scoped views
    and needed types. Never hand-edit generated bindings.
-8. TypeScript reducer calls return awaitable promises. Native 2.10.2 transport
+8. TypeScript reducer calls return awaitable promises. Native 2.12.0 transport
    uses generated *_then callbacks with nested completion results. Read confirmed
    result rows rather than trusting transport submission or inventing outcomes.
 9. Adapter views select one player/request per service identity. Shared native

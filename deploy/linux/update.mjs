@@ -158,8 +158,7 @@ async function main() {
   if (await exists(maintenance) && !pending) throw new Error('Maintenance was enabled outside this updater; leaving it intact.');
   const space = resolve(root, 'space'), fish = resolve(root, 'fishing-game');
   const collectorEnv = await productionEnvironment(resolve(space, '.runtime/production-collector.env'));
-  const fishBuildEnv = { ...process.env, FISHBOUND_TYPESCRIPT_CLI: cli,
-    FISHBOUND_RUST_CLI: '/stdb/bin/2.10.2/spacetimedb-cli' };
+  const fishBuildEnv = { ...process.env, FISHBOUND_TYPESCRIPT_CLI: cli, FISHBOUND_RUST_CLI: cli };
   if (changed.length) console.log('Building and checking candidates before switching production.');
   if (plan.spaceWeb) await buildWebsite('space', root);
   else if (plan.collector || plan.bitcraft || plan.evergather) await run('npm', ['ci', '--include=dev'], space);

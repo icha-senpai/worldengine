@@ -205,3 +205,19 @@ and browser identity until the UI check and explicit cleanup are complete.
 The completed run left no temporary proof database, browser identity or Rust
 build cache. Matching WASM/contracts, website and both native release programs
 were built locally; live command registration and delivery remain undeployed.
+
+## Haul statistics
+
+Each completed boat or net haul counts as exactly one completed cast. Its
+scheduled catches never count as rod bonus pulls: a private per-player
+`haul_statistics` counter records extra haul catches (boat nine, net three)
+durable from the first trip onward, so the lifetime bonus-pull projection is
+`(fish + junk + treasure) - completed_casts - extra_haul_pulls`. The bonus rate
+denominator still includes every completed cast, matching the existing display.
+When the counter is absent it is lazily recovered once from the caller's own
+durable journal pull keys — contiguous haul groups only; inconsistent history
+fails closed — and an existing counter is never rebuilt from history, so repair
+is idempotent and touches no rewards or player data. Deploying this module plus
+the existing owner-only `backfill_player_statistics` (or any later statistics
+refresh) is what updates real persisted projections; no public fields were
+added and no gameplay data changes.

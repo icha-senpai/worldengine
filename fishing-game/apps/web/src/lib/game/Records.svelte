@@ -33,7 +33,7 @@
     { key: 'uurCount', name: 'Trophy Hunters', unit: 'UUR catches', description: 'Lifetime UUR fish catches, including Fihs. Every trophy counts, even after selling.', icon: '✦' },
     { key: 'recordsHeld', name: 'Record Holders', unit: 'records', description: 'Current longest and heaviest species records. Each title counts once and can change hands.', icon: '♛' },
     { key: 'totalCasts', name: 'Most Casts', unit: 'casts', description: 'Completed casts across all waters.', icon: '🎣' },
-    { key: 'bonusPulls', name: 'Bonus Pulls', unit: 'bonus pulls', description: 'Extra catches beyond the first pull of each cast.', icon: '✦' },
+    { key: 'bonusPulls', name: 'Bonus Pulls', unit: 'bonus pulls', description: 'Extra catches from rod bonus pulls. Boat and net haul catches do not count.', icon: '✦' },
     { key: 'treasureCount', name: 'Treasure Hunters', unit: 'treasures', description: 'Lifetime treasure catches.', icon: '◇' },
     { key: 'junkCount', name: 'Cleanup Crew', unit: 'junk catches', description: 'Lifetime junk catches.', icon: '♻' },
     { key: 'collectionPairs', name: 'Rank Collectors', unit: 'pairs', description: 'Distinct ordinary species and rank combinations discovered.', icon: '▤' },

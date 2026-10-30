@@ -82,15 +82,131 @@ fn bonus(stats: &mut AnglerStatistics, outcome: &str) -> Result<(), String> {
     }
 }
 
+fn lifetime_bonus_pulls(player: &Player, extra_pulls: u64) -> Result<u64, String> {
+    player
+        .fish_count
+        .checked_add(player.junk_count)
+        .and_then(|n| n.checked_add(player.treasure_count))
+        .and_then(|n| n.checked_sub(player.completed_casts))
+        .and_then(|n| n.checked_sub(extra_pulls))
+        .ok_or("INVALID_LIFETIME_TOTALS".into())
+}
+
+fn bonus_history_complete(stats: &AnglerStatistics) -> bool {
+    stats
+        .bonus_fish
+        .checked_add(stats.bonus_junk)
+        .and_then(|n| n.checked_add(stats.bonus_treasure))
+        == Some(stats.bonus_pulls)
+}
+
+struct JournalAccounting {
+    bonus_fish: u64,
+    bonus_junk: u64,
+    bonus_treasure: u64,
+    extra_haul_pulls: u64,
+}
+
+/// Pull keys encode `interaction_id << 8 | pull_index`. A group with any index
+/// at or above 2 is a scheduled haul; all earlier indices must be present or the
+/// group is rejected instead of guessed. Only a single-pull-pair group can prove
+/// a genuine rod bonus, with its recorded outcome type.
+fn recover_journal(ctx: &ReducerContext, player_id: u64) -> Result<JournalAccounting, String> {
+    let mut groups: BTreeMap<u64, BTreeMap<u8, String>> = BTreeMap::new();
+    for entry in ctx.db.journal_entry().player_id().filter(player_id) {
+        let Some(key) = entry
+            .key
+            .strip_prefix("pull:")
+            .and_then(|k| k.parse::<u128>().ok())
+        else {
+            continue;
+        };
+        let interaction = u64::try_from(key >> 8).map_err(|_| "INVALID_PULL_KEY")?;
+        let index = u8::try_from(key & 255).map_err(|_| "INVALID_PULL_KEY")?;
+        groups
+            .entry(interaction)
+            .or_default()
+            .insert(index, entry.outcome.clone());
+    }
+    let mut accounting = JournalAccounting {
+        bonus_fish: 0,
+        bonus_junk: 0,
+        bonus_treasure: 0,
+        extra_haul_pulls: 0,
+    };
+    for (_, pulls) in groups {
+        if pulls.keys().any(|index| *index >= 2) {
+            let max = *pulls.keys().max().ok_or("INCOMPLETE_PULL_HISTORY")?;
+            if (0..=max).any(|index| !pulls.contains_key(&index)) {
+                return Err("INCOMPLETE_PULL_HISTORY".into());
+            }
+            accounting.extra_haul_pulls = accounting
+                .extra_haul_pulls
+                .checked_add(u64::from(max))
+                .ok_or("STATISTICS_OVERFLOW")?;
+        } else if let Some(outcome) = pulls.get(&1) {
+            match outcome.as_str() {
+                "fish" => add(&mut accounting.bonus_fish, 1)?,
+                "junk" => add(&mut accounting.bonus_junk, 1)?,
+                "treasure" => add(&mut accounting.bonus_treasure, 1)?,
+                _ => return Err("INVALID_OUTCOME".into()),
+            }
+        }
+    }
+    Ok(accounting)
+}
+
 /// Recover once from durable evidence. Repeating this never resets new statistics.
 pub fn ensure(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
-    if ctx
+    let has_stats = ctx
         .db
         .angler_statistics()
         .player_id()
         .find(player_id)
-        .is_some()
-    {
+        .is_some();
+    let has_haul = ctx
+        .db
+        .haul_statistics()
+        .player_id()
+        .find(player_id)
+        .is_some();
+    if has_stats && has_haul {
+        return Ok(());
+    }
+    let player = ctx
+        .db
+        .player()
+        .player_id()
+        .find(player_id)
+        .ok_or("PLAYER_MISSING")?;
+    let accounting = recover_journal(ctx, player_id)?;
+    if !has_haul {
+        ctx.db.haul_statistics().insert(HaulStatistics {
+            player_id,
+            extra_pulls: accounting.extra_haul_pulls,
+        });
+    }
+    let extra_pulls = ctx
+        .db
+        .haul_statistics()
+        .player_id()
+        .find(player_id)
+        .ok_or("STATISTICS_MISSING")?
+        .extra_pulls;
+    if has_stats {
+        // Upgraded projection: only bonus accounting is repaired in place.
+        let mut stats = ctx
+            .db
+            .angler_statistics()
+            .player_id()
+            .find(player_id)
+            .ok_or("STATISTICS_MISSING")?;
+        stats.bonus_fish = accounting.bonus_fish;
+        stats.bonus_junk = accounting.bonus_junk;
+        stats.bonus_treasure = accounting.bonus_treasure;
+        stats.bonus_pulls = lifetime_bonus_pulls(&player, extra_pulls)?;
+        stats.bonus_history_complete = bonus_history_complete(&stats);
+        ctx.db.angler_statistics().player_id().update(stats);
         return Ok(());
     }
     let player = ctx
@@ -156,16 +272,12 @@ pub fn ensure(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
                 )?;
             }
         }
-        // Original cast keys preserve the pull index. Legacy reconciliation keys do not.
-        if entry
-            .key
-            .strip_prefix("pull:")
-            .and_then(|k| k.parse::<u128>().ok())
-            .is_some_and(|k| k & 255 == 1)
-        {
-            bonus(&mut stats, &entry.outcome)?;
-        }
     }
+    stats.bonus_fish = accounting.bonus_fish;
+    stats.bonus_junk = accounting.bonus_junk;
+    stats.bonus_treasure = accounting.bonus_treasure;
+    stats.bonus_pulls = lifetime_bonus_pulls(&player, extra_pulls)?;
+    stats.bonus_history_complete = bonus_history_complete(&stats);
     stats.recorded_casts = dates.len() as u64;
     for time in dates {
         day(ctx, &mut stats, time)?;
@@ -196,6 +308,25 @@ pub fn observe_cast(ctx: &ReducerContext, player_id: u64, biome_id: u32) -> Resu
     day(ctx, &mut stats, ctx.timestamp)?;
     biome(ctx, player_id, biome_id, 1)?;
     ctx.db.angler_statistics().player_id().update(stats);
+    Ok(())
+}
+
+/// One completed haul counts its first scheduled catch as the cast itself; the
+/// rest are durable extra pulls, never rod bonuses. Requires the counter row
+/// that ensure creates before rewards run.
+pub fn observe_haul_catches(ctx: &ReducerContext, player_id: u64, pull_count: usize) -> Result<(), String> {
+    let mut row = ctx
+        .db
+        .haul_statistics()
+        .player_id()
+        .find(player_id)
+        .ok_or("STATISTICS_MISSING")?;
+    let extra = u64::try_from(pull_count)
+        .map_err(|_| "STATISTICS_OVERFLOW")?
+        .checked_sub(1)
+        .ok_or("INVALID_PULL_COUNT")?;
+    add(&mut row.extra_pulls, extra)?;
+    ctx.db.haul_statistics().player_id().update(row);
     Ok(())
 }
 
@@ -269,22 +400,20 @@ pub fn refresh(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
         .player_id()
         .find(player_id)
         .ok_or("STATISTICS_MISSING")?;
-    stats.display_name = player.display_name;
+    let haul_extra_pulls = ctx
+        .db
+        .haul_statistics()
+        .player_id()
+        .find(player_id)
+        .ok_or("STATISTICS_MISSING")?
+        .extra_pulls;
+    stats.display_name = player.display_name.clone();
     stats.total_casts = player.completed_casts;
     stats.fish_count = player.fish_count;
     stats.junk_count = player.junk_count;
     stats.treasure_count = player.treasure_count;
-    stats.bonus_pulls = player
-        .fish_count
-        .checked_add(player.junk_count)
-        .and_then(|n| n.checked_add(player.treasure_count))
-        .and_then(|n| n.checked_sub(player.completed_casts))
-        .ok_or("INVALID_LIFETIME_TOTALS")?;
-    stats.bonus_history_complete = stats
-        .bonus_fish
-        .checked_add(stats.bonus_junk)
-        .and_then(|n| n.checked_add(stats.bonus_treasure))
-        == Some(stats.bonus_pulls);
+    stats.bonus_pulls = lifetime_bonus_pulls(&player, haul_extra_pulls)?;
+    stats.bonus_history_complete = bonus_history_complete(&stats);
     stats.history_complete = stats.measured_fish_count == player.fish_count
         && stats.recorded_casts == player.completed_casts;
     stats.rank_counts = vec![0; 10];

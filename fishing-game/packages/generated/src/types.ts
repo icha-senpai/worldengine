@@ -368,6 +368,12 @@ export const HaulRequest = __t.object("HaulRequest", {
 });
 export type HaulRequest = __Infer<typeof HaulRequest>;
 
+export const HaulStatistics = __t.object("HaulStatistics", {
+  playerId: __t.u64(),
+  extraPulls: __t.u64(),
+});
+export type HaulStatistics = __Infer<typeof HaulStatistics>;
+
 export const HaulTrip = __t.object("HaulTrip", {
   interactionId: __t.u64(),
   playerId: __t.u64(),

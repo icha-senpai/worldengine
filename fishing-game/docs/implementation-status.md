@@ -45,7 +45,7 @@ The live rules-13 deployment is unchanged pending publication.
 
 ## Settled decisions
 
-- SpaceTimeDB 2.10.2 authority; SvelteKit companion; Serenity 0.12.5 + Poise 0.7.0.
+- SpaceTimeDB 2.12.0 authority; SvelteKit companion; Serenity 0.12.5 + Poise 0.7.0.
 - Plain slash commands; command launch plan in discord-commands.md.
 - One global 60-second cooldown between accepted casts. Rejection/replay does not reset it.
 - All 251 sprite names become stable catalog species; preserve their spelling.

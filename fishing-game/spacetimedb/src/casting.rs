@@ -660,6 +660,9 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
         ctx.db.recent_catch().recent_id().delete(old.recent_id);
     }
     changed_record_holders.push(player.player_id);
+    if !normal_cast {
+        crate::statistics::observe_haul_catches(ctx, player.player_id, pull_count)?;
+    }
     ctx.db.player().player_id().update(player);
     changed_record_holders.sort_unstable();
     changed_record_holders.dedup();

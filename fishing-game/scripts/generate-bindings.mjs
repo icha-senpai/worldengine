@@ -20,11 +20,11 @@ function resolveCli(version, override) {
   }
   return command;
 }
-// The module/browser use 2.12; Rust client codegen stays with its 2.10.2 SDK.
+// Keep TypeScript and Rust bindings aligned with the module's 2.12 SDK.
 const typescriptCli = resolveCli('2.12.0', 'FISHBOUND_TYPESCRIPT_CLI');
-const rustCli = resolveCli('2.10.2', 'FISHBOUND_RUST_CLI');
+const rustCli = resolveCli('2.12.0', 'FISHBOUND_RUST_CLI');
 if (process.argv.includes('--check-cli')) {
-  console.log('Binding generators verified: TypeScript 2.12.0, Rust 2.10.2.');
+  console.log('Binding generators verified: TypeScript and Rust 2.12.0.');
   process.exit(0);
 }
 requireRustWorkflow();

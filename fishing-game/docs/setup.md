@@ -2,14 +2,12 @@
 
 ## Versions
 
-Node 24.15+, npm and Rust 1.97.1. The SpaceTimeDB module and browser SDK use
-2.12.0; the native transport SDK stays on 2.10.2. The TypeScript binding
-generator uses 2.12.0; the Rust binding
-generator stays on 2.10.2. Install both CLI versions. On Windows the binding
-script selects their installed version directories without changing the global
-default. Elsewhere, set `FISHBOUND_TYPESCRIPT_CLI` and `FISHBOUND_RUST_CLI`
-to the respective CLI executables. `npm run bindings -- --check-cli` verifies
-these tools without building or generating files.
+Node 24.15+, npm and Rust 1.97.1. The SpaceTimeDB module, browser SDK, native
+transport SDK and both binding generators use 2.12.0. On Windows the binding
+script selects the installed 2.12.0 CLI without changing the global default.
+Elsewhere, set `FISHBOUND_TYPESCRIPT_CLI` and `FISHBOUND_RUST_CLI` to the CLI
+executable. `npm run bindings -- --check-cli` verifies the tool without building
+or generating files.
 
 `npm run test:module` runs the actual Rust module against SpaceTimeDB's native
 in-memory datastore, including transaction rollback, caller privacy, journal

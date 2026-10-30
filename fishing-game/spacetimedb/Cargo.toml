@@ -9,7 +9,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-module-tests = ["spacetimedb/test-utils", "dep:icu_calendar", "dep:icu_locale"]
+module-tests = ["spacetimedb/test-utils", "spacetimedb/unstable", "dep:icu_calendar", "dep:icu_locale"]
 
 [dependencies]
 spacetimedb = "=2.12.0"

@@ -35,7 +35,7 @@
     <div><dt>Most expensive fish</dt><dd>{stats.biggestSingleSale.toLocaleString()} coins<small>Highest catch value, kept or sold</small></dd></div>
     <div><dt>Biggest sale batch{stats.saleHistoryComplete ? '' : ' · recorded'}</dt><dd>{stats.biggestSaleBatch.toLocaleString()} coins</dd></div>
   </dl>
-  <p>Bonus pulls are extra catches, divided by casts. Rank totals and collection pairs remain after selling. One catch counts once when it establishes or breaks either global species record.</p>
+  <p>Bonus pulls are extra rod catches, divided by all casts. Each completed boat or net haul counts as one cast, not as bonus pulls. Rank totals and collection pairs remain after selling. One catch counts once when it establishes or breaks either global species record.</p>
   {#if !stats.historyComplete || !stats.biomeHistoryComplete || !stats.bonusHistoryComplete}<p>Older journal coverage is incomplete. Recorded weight, days, biome activity and bonus types reflect surviving history plus every new cast. {stats.recordedCasts.toLocaleString()} of {stats.totalCasts.toLocaleString()} casts have journal evidence.</p>{/if}
   {#if !stats.saleHistoryComplete}<p>Older sale history is incomplete. Earnings and batch records include surviving sale receipts plus new sales; fish-value and record-setting records use catch evidence independently of sales.</p>{/if}
 </div>

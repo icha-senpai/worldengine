@@ -814,6 +814,15 @@ pub struct AnglerStatistics {
     pub records_tracked_since: Timestamp,
 }
 
+/// Private lifetime haul accounting: scheduled haul catches beyond each
+/// completed trip's first catch. Never rod bonuses, never rebuilt once written.
+#[spacetimedb::table(accessor = haul_statistics)]
+pub struct HaulStatistics {
+    #[primary_key]
+    pub player_id: u64,
+    pub extra_pulls: u64,
+}
+
 #[spacetimedb::table(accessor = fishing_day)]
 pub struct FishingDay {
     #[primary_key]
