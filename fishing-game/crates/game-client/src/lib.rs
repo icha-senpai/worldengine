@@ -212,7 +212,7 @@ impl Client {
                 let error = connected.clone();
                 let mut queries = vec!["SELECT * FROM my_service"];
                 if role == ServiceRole::DiscordAdapter {
-                    queries.extend(["SELECT * FROM adapter_achievement_deliveries", "SELECT * FROM adapter_haul_work", "SELECT * FROM adapter_haul_status"]);
+                    queries.extend(["SELECT * FROM adapter_achievement_deliveries", "SELECT * FROM adapter_raid_deliveries", "SELECT * FROM adapter_haul_work", "SELECT * FROM adapter_haul_status"]);
                     queries.extend(["SELECT * FROM quest_definition", "SELECT * FROM adapter_quests", "SELECT * FROM public_profile", "SELECT * FROM angler_portrait", "SELECT * FROM angler_standing", "SELECT * FROM angler_statistics", "SELECT * FROM species_record", "SELECT * FROM achievement_definition", "SELECT * FROM earned_achievement", "SELECT * FROM perfect_species", "SELECT * FROM rank_maximum", "SELECT * FROM angler_title", "SELECT * FROM adapter_sale_quote"]);
                     queries.extend(["SELECT * FROM bait_definition", "SELECT * FROM quality_definition", "SELECT * FROM adapter_baits", "SELECT * FROM adapter_bait_loadout", "SELECT * FROM adapter_collection_focus", "SELECT * FROM adapter_items", "SELECT * FROM adapter_cast_pulls", "SELECT * FROM adapter_cast_equipment", "SELECT * FROM adapter_upgrade_quote", "SELECT * FROM adapter_player", "SELECT * FROM adapter_receipt", "SELECT * FROM adapter_daily_receipt", "SELECT * FROM adapter_inventory",
                         "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_bonuses", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
@@ -440,6 +440,52 @@ impl Client {
         connection
             .reducers
             .acknowledge_achievement_delivery_then(key, nonce, complete(sender))?;
+        receive(receiver).await
+    }
+
+    pub fn pending_raid_deliveries(&self) -> Vec<RaidDelivery> {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_micros() as i64;
+        self.connection()
+            .db
+            .adapter_raid_deliveries()
+            .iter()
+            .filter(|row| row.available_at.to_micros_since_unix_epoch() <= now)
+            .collect()
+    }
+
+    pub async fn claim_raid_delivery(
+        &self,
+        attempt_id: u128,
+        nonce: u128,
+    ) -> Result<Option<RaidDelivery>, Error> {
+        let connection = self.active_connection().await?;
+        let (sender, receiver) = oneshot::channel();
+        connection
+            .reducers
+            .claim_raid_delivery_then(attempt_id, nonce, complete(sender))?;
+        receive(receiver).await?;
+        let identity = connection.try_identity();
+        Ok(connection.db.adapter_raid_deliveries().iter().find(|row| {
+            row.attempt_id == attempt_id
+                && row.lease_nonce == nonce
+                && identity == Some(row.lease_owner)
+                && row.channel_id != 0
+        }))
+    }
+
+    pub async fn acknowledge_raid_delivery(
+        &self,
+        attempt_id: u128,
+        nonce: u128,
+    ) -> Result<(), Error> {
+        let connection = self.active_connection().await?;
+        let (sender, receiver) = oneshot::channel();
+        connection
+            .reducers
+            .acknowledge_raid_delivery_then(attempt_id, nonce, complete(sender))?;
         receive(receiver).await
     }
 

@@ -1,3 +1,4 @@
+// Retired raid handlers: not compiled or registered; raid controls are website-only.
 use game_client::{RaidAction, Snapshot};
 use poise::serenity_prelude as serenity;
 use super::{Context, Error};

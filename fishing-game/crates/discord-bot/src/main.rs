@@ -1,5 +1,3 @@
-mod raid_commands;
-
 use discord_bot::achievement_notifications::AchievementNotifications;
 use discord_bot::catch_art::{CatchArt, Material, ROD_QUALITY_COLORS, rank_color};
 use discord_bot::measurements::{format_length, format_weight};
@@ -1047,7 +1045,7 @@ fn rod_stats(result: &Snapshot, rod_id: u32) -> (&str, u32, u32, u32) {
 }
 
 fn commands() -> Vec<poise::Command<Data, Error>> {
-    vec![fish(), fishboat(), fishnet(), daily(), rod(), profile(), raid_commands::raid()]
+    vec![fish(), fishboat(), fishnet(), daily(), rod(), profile()]
 }
 
 fn is_fishbound_command(name: &str) -> bool {
@@ -1093,14 +1091,9 @@ mod command_tests {
             .iter()
             .map(|command| command.name.as_ref())
             .collect();
-        assert_eq!(
-            names,
-            ["fish", "fishboat", "fishnet", "daily", "rod", "profile", "raid"]
-        );
-        assert!(commands.iter().filter(|command| command.name != "raid")
+        assert_eq!(names, ["fish", "fishboat", "fishnet", "daily", "rod", "profile"]);
+        assert!(commands.iter()
             .all(|command| command.slash_action.is_some() && command.subcommands.is_empty()));
-        let raid = commands.iter().find(|command| command.name == "raid").unwrap();
-        assert_eq!(raid.subcommands.len(), 9);
     }
 
     #[test]
@@ -1214,6 +1207,7 @@ async fn main() -> Result<(), Error> {
                 let achievement_notifications = Arc::new(AchievementNotifications::load(required("SPACETIMEDB_DATABASE")?, ".local/achievement-notification-routes.json".into()));
                 achievement_notifications.start(game.clone(), ctx.http.clone(), website.clone());
                 discord_bot::haul_notifications::start(game.clone(), ctx.http.clone(), website.clone());
+                discord_bot::raid_notifications::start(game.clone(), ctx.http.clone(), website.clone(), achievement_notifications.clone());
                 Ok(Data {
                     game,
                     website,

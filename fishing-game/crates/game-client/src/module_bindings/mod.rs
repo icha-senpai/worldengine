@@ -15,6 +15,7 @@ pub mod achievement_progress_type;
 pub mod achievement_route_type;
 pub mod acknowledge_achievement_delivery_reducer;
 pub mod acknowledge_haul_delivery_reducer;
+pub mod acknowledge_raid_delivery_reducer;
 pub mod action_nonce_type;
 pub mod activate_achievements_reducer;
 pub mod activate_crafting_reducer;
@@ -46,6 +47,7 @@ pub mod adapter_player_table;
 pub mod adapter_quests_table;
 pub mod adapter_raid_actions_table;
 pub mod adapter_raid_attempts_table;
+pub mod adapter_raid_deliveries_table;
 pub mod adapter_receipt_table;
 pub mod adapter_rod_reinforcements_table;
 pub mod adapter_rods_table;
@@ -83,6 +85,7 @@ pub mod claim_dockside_delivery_reducer;
 pub mod claim_haul_delivery_reducer;
 pub mod claim_quest_from_discord_reducer;
 pub mod claim_quest_reducer;
+pub mod claim_raid_delivery_reducer;
 pub mod claim_raid_from_discord_reducer;
 pub mod claim_raid_reducer;
 pub mod collection_focus_preference_type;
@@ -201,6 +204,7 @@ pub mod raid_attempt_type;
 pub mod raid_badge_table;
 pub mod raid_badge_type;
 pub mod raid_catch_counter_type;
+pub mod raid_delivery_type;
 pub mod raid_grade_definition_table;
 pub mod raid_grade_definition_type;
 pub mod raid_job_type;
@@ -262,6 +266,7 @@ pub use achievement_progress_type::AchievementProgress;
 pub use achievement_route_type::AchievementRoute;
 pub use acknowledge_achievement_delivery_reducer::acknowledge_achievement_delivery;
 pub use acknowledge_haul_delivery_reducer::acknowledge_haul_delivery;
+pub use acknowledge_raid_delivery_reducer::acknowledge_raid_delivery;
 pub use action_nonce_type::ActionNonce;
 pub use activate_achievements_reducer::activate_achievements;
 pub use activate_crafting_reducer::activate_crafting;
@@ -293,6 +298,7 @@ pub use adapter_player_table::*;
 pub use adapter_quests_table::*;
 pub use adapter_raid_actions_table::*;
 pub use adapter_raid_attempts_table::*;
+pub use adapter_raid_deliveries_table::*;
 pub use adapter_receipt_table::*;
 pub use adapter_rod_reinforcements_table::*;
 pub use adapter_rods_table::*;
@@ -330,6 +336,7 @@ pub use claim_dockside_delivery_reducer::claim_dockside_delivery;
 pub use claim_haul_delivery_reducer::claim_haul_delivery;
 pub use claim_quest_from_discord_reducer::claim_quest_from_discord;
 pub use claim_quest_reducer::claim_quest;
+pub use claim_raid_delivery_reducer::claim_raid_delivery;
 pub use claim_raid_from_discord_reducer::claim_raid_from_discord;
 pub use claim_raid_reducer::claim_raid;
 pub use collection_focus_preference_type::CollectionFocusPreference;
@@ -448,6 +455,7 @@ pub use raid_attempt_type::RaidAttempt;
 pub use raid_badge_table::*;
 pub use raid_badge_type::RaidBadge;
 pub use raid_catch_counter_type::RaidCatchCounter;
+pub use raid_delivery_type::RaidDelivery;
 pub use raid_grade_definition_table::*;
 pub use raid_grade_definition_type::RaidGradeDefinition;
 pub use raid_job_type::RaidJob;
@@ -514,6 +522,10 @@ pub enum Reducer {
     },
     AcknowledgeHaulDelivery {
         interaction_id: u64,
+        lease_nonce: u128,
+    },
+    AcknowledgeRaidDelivery {
+        attempt_id: u128,
         lease_nonce: u128,
     },
     ActivateAchievements,
@@ -588,6 +600,10 @@ pub enum Reducer {
     ClaimRaid {
         request_id: u64,
         attempt_id: u128,
+    },
+    ClaimRaidDelivery {
+        attempt_id: u128,
+        lease_nonce: u128,
     },
     ClaimRaidFromDiscord {
         discord_user_id: u64,
@@ -817,6 +833,7 @@ impl __sdk::Reducer for Reducer {
         match self {
             Reducer::AcknowledgeAchievementDelivery { .. } => "acknowledge_achievement_delivery",
             Reducer::AcknowledgeHaulDelivery { .. } => "acknowledge_haul_delivery",
+            Reducer::AcknowledgeRaidDelivery { .. } => "acknowledge_raid_delivery",
             Reducer::ActivateAchievements => "activate_achievements",
             Reducer::ActivateCrafting => "activate_crafting",
             Reducer::ActivateHaulEquipment => "activate_haul_equipment",
@@ -844,6 +861,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::ClaimQuest { .. } => "claim_quest",
             Reducer::ClaimQuestFromDiscord { .. } => "claim_quest_from_discord",
             Reducer::ClaimRaid { .. } => "claim_raid",
+            Reducer::ClaimRaidDelivery { .. } => "claim_raid_delivery",
             Reducer::ClaimRaidFromDiscord { .. } => "claim_raid_from_discord",
             Reducer::CommitHaulUpgrade { .. } => "commit_haul_upgrade",
             Reducer::CommitInventoryAction { .. } => "commit_inventory_action",
@@ -912,6 +930,15 @@ impl __sdk::Reducer for Reducer {
             } => __sats::bsatn::to_vec(
                 &acknowledge_haul_delivery_reducer::AcknowledgeHaulDeliveryArgs {
                     interaction_id: interaction_id.clone(),
+                    lease_nonce: lease_nonce.clone(),
+                },
+            ),
+            Reducer::AcknowledgeRaidDelivery {
+                attempt_id,
+                lease_nonce,
+            } => __sats::bsatn::to_vec(
+                &acknowledge_raid_delivery_reducer::AcknowledgeRaidDeliveryArgs {
+                    attempt_id: attempt_id.clone(),
                     lease_nonce: lease_nonce.clone(),
                 },
             ),
@@ -1065,6 +1092,13 @@ impl __sdk::Reducer for Reducer {
             } => __sats::bsatn::to_vec(&claim_raid_reducer::ClaimRaidArgs {
                 request_id: request_id.clone(),
                 attempt_id: attempt_id.clone(),
+            }),
+            Reducer::ClaimRaidDelivery {
+                attempt_id,
+                lease_nonce,
+            } => __sats::bsatn::to_vec(&claim_raid_delivery_reducer::ClaimRaidDeliveryArgs {
+                attempt_id: attempt_id.clone(),
+                lease_nonce: lease_nonce.clone(),
             }),
             Reducer::ClaimRaidFromDiscord {
                 discord_user_id,
@@ -1517,6 +1551,7 @@ pub struct DbUpdate {
     adapter_quests: __sdk::TableUpdate<QuestStatus>,
     adapter_raid_actions: __sdk::TableUpdate<RaidActionReceipt>,
     adapter_raid_attempts: __sdk::TableUpdate<RaidAttempt>,
+    adapter_raid_deliveries: __sdk::TableUpdate<RaidDelivery>,
     adapter_receipt: __sdk::TableUpdate<CommandReceipt>,
     adapter_rod_reinforcements: __sdk::TableUpdate<RodReinforcement>,
     adapter_rods: __sdk::TableUpdate<OwnedRod>,
@@ -1648,6 +1683,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 ),
                 "adapter_raid_attempts" => db_update.adapter_raid_attempts.append(
                     adapter_raid_attempts_table::parse_table_update(table_update)?,
+                ),
+                "adapter_raid_deliveries" => db_update.adapter_raid_deliveries.append(
+                    adapter_raid_deliveries_table::parse_table_update(table_update)?,
                 ),
                 "adapter_receipt" => db_update
                     .adapter_receipt
@@ -2030,6 +2068,10 @@ impl __sdk::DbUpdate for DbUpdate {
             "adapter_raid_attempts",
             &self.adapter_raid_attempts,
         );
+        diff.adapter_raid_deliveries = cache.apply_diff_to_table::<RaidDelivery>(
+            "adapter_raid_deliveries",
+            &self.adapter_raid_deliveries,
+        );
         diff.adapter_receipt =
             cache.apply_diff_to_table::<CommandReceipt>("adapter_receipt", &self.adapter_receipt);
         diff.adapter_rod_reinforcements = cache.apply_diff_to_table::<RodReinforcement>(
@@ -2170,6 +2212,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_raid_attempts" => db_update
                     .adapter_raid_attempts
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_raid_deliveries" => db_update
+                    .adapter_raid_deliveries
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_receipt" => db_update
                     .adapter_receipt
@@ -2430,6 +2475,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_raid_attempts" => db_update
                     .adapter_raid_attempts
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_raid_deliveries" => db_update
+                    .adapter_raid_deliveries
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_receipt" => db_update
                     .adapter_receipt
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -2651,6 +2699,7 @@ pub struct AppliedDiff<'r> {
     adapter_quests: __sdk::TableAppliedDiff<'r, QuestStatus>,
     adapter_raid_actions: __sdk::TableAppliedDiff<'r, RaidActionReceipt>,
     adapter_raid_attempts: __sdk::TableAppliedDiff<'r, RaidAttempt>,
+    adapter_raid_deliveries: __sdk::TableAppliedDiff<'r, RaidDelivery>,
     adapter_receipt: __sdk::TableAppliedDiff<'r, CommandReceipt>,
     adapter_rod_reinforcements: __sdk::TableAppliedDiff<'r, RodReinforcement>,
     adapter_rods: __sdk::TableAppliedDiff<'r, OwnedRod>,
@@ -2824,6 +2873,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<RaidAttempt>(
             "adapter_raid_attempts",
             &self.adapter_raid_attempts,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<RaidDelivery>(
+            "adapter_raid_deliveries",
+            &self.adapter_raid_deliveries,
             event,
         );
         callbacks.invoke_table_row_callbacks::<CommandReceipt>(
@@ -3768,6 +3822,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_quests_table::register_table(client_cache);
         adapter_raid_actions_table::register_table(client_cache);
         adapter_raid_attempts_table::register_table(client_cache);
+        adapter_raid_deliveries_table::register_table(client_cache);
         adapter_receipt_table::register_table(client_cache);
         adapter_rod_reinforcements_table::register_table(client_cache);
         adapter_rods_table::register_table(client_cache);
@@ -3852,6 +3907,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_quests",
         "adapter_raid_actions",
         "adapter_raid_attempts",
+        "adapter_raid_deliveries",
         "adapter_receipt",
         "adapter_rod_reinforcements",
         "adapter_rods",

@@ -98,15 +98,24 @@ impl AchievementNotifications {
     }
 
     fn route(&self, unlock: &AchievementUnlock) -> Option<(u64, Route)> {
+        self.find_route(unlock.discord_user_id, unlock.player_id)
+    }
+
+    fn find_route(&self, discord_user_id: Option<u64>, player_id: u64) -> Option<(u64, Route)> {
         let routes = self.routes.lock().expect("achievement routes mutex");
-        if let Some(user) = unlock.discord_user_id {
+        if let Some(user) = discord_user_id {
             if let Some(route) = routes.users.get(&user) {
                 return Some((user, route.clone()));
             }
         }
         routes.users.iter().find_map(|(user, route)| {
-            (route.player_id == Some(unlock.player_id)).then(|| (*user, route.clone()))
+            (route.player_id == Some(player_id)).then(|| (*user, route.clone()))
         })
+    }
+
+    pub fn channel_for(&self, discord_user_id: u64, player_id: u64) -> Option<u64> {
+        self.find_route(Some(discord_user_id), player_id)
+            .map(|(_, route)| route.channel_id)
     }
 
     pub fn start(self: &Arc<Self>, game: Arc<Client>, http: Arc<serenity::Http>, website: String) {
@@ -243,14 +252,21 @@ mod tests {
         notifications.remember_player(99, Some(7)).await;
         notifications.record_channel(99, 84, None);
         notifications.remember_player(99, Some(7)).await;
+        notifications.record_channel(100, 56, Some(8));
+        notifications.remember_player(100, Some(8)).await;
         let mut website_award = award();
         website_award.discord_user_id = None;
         let restored = AchievementNotifications::load("proof".into(), path.clone());
         assert_eq!(restored.route(&website_award).unwrap().1.channel_id, 84);
+        assert_eq!(restored.channel_for(99, 7), Some(84));
+        assert_eq!(restored.channel_for(123, 7), Some(84));
+        assert_eq!(restored.channel_for(100, 7), Some(56));
+        assert_eq!(restored.channel_for(123, 9), None);
         let other_database = AchievementNotifications::load("different-proof".into(), path.clone());
         assert!(other_database.route(&website_award).is_none());
+        assert_eq!(other_database.channel_for(99, 7), None);
         let mut other_player = website_award;
-        other_player.player_id = 8;
+        other_player.player_id = 9;
         assert!(restored.route(&other_player).is_none());
         std::fs::remove_file(path).unwrap();
     }

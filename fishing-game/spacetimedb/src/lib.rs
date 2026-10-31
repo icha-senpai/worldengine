@@ -16,6 +16,7 @@ mod maintenance;
 mod notifications;
 mod perfection;
 mod quests;
+mod raid_notifications;
 mod raids;
 mod records;
 mod shop;

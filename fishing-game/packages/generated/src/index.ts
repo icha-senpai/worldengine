@@ -36,6 +36,7 @@ import {
 // Import all reducer arg schemas
 import AcknowledgeAchievementDeliveryReducer from "./acknowledge_achievement_delivery_reducer";
 import AcknowledgeHaulDeliveryReducer from "./acknowledge_haul_delivery_reducer";
+import AcknowledgeRaidDeliveryReducer from "./acknowledge_raid_delivery_reducer";
 import ActivateAchievementsReducer from "./activate_achievements_reducer";
 import ActivateCraftingReducer from "./activate_crafting_reducer";
 import ActivateHaulEquipmentReducer from "./activate_haul_equipment_reducer";
@@ -63,6 +64,7 @@ import ClaimHaulDeliveryReducer from "./claim_haul_delivery_reducer";
 import ClaimQuestReducer from "./claim_quest_reducer";
 import ClaimQuestFromDiscordReducer from "./claim_quest_from_discord_reducer";
 import ClaimRaidReducer from "./claim_raid_reducer";
+import ClaimRaidDeliveryReducer from "./claim_raid_delivery_reducer";
 import ClaimRaidFromDiscordReducer from "./claim_raid_from_discord_reducer";
 import CommitHaulUpgradeReducer from "./commit_haul_upgrade_reducer";
 import CommitInventoryActionReducer from "./commit_inventory_action_reducer";
@@ -136,6 +138,7 @@ import AdapterPlayerRow from "./adapter_player_table";
 import AdapterQuestsRow from "./adapter_quests_table";
 import AdapterRaidActionsRow from "./adapter_raid_actions_table";
 import AdapterRaidAttemptsRow from "./adapter_raid_attempts_table";
+import AdapterRaidDeliveriesRow from "./adapter_raid_deliveries_table";
 import AdapterReceiptRow from "./adapter_receipt_table";
 import AdapterRodReinforcementsRow from "./adapter_rod_reinforcements_table";
 import AdapterRodsRow from "./adapter_rods_table";
@@ -689,6 +692,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterRaidAttemptsRow),
+  adapterRaidDeliveries: __table({
+    name: 'adapter_raid_deliveries',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterRaidDeliveriesRow),
   adapterReceipt: __table({
     name: 'adapter_receipt',
     indexes: [
@@ -933,6 +943,7 @@ const tablesSchema = __schema({
 const reducersSchema = __reducers(
   __reducerSchema("acknowledge_achievement_delivery", AcknowledgeAchievementDeliveryReducer),
   __reducerSchema("acknowledge_haul_delivery", AcknowledgeHaulDeliveryReducer),
+  __reducerSchema("acknowledge_raid_delivery", AcknowledgeRaidDeliveryReducer),
   __reducerSchema("activate_achievements", ActivateAchievementsReducer),
   __reducerSchema("activate_crafting", ActivateCraftingReducer),
   __reducerSchema("activate_haul_equipment", ActivateHaulEquipmentReducer),
@@ -960,6 +971,7 @@ const reducersSchema = __reducers(
   __reducerSchema("claim_quest", ClaimQuestReducer),
   __reducerSchema("claim_quest_from_discord", ClaimQuestFromDiscordReducer),
   __reducerSchema("claim_raid", ClaimRaidReducer),
+  __reducerSchema("claim_raid_delivery", ClaimRaidDeliveryReducer),
   __reducerSchema("claim_raid_from_discord", ClaimRaidFromDiscordReducer),
   __reducerSchema("commit_haul_upgrade", CommitHaulUpgradeReducer),
   __reducerSchema("commit_inventory_action", CommitInventoryActionReducer),
@@ -1113,6 +1125,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "adapter_raid_actions": Omit<typeof tablesSchema.schemaType.tables["adapterRaidActions"], "accessorName"> & { readonly accessorName: "adapter_raid_actions" };
     /** @deprecated Use `adapterRaidAttempts` instead. This alias will be removed in the next major version. */
     readonly "adapter_raid_attempts": Omit<typeof tablesSchema.schemaType.tables["adapterRaidAttempts"], "accessorName"> & { readonly accessorName: "adapter_raid_attempts" };
+    /** @deprecated Use `adapterRaidDeliveries` instead. This alias will be removed in the next major version. */
+    readonly "adapter_raid_deliveries": Omit<typeof tablesSchema.schemaType.tables["adapterRaidDeliveries"], "accessorName"> & { readonly accessorName: "adapter_raid_deliveries" };
     /** @deprecated Use `adapterReceipt` instead. This alias will be removed in the next major version. */
     readonly "adapter_receipt": Omit<typeof tablesSchema.schemaType.tables["adapterReceipt"], "accessorName"> & { readonly accessorName: "adapter_receipt" };
     /** @deprecated Use `adapterRodReinforcements` instead. This alias will be removed in the next major version. */
@@ -1247,6 +1261,7 @@ const tableAccessorAliases = {
   "adapter_quests": "adapterQuests",
   "adapter_raid_actions": "adapterRaidActions",
   "adapter_raid_attempts": "adapterRaidAttempts",
+  "adapter_raid_deliveries": "adapterRaidDeliveries",
   "adapter_receipt": "adapterReceipt",
   "adapter_rod_reinforcements": "adapterRodReinforcements",
   "adapter_rods": "adapterRods",
@@ -1397,6 +1412,8 @@ export type DbView = __DbViewBase & {
   readonly "adapter_raid_actions": __DbViewBase["adapterRaidActions"];
   /** @deprecated Use `adapterRaidAttempts` instead. This alias will be removed in the next major version. */
   readonly "adapter_raid_attempts": __DbViewBase["adapterRaidAttempts"];
+  /** @deprecated Use `adapterRaidDeliveries` instead. This alias will be removed in the next major version. */
+  readonly "adapter_raid_deliveries": __DbViewBase["adapterRaidDeliveries"];
   /** @deprecated Use `adapterReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_receipt": __DbViewBase["adapterReceipt"];
   /** @deprecated Use `adapterRodReinforcements` instead. This alias will be removed in the next major version. */
@@ -1565,6 +1582,8 @@ export type Tables = __TablesBase & {
   readonly "adapter_raid_actions": __TablesBase["adapterRaidActions"];
   /** @deprecated Use `adapterRaidAttempts` instead. This alias will be removed in the next major version. */
   readonly "adapter_raid_attempts": __TablesBase["adapterRaidAttempts"];
+  /** @deprecated Use `adapterRaidDeliveries` instead. This alias will be removed in the next major version. */
+  readonly "adapter_raid_deliveries": __TablesBase["adapterRaidDeliveries"];
   /** @deprecated Use `adapterReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_receipt": __TablesBase["adapterReceipt"];
   /** @deprecated Use `adapterRodReinforcements` instead. This alias will be removed in the next major version. */

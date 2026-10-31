@@ -774,6 +774,30 @@ export const RaidCatchCounter = __t.object("RaidCatchCounter", {
 });
 export type RaidCatchCounter = __Infer<typeof RaidCatchCounter>;
 
+export const RaidDelivery = __t.object("RaidDelivery", {
+  attemptId: __t.u128(),
+  playerId: __t.u64(),
+  discordUserId: __t.u64(),
+  displayName: __t.string(),
+  kind: __t.string(),
+  targetName: __t.string(),
+  speciesAsset: __t.string(),
+  grade: __t.option(__t.u8()),
+  awardedFillets: __t.u64(),
+  awardedScales: __t.u64(),
+  firstClear: __t.bool(),
+  get specialCatch() {
+    return __t.option(CommandReceipt);
+  },
+  completedAt: __t.timestamp(),
+  availableAt: __t.timestamp(),
+  channelId: __t.u64(),
+  leaseOwner: __t.identity(),
+  leaseNonce: __t.u128(),
+  attempts: __t.u32(),
+});
+export type RaidDelivery = __Infer<typeof RaidDelivery>;
+
 export const RaidGradeDefinition = __t.object("RaidGradeDefinition", {
   grade: __t.u8(),
   catalogVersion: __t.u32(),

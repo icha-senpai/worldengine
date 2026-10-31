@@ -1555,7 +1555,7 @@ fn next_special_receipt_id(ctx: &ReducerContext) -> Result<u64, String> {
     }
 }
 
-fn award_special_fish(ctx: &ReducerContext, attempt: &mut RaidAttempt) -> Result<(), String> {
+fn award_special_fish(ctx: &ReducerContext, attempt: &mut RaidAttempt) -> Result<CommandReceipt, String> {
     let player = ctx
         .db
         .player()
@@ -1622,7 +1622,7 @@ fn award_special_fish(ctx: &ReducerContext, attempt: &mut RaidAttempt) -> Result
         return Err("SPECIAL_RAID_REWARD_INVALID".into());
     }
     attempt.catch_id = receipt.catch_id;
-    Ok(())
+    Ok(receipt)
 }
 
 fn complete_attempt(ctx: &ReducerContext, attempt: &mut RaidAttempt) -> Result<(), String> {
@@ -1633,23 +1633,30 @@ fn complete_attempt(ctx: &ReducerContext, attempt: &mut RaidAttempt) -> Result<(
         return Err("RAID_NOT_READY".into());
     }
     let kind = attempt.kind.clone();
+    let mut first_clear = false;
+    let mut special_catch = None;
     match kind.as_str() {
         "personal" => {
             let full_elapsed = u64::from(attempt.duration_seconds)
                 .checked_mul(1_000_000)
                 .ok_or("RAID_TIME_OVERFLOW")?;
             award_materials(ctx, attempt, full_elapsed)?;
+            let species_id = attempt.species_id.ok_or("SPECIES_UNAVAILABLE")?;
+            let cleared = ctx.db.raid_badge().key()
+                .find(badge_key(attempt.player_id, species_id))
+                .map_or(0, |badge| badge.cleared_grades);
+            first_clear = attempt.grade == Some(cleared);
             let mastered = record_badge_completion(
                 ctx,
                 attempt.player_id,
-                attempt.species_id.ok_or("SPECIES_UNAVAILABLE")?,
+                species_id,
                 attempt.grade,
                 false,
             )?;
             update_raid_statistics(ctx, attempt.player_id, "personal", mastered)?;
         }
         "special" => {
-            award_special_fish(ctx, attempt)?;
+            special_catch = Some(award_special_fish(ctx, attempt)?);
             record_badge_completion(
                 ctx,
                 attempt.player_id,
@@ -1667,6 +1674,7 @@ fn complete_attempt(ctx: &ReducerContext, attempt: &mut RaidAttempt) -> Result<(
     attempt.prune_at = terminal_prune_at(ctx);
     ctx.db.raid_attempt().id().update(attempt.clone());
     remove_jobs(ctx, attempt.id);
+    crate::raid_notifications::enqueue(ctx, attempt, first_clear, special_catch);
     Ok(())
 }
 

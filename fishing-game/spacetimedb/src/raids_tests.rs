@@ -9,6 +9,7 @@ use crate::{
 };
 use crate::hauls::{haul_job, haul_trip};
 use crate::notifications::achievement_delivery;
+use crate::raid_notifications::{self, raid_delivery};
 use crate::raids::*;
 use spacetimedb::{
     ConnectionId, Identity, Table, TimeDuration, Timestamp,
@@ -669,6 +670,15 @@ fn personal_f_raid_deploys_settles_and_replays_without_duplicate_rewards() {
 
     let completed = test.db.raid_attempt().id().find(attempt_id).unwrap();
     assert_eq!(completed.status, "completed");
+    let delivery = test.db.raid_delivery().attempt_id().find(attempt_id).unwrap();
+    assert_eq!(test.db.raid_delivery().count(), 1);
+    assert_eq!(delivery.kind, "personal");
+    assert_eq!(delivery.target_name, ordinary.name);
+    assert_eq!(delivery.species_asset, ordinary.sprite_asset);
+    assert_eq!(delivery.grade, Some(0));
+    assert!(delivery.first_clear);
+    assert_eq!((delivery.awarded_fillets, delivery.awarded_scales), (completed.awarded_fillets, completed.awarded_scales));
+    assert!(delivery.special_catch.is_none());
     assert_eq!(completed.awarded_fillets, completed.full_fillets);
     assert_eq!(completed.awarded_scales, completed.full_scales);
     assert!(completed.full_fillets >= completed.base_fillets);
@@ -715,6 +725,7 @@ fn personal_f_raid_deploys_settles_and_replays_without_duplicate_rewards() {
 
     let repeat = complete_personal(&test, discord_id, ordinary.species_id, 0, 20);
     assert_eq!(repeat.status, "completed");
+    assert!(!test.db.raid_delivery().attempt_id().find(repeat.id).unwrap().first_clear);
     let badge = test
         .db
         .raid_badge()
@@ -1420,6 +1431,13 @@ fn community_raids_require_deployment_and_award_only_one_completion_stat() {
         test.db.raid_attempt().id().find(attempt_id).unwrap().status,
         "completed"
     );
+    let delivery = test.db.raid_delivery().attempt_id().find(attempt_id).unwrap();
+    assert_eq!(delivery.kind, "community");
+    assert_eq!(delivery.target_name, event.name);
+    assert!(delivery.species_asset.is_empty());
+    assert!(!delivery.first_clear);
+    assert!(delivery.special_catch.is_none());
+    assert_eq!((delivery.awarded_fillets, delivery.awarded_scales), (0, 0));
     let stats = test.db.raid_statistics().player_id().find(player_id).unwrap();
     assert_eq!(stats.community_completions, 1);
     assert_eq!(stats.personal_completions, 0);
@@ -1637,6 +1655,7 @@ fn failed_deployment_missed_attempts_and_partial_withdrawal_never_award_badges()
     .unwrap();
     let cancelled = test.db.raid_attempt().id().find(attempt_id).unwrap();
     assert_eq!(cancelled.status, "cancelled");
+    assert!(test.db.raid_delivery().attempt_id().find(attempt_id).is_none());
     let expected_fillets = u64::try_from(
         u128::from(cancelled.full_fillets)
             * u128::try_from(half_micros).unwrap()
@@ -1927,6 +1946,13 @@ fn special_raids_require_natural_discovery_and_award_one_exceptional_catch() {
             .find(|row| row.catch_id == Some(catch_id))
             .unwrap();
         assert_eq!(receipt.command, "fishraid");
+        let delivery = test.db.raid_delivery().attempt_id().find(attempt.id).unwrap();
+        let frozen = delivery.special_catch.unwrap();
+        assert_eq!(frozen.catch_id, receipt.catch_id);
+        assert_eq!(frozen.species_id, receipt.species_id);
+        assert_eq!(frozen.rarity, receipt.rarity);
+        assert_eq!((frozen.length_mm, frozen.weight_g), (receipt.length_mm, receipt.weight_g));
+        assert!(!delivery.first_clear);
         assert_ne!(receipt.interaction_id & (1u64 << 63), 0);
         assert_eq!(receipt.species_id, Some(species_id));
         assert_eq!(receipt.coins_granted, 0);
@@ -2095,6 +2121,7 @@ fn cancelled_or_missed_special_raid_never_creates_an_exceptional_specimen() {
             .all(|receipt| receipt.command != "fishraid")
     );
     assert!(test.db.raid_badge().player_id().filter(player_id).next().is_none());
+    assert!(test.db.raid_delivery().attempt_id().find(attempt_id).is_none());
     assert!(test.db.raid_statistics().player_id().find(player_id).is_none());
     assert_eq!(
         test.db
@@ -2128,6 +2155,7 @@ fn cancelled_or_missed_special_raid_never_creates_an_exceptional_specimen() {
         test.db.raid_attempt().id().find(missed_id).unwrap().status,
         "missed"
     );
+    assert!(test.db.raid_delivery().attempt_id().find(missed_id).is_none());
     assert_eq!(
         test.db.player().player_id().find(missed_player).unwrap().fish_count,
         1
@@ -2382,6 +2410,7 @@ fn activation_preserves_legacy_prepared_deployed_and_running_attempts() {
 
         for _ in 0..2 {
             test.with_reducer_tx(TestAuth::internal(), |ctx| raids::activate_raids(ctx)).unwrap();
+            assert_eq!(test.db.raid_delivery().count(), 0);
             let grade = test.db.raid_grade_definition().grade().find(0).unwrap();
             assert_eq!((grade.catalog_version, grade.duration_seconds), (2, 1800));
             assert_eq!(test.db.game_config().version().find(17).unwrap().version, 17);
@@ -2674,4 +2703,110 @@ fn terminal_raid_receipts_prune_without_pruning_durable_progress_or_active_attem
     assert!(test.db.raid_badge().key().find(badge_key).is_some());
     assert!(test.db.raid_statistics().player_id().find(player_id).is_some());
     assert!(test.db.raid_catch_counter().singleton().find(1).is_some());
+    assert!(test.db.raid_delivery().attempt_id().find(terminal.id).is_some());
+}
+
+#[test]
+fn raid_delivery_leases_are_private_pinned_and_do_not_replay() {
+    let test = setup();
+    let discord_id = 2201;
+    let player_id = player(&test, discord_id);
+    let species = test.db.species_definition().iter()
+        .find(|row| row.counts_for_ordinary_collection_completion).unwrap();
+    seed_sold_natural_discovery(&test, player_id, species.species_id, 0);
+    let attempt = complete_personal(&test, discord_id, species.species_id, 0, 940);
+    test.with_reducer_tx(TestAuth::internal(), |ctx| {
+        accounts::configure_service(ctx, Identity::from_claims("test", "raid-bot-two"), ServiceRole::DiscordAdapter, true)?;
+        accounts::configure_service(ctx, Identity::from_claims("test", "raid-linker"), ServiceRole::AccountLinker, true)
+    }).unwrap();
+    link_browser(&test, player_id, "raid-delivery-browser");
+    for subject in ["anonymous", "raid-delivery-browser", "raid-linker"] {
+        assert!(raid_notifications::adapter_raid_deliveries(&test.view_context(auth(subject))).is_empty());
+        assert!(test.with_reducer_tx(auth(subject), |ctx| raid_notifications::claim_raid_delivery(ctx, attempt.id, 1)).is_err());
+        assert!(test.with_reducer_tx(auth(subject), |ctx| raid_notifications::acknowledge_raid_delivery(ctx, attempt.id, 1)).is_err());
+    }
+    assert_eq!(raid_notifications::adapter_raid_deliveries(&test.view_context(auth("raid-bot"))).len(), 1);
+    assert_eq!(test.with_reducer_tx(auth("raid-bot"), |ctx| raid_notifications::claim_raid_delivery(ctx, attempt.id, 0)).unwrap_err(), "INVALID_LEASE");
+    let before = test.db.player().player_id().find(player_id).unwrap();
+    let stats = test.db.raid_statistics().player_id().find(player_id).unwrap();
+    let stacks: Vec<_> = test.db.item_stack().player_id().filter(player_id).map(|r| (r.key, r.quantity)).collect();
+    test.with_reducer_tx(auth("raid-bot"), |ctx| raid_notifications::claim_raid_delivery(ctx, attempt.id, 1)).unwrap();
+    let deferred = test.db.raid_delivery().attempt_id().find(attempt.id).unwrap();
+    assert_eq!((deferred.channel_id, deferred.lease_nonce, deferred.attempts), (0, 0, 0));
+    test.with_reducer_tx(auth("raid-bot"), |ctx| crate::notifications::record_achievement_route(ctx, discord_id, 55)).unwrap();
+    test.clock.advance(TimeDuration::from_micros(61_000_000));
+    test.with_reducer_tx(auth("raid-bot"), |ctx| raid_notifications::claim_raid_delivery(ctx, attempt.id, 11)).unwrap();
+    let leased = test.db.raid_delivery().attempt_id().find(attempt.id).unwrap();
+    assert_eq!((leased.channel_id, leased.lease_nonce, leased.attempts), (55, 11, 1));
+    assert_eq!(test.with_reducer_tx(auth("raid-bot"), |ctx| raid_notifications::acknowledge_raid_delivery(ctx, attempt.id, 0)).unwrap_err(), "DELIVERY_LEASE_CHANGED");
+    test.with_reducer_tx(auth("raid-bot"), |ctx| crate::notifications::record_achievement_route(ctx, discord_id, 99)).unwrap();
+    test.with_reducer_tx(auth("raid-bot-two"), |ctx| raid_notifications::claim_raid_delivery(ctx, attempt.id, 22)).unwrap();
+    assert_eq!(test.db.raid_delivery().attempt_id().find(attempt.id).unwrap().lease_nonce, 11);
+    assert_eq!(test.with_reducer_tx(auth("raid-bot-two"), |ctx| raid_notifications::acknowledge_raid_delivery(ctx, attempt.id, 11)).unwrap_err(), "DELIVERY_LEASE_CHANGED");
+    test.clock.advance(TimeDuration::from_micros(121_000_000));
+    test.with_reducer_tx(auth("raid-bot-two"), |ctx| raid_notifications::claim_raid_delivery(ctx, attempt.id, 22)).unwrap();
+    let retried = test.db.raid_delivery().attempt_id().find(attempt.id).unwrap();
+    assert_eq!((retried.channel_id, retried.lease_nonce, retried.attempts), (55, 22, 2));
+    assert_eq!(test.with_reducer_tx(auth("raid-bot-two"), |ctx| raid_notifications::acknowledge_raid_delivery(ctx, attempt.id, 11)).unwrap_err(), "DELIVERY_LEASE_CHANGED");
+    test.with_reducer_tx(auth("raid-bot-two"), |ctx| raid_notifications::acknowledge_raid_delivery(ctx, attempt.id, 22)).unwrap();
+    test.with_reducer_tx(auth("raid-bot-two"), |ctx| raid_notifications::acknowledge_raid_delivery(ctx, attempt.id, 22)).unwrap();
+    assert!(test.db.raid_delivery().attempt_id().find(attempt.id).is_none());
+    let claim_id = snowflake(&test, 945);
+    select_discord_player(&test, discord_id, claim_id);
+    test.with_reducer_tx(auth("raid-bot"), |ctx| raids::claim_raid_from_discord(ctx, discord_id, claim_id, attempt.id)).unwrap();
+    for _ in 0..2 {
+        test.with_reducer_tx(TestAuth::internal(), |ctx| raids::activate_raids(ctx)).unwrap();
+    }
+    assert!(test.db.raid_delivery().attempt_id().find(attempt.id).is_none());
+    let after = test.db.player().player_id().find(player_id).unwrap();
+    assert_eq!((before.coins, before.total_xp, before.fish_count), (after.coins, after.total_xp, after.fish_count));
+    assert_eq!(stats.personal_completions, test.db.raid_statistics().player_id().find(player_id).unwrap().personal_completions);
+    assert_eq!(stacks, test.db.item_stack().player_id().filter(player_id).map(|r| (r.key, r.quantity)).collect::<Vec<_>>());
+}
+
+#[test]
+fn raid_delivery_and_awards_roll_back_together() {
+    let test = setup();
+    let discord_id = 2301;
+    let player_id = player(&test, discord_id);
+    let species = test.db.species_definition().iter().find(|r| r.counts_for_ordinary_collection_completion).unwrap();
+    seed_sold_natural_discovery(&test, player_id, species.species_id, 0);
+    give_supply(&test, player_id, 1);
+    let prepare = snowflake(&test, 950);
+    submit_prepare(&test, discord_id, prepare, species.species_id, 0);
+    let id = (u128::from(player_id) << 64) | u128::from(prepare);
+    submit_deploy(&test, discord_id, snowflake(&test, 951), id);
+    let attempt = test.db.raid_attempt().id().find(id).unwrap();
+    advance_to(&test, attempt.starts_at);
+    fire_job(&test, id, "start");
+    advance_to(&test, attempt.ends_at);
+    let job = test.db.raid_job().attempt_id().filter(id).find(|job| job.phase == "finish").unwrap();
+    let stacks: Vec<_> = test.db.item_stack().player_id().filter(player_id).map(|r| (r.key, r.quantity)).collect();
+    assert_eq!(test.with_reducer_tx(TestAuth::internal(), |ctx| {
+        raids::run_raid_job(ctx, job)?;
+        Err::<(), String>("ABORT_TEST".into())
+    }).unwrap_err(), "ABORT_TEST");
+    assert_eq!(test.db.raid_attempt().id().find(id).unwrap().status, "running");
+    assert!(test.db.raid_delivery().attempt_id().find(id).is_none());
+    assert!(test.db.raid_badge().player_id().filter(player_id).next().is_none());
+    assert!(test.db.raid_statistics().player_id().find(player_id).is_none());
+    assert_eq!(stacks, test.db.item_stack().player_id().filter(player_id).map(|r| (r.key, r.quantity)).collect::<Vec<_>>());
+}
+
+#[test]
+fn special_delivery_keeps_frozen_catch_after_history_pruning() {
+    let test = setup();
+    let discord_id = 2401;
+    let player_id = player(&test, discord_id);
+    seed_sold_natural_discovery(&test, player_id, 165, 0);
+    let attempt = complete_special(&test, discord_id, 165, 960, root_seed_for_special_roll(false));
+    let before = test.db.raid_delivery().attempt_id().find(attempt.id).unwrap().special_catch.unwrap();
+    advance_to(&test, attempt.settled_at.unwrap() + TimeDuration::from_micros(31 * 86_400_000_000));
+    let job = test.db.maintenance_job().scheduled_id().find(1).unwrap();
+    test.with_reducer_tx(TestAuth::internal(), |ctx| crate::maintenance::prune_history(ctx, job)).unwrap();
+    assert!(test.db.raid_attempt().id().find(attempt.id).is_none());
+    assert!(test.db.command_receipt().interaction_id().find(before.interaction_id).is_none());
+    let frozen = test.db.raid_delivery().attempt_id().find(attempt.id).unwrap().special_catch.unwrap();
+    assert_eq!((frozen.catch_id, frozen.species_id, frozen.rarity, frozen.length_mm, frozen.weight_g),
+        (before.catch_id, before.species_id, before.rarity, before.length_mm, before.weight_g));
 }

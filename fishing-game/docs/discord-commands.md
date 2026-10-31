@@ -1,10 +1,7 @@
 # Discord commands
 
-Discord keeps six commands. The website handles equipment, upgrades, bait,
-travel, quests, collections, sales and leaderboards.
-
-The local rules-17 candidate adds the `/raid` group described below. It is not
-registered on production until the approved coordinated deployment.
+Discord keeps six core commands. The website handles equipment, upgrades, bait,
+travel, quests, raids, collections, sales and leaderboards.
 
 | Command | Behavior |
 |---|---|
@@ -20,32 +17,23 @@ Anglers without a selected earned title show “Angler”; unavailable portraits
 badges are omitted. Other players' portraits come from the existing public
 portrait projection; your own portrait uses your current Discord avatar.
 
-Global registration replaces the old slash-command list. Startup also removes
-legacy Fishbound guild commands in the configured `DISCORD_GUILD_ID` and
-`DISCORD_GUILD_IDS` servers, including retired commands. Unrelated guild commands
-are preserved. Discord clients may briefly cache the previous menu.
+When `DISCORD_REGISTER_COMMANDS=true`, startup replaces the global slash-command
+list and removes legacy Fishbound guild commands in the configured
+`DISCORD_GUILD_ID` and `DISCORD_GUILD_IDS` servers, including retired commands.
+Unrelated guild commands are preserved. Discord clients may briefly cache the
+previous menu.
 
-The retired commands are `/quests`, `/inventory`, `/sell`, `/leaderboard`,
+The retired commands are `/raid`, `/quests`, `/inventory`, `/sell`, `/leaderboard`,
 `/collection`, `/biome`, `/gear`, `/shop`, `/bait`, `/focus`, `/upgrade` and `/help`.
 Their game features remain available on the website. No rewards, inventory,
 progression or quests are removed.
 
-## Raid Group (Local Candidate)
+## Raid Management
 
-All raid replies are ephemeral. These commands use the same authoritative
-state as the website Quest board; retries reuse the Discord interaction ID.
-
-| Command | Behavior |
-|---|---|
-| `/raid list` | Page through naturally discovered targets, next grades, special encounters and community events. |
-| `/raid start` | Prepare an ordinary or special encounter using an exact species name or known numeric ID; ordinary grades unlock in order. |
-| `/raid community` | Prepare participation in a listed community event. |
-| `/raid deploy` | Commit the prepared boat before launch; consumes Expedition Chum. |
-| `/raid status` | Show the active expedition, recent results, materials and reinforcement. |
-| `/raid collect` | Settle a due deployed/running attempt if scheduled completion is delayed; never pays twice. |
-| `/raid withdraw` | Require explicit confirmation before cancellation or partial withdrawal. |
-| `/raid refine` | Combine 60 fillets or scales into 50 of the next grade, plus five coins per batch; the destination grade must already be cleared. |
-| `/raid reinforce` | Reinforce the equipped or selected owned rod by one grade using its captured current level. Quality remains separate. |
+Raid management is website-only. Use the Quests board to prepare, deploy, view,
+collect and withdraw personal, special and community raids. Use the Tackle Box
+Raid Workshop to refine materials and the rod reinforcement controls to improve
+an owned rod. There are no Discord raid commands.
 
 Preparing is not deploying. A forgotten deployment misses the raid and earns no
 seal or specimen. Deployed/running raids occupy the normal boat slot; rod casts
@@ -58,6 +46,28 @@ not material ladders. Community raids grant bragging rights and a public
 completion statistic, not materials required for ordinary rod progression.
 See [raid rules and reinforcement](raids-and-reinforcement.md) for the schedule,
 grade ladder, collection seals and per-rod Focus benefits.
+
+### Raid Completion Cards (Pending Deployment)
+
+The new module and bot candidate will automatically post a public channel card
+after a full raid completion. The cards are notifications only, with a link to
+the website Quests board (`/#quests`); no Discord raid commands are required.
+Personal cards show the awarded graded materials and a new seal only on the
+first clear; repeats show the materials without claiming another seal. Special
+cards show the saved catch, including Nidalees Lost Sock at F rank. Community
+cards show completion credit and bragging rights, not fish or materials.
+
+Cards use the player's last known Fishbound channel for website-started raids.
+If no channel is known, delivery waits for a future Fishbound bot command to
+provide one; there is no automatic DM fallback. Withdrawn, missed and cancelled
+raids do not receive cards, and historical completions are not scanned or
+reannounced.
+
+Deliveries remain in a durable queue until successfully sent and acknowledged;
+delivery cannot grant gameplay rewards. Discord nonce deduplication is bounded by
+Discord's retention window: a successful send followed by a crash before
+acknowledgement may duplicate the card if retried outside that window, but never
+the gameplay rewards.
 
 ## Fish again
 
