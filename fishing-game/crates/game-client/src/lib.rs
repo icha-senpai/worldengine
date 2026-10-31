@@ -126,13 +126,31 @@ pub struct Snapshot {
 
 #[derive(Clone, Copy, Debug)]
 pub enum RaidAction {
-    Prepare { species_id: u32, grade: u8 },
-    PrepareCommunity { event_id: u64 },
-    Deploy { attempt_id: u128 },
-    Cancel { attempt_id: u128 },
-    Claim { attempt_id: u128 },
-    Refine { material_id: u8, from_grade: u8, batches: u32 },
-    Reinforce { rod_id: u32, expected_level: u8 },
+    Prepare {
+        species_id: u32,
+        grade: u8,
+    },
+    PrepareCommunity {
+        event_id: u64,
+    },
+    Deploy {
+        attempt_id: u128,
+    },
+    Cancel {
+        attempt_id: u128,
+    },
+    Claim {
+        attempt_id: u128,
+    },
+    Refine {
+        material_id: u8,
+        from_grade: u8,
+        batches: u32,
+    },
+    Reinforce {
+        rod_id: u32,
+        expected_level: u8,
+    },
 }
 
 impl Client {
@@ -909,12 +927,14 @@ impl Client {
                         )?;
                     }
                     RaidAction::PrepareCommunity { event_id } => {
-                        connection.reducers.prepare_community_raid_from_discord_then(
-                            discord_user_id,
-                            interaction_id,
-                            event_id,
-                            complete(sender),
-                        )?;
+                        connection
+                            .reducers
+                            .prepare_community_raid_from_discord_then(
+                                discord_user_id,
+                                interaction_id,
+                                event_id,
+                                complete(sender),
+                            )?;
                     }
                     RaidAction::Deploy { attempt_id } => {
                         connection.reducers.deploy_raid_from_discord_then(
@@ -940,7 +960,11 @@ impl Client {
                             complete(sender),
                         )?;
                     }
-                    RaidAction::Refine { material_id, from_grade, batches } => {
+                    RaidAction::Refine {
+                        material_id,
+                        from_grade,
+                        batches,
+                    } => {
                         connection.reducers.refine_raid_material_from_discord_then(
                             discord_user_id,
                             interaction_id,
@@ -950,7 +974,10 @@ impl Client {
                             complete(sender),
                         )?;
                     }
-                    RaidAction::Reinforce { rod_id, expected_level } => {
+                    RaidAction::Reinforce {
+                        rod_id,
+                        expected_level,
+                    } => {
                         connection.reducers.reinforce_rod_from_discord_then(
                             discord_user_id,
                             interaction_id,
