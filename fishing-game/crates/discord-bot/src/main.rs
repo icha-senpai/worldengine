@@ -188,6 +188,9 @@ fn rejection(error: &Error) -> String {
     if message.contains("ACTION_RATE_LIMITED") {
         return "Give the last preview a moment, then try again.".into();
     }
+    if message.contains("BOAT_IN_RAID") {
+        return "Your boat is already committed to a raid. Check it under Quests on the website. You can still use /fish.".into();
+    }
     "The game could not confirm this request. Please try again shortly.".into()
 }
 
@@ -1116,6 +1119,40 @@ mod command_tests {
             assert!(is_fishbound_command(name));
         }
         assert!(!is_fishbound_command("another-app-command"));
+    }
+
+    #[test]
+    fn raid_locked_boat_rejections_explain_where_to_find_the_raid() {
+        for message in ["BOAT_IN_RAID", "reducer failed: BOAT_IN_RAID"] {
+            let error: Error = message.into();
+            assert_eq!(
+                rejection(&error),
+                "Your boat is already committed to a raid. Check it under Quests on the website. You can still use /fish."
+            );
+        }
+    }
+
+    #[test]
+    fn unknown_rejections_keep_the_generic_message() {
+        for message in ["unexpected failure", "RAID_DATABASE_UNAVAILABLE", "BOAT_TRANSPORT_TIMEOUT"] {
+            let error: Error = message.into();
+            assert_eq!(
+                rejection(&error),
+                "The game could not confirm this request. Please try again shortly."
+            );
+        }
+    }
+
+    #[test]
+    fn existing_rejection_messages_remain_unchanged() {
+        for (message, expected) in [
+            ("COOLDOWN_ACTIVE:60000000", "Your next cast is ready <t:60:R>."),
+            ("INSUFFICIENT_COINS", "You need more coins for this offer. Sell catches on the website or collect /daily."),
+            ("ACTION_RATE_LIMITED", "Give the last preview a moment, then try again."),
+        ] {
+            let error: Error = message.into();
+            assert_eq!(rejection(&error), expected);
+        }
     }
 }
 
