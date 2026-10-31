@@ -4,6 +4,7 @@
   import { formatLength, formatWeight } from './measurements';
   import RaidBoard from './RaidBoard.svelte';
   import SectionTabs from './SectionTabs.svelte';
+  import GameSelect from './GameSelect.svelte';
   let { game }: { game: Game } = $props();
   type QuestSection = 'raids' | 'community' | 'dailies' | 'quests';
   const questTabs: { id: QuestSection; label: string }[] = [
@@ -80,8 +81,8 @@
                 {#if !delivered}<div class="progress"><progress value={Number(progress?.current ?? 0n)} max={Number(quest.target)} aria-label={`${quest.name} progress`}></progress><span>{progress?.current.toString() ?? '0'} / {quest.target.toString()}</span></div>{/if}
                 <p class="reward"><strong>Reward:</strong> {rewards(quest, baitChoice(quest))}</p>
                 {#if !claimed}
-                  {#if quest.baitChoices.length > 1}<label>Bait reward<select value={baitChoice(quest)} disabled={!unlocked || game.busy} onchange={event => choices[quest.questId] = Number(event.currentTarget.value)}><option value={0}>Choose your bait</option>{#each quest.baitChoices as id}<option value={id}>{game.baits.find(b => b.baitId === id)?.name ?? `Bait ${id}`}</option>{/each}</select></label>{/if}
-                  {#if delivered && unlocked}<label>Fish to hand over<select value={catches[quest.questId] ?? ''} disabled={game.busy} onchange={event => catches[quest.questId] = event.currentTarget.value}><option value="">Choose a catch</option>{#each eligibleFish(quest) as fish}<option value={fish.catchId.toString()}>#{fish.catchId} · {speciesName(fish.speciesId)} · {fish.rarity} · {formatLength(fish.lengthMm)} · {formatWeight(fish.weightG)}</option>{/each}</select></label><small>Favorites are excluded. If you have no eligible fish, keep fishing in {game.biomes.find(b => b.biomeId === quest.biomeId)?.name ?? 'this water'}.</small>{/if}
+                  {#if quest.baitChoices.length > 1}<label>Bait reward<GameSelect label="Bait reward" value={baitChoice(quest)} options={[{value:0,label:"Choose your bait"},...quest.baitChoices.map(id=>({value:id,label:game.baits.find(b=>b.baitId===id)?.name??`Bait ${id}`}))]} disabled={!unlocked || game.busy} onchange={value => { choices[quest.questId] = value; }} /></label>{/if}
+                  {#if delivered && unlocked}<label>Fish to hand over<GameSelect label="Fish to hand over" value={catches[quest.questId] ?? ""} options={[{value:"",label:"Choose a catch"},...eligibleFish(quest).map(fish=>({value:fish.catchId.toString(),label:"#"+fish.catchId+" · "+speciesName(fish.speciesId)+" · "+fish.rarity+" · "+formatLength(fish.lengthMm)+" · "+formatWeight(fish.weightG)}))]} disabled={game.busy} onchange={value => { catches[quest.questId] = value; }} /></label><small>Favorites are excluded. If you have no eligible fish, keep fishing in {game.biomes.find(b => b.biomeId === quest.biomeId)?.name ?? 'this water'}.</small>{/if}
                   <button class="game-button" disabled={!game.ready || game.busy || !unlocked || !ready || (quest.baitChoices.length > 0 && !baitChoice(quest))} onclick={() => review(quest)}>{!unlocked ? 'Finish the previous step' : delivered ? 'Review delivery' : ready ? 'Claim reward' : 'In progress'}</button>
                 {:else}<p class="completed">✓ {quest.weekly ? 'Weekly reward collected' : 'Completed'}</p>{/if}
               </div>
@@ -139,24 +140,24 @@
 </dialog>
 
 <style>
-  .quest-board{color:var(--ink);background:var(--paper);padding:clamp(1rem,3vw,2.5rem);border:3px solid #aa885e;box-shadow:inset 0 0 0 3px var(--paper-light),0 5px 0 #182b25}
-  .board-intro{max-width:850px}.eyebrow{color:light-dark(var(--day-text, #705638), var(--night-text));font-weight:800;letter-spacing:.08em;font-size:.8rem}.board-intro .eyebrow{margin-bottom:.3rem}
+  .quest-board{color:var(--ink);background:var(--paper);padding:clamp(1rem,3vw,2.5rem);border:3px solid var(--paper-edge);box-shadow:inset 0 0 0 3px var(--paper-light),0 5px 0 var(--site-base)}
+  .board-intro{max-width:850px}.eyebrow{color:var(--ink-muted);font-weight:800;letter-spacing:.08em;font-size:.8rem}.board-intro .eyebrow{margin-bottom:.3rem}
   h2,h3,.chain-title>strong{font-family:var(--font-game);line-height:1.5}h2{font-size:clamp(1.5rem,3vw,2.125rem);font-weight:400;margin:0 0 1rem}h3{font-size:1.05rem;margin:0 0 .6rem}
   .daily{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1.2rem;background:var(--paper-light);border:2px solid var(--paper-edge);border-radius:6px;margin-bottom:1rem}.daily p{margin:.4rem 0}
   .stories{margin-top:2rem;padding-top:1.5rem;border-top:2px solid var(--paper-edge)}
   .chain{margin-top:.8rem;border:2px solid var(--wood);border-radius:6px;background:var(--paper-light);overflow:hidden}
-  summary{display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer;list-style:none;min-height:64px}summary::-webkit-details-marker{display:none}summary::marker{content:''}summary:focus-visible{outline:3px solid #477259;outline-offset:-4px}
-  .chain-summary{padding:1.1rem 1.2rem;background:light-dark(var(--day-inset, #ead6a7), var(--night-inset))}.chain-title,.step-title{display:grid;gap:.3rem;min-width:0}.chain-title>strong{font-size:1.05rem;overflow-wrap:anywhere}.chain-title .eyebrow{letter-spacing:.03em}
+  summary{display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer;list-style:none;min-height:64px}summary::-webkit-details-marker{display:none}summary::marker{content:''}summary:focus-visible{outline:3px solid var(--control-focus);outline-offset:-4px}
+  .chain-summary{padding:1.1rem 1.2rem;background:var(--panel-inset)}.chain-title,.step-title{display:grid;gap:.3rem;min-width:0}.chain-title>strong{font-size:1.05rem;overflow-wrap:anywhere}.chain-title .eyebrow{letter-spacing:.03em}
   .summary-meta{display:flex;align-items:center;justify-content:flex-end;gap:.65rem;flex-shrink:0}.summary-meta>small{font-size:.8rem}.status-pill{font-size:.85rem;font-weight:800;border:1px solid var(--paper-edge);background:var(--paper-light);border-radius:20px;padding:.2rem .65rem;white-space:nowrap}
   .chevron{font-size:1.5rem;line-height:1;flex:none;transition:transform .15s}.chain[open]>.chain-summary .chevron,.quest[open]>.step-summary .chevron{transform:rotate(180deg)}
   .chain-body{padding:1rem 1.2rem}.chain-body>p:first-child{margin-top:0}.quest-list{display:grid;grid-template-columns:minmax(0,1fr);gap:.6rem}
-  .quest{background:var(--paper-light);border:1px solid var(--paper-edge);border-radius:5px;overflow:hidden}.quest.locked{border-style:dashed}.quest.claimed{border-color:#70874d}
-  .step-summary{padding:.8rem 1rem}.step-title small{font-size:.7rem;color:var(--ink-muted);font-weight:800;letter-spacing:.06em}.step-title strong{font-size:1.05rem;overflow-wrap:anywhere}.step-status{font-size:.85rem;font-weight:800;white-space:nowrap}.finished{color:light-dark(var(--day-success, #375a35), var(--night-success))}
+  .quest{background:var(--paper-light);border:1px solid var(--paper-edge);border-radius:5px;overflow:hidden}.quest.locked{border-style:dashed}.quest.claimed{border-color:var(--success-ink)}
+  .step-summary{padding:.8rem 1rem}.step-title small{font-size:.7rem;color:var(--ink-muted);font-weight:800;letter-spacing:.06em}.step-title strong{font-size:1.05rem;overflow-wrap:anywhere}.step-status{font-size:.85rem;font-weight:800;white-space:nowrap}.finished{color:var(--success-ink)}
   .quest-body{display:grid;grid-template-columns:minmax(0,1fr);min-width:0;gap:1rem;padding:0 1rem 1rem;border-top:1px solid var(--paper-edge)}.quest-body p{margin:0}.quest-body .dialogue{margin-top:1rem;font-style:italic}.objective{font-weight:800}.reward{padding-top:.8rem;border-top:1px solid var(--paper-edge)}
-  .progress{display:flex;align-items:center;gap:.75rem}.progress progress{flex:1;min-width:0;accent-color:#477259}.progress span{white-space:nowrap}label{display:grid;gap:.4rem;font-weight:800}select{width:100%;min-width:0}
+  .progress{display:flex;align-items:center;gap:.75rem}.progress progress{flex:1;min-width:0;accent-color:var(--progress-fill)}.progress span{white-space:nowrap}label{display:grid;gap:.4rem;font-weight:800}.quest-board :global(.game-select){width:100%;min-width:0}
   .quest-body button{min-width:0;max-width:100%;overflow-wrap:anywhere}
-  .completed{font-weight:800;color:light-dark(var(--day-success, #375a35), var(--night-success))}.reset,small,.species{font-size:.9rem}
-  .actions{display:flex;gap:.8rem;justify-content:flex-end;flex-wrap:wrap}dialog{width:min(620px,calc(100vw - 2rem));max-height:85vh;overflow:auto;padding:1.8rem;color:var(--ink);background:var(--paper-light);border:4px solid var(--wood-dark);border-radius:8px}dialog::backdrop{background:#14251ed9}
+  .completed{font-weight:800;color:var(--success-ink)}.reset,small,.species{font-size:.9rem}
+  .actions{display:flex;gap:.8rem;justify-content:flex-end;flex-wrap:wrap}dialog{width:min(620px,calc(100vw - 2rem));max-height:85vh;overflow:auto;padding:1.8rem;color:var(--ink);background:var(--paper-light);border:4px solid var(--wood-dark);border-radius:8px}dialog::backdrop{background:var(--dialog-backdrop)}
   @media(max-width:600px){.daily{align-items:stretch;flex-direction:column}.chain-summary{padding:1rem;align-items:flex-start;flex-wrap:wrap;gap:.7rem}.chain-title{flex:1 1 100%}.chain-summary>.summary-meta{width:100%;justify-content:space-between}.chain-title>strong{font-size:1rem}.chain-body{padding:.75rem}.step-summary{padding:.8rem;gap:.65rem}.step-summary>.summary-meta{gap:.4rem}.step-status{font-size:.75rem}.step-title strong{font-size:1rem}.quest-body{padding:0 .8rem .8rem}}
   @media(prefers-reduced-motion:reduce){.chevron{transition:none}}
 </style>

@@ -4,6 +4,9 @@
   import { onMount, tick } from 'svelte';
   import PageTurner from './PageTurner.svelte';
   import RaidArt from './RaidArt.svelte';
+  import GameSelect from './GameSelect.svelte';
+  import SearchInput from './SearchInput.svelte';
+  import { tooltip } from './tooltip';
   import { ServerClock } from './server-clock';
   import policy from '../../../../../content/raids.json';
   import SectionTabs from './SectionTabs.svelte';
@@ -248,7 +251,7 @@
 
     {#if terminalAttempts.length}
       <details class="raid-history">
-        <summary>Terminal raid history · {terminalAttempts.length}</summary>
+        <summary><span>Terminal raid history · {terminalAttempts.length}</span><svg class="history-chevron" viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5" /></svg></summary>
         <div class="history-list">
           {#each terminalPage as attempt (attempt.id)}
             {@const fish = attempt.speciesId ? game.species.find(row => row.speciesId === attempt.speciesId) : undefined}
@@ -271,8 +274,8 @@
       <h3 id="personal-heading">Personal raids</h3>
       <p>Clear each grade in order. Repeating a clear earns materials again but does not unlock another seal. Withdrawn raids award only the floored time-scaled materials; prepared or missed attempts award nothing.</p>
       <div class="target-filters">
-        <div class="filter-field"><label for="raid-fish-search">Search discovered fish</label><input id="raid-fish-search" type="search" bind:value={search} oninput={() => page = 1} /></div>
-        <div class="filter-field"><label for="raid-biome-filter">Biome</label><select id="raid-biome-filter" bind:value={biome} onchange={() => page = 1}><option value={0}>All waters</option>{#each game.biomes as row (row.biomeId)}<option value={row.biomeId}>{row.name}</option>{/each}</select></div>
+        <div class="filter-field"><label for="raid-fish-search">Search discovered fish</label><SearchInput id="raid-fish-search" label="Search discovered fish" value={search} oninput={value => {search = value; page = 1;}} /></div>
+        <div class="filter-field"><label for="raid-biome-filter">Biome</label><GameSelect id="raid-biome-filter" label="Biome" value={biome} options={[{value:0,label:"All waters"},...game.biomes.map(row=>({value:row.biomeId,label:row.name}))]} onchange={value => {biome = value; page = 1;}} /></div>
       </div>
       <div class="raid-list">
         {#each personalPage as fish (fish.speciesId)}
@@ -290,7 +293,7 @@
                 {@const unlocked = row.grade <= grade}
                 <button class:cleared={gradeCleared(badgeFor(fish.speciesId)?.clearedGrades, row.grade)}
                   disabled={!gradeSelectable(badgeFor(fish.speciesId)?.clearedGrades, row.grade) || !game.ready || game.busy || !!activeRaid || !boatReady || supplies < BigInt(row.supplyUnits)}
-                  title={!unlocked ? 'Clear the previous grade first' : activeRaid ? 'Settle or withdraw your active raid first' : !boatReady ? 'Equip a boat first' : supplies < BigInt(row.supplyUnits) ? 'Buy more Expedition Chum' : undefined}
+                  use:tooltip={!unlocked ? 'Clear the previous grade first' : activeRaid ? 'Settle or withdraw your active raid first' : !boatReady ? 'Equip a boat first' : supplies < BigInt(row.supplyUnits) ? 'Buy more Expedition Chum' : undefined}
                   onclick={() => prepare(fish.speciesId, row.grade)}><RaidArt kind="seal" grade={row.grade} size={24} /> Prepare {row.name}</button>
               {/each}
             </div>
@@ -358,12 +361,12 @@
   .attempt-card.with-fish,.raid-target.with-fish,.special-card.with-fish{grid-template-columns:72px minmax(0,1fr) auto}.attempt-copy,.target-copy,.history-copy{min-width:0}.raid-fish-art{display:grid;place-items:center;width:72px;height:72px;background:var(--paper-light);border:1px solid var(--paper-edge);box-shadow:inset 0 0 0 2px var(--panel-highlight)}.raid-fish-art img{width:100%;height:100%;padding:5px;object-fit:contain;image-rendering:pixelated}
   .raid-history{border:1px solid var(--paper-edge);background:var(--panel-inset)}.raid-history summary{padding:12px;font-family:var(--font-game);cursor:pointer}.history-list{display:grid;gap:8px;padding:0 12px 12px}.history-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px;background:var(--paper-light);border:1px solid var(--paper-edge)}.history-card.with-fish{grid-template-columns:56px minmax(0,1fr) auto}.history-card .raid-fish-art{width:56px;height:56px}.history-copy{display:grid;gap:3px}.history-card small{font-size:12px;color:var(--ink-muted)}.history-card strong{font-family:var(--font-game);font-weight:400;overflow-wrap:anywhere}.history-card span{font-size:13px;color:var(--ink-muted)}.history-card button{flex:none}
   .attempt-actions,.grade-actions,.pages{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.grade-actions{justify-content:flex-end;max-width:460px}.raid-board button{font-family:var(--font-game);font-size:15px;padding:8px 11px;background:var(--selected-background);color:var(--selected-ink);border:1px solid var(--paper-edge)}.raid-board button.secondary{background:var(--paper-light);color:var(--ink)}.raid-board button:disabled{opacity:.5}.raid-board button.cleared{outline:2px solid var(--success-ink)}
-  .target-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:700px;min-width:0}.target-filters .filter-field{display:grid;gap:5px;min-width:0}.target-filters input,.target-filters select{width:100%;max-width:100%;min-width:0;box-sizing:border-box}.target-copy h4{overflow-wrap:anywhere}
-  .pages{justify-content:center}.pages span{font-size:14px}.notice,.empty{padding:12px;background:var(--panel-inset);border:1px solid var(--paper-edge);line-height:1.6}.notice.error,.error{color:var(--danger-ink,#8b2e26)}dialog{width:min(520px,calc(100% - 24px));padding:22px;background:var(--paper-light);color:var(--ink);border:3px solid var(--paper-edge)}dialog::backdrop{background:var(--dialog-backdrop)}
+  .target-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:700px;min-width:0}.target-filters .filter-field{display:grid;gap:5px;min-width:0}.target-filters :global(.game-search),.target-filters :global(.game-select){width:100%;max-width:100%;min-width:0;box-sizing:border-box}.target-copy h4{overflow-wrap:anywhere}
+  .pages{justify-content:center}.pages span{font-size:14px}.notice,.empty{padding:12px;background:var(--panel-inset);border:1px solid var(--paper-edge);line-height:1.6}.notice.error,.error{color:var(--danger-ink)}dialog{width:min(520px,calc(100% - 24px));padding:22px;background:var(--paper-light);color:var(--ink);border:3px solid var(--paper-edge)}dialog::backdrop{background:var(--dialog-backdrop)}
   @media(max-width:700px){.board-head{flex-direction:column}.attempt-card,.raid-target,.special-card,.community-card{grid-template-columns:1fr}.attempt-card.with-fish,.raid-target.with-fish,.special-card.with-fish{grid-template-columns:64px minmax(0,1fr)}.attempt-card.with-fish .attempt-actions,.raid-target.with-fish .grade-actions,.special-card.with-fish>button{grid-column:1 / -1}.raid-fish-art{width:64px;height:64px}.grade-actions{justify-content:flex-start}.target-filters{grid-template-columns:minmax(0,1fr)}.raid-board{padding:14px}.supply{grid-template-columns:auto minmax(0,1fr);width:100%}.supply strong{text-align:right}.history-card{grid-template-columns:1fr}.history-card.with-fish{grid-template-columns:56px minmax(0,1fr)}.history-card.with-fish button{grid-column:1 / -1}.history-card button{width:100%}}
   @media(max-width:700px){.attempt-card.with-fish,.raid-target.with-fish,.special-card.with-fish{row-gap:8px;column-gap:18px}.attempt-copy,.target-copy{display:contents}.attempt-copy>.eyebrow,.attempt-copy>h4,.target-copy>.eyebrow,.target-copy>h4{grid-column:2}.attempt-copy>p:not(.eyebrow),.target-copy>p:not(.eyebrow){grid-column:1 / -1}.attempt-card.with-fish>.raid-fish-art,.raid-target.with-fish>.raid-fish-art,.special-card.with-fish>.raid-fish-art{grid-row:1 / span 2;align-self:start}}
   .withdraw-dialog{width:min(640px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:28px;border:4px solid var(--wood-dark,#3c2d21);background:var(--paper,#f3e7c4);color:var(--ink,#354239);box-shadow:inset 0 0 0 3px var(--panel-highlight),0 12px 0 color-mix(in srgb,var(--wood-dark) 50%,transparent);overflow:auto;overscroll-behavior:contain;box-sizing:border-box}
   .withdraw-dialog::backdrop{background:var(--dialog-backdrop)}.withdraw-dialog h2{margin:0 0 18px;font-family:var(--font-game);font-size:30px;font-weight:400}.withdraw-dialog p{font-size:16px;line-height:1.6}
   .withdraw-actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:22px}.withdraw-actions button{max-width:100%;overflow-wrap:anywhere}
   @media(max-width:600px){.withdraw-dialog{width:calc(100% - 20px);max-height:calc(100dvh - 20px);padding:18px}.withdraw-dialog h2{font-size:26px}.withdraw-actions{flex-direction:column-reverse}.withdraw-actions button{width:100%}}
-</style>
+.raid-history summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none}.raid-history summary::-webkit-details-marker{display:none}.raid-history summary::marker{content:""}.history-chevron{width:14px;height:10px;flex:none;fill:none;stroke:currentColor;stroke-width:2;transition:transform .15s}.raid-history[open] .history-chevron{transform:rotate(180deg)}</style>

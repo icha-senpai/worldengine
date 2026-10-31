@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Game } from './game.svelte.ts';
   import manifest from '../../../../../assets/manifest.json';
+  import GameSelect from './GameSelect.svelte';
   import PageTurner from './PageTurner.svelte';
   import BadgeDetails from './BadgeDetails.svelte';
   let { game, pageSize = 12 }: { game: Game; pageSize?: number } = $props();
@@ -17,6 +18,27 @@
   const earnedNormal = $derived(earned.filter(row => normal.some(definition => definition.achievementId === row.achievementId)));
   const selected = $derived(game.titles.find(row => row.playerId === game.player?.playerId)?.achievementId ?? 0);
   const available = $derived(game.achievements.filter(row => earned.some(badge => badge.achievementId === row.achievementId)));
+  const titleOptions = $derived([
+    { value: 0, label: 'Angler · no title' },
+    ...available.map(row => ({ value: row.achievementId, label: row.title }))
+  ]);
+  const filterOptions = [
+    { value: 'all', label: 'All badges' }, { value: 'earned', label: 'Earned' },
+    { value: 'locked', label: 'Still to earn' }, { value: 'bonus', label: 'Bonus discoveries' }
+  ];
+  const scopeOptions = [
+    { value: 'all', label: 'All collections and milestones' }, { value: 'milestones', label: 'Milestones and bonuses' },
+    { value: 'biomes', label: 'Biome collections' }, { value: 'world', label: 'All biomes collections' }
+  ];
+  const biomeOptions = $derived([
+    { value: 'all', label: 'Any waters' }, { value: '0', label: 'All biomes' },
+    ...game.biomes.map(row => ({ value: String(row.biomeId), label: row.name }))
+  ]);
+  const rankOptions = $derived([
+    { value: 'all', label: 'Any collection' }, { value: 'any', label: 'Species at any rank' },
+    ...game.rarities.map(row => ({ value: row.tier, label: `${row.tier} rank` })),
+    { value: 'every', label: 'Every rank' }
+  ]);
   const entries = $derived(game.achievements.filter(row => {
     const badge = earned.some(badge => badge.achievementId === row.achievementId);
     if (filter === 'bonus' && !row.bonus || filter === 'earned' && !badge || filter === 'locked' && badge) return false;
@@ -30,14 +52,14 @@
 </script>
 
 <section aria-labelledby="achievement-heading">
-  <div class="heading"><div><p class="eyebrow">A LITTLE HISTORY TO WEAR</p><h2 id="achievement-heading">Your badge book</h2><p>{earnedNormal.length} / {normal.length} milestones · {earned.length - earnedNormal.length} bonus badges</p></div><div class="title-picker"><label for="angler-title">Wear a title</label><select id="angler-title" value={selected} disabled={!game.ready || game.busy || !game.player} onchange={event => game.equipTitle(Number(event.currentTarget.value))}><option value={0}>Angler · no title</option>{#each available as row}<option value={row.achievementId}>{row.title}</option>{/each}</select><small>Your title appears on your public profile.</small></div></div>
+  <div class="heading"><div><p class="eyebrow">A LITTLE HISTORY TO WEAR</p><h2 id="achievement-heading">Your badge book</h2><p>{earnedNormal.length} / {normal.length} milestones · {earned.length - earnedNormal.length} bonus badges</p></div><div class="title-picker"><label for="angler-title">Wear a title</label><GameSelect id="angler-title" label="Wear a title" value={selected} options={titleOptions} disabled={!game.ready || game.busy || !game.player} onchange={value => game.equipTitle(value)} /><small>Your title appears on your public profile.</small></div></div>
   <p class="note">Badges and titles celebrate your journey. They give no coins, XP or fishing bonuses. Earned badges stay yours when you sell fish. Fihs and the Sock are separate bonus discoveries.</p>
   <p class="note">Collections count every species you have caught over your lifetime. Rank collections need each species at that rank; every-rank badges need each species at all ten ranks.</p>
   <div class="filters">
-    <div><label for="badge-filter">Pages to show</label><select id="badge-filter" bind:value={filter} onchange={() => page = 1}><option value="all">All badges</option><option value="earned">Earned</option><option value="locked">Still to earn</option><option value="bonus">Bonus discoveries</option></select></div>
-    <div><label for="badge-scope">Collection</label><select id="badge-scope" bind:value={scope} onchange={() => page = 1}><option value="all">All collections and milestones</option><option value="milestones">Milestones and bonuses</option><option value="biomes">Biome collections</option><option value="world">All biomes collections</option></select></div>
-    <div><label for="badge-biome">Waters</label><select id="badge-biome" bind:value={biome} onchange={() => page = 1}><option value="all">Any waters</option><option value="0">All biomes</option>{#each game.biomes as row}<option value={String(row.biomeId)}>{row.name}</option>{/each}</select></div>
-    <div><label for="badge-rank">Rank collection</label><select id="badge-rank" bind:value={rank} onchange={() => page = 1}><option value="all">Any collection</option><option value="any">Species at any rank</option>{#each game.rarities as row}<option value={row.tier}>{row.tier} rank</option>{/each}<option value="every">Every rank</option></select></div>
+    <div><label for="badge-filter">Pages to show</label><GameSelect id="badge-filter" label="Pages to show" value={filter} options={filterOptions} onchange={value => {filter = value; page = 1;}} /></div>
+    <div><label for="badge-scope">Collection</label><GameSelect id="badge-scope" label="Collection" value={scope} options={scopeOptions} onchange={value => {scope = value; page = 1;}} /></div>
+    <div><label for="badge-biome">Waters</label><GameSelect id="badge-biome" label="Waters" value={biome} options={biomeOptions} onchange={value => {biome = value; page = 1;}} /></div>
+    <div><label for="badge-rank">Rank collection</label><GameSelect id="badge-rank" label="Rank collection" value={rank} options={rankOptions} onchange={value => {rank = value; page = 1;}} /></div>
   </div>
   <div class="badges">
     {#each entries.slice((page - 1) * pageSize, page * pageSize) as row (row.achievementId)}
@@ -55,5 +77,5 @@
 <BadgeDetails bind:badge={enlargedBadge} asset={badgeAssets.get('badge-' + enlargedBadge?.achievementId) ?? ''} earned={earned.some(row => row.achievementId === enlargedBadge?.achievementId)} />
 
 <style>
-  section{background:var(--paper,#f3e7c4);color:var(--ink,#354239);padding:32px;border:3px solid #aa885e;box-shadow:inset 0 0 0 3px light-dark(var(--day-highlight, #fff3d2), var(--night-highlight)),0 5px 0 #182b25}h2,h3{font-family:var(--font-game);font-weight:400;margin:5px 0}h2{font-size:34px}h3{font-size:27px;overflow-wrap:anywhere}.eyebrow{font-size:14px;letter-spacing:.15em;color:light-dark(var(--day-text, #896744), var(--night-text))}.heading{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}.title-picker{display:grid;gap:7px;min-width:240px;max-width:100%}label{font-size:16px;font-weight:600}select{width:100%;max-width:100%}small{font-size:14px;color:light-dark(var(--day-text, #796545), var(--night-text))}.note{font-size:16px;line-height:1.65;max-width:900px}.filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}.filters>div{display:grid;gap:6px}.category{color:light-dark(var(--day-success, #526d50), var(--night-success));font-weight:600}.badges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}article{padding:18px;border:2px dashed #b7a27c;background:light-dark(var(--day-inset, #e5d8b8), var(--night-inset));display:flex;align-items:flex-start;gap:12px;min-width:0}article.earned{border-style:solid;border-color:#78916a;background:light-dark(var(--day-raised, #f8edcc), var(--night-raised))}.seal{flex:none;width:42px;height:50px;display:grid;place-items:center;background:light-dark(var(--day-inset, #baac8c), var(--night-inset));color:#ece2cb;font-family:var(--font-game);font-size:35px;border:2px solid #897b60;clip-path:polygon(0 0,100% 0,100% 80%,50% 100%,0 80%)}.earned .seal{background:#456c52;color:#ffe199;border-color:#c0a45f}.seal.illustrated{cursor:zoom-in;appearance:none;width:80px;height:80px;padding:0;background:transparent;border:0;clip-path:none}.seal.illustrated img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated}article:not(.earned) .illustrated img{filter:grayscale(1);opacity:.5}.bonus .seal:not(.illustrated){background:#655678;color:#ebd9ff}article>div:last-child{min-width:0;flex:1}article p{font-size:16px;line-height:1.5;margin:9px 0}.title{color:light-dark(var(--day-text, #866033), var(--night-text));font-style:italic}progress{display:block;width:100%;height:7px;accent-color:#567d55}.progress-label{font-size:14px;color:light-dark(var(--day-success, #60724e), var(--night-success))}time{display:block;font-size:14px;color:light-dark(var(--day-muted, #82715a), var(--night-muted));margin-top:5px}.empty{padding:30px;text-align:center}.seal.illustrated:focus-visible{outline:3px solid #648b74;outline-offset:4px}@media(max-width:950px){.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.badges{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.filters{grid-template-columns:1fr}section{padding:17px}.badges{grid-template-columns:1fr}.heading{gap:12px}.title-picker{width:100%}article{padding:15px}}
+  section{background:var(--paper);color:var(--ink);padding:32px;border:3px solid var(--paper-edge);box-shadow:inset 0 0 0 3px var(--panel-highlight),0 5px 0 var(--site-base)}h2,h3{font-family:var(--font-game);font-weight:400;margin:5px 0}h2{font-size:34px}h3{font-size:27px;overflow-wrap:anywhere}.eyebrow{font-size:14px;letter-spacing:.15em;color:var(--ink-muted)}.heading{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}.title-picker{display:grid;gap:7px;min-width:240px;max-width:100%}label{font-size:16px;font-weight:600}section :global(.game-select){width:100%;max-width:100%}small{font-size:14px;color:var(--ink-muted)}.note{font-size:16px;line-height:1.65;max-width:900px}.filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}.filters>div{display:grid;gap:6px}.category{color:var(--success-ink);font-weight:600}.badges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}article{padding:18px;border:2px dashed var(--paper-edge);background:var(--panel-inset);display:flex;align-items:flex-start;gap:12px;min-width:0}article.earned{border-style:solid;border-color:var(--success-ink);background:var(--paper-light)}.seal{flex:none;width:42px;height:50px;display:grid;place-items:center;background:var(--panel-inset);color:var(--ink-muted);font-family:var(--font-game);font-size:35px;border:2px solid var(--paper-edge);clip-path:polygon(0 0,100% 0,100% 80%,50% 100%,0 80%)}.earned .seal{background:var(--success-ink);color:var(--paper-light);border-color:var(--paper-edge)}.seal.illustrated{cursor:zoom-in;appearance:none;width:80px;height:80px;padding:0;background:transparent;border:0;clip-path:none}.seal.illustrated img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated}article:not(.earned) .illustrated img{filter:grayscale(1);opacity:.5}.bonus .seal:not(.illustrated){background:var(--special-ink);color:var(--paper-light)}article>div:last-child{min-width:0;flex:1}article p{font-size:16px;line-height:1.5;margin:9px 0}.title{color:var(--ink);font-style:italic}progress{display:block;width:100%;height:7px;accent-color:var(--progress-fill)}.progress-label{font-size:14px;color:var(--success-ink)}time{display:block;font-size:14px;color:var(--ink-muted);margin-top:5px}.empty{padding:30px;text-align:center}.seal.illustrated:focus-visible{outline:3px solid var(--control-focus);outline-offset:4px}@media(max-width:950px){.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.badges{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.filters{grid-template-columns:1fr}section{padding:17px}.badges{grid-template-columns:1fr}.heading{gap:12px}.title-picker{width:100%}article{padding:15px}}
 </style>

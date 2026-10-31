@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { tooltip } from './tooltip';
   let { compact = false } = $props<{ compact?: boolean }>();
   const preferenceKey = 'fishbound:pond-motion';
   let preference = $state<'auto' | 'on' | 'off'>('auto');
@@ -55,7 +56,7 @@
   </svg>
   </div>
   <div class="scene-controls">
-    <button class="motion-toggle" type="button" aria-label={moving ? 'Pause pond animation' : 'Play pond animation'} title={moving ? 'Pause pond animation' : 'Play pond animation'} onclick={toggleMotion}>
+    <button class="motion-toggle" type="button" aria-label={moving ? 'Pause pond animation' : 'Play pond animation'} use:tooltip={moving ? 'Pause pond animation' : 'Play pond animation'} onclick={toggleMotion}>
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
         {#if moving}<path d="M6 4h4v16H6zm8 0h4v16h-4z" />{:else}<path d="m7 3 14 9-14 9z" />{/if}
       </svg>

@@ -3,6 +3,7 @@
   import CastCooldown from './CastCooldown.svelte';
   import RaidArt from './RaidArt.svelte';
   import { clearedGradeCount, gradeCleared, gradeSelectable } from './raid-progress';
+  import { tooltip } from './tooltip';
 
   let { game, speciesId }: { game: Game; speciesId: number } = $props();
   const ranks = ['F', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'UR', 'UUR'];
@@ -41,7 +42,7 @@
         {@const available = discovered && !cleared && gradeSelectable(badge?.clearedGrades, grade)}
         <span data-rank={rank} class:cleared class:available class:locked={!cleared && !available}
           class:uur={discovered && grade === 9 && clearCount === 10}
-          class:active title={`${rank} ${cleared ? 'raid clear' : available ? 'available' : 'locked'}${active ? ` · ${attempt?.status}` : ''}`}
+          class:active use:tooltip={`${rank} ${cleared ? 'raid clear' : available ? 'available' : 'locked'}${active ? ` · ${attempt?.status}` : ''}`}
           aria-label={`${rank}: ${cleared ? 'cleared' : available ? 'available' : 'locked'}${active ? `, ${attempt?.status}` : ''}`}>
           <RaidArt kind="seal" grade={grade} size={28} />
           <b>{rank}</b>
@@ -56,7 +57,7 @@
 <style>
   .raid-mastery{display:grid;gap:7px;margin-top:12px;padding:10px;background:var(--panel-inset);border:1px solid var(--paper-edge)}
   .raid-mastery p,.raid-mastery small{font-size:12px;line-height:1.45;color:var(--ink-muted);margin:0}.seal-summary{font-family:var(--font-game)}
-  .seals{display:grid;grid-template-columns:repeat(5,minmax(30px,1fr));gap:4px;width:100%;max-width:280px;min-width:0}.seals span{position:relative;display:grid;grid-template-rows:28px auto;place-items:center;align-content:center;min-height:48px;background:var(--panel-inset);color:var(--ink-muted);text-align:center}.seals b,.seals i,.seals small{position:relative;z-index:1}.seals b{font-size:11px}.seals small{font-size:8px;line-height:1.1}.seals .clear-mark{position:absolute;right:3px;top:1px;font-size:10px;font-style:normal}
+  .seals{display:grid;grid-template-columns:repeat(5,minmax(30px,1fr));gap:4px;width:100%;max-width:280px;min-width:0}.seals span{position:relative;display:grid;grid-template-rows:28px auto;place-items:center;align-content:center;min-height:48px;background:var(--panel-inset);color:var(--ink-muted);text-align:center}.seals b,.seals i,.seals small{position:relative;z-index:1}.seals b{font-size:11px}.seals small{font-size:8px;line-height:1.1;color:inherit}.seals .clear-mark{position:absolute;right:3px;top:1px;font-size:10px;font-style:normal}
   .seals .locked{opacity:.38;filter:grayscale(1)}.seals .available{color:var(--ink);outline:1px solid var(--control-focus);filter:brightness(.86)}.seals .cleared{background:var(--success-ink);color:var(--paper-light);filter:none}
   .seals [data-rank="UR"],.seals [data-rank="SSS"]{background:var(--rank-high-background);color:var(--ink)}.seals [data-rank="UUR"]{background:var(--rank-trophy-background);color:var(--ink)}
   .seals .uur{outline:2px solid var(--special-ink);box-shadow:inset 0 0 0 2px var(--panel-highlight),0 0 0 1px var(--special-ink)}

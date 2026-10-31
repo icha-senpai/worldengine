@@ -4,6 +4,9 @@
   import world from '../../../../../content/world.json';
   import gameRules from '../../../../../content/game-rules.json';
   import raidRules from '../../../../../content/raids.json';
+  import GameSelect from './GameSelect.svelte';
+  import SearchInput from './SearchInput.svelte';
+  import { tooltip } from './tooltip';
   import PageTurner from './PageTurner.svelte';
   import FishDetails from './FishDetails.svelte';
   import { baselineLoadout, castChance, formatOdds, formatPercent, perfectCatchOdds } from './compendium';
@@ -44,12 +47,12 @@
 <section aria-labelledby="compendium-heading">
   <h2 id="compendium-heading">The fish book <span>{species.length} species</span></h2>
   <div class="filters">
-    <div class="search"><label for="catalog-search">Find a fish</label><input id="catalog-search" type="search" placeholder="Carp, koi, trout…" bind:value={query} oninput={() => page = 1} /></div>
-    <div><label for="catalog-biome">Biome</label><select id="catalog-biome" bind:value={biome} onchange={() => page = 1}><option value={0}>All waters</option>{#each world.biomes as b}<option value={b.biomeId}>{b.name}</option>{/each}</select></div>
-    <div><label for="catalog-rank">Rank</label><select id="catalog-rank" bind:value={rarity} onchange={() => page = 1}><option value="">All ranks</option>{#each tiers as tier}<option value={tier}>{tier}</option>{/each}</select></div>
+    <div class="search"><label for="catalog-search">Find a fish</label><SearchInput id="catalog-search" label="Find a fish" placeholder="Carp, koi, trout…" value={query} oninput={value => {query = value; page = 1;}} /></div>
+    <div><label for="catalog-biome">Biome</label><GameSelect id="catalog-biome" label="Biome" value={biome} options={[{value:0,label:"All waters"},...world.biomes.map(b=>({value:b.biomeId,label:b.name}))]} onchange={value => {biome = value; page = 1;}} /></div>
+    <div><label for="catalog-rank">Rank</label><GameSelect id="catalog-rank" label="Rank" value={rarity} options={[{value:"",label:"All ranks"},...tiers.map(tier=>({value:tier,label:tier}))]} onchange={value => {rarity = value; page = 1;}} /></div>
     <fieldset class="rate-presets"><legend>Catch rates</legend><div>
       <button aria-pressed={rateMode === 'baseline'} onclick={() => rateMode = 'baseline'}>Baseline</button>
-      <button aria-pressed={rateMode === 'equipped'} disabled={!equipped} title={!equipped ? 'Link your Discord account to see your equipped loadout.' : undefined} onclick={() => rateMode = 'equipped'}>Equipped</button>
+      <button aria-pressed={rateMode === 'equipped'} disabled={!equipped} use:tooltip={!equipped ? 'Link your Discord account to see your equipped loadout.' : undefined} onclick={() => rateMode = 'equipped'}>Equipped</button>
       <button aria-pressed={rateMode === 'best'} onclick={() => rateMode = 'best'}>Best for perfects</button>
     </div>{#if !equipped}<small>Link your Discord account to compare your equipped loadout.</small>{/if}</fieldset>
   </div>
@@ -103,5 +106,5 @@
   .sprite-slot{display:flex;align-items:center;justify-content:center;height:150px;border:2px solid var(--paper-edge);background:var(--art-background);box-shadow:inset 0 0 0 3px var(--panel-highlight)}.sprite-slot img{width:130px;height:115px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(3px 4px 0 var(--art-shadow))}
   .caption{display:block;margin-top:12px;font-size:16px;line-height:1.5;overflow-wrap:anywhere}.fish-name{display:block;font-family:var(--font-game);font-size:24px;line-height:1.1;color:var(--ink);min-height:54px}.detail{display:block;color:var(--ink);font-size:14px;margin-top:6px}.rarity{display:inline-block;background:var(--panel-inset);border:1px solid var(--paper-edge);color:var(--ink);font-family:var(--font-game);font-size:17px;padding:2px 7px;margin:8px 0 2px}
   .fish-card[data-rank=UUR]{--slot-edge:var(--special-ink)}.fish-card[data-rank=UUR] .sprite-slot{border-color:var(--special-ink);box-shadow:inset 0 0 0 3px var(--panel-highlight);background:var(--art-background)}.fish-card[data-rank=UUR] .rarity{background:var(--rank-trophy-background);color:var(--ink);border-color:var(--special-ink)}.fish-card[data-rank=UR] .rarity,.fish-card[data-rank=SSS] .rarity{background:var(--rank-high-background);color:var(--ink);border-color:var(--control-border)}
-  @media(max-width:600px){section{padding:22px 18px}section::before{left:8px}h2{font-size:31px}h2 span{font-size:13px}.filters{gap:12px;padding:12px}.filters .search{flex-basis:100%;min-width:0}.filters>div{flex:1}.filters select{width:100%;min-width:0}.fish{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.fish-card{padding:8px}.sprite-slot{height:100px}.sprite-slot img{width:90px;height:80px}.fish-name{font-size:20px}.count{font-size:13px}.detail{font-size:12px}}
+  @media(max-width:600px){section{padding:22px 18px}section::before{left:8px}h2{font-size:31px}h2 span{font-size:13px}.filters{gap:12px;padding:12px}.filters .search{flex-basis:100%;min-width:0}.filters>div{flex:1}.filters :global(.game-select){width:100%;min-width:0}.fish{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.fish-card{padding:8px}.sprite-slot{height:100px}.sprite-slot img{width:90px;height:80px}.fish-name{font-size:20px}.count{font-size:13px}.detail{font-size:12px}}
 </style>

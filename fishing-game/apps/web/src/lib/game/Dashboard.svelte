@@ -1,5 +1,8 @@
 <script lang="ts">
   import { formatLength, formatWeight } from './measurements';
+  import GameSelect from './GameSelect.svelte';
+  import SearchInput from './SearchInput.svelte';
+  import { tooltip } from './tooltip';
   import { onMount, tick, untrack } from 'svelte';
   import * as env from '$app/env/public';
   import { Game } from './game.svelte';
@@ -182,7 +185,7 @@
     <span class:live={game.ready} class="connection"><span></span>{game.status}</span>
     <div class="mobile-navigation" id="mobile-navigation" hidden={!menuOpen}>
       {#each tabs as tab}
-        <button type="button" aria-current={visibleView === tab.id ? 'page' : undefined} disabled={!!tab.personal && !game.player} title={tab.personal && !game.player ? 'Link Discord to open this view' : undefined} onclick={() => chooseMobileView(tab.id)}>{tab.label}</button>
+        <button type="button" aria-current={visibleView === tab.id ? 'page' : undefined} disabled={!!tab.personal && !game.player} use:tooltip={tab.personal && !game.player ? 'Link Discord to open this view' : undefined} onclick={() => chooseMobileView(tab.id)}>{tab.label}</button>
       {/each}
     </div>
   </nav>
@@ -206,7 +209,7 @@
   {/if}
 
   <div class="camp-tabs" role="tablist" aria-label="Fishing camp views">
-    {#each tabs as tab}<button id={'tab-' + tab.id} role="tab" aria-selected={visibleView === tab.id} aria-controls={tab.id === 'compendium' ? 'panel-compendium' : 'camp-panel'} tabindex={visibleView === tab.id ? 0 : -1} disabled={!!tab.personal && !game.player} title={tab.personal && !game.player ? 'Link Discord to open this view' : undefined} onclick={() => openView(tab.id)} onkeydown={event => tabKey(event, tab.id)}>{tab.label}</button>{/each}
+    {#each tabs as tab}<button id={'tab-' + tab.id} role="tab" aria-selected={visibleView === tab.id} aria-controls={tab.id === 'compendium' ? 'panel-compendium' : 'camp-panel'} tabindex={visibleView === tab.id ? 0 : -1} disabled={!!tab.personal && !game.player} use:tooltip={tab.personal && !game.player ? 'Link Discord to open this view' : undefined} onclick={() => openView(tab.id)} onkeydown={event => tabKey(event, tab.id)}>{tab.label}</button>{/each}
   </div>
 
   {#if game.error}<p class="notice error" role="alert">{game.error}</p>{/if}
@@ -248,7 +251,7 @@
           <div class="fish-actions"><button class="secondary" disabled={!selectedOwned.length || game.busy || !game.ready} onclick={preview}>Preview sale ({saleBatch.length}{selectedOwned.length > saleBatchSize ? ' of ' + selectedOwned.length : ''})</button></div>
           {#if game.inventory.length}
             <div class="quick-select" aria-label="Quick fish selection">
-              <label for="selection-rank">Quick select by rank<select id="selection-rank" bind:value={selectionRank} disabled={game.busy || !game.ready}><option value="">Choose a rank…</option>{#each ranks as rank}<option value={rank}>{rank} ({selectable.filter(fish => fish.rarity === rank).length})</option>{/each}</select></label>
+              <label for="selection-rank">Quick select by rank<GameSelect id="selection-rank" label="Quick select by rank" value={selectionRank} options={[{value:"",label:"Choose a rank."},...ranks.map(rank=>({value:rank,label:rank+" ("+selectable.filter(fish=>fish.rarity===rank).length+")"}))]} disabled={game.busy || !game.ready} onchange={value => { selectionRank = value; }} /></label>
               <button class="secondary" disabled={!selectionRank || !selectable.some(fish => fish.rarity === selectionRank) || game.busy || !game.ready} onclick={() => quickSelect(selectionRank)}>Select rank</button>
               <button class="secondary" disabled={!selectable.length || game.busy || !game.ready} onclick={() => { selectionRank = ''; quickSelect(); }}>Select all</button>
               <button class="secondary" disabled={!selected.length || game.busy || !game.ready} onclick={() => { selectionRank = ''; selected = []; showQuote = false; }}>Clear selection</button>
@@ -272,7 +275,7 @@
     {#if visibleView === 'collection'}
     <section aria-labelledby="collection"><div class="section-heading"><div><p class="eyebrow">EVERY DISCOVERY COUNTS</p><h2 id="collection">Collection book</h2></div><span class="muted">{discoveries} of {ordinary.length} ordinary species discovered · ✦ {perfected.size} UUR perfected · {maxima.count} rank maxima · {maxima.fullyMaxedSpecies} fully maxed species</span></div>
       <p class="muted">{game.raidsSupported ? `Raid mastery: ${raidStats?.masteredBosses ?? 0n} / 249 bosses · ${raidSeals} / 2,490 grade seals` : 'Raid seals await the module update.'}</p>
-      <div class="filters"><div><label for="book-biome">Biome</label><select id="book-biome" bind:value={bookBiome} onchange={() => bookPage = 1}><option value={0}>All waters</option>{#each game.biomes as biome}<option value={biome.biomeId}>{biome.name}</option>{/each}</select></div><div><label for="book-rank">Rank</label><select id="book-rank" bind:value={bookTier} onchange={() => bookPage = 1}><option value="">All ranks</option>{#each ['F','D','C','B','A','S','SS','SSS','UR','UUR'] as tier}<option value={tier}>{tier}</option>{/each}</select></div><div><label for="book-search">Find a fish</label><input id="book-search" type="search" placeholder="Name…" bind:value={bookQuery} oninput={() => bookPage = 1} /></div></div>
+      <div class="filters"><div><label for="book-biome">Biome</label><GameSelect id="book-biome" label="Biome" value={bookBiome} options={[{value:0,label:"All waters"},...game.biomes.map(biome=>({value:biome.biomeId,label:biome.name}))]} onchange={value => {bookBiome = value; bookPage = 1;}} /></div><div><label for="book-rank">Rank</label><GameSelect id="book-rank" label="Rank" value={bookTier} options={[{value:"",label:"All ranks"},...["F","D","C","B","A","S","SS","SSS","UR","UUR"].map(tier=>({value:tier,label:tier}))]} onchange={value => {bookTier = value; bookPage = 1;}} /></div><div><label for="book-search">Find a fish</label><SearchInput id="book-search" label="Find a fish" placeholder="Name…" value={bookQuery} oninput={value => {bookQuery = value; bookPage = 1;}} /></div></div>
       <p class="muted">Showing {book.length} species. Ordinary ranks come from length and weight relative to each species; both must meet the rank minimum. Fihs and Nidalees Lost Sock are bonus discoveries. ✓ means caught; ✦ means one catch reached both exact maxima for that rank. Marks remain after selling.</p>{#if bookTier}<p class="muted">{bookTier}: {rankMinimums(bookTier)}.</p>{/if}<div class="collection-grid">
       {#each book.slice((bookPage - 1) * pageSize, bookPage * pageSize) as fish (fish.speciesId)}
         {@const discovery = game.collection.find(row => row.speciesId === fish.speciesId)}
@@ -281,7 +284,7 @@
           <img src={fish.spriteAsset} alt={fish.name} loading="lazy" />
           <div>
             <small>{bookTier ? bookTier + ' RANK' : fish.allowedRarities.length === 10 ? 'F THROUGH UUR' : fish.allowedRarities[0] + ' ONLY'}{fish.countsForOrdinaryCollectionCompletion ? '' : ' · BONUS'}</small>
-            <h3>{fish.name}{#if bookTier ? maxima.marks.has(`${fish.speciesId}:${bookTier}`) : perfected.has(fish.speciesId)} <span class="perfect-mark" aria-label={bookTier ? bookTier + ' rank maximum' : 'UUR perfected species'} title="One catch at both exact maximum measurements">✦</span>{/if}</h3>
+            <h3>{fish.name}{#if bookTier ? maxima.marks.has(`${fish.speciesId}:${bookTier}`) : perfected.has(fish.speciesId)} <span class="perfect-mark" aria-label={bookTier ? bookTier + ' rank maximum' : 'UUR perfected species'} use:tooltip={"One catch at both exact maximum measurements"}>✦</span>{/if}</h3>
             <p>{game.biomes.find(b => b.biomeId === fish.biomeId)?.name}</p>
             {#if discovery}
               <p>{bookTier ? discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(bookTier)].toString() + ' caught at ' + bookTier : discovery.count.toString() + ' caught across ranks'} · best across ranks {formatLength(discovery.bestLengthMm)} / {formatWeight(discovery.bestWeightG)}</p>
@@ -289,7 +292,7 @@
             <p class="maxima-count">✦ {fish.allowedRarities.filter(rank => maxima.marks.has(`${fish.speciesId}:${rank}`)).length} / {fish.allowedRarities.length} rank maxima</p>
             <div class="rank-progress" aria-label="Ranks caught and maxima">
               {#each fish.allowedRarities as rank}
-                <span class:maxed={maxima.marks.has(`${fish.speciesId}:${rank}`)} title={maxima.marks.has(`${fish.speciesId}:${rank}`) ? rank + ' rank maximum: one catch at both exact maximum measurements' : rankMinimums(rank)} class:earned={!!discovery && discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(rank)] > 0n}>{rank}{maxima.marks.has(`${fish.speciesId}:${rank}`) ? ' ✦' : discovery && discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(rank)] > 0n ? ' ✓' : ' ○'}</span>
+                <span class:maxed={maxima.marks.has(`${fish.speciesId}:${rank}`)} use:tooltip={maxima.marks.has(`${fish.speciesId}:${rank}`) ? rank + ' rank maximum: one catch at both exact maximum measurements' : rankMinimums(rank)} class:earned={!!discovery && discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(rank)] > 0n}>{rank}{maxima.marks.has(`${fish.speciesId}:${rank}`) ? ' ✦' : discovery && discovery.rankCounts[['F','D','C','B','A','S','SS','SSS','UR','UUR'].indexOf(rank)] > 0n ? ' ✓' : ' ○'}</span>
               {/each}
             </div>
             <RaidMastery {game} speciesId={fish.speciesId} />
@@ -309,7 +312,7 @@
   {#if visibleView === 'waters' && game.biomes.length}
     <section aria-labelledby="waters"><p class="eyebrow">SEVEN WATERS, ONE JOURNEY</p><h2 id="waters">Explore the biomes</h2>
       {#if game.player}<p class="muted">Equipped: {currentRod?.name} · power {game.rodStats(currentRod?.rodId ?? 0).power}. Buy rods and permanent biome licences from the camp trader. Travel keeps your cast cooldown.</p>
-        <div class="filters"><label>Equip an owned rod<select value={game.player.equippedRodId} disabled={game.busy || !game.ready} onchange={event => game.changeLoadout(undefined, Number(event.currentTarget.value))}>{#each game.rods as rod}<option value={rod.rodId} disabled={!game.ownedRods.some(owned => owned.rodId === rod.rodId) || rod.minimumLevel > level}>{rod.name} · level {rod.minimumLevel} · power {rod.power}</option>{/each}</select></label></div>
+        <div class="filters"><label>Equip an owned rod<GameSelect id="dashboard-rod" label="Equip an owned rod" value={game.player.equippedRodId} options={game.rods.map(rod=>({value:rod.rodId,label:rod.name+" · level "+rod.minimumLevel+" · power "+rod.power,disabled:!game.ownedRods.some(owned=>owned.rodId===rod.rodId)||rod.minimumLevel>level}))} disabled={game.busy || !game.ready} onchange={value => game.changeLoadout(undefined, value)} /></label></div>
       {/if}
       <div class="biome-grid">{#each game.biomes.slice((worldPage - 1) * pageSize, worldPage * pageSize) as biome (biome.biomeId)}
         {@const pool = game.species.filter(fish => fish.biomeId === biome.biomeId)}
@@ -343,7 +346,7 @@
   .brand{display:flex;align-items:center;gap:8px;font-size:31px;margin-right:auto;padding:0!important}
   .brand img{width:46px;height:36px;object-fit:contain;image-rendering:pixelated}
   .connection{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--site-text);padding:5px 8px;background:var(--site-panel);border:1px solid var(--site-border)}
-  .connection>span{width:7px;height:7px;background:#9c8e75}.connection.live>span{background:#a8d29a}
+  .connection>span{width:7px;height:7px;background:var(--site-muted)}.connection.live>span{background:var(--site-success)}
   .camp-banner{display:grid;grid-template-columns:1fr 1.1fr;gap:36px;align-items:stretch;margin:28px 0 32px;padding:30px;background:var(--site-panel);border:3px solid var(--wood-dark);box-shadow:inset 0 0 0 1px var(--site-border),0 6px 0 var(--site-base)}
   .camp-intro{padding:14px 8px;align-self:center;min-width:0}
   .eyebrow{font-family:var(--font-game);font-size:17px;letter-spacing:.06em;color:var(--ink);margin:0 0 8px}
@@ -369,7 +372,7 @@
   .welcome{display:grid;grid-template-columns:1.7fr 1fr;gap:32px;padding:36px}.welcome p{font-size:17px;line-height:1.7}.welcome h2{margin-bottom:12px}
   .login{display:flex;flex-direction:column;justify-content:center;gap:16px;max-width:380px}.login small{font-size:16px;line-height:1.6;color:var(--ink-muted)}
   .dev-login{margin-top:20px;font-size:14px;line-height:1.6;color:var(--site-text)}.dev-login-button{font-size:16px;padding:6px 12px}.dev-login-error{display:block;color:var(--site-text);margin-top:6px}
-  .notice{padding:16px;border:3px solid #835a41;background:var(--panel-inset);color:var(--ink);font-size:17px}
+  .notice{padding:16px;border:3px solid var(--paper-edge);background:var(--panel-inset);color:var(--ink);font-size:17px}.notice.error{border-color:var(--danger-ink);color:var(--danger-ink)}
   .stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;padding:0;background:var(--wood);color:var(--site-text);box-shadow:inset 0 0 0 2px var(--panel-highlight),0 5px 0 var(--site-base)}.stats::before,.stats::after{display:none}
   .stats .timer-value{font-size:clamp(18px,1.5vw,32px)}.stats .coin-value{font-size:clamp(18px,2.2vw,30px)}
   @media(max-width:1200px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.stats>div:nth-child(3n){border-right:0}.stats>div:nth-child(-n+3){border-bottom:2px solid var(--paper-edge)}.stats .timer-value{font-size:32px}}
@@ -378,11 +381,11 @@
   progress{display:block;width:100%;height:8px;accent-color:var(--gold);border:1px solid var(--site-base);margin:8px 0;background:var(--site-base)}progress::-webkit-progress-bar{background:var(--site-base)}progress::-webkit-progress-value{background:var(--gold)}
   .section-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}.section-heading h2{margin-bottom:0}
   .filters{display:flex;flex-wrap:wrap;gap:16px;margin:20px 0}.filters>div,.filters label{display:flex;flex-direction:column;gap:6px;font-size:16px;color:var(--ink);min-width:0}.filters label{font-weight:700}
-  .filters select,.filters input{max-width:100%}
+  .filters :global(.game-select),.filters :global(.game-search){max-width:100%}
   .catch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
   .quick-select{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;padding:16px;margin-bottom:20px;border:1px dashed var(--paper-edge);background:var(--panel-inset)}
   .quick-select label{display:flex;flex-direction:column;gap:6px;font-size:16px;font-weight:700;max-width:100%}
-  .quick-select select{max-width:100%}
+  .quick-select :global(.game-select){max-width:100%}
   .quick-select p{flex-basis:100%;margin:0}
   .catch{border:2px solid var(--paper-edge);padding:18px;background:var(--paper-light);box-shadow:inset 0 0 0 2px var(--panel-highlight),3px 4px 0 var(--panel-highlight)}
   .catch.favorite{border-color:var(--gold);box-shadow:inset 0 0 0 2px var(--panel-highlight),3px 4px 0 var(--wood-dark)}
@@ -401,13 +404,13 @@
   .discovered{margin-left:auto;color:var(--success-ink);font-weight:700}.undiscovered>img{filter:grayscale(1);opacity:.4}.undiscovered h3{color:var(--ink)}.undiscovered .discovered{color:var(--ink-muted)}
   .rank-progress{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}.rank-progress span{font-family:var(--font-game);font-size:16px;color:var(--ink-muted);border:1px solid var(--paper-edge);padding:2px 4px;background:var(--paper-light)}.rank-progress span.earned{color:var(--selected-ink);border-color:var(--control-accent);background:var(--selected-background)}.rank-progress span.maxed{color:var(--ink);border-color:var(--special-ink);background:var(--paper-light);box-shadow:inset 0 0 0 1px var(--panel-highlight)}.maxima-count{color:var(--ink);font-weight:bold}
   .biome-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:22px}.biome-grid article{padding:20px;border:2px solid var(--paper-edge);background:var(--panel-inset);box-shadow:3px 4px 0 var(--wood-dark);position:relative;overflow:hidden}
-  .biome-grid article::before{content:'';display:block;height:36px;margin:-20px -20px 18px;background:linear-gradient(155deg,transparent 35%,#456f58 36% 65%,transparent 66%),linear-gradient(30deg,#365c52 45%,#7b9865 46% 68%,#e8be81 69%);border-bottom:2px solid #8b7853}
+  .biome-grid article::before{content:'';display:block;height:36px;margin:-20px -20px 18px;background:linear-gradient(155deg,transparent 35%,#456f58 36% 65%,transparent 66%),linear-gradient(30deg,#365c52 45%,#7b9865 46% 68%,#e8be81 69%);border-bottom:2px solid var(--paper-edge)}
   .biome-grid article:nth-child(3n)::before{filter:hue-rotate(25deg)}.biome-grid article:nth-child(4)::before{filter:hue-rotate(90deg)}.biome-grid article:nth-child(6)::before{filter:hue-rotate(140deg) saturate(.6)}.biome-grid article:nth-child(7)::before{filter:brightness(.7)}
   .biome-grid article.active{border-color:var(--control-accent);box-shadow:inset 0 0 0 2px var(--panel-highlight),3px 4px 0 var(--wood-dark)}.biome-grid small{font-family:var(--font-game);font-size:17px;color:var(--ink)}.biome-grid p{font-size:16px;color:var(--ink);line-height:1.7}.biome-grid button{margin-top:8px}
   footer{border-top:1px solid var(--paper-edge);margin-top:38px;padding:24px 0 32px;display:flex;justify-content:space-between;gap:16px;color:var(--site-muted);font-size:14px}footer>div{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}.text-button{color:var(--site-text);background:transparent;border:0;font-family:var(--font-body);font-size:14px;padding:0;box-shadow:none}.text-button:hover:not(:disabled){background:transparent}
   .sr-only{position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden}
   @media(max-width:850px){main{padding:16px 18px 0}nav{gap:5px;padding:10px}.brand{font-size:26px}nav a{font-size:18px;padding:6px 8px}.connection{margin-left:auto}.camp-banner{gap:20px;padding:18px;grid-template-columns:1fr 1fr}.camp-intro{padding:0}h1{font-size:clamp(34px,5vw,44px)}.intro{font-size:18px}.cast-hint span{display:none}.book-link{font-size:18px;gap:10px}section{padding:22px}.collection-grid{grid-template-columns:1fr}.stats>div{padding:18px 16px}.stats span{font-size:16px}.stats .timer-value{font-size:24px}}
-  @media(max-width:600px){main{padding:12px 12px 0}nav{gap:2px}.brand{width:100%;margin:0 0 4px;font-size:26px}nav a{font-size:17px;padding:6px 7px}.connection{font-size:12px;padding:4px 6px}.camp-banner{grid-template-columns:1fr;padding:16px;margin:22px 0;gap:20px}.camp-intro{padding:8px}h1{font-size:clamp(28px,9vw,38px)}.cast-hint{font-size:14px}.welcome{grid-template-columns:1fr;gap:20px;padding:22px}.login{max-width:none}.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(odd){border-right:2px solid var(--paper-edge)}.stats>div:nth-child(even){border-right:0}.stats>div:nth-child(-n+4){border-bottom:2px solid var(--paper-edge)}.stats>div{padding:18px}.stats strong{font-size:clamp(18px,5.5vw,24px);overflow-wrap:anywhere}.stats .timer-value{font-size:clamp(18px,5.5vw,24px)}.section-heading{align-items:flex-start;flex-wrap:wrap}section{padding:20px;margin-top:22px}h2{font-size:30px}.catch-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.catch{padding:10px}.catch h3{font-size:20px;overflow-wrap:anywhere}.fish-art{height:105px}.fish-art img{width:95px;height:80px}.fish-art>span{font-size:14px}.measure{font-size:12px}.relative-size{font-size:12px}.catch-footer{font-size:12px}.collection-entry{padding:12px;gap:10px}.collection-entry>img{width:50px;height:50px}.sale-actions{flex-wrap:wrap}footer{flex-direction:column}footer>div{justify-content:space-between}.filters{gap:12px}.filters>div{flex:1;min-width:110px}.filters>div:last-child{flex-basis:100%}.filters input{width:100%}}
+  @media(max-width:600px){main{padding:12px 12px 0}nav{gap:2px}.brand{width:100%;margin:0 0 4px;font-size:26px}nav a{font-size:17px;padding:6px 7px}.connection{font-size:12px;padding:4px 6px}.camp-banner{grid-template-columns:1fr;padding:16px;margin:22px 0;gap:20px}.camp-intro{padding:8px}h1{font-size:clamp(28px,9vw,38px)}.cast-hint{font-size:14px}.welcome{grid-template-columns:1fr;gap:20px;padding:22px}.login{max-width:none}.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(odd){border-right:2px solid var(--paper-edge)}.stats>div:nth-child(even){border-right:0}.stats>div:nth-child(-n+4){border-bottom:2px solid var(--paper-edge)}.stats>div{padding:18px}.stats strong{font-size:clamp(18px,5.5vw,24px);overflow-wrap:anywhere}.stats .timer-value{font-size:clamp(18px,5.5vw,24px)}.section-heading{align-items:flex-start;flex-wrap:wrap}section{padding:20px;margin-top:22px}h2{font-size:30px}.catch-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.catch{padding:10px}.catch h3{font-size:20px;overflow-wrap:anywhere}.fish-art{height:105px}.fish-art img{width:95px;height:80px}.fish-art>span{font-size:14px}.measure{font-size:12px}.relative-size{font-size:12px}.catch-footer{font-size:12px}.collection-entry{padding:12px;gap:10px}.collection-entry>img{width:50px;height:50px}.sale-actions{flex-wrap:wrap}footer{flex-direction:column}footer>div{justify-content:space-between}.filters{gap:12px}.filters>div{flex:1;min-width:110px}.filters>div:last-child{flex-basis:100%}.filters :global(.game-search){width:100%}}
 
   .compact-banner{padding:20px 30px;margin:20px 0;grid-template-columns:minmax(0,1fr) clamp(280px,30vw,360px);gap:20px}
   .compact-banner .camp-intro{padding:0}.compact-banner .eyebrow{margin-bottom:4px}.compact-banner h1{font-size:clamp(30px,3.2vw,46px);margin:0;line-height:1.1;overflow-wrap:anywhere}
@@ -438,4 +441,6 @@
     .fish-actions{justify-content:stretch}
     .fish-actions button{width:100%}
   }
+  nav,.camp-tabs,footer,.dev-login{--control-focus:var(--site-focus)}
+  .book-link:focus-visible,.view-panel:focus-visible{outline-color:var(--site-focus)}
 </style>

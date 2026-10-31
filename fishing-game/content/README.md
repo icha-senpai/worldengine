@@ -11,3 +11,7 @@ Each biome has exactly 1,000,000 conditional fish tickets. Sample the category, 
 Fihs is UUR only and second-rarest. It has 128 tickets in Abyssal Shelf, half any ordinary Abyssal UUR entry's 256. Nidalees Lost Sock stays F rank and has 64 tickets, half Fihs. This gives 0.009984% and 0.004992% per accepted Abyssal cast respectively, including junk and treasure. Both are excluded from the 249-entry ordinary book and from progression requirements. Validation compares exact integer probabilities for every species/rank pair across every biome to preserve the global hierarchy.
 
 Rebuild prototype assignments with `node scripts/build-world-content.mjs`; run `npm run content:validate`, then `node scripts/world-balance.mjs`. Preserve IDs, names, keys, and original image bytes. [Balance report](../docs/world-balance.md) documents probabilities, expected and unlucky waits, content counts, and maintenance. Measurement and economy values are gameplay prototypes pending real-player tuning.
+
+## Personal raid timing
+
+`raids.json` catalog version 2 keeps rules version 17. Personal grades F, D, C, B, A, S, SS, SSS, UR and UUR take 30m, 1h, 1h 30m, 2h, 3h, 4h, 6h, 9h, 12h and 15h respectively: 54 hours (2 days 6 hours) active, or at most 55 hours 40 minutes with perfect on-time attendance and ten maximum deployment waits. Previously prepared, deployed and running attempts retain their pinned timetable and rewards. Per-clear rewards, supplies and reinforcement costs are unchanged, as are the two-day special raids and four-day community raids.

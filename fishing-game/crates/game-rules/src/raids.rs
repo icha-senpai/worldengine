@@ -316,6 +316,8 @@ mod tests {
     #[test]
     fn catalog_grades_materials_and_personal_schedule_match_contract() {
         let catalog = catalog();
+        assert_eq!(catalog.version, 2);
+        assert_eq!(catalog.rules_version, 17);
         assert_eq!(
             catalog.grades.iter().map(|grade| grade.name.as_str()).collect::<Vec<_>>(),
             vec!["F", "D", "C", "B", "A", "S", "SS", "SSS", "UR", "UUR"]
@@ -326,7 +328,11 @@ mod tests {
                 .iter()
                 .map(|grade| u64::from(grade.duration_seconds))
                 .sum::<u64>(),
-            108 * 60 * 60
+            54 * 60 * 60
+        );
+        assert_eq!(
+            catalog.grades.iter().map(|grade| grade.duration_seconds).collect::<Vec<_>>(),
+            vec![1800, 3600, 5400, 7200, 10800, 14400, 21600, 32400, 43200, 54000]
         );
         for grade in 0..10 {
             let (fillet_slot, fillet_item) = material(grade, 0).unwrap();

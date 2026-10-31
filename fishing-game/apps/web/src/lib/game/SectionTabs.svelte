@@ -47,4 +47,5 @@
   .section-tabs button:disabled{opacity:.45;filter:none;box-shadow:none}
   .section-tabs button:focus-visible{outline:3px solid var(--control-focus);outline-offset:2px}
   @media(max-width:600px){.section-tabs{gap:4px;padding:8px}.section-tabs button{flex:1 1 auto;min-height:44px;padding:10px 8px;font-size:17px}}
+  .section-tabs{--control-focus:var(--site-focus)}
 </style>

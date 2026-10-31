@@ -8,6 +8,7 @@
   import equipmentArt from '../../../../../content/equipment-art.json';
   import raidPolicy from '../../../../../content/raids.json';
   import { raidArtwork } from './raid-art';
+  import { tooltip } from './tooltip';
   let { game, pageSize = 12 }: { game: Game; pageSize?: number } = $props();
   let shelf = $state('licence');
   let page = $state(1);
@@ -145,7 +146,7 @@
           <div class="bait-purchases" role="group" aria-label={'Buy ' + row.name}>
             {#each quantities as quantity}
               {@const blocked = reason(row, quantity)}
-              <button disabled={!!blocked || game.busy || !game.ready || buying !== null} title={blocked || undefined} onclick={() => requestPurchase(row, quantity)} aria-haspopup="dialog" aria-label={'Buy ' + quantityLabel(row, quantity) + ' of ' + row.name + ' · ' + row.priceCoins * BigInt(quantity) + ' coins'}><span>{buying === row.listingId && buyingQuantity === quantity ? 'Buying…' : 'Buy ' + quantity}</span><small>{quantityUnits(row, quantity)} {raidSupply(row) ? 'units' : 'uses'}</small><small>{(row.priceCoins * BigInt(quantity)).toString()} coins</small></button>
+              <button disabled={!!blocked || game.busy || !game.ready || buying !== null} use:tooltip={blocked || undefined} onclick={() => requestPurchase(row, quantity)} aria-haspopup="dialog" aria-label={'Buy ' + quantityLabel(row, quantity) + ' of ' + row.name + ' · ' + row.priceCoins * BigInt(quantity) + ' coins'}><span>{buying === row.listingId && buyingQuantity === quantity ? 'Buying…' : 'Buy ' + quantity}</span><small>{quantityUnits(row, quantity)} {raidSupply(row) ? 'units' : 'uses'}</small><small>{(row.priceCoins * BigInt(quantity)).toString()} coins</small></button>
             {/each}
           </div>
           {#if status}<p class="purchase-status">{status}</p>{/if}

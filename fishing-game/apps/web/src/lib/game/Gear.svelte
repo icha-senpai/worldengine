@@ -6,6 +6,7 @@
   import type { Game } from './game.svelte.ts';
   import raidPolicy from '../../../../../content/raids.json';
   import { itemSlot } from './raid-items';
+  import GameSelect from './GameSelect.svelte';
   import { hasOrdinaryRaidClearForGrade } from './raid-progress';
   let { game }: { game: Game } = $props();
   const rod = $derived(game.rods.find(row => row.rodId === game.player?.equippedRodId));
@@ -17,10 +18,8 @@
   const baitSlots = [1, 2];
   const haulSlots = [{ kind: 'boat', label: 'boat' }, { kind: 'net', label: 'net' }] as const;
   const haulId = (kind: 'boat' | 'net') => kind === 'boat' ? game.haulLoadout?.boatId : game.haulLoadout?.netId;
-  async function equipHaul(event: Event, kind: 'boat' | 'net') {
-    const select = event.currentTarget as HTMLSelectElement;
-    await game.equipHaulEquipment(Number(select.value));
-    select.value = String(haulId(kind) ?? '');
+  async function equipHaul(equipmentId: number) {
+    await game.equipHaulEquipment(equipmentId);
   }
   const owned = $derived(game.rods.filter(row => game.ownedRods.some(owned => owned.rodId === row.rodId)));
   const next = $derived(game.qualities.find(row => row.qualityLevel === (stats.quality?.qualityLevel ?? 0)+1));
@@ -106,9 +105,9 @@
   });
   const percent = (bp: number | undefined) => (bp ?? 0)/100;
   onMount(() => { const timer = setInterval(() => now = Date.now(),1000); return () => clearInterval(timer); });
-  async function equip(event: Event) { const select = event.currentTarget as HTMLSelectElement; await game.changeLoadout(undefined,Number(select.value)); select.value = String(game.player?.equippedRodId ?? ''); previewing=false; }
+  async function equip(rodId: number) { await game.changeLoadout(undefined, rodId); previewing = false; }
   const baitIdInSlot = (slot: number) => slot === 1 ? game.baitLoadout?.baitId ?? 0 : game.baitLoadout?.secondaryBaitId ?? 0;
-  async function equipBait(event: Event, slot: number) { const select = event.currentTarget as HTMLSelectElement; await game.equipBait(Number(select.value), slot); select.value = String(baitIdInSlot(slot)); }
+  async function equipBait(baitId: number, slot: number) { await game.equipBait(baitId, slot); }
   async function previewUpgrade() {
     if (!rod || !game.player || game.busy || !game.ready) return;
     const rodId = rod.rodId;
@@ -156,9 +155,7 @@
         <div class="art">{#if bonuses}<img src={bonuses.spriteAsset} alt={rod?.name ?? 'Fishing rod'} width="160" height="160" />{:else}<span aria-hidden="true">🎣</span>{/if}</div>
         <div class="details"><small>EQUIPPED ROD</small><span class="quality">{stats.quality?.name ?? 'Common'}</span>{#if rod}<span class="reinforcement-grade">{reinforcementLevel(rod.rodId) > 0 ? `${reinforcementName(rod.rodId)} reinforcement` : 'Unreinforced'}</span>{/if}<h4>{rod?.name ?? 'Loading your rod…'}</h4>
           {#if rod}<dl><div><dt>Power</dt><dd>{stats.power}</dd></div><div><dt>Bonus pull</dt><dd>{stats.power/2}%</dd></div><div><dt>Luck with bait</dt><dd>+{percent(stats.luckBp+baitBonuses.luckBp)}%</dd></div><div><dt>Fishing XP</dt><dd>+{percent(stats.xpBonusBp+baitBonuses.xpBonusBp)}%</dd></div></dl>{/if}
-          <label for="gear-rod">Switch rod</label><select id="gear-rod" value={rod?.rodId ?? ''} disabled={!game.ready || game.busy || !owned.length} onchange={equip}>
-            {#each owned as option (option.rodId)}<option value={option.rodId} disabled={option.minimumLevel > (game.profile?.level ?? 1)}>{game.rodStats(option.rodId).quality?.name ?? 'Common'} {option.name}</option>{/each}
-          </select>
+          <label for="gear-rod">Switch rod</label><GameSelect id="gear-rod" label="Switch rod" value={rod?.rodId ?? 0} options={owned.map(option=>({value:option.rodId,label:(game.rodStats(option.rodId).quality?.name??"Common")+" "+option.name,disabled:option.minimumLevel>(game.profile?.level??1)}))} disabled={!game.ready || game.busy || !owned.length} onchange={equip} />
           {#if next && recipe}<div class="recipe"><p>Next: <strong>{next.name}</strong></p><p class:short={tin < recipe.tinCost}>{tin.toString()} / {recipe.tinCost.toString()} rusted tin</p><p class:short={scrap < recipe.scrapCost}>{scrap.toString()} / {recipe.scrapCost.toString()} scrap</p><p>Power +{next.powerBonus-(stats.quality?.powerBonus ?? 0)} · luck +{percent(next.luckBp-(stats.quality?.luckBp ?? 0))}% · XP +{percent(next.xpBonusBp-(stats.quality?.xpBonusBp ?? 0))}%</p>
           <button disabled={!game.ready || game.busy || tin < recipe.tinCost || scrap < recipe.scrapCost} onclick={previewUpgrade} aria-haspopup="dialog" aria-controls="gear-upgrade-dialog">Preview upgrade to {next.name}</button></div>{:else if stats.quality}<p class="mastered">Prismatic · fully upgraded</p>{/if}
           {#if rod}
@@ -203,9 +200,7 @@
             {#if selected}<dl><div><dt>Luck</dt><dd>+{percent(haulStats.luckBp)}%</dd></div><div><dt>Fishing XP</dt><dd>+{percent(haulStats.xpBonusBp)}%</dd></div></dl>{/if}
             <p class="note">No bait required.</p>
             <label for={`gear-${slot.kind}`}>Switch {slot.label}</label>
-            <select id={`gear-${slot.kind}`} value={selected?.equipmentId ?? ''} disabled={!game.ready || game.busy || !options.length} onchange={event => equipHaul(event, slot.kind)}>
-              {#each options as option (option.equipmentId)}<option value={option.equipmentId}>{game.haulStats(option.equipmentId).quality?.name ?? 'Common'} {option.name}</option>{/each}
-            </select>
+            <GameSelect id={`gear-${slot.kind}`} label={`Switch ${slot.label}`} value={selected?.equipmentId ?? 0} options={options.map(option=>({value:option.equipmentId,label:(game.haulStats(option.equipmentId).quality?.name??"Common")+" "+option.name}))} disabled={!game.ready || game.busy || !options.length} onchange={value => equipHaul(value)} />
             {#if trip?.status === 'running'}
               <p class="haul-status" role="status">{trip.equipmentName} in {trip.biome.name} · {Math.max(0, Math.ceil((Number(trip.dueAt.microsSinceUnixEpoch / 1000n) - now) / 60000)) || 'Finishing'}{trip.dueAt.microsSinceUnixEpoch > BigInt(now) * 1000n ? ' min remaining' : '…'} · {slot.kind === 'boat' ? 10 : 4} catches. Your trip keeps its starting gear.</p>
             {:else if trip?.completedAt}
@@ -231,9 +226,7 @@
           <div class="art bait-art">{#if bait}<img src={bait.spriteAsset} alt={bait.name} width="100" height="100" />{:else}<span aria-hidden="true">—</span>{/if}</div>
           <div class="details"><small>BAIT SLOT {slot}</small><h4>{bait?.name ?? 'No bait equipped'}</h4>
             {#if bait}<p class="uses">{uses.toString()} shared uses remaining</p><p>{baitEffect(bait)}.</p>{/if}
-            <label for={`gear-bait-${slot}`}>Switch bait in slot {slot}</label><select id={`gear-bait-${slot}`} value={baitIdInSlot(slot)} disabled={!game.ready || game.busy || slot === 2 && (game.config?.version ?? 0) < 14} onchange={event => equipBait(event, slot)}><option value={0}>No bait</option>
-              {#each game.baits as option (option.baitId)}{@const stock = game.ownedBaits.find(row => row.baitId === option.baitId)?.usesLeft ?? 0n}{@const required = baitIdInSlot(slot === 1 ? 2 : 1) === option.baitId ? 2n : 1n}<option value={option.baitId} disabled={stock < required}>{option.name} · {stock.toString()} shared uses</option>{/each}
-            </select>
+            <label for={`gear-bait-${slot}`}>Switch bait in slot {slot}</label><GameSelect id={`gear-bait-${slot}`} label={`Switch bait in slot ${slot}`} value={baitIdInSlot(slot)} options={[{value:0,label:"No bait"},...game.baits.map(option=>{const stock=game.ownedBaits.find(row=>row.baitId===option.baitId)?.usesLeft??0n;const required=baitIdInSlot(slot===1?2:1)===option.baitId?2n:1n;return {value:option.baitId,label:option.name+" · "+stock.toString()+" shared uses",disabled:stock<required};})]} disabled={!game.ready || game.busy || slot === 2 && (game.config?.version ?? 0) < 14} onchange={value => equipBait(value, slot)} />
           </div>
         </article>
       {/each}
@@ -281,7 +274,7 @@
   .bait-slots{display:grid;gap:16px;align-content:start;min-width:0}.bait-slots>a{font-size:16px;color:var(--success-ink)}
   .gear{margin-bottom:26px;padding-bottom:24px;border-bottom:1px dashed var(--paper-edge);color:light-dark(var(--wood-dark,#493126),var(--ink))}
   .heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}h3,h4,p{margin:0}h3,h4{font-family:var(--font-game);font-weight:400}h3{font-size:30px}h4{font-size:32px;margin:6px 0 12px;overflow-wrap:anywhere}.heading p,.note{font-size:16px;color:var(--ink-muted);line-height:1.8}.note{margin-top:15px}
-  .slots{display:grid;align-items:start;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:22px}article{display:flex;gap:18px;align-items:center;padding:24px;background:var(--paper-light);border:2px solid var(--paper-edge);box-shadow:2px 3px 0 var(--panel-highlight);min-width:0} .art{color:var(--art-ink);display:grid;place-items:center;flex:none;width:160px;height:160px;background:var(--art-background);border:3px solid var(--paper-edge);box-shadow:inset 0 0 0 3px var(--panel-highlight)}.art img{width:100%;height:100%;padding:8px;object-fit:contain;image-rendering:pixelated}.art span{font-size:64px}.details{flex:1;min-width:0}.details small{font-size:14px;letter-spacing:1px;color:var(--ink)}dl{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 16px}dl div{display:grid;gap:4px}dt{font-size:14px;color:var(--ink)}dd{font-family:var(--font-game);font-size:27px;margin:0;color:var(--success-ink)}label{display:block;font-size:14px;margin-bottom:6px}select{width:100%;max-width:340px}.bait-slot{background:var(--paper-light);border-style:dashed;box-shadow:none}.bait-slot p{font-size:16px;line-height:1.8;margin-top:12px;color:var(--ink-muted)}
+  .slots{display:grid;align-items:start;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:22px}article{display:flex;gap:18px;align-items:center;padding:24px;background:var(--paper-light);border:2px solid var(--paper-edge);box-shadow:2px 3px 0 var(--panel-highlight);min-width:0} .art{color:var(--art-ink);display:grid;place-items:center;flex:none;width:160px;height:160px;background:var(--art-background);border:3px solid var(--paper-edge);box-shadow:inset 0 0 0 3px var(--panel-highlight)}.art img{width:100%;height:100%;padding:8px;object-fit:contain;image-rendering:pixelated}.art span{font-size:64px}.details{flex:1;min-width:0}.details small{font-size:14px;letter-spacing:1px;color:var(--ink)}dl{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 16px}dl div{display:grid;gap:4px}dt{font-size:14px;color:var(--ink)}dd{font-family:var(--font-game);font-size:27px;margin:0;color:var(--success-ink)}label{display:block;font-size:14px;margin-bottom:6px}.gear :global(.game-select){width:100%;max-width:340px}.bait-slot{background:var(--paper-light);border-style:dashed;box-shadow:none}.bait-slot p{font-size:16px;line-height:1.8;margin-top:12px;color:var(--ink-muted)}
   @media(max-width:1000px){.slots{grid-template-columns:1fr 1fr}article{flex-direction:column;align-items:flex-start}.art{align-self:center}.bait-slot{justify-content:center}.details{width:100%}}
   @media(max-width:600px){.slots{grid-template-columns:1fr}.heading{align-items:flex-start;flex-direction:column;gap:4px}article{flex-direction:row;gap:12px;padding:12px}.art{width:110px;height:110px}h4{font-size:27px}dl{gap:10px}dd{font-size:22px}dt{font-size:12px}.note{font-size:13px}}
   @media(max-width:600px){.bait-slot{flex-direction:column;align-items:stretch}.bait-art{align-self:center}}

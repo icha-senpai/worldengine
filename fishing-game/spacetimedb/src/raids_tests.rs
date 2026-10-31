@@ -2245,7 +2245,7 @@ fn prepared_attempt_pins_duration_supply_reward_and_catalog_versions() {
     let attempt_id = (u128::from(player_id) << 64) | u128::from(prepare);
     let pinned = test.db.raid_attempt().id().find(attempt_id).unwrap();
     assert_eq!(pinned.supply_units, 1);
-    assert_eq!(pinned.duration_seconds, 3600);
+    assert_eq!(pinned.duration_seconds, 1800);
     assert_eq!(pinned.catalog_version, game_rules::raids::catalog().version);
     assert_eq!(pinned.rules_version, 17);
     assert_eq!(pinned.base_fillets, 60);
@@ -2274,7 +2274,7 @@ fn prepared_attempt_pins_duration_supply_reward_and_catalog_versions() {
         true
     );
     let deployed = test.db.raid_attempt().id().find(attempt_id).unwrap();
-    assert_eq!(deployed.duration_seconds, 3600);
+    assert_eq!(deployed.duration_seconds, 1800);
     assert_eq!(deployed.supply_units, 1);
     assert_eq!(deployed.base_fillets, 60);
     advance_to(&test, deployed.starts_at);
@@ -2287,6 +2287,179 @@ fn prepared_attempt_pins_duration_supply_reward_and_catalog_versions() {
     assert!(completed.awarded_scales <= 50);
     assert!(completed.awarded_fillets >= 60);
     assert!(completed.awarded_scales >= 40);
+}
+
+#[test]
+fn activation_preserves_legacy_prepared_deployed_and_running_attempts() {
+    for state in ["prepared", "deployed", "running"] {
+        let test = setup();
+        let discord_id = 1902;
+        let player_id = player(&test, discord_id);
+        let species_id = test
+            .db
+            .species_definition()
+            .iter()
+            .find(|row| row.counts_for_ordinary_collection_completion)
+            .unwrap()
+            .species_id;
+        seed_sold_natural_discovery(&test, player_id, species_id, 0);
+        give_supply(&test, player_id, 2);
+        let prepare = snowflake(&test, 811);
+        submit_prepare(&test, discord_id, prepare, species_id, 0);
+        let attempt_id = (u128::from(player_id) << 64) | u128::from(prepare);
+
+        test.with_reducer_tx(TestAuth::internal(), |ctx| {
+            let mut grade = ctx.db.raid_grade_definition().grade().find(0).unwrap();
+            grade.catalog_version = 1;
+            grade.duration_seconds = 3600;
+            ctx.db.raid_grade_definition().grade().update(grade);
+            let mut attempt = ctx.db.raid_attempt().id().find(attempt_id).unwrap();
+            attempt.catalog_version = 1;
+            attempt.duration_seconds = 3600;
+            attempt.ends_at = attempt.starts_at + TimeDuration::from_micros(3_600_000_000);
+            ctx.db.raid_attempt().id().update(attempt);
+            Ok::<(), String>(())
+        })
+        .unwrap();
+
+        if state != "prepared" {
+            let deploy = snowflake(&test, 812);
+            submit_deploy(&test, discord_id, deploy, attempt_id);
+        }
+        if state == "running" {
+            let attempt = test.db.raid_attempt().id().find(attempt_id).unwrap();
+            advance_to(&test, attempt.starts_at);
+            fire_job(&test, attempt_id, "start");
+        }
+
+        let before = test.db.raid_attempt().id().find(attempt_id).unwrap();
+        assert_eq!(before.status, state);
+        assert_eq!(before.catalog_version, 1);
+        assert_eq!(before.rules_version, 17);
+        assert_eq!(before.duration_seconds, 3600);
+        assert_eq!(before.supply_units, 1);
+        assert_eq!((before.base_fillets, before.base_scales), (60, 40));
+        assert_eq!((before.maximum_fillets, before.maximum_scales), (75, 50));
+        assert!(before.special_species.is_none());
+        assert!(before.special_rank.is_none());
+        assert!(before.special_biome.is_none());
+        assert!(before.special_rules.is_none());
+
+        let jobs = || {
+            let mut rows: Vec<_> = test.db.raid_job().attempt_id().filter(attempt_id)
+                .map(|row| (row.scheduled_id, row.attempt_id, row.phase, row.scheduled_at))
+                .collect();
+            rows.sort_by_key(|row| row.0);
+            rows
+        };
+        let items = || {
+            let mut rows: Vec<_> = test.db.item_stack().player_id().filter(player_id)
+                .map(|row| (row.key, row.item, row.quantity))
+                .collect();
+            rows.sort_by_key(|row| row.0);
+            rows
+        };
+        let rods = || {
+            let mut rows: Vec<_> = test.db.owned_rod().player_id().filter(player_id)
+                .map(|row| (row.key, row.rod_id, row.upgrade_level))
+                .collect();
+            rows.sort_by_key(|row| row.0);
+            rows
+        };
+        let before_jobs = jobs();
+        let expected_phase = if state == "running" { "finish" } else { "start" };
+        let expected_at = if state == "running" { before.ends_at } else { before.starts_at };
+        assert_eq!(before_jobs.len(), 1);
+        assert_eq!(before_jobs[0].2, expected_phase);
+        assert_eq!(before_jobs[0].3, expected_at.into());
+        let before_items = items();
+        let before_rods = rods();
+        let before_coins = test.db.player().player_id().find(player_id).unwrap().coins;
+        let before_ledger = test.db.economy_ledger().player_id().filter(player_id).count();
+        let before_badges = test.db.raid_badge().player_id().filter(player_id).count();
+        let before_achievements = test.db.earned_achievement().count();
+        let before_deliveries = test.db.achievement_delivery().count();
+
+        for _ in 0..2 {
+            test.with_reducer_tx(TestAuth::internal(), |ctx| raids::activate_raids(ctx)).unwrap();
+            let grade = test.db.raid_grade_definition().grade().find(0).unwrap();
+            assert_eq!((grade.catalog_version, grade.duration_seconds), (2, 1800));
+            assert_eq!(test.db.game_config().version().find(17).unwrap().version, 17);
+            let after = test.db.raid_attempt().id().find(attempt_id).unwrap();
+            macro_rules! unchanged {
+                ($($field:ident),+ $(,)?) => {
+                    $(assert_eq!(after.$field, before.$field, "{state}: {}", stringify!($field));)+
+                };
+            }
+            unchanged!(
+                id, player_id, kind, species_id, grade, event_id, boat_id, boat_name,
+                boat_quality_level, catalog_version, content_version, rules_version, status,
+                prepared_at, deployment_deadline, starts_at, ends_at, deployed_at, started_at,
+                settled_at, duration_seconds, supply_units, supply_slot, supply_item,
+                base_fillets, base_scales, full_fillets, full_scales, maximum_fillets,
+                maximum_scales, fillets_slot, fillets_item, scales_slot, scales_item,
+                reward_bonus_divisor, special_maximum_roll_one_in, special_fish_count,
+                special_band, awarded_fillets, awarded_scales, catch_id, prune_at,
+            );
+            assert!(after.special_species.is_none());
+            assert!(after.special_rank.is_none());
+            assert!(after.special_biome.is_none());
+            assert!(after.special_rules.is_none());
+            assert_eq!(jobs(), before_jobs);
+            assert_eq!(items(), before_items);
+            assert_eq!(rods(), before_rods);
+            assert_eq!(test.db.player().player_id().find(player_id).unwrap().coins, before_coins);
+            assert_eq!(test.db.economy_ledger().player_id().filter(player_id).count(), before_ledger);
+            assert_eq!(test.db.raid_badge().player_id().filter(player_id).count(), before_badges);
+            assert_eq!(test.db.earned_achievement().count(), before_achievements);
+            assert_eq!(test.db.achievement_delivery().count(), before_deliveries);
+        }
+
+        if state == "prepared" {
+            let deploy = snowflake(&test, 813);
+            submit_deploy(&test, discord_id, deploy, attempt_id);
+        }
+        if state != "running" {
+            advance_to(&test, before.starts_at);
+            fire_job(&test, attempt_id, "start");
+        }
+        let material_quantity = |slot| {
+            test.db.item_stack().key()
+                .find((u128::from(player_id) << 32) | u128::from(slot))
+                .map_or(0, |row| row.quantity)
+        };
+        let initial_fillets = material_quantity(before.fillets_slot);
+        let initial_scales = material_quantity(before.scales_slot);
+        advance_to(&test, before.starts_at + TimeDuration::from_micros(1_801_000_000));
+        fire_job(&test, attempt_id, "finish");
+        let early = test.db.raid_attempt().id().find(attempt_id).unwrap();
+        assert_eq!(early.status, "running");
+        assert_eq!((early.awarded_fillets, early.awarded_scales), (0, 0));
+        assert_eq!(test.db.raid_badge().player_id().filter(player_id).count(), before_badges);
+        assert_eq!(material_quantity(before.fillets_slot), initial_fillets);
+        assert_eq!(material_quantity(before.scales_slot), initial_scales);
+        assert_eq!(jobs()[0].3, before.ends_at.into());
+
+        advance_to(&test, before.ends_at);
+        let finished_job = fire_job(&test, attempt_id, "finish");
+        let completed = test.db.raid_attempt().id().find(attempt_id).unwrap();
+        assert_eq!(completed.status, "completed");
+        assert!((60..=75).contains(&completed.awarded_fillets));
+        assert!((40..=50).contains(&completed.awarded_scales));
+        assert_eq!(completed.awarded_fillets, completed.full_fillets);
+        assert_eq!(completed.awarded_scales, completed.full_scales);
+        assert_eq!(material_quantity(before.fillets_slot), initial_fillets + completed.awarded_fillets);
+        assert_eq!(material_quantity(before.scales_slot), initial_scales + completed.awarded_scales);
+        let badge_key = (u128::from(player_id) << 32) | u128::from(species_id);
+        let badge = test.db.raid_badge().key().find(badge_key).unwrap();
+        assert_eq!((badge.cleared_grades, badge.successful_clears), (1, 1));
+
+        test.with_reducer_tx(TestAuth::internal(), |ctx| raids::run_raid_job(ctx, finished_job)).unwrap();
+        assert_eq!(material_quantity(before.fillets_slot), initial_fillets + completed.awarded_fillets);
+        assert_eq!(material_quantity(before.scales_slot), initial_scales + completed.awarded_scales);
+        let badge = test.db.raid_badge().key().find(badge_key).unwrap();
+        assert_eq!((badge.cleared_grades, badge.successful_clears), (1, 1));
+    }
 }
 
 #[test]

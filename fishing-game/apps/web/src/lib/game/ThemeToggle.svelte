@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import GameSelect from './GameSelect.svelte';
+  import { tooltip } from './tooltip';
 
   const storageKey = 'fishbound:theme';
   const paletteKey = 'fishbound:palette';
@@ -13,6 +15,7 @@
   let dark = $state(false);
   let palette = $state('dockside');
   let ready = $state(false);
+  const paletteOptions = palettes.map(option => ({ value: option.id, label: option.name }));
 
   function apply(value: string | null) {
     dark = value === 'dark';
@@ -43,8 +46,8 @@
     catch { /* The theme still works when browser storage is unavailable. */ }
   }
 
-  function choosePalette(event: Event) {
-    applyPalette((event.currentTarget as HTMLSelectElement).value);
+  function choosePalette(value: string) {
+    applyPalette(value);
     try { localStorage.setItem(paletteKey, palette); }
     catch { /* Keep the selection usable without browser storage. */ }
   }
@@ -52,16 +55,14 @@
 
 <div class="appearance-controls">
   <label for="footer-theme">Theme</label>
-  <select id="footer-theme" value={palette} onchange={choosePalette} disabled={!ready}>
-    {#each palettes as option}<option value={option.id}>{option.name}</option>{/each}
-  </select>
+  <GameSelect id="footer-theme" label="Theme" value={palette} options={paletteOptions} disabled={!ready} onchange={choosePalette} />
   <button
     class="theme-toggle"
     type="button"
     disabled={!ready}
     aria-label="Dark mode"
     aria-pressed={dark}
-    title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+    use:tooltip={dark ? 'Switch to light mode' : 'Switch to dark mode'}
     onclick={toggle}
   >
     <span class="thumb" aria-hidden="true"></span>
@@ -82,7 +83,7 @@
 <style>
   .appearance-controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;max-width:100%;min-width:0}
   label{color:var(--site-text);font-weight:700}
-  select{width:190px;flex:1 1 160px}
+  .appearance-controls :global(.game-select){width:190px;flex:1 1 160px}
   .theme-toggle{position:relative;display:inline-flex;align-items:center;justify-content:space-around;flex:none;width:92px;height:46px;padding:3px;border:2px solid var(--scroll-thumb);border-radius:7px;background:var(--site-panel);color:var(--site-text);box-shadow:0 3px 0 var(--site-base);cursor:pointer}
   .thumb{position:absolute;inset:3px auto 3px 3px;width:38px;border-radius:3px;background:var(--gold);box-shadow:inset 0 0 0 2px var(--button-highlight);transition:transform .15s ease}
   :global(html[data-theme="dark"]) .thumb{transform:translateX(44px)}
@@ -90,4 +91,5 @@
   .sun{color:var(--button-ink)}:global(html[data-theme="dark"]) .sun{color:var(--site-text)}:global(html[data-theme="dark"]) .moon{color:var(--button-ink)}svg{width:23px;height:23px}
   .theme-toggle:hover{border-color:var(--gold)}.theme-toggle:focus-visible{outline:3px solid var(--control-focus);outline-offset:4px}
   @media(prefers-reduced-motion:reduce){.thumb{transition:none}}
+  .appearance-controls{--control-focus:var(--site-focus)}
 </style>

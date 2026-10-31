@@ -7,7 +7,7 @@ export async function validateRaids() {
   const config = JSON.parse(await readFile(new URL('./raids.json', import.meta.url), 'utf8'));
   const species = JSON.parse(await readFile(new URL('./species.json', import.meta.url), 'utf8')).species;
   const positive = (value, label) => assert(Number.isSafeInteger(value) && value > 0, label);
-  assert.equal(config.version, 1);
+  assert.equal(config.version, 2);
   assert.equal(config.rulesVersion, 17);
   assert.equal(config.grades.length, order.length);
   assert.deepEqual(config.grades.map(row => row.name), order);
@@ -42,8 +42,21 @@ export async function validateRaids() {
   }
   const minimumSeconds = config.grades.reduce((sum, row) => sum + row.durationSeconds, 0);
   const maximumDeploymentSeconds = config.grades.length * config.deploymentWindowSeconds;
-  assert.equal(minimumSeconds, 108 * 3600, 'A perfect-attendance ladder is 4.5 days');
-  assert((minimumSeconds + maximumDeploymentSeconds) / 86_400 < 5);
+  assert.deepEqual(config.grades.map(row => row.durationSeconds),
+    [1800, 3600, 5400, 7200, 10800, 14400, 21600, 32400, 43200, 54000]);
+  assert.equal(minimumSeconds, 54 * 3600, 'A personal ladder contains 54 hours of raid time');
+  assert.equal(minimumSeconds + maximumDeploymentSeconds, 200_400,
+    'Ten maximum deployment waits add 100 minutes, not extra raid time');
+  assert.deepEqual(
+    config.grades.map(row => [row.supplyUnits, row.fillets, row.scales, row.reinforceCoins]),
+    [
+      [1, 60, 40, 50], [1, 108, 72, 100], [2, 147, 99, 200],
+      [2, 176, 120, 400], [3, 240, 162, 800], [4, 288, 192, 1600],
+      [6, 384, 252, 3200], [8, 522, 342, 6400], [12, 624, 408, 12800],
+      [15, 720, 480, 25600],
+    ],
+    'The shorter ladder keeps per-clear supplies, materials and reinforcement costs unchanged'
+  );
   const conversion = config.refining.outputQuantity / config.refining.inputQuantity;
   const meanPayout = (grade, item) => grade[item] + Math.floor(grade[item] / config.rewardBonusDivisor) / 2;
   const comparisons = [];
