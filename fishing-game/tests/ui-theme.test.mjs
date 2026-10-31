@@ -13,7 +13,7 @@ const tooltipAction = read('../apps/web/src/lib/game/tooltip.ts');
 const componentFiles = [
   'Achievements.svelte', 'Anglers.svelte', 'BadgeDetails.svelte', 'DiscordPortrait.svelte', 'Gear.svelte',
   'Journal.svelte', 'Statistics.svelte', 'TitleBadge.svelte', 'Quests.svelte', 'Dashboard.svelte',
-  'RaidBoard.svelte', 'RaidWorkshop.svelte', 'RaidMastery.svelte', 'FishDetails.svelte',
+  'RaidBoard.svelte', 'RaidResultDialog.svelte', 'RaidWorkshop.svelte', 'RaidMastery.svelte', 'FishDetails.svelte',
   'SectionTabs.svelte', 'ThemeToggle.svelte', 'AnglerLevel.svelte',
   'GameSelect.svelte', 'SearchInput.svelte', 'NumberStepper.svelte'
 ];
@@ -233,6 +233,8 @@ test('audited component chrome uses semantic surfaces, status colors and focus c
   assert.doesNotMatch(dashboard.match(/\.camp-banner\{[^}]*\}/)?.[0] ?? '', /--control-focus/);
 
   assert.doesNotMatch(componentSources['RaidBoard.svelte'], /var\(--danger-ink\s*,/);
+  assert.match(styleRule('RaidResultDialog.svelte', 'dialog::backdrop'), /background:var\(--dialog-backdrop\)/);
+  assert.match(styleRule('RaidResultDialog.svelte', '.close:focus-visible'), /outline:3px solid var\(--control-focus\)/);
   assert.doesNotMatch(componentSources['RaidWorkshop.svelte'], /var\(--danger-ink\s*,/);
   assert.match(styleRule('RaidMastery.svelte', '.seals small'), /color:inherit/);
   const fishDetails = styleBlock('FishDetails.svelte');

@@ -4,6 +4,7 @@
   import { onMount, tick } from 'svelte';
   import PageTurner from './PageTurner.svelte';
   import RaidArt from './RaidArt.svelte';
+  import RaidResultDialog from './RaidResultDialog.svelte';
   import GameSelect from './GameSelect.svelte';
   import SearchInput from './SearchInput.svelte';
   import { tooltip } from './tooltip';
@@ -11,6 +12,7 @@
   import policy from '../../../../../content/raids.json';
   import SectionTabs from './SectionTabs.svelte';
   import { clearedGradeCount, gradeCleared, gradeSelectable, nextSelectableGrade } from './raid-progress';
+  import { raidResultSummary } from './raid-result';
 
   type RaidMode = 'raids' | 'community';
   type RaidSection = 'active' | 'personal' | 'special';
@@ -40,6 +42,7 @@
   let page = $state(1);
   let pageSize = 10;
   let withdrawAttempt = $state<RaidAttempt | null>(null);
+  let resultAttempt = $state<RaidAttempt | null>(null);
   let withdrawDialog: HTMLDialogElement;
   let withdrawBusy = $state(false);
   let historyPage = $state(1);
@@ -254,14 +257,14 @@
         <summary><span>Terminal raid history · {terminalAttempts.length}</span><svg class="history-chevron" viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5" /></svg></summary>
         <div class="history-list">
           {#each terminalPage as attempt (attempt.id)}
-            {@const fish = attempt.speciesId ? game.species.find(row => row.speciesId === attempt.speciesId) : undefined}
-            <article class="history-card" class:with-fish={!!fish} data-status={attempt.status}>
-              {#if fish}<div class="raid-fish-art"><img src={fish.spriteAsset} alt={fish.name} loading="lazy" /></div>{/if}
-              <div class="history-copy"><small>{attempt.kind === 'community' ? 'COMMUNITY' : attempt.kind === 'special' ? 'SPECIAL' : gradeName(attempt.grade ?? 0)}</small>
-                <strong>{fish?.name ?? (attempt.kind === 'community' ? game.communityRaids.find(row => row.eventId === attempt.eventId)?.name ?? 'Community expedition' : 'Raid target')}</strong>
-                <span>{attempt.status} · {localDate(attempt.settledAt ?? attempt.preparedAt)} · {#if attempt.kind === 'personal' && attempt.grade !== undefined}<RaidArt kind="fillets" grade={attempt.grade} size={20} /> <RaidArt kind="scales" grade={attempt.grade} size={20} /> {/if}{attempt.awardedFillets} fillets + {attempt.awardedScales} scales</span>
+            {@const result = raidResultSummary(attempt, game.species, game.communityRaids, game.inventory)}
+            <article class="history-card" class:with-fish={!!result.speciesAsset} data-status={attempt.status}>
+              {#if result.speciesAsset}<div class="raid-fish-art"><img src={result.speciesAsset} alt={result.targetName} loading="lazy" /></div>{/if}
+              <div class="history-copy"><small>{result.gradeLabel ?? result.kindLabel}</small>
+                <strong>{result.targetName}</strong>
+                <span>{result.statusLabel} · {localDate(attempt.settledAt ?? attempt.preparedAt)}{#if attempt.kind === 'personal'} · {#if attempt.grade !== undefined}<RaidArt kind="fillets" grade={attempt.grade} size={20} /> <RaidArt kind="scales" grade={attempt.grade} size={20} /> {/if}{result.fillets} fillets + {result.scales} scales{/if}</span>
               </div>
-              <button disabled={!game.ready || game.busy} onclick={() => claim(attempt)}>Review result</button>
+              <button onclick={() => resultAttempt = attempt}>View result</button>
             </article>
           {/each}
         </div>
@@ -344,6 +347,8 @@
     {/if}
   {/if}
 </section>
+
+<RaidResultDialog {game} bind:attempt={resultAttempt} />
 
 <dialog class="withdraw-dialog" bind:this={withdrawDialog} aria-labelledby="withdraw-title" onclose={() => withdrawAttempt = null}>
   {#if withdrawAttempt}
