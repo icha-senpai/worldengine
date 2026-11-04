@@ -79,6 +79,10 @@ waiting times depend on equipped gear. [Balance and wait math](docs/world-balanc
     scripts/              Asset imports, codegen, service setup, integration proof
     docs/                 Specification, decisions, setup, status, verification
 
+## Tideforge Design
+
+The [Tideforge design workspace](docs/tideforge/README.md) contains working proposals for equipment instances, mastery, affinity, affixes and crafting. These are design documents, not implemented features or authorization to deploy. Desktop originals remain unchanged; the decision index records current clarifications and unresolved balance work.
+
 ## Run and verify
 
 From this directory, run npm ci, then npm run dev. Without database settings,

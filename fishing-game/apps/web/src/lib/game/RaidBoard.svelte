@@ -84,9 +84,6 @@
   const discovered = (speciesId: number) =>
     (game.collection.find(row => row.speciesId === speciesId)?.count ?? 0n) > 0n;
   const localDate = (timestamp: RaidTimestamp) => new Date(Number(timestamp.microsSinceUnixEpoch / 1000n)).toLocaleString();
-  const utcDate = (timestamp: RaidTimestamp) => new Date(Number(timestamp.microsSinceUnixEpoch / 1000n)).toLocaleString(undefined, {
-    timeZone: 'UTC', timeZoneName: 'short'
-  });
   function remaining(timestamp: RaidTimestamp) {
     if (serverNowMs === null) return clockFailed ? 'Time unavailable' : 'Syncing server time…';
     const seconds = Math.max(0, Math.ceil((Number(timestamp.microsSinceUnixEpoch / 1000n) - serverNowMs) / 1000));
@@ -226,7 +223,7 @@
             <div class="attempt-copy"><p class="eyebrow">{attempt.kind === 'community' ? 'COMMUNITY EXPEDITION' : attempt.kind === 'special' ? 'SPECIAL ENCOUNTER' : `${gradeName(attempt.grade ?? 0)} RAID`}</p>
               <h4>{fish?.name ?? (attempt.kind === 'community' ? game.communityRaids.find(row => row.eventId === attempt.eventId)?.name ?? 'Community expedition' : 'Raid target')}</h4>
               <p>Status: <strong>{attempt.status}</strong> · Boat pinned: {attempt.boatName}</p>
-              <p>Starts {localDate(attempt.startsAt)} local ({utcDate(attempt.startsAt)}); ends {localDate(attempt.endsAt)} local ({utcDate(attempt.endsAt)}).</p>
+              <p>Starts {localDate(attempt.startsAt)}; ends {localDate(attempt.endsAt)}.</p>
               {#if attempt.status === 'prepared'}<p>Deployment window closes in {remaining(attempt.deploymentDeadline)}. This prepared attempt does not reserve your boat.</p>{/if}
               {#if attempt.status === 'deployed'}<p>Launch in {remaining(attempt.startsAt)}. Your boat is reserved.</p>{/if}
               {#if attempt.status === 'running'}<p>Expedition underway · {remaining(attempt.endsAt)} remaining. Your boat is reserved.</p>{/if}
@@ -330,13 +327,13 @@
       {#if activeRaid}<button class="view-active" onclick={showActiveRaid}>View active expedition</button>{/if}
     <section class="community-raids" aria-labelledby="community-heading">
       <h3 id="community-heading">Community expeditions</h3>
-      <p>Two UTC signup windows each month, four days underway, and a boat commitment. Only full completion increments your community count; no loot or fishing progress is awarded.</p>
+      <p>Two signup windows each month, four days underway, and a boat commitment. Only full completion increments your community count; no loot or fishing progress is awarded.</p>
       <p>Your completed community expeditions: {communityStats?.communityCompletions ?? 0n}</p>
       {#each game.communityRaids as event (event.eventId)}
         {@const signupIsOpen = signupOpen(event)}
         <article class="community-card">
           <div><p class="eyebrow">COMMUNITY CALENDAR</p><h4>{event.name}</h4>
-            <p>Signup: {localDate(event.signupAt)} local ({utcDate(event.signupAt)}). Starts: {localDate(event.startsAt)} local ({utcDate(event.startsAt)}). Ends: {utcDate(event.endsAt)}.</p>
+            <p>Signup: {localDate(event.signupAt)}. Starts: {localDate(event.startsAt)}. Ends: {localDate(event.endsAt)}.</p>
             {#if signupIsOpen}<p>Signup closes in {remaining(event.startsAt)}. The boat is committed only after deployment.</p>{/if}
           </div>
           <button disabled={!timeAvailable || !signupIsOpen || alreadyJoined(event.eventId) || !!activeRaid || !boatReady || supplies < BigInt(policy.community.supplyUnits) || !game.ready || game.busy}

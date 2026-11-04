@@ -17,3 +17,8 @@ output/rod-cards/
 output/performance-cards/
 .playwright-cli/
 __pycache__/
+
+# Track Tideforge designs; leave other untracked documentation ignored.
+!/docs/
+/docs/*
+!/docs/tideforge/
