@@ -69,20 +69,27 @@ one additional independent fish, junk or treasure pull. Prismatic Abyssal has
 and the sequential purchased licence; any owned rod can fish licensed waters.
 Both pulls share one sixty-second cooldown and one bait charge.
 
-Luck combines family, quality and equipped bait, up to +85%. It shifts the
+Luck combines family, quality and equipped bait (up to +120% on current rod
+loadouts). The local [uncapped Luck implementation](luck-scaling.md) removes
+the old validation ceiling without changing current-loadout odds. It shifts the
 physical size bands toward higher ranks. The saved rank still follows actual
 species-relative length and weight. For base weights `w_i`, score `r_i` (F..UUR
 ordinal 0..9, using 9 for the exceptional F-rank Sock), `T=sum(w_i)`,
-`M=sum(w_i*r_i)`, `D=9*T-M`, and luck basis points `L`, use:
+`M=sum(w_i*r_i)`, `D=9*T-M`, and luck basis points `L`, the compatibility range uses:
 
 `w'_i = w_i * (10000*D + L*(r_i*T-M))`
 
-The total stays `T*10000*D`. UUR and both exceptions gain exactly `1+L/10000`
+Within that range the total stays `T*10000*D`. UUR and both exceptions gain exactly `1+L/10000`
 times their base per-pull probability. Fihs is half the rarest ordinary UUR,
 and the Sock half Fihs, per pull and expected catch counts. At-least-one-per-cast
 probability is `(1+q)*p-q*p*p`, so two independent pulls slightly alter those
 ratios for that distinct measure. With maximum gear, Fihs averages roughly
 2,813 casts and the Sock 5,625; these are averages without a guarantee.
+
+Above the compatibility range, the new positive diminishing-return curve
+replaces the linear expression; its actual weight sum is the denominator.
+Do not extrapolate `1+L/10000` indefinitely. This local change is not a
+production deployment.
 
 Fishing XP combines rod family, quality and slime bonuses additively, then applies once to the combined raw rewards, including first discoveries,
 then rounds down. Per-pull saved XP shares sum to the cast total. Daily delivery

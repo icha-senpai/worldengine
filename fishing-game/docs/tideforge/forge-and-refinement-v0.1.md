@@ -40,8 +40,8 @@ Working contract (detailed permissions and conversions still open):
 - Add a T1 affix at a known, previewed starting value; no second hidden roll.
 - Do not change other affixes, equipment quality, reinforcement or signature.
 
-Discovery/access rules for adding an affix still need a final contract. This
-proposal does not silently unlock every Codex entry or bypass family slot gates.
+Discovery/access rules for adding an affix still need a final contract. The
+accepted flow does not silently unlock every Codex entry or bypass family slot gates.
 Show unavailable choices with a short reason, not a failed payment.
 
 ## 3. Upgrade Tier
@@ -98,7 +98,7 @@ charge for an invisible change or invent a new hidden random roll on upgrade.
 Working contract (detailed permissions and conversions still open):
 
 - Choose the replacement directly from compatible choices.
-- Use matching resources for the new affix and an explicitly previewed fee.
+- Use matching resources for the new affix and show the complete cost before confirmation.
 - Keep the existing tier and relative roll finish.
 - Keep that tier on this existing slot only; do not copy it to another slot or
   item, or grant new material-crafting permissions.
@@ -189,7 +189,7 @@ requests cost nothing.
 - Roll-finish representation, meaningful steps and discrete-tier edge cases.
 - Final discovery, slot and in-use editing permissions.
 - How recovery quantities account for naturally found versus forged properties.
-- Simple mastery and gambling defaults, without extra player homework.
+- Simple mastery XP, unlock and trader-distribution defaults within the accepted [source and currency rules](build-contract-v0.1.md), without extra player homework.
 
 Judge affordability around the accessible mixed-method activity baseline and
 normal raid check-ins. Faster players may finish sooner. Do not price crafting

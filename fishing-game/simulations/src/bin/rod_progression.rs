@@ -35,8 +35,8 @@ struct Fish {
 }
 struct Pool {
     entries: Vec<(usize, u8)>,
-    cumulative: Vec<u64>,
-    total: u64,
+    cumulative: Vec<u128>,
+    total: u128,
 }
 struct Content {
     world: Value,
@@ -308,7 +308,11 @@ impl Player {
                 0..n(biome, "fishWeight") + n(biome, "junkWeight") + n(biome, "treasureWeight"),
             );
             if roll < n(biome, "fishWeight") {
-                let ticket = rng.gen_range(0..pool.total);
+                let ticket = if let Ok(total) = u64::try_from(pool.total) {
+                    u128::from(rng.gen_range(0..total))
+                } else {
+                    rng.gen_range(0..pool.total)
+                };
                 let (i, band) = pool.entries[pool.cumulative.partition_point(|end| *end <= ticket)];
                 let fish = &c.fish[i];
                 let measured = generate_in_size_band(fish.model, band, rng).unwrap();

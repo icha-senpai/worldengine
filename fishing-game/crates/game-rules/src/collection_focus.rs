@@ -8,7 +8,7 @@ pub const MIN_RULES_VERSION: u32 = 13;
 /// Returning early consumes no RNG, preserving unfocused and completed streams.
 pub fn reroll(
     selected: u8,
-    ranks: &[(u8, u64)],
+    ranks: &[(u8, u128)],
     known: &[bool],
     rng: &mut impl Rng,
 ) -> Result<u8, &'static str> {
@@ -17,7 +17,7 @@ pub fn reroll(
 
 pub fn reroll_with_chance(
     selected: u8,
-    ranks: &[(u8, u64)],
+    ranks: &[(u8, u128)],
     known: &[bool],
     chance_bp: u32,
     rng: &mut impl Rng,
@@ -43,7 +43,7 @@ pub fn reroll_with_chance(
         return Ok(selected);
     }
     let weights: Vec<_> = missing.iter().map(|(_, weight)| *weight).collect();
-    Ok(missing[crate::sampling::sample(&weights, rng)?].0)
+    Ok(missing[crate::sampling::sample_wide(&weights, rng)?].0)
 }
 
 #[cfg(test)]

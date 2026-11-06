@@ -1,53 +1,6 @@
 //! Shared equipment math for independent mixed pulls and graded rank luck.
-pub fn luck_weights(tickets: &[(u64, u8)], luck_bp: u32) -> Result<Vec<u64>, String> {
-    if luck_bp > 12_000 {
-        return Err("INVALID_ROD_LUCK".into());
-    }
-    graded_luck_weights(tickets, luck_bp)
-}
-
-pub(crate) fn graded_luck_weights(tickets: &[(u64, u8)], luck_bp: u32) -> Result<Vec<u64>, String> {
-    if tickets.iter().any(|(_, score)| *score > 9) {
-        return Err("INVALID_ROD_LUCK".into());
-    }
-    let total = tickets
-        .iter()
-        .try_fold(0i128, |sum, (w, _)| sum.checked_add(i128::from(*w)))
-        .ok_or("WEIGHT_OVERFLOW")?;
-    let moment = tickets
-        .iter()
-        .try_fold(0i128, |sum, (w, r)| {
-            sum.checked_add(i128::from(*w) * i128::from(*r))
-        })
-        .ok_or("WEIGHT_OVERFLOW")?;
-    let distance = total
-        .checked_mul(9)
-        .and_then(|v| v.checked_sub(moment))
-        .ok_or("WEIGHT_OVERFLOW")?;
-    if total == 0 || distance <= 0 {
-        return Err("INVALID_ROD_POOL".into());
-    }
-    tickets
-        .iter()
-        .map(|(weight, score)| {
-            let adjustment = i128::from(luck_bp)
-                .checked_mul(i128::from(*score) * total - moment)
-                .ok_or("WEIGHT_OVERFLOW")?;
-            let factor = distance
-                .checked_mul(10000)
-                .and_then(|v| v.checked_add(adjustment))
-                .ok_or("WEIGHT_OVERFLOW")?;
-            if factor <= 0 {
-                return Err("INVALID_ROD_POOL".into());
-            }
-            u64::try_from(
-                i128::from(*weight)
-                    .checked_mul(factor)
-                    .ok_or("WEIGHT_OVERFLOW")?,
-            )
-            .map_err(|_| "WEIGHT_OVERFLOW".into())
-        })
-        .collect()
+pub fn luck_weights(tickets: &[(u64, u8)], luck_bp: u32) -> Result<Vec<u128>, String> {
+    crate::luck::weights(tickets, luck_bp)
 }
 pub fn bonus_pull_bp(power: u32) -> Result<u32, String> {
     if power > 200 {
@@ -115,7 +68,7 @@ mod tests {
             }
             let tickets: Vec<_> = entries.iter().map(|(_, _, w, r)| (*w, *r)).collect();
             let baseline = luck_weights(&tickets, 0).unwrap();
-            let total: u64 = baseline.iter().sum();
+            let total: u128 = baseline.iter().sum();
             for rod in world["rods"].as_array().unwrap() {
                 for quality in equipment["qualities"].as_array().unwrap() {
                     for bait_luck in [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000] {
@@ -123,14 +76,14 @@ mod tests {
                             + quality["luckBp"].as_u64().unwrap()
                             + bait_luck) as u32;
                         let weights = luck_weights(&tickets, luck).unwrap();
-                        assert_eq!(weights.iter().sum::<u64>(), total);
+                        assert_eq!(weights.iter().sum::<u128>(), total);
                         assert!(weights.iter().all(|w| *w > 0));
                         for (i, (_, _, _, score)) in
                             entries.iter().enumerate().filter(|(_, row)| row.3 == 9)
                         {
                             assert_eq!(
-                                u128::from(weights[i]) * 10000,
-                                u128::from(baseline[i]) * u128::from(10000 + luck)
+                                weights[i] * 10000,
+                                baseline[i] * u128::from(10000 + luck)
                             );
                             assert_eq!(*score, 9);
                         }
@@ -155,7 +108,7 @@ mod tests {
             }
         }
         assert!(luck_weights(&[(1, 9)], 8500).is_err());
-        assert!(luck_weights(&[(1, 0), (1, 9)], 12001).is_err());
+        assert!(luck_weights(&[(1, 0), (1, 9)], 12001).is_ok());
         assert!(luck_weights(&[(1, 10)], 0).is_err());
     }
 }

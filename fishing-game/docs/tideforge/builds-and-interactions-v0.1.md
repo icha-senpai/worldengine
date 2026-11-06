@@ -9,6 +9,11 @@ The [affix catalogue](Fishbound_Tideforge_Affix_Catalogue_v0.3.md) supplies the
 39 ordinary affix candidates and 24 signature candidates reviewed below.
 Names are working labels, not an approved production ID registry.
 
+The examples, interaction matrices and design gaps below are historical
+rationale. The [proposed effect contract](build-contract-v0.1.md#6-proposed-effect-contract-and-build-comparisons)
+now supplies executable comparison examples and exact proposed rules; it
+awaits review and is not implemented or approved balance.
+
 ## 1. Confirmed Design Constraints
 
 - Rods are precision and completion tools for ranks, rank maxima and perfects.
@@ -27,6 +32,9 @@ Names are working labels, not an approved production ID registry.
 - Use roughly 24 total mixed-method fishing actions and one or two raid
   activities/check-ins as the accessible baseline. Faster progress is allowed;
   do not add friction to enforce a multi-year completion date.
+
+The [build contract](build-contract-v0.1.md) records all-copy sourcing, shared
+mastery and the accepted family pricing.
 
 ## 2. Example Build Archetypes
 
@@ -98,7 +106,8 @@ maxima; higher Luck alone can make low-rank cleanup less convenient.
 Maxima Priority uses an ordinary rod-affix slot, with a separate eligible-rank
 mask and separately authored strength. Choosing it adds completion assistance;
 not choosing it must not make normal fishing invalid or permanently lose
-progress. Exact eligibility and rank-selection behavior still need a contract.
+progress. Proposed eligibility and rank selection are now authored in the
+effect contract and await review.
 
 Use permanent, same-specimen maximum records, not current inventory ownership.
 When no eligible unfinished ranks remain, the effect must have a defined neutral
@@ -106,10 +115,10 @@ fallback rather than returning an invalid pool or fabricating completion.
 
 ### Perfect-Focus Boundary
 
-The current candidate list also does not fully define how the optional Perfects
-selector strengthens a build. That remains a contract to design, not a free
-bonus implicitly added by this document. Keep the existing ordinary-species and
-rank-collection requirements as the reference eligibility.
+The earlier candidate list did not fully define how the optional Perfects
+selector strengthens a build. The proposed effect contract now specifies that
+interaction for review, not as an implemented free bonus. Keep the existing
+ordinary-species and rank-collection requirements as the reference eligibility.
 
 Do not reinterpret a missing-rank Focus percentage as the same probability of
 promoting a catch to UUR. Do not reinterpret a chance for an endpoint trial as
@@ -165,14 +174,14 @@ roles, not permission to convert one effect into another when a goal changes.
 | Affix | Primary role | Shared interaction or unresolved contract |
 |---|---|---|
 | Line Tension | Power and throughput | Shares the action pull budget with Aftercast and extra-pull signatures; saturation must be disclosed. |
-| Chum Catalyst | Bait synergy | No current measurement-bait activation proc exists; redefine the trigger/effect before tuning it. |
+| Chum Catalyst | Bait synergy | No current measurement-bait activation proc exists; the proposed effect contract supplies a replacement for review. |
 | Weight Weaver | Bait-linked measurements | Shares measurement budget with Measured Cast and other attempts; "bait activates" needs a real definition. |
 | Trophy Lens | Length opportunity | Define length-only versus full-pair attempts and legal final-specimen selection. |
 | Focus Tuner | Missing-rank Focus | Combine with Attuned Focus, reinforcement and Collector's Whisper; do not assume missing-maxima support. |
 | Bait Conservation | Consumable efficiency | Define per-slot versus per-cast preservation, including two slots using the same bait and retries. |
 | Aftercast | Extra rod pull | Shares total pull budget with Power and Echoed Line; no recursive extra pulls. |
 | Measured Cast | Bait-independent measurement | Shares weight/measurement budget with Weight Weaver; no accidental extra endpoint trial. |
-| Maxima Priority | Unfinished rank-maxima assistance | Uses permanent same-specimen maximum records; eligibility and selection strength remain open. |
+| Maxima Priority | Unfinished rank-maxima assistance | Uses permanent same-specimen maximum records; proposed eligibility and strength await review. |
 
 ### Boat Candidates
 
@@ -223,7 +232,7 @@ multipliers, daily entitlements or extra action budgets.
 |---|---|---|
 | Echoed Line | Power, Aftercast and extra-pull budget | Proc scope and ordering when the action has no remaining pull budget. |
 | Trophy's Oath | Eligible ordinary UUR endpoint trials | Trial probability versus proc probability, eligibility and combined trial budget. |
-| Baitkeeper's Promise | Chum Catalyst and bait synergy | Replace the nonexistent current bait-activation assumption before tuning. |
+| Baitkeeper's Promise | Chum Catalyst and bait synergy | The proposed effect contract replaces the nonexistent current bait-activation assumption for review. |
 | Collector's Whisper | Missing-rank Focus sources | Shared Focus arbitration and explicit allowed goal hooks, not automatic maxima support. |
 | Salvage Sermon | First-tin reward and salvage economics | Separate flat scrap award from percentage tin yield; no proc chain from bonus resources. |
 | Tidal Memory | Family mastery and first-rod-catch daily event | Define interaction with Atlas of Seven Waters without inventing per-item daily resets. |
@@ -261,7 +270,10 @@ multipliers, daily entitlements or extra action budgets.
 | Ocean's Memory | Player XP and permanent rank novelty | Check lifetime progress before acquisition; a UTC reset does not make an old rank new again. |
 | Rift Current | Rod/haul extra-pull budgets | Define trigger, daily scope and category semantics; "ordinary catch" must not silently promise a fish. |
 
-## 7. Contracts To Close Before Numerical Tuning
+## 7. Historical Contract Gaps
+
+These earlier gaps explain the rationale for the authored effect proposal;
+they are not claims that its candidate triggers and grids remain unwritten.
 
 | Area | Required design decision | Risk if left implicit |
 |---|---|---|
@@ -307,18 +319,17 @@ harness. No completion-time or profitability claim has been simulated here.
 
 ## 9. Next Design Work
 
-Draft simple affix-crafting and gear-refinement rules using raid materials,
-including the two recovery routes above. Revisit material quantities and yields
-after those costs and operations have a concrete shape, rather than asking Boss
-to price an undefined economy.
+Use the accepted [Forge flow](forge-and-refinement-v0.1.md), candidate
+[Forge cost model](forge-cost-model-v0.1.md) and
+[processing comparison](processing-and-material-economy-v0.1.md), alongside the
+consolidated [build contract](build-contract-v0.1.md). Gear sources, Dredge Mark
+currency and the raid-ladder budget are settled; numerical recipes remain
+proposals.
 
-See the [Forge and refinement proposal](forge-and-refinement-v0.1.md) for the
-next draft of those operations.
-
-Propose straightforward mastery and gambling defaults for review. Do not make
-Boss specify every formula, or make players learn an advanced build system to
-progress. Define focus hooks and measurement/bait units behind clear UI language
-before authoring final tier grids and caps.
+Propose straightforward mastery and gambling defaults for the remaining XP,
+unlock and trader-distribution contracts. Do not make Boss specify every formula,
+or make players learn an advanced build system to progress. Review the authored
+focus hooks, measurement/bait units, tier grids and budgets before implementation.
 
 Keep the complete gear, Forge, Vault, Codex, Reliquary, gambling and material
 progression in scope. More active players progressing faster is acceptable;

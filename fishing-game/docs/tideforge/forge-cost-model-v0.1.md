@@ -128,8 +128,9 @@ high-tier recovery bonus needs its own recipe and loop review.
 Changing A into B consumes a B shard and does not also return an A shard.
 Dismantling afterward returns the item's current affixes once, not its history
 of replaced effects. Adding, changing and dismantling must not create extra
-type shards from the same paid slot. Naturally found affixes remain a source
-of shards, and optional gear gambling must be priced with that output in view.
+type shards from the same paid slot. Eligible unwanted rolled gear from
+coin-bought Camp copies and Mark-gambled wandering copies can supply shards;
+optional gear gambling must be priced with that output in view.
 
 ## 5. Verified Source Baseline And Arithmetic
 
@@ -162,7 +163,7 @@ Its fish batches are conditional examples, not measured daily returns; the
 questions below remain open.
 
 - Coin income, bait, supplies, existing purchases and refinement affordability.
-- Shard discovery and optional gambling frequency, including unwanted-item value.
+- Shard discovery and optional gambling frequency, including unwanted Camp and wandering gear.
 - Normal fish-processing yields, normal-to-F conversion and improved upward
   refining, retaining the shared destination-grade clear unlock.
 - One favourite item versus a whole loadout, alternate builds and reinforcement

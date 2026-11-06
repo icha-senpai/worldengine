@@ -7,11 +7,8 @@ pub fn settings(kind: &str) -> Result<(i64, usize), String> {
     }
 }
 
-pub fn luck_weights(tickets: &[(u64, u8)], luck_bp: u32) -> Result<Vec<u64>, String> {
-    if luck_bp > 26_600 {
-        return Err("INVALID_HAUL_LUCK".into());
-    }
-    crate::rods::graded_luck_weights(tickets, luck_bp)
+pub fn luck_weights(tickets: &[(u64, u8)], luck_bp: u32) -> Result<Vec<u128>, String> {
+    crate::luck::weights(tickets, luck_bp)
 }
 
 pub fn fishing_xp(base: u64, bonus_bp: u32) -> Result<u64, String> {
@@ -80,11 +77,11 @@ mod tests {
                         as u32;
                     let weights = luck_weights(&tickets, luck).unwrap();
                     assert!(weights.iter().all(|w| *w > 0));
-                    assert_eq!(weights.iter().sum::<u64>(), baseline.iter().sum::<u64>());
+                    assert_eq!(weights.iter().sum::<u128>(), baseline.iter().sum::<u128>());
                     for (i, entry) in entries.iter().enumerate().filter(|(_, e)| e.3 == 9) {
                         assert_eq!(
-                            u128::from(weights[i]) * 10_000,
-                            u128::from(baseline[i]) * u128::from(10_000 + luck)
+                            weights[i] * 10_000,
+                            baseline[i] * u128::from(10_000 + luck)
                         );
                         assert_eq!(entry.3, 9);
                     }
@@ -107,6 +104,6 @@ mod tests {
                 }
             }
         }
-        assert!(luck_weights(&[(1, 0), (1, 9)], 26_601).is_err());
+        assert!(luck_weights(&[(1, 0), (1, 9)], 26_601).is_ok());
     }
 }

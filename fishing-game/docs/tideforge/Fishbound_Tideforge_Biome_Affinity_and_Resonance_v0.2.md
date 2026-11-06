@@ -4,17 +4,19 @@
 **Project:** Fishbound, `icha-senpai/worldengine`  
 **Companion document:** `Fishbound_Tideforge_Existing_Gear_Stats_and_Balance_Integration_v0.2.md`  
 **Parent design:** `Fishbound_Tideforge_System_Design_v0.1.md`  
-**Status:** **Hybrid model selected**. Numerical balance, trader economics, mastery XP and specific signature effects remain **proposed**, subject to simulation and explicit approval. Do not treat this as authorization to deploy.
+**Status:** **Hybrid model selected**. Remaining numerical balance, trader payout details, mastery XP and specific signature effects remain **proposed**, subject to simulation and explicit approval. The [gambling price schedule](build-contract-v0.1.md) is accepted. Do not treat this as authorization to deploy.
 
 > Repository working copy; the Desktop original is unchanged. The [current decision index](README.md) governs these proposals where older wording differs. Current code is a reference baseline, not a final Tideforge tuning contract. Proposed values remain open unless explicitly approved.
+
+> Older numerical effect budgets here are historical; use the [proposed effect contract](build-contract-v0.1.md#6-proposed-effect-contract-and-build-comparisons) for current comparisons. Its values remain unapproved and unimplemented.
 
 > **Core idea:** Equipment has an innate biome identity *outside* its proposed ordinary affix slots. Randomized affixes may amplify that identity, give it a secondary home, or reward different activities in the same waters. Old and cheap gear can remain respectable specialists without rendering existing higher-tier generalist equipment irrelevant.
 
 ## 0. Decision status
 
-- **DECIDED:** Hybrid innate affinity plus amplifying affixes; vanilla first originals; shared family mastery for gambled copies; ten independent affix tiers (T1-T10); preservation of original quality and raid investment; no reset by attunement.
+- **DECIDED:** Hybrid innate affinity plus amplifying affixes; vanilla first originals; shared family mastery for originals and all additional copies; ten independent affix tiers (T1-T10); preservation of original quality and raid investment; no reset by attunement.
 - **WORKING STRUCTURE:** Four ordinary affix slots; slot budgets and mastery unlocks remain to be finalized.
-- **PROPOSED:** Initial percentages, drop weights, calendar timings, mastery gates, specific affix effects, signature powers and prices. These are starting proposals, not approved final tuning.
+- **PROPOSED:** Initial percentages, drop weights, calendar timings, mastery gates, specific affix effects, signature powers and crafting prices. These are starting proposals, not approved final tuning.
 - **TO VERIFY:** Existing gear and gameplay details come from the cited commit. Reinspect the repository before implementation, especially if additional commits land.
 
 Tideforge is a simple, fun and forgiving gear layer. ARPG inspiration means optional bonus combinations, not required expertise or punishing build traps. Ordinary choices should remain useful. More active players may progress faster; do not add friction or permanent bricking to enforce a multi-year completion date.
@@ -33,7 +35,7 @@ The current game has seven biomes, seven rod families and the same seven family 
 | Glacial | Glacial Reach | 6 | 40 |
 | Abyssal | Abyssal Shelf | 7 | 55 |
 
-**Scope:** 7 families × 3 categories = **21 family/category mastery tracks**, if all present categories retain the proposed family-level mastery model. An individual *instance* still has its own affinity and affixes.
+**Scope:** 7 families × 3 categories = **21 family/category mastery tracks** per owner under the agreed owner/kind/family model. An individual *instance* still has its own affinity and affixes.
 
 Existing biome licences, levels, species pools, fish/junk/treasure category weights, rod bait, collection focus, haul timing and raid limitations are the reference baseline unless explicitly changed. **Affinity does not grant entry to a locked biome** and must not change the existing biome access rules.
 
@@ -64,7 +66,7 @@ The current ownership model is effectively one owned row per player and equipmen
 
 **First-purchase rule:** Original equipment starts without randomized affixes or signature powers, but receives its **native family affinity** when the system is activated. “Vanilla” means no *rolled extra* properties; it does not mean this design removes the new basic affinity bonus from original equipment.
 
-**Gambled copy rule:** A new instance has its own primary biome and affixes, with starting quality and reinforcement rules still open. It immediately benefits from the player's already-earned **family mastery**. It **does not copy** another instance's quality, raid reinforcement, biome, affixes or signature power.
+**Additional-copy rule:** A new Camp-bought or Mark-gambled instance has its own primary biome and affixes, with starting quality and reinforcement rules still open. It immediately benefits from the player's already-earned **family mastery**. It **does not copy** another instance's quality, raid reinforcement, biome, affixes or signature power.
 
 **Original protection:** Originals can be upgraded, forged and deliberately reattuned; they cannot be dismantled, extracted as a whole, discarded in bulk, or sacrificed by the Cube/Reliquary service. The player is never required to sacrifice an original to progress.
 
@@ -102,7 +104,12 @@ If a future named affix specifically changes category or measurement behavior, t
 
 ## 4. Resonance and affinity-compatible affixes
 
-Primary affinity costs **zero** of the four ordinary slots. The following are **PROPOSED** specialized ordinary affixes that a player may forge or find in gambled equipment:
+Primary affinity costs **zero** of the four ordinary slots in the working layout.
+
+Historical affinity candidates, retained for comparison. The current working
+[39-affix pool](Fishbound_Tideforge_Affix_Catalogue_v0.3.md) is in the affix
+catalogue; Attuned Fortune is not in that pool and Attuned Wisdom's older values
+here are not current defaults. Do not combine both catalogues.
 
 | Affix ID (working) | T1 | T10 | Scope and behavior |
 |---|---:|---:|---|
@@ -122,8 +129,8 @@ A tier sets the permitted numerical range. A T10 roll can still be imperfect and
 - At most **one copy of each exact affix ID per instance**.
 - `secondary_affinity` can appear once; it stores its selected second biome in instance-affix data.
 - Primary and secondary biome must be distinct. If a primary reattunement conflicts with the secondary, preserve the affix's tier/value but disable it and offer a one-time compatible retarget; never silently give it double power.
-- Effects across ordinary affixes add within **declared stacking groups** and explicit caps. No multiply-a-multiplier chains. Example: +1% innate +5% Resonance +3% Attuned Fortune +5% general Fortune = **+14 percentage points to the luck-bonus stat**, or **1,400 basis points** total. That is **not** +14% absolute probability for a UUR.
-- The proposed +14% is a **scenario ceiling**, not a final approved cap; it assumes three of four slots spent on those ordinary affixes and a matching primary biome.
+- Effects across ordinary affixes add within **declared stacking groups** and explicit caps. No multiply-a-multiplier chains. Historical illustration using Attuned Fortune: +1% innate +5% Resonance +3% Attuned Fortune +5% general Fortune = **+14 percentage points to the luck-bonus stat**, or **1,400 basis points** total. That is **not** +14% absolute probability for a UUR.
+- The historical +14% is a **scenario ceiling**, not a current-catalogue or final approved cap; it assumes three of four slots spent on those ordinary affixes and a matching primary biome.
 - Conditional effects resolve from the active equipment only. Another equipped item's affinity does not leak into the current rod, haul or raid.
 
 ### 4.2 Secondary-biome behavior
@@ -131,7 +138,7 @@ A tier sets the permitted numerical range. A T10 roll can still be imperfect and
 A rod with primary Glacial Reach and T10 Secondary Affinity for Abyssal Shelf has:
 
 - In **Glacial Reach**: innate primary benefits plus any primary-only affixes; secondary affix inactive.
-- In **Abyssal Shelf**: only the weaker secondary bonus; primary-only Resonance/Attuned Fortune inactive. Do not double-count the innate 1% or innate mastery boost.
+- In **Abyssal Shelf**: only the weaker secondary bonus; primary-only Resonance/Attuned Harvest inactive. Do not double-count the innate 1% or innate mastery boost.
 - In **all other biomes**: ordinary gear stats and non-affinity affixes remain; both biome bonuses inactive.
 
 This makes single-biome specialists peak higher while dual-biome generalists cover more territory.
@@ -140,30 +147,35 @@ This makes single-biome specialists peak higher while dual-biome generalists cov
 
 | Build | Primary affinity | Key affixes | Intended tradeoff |
 |---|---|---|---|
-| Precision specialist | Glacial Reach | Resonance, Attuned Fortune, Weightkeeper, Trophy Hunter | Concentrated rarity + measurement chase; weaker outside Glacial. |
-| Two-water explorer | Meadow Pond | Secondary Affinity: Sunken Coast, Fortune, Scholar, Prospector | Versatile, lower peak affinity bonus. |
-| Salvage boat | Hollow Marsh | Attuned Harvest, Salvager, Treasure Dredger, Fortune | Materials and flexible broad harvesting; not targeted bait fishing. |
+| Precision specialist | Glacial Reach | Resonance, Maxima Priority, Trophy Lens, Measured Cast | Concentrated rarity + measurement chase; weaker outside Glacial. |
+| Two-water explorer | Meadow Pond | Secondary Affinity: Sunken Coast, Fortune, Scholar, Deepwater Cache | Versatile, lower peak affinity bonus. |
+| Salvage boat | Hollow Marsh | Attuned Harvest, Wreckbreaker, Scavenger, Deep Trawler | Materials and flexible broad harvesting; not targeted bait fishing. |
 | Quick-harvest net | Moonlit Lake | Attuned Wisdom, Quick Set, Selective Weave, Fine Mesh | Frequent collection and mastery; no rod-bait mechanics. |
 | Original Twig specialist | Meadow Pond, later changed intentionally | Crafted Resonance and specialization affixes | A legitimate niche for starter gear, not universally strongest. |
 
-Affix names used outside the five defined affinity affixes are candidates from the larger Tideforge affix pool and need separate effect definitions and caps.
+The three revised examples use current catalogue candidates, not new IDs or
+alias mappings. Other examples remain illustrative; effects and caps need
+separate review.
 
 ## 6. Reattunement and gambling services
 
-The **Driftmarket** is the working name of the monthly weekend wandering trader. **Dredge Marks** is a working gambling-currency name. Both are design concepts, not current live content.
+**Driftmarket** is the working name of the wandering trader, who visits once per month; the exact window remains open. **Dredge Marks** are the confirmed gambling currency. These remain design concepts, not current live content.
+
+The Camp trader sells coin-bought additional gear with low-tier affixes; the wandering trader offers very-high-tier gear. See the [build contract](build-contract-v0.1.md) for the accepted sources and remaining details.
 
 ### 6.1 Gamble new equipment
 
-- Choose an eligible equipment category/family in the interface; exact price and whether targeting has a premium are **OPEN**.
-- Server checks access, mastery unlock, currency, inventory capacity and rules version.
-- Server rolls the variant's primary biome, eligible affixes/tiers/values and optional signature power. Newly rolled gear inherits family mastery *by reference to the shared track*.
+- Pricing uses one Dredge Mark per 1,000 coins, with the approved River exception: River rods, boats and nets cost 1 Mark each. All current family prices are whole Marks; the 130,000-coin Abyssal rod, boat or net is 130 Marks each. A full ordinary F-to-UUR raid ladder earns 65 Marks, so two earn 130 from raids alone; achievement Marks are extra. This equivalence does not authorize currency exchange.
+- Purchase eligibility, category/family selection, stock-versus-roll interaction and exact tier, signature and visit-window rules remain **OPEN**.
+- Server checks final access and any applicable mastery requirements, currency, inventory capacity and rules version.
+- Where rolling is used, the server rolls the variant's primary biome, eligible affixes/tiers/values and optional signature power. New gear inherits family mastery *by reference to the shared track*; stock-versus-roll interaction remains open.
 - Commit currency deduction, instance grant, affix grant, Codex updates and a replay-safe action receipt atomically.
 - Result displays native biome, full affix list, dormant slots if any, and explicit quality/reinforcement level.
 - Player may keep, favor, dismantle, extract or forge the item. Originals cannot be sacrificed.
 
 ### 6.2 Random primary-affinity reroll
 
-- Works on originals and gambled variants after a mastery/feature gate.
+- Works on originals and additional copies after a mastery/feature gate.
 - **Preview before acceptance:** Roll a replacement biome, show the result and compare to the existing biome. The player may keep the old or accept the new one.
 - Preserve mastery, quality, reinforcement, signature power, affix IDs, tiers and numerical values.
 - Define payment and consumed resource semantics carefully: **PROPOSED** charge when generating the offer, not when accepting, so preview cannot be spammed for free.
@@ -177,22 +189,22 @@ The **Driftmarket** is the working name of the monthly weekend wandering trader.
 
 ## 7. Family mastery integration
 
-**AGREED:** Gambled instances inherit a **shared per-family mastery** progression. Working shape: 1–100 per owner × equipment kind × family.
+**AGREED:** Gear levels unlock affix slots through mastery shared per owner, equipment kind and family, including additional instances. Exact unlock levels remain open. Working shape: 1–100 per owner × equipment kind × family.
 
 | Mastery level | PROPOSED feature unlock |
 |---:|---|
 | 1 | Innate biome affinity active; no randomized-gear requirement. |
 | 10 | First ordinary affix slot. |
-| 25 | Second affix slot; family becomes eligible for additional gambled copies. |
+| 25 | Second affix slot; family becomes eligible for additional copies. |
 | 50 | Third affix slot; deterministic reattunement becomes available. |
 | 75 | Fourth affix slot; late-tier forging recipes unlocked. |
 | 100 | Family mastery badge/cosmetic and a **small, capped** family benefit, not a universal multiplier. |
 
 **Mastery activity:** Accepted rod casts award rod-family mastery. Completed boat hauls award boat-family mastery. Completed net hauls award net-family mastery. Mastery XP **must not multiply by all ten boat catch results** without balancing against the intended time-based progression. Rejected casts, failed commands, duplicate callbacks and replayed action receipts award none.
 
-**Dormant affixes:** If a gambled piece arrives with more affixes than the player's currently unlocked slots, keep them visible and immutable but inactive until those family mastery slots open. No gambling reroll should delete dormant affixes merely because the family was low level.
+**Dormant affixes:** If an additional piece arrives with more affixes than the player's currently unlocked slots, keep them visible and immutable but inactive until those family mastery slots open. No ordinary Forge action should delete dormant affixes merely because the family was low level.
 
-The XP curve and catch-vs-haul mastery credit rates are **not yet approved**. Never make an all-gear mastery grind secretly mandatory to enjoy existing fishing. Propose simple mastery and gambling defaults for review; exact curves, access and economics remain open.
+The XP curve and catch-vs-haul mastery credit rates are **not yet approved**. Never make an all-gear mastery grind secretly mandatory to enjoy existing fishing. Propose simple mastery and gambling defaults for review; exact curves, access and payout details remain open within the accepted sources and pricing.
 
 The accessible baseline is around 24 total fishing actions/casts per day in any mixture of rod, net and boat activity, plus roughly one or two raids or raid check-ins as booked durations allow. This is not 24 mandatory rod casts plus extra required hauls. More activity may accelerate progress. Earlier three-to-four-year language is background aspiration, not a mandate to slow players down. Distinguish actions from result counts; long raids can span daily check-ins.
 
@@ -225,9 +237,9 @@ A boat's ordinary affinity does **not** modify raid duration, supply requirement
 
 **Forge:** Each ordinary affix is independently craftable from Tier 1 to Tier 10 if materials are available. Upgrade cost gently increases; no permanent forging-potential exhaustion or involuntary gear destruction. Refine numerical values separately; directly chosen compatible type changes preserve tier and relative roll finish under the accepted [Forge flow](forge-and-refinement-v0.1.md).
 
-Ordinary affix tiers use raid materials. Material quantities, processing yields and any accompanying coin/shard costs will be revisited after affix-crafting and gear-refinement operations are defined. Fish processing is another material source, not a bypass of raid access gates. Higher-grade material crafting/refining retains the shared destination-grade ordinary raid-clear unlock. Conversion itself grants no seals, completion statistics or reinforcement eligibility.
+Ordinary affix tiers use raid materials. The [Forge flow](forge-and-refinement-v0.1.md) is accepted; [Forge costs](forge-cost-model-v0.1.md) and [processing recipes](processing-and-material-economy-v0.1.md) propose quantities and yields, not approved values. Fish processing is another material source, not a bypass of raid access gates. Higher-grade material crafting/refining retains the shared destination-grade ordinary raid-clear unlock. Conversion itself grants no seals, completion statistics or reinforcement eligibility.
 
-Dismantling an eligible item returns matching Vault resources for all its affixes. Signature extraction is the competing choice: consume an eligible item to learn its signature in the permanent Reliquary instead of recovering its affixes. Do not grant both signature and affix-shard outcomes from the same item. Resource quantities, tier/value handling and any ordinary-material refund remain open. Protected originals and favorites retain their safeguards.
+Dismantling an eligible item returns matching Vault resources for all its affixes, including dormant affixes. Signature extraction is the competing choice: consume an eligible item to learn its signature in the permanent Reliquary instead of recovering its affixes. Do not grant both signature and affix-shard outcomes from the same item. Resource quantities, tier/value handling and any ordinary-material refund remain open. Protected originals and favorites retain their safeguards.
 
 Junk rewards should have a variable quantity spread so percentage bonuses can meaningfully improve output. The range, distribution and fractional-rounding policy remain open; a spread alone does not prevent small bonuses being lost to integer rounding. This changes reward quantities, not biome encounter-category probabilities by implication.
 
@@ -277,7 +289,7 @@ The Tackle Box equipment card should visibly separate:
 
 Provide an **effective-stats breakdown** for the selected biome: Base + Quality + Bait (rod only) + Mastery + General Affixes + Matching Affinity + Signature. Show separate rows for numerical luck versus actual forecast catch/perfect probabilities. Do not label a +1% luck stat bonus as “+1% UUR chance.”
 
-Gambling cards must clearly show **new duplicate instance**, inherited family mastery, and which investments do **not** transfer. Reattunement UI must preserve the old result until the user accepts. Mobile views must not rely on hover-only explanations.
+Camp and gambling gear cards must clearly show **new duplicate instance**, inherited family mastery, and which investments do **not** transfer. Reattunement UI must preserve the old result until the user accepts. Mobile views must not rely on hover-only explanations.
 
 ## 13. Server state and migration strategy
 
@@ -301,7 +313,7 @@ This is a conceptual schema, not a mandate to overwrite existing SpaceTimeDB tab
 - No lost original gear, quality, reinforcement, equipped selection or pending haul/raid.
 - Native, non-native and secondary-biome activation for rods, boats and nets.
 - Same-affix uniqueness, secondary-primary collision and reattunement rollback.
-- Original-vs-gamble inheritance: only shared family mastery transfers automatically.
+- Original and additional-copy inheritance from Camp and Mark sources: only shared family mastery transfers automatically.
 - Event/receipt idempotency, concurrent reforge/gamble, quote expiry, disconnects and rejected payment paths.
 - Timed haul snapshot reproducibility after gear swaps, reforging, item removal and catalog changes.
 - Filleting provenance and no historical-yield inflation.
@@ -313,12 +325,12 @@ This is a conceptual schema, not a mandate to overwrite existing SpaceTimeDB tab
 ## 15. Remaining decisions before implementation approval
 
 1. Final innate luck and mastery XP boosts (currently proposed +1% luck-stat / +5% mastery XP).
-2. Whether Resonance and Attuned Fortune both remain in the catalogue or one becomes a different specialization.
+2. Whether to add the older Attuned Fortune candidate alongside Resonance or develop a different specialization.
 3. Exact per-tier affix minimum/maximum values and cost curves across all gear types.
 4. Final legal stat ceilings after full distribution simulations, including future new families/biomes.
-5. Affinity gamble category/family eligibility, cost, naturally rolled tier weights and exact signature occurrence rates.
+5. Affinity gamble category/family eligibility and choice UX, naturally rolled tier weights and exact signature occurrence rates.
 6. Mastery XP curve and per-action awards; raid completion mastery credit, if any.
-7. Trader schedule and whether reattunement services are limited to the visit or available year-round at higher cost.
+7. Exact monthly trader visit window and whether reattunement services are limited to the visit or available year-round at higher cost.
 8. Specific signature power list, effect precedence and duplicate suppression.
 9. Final data migration and source-of-truth ownership path for gear instances.
 

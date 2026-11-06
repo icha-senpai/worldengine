@@ -17,22 +17,22 @@ Tideforge is a simple, fun and forgiving gear layer. ARPG inspiration means opti
 
 - The accessible baseline is around 24 total fishing actions/casts per day in any mixture of rod, net and boat activity, plus roughly one or two raids or raid check-ins as booked durations allow. This is not 24 mandatory rod casts plus extra required hauls. More activity may accelerate progress. Earlier three-to-four-year language is background aspiration, not a mandate to slow players down. Distinguish actions from result counts; long raids can span daily check-ins.
 - The ordinary **F → UUR raid ladder has been shortened to a total of 54 hours per species**, replacing the older 108-hour total. Across 249 ordinary species, theoretical sequential raid uptime is 13,446 hours = 560.25 days before resource farming, deployment gaps, and scheduling. Many players are expected to finish one ladder first, then progress on other bosses opportunistically. The precise grade-by-grade revised schedule must be read from the current game catalogue, not reconstructed by halving each old value blindly.
-- One protected original of each gear family starts vanilla; gambling may add extra **instances**. Gambled variants **inherit owner + equipment-kind + family mastery**, but not another instance's quality, reinforcement, biome, affixes, or signature.
-- Preserve base Power/Luck/XP, Common→Prismatic quality, and existing rod raid reinforcement. Innate primary biome affinity is separate from the **four ordinary affix slots**. Individual ordinary affixes have **T1–T10** progression and independently improvable rolls.
-- The Forge allows fully resource-funded upgrades, rerolls, and refinement without random permanent item destruction. The Shard Vault holds extracts; the Codex permanently tracks discovery and perfection; the Deepwater Reliquary stores extracted signature powers.
+- One protected original of each gear family starts vanilla; Camp coin purchases and Mark gambling may add extra **instances**. Originals and all additional copies share **owner + equipment-kind + family mastery**, but copies do not inherit another instance's quality, reinforcement, biome, affixes, or signature.
+- Preserve base Power/Luck/XP, Common→Prismatic quality, and existing rod raid reinforcement. Innate primary biome affinity is separate from the **four ordinary affix slots** in the working layout. Individual ordinary affixes have **T1–T10** progression and independently improvable rolls.
+- The Forge directly adds a chosen T1 affix, guarantees tier advancement and visible roll improvement, and directly changes type while retaining tier and paid roll finish. The Shard Vault holds extracts; the Codex permanently tracks discovery and perfection; the Deepwater Reliquary stores extracted signature powers.
 - Fish filleting provides another material source; higher-grade crafting/refining retains the shared destination-grade raid-clear unlock. Conversion does not grant raid seals or reinforcement eligibility.
-- The three Reliquary slots are **Rod / Haul / Waters**. An equipped and socketed copy of the same named signature effect cannot stack with itself.
+- The permanent Reliquary library and same-ID deduplication are accepted. **Rod / Haul / Waters** is a proposed layout, not an approved slot count.
 
 ### Proposed, still negotiable in this version
 
-The **39-affix working pool, all values below, power set, slot budgets, effect caps, proc order, signature extraction chances, and category exclusions** require design review and simulation. Maxima Priority's role is accepted; its mechanics and values remain open. Do **not** silently treat this document as contradicting approved earlier rules; discrepancy notes are in §12.
+The **39-affix and 24-signature candidate pools, all values below, slot budgets, effect caps, proc order, signature extraction chances, and category exclusions** require design review and simulation. Maxima Priority's role is accepted; its mechanics and values remain open. Do **not** silently treat this document as contradicting approved earlier rules; discrepancy notes are in §12.
 
 ### Existing repo constraints verified from the October 30 commit
 
 - Existing seven waters: Meadow Pond, Whispering River, Hollow Marsh, Moonlit Lake, Sunken Coast, Glacial Reach, Abyssal Shelf.
 - Rods have Power, Luck, XP; boats and nets have Luck and XP. Rod Power currently yields **50 basis points of bonus-pull chance per Power**, capped at 200 Power. Prismatic Abyssal Rod already reaches **185 Power** before new affixes/mastery; allowing arbitrary new Power would need explicit capping and disclosure.
 - Current rod rarity-luck validation is **12,000 bp**; haul validation is **26,600 bp**. Prismatic Abyssal Boat reaches **26,600 bp** already. New luck must have a deliberately extended, mathematically safe budget; it must not be silently discarded or shoved through incompatible validators.
-- Boat/net ordinary hauls are **10 catches/600 sec** and **4 catches/240 sec** respectively, with no bait, and their effective stats are snapshotted at deployment. Boat raid commitment excludes normal boat fishing.
+- Boat/net ordinary hauls are **10 pulls/600 sec** and **4 pulls/240 sec** respectively, with no bait, and their effective stats are snapshotted at deployment. Boat raid commitment excludes normal boat fishing.
 - Existing category weights (fish/junk/treasure), species pools, legal rank bands, natural measurements, Collection Focus, bait behavior, and special Fihs/Sock rules remain authoritative absent a separately reviewed change.
 
 Bait and affixes are complementary sources of effects. Bait, affixes, or both may be adjusted through explicit balance work. Existing bait behavior is the reference baseline, not a promise that it can never change; preserve earned progress and saved results while defining the combined effect rules.
@@ -53,7 +53,7 @@ An angler has one active main equipment loadout, with one item per supported slo
 
 - **No same affix ID twice on one item.** Compatible effects from *different* IDs can stack only within their common budgets.
 - **At most two biome-affix slots per item** is proposed. Primary biome costs no slot. `Secondary Affinity` cannot choose the primary biome. `Attuned Focus` is rod-only because nets and boats do not have a corresponding rod-reinforcement behavior.
-- All original items are non-destructible through bulk salvage/extraction. Allowed: owner-approved reroll, crafting, strengthening, and reattunement.
+- Original items cannot be consumed by dismantling or signature extraction, individually or in bulk. Allowed: owner-approved crafting, strengthening, and reattunement.
 - Ownership, class, biome gating, gear snapshotting, and inventory protection are checked on the SpaceTimeDB server. The client never generates authoritative rolls or currencies.
 
 ## 2. Tier semantics (all ordinary affixes)
@@ -79,6 +79,11 @@ A direct T1-to-F through T10-to-UUR mapping is a working proposal, not an approv
 
 ## 3. Full ordinary affix catalogue (39)
 
+**Initial historical candidates:** the numeric and trigger tables in sections
+3–5 are superseded for current comparisons by the [proposed effect contract](build-contract-v0.1.md#6-proposed-effect-contract-and-build-comparisons).
+They remain here as history, not a second current authority; the new proposal
+is neither approved nor implemented.
+
 Columns describe the proposed maximum effect at T1 and T10. **`pp` = percentage points added to an event's probability**; `% stat` means a percent-style bonus added to an existing stat, not absolute rare-catch probability.
 
 ### 3.1 General (8)
@@ -100,9 +105,14 @@ Columns describe the proposed maximum effect at T1 and T10. **`pp` = percentage 
 
 **Eligibility:** Rod.
 
+Chum Catalyst, Weight Weaver and Baitkeeper activation wording assumes a new
+mechanic. Current Trophy Chum supplies Luck and measurement attempts, not an
+activation roll. The proposed effect contract now supplies replacement
+bait/affix rules for review; these older triggers are not live.
+
 | Affix | T1 max | T10 max | Exact intended effect | Shared effect bucket |
 |---|---:|---:|---|---|
-| **Line Tension** | +1 Power | +6 Power | Increases rod power and therefore existing bonus-pull chance; obey hard Power rules. | `rod_power` |
+| **Line Tension** | +1 Power | +6 Power | Increases rod power and therefore existing bonus-pull chance; obey approved Power/pull budgets. | `rod_power` |
 | **Chum Catalyst** | +0.2 percentage points | +2 percentage points | Increases trigger chance of eligible measurement bait, not rarity-luck bait. | `bait_proc` |
 | **Weight Weaver** | 5% | 35% | When measurement bait activates, chance for ONE additional independent legal weight reroll. | `weight_extra_proc` |
 | **Trophy Lens** | 2% | 12% | Chance of ONE additional legal length attempt on ordinary fish. | `length_extra_proc` |
@@ -173,7 +183,10 @@ Junk rewards should have a variable quantity spread so percentage bonuses can me
 
 ## 4. Full signature power catalogue (24)
 
-Signature powers are **separate from ordinary affixes**. They do not have ordinary T1–T10 shards unless a new decision explicitly creates signature tiers. Unlock them from eligible gambled-gear signatures; extracting one permanently records it in the Reliquary. A protected original can be **imprinted** with a previously unlocked compatible signature by paying an authored cost, not sacrificed.
+**Initial historical candidates:** current comparison rules are in the
+[proposed effect contract](build-contract-v0.1.md#6-proposed-effect-contract-and-build-comparisons).
+
+Signature powers are **separate from ordinary affixes**. They do not have ordinary T1–T10 shards unless a new decision explicitly creates signature tiers. Unlock them from eligible additional gear carrying a signature; exact trader-specific signature availability remains open. Extracting one permanently records it in the Reliquary. A protected original can be **imprinted** with a previously unlocked compatible signature by paying an authored cost, not sacrificed.
 
 Active signature on equipped gear + extracted signature in a Reliquary slot = **deduplicated by signature ID**. Powers with similar effects but different IDs share cap/budget. The six powers per pool below are proposed and subject to balancing.
 
@@ -223,6 +236,9 @@ Active signature on equipped gear + extracted signature in a Reliquary slot = **
 
 ### 4.5 Slot behavior, extraction, and imprinting
 
+The following three-slot layout is proposed; the final slot count, unlocks and
+compatibility remain open.
+
 | Reliquary slot | Supports | When it checks equipment |
 |---|---|---|
 | **Rod** | Rod signatures | Accepted rod action only |
@@ -239,16 +255,19 @@ Active signature on equipped gear + extracted signature in a Reliquary slot = **
 
 ## 5. Proposed global stacking and action budgets
 
+**Initial historical candidates:** these budgets are superseded for current
+comparisons by the [proposed effect contract](build-contract-v0.1.md#6-proposed-effect-contract-and-build-comparisons).
+
 These are **design ceilings to model, not production limits approved by the user**:
 
 | Mechanic | Proposed maximum | Implementation note |
 |---|---|---|
-| Total rod fish per accepted action | **3** | Existing rod pull + Power bonus + affix/signature effects; extra pulls cannot re-trigger themselves. |
-| Total boat fish per completed haul | **12** | Base 10 + at most 2 from all bonus sources combined. |
-| Total net fish per completed haul | **6** | Base 4 + at most 2 from all bonus sources combined. |
+| Total rod pulls/results per accepted action | **3** | Existing rod pull + Power bonus + affix/signature effects; extra pulls cannot re-trigger themselves. |
+| Total boat pulls/results per completed haul | **12** | Base 10 + at most 2 from all bonus sources combined. |
+| Total net pulls/results per completed haul | **6** | Base 4 + at most 2 from all bonus sources combined. |
 | Normal haul timer reduction | **15%** | Boat/net only; applied to appropriate base duration, integer rounded; never applies to raid timers. |
 | Collection Focus eligible reroll chance | **60%** | Count raid reinforcement + Focus Tuner + Attuned Focus + signatures; respect unlocked/active eligibility. |
-| Measurement-bait activation | **30%** | No current 25% activation proc exists: Trophy Chum adds 25% rarity Luck and eight measurement attempts per stocked slot (sixteen for two). Define or replace this proposed activation mechanic during bait/affix co-design. |
+| Historical measurement-bait activation proposal | **30% (unresolved historical candidate; not a current cap)** | No current 25% activation proc exists: Trophy Chum adds 25% rarity Luck and eight measurement attempts per stocked slot (sixteen for two). Define or replace this proposed activation mechanic during bait/affix co-design. |
 | Extra weight attempts | **2** additional eligible attempts | Additional to normal bait attempts; preserve exact rank/measurement bands. |
 | Additional ordinary filleting yield | **+50%** | All ordinary-yield affixes/signatures together; never create rare raid materials directly by category shift. |
 | Extra junk salvage resources | **+50%** | Does not change junk encounter chance. |
@@ -276,20 +295,20 @@ An angler has one active main equipment loadout, with one item per supported slo
 
 ## 6. Gear progression and affix slots
 
-The following mastery milestones are **proposed** and fit the earlier Tideforge architecture:
+**AGREED:** Gear levels unlock affix slots through mastery shared per owner, equipment kind and family. The following numerical mastery milestones are **proposed**, not approved unlock levels:
 
 | Mastery level | Unlock |
 |---|---|
 | 1 | Natural innate biome affinity active. |
 | 10 | First ordinary affix slot. |
-| 25 | Second affix slot; access to gambled duplicate instances for the family. |
+| 25 | Second affix slot; access to additional instances for the family. |
 | 50 | Third affix slot; advanced deterministic attunement. |
 | 75 | Fourth affix slot; advanced resonance crafting recipes. |
 | 100 | Family mastery completion perk and cosmetic recognition. |
 
-The same owner × kind × family mastery applies to original and gambled items. Individual items retain their own quality and raid reinforcement. Any free raw-stat improvements from mastery need explicit separate design and must fit the approved power/luck/XP limits when those limits are determined; don't silently add them to catalogue effects.
+The same owner × kind × family mastery applies to originals and all additional items, including Camp and Mark copies. Individual items retain their own quality and raid reinforcement. Any free raw-stat improvements from mastery need explicit separate design and must fit the approved power/luck/XP limits when those limits are determined; don't silently add them to catalogue effects.
 
-Mastery should be earned through normal accepted actions, including regular rod casts, boat hauls, and net hauls. Define XP relative to actual activity and possible activity/day; don't equate one boat haul's 10 fish to 10 full rod mastery actions without explicit intention. Optional raid mastery credits should be small and separately authored.
+Mastery should be earned through normal accepted actions, including regular rod casts, boat hauls, and net hauls. Define XP relative to actual activity and possible activity/day; don't equate one boat haul's 10 pulls to 10 full rod mastery actions without explicit intention. Optional raid mastery credits should be small and separately authored.
 
 ---
 
@@ -297,28 +316,29 @@ Mastery should be earned through normal accepted actions, including regular rod 
 
 ### Gambling (monthly wandering trader; proposed Driftmarket)
 
-- Trader arrives one predictable weekend per month; original vanilla purchase remains available through normal progression.
-- Spend gameplay-earned Dredge Marks to roll eligible additional gear *instances*. Family is chosen from earned/unlocked gear according to gambling tier. Native biome may roll off-family (prior proposal: 40% native, remaining 60% shared across other eligible biomes).
-- Gambled gear inherits family mastery but does not copy another instance's quality, reinforcement, biome, affixes or signature. The integration draft proposes unreinforced new rods; starting quality/reinforcement rules still need a final contract, not an assumption that gambling grants raid progression.
+- The Camp trader sells coin-bought additional gear with low-tier affixes. The wandering trader visits once per month and offers very-high-tier affixes; the exact visit window remains open. Original vanilla purchases remain protected.
+- Gambling uses Dredge Marks from raids and achievements, priced at one Mark per 1,000 coins with the approved River exception. Each 130,000-coin Abyssal rod, boat or net is 130 Marks; one full ordinary F-to-UUR raid ladder earns 65 Marks and two earn 130 from raids alone. Achievement Marks are extra. See the [build contract](build-contract-v0.1.md) for the accepted family prices, proposed per-grade split and open details.
+- Family eligibility and targeting remain open. Native biome may roll off-family (prior proposal: 40% native, remaining 60% shared across other eligible biomes).
+- Additional gear from Camp or Mark gambling inherits family mastery but does not copy another instance's quality, reinforcement, biome, affixes or signature. The integration draft proposes unreinforced new rods; starting quality/reinforcement rules still need a final contract, not an assumption that either source grants raid progression.
 - No real-money wagering is part of this design. Store roll tables, rarity, duplicates, and pricing as versioned game data. Display probabilities where appropriate.
 
 ### Vault and extraction
 
 - Store affix shards account-wide by affix ID and amount, separate from inventory fish and normal materials.
 
-Dismantling an eligible item returns matching Vault resources for all its affixes. Signature extraction is the competing choice: consume an eligible item to learn its signature in the permanent Reliquary instead of recovering its affixes. Do not grant both signature and affix-shard outcomes from the same item. Resource quantities, tier/value handling and any ordinary-material refund remain open. Protected originals and favorites retain their safeguards.
+Dismantling an eligible item returns matching Vault resources for all its affixes, including dormant affixes. Signature extraction is the competing choice: consume an eligible item to learn its signature in the permanent Reliquary instead of recovering its affixes. Do not grant both signature and affix-shard outcomes from the same item. Resource quantities, tier/value handling and any ordinary-material refund remain open. Protected originals and favorites retain their safeguards.
 
 ### Forge
 
 - Each ordinary affix T1–T10 has individually authored costs, legal roll range, compatible gear kinds, and type/exclusivity rules.
-- Guaranteed tier upgrades with affordable incremental cost growth, plus reroll and value-refinement paths.
+- Guaranteed tier upgrades and visible roll improvement, plus directly chosen type changes, preserve paid roll finish.
 - The best natural roll and best forged roll remain distinguishable in data. Proposals for tier-upgrade shards and currency from older drafts are examples, **not approved final recipes**.
 
-Ordinary affix tiers use raid materials. Material quantities, processing yields and any accompanying coin/shard costs will be revisited after affix-crafting and gear-refinement operations are defined. Fish processing is another material source, not a bypass of raid access gates. Higher-grade material crafting/refining retains the shared destination-grade ordinary raid-clear unlock. Conversion itself grants no seals, completion statistics or reinforcement eligibility.
+Ordinary affix tiers use raid materials. The [Forge flow](forge-and-refinement-v0.1.md) is accepted; [Forge costs](forge-cost-model-v0.1.md) and [processing recipes](processing-and-material-economy-v0.1.md) propose quantities and yields, not approved values. Fish processing is another material source, not a bypass of raid access gates. Higher-grade material crafting/refining retains the shared destination-grade ordinary raid-clear unlock. Conversion itself grants no seals, completion statistics or reinforcement eligibility.
 
 ### Codex
 
-For each affix, permanently track `discovered`, `naturally_extracted`, `highest_natural_tier`, `highest_crafted_tier`, `best_ever_value`, and an optional exact T10 perfect-roll mark. Consumed shards and destroyed rolled gear do not erase Codex discoveries. A naturally gambled T10 and crafted T10 can reach equal power; provenance remains celebrated separately.
+For each affix, permanently track `discovered`, `naturally_extracted`, `highest_natural_tier`, `highest_crafted_tier`, `best_ever_value`, and an optional exact T10 perfect-roll mark. Consumed shards and destroyed rolled gear do not erase Codex discoveries. A naturally rolled T10 from eligible additional gear and a crafted T10 can reach equal power; Camp and Mark provenance remains distinguishable.
 
 ---
 
@@ -364,15 +384,15 @@ Every example is *illustrative*. Final balance may make a different slot combina
 
 ## 10. Outstanding decisions requiring a dedicated design pass
 
-Propose simple mastery and gambling defaults for review; exact curves, access and economics remain open.
+Propose simple mastery and gambling defaults for review; exact curves, access and payout details remain open within the accepted sources and pricing.
 
 1. **T1–T10 intermediate values** and the minimum-value roll for *each* individual affix, especially discrete extra-attempt procs.
 2. **Real gear drop/gamble tables:** Tier distributions, affix count distributions, chance of signature, equipment definition targeting, and odds disclosure.
-3. **Resources:** Tier-specific shard quantities, normal filleting yields, coin prices, Dredge Mark generation, monthly trader inventory, extraction results, and bulk forging costs.
+3. **Resources:** Final shard identity and recovery quantities, normal filleting yields, coin costs, individual raid-grade and achievement Mark payouts, monthly trader inventory, and bulk forging costs.
 4. **Signature tuning:** Rare proc rates, particularly Forgotten Cache/Rift Current/Fisherman's Folly and universal power interaction with each activity.
 5. **Final probability budgets:** Rarity-luck, XP, total measurement attempts, signature stack and protected legendary probability.
 6. **Gear mastery XP curve:** Activity credit per rod cast/haul and affordability at the mixed-activity baseline; propose simple defaults for review.
-7. **Crafting paths for originals vs gambles:** Initial affix compatibility and whether high-tier affixes can be freely transferred, consistent with the two whole-item recovery routes.
+7. **Crafting paths for originals and additional copies:** Initial affix compatibility, recovery quantities and retained-finish conversions within the dismantle-all or signature-extraction whole-item routes.
 8. **Affix exclusivity:** A single effect family may need mutual-exclusion rules beyond preventing identical IDs; e.g. too many measurement affixes in one build.
 9. **Roll snapshot provenance:** How item-instance, affinity, affixes, and signatures pin to each catch, including fish processed months later.
 10. **Progression completion definition:** Which Codex/perfect legendary/cosmetic achievements count as core progress vs optional aspirational goals, without enforcing a calendar-length grind.

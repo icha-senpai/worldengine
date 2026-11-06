@@ -4,9 +4,11 @@
 **Project:** Fishbound, `icha-senpai/worldengine`  
 **Companion document:** `Fishbound_Tideforge_Biome_Affinity_and_Resonance_v0.2.md`  
 **Parent design:** `Fishbound_Tideforge_System_Design_v0.1.md`  
-**Status:** Current tables/formulas are **verified against commit `8cbd208`**; future bonus amounts, cap expansion and mastery stat milestones are **proposed**, not approved final balance. No production deployment authorized by this document.
+**Status:** Tables/formulas were historically verified against commit `8cbd208`; see the [decision index](README.md) for the later source-review baseline. Future bonus amounts, cap expansion and mastery stat milestones are **proposed**, not approved final balance. This is not a production-state check or deployment authorization.
 
 > Repository working copy; the Desktop original is unchanged. The [current decision index](README.md) governs these proposals where older wording differs. Current code is a reference baseline, not a final Tideforge tuning contract. Proposed values remain open unless explicitly approved.
+
+> Older numerical effect budgets here are historical; use the [proposed effect contract](build-contract-v0.1.md#6-proposed-effect-contract-and-build-comparisons) for current comparisons. Its values remain unapproved and unimplemented.
 
 > **Core rule:** Tideforge must **add to** Fishbound's existing rods, boats, nets, quality upgrades, bait, raid reinforcement and RNG. It must not overwrite their identity, quietly devalue prior investment, or turn meticulously rare catches into a button press. Existing behavior is the reference baseline; separately approved balance changes may adjust it.
 
@@ -15,7 +17,7 @@ Tideforge is a simple, fun and forgiving gear layer. ARPG inspiration means opti
 ## 0. Decisions and assumptions
 
 - **EXISTING / VERIFIED:** Seven equipment families with rods, boats and nets; the exact base values, Common–Prismatic quality increments, relevant hard limits and current Rust formulas below.
-- **DECIDED:** Original gear, quality investment, rod reinforcement and collection progress survive; gambled copies inherit **shared family mastery** but not individual-instance upgrades; a gear instance has primary innate biome affinity plus optional amplified affinity affixes.
+- **DECIDED:** Original gear, quality investment, rod reinforcement and collection progress survive; all Camp-bought and Mark-gambled copies share **family mastery** but not individual-instance upgrades; a gear instance has primary innate biome affinity plus optional amplified affinity affixes.
 - **DIRECTION:** Family mastery should add a sense of incremental growth. Small raw-stat boosts **plus** large customization unlocks were preferred conversationally, but the exact raw-stat gains are **not finalized**.
 - **PROPOSED:** Stat budget allocation, future caps, affix category rules, signature effects and progression pacing. These need distribution and time-to-completion simulations.
 
@@ -119,8 +121,8 @@ These values exclude bait, new Tideforge affixes, proposed mastery gains, innate
 **Examples:**
 
 - Prismatic Abyssal Rod = **185 Power**, **+70% Luck**, **+100% XP**, and **92.5% rod bonus-pull chance** before any new effects.
-- Prismatic Abyssal Boat = **+266% Luck**, **+374% XP**; 10 catches per scheduled ten-minute haul, with its original no-bait behavior.
-- Prismatic Abyssal Net = **+140% Luck**, **+200% XP**; 4 catches per four-minute haul, no bait.
+- Prismatic Abyssal Boat = **+266% Luck**, **+374% XP**; 10 pulls per scheduled ten-minute haul, with its original no-bait behavior.
+- Prismatic Abyssal Net = **+140% Luck**, **+200% XP**; 4 pulls per four-minute haul, no bait.
 
 ## 6. Current actual formulas and limits
 
@@ -180,8 +182,8 @@ The Prismatic Abyssal Boat is **already at the haul XP maximum**. Therefore any 
 
 ### 6.4 Timed hauls and raids
 
-- `/fishboat`: one ten-minute haul for ten independently resolved catches.
-- `/fishnet`: one four-minute haul for four independently resolved catches.
+- `/fishboat`: one ten-minute haul for ten independently resolved pulls.
+- `/fishnet`: one four-minute haul for four independently resolved pulls.
 - Both preserve selected biome and captured gear/stat rules at start.
 - Boats used in deployed/running raids are not available for ordinary boat hauls; rods and nets remain available, respecting their independent existing rules.
 - Raid duration, grade seal progression, raid reward snapshots and special-fish perfect odds are **not** rewritten by new ordinary gear affixes.
@@ -199,7 +201,7 @@ The Prismatic Abyssal Boat is **already at the haul XP maximum**. Therefore any 
 | Signature power | New special effect | Instance, or Reliquary library | No duplicate stack if activated both places. |
 | Existing bait | Yes, rod casts only | Cast loadout | Keep independent bait state; define consumption through bait/affix co-design. |
 
-**Only family mastery is inherited by gambled copies.** Quality, reinforcement, affixes, chosen primary biome and signature are their own properties for each rolled instance.
+**Only family mastery is inherited by additional copies**, whether bought at Camp or obtained through Mark gambling. Quality, reinforcement, affixes, chosen primary biome and signature are their own properties for each instance.
 
 ## 8. Recommended calculation pipeline
 
@@ -240,7 +242,7 @@ Apply **basis-point integer arithmetic** with checked sums/products; do not use 
 
 ### 8.1 Current versus proposed scenario
 
-The Attuned Fortune in this older example is a candidate ID whose inclusion remains unresolved against the latest catalogue; it has not been silently retired or approved.
+This historical illustrative budget is not a valid current-catalogue build. Attuned Fortune is an older candidate ID whose inclusion remains unresolved against the latest catalogue; it has not been silently retired or approved.
 
 **Prismatic Abyssal Boat in Abyssal Shelf, hypothetical full luck build:**
 
@@ -322,7 +324,7 @@ The previous design conversation leaned toward **small raw-stat gains plus major
 - **Mastery level 100:** cosmetic badge/title and a modest capped family bonus rather than another high-impact global multiplier.
 - **Every 10 mastery levels:** a tiny family statistic increase if the eventual approved limits have room. For example, +10 basis points (+0.1%) to **family mastery XP gain**, not necessarily player XP or rarity Luck. This is a **candidate**, not a committed gain curve.
 
-**Recommended baseline for first implementation:** Ship mastery XP and feature unlocks *before* adding raw Power to rods or player-XP to boats. That is an implementation dependency order inside the **full design**, not a decision to reduce the full scope. Once cap simulations settle, add approved raw gains through the same deterministic evaluator.
+**Recommended dependency order:** Implement and verify mastery XP and feature unlocks *before* adding raw Power to rods or player-XP to boats inside the **complete staged build**. This is not a decision to ship a reduced slice. Once cap simulations settle, add approved raw gains through the same deterministic evaluator.
 
 If we ultimately choose direct stats:
 
@@ -330,45 +332,45 @@ If we ultimately choose direct stats:
 |---|---|---|
 | Rod | Small Luck/XP or bonus-pull conditional benefit | At Power 185, extra Power quickly maxes second-pull chance. |
 | Boat | Modest mastery XP, specialized material efficiency or small player XP | Existing +266% Luck / +374% player XP can already be at validation ceilings. |
-| Net | Modest mastery XP, limited Luck/XP gains | Preserve 4-minute / 4-catch niche vs boats. |
+| Net | Modest mastery XP, limited Luck/XP gains | Preserve 4-minute / 4-pull niche vs boats. |
 
 Prefer modest gains with a clear individual identity rather than putting identical flat Luck buffs on all 21 families.
 
 ## 11. Ordinary affix families and their eligible stat targets
 
-**Candidate** ordinary-affix taxonomy, not a final approved catalog:
+This is a role summary of the [current candidate catalogue](Fishbound_Tideforge_Affix_Catalogue_v0.3.md), not a second registry. Attuned Fortune survives only as an older unresolved alternative, not a new registered ID.
 
 | Affix family | Numerical/effect target | Compatible categories | Stacking/exclusion requirement |
 |---|---|---|---|
-| Fortune / Resonance / Attuned Fortune | Rarity Luck stat | All, with affinity conditions | Grouped primary Luck budget; never an absolute UUR chance. |
-| Scholar | **Player XP** bonus | All | Respect relevant player-XP bound; distinguish from mastery XP. |
-| Attuned Wisdom / Expeditioner | **Gear-family mastery XP** | All | Separate mastery economy, no double award on receipt replay. |
-| Angler's Power | Rod second-pull mechanics | Rod only | Must account for 200 Power / 100% second-pull saturation. |
-| Baitmaster / Weightkeeper | Rod-only bait activation and weight rerolls | Rod only | Cannot accidentally apply to boats/nets or ordinary luck. |
-| Trophy Hunter / Precision | Measurement sampling | Rod, if explicitly approved | Protect exact maximum/eligible UUR logic; budget independent rolls. |
-| Collection Seeker / Rank Hunter | Missing rank selection | Rod primarily | Respect Collection Focus prerequisites and existing rank weights. |
-| Deep Trawler / Wide Cast | Extra haul results | Boat / net, respectively | Separate max catch budget, reward accounting and storage bounds. |
-| Efficient Hull / Quick Set | Shorter ordinary haul time | Boat / net | No effect on raids; hard minimum duration, scheduled job safety. |
-| Salvager / Attuned Harvest | Junk salvage or filleting yield | Appropriate kind | Reward after original catch, no change to base RNG category. |
-| Secondary Affinity | Lesser bonus in an alternate biome | All | One instance max; cannot equal primary biome. |
+| Fortune / Resonance | Rarity Luck stat | All, with affinity conditions | Shared Luck budget; not absolute UUR chance. |
+| Scholar | Player XP bonus | All | Relevant player-XP budget; distinct from mastery XP. |
+| Old Salt / Surveyor / Attuned Wisdom | Gear-family mastery XP | Appropriate kinds; Surveyor boat-only | Separate mastery economy; once-per-action/trip credit. |
+| Line Tension | Rod Power / bonus-pull mechanics | Rod only | Budget current Power headroom and combined nonrecursive pulls. |
+| Chum Catalyst / Weight Weaver | Proposed bait synergy / measurement | Rod only | Current activation assumption unresolved; co-design with real bait rules. |
+| Trophy Lens / Measured Cast | Legal measurement attempts | Rod only | Preserve rank/maxima rules and shared attempt budgets. |
+| Focus Tuner / Attuned Focus / Maxima Priority | Missing-rank or unfinished-maxima assistance, as defined per effect | Rod only | Keep Focus and maxima eligibility distinct; species remains random. |
+| Deep Trawler / Overflow Knot | Extra haul pulls | Boat / net respectively | One nonrecursive per-kind pull budget. |
+| Efficient Hull / Quick Set | Shorter ordinary haul time | Boat / net | No raid timing effect; scheduled job safety. |
+| Scavenger / Wreckbreaker / Silt Sifter / Attuned Harvest | Junk salvage or ordinary processing yield, as defined per effect | Appropriate kinds | Separate salvage/fillet/scale budgets and catch-pinned yield. |
+| Secondary Affinity | Lesser bonus in another biome | All | One exact ID; different from primary biome. |
 
 Some affix proposals overlap in function; the final catalog should remove redundancy or explicitly define the slot-cost tradeoffs. A proper catalogue needs **effect IDs, supported kinds, tier ranges, roll rarity weights, stacking group, exclusions and test cases** per entry.
 
 ## 12. What should happen to quality, reinforcement and the original item
 
-**Quality:** Each instance can independently progress from Common to Prismatic; the existing quality recipe is the current reference baseline. Existing upgraded original maps to exactly one new instance with that unchanged quality. A gambled duplicate does **not** automatically become Prismatic because another copy is Prismatic.
+**Quality:** Each instance can independently progress from Common to Prismatic; the existing quality recipe is the current reference baseline. Existing upgraded original maps to exactly one new instance with that unchanged quality. An additional Camp-bought or Mark-gambled copy does **not** automatically become Prismatic because another copy is Prismatic.
 
-**Reinforcement:** Existing raid-earned `rod_reinforcement` is currently keyed using player ID and rod definition. Duplicate rods make that insufficient. The migrated design must associate reinforcement to a unique owned rod instance, with the old original retaining its actual level. This integration draft proposes that new gambled rods begin unreinforced; starting quality and reinforcement rules require a final contract.
+**Reinforcement:** Existing raid-earned `rod_reinforcement` is currently keyed using player ID and rod definition. Duplicate rods make that insufficient. The migrated design must associate reinforcement to a unique owned rod instance, with the old original retaining its actual level. This integration draft proposes that new additional rods begin unreinforced; starting quality and reinforcement rules require a final contract.
 
-**Shared mastery:** Exactly one owner/kind/family mastery track is referenced by all copies. The level is never duplicated into independent XP streams. A new gambled copy becomes usable at already-unlocked mastery slots, while its rolled affixes remain instance-specific.
+**Shared mastery:** Exactly one owner/kind/family mastery track is referenced by all copies. The level is never duplicated into independent XP streams. A new additional copy benefits from already-unlocked mastery slots, while its affixes remain instance-specific.
 
-**Original locks:** Do not allow the last/first protected original to be destroyed by extracting a signature or dismantling affix-bearing gear. Original can be **recrafted**, **upgraded**, and **reattuned** through explicit safe actions; no implicit loss of records or history.
+**Original locks:** No protected original can be consumed by extracting a signature or dismantling affix-bearing gear. Originals can be **recrafted**, **upgraded**, and **reattuned** through explicit safe actions; no implicit loss of records or history.
 
-Dismantling an eligible item returns matching Vault resources for all its affixes. Signature extraction is the competing choice: consume an eligible item to learn its signature in the permanent Reliquary instead of recovering its affixes. Do not grant both signature and affix-shard outcomes from the same item. Resource quantities, tier/value handling and any ordinary-material refund remain open. Protected originals and favorites retain their safeguards.
+Dismantling an eligible item returns matching Vault resources for all its affixes, including dormant affixes. Signature extraction is the competing choice: consume an eligible item to learn its signature in the permanent Reliquary instead of recovering its affixes. Do not grant both signature and affix-shard outcomes from the same item. Resource quantities, tier/value handling and any ordinary-material refund remain open. Protected originals and favorites retain their safeguards.
 
 ## 13. Fishing catch and filleting integration
 
-Ordinary affix tiers use raid materials. Material quantities, processing yields and any accompanying coin/shard costs will be revisited after affix-crafting and gear-refinement operations are defined. Fish processing is another material source, not a bypass of raid access gates. Higher-grade material crafting/refining retains the shared destination-grade ordinary raid-clear unlock. Conversion itself grants no seals, completion statistics or reinforcement eligibility.
+Ordinary affix tiers use raid materials. The [Forge flow](forge-and-refinement-v0.1.md) is accepted; [Forge costs](forge-cost-model-v0.1.md) and [processing recipes](processing-and-material-economy-v0.1.md) propose quantities and yields, not approved values. Fish processing is another material source, not a bypass of raid access gates. Higher-grade material crafting/refining retains the shared destination-grade ordinary raid-clear unlock. Conversion itself grants no seals, completion statistics or reinforcement eligibility.
 
 Junk rewards should have a variable quantity spread so percentage bonuses can meaningfully improve output. The range, distribution and fractional-rounding policy remain open; a spread alone does not prevent small bonuses being lost to integer rounding. This changes reward quantities, not biome encounter-category probabilities by implication.
 
@@ -386,7 +388,7 @@ Higher-grade crafting/refining retains the shared destination-grade ordinary rai
 
 ## 14. Interface: make the complexity readable
 
-Example on a gear card:
+Older illustrative gear card; Attuned Fortune is not in the current candidate catalogue:
 
 ```text
 ABYSSAL BOAT · Prismatic · Level 82 family mastery
@@ -404,7 +406,7 @@ CONDITIONAL TIDEFORGE STATS (Abyssal Shelf)
   Effective Luck            +280.0%  [requires new approved validator]
 
 ACTIVITY
-  Ordinary haul: 10 catches / 10 minutes
+  Ordinary haul: 10 pulls / 10 minutes
   Bait: not applicable
   During raid: ordinary haul unavailable, affinity does not boost raid payout
 ```
@@ -452,7 +454,7 @@ The file list is a **touch-point checklist**, not a command to rewrite all files
 ### 15.3 Data preservation requirements
 
 - One existing ownership row converts into **one protected original instance**, precisely once. No duplicate originals on rerun.
-- Existing quality and current rod reinforcement map to original instance; gambled copies start with independent investment.
+- Existing quality and current rod reinforcement map to original instance; all additional copies start with independent investment.
 - Preserve equipped rod/boat/net selections when converting definition IDs to instance IDs.
 - Preserve all coins, tin, scrap, bait, fish inventory, collection/history, maxima, player XP, cooldowns and active scheduled actions.
 - Old timed hauls already contain captured gear/quality/Luck/XP and must settle without rereading changed live equipment; verify prior-version compatibility.
@@ -486,16 +488,16 @@ The accessible baseline is around 24 total fishing actions/casts per day in any 
 
 Before implementation can treat these as final requirements, settle:
 
-Propose simple mastery and gambling defaults for review; exact curves, access and economics remain open.
+Propose simple mastery and gambling defaults for review; exact curves, access, recipes and payout details remain open within the accepted [Mark price schedule](build-contract-v0.1.md).
 
 1. Exact effective Luck / XP validator bounds for rods, boats and nets under maximum supported builds.
 2. Whether family mastery grants **direct** Power, Luck or player XP, or primarily mastery XP and unlocks, especially at upper-end gear.
-3. Whether general Fortune, Resonance and Attuned Fortune are all distinct meaningful slots or should be merged/differentiated.
+3. Whether the older Attuned Fortune alternative should join general Fortune and Resonance as a distinct meaningful slot.
 4. Numerical T1–T10 affix value bands by effect, and any total budget per item / activity.
 5. Power/bonus-pull affix mechanics and how top rods avoid saturation/dead rolls.
 6. Fixed vs rolled signature power categories, per-kind allowed scopes, and non-stacking rules.
 7. Gear-XP gain formulas for casts, timed hauls, and optional raid completion credit.
-8. Gear-instance reforge and gambling price schedule vs existing coins and resources.
+8. Final Forge recipes and individual raid-grade and achievement Mark payouts; family gambling prices are settled in the [build contract](build-contract-v0.1.md).
 9. Final fillet/scale yields and higher-grade material conversion costs, while retaining the shared raid-grade unlock and preserving raid rewards.
 10. Acceptable increase in UUR and perfect acquisition rates and full-game completion time under each simulated playstyle.
 

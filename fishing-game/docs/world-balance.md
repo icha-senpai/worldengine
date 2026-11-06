@@ -43,7 +43,7 @@ Version 4 classifies final integer measurements. Both minimums must hold. F mean
 
 ## Waiting-time interpretation
 
-Rates above include the Common Twig 0.5% bonus-pull chance. Each pull is independent, and at-least-one-per-cast probability is (1+q)*p-q*p*p. Graded luck favors higher physical bands; UUR, Fihs and the Sock each get exactly 1+luck times baseline per-pull odds. Full quality/bait math is in rod-progression.md. At maximum gear, Fihs averages roughly 2,813 casts and the Sock 5,625.
+Rates above include the Common Twig 0.5% bonus-pull chance. Each pull is independent, and at-least-one-per-cast probability is (1+q)*p-q*p*p. Graded luck favors higher physical bands; within the legacy/current-loadout range, UUR, Fihs and the Sock each get exactly 1+luck times baseline per-pull odds. Higher Luck uses the local [positive diminishing-return extension](luck-scaling.md), not indefinite linear extrapolation. Full quality/bait math is in rod-progression.md. At maximum currently obtainable rod gear, Fihs averages roughly 2,813 casts and the Sock 5,625.
 
 These are geometric-distribution calculations for eligible Abyssal casts, including junk and treasure. Rejected casts do not count. There is no pity timer or deadline guarantee. At 100 eligible casts/day, Fihs averages about 3.3 months and the Sock about 6.6 months; the Sock 99th percentile is about 2.5 years. Time spent leveling/unlocking Abyssal Shelf is additional. Fewer casts/day lengthen calendar waits proportionally.
 

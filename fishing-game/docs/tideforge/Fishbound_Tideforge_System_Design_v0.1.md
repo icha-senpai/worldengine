@@ -45,7 +45,7 @@ The new Tideforge system connects:
 7. **A Cube-style power library** for extracting and equipping signature abilities.
 8. **Biome specialization** that can keep earlier equipment useful.
 9. **Fish filleting** as an alternative source of normal fillets and scales, convertible into raid-grade material pathways.
-10. **A wandering weekend trader** to create periodic excitement and concentrated gear-gambling opportunities.
+10. **A monthly wandering trader** to create periodic excitement and concentrated gear-gambling opportunities.
 
 A player should be able to largely ignore a subsystem and still enjoy meaningful progression elsewhere. Full 100% completion may involve every system, but ordinary play must not require each one.
 
@@ -100,8 +100,8 @@ Raids and website-only raid management are already live. Tideforge remains desig
 **AGREED**
 
 - The **first original purchase** of each equipment family/type is the **vanilla item** with its ordinary deterministic identity.
-- Players may later obtain **additional instances** of the same family/type via gambling.
-- **Gambled copies inherit gear-family mastery**, so players do not lose months of experience when a stronger roll drops.
+- Players may later obtain **additional instances** of the same family/type as coin-bought Camp copies with low-tier affixes or through the monthly wandering trader's very-high-tier gear.
+- **Additional copies inherit gear-family mastery**, whether bought at Camp or obtained through Mark gambling.
 - The vanilla original remains valuable, can be developed, and should have strong protection against accidental destruction or replacement.
 - Each **item instance** has its own randomized affixes, quality/upgrades, and (where eligible) raid reinforcement. These do not magically copy from another instance of the family.
 
@@ -124,13 +124,13 @@ Each owned piece has:
 | Reinforcement level | Eligible rod instance | Retains existing raid advancement logic, now item-specific. |
 | Affix slots, tiers, values | Instance | Individual randomized/crafted properties. |
 | Signature power | Instance | Candidate for use or permanent extraction. |
-| Mastery level/XP | **Owner + gear family** | Shared by all original/gambled copies of that family/type. |
-| Biome specialization | Instance and/or family | Final assignment model still OPEN. |
+| Mastery level/XP | **Owner + gear family** | Shared by all original and additional copies of that family/type. |
+| Biome specialization | Instance | Innate primary biome per instance plus compatible affinity affixes; exact assignment weights/services open. |
 | Favorite/locked status | Instance | Protect from salvage, extraction, and bulk actions. |
 
 **Migration principle:** existing owned rods/boats/nets must each become exactly one legitimate, preserved original instance carrying their real quality/reinforcement. Convert equipped references and quote/reducer paths safely. No duplication of old items, no loss of upgraded gear, and no account-specific reset.
 
-**OPEN:** Whether extra rolled gear can also be purchased directly outside gambling; whether default gambling gives a random eligible family or offers category/family targeting; exact unlock for additional gear.
+**AGREED / OPEN:** Coin-bought Camp copies and monthly wandering-trader gear are both additional-instance sources. Exact acquisition eligibility, unlocks and family/category targeting remain open; see the [build contract](build-contract-v0.1.md).
 
 ---
 
@@ -138,9 +138,9 @@ Each owned piece has:
 
 Older families retain lower base stats as part of the existing progression, but should remain reasonably comparable and respectable in useful roles. The goal is not identical stats or guaranteed best-in-slot status for every family. Evaluate affinity, mastery and affixes together while preserving earned investment.
 
-**AGREED:** Add gear levels, earn progression through use, and periodically unlock benefits. Gambled equipment inherits mastery from the family.
+**AGREED:** Gear levels unlock affix slots through mastery shared per owner, equipment kind and family. Progression is earned through use, and additional equipment inherits its family mastery. Exact slot-unlock levels remain open.
 
-**DIRECTION / PROPOSED:** Use an individual **1–100 mastery track for each player × equipment-kind × family**. The family, not the individual rolled copy, owns the level. The item still has its own quality and affixes.
+**PROPOSED:** Use an individual **1–100 mastery track for each player × equipment-kind × family**. The family, not an individual additional copy, owns the level. The item still has its own quality and affixes.
 
 - **Rod mastery** from real rod casts.
 - **Boat mastery** from completed boat trips.
@@ -159,9 +159,9 @@ Older families retain lower base stats as part of the existing progression, but 
 | Level 75 | Fourth affix slot |
 | Level 100 | Family mastery perk, visual distinction, or cosmetic recognition |
 
-Small bounded stat improvements might occur every five or ten levels. The milestone table above is **proposed, not approved balance**. The number and timing of slots must be reconciled with what gambling can roll before mastery unlocks a slot.
+Small bounded stat improvements might occur every five or ten levels. The milestone table above is **proposed, not approved balance**. The number and timing of slots must be reconciled with affixes on additional copies before mastery unlocks a slot.
 
-**OPEN:** XP curve, catch vs trip weighting, whether newly rolled items may contain locked-but-visible affixes, mastery overflow beyond 100, and how new future families interact with old mastery.
+**OPEN:** XP curve, catch-versus-trip weighting, exact dormant-slot activation/editing rules, mastery overflow beyond the working cap and future family integration.
 
 ---
 
@@ -172,7 +172,7 @@ Small bounded stat improvements might occur every five or ten levels. The milest
 - An item may have **multiple affixes** rather than a single rerolled bonus.
 - Each affix has its **own tier**.
 - The tier system is **T1 through T10**.
-- Players can improve or reroll affixes through forging if they have materials.
+- The Forge directly adds a chosen T1 affix, guarantees tier advancement and visible roll improvement, and directly changes type while retaining tier and paid roll finish.
 - Higher tiers cost somewhat more but **not an absurd exponential amount**.
 - Specific rolls and high-tier values create an ongoing chase independent of the base gear's quality.
 - Biome-specific benefits should make old gear situationally competitive.
@@ -199,7 +199,7 @@ All current validation limits and proposed Tideforge caps are subject to change.
 
 **DECIDED:** Use hybrid innate affinity with amplifying affixes, as described in the biome design. Family affinity weights, attunement services and numerical effects remain open pending balance work.
 
-### Example item (illustrative only)
+### Older example item (illustrative, not a valid current-catalogue build)
 
 **Abyssal Rod**, Prismatic quality, SS reinforcement, Family Mastery 64/100:
 
@@ -215,18 +215,18 @@ All current validation limits and proposed Tideforge caps are subject to change.
 
 ## 6. The wandering trader & equipment gambling
 
-**AGREED:** A **wandering trader appears approximately one weekend each month** and can offer gambling and gear-related rerolls, instead of relying entirely on unlimited ordinary duplicate purchases.
+**AGREED:** A wandering trader visits once per month and offers gear with very-high-tier affixes; the exact visit window remains open. The Camp trader sells additional gear for coins with low-tier affixes. **Driftmarket** remains a working event name.
 
-**DIRECTION:** A Diablo III-style gambling system lets players spend a currency for a **random additional piece of eligible gear**, hoping for useful affixes or a coveted signature power. We currently use **Driftmarket** for the event and **Dredge Marks** for its potential gambling currency; both are **working names**.
+Gambling uses **Dredge Marks** earned from raids and achievements. One Mark is equivalent to 1,000 coins for pricing; River rods, boats and nets cost 1 Mark each as the approved exception. The [build contract](build-contract-v0.1.md) lists the accepted per-item family prices and proposed per-grade payout split. One full ordinary F-to-UUR raid ladder earns 65 Marks, and two earn 130 from raids alone; achievement Marks are extra. This pricing equivalence does not authorize currency exchange.
 
 The gameplay loop:
 
-1. Earn resources through normal play (rod fishing, nets, boats, quests, raids, and/or other future activities).
+1. Earn Dredge Marks from raids and achievements.
 2. Visit the trader during the scheduled window.
-3. Choose a gear category, with possible family targeting unlocked later.
-4. Spend the gambling resource; the server rolls a unique equipment instance.
-5. Decide whether to **equip, forge, store, extract, or dismantle** it.
-6. Use the resulting shards/powers/materials to improve other equipment.
+3. Review available choices under the final eligibility and targeting rules.
+4. Spend Dredge Marks to obtain an additional equipment instance; stock versus roll remains open.
+5. Decide whether to **equip, forge, store, dismantle, or extract an eligible signature**.
+6. Dismantling recovers Vault resources for all affixes; signature extraction consumes the item instead.
 
 **Design principles:**
 
@@ -234,9 +234,9 @@ The gameplay loop:
 - Mastery remains shared across copies of that kind/family.
 - Unwanted rolls should retain salvage/extraction value.
 - The trader is a community event, not a compulsory appointment to remain competitive.
-- A monthly visit must offer enough opportunity that missing one weekend is not catastrophic.
+- A monthly visit must offer enough opportunity that missing one visit is not catastrophic.
 
-**OPEN:** Exact weekend schedule/time zone; whether rolling occurs only during the visit; currency name and earning rate; costs per category; targeting unlock; inventory capacity; duplicate limits; pity or duplicate protection (none approved); whether exclusive trader modifiers exist.
+**OPEN:** Exact monthly visit window and time zone; stock-versus-roll interaction; purchase eligibility and selection; individual raid-grade and achievement payouts; inventory capacity and duplicate limits; pity or duplicate protection (none approved); whether exclusive trader modifiers exist.
 
 ---
 
@@ -244,11 +244,11 @@ The gameplay loop:
 
 **AGREED:** Borrow Last Epoch's enjoyable affix forging and vault feel, **without** forcing Last Epoch's item-crafting restrictions. Any eligible affix should eventually be upgradeable if the player has appropriate resources. No permanent bricking.
 
-Ordinary affix tiers use raid materials. Material quantities, processing yields and any accompanying coin/shard costs will be revisited after affix-crafting and gear-refinement operations are defined. Fish processing is another material source, not a bypass of raid access gates. Higher-grade material crafting/refining retains the shared destination-grade ordinary raid-clear unlock. Conversion itself grants no seals, completion statistics or reinforcement eligibility.
+Ordinary affix tiers use raid materials. The [Forge flow](forge-and-refinement-v0.1.md) is accepted; [Forge costs](forge-cost-model-v0.1.md) and [processing recipes](processing-and-material-economy-v0.1.md) propose quantities and yields, not approved values. Fish processing is another material source, not a bypass of raid access gates. Higher-grade material crafting/refining retains the shared destination-grade ordinary raid-clear unlock. Conversion itself grants no seals, completion statistics or reinforcement eligibility.
 
 A direct T1-to-F through T10-to-UUR mapping is a working proposal, not an approved recipe.
 
-Dismantling an eligible item returns matching Vault resources for all its affixes. Signature extraction is the competing choice: consume an eligible item to learn its signature in the permanent Reliquary instead of recovering its affixes. Do not grant both signature and affix-shard outcomes from the same item. Resource quantities, tier/value handling and any ordinary-material refund remain open. Protected originals and favorites retain their safeguards.
+Dismantling an eligible item returns matching Vault resources for all its affixes, including dormant affixes. Signature extraction is the competing choice: consume an eligible item to learn its signature in the permanent Reliquary instead of recovering its affixes. Do not grant both signature and affix-shard outcomes from the same item. Resource quantities, tier/value handling and any ordinary-material refund remain open. Protected originals and favorites retain their safeguards.
 
 ### Forge actions
 
@@ -361,7 +361,7 @@ Saved presets could combine gear selection, chosen powers, and biome plans for d
 
 **AGREED:** Players should be able to **sell**, **keep**, or **fillet** suitable fish. Filleting generates **normal fillets and normal scales**. Those can be **combined into F-grade Raid Fillets and Raid Scales** to feed the existing material-refinement ladder.
 
-Ordinary affix tiers use raid materials. Material quantities, processing yields and any accompanying coin/shard costs will be revisited after affix-crafting and gear-refinement operations are defined. Fish processing is another material source, not a bypass of raid access gates. Higher-grade material crafting/refining retains the shared destination-grade ordinary raid-clear unlock. Conversion itself grants no seals, completion statistics or reinforcement eligibility.
+Ordinary affix tiers use raid materials. The [Forge flow](forge-and-refinement-v0.1.md) is accepted; [Forge costs](forge-cost-model-v0.1.md) and [processing recipes](processing-and-material-economy-v0.1.md) propose quantities and yields, not approved values. Fish processing is another material source, not a bypass of raid access gates. Higher-grade material crafting/refining retains the shared destination-grade ordinary raid-clear unlock. Conversion itself grants no seals, completion statistics or reinforcement eligibility.
 
 ### Material flow
 
@@ -409,9 +409,9 @@ This supersedes the earlier proposal to remove the raid-clear prerequisite for a
 
 ### A necessary economy check
 
-The existing 60→50 conversion compounds across nine grade steps. Without direct high-grade farming, converting F materials all the way to UUR could become wildly expensive. Determine viability after crafting/refining operations and material budgets are defined.
+The existing 60→50 conversion compounds across nine grade steps. Without direct high-grade farming, converting F materials all the way to UUR could become wildly expensive. Evaluate viability against the accepted operations and candidate material budgets.
 
-Design and simulate F-material generation per fish (by rank, size, biome, gear type), costs to refine every tier, and attainable UUR crafting with the required raid-grade unlocks. Revisit quantities after crafting and refinement operations are defined; exact conversion rates and refinery perks remain open.
+Design and simulate F-material generation per fish (by rank, size, biome, gear type), costs to refine every tier, and attainable UUR crafting with the required raid-grade unlocks. Evaluate candidate quantities against the accepted operations; exact conversion rates and refinery perks remain open.
 
 ---
 
@@ -433,7 +433,7 @@ Commit a boat to raids, earn graded materials efficiently, complete species raid
 
 ### Gear enthusiast
 
-Gamble during trader weekends, chase favored affix identities and signature powers, grow the Vault and Codex, then forge specialist equipment.
+Gamble during monthly trader visits, chase favored affix identities and signature powers, grow the Vault and Codex, then forge specialist equipment.
 
 ### Casual player
 
@@ -479,13 +479,13 @@ The accessible baseline is around 24 total fishing actions/casts per day in any 
 
 Keep the present Tackle Box structure and add cohesive interfaces rather than scattering critical systems across unrelated menus.
 
-- **Gear inventory:** category/family filters; original vs gambled indicator; rarity/affix tier summary; item locks; equipped status; compare stats with equipped item.
+- **Gear inventory:** category/family filters; original vs additional indicator with Camp/Mark source provenance; rarity/affix tier summary; item locks; equipped status; compare stats with equipped item.
 - **Item detail:** base stats, quality, mastery, reinforcement, affixes, signature power, biome affinity, provenance/history.
 - **Forge:** select item and exact affix; preview valid actions, before/after rolls and costs; confirm transactions; clear error and retry states.
 - **Shard Vault:** searchable affix storage, quantity, tier/compatibility labels, quick jump to Forge.
 - **Affix Codex:** discovered/undiscovered entries, highest-tier progress, best roll, perfection marks, category completion and search.
 - **Reliquary:** power library and active slot selections, unambiguous incompatibility/stacking states, preset support.
-- **Trader:** event schedule and countdown, currency wallet, gambling controls, result reveal, keep/extract/dismantle choices.
+- **Trader:** regular Camp coin purchases and monthly Mark trader schedule, wallet and selection/roll controls; result reveal and keep/extract/dismantle choices.
 - **Filleting:** individual and bulk selections, protected-item defaults, full material preview, confirmation, and ledger updates.
 - **Build presets:** switch equipment/power selections without modifying in-progress haul snapshots; equipment changes and preset switches are locked during raid commitment.
 - Keyboard and mobile accessibility; no deceptive disabled controls or disappearing actions.
@@ -540,9 +540,12 @@ Tests should cover migration from single-definition ownership, duplicate instanc
 - Design the **full system**, not only a small pilot feature.
 - Bring Diablo-style random equipment gambling into Fishbound.
 - First original equipment purchase is vanilla; randomized duplicates become possible later.
-- **Gambled gear inherits same-family mastery progression.**
+- **All original and additional copies share owner/kind/family mastery progression.**
+- Gear levels unlock affix slots; exact mastery milestones remain open.
+- Camp sells low-tier affix copies for coins; the monthly wandering trader offers very-high-tier gear for Dredge Marks earned from raids and achievements.
 - Add gear leveling, multi-stat affixes, biome usefulness, and room for older gear.
-- **Ten independent affix tiers**, with moderate progression costs and resource-funded forging/rerolls.
+- **Ten independent affix tiers**, with moderate progression costs and resource-funded forging.
+- The four ordinary Forge actions use direct T1 Add, guaranteed Upgrade Tier, guaranteed visible Improve Roll and direct Change Affix, retaining paid roll finish.
 - Add a Last Epoch-like **Affix Shard Vault**.
 - Add a permanent **Affix Codex** with discovery, tier mastery, and perfect-roll records.
 - Add fish filleting that yields **normal fillets and normal scales**.
@@ -552,9 +555,7 @@ Tests should cover migration from single-definition ownership, duplicate instanc
 
 ### Strong directions but not final design approval
 
-- Trader visiting one weekend each month; working event name **Driftmarket**.
-- Potential gambling currency **Dredge Marks**, earned through gameplay.
-- Affix Forge actions: refine, reforge, upgrade, lock, add, dismantle, extract.
+- Detailed Forge permissions, conversions and prices remain open.
 - Mastery 1–100 per owner/gear family, with four affix slots unlocked over time.
 - Up to four affixes and a signature power on some gear.
 - Cube-like **Deepwater Reliquary**, with proposed Rod / Haul / Waters slots.
@@ -563,12 +564,12 @@ Tests should cover migration from single-definition ownership, duplicate instanc
 
 ### Open design questions (to settle before the final implementation brief)
 
-Propose simple mastery and gambling defaults for review; exact curves, access and economics remain open.
+Propose simple mastery and gambling defaults for review; exact curves, access, payout distribution and trader interaction remain open within the accepted sources and pricing.
 
 1. **What is the actual affix catalog?** Complete effect IDs, categories, compatibility, tier-specific ranges, weighting, rarities, and hard caps.
-2. **How is biome affinity determined?** Fixed family identity, a rolled affix, or both? Which existing gear should specialize in which biome?
+2. **How should hybrid biome affinity be balanced?** Set assignment weights, bonuses and family roles while retaining innate primary affinity and amplifying affixes.
 3. **What is the gear-mastering XP curve?** Exactly which actions grant it, at what pace, and how do mastery slots interact with rolled loot?
-4. **What is the gambling economy?** Exact currency/resource, source rates, costs, family targeting, event availability and inventory constraints.
+4. **What are the remaining gambling contracts?** Individual raid-grade and achievement payouts, acquisition eligibility, family targeting, inventory limits, stock-versus-roll interaction and the exact monthly visit window.
 5. **How do Forge actions work mathematically?** Final shard recipes, costs, lock rules, legal visible refinement steps, retained-finish conversions and extraction payouts. Ordinary tier upgrades and paid roll improvements are guaranteed; success probabilities and value reroll distributions are not open questions for those actions.
 6. **How does the signature power system work?** Full power catalog, actual slot count, category rules, unlock timing, conflict/stacking restrictions.
 7. **What precisely is a shard?** Affix-specific, affix+tier-specific, or some other taxonomy? Determine quantities and tier/value handling for recovery of all affixes.
@@ -589,10 +590,10 @@ Before a final Devin implementation handoff, expand this into **one integrated, 
 
 1. Complete gear-instance/ownership state machine and migration contracts.
 2. Full affix/power/biome catalog with tier ranges, roll weights and exclusions.
-3. Full mastery curves, tier/forge/gamble/filleting/refinement recipes and currency budget.
+3. Final mastery curves and remaining recipes and budgets, building on the [build contract](build-contract-v0.1.md), accepted [Forge flow](forge-and-refinement-v0.1.md), candidate [Forge costs](forge-cost-model-v0.1.md) and [processing comparison](processing-and-material-economy-v0.1.md).
 4. Reliquary power library, activation semantics, and category interaction matrix.
 5. Vault and Codex schemas, completion semantics, and client flows.
-6. Player activity/progression simulations for casual-to-intensive play across years.
+6. Player activity/progression simulations for the accessible mixed-method baseline and heavier play, with optional long-term chase.
 7. UI flows for all systems, including mobile, bulk actions, destructive confirmations and build presets.
 8. Rust/SpaceTimeDB reducer/receipt rules, data migration/rollback strategy and verification suite.
 9. Final success criteria against real Fishbound stats and enjoyable, accessible mixed-activity progression.

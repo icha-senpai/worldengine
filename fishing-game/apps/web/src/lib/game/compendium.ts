@@ -3,6 +3,7 @@ import world from '../../../../../content/world.json';
 import sizeRules from '../../../../../content/size-rules.json';
 import gameRules from '../../../../../content/game-rules.json';
 import raidRules from '../../../../../content/raids.json';
+import { luckWeights } from './luck';
 
 export type CatalogFish = typeof catalog.species[number];
 export type CollectionFocus = { biomeIds: readonly number[]; rankMasks: Readonly<Record<number, number>> };
@@ -23,15 +24,12 @@ function adjustedPool(biomeId: number, luckBp: number) {
     speciesId: fish.speciesId, rarity: rank.rarity, weight: BigInt(rank.encounterWeight),
     score: BigInt(fish.key === 'nidalees-lost-sock' ? 9 : ranks.indexOf(rank.rarity)),
   })));
-  const total = entries.reduce((sum, row) => sum + row.weight, 0n);
-  const moment = entries.reduce((sum, row) => sum + row.weight * row.score, 0n);
-  const distance = 9n * total - moment;
-  const denominator = Number(total * 10000n * distance);
+  const weights = luckWeights(entries.map(row => [row.weight, Number(row.score)]), luckBp);
+  const denominator = Number(weights.reduce((sum, weight) => sum + weight, 0n));
   const pool = new Map<number, Map<string, number>>();
-  for (const entry of entries) {
-    const factor = 10000n * distance + BigInt(luckBp) * (entry.score * total - moment);
+  for (const [index, entry] of entries.entries()) {
     const bands = pool.get(entry.speciesId) ?? new Map<string, number>();
-    bands.set(entry.rarity, Number(entry.weight * factor) / denominator);
+    bands.set(entry.rarity, Number(weights[index]) / denominator);
     pool.set(entry.speciesId, bands);
   }
   pools.set(key, pool);

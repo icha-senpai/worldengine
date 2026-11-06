@@ -335,7 +335,7 @@ fn cast_one(test: &TestContext, player_id: u64, interaction_id: u64, biome_id: u
         })
         .collect();
     let weights = game_rules::rods::luck_weights(&tickets, 0).unwrap();
-    let total = game_rules::sampling::total_weight(&weights).unwrap();
+    let total = u64::try_from(game_rules::sampling::total_weight_wide(&weights).unwrap()).unwrap();
     let seed = (0..10_000u64)
         .find(|root_seed| {
             let mut source = StdRng::seed_from_u64(*root_seed);
@@ -343,7 +343,7 @@ fn cast_one(test: &TestContext, player_id: u64, interaction_id: u64, biome_id: u
             let mut rng = StdRng::seed_from_u64(reducer_seed);
             let _category_roll = rng.gen_range(0..1_000_000u64);
             let rank_roll = rng.gen_range(0..total);
-            game_rules::sampling::select_from_roll(&weights, rank_roll)
+            game_rules::sampling::select_from_roll_wide(&weights, u128::from(rank_roll))
                 .is_ok_and(|index| index == target_index)
         })
         .unwrap();

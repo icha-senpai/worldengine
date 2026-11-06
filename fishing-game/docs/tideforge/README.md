@@ -28,6 +28,13 @@ repository copies incorporate the clarifications below.
 8. [Processing and material economy](processing-and-material-economy-v0.1.md):
    proposed filleting and conversion recipes, conditional fish batches and
    whole-batch comparisons; not approved balance or a daily-income forecast.
+9. [Build contract](build-contract-v0.1.md): consolidated accepted rules and
+   remaining implementation gates; individual raid payouts remain proposed.
+10. [Balance review and production baseline](balance-review-v0.1.md): read-only
+    production activity/economy observations, effect-size findings and proposed
+    starting test targets; not approved balance.
+11. [Uncapped Luck scaling](../luck-scaling.md): local formula implementation
+    preserving current loadouts; separate production deployment approval needed.
 
 ## Decision Precedence
 
@@ -37,8 +44,26 @@ today; design proposals describe future behavior, not existing functionality.
 The latest affix catalogue is a candidate list, not blanket approval of its
 numbers or unresolved differences from its companions.
 
+The [proposed effect contract and build comparisons](build-contract-v0.1.md#6-proposed-effect-contract-and-build-comparisons)
+supersede older effect sketches for current comparisons. Accepted directions
+remain distinct: its native/library layout, grids, roll minima and stats are
+proposals awaiting review, not approved or implemented balance.
+
 Do not turn an old example, proposed cap or historical "agreed" label into a new
 implementation decision without checking this index and the remaining questions.
+
+### Interpretation And Terms
+
+Family-wide rules and examples apply to the matching rod, boat and net unless
+explicitly kind-specific. Additional copies include both coin-bought Camp gear
+and Mark-gambled gear. Rod bait, Power, reinforcement and precision mechanics
+do not become boat or net mechanics by implication.
+
+Gear quality (Common–Prismatic), affix tier (T1–T10), shared family mastery or
+gear level, and within-tier roll finish are distinct. Pulls can yield fish,
+junk or treasure; they are not guaranteed fish. Read examples alongside the
+established decisions and candidate/default labels, without turning settled
+examples into new implementation blockers.
 
 ## Confirmed Direction
 
@@ -68,12 +93,37 @@ people playing for a prescribed number of years. Long raids can span daily
 check-ins; this does not change their booked durations or guarantee two
 completed raids every day.
 
+### Mastery, Gear Sources And Dredge Marks
+
+Gear levels unlock affix slots through mastery shared per owner, equipment kind
+and family. Exact slot levels and the mastery XP curve remain open. The vanilla
+original stays protected; copies inherit family mastery, not another item's
+quality or reinforcement.
+
+The Camp trader sells coin-bought additional gear with low-tier affixes. A
+wandering trader visits once per month and offers gear with very-high-tier
+affixes. Exact tier ranges and acquisition details remain open. Dismantling an
+eligible item recovers matching Vault resources for all its affixes; extracting
+its signature into the Reliquary is the mutually exclusive alternative.
+
+Gambling uses Dredge Marks earned from raids and achievements. The pricing
+equivalence is one Mark per 1,000 coins, with the approved River exception.
+Prices apply per item to rods, boats and nets in each family; the
+[build contract](build-contract-v0.1.md) records the full price table. This is
+not approval for a currency exchange. One full ordinary F-to-UUR raid ladder
+earns 65 Marks, so two earn 130 from raids alone; achievement Marks are
+additional. The per-grade split and remaining implementation details are open.
+
+River rods, boats and nets cost 1 Dredge Mark each. Their existing 500-coin
+prices stay unchanged. All currently priced families therefore have whole-Mark
+gambling prices.
+
 ### Bait and Affixes Are Designed Together
 
 Bait is an additional source of effects alongside gear affixes. Bait, affixes,
 or both may be adjusted so they complement each other. This does not mean that
-every effect stacks by simple arithmetic: individual effects still need defined
-units, eligibility, precedence, stacking groups and limits.
+every effect stacks by simple arithmetic: proposed units, eligibility,
+precedence, stacking groups and limits are now authored for review.
 
 The current bait behavior is a reference baseline, not an untouchable future
 contract. Preserve earned progress and saved results; any future change needs
@@ -106,7 +156,7 @@ stays random within the legal biome pool: no chosen-species targeting or
 guaranteed species. Rod development should make finishing an encountered fish's
 missing-rank ladder and exact rank-maxima ladder substantially easier, and
 support focused perfect hunting. These are distinct goals, not merely a small
-increase in general Luck. Exact effects, rates and limits remain to be designed;
+increase in general Luck. Proposed effects, rates and limits await review;
 natural discovery, legal measurements and Fihs/Sock exceptions still apply.
 
 Boats and nets remain broad, multi-result fishing. Developed haul equipment
@@ -125,14 +175,14 @@ remain meaningful, but optimisation is optional rather than required homework.
 
 A focus selector should steer an invested build rather than replace affixes or
 make every rod equally effective. Ranks, Maxima and Perfects are candidate goals,
-not a finalized interface or approved package of free bonuses. Exact selector
-effects, eligibility, unlocks, costs and interactions remain open. Species stays
-random; choosing a progression goal does not select a fish species.
+not a finalized interface or approved package of free bonuses. Proposed selector
+effects, eligibility and interactions await review; unlocks and costs remain
+open. Species stays random; choosing a progression goal does not select a fish species.
 
 The [build-and-interaction draft](builds-and-interactions-v0.1.md) maps
 illustrative builds and shared effect budgets. Maxima Priority is accepted as
-an ordinary rod-affix direction, using an affix slot. Its exact effects, values
-and focus/bait contracts remain open; no numerical tuning is approved.
+an ordinary rod-affix direction, using an affix slot. The proposed exact
+effects, values and focus/bait rules await review; no numerical tuning is approved.
 
 ### One Active Main Loadout
 
@@ -180,14 +230,17 @@ and the grade-to-tier mapping remain to be designed. A direct T1-to-F through
 T10-to-UUR mapping is a working proposal, not an approved recipe.
 
 Dismantling an eligible item returns matching Vault resources for all its
-affixes, rather than selecting only one affix to recover. Quantities and
-tier/value handling remain open.
+affixes, including dormant affixes, rather than selecting only one to recover.
+Quantities and tier/value handling remain open.
 
 Signature extraction is the competing route: consume an eligible item to learn
 its signature in the permanent Reliquary, instead of recovering its affixes.
 Do not grant both the signature and affix-shard outcomes from the same item.
 Any ordinary-material refund is a separate economy decision, not an implicit
 extra award. Protected originals and favorites retain their safeguards.
+
+The permanent Reliquary library and same-ID deduplication are accepted; the
+three Rod / Haul / Waters slots are a proposed layout, not an approved count.
 
 Boss accepted the four-action Forge flow and retained-progress direction on
 November 1, 2026: Add Affix, guaranteed Upgrade Tier, guaranteed visible Improve
@@ -214,6 +267,10 @@ biome's fish/junk/treasure encounter probabilities.
 
 Reference revision reviewed for this import: `fb486d3a`.
 
+Consistency audit at `304a1070`: `content/`, `crates/game-rules/` and
+`spacetimedb/` are unchanged from the `fb486d3a` source review. This is not a
+production-state check.
+
 - The ordinary personal raid ladder is 54 active hours per species, not 108.
   Read the exact schedule from [the raid catalog](../../content/raids.json).
   Raids and website-only raid management are already live.
@@ -221,9 +278,11 @@ Reference revision reviewed for this import: `fb486d3a`.
   eight measurement attempts when stocked and used. Two stocked Trophy Chum
   slots combine to 5,000 basis points and sixteen attempts. The 25% Luck stat
   is not a 25% measurement-bait activation probability.
-- Prismatic Abyssal plus two Trophy Chums reaches the current rod Luck limit;
-  two Pink XP Slimes reach the current rod XP limit. Prismatic Abyssal Boat
-  reaches the current haul Luck and XP limits before Tideforge bonuses.
+- Current catalog maxima are 12,000 Luck bp for rods and 26,600 for boats.
+  The local [uncapped formula](../luck-scaling.md) removes those validation
+  ceilings while preserving existing odds. This is not yet a production
+  deployment. XP and Power limits are unchanged; Luck affix proposals must
+  be retested against the new curve rather than copied as approved values.
 - Ownership and equipped references still use equipment definitions rather
   than duplicate instances. The existing raid reservation is per angler.
 - Existing material refining uses 60 input for 50 output plus five coins per
@@ -239,10 +298,13 @@ Reference revision reviewed for this import: `fb486d3a`.
   direction, all ten tier ranges, proc semantics, compatibility, stacking and
   revised effective-stat limits.
 - Family roles and the degree of competitiveness expected from older gear.
-- Mastery XP curves, gambling access, event schedule, currency, inventory
-  constraints and rolled-item starting quality/reinforcement rules.
+- Mastery XP curves and slot levels; trader stock-versus-roll interaction,
+  tier ranges, the exact visit window within the monthly cadence, purchase
+  permissions, inventory limits and new-copy starting quality/reinforcement.
+- Per-grade raid and achievement Mark payouts.
 - Exact processing, crafting, refining, junk-yield and shard recipes, including
-  rounding, extraction outcomes and natural-versus-forged Codex progress.
+  rounding, recovery quantities and tier/value handling, and
+  natural-versus-forged Codex progress.
 - Resolution of companion differences such as Attuned Fortune's inclusion,
   Attuned Wisdom's values and overlapping Focus/measurement effects.
 - Instance migration, pending quotes, active-activity snapshots and loadout-lock
@@ -253,9 +315,10 @@ Reference revision reviewed for this import: `fb486d3a`.
   to slow players down or a verified completion forecast.
 
 Mastery and gambling defaults should be proposed for review, not left for Boss
-to invent percentage by percentage. Favour automatic use-based mastery,
-legible choices and useful recovery value from unwanted gear. Exact unlocks,
-currencies, rates and trader availability remain open.
+to invent percentage by percentage. The sources, currency, pricing equivalence
+and raid-ladder budget above are settled; propose the remaining curves, unlocks,
+eligibility, trader interaction and payout details. Favour automatic use-based
+mastery, legible choices and useful recovery value from unwanted gear.
 
 ## Preservation and Scope
 

@@ -7,7 +7,7 @@ use crate::{
 use game_rules::{
     measurements::{SpeciesMeasurements, classify_rarity},
     progression::{check_interaction_freshness, level_for_xp_for_version, record_wins},
-    sampling::sample,
+    sampling::{sample, sample_wide},
 };
 use spacetimedb::{ReducerContext, Table, TimeDuration, rand::Rng};
 
@@ -389,7 +389,7 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                     } else {
                         game_rules::hauls::luck_weights(&tickets, luck_bp)?
                     };
-                    sample(&weights, &mut rng)?
+                    sample_wide(&weights, &mut rng)?
                 };
                 let mut band = &bands[band_index];
                 let definition = if special_raid {

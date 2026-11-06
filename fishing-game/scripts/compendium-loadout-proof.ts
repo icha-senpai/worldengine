@@ -15,6 +15,8 @@ const loadouts: RateLoadout[] = [baselineLoadout,
   {name:'Prismatic River Rod · Trophy Chum',power:50,luckBp:4250,sizeRolls:8,rulesVersion:11},
   bestPerfectLoadout,
   {...bestPerfectLoadout,name:'Legacy natural-only comparison',luckBp:9500,sizeRolls:8,rulesVersion:10},
+  {...bestPerfectLoadout,name:'Unobtainable high-Luck math stress',luckBp:35000},
+  {...bestPerfectLoadout,name:'Unobtainable u32-maximum Luck math stress',luckBp:0xffff_ffff},
 ];
 const reference = [];
 for(const loadout of loadouts) for(const fish of catalog.species) {
@@ -46,6 +48,6 @@ await writeFile('.local/compendium-loadout-ranges.json',JSON.stringify(reference
 const result=spawnSync('cargo',['run','-p','game-rules','--example','compendium-proof','--locked','--','.local/compendium-loadout-ranges.json'],{encoding:'utf8',windowsHide:true});
 if(result.status!==0)throw Error(result.stderr||result.stdout);
 console.log(result.stdout.trim());
-console.log('PASS Rust luck/power and perfect-size odds for baseline, geared, best and legacy loadouts; best preset dominates all 169 bait pairs at maximum gear.');
+console.log('PASS Rust luck/power and perfect-size odds for baseline, geared, legacy and high-Luck stress loadouts; best obtainable preset dominates all 169 bait pairs at maximum gear.');
 const carp=catalog.species.find(row=>row.key==='carp')!;
 console.log(JSON.stringify(loadouts.slice(0,3).map(loadout=>({loadout:loadout.name,carpPerfectOneIn:1/perfectCatchOdds(carp,loadout)!.chancePerCast})),null,2));

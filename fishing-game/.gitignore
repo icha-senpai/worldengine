@@ -22,3 +22,12 @@ __pycache__/
 !/docs/
 /docs/*
 !/docs/tideforge/
+!/docs/luck-scaling.md
+
+# Keep the Luck proofs visible without unignoring unrelated local scripts.
+!/scripts/
+/scripts/*
+!/scripts/uncapped-luck-proof.ts
+!/scripts/luck-preservation-proof.ts
+!/scripts/luck-verification.ts
+!/scripts/tideforge-effect-proof.ts
