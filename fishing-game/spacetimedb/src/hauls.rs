@@ -128,7 +128,7 @@ pub fn start_haul_from_discord(
         ctx.db.haul_request().insert(request);
         return Ok(());
     }
-    crate::haul_equipment::grant_starters(ctx, player.player_id);
+    crate::haul_equipment::grant_starters(ctx, player.player_id)?;
     let loadout = ctx
         .db
         .haul_loadout()
@@ -140,12 +140,17 @@ pub fn start_haul_from_discord(
     } else {
         loadout.net_id
     };
-    let owned = ctx
-        .db
-        .owned_haul_equipment()
-        .key()
-        .find((u128::from(player.player_id) << 32) | u128::from(equipment_id))
-        .ok_or("EQUIPMENT_NOT_OWNED")?;
+    let selected = crate::gear_instances::selected_instance(ctx, player.player_id, &kind)?;
+    let quality_level = if let Some(instance) = selected {
+        instance.quality_level
+    } else {
+        ctx.db
+            .owned_haul_equipment()
+            .key()
+            .find((u128::from(player.player_id) << 32) | u128::from(equipment_id))
+            .ok_or("EQUIPMENT_NOT_OWNED")?
+            .upgrade_level
+    };
     let gear = ctx
         .db
         .haul_equipment_definition()
@@ -159,7 +164,7 @@ pub fn start_haul_from_discord(
         .db
         .quality_definition()
         .quality_level()
-        .find(owned.upgrade_level)
+        .find(quality_level)
         .ok_or("QUALITY_UNAVAILABLE")?;
     let rules = config(ctx);
     let level = game_rules::progression::level_for_xp_for_version(
@@ -209,6 +214,11 @@ pub fn start_haul_from_discord(
         .ok_or("INVALID_HAUL_XP")?;
     let due_at = ctx.timestamp + TimeDuration::from_micros(seconds * 1_000_000);
     let focus = crate::collection_focus::active(ctx, player.player_id, biome.biome_id, &species);
+    crate::gear_instances::snapshot_selected(
+        ctx, player.player_id, &kind, "haul", u128::from(interaction_id),
+        Some(0), Some(luck_bp), Some(xp_bonus_bp), rules.version,
+        Some(crate::content::CONTENT_VERSION), None,
+    )?;
     ctx.db.haul_request().insert(request);
     ctx.db.haul_trip().insert(HaulTrip {
         interaction_id,
@@ -291,7 +301,7 @@ fn finish(ctx: &ReducerContext, interaction_id: u64) -> Result<(), String> {
             special_raid_rank_definition: None,
             special_raid_band: None,
             special_raid_maximum_roll_one_in: 0,
-            content_version: crate::content::CONTENT_VERSION,
+            content_version: crate::gear_instances::haul_content_version(ctx, interaction_id),
         },
     )?;
     let receipt = ctx
@@ -452,6 +462,7 @@ pub fn prune_delivered(ctx: &ReducerContext) {
         .filter(|t| t.status == "delivered")
         .take(100)
     {
+        crate::gear_instances::delete_snapshot(ctx, "haul", u128::from(trip.interaction_id));
         ctx.db
             .haul_trip()
             .interaction_id()

@@ -7,6 +7,20 @@ The website and account-link service are exposed through ServBay/Cloudflare at
 https://fish.ichaa.dev. The bot connects to Discord; all fifteen commands are
 registered globally; matching legacy server copies are removed on startup; the public OAuth callback is registered.
 
+## Tideforge Instance Foundation (Local, Inactive)
+
+Stable gear instances, protected-original mapping, instance loadouts and
+immutable activity metadata are implemented behind separate owner activation.
+Legacy ownership, quality, reinforcement, quotes and booked rewards remain
+compatible. Affixes, mastery awards, additional copies and the new economy are
+not activated. See [the foundation contract](tideforge/build-contract-v0.1.md#8-instance-and-preservation-foundation).
+
+All 45 native reducer tests and the bindings, Rust workspace, web check and build
+gates pass. The isolated starter-fixture proof preserves all 82 retained tables,
+maps six originals and two loadouts, preserves two active trips, and lets an old
+net settle naturally. This is not a production-data migration. Neither the
+development nor production database is published or activated by this work.
+
 ## Displayed level cap (October 13)
 
 Rules 16 cap website, public profile and Discord levels at 500 without changing

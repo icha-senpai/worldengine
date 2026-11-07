@@ -52,7 +52,7 @@ pub fn seed(ctx: &ReducerContext) {
     }
 }
 
-pub fn grant_starters(ctx: &ReducerContext, player_id: u64) {
+pub fn grant_starters(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
     for equipment_id in [101, 201] {
         let key = (u128::from(player_id) << 32) | u128::from(equipment_id);
         if ctx.db.owned_haul_equipment().key().find(key).is_none() {
@@ -62,6 +62,8 @@ pub fn grant_starters(ctx: &ReducerContext, player_id: u64) {
                 equipment_id,
                 upgrade_level: 0,
             });
+            let kind = if equipment_id == 101 { "boat" } else { "net" };
+            crate::gear_instances::grant_original(ctx, player_id, kind, equipment_id, 0, 0)?;
         }
     }
     if ctx.db.haul_loadout().player_id().find(player_id).is_none() {
@@ -71,6 +73,7 @@ pub fn grant_starters(ctx: &ReducerContext, player_id: u64) {
             net_id: 201,
         });
     }
+    Ok(())
 }
 
 #[spacetimedb::reducer]
@@ -89,7 +92,7 @@ pub fn activate_haul_equipment(ctx: &ReducerContext) -> Result<(), String> {
     seed(ctx);
     crate::shop::seed(ctx);
     for player in ctx.db.player().iter() {
-        grant_starters(ctx, player.player_id);
+        grant_starters(ctx, player.player_id)?;
     }
     Ok(())
 }
@@ -106,6 +109,13 @@ pub fn equip_haul_equipment(ctx: &ReducerContext, equipment_id: u32) -> Result<(
     let key = (u128::from(player_id) << 32) | u128::from(equipment_id);
     if ctx.db.owned_haul_equipment().key().find(key).is_none() {
         return Err("EQUIPMENT_NOT_OWNED".into());
+    }
+    if crate::gear_instances::enabled(ctx)? {
+        return crate::gear_instances::equip_instance(
+            ctx,
+            player_id,
+            crate::gear_instances::original_id(player_id, &definition.kind, equipment_id)?,
+        );
     }
     let mut loadout = ctx
         .db
@@ -229,6 +239,9 @@ pub fn commit_haul_upgrade(ctx: &ReducerContext, nonce: u128) -> Result<(), Stri
     if !matches!(definition.kind.as_str(), "boat" | "net") {
         return Err("EQUIPMENT_UNAVAILABLE".into());
     }
+    crate::gear_instances::verify_original(
+        ctx, player_id, &definition.kind, quote.equipment_id, owned.upgrade_level, 0,
+    )?;
     let next = ctx
         .db
         .quality_definition()
@@ -250,6 +263,9 @@ pub fn commit_haul_upgrade(ctx: &ReducerContext, nonce: u128) -> Result<(), Stri
     crate::crafting::spend(ctx, player_id, 1, cost.scrap_cost, &operation, &reason)?;
     owned.upgrade_level = next.quality_level;
     ctx.db.owned_haul_equipment().key().update(owned);
+    crate::gear_instances::mirror_original(
+        ctx, player_id, &definition.kind, quote.equipment_id, next.quality_level, 0,
+    )?;
     crate::inventory::ledger(
         ctx,
         player_id,

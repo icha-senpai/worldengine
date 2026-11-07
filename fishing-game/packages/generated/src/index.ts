@@ -39,6 +39,7 @@ import AcknowledgeHaulDeliveryReducer from "./acknowledge_haul_delivery_reducer"
 import AcknowledgeRaidDeliveryReducer from "./acknowledge_raid_delivery_reducer";
 import ActivateAchievementsReducer from "./activate_achievements_reducer";
 import ActivateCraftingReducer from "./activate_crafting_reducer";
+import ActivateGearFoundationReducer from "./activate_gear_foundation_reducer";
 import ActivateHaulEquipmentReducer from "./activate_haul_equipment_reducer";
 import ActivateHistoryQueriesReducer from "./activate_history_queries_reducer";
 import ActivatePerfectCatchesReducer from "./activate_perfect_catches_reducer";
@@ -81,6 +82,8 @@ import DeployRaidReducer from "./deploy_raid_reducer";
 import DeployRaidFromDiscordReducer from "./deploy_raid_from_discord_reducer";
 import EquipBaitReducer from "./equip_bait_reducer";
 import EquipBaitFromDiscordReducer from "./equip_bait_from_discord_reducer";
+import EquipGearInstanceReducer from "./equip_gear_instance_reducer";
+import EquipGearInstanceFromDiscordReducer from "./equip_gear_instance_from_discord_reducer";
 import EquipHaulEquipmentReducer from "./equip_haul_equipment_reducer";
 import EquipTitleReducer from "./equip_title_reducer";
 import FinishHaulFromAdapterReducer from "./finish_haul_from_adapter_reducer";
@@ -110,6 +113,8 @@ import SetBaitSlotFromDiscordReducer from "./set_bait_slot_from_discord_reducer"
 import SetCatchFavoriteReducer from "./set_catch_favorite_reducer";
 import SetCollectionFocusReducer from "./set_collection_focus_reducer";
 import SetCollectionFocusFromDiscordReducer from "./set_collection_focus_from_discord_reducer";
+import SetGearInstanceFavoriteReducer from "./set_gear_instance_favorite_reducer";
+import SetGearInstanceFavoriteFromDiscordReducer from "./set_gear_instance_favorite_from_discord_reducer";
 import StartHaulFromDiscordReducer from "./start_haul_from_discord_reducer";
 import SyncDiscordPortraitReducer from "./sync_discord_portrait_reducer";
 import UnlinkBrowserReducer from "./unlink_browser_reducer";
@@ -129,6 +134,10 @@ import AdapterCastPullsRow from "./adapter_cast_pulls_table";
 import AdapterCollectionRow from "./adapter_collection_table";
 import AdapterCollectionFocusRow from "./adapter_collection_focus_table";
 import AdapterDailyReceiptRow from "./adapter_daily_receipt_table";
+import AdapterGearActivitySnapshotsRow from "./adapter_gear_activity_snapshots_table";
+import AdapterGearFamilyProgressRow from "./adapter_gear_family_progress_table";
+import AdapterGearInstancesRow from "./adapter_gear_instances_table";
+import AdapterGearLoadoutRow from "./adapter_gear_loadout_table";
 import AdapterHaulStatusRow from "./adapter_haul_status_table";
 import AdapterHaulWorkRow from "./adapter_haul_work_table";
 import AdapterInventoryRow from "./adapter_inventory_table";
@@ -154,6 +163,7 @@ import BiomeDefinitionRow from "./biome_definition_table";
 import CommunityRaidEventRow from "./community_raid_event_table";
 import EarnedAchievementRow from "./earned_achievement_table";
 import GameConfigRow from "./game_config_table";
+import GearFoundationStateRow from "./gear_foundation_state_table";
 import HaulEquipmentDefinitionRow from "./haul_equipment_definition_table";
 import LegendaryFindRow from "./legendary_find_table";
 import MyAchievementProgressRow from "./my_achievement_progress_table";
@@ -163,6 +173,10 @@ import MyBaitsRow from "./my_baits_table";
 import MyCollectionRow from "./my_collection_table";
 import MyCollectionFocusRow from "./my_collection_focus_table";
 import MyDocksideRow from "./my_dockside_table";
+import MyGearActivitySnapshotsRow from "./my_gear_activity_snapshots_table";
+import MyGearFamilyProgressRow from "./my_gear_family_progress_table";
+import MyGearInstancesRow from "./my_gear_instances_table";
+import MyGearLoadoutRow from "./my_gear_loadout_table";
 import MyHaulEquipmentRow from "./my_haul_equipment_table";
 import MyHaulLoadoutRow from "./my_haul_loadout_table";
 import MyHaulTripsRow from "./my_haul_trips_table";
@@ -339,6 +353,17 @@ const tablesSchema = __schema({
       { name: 'game_config_version_key', constraint: 'unique', columns: ['version'] },
     ],
   }, GameConfigRow),
+  gearFoundationState: __table({
+    name: 'gear_foundation_state',
+    indexes: [
+      { accessor: 'singleton', name: 'gear_foundation_state_singleton_idx_btree', algorithm: 'btree', columns: [
+        'singleton',
+      ] },
+    ],
+    constraints: [
+      { name: 'gear_foundation_state_singleton_key', constraint: 'unique', columns: ['singleton'] },
+    ],
+  }, GearFoundationStateRow),
   haulEquipmentDefinition: __table({
     name: 'haul_equipment_definition',
     indexes: [
@@ -629,6 +654,34 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterDailyReceiptRow),
+  adapterGearActivitySnapshots: __table({
+    name: 'adapter_gear_activity_snapshots',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterGearActivitySnapshotsRow),
+  adapterGearFamilyProgress: __table({
+    name: 'adapter_gear_family_progress',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterGearFamilyProgressRow),
+  adapterGearInstances: __table({
+    name: 'adapter_gear_instances',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterGearInstancesRow),
+  adapterGearLoadout: __table({
+    name: 'adapter_gear_loadout',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterGearLoadoutRow),
   adapterHaulStatus: __table({
     name: 'adapter_haul_status',
     indexes: [
@@ -790,6 +843,34 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyDocksideRow),
+  myGearActivitySnapshots: __table({
+    name: 'my_gear_activity_snapshots',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyGearActivitySnapshotsRow),
+  myGearFamilyProgress: __table({
+    name: 'my_gear_family_progress',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyGearFamilyProgressRow),
+  myGearInstances: __table({
+    name: 'my_gear_instances',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyGearInstancesRow),
+  myGearLoadout: __table({
+    name: 'my_gear_loadout',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyGearLoadoutRow),
   myHaulEquipment: __table({
     name: 'my_haul_equipment',
     indexes: [
@@ -946,6 +1027,7 @@ const reducersSchema = __reducers(
   __reducerSchema("acknowledge_raid_delivery", AcknowledgeRaidDeliveryReducer),
   __reducerSchema("activate_achievements", ActivateAchievementsReducer),
   __reducerSchema("activate_crafting", ActivateCraftingReducer),
+  __reducerSchema("activate_gear_foundation", ActivateGearFoundationReducer),
   __reducerSchema("activate_haul_equipment", ActivateHaulEquipmentReducer),
   __reducerSchema("activate_history_queries", ActivateHistoryQueriesReducer),
   __reducerSchema("activate_perfect_catches", ActivatePerfectCatchesReducer),
@@ -988,6 +1070,8 @@ const reducersSchema = __reducers(
   __reducerSchema("deploy_raid_from_discord", DeployRaidFromDiscordReducer),
   __reducerSchema("equip_bait", EquipBaitReducer),
   __reducerSchema("equip_bait_from_discord", EquipBaitFromDiscordReducer),
+  __reducerSchema("equip_gear_instance", EquipGearInstanceReducer),
+  __reducerSchema("equip_gear_instance_from_discord", EquipGearInstanceFromDiscordReducer),
   __reducerSchema("equip_haul_equipment", EquipHaulEquipmentReducer),
   __reducerSchema("equip_title", EquipTitleReducer),
   __reducerSchema("finish_haul_from_adapter", FinishHaulFromAdapterReducer),
@@ -1017,6 +1101,8 @@ const reducersSchema = __reducers(
   __reducerSchema("set_catch_favorite", SetCatchFavoriteReducer),
   __reducerSchema("set_collection_focus", SetCollectionFocusReducer),
   __reducerSchema("set_collection_focus_from_discord", SetCollectionFocusFromDiscordReducer),
+  __reducerSchema("set_gear_instance_favorite", SetGearInstanceFavoriteReducer),
+  __reducerSchema("set_gear_instance_favorite_from_discord", SetGearInstanceFavoriteFromDiscordReducer),
   __reducerSchema("start_haul_from_discord", StartHaulFromDiscordReducer),
   __reducerSchema("sync_discord_portrait", SyncDiscordPortraitReducer),
   __reducerSchema("unlink_browser", UnlinkBrowserReducer),
@@ -1051,6 +1137,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "earned_achievement": Omit<typeof tablesSchema.schemaType.tables["earnedAchievement"], "accessorName"> & { readonly accessorName: "earned_achievement" };
     /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
     readonly "game_config": Omit<typeof tablesSchema.schemaType.tables["gameConfig"], "accessorName"> & { readonly accessorName: "game_config" };
+    /** @deprecated Use `gearFoundationState` instead. This alias will be removed in the next major version. */
+    readonly "gear_foundation_state": Omit<typeof tablesSchema.schemaType.tables["gearFoundationState"], "accessorName"> & { readonly accessorName: "gear_foundation_state" };
     /** @deprecated Use `haulEquipmentDefinition` instead. This alias will be removed in the next major version. */
     readonly "haul_equipment_definition": Omit<typeof tablesSchema.schemaType.tables["haulEquipmentDefinition"], "accessorName"> & { readonly accessorName: "haul_equipment_definition" };
     /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
@@ -1107,6 +1195,14 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "adapter_collection_focus": Omit<typeof tablesSchema.schemaType.tables["adapterCollectionFocus"], "accessorName"> & { readonly accessorName: "adapter_collection_focus" };
     /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
     readonly "adapter_daily_receipt": Omit<typeof tablesSchema.schemaType.tables["adapterDailyReceipt"], "accessorName"> & { readonly accessorName: "adapter_daily_receipt" };
+    /** @deprecated Use `adapterGearActivitySnapshots` instead. This alias will be removed in the next major version. */
+    readonly "adapter_gear_activity_snapshots": Omit<typeof tablesSchema.schemaType.tables["adapterGearActivitySnapshots"], "accessorName"> & { readonly accessorName: "adapter_gear_activity_snapshots" };
+    /** @deprecated Use `adapterGearFamilyProgress` instead. This alias will be removed in the next major version. */
+    readonly "adapter_gear_family_progress": Omit<typeof tablesSchema.schemaType.tables["adapterGearFamilyProgress"], "accessorName"> & { readonly accessorName: "adapter_gear_family_progress" };
+    /** @deprecated Use `adapterGearInstances` instead. This alias will be removed in the next major version. */
+    readonly "adapter_gear_instances": Omit<typeof tablesSchema.schemaType.tables["adapterGearInstances"], "accessorName"> & { readonly accessorName: "adapter_gear_instances" };
+    /** @deprecated Use `adapterGearLoadout` instead. This alias will be removed in the next major version. */
+    readonly "adapter_gear_loadout": Omit<typeof tablesSchema.schemaType.tables["adapterGearLoadout"], "accessorName"> & { readonly accessorName: "adapter_gear_loadout" };
     /** @deprecated Use `adapterHaulStatus` instead. This alias will be removed in the next major version. */
     readonly "adapter_haul_status": Omit<typeof tablesSchema.schemaType.tables["adapterHaulStatus"], "accessorName"> & { readonly accessorName: "adapter_haul_status" };
     /** @deprecated Use `adapterHaulWork` instead. This alias will be removed in the next major version. */
@@ -1153,6 +1249,14 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_collection_focus": Omit<typeof tablesSchema.schemaType.tables["myCollectionFocus"], "accessorName"> & { readonly accessorName: "my_collection_focus" };
     /** @deprecated Use `myDockside` instead. This alias will be removed in the next major version. */
     readonly "my_dockside": Omit<typeof tablesSchema.schemaType.tables["myDockside"], "accessorName"> & { readonly accessorName: "my_dockside" };
+    /** @deprecated Use `myGearActivitySnapshots` instead. This alias will be removed in the next major version. */
+    readonly "my_gear_activity_snapshots": Omit<typeof tablesSchema.schemaType.tables["myGearActivitySnapshots"], "accessorName"> & { readonly accessorName: "my_gear_activity_snapshots" };
+    /** @deprecated Use `myGearFamilyProgress` instead. This alias will be removed in the next major version. */
+    readonly "my_gear_family_progress": Omit<typeof tablesSchema.schemaType.tables["myGearFamilyProgress"], "accessorName"> & { readonly accessorName: "my_gear_family_progress" };
+    /** @deprecated Use `myGearInstances` instead. This alias will be removed in the next major version. */
+    readonly "my_gear_instances": Omit<typeof tablesSchema.schemaType.tables["myGearInstances"], "accessorName"> & { readonly accessorName: "my_gear_instances" };
+    /** @deprecated Use `myGearLoadout` instead. This alias will be removed in the next major version. */
+    readonly "my_gear_loadout": Omit<typeof tablesSchema.schemaType.tables["myGearLoadout"], "accessorName"> & { readonly accessorName: "my_gear_loadout" };
     /** @deprecated Use `myHaulEquipment` instead. This alias will be removed in the next major version. */
     readonly "my_haul_equipment": Omit<typeof tablesSchema.schemaType.tables["myHaulEquipment"], "accessorName"> & { readonly accessorName: "my_haul_equipment" };
     /** @deprecated Use `myHaulLoadout` instead. This alias will be removed in the next major version. */
@@ -1224,6 +1328,7 @@ const tableAccessorAliases = {
   "community_raid_event": "communityRaidEvent",
   "earned_achievement": "earnedAchievement",
   "game_config": "gameConfig",
+  "gear_foundation_state": "gearFoundationState",
   "haul_equipment_definition": "haulEquipmentDefinition",
   "legendary_find": "legendaryFind",
   "perfect_species": "perfectSpecies",
@@ -1252,6 +1357,10 @@ const tableAccessorAliases = {
   "adapter_collection": "adapterCollection",
   "adapter_collection_focus": "adapterCollectionFocus",
   "adapter_daily_receipt": "adapterDailyReceipt",
+  "adapter_gear_activity_snapshots": "adapterGearActivitySnapshots",
+  "adapter_gear_family_progress": "adapterGearFamilyProgress",
+  "adapter_gear_instances": "adapterGearInstances",
+  "adapter_gear_loadout": "adapterGearLoadout",
   "adapter_haul_status": "adapterHaulStatus",
   "adapter_haul_work": "adapterHaulWork",
   "adapter_inventory": "adapterInventory",
@@ -1275,6 +1384,10 @@ const tableAccessorAliases = {
   "my_collection": "myCollection",
   "my_collection_focus": "myCollectionFocus",
   "my_dockside": "myDockside",
+  "my_gear_activity_snapshots": "myGearActivitySnapshots",
+  "my_gear_family_progress": "myGearFamilyProgress",
+  "my_gear_instances": "myGearInstances",
+  "my_gear_loadout": "myGearLoadout",
   "my_haul_equipment": "myHaulEquipment",
   "my_haul_loadout": "myHaulLoadout",
   "my_haul_trips": "myHaulTrips",
@@ -1338,6 +1451,8 @@ export type DbView = __DbViewBase & {
   readonly "earned_achievement": __DbViewBase["earnedAchievement"];
   /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
   readonly "game_config": __DbViewBase["gameConfig"];
+  /** @deprecated Use `gearFoundationState` instead. This alias will be removed in the next major version. */
+  readonly "gear_foundation_state": __DbViewBase["gearFoundationState"];
   /** @deprecated Use `haulEquipmentDefinition` instead. This alias will be removed in the next major version. */
   readonly "haul_equipment_definition": __DbViewBase["haulEquipmentDefinition"];
   /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
@@ -1394,6 +1509,14 @@ export type DbView = __DbViewBase & {
   readonly "adapter_collection_focus": __DbViewBase["adapterCollectionFocus"];
   /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_daily_receipt": __DbViewBase["adapterDailyReceipt"];
+  /** @deprecated Use `adapterGearActivitySnapshots` instead. This alias will be removed in the next major version. */
+  readonly "adapter_gear_activity_snapshots": __DbViewBase["adapterGearActivitySnapshots"];
+  /** @deprecated Use `adapterGearFamilyProgress` instead. This alias will be removed in the next major version. */
+  readonly "adapter_gear_family_progress": __DbViewBase["adapterGearFamilyProgress"];
+  /** @deprecated Use `adapterGearInstances` instead. This alias will be removed in the next major version. */
+  readonly "adapter_gear_instances": __DbViewBase["adapterGearInstances"];
+  /** @deprecated Use `adapterGearLoadout` instead. This alias will be removed in the next major version. */
+  readonly "adapter_gear_loadout": __DbViewBase["adapterGearLoadout"];
   /** @deprecated Use `adapterHaulStatus` instead. This alias will be removed in the next major version. */
   readonly "adapter_haul_status": __DbViewBase["adapterHaulStatus"];
   /** @deprecated Use `adapterHaulWork` instead. This alias will be removed in the next major version. */
@@ -1440,6 +1563,14 @@ export type DbView = __DbViewBase & {
   readonly "my_collection_focus": __DbViewBase["myCollectionFocus"];
   /** @deprecated Use `myDockside` instead. This alias will be removed in the next major version. */
   readonly "my_dockside": __DbViewBase["myDockside"];
+  /** @deprecated Use `myGearActivitySnapshots` instead. This alias will be removed in the next major version. */
+  readonly "my_gear_activity_snapshots": __DbViewBase["myGearActivitySnapshots"];
+  /** @deprecated Use `myGearFamilyProgress` instead. This alias will be removed in the next major version. */
+  readonly "my_gear_family_progress": __DbViewBase["myGearFamilyProgress"];
+  /** @deprecated Use `myGearInstances` instead. This alias will be removed in the next major version. */
+  readonly "my_gear_instances": __DbViewBase["myGearInstances"];
+  /** @deprecated Use `myGearLoadout` instead. This alias will be removed in the next major version. */
+  readonly "my_gear_loadout": __DbViewBase["myGearLoadout"];
   /** @deprecated Use `myHaulEquipment` instead. This alias will be removed in the next major version. */
   readonly "my_haul_equipment": __DbViewBase["myHaulEquipment"];
   /** @deprecated Use `myHaulLoadout` instead. This alias will be removed in the next major version. */
@@ -1508,6 +1639,8 @@ export type Tables = __TablesBase & {
   readonly "earned_achievement": __TablesBase["earnedAchievement"];
   /** @deprecated Use `gameConfig` instead. This alias will be removed in the next major version. */
   readonly "game_config": __TablesBase["gameConfig"];
+  /** @deprecated Use `gearFoundationState` instead. This alias will be removed in the next major version. */
+  readonly "gear_foundation_state": __TablesBase["gearFoundationState"];
   /** @deprecated Use `haulEquipmentDefinition` instead. This alias will be removed in the next major version. */
   readonly "haul_equipment_definition": __TablesBase["haulEquipmentDefinition"];
   /** @deprecated Use `legendaryFind` instead. This alias will be removed in the next major version. */
@@ -1564,6 +1697,14 @@ export type Tables = __TablesBase & {
   readonly "adapter_collection_focus": __TablesBase["adapterCollectionFocus"];
   /** @deprecated Use `adapterDailyReceipt` instead. This alias will be removed in the next major version. */
   readonly "adapter_daily_receipt": __TablesBase["adapterDailyReceipt"];
+  /** @deprecated Use `adapterGearActivitySnapshots` instead. This alias will be removed in the next major version. */
+  readonly "adapter_gear_activity_snapshots": __TablesBase["adapterGearActivitySnapshots"];
+  /** @deprecated Use `adapterGearFamilyProgress` instead. This alias will be removed in the next major version. */
+  readonly "adapter_gear_family_progress": __TablesBase["adapterGearFamilyProgress"];
+  /** @deprecated Use `adapterGearInstances` instead. This alias will be removed in the next major version. */
+  readonly "adapter_gear_instances": __TablesBase["adapterGearInstances"];
+  /** @deprecated Use `adapterGearLoadout` instead. This alias will be removed in the next major version. */
+  readonly "adapter_gear_loadout": __TablesBase["adapterGearLoadout"];
   /** @deprecated Use `adapterHaulStatus` instead. This alias will be removed in the next major version. */
   readonly "adapter_haul_status": __TablesBase["adapterHaulStatus"];
   /** @deprecated Use `adapterHaulWork` instead. This alias will be removed in the next major version. */
@@ -1610,6 +1751,14 @@ export type Tables = __TablesBase & {
   readonly "my_collection_focus": __TablesBase["myCollectionFocus"];
   /** @deprecated Use `myDockside` instead. This alias will be removed in the next major version. */
   readonly "my_dockside": __TablesBase["myDockside"];
+  /** @deprecated Use `myGearActivitySnapshots` instead. This alias will be removed in the next major version. */
+  readonly "my_gear_activity_snapshots": __TablesBase["myGearActivitySnapshots"];
+  /** @deprecated Use `myGearFamilyProgress` instead. This alias will be removed in the next major version. */
+  readonly "my_gear_family_progress": __TablesBase["myGearFamilyProgress"];
+  /** @deprecated Use `myGearInstances` instead. This alias will be removed in the next major version. */
+  readonly "my_gear_instances": __TablesBase["myGearInstances"];
+  /** @deprecated Use `myGearLoadout` instead. This alias will be removed in the next major version. */
+  readonly "my_gear_loadout": __TablesBase["myGearLoadout"];
   /** @deprecated Use `myHaulEquipment` instead. This alias will be removed in the next major version. */
   readonly "my_haul_equipment": __TablesBase["myHaulEquipment"];
   /** @deprecated Use `myHaulLoadout` instead. This alias will be removed in the next major version. */

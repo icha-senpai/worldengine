@@ -521,12 +521,16 @@ fn boat_snapshot(ctx: &ReducerContext, player_id: u64) -> Result<(u32, String, u
         .find(player_id)
         .ok_or("HAUL_LOADOUT_UNAVAILABLE")?;
     let boat_id = loadout.boat_id;
-    let owned = ctx
-        .db
-        .owned_haul_equipment()
-        .key()
-        .find((u128::from(player_id) << 32) | u128::from(boat_id))
-        .ok_or("EQUIPMENT_NOT_OWNED")?;
+    let quality = if let Some(instance) = crate::gear_instances::selected_instance(ctx, player_id, "boat")? {
+        instance.quality_level
+    } else {
+        ctx.db
+            .owned_haul_equipment()
+            .key()
+            .find((u128::from(player_id) << 32) | u128::from(boat_id))
+            .ok_or("EQUIPMENT_NOT_OWNED")?
+            .upgrade_level
+    };
     let definition = ctx
         .db
         .haul_equipment_definition()
@@ -536,7 +540,7 @@ fn boat_snapshot(ctx: &ReducerContext, player_id: u64) -> Result<(u32, String, u
     if definition.kind != "boat" {
         return Err("INVALID_HAUL_KIND".into());
     }
-    Ok((boat_id, definition.name, owned.upgrade_level))
+    Ok((boat_id, definition.name, quality))
 }
 
 fn has_discovered(ctx: &ReducerContext, player_id: u64, species_id: u32) -> bool {
@@ -717,6 +721,10 @@ fn personal_attempt(
         attempt.special_biome = Some(biome);
         attempt.special_rules = Some(config(ctx));
     }
+    crate::gear_instances::snapshot_selected(
+        ctx, player_id, "boat", "raid", id, None, None, None,
+        attempt.rules_version, Some(attempt.content_version), Some(attempt.catalog_version),
+    )?;
     ctx.db.raid_attempt().insert(attempt);
     schedule_job(ctx, id, "start", starts_at);
     record_action(
@@ -831,6 +839,10 @@ fn prepare_community(
         catalog.supply.item.clone(),
     );
     attempt.deployment_deadline = event.starts_at;
+    crate::gear_instances::snapshot_selected(
+        ctx, player_id, "boat", "raid", id, None, None, None,
+        attempt.rules_version, Some(attempt.content_version), Some(attempt.catalog_version),
+    )?;
     ctx.db.raid_attempt().insert(attempt);
     schedule_job(ctx, id, "start", event.starts_at);
     record_action(
@@ -1090,7 +1102,7 @@ fn reinforce(
         return Err("MAX_REINFORCEMENT".into());
     }
     let key = (u128::from(player_id) << 32) | u128::from(rod_id);
-    ctx.db
+    let owned = ctx.db
         .owned_rod()
         .key()
         .find(key)
@@ -1111,6 +1123,7 @@ fn reinforce(
     if current.level != expected_level {
         return Err("REINFORCEMENT_LEVEL_CHANGED".into());
     }
+    crate::gear_instances::verify_original(ctx, player_id, "rod", rod_id, owned.upgrade_level, current.level)?;
     let grade = game_rules::raids::grade(expected_level)
         .map_err(|_| "INVALID_RAID_GRADE")?;
     require_grade_clear(ctx, player_id, expected_level)?;
@@ -1151,6 +1164,7 @@ fn reinforce(
     } else {
         ctx.db.rod_reinforcement().insert(current);
     }
+    crate::gear_instances::mirror_original(ctx, player_id, "rod", rod_id, owned.upgrade_level, expected_level + 1)?;
     record_action(
         ctx,
         player_id,
@@ -1239,18 +1253,15 @@ fn deploy(
     if running_boat_haul(ctx, player_id) {
         return Err("BOAT_HAUL_ACTIVE".into());
     }
-    let boat_key = (u128::from(player_id) << 32) | u128::from(attempt.boat_id);
-    let boat = ctx
-        .db
-        .owned_haul_equipment()
-        .key()
-        .find(boat_key)
-        .ok_or("EQUIPMENT_NOT_OWNED")?;
+    if !crate::gear_instances::booked_raid_instance(ctx, player_id, attempt.id, attempt.boat_id)? {
+        let boat_key = (u128::from(player_id) << 32) | u128::from(attempt.boat_id);
+        ctx.db.owned_haul_equipment().key().find(boat_key).ok_or("EQUIPMENT_NOT_OWNED")?;
+    }
     let definition = ctx
         .db
         .haul_equipment_definition()
         .equipment_id()
-        .find(boat.equipment_id)
+        .find(attempt.boat_id)
         .ok_or("EQUIPMENT_UNAVAILABLE")?;
     if definition.kind != "boat" {
         return Err("EQUIPMENT_UNAVAILABLE".into());
@@ -1947,6 +1958,7 @@ pub fn prune_history(ctx: &ReducerContext) {
         .take(1000)
     {
         remove_jobs(ctx, attempt.id);
+        crate::gear_instances::delete_snapshot(ctx, "raid", attempt.id);
         ctx.db.raid_attempt().id().delete(attempt.id);
     }
 }

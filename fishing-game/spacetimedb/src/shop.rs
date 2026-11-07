@@ -260,6 +260,7 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128, quantity: u32) -> R
             equipment_id: listing.target_id,
             upgrade_level: 0,
         });
+        crate::gear_instances::grant_original(ctx, player_id, &listing.kind, listing.target_id, 0, 0)?;
     } else {
         ctx.db.owned_rod().insert(OwnedRod {
             key: ownership_key,
@@ -267,6 +268,7 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128, quantity: u32) -> R
             rod_id: listing.target_id,
             upgrade_level: 0,
         });
+        crate::gear_instances::grant_original(ctx, player_id, "rod", listing.target_id, 0, 0)?;
     }
     let operation = format!("shop:{nonce}");
     ledger(

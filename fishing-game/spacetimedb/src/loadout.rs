@@ -40,7 +40,9 @@ fn change(
         return Err(format!("BIOME_LEVEL_REQUIRED:{}", biome.minimum_level));
     }
     let key = u128::from(player_id) << 32 | u128::from(rod.rod_id);
-    if ctx.db.owned_rod().key().find(key).is_none() {
+    if crate::gear_instances::enabled(ctx)? && rod_id.is_none() {
+        crate::gear_instances::selected_instance(ctx, player_id, "rod")?;
+    } else if ctx.db.owned_rod().key().find(key).is_none() {
         return Err("ROD_NOT_OWNED".into());
     }
     if !crate::shop::owns_licence(ctx, player_id, biome.biome_id) {
@@ -49,6 +51,13 @@ fn change(
     player.equipped_rod_id = rod.rod_id;
     player.selected_biome_id = biome.biome_id;
     ctx.db.player().player_id().update(player);
+    if crate::gear_instances::enabled(ctx)? && rod_id.is_some() {
+        crate::gear_instances::equip_instance(
+            ctx,
+            player_id,
+            crate::gear_instances::original_id(player_id, "rod", rod.rod_id)?,
+        )?;
+    }
     Ok(())
 }
 

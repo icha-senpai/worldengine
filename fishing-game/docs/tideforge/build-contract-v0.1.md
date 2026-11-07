@@ -637,3 +637,56 @@ Implementation remains staged across the whole connected feature, not a
 reduced slice: instances/preservation, effects/progression, Forge/materials/
 traders/libraries, then website integration and end-to-end proofs. The current
 document consolidates decisions; unresolved entries are not permission to guess.
+
+## 8. Instance And Preservation Foundation
+
+This stage adds the instance and preservation foundation only. It does not
+activate affixes, signatures, innate stat bonuses, mastery awards or curves,
+additional-copy acquisition, Forge, Marks or processing. The effect numbers
+in section 6 remain proposals, not approved balance.
+
+Activation is an explicit deployment-owner action, not part of module publish
+or initialization. Before activation, ordinary actions use the unchanged legacy
+path and create no instance metadata. Activation copies existing owned rods,
+boats and nets into protected originals, preserves their quality and eligible rod
+reinforcement, maps all equipped definitions, and creates one zero-XP,
+zero-curve family-progress row per owner, kind and family. It validates the
+whole migration transaction before its activation marker is committed; repeats
+are no-ops. Existing player, inventory, collection and booked-reward rows remain
+authoritative and unchanged.
+
+Original instance IDs are `(player_id << 64) | (kind_tag << 32) | definition_id`,
+with rod/boat/net tags 1/2/3. Family keys use the same layout with family ID.
+Bit 63 of the lower half is reserved for future non-original instances; copies
+share family progress without inheriting another instance's quality or
+reinforcement. Original primary biome initially matches the family's native
+biome as metadata only. No innate Luck or mastery bonus is active.
+
+After activation, selected instance identity and its own quality and
+reinforcement drive rod, haul and raid gear selection. Definition-based legacy
+equip, upgrade and reinforcement actions explicitly address protected
+originals; old pending quotes retain their existing nonce, price and expiry.
+Successful original progress changes mirror atomically into that original with
+a checked revision increment. They never overwrite a selected same-family copy.
+One active loadout remains; committed deployed/running raids block actual gear
+changes across all three slots, but not same-instance no-ops or biome-only
+changes. Prepared raids do not add a new lock, and existing ordinary haul and
+Forge behavior is not restricted by this stage.
+
+New cast, haul and raid activity metadata pins the selected instance, revision,
+identity, available effective stats and versions without consuming RNG. Existing
+activity and receipt payloads remain the reward authority, including replays
+and already-booked activities. Migration backfills only running hauls and
+prepared/deployed/running raids using their captured quality and stored stats;
+legacy revision and primary biome remain unknown. Raid Luck and XP are not
+invented. Legacy hauls did not store a content version, so their metadata uses
+`None` and settlement retains the prior current-version fallback. New hauls
+record their booking version and use it at settlement. This does not create a
+historical catalog store.
+
+Instance, loadout, family and snapshot tables are private and exposed only
+through owner-scoped and authorized selected-adapter views. The public
+activation flag contains no player identity. Snapshot deletion follows the
+corresponding existing cast receipt, delivered haul or terminal raid retention;
+active and booked activities are not prematurely pruned. Isolated preservation
+proof and review remain required before any deployment.

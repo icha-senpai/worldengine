@@ -1,7 +1,8 @@
 # Tideforge Design Workspace
 
-Status: design and discussion only. These documents do not authorize gameplay
-changes, migrations, commits, or production deployment.
+Status: the instance/preservation foundation is implemented and verified locally.
+Development/production activation and deployment are not authorized by these
+documents. Numerical effect rules remain proposed, not approved gameplay.
 
 This directory contains repository working copies of Boss's four Desktop design
 documents. The Desktop originals are not edited. Original filenames, version
@@ -29,7 +30,8 @@ repository copies incorporate the clarifications below.
    proposed filleting and conversion recipes, conditional fish batches and
    whole-batch comparisons; not approved balance or a daily-income forecast.
 9. [Build contract](build-contract-v0.1.md): consolidated accepted rules and
-   remaining implementation gates; individual raid payouts remain proposed.
+   remaining implementation gates; the instance/preservation foundation is
+   described in section 8. Individual raid payouts remain proposed.
 10. [Balance review and production baseline](balance-review-v0.1.md): read-only
     production activity/economy observations, effect-size findings and proposed
     starting test targets; not approved balance.

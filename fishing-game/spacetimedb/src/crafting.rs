@@ -520,6 +520,7 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
     if rod.upgrade_level != quote.from_quality {
         return Err("QUOTE_CHANGED".into());
     }
+    crate::gear_instances::verify_rod_original(ctx, player_id, quote.rod_id, rod.upgrade_level)?;
     let next = ctx
         .db
         .quality_definition()
@@ -547,6 +548,7 @@ fn commit(ctx: &ReducerContext, player_id: u64, nonce: u128) -> Result<(), Strin
     )?;
     rod.upgrade_level = next.quality_level;
     ctx.db.owned_rod().key().update(rod);
+    crate::gear_instances::mirror_rod_quality(ctx, player_id, quote.rod_id, next.quality_level)?;
     crate::inventory::ledger(
         ctx,
         player_id,

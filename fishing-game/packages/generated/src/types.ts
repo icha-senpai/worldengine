@@ -342,6 +342,82 @@ export const GameConfig = __t.object("GameConfig", {
 });
 export type GameConfig = __Infer<typeof GameConfig>;
 
+export const GearActivitySnapshot = __t.object("GearActivitySnapshot", {
+  key: __t.string(),
+  playerId: __t.u64(),
+  activityKind: __t.string(),
+  activityId: __t.u128(),
+  get snapshot() {
+    return GearSnapshot;
+  },
+  bookedAt: __t.timestamp(),
+  recordedAt: __t.timestamp(),
+  legacyBooking: __t.bool(),
+});
+export type GearActivitySnapshot = __Infer<typeof GearActivitySnapshot>;
+
+export const GearFamilyProgress = __t.object("GearFamilyProgress", {
+  key: __t.u128(),
+  playerId: __t.u64(),
+  kind: __t.string(),
+  familyId: __t.u32(),
+  masteryXp: __t.u64(),
+  curveVersion: __t.u32(),
+});
+export type GearFamilyProgress = __Infer<typeof GearFamilyProgress>;
+
+export const GearFoundationState = __t.object("GearFoundationState", {
+  singleton: __t.u8(),
+  version: __t.u32(),
+  activatedAt: __t.timestamp(),
+});
+export type GearFoundationState = __Infer<typeof GearFoundationState>;
+
+export const GearInstance = __t.object("GearInstance", {
+  instanceId: __t.u128(),
+  playerId: __t.u64(),
+  kind: __t.string(),
+  definitionId: __t.u32(),
+  familyId: __t.u32(),
+  primaryBiomeId: __t.u32(),
+  qualityLevel: __t.u8(),
+  reinforcementLevel: __t.u8(),
+  protectedOriginal: __t.bool(),
+  favorite: __t.bool(),
+  revision: __t.u64(),
+  source: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type GearInstance = __Infer<typeof GearInstance>;
+
+export const GearLoadout = __t.object("GearLoadout", {
+  playerId: __t.u64(),
+  rodInstanceId: __t.u128(),
+  boatInstanceId: __t.u128(),
+  netInstanceId: __t.u128(),
+  revision: __t.u64(),
+});
+export type GearLoadout = __Infer<typeof GearLoadout>;
+
+export const GearSnapshot = __t.object("GearSnapshot", {
+  instanceId: __t.u128(),
+  gearRevision: __t.option(__t.u64()),
+  kind: __t.string(),
+  definitionId: __t.u32(),
+  familyId: __t.u32(),
+  primaryBiomeId: __t.option(__t.u32()),
+  qualityLevel: __t.u8(),
+  reinforcementLevel: __t.u8(),
+  effectsVersion: __t.u32(),
+  power: __t.option(__t.u32()),
+  luckBp: __t.option(__t.u32()),
+  xpBonusBp: __t.option(__t.u32()),
+  rulesVersion: __t.u32(),
+  contentVersion: __t.option(__t.u32()),
+  catalogVersion: __t.option(__t.u32()),
+});
+export type GearSnapshot = __Infer<typeof GearSnapshot>;
+
 export const HaulEquipmentDefinition = __t.object("HaulEquipmentDefinition", {
   equipmentId: __t.u32(),
   kind: __t.string(),

@@ -19,6 +19,7 @@ pub mod acknowledge_raid_delivery_reducer;
 pub mod action_nonce_type;
 pub mod activate_achievements_reducer;
 pub mod activate_crafting_reducer;
+pub mod activate_gear_foundation_reducer;
 pub mod activate_haul_equipment_reducer;
 pub mod activate_history_queries_reducer;
 pub mod activate_perfect_catches_reducer;
@@ -38,6 +39,10 @@ pub mod adapter_cast_pulls_table;
 pub mod adapter_collection_focus_table;
 pub mod adapter_collection_table;
 pub mod adapter_daily_receipt_table;
+pub mod adapter_gear_activity_snapshots_table;
+pub mod adapter_gear_family_progress_table;
+pub mod adapter_gear_instances_table;
+pub mod adapter_gear_loadout_table;
 pub mod adapter_haul_status_table;
 pub mod adapter_haul_work_table;
 pub mod adapter_inventory_table;
@@ -114,6 +119,8 @@ pub mod earned_achievement_type;
 pub mod economy_ledger_type;
 pub mod equip_bait_from_discord_reducer;
 pub mod equip_bait_reducer;
+pub mod equip_gear_instance_from_discord_reducer;
+pub mod equip_gear_instance_reducer;
 pub mod equip_haul_equipment_reducer;
 pub mod equip_title_reducer;
 pub mod finish_haul_from_adapter_reducer;
@@ -122,6 +129,13 @@ pub mod fishing_biome_activity_type;
 pub mod fishing_day_type;
 pub mod game_config_table;
 pub mod game_config_type;
+pub mod gear_activity_snapshot_type;
+pub mod gear_family_progress_type;
+pub mod gear_foundation_state_table;
+pub mod gear_foundation_state_type;
+pub mod gear_instance_type;
+pub mod gear_loadout_type;
+pub mod gear_snapshot_type;
 pub mod haul_equipment_definition_table;
 pub mod haul_equipment_definition_type;
 pub mod haul_job_type;
@@ -148,6 +162,10 @@ pub mod my_baits_table;
 pub mod my_collection_focus_table;
 pub mod my_collection_table;
 pub mod my_dockside_table;
+pub mod my_gear_activity_snapshots_table;
+pub mod my_gear_family_progress_table;
+pub mod my_gear_instances_table;
+pub mod my_gear_loadout_table;
 pub mod my_haul_equipment_table;
 pub mod my_haul_loadout_table;
 pub mod my_haul_trips_table;
@@ -240,6 +258,8 @@ pub mod set_bait_slot_reducer;
 pub mod set_catch_favorite_reducer;
 pub mod set_collection_focus_from_discord_reducer;
 pub mod set_collection_focus_reducer;
+pub mod set_gear_instance_favorite_from_discord_reducer;
+pub mod set_gear_instance_favorite_reducer;
 pub mod shop_listing_table;
 pub mod shop_listing_type;
 pub mod shop_quote_type;
@@ -270,6 +290,7 @@ pub use acknowledge_raid_delivery_reducer::acknowledge_raid_delivery;
 pub use action_nonce_type::ActionNonce;
 pub use activate_achievements_reducer::activate_achievements;
 pub use activate_crafting_reducer::activate_crafting;
+pub use activate_gear_foundation_reducer::activate_gear_foundation;
 pub use activate_haul_equipment_reducer::activate_haul_equipment;
 pub use activate_history_queries_reducer::activate_history_queries;
 pub use activate_perfect_catches_reducer::activate_perfect_catches;
@@ -289,6 +310,10 @@ pub use adapter_cast_pulls_table::*;
 pub use adapter_collection_focus_table::*;
 pub use adapter_collection_table::*;
 pub use adapter_daily_receipt_table::*;
+pub use adapter_gear_activity_snapshots_table::*;
+pub use adapter_gear_family_progress_table::*;
+pub use adapter_gear_instances_table::*;
+pub use adapter_gear_loadout_table::*;
 pub use adapter_haul_status_table::*;
 pub use adapter_haul_work_table::*;
 pub use adapter_inventory_table::*;
@@ -365,6 +390,8 @@ pub use earned_achievement_type::EarnedAchievement;
 pub use economy_ledger_type::EconomyLedger;
 pub use equip_bait_from_discord_reducer::equip_bait_from_discord;
 pub use equip_bait_reducer::equip_bait;
+pub use equip_gear_instance_from_discord_reducer::equip_gear_instance_from_discord;
+pub use equip_gear_instance_reducer::equip_gear_instance;
 pub use equip_haul_equipment_reducer::equip_haul_equipment;
 pub use equip_title_reducer::equip_title;
 pub use finish_haul_from_adapter_reducer::finish_haul_from_adapter;
@@ -373,6 +400,13 @@ pub use fishing_biome_activity_type::FishingBiomeActivity;
 pub use fishing_day_type::FishingDay;
 pub use game_config_table::*;
 pub use game_config_type::GameConfig;
+pub use gear_activity_snapshot_type::GearActivitySnapshot;
+pub use gear_family_progress_type::GearFamilyProgress;
+pub use gear_foundation_state_table::*;
+pub use gear_foundation_state_type::GearFoundationState;
+pub use gear_instance_type::GearInstance;
+pub use gear_loadout_type::GearLoadout;
+pub use gear_snapshot_type::GearSnapshot;
 pub use haul_equipment_definition_table::*;
 pub use haul_equipment_definition_type::HaulEquipmentDefinition;
 pub use haul_job_type::HaulJob;
@@ -399,6 +433,10 @@ pub use my_baits_table::*;
 pub use my_collection_focus_table::*;
 pub use my_collection_table::*;
 pub use my_dockside_table::*;
+pub use my_gear_activity_snapshots_table::*;
+pub use my_gear_family_progress_table::*;
+pub use my_gear_instances_table::*;
+pub use my_gear_loadout_table::*;
 pub use my_haul_equipment_table::*;
 pub use my_haul_loadout_table::*;
 pub use my_haul_trips_table::*;
@@ -491,6 +529,8 @@ pub use set_bait_slot_reducer::set_bait_slot;
 pub use set_catch_favorite_reducer::set_catch_favorite;
 pub use set_collection_focus_from_discord_reducer::set_collection_focus_from_discord;
 pub use set_collection_focus_reducer::set_collection_focus;
+pub use set_gear_instance_favorite_from_discord_reducer::set_gear_instance_favorite_from_discord;
+pub use set_gear_instance_favorite_reducer::set_gear_instance_favorite;
 pub use shop_listing_table::*;
 pub use shop_listing_type::ShopListing;
 pub use shop_quote_type::ShopQuote;
@@ -530,6 +570,7 @@ pub enum Reducer {
     },
     ActivateAchievements,
     ActivateCrafting,
+    ActivateGearFoundation,
     ActivateHaulEquipment,
     ActivateHistoryQueries,
     ActivatePerfectCatches,
@@ -674,6 +715,14 @@ pub enum Reducer {
         interaction_id: u64,
         bait_id: u32,
     },
+    EquipGearInstance {
+        instance_id: u128,
+    },
+    EquipGearInstanceFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        instance_id: u128,
+    },
     EquipHaulEquipment {
         equipment_id: u32,
     },
@@ -809,6 +858,16 @@ pub enum Reducer {
         biome_id: u32,
         enabled: bool,
     },
+    SetGearInstanceFavorite {
+        instance_id: u128,
+        favorite: bool,
+    },
+    SetGearInstanceFavoriteFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        instance_id: u128,
+        favorite: bool,
+    },
     StartHaulFromDiscord {
         discord_user_id: u64,
         interaction_id: u64,
@@ -836,6 +895,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::AcknowledgeRaidDelivery { .. } => "acknowledge_raid_delivery",
             Reducer::ActivateAchievements => "activate_achievements",
             Reducer::ActivateCrafting => "activate_crafting",
+            Reducer::ActivateGearFoundation => "activate_gear_foundation",
             Reducer::ActivateHaulEquipment => "activate_haul_equipment",
             Reducer::ActivateHistoryQueries => "activate_history_queries",
             Reducer::ActivatePerfectCatches => "activate_perfect_catches",
@@ -878,6 +938,8 @@ impl __sdk::Reducer for Reducer {
             Reducer::DeployRaidFromDiscord { .. } => "deploy_raid_from_discord",
             Reducer::EquipBait { .. } => "equip_bait",
             Reducer::EquipBaitFromDiscord { .. } => "equip_bait_from_discord",
+            Reducer::EquipGearInstance { .. } => "equip_gear_instance",
+            Reducer::EquipGearInstanceFromDiscord { .. } => "equip_gear_instance_from_discord",
             Reducer::EquipHaulEquipment { .. } => "equip_haul_equipment",
             Reducer::EquipTitle { .. } => "equip_title",
             Reducer::FinishHaulFromAdapter { .. } => "finish_haul_from_adapter",
@@ -909,6 +971,10 @@ impl __sdk::Reducer for Reducer {
             Reducer::SetCatchFavorite { .. } => "set_catch_favorite",
             Reducer::SetCollectionFocus { .. } => "set_collection_focus",
             Reducer::SetCollectionFocusFromDiscord { .. } => "set_collection_focus_from_discord",
+            Reducer::SetGearInstanceFavorite { .. } => "set_gear_instance_favorite",
+            Reducer::SetGearInstanceFavoriteFromDiscord { .. } => {
+                "set_gear_instance_favorite_from_discord"
+            }
             Reducer::StartHaulFromDiscord { .. } => "start_haul_from_discord",
             Reducer::SyncDiscordPortrait { .. } => "sync_discord_portrait",
             Reducer::UnlinkBrowser => "unlink_browser",
@@ -918,156 +984,139 @@ impl __sdk::Reducer for Reducer {
     #[allow(clippy::clone_on_copy)]
     fn args_bsatn(&self) -> Result<Vec<u8>, __sats::bsatn::EncodeError> {
         match self {
-            Reducer::AcknowledgeAchievementDelivery { key, lease_nonce } => __sats::bsatn::to_vec(
-                &acknowledge_achievement_delivery_reducer::AcknowledgeAchievementDeliveryArgs {
-                    key: key.clone(),
-                    lease_nonce: lease_nonce.clone(),
-                },
-            ),
-            Reducer::AcknowledgeHaulDelivery {
+                        Reducer::AcknowledgeAchievementDelivery{
+                key,
+                lease_nonce,
+}             => __sats::bsatn::to_vec(&acknowledge_achievement_delivery_reducer::AcknowledgeAchievementDeliveryArgs {
+                key: key.clone(),
+                lease_nonce: lease_nonce.clone(),
+}),
+            Reducer::AcknowledgeHaulDelivery{
                 interaction_id,
                 lease_nonce,
-            } => __sats::bsatn::to_vec(
-                &acknowledge_haul_delivery_reducer::AcknowledgeHaulDeliveryArgs {
-                    interaction_id: interaction_id.clone(),
-                    lease_nonce: lease_nonce.clone(),
-                },
-            ),
-            Reducer::AcknowledgeRaidDelivery {
+}             => __sats::bsatn::to_vec(&acknowledge_haul_delivery_reducer::AcknowledgeHaulDeliveryArgs {
+                interaction_id: interaction_id.clone(),
+                lease_nonce: lease_nonce.clone(),
+}),
+            Reducer::AcknowledgeRaidDelivery{
                 attempt_id,
                 lease_nonce,
-            } => __sats::bsatn::to_vec(
-                &acknowledge_raid_delivery_reducer::AcknowledgeRaidDeliveryArgs {
-                    attempt_id: attempt_id.clone(),
-                    lease_nonce: lease_nonce.clone(),
-                },
-            ),
-            Reducer::ActivateAchievements => {
-                __sats::bsatn::to_vec(&activate_achievements_reducer::ActivateAchievementsArgs {})
-            }
-            Reducer::ActivateCrafting => {
-                __sats::bsatn::to_vec(&activate_crafting_reducer::ActivateCraftingArgs {})
-            }
-            Reducer::ActivateHaulEquipment => __sats::bsatn::to_vec(
-                &activate_haul_equipment_reducer::ActivateHaulEquipmentArgs {},
-            ),
-            Reducer::ActivateHistoryQueries => __sats::bsatn::to_vec(
-                &activate_history_queries_reducer::ActivateHistoryQueriesArgs {},
-            ),
-            Reducer::ActivatePerfectCatches => __sats::bsatn::to_vec(
-                &activate_perfect_catches_reducer::ActivatePerfectCatchesArgs {},
-            ),
-            Reducer::ActivateQuests => {
-                __sats::bsatn::to_vec(&activate_quests_reducer::ActivateQuestsArgs {})
-            }
-            Reducer::ActivateRaids => {
-                __sats::bsatn::to_vec(&activate_raids_reducer::ActivateRaidsArgs {})
-            }
-            Reducer::ActivateRankMaxima => {
-                __sats::bsatn::to_vec(&activate_rank_maxima_reducer::ActivateRankMaximaArgs {})
-            }
-            Reducer::ActivateRodBonuses => {
-                __sats::bsatn::to_vec(&activate_rod_bonuses_reducer::ActivateRodBonusesArgs {})
-            }
-            Reducer::ActivateSpeciesMeasurements => __sats::bsatn::to_vec(
-                &activate_species_measurements_reducer::ActivateSpeciesMeasurementsArgs {},
-            ),
-            Reducer::ActivateTrader {
+}             => __sats::bsatn::to_vec(&acknowledge_raid_delivery_reducer::AcknowledgeRaidDeliveryArgs {
+                attempt_id: attempt_id.clone(),
+                lease_nonce: lease_nonce.clone(),
+}),
+            Reducer::ActivateAchievements => __sats::bsatn::to_vec(&activate_achievements_reducer::ActivateAchievementsArgs {
+                }),
+Reducer::ActivateCrafting => __sats::bsatn::to_vec(&activate_crafting_reducer::ActivateCraftingArgs {
+                }),
+Reducer::ActivateGearFoundation => __sats::bsatn::to_vec(&activate_gear_foundation_reducer::ActivateGearFoundationArgs {
+                }),
+Reducer::ActivateHaulEquipment => __sats::bsatn::to_vec(&activate_haul_equipment_reducer::ActivateHaulEquipmentArgs {
+                }),
+Reducer::ActivateHistoryQueries => __sats::bsatn::to_vec(&activate_history_queries_reducer::ActivateHistoryQueriesArgs {
+                }),
+Reducer::ActivatePerfectCatches => __sats::bsatn::to_vec(&activate_perfect_catches_reducer::ActivatePerfectCatchesArgs {
+                }),
+Reducer::ActivateQuests => __sats::bsatn::to_vec(&activate_quests_reducer::ActivateQuestsArgs {
+                }),
+Reducer::ActivateRaids => __sats::bsatn::to_vec(&activate_raids_reducer::ActivateRaidsArgs {
+                }),
+Reducer::ActivateRankMaxima => __sats::bsatn::to_vec(&activate_rank_maxima_reducer::ActivateRankMaximaArgs {
+                }),
+Reducer::ActivateRodBonuses => __sats::bsatn::to_vec(&activate_rod_bonuses_reducer::ActivateRodBonusesArgs {
+                }),
+Reducer::ActivateSpeciesMeasurements => __sats::bsatn::to_vec(&activate_species_measurements_reducer::ActivateSpeciesMeasurementsArgs {
+                }),
+Reducer::ActivateTrader{
                 grandfather_licences,
-            } => __sats::bsatn::to_vec(&activate_trader_reducer::ActivateTraderArgs {
+}             => __sats::bsatn::to_vec(&activate_trader_reducer::ActivateTraderArgs {
                 grandfather_licences: grandfather_licences.clone(),
-            }),
-            Reducer::ActivateXpProgression => __sats::bsatn::to_vec(
-                &activate_xp_progression_reducer::ActivateXpProgressionArgs {},
-            ),
-            Reducer::BackfillCatchRecords => {
-                __sats::bsatn::to_vec(&backfill_catch_records_reducer::BackfillCatchRecordsArgs {})
-            }
-            Reducer::BackfillJournal { player_id } => {
-                __sats::bsatn::to_vec(&backfill_journal_reducer::BackfillJournalArgs {
-                    player_id: player_id.clone(),
-                })
-            }
-            Reducer::BackfillPlayerAchievements { player_id } => __sats::bsatn::to_vec(
-                &backfill_player_achievements_reducer::BackfillPlayerAchievementsArgs {
-                    player_id: player_id.clone(),
-                },
-            ),
-            Reducer::BackfillPlayerStatistics { player_id } => __sats::bsatn::to_vec(
-                &backfill_player_statistics_reducer::BackfillPlayerStatisticsArgs {
-                    player_id: player_id.clone(),
-                },
-            ),
-            Reducer::BeginLinkChallenge => {
-                __sats::bsatn::to_vec(&begin_link_challenge_reducer::BeginLinkChallengeArgs {})
-            }
-            Reducer::CancelRaid {
+}),
+            Reducer::ActivateXpProgression => __sats::bsatn::to_vec(&activate_xp_progression_reducer::ActivateXpProgressionArgs {
+                }),
+Reducer::BackfillCatchRecords => __sats::bsatn::to_vec(&backfill_catch_records_reducer::BackfillCatchRecordsArgs {
+                }),
+Reducer::BackfillJournal{
+                player_id,
+}             => __sats::bsatn::to_vec(&backfill_journal_reducer::BackfillJournalArgs {
+                player_id: player_id.clone(),
+}),
+            Reducer::BackfillPlayerAchievements{
+                player_id,
+}             => __sats::bsatn::to_vec(&backfill_player_achievements_reducer::BackfillPlayerAchievementsArgs {
+                player_id: player_id.clone(),
+}),
+            Reducer::BackfillPlayerStatistics{
+                player_id,
+}             => __sats::bsatn::to_vec(&backfill_player_statistics_reducer::BackfillPlayerStatisticsArgs {
+                player_id: player_id.clone(),
+}),
+            Reducer::BeginLinkChallenge => __sats::bsatn::to_vec(&begin_link_challenge_reducer::BeginLinkChallengeArgs {
+                }),
+Reducer::CancelRaid{
                 request_id,
                 attempt_id,
-            } => __sats::bsatn::to_vec(&cancel_raid_reducer::CancelRaidArgs {
+}             => __sats::bsatn::to_vec(&cancel_raid_reducer::CancelRaidArgs {
                 request_id: request_id.clone(),
                 attempt_id: attempt_id.clone(),
-            }),
-            Reducer::CancelRaidFromDiscord {
+}),
+            Reducer::CancelRaidFromDiscord{
                 discord_user_id,
                 interaction_id,
                 attempt_id,
-            } => __sats::bsatn::to_vec(
-                &cancel_raid_from_discord_reducer::CancelRaidFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    attempt_id: attempt_id.clone(),
-                },
-            ),
-            Reducer::ChangeLoadout { biome_id, rod_id } => {
-                __sats::bsatn::to_vec(&change_loadout_reducer::ChangeLoadoutArgs {
-                    biome_id: biome_id.clone(),
-                    rod_id: rod_id.clone(),
-                })
-            }
-            Reducer::ChangeLoadoutFromDiscord {
+}             => __sats::bsatn::to_vec(&cancel_raid_from_discord_reducer::CancelRaidFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                attempt_id: attempt_id.clone(),
+}),
+            Reducer::ChangeLoadout{
+                biome_id,
+                rod_id,
+}             => __sats::bsatn::to_vec(&change_loadout_reducer::ChangeLoadoutArgs {
+                biome_id: biome_id.clone(),
+                rod_id: rod_id.clone(),
+}),
+            Reducer::ChangeLoadoutFromDiscord{
                 discord_user_id,
                 interaction_id,
                 biome_id,
                 rod_id,
-            } => __sats::bsatn::to_vec(
-                &change_loadout_from_discord_reducer::ChangeLoadoutFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    biome_id: biome_id.clone(),
-                    rod_id: rod_id.clone(),
-                },
-            ),
-            Reducer::ClaimAchievementDelivery { key, lease_nonce } => __sats::bsatn::to_vec(
-                &claim_achievement_delivery_reducer::ClaimAchievementDeliveryArgs {
-                    key: key.clone(),
-                    lease_nonce: lease_nonce.clone(),
-                },
-            ),
-            Reducer::ClaimDocksideDelivery => __sats::bsatn::to_vec(
-                &claim_dockside_delivery_reducer::ClaimDocksideDeliveryArgs {},
-            ),
-            Reducer::ClaimHaulDelivery {
+}             => __sats::bsatn::to_vec(&change_loadout_from_discord_reducer::ChangeLoadoutFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                biome_id: biome_id.clone(),
+                rod_id: rod_id.clone(),
+}),
+            Reducer::ClaimAchievementDelivery{
+                key,
+                lease_nonce,
+}             => __sats::bsatn::to_vec(&claim_achievement_delivery_reducer::ClaimAchievementDeliveryArgs {
+                key: key.clone(),
+                lease_nonce: lease_nonce.clone(),
+}),
+            Reducer::ClaimDocksideDelivery => __sats::bsatn::to_vec(&claim_dockside_delivery_reducer::ClaimDocksideDeliveryArgs {
+                }),
+Reducer::ClaimHaulDelivery{
                 interaction_id,
                 lease_nonce,
-            } => __sats::bsatn::to_vec(&claim_haul_delivery_reducer::ClaimHaulDeliveryArgs {
+}             => __sats::bsatn::to_vec(&claim_haul_delivery_reducer::ClaimHaulDeliveryArgs {
                 interaction_id: interaction_id.clone(),
                 lease_nonce: lease_nonce.clone(),
-            }),
-            Reducer::ClaimQuest {
+}),
+            Reducer::ClaimQuest{
                 quest_id,
                 bait_id,
                 catch_id,
                 expected_week,
                 expected_cycle,
-            } => __sats::bsatn::to_vec(&claim_quest_reducer::ClaimQuestArgs {
+}             => __sats::bsatn::to_vec(&claim_quest_reducer::ClaimQuestArgs {
                 quest_id: quest_id.clone(),
                 bait_id: bait_id.clone(),
                 catch_id: catch_id.clone(),
                 expected_week: expected_week.clone(),
                 expected_cycle: expected_cycle.clone(),
-            }),
-            Reducer::ClaimQuestFromDiscord {
+}),
+            Reducer::ClaimQuestFromDiscord{
                 discord_user_id,
                 interaction_id,
                 quest_id,
@@ -1075,364 +1124,346 @@ impl __sdk::Reducer for Reducer {
                 catch_id,
                 expected_week,
                 expected_cycle,
-            } => __sats::bsatn::to_vec(
-                &claim_quest_from_discord_reducer::ClaimQuestFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    quest_id: quest_id.clone(),
-                    bait_id: bait_id.clone(),
-                    catch_id: catch_id.clone(),
-                    expected_week: expected_week.clone(),
-                    expected_cycle: expected_cycle.clone(),
-                },
-            ),
-            Reducer::ClaimRaid {
+}             => __sats::bsatn::to_vec(&claim_quest_from_discord_reducer::ClaimQuestFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                quest_id: quest_id.clone(),
+                bait_id: bait_id.clone(),
+                catch_id: catch_id.clone(),
+                expected_week: expected_week.clone(),
+                expected_cycle: expected_cycle.clone(),
+}),
+            Reducer::ClaimRaid{
                 request_id,
                 attempt_id,
-            } => __sats::bsatn::to_vec(&claim_raid_reducer::ClaimRaidArgs {
+}             => __sats::bsatn::to_vec(&claim_raid_reducer::ClaimRaidArgs {
                 request_id: request_id.clone(),
                 attempt_id: attempt_id.clone(),
-            }),
-            Reducer::ClaimRaidDelivery {
+}),
+            Reducer::ClaimRaidDelivery{
                 attempt_id,
                 lease_nonce,
-            } => __sats::bsatn::to_vec(&claim_raid_delivery_reducer::ClaimRaidDeliveryArgs {
+}             => __sats::bsatn::to_vec(&claim_raid_delivery_reducer::ClaimRaidDeliveryArgs {
                 attempt_id: attempt_id.clone(),
                 lease_nonce: lease_nonce.clone(),
-            }),
-            Reducer::ClaimRaidFromDiscord {
+}),
+            Reducer::ClaimRaidFromDiscord{
                 discord_user_id,
                 interaction_id,
                 attempt_id,
-            } => {
-                __sats::bsatn::to_vec(&claim_raid_from_discord_reducer::ClaimRaidFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    attempt_id: attempt_id.clone(),
-                })
-            }
-            Reducer::CommitHaulUpgrade { nonce } => {
-                __sats::bsatn::to_vec(&commit_haul_upgrade_reducer::CommitHaulUpgradeArgs {
-                    nonce: nonce.clone(),
-                })
-            }
-            Reducer::CommitInventoryAction { nonce } => __sats::bsatn::to_vec(
-                &commit_inventory_action_reducer::CommitInventoryActionArgs {
-                    nonce: nonce.clone(),
-                },
-            ),
-            Reducer::CommitRodUpgrade { nonce } => {
-                __sats::bsatn::to_vec(&commit_rod_upgrade_reducer::CommitRodUpgradeArgs {
-                    nonce: nonce.clone(),
-                })
-            }
-            Reducer::CommitSaleFromDiscord {
+}             => __sats::bsatn::to_vec(&claim_raid_from_discord_reducer::ClaimRaidFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                attempt_id: attempt_id.clone(),
+}),
+            Reducer::CommitHaulUpgrade{
+                nonce,
+}             => __sats::bsatn::to_vec(&commit_haul_upgrade_reducer::CommitHaulUpgradeArgs {
+                nonce: nonce.clone(),
+}),
+            Reducer::CommitInventoryAction{
+                nonce,
+}             => __sats::bsatn::to_vec(&commit_inventory_action_reducer::CommitInventoryActionArgs {
+                nonce: nonce.clone(),
+}),
+            Reducer::CommitRodUpgrade{
+                nonce,
+}             => __sats::bsatn::to_vec(&commit_rod_upgrade_reducer::CommitRodUpgradeArgs {
+                nonce: nonce.clone(),
+}),
+            Reducer::CommitSaleFromDiscord{
                 discord_user_id,
                 interaction_id,
                 nonce,
-            } => __sats::bsatn::to_vec(
-                &commit_sale_from_discord_reducer::CommitSaleFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    nonce: nonce.clone(),
-                },
-            ),
-            Reducer::CommitShopFromDiscord {
+}             => __sats::bsatn::to_vec(&commit_sale_from_discord_reducer::CommitSaleFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                nonce: nonce.clone(),
+}),
+            Reducer::CommitShopFromDiscord{
                 discord_user_id,
                 interaction_id,
                 nonce,
-            } => __sats::bsatn::to_vec(
-                &commit_shop_from_discord_reducer::CommitShopFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    nonce: nonce.clone(),
-                },
-            ),
-            Reducer::CommitShopPurchase { nonce } => {
-                __sats::bsatn::to_vec(&commit_shop_purchase_reducer::CommitShopPurchaseArgs {
-                    nonce: nonce.clone(),
-                })
-            }
-            Reducer::CommitShopPurchaseQuantity { nonce, quantity } => __sats::bsatn::to_vec(
-                &commit_shop_purchase_quantity_reducer::CommitShopPurchaseQuantityArgs {
-                    nonce: nonce.clone(),
-                    quantity: quantity.clone(),
-                },
-            ),
-            Reducer::CommitUpgradeFromDiscord {
+}             => __sats::bsatn::to_vec(&commit_shop_from_discord_reducer::CommitShopFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                nonce: nonce.clone(),
+}),
+            Reducer::CommitShopPurchase{
+                nonce,
+}             => __sats::bsatn::to_vec(&commit_shop_purchase_reducer::CommitShopPurchaseArgs {
+                nonce: nonce.clone(),
+}),
+            Reducer::CommitShopPurchaseQuantity{
+                nonce,
+                quantity,
+}             => __sats::bsatn::to_vec(&commit_shop_purchase_quantity_reducer::CommitShopPurchaseQuantityArgs {
+                nonce: nonce.clone(),
+                quantity: quantity.clone(),
+}),
+            Reducer::CommitUpgradeFromDiscord{
                 discord_user_id,
                 interaction_id,
                 nonce,
-            } => __sats::bsatn::to_vec(
-                &commit_upgrade_from_discord_reducer::CommitUpgradeFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    nonce: nonce.clone(),
-                },
-            ),
-            Reducer::CompleteAccountLink {
+}             => __sats::bsatn::to_vec(&commit_upgrade_from_discord_reducer::CommitUpgradeFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                nonce: nonce.clone(),
+}),
+            Reducer::CompleteAccountLink{
                 challenge_id,
                 verified_discord_user_id,
                 proof,
-            } => __sats::bsatn::to_vec(&complete_account_link_reducer::CompleteAccountLinkArgs {
+}             => __sats::bsatn::to_vec(&complete_account_link_reducer::CompleteAccountLinkArgs {
                 challenge_id: challenge_id.clone(),
                 verified_discord_user_id: verified_discord_user_id.clone(),
                 proof: proof.clone(),
-            }),
-            Reducer::ConfigureService {
+}),
+            Reducer::ConfigureService{
                 identity,
                 role,
                 active,
-            } => __sats::bsatn::to_vec(&configure_service_reducer::ConfigureServiceArgs {
+}             => __sats::bsatn::to_vec(&configure_service_reducer::ConfigureServiceArgs {
                 identity: identity.clone(),
                 role: role.clone(),
                 active: active.clone(),
-            }),
-            Reducer::DailyFromDiscord {
+}),
+            Reducer::DailyFromDiscord{
                 discord_user_id,
                 interaction_id,
                 guild_id,
                 channel_id,
-            } => __sats::bsatn::to_vec(&daily_from_discord_reducer::DailyFromDiscordArgs {
+}             => __sats::bsatn::to_vec(&daily_from_discord_reducer::DailyFromDiscordArgs {
                 discord_user_id: discord_user_id.clone(),
                 interaction_id: interaction_id.clone(),
                 guild_id: guild_id.clone(),
                 channel_id: channel_id.clone(),
-            }),
-            Reducer::DeployRaid {
+}),
+            Reducer::DeployRaid{
                 request_id,
                 attempt_id,
-            } => __sats::bsatn::to_vec(&deploy_raid_reducer::DeployRaidArgs {
+}             => __sats::bsatn::to_vec(&deploy_raid_reducer::DeployRaidArgs {
                 request_id: request_id.clone(),
                 attempt_id: attempt_id.clone(),
-            }),
-            Reducer::DeployRaidFromDiscord {
+}),
+            Reducer::DeployRaidFromDiscord{
                 discord_user_id,
                 interaction_id,
                 attempt_id,
-            } => __sats::bsatn::to_vec(
-                &deploy_raid_from_discord_reducer::DeployRaidFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    attempt_id: attempt_id.clone(),
-                },
-            ),
-            Reducer::EquipBait { bait_id } => {
-                __sats::bsatn::to_vec(&equip_bait_reducer::EquipBaitArgs {
-                    bait_id: bait_id.clone(),
-                })
-            }
-            Reducer::EquipBaitFromDiscord {
+}             => __sats::bsatn::to_vec(&deploy_raid_from_discord_reducer::DeployRaidFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                attempt_id: attempt_id.clone(),
+}),
+            Reducer::EquipBait{
+                bait_id,
+}             => __sats::bsatn::to_vec(&equip_bait_reducer::EquipBaitArgs {
+                bait_id: bait_id.clone(),
+}),
+            Reducer::EquipBaitFromDiscord{
                 discord_user_id,
                 interaction_id,
                 bait_id,
-            } => {
-                __sats::bsatn::to_vec(&equip_bait_from_discord_reducer::EquipBaitFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    bait_id: bait_id.clone(),
-                })
-            }
-            Reducer::EquipHaulEquipment { equipment_id } => {
-                __sats::bsatn::to_vec(&equip_haul_equipment_reducer::EquipHaulEquipmentArgs {
-                    equipment_id: equipment_id.clone(),
-                })
-            }
-            Reducer::EquipTitle { achievement_id } => {
-                __sats::bsatn::to_vec(&equip_title_reducer::EquipTitleArgs {
-                    achievement_id: achievement_id.clone(),
-                })
-            }
-            Reducer::FinishHaulFromAdapter { interaction_id } => __sats::bsatn::to_vec(
-                &finish_haul_from_adapter_reducer::FinishHaulFromAdapterArgs {
-                    interaction_id: interaction_id.clone(),
-                },
-            ),
-            Reducer::FishFromDiscord {
+}             => __sats::bsatn::to_vec(&equip_bait_from_discord_reducer::EquipBaitFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                bait_id: bait_id.clone(),
+}),
+            Reducer::EquipGearInstance{
+                instance_id,
+}             => __sats::bsatn::to_vec(&equip_gear_instance_reducer::EquipGearInstanceArgs {
+                instance_id: instance_id.clone(),
+}),
+            Reducer::EquipGearInstanceFromDiscord{
+                discord_user_id,
+                interaction_id,
+                instance_id,
+}             => __sats::bsatn::to_vec(&equip_gear_instance_from_discord_reducer::EquipGearInstanceFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                instance_id: instance_id.clone(),
+}),
+            Reducer::EquipHaulEquipment{
+                equipment_id,
+}             => __sats::bsatn::to_vec(&equip_haul_equipment_reducer::EquipHaulEquipmentArgs {
+                equipment_id: equipment_id.clone(),
+}),
+            Reducer::EquipTitle{
+                achievement_id,
+}             => __sats::bsatn::to_vec(&equip_title_reducer::EquipTitleArgs {
+                achievement_id: achievement_id.clone(),
+}),
+            Reducer::FinishHaulFromAdapter{
+                interaction_id,
+}             => __sats::bsatn::to_vec(&finish_haul_from_adapter_reducer::FinishHaulFromAdapterArgs {
+                interaction_id: interaction_id.clone(),
+}),
+            Reducer::FishFromDiscord{
                 discord_user_id,
                 interaction_id,
                 guild_id,
                 channel_id,
-            } => __sats::bsatn::to_vec(&fish_from_discord_reducer::FishFromDiscordArgs {
+}             => __sats::bsatn::to_vec(&fish_from_discord_reducer::FishFromDiscordArgs {
                 discord_user_id: discord_user_id.clone(),
                 interaction_id: interaction_id.clone(),
                 guild_id: guild_id.clone(),
                 channel_id: channel_id.clone(),
-            }),
-            Reducer::MigrateUnlimitedInventory => __sats::bsatn::to_vec(
-                &migrate_unlimited_inventory_reducer::MigrateUnlimitedInventoryArgs {},
-            ),
-            Reducer::PrepareCommunityRaid {
+}),
+            Reducer::MigrateUnlimitedInventory => __sats::bsatn::to_vec(&migrate_unlimited_inventory_reducer::MigrateUnlimitedInventoryArgs {
+                }),
+Reducer::PrepareCommunityRaid{
                 request_id,
                 event_id,
-            } => __sats::bsatn::to_vec(&prepare_community_raid_reducer::PrepareCommunityRaidArgs {
+}             => __sats::bsatn::to_vec(&prepare_community_raid_reducer::PrepareCommunityRaidArgs {
                 request_id: request_id.clone(),
                 event_id: event_id.clone(),
-            }),
-            Reducer::PrepareCommunityRaidFromDiscord {
+}),
+            Reducer::PrepareCommunityRaidFromDiscord{
                 discord_user_id,
                 interaction_id,
                 event_id,
-            } => __sats::bsatn::to_vec(
-                &prepare_community_raid_from_discord_reducer::PrepareCommunityRaidFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    event_id: event_id.clone(),
-                },
-            ),
-            Reducer::PrepareHaulUpgrade { equipment_id } => {
-                __sats::bsatn::to_vec(&prepare_haul_upgrade_reducer::PrepareHaulUpgradeArgs {
-                    equipment_id: equipment_id.clone(),
-                })
-            }
-            Reducer::PrepareInventoryAction {
+}             => __sats::bsatn::to_vec(&prepare_community_raid_from_discord_reducer::PrepareCommunityRaidFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                event_id: event_id.clone(),
+}),
+            Reducer::PrepareHaulUpgrade{
+                equipment_id,
+}             => __sats::bsatn::to_vec(&prepare_haul_upgrade_reducer::PrepareHaulUpgradeArgs {
+                equipment_id: equipment_id.clone(),
+}),
+            Reducer::PrepareInventoryAction{
                 kind,
                 catch_ids,
                 favorite,
-            } => __sats::bsatn::to_vec(
-                &prepare_inventory_action_reducer::PrepareInventoryActionArgs {
-                    kind: kind.clone(),
-                    catch_ids: catch_ids.clone(),
-                    favorite: favorite.clone(),
-                },
-            ),
-            Reducer::PrepareRaid {
+}             => __sats::bsatn::to_vec(&prepare_inventory_action_reducer::PrepareInventoryActionArgs {
+                kind: kind.clone(),
+                catch_ids: catch_ids.clone(),
+                favorite: favorite.clone(),
+}),
+            Reducer::PrepareRaid{
                 request_id,
                 species_id,
                 grade,
-            } => __sats::bsatn::to_vec(&prepare_raid_reducer::PrepareRaidArgs {
+}             => __sats::bsatn::to_vec(&prepare_raid_reducer::PrepareRaidArgs {
                 request_id: request_id.clone(),
                 species_id: species_id.clone(),
                 grade: grade.clone(),
-            }),
-            Reducer::PrepareRaidFromDiscord {
+}),
+            Reducer::PrepareRaidFromDiscord{
                 discord_user_id,
                 interaction_id,
                 species_id,
                 grade,
-            } => __sats::bsatn::to_vec(
-                &prepare_raid_from_discord_reducer::PrepareRaidFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    species_id: species_id.clone(),
-                    grade: grade.clone(),
-                },
-            ),
-            Reducer::PrepareRodUpgrade { rod_id } => {
-                __sats::bsatn::to_vec(&prepare_rod_upgrade_reducer::PrepareRodUpgradeArgs {
-                    rod_id: rod_id.clone(),
-                })
-            }
-            Reducer::PrepareSaleFromDiscord {
+}             => __sats::bsatn::to_vec(&prepare_raid_from_discord_reducer::PrepareRaidFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                species_id: species_id.clone(),
+                grade: grade.clone(),
+}),
+            Reducer::PrepareRodUpgrade{
+                rod_id,
+}             => __sats::bsatn::to_vec(&prepare_rod_upgrade_reducer::PrepareRodUpgradeArgs {
+                rod_id: rod_id.clone(),
+}),
+            Reducer::PrepareSaleFromDiscord{
                 discord_user_id,
                 interaction_id,
                 catch_ids,
-            } => __sats::bsatn::to_vec(
-                &prepare_sale_from_discord_reducer::PrepareSaleFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    catch_ids: catch_ids.clone(),
-                },
-            ),
-            Reducer::PrepareShopFromDiscord {
+}             => __sats::bsatn::to_vec(&prepare_sale_from_discord_reducer::PrepareSaleFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                catch_ids: catch_ids.clone(),
+}),
+            Reducer::PrepareShopFromDiscord{
                 discord_user_id,
                 interaction_id,
                 listing_id,
-            } => __sats::bsatn::to_vec(
-                &prepare_shop_from_discord_reducer::PrepareShopFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    listing_id: listing_id.clone(),
-                },
-            ),
-            Reducer::PrepareShopPurchase { listing_id } => {
-                __sats::bsatn::to_vec(&prepare_shop_purchase_reducer::PrepareShopPurchaseArgs {
-                    listing_id: listing_id.clone(),
-                })
-            }
-            Reducer::PrepareUpgradeFromDiscord {
+}             => __sats::bsatn::to_vec(&prepare_shop_from_discord_reducer::PrepareShopFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                listing_id: listing_id.clone(),
+}),
+            Reducer::PrepareShopPurchase{
+                listing_id,
+}             => __sats::bsatn::to_vec(&prepare_shop_purchase_reducer::PrepareShopPurchaseArgs {
+                listing_id: listing_id.clone(),
+}),
+            Reducer::PrepareUpgradeFromDiscord{
                 discord_user_id,
                 interaction_id,
                 rod_id,
-            } => __sats::bsatn::to_vec(
-                &prepare_upgrade_from_discord_reducer::PrepareUpgradeFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    rod_id: rod_id.clone(),
-                },
-            ),
-            Reducer::RebuildPlayerRecords { player_id } => {
-                __sats::bsatn::to_vec(&rebuild_player_records_reducer::RebuildPlayerRecordsArgs {
-                    player_id: player_id.clone(),
-                })
-            }
-            Reducer::RecordAchievementRoute {
+}             => __sats::bsatn::to_vec(&prepare_upgrade_from_discord_reducer::PrepareUpgradeFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                rod_id: rod_id.clone(),
+}),
+            Reducer::RebuildPlayerRecords{
+                player_id,
+}             => __sats::bsatn::to_vec(&rebuild_player_records_reducer::RebuildPlayerRecordsArgs {
+                player_id: player_id.clone(),
+}),
+            Reducer::RecordAchievementRoute{
                 discord_user_id,
                 channel_id,
-            } => __sats::bsatn::to_vec(
-                &record_achievement_route_reducer::RecordAchievementRouteArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    channel_id: channel_id.clone(),
-                },
-            ),
-            Reducer::RefineRaidMaterial {
+}             => __sats::bsatn::to_vec(&record_achievement_route_reducer::RecordAchievementRouteArgs {
+                discord_user_id: discord_user_id.clone(),
+                channel_id: channel_id.clone(),
+}),
+            Reducer::RefineRaidMaterial{
                 request_id,
                 material_id,
                 from_grade,
                 batches,
-            } => __sats::bsatn::to_vec(&refine_raid_material_reducer::RefineRaidMaterialArgs {
+}             => __sats::bsatn::to_vec(&refine_raid_material_reducer::RefineRaidMaterialArgs {
                 request_id: request_id.clone(),
                 material_id: material_id.clone(),
                 from_grade: from_grade.clone(),
                 batches: batches.clone(),
-            }),
-            Reducer::RefineRaidMaterialFromDiscord {
+}),
+            Reducer::RefineRaidMaterialFromDiscord{
                 discord_user_id,
                 interaction_id,
                 material_id,
                 from_grade,
                 batches,
-            } => __sats::bsatn::to_vec(
-                &refine_raid_material_from_discord_reducer::RefineRaidMaterialFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    material_id: material_id.clone(),
-                    from_grade: from_grade.clone(),
-                    batches: batches.clone(),
-                },
-            ),
-            Reducer::ReinforceRod {
+}             => __sats::bsatn::to_vec(&refine_raid_material_from_discord_reducer::RefineRaidMaterialFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                material_id: material_id.clone(),
+                from_grade: from_grade.clone(),
+                batches: batches.clone(),
+}),
+            Reducer::ReinforceRod{
                 request_id,
                 rod_id,
                 expected_level,
-            } => __sats::bsatn::to_vec(&reinforce_rod_reducer::ReinforceRodArgs {
+}             => __sats::bsatn::to_vec(&reinforce_rod_reducer::ReinforceRodArgs {
                 request_id: request_id.clone(),
                 rod_id: rod_id.clone(),
                 expected_level: expected_level.clone(),
-            }),
-            Reducer::ReinforceRodFromDiscord {
+}),
+            Reducer::ReinforceRodFromDiscord{
                 discord_user_id,
                 interaction_id,
                 rod_id,
                 expected_level,
-            } => __sats::bsatn::to_vec(
-                &reinforce_rod_from_discord_reducer::ReinforceRodFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    rod_id: rod_id.clone(),
-                    expected_level: expected_level.clone(),
-                },
-            ),
-            Reducer::SelectDiscordPlayer {
+}             => __sats::bsatn::to_vec(&reinforce_rod_from_discord_reducer::ReinforceRodFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                rod_id: rod_id.clone(),
+                expected_level: expected_level.clone(),
+}),
+            Reducer::SelectDiscordPlayer{
                 discord_user_id,
                 display_name,
                 interaction_id,
-            } => __sats::bsatn::to_vec(&select_discord_player_reducer::SelectDiscordPlayerArgs {
+}             => __sats::bsatn::to_vec(&select_discord_player_reducer::SelectDiscordPlayerArgs {
                 discord_user_id: discord_user_id.clone(),
                 display_name: display_name.clone(),
                 interaction_id: interaction_id.clone(),
-            }),
-            Reducer::SelectJournal {
+}),
+            Reducer::SelectJournal{
                 page,
                 page_size,
                 sort,
@@ -1441,7 +1472,7 @@ impl __sdk::Reducer for Reducer {
                 biome_id,
                 rarity,
                 outcome,
-            } => __sats::bsatn::to_vec(&select_journal_reducer::SelectJournalArgs {
+}             => __sats::bsatn::to_vec(&select_journal_reducer::SelectJournalArgs {
                 page: page.clone(),
                 page_size: page_size.clone(),
                 sort: sort.clone(),
@@ -1450,80 +1481,94 @@ impl __sdk::Reducer for Reducer {
                 biome_id: biome_id.clone(),
                 rarity: rarity.clone(),
                 outcome: outcome.clone(),
-            }),
-            Reducer::SetBaitSlot { bait_id, slot } => {
-                __sats::bsatn::to_vec(&set_bait_slot_reducer::SetBaitSlotArgs {
-                    bait_id: bait_id.clone(),
-                    slot: slot.clone(),
-                })
-            }
-            Reducer::SetBaitSlotFromDiscord {
+}),
+            Reducer::SetBaitSlot{
+                bait_id,
+                slot,
+}             => __sats::bsatn::to_vec(&set_bait_slot_reducer::SetBaitSlotArgs {
+                bait_id: bait_id.clone(),
+                slot: slot.clone(),
+}),
+            Reducer::SetBaitSlotFromDiscord{
                 discord_user_id,
                 interaction_id,
                 bait_id,
                 slot,
-            } => __sats::bsatn::to_vec(
-                &set_bait_slot_from_discord_reducer::SetBaitSlotFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    bait_id: bait_id.clone(),
-                    slot: slot.clone(),
-                },
-            ),
-            Reducer::SetCatchFavorite { catch_id, favorite } => {
-                __sats::bsatn::to_vec(&set_catch_favorite_reducer::SetCatchFavoriteArgs {
-                    catch_id: catch_id.clone(),
-                    favorite: favorite.clone(),
-                })
-            }
-            Reducer::SetCollectionFocus { biome_id, enabled } => {
-                __sats::bsatn::to_vec(&set_collection_focus_reducer::SetCollectionFocusArgs {
-                    biome_id: biome_id.clone(),
-                    enabled: enabled.clone(),
-                })
-            }
-            Reducer::SetCollectionFocusFromDiscord {
+}             => __sats::bsatn::to_vec(&set_bait_slot_from_discord_reducer::SetBaitSlotFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                bait_id: bait_id.clone(),
+                slot: slot.clone(),
+}),
+            Reducer::SetCatchFavorite{
+                catch_id,
+                favorite,
+}             => __sats::bsatn::to_vec(&set_catch_favorite_reducer::SetCatchFavoriteArgs {
+                catch_id: catch_id.clone(),
+                favorite: favorite.clone(),
+}),
+            Reducer::SetCollectionFocus{
+                biome_id,
+                enabled,
+}             => __sats::bsatn::to_vec(&set_collection_focus_reducer::SetCollectionFocusArgs {
+                biome_id: biome_id.clone(),
+                enabled: enabled.clone(),
+}),
+            Reducer::SetCollectionFocusFromDiscord{
                 discord_user_id,
                 interaction_id,
                 biome_id,
                 enabled,
-            } => __sats::bsatn::to_vec(
-                &set_collection_focus_from_discord_reducer::SetCollectionFocusFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    biome_id: biome_id.clone(),
-                    enabled: enabled.clone(),
-                },
-            ),
-            Reducer::StartHaulFromDiscord {
+}             => __sats::bsatn::to_vec(&set_collection_focus_from_discord_reducer::SetCollectionFocusFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                biome_id: biome_id.clone(),
+                enabled: enabled.clone(),
+}),
+            Reducer::SetGearInstanceFavorite{
+                instance_id,
+                favorite,
+}             => __sats::bsatn::to_vec(&set_gear_instance_favorite_reducer::SetGearInstanceFavoriteArgs {
+                instance_id: instance_id.clone(),
+                favorite: favorite.clone(),
+}),
+            Reducer::SetGearInstanceFavoriteFromDiscord{
+                discord_user_id,
+                interaction_id,
+                instance_id,
+                favorite,
+}             => __sats::bsatn::to_vec(&set_gear_instance_favorite_from_discord_reducer::SetGearInstanceFavoriteFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                instance_id: instance_id.clone(),
+                favorite: favorite.clone(),
+}),
+            Reducer::StartHaulFromDiscord{
                 discord_user_id,
                 interaction_id,
                 guild_id,
                 channel_id,
                 kind,
-            } => {
-                __sats::bsatn::to_vec(&start_haul_from_discord_reducer::StartHaulFromDiscordArgs {
-                    discord_user_id: discord_user_id.clone(),
-                    interaction_id: interaction_id.clone(),
-                    guild_id: guild_id.clone(),
-                    channel_id: channel_id.clone(),
-                    kind: kind.clone(),
-                })
-            }
-            Reducer::SyncDiscordPortrait {
+}             => __sats::bsatn::to_vec(&start_haul_from_discord_reducer::StartHaulFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                guild_id: guild_id.clone(),
+                channel_id: channel_id.clone(),
+                kind: kind.clone(),
+}),
+            Reducer::SyncDiscordPortrait{
                 discord_user_id,
                 avatar_hash,
                 discriminator,
-            } => __sats::bsatn::to_vec(&sync_discord_portrait_reducer::SyncDiscordPortraitArgs {
+}             => __sats::bsatn::to_vec(&sync_discord_portrait_reducer::SyncDiscordPortraitArgs {
                 discord_user_id: discord_user_id.clone(),
                 avatar_hash: avatar_hash.clone(),
                 discriminator: discriminator.clone(),
-            }),
-            Reducer::UnlinkBrowser => {
-                __sats::bsatn::to_vec(&unlink_browser_reducer::UnlinkBrowserArgs {})
-            }
-            _ => unreachable!(),
-        }
+}),
+            Reducer::UnlinkBrowser => __sats::bsatn::to_vec(&unlink_browser_reducer::UnlinkBrowserArgs {
+                }),
+_ => unreachable!(),
+}
     }
 }
 
@@ -1542,6 +1587,10 @@ pub struct DbUpdate {
     adapter_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
     adapter_collection_focus: __sdk::TableUpdate<CollectionFocusPreference>,
     adapter_daily_receipt: __sdk::TableUpdate<DailyReceipt>,
+    adapter_gear_activity_snapshots: __sdk::TableUpdate<GearActivitySnapshot>,
+    adapter_gear_family_progress: __sdk::TableUpdate<GearFamilyProgress>,
+    adapter_gear_instances: __sdk::TableUpdate<GearInstance>,
+    adapter_gear_loadout: __sdk::TableUpdate<GearLoadout>,
     adapter_haul_status: __sdk::TableUpdate<HaulTrip>,
     adapter_haul_work: __sdk::TableUpdate<HaulTrip>,
     adapter_inventory: __sdk::TableUpdate<OwnedSpecimen>,
@@ -1567,6 +1616,7 @@ pub struct DbUpdate {
     community_raid_event: __sdk::TableUpdate<CommunityRaidEvent>,
     earned_achievement: __sdk::TableUpdate<EarnedAchievement>,
     game_config: __sdk::TableUpdate<GameConfig>,
+    gear_foundation_state: __sdk::TableUpdate<GearFoundationState>,
     haul_equipment_definition: __sdk::TableUpdate<HaulEquipmentDefinition>,
     legendary_find: __sdk::TableUpdate<LegendaryFind>,
     my_achievement_progress: __sdk::TableUpdate<AchievementProgress>,
@@ -1576,6 +1626,10 @@ pub struct DbUpdate {
     my_collection: __sdk::TableUpdate<PlayerSpeciesProgress>,
     my_collection_focus: __sdk::TableUpdate<CollectionFocusPreference>,
     my_dockside: __sdk::TableUpdate<DocksideStatus>,
+    my_gear_activity_snapshots: __sdk::TableUpdate<GearActivitySnapshot>,
+    my_gear_family_progress: __sdk::TableUpdate<GearFamilyProgress>,
+    my_gear_instances: __sdk::TableUpdate<GearInstance>,
+    my_gear_loadout: __sdk::TableUpdate<GearLoadout>,
     my_haul_equipment: __sdk::TableUpdate<OwnedHaulEquipment>,
     my_haul_loadout: __sdk::TableUpdate<HaulLoadout>,
     my_haul_trips: __sdk::TableUpdate<HaulTrip>,
@@ -1657,6 +1711,20 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_daily_receipt" => db_update.adapter_daily_receipt.append(
                     adapter_daily_receipt_table::parse_table_update(table_update)?,
                 ),
+                "adapter_gear_activity_snapshots" => {
+                    db_update.adapter_gear_activity_snapshots.append(
+                        adapter_gear_activity_snapshots_table::parse_table_update(table_update)?,
+                    )
+                }
+                "adapter_gear_family_progress" => db_update.adapter_gear_family_progress.append(
+                    adapter_gear_family_progress_table::parse_table_update(table_update)?,
+                ),
+                "adapter_gear_instances" => db_update.adapter_gear_instances.append(
+                    adapter_gear_instances_table::parse_table_update(table_update)?,
+                ),
+                "adapter_gear_loadout" => db_update.adapter_gear_loadout.append(
+                    adapter_gear_loadout_table::parse_table_update(table_update)?,
+                ),
                 "adapter_haul_status" => db_update
                     .adapter_haul_status
                     .append(adapter_haul_status_table::parse_table_update(table_update)?),
@@ -1732,6 +1800,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "game_config" => db_update
                     .game_config
                     .append(game_config_table::parse_table_update(table_update)?),
+                "gear_foundation_state" => db_update.gear_foundation_state.append(
+                    gear_foundation_state_table::parse_table_update(table_update)?,
+                ),
                 "haul_equipment_definition" => db_update.haul_equipment_definition.append(
                     haul_equipment_definition_table::parse_table_update(table_update)?,
                 ),
@@ -1759,6 +1830,18 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_dockside" => db_update
                     .my_dockside
                     .append(my_dockside_table::parse_table_update(table_update)?),
+                "my_gear_activity_snapshots" => db_update.my_gear_activity_snapshots.append(
+                    my_gear_activity_snapshots_table::parse_table_update(table_update)?,
+                ),
+                "my_gear_family_progress" => db_update.my_gear_family_progress.append(
+                    my_gear_family_progress_table::parse_table_update(table_update)?,
+                ),
+                "my_gear_instances" => db_update
+                    .my_gear_instances
+                    .append(my_gear_instances_table::parse_table_update(table_update)?),
+                "my_gear_loadout" => db_update
+                    .my_gear_loadout
+                    .append(my_gear_loadout_table::parse_table_update(table_update)?),
                 "my_haul_equipment" => db_update
                     .my_haul_equipment
                     .append(my_haul_equipment_table::parse_table_update(table_update)?),
@@ -1944,6 +2027,12 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.game_config = cache
             .apply_diff_to_table::<GameConfig>("game_config", &self.game_config)
             .with_updates_by_pk(|row| &row.version);
+        diff.gear_foundation_state = cache
+            .apply_diff_to_table::<GearFoundationState>(
+                "gear_foundation_state",
+                &self.gear_foundation_state,
+            )
+            .with_updates_by_pk(|row| &row.singleton);
         diff.haul_equipment_definition = cache
             .apply_diff_to_table::<HaulEquipmentDefinition>(
                 "haul_equipment_definition",
@@ -2046,6 +2135,20 @@ impl __sdk::DbUpdate for DbUpdate {
             "adapter_daily_receipt",
             &self.adapter_daily_receipt,
         );
+        diff.adapter_gear_activity_snapshots = cache.apply_diff_to_table::<GearActivitySnapshot>(
+            "adapter_gear_activity_snapshots",
+            &self.adapter_gear_activity_snapshots,
+        );
+        diff.adapter_gear_family_progress = cache.apply_diff_to_table::<GearFamilyProgress>(
+            "adapter_gear_family_progress",
+            &self.adapter_gear_family_progress,
+        );
+        diff.adapter_gear_instances = cache.apply_diff_to_table::<GearInstance>(
+            "adapter_gear_instances",
+            &self.adapter_gear_instances,
+        );
+        diff.adapter_gear_loadout = cache
+            .apply_diff_to_table::<GearLoadout>("adapter_gear_loadout", &self.adapter_gear_loadout);
         diff.adapter_haul_status =
             cache.apply_diff_to_table::<HaulTrip>("adapter_haul_status", &self.adapter_haul_status);
         diff.adapter_haul_work =
@@ -2104,6 +2207,18 @@ impl __sdk::DbUpdate for DbUpdate {
         );
         diff.my_dockside =
             cache.apply_diff_to_table::<DocksideStatus>("my_dockside", &self.my_dockside);
+        diff.my_gear_activity_snapshots = cache.apply_diff_to_table::<GearActivitySnapshot>(
+            "my_gear_activity_snapshots",
+            &self.my_gear_activity_snapshots,
+        );
+        diff.my_gear_family_progress = cache.apply_diff_to_table::<GearFamilyProgress>(
+            "my_gear_family_progress",
+            &self.my_gear_family_progress,
+        );
+        diff.my_gear_instances =
+            cache.apply_diff_to_table::<GearInstance>("my_gear_instances", &self.my_gear_instances);
+        diff.my_gear_loadout =
+            cache.apply_diff_to_table::<GearLoadout>("my_gear_loadout", &self.my_gear_loadout);
         diff.my_haul_equipment = cache.apply_diff_to_table::<OwnedHaulEquipment>(
             "my_haul_equipment",
             &self.my_haul_equipment,
@@ -2186,6 +2301,18 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_daily_receipt" => db_update
                     .adapter_daily_receipt
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_gear_activity_snapshots" => db_update
+                    .adapter_gear_activity_snapshots
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_gear_family_progress" => db_update
+                    .adapter_gear_family_progress
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_gear_instances" => db_update
+                    .adapter_gear_instances
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_gear_loadout" => db_update
+                    .adapter_gear_loadout
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_haul_status" => db_update
                     .adapter_haul_status
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -2261,6 +2388,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "game_config" => db_update
                     .game_config
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "gear_foundation_state" => db_update
+                    .gear_foundation_state
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "haul_equipment_definition" => db_update
                     .haul_equipment_definition
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
@@ -2287,6 +2417,18 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_dockside" => db_update
                     .my_dockside
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_gear_activity_snapshots" => db_update
+                    .my_gear_activity_snapshots
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_gear_family_progress" => db_update
+                    .my_gear_family_progress
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_gear_instances" => db_update
+                    .my_gear_instances
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_gear_loadout" => db_update
+                    .my_gear_loadout
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_haul_equipment" => db_update
                     .my_haul_equipment
@@ -2448,6 +2590,18 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_daily_receipt" => db_update
                     .adapter_daily_receipt
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_gear_activity_snapshots" => db_update
+                    .adapter_gear_activity_snapshots
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_gear_family_progress" => db_update
+                    .adapter_gear_family_progress
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_gear_instances" => db_update
+                    .adapter_gear_instances
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_gear_loadout" => db_update
+                    .adapter_gear_loadout
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_haul_status" => db_update
                     .adapter_haul_status
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -2523,6 +2677,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "game_config" => db_update
                     .game_config
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "gear_foundation_state" => db_update
+                    .gear_foundation_state
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "haul_equipment_definition" => db_update
                     .haul_equipment_definition
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -2549,6 +2706,18 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_dockside" => db_update
                     .my_dockside
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_gear_activity_snapshots" => db_update
+                    .my_gear_activity_snapshots
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_gear_family_progress" => db_update
+                    .my_gear_family_progress
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_gear_instances" => db_update
+                    .my_gear_instances
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_gear_loadout" => db_update
+                    .my_gear_loadout
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_haul_equipment" => db_update
                     .my_haul_equipment
@@ -2690,6 +2859,10 @@ pub struct AppliedDiff<'r> {
     adapter_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
     adapter_collection_focus: __sdk::TableAppliedDiff<'r, CollectionFocusPreference>,
     adapter_daily_receipt: __sdk::TableAppliedDiff<'r, DailyReceipt>,
+    adapter_gear_activity_snapshots: __sdk::TableAppliedDiff<'r, GearActivitySnapshot>,
+    adapter_gear_family_progress: __sdk::TableAppliedDiff<'r, GearFamilyProgress>,
+    adapter_gear_instances: __sdk::TableAppliedDiff<'r, GearInstance>,
+    adapter_gear_loadout: __sdk::TableAppliedDiff<'r, GearLoadout>,
     adapter_haul_status: __sdk::TableAppliedDiff<'r, HaulTrip>,
     adapter_haul_work: __sdk::TableAppliedDiff<'r, HaulTrip>,
     adapter_inventory: __sdk::TableAppliedDiff<'r, OwnedSpecimen>,
@@ -2715,6 +2888,7 @@ pub struct AppliedDiff<'r> {
     community_raid_event: __sdk::TableAppliedDiff<'r, CommunityRaidEvent>,
     earned_achievement: __sdk::TableAppliedDiff<'r, EarnedAchievement>,
     game_config: __sdk::TableAppliedDiff<'r, GameConfig>,
+    gear_foundation_state: __sdk::TableAppliedDiff<'r, GearFoundationState>,
     haul_equipment_definition: __sdk::TableAppliedDiff<'r, HaulEquipmentDefinition>,
     legendary_find: __sdk::TableAppliedDiff<'r, LegendaryFind>,
     my_achievement_progress: __sdk::TableAppliedDiff<'r, AchievementProgress>,
@@ -2724,6 +2898,10 @@ pub struct AppliedDiff<'r> {
     my_collection: __sdk::TableAppliedDiff<'r, PlayerSpeciesProgress>,
     my_collection_focus: __sdk::TableAppliedDiff<'r, CollectionFocusPreference>,
     my_dockside: __sdk::TableAppliedDiff<'r, DocksideStatus>,
+    my_gear_activity_snapshots: __sdk::TableAppliedDiff<'r, GearActivitySnapshot>,
+    my_gear_family_progress: __sdk::TableAppliedDiff<'r, GearFamilyProgress>,
+    my_gear_instances: __sdk::TableAppliedDiff<'r, GearInstance>,
+    my_gear_loadout: __sdk::TableAppliedDiff<'r, GearLoadout>,
     my_haul_equipment: __sdk::TableAppliedDiff<'r, OwnedHaulEquipment>,
     my_haul_loadout: __sdk::TableAppliedDiff<'r, HaulLoadout>,
     my_haul_trips: __sdk::TableAppliedDiff<'r, HaulTrip>,
@@ -2828,6 +3006,26 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<DailyReceipt>(
             "adapter_daily_receipt",
             &self.adapter_daily_receipt,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<GearActivitySnapshot>(
+            "adapter_gear_activity_snapshots",
+            &self.adapter_gear_activity_snapshots,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<GearFamilyProgress>(
+            "adapter_gear_family_progress",
+            &self.adapter_gear_family_progress,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<GearInstance>(
+            "adapter_gear_instances",
+            &self.adapter_gear_instances,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<GearLoadout>(
+            "adapter_gear_loadout",
+            &self.adapter_gear_loadout,
             event,
         );
         callbacks.invoke_table_row_callbacks::<HaulTrip>(
@@ -2947,6 +3145,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             event,
         );
         callbacks.invoke_table_row_callbacks::<GameConfig>("game_config", &self.game_config, event);
+        callbacks.invoke_table_row_callbacks::<GearFoundationState>(
+            "gear_foundation_state",
+            &self.gear_foundation_state,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<HaulEquipmentDefinition>(
             "haul_equipment_definition",
             &self.haul_equipment_definition,
@@ -2982,6 +3185,26 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<DocksideStatus>(
             "my_dockside",
             &self.my_dockside,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<GearActivitySnapshot>(
+            "my_gear_activity_snapshots",
+            &self.my_gear_activity_snapshots,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<GearFamilyProgress>(
+            "my_gear_family_progress",
+            &self.my_gear_family_progress,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<GearInstance>(
+            "my_gear_instances",
+            &self.my_gear_instances,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<GearLoadout>(
+            "my_gear_loadout",
+            &self.my_gear_loadout,
             event,
         );
         callbacks.invoke_table_row_callbacks::<OwnedHaulEquipment>(
@@ -3813,6 +4036,10 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_collection_table::register_table(client_cache);
         adapter_collection_focus_table::register_table(client_cache);
         adapter_daily_receipt_table::register_table(client_cache);
+        adapter_gear_activity_snapshots_table::register_table(client_cache);
+        adapter_gear_family_progress_table::register_table(client_cache);
+        adapter_gear_instances_table::register_table(client_cache);
+        adapter_gear_loadout_table::register_table(client_cache);
         adapter_haul_status_table::register_table(client_cache);
         adapter_haul_work_table::register_table(client_cache);
         adapter_inventory_table::register_table(client_cache);
@@ -3838,6 +4065,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         community_raid_event_table::register_table(client_cache);
         earned_achievement_table::register_table(client_cache);
         game_config_table::register_table(client_cache);
+        gear_foundation_state_table::register_table(client_cache);
         haul_equipment_definition_table::register_table(client_cache);
         legendary_find_table::register_table(client_cache);
         my_achievement_progress_table::register_table(client_cache);
@@ -3847,6 +4075,10 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_collection_table::register_table(client_cache);
         my_collection_focus_table::register_table(client_cache);
         my_dockside_table::register_table(client_cache);
+        my_gear_activity_snapshots_table::register_table(client_cache);
+        my_gear_family_progress_table::register_table(client_cache);
+        my_gear_instances_table::register_table(client_cache);
+        my_gear_loadout_table::register_table(client_cache);
         my_haul_equipment_table::register_table(client_cache);
         my_haul_loadout_table::register_table(client_cache);
         my_haul_trips_table::register_table(client_cache);
@@ -3898,6 +4130,10 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_collection",
         "adapter_collection_focus",
         "adapter_daily_receipt",
+        "adapter_gear_activity_snapshots",
+        "adapter_gear_family_progress",
+        "adapter_gear_instances",
+        "adapter_gear_loadout",
         "adapter_haul_status",
         "adapter_haul_work",
         "adapter_inventory",
@@ -3923,6 +4159,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "community_raid_event",
         "earned_achievement",
         "game_config",
+        "gear_foundation_state",
         "haul_equipment_definition",
         "legendary_find",
         "my_achievement_progress",
@@ -3932,6 +4169,10 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_collection",
         "my_collection_focus",
         "my_dockside",
+        "my_gear_activity_snapshots",
+        "my_gear_family_progress",
+        "my_gear_instances",
+        "my_gear_loadout",
         "my_haul_equipment",
         "my_haul_loadout",
         "my_haul_trips",

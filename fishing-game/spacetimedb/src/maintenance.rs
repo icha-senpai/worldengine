@@ -60,6 +60,7 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
         .filter(..week)
         .take(1000)
     {
+        crate::gear_instances::delete_snapshot(ctx, "cast", u128::from(row.interaction_id));
         ctx.db
             .cast_equipment_receipt()
             .interaction_id()

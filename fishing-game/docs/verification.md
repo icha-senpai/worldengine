@@ -1,4 +1,34 @@
-# Implementation verification — October 3–4, 2026
+# Implementation verification - October 3-4, 2026
+
+## Tideforge Instance Foundation (Local)
+
+Verified with `npm run test:module` (45 passed), `npm run bindings`,
+`npm run rust:check`, `npm run check`, `npm run build`, and
+`npm run rust:script -- scripts/tideforge-foundation-proof.ts`.
+The native test harness still emits the existing Windows OpenSSL PDB/CRT linker
+warnings; linking and tests succeed. The web build retains its bundle-size warning.
+
+The guarded loopback proof publishes the preserved baseline and candidate into
+one new `fishbound-proof-tideforge-*` database with data deletion disabled. All
+82 retained tables match through additive publication and owner activation.
+Six protected originals, two loadouts and six inactive family-progress rows map
+once; repeat activation and saved-cast replay are no-ops. Early haul completion
+rejects atomically. Owner/adapter scope, new-player zero-effect stats, new haul
+content-version pinning and natural settlement of an old net all pass.
+
+This live fixture uses starter equipment and ordinary hauls, not production
+data. Native reducer tests additionally cover nonzero quality/reinforcement,
+future-copy independence, pending legacy quotes, seeded zero-effect casting,
+prepared/deployed/running personal and community raids, special raid payloads,
+retention, invalid-reference rollback and combined biome/loadout changes.
+Legacy haul content version remains explicitly unknown, not fabricated.
+
+The bounded local evidence is `.local/tideforge-foundation-evidence.json` and
+`.local/tideforge-foundation-runtime.json`; the required baseline fixture is
+`.local/tideforge-foundation-proof/baseline.wasm`. One proof database remains for
+review. No development/production publication, activation, service restart,
+external Discord delivery or gameplay/economy activation is performed.
+See [the foundation contract](tideforge/build-contract-v0.1.md#8-instance-and-preservation-foundation).
 
 ## Expanded level cap and luck-bait sizing (October 12, local candidate)
 

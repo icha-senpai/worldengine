@@ -31,3 +31,4 @@ __pycache__/
 !/scripts/luck-preservation-proof.ts
 !/scripts/luck-verification.ts
 !/scripts/tideforge-effect-proof.ts
+!/scripts/tideforge-foundation-proof.ts

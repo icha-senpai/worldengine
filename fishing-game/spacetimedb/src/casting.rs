@@ -74,13 +74,15 @@ pub fn fish_from_discord(
     if !crate::shop::owns_licence(ctx, player.player_id, biome.biome_id) {
         return Err("BIOME_LICENCE_REQUIRED".into());
     }
-    let rod_key = u128::from(player.player_id) << 32 | u128::from(player.equipped_rod_id);
-    let owned = ctx
-        .db
-        .owned_rod()
-        .key()
-        .find(rod_key)
-        .ok_or("ROD_NOT_OWNED")?;
+    let selected = crate::gear_instances::selected_instance(ctx, player.player_id, "rod")?;
+    let (quality_level, owned_reinforcement) = if let Some(instance) = selected {
+        (instance.quality_level, instance.reinforcement_level)
+    } else {
+        let rod_key = u128::from(player.player_id) << 32 | u128::from(player.equipped_rod_id);
+        let owned = ctx.db.owned_rod().key().find(rod_key).ok_or("ROD_NOT_OWNED")?;
+        let reinforcement = ctx.db.rod_reinforcement().key().find(owned.key).map_or(0, |row| row.level);
+        (owned.upgrade_level, reinforcement)
+    };
     let rod = ctx
         .db
         .rod_definition()
@@ -92,15 +94,11 @@ pub fn fish_from_discord(
         .db
         .quality_definition()
         .quality_level()
-        .find(owned.upgrade_level)
+        .find(quality_level)
         .ok_or("QUALITY_UNAVAILABLE")?;
     let reinforcement_level =
         if rules.version >= game_rules::raids::catalog().rules_version {
-        ctx.db
-            .rod_reinforcement()
-            .key()
-            .find(owned.key)
-            .map_or(0, |row| row.level)
+        owned_reinforcement
     } else {
         0
     };
@@ -144,6 +142,11 @@ pub fn fish_from_discord(
         .checked_add(quality.xp_bonus_bp)
         .and_then(|v| v.checked_add(bait.xp_bonus_bp))
         .ok_or("INVALID_ROD_XP")?;
+    crate::gear_instances::snapshot_selected(
+        ctx, player.player_id, "rod", "cast", u128::from(interaction_id),
+        Some(power), Some(luck_bp), Some(xp_bonus_bp), rules.version,
+        Some(crate::content::CONTENT_VERSION), None,
+    )?;
     let mut rng = ctx.rng();
     let pull_count = if rng.gen_range(0..10000u32) < game_rules::rods::bonus_pull_bp(power)? {
         2

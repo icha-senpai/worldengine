@@ -7,6 +7,7 @@ mod content;
 mod crafting;
 mod daily;
 mod gear;
+mod gear_instances;
 mod haul_equipment;
 mod hauls;
 mod inventory;
@@ -26,6 +27,8 @@ mod tables;
 mod tests;
 #[cfg(all(test, feature = "module-tests"))]
 mod raids_tests;
+#[cfg(all(test, feature = "module-tests"))]
+mod gear_instances_tests;
 
 use spacetimedb::{ReducerContext, Table};
 use tables::*;
