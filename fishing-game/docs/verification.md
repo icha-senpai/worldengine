@@ -1,12 +1,112 @@
-# Implementation verification - October 3-4, 2026
+# Implementation Verification
+
+## Tideforge Effects And Mastery (Local)
+
+Stage 2 passes 69 native module tests and 66 shared-rule tests, including
+24 native Tideforge tests and nine pure Tideforge tests. The 982-case Rust/web
+parity proof covers exact composition, mastery, refinement arithmetic and
+fixed-point credit, not complete per-action odds or production income.
+Content validation, WASM build, both generated contracts, locked Rust workspace
+check, script/Svelte checks and the private production web build pass.
+
+Verification commands:
+- `npm run test:module`
+- `npm run rust:run -- test -p game-rules --locked`
+- `npm run rust:run -- check --workspace --locked`
+- `npm run bindings`, `npm run content:validate`, `npm run check`, `npm run build`
+- `npm run rust:script -- scripts/tideforge-runtime-proof.ts`
+- `npm run rust:script -- scripts/tideforge-stage2-proof.ts`
+
+The actual WASM preservation fixture retains all 87 baseline tables through
+additive publication. Owner activation changes only the six existing family
+curve versions, with no XP backfill. Nine new effects tables start empty.
+Old/new cast replay, repeated activation, atomic early-finish rejection,
+selected-adapter/unlinked views and denial of the raw private snapshot table
+pass. An old net and a new net settle naturally with four pulls each; only the
+new booking earns its one 100-XP mastery award. Changing a goal cannot rewrite
+the booked effects.
+
+Native tests additionally cover nonzero effects and signatures, shared family
+progress, per-item upgrades, bait preservation and shared-stock reservation,
+zero-effect catches plus subsequent RNG, independent extra-pull gates, XP
+allocation, sale/processing modifiers, absolute versus percentage rewards,
+raid completion/replay/cancellation/missed deadlines, linked-owner privacy and
+bounded daily retention. Pure tests cover legal ordinary-species precision and
+exceptional-species exclusion. Successful raids gain booked-boat mastery;
+their existing durations and ordinary rewards are not retuned.
+
+The first fixture's update applied but its CLI confirmation returned HTTP 504;
+that run is not credited as a preservation pass. Port/process state and server
+logs were inspected without restarting services. The harness now runs the CLI
+asynchronously, keeping SDK heartbeats/socket closure responsive, and saves
+pre-publication row counts/fingerprints before updating. One bounded fresh
+attempt passes; the exact cause of the original confirmation timeout is not
+claimed. Its retry is explicitly guarded and cannot allocate a third fixture.
+
+Evidence: `.local/tideforge-stage2-evidence.json`,
+`.local/tideforge-stage2-runtime.json` (first attempt) and
+`.local/tideforge-stage2-retry-runtime.json` (passing attempt). With Boss's
+exact-target approval, both Stage 2 databases were subsequently deleted through
+SpaceTimeDB and verified absent by name and identity (HTTP 404); development's
+identity is unchanged. Only the small JSON evidence and reusable
+`.local/tideforge-stage2-proof/baseline.wasm` remain. No live storage files,
+cold database copies or deployment rollback sets are involved.
+The WASM fixture uses vanilla starters, ordinary hauls and an unlinked adapter,
+not production data or acquired affixed gear. New UI controls, advanced odds
+displays and Forge/acquisition/processing actions remain later stages.
+
+The original Windows PDB/CRT linker and web bundle-size warnings are resolved
+in the local follow-up below. No development/production module publication,
+activation, service restart, public website update or Discord delivery occurs.
+See [the local effect contract](tideforge/build-contract-v0.1.md#9-local-effects-and-mastery-implementation-defaults).
+
+## Build Warning Follow-Up (Local)
+
+The Windows x64 module test profile now matches the pinned SDK's prebuilt V8
+static CRT. The locked OpenSSL source is prepared inside the managed temporary
+target with `/MT`, `/Zi`, `/FS` and an absolute PDB reference. No linker-warning
+filters or `/NODEFAULTLIB` workaround are used. Explicit OpenSSL overrides
+remain available; no global compiler settings or shared ServBay libraries change.
+
+The final clean `npm run test:module` run against the completed scripts reports
+69 passed and zero failed. Its complete output contains zero `LNK4098`,
+`LNK4099`, C/Rust compiler diagnostics or Perl missing/uninitialized-value
+warnings. Managed cleanup removes the temporary target (3.0 GiB). The shell's
+numeric exit code was not retained; success is established from the full test
+summary, diagnostic review and completed cleanup rather than an exit-code claim.
+
+Focused checks additionally cover static-CRT SSL context allocation/free,
+parameter merging, certificate paths and PDB linking. Disposable-source fixes
+correct const qualifiers and the invalid default-directory escape, remove the
+stray regex-debug pragma, and supply missing build-directory/installation
+comment arguments. Generator fixtures preserve existing populated build paths
+and byte-identical installed metadata while supplying the missing build
+`libdir`. The registry source remains unchanged.
+
+The installed Build Tools 2026 reports complete. MSVC x64, NMake, both CRT
+libraries and Windows SDK 10.0.26100.0 headers/libraries/resource compiler are
+present. The successful builds do not require reinstalling Build Tools 2022.
+
+Dashboard panels now load at navigation boundaries. The largest client chunk
+is 310.77 kB, down from 782.62 kB, with the original 500 kB warning limit
+unchanged. Script/Svelte checks and the production web build pass. Guest browser
+checks cover 1440px/390px navigation, retained filters, `/catalog` SSR before
+JavaScript, horizontal overflow and blocked-import alert/reload recovery.
+Populated linked-player browser views were not exercised by that guest fixture.
+
+Temporary native targets are removed by the managed workflows. The two approved
+Stage 2 proof databases are deleted as recorded above; frozen JSON evidence and
+the reusable baseline remain. No development/production activation, publication,
+installation change or live player-state mutation is performed.
 
 ## Tideforge Instance Foundation (Local)
 
 Verified with `npm run test:module` (45 passed), `npm run bindings`,
 `npm run rust:check`, `npm run check`, `npm run build`, and
 `npm run rust:script -- scripts/tideforge-foundation-proof.ts`.
-The native test harness still emits the existing Windows OpenSSL PDB/CRT linker
-warnings; linking and tests succeed. The web build retains its bundle-size warning.
+At that historical checkpoint the native harness emitted Windows OpenSSL PDB/CRT
+warnings and the web build retained its bundle-size warning. Those original
+warnings are resolved by the local follow-up above.
 
 The guarded loopback proof publishes the preserved baseline and candidate into
 one new `fishbound-proof-tideforge-*` database with data deletion disabled. All

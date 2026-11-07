@@ -1098,6 +1098,101 @@ export const SpeciesRecord = __t.object("SpeciesRecord", {
 });
 export type SpeciesRecord = __Infer<typeof SpeciesRecord>;
 
+export const TideforgeActivityReceipt = __t.object("TideforgeActivityReceipt", {
+  key: __t.string(),
+  playerId: __t.u64(),
+  activityKind: __t.string(),
+  activityId: __t.u128(),
+  gearInstanceId: __t.u128(),
+  gearKind: __t.string(),
+  familyId: __t.u32(),
+  masteryXpGranted: __t.u64(),
+  settledAt: __t.timestamp(),
+});
+export type TideforgeActivityReceipt = __Infer<typeof TideforgeActivityReceipt>;
+
+export const TideforgeActivitySnapshot = __t.object("TideforgeActivitySnapshot", {
+  key: __t.string(),
+  playerId: __t.u64(),
+  activityKind: __t.string(),
+  activityId: __t.u128(),
+  gearInstanceId: __t.u128(),
+  gearRevision: __t.u64(),
+  familyId: __t.u32(),
+  gearKind: __t.string(),
+  biomeId: __t.u32(),
+  effectsJson: __t.string(),
+  catalogVersion: __t.u32(),
+  masteryCurveVersion: __t.u32(),
+  masteryXpAtBooking: __t.u64(),
+  masteryLevel: __t.u8(),
+  baseMasteryXp: __t.u64(),
+  bookedAt: __t.timestamp(),
+});
+export type TideforgeActivitySnapshot = __Infer<typeof TideforgeActivitySnapshot>;
+
+export const TideforgeDailyUse = __t.object("TideforgeDailyUse", {
+  key: __t.string(),
+  playerId: __t.u64(),
+  biomeId: __t.u32(),
+  utcDay: __t.i64(),
+  signatureId: __t.string(),
+  activityKey: __t.string(),
+});
+export type TideforgeDailyUse = __Infer<typeof TideforgeDailyUse>;
+
+export const TideforgeFractionalCredit = __t.object("TideforgeFractionalCredit", {
+  key: __t.string(),
+  playerId: __t.u64(),
+  resource: __t.string(),
+  remainderBp: __t.u16(),
+});
+export type TideforgeFractionalCredit = __Infer<typeof TideforgeFractionalCredit>;
+
+export const TideforgeGear = __t.object("TideforgeGear", {
+  instanceId: __t.u128(),
+  playerId: __t.u64(),
+  affixesJson: __t.string(),
+  nativeSignature: __t.option(__t.string()),
+});
+export type TideforgeGear = __Infer<typeof TideforgeGear>;
+
+export const TideforgeLibrary = __t.object("TideforgeLibrary", {
+  key: __t.string(),
+  playerId: __t.u64(),
+  signatureId: __t.string(),
+});
+export type TideforgeLibrary = __Infer<typeof TideforgeLibrary>;
+
+export const TideforgeLoadout = __t.object("TideforgeLoadout", {
+  playerId: __t.u64(),
+  rodSignature: __t.option(__t.string()),
+  haulSignature: __t.option(__t.string()),
+  watersSignature: __t.option(__t.string()),
+  goal: __t.string(),
+});
+export type TideforgeLoadout = __Infer<typeof TideforgeLoadout>;
+
+export const TideforgeSpecimenModifiers = __t.object("TideforgeSpecimenModifiers", {
+  catchId: __t.u64(),
+  playerId: __t.u64(),
+  saleBp: __t.u32(),
+  filletBp: __t.u32(),
+  scaleBp: __t.u32(),
+  effectsVersion: __t.u32(),
+  activityKey: __t.string(),
+});
+export type TideforgeSpecimenModifiers = __Infer<typeof TideforgeSpecimenModifiers>;
+
+export const TideforgeState = __t.object("TideforgeState", {
+  singleton: __t.u8(),
+  version: __t.u32(),
+  catalogVersion: __t.u32(),
+  curveVersion: __t.u32(),
+  activatedAt: __t.timestamp(),
+});
+export type TideforgeState = __Infer<typeof TideforgeState>;
+
 export const TraderMigration = __t.object("TraderMigration", {
   singleton: __t.u8(),
   grandfathered: __t.bool(),

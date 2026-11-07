@@ -12,6 +12,7 @@ pub mod quests;
 pub mod rods;
 pub mod sampling;
 pub mod trophy;
+pub mod tideforge;
 
 #[cfg(test)]
 mod world_tests;

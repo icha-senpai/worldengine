@@ -7,7 +7,26 @@ The website and account-link service are exposed through ServBay/Cloudflare at
 https://fish.ichaa.dev. The bot connects to Discord; all fifteen commands are
 registered globally; matching legacy server copies are removed on startup; the public OAuth callback is registered.
 
-## Tideforge Instance Foundation (Local, Inactive)
+## Tideforge Effects And Mastery (Local, Inactive Outside Proofs)
+
+The effect engine, signatures, dormant affixes, shared family mastery and
+frozen activity effects are implemented locally. Slots unlock at mastery
+levels 1/10/25/50; each accepted activity grants 100 base mastery XP, not XP
+per fish in a haul. Quality and reinforcement remain per item.
+
+All 69 module tests, 66 shared-rule tests and 982 Rust/web composition cases
+pass, with generated contracts, native client checks and private web checks/build.
+The isolated WASM proof retains 87 prior tables, promotes only six existing
+mastery curves and naturally settles old/new nets without retroactive mastery.
+Native tests cover nonzero powers, raids, ownership, RNG and retention beyond
+that vanilla fixture. [Verification](verification.md#tideforge-effects-and-mastery-local)
+records the limits and one bounded retry after a publish-confirmation timeout.
+
+Effects remain behind separate owner activation; development and production
+are unchanged. Forge, acquisition, processing, gambling/Marks, Reliquary and
+website controls are not implemented by this checkpoint.
+
+## Tideforge Instance Foundation (Earlier Local Checkpoint)
 
 Stable gear instances, protected-original mapping, instance loadouts and
 immutable activity metadata are implemented behind separate owner activation.

@@ -77,7 +77,7 @@ pub fn classify_rarity(
     Ok(ordinal as u8)
 }
 
-fn weight_at_length(
+pub(crate) fn weight_at_length(
     species: SpeciesMeasurements,
     length_mm: u32,
     condition: u64,
@@ -160,7 +160,7 @@ pub fn generate_in_size_band(
     })
 }
 
-fn size_band_bounds(
+pub(crate) fn size_band_bounds(
     species: SpeciesMeasurements,
     band: u8,
 ) -> Result<(u64, u64, u64), &'static str> {

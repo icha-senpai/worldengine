@@ -1,4 +1,5 @@
 use crate::tables::*;
+use crate::tideforge::tideforge_daily_use;
 use spacetimedb::{ReducerContext, TimeDuration};
 
 /// Indexed, bounded expiry work. Clients cannot invoke scheduler authority.
@@ -11,6 +12,13 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
     crate::raids::refresh_calendar(ctx)?;
     crate::hauls::prune_delivered(ctx);
     crate::raids::prune_history(ctx);
+    let today = ctx.timestamp.to_micros_since_unix_epoch().div_euclid(86_400_000_000);
+    for row in ctx.db.tideforge_daily_use().utc_day()
+        .filter(..today.saturating_sub(7))
+        .take(1000)
+    {
+        ctx.db.tideforge_daily_use().key().delete(row.key);
+    }
     for row in ctx
         .db
         .shop_quote()

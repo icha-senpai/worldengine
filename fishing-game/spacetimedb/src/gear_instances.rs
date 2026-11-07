@@ -235,7 +235,11 @@ fn insert_original(
             kind: kind.into(),
             family_id,
             mastery_xp: 0,
-            curve_version: 0,
+            curve_version: if crate::tideforge::enabled(ctx)? {
+                game_rules::tideforge::MASTERY_CURVE_VERSION
+            } else {
+                0
+            },
         });
     }
     let instance_id = original_id(player_id, kind, definition_id)?;
@@ -462,6 +466,19 @@ pub(crate) fn snapshot_selected(
     let Some(instance) = selected_instance(ctx, player_id, kind)? else {
         return Ok(());
     };
+    let effects_version = match crate::tideforge::lookup(ctx, player_id, activity_kind, activity_id)? {
+        Some(row) => {
+            if row.gear_instance_id != instance.instance_id
+                || row.gear_revision != instance.revision
+                || row.family_id != instance.family_id
+                || row.gear_kind != instance.kind
+            {
+                return Err("TIDEFORGE_SNAPSHOT_CONFLICT".into());
+            }
+            crate::tideforge::decode(&row)?.version
+        }
+        None => 0,
+    };
     insert_snapshot(
         ctx,
         player_id,
@@ -476,7 +493,7 @@ pub(crate) fn snapshot_selected(
             primary_biome_id: Some(instance.primary_biome_id),
             quality_level: instance.quality_level,
             reinforcement_level: instance.reinforcement_level,
-            effects_version: 0,
+            effects_version,
             power,
             luck_bp,
             xp_bonus_bp,
@@ -499,6 +516,7 @@ pub(crate) fn haul_content_version(ctx: &ReducerContext, interaction_id: u64) ->
 }
 
 pub(crate) fn delete_snapshot(ctx: &ReducerContext, activity_kind: &str, activity_id: u128) {
+    crate::tideforge::delete_activity(ctx, activity_kind, activity_id);
     ctx.db
         .gear_activity_snapshot()
         .key()

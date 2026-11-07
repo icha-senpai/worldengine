@@ -380,6 +380,92 @@ pub fn consume_bait(ctx: &ReducerContext, player_id: u64) -> Result<UsedBaits, S
     })
 }
 
+pub(crate) fn consume_bait_with_preservation(
+    ctx: &ReducerContext,
+    player_id: u64,
+    preserve_bp: u32,
+) -> Result<UsedBaits, String> {
+    if preserve_bp == 0 {
+        return consume_bait(ctx, player_id);
+    }
+    if preserve_bp > 10_000 {
+        return Err("TIDEFORGE_PROBABILITY_INVALID".into());
+    }
+    let loadout = ctx.db.bait_loadout().player_id().find(player_id);
+    let primary_id = loadout.as_ref().map_or(0, |row| row.bait_id);
+    let secondary_id = if crate::accounts::config(ctx).version >= 14 {
+        loadout.as_ref().map_or(0, |row| row.secondary_bait_id)
+    } else {
+        0
+    };
+    let primary_eligible = primary_id != 0 && stock(ctx, player_id, primary_id) > 0;
+    let secondary_required = if primary_eligible && primary_id == secondary_id { 2 } else { 1 };
+    let secondary_eligible =
+        secondary_id != 0 && stock(ctx, player_id, secondary_id) >= secondary_required;
+    let mut rng = ctx.rng();
+    let mut used = Vec::new();
+    for (slot, bait_id, eligible) in [
+        (1u8, primary_id, primary_eligible),
+        (2u8, secondary_id, secondary_eligible),
+    ] {
+        if !eligible {
+            used.push(UsedBait::default());
+            continue;
+        }
+        if !game_rules::tideforge::chance(preserve_bp, 10_000, &mut rng)? {
+            used.push(consume_slot(ctx, player_id, bait_id, slot)?);
+            continue;
+        }
+        let bait = ctx.db.bait_definition().bait_id().find(bait_id).ok_or("BAIT_UNAVAILABLE")?;
+        used.push(UsedBait {
+            bait_id,
+            uses_left: stock(ctx, player_id, bait_id),
+            resource_quantity: if bait.resource_item.is_empty() {
+                0
+            } else {
+                bait.resource_quantity.max(1)
+            },
+            resource_item: bait.resource_item,
+            bonuses: game_rules::baits::BaitBonuses {
+                luck_bp: bait.luck_bp,
+                xp_bonus_bp: bait.xp_bonus_bp,
+                size_rolls: bait.size_rolls,
+            },
+        });
+    }
+    let mut secondary = used.pop().ok_or("INVALID_BAIT_SLOTS")?;
+    let mut primary = used.pop().ok_or("INVALID_BAIT_SLOTS")?;
+    let mut bonuses = Vec::new();
+    for bait in [&mut primary, &mut secondary] {
+        if bait.bait_id != 0 {
+            bait.uses_left = stock(ctx, player_id, bait.bait_id);
+            bonuses.push(bait.bonuses);
+        }
+    }
+    let combined = game_rules::baits::combine(&bonuses)?;
+    if let Some(mut row) = loadout {
+        if stock(ctx, player_id, row.bait_id) == 0 {
+            row.bait_id = 0;
+        }
+        let required = if row.secondary_bait_id != 0 && row.bait_id == row.secondary_bait_id {
+            2
+        } else {
+            1
+        };
+        if stock(ctx, player_id, row.secondary_bait_id) < required {
+            row.secondary_bait_id = 0;
+        }
+        ctx.db.bait_loadout().player_id().update(row);
+    }
+    Ok(UsedBaits {
+        primary,
+        secondary,
+        luck_bp: combined.luck_bp,
+        xp_bonus_bp: combined.xp_bonus_bp,
+        size_rolls: combined.size_rolls,
+    })
+}
+
 fn material(ctx: &ReducerContext, player_id: u64, slot: u32) -> u64 {
     ctx.db
         .item_stack()

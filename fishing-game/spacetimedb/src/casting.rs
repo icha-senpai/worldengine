@@ -1,5 +1,6 @@
 use crate::hauls::haul_request;
 use crate::raids::rod_reinforcement;
+use crate::tideforge::{TideforgeSpecimenModifiers, tideforge_specimen_modifiers};
 use crate::{
     accounts::{config, ensure_player, require_service},
     tables::*,
@@ -10,6 +11,24 @@ use game_rules::{
     sampling::{sample, sample_wide},
 };
 use spacetimedb::{ReducerContext, Table, TimeDuration, rand::Rng};
+
+fn grant_packet(
+    ctx: &ReducerContext,
+    player_id: u64,
+    operation: &str,
+    fillets: u32,
+    scales: u32,
+) -> Result<(), String> {
+    for (slot, item, quantity) in [
+        (game_rules::tideforge::NORMAL_FILLETS_SLOT, "normal_fillets", fillets),
+        (game_rules::tideforge::NORMAL_SCALES_SLOT, "normal_scales", scales),
+    ] {
+        if quantity != 0 {
+            crate::inventory::grant_item(ctx, player_id, slot, item, u64::from(quantity), operation.into())?;
+        }
+    }
+    Ok(())
+}
 
 #[spacetimedb::reducer]
 pub fn fish_from_discord(
@@ -125,7 +144,13 @@ pub fn fish_from_discord(
     }
     let collection_focus_enabled =
         crate::collection_focus::active(ctx, player.player_id, biome.biome_id, &species);
-    let bait = crate::crafting::consume_bait(ctx, player.player_id)?;
+    let snapshot = crate::tideforge::book(
+        ctx, player.player_id, "rod", "cast", u128::from(interaction_id), biome.biome_id,
+    )?;
+    let effects = snapshot.as_ref().map(crate::tideforge::decode).transpose()?;
+    let bait = crate::crafting::consume_bait_with_preservation(
+        ctx, player.player_id, effects.as_ref().map_or(0, |fx| fx.stat("baitPreserveBp")),
+    )?;
     let power = rod
         .power
         .checked_add(quality.power_bonus)
@@ -135,6 +160,7 @@ pub fn fish_from_discord(
         .map_or(0, |row| row.luck_bp)
         .checked_add(quality.luck_bp)
         .and_then(|v| v.checked_add(bait.luck_bp))
+        .and_then(|v| v.checked_add(effects.as_ref().map_or(0, |fx| fx.stat("luckBp"))))
         .ok_or("INVALID_ROD_LUCK")?;
     let xp_bonus_bp = bonuses
         .as_ref()
@@ -148,7 +174,24 @@ pub fn fish_from_discord(
         Some(crate::content::CONTENT_VERSION), None,
     )?;
     let mut rng = ctx.rng();
-    let pull_count = if rng.gen_range(0..10000u32) < game_rules::rods::bonus_pull_bp(power)? {
+    let pull_count = if let Some(fx) = &effects {
+        let extra_power = fx.stat("powerCenti");
+        let maximum_power_pulls = if extra_power == 0 && power <= 200 {
+            1 + usize::from(power != 0)
+        } else {
+            let centi = u64::from(power).checked_mul(100)
+                .and_then(|value| value.checked_add(u64::from(extra_power)))
+                .ok_or("INVALID_ROD_POWER")?;
+            1usize.checked_add(usize::try_from(centi.div_ceil(20_000)).map_err(|_| "INVALID_PULL_COUNT")?)
+                .ok_or("INVALID_PULL_COUNT")?
+        };
+        if fx.extra_pull_bp.len() > 2
+            || maximum_power_pulls.checked_add(fx.extra_pull_bp.len()).is_none_or(|count| count > 5)
+        {
+            return Err("INVALID_PULL_COUNT".into());
+        }
+        game_rules::tideforge::rod_pulls(power, fx, &mut rng)?
+    } else if rng.gen_range(0..10000u32) < game_rules::rods::bonus_pull_bp(power)? {
         2
     } else {
         1
@@ -257,6 +300,22 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
     {
         return Err("INVALID_CAST_PLAN".into());
     }
+    let expected_kind = match command.as_str() {
+        "fish" => Some(("cast", "rod")),
+        "fishboat" => Some(("haul", "boat")),
+        "fishnet" => Some(("haul", "net")),
+        _ => None,
+    };
+    let snapshot = if let Some((activity_kind, kind)) = expected_kind {
+        let row = crate::tideforge::lookup(ctx, player.player_id, activity_kind, u128::from(interaction_id))?;
+        if row.as_ref().is_some_and(|row| row.gear_kind != kind || row.biome_id != biome.biome_id) {
+            return Err("TIDEFORGE_SNAPSHOT_CONFLICT".into());
+        }
+        row
+    } else {
+        None
+    };
+    let effects = snapshot.as_ref().map(crate::tideforge::decode).transpose()?;
     let species: Vec<_> = ctx
         .db
         .species_definition()
@@ -297,6 +356,28 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
         }
     }
     let mut rng = ctx.rng();
+    let mut pull_count = pull_count;
+    let max_base_pulls = match command.as_str() {
+        "fish" => 5usize,
+        "fishboat" => 12,
+        "fishnet" => 6,
+        _ => 1,
+    };
+    if let Some(fx) = &effects {
+        if fx.extra_pull_bp.len() > 2
+            || (!normal_cast && pull_count.checked_add(fx.extra_pull_bp.len()).is_none_or(|limit| limit > max_base_pulls))
+        {
+            return Err("INVALID_PULL_COUNT".into());
+        }
+        if !normal_cast {
+            pull_count = pull_count
+                .checked_add(game_rules::tideforge::haul_extra_pulls(fx, &mut rng)?)
+                .ok_or("INVALID_PULL_COUNT")?;
+        }
+        if pull_count > max_base_pulls {
+            return Err("INVALID_PULL_COUNT".into());
+        }
+    }
     let mut collection_focus_rerolls = 0;
     let xp_reward = |base| {
         if normal_cast {
@@ -308,10 +389,18 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
     let mut changed_record_holders = Vec::new();
     let mut total_base_xp = 0u64;
     let mut total_coins = 0u64;
+    let mut ocean_bonuses = Vec::new();
+    let mut ordinary_seen = false;
+    let mut junk_seen = false;
+    let mut treasure_seen = false;
+    let mut rift_pull = None;
+    let mut duplicate_quota = game_rules::tideforge::DuplicateQuota::default();
     crate::statistics::observe_cast(ctx, player.player_id, biome.biome_id)?;
-    for pull in 0..pull_count {
+    let mut pull = 0usize;
+    while pull < pull_count {
         let mut sets_record = false;
-        let category = if special_raid {
+        let mut ocean_bonus = 0u32;
+        let category = if special_raid || rift_pull == Some(pull) {
             0
         } else {
             sample(
@@ -361,7 +450,7 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                     return Err("CONTENT_UNAVAILABLE".into());
                 }
                 let mut weights = Vec::new();
-                let band_index = if special_raid {
+                let mut band_index = if special_raid {
                     let band = special_raid_band.ok_or("INVALID_SPECIAL_RAID")?;
                     if bands[0].species_id != special_raid_species_id.unwrap_or_default()
                         || bands[0].ordinal != band
@@ -392,8 +481,34 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                     } else {
                         game_rules::hauls::luck_weights(&tickets, luck_bp)?
                     };
-                    sample_wide(&weights, &mut rng)?
+                    if rift_pull == Some(pull) {
+                        let ordinary: Vec<bool> = bands.iter().map(|band| {
+                            species.iter().find(|row| row.species_id == band.species_id)
+                                .is_some_and(|row| row.counts_for_ordinary_collection_completion)
+                        }).collect();
+                        game_rules::tideforge::sample_ordinary(&weights, &ordinary, &mut rng)?
+                    } else {
+                        sample_wide(&weights, &mut rng)?
+                    }
                 };
+                if !normal_cast && !special_raid {
+                    if let Some(fx) = &effects {
+                        let candidate = &bands[band_index];
+                        let known_ordinary = species.iter()
+                            .find(|row| row.species_id == candidate.species_id)
+                            .is_some_and(|row| row.counts_for_ordinary_collection_completion)
+                            && ctx.db.player_species_progress().key()
+                                .find((u128::from(player.player_id) << 32) | u128::from(candidate.species_id))
+                                .is_some_and(|row| row.count > 0);
+                        if duplicate_quota.reroll(known_ordinary, fx, &mut rng)? {
+                            let ordinary: Vec<bool> = bands.iter().map(|band| {
+                                species.iter().find(|row| row.species_id == band.species_id)
+                                    .is_some_and(|row| row.counts_for_ordinary_collection_completion)
+                            }).collect();
+                            band_index = game_rules::tideforge::sample_ordinary(&weights, &ordinary, &mut rng)?;
+                        }
+                    }
+                }
                 let mut band = &bands[band_index];
                 let definition = if special_raid {
                     special_raid_species_definition
@@ -405,6 +520,7 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                         .find(|row| row.species_id == band.species_id)
                         .ok_or("CONTENT_UNAVAILABLE")?
                 };
+                let first_ordinary = !ordinary_seen && definition.counts_for_ordinary_collection_completion;
                 let mut all_ranks_known = false;
                 if !special_raid
                     && collection_focus_enabled
@@ -428,7 +544,50 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                         .filter(|(row, _)| row.species_id == definition.species_id)
                         .map(|(row, weight)| (row.ordinal, *weight))
                         .collect();
-                    let ordinal = if normal_cast
+                    let precision = effects.as_ref().is_some_and(|fx| {
+                        fx.goal != "ranks"
+                            || fx.stat("rankFocusBp") != 0
+                            || fx.stat("maximaFocusBp") != 0
+                            || fx.stat("perfectFocusBp") != 0
+                    });
+                    let ordinal = if normal_cast && precision {
+                        let mut rank_weights = [0u128; 10];
+                        for &(ordinal, weight) in &ranks {
+                            let entry = rank_weights.get_mut(usize::from(ordinal)).ok_or("CONTENT_UNAVAILABLE")?;
+                            *entry = weight;
+                        }
+                        let known_mask = known.iter().enumerate().fold(
+                            0u16, |mask, (index, present)| if *present { mask | (1u16 << index) } else { mask },
+                        );
+                        let mut maxima_mask = 0u16;
+                        for ordinal in 0..10u8 {
+                            let key = (u128::from(player.player_id) << 64)
+                                | (u128::from(definition.species_id) << 8)
+                                | u128::from(ordinal);
+                            if ctx.db.rank_maximum().key().find(key).is_some() {
+                                maxima_mask |= 1u16 << ordinal;
+                            }
+                        }
+                        let perfect_known = ctx.db.perfect_species().key().find(progress_key).is_some();
+                        let base_focus = if rules.version >= game_rules::raids::catalog().rules_version
+                            && reinforcement_level > 0
+                        {
+                            game_rules::raids::focus_chance_bp(reinforcement_level)?
+                        } else {
+                            game_rules::collection_focus::CHANCE_BP
+                        };
+                        game_rules::tideforge::steer_rank(
+                            usize::from(band.ordinal),
+                            &rank_weights,
+                            known_mask,
+                            maxima_mask,
+                            perfect_known,
+                            progress.as_ref().is_some_and(|row| row.count > 0),
+                            base_focus,
+                            effects.as_ref().ok_or("TIDEFORGE_EFFECTS_INVALID")?,
+                            &mut rng,
+                        )? as u8
+                    } else if normal_cast
                         && rules.version >= game_rules::raids::catalog().rules_version
                         && reinforcement_level > 0
                     {
@@ -470,6 +629,26 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                         model,
                         special_raid_band.ok_or("INVALID_SPECIAL_RAID")?,
                         special_raid_maximum_roll_one_in,
+                        &mut rng,
+                    )?
+                } else if let Some(fx) = &effects {
+                    let bait_rolls = [&bait.primary, &bait.secondary].into_iter()
+                        .filter(|used| used.bait_id != 0 && used.bonuses.luck_bp > 0 && used.bonuses.size_rolls > 1)
+                        .try_fold(0u8, |sum, used| sum.checked_add(used.bonuses.size_rolls).ok_or("INVALID_SIZE_ROLLS"))?;
+                    game_rules::tideforge::generate_measurements(
+                        game_rules::tideforge::MeasurementPlan {
+                            species: model,
+                            band: band.ordinal,
+                            base_rolls: bait.size_rolls,
+                            bait_rolls,
+                            ordinary: definition.counts_for_ordinary_collection_completion,
+                            first_ordinary,
+                            focus_enabled: collection_focus_enabled,
+                            all_ranks_known,
+                            reinforcement_level,
+                            rules_version: rules.version,
+                        },
+                        fx,
                         &mut rng,
                     )?
                 } else if normal_cast
@@ -518,8 +697,19 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                 let ratio = (u64::from(measurements.length_mm) * 1_000_000
                     / u64::from(definition.typical_length_mm))
                 .clamp(600_000, 2_000_000);
-                let sale_value =
+                let mut sale_value =
                     rank.base_value.checked_mul(ratio).ok_or("VALUE_OVERFLOW")? / 1_000_000;
+                let (sale_bp, fillet_bp, scale_bp) = if let Some(fx) = &effects {
+                    let sale_bp = fx.stat("saleBp");
+                    let ordinary = definition.counts_for_ordinary_collection_completion;
+                    let fillet_bp = if ordinary { fx.stat("filletBp") } else { 0 };
+                    let scale_bp = if ordinary { fx.stat("scaleBp") } else { 0 };
+                    let rate = 10_000u32.checked_add(sale_bp).ok_or("VALUE_OVERFLOW")?;
+                    sale_value = game_rules::tideforge::scale_credit(sale_value, rate, 0)?.0;
+                    (sale_bp, fillet_bp, scale_bp)
+                } else {
+                    (0, 0, 0)
+                };
                 let bonus_bp = [0u64, 0, 0, 1000, 2000, 2500][measurements.size_grade as usize];
                 let mut xp = rank
                     .base_xp
@@ -542,6 +732,20 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                     biome_id: biome.biome_id,
                     source_guild_id: guild_id,
                 });
+                if sale_bp != 0 || fillet_bp != 0 || scale_bp != 0 {
+                    if ctx.db.tideforge_specimen_modifiers().catch_id().find(specimen.catch_id).is_some() {
+                        return Err("TIDEFORGE_SPECIMEN_INVALID".into());
+                    }
+                    ctx.db.tideforge_specimen_modifiers().insert(TideforgeSpecimenModifiers {
+                        catch_id: specimen.catch_id,
+                        player_id: player.player_id,
+                        sale_bp,
+                        fillet_bp,
+                        scale_bp,
+                        effects_version: game_rules::tideforge::EFFECTS_VERSION,
+                        activity_key: snapshot.as_ref().ok_or("TIDEFORGE_SNAPSHOT_UNAVAILABLE")?.key.clone(),
+                    });
+                }
                 crate::perfection::observe(
                     ctx,
                     player.player_id,
@@ -602,6 +806,18 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                     }
                 }
                 let key = (u128::from(player.player_id) << 32) | u128::from(definition.species_id);
+                if definition.counts_for_ordinary_collection_completion {
+                    if let (Some(fx), Some(snapshot)) = (&effects, &snapshot) {
+                        let new_rank = ctx.db.player_species_progress().key().find(key)
+                            .and_then(|row| row.rank_counts.get(usize::from(rank.ordinal)).copied())
+                            .unwrap_or(0) == 0;
+                        if new_rank && fx.has("oceans_memory")
+                            && crate::tideforge::take_daily(ctx, snapshot, "oceans_memory")?
+                        {
+                            ocean_bonus = fx.parameter("oceans_memory", "dailyNewRankPlayerXpBp");
+                        }
+                    }
+                }
                 if let Some(mut progress) = ctx.db.player_species_progress().key().find(key) {
                     progress.count = progress.count.checked_add(1).ok_or("COUNT_OVERFLOW")?;
                     let rank_count = progress
@@ -653,21 +869,71 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                 receipt.size_grade = measurements.size_grade;
                 receipt.sale_value_coins = sale_value;
                 receipt.xp_granted = xp;
+                if definition.counts_for_ordinary_collection_completion {
+                    ordinary_seen = true;
+                    if first_ordinary {
+                        if let (Some(fx), Some(snapshot)) = (&effects, &snapshot) {
+                            if fx.has("forgotten_cache") {
+                                grant_packet(
+                                    ctx, player.player_id, &format!("discord:{interaction_id}:{pull}:cache"),
+                                    fx.parameter("forgotten_cache", "firstFishFillets"),
+                                    fx.parameter("forgotten_cache", "firstFishScales"),
+                                )?;
+                            }
+                            if fx.has("rift_current") && crate::tideforge::take_daily(ctx, snapshot, "rift_current")? {
+                                rift_pull = Some(pull_count);
+                                pull_count = pull_count.checked_add(1).ok_or("INVALID_PULL_COUNT")?;
+                                if pull_count > max_base_pulls + 1 {
+                                    return Err("INVALID_PULL_COUNT".into());
+                                }
+                            }
+                        }
+                    }
+                }
             }
             1 => {
                 player.junk_count = player.junk_count.checked_add(1).ok_or("COUNT_OVERFLOW")?;
                 receipt.outcome = "junk".into();
                 receipt.xp_granted = 2;
                 receipt.item_granted = "rusted_tin".into();
-                receipt.item_quantity = 1;
+                receipt.item_quantity = if let Some(fx) = &effects {
+                    let rate = 10_000u32.checked_add(fx.stat("salvageBp")).ok_or("ITEM_OVERFLOW")?;
+                    crate::tideforge::credit(ctx, player.player_id, "rusted_tin", 1, rate)?
+                } else {
+                    1
+                };
                 crate::inventory::grant_item(
                     ctx,
                     player.player_id,
                     2,
                     "rusted_tin",
-                    1,
+                    receipt.item_quantity,
                     format!("discord:{interaction_id}"),
                 )?;
+                if !junk_seen {
+                    if let Some(fx) = &effects {
+                        for (signature, parameter, slot, item) in [
+                            ("salvage_sermon", "firstJunkScrap", 1u32, "scrap"),
+                            ("rusted_crown", "firstJunkTin", 2u32, "rusted_tin"),
+                        ] {
+                            let quantity = fx.parameter(signature, parameter);
+                            if fx.has(signature) && quantity != 0 {
+                                crate::inventory::grant_item(
+                                    ctx, player.player_id, slot, item, u64::from(quantity),
+                                    format!("discord:{interaction_id}:{pull}:{signature}"),
+                                )?;
+                            }
+                        }
+                        if fx.has("fishermans_folly") {
+                            grant_packet(
+                                ctx, player.player_id, &format!("discord:{interaction_id}:{pull}:folly"),
+                                fx.parameter("fishermans_folly", "firstJunkFillets"),
+                                fx.parameter("fishermans_folly", "firstJunkScales"),
+                            )?;
+                        }
+                    }
+                }
+                junk_seen = true;
             }
             _ => {
                 player.treasure_count = player
@@ -677,6 +943,25 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                 receipt.outcome = "treasure".into();
                 receipt.xp_granted = 8;
                 receipt.coins_granted = rng.gen_range(25..=60);
+                if let Some(fx) = &effects {
+                    let rate = 10_000u32.checked_add(fx.stat("treasureBp")).ok_or("COIN_OVERFLOW")?;
+                    receipt.coins_granted =
+                        game_rules::tideforge::scale_credit(receipt.coins_granted, rate, 0)?.0;
+                    if !treasure_seen {
+                        let signature = match fx.kind.as_str() {
+                            "boat" => Some("gilded_bilge"),
+                            "net" => Some("pearlbound"),
+                            _ => None,
+                        };
+                        if let Some(signature) = signature {
+                            if fx.has(signature) && game_rules::tideforge::chance(
+                                fx.parameter(signature, "firstTreasureDoubleBp"), 10_000, &mut rng,
+                            )? {
+                                receipt.coins_granted = receipt.coins_granted.checked_mul(2).ok_or("COIN_OVERFLOW")?;
+                            }
+                        }
+                    }
+                }
                 receipt.item_granted = "scrap".into();
                 receipt.item_quantity = rng.gen_range(1..=3);
                 crate::inventory::grant_item(
@@ -687,6 +972,7 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
                     receipt.item_quantity,
                     format!("discord:{interaction_id}"),
                 )?;
+                treasure_seen = true;
             }
         }
         crate::statistics::observe_pull(ctx, &receipt, normal_cast && pull > 0, sets_record)?;
@@ -704,9 +990,12 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
             base_xp: receipt.xp_granted,
             receipt,
         });
+        ocean_bonuses.push(ocean_bonus);
+        pull += 1;
     }
-    let total_xp = xp_reward(total_base_xp)?;
+    let legacy_total_xp = xp_reward(total_base_xp)?;
     let mut allocated_xp = 0u64;
+    let mut total_xp = 0u64;
     let mut pulls: Vec<_> = ctx
         .db
         .cast_pull()
@@ -715,12 +1004,26 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
         .collect();
     pulls.sort_by_key(|row| row.key);
     for (index, mut pull) in pulls.into_iter().enumerate() {
-        pull.receipt.xp_granted = if index + 1 == pull_count {
-            total_xp - allocated_xp
+        let legacy_xp = if index + 1 == pull_count {
+            legacy_total_xp - allocated_xp
         } else {
             xp_reward(pull.base_xp)?
         };
-        allocated_xp += pull.receipt.xp_granted;
+        allocated_xp += legacy_xp;
+        let bonus_xp = if let Some(fx) = &effects {
+            let bonus_bp = fx.stat("playerXpBp")
+                .checked_add(*ocean_bonuses.get(index).ok_or("RECEIPT_MISSING")?)
+                .ok_or("XP_OVERFLOW")?;
+            if bonus_bp == 0 {
+                0
+            } else {
+                crate::tideforge::credit(ctx, player.player_id, "player_xp", legacy_xp, bonus_bp)?
+            }
+        } else {
+            0
+        };
+        pull.receipt.xp_granted = legacy_xp.checked_add(bonus_xp).ok_or("XP_OVERFLOW")?;
+        total_xp = total_xp.checked_add(pull.receipt.xp_granted).ok_or("XP_OVERFLOW")?;
         crate::journal::save_pull(ctx, &pull);
         ctx.db.recent_catch().insert(RecentCatch {
             recent_id: 0,
@@ -834,6 +1137,9 @@ pub(crate) fn resolve(ctx: &ReducerContext, plan: CastPlan) -> Result<(), String
     changed_record_holders.push(player.player_id);
     if !normal_cast {
         crate::statistics::observe_haul_catches(ctx, player.player_id, pull_count)?;
+    }
+    if let Some(snapshot) = &snapshot {
+        crate::tideforge::award_mastery(ctx, snapshot, ordinary_seen)?;
     }
     ctx.db.player().player_id().update(player);
     changed_record_holders.sort_unstable();

@@ -395,15 +395,6 @@ fn cast_one(test: &TestContext, player_id: u64, interaction_id: u64, biome_id: u
     .unwrap()
 }
 
-fn last_attempt(test: &TestContext, player_id: u64) -> RaidAttempt {
-    test.db
-        .raid_attempt()
-        .player_id()
-        .filter(player_id)
-        .max_by_key(|row| row.prepared_at)
-        .unwrap()
-}
-
 fn submit_prepare(test: &TestContext, discord_id: u64, interaction_id: u64, species: u32, grade: u8) {
     select_discord_player(test, discord_id, interaction_id);
     test.with_reducer_tx(auth("raid-bot"), |ctx| {

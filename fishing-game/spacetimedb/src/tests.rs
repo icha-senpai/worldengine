@@ -248,12 +248,6 @@ fn indexed_journal_pages_match_full_sort_without_exposing_other_players() {
     assert!(journal::my_journal(&test.view_context(auth("stranger"))).is_none());
 }
 
-fn biome(test: &TestContext) -> crate::tables::BiomeDefinition {
-    test.db.biome_definition().biome_id().find(1).unwrap()
-}
-fn rules(test: &TestContext) -> crate::tables::GameConfig {
-    test.db.game_config().iter().next().unwrap()
-}
 fn plan(player: crate::tables::Player, biome: crate::tables::BiomeDefinition, rules: crate::tables::GameConfig, id: u64, command: &str, pulls: usize) -> crate::casting::CastPlan {
     crate::casting::CastPlan {
         player, biome, rules,

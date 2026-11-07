@@ -721,6 +721,8 @@ fn personal_attempt(
         attempt.special_biome = Some(biome);
         attempt.special_rules = Some(config(ctx));
     }
+    let biome_id = ctx.db.player().player_id().find(player_id).ok_or("PLAYER_MISSING")?.selected_biome_id;
+    crate::tideforge::book(ctx, player_id, "boat", "raid", id, biome_id)?;
     crate::gear_instances::snapshot_selected(
         ctx, player_id, "boat", "raid", id, None, None, None,
         attempt.rules_version, Some(attempt.content_version), Some(attempt.catalog_version),
@@ -839,6 +841,8 @@ fn prepare_community(
         catalog.supply.item.clone(),
     );
     attempt.deployment_deadline = event.starts_at;
+    let biome_id = ctx.db.player().player_id().find(player_id).ok_or("PLAYER_MISSING")?.selected_biome_id;
+    crate::tideforge::book(ctx, player_id, "boat", "raid", id, biome_id)?;
     crate::gear_instances::snapshot_selected(
         ctx, player_id, "boat", "raid", id, None, None, None,
         attempt.rules_version, Some(attempt.content_version), Some(attempt.catalog_version),
@@ -1679,6 +1683,12 @@ fn complete_attempt(ctx: &ReducerContext, attempt: &mut RaidAttempt) -> Result<(
         }
         "community" => update_raid_statistics(ctx, attempt.player_id, "community", false)?,
         _ => return Err("INVALID_RAID_KIND".into()),
+    }
+    if let Some(snapshot) = crate::tideforge::lookup(ctx, attempt.player_id, "raid", attempt.id)? {
+        if snapshot.gear_kind != "boat" {
+            return Err("TIDEFORGE_SNAPSHOT_CONFLICT".into());
+        }
+        crate::tideforge::award_mastery(ctx, &snapshot, false)?;
     }
     attempt.status = "completed".into();
     attempt.settled_at = Some(ctx.timestamp);

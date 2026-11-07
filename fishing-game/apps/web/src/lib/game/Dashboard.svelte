@@ -3,34 +3,29 @@
   import GameSelect from './GameSelect.svelte';
   import SearchInput from './SearchInput.svelte';
   import { tooltip } from './tooltip';
-  import { onMount, tick, untrack } from 'svelte';
+  import { onMount, tick, untrack, type Snippet } from 'svelte';
   import * as env from '$app/env/public';
   import { Game } from './game.svelte';
   import { connectionDiagnostics } from './connection-diagnostics';
   import PondScene from './PondScene.svelte';
   import CastCooldown from './CastCooldown.svelte';
   import { runningHaulDeadline } from './activity-timers';
-  import Compendium from './Compendium.svelte';
-  import Records from './Records.svelte';
-  import Trader from './Trader.svelte';
-  import Quests from './Quests.svelte';
+  import LazyPanel from './LazyPanel.svelte';
   import TraderStall from './TraderStall.svelte';
   import PageTurner from './PageTurner.svelte';
-  import RaidWorkshop from './RaidWorkshop.svelte';
   import SectionTabs from './SectionTabs.svelte';
   import TackleBoxItems from './TackleBoxItems.svelte';
-  import Gear from './Gear.svelte';
-  import Achievements from './Achievements.svelte';
-  import Anglers from './Anglers.svelte';
   import AnglerLevel from './AnglerLevel.svelte';
   import world from '../../../../../content/world.json';
-  import Journal from './Journal.svelte';
   import ThemeToggle from './ThemeToggle.svelte';
   import { rankMaximaSummary } from './rank-maxima';
   import RaidMastery from './RaidMastery.svelte';
   import { totalOrdinaryRaidSeals } from './raid-progress';
   type CampView = 'camp' | 'quests' | 'inventory' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium' | 'trader' | 'achievements' | 'anglers';
-  let { initialView = 'camp' }: { initialView?: CampView } = $props();
+  let { initialView = 'camp', compendiumPanel }: {
+    initialView?: CampView;
+    compendiumPanel?: Snippet<[Game, boolean]>;
+  } = $props();
   const tabs: { id: CampView; label: string; personal?: boolean }[] = [
     { id: 'camp', label: 'Camp' }, { id: 'quests', label: 'Quests', personal: true }, { id: 'trader', label: 'Trader' }, { id: 'inventory', label: 'Tackle box', personal: true },
     { id: 'collection', label: 'Collection', personal: true }, { id: 'journal', label: 'Journal', personal: true },
@@ -225,15 +220,15 @@
     </section>
     <TraderStall onclick={() => openView('trader')} />
   {/if}
-  {#if visibleView === 'trader'}<Trader {game} {pageSize} />{/if}
-  {#if visibleView === 'quests' && game.player}<Quests {game} />{/if}
+  {#if visibleView === 'trader'}<LazyPanel active={true} load={() => import('./Trader.svelte')} componentProps={{ game, pageSize }} />{/if}
+  {#if visibleView === 'quests' && game.player}<LazyPanel active={true} load={() => import('./Quests.svelte')} componentProps={{ game }} />{/if}
   {#if game.player}
     {#if visibleView === 'inventory'}
     <section aria-labelledby="inventory"><div class="section-heading"><div><p class="eyebrow">KEEP THE GOOD ONES</p><h2 id="inventory">Your tackle box <span>{game.inventory.length} fish kept</span></h2></div></div>
       <SectionTabs tabs={tackleTabs} value={tackleView} prefix="tackle" label="Tackle box sections" onselect={selectTackleView} />
       {#if tackleView === 'gear'}
         <div class="tackle-panel" role="tabpanel" id="tackle-panel-gear" aria-labelledby="tackle-tab-gear" tabindex="0">
-          <Gear {game} />
+          <LazyPanel active={true} load={() => import('./Gear.svelte')} componentProps={{ game }} />
         </div>
       {/if}
       {#if tackleView === 'materials'}
@@ -243,7 +238,7 @@
       {/if}
       {#if tackleView === 'workshop'}
         <div class="tackle-panel" role="tabpanel" id="tackle-panel-workshop" aria-labelledby="tackle-tab-workshop" tabindex="0">
-          <RaidWorkshop {game} />
+          <LazyPanel active={true} load={() => import('./RaidWorkshop.svelte')} componentProps={{ game }} />
         </div>
       {/if}
       {#if tackleView === 'fish'}
@@ -305,7 +300,7 @@
 
     {/if}
     {#if visibleView === 'journal'}
-    <Journal {game} {pageSize} />
+    <LazyPanel active={true} load={() => import('./Journal.svelte')} componentProps={{ game, pageSize }} />
     {/if}
   {/if}
 
@@ -326,12 +321,18 @@
       {/each}</div><PageTurner bind:page={worldPage} total={game.biomes.length} {pageSize} label="World map pages" />
     </section>
   {/if}
-  <div hidden={visibleView !== 'records'}><Records {game} {pageSize} /></div>
-  {#if game.player}<div hidden={visibleView !== 'achievements'}><Achievements {game} {pageSize} /></div>{/if}
-  <div hidden={visibleView !== 'anglers'}><Anglers {game} {pageSize} /></div>
+  <div hidden={visibleView !== 'records'}><LazyPanel active={visibleView === 'records'} load={() => import('./Records.svelte')} componentProps={{ game, pageSize }} /></div>
+  {#if game.player}<div hidden={visibleView !== 'achievements'}><LazyPanel active={visibleView === 'achievements'} load={() => import('./Achievements.svelte')} componentProps={{ game, pageSize }} /></div>{/if}
+  <div hidden={visibleView !== 'anglers'}><LazyPanel active={visibleView === 'anglers'} load={() => import('./Anglers.svelte')} componentProps={{ game, pageSize }} /></div>
 
   </div>
-  <div class="view-panel" role="tabpanel" id="panel-compendium" aria-labelledby="tab-compendium" tabindex="0" hidden={visibleView !== 'compendium'}><Compendium {game} active={visibleView === 'compendium'} /></div>
+  <div class="view-panel" role="tabpanel" id="panel-compendium" aria-labelledby="tab-compendium" tabindex="0" hidden={visibleView !== 'compendium'}>
+    {#if compendiumPanel}
+      {@render compendiumPanel(game, visibleView === 'compendium')}
+    {:else}
+      <LazyPanel active={visibleView === 'compendium'} load={() => import('./Compendium.svelte')} componentProps={{ game, active: visibleView === 'compendium' }} />
+    {/if}
+  </div>
 
   <footer><span>Fishbound · One cast at a time.</span><div>{#if game.lastSync}<span>Updated {game.lastSync.toLocaleTimeString()}</span>{/if}{#if game.player}<button class="text-button" disabled={game.busy || !game.ready} onclick={() => game.logout()}>Unlink this browser</button>{/if}<ThemeToggle /></div></footer>
   <form method="POST" action={linkUrl} bind:this={linkForm} hidden><input name="challenge_id" value={game.challenge?.challengeId.toString() ?? ''} /><input name="proof" value={game.challenge?.proof.toString() ?? ''} /></form>

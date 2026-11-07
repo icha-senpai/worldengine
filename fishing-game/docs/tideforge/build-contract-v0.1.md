@@ -36,10 +36,11 @@ Accepted: levelling the gear unlocks its ordinary affix slots. Apply this throug
 the existing shared family-mastery direction, rather than restarting slot
 progress on every bought or gambled copy.
 
-The working layout is four ordinary slots. The older candidate milestones
-10 / 25 / 50 / 75 and 1-100 mastery range are still proposals, not newly
-confirmed levels. Mastery XP curves, per-activity credit and exact purchase
-eligibility remain to be authored.
+The working layout is four ordinary slots. Section 9 now specifies the
+1 / 10 / 25 / 50 milestones and mastery curve used for local implementation
+and testing. These replace the older 10 / 25 / 50 / 75 candidate, not the
+requirement for explicit live activation. Additional-copy purchase eligibility
+belongs to the trader stage.
 
 Rolled affixes beyond the currently unlocked slots must remain on the item as
 visible dormant affixes. Buying high-tier gear does not automatically unlock
@@ -617,21 +618,24 @@ The next implementation gate is still additive instances/preservation,
 loadout locks and snapshots. These numbers need review and then isolated
 runtime integration/playtesting, not a production switch.
 
-## 7. Remaining Gates Before The Full Build
+## 7. Build Gates And Progress
 
-1. **Mastery/access contract:** exact slot milestones, activity XP, dormant-slot
-   handling in all actions and additional-copy purchase eligibility.
+1. **Mastery/access contract:** local slot milestones, activity XP and dormant
+   effects are implemented in section 9. Additional-copy purchase eligibility
+   belongs to the acquisition stage.
 2. **Trader/reward contract:** affix ranges/counts, signature occurrence, stock
    versus rolling, monthly window, eligible families, new-copy starting quality
    and reinforcement, per-grade/achievement Mark awards.
-3. **Effect contract:** proposed semantics and grids are authored above; review,
-   approval and isolated runtime integration remain pending.
+3. **Effect contract:** candidate semantics/grids now have a locally verified
+   effect engine and isolated runtime integration. Final balance, acquisition
+   distributions and advanced website odds remain separate acceptance gates.
 4. **Economy contract:** reviewed coin/Mark/shard/material costs, roll-finish
    conversions and legal visible improvements, recovery, junk spread and
-   material-reward fractional rounding.
-5. **Technical contract:** additive instance migration, pending quotes,
-   immutable activity snapshots, lock boundaries, privacy, replay receipts and
-   isolated preservation proofs.
+   material-reward recipes. Fractional effect credit is already implemented.
+5. **Technical contract:** additive instances, legacy quotes, immutable activity
+   snapshots, current locks, privacy and replay have local preservation proofs.
+   New Forge/acquisition/processing operations must extend those protections;
+   production activation still requires separate approval.
 
 Implementation remains staged across the whole connected feature, not a
 reduced slice: instances/preservation, effects/progression, Forge/materials/
@@ -690,3 +694,86 @@ activation flag contains no player identity. Snapshot deletion follows the
 corresponding existing cast receipt, delivered haul or terminal raid retention;
 active and booked activities are not prematurely pruned. Isolated preservation
 proof and review remain required before any deployment.
+
+## 9. Local Effects And Mastery Implementation Defaults
+
+Status: Stage 2 implemented and verified locally, separately authorized by Boss.
+These are local candidate defaults, not production activation or final balance.
+`content/tideforge-effects.json` records the section 6 grids and signature
+parameters without importing the analysis script into gameplay.
+
+### Mastery Without A New Chore List
+
+Mastery remains shared by owner, equipment kind and family. Copies share the
+track, not quality, reinforcement, affixes or signatures. The candidate level
+range is 1-100, with ordinary slots opening at **1 / 10 / 25 / 50**. One slot is
+available immediately; locked affixes remain intact and visible.
+
+Each accepted rod action, settled normal haul or full successful raid gives
+100 base mastery XP to its booked gear family. A ten-pull boat is one activity,
+not ten. Junk/treasure fishing results still count as using the equipment.
+Preparing, deploying, cancelling, withdrawing, missing a deadline, early finish
+and replay do not create additional mastery awards. Successful raids credit
+their booked boat; this does not alter raid timers or ordinary raid rewards.
+
+At level `L`, the next level costs `100 + 20 * (L - 1)` XP. With `n = L - 1`,
+the cumulative threshold is `100 * n + 10 * n * (n - 1)`.
+
+| Level | Cumulative XP | Unlocked slots |
+|---|---:|---:|
+| 1 | 0 | 1 |
+| 10 | 1,620 | 2 |
+| 25 | 7,920 | 3 |
+| 50 | 28,420 | 4 |
+| 100 | 106,920 | 4 |
+
+At the unmodified 100 XP rate, slots two through four take 17, 80 and 285
+activities respectively on that family/kind track. These are action counts,
+not calendar promises: mixed play splits progress between tracks, and eligible
+mastery powers add credit. Lifetime XP continues past level 100.
+
+Foundation curve-0 rows move to curve 1 without resetting or inventing XP.
+There is no historical-use backfill and no mastery Power/Luck stat grant.
+Normal mastery bonuses and eligible Atlas/Tidal daily bonuses apply to the
+same base activity credit, not recursively to one another. Fractional credit
+carries forward on the relevant owner/family resource.
+
+### Activation And Booking Boundary
+
+Effects use a separate, explicit owner-only activation after the foundation.
+Module publication and initialization do not activate them. Existing booked
+activities do not gain effects or retroactive mastery. New activities pin the
+resolved modifiers, native/library powers, goal, family progress and versions.
+Settlement must not recompute those values from current equipment or catalogs.
+
+The tested primary innate is **100 Luck basis points: one Luck-stat point**,
+not +100% Luck. A primary-matching vanilla item therefore has a small nonzero
+effect once this candidate is explicitly activated. Disabled and genuinely
+zero-effect paths must retain legacy outcomes and RNG consumption.
+
+Goals affect future rod actions only. Changing a goal does not swap equipment,
+rewrite a booked activity or alter a raid. Actual Reliquary selection changes
+respect committed-raid equipment locks; the Haul selection remains shared.
+Owning an item is not sufficient to activate its unequipped native signature.
+
+Daily powers use completion-time UTC days and shared owner/biome/power counters.
+Changing equipment or activity kind does not refresh them. Failed completion
+and replay do not consume another token or grant another reward.
+
+This stage implements effect evaluation and catch-pinned sale/processing
+modifiers, not the Forge, acquisition distributions, Dredge Mark payouts,
+processing actions or proposed 1-3 tin base spread. Existing base junk remains
+one tin; percentage salvage and explicit signature packets are separate.
+
+### Verification And Remaining Work
+
+All 69 module tests, 66 shared-rule tests, 982 composition-parity cases,
+generated contracts, Rust workspace checks and web checks/build pass. The
+isolated actual-WASM proof preserves 87 retained tables, promotes six family
+curves without XP backfill, and settles an old and a new net naturally. Only the
+new booking receives mastery. See [verification evidence](../verification.md#tideforge-effects-and-mastery-local)
+for fixture limits and the bounded retry after a confirmation timeout.
+
+This does not activate development or production gameplay. Forge, processing,
+traders, dismantling/extraction, Dredge Marks/gambling, the Reliquary and website
+controls remain the next connected implementation stages.

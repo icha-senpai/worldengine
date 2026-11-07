@@ -1,6 +1,7 @@
 # Tideforge Design Workspace
 
-Status: the instance/preservation foundation is implemented and verified locally.
+Status: the instance/preservation foundation and Stage 2 effects/mastery are
+implemented and verified locally.
 Development/production activation and deployment are not authorized by these
 documents. Numerical effect rules remain proposed, not approved gameplay.
 
@@ -30,8 +31,8 @@ repository copies incorporate the clarifications below.
    proposed filleting and conversion recipes, conditional fish batches and
    whole-batch comparisons; not approved balance or a daily-income forecast.
 9. [Build contract](build-contract-v0.1.md): consolidated accepted rules and
-   remaining implementation gates; the instance/preservation foundation is
-   described in section 8. Individual raid payouts remain proposed.
+   remaining implementation gates; foundation is in section 8 and implemented
+   local effects/mastery defaults in section 9. Individual Mark payouts remain proposed.
 10. [Balance review and production baseline](balance-review-v0.1.md): read-only
     production activity/economy observations, effect-size findings and proposed
     starting test targets; not approved balance.
@@ -285,42 +286,41 @@ production-state check.
   ceilings while preserving existing odds. This is not yet a production
   deployment. XP and Power limits are unchanged; Luck affix proposals must
   be retested against the new curve rather than copied as approved values.
-- Ownership and equipped references still use equipment definitions rather
-  than duplicate instances. The existing raid reservation is per angler.
+- The reviewed baseline used definition-based ownership/equipment. The local
+  foundation now adds stable instances while preserving those legacy rows.
+  Raid reservations remain per angler.
 - Existing material refining uses 60 input for 50 output plus five coins per
   batch and requires a destination-grade clear. These are current rules,
   not approved future Tideforge tuning.
-- Ordinary junk currently awards one rusted tin per result. Filleting,
-  equipment affixes, gear-family mastery, gambling, the Vault, the Affix Codex
-  and the Reliquary are proposed new systems, not implemented Tideforge features.
+- Ordinary junk still awards one base rusted tin per result. Local effects and
+  mastery are implemented behind owner activation. Filleting, acquisition,
+  gambling, Vault/Codex and Reliquary operations remain later stages.
 
-## Still Open Before Implementation
+## Remaining Build Work
 
-- Full affix/signature definitions, including the accepted Maxima Priority
-  direction, all ten tier ranges, proc semantics, compatibility, stacking and
-  revised effective-stat limits.
-- Family roles and the degree of competitiveness expected from older gear.
-- Mastery XP curves and slot levels; trader stock-versus-roll interaction,
+- The local effect contract implements rod precision versus haul volume,
+  ten-tier candidates, stacking, dormant slots and mastery defaults. Final
+  balancing and complete advanced per-action website odds remain separate.
+- Trader stock-versus-roll interaction,
   tier ranges, the exact visit window within the monthly cadence, purchase
   permissions, inventory limits and new-copy starting quality/reinforcement.
 - Per-grade raid and achievement Mark payouts.
 - Exact processing, crafting, refining, junk-yield and shard recipes, including
   rounding, recovery quantities and tier/value handling, and
   natural-versus-forged Codex progress.
-- Resolution of companion differences such as Attuned Fortune's inclusion,
-  Attuned Wisdom's values and overlapping Focus/measurement effects.
-- Instance migration, pending quotes, active-activity snapshots and loadout-lock
-  boundaries, with idempotent activation and no loss of existing ownership.
+- Forge, processing, acquisition, recovery, Codex and Reliquary operations,
+  extending the implemented instance/snapshot/lock and replay protections.
+- Website controls and end-to-end acceptance for those new operations.
 - Progression simulations using around 24 total mixed-method fishing actions
   and normal raid check-ins as the accessible baseline, alongside heavier play.
   Earlier three-to-four-year language is background aspiration, not a mandate
   to slow players down or a verified completion forecast.
 
-Mastery and gambling defaults should be proposed for review, not left for Boss
-to invent percentage by percentage. The sources, currency, pricing equivalence
-and raid-ladder budget above are settled; propose the remaining curves, unlocks,
-eligibility, trader interaction and payout details. Favour automatic use-based
-mastery, legible choices and useful recovery value from unwanted gear.
+Mastery now uses the local defaults in the build contract. The gambling sources,
+currency, pricing equivalence and raid-ladder budget above are settled; remaining
+eligibility, trader interaction and payout details need concrete defaults,
+not percentage-by-percentage homework for Boss. Keep choices legible and
+recovery from unwanted gear useful.
 
 ## Preservation and Scope
 

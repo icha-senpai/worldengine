@@ -202,7 +202,7 @@ pub fn start_haul_from_discord(
     if species.is_empty() {
         return Err("CONTENT_UNAVAILABLE".into());
     }
-    let luck_bp = quality
+    let base_luck_bp = quality
         .luck_bp
         .checked_mul(gear.quality_bonus_multiplier)
         .and_then(|q| gear.luck_bp.checked_add(q))
@@ -212,7 +212,21 @@ pub fn start_haul_from_discord(
         .checked_mul(gear.quality_bonus_multiplier)
         .and_then(|q| gear.xp_bonus_bp.checked_add(q))
         .ok_or("INVALID_HAUL_XP")?;
-    let due_at = ctx.timestamp + TimeDuration::from_micros(seconds * 1_000_000);
+    let snapshot = crate::tideforge::book(
+        ctx, player.player_id, &kind, "haul", u128::from(interaction_id), biome.biome_id,
+    )?;
+    let effects = snapshot.as_ref().map(crate::tideforge::decode).transpose()?;
+    let luck_bp = base_luck_bp
+        .checked_add(effects.as_ref().map_or(0, |fx| fx.stat("luckBp")))
+        .ok_or("INVALID_HAUL_LUCK")?;
+    let seconds = if let Some(fx) = &effects {
+        let base = u32::try_from(seconds).map_err(|_| "INVALID_HAUL_TIME")?;
+        i64::from(game_rules::tideforge::normal_haul_seconds(base, fx.stat("durationBp"))?)
+    } else {
+        seconds
+    };
+    let micros = seconds.checked_mul(1_000_000).ok_or("INVALID_HAUL_TIME")?;
+    let due_at = ctx.timestamp + TimeDuration::from_micros(micros);
     let focus = crate::collection_focus::active(ctx, player.player_id, biome.biome_id, &species);
     crate::gear_instances::snapshot_selected(
         ctx, player.player_id, &kind, "haul", u128::from(interaction_id),

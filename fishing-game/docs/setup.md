@@ -11,9 +11,32 @@ or generating files.
 
 `npm run test:module` runs the actual Rust module against SpaceTimeDB's native
 in-memory datastore, including transaction rollback, caller privacy, journal
-pagination and durable delivery leases. On Windows the wrapper reuses ServBay's
-OpenSSL libraries when available; elsewhere provide the normal OpenSSL native
-build prerequisites. The test-only ICU pins match the 2.12 release lockfile.
+pagination and durable delivery leases. OpenSSL is built from the locked
+vendored source, not implicitly borrowed from ServBay's prebuilt libraries.
+On Windows x64, the wrapper uses a dedicated static-CRT test profile to match
+the pinned SDK's prebuilt V8 library. OpenSSL uses that same runtime, an
+absolute debug-PDB path and synchronized PDB writes (`/FS`). Compiler settings
+apply only to the test child; production services and global settings are
+unchanged. Use `npm run test:module`, rather than bypassing its native setup
+with a direct Cargo test command.
+
+Windows native tests need MSVC build tools and native Windows Perl
+(`MSWin32`, not Git/MSYS Perl). The wrapper automatically uses a private
+portable installation at `.local/tools/perl/perl/bin/perl.exe`, adding that
+installation's `perl/bin` and `c/bin` DLL directories to the child process PATH
+only. Alternatively provide native Perl on PATH or explicitly set
+`OPENSSL_SRC_PERL`; explicit OpenSSL overrides remain respected. This machine's
+approved private tool is Strawberry Perl 5.42.3.1 x64; its source URL and verified
+SHA-256 are recorded beside the installation. No global installation or shared
+ServBay library change is required. The helper resolves cached source through
+locked, offline metadata, copies it into the owned temporary Rust target and
+removes the release's stray OID regex-debug pragma only in that disposable
+copy. The registry source stays unchanged. Generated native libraries and
+PDBs are removed with the managed workflow; they are not installed globally
+or retained as build backups. Explicit OpenSSL overrides remain the caller's
+responsibility for matching the SDK runtime. Elsewhere provide the normal
+OpenSSL native build prerequisites. The test-only ICU pins match the 2.12
+release lockfile.
 `npm run test:subscriptions` checks tab query boundaries. Run the isolated
 `npm run rust:script -- scripts/spacetime-features-proof.ts` for installed-to-candidate
 preservation, subscription privacy and reconnect acknowledgement checks.

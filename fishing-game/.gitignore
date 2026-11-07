@@ -32,3 +32,6 @@ __pycache__/
 !/scripts/luck-verification.ts
 !/scripts/tideforge-effect-proof.ts
 !/scripts/tideforge-foundation-proof.ts
+!/scripts/tideforge-runtime-proof.ts
+!/scripts/tideforge-stage2-proof.ts
+!/scripts/module-openssl.mjs

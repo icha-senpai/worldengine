@@ -1,4 +1,5 @@
 use crate::tables::*;
+use crate::tideforge::tideforge_specimen_modifiers;
 use spacetimedb::{ReducerContext, Table, TimeDuration, ViewContext, rand::Rng};
 
 fn sale_total(ctx: &ReducerContext, player_id: u64, ids: &[u64]) -> Result<u64, String> {
@@ -23,6 +24,14 @@ fn sale_total(ctx: &ReducerContext, player_id: u64, ids: &[u64]) -> Result<u64, 
         }
         if fish.favorite {
             return Err("FAVORITE_PROTECTED".into());
+        }
+        if let Some(row) = ctx.db.tideforge_specimen_modifiers().catch_id().find(*id) {
+            if row.player_id != player_id
+                || row.catch_id != *id
+                || row.effects_version != game_rules::tideforge::EFFECTS_VERSION
+            {
+                return Err("TIDEFORGE_SPECIMEN_INVALID".into());
+            }
         }
         total = total
             .checked_add(fish.sale_value_coins)
@@ -62,6 +71,7 @@ fn settle_sale(
         .unwrap_or(0);
     crate::statistics::observe_sale(ctx, player_id, coins, biggest_fish)?;
     for id in ids {
+        ctx.db.tideforge_specimen_modifiers().catch_id().delete(*id);
         ctx.db.owned_specimen().catch_id().delete(*id);
     }
     ctx.db.player().player_id().update(player);
