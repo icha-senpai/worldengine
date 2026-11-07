@@ -2,6 +2,7 @@
 mod accounts;
 mod achievements;
 mod casting;
+mod calendar;
 mod collection_focus;
 mod content;
 mod crafting;
@@ -35,6 +36,8 @@ mod gear_instances_tests;
 mod tideforge_tests;
 #[cfg(all(test, feature = "module-tests"))]
 mod tideforge_economy_tests;
+#[cfg(all(test, feature = "module-tests"))]
+mod calendar_tests;
 
 use spacetimedb::{ReducerContext, Table};
 use tables::*;
@@ -53,6 +56,7 @@ pub fn init(ctx: &ReducerContext) {
     achievements::seed(ctx);
     quests::seed(ctx);
     raids::seed(ctx).expect("validated raids catalog");
+    calendar::schedule_next_boundary(ctx).expect("valid calendar boundary");
     ctx.db.maintenance_job().insert(MaintenanceJob {
         scheduled_id: 1,
         scheduled_at: spacetimedb::TimeDuration::from_micros(60_000_000).into(),

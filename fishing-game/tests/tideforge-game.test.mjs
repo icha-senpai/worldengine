@@ -7,6 +7,8 @@ import { test } from 'node:test';
 import ts from 'typescript';
 import { compileModule } from 'svelte/compiler';
 import { equippedLoadout } from '../apps/web/src/lib/game/compendium-loadouts.ts';
+import { ServerClock } from '../apps/web/src/lib/game/server-clock.ts';
+import { tideforgeFingerprint } from '../apps/web/src/lib/game/tideforge-intents.ts';
 import { coreQueries, tideforgeCoreQueries, tideforgeViewQueries, gearNameQueries, viewQueries } from '../apps/web/src/lib/game/subscriptions.ts';
 
 const gamePath = fileURLToPath(new URL('../apps/web/src/lib/game/game.svelte.ts', import.meta.url));
@@ -347,6 +349,8 @@ test('server rejections explain common guards without exposing unknown error cod
 
 test('public prepare and simple actions surface closed friendly errors', async () => {
   const game = new Game();
+  const now = performance.now();
+  game.serverClock.synchronize(Date.now(), now, now);
   game.identityKey = '0xabc'; game.player = { playerId: 9n }; game.ready = true; game.tideforgeCoreReady = true;
   game.connection = { isActive: true, reducers: {
     prepareTideforgeAction: async () => { throw new Error('TIDEFORGE_UNKNOWN_SECRET'); },
@@ -359,6 +363,38 @@ test('public prepare and simple actions surface closed friendly errors', async (
   assert.equal(await game.equipGearInstance(4n), false);
   assert.match(game.tideforgeError, /protected/);
   assert.doesNotMatch(game.tideforgeError, /TIDEFORGE_/);
+});
+
+test('unknown server time blocks dispatch and deadline uses fresh monotonic time', async () => {
+  const game = new Game(), calls = [];
+  let monotonic = 100;
+  game.serverClock = new ServerClock(() => monotonic);
+  game.identityKey = '0xabc'; game.player = { playerId: 9n }; game.ready = true; game.tideforgeCoreReady = true;
+  game.connection = { isActive: true, reducers: {
+    prepareTideforgeAction: async () => calls.push('prepare'),
+    commitTideforgeAction: async () => calls.push('commit'),
+  } };
+  const intent = { action: 'camp_copy', kind: 'rod', definition_id: 2, secondary_biome_id: 1 };
+  assert.equal(await game.prepareTideforge(intent), null);
+  assert.equal(game.tideforgeError, 'Syncing server time…');
+  assert.deepEqual(calls, []);
+  const quote = {
+    nonce: 3n, identity: { toHexString: () => '0xabc' }, playerId: 9n, catalogVersion: 1, consumed: false,
+    intentJson: JSON.stringify(intent),
+    previewJson: JSON.stringify({ ...intent, affix_count: 1, coins_before: 500, coins_cost: 10, coins_after: 490,
+      marks_before: 10, marks_cost: 0, marks_after: 10 }),
+    createdAt: { microsSinceUnixEpoch: 1_000_000_000n },
+    expiresAt: { microsSinceUnixEpoch: 1_000_500_000n },
+  };
+  game.tideforgeQuote = quote;
+  game.preparedTideforge = { quote, identity: '0xabc', playerId: 9n, fingerprint: tideforgeFingerprint(intent) };
+  assert.equal(await game.commitTideforge(quote), false);
+  assert.equal(game.tideforgeError, 'Syncing server time…');
+  game.serverClock.synchronize(1_000_000, monotonic, monotonic);
+  monotonic += 501;
+  assert.equal(await game.commitTideforge(quote), false);
+  assert.equal(game.tideforgeError, 'This preview is no longer current. Open a new preview.');
+  assert.deepEqual(calls, []);
 });
 
 test('definite commit rejection is safe and confirmed pending status avoids receipt jargon', async () => {

@@ -22,6 +22,7 @@ pub mod activate_crafting_reducer;
 pub mod activate_gear_foundation_reducer;
 pub mod activate_haul_equipment_reducer;
 pub mod activate_history_queries_reducer;
+pub mod activate_live_calendar_reducer;
 pub mod activate_perfect_catches_reducer;
 pub mod activate_quests_reducer;
 pub mod activate_raids_reducer;
@@ -97,6 +98,7 @@ pub mod bait_stack_type;
 pub mod begin_link_challenge_reducer;
 pub mod biome_definition_table;
 pub mod biome_definition_type;
+pub mod calendar_job_type;
 pub mod cancel_raid_from_discord_reducer;
 pub mod cancel_raid_reducer;
 pub mod cast_equipment_receipt_type;
@@ -357,6 +359,7 @@ pub use activate_crafting_reducer::activate_crafting;
 pub use activate_gear_foundation_reducer::activate_gear_foundation;
 pub use activate_haul_equipment_reducer::activate_haul_equipment;
 pub use activate_history_queries_reducer::activate_history_queries;
+pub use activate_live_calendar_reducer::activate_live_calendar;
 pub use activate_perfect_catches_reducer::activate_perfect_catches;
 pub use activate_quests_reducer::activate_quests;
 pub use activate_raids_reducer::activate_raids;
@@ -432,6 +435,7 @@ pub use bait_stack_type::BaitStack;
 pub use begin_link_challenge_reducer::begin_link_challenge;
 pub use biome_definition_table::*;
 pub use biome_definition_type::BiomeDefinition;
+pub use calendar_job_type::CalendarJob;
 pub use cancel_raid_from_discord_reducer::cancel_raid_from_discord;
 pub use cancel_raid_reducer::cancel_raid;
 pub use cast_equipment_receipt_type::CastEquipmentReceipt;
@@ -701,6 +705,7 @@ pub enum Reducer {
     ActivateGearFoundation,
     ActivateHaulEquipment,
     ActivateHistoryQueries,
+    ActivateLiveCalendar,
     ActivatePerfectCatches,
     ActivateQuests,
     ActivateRaids,
@@ -1074,6 +1079,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateGearFoundation => "activate_gear_foundation",
             Reducer::ActivateHaulEquipment => "activate_haul_equipment",
             Reducer::ActivateHistoryQueries => "activate_history_queries",
+            Reducer::ActivateLiveCalendar => "activate_live_calendar",
             Reducer::ActivatePerfectCatches => "activate_perfect_catches",
             Reducer::ActivateQuests => "activate_quests",
             Reducer::ActivateRaids => "activate_raids",
@@ -1208,6 +1214,8 @@ Reducer::ActivateGearFoundation => __sats::bsatn::to_vec(&activate_gear_foundati
 Reducer::ActivateHaulEquipment => __sats::bsatn::to_vec(&activate_haul_equipment_reducer::ActivateHaulEquipmentArgs {
                 }),
 Reducer::ActivateHistoryQueries => __sats::bsatn::to_vec(&activate_history_queries_reducer::ActivateHistoryQueriesArgs {
+                }),
+Reducer::ActivateLiveCalendar => __sats::bsatn::to_vec(&activate_live_calendar_reducer::ActivateLiveCalendarArgs {
                 }),
 Reducer::ActivatePerfectCatches => __sats::bsatn::to_vec(&activate_perfect_catches_reducer::ActivatePerfectCatchesArgs {
                 }),

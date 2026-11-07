@@ -183,6 +183,12 @@ export const BiomeDefinition = __t.object("BiomeDefinition", {
 });
 export type BiomeDefinition = __Infer<typeof BiomeDefinition>;
 
+export const CalendarJob = __t.object("CalendarJob", {
+  scheduledId: __t.u64(),
+  scheduledAt: __t.scheduleAt(),
+});
+export type CalendarJob = __Infer<typeof CalendarJob>;
+
 export const CastEquipmentReceipt = __t.object("CastEquipmentReceipt", {
   interactionId: __t.u64(),
   caughtAt: __t.timestamp(),

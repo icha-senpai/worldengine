@@ -8,10 +8,24 @@
   } = $props();
 
   let pending = $state.raw<Promise<{ default: Component<Props> }> | null>(null);
+  let loading = $state(false);
+  let failures = $state(0);
 
+  function startLoad() {
+    if (loading) return;
+    loading = true;
+    pending = Promise.resolve().then(load).then(module => {
+      loading = false;
+      return module;
+    }, error => {
+      loading = false;
+      failures++;
+      throw error;
+    });
+  }
   $effect(() => {
     if (active && !pending) {
-      pending = Promise.resolve().then(load);
+      startLoad();
     }
   });
 </script>
@@ -26,7 +40,8 @@
     {#if active}
       <div role="alert">
         <p>Could not load this section.</p>
-        <button onclick={() => window.location.reload()}>Reload page</button>
+        <button onclick={startLoad}>Retry section</button>
+        {#if failures > 1}<p>If the section still cannot load, reloading the page may be necessary.</p><button onclick={() => window.location.reload()}>Reload page</button>{/if}
       </div>
     {/if}
   {/await}

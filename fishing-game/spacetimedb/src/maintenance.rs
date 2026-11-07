@@ -10,6 +10,7 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
     }
     crate::quests::refresh_calendar(ctx);
     crate::raids::refresh_calendar(ctx)?;
+    crate::calendar::schedule_next_boundary(ctx)?;
     crate::hauls::prune_delivered(ctx);
     crate::raids::prune_history(ctx);
     crate::tideforge_economy::prune_history(ctx)?;

@@ -8,6 +8,7 @@ import crafting from '../../../content/crafting.json';
 import catalog from '../../../content/species.json';
 import raids from '../../../content/raids.json';
 import haulEquipment from '../../../content/haul-equipment.json';
+import questCatalog from '../../../content/quests.json';
 
 const model = catalog.species.find(row => row.countsForOrdinaryCollectionCompletion)!;
 const identity = (value: string) => ({ toHexString: () => value });
@@ -73,17 +74,33 @@ export class Game extends RealGame {
       maxWeightG: BigInt(model.typicalWeightG) * 8n, spriteAsset: `/fish/${model.spriteKey}.png` };
     this.species = [species] as typeof this.species;
     this.inventory = Array.from({ length: 62 }, (_, index) => ({
-      catchId: BigInt(index + 1), speciesId: model.speciesId, rarity: 'F', lengthMm: species.minLengthMm,
+      playerId: 9n, catchId: BigInt(index + 1), speciesId: model.speciesId, rarity: 'F', lengthMm: species.minLengthMm,
       weightG: species.minWeightG, favorite: false, sizeGrade: 0, saleValueCoins: 4n,
     })) as typeof this.inventory;
     (window as unknown as { tideforgeFixture: Game }).tideforgeFixture = this;
   }
 
-  start() {}
-  stop() {}
+  start() { this.startServerClock(); }
+  stop() { this.stopServerClock(); }
   setView() {}
   retryTideforge() { this.tideforgeAvailability = 'active'; }
   retryGearNames() { this.gearNamesAvailability = 'ready'; this.replayGearNames(); }
+  showQuestState() {
+    this.questDefinitions = questCatalog.map(row => ({
+      ...Object.fromEntries(Object.entries(row).map(([key, value]) => [key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()), value])),
+      target: BigInt(row.target), coins: BigInt(row.coins), tin: BigInt(row.tin), scrap: BigInt(row.scrap),
+    })) as typeof this.questDefinitions;
+    this.quests = this.questDefinitions.map(row => ({
+      questId: row.questId, unlocked: true, claimed: false, current: row.target, week: 10n, cycle: 2n,
+      deliverySpeciesIds: [model.speciesId],
+    })) as typeof this.quests;
+  }
+  async claimQuest(questId: number) {
+    this.calls.push({ action: 'claimQuest' });
+    this.quests = this.quests.map(row => row.questId === questId ? { ...row, claimed: true } : row);
+    await Promise.resolve();
+    return true;
+  }
   releaseHeldRename() { this.releaseRename?.(); this.releaseRename = null; }
   replayGearNames() {
     this.gearInstanceNames = this.serverNames.filter(row => row.playerId === this.player?.playerId
@@ -188,11 +205,14 @@ export class Game extends RealGame {
     this.tideforgeGear = this.tideforgeGear.map(row => ({ ...row, playerId: 10n, instanceId: row.instanceId + 1000n }));
     if (this.gearLoadout) this.gearLoadout = { ...this.gearLoadout, playerId: 10n,
       rodInstanceId: this.gearLoadout.rodInstanceId + 1000n };
-    this.inventory = this.inventory.map(row => ({ ...row, catchId: row.catchId + 1000n }));
+    this.inventory = this.inventory.map(row => ({ ...row, playerId: 10n, catchId: row.catchId + 1000n }));
     this.pendingTideforgeCommit = null; this.tideforgeResult = null;
     this.gearInstanceNames = []; this.gearNameError = ''; this.busy = false;
   }
   async prepareTideforge(intent: TideforgeIntent): Promise<any> {
+    const nowMicros = this.serverNowMicros;
+    if (nowMicros === null) { this.tideforgeError = 'Syncing server time…'; return null; }
+    this.tideforgeError = '';
     this.calls.push({ action: 'prepare', intent });
     if (this.delayNext) { this.delayNext = false; await new Promise<void>(resolve => { this.release = resolve; }); }
     let preview: Record<string, unknown>;
@@ -220,10 +240,13 @@ export class Game extends RealGame {
     this.lastIntent = intent; this.lastPreview = preview;
     return { nonce: this.sequence++, identity: identity(this.tideforgeIdentity!), playerId: this.player!.playerId,
       intentJson: JSON.stringify(intent), previewJson: JSON.stringify(preview), catalogVersion: 1,
-      createdAt: { microsSinceUnixEpoch: BigInt(Date.now()) * 1000n },
-      expiresAt: { microsSinceUnixEpoch: BigInt(Date.now() + this.quoteLifetimeMs) * 1000n }, consumed: false };
+      createdAt: { microsSinceUnixEpoch: nowMicros },
+      expiresAt: { microsSinceUnixEpoch: nowMicros + BigInt(this.quoteLifetimeMs) * 1000n }, consumed: false };
   }
   async commitTideforge(quote: any) {
+    const now = this.serverNowMicros;
+    if (now === null) { this.tideforgeError = 'Syncing server time…'; return false; }
+    if (quote.expiresAt.microsSinceUnixEpoch <= now) { this.tideforgeError = 'This preview is no longer current. Open a new preview.'; return false; }
     this.calls.push({ action: 'commit', nonce: String(quote.nonce) });
     if (this.holdCommit) {
       this.holdCommit = false; this.heldQuote = quote;

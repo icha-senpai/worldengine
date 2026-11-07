@@ -9,6 +9,7 @@ import { canonicalTideforgeIntent, matchesTideforgeQuote, sameTideforgeAccount, 
 import { tideforgeConfirmed, tideforgeErrorMessage, tideforgeUnconfirmed, tideforgeValidationMessage } from './tideforge-copy';
 import { gearNameValidationMessage, gearRenameErrorMessage, normalizeGearName } from './gear-names';
 import { gearLabel } from './tideforge-ui';
+import { observeServerClock, ServerClock } from './server-clock';
 export type JournalQuery = { page: number; pageSize: number; sort: string; descending: boolean; search: string; biomeId: number; rarity: string; outcome: string };
 import type { ActionNonce, AnglerPortrait, AnglerStatistics, AnglerStanding, LegendaryFind, BiomeDefinition, RodDefinition, RarityDefinition, GameConfig, ItemStack, LinkChallenge, OwnedSpecimen, Player, PlayerSpeciesProgress, PublicProfile, RecentCatch, SpeciesDefinition, SpeciesRecord, ShopListing, ShopQuote, OwnedRod, OwnedBiomeLicence, RodBonuses, RaidActionReceipt, RaidAttempt, RaidBadge, RaidGradeDefinition, RaidStatistics, CommunityRaidEvent, RodReinforcement } from '@fishing-game/generated/types';
 import type { GearInstance, GearInstanceName, GearLoadout, GearFamilyProgress, GearActivitySnapshot, TideforgeGear, TideforgeLoadout, TideforgeEconomyWallet, TideforgeEconomyQuote, TideforgeEconomyReceipt, TideforgeAffixShard, TideforgeCodex, TideforgeLibrary, TideforgeSpecimenModifiers, TideforgeFractionalCredit } from '@fishing-game/generated/types';
@@ -122,7 +123,7 @@ export class Game {
   private attempts = 0;
   private uri = '';
   private database = '';
-  private identityKey: string | undefined;
+  private identityKey = $state<string | undefined>(undefined);
   private tokenKey = '';
   private sessionToken: string | undefined;
   private lifecycle: ReturnType<typeof connectionLifecycle> | null = null;
@@ -147,7 +148,27 @@ export class Game {
   private tideforgeDispatch: symbol | null = null;
   private tideforgePrepare: symbol | null = null;
   private preparedTideforge: PendingTideforgeCommit | null = null;
+  private serverClock = new ServerClock();
+  private clockRevision = $state(0);
+  private clockObserver: (() => void) | null = null;
 
+  protected startServerClock() {
+    if (typeof window === 'undefined') return;
+    this.stopServerClock();
+    this.clockObserver = observeServerClock(this.serverClock, () => {
+      this.clockRevision++;
+      if (this.tideforgeError === 'Syncing server time…' && this.serverClock.now() !== null) this.tideforgeError = '';
+    });
+  }
+  protected stopServerClock() {
+    this.clockObserver?.(); this.clockObserver = null;
+    this.serverClock.reset(); this.clockRevision++;
+  }
+  get serverNowMs(): number | null { this.clockRevision; return this.serverClock.now(); }
+  get serverNowMicros(): bigint | null {
+    const now = this.serverNowMs;
+    return now === null ? null : BigInt(Math.floor(now)) * 1000n;
+  }
   private invalidateRaidDispatch() {
     if (this.activeRaidDispatch !== null) {
       this.activeRaidDispatch = null;
@@ -156,6 +177,7 @@ export class Game {
   }
   get raidsSupported() { return (this.config?.version ?? 0) >= 17; }
   get raidActionUnconfirmed() { return this.actionUnconfirmed; }
+  get authenticatedIdentity() { return this.identityKey; }
   get tideforgeIdentity() { return this.identityKey; }
   get equipmentInformationUnavailable() {
     return this.tideforgeAvailability === 'loading' || this.tideforgeKnownActive && !this.tideforgeCoreReady;
@@ -595,7 +617,7 @@ export class Game {
       : false;
     const tideforgePending = preservePendingIntent && uri === this.uri && database === this.database
       ? this.pendingTideforgeCommit : null;
-    this.stop(); this.uri = uri; this.database = database; this.attempts = 0;
+    this.stop(); this.startServerClock(); this.uri = uri; this.database = database; this.attempts = 0;
     if (pending) {
       this.pendingRaidIntent = pending;
       this.actionUnconfirmed = pendingUnconfirmed;
@@ -772,6 +794,7 @@ export class Game {
     connection.db.myInventory.onUpdate(this.refresh);
   }
   stop() {
+    this.stopServerClock();
     this.lifecycle?.dispose(); this.lifecycle = null; this.sessionToken = undefined;
     this.generation++; if (this.retry) clearTimeout(this.retry);
     this.coreReady = false; this.sectionReady = false; this.sectionLoading = false;
@@ -979,7 +1002,8 @@ export class Game {
   }
   async prepareLink() {
     if (!this.ready) { this.error = 'Wait for the connection to recover before linking your account.'; return; }
-    if (this.challenge && !this.challenge.consumed && this.challenge.expiresAt.microsSinceUnixEpoch > BigInt(Date.now()) * 1000n) {
+    const nowMicros = this.serverNowMicros;
+    if (nowMicros !== null && this.challenge && !this.challenge.consumed && this.challenge.expiresAt.microsSinceUnixEpoch > nowMicros) {
       // An interrupted request may already have created this challenge.
       this.error = ''; this.actionUnconfirmed = false;
       return;
@@ -1097,6 +1121,7 @@ export class Game {
       this.tideforgeError = 'Wait for Tideforge to finish connecting.';
       return null;
     }
+    if (this.serverNowMicros === null) { this.tideforgeError = 'Syncing server time…'; return null; }
     let normalized: TideforgeIntent, fingerprint: string;
     try {
       normalized = canonicalTideforgeIntent(intent);
@@ -1118,8 +1143,10 @@ export class Game {
       for (let attempt = 0; attempt < 30 && current(); attempt++) {
         this.refreshTideforge(connection);
         const quote = this.tideforgeQuote;
+        const nowMicros = this.serverNowMicros;
+        if (nowMicros === null) { this.tideforgeError = 'Syncing server time…'; return null; }
         if (quote && quote.nonce !== oldNonce && matchesTideforgeQuote(quote, {
-          identity, playerId, fingerprint, nowMicros: BigInt(Date.now()) * 1000n,
+          identity, playerId, fingerprint, nowMicros,
         })) {
           this.preparedTideforge = { quote, identity, playerId, fingerprint };
           return quote;
@@ -1145,9 +1172,11 @@ export class Game {
       this.tideforgeError = 'Wait for Tideforge to finish connecting before confirming.';
       return false;
     }
+    const nowMicros = this.serverNowMicros;
+    if (nowMicros === null) { this.tideforgeError = 'Syncing server time…'; return false; }
     const guard = prepared && this.identityKey && this.player ? {
       identity: this.identityKey, playerId: this.player.playerId, fingerprint: prepared.fingerprint,
-      nonce: prepared.quote.nonce, nowMicros: BigInt(Date.now()) * 1000n,
+      nonce: prepared.quote.nonce, nowMicros,
     } : null;
     if (this.pendingTideforgeCommit || !prepared || !this.tideforgeQuote || !this.identityKey || !this.player
       || !guard || !matchesTideforgeQuote(this.tideforgeQuote, guard) || !matchesTideforgeQuote(quote, guard)

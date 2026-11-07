@@ -5,6 +5,7 @@
   import RaidBoard from './RaidBoard.svelte';
   import SectionTabs from './SectionTabs.svelte';
   import GameSelect from './GameSelect.svelte';
+  import { questConfirmationProblem, type PendingQuestClaim } from './quest-confirmation';
   let { game }: { game: Game } = $props();
   type QuestSection = 'raids' | 'community' | 'dailies' | 'quests';
   const questTabs: { id: QuestSection; label: string }[] = [
@@ -18,8 +19,32 @@
   function openActiveRaid() { questSection = 'raids'; }
   let choices = $state<Record<number, number>>({});
   let catches = $state<Record<number, string>>({});
-  let pending = $state<{ definition: QuestDefinition; baitId: number; catchId: bigint | undefined; week: bigint; cycle: bigint } | null>(null);
+  let pending = $state.raw<PendingQuestClaim | null>(null);
+  let confirming = $state(false);
+  let confirmationNotice = $state('');
+  let selectionIdentity: string | undefined;
+  let selectionPlayerId: bigint | undefined;
+  let selectionBound = false;
   let confirmation: HTMLDialogElement;
+  $effect(() => {
+    const identity = game.authenticatedIdentity, playerId = game.player?.playerId;
+    if (selectionBound && (identity !== selectionIdentity || playerId !== selectionPlayerId)) {
+      choices = {}; catches = {};
+    }
+    selectionBound = true; selectionIdentity = identity; selectionPlayerId = playerId;
+  });
+  $effect(() => {
+    const current = pending;
+    if (!current) return;
+    const problem = questConfirmationProblem(game, current);
+    const ownerChanged = !game.ready || game.authenticatedIdentity !== current.identity || game.player?.playerId !== current.playerId;
+    if (problem && (!confirming || ownerChanged)) invalidate(problem);
+  });
+  function invalidate(message: string) {
+    confirmationNotice = message;
+    pending = null;
+    if (confirmation?.open) confirmation.close();
+  }
   const storyChains = $derived([...new Set([...game.questDefinitions].sort((a, b) => a.questId - b.questId).filter(q => !q.weekly && !q.goal.startsWith('repeat_')).map(q => q.chain))]);
   const status = (id: number) => game.quests.find(row => row.questId === id);
   const baitChoice = (quest: QuestDefinition) => choices[quest.questId] ?? (quest.baitChoices.length === 1 ? quest.baitChoices[0] : 0);
@@ -36,14 +61,24 @@
   }
   function review(definition: QuestDefinition) {
     const row = status(definition.questId);
-    if (!row) return;
-    pending = { definition, baitId: baitChoice(definition), catchId: definition.goal === 'delivery' && catches[definition.questId] ? BigInt(catches[definition.questId]) : undefined, week: row.week, cycle: row.cycle };
+    if (!row || !game.player || !game.authenticatedIdentity) return;
+    const next: PendingQuestClaim = { definition, baitId: baitChoice(definition), catchId: definition.goal === 'delivery' && catches[definition.questId] ? BigInt(catches[definition.questId]) : undefined, week: row.week, cycle: row.cycle, playerId: game.player.playerId, identity: game.authenticatedIdentity };
+    if (questConfirmationProblem(game, next)) return;
+    confirmationNotice = ''; pending = next;
     confirmation.showModal();
   }
   async function claim() {
-    if (!pending) return;
-    const { definition, baitId, catchId, week, cycle } = pending;
-    if (await game.claimQuest(definition.questId, baitId, catchId, week, cycle)) { confirmation.close(); pending = null; }
+    const current = pending;
+    if (!current || confirming) return;
+    const problem = questConfirmationProblem(game, current);
+    if (problem) { invalidate(problem); return; }
+    const { definition, baitId, catchId, week, cycle } = current;
+    confirming = true;
+    try {
+      if (await game.claimQuest(definition.questId, baitId, catchId, week, cycle) && pending === current) {
+        pending = null; confirmation.close();
+      }
+    } finally { confirming = false; }
   }
 </script>
 
@@ -96,6 +131,7 @@
 
 <section class="quest-board" aria-label="Quests and Dockside contracts">
   <SectionTabs tabs={questTabs} value={questSection} prefix="quest" label="Quest sections" onselect={value => questSection = value} />
+  {#if confirmationNotice}<p role="status">{confirmationNotice}</p>{/if}
   {#if questSection === 'raids' || questSection === 'community'}
     <div role="tabpanel" id={`quest-panel-${questSection}`} aria-labelledby={`quest-tab-${questSection}`} tabindex="0">
       <RaidBoard {game} mode={raidMode} onOpenActive={openActiveRaid} />

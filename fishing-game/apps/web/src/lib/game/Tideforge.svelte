@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { onMount, untrack } from 'svelte';
+  import { untrack } from 'svelte';
+  import { deadlineExpired } from './server-clock';
   import type { Game } from './game.svelte';
   import type { TideforgeEconomyQuote } from '@fishing-game/generated/types';
   import type { TideforgeIntent, TideforgePreviewRoll } from './tideforge-intents';
@@ -25,13 +26,12 @@
   let quote = $state.raw<TideforgeEconomyQuote | null>(null);
   let revision = 0;
   let quoteRevision = -1;
-  let now = $state(Date.now());
   let dialog: HTMLDialogElement;
   let cancelButton = $state<HTMLButtonElement>();
   let confirming = $state(false);
   let previousPlayer = $state<bigint | undefined>();
   let previousIdentity = $state<string | undefined>();
-  const expired = $derived(!quote || quote.expiresAt.microsSinceUnixEpoch <= BigInt(now) * 1000n);
+  const expired = $derived(deadlineExpired(quote?.expiresAt.microsSinceUnixEpoch ?? null, game.serverNowMs));
   const preview = $derived(quote ? parseTideforgePreview(quote.previewJson) : null);
   const result = $derived(game.tideforgeResult ? parseTideforgePreview(game.tideforgeResult.summaryJson) : null);
   function rollText(roll: TideforgePreviewRoll) {
@@ -48,10 +48,10 @@
     if (!next || !currentTideforgeForm(snapshot, { revision, identity: game.tideforgeIdentity,
       playerId: game.player?.playerId, active, ready: game.ready })) return;
     if (!parseTideforgePreview(next.previewJson)) { game.tideforgeError = 'This preview could not be safely read.'; return; }
-    quoteRevision = snapshot.revision; now = Date.now(); quote = next;
+    quoteRevision = snapshot.revision; quote = next;
   }
   async function confirm() {
-    if (!quote || !active || expired || confirming || quoteRevision !== revision || !game.ready || !preview) return;
+    if (!quote || !active || deadlineExpired(quote.expiresAt.microsSinceUnixEpoch, game.serverNowMs) || confirming || quoteRevision !== revision || !game.ready || !preview) return;
     const currentQuote = quote;
     const snapshot = { revision, identity: game.tideforgeIdentity, playerId: game.player?.playerId };
     confirming = true;
@@ -99,7 +99,6 @@
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = overflow; };
   });
-  onMount(() => { const timer = setInterval(() => now = Date.now(), 1000); return () => clearInterval(timer); });
 </script>
 
 <section class="tideforge" aria-labelledby="tideforge-title">
@@ -176,7 +175,7 @@
       {#if preview.kind}<p>New gear with {preview.affix_count} random affix{preview.affix_count === 1 ? '' : 'es'}.</p>{/if}
       {#if preview.learned_signature}<p>{signatureName(preview.learned_signature)} signature.</p>{/if}
       {#if !preview.gear_after && !preview.kind && !preview.learned_signature && !(preview.materials ?? []).some(row => row.produced) && !(preview.shards ?? []).some(row => row.produced)}<p>No items returned.</p>{/if}
-      {#if expired}<p role="alert">This preview expired. Open a new preview.</p>{/if}
+      {#if game.serverNowMs === null}<p role="status">Syncing server time…</p>{:else if expired}<p role="alert">This preview expired. Open a new preview.</p>{/if}
       {#if game.tideforgeError}<p role="alert">{game.tideforgeError}</p>{/if}
       <div class="dialog-actions"><button class="tideforge-action secondary" bind:this={cancelButton} disabled={confirming} onclick={() => dismiss()}>Cancel</button><button class="tideforge-action" disabled={confirming || game.busy || !game.ready || expired} onclick={confirm}>{confirming ? 'Confirming…' : 'Confirm'}</button></div>
     {/if}

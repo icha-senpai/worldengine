@@ -17,6 +17,14 @@ export default defineConfig({
     load(id) {
       if (id === '\0tideforge-fixture-env') return 'export const PUBLIC_DEPLOY_COMMIT="fixture"; export const PUBLIC_SPACETIMEDB_URI=""; export const PUBLIC_SPACETIMEDB_DATABASE=""; export const PUBLIC_ACCOUNT_LINK_URL="";';
     },
+    configureServer(server) {
+      server.middlewares.use('/api/time', (request, response, next) => {
+        if (request.method !== 'GET') return next();
+        response.setHeader('Content-Type', 'application/json');
+        response.setHeader('Cache-Control', 'no-store');
+        response.end(JSON.stringify({ serverTimeMs: Date.now() }));
+      });
+    },
   }, svelte({ configFile: false, compilerOptions: { runes: true } })],
   server: { host: '127.0.0.1', port: 5182, strictPort: true, fs: { allow: [root] } },
 });

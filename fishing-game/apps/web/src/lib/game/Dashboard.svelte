@@ -10,6 +10,7 @@
   import PondScene from './PondScene.svelte';
   import CastCooldown from './CastCooldown.svelte';
   import { runningHaulDeadline } from './activity-timers';
+  import { deadlineExpired } from './server-clock';
   import LazyPanel from './LazyPanel.svelte';
   import TraderStall from './TraderStall.svelte';
   import PageTurner from './PageTurner.svelte';
@@ -64,7 +65,6 @@
   let bookTier = $state('');
   let bookQuery = $state('');
   let linkForm: HTMLFormElement;
-  let now = $state(Date.now());
   const grades = ['Tiny', 'Small', 'Typical', 'Large', 'Trophy', 'Colossal'];
   const level = $derived(game.profile?.level ?? 1);
   const currentBiome = $derived(game.biomes.find(row => row.biomeId === game.player?.selectedBiomeId));
@@ -142,7 +142,7 @@
   }
   async function preview() { const revision = tackleRevision; await game.previewSale(saleBatch); showQuote = !game.error && tackleRevision === revision && tackleView === 'fish'; }
   async function confirm() {
-    if (!quote) return;
+    if (!quote || deadlineExpired(quote.expiresAt.microsSinceUnixEpoch, game.serverNowMs)) return;
     const soldIds = quote.catchIds;
     await game.confirmSale(quote.nonce);
     if (!game.error) { selected = selected.filter(id => !soldIds.includes(id)); showQuote = false; }
@@ -162,8 +162,7 @@
     window.addEventListener('popstate', readView);
     window.addEventListener('hashchange', readView);
     game.start(env.PUBLIC_SPACETIMEDB_URI ?? '', env.PUBLIC_SPACETIMEDB_DATABASE ?? '');
-    const timer = setInterval(() => { now = Date.now(); }, 1000);
-    return () => { stopDiagnostics(); clearInterval(timer); game.stop(); compactScreen.removeEventListener('change', resizePages); window.removeEventListener('popstate', readView); window.removeEventListener('hashchange', readView); };
+    return () => { stopDiagnostics(); game.stop(); compactScreen.removeEventListener('change', resizePages); window.removeEventListener('popstate', readView); window.removeEventListener('hashchange', readView); };
   });
 </script>
 
@@ -249,7 +248,7 @@
             </div>
           {/if}
           {#if quote}
-            <div class="sale" role="status"><div><strong>Sell {quote.catchIds.length} selected {quote.catchIds.length === 1 ? 'catch' : 'catches'} for {quote.quotedCoins.toString()} coins?</strong><p>{quote.catchIds.map(id => { const fish = game.inventory.find(row => row.catchId === id); return '#' + id + ' ' + (fish ? speciesName(fish.speciesId) : '(catch changed)'); }).join(' · ')}</p><small>Discoveries and records remain. Favorites are protected. Preview expires at {time(quote.expiresAt.microsSinceUnixEpoch)}.</small></div><div class="sale-actions"><button disabled={game.busy || !game.ready || quote.expiresAt.microsSinceUnixEpoch <= BigInt(now) * 1000n} onclick={confirm}>Confirm sale · {quote.quotedCoins.toString()} coins</button><button class="secondary" onclick={() => { showQuote = false; }}>Cancel</button></div></div>
+            <div class="sale" role="status"><div><strong>Sell {quote.catchIds.length} selected {quote.catchIds.length === 1 ? 'catch' : 'catches'} for {quote.quotedCoins.toString()} coins?</strong><p>{quote.catchIds.map(id => { const fish = game.inventory.find(row => row.catchId === id); return '#' + id + ' ' + (fish ? speciesName(fish.speciesId) : '(catch changed)'); }).join(' · ')}</p><small>Discoveries and records remain. Favorites are protected. Preview expires at {time(quote.expiresAt.microsSinceUnixEpoch)}.</small>{#if game.serverNowMs === null}<p>Syncing server time…</p>{/if}</div><div class="sale-actions"><button disabled={game.busy || !game.ready || deadlineExpired(quote.expiresAt.microsSinceUnixEpoch, game.serverNowMs)} onclick={confirm}>Confirm sale · {quote.quotedCoins.toString()} coins</button><button class="secondary" onclick={() => { showQuote = false; }}>Cancel</button></div></div>
           {/if}
           {#if !game.inventory.length}<p class="empty">Your next catch could be the keeper. Try <code>/fish</code> in Discord.</p>{:else}<div class="catch-grid">
             {#each game.inventory.slice((inventoryPage - 1) * inventoryPageSize, inventoryPage * inventoryPageSize) as fish (fish.catchId)}

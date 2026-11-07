@@ -42,6 +42,7 @@ import ActivateCraftingReducer from "./activate_crafting_reducer";
 import ActivateGearFoundationReducer from "./activate_gear_foundation_reducer";
 import ActivateHaulEquipmentReducer from "./activate_haul_equipment_reducer";
 import ActivateHistoryQueriesReducer from "./activate_history_queries_reducer";
+import ActivateLiveCalendarReducer from "./activate_live_calendar_reducer";
 import ActivatePerfectCatchesReducer from "./activate_perfect_catches_reducer";
 import ActivateQuestsReducer from "./activate_quests_reducer";
 import ActivateRaidsReducer from "./activate_raids_reducer";
@@ -1322,6 +1323,7 @@ const reducersSchema = __reducers(
   __reducerSchema("activate_gear_foundation", ActivateGearFoundationReducer),
   __reducerSchema("activate_haul_equipment", ActivateHaulEquipmentReducer),
   __reducerSchema("activate_history_queries", ActivateHistoryQueriesReducer),
+  __reducerSchema("activate_live_calendar", ActivateLiveCalendarReducer),
   __reducerSchema("activate_perfect_catches", ActivatePerfectCatchesReducer),
   __reducerSchema("activate_quests", ActivateQuestsReducer),
   __reducerSchema("activate_raids", ActivateRaidsReducer),

@@ -2,7 +2,7 @@
   import { equippedBaits, stackedBaitBonuses, stackedMaterials } from './bait-loadout';
   import { baitEffect } from './bait-effects';
   import RaidArt from './RaidArt.svelte';
-  import { onMount } from 'svelte';
+  import { deadlineExpired } from './server-clock';
   import type { Game } from './game.svelte.ts';
   import raidPolicy from '../../../../../content/raids.json';
   import { itemSlot } from './raid-items';
@@ -37,12 +37,11 @@
   let cancelButton = $state<HTMLButtonElement>();
   let reinforcing = $state(false);
   let reinforcePending = $state<{ rodId: number; expectedLevel: number; playerId: bigint } | null>(null);
-  let now = $state(Date.now());
   const pendingQuote = $derived(previewKind === 'haul' ? game.haulUpgradeQuote : game.upgradeQuote);
   const quote = $derived(previewing && pendingQuote && !pendingQuote.consumed ? pendingQuote : null);
   const upgradeTarget = $derived(quote ? 'equipmentId' in quote ? game.haulEquipment.find(row => row.equipmentId === quote.equipmentId) : game.rods.find(row => row.rodId === quote.rodId) : undefined);
   const upgradeKind = $derived(upgradeTarget && 'kind' in upgradeTarget ? upgradeTarget.kind : 'rod');
-  const expired = $derived(!!quote && quote.expiresAt.microsSinceUnixEpoch <= BigInt(now)*1000n);
+  const expired = $derived(deadlineExpired(quote?.expiresAt.microsSinceUnixEpoch ?? null, game.serverNowMs));
   const reinforcementLevel = (rodId: number) => game.rodStats(rodId).reinforcementLevel;
   const selectedCopy = (kind: 'rod' | 'boat' | 'net') => {
     const instance = game.equippedGearInstance(kind);
@@ -112,7 +111,6 @@
     return () => { document.body.style.overflow = overflow; };
   });
   const percent = (bp: number | undefined) => (bp ?? 0)/100;
-  onMount(() => { const timer = setInterval(() => now = Date.now(),1000); return () => clearInterval(timer); });
   async function equip(rodId: number) { await game.changeLoadout(undefined, rodId); previewing = false; }
   const baitIdInSlot = (slot: number) => slot === 1 ? game.baitLoadout?.baitId ?? 0 : game.baitLoadout?.secondaryBaitId ?? 0;
   async function equipBait(baitId: number, slot: number) { await game.equipBait(baitId, slot); }
@@ -124,10 +122,9 @@
     previewKind = 'rod';
     await game.previewUpgrade(rodId);
     previewing = !game.error && game.ready && game.player?.playerId === previewPlayerId && game.upgradeQuote?.rodId === rodId;
-    now = Date.now();
   }
   async function confirmUpgrade() {
-    if (!quote || expired || confirming || game.busy || !game.ready || game.equipmentInformationUnavailable) return;
+    if (!quote || deadlineExpired(quote.expiresAt.microsSinceUnixEpoch, game.serverNowMs) || confirming || game.busy || !game.ready || game.equipmentInformationUnavailable) return;
     if ((upgradeKind === 'rod' || upgradeKind === 'boat' || upgradeKind === 'net') && selectedCopy(upgradeKind)) return;
     confirming = true;
     try {
@@ -145,7 +142,6 @@
     previewKind = 'haul';
     await game.previewHaulUpgrade(equipmentId);
     previewing = !game.error && game.ready && game.player?.playerId === previewPlayerId && game.haulUpgradeQuote?.equipmentId === equipmentId;
-    now = Date.now();
   }
   function cancelUpgrade(event?: Event) {
     if (confirming) { event?.preventDefault(); return; }
@@ -224,7 +220,7 @@
             <label for={`gear-${slot.kind}`}>Switch {slot.label}</label>
             <GameSelect id={`gear-${slot.kind}`} label={`Switch ${slot.label}`} value={selected?.equipmentId ?? 0} options={options.map(option=>({value:option.equipmentId,label:(game.haulStats(option.equipmentId).quality?.name??"Common")+" "+option.name}))} disabled={!game.ready || game.busy || !options.length} onchange={value => equipHaul(value)} />
             {#if trip?.status === 'running'}
-              <p class="haul-status" role="status">{trip.equipmentName} in {trip.biome.name} · {Math.max(0, Math.ceil((Number(trip.dueAt.microsSinceUnixEpoch / 1000n) - now) / 60000)) || 'Finishing'}{trip.dueAt.microsSinceUnixEpoch > BigInt(now) * 1000n ? ' min remaining' : '…'} · {slot.kind === 'boat' ? 10 : 4} catches. Your trip keeps its starting gear.</p>
+              <p class="haul-status" role="status">{trip.equipmentName} in {trip.biome.name} · {#if game.serverNowMs === null}Syncing server time…{:else}{Math.max(0, Math.ceil((Number(trip.dueAt.microsSinceUnixEpoch / 1000n) - game.serverNowMs) / 60000)) || 'Finishing'}{trip.dueAt.microsSinceUnixEpoch > BigInt(Math.floor(game.serverNowMs)) * 1000n ? ' min remaining' : '…'}{/if} · {slot.kind === 'boat' ? 10 : 4} catches. Your trip keeps its starting gear.</p>
             {:else if trip?.completedAt}
               <p class="haul-status">Last haul: {trip.results.length} catches · +{trip.totalXp.toString()} XP · +{trip.totalCoins.toString()} coins. Start another with /fish{slot.kind} in Discord.</p>
             {:else}<p class="haul-status">Use /fish{slot.kind} in Discord · {slot.kind === 'boat' ? '10 minutes, 10' : '4 minutes, 4'} catches.</p>{/if}
@@ -288,7 +284,7 @@
     <h3>Upgrade to {quality?.name} {upgradeTarget?.name}?</h3>
     <p id="gear-upgrade-description">Guaranteed success. This permanent upgrade stays with this {upgradeKind}. Materials are spent when you confirm.</p>
     <dl><div><dt>Rusted tin</dt><dd>{quote.tinCost.toLocaleString()}</dd></div><div><dt>Scrap</dt><dd>{quote.scrapCost.toLocaleString()}</dd></div></dl>
-    {#if expired || game.error}<p class="upgrade-error" role="alert">{expired ? 'This preview expired. Cancel and preview the upgrade again.' : game.error}</p>{/if}
+    {#if expired || game.error}<p class="upgrade-error" role="alert">{game.serverNowMs === null ? 'Syncing server time…' : expired ? 'This preview expired. Cancel and preview the upgrade again.' : game.error}</p>{/if}
     <div class="upgrade-actions">
       <button class="secondary" bind:this={cancelButton} disabled={confirming} onclick={() => cancelUpgrade()}>Cancel</button>
       <button disabled={confirming || game.busy || !game.ready || expired} onclick={confirmUpgrade}>{confirming ? 'Upgrading…' : 'Confirm upgrade'}</button>
