@@ -17,7 +17,8 @@ type EquippedRateState = {
   baitLoadout: (Pick<BaitLoadout, 'baitId'> & Partial<Pick<BaitLoadout, 'secondaryBaitId'>>) | null;
   ownedBaits: Pick<BaitStack, 'baitId' | 'usesLeft'>[];
   config: Pick<GameConfig, 'version'> | null;
-  rodStats: (rodId: number) => { power: number; luckBp: number; quality?: Pick<QualityDefinition, 'name'> };
+  rodStats: (rodId: number) => { power: number; luckBp: number; reinforcementLevel?: number; quality?: Pick<QualityDefinition, 'name'> };
+  equippedGearLabel?: (kind: 'rod') => string | undefined;
 };
 
 // In the current catalog the strongest rod and quality also have the most luck;
@@ -51,12 +52,12 @@ export function equippedLoadout(game?: EquippedRateState): RateLoadout | null {
   const selected = equippedBaits(game).map(row => row.bait);
   const bonuses = stackedBaitBonuses(selected);
   return {
-    name: `${stats.quality.name} ${rod.name} · ${selected.map(bait => bait.name).join(' + ') || 'no bait'}`,
+    name: `${stats.quality.name} ${game.equippedGearLabel?.('rod') ?? rod.name} · ${selected.map(bait => bait.name).join(' + ') || 'no bait'}`,
     power: stats.power,
     luckBp: stats.luckBp + bonuses.luckBp,
     sizeRolls: bonuses.sizeRolls,
     rulesVersion: game.config?.version ?? baselineLoadout.rulesVersion,
-    reinforcementLevel: game.rodReinforcements?.find(row => row.rodId === rod.rodId)?.level ?? 0,
+    reinforcementLevel: stats.reinforcementLevel ?? game.rodReinforcements?.find(row => row.rodId === rod.rodId)?.level ?? 0,
     focus: collectionFocusContext(game),
   };
 }

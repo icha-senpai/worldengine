@@ -35,6 +35,15 @@ pub struct GearInstance {
     pub created_at: Timestamp,
 }
 
+#[spacetimedb::table(accessor = gear_instance_name)]
+pub struct GearInstanceName {
+    #[primary_key]
+    pub instance_id: u128,
+    #[index(btree)]
+    pub player_id: u64,
+    pub name: String,
+}
+
 #[spacetimedb::table(accessor = gear_loadout)]
 #[derive(Clone)]
 pub struct GearLoadout {
@@ -746,10 +755,60 @@ pub fn set_gear_instance_favorite_from_discord(ctx: &ReducerContext, discord_use
     set_favorite(ctx, crate::shop::adapter_player_id(ctx, discord_user_id, interaction_id)?, instance_id, favorite)
 }
 
+fn set_name(ctx: &ReducerContext, player_id: u64, instance_id: u128, name: String) -> Result<(), String> {
+    if !enabled(ctx)? {
+        return Err("GEAR_FOUNDATION_UNAVAILABLE".into());
+    }
+    let instance = ctx.db.gear_instance().instance_id().find(instance_id).ok_or("GEAR_INSTANCE_UNAVAILABLE")?;
+    validate_instance(ctx, &instance, player_id, &instance.kind)?;
+    let existing = ctx.db.gear_instance_name().instance_id().find(instance_id);
+    if existing.as_ref().is_some_and(|row| row.player_id != player_id) {
+        return Err("GEAR_INSTANCE_UNAVAILABLE".into());
+    }
+    if name.len() > 1024 {
+        return Err("GEAR_NAME_TOO_LONG".into());
+    }
+    let name = name.trim();
+    if name.chars().count() > 32 {
+        return Err("GEAR_NAME_TOO_LONG".into());
+    }
+    if name.chars().any(|c| c.is_control() || matches!(c, '\u{061c}' | '\u{200e}' | '\u{200f}' | '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}')) {
+        return Err("GEAR_NAME_INVALID".into());
+    }
+    match existing {
+        Some(_) if name.is_empty() => { ctx.db.gear_instance_name().instance_id().delete(instance_id); }
+        Some(mut row) if row.name != name => {
+            row.name = name.into();
+            ctx.db.gear_instance_name().instance_id().update(row);
+        }
+        None if !name.is_empty() => {
+            ctx.db.gear_instance_name().insert(GearInstanceName { instance_id, player_id, name: name.into() });
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+#[spacetimedb::reducer]
+pub fn rename_gear_instance(ctx: &ReducerContext, instance_id: u128, name: String) -> Result<(), String> {
+    set_name(ctx, crate::shop::browser_player(ctx)?, instance_id, name)
+}
+
+#[spacetimedb::reducer]
+pub fn rename_gear_instance_from_discord(ctx: &ReducerContext, discord_user_id: u64, interaction_id: u64, instance_id: u128, name: String) -> Result<(), String> {
+    set_name(ctx, crate::shop::adapter_player_id(ctx, discord_user_id, interaction_id)?, instance_id, name)
+}
+
 #[spacetimedb::view(accessor = my_gear_instances, public)]
 pub fn my_gear_instances(ctx: &ViewContext) -> Vec<GearInstance> {
     if !view_enabled(ctx) { return vec![]; }
     current_player(ctx).map(|id| ctx.db.gear_instance().player_id().filter(id).collect()).unwrap_or_default()
+}
+
+#[spacetimedb::view(accessor = my_gear_instance_names, public)]
+pub fn my_gear_instance_names(ctx: &ViewContext) -> Vec<GearInstanceName> {
+    if !view_enabled(ctx) { return vec![]; }
+    current_player(ctx).map(|id| ctx.db.gear_instance_name().player_id().filter(id).collect()).unwrap_or_default()
 }
 
 #[spacetimedb::view(accessor = my_gear_loadout, public)]
@@ -774,6 +833,12 @@ pub fn my_gear_activity_snapshots(ctx: &ViewContext) -> Vec<GearActivitySnapshot
 pub fn adapter_gear_instances(ctx: &ViewContext) -> Vec<GearInstance> {
     if !view_enabled(ctx) { return vec![]; }
     crate::shop::selected(ctx).map(|id| ctx.db.gear_instance().player_id().filter(id).collect()).unwrap_or_default()
+}
+
+#[spacetimedb::view(accessor = adapter_gear_instance_names, public)]
+pub fn adapter_gear_instance_names(ctx: &ViewContext) -> Vec<GearInstanceName> {
+    if !view_enabled(ctx) { return vec![]; }
+    crate::shop::selected(ctx).map(|id| ctx.db.gear_instance_name().player_id().filter(id).collect()).unwrap_or_default()
 }
 
 #[spacetimedb::view(accessor = adapter_gear_loadout, public)]

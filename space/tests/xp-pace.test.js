@@ -32,6 +32,68 @@ function baseline() {
 }
 
 describe("pause-aware XP pace", () => {
+  it("keeps a gathering skill sampled while resource variants change throughout five minutes", () => {
+    let state;
+    for (let t = 0; t <= 300; t += 10)
+      state = updateXpPace(
+        state,
+        sample(
+          t,
+          t * 10,
+          work(`Extract:${Math.floor(t / 20) % 2}`, { skillId: "1" }),
+        ),
+      );
+    expect(skillPace(state, "1")).toMatchObject({
+      hourRate: 36000,
+      minutesSampled: 2,
+      xpDelta: 1200,
+      warming: false,
+      paused: false,
+    });
+    state = updateXpPace(state, sample(310, 3100, work("Craft:1")));
+    expect(skillPace(state, "1")).toMatchObject({
+      hourRate: 0,
+      warming: true,
+    });
+    for (let t = 320; t <= 380; t += 10)
+      state = updateXpPace(state, sample(t, t * 10, work("Craft:1")));
+    expect(skillPace(state, "1").hourRate).toBe(36000);
+    state = updateXpPace(state, sample(390, 3900, work("Extract:1")));
+    expect(skillPace(state, "1")).toMatchObject({
+      hourRate: 0,
+      warming: true,
+    });
+  });
+
+  it("does not pool gathering XP from different skills", () => {
+    let state;
+    for (let t = 0; t <= 190; t += 10) {
+      const firstSkill = t <= 90;
+      state = updateXpPace(
+        state,
+        sample(
+          t,
+          0,
+          work(`Extract:${Math.floor(t / 20) % 2}`, {
+            skillId: firstSkill ? "1" : "2",
+          }),
+          { xp: { 1: Math.min(t, 90) * 10, 2: Math.max(0, t - 90) * 10 } },
+        ),
+      );
+    }
+    expect(state.gains).toEqual({ 1: 900, 2: 1000 });
+    expect(skillPace(state, "1")).toMatchObject({
+      hourRate: 36000,
+      xpDelta: 900,
+      paused: true,
+    });
+    expect(skillPace(state, "2")).toMatchObject({
+      hourRate: 36000,
+      xpDelta: 900,
+      paused: false,
+    });
+  });
+
   it("holds through a stamina break and resumes immediately without dragging idle time into the rate", () => {
     let state = baseline();
     expect(skillPace(state, "1").hourRate).toBe(36000);

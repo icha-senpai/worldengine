@@ -173,7 +173,7 @@ fn require_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
     Ok(())
 }
 
-fn family_progress(
+pub(crate) fn family_progress(
     ctx: &ReducerContext,
     player_id: u64,
     kind: &str,
@@ -207,7 +207,7 @@ fn family_progress(
     Ok(row)
 }
 
-fn validate_instance(
+pub(crate) fn validate_instance(
     ctx: &ReducerContext,
     instance: &GearInstance,
     player_id: u64,
@@ -259,7 +259,7 @@ fn validate_instance(
     Ok(())
 }
 
-fn parse_affixes(ctx: &ReducerContext, json: &str) -> Result<Vec<AffixRoll>, String> {
+pub(crate) fn parse_affixes(ctx: &ReducerContext, json: &str) -> Result<Vec<AffixRoll>, String> {
     let affixes: Vec<AffixRoll> =
         serde_json::from_str(json).map_err(|_| "TIDEFORGE_AFFIX_JSON_INVALID")?;
     for affix in &affixes {

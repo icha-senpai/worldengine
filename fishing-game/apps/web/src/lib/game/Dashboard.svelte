@@ -21,13 +21,13 @@
   import { rankMaximaSummary } from './rank-maxima';
   import RaidMastery from './RaidMastery.svelte';
   import { totalOrdinaryRaidSeals } from './raid-progress';
-  type CampView = 'camp' | 'quests' | 'inventory' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium' | 'trader' | 'achievements' | 'anglers';
+  type CampView = 'camp' | 'quests' | 'inventory' | 'tideforge' | 'collection' | 'journal' | 'waters' | 'records' | 'compendium' | 'trader' | 'achievements' | 'anglers';
   let { initialView = 'camp', compendiumPanel }: {
     initialView?: CampView;
     compendiumPanel?: Snippet<[Game, boolean]>;
   } = $props();
   const tabs: { id: CampView; label: string; personal?: boolean }[] = [
-    { id: 'camp', label: 'Camp' }, { id: 'quests', label: 'Quests', personal: true }, { id: 'trader', label: 'Trader' }, { id: 'inventory', label: 'Tackle box', personal: true },
+    { id: 'camp', label: 'Camp' }, { id: 'quests', label: 'Quests', personal: true }, { id: 'trader', label: 'Trader' }, { id: 'inventory', label: 'Tackle box', personal: true }, { id: 'tideforge', label: 'Tideforge', personal: true },
     { id: 'collection', label: 'Collection', personal: true }, { id: 'journal', label: 'Journal', personal: true },
     { id: 'waters', label: 'World map' }, { id: 'records', label: 'Records' }, { id: 'compendium', label: 'Compendium' },
     { id: 'achievements', label: 'Achievements', personal: true }, { id: 'anglers', label: 'Anglers' },
@@ -49,8 +49,8 @@
   let pageSize = $state(12);
   let selected = $state<bigint[]>([]);
   let showQuote = $state(false);
-  type TackleView = 'gear' | 'materials' | 'fish' | 'workshop';
-  const tackleTabs: { id: TackleView; label: string }[] = [{ id: 'gear', label: 'Gear / Bait' }, { id: 'materials', label: 'Mats' }, { id: 'fish', label: 'Fish' }, { id: 'workshop', label: 'Raid Workshop' }];
+  type TackleView = 'gear' | 'materials' | 'fish';
+  const tackleTabs: { id: TackleView; label: string }[] = [{ id: 'gear', label: 'Gear / Bait' }, { id: 'materials', label: 'Mats' }, { id: 'fish', label: 'Fish' }];
   let tackleView = $state<TackleView>('gear');
   let tackleRevision = 0;
   const boatDeadline = $derived(runningHaulDeadline(game.haulTrips, 'boat'));
@@ -214,7 +214,7 @@
 
   <div class="view-panel" role="tabpanel" id="camp-panel" aria-labelledby={'tab-' + visibleView} tabindex="0" hidden={visibleView === 'compendium'}>
   {#if visibleView === 'camp'}
-    <section class="welcome" aria-labelledby="welcome"><div><p class="eyebrow">A FRESH PAGE IN YOUR FISHING JOURNAL</p><h2 id="welcome">{game.player ? 'Back at the pond.' : 'Grab a rod. Make a little history.'}</h2>{#if game.player}<p>Your {currentRod?.name ?? 'rod'} is ready for {currentBiome?.name ?? 'the pond'}. Open your tackle box to manage your catches, or turn a page in your collection book.</p>{:else}<p>Use <code>/fish</code> in Discord, then link your account to open your tackle box, collection book, and personal records.</p>{/if}<p class="muted">251 species. Seven waters. Start with the 28 fish waiting in Meadow Pond.</p></div>
+    <section class="welcome" aria-labelledby="welcome"><div><p class="eyebrow">A FRESH PAGE IN YOUR FISHING JOURNAL</p><h2 id="welcome">{game.player ? 'Back at the pond.' : 'Grab a rod. Make a little history.'}</h2>{#if game.player}<p>Your {game.equippedGearLabel('rod') ?? currentRod?.name ?? 'rod'} is ready for {currentBiome?.name ?? 'the pond'}. Open your tackle box to manage your catches, or turn a page in your collection book.</p>{:else}<p>Use <code>/fish</code> in Discord, then link your account to open your tackle box, collection book, and personal records.</p>{/if}<p class="muted">251 species. Seven waters. Start with the 28 fish waiting in Meadow Pond.</p></div>
       <div class="login">{#if game.player}<button onclick={() => openView('inventory')}>Open tackle box →</button><button class="secondary" onclick={() => openView('collection')}>Open collection book →</button>{:else}<button disabled={!game.ready || game.busy || devLoginBusy || !env.PUBLIC_ACCOUNT_LINK_URL} onclick={link}>{game.busy ? 'Preparing…' : 'Link Discord account →'}</button><small>{!env.PUBLIC_ACCOUNT_LINK_URL ? 'Discord sign-in will be available soon.' : game.ready ? 'One account, shared between Discord and this browser.' : 'Account linking becomes available when the pond is connected.'}</small>{/if}</div>
 
     </section>
@@ -234,11 +234,6 @@
       {#if tackleView === 'materials'}
         <div class="tackle-panel" role="tabpanel" id="tackle-panel-materials" aria-labelledby="tackle-tab-materials" tabindex="0">
           <TackleBoxItems items={game.items} />
-        </div>
-      {/if}
-      {#if tackleView === 'workshop'}
-        <div class="tackle-panel" role="tabpanel" id="tackle-panel-workshop" aria-labelledby="tackle-tab-workshop" tabindex="0">
-          <LazyPanel active={true} load={() => import('./RaidWorkshop.svelte')} componentProps={{ game }} />
         </div>
       {/if}
       {#if tackleView === 'fish'}
@@ -306,7 +301,7 @@
 
   {#if visibleView === 'waters' && game.biomes.length}
     <section aria-labelledby="waters"><p class="eyebrow">SEVEN WATERS, ONE JOURNEY</p><h2 id="waters">Explore the biomes</h2>
-      {#if game.player}<p class="muted">Equipped: {currentRod?.name} · power {game.rodStats(currentRod?.rodId ?? 0).power}. Buy rods and permanent biome licences from the camp trader. Travel keeps your cast cooldown.</p>
+      {#if game.player}<p class="muted">Equipped: {game.equippedGearLabel('rod') ?? currentRod?.name} · power {game.rodStats(currentRod?.rodId ?? 0).power}. Buy rods and permanent biome licences from the camp trader. Travel keeps your cast cooldown.</p>
         <div class="filters"><label>Equip an owned rod<GameSelect id="dashboard-rod" label="Equip an owned rod" value={game.player.equippedRodId} options={game.rods.map(rod=>({value:rod.rodId,label:rod.name+" · level "+rod.minimumLevel+" · power "+rod.power,disabled:!game.ownedRods.some(owned=>owned.rodId===rod.rodId)||rod.minimumLevel>level}))} disabled={game.busy || !game.ready} onchange={value => game.changeLoadout(undefined, value)} /></label></div>
       {/if}
       <div class="biome-grid">{#each game.biomes.slice((worldPage - 1) * pageSize, worldPage * pageSize) as biome (biome.biomeId)}
@@ -321,6 +316,7 @@
       {/each}</div><PageTurner bind:page={worldPage} total={game.biomes.length} {pageSize} label="World map pages" />
     </section>
   {/if}
+  {#if game.player}{#key `${game.tideforgeIdentity ?? ''}:${game.player.playerId}`}<div hidden={visibleView !== 'tideforge'}><LazyPanel active={visibleView === 'tideforge'} load={() => import('./Tideforge.svelte')} componentProps={{ game, active: visibleView === 'tideforge' }} /></div>{/key}{/if}
   <div hidden={visibleView !== 'records'}><LazyPanel active={visibleView === 'records'} load={() => import('./Records.svelte')} componentProps={{ game, pageSize }} /></div>
   {#if game.player}<div hidden={visibleView !== 'achievements'}><LazyPanel active={visibleView === 'achievements'} load={() => import('./Achievements.svelte')} componentProps={{ game, pageSize }} /></div>{/if}
   <div hidden={visibleView !== 'anglers'}><LazyPanel active={visibleView === 'anglers'} load={() => import('./Anglers.svelte')} componentProps={{ game, pageSize }} /></div>

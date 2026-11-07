@@ -52,8 +52,8 @@
     <div><label for="catalog-rank">Rank</label><GameSelect id="catalog-rank" label="Rank" value={rarity} options={[{value:"",label:"All ranks"},...tiers.map(tier=>({value:tier,label:tier}))]} onchange={value => {rarity = value; page = 1;}} /></div>
     <fieldset class="rate-presets"><legend>Catch rates</legend><div>
       <button aria-pressed={rateMode === 'baseline'} onclick={() => rateMode = 'baseline'}>Baseline</button>
-      <button aria-pressed={rateMode === 'equipped'} disabled={!equipped} use:tooltip={!equipped ? 'Link your Discord account to see your equipped loadout.' : undefined} onclick={() => rateMode = 'equipped'}>Equipped</button>
-      <button aria-pressed={rateMode === 'best'} onclick={() => rateMode = 'best'}>Best for perfects</button>
+      <button aria-pressed={rateMode === 'equipped'} disabled={!equipped} use:tooltip={!equipped ? 'Link your Discord account to see your equipped loadout.' : undefined} onclick={() => rateMode = 'equipped'}>{game?.tideforgeAvailability === 'active' ? 'Equipped base gear' : 'Equipped'}</button>
+      <button aria-pressed={rateMode === 'best'} onclick={() => rateMode = 'best'}>{game?.tideforgeAvailability === 'active' ? 'Best base gear' : 'Best for perfects'}</button>
     </div>{#if !equipped}<small>Link your Discord account to compare your equipped loadout.</small>{/if}</fieldset>
   </div>
   <div class="collection-focus">
@@ -62,7 +62,8 @@
     <p>{reinforcementGrade} rod Focus chance: {focusChanceBp / 100}% for missing-rank rerolls when enabled in a mastered biome. Reinforced endpoint bonus rolls apply only to a selected ordinary UUR fish after all ten ranks of that species are recorded; special species are excluded. Known ranks can lose odds. Free to toggle; applies to Discord casts. Fihs and the Sock retain their normal odds.</p>
   </div>
   <p class="loadout" aria-live="polite"><strong>{loadout.name}{rateMode === 'best' ? ' · UUR-reinforced' : ''}</strong><span>+{formatPercent(loadout.luckBp / 100)} luck · {formatPercent(loadout.power / 2)} bonus pull · {loadout.sizeRolls} size {loadout.sizeRolls === 1 ? 'attempt' : 'attempts'}</span></p>
-  <p class="count">{fish.length} matching fish. Rates are per accepted cast in each fish's biome{rarity ? ' at the selected rank' : ', across all eligible ranks'}, using the loadout above.{rateMode === 'best' ? ' Uses the strongest gear and two Trophy Chums, whether or not you own them.' : ''}</p>
+  <p class="count">{fish.length} matching fish. Rates are per accepted cast in each fish's biome{rarity ? ' at the selected rank' : ', across all eligible ranks'}, using the loadout above.{rateMode === 'best' ? game?.tideforgeAvailability === 'active' ? ' Uses the strongest base gear and two Trophy Chums, whether or not you own them.' : ' Uses the strongest gear and two Trophy Chums, whether or not you own them.' : ''}</p>
+  {#if game?.tideforgeAvailability === 'active' && rateMode !== 'baseline'}<p class="count">Base-gear estimate only. All Tideforge bonuses are excluded.</p>{/if}
   {#if rateMode !== 'baseline' && loadout.focus?.biomeIds.length}<p class="count">Rates include your enabled Collection Focus settings and current collected ranks. Focus helps missing ranks; it can lower the odds of ranks you already have, including UUR.</p>{/if}
   <p class="count perfect-note">✦ Perfect rates always refer to both exact maximum measurements at UUR, regardless of the rank filter. They include natural perfects, the UUR perfect roll, and any extra size attempts.</p>
   <div class="fish">

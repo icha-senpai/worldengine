@@ -12,6 +12,7 @@ pub fn prune_history(ctx: &ReducerContext, _job: MaintenanceJob) -> Result<(), S
     crate::raids::refresh_calendar(ctx)?;
     crate::hauls::prune_delivered(ctx);
     crate::raids::prune_history(ctx);
+    crate::tideforge_economy::prune_history(ctx)?;
     let today = ctx.timestamp.to_micros_since_unix_epoch().div_euclid(86_400_000_000);
     for row in ctx.db.tideforge_daily_use().utc_day()
         .filter(..today.saturating_sub(7))

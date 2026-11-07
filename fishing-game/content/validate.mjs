@@ -9,10 +9,168 @@ const catalog = JSON.parse(await readFile(new URL('./species.json', import.meta.
 const rules = JSON.parse(await readFile(new URL('./game-rules.json', import.meta.url), 'utf8'));
 const pond = JSON.parse(await readFile(new URL('./meadow-pond.json', import.meta.url), 'utf8'));
 const world = JSON.parse(await readFile(new URL('./world.json', import.meta.url), 'utf8'));
+const tideforgeEconomy = JSON.parse(await readFile(new URL('./tideforge-economy.json', import.meta.url), 'utf8'));
+const tideforgeEffects = JSON.parse(await readFile(new URL('./tideforge-effects.json', import.meta.url), 'utf8'));
+validateTideforgeEconomy(tideforgeEconomy, tideforgeEffects, world);
+console.log('Tideforge economy valid: candidate-local catalog, acquisition pools, forge tiers and resource slots.');
 const raidEconomy = await validateRaids();
 console.log(`Raid economy valid: ${raidEconomy.ladderHours} hour ladder, refining remains viable at every grade.`);
 assert.equal(rules.castCooldownSeconds, 60, 'The global cast cooldown must be one minute');
 console.log(`Game rules valid: ${rules.castCooldownSeconds}-second cast cooldown.`);
+
+function validateTideforgeEconomy(economy, effects, worldCatalog) {
+  const shape = (value, required, optional = []) => {
+    assert(value && typeof value === 'object' && !Array.isArray(value), 'Expected an economy object');
+    for (const key of required) assert(Object.hasOwn(value, key), `Missing economy field: ${key}`);
+    for (const key of Object.keys(value)) assert([...required, ...optional].includes(key), `Unknown economy field: ${key}`);
+  };
+  const positive = (value, field) => assert(Number.isSafeInteger(value) && value > 0, `Invalid ${field}`);
+  const nonnegative = (value, field) => assert(Number.isSafeInteger(value) && value >= 0, `Invalid ${field}`);
+  const rankValues = (values, field) => {
+    assert(Array.isArray(values) && values.length === 10, `Invalid ${field} length`);
+    values.forEach((value) => positive(value, field));
+  };
+  shape(economy, [
+    'version', 'status', 'requiredEffectsVersion', 'quoteLifetimeSeconds', 'quoteCooldownSeconds',
+    'maximumFishBatch', 'maximumConversionBatches', 'receiptRetentionDays', 'maximumPruneRows',
+    'families', 'acquisition', 'forge', 'recovery', 'processing', 'marks',
+  ]);
+  assert.equal(economy.version, 1);
+  assert.equal(economy.status, 'candidate-local-only');
+  assert.equal(economy.requiredEffectsVersion, 1);
+  assert.equal(economy.requiredEffectsVersion, effects.version);
+  for (const field of ['quoteLifetimeSeconds', 'quoteCooldownSeconds', 'maximumFishBatch',
+    'maximumConversionBatches', 'receiptRetentionDays', 'maximumPruneRows']) positive(economy[field], field);
+
+  assert(Array.isArray(economy.families));
+  const families = new Set();
+  for (const family of economy.families) {
+    shape(family, ['familyId', 'coins', 'marks']);
+    assert(Number.isSafeInteger(family.familyId) && family.familyId >= 2 && family.familyId <= 7);
+    assert(!families.has(family.familyId), `Duplicate economy family: ${family.familyId}`);
+    assert(worldCatalog.rods.some((rod) => rod.rodId === family.familyId), `Unknown economy family: ${family.familyId}`);
+    positive(family.coins, 'family coins');
+    positive(family.marks, 'family marks');
+    families.add(family.familyId);
+  }
+  assert.deepEqual([...families].sort((a, b) => a - b), [2, 3, 4, 5, 6, 7]);
+
+  const acquisition = economy.acquisition;
+  shape(acquisition, ['affixSelection', 'maximumConditionalAffixes', 'secondaryBiomeSelection',
+    'requiresOwnedOriginal', 'qualityLevel', 'reinforcementLevel', 'finishMinimumBp', 'finishMaximumBp',
+    'camp', 'wandering']);
+  assert.equal(acquisition.affixSelection, 'uniform-remaining-legal');
+  assert.equal(acquisition.maximumConditionalAffixes, 2);
+  assert.equal(acquisition.secondaryBiomeSelection, 'player-selected-non-primary-defined-biome');
+  assert.equal(acquisition.requiresOwnedOriginal, true);
+  assert.equal(acquisition.qualityLevel, 0);
+  assert.equal(acquisition.reinforcementLevel, 0);
+  assert.equal(acquisition.finishMinimumBp, 0);
+  assert.equal(acquisition.finishMaximumBp, 10_000);
+  const offer = (value, allowed, wandering) => {
+    shape(value, ['affixCount', 'tiers', 'signatureChanceBp'],
+      wandering ? ['utcStartDayOfMonth', 'durationDays'] : []);
+    positive(value.affixCount, 'affix count');
+    nonnegative(value.signatureChanceBp, 'signature chance');
+    assert(value.signatureChanceBp <= 10_000);
+    assert(Array.isArray(value.tiers));
+    const tiers = new Set();
+    let total = 0;
+    for (const row of value.tiers) {
+      shape(row, ['tier', 'weight']);
+      assert(allowed.includes(row.tier) && !tiers.has(row.tier), 'Invalid acquisition tier');
+      positive(row.weight, 'tier weight');
+      tiers.add(row.tier);
+      total += row.weight;
+    }
+    assert.deepEqual([...tiers].sort((a, b) => a - b), allowed);
+    assert.equal(total, 100);
+    if (wandering) {
+      positive(value.utcStartDayOfMonth, 'wandering start day');
+      positive(value.durationDays, 'wandering duration');
+      assert(value.utcStartDayOfMonth + value.durationDays <= 32);
+    }
+  };
+  offer(acquisition.camp, [1, 2, 3], false);
+  offer(acquisition.wandering, [8, 9, 10], true);
+  assert.equal(acquisition.camp.affixCount, 1);
+  assert.equal(acquisition.wandering.affixCount, 4);
+
+  const forge = economy.forge;
+  shape(forge, ['shardsPerAddition', 'shardsPerChange', 'newAffixFinishBp', 'refinementStepBp',
+    'refinementFullCostCoins', 'requiresDiscoveredType', 'requiresDestinationGradeClear', 'tiers']);
+  positive(forge.shardsPerAddition, 'addition shards');
+  positive(forge.shardsPerChange, 'change shards');
+  assert.equal(forge.newAffixFinishBp, 0);
+  positive(forge.refinementStepBp, 'refinement step');
+  assert.equal(10_000 % forge.refinementStepBp, 0);
+  positive(forge.refinementFullCostCoins, 'refinement cost');
+  assert.equal(forge.requiresDiscoveredType, true);
+  assert.equal(forge.requiresDestinationGradeClear, true);
+  assert(Array.isArray(forge.tiers) && forge.tiers.length === 10);
+  forge.tiers.forEach((row, index) => {
+    shape(row, ['tier', 'grade', 'fillets', 'scales']);
+    assert.equal(row.tier, index + 1);
+    assert.equal(row.grade, index);
+    positive(row.fillets, 'forge fillets');
+    positive(row.scales, 'forge scales');
+  });
+  const recovery = economy.recovery;
+  shape(recovery, ['shardsPerAffix', 'refundCoins', 'refundMaterials', 'rejectKnownSignatureExtraction']);
+  positive(recovery.shardsPerAffix, 'recovered shards');
+  assert.equal(recovery.refundCoins, false);
+  assert.equal(recovery.refundMaterials, false);
+  assert.equal(recovery.rejectKnownSignatureExtraction, true);
+  const processing = economy.processing;
+  shape(processing, ['filletsSlot', 'scalesSlot', 'filletsByRank', 'scalesByRank', 'normalToFInput',
+    'normalToFOutput', 'normalToFCoinCost', 'refiningInput', 'refiningOutput', 'refiningCoinCost',
+    'protectTrophiesByDefault', 'excludeBonusSpecies']);
+  assert.equal(processing.filletsSlot, 800);
+  assert.equal(processing.scalesSlot, 801);
+  rankValues(processing.filletsByRank, 'fillets by rank');
+  rankValues(processing.scalesByRank, 'scales by rank');
+  for (const field of ['normalToFInput', 'normalToFOutput', 'refiningInput', 'refiningOutput']) positive(processing[field], field);
+  nonnegative(processing.normalToFCoinCost, 'normal conversion cost');
+  nonnegative(processing.refiningCoinCost, 'material refinement cost');
+  assert(processing.refiningOutput < processing.refiningInput);
+  assert.equal(processing.protectTrophiesByDefault, true);
+  assert.equal(processing.excludeBonusSpecies, true);
+  const marks = economy.marks;
+  shape(marks, ['ordinaryRaidByGrade', 'communityRaid', 'specialRaid', 'newAchievement', 'backfill', 'requireRaidBookingAfterActivation']);
+  rankValues(marks.ordinaryRaidByGrade, 'raid marks by grade');
+  nonnegative(marks.communityRaid, 'community raid marks');
+  nonnegative(marks.specialRaid, 'special raid marks');
+  positive(marks.newAchievement, 'achievement marks');
+  assert.equal(marks.backfill, false);
+  assert.equal(marks.requireRaidBookingAfterActivation, true);
+
+  const kinds = ['rod', 'boat', 'net'];
+  assert(Array.isArray(effects.affixes) && Array.isArray(effects.signatures));
+  const affixIds = new Set();
+  for (const affix of effects.affixes) {
+    assert(typeof affix.id === 'string' && affix.id.length > 0 && !affixIds.has(affix.id));
+    assert(Array.isArray(affix.kinds) && affix.kinds.length > 0 && new Set(affix.kinds).size === affix.kinds.length);
+    assert(affix.kinds.every((kind) => kinds.includes(kind)));
+    assert(affix.condition === undefined || ['primary', 'secondary'].includes(affix.condition));
+    affixIds.add(affix.id);
+  }
+  const signatureIds = new Set();
+  for (const signature of effects.signatures) {
+    assert(typeof signature.id === 'string' && signature.id.length > 0 && !signatureIds.has(signature.id));
+    assert([...kinds, 'waters'].includes(signature.kind));
+    signatureIds.add(signature.id);
+  }
+  for (const kind of kinds) {
+    const compatible = effects.affixes.filter((affix) => affix.kinds.includes(kind));
+    const unconditional = compatible.filter((affix) => affix.condition === undefined);
+    assert(compatible.length >= acquisition.wandering.affixCount, `Insufficient ${kind} affixes`);
+    assert(unconditional.length >= acquisition.wandering.affixCount - acquisition.maximumConditionalAffixes,
+      `Insufficient unconditional ${kind} affixes`);
+    assert(effects.signatures.some((signature) => signature.kind === kind || signature.kind === 'waters'),
+      `No compatible ${kind} signatures`);
+  }
+}
+
 const order = ['F', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'UR', 'UUR'];
 assert.deepEqual(content.tiers.map((tier) => tier.key), order);
 for (const [ordinal, tier] of content.tiers.entries()) {

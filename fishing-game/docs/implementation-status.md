@@ -7,6 +7,24 @@ The website and account-link service are exposed through ServBay/Cloudflare at
 https://fish.ichaa.dev. The bot connects to Discord; all fifteen commands are
 registered globally; matching legacy server copies are removed on startup; the public OAuth callback is registered.
 
+## Tideforge Gear Economy Backend (Stage 3, Local Candidate)
+
+The candidate-local backend implements acquisition, player-chosen secondary
+water, affix Forge, recovery, filleting, material conversion and Marks. Its
+separate owner activation requires the compatible foundation and effects;
+without economy state, legacy behavior remains unchanged.
+
+The final gates pass 101 native module tests, including 32 economy tests, and
+72 shared-rule tests, including six pure economy tests. The isolated WASM proof
+preserves 96 retained tables and starts eight new economy tables empty. See the
+[Stage 3 verification](verification.md#tideforge-gear-economy-backend-stage-3-local)
+and [local economy contract](tideforge/build-contract-v0.1.md#10-stage-3-local-economy-implementation-contract).
+
+Website controls, the complete browser/player UI loop, and production
+affordability and live balance review remain follow-up. The proof uses vanilla
+starters and synthetic accounts, not rich production gear. Development and
+production have not been published or activated by this checkpoint.
+
 ## Tideforge Effects And Mastery (Local, Inactive Outside Proofs)
 
 The effect engine, signatures, dormant affixes, shared family mastery and

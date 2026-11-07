@@ -131,7 +131,11 @@ export function updateXpPace(previous, sample) {
     const matching = activity.skillId == null || activity.skillId === id;
     const working = activity.working && matching;
     const differentSkill = activity.working && !matching;
-    const changed = working && next.key && activity.key !== next.key;
+    const changed =
+      working &&
+      next.key &&
+      activity.key !== next.key &&
+      !(next.kind === "Extract" && activity.kind === "Extract");
     if (changed) {
       // A new recipe/activity needs its own baseline; the transition award may
       // still belong to the previous action, so never time it as the new one.

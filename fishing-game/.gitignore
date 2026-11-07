@@ -34,4 +34,5 @@ __pycache__/
 !/scripts/tideforge-foundation-proof.ts
 !/scripts/tideforge-runtime-proof.ts
 !/scripts/tideforge-stage2-proof.ts
+!/scripts/tideforge-stage3-proof.ts
 !/scripts/module-openssl.mjs

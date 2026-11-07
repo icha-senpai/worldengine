@@ -229,6 +229,32 @@ pub fn signature_kind(id: &str) -> Result<&'static str, &'static str> {
         .map(|s| s.kind.as_str()).ok_or("TIDEFORGE_SIGNATURE_INVALID")
 }
 
+pub fn affix_ids(kind: &str) -> Vec<&'static str> {
+    catalog().affixes.iter().filter(|row| row.kinds.iter().any(|k| k == kind))
+        .map(|row| row.id.as_str()).collect()
+}
+
+pub fn signature_ids(kind: &str) -> Vec<&'static str> {
+    if !valid_kind(kind) {
+        return Vec::new();
+    }
+    catalog().signatures.iter().filter(|row| row.kind == kind || row.kind == "waters")
+        .map(|row| row.id.as_str()).collect()
+}
+
+pub fn affix_condition(id: &str) -> Result<Option<&'static str>, &'static str> {
+    catalog().affixes.iter().find(|row| row.id == id)
+        .map(|row| row.condition.as_deref()).ok_or("TIDEFORGE_AFFIX_INVALID")
+}
+
+pub fn affix_values(id: &str, tier: u8, finish_bp: u16) -> Result<BTreeMap<String, u32>, &'static str> {
+    let row = catalog().affixes.iter().find(|row| row.id == id).ok_or("TIDEFORGE_AFFIX_INVALID")?;
+    if !(1..=10).contains(&tier) {
+        return Err("TIDEFORGE_AFFIX_INVALID");
+    }
+    row.stats.iter().map(|(key, grid)| Ok((key.clone(), rolled_value(grid[usize::from(tier - 1)], finish_bp)?))).collect()
+}
+
 pub fn rolled_value(maximum: u32, finish_bp: u16) -> Result<u32, &'static str> {
     if finish_bp > 10_000 {
         return Err("TIDEFORGE_FINISH_INVALID");

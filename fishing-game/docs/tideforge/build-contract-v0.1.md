@@ -777,3 +777,123 @@ for fixture limits and the bounded retry after a confirmation timeout.
 This does not activate development or production gameplay. Forge, processing,
 traders, dismantling/extraction, Dredge Marks/gambling, the Reliquary and website
 controls remain the next connected implementation stages.
+
+## 10. Stage 3 Local Economy Implementation Contract
+
+Status: local implementation defaults following Boss's Stage 3 instruction.
+These settle the backend test contract, not production balance approval.
+`content/tideforge-economy.json` is the versioned numerical authority. Economy
+activation is separate, owner-only and requires compatible foundation/effects
+activation. An absent economy state preserves all legacy behavior.
+
+### Acquisition And Permanent Records
+
+- Choose equipment kind and an already-owned original definition, not affixes.
+  Starter copies are not sold. Family prices apply equally to rod/boat/net.
+- Camp copies use coins and roll one affix at T1/T2/T3 with weights 70/25/5.
+  Wandering gambling uses Marks and rolls four at T8/T9/T10 with weights 70/25/5.
+- The wandering trader is available on UTC calendar days 1-4 each month,
+  including the first midnight and excluding the fifth. No purchase quota or
+  stock-reroll fee is added. Quotes expire at the earlier of 120 seconds and
+  the trader closing. Kind/family selection remains explicit.
+- Roll compatible distinct affix IDs uniformly from the remaining legal IDs at
+  each draw, retaining the existing maximum of two biome-conditional affixes
+  including dormant ones. Acquisition requires the player's explicit
+  `secondary_biome_id`: a defined water other than the item's primary water,
+  used if Secondary Affinity rolls. It is previewed before purchase, otherwise
+  unused, and grants no licence. Secondary water is not another random reroll.
+  Finish is uniform over integer 0..10000 inclusive. Signature chances are 5% Camp
+  and 25% wandering; choose uniformly from existing compatible native powers,
+  including Waters where the existing validator allows it.
+- New copies are Common quality 0, reinforcement 0, not favorites or originals.
+  Their IDs use the owner's copy namespace and a monotonic durable sequence.
+  They share existing family mastery, never another item's quality/upgrades.
+  Keep all four wandering affixes even if some slots are dormant.
+- Roll properties only on accepted purchase confirmation; previews show the
+  source ranges, price and possible outcomes, not rerollable hidden results.
+- Natural acquisition records each affix type's highest found tier and best
+  finish at that tier in the permanent Codex. Forging never fabricates natural
+  records. Discovery is type-wide per owner; it is not a natural-tier upgrade
+  cap. Type shards live in the private Vault and are not tier-split currencies.
+
+### Forge, Recovery And Item Safety
+
+- Use the authored candidate tier-material table and one type shard for Add
+  or Change. No extra coin fee for Add/Upgrade/Change. New additions start at
+  finish 0. Upgrade can target a higher tier by summing every intervening row.
+- Add/Change require that compatible type's Codex discovery and its shard.
+  Add/Upgrade require each destination grade's shared ordinary clear. Changing
+  an already-owned tier does not grant or require new material-grade access.
+- Add/Change take optional `secondary_biome_id`, required for Secondary Affinity
+  and rejected for other types. It must name a defined non-primary water, not
+  grant access to it. Changing Secondary Affinity to a different water is a
+  valid one-shard change preserving tier/finish; an identical target rejects.
+  Enforce the existing two-conditional-affix limit before charging.
+- Only unlocked slots can be developed. Preserve finish through upgrades and
+  type changes, including fixed-value detours. Never overwrite other slots,
+  quality, reinforcement, affinity, signature or family mastery.
+- Refinement advances to the next 2000-BP finish boundary, bundling boundaries
+  until at least one authored component visibly increases. Fixed-value tiers
+  cannot sell refinement. Price is the difference between cumulative
+  `ceil(1250 * finish / 10000)` coin prices; tiny already-rounded finishing
+  fractions may be free, but cannot exceed finish 10000 or create resources.
+- Dismantling returns one shard for every present affix, including dormant
+  ones, with no material/coin refund. Signature extraction instead consumes
+  the eligible item to unlock its permanent Reliquary power. Reject an already
+  known power rather than silently consuming the item for nothing. Never pay
+  both recovery routes. Retain Codex/mastery/library history.
+- Originals cannot be consumed. Favorites and equipped items cannot be
+  consumed. A booked active haul/raid item cannot be forged or consumed.
+  During a committed raid, selected-loadout forging also respects its preset
+  lock; unrelated unused gear remains editable. Forge operations do not equip
+  an item implicitly. Existing booked rewards and snapshots remain unchanged.
+
+### Processing, Refining And Marks
+
+- Ordinary fish use the proposed F..UUR 6..33 fillet / 4..22 scale table,
+  including eligible legacy inventory with zero retroactive effect bonus.
+  Use only catch-pinned modifiers and the existing fractional-credit keys.
+- Accept at most 50 unique owned fish. Favorites/bonus species are never
+  processed; exact rank maxima/perfects need explicit trophy opt-in. Consume
+  inventory and modifiers only, preserving XP, journals, records and collection.
+  Quotes freeze exact yields, carry and forgone saved sale coins; stale carry
+  requires a new preview. Selling and processing cannot both consume a fish.
+- Conversion is separately 10 normal materials to one F material, requiring
+  an ordinary F clear, without a coin fee. Adjacent refining is 20 to 18 plus
+  one coin per batch, with the shared destination-grade clear. Preserve every
+  remainder. Legacy refining retains its old recipe while economy is inactive.
+- A multi-hop refinement consumes only the specified starting batches, uses
+  whole newly produced intermediate batches, and returns intermediate leftovers.
+  It does not silently consume existing higher-grade stock or skip any clear.
+- New ordinary raid bookings pin the per-grade Marks 1/2/3/4/5/6/8/10/12/14.
+  Full successful clears, including repeats, pay once; old bookings, partial
+  withdrawals, missed/cancelled attempts, community and special raids pay none
+  under this local version. Existing material rewards are otherwise unchanged.
+- Each newly earned achievement after activation grants one Mark once.
+  Existing awards and explicit historical/backfill paths grant none. No
+  achievement notification is replayed to grant currency. There is no exchange.
+
+### Mutation Interface And Preservation
+
+Use private quote/receipt, Mark-wallet/award, raid-Mark-booking, Vault and Codex
+tables with owner/selected-adapter views. Requests use bounded intent JSON with
+decimal-string instance/catch IDs; clients never supply costs or rewards.
+`prepare_tideforge_action(intent_json)` produces a scoped nonce and exact
+preview; `commit_tideforge_action(nonce)` revalidates and commits atomically.
+Discord counterparts use the established verified-adapter identity seam.
+
+Intent actions cover Camp copy, wandering gamble, Add/Upgrade/Refine/Change,
+dismantle, signature extraction, filleting, normal conversion and graded
+refining. Quote identity, item revision, catalog, expiry, locks and relevant
+resource/carry state must still match. Receipts make accepted confirmation
+replay inert, including after another quote. Reject malformed/foreign/overflow
+requests without spending or destroying anything.
+
+Activation does not rewrite existing players, gear, mastery, catches, rewards
+or active activities, and does not backfill currency or natural Codex entries
+from arbitrary existing affix rows. Normal materials use existing ItemStack
+semantics at slots 800/801 with keys `normal_fillets`/`normal_scales`, not a
+new item-definition catalog. Reject conflicting slot labels rather than
+overwriting them or creating resources during activation.
+Currency balances/counters and permanent discovery remain durable independently
+of bounded receipts. Stage 3 supplies backend contracts, not website controls.

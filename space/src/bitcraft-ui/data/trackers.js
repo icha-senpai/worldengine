@@ -1,4 +1,5 @@
 import { connectBitcraft } from "../../bitcraft";
+import { itemKind } from "../market";
 import { live, catalog, mapLimited } from "./client";
 import { activityTracker, inventoryTracker, passiveTracker } from "../trackers";
 import { collectedActivitySamples } from "../activitySamples";
@@ -99,7 +100,7 @@ export async function enrichTrackerItems(payload) {
       raw
         .map(
           (row) =>
-            `${["cargo", 1, "1"].includes(row.item_type ?? row.itemType ?? row.kind) ? "cargo" : "item"}:${row.item_id ?? row.itemId ?? row.id}`,
+            `${itemKind(row.item_type ?? row.itemType ?? row.kind)}:${row.item_id ?? row.itemId ?? row.id}`,
         )
         .filter((key) => /^(item|cargo):\d+$/.test(key)),
     ),

@@ -8,7 +8,9 @@ export const number = (value) =>
     ? Number(value)
     : null;
 export const itemKind = (value) =>
-  String(value) === "1" || value === "cargo" ? "cargo" : "item";
+  String(value) === "1" || String(value).toLowerCase() === "cargo"
+    ? "cargo"
+    : "item";
 export function marketItem(raw) {
   const stats = raw.stats ?? {};
   const item = {

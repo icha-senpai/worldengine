@@ -4,6 +4,7 @@ use crate::{
     inventory, loadout,
     raids::{self, community_raid_event, raid_action_receipt, raid_attempt, raid_badge, raid_job, rod_reinforcement, RaidBadge, RodReinforcement},
     shop, tables::*,
+    tideforge_economy::{tideforge_economy_quote, tideforge_economy_receipt, tideforge_economy_wallet, TideforgeEconomyWallet},
 };
 use spacetimedb::{
     ConnectionId, Identity, Table, TimeDuration, Timestamp,
@@ -69,6 +70,117 @@ fn copy(test: &TestContext, player_id: u64, kind: &str, definition: u32, ordinal
         Ok::<(), String>(())
     }).unwrap();
     id
+}
+
+fn rename(test: &TestContext, subject: &str, instance_id: u128, name: &str) -> Result<(), String> {
+    test.with_reducer_tx(auth(subject), |ctx| rename_gear_instance(ctx, instance_id, name.into()))
+}
+
+#[test]
+fn gear_names_are_per_instance_unicode_safe_and_idempotent() {
+    let test = setup();
+    let id = player(&test, 5701, "namer");
+    let rod = original_id(id, "rod", 1).unwrap();
+    assert_eq!(rename(&test, "namer", rod, "Before activation").unwrap_err(), "GEAR_FOUNDATION_UNAVAILABLE");
+    assert!(my_gear_instance_names(&test.view_context(auth("namer"))).is_empty());
+    activate(&test);
+    assert_eq!(test.db.gear_instance_name().count(), 0);
+    let originals = [rod, original_id(id, "boat", 101).unwrap(), original_id(id, "net", 201).unwrap()];
+    let copies = [copy(&test, id, "rod", 1, 1), copy(&test, id, "boat", 101, 2), copy(&test, id, "net", 201, 3)];
+    for (index, instance) in originals.into_iter().chain(copies).enumerate() {
+        let name = format!("Item {}", index + 1);
+        rename(&test, "namer", instance, &name).unwrap();
+        assert_eq!(test.db.gear_instance_name().instance_id().find(instance).unwrap().name, name);
+    }
+    assert_eq!(my_gear_instance_names(&test.view_context(auth("namer"))).len(), 6);
+    rename(&test, "namer", rod, "\u{3000}潮竿 🎣\u{2003}").unwrap();
+    assert_eq!(test.db.gear_instance_name().instance_id().find(rod).unwrap().name, "潮竿 🎣");
+    let raw_limit = format!("{}x{}", " ".repeat(512), " ".repeat(511));
+    assert_eq!(raw_limit.len(), 1024);
+    rename(&test, "namer", rod, &raw_limit).unwrap();
+    assert_eq!(test.db.gear_instance_name().instance_id().find(rod).unwrap().name, "x");
+    let maximum = "🎣".repeat(32);
+    rename(&test, "namer", rod, &maximum).unwrap();
+    rename(&test, "namer", rod, &maximum).unwrap();
+    assert_eq!(test.db.gear_instance_name().instance_id().find(rod).unwrap().name, maximum);
+    for invalid in ["x".repeat(33), "🎣".repeat(33), " ".repeat(1025)] {
+        assert_eq!(rename(&test, "namer", rod, &invalid).unwrap_err(), "GEAR_NAME_TOO_LONG");
+        assert_eq!(test.db.gear_instance_name().instance_id().find(rod).unwrap().name, maximum);
+    }
+    for invalid in ['\n', '\0', '\r', '\u{7f}', '\u{85}', '\u{061c}', '\u{200e}', '\u{200f}', '\u{202a}', '\u{202b}',
+        '\u{202c}', '\u{202d}', '\u{202e}', '\u{2066}', '\u{2067}', '\u{2068}', '\u{2069}'] {
+        assert_eq!(rename(&test, "namer", rod, &format!("a{invalid}b")).unwrap_err(), "GEAR_NAME_INVALID");
+        assert_eq!(test.db.gear_instance_name().instance_id().find(rod).unwrap().name, maximum);
+    }
+    rename(&test, "namer", rod, "<b>plain</b>").unwrap();
+    assert_eq!(test.db.gear_instance_name().instance_id().find(rod).unwrap().name, "<b>plain</b>");
+    rename(&test, "namer", rod, "Shared").unwrap();
+    rename(&test, "namer", copies[0], "Shared").unwrap();
+    assert_eq!(test.db.gear_instance_name().instance_id().find(rod).unwrap().name,
+        test.db.gear_instance_name().instance_id().find(copies[0]).unwrap().name);
+    rename(&test, "namer", rod, "").unwrap();
+    rename(&test, "namer", rod, "").unwrap();
+    rename(&test, "namer", copies[0], " \u{3000}\t ").unwrap();
+    rename(&test, "namer", copies[0], " \u{3000}\t ").unwrap();
+    assert!(test.db.gear_instance_name().instance_id().find(rod).is_none());
+    assert!(test.db.gear_instance_name().instance_id().find(copies[0]).is_none());
+    assert_eq!(test.db.gear_instance_name().count(), 4);
+}
+
+#[test]
+fn gear_name_reducers_and_views_enforce_owner_and_adapter_selection() {
+    let test = setup();
+    let first = player(&test, 5801, "first");
+    let second = player(&test, 5802, "second");
+    activate(&test);
+    let first_rod = original_id(first, "rod", 1).unwrap();
+    let second_rod = original_id(second, "rod", 1).unwrap();
+    rename(&test, "first", first_rod, "First").unwrap();
+    rename(&test, "second", second_rod, "Second").unwrap();
+    assert_eq!(rename(&test, "unknown", first_rod, "No").unwrap_err(), "ACCOUNT_NOT_LINKED");
+    assert_eq!(rename(&test, "second", first_rod, "No").unwrap_err(), "GEAR_INSTANCE_UNAVAILABLE");
+    assert_eq!(rename(&test, "first", u128::MAX, "No").unwrap_err(), "GEAR_INSTANCE_UNAVAILABLE");
+    assert!(my_gear_instance_names(&test.view_context(auth("unknown"))).is_empty());
+    assert!(adapter_gear_instance_names(&test.view_context(auth("unknown"))).is_empty());
+    assert!(adapter_gear_instance_names(&test.view_context(auth("bot"))).is_empty());
+    let own = my_gear_instance_names(&test.view_context(auth("first")));
+    assert_eq!(own.len(), 1);
+    assert_eq!((own[0].instance_id, own[0].player_id, own[0].name.as_str()), (first_rod, first, "First"));
+    let other = my_gear_instance_names(&test.view_context(auth("second")));
+    assert_eq!(other.len(), 1);
+    assert_eq!((other[0].instance_id, other[0].player_id, other[0].name.as_str()), (second_rod, second, "Second"));
+    let selection = interaction(&test, 1);
+    select(&test, 5801, selection);
+    let adapter = adapter_gear_instance_names(&test.view_context(auth("bot")));
+    assert_eq!(adapter.len(), 1);
+    assert_eq!((adapter[0].instance_id, adapter[0].player_id), (first_rod, first));
+    assert!(test.with_reducer_tx(auth("bot"), |ctx|
+        rename_gear_instance_from_discord(ctx, 5802, selection, second_rod, "Spoof".into())).is_err());
+    assert!(test.with_reducer_tx(auth("bot"), |ctx|
+        rename_gear_instance_from_discord(ctx, 5801, interaction(&test, 2), first_rod, "Spoof".into())).is_err());
+    assert!(test.with_reducer_tx(auth("bot"), |ctx|
+        rename_gear_instance_from_discord(ctx, 5801, selection, second_rod, "Spoof".into())).is_err());
+    assert!(test.with_reducer_tx(auth("first"), |ctx|
+        rename_gear_instance_from_discord(ctx, 5801, selection, first_rod, "Spoof".into())).is_err());
+    test.with_reducer_tx(auth("bot"), |ctx|
+        rename_gear_instance_from_discord(ctx, 5801, selection, first_rod, "Adapter".into())).unwrap();
+    assert_eq!(my_gear_instance_names(&test.view_context(auth("first")))[0].name, "Adapter");
+    let selection = interaction(&test, 3);
+    select(&test, 5802, selection);
+    let adapter = adapter_gear_instance_names(&test.view_context(auth("bot")));
+    assert_eq!(adapter.len(), 1);
+    assert_eq!((adapter[0].instance_id, adapter[0].player_id, adapter[0].name.as_str()), (second_rod, second, "Second"));
+    test.with_reducer_tx(TestAuth::internal(), |ctx| {
+        let mut row = ctx.db.gear_instance_name().instance_id().find(first_rod).unwrap();
+        row.player_id = second;
+        ctx.db.gear_instance_name().instance_id().update(row);
+        Ok::<(), String>(())
+    }).unwrap();
+    for value in ["Overwrite", ""] {
+        assert_eq!(rename(&test, "first", first_rod, value).unwrap_err(), "GEAR_INSTANCE_UNAVAILABLE");
+        let row = test.db.gear_instance_name().instance_id().find(first_rod).unwrap();
+        assert_eq!((row.player_id, row.name.as_str()), (second, "Adapter"));
+    }
 }
 
 #[test]
@@ -603,6 +715,67 @@ fn selected_future_haul_copies_need_no_legacy_ownership() {
     test.with_reducer_tx(auth("bot"), |ctx| hauls::start_haul_from_discord(ctx, 5101, net_trip, None, 8, "net".into())).unwrap();
     let net_snapshot = test.db.gear_activity_snapshot().key().find(format!("haul:{net_trip}")).unwrap();
     assert_eq!((net_snapshot.snapshot.instance_id, net_snapshot.snapshot.quality_level), (net, 0));
+    let original = original_id(id, "rod", 1).unwrap();
+    test.with_reducer_tx(auth("angler"), |ctx| set_gear_instance_favorite(ctx, net, true)).unwrap();
+    test.with_reducer_tx(TestAuth::internal(), |ctx| {
+        ctx.db.tideforge_economy_wallet().insert(TideforgeEconomyWallet {
+            player_id: id, marks: 123, next_sequence: 7, revision: 3,
+        });
+        Ok::<(), String>(())
+    }).unwrap();
+    let gear_before = test.db.gear_instance().instance_id().find(net).unwrap();
+    let original_before = test.db.gear_instance().instance_id().find(original).unwrap();
+    let loadout_before = test.db.gear_loadout().player_id().find(id).unwrap();
+    let mastery_before = test.db.gear_family_progress().key().find(family_key(id, "net", 2).unwrap()).unwrap();
+    let player_before = test.db.player().player_id().find(id).unwrap();
+    let wallet_before = test.db.tideforge_economy_wallet().player_id().find(id).unwrap();
+    let quote_count = test.db.tideforge_economy_quote().count();
+    let receipt_count = test.db.tideforge_economy_receipt().count();
+    assert!(gear_before.favorite);
+    assert!(original_before.protected_original);
+    assert_eq!((loadout_before.rod_instance_id, loadout_before.net_instance_id), (original, net));
+    rename(&test, "angler", net, "Booked and favorite").unwrap();
+    rename(&test, "angler", original, "Original").unwrap();
+    let gear_after = test.db.gear_instance().instance_id().find(net).unwrap();
+    let original_after = test.db.gear_instance().instance_id().find(original).unwrap();
+    let loadout_after = test.db.gear_loadout().player_id().find(id).unwrap();
+    let mastery_after = test.db.gear_family_progress().key().find(family_key(id, "net", 2).unwrap()).unwrap();
+    let player_after = test.db.player().player_id().find(id).unwrap();
+    let wallet_after = test.db.tideforge_economy_wallet().player_id().find(id).unwrap();
+    let snapshot_after = test.db.gear_activity_snapshot().key().find(format!("haul:{net_trip}")).unwrap();
+    assert_eq!((gear_after.instance_id, gear_after.player_id, &gear_after.kind, gear_after.definition_id,
+        gear_after.family_id, gear_after.primary_biome_id, gear_after.quality_level, gear_after.reinforcement_level,
+        gear_after.protected_original, gear_after.favorite, gear_after.revision),
+        (gear_before.instance_id, gear_before.player_id, &gear_before.kind, gear_before.definition_id,
+        gear_before.family_id, gear_before.primary_biome_id, gear_before.quality_level, gear_before.reinforcement_level,
+        gear_before.protected_original, gear_before.favorite, gear_before.revision));
+    assert_eq!((&gear_after.source, gear_after.created_at), (&gear_before.source, gear_before.created_at));
+    assert_eq!((original_after.revision, original_after.favorite, original_after.quality_level, original_after.reinforcement_level),
+        (original_before.revision, original_before.favorite, original_before.quality_level, original_before.reinforcement_level));
+    assert_eq!((loadout_after.rod_instance_id, loadout_after.boat_instance_id, loadout_after.net_instance_id, loadout_after.revision),
+        (loadout_before.rod_instance_id, loadout_before.boat_instance_id, loadout_before.net_instance_id, loadout_before.revision));
+    assert_eq!((mastery_after.mastery_xp, mastery_after.curve_version), (mastery_before.mastery_xp, mastery_before.curve_version));
+    assert_eq!((player_after.coins, player_after.total_xp, player_after.next_cast_at),
+        (player_before.coins, player_before.total_xp, player_before.next_cast_at));
+    assert_eq!((wallet_after.marks, wallet_after.next_sequence, wallet_after.revision),
+        (wallet_before.marks, wallet_before.next_sequence, wallet_before.revision));
+    assert_eq!((test.db.tideforge_economy_quote().count(), test.db.tideforge_economy_receipt().count()), (quote_count, receipt_count));
+    assert_eq!((&snapshot_after.key, snapshot_after.player_id, &snapshot_after.activity_kind, snapshot_after.activity_id,
+        snapshot_after.booked_at, snapshot_after.recorded_at, snapshot_after.legacy_booking),
+        (&net_snapshot.key, net_snapshot.player_id, &net_snapshot.activity_kind, net_snapshot.activity_id,
+        net_snapshot.booked_at, net_snapshot.recorded_at, net_snapshot.legacy_booking));
+    let after = &snapshot_after.snapshot;
+    let before = &net_snapshot.snapshot;
+    assert_eq!((after.instance_id, after.gear_revision, &after.kind, after.definition_id, after.family_id,
+        after.primary_biome_id, after.quality_level, after.reinforcement_level),
+        (before.instance_id, before.gear_revision, &before.kind, before.definition_id, before.family_id,
+        before.primary_biome_id, before.quality_level, before.reinforcement_level));
+    assert_eq!((after.effects_version, after.power, after.luck_bp, after.xp_bonus_bp, after.rules_version,
+        after.content_version, after.catalog_version),
+        (before.effects_version, before.power, before.luck_bp, before.xp_bonus_bp, before.rules_version,
+        before.content_version, before.catalog_version));
+    assert_eq!(test.db.gear_instance_name().instance_id().find(net).unwrap().name, "Booked and favorite");
+    assert_eq!(test.db.gear_instance_name().instance_id().find(original).unwrap().name, "Original");
     let request = browser_request(&test, 2);
     test.with_reducer_tx(auth("angler"), |ctx| raids::prepare_raid(ctx, request, species, 0)).unwrap();
     let attempt_id = (u128::from(id) << 64) | u128::from(request);

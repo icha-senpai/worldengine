@@ -380,6 +380,14 @@ pub fn seed(ctx: &ReducerContext) {
 }
 
 pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
+    refresh_player_inner(ctx, player_id, true)
+}
+
+pub(crate) fn refresh_player_backfill(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
+    refresh_player_inner(ctx, player_id, false)
+}
+
+fn refresh_player_inner(ctx: &ReducerContext, player_id: u64, award_marks: bool) -> Result<(), String> {
     let player = ctx
         .db
         .player()
@@ -507,6 +515,9 @@ pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String
                 achievement_id: id,
                 completed_at: ctx.timestamp,
             });
+            if award_marks {
+                crate::tideforge_economy::award_achievement(ctx, player_id, id)?;
+            }
             crate::notifications::enqueue(ctx, key);
         }
     }
@@ -523,7 +534,7 @@ pub fn activate_achievements(ctx: &ReducerContext) -> Result<(), String> {
 #[spacetimedb::reducer]
 pub fn backfill_player_achievements(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
     require_owner(ctx)?;
-    refresh_player(ctx, player_id)
+    refresh_player_backfill(ctx, player_id)
 }
 
 fn require_owner(ctx: &ReducerContext) -> Result<(), String> {

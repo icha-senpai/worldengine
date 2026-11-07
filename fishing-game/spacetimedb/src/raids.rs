@@ -727,6 +727,9 @@ fn personal_attempt(
         ctx, player_id, "boat", "raid", id, None, None, None,
         attempt.rules_version, Some(attempt.content_version), Some(attempt.catalog_version),
     )?;
+    if kind == "personal" {
+        crate::tideforge_economy::book_raid(ctx, id, player_id, grade)?;
+    }
     ctx.db.raid_attempt().insert(attempt);
     schedule_job(ctx, id, "start", starts_at);
     record_action(
@@ -886,7 +889,7 @@ pub fn prepare_community_raid_from_discord(
     )
 }
 
-fn consume_item(
+pub(crate) fn consume_item(
     ctx: &ReducerContext,
     player_id: u64,
     slot: u32,
@@ -929,7 +932,7 @@ fn consume_item(
     Ok(())
 }
 
-fn spend_coins(
+pub(crate) fn spend_coins(
     ctx: &ReducerContext,
     player_id: u64,
     amount: u64,
@@ -962,7 +965,7 @@ fn spend_coins(
     Ok(())
 }
 
-fn require_grade_clear(
+pub(crate) fn require_grade_clear(
     ctx: &ReducerContext,
     player_id: u64,
     grade: u8,
@@ -996,7 +999,8 @@ fn refine(
     }
     require_enabled(ctx)?;
     let refining = rules::catalog().refining;
-    if batches == 0 || batches > refining.maximum_batches || from_grade >= 9 {
+    let economy_enabled = crate::tideforge_economy::enabled(ctx)?;
+    if batches == 0 || (!economy_enabled && batches > refining.maximum_batches) || from_grade >= 9 {
         return Err("RAID_REFINEMENT_INVALID".into());
     }
     let to_grade = from_grade.checked_add(1).ok_or("INVALID_RAID_GRADE")?;
@@ -1005,18 +1009,15 @@ fn refine(
         rules::material(from_grade, material_id).map_err(|_| "INVALID_RAID_MATERIAL")?;
     let (output_slot, output_item) =
         rules::material(to_grade, material_id).map_err(|_| "INVALID_RAID_MATERIAL")?;
-    let input = refining
-        .input_quantity
-        .checked_mul(u64::from(batches))
-        .ok_or("ITEM_OVERFLOW")?;
-    let output = refining
-        .output_quantity
-        .checked_mul(u64::from(batches))
-        .ok_or("ITEM_OVERFLOW")?;
-    let coins = refining
-        .coins_per_batch
-        .checked_mul(u64::from(batches))
-        .ok_or("COIN_OVERFLOW")?;
+    let (input, output, coins) = if economy_enabled {
+        crate::tideforge_economy::legacy_refine_amounts(ctx, player_id, material_id, from_grade, batches)?
+    } else {
+        (
+            refining.input_quantity.checked_mul(u64::from(batches)).ok_or("ITEM_OVERFLOW")?,
+            refining.output_quantity.checked_mul(u64::from(batches)).ok_or("ITEM_OVERFLOW")?,
+            refining.coins_per_batch.checked_mul(u64::from(batches)).ok_or("COIN_OVERFLOW")?,
+        )
+    };
     let operation = format!("raid-action:{}:{}", player_id, request_id);
     consume_item(
         ctx,
@@ -1656,6 +1657,7 @@ fn complete_attempt(ctx: &ReducerContext, attempt: &mut RaidAttempt) -> Result<(
                 .checked_mul(1_000_000)
                 .ok_or("RAID_TIME_OVERFLOW")?;
             award_materials(ctx, attempt, full_elapsed)?;
+            crate::tideforge_economy::settle_raid(ctx, attempt.id, attempt.player_id)?;
             let species_id = attempt.species_id.ok_or("SPECIES_UNAVAILABLE")?;
             let cleared = ctx.db.raid_badge().key()
                 .find(badge_key(attempt.player_id, species_id))
@@ -1970,5 +1972,6 @@ pub fn prune_history(ctx: &ReducerContext) {
         remove_jobs(ctx, attempt.id);
         crate::gear_instances::delete_snapshot(ctx, "raid", attempt.id);
         ctx.db.raid_attempt().id().delete(attempt.id);
+        crate::tideforge_economy::forget_raid(ctx, attempt.id, attempt.player_id);
     }
 }

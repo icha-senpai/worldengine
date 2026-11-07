@@ -452,6 +452,7 @@ fn reward(
                 achievement_id: definition.achievement_id,
                 completed_at: ctx.timestamp,
             });
+            crate::tideforge_economy::award_achievement(ctx, player_id, definition.achievement_id)?;
             crate::notifications::enqueue(ctx, achievement_key);
         }
         let progress = AchievementProgress {

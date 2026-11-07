@@ -2,6 +2,10 @@ use crate::tables::*;
 use spacetimedb::{ReducerContext, Table};
 
 pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String> {
+    refresh_player_inner(ctx, player_id, false)
+}
+
+fn refresh_player_inner(ctx: &ReducerContext, player_id: u64, backfill: bool) -> Result<(), String> {
     let player = ctx
         .db
         .player()
@@ -70,7 +74,11 @@ pub fn refresh_player(ctx: &ReducerContext, player_id: u64) -> Result<(), String
         ctx.db.angler_standing().insert(row);
     }
     crate::statistics::refresh(ctx, player_id)?;
-    crate::achievements::refresh_player(ctx, player_id)
+    if backfill {
+        crate::achievements::refresh_player_backfill(ctx, player_id)
+    } else {
+        crate::achievements::refresh_player(ctx, player_id)
+    }
 }
 
 /// Bounded, repeatable backfill from durable progress, including sold catches.
@@ -85,5 +93,5 @@ pub fn rebuild_player_records(ctx: &ReducerContext, player_id: u64) -> Result<()
     if ctx.sender() != owner.identity {
         return Err("OWNER_REQUIRED".into());
     }
-    refresh_player(ctx, player_id)
+    refresh_player_inner(ctx, player_id, true)
 }

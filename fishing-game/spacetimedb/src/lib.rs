@@ -24,6 +24,7 @@ mod shop;
 mod statistics;
 mod tables;
 mod tideforge;
+mod tideforge_economy;
 #[cfg(all(test, feature = "module-tests"))]
 mod tests;
 #[cfg(all(test, feature = "module-tests"))]
@@ -32,6 +33,8 @@ mod raids_tests;
 mod gear_instances_tests;
 #[cfg(all(test, feature = "module-tests"))]
 mod tideforge_tests;
+#[cfg(all(test, feature = "module-tests"))]
+mod tideforge_economy_tests;
 
 use spacetimedb::{ReducerContext, Table};
 use tables::*;

@@ -390,6 +390,13 @@ export const GearInstance = __t.object("GearInstance", {
 });
 export type GearInstance = __Infer<typeof GearInstance>;
 
+export const GearInstanceName = __t.object("GearInstanceName", {
+  instanceId: __t.u128(),
+  playerId: __t.u64(),
+  name: __t.string(),
+});
+export type GearInstanceName = __Infer<typeof GearInstanceName>;
+
 export const GearLoadout = __t.object("GearLoadout", {
   playerId: __t.u64(),
   rodInstanceId: __t.u128(),
@@ -1131,6 +1138,24 @@ export const TideforgeActivitySnapshot = __t.object("TideforgeActivitySnapshot",
 });
 export type TideforgeActivitySnapshot = __Infer<typeof TideforgeActivitySnapshot>;
 
+export const TideforgeAffixShard = __t.object("TideforgeAffixShard", {
+  key: __t.string(),
+  playerId: __t.u64(),
+  affixId: __t.string(),
+  count: __t.u64(),
+});
+export type TideforgeAffixShard = __Infer<typeof TideforgeAffixShard>;
+
+export const TideforgeCodex = __t.object("TideforgeCodex", {
+  key: __t.string(),
+  playerId: __t.u64(),
+  affixId: __t.string(),
+  highestTier: __t.u8(),
+  bestFinishBp: __t.u16(),
+  naturalCount: __t.u64(),
+});
+export type TideforgeCodex = __Infer<typeof TideforgeCodex>;
+
 export const TideforgeDailyUse = __t.object("TideforgeDailyUse", {
   key: __t.string(),
   playerId: __t.u64(),
@@ -1140,6 +1165,48 @@ export const TideforgeDailyUse = __t.object("TideforgeDailyUse", {
   activityKey: __t.string(),
 });
 export type TideforgeDailyUse = __Infer<typeof TideforgeDailyUse>;
+
+export const TideforgeEconomyQuote = __t.object("TideforgeEconomyQuote", {
+  key: __t.string(),
+  identity: __t.identity(),
+  playerId: __t.u64(),
+  nonce: __t.u128(),
+  intentJson: __t.string(),
+  previewJson: __t.string(),
+  catalogVersion: __t.u32(),
+  createdAt: __t.timestamp(),
+  expiresAt: __t.timestamp(),
+  consumed: __t.bool(),
+});
+export type TideforgeEconomyQuote = __Infer<typeof TideforgeEconomyQuote>;
+
+export const TideforgeEconomyReceipt = __t.object("TideforgeEconomyReceipt", {
+  key: __t.string(),
+  identity: __t.identity(),
+  playerId: __t.u64(),
+  nonce: __t.u128(),
+  action: __t.string(),
+  summaryJson: __t.string(),
+  createdAt: __t.timestamp(),
+  pruneAt: __t.timestamp(),
+});
+export type TideforgeEconomyReceipt = __Infer<typeof TideforgeEconomyReceipt>;
+
+export const TideforgeEconomyState = __t.object("TideforgeEconomyState", {
+  singleton: __t.u8(),
+  version: __t.u32(),
+  catalogVersion: __t.u32(),
+  activatedAt: __t.timestamp(),
+});
+export type TideforgeEconomyState = __Infer<typeof TideforgeEconomyState>;
+
+export const TideforgeEconomyWallet = __t.object("TideforgeEconomyWallet", {
+  playerId: __t.u64(),
+  marks: __t.u64(),
+  nextSequence: __t.u64(),
+  revision: __t.u64(),
+});
+export type TideforgeEconomyWallet = __Infer<typeof TideforgeEconomyWallet>;
 
 export const TideforgeFractionalCredit = __t.object("TideforgeFractionalCredit", {
   key: __t.string(),
@@ -1172,6 +1239,28 @@ export const TideforgeLoadout = __t.object("TideforgeLoadout", {
   goal: __t.string(),
 });
 export type TideforgeLoadout = __Infer<typeof TideforgeLoadout>;
+
+export const TideforgeMarkAward = __t.object("TideforgeMarkAward", {
+  key: __t.string(),
+  playerId: __t.u64(),
+  source: __t.string(),
+  sourceId: __t.string(),
+  amount: __t.u64(),
+  createdAt: __t.timestamp(),
+  pruneAt: __t.option(__t.timestamp()),
+});
+export type TideforgeMarkAward = __Infer<typeof TideforgeMarkAward>;
+
+export const TideforgeRaidMarkBooking = __t.object("TideforgeRaidMarkBooking", {
+  attemptId: __t.u128(),
+  playerId: __t.u64(),
+  grade: __t.u8(),
+  marks: __t.u64(),
+  catalogVersion: __t.u32(),
+  bookedAt: __t.timestamp(),
+  settled: __t.bool(),
+});
+export type TideforgeRaidMarkBooking = __Infer<typeof TideforgeRaidMarkBooking>;
 
 export const TideforgeSpecimenModifiers = __t.object("TideforgeSpecimenModifiers", {
   catchId: __t.u64(),

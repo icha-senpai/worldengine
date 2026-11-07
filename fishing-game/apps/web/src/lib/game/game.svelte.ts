@@ -1,16 +1,45 @@
 import { DbConnection } from '@fishing-game/generated';
 import type { SubscriptionHandle } from '@fishing-game/generated';
-import { coreQueries, viewQueries } from './subscriptions';
+import { coreQueries, viewQueries, tideforgeProbeQueries, tideforgeCoreQueries, tideforgeViewQueries, gearNameQueries } from './subscriptions';
 import { connectionDiagnostics } from './connection-diagnostics';
 import { connectionLifecycle } from '../../../../../../shared/connection-lifecycle';
 import type { JournalPage } from '@fishing-game/generated/types';
 import { canRetryRaidIntent, createBrowserRequestId, matchesRaidAction, raidActionFingerprint } from './raid-intents';
+import { canonicalTideforgeIntent, matchesTideforgeQuote, sameTideforgeAccount, tideforgeFingerprint, tideforgeResultUncertain, tideforgeRetryNonce, tideforgeStateAvailability, type TideforgeIntent, type TideforgeKind } from './tideforge-intents';
+import { tideforgeConfirmed, tideforgeErrorMessage, tideforgeUnconfirmed, tideforgeValidationMessage } from './tideforge-copy';
+import { gearNameValidationMessage, gearRenameErrorMessage, normalizeGearName } from './gear-names';
+import { gearLabel } from './tideforge-ui';
 export type JournalQuery = { page: number; pageSize: number; sort: string; descending: boolean; search: string; biomeId: number; rarity: string; outcome: string };
 import type { ActionNonce, AnglerPortrait, AnglerStatistics, AnglerStanding, LegendaryFind, BiomeDefinition, RodDefinition, RarityDefinition, GameConfig, ItemStack, LinkChallenge, OwnedSpecimen, Player, PlayerSpeciesProgress, PublicProfile, RecentCatch, SpeciesDefinition, SpeciesRecord, ShopListing, ShopQuote, OwnedRod, OwnedBiomeLicence, RodBonuses, RaidActionReceipt, RaidAttempt, RaidBadge, RaidGradeDefinition, RaidStatistics, CommunityRaidEvent, RodReinforcement } from '@fishing-game/generated/types';
+import type { GearInstance, GearInstanceName, GearLoadout, GearFamilyProgress, GearActivitySnapshot, TideforgeGear, TideforgeLoadout, TideforgeEconomyWallet, TideforgeEconomyQuote, TideforgeEconomyReceipt, TideforgeAffixShard, TideforgeCodex, TideforgeLibrary, TideforgeSpecimenModifiers, TideforgeFractionalCredit } from '@fishing-game/generated/types';
 
 type PendingRaidIntent = { requestId: bigint; fingerprint: string; playerId: bigint };
+type PendingTideforgeCommit = { quote: TideforgeEconomyQuote; playerId: bigint; identity: string; fingerprint: string };
 
 export class Game {
+  gearInstances = $state.raw<GearInstance[]>([]);
+  gearInstanceNames = $state.raw<GearInstanceName[]>([]);
+  gearNamesAvailability = $state<'loading' | 'ready' | 'unavailable'>('loading');
+  gearNameError = $state('');
+  gearLoadout = $state.raw<GearLoadout | null>(null);
+  gearFamilies = $state.raw<GearFamilyProgress[]>([]);
+  tideforgeGear = $state.raw<TideforgeGear[]>([]);
+  tideforgeLoadout = $state.raw<TideforgeLoadout | null>(null);
+  tideforgeWallet = $state.raw<TideforgeEconomyWallet | null>(null);
+  tideforgeQuote = $state.raw<TideforgeEconomyQuote | null>(null);
+  tideforgeReceipts = $state.raw<TideforgeEconomyReceipt[]>([]);
+  tideforgeVault = $state.raw<TideforgeAffixShard[]>([]);
+  tideforgeCodex = $state.raw<TideforgeCodex[]>([]);
+  tideforgeLibrary = $state.raw<TideforgeLibrary[]>([]);
+  tideforgeSpecimenModifiers = $state.raw<TideforgeSpecimenModifiers[]>([]);
+  tideforgeCredits = $state.raw<TideforgeFractionalCredit[]>([]);
+  gearActivitySnapshots = $state.raw<GearActivitySnapshot[]>([]);
+  tideforgeAvailability = $state<'loading' | 'inactive' | 'unavailable' | 'active'>('loading');
+  tideforgeLoading = $state(false);
+  tideforgeDetailsUnavailable = $state(false);
+  tideforgeError = $state('');
+  pendingTideforgeCommit = $state.raw<PendingTideforgeCommit | null>(null);
+  tideforgeResult = $state.raw<TideforgeEconomyReceipt | null>(null);
   haulEquipment = $state.raw<import('@fishing-game/generated/types').HaulEquipmentDefinition[]>([]);
   ownedHaulEquipment = $state.raw<import('@fishing-game/generated/types').OwnedHaulEquipment[]>([]);
   haulTrips = $state.raw<import('@fishing-game/generated/types').HaulTrip[]>([]);
@@ -99,6 +128,25 @@ export class Game {
   private lifecycle: ReturnType<typeof connectionLifecycle> | null = null;
   private actionUnconfirmed = false;
   private activeRaidDispatch: symbol | null = null;
+  private tideforgeProbe: SubscriptionHandle | null = null;
+  private tideforgeCore: SubscriptionHandle | null = null;
+  private tideforgeView: SubscriptionHandle | null = null;
+  private tideforgeProbeApplied = false;
+  private tideforgeFault = false;
+  private tideforgeCoreReady = $state(false);
+  private tideforgeKnownActive = $state(false);
+  private tideforgeViewReady = false;
+  private tideforgeCoreKey = '';
+  private tideforgeCoreRevision = 0;
+  private tideforgeRevision = 0;
+  private tideforgeViewRevision = 0;
+  private gearNamesSubscription: SubscriptionHandle | null = null;
+  private gearNamesKey = '';
+  private gearNamesRevision = 0;
+  private gearRenameDispatch: symbol | null = null;
+  private tideforgeDispatch: symbol | null = null;
+  private tideforgePrepare: symbol | null = null;
+  private preparedTideforge: PendingTideforgeCommit | null = null;
 
   private invalidateRaidDispatch() {
     if (this.activeRaidDispatch !== null) {
@@ -108,7 +156,12 @@ export class Game {
   }
   get raidsSupported() { return (this.config?.version ?? 0) >= 17; }
   get raidActionUnconfirmed() { return this.actionUnconfirmed; }
-  setView(view: string) { this.selectedView = view; this.syncSection(); }
+  get tideforgeIdentity() { return this.identityKey; }
+  get equipmentInformationUnavailable() {
+    return this.tideforgeAvailability === 'loading' || this.tideforgeKnownActive && !this.tideforgeCoreReady;
+  }
+  get tideforgeEffectsActive() { return this.tideforgeKnownActive; }
+  setView(view: string) { this.selectedView = view; this.syncSection(); this.syncTideforgeView(); }
   private finishRecovery() {
     if (!this.coreReady || !this.sectionReady) return;
     if (this.reconnecting || !this.ready) connectionDiagnostics.record('fishbound-ready');
@@ -139,7 +192,263 @@ export class Game {
     }).subscribe(queries);
   }
 
+  private clearTideforgeRows() {
+    this.clearGearNames();
+    this.gearInstances = []; this.gearLoadout = null; this.gearFamilies = [];
+    this.tideforgeGear = []; this.tideforgeLoadout = null; this.tideforgeWallet = null;
+    this.tideforgeQuote = null; this.tideforgeReceipts = [];
+    this.clearTideforgeViewRows();
+  }
+
+  private clearTideforgeViewRows() {
+    this.tideforgeVault = []; this.tideforgeCodex = []; this.tideforgeLibrary = [];
+    this.tideforgeSpecimenModifiers = []; this.tideforgeCredits = [];
+    this.gearActivitySnapshots = [];
+  }
+
+  private resetTideforgeSubscriptions() {
+    this.clearGearNames();
+    this.tideforgeRevision++; this.tideforgeCoreRevision++; this.tideforgeViewRevision++;
+    this.tideforgeProbe = null; this.tideforgeCore = null; this.tideforgeView = null;
+    this.tideforgeProbeApplied = false; this.tideforgeCoreReady = false;
+    this.tideforgeKnownActive = false;
+    this.tideforgeFault = false;
+    this.tideforgeViewReady = false; this.tideforgeCoreKey = '';
+    this.tideforgeAvailability = 'loading'; this.tideforgeLoading = false; this.tideforgeDetailsUnavailable = false;
+  }
+
+  private probeTideforge(connection: DbConnection) {
+    if (!this.coreReady || !connection.isActive || this.tideforgeProbe) return;
+    const generation = this.generation, revision = ++this.tideforgeRevision, identity = this.identityKey;
+    this.tideforgeAvailability = 'loading';
+    this.tideforgeProbe = connection.subscriptionBuilder().onApplied(() => {
+      if (generation !== this.generation || revision !== this.tideforgeRevision
+        || connection !== this.connection || this.identityKey !== identity) return;
+      this.tideforgeProbeApplied = true;
+      this.updateTideforgeCapability(connection);
+    }).onError(() => {
+      if (generation !== this.generation || revision !== this.tideforgeRevision
+        || connection !== this.connection || this.identityKey !== identity) return;
+      this.tideforgeProbeApplied = false; this.tideforgeProbe = null;
+      this.tideforgeFault = true;
+      this.tideforgeCoreRevision++; this.tideforgeViewRevision++;
+      const core = this.tideforgeCore, view = this.tideforgeView;
+      this.tideforgeCore = null; this.tideforgeView = null; this.tideforgeCoreKey = '';
+      this.tideforgeCoreReady = false; this.tideforgeViewReady = false;
+      core?.unsubscribe(); view?.unsubscribe();
+      this.tideforgeAvailability = 'unavailable'; this.tideforgeLoading = false;
+      this.tideforgeError = 'Tideforge is unavailable on this game server.';
+      this.clearTideforgeRows();
+    }).subscribe(tideforgeProbeQueries);
+  }
+
+  retryTideforge() {
+    if (!this.connection || !this.coreReady || this.tideforgeAvailability === 'loading') return;
+    const probe = this.tideforgeProbe; this.tideforgeProbe = null;
+    this.tideforgeProbeApplied = false; this.tideforgeRevision++;
+    probe?.unsubscribe();
+    this.tideforgeError = ''; this.tideforgeFault = false;
+    this.probeTideforge(this.connection);
+  }
+
+  private updateTideforgeCapability(connection: DbConnection) {
+    if (!this.tideforgeProbeApplied || this.tideforgeFault || connection !== this.connection || !this.coreReady) return;
+    const state = [...connection.db.tideforgeEconomyState.iter()][0];
+    const next = tideforgeStateAvailability(state ?? null);
+    this.tideforgeKnownActive = next === 'active';
+    const previous = this.tideforgeAvailability;
+    this.tideforgeAvailability = next;
+    if (next !== 'active') {
+      this.tideforgeCoreRevision++; this.tideforgeViewRevision++;
+      const core = this.tideforgeCore, view = this.tideforgeView;
+      this.tideforgeCore = null; this.tideforgeView = null; this.tideforgeCoreKey = '';
+      this.tideforgeCoreReady = false; this.tideforgeViewReady = false;
+      core?.unsubscribe(); view?.unsubscribe();
+      this.tideforgeLoading = false; this.tideforgeDetailsUnavailable = false;
+      this.clearTideforgeRows();
+      this.tideforgeError = next === 'inactive' ? '' : 'Tideforge is unavailable. Refresh the page or try again later.';
+      return;
+    }
+    if (previous !== 'active') this.tideforgeError = '';
+    this.syncTideforgeCore(connection);
+  }
+
+  private syncTideforgeCore(connection: DbConnection) {
+    if (this.tideforgeAvailability !== 'active' || !this.player || !this.identityKey) {
+      this.tideforgeCoreRevision++; this.tideforgeViewRevision++;
+      const core = this.tideforgeCore, view = this.tideforgeView;
+      this.tideforgeCore = null; this.tideforgeView = null; this.tideforgeCoreKey = '';
+      this.tideforgeCoreReady = false; this.tideforgeViewReady = false;
+      core?.unsubscribe(); view?.unsubscribe();
+      this.clearTideforgeRows();
+      return;
+    }
+    const key = `${this.identityKey}:${this.player.playerId}`;
+    if (key === this.tideforgeCoreKey && this.tideforgeCore) {
+      if (this.tideforgeCoreReady) this.syncGearNames(connection);
+      return;
+    }
+    const revision = ++this.tideforgeCoreRevision;
+    this.tideforgeViewRevision++;
+    const core = this.tideforgeCore, view = this.tideforgeView;
+    this.tideforgeCore = null; this.tideforgeView = null; this.tideforgeCoreReady = false;
+    this.tideforgeViewReady = false; this.tideforgeCoreKey = key;
+    core?.unsubscribe(); view?.unsubscribe();
+    this.clearTideforgeRows(); this.tideforgeLoading = true; this.tideforgeDetailsUnavailable = false;
+    const generation = this.generation, identity = this.identityKey, playerId = this.player.playerId;
+    this.tideforgeCore = connection.subscriptionBuilder().onApplied(() => {
+      if (generation !== this.generation || revision !== this.tideforgeCoreRevision
+        || connection !== this.connection || this.tideforgeCoreKey !== key
+        || this.identityKey !== identity || this.player?.playerId !== playerId) return;
+      this.tideforgeCoreReady = true; this.tideforgeLoading = false;
+      this.refreshTideforge(connection);
+      this.syncGearNames(connection);
+      this.syncTideforgeView();
+    }).onError(() => {
+      if (generation !== this.generation || revision !== this.tideforgeCoreRevision
+        || connection !== this.connection || this.tideforgeCoreKey !== key
+        || this.identityKey !== identity || this.player?.playerId !== playerId) return;
+      this.tideforgeCore = null; this.tideforgeCoreReady = false;
+      const view = this.tideforgeView; this.tideforgeView = null; this.tideforgeViewReady = false;
+      this.tideforgeViewRevision++; this.tideforgeFault = true; view?.unsubscribe();
+      this.tideforgeAvailability = 'unavailable'; this.tideforgeLoading = false;
+      this.tideforgeError = 'Tideforge data could not load. Try again.';
+      this.clearTideforgeRows();
+    }).subscribe(tideforgeCoreQueries);
+  }
+
+  private syncTideforgeView() {
+    const connection = this.connection;
+    if (this.selectedView !== 'tideforge' || !connection || !this.tideforgeCoreReady || !this.player) {
+      const view = this.tideforgeView;
+      this.tideforgeView = null; this.tideforgeViewReady = false; this.tideforgeViewRevision++;
+      view?.unsubscribe();
+      this.clearTideforgeViewRows();
+      return;
+    }
+    if (this.tideforgeView) return;
+    const generation = this.generation, revision = ++this.tideforgeViewRevision;
+    const playerId = this.player.playerId, identity = this.identityKey, coreKey = this.tideforgeCoreKey;
+    this.tideforgeLoading = true;
+    this.tideforgeView = connection.subscriptionBuilder().onApplied(() => {
+      if (generation !== this.generation || revision !== this.tideforgeViewRevision
+        || connection !== this.connection || this.player?.playerId !== playerId
+        || this.identityKey !== identity || this.tideforgeCoreKey !== coreKey || this.selectedView !== 'tideforge') return;
+      this.tideforgeViewReady = true; this.tideforgeLoading = false; this.tideforgeDetailsUnavailable = false;
+      this.refreshTideforge(connection);
+    }).onError(() => {
+      if (generation !== this.generation || revision !== this.tideforgeViewRevision || connection !== this.connection
+        || this.identityKey !== identity || this.player?.playerId !== playerId || this.tideforgeCoreKey !== coreKey) return;
+      this.tideforgeView = null; this.tideforgeViewReady = false; this.tideforgeLoading = false;
+      this.tideforgeDetailsUnavailable = true;
+      this.tideforgeError = 'Tideforge details could not load.';
+      this.clearTideforgeViewRows();
+    }).subscribe(tideforgeViewQueries);
+  }
+
+  retryTideforgeDetails() {
+    if (!this.tideforgeDetailsUnavailable) return;
+    this.tideforgeDetailsUnavailable = false; this.tideforgeError = '';
+    this.syncTideforgeView();
+  }
+
+  private clearGearNames() {
+    this.gearNamesRevision++;
+    const subscription = this.gearNamesSubscription;
+    this.gearNamesSubscription = null; this.gearNamesKey = '';
+    if (this.gearRenameDispatch) {
+      this.gearRenameDispatch = null;
+      this.busy = false;
+    }
+    this.gearInstanceNames = []; this.gearNamesAvailability = 'loading'; this.gearNameError = '';
+    subscription?.unsubscribe();
+  }
+
+  private syncGearNames(connection: DbConnection) {
+    if (!connection.isActive || connection !== this.connection || !this.coreReady || !this.tideforgeCoreReady
+      || !this.identityKey || !this.player || !this.tideforgeCoreKey) return;
+    const key = this.tideforgeCoreKey;
+    if (this.gearNamesKey === key) return;
+    const generation = this.generation, revision = ++this.gearNamesRevision;
+    const identity = this.identityKey, playerId = this.player.playerId;
+    this.gearNamesKey = key; this.gearNamesAvailability = 'loading'; this.gearInstanceNames = [];
+    const current = () => generation === this.generation && revision === this.gearNamesRevision
+      && connection === this.connection && connection.isActive && this.coreReady && this.tideforgeCoreReady
+      && this.identityKey === identity && this.player?.playerId === playerId
+      && this.tideforgeCoreKey === key && this.gearNamesKey === key;
+    const unavailable = () => {
+      if (!current()) return;
+      this.gearNamesSubscription = null; this.gearNamesAvailability = 'unavailable'; this.gearInstanceNames = [];
+      if (this.gearRenameDispatch) {
+        this.gearRenameDispatch = null; this.busy = false;
+        this.gearNameError = 'We could not confirm this name. Reconnect to check before trying again.';
+      }
+    };
+    try {
+      this.gearNamesSubscription = connection.subscriptionBuilder().onApplied(() => {
+        if (!current()) return;
+        if (!connection.db.myGearInstanceNames) { unavailable(); return; }
+        this.gearNamesAvailability = 'ready';
+        this.refreshGearNames(connection);
+      }).onError(unavailable).subscribe(gearNameQueries);
+    } catch {
+      unavailable();
+    }
+  }
+
+  retryGearNames() {
+    if (this.gearNamesAvailability !== 'unavailable' || !this.connection) return;
+    const connection = this.connection;
+    this.clearGearNames();
+    this.syncGearNames(connection);
+  }
+
+  private refreshGearNames(connection: DbConnection) {
+    if (connection !== this.connection || !connection.isActive || !this.coreReady || !this.tideforgeCoreReady
+      || this.gearNamesAvailability !== 'ready' || !this.identityKey || !this.player
+      || this.gearNamesKey !== this.tideforgeCoreKey || this.gearNamesKey !== `${this.identityKey}:${this.player.playerId}`) return;
+    const playerId = this.player.playerId;
+    const owned = new Set(this.gearInstances.filter(row => row.playerId === playerId).map(row => row.instanceId));
+    this.gearInstanceNames = [...connection.db.myGearInstanceNames.iter()].filter(row => row.playerId === playerId && owned.has(row.instanceId));
+  }
+
+  private refreshTideforge(connection: DbConnection) {
+    if (connection !== this.connection || !this.coreReady || !this.tideforgeCoreReady || !this.player) return;
+    const playerId = this.player.playerId, identity = this.identityKey;
+    this.gearInstances = [...connection.db.myGearInstances.iter()].filter(row => row.playerId === playerId);
+    this.refreshGearNames(connection);
+    this.gearLoadout = [...connection.db.myGearLoadout.iter()].find(row => row.playerId === playerId) ?? null;
+    this.gearFamilies = [...connection.db.myGearFamilyProgress.iter()].filter(row => row.playerId === playerId);
+    this.tideforgeGear = [...connection.db.myTideforgeGear.iter()].filter(row => row.playerId === playerId);
+    this.tideforgeLoadout = [...connection.db.myTideforgeLoadout.iter()].find(row => row.playerId === playerId) ?? null;
+    this.tideforgeWallet = [...connection.db.myTideforgeEconomyWallet.iter()].find(row => row.playerId === playerId) ?? null;
+    this.tideforgeQuote = [...connection.db.myTideforgeEconomyQuote.iter()]
+      .find(row => row.playerId === playerId && row.identity.toHexString() === identity) ?? null;
+    this.tideforgeReceipts = [...connection.db.myTideforgeEconomyReceipts.iter()]
+      .filter(row => row.playerId === playerId && row.identity.toHexString() === identity);
+    if (this.tideforgeViewReady) {
+      this.tideforgeVault = [...connection.db.myTideforgeVault.iter()].filter(row => row.playerId === playerId);
+      this.tideforgeCodex = [...connection.db.myTideforgeCodex.iter()].filter(row => row.playerId === playerId);
+      this.tideforgeLibrary = [...connection.db.myTideforgeLibrary.iter()].filter(row => row.playerId === playerId);
+      this.tideforgeSpecimenModifiers = [...connection.db.myTideforgeSpecimenModifiers.iter()].filter(row => row.playerId === playerId);
+      this.tideforgeCredits = [...connection.db.myTideforgeFractionalCredits.iter()].filter(row => row.playerId === playerId);
+      this.gearActivitySnapshots = [...connection.db.myGearActivitySnapshots.iter()].filter(row => row.playerId === playerId);
+    }
+    const pending = this.pendingTideforgeCommit;
+    const receipt = pending && this.tideforgeReceipts.find(row => row.nonce === pending.quote.nonce
+      && row.playerId === pending.playerId && row.identity.toHexString() === pending.identity);
+    if (receipt) {
+      this.tideforgeResult = receipt;
+      this.pendingTideforgeCommit = null;
+      this.preparedTideforge = null;
+      this.tideforgeError = '';
+    }
+  }
+
   private clearPrivate() {
+    const probe = this.tideforgeProbe, core = this.tideforgeCore, view = this.tideforgeView;
+    this.resetTideforgeSubscriptions();
+    probe?.unsubscribe(); core?.unsubscribe(); view?.unsubscribe();
     this.invalidateRaidDispatch();
     this.ownedHaulEquipment = []; this.haulLoadout = null; this.haulTrips = [];
     this.haulUpgradeQuote = null;
@@ -153,6 +462,11 @@ export class Game {
     this.actionUnconfirmed = false;
     this.recent = []; this.items = []; this.challenge = null; this.action = null; this.shopQuote = null; this.ownedRods = []; this.licences = [];
     this.journal = null; this.journalLastQuery = ''; this.journalPending = null; this.journalError = '';
+    this.clearTideforgeRows();
+    this.pendingTideforgeCommit = null; this.preparedTideforge = null; this.tideforgeResult = null;
+    if (this.tideforgePrepare || this.tideforgeDispatch) this.busy = false;
+    this.tideforgePrepare = null;
+    this.tideforgeDispatch = null; this.tideforgeError = '';
   }
   private refresh = () => {
     const connection = this.connection;
@@ -170,7 +484,20 @@ export class Game {
     this.titles = [...connection.db.anglerTitle.iter()];
     this.publicProfiles = [...connection.db.publicProfile.iter()];
     this.portraits = [...connection.db.anglerPortrait.iter()];
+    const previousPlayer = this.player?.playerId;
     this.player = [...connection.db.myPlayer.iter()][0] ?? null;
+    if (previousPlayer !== undefined && previousPlayer !== this.player?.playerId) {
+      this.clearTideforgeRows(); this.pendingTideforgeCommit = null; this.preparedTideforge = null;
+      this.tideforgeResult = null;
+      if (this.tideforgeDispatch || this.tideforgePrepare) this.busy = false;
+      this.tideforgeDispatch = null; this.tideforgePrepare = null;
+    }
+    if (this.pendingTideforgeCommit
+      && !sameTideforgeAccount(this.pendingTideforgeCommit, this.identityKey, this.player?.playerId)) {
+      this.pendingTideforgeCommit = null; this.preparedTideforge = null; this.tideforgeResult = null;
+      if (this.tideforgeDispatch || this.tideforgePrepare) this.busy = false;
+      this.tideforgeDispatch = null; this.tideforgePrepare = null;
+    }
     if (this.pendingRaidIntent && this.player?.playerId !== this.pendingRaidIntent.playerId) {
       this.invalidateRaidDispatch();
       this.pendingRaidIntent = null;
@@ -239,6 +566,8 @@ export class Game {
       }
     }
     this.syncSection();
+    if (this.tideforgeProbeApplied) this.updateTideforgeCapability(connection);
+    if (this.tideforgeCoreReady) this.refreshTideforge(connection);
   };
   private bindRaidTableListeners(connection: DbConnection) {
     if (this.raidListenersConnection === connection) return;
@@ -264,11 +593,14 @@ export class Game {
     const pendingUnconfirmed = pending
       ? this.actionUnconfirmed || this.activeRaidDispatch !== null
       : false;
+    const tideforgePending = preservePendingIntent && uri === this.uri && database === this.database
+      ? this.pendingTideforgeCommit : null;
     this.stop(); this.uri = uri; this.database = database; this.attempts = 0;
     if (pending) {
       this.pendingRaidIntent = pending;
       this.actionUnconfirmed = pendingUnconfirmed;
     }
+    if (tideforgePending) this.pendingTideforgeCommit = tideforgePending;
     if (!uri || !database) { this.status = 'The pond is being prepared'; return; }
     this.tokenKey = `fishbound:${uri}:${database}:identity`;
     this.lifecycle = connectionLifecycle(() => this.pauseConnection(), () => {
@@ -280,12 +612,17 @@ export class Game {
   private pauseConnection() {
     // Invalidate callbacks before disconnecting: this is an intentional pause,
     // not another network failure. Keep rendered state until fresh data applies.
+    const nameUnconfirmed = this.gearRenameDispatch !== null;
     this.generation++;
+    if (this.tideforgeDispatch || this.tideforgePrepare) this.busy = false;
+    this.tideforgeDispatch = null; this.tideforgePrepare = null;
     if (this.retry) clearTimeout(this.retry);
     this.retry = null;
     this.ready = false; this.reconnecting = true;
     this.coreReady = false; this.sectionReady = false; this.sectionLoading = false;
     this.sectionKey = ''; this.sectionSubscription = null; this.sectionRevision++;
+    this.resetTideforgeSubscriptions();
+    if (nameUnconfirmed) this.gearNameError = 'We could not confirm this name. Reconnect to check before trying again.';
     this.journalLastQuery = '';
     const connection = this.connection;
     this.connection = null;
@@ -296,6 +633,7 @@ export class Game {
     const generation = ++this.generation;
     this.coreReady = false; this.sectionReady = false; this.sectionKey = '';
     this.sectionSubscription = null; this.sectionRevision++;
+    this.resetTideforgeSubscriptions();
     this.connection?.disconnect(); this.connection = null;
     let token = this.sessionToken;
     try { token ??= localStorage.getItem(this.tokenKey) ?? undefined; } catch { /* Storage may be disabled. */ }
@@ -303,6 +641,11 @@ export class Game {
     let connectedOnce = false;
     const lost = (event: 'fishbound-disconnected' | 'fishbound-connect-failed', _context: unknown, _error: unknown, nextAttempt?: number, delayMs?: number) => {
       if (generation !== this.generation) return;
+      const nameUnconfirmed = this.gearRenameDispatch !== null;
+      this.clearGearNames();
+      if (nameUnconfirmed) this.gearNameError = 'We could not confirm this name. Reconnect to check before trying again.';
+      if (this.tideforgeDispatch || this.tideforgePrepare) this.busy = false;
+      this.tideforgeDispatch = null; this.tideforgePrepare = null;
       connectionDiagnostics.failure(event, _error, nextAttempt, delayMs);
       if (_error instanceof Error && _error.name === 'IdentityChangedError') {
         this.clearPrivate();
@@ -347,6 +690,7 @@ export class Game {
           if (generation !== this.generation) return;
           this.coreReady = true;
           this.refresh();
+          this.probeTideforge(connection);
           this.finishRecovery();
         }).onError(() => {
           if (generation !== this.generation) return;
@@ -371,6 +715,27 @@ export class Game {
       .onDisconnect((...args) => lost('fishbound-disconnected', ...args)).build();
     this.connection = connection;
     this.raidListenersConnection = null;
+    const tideforgeChanged = () => {
+      if (generation !== this.generation || connection !== this.connection) return;
+      this.updateTideforgeCapability(connection);
+      this.refreshTideforge(connection);
+    };
+    for (const table of [
+      connection.db.tideforgeEconomyState, connection.db.myGearInstances, connection.db.myGearLoadout,
+      connection.db.myGearFamilyProgress, connection.db.myTideforgeGear, connection.db.myTideforgeLoadout,
+      connection.db.myTideforgeEconomyWallet, connection.db.myTideforgeEconomyQuote,
+      connection.db.myTideforgeEconomyReceipts, connection.db.myTideforgeVault,
+      connection.db.myTideforgeCodex, connection.db.myTideforgeLibrary,
+      connection.db.myTideforgeSpecimenModifiers, connection.db.myTideforgeFractionalCredits,
+      connection.db.myGearActivitySnapshots,
+    ]) {
+      table.onInsert(tideforgeChanged); table.onUpdate(tideforgeChanged); table.onDelete(tideforgeChanged);
+    }
+    const gearNamesChanged = () => {
+      if (generation === this.generation && connection === this.connection) this.refreshGearNames(connection);
+    };
+    connection.db.myGearInstanceNames?.onInsert(gearNamesChanged);
+    connection.db.myGearInstanceNames?.onDelete(gearNamesChanged);
     for (const table of [connection.db.questDefinition, connection.db.questCalendar, connection.db.myQuests, connection.db.myDockside, connection.db.achievementDefinition, connection.db.achievementCollection, connection.db.earnedAchievement, connection.db.perfectSpecies, connection.db.rankMaximum, connection.db.anglerTitle, connection.db.myAchievementProgress, connection.db.publicProfile, connection.db.anglerPortrait, connection.db.myPlayer, connection.db.myProfile, connection.db.myInventory, connection.db.myCollection, connection.db.myCollectionFocus,
       connection.db.haulEquipmentDefinition, connection.db.myHaulEquipment, connection.db.myHaulLoadout, connection.db.myHaulUpgradeQuote, connection.db.myHaulTrips,
       connection.db.myBaits, connection.db.myBaitLoadout, connection.db.myUpgradeQuote, connection.db.baitDefinition, connection.db.rodUpgradeRecipe, connection.db.qualityDefinition, connection.db.myRods, connection.db.myLicences, connection.db.myShopQuote, connection.db.shopListing, connection.db.myRecentCatches, connection.db.myJournal, connection.db.myLinkChallenge, connection.db.myAction, connection.db.myItems,
@@ -411,6 +776,7 @@ export class Game {
     this.generation++; if (this.retry) clearTimeout(this.retry);
     this.coreReady = false; this.sectionReady = false; this.sectionLoading = false;
     this.sectionKey = ''; this.sectionSubscription = null; this.sectionRevision++;
+    this.resetTideforgeSubscriptions();
     this.retry = null; this.connection?.disconnect(); this.connection = null; this.raidListenersConnection = null; this.ready = false; this.reconnecting = false; this.actionUnconfirmed = false; this.clearPrivate();
   }
   reconnect() { if (!this.connection?.isReconnecting) this.start(this.uri, this.database, true); }
@@ -651,13 +1017,226 @@ export class Game {
   async setCollectionFocus(biomeId: number, enabled: boolean) { await this.run(connection => connection.reducers.setCollectionFocus({ biomeId, enabled })); }
   async equipBait(baitId: number, slot = 1) { await this.run(connection => connection.reducers.setBaitSlot({ baitId, slot })); }
   async equipTitle(achievementId: number) { await this.run(connection => connection.reducers.equipTitle({ achievementId })); }
+  private async runTideforgeSimple(action: (connection: DbConnection) => Promise<void>): Promise<boolean> {
+    if (!this.ready || !this.connection || !this.player || !this.identityKey || !this.tideforgeCoreReady || this.busy) {
+      this.tideforgeError = 'Wait for Tideforge to finish connecting.';
+      return false;
+    }
+    const connection = this.connection, generation = this.generation;
+    const owner = { identity: this.identityKey, playerId: this.player.playerId }, token = Symbol();
+    this.tideforgePrepare = token; this.busy = true; this.tideforgeError = '';
+    const current = () => this.tideforgePrepare === token && this.generation === generation
+      && this.connection === connection && sameTideforgeAccount(owner, this.identityKey, this.player?.playerId);
+    try {
+      await action(connection);
+      if (!current()) return false;
+      this.refresh(); return true;
+    } catch (error) {
+      if (current()) this.tideforgeError = this.tideforgeActionError(String(error));
+      return false;
+    } finally {
+      if (this.tideforgePrepare === token) { this.tideforgePrepare = null; this.busy = false; }
+    }
+  }
+  async equipGearInstance(instanceId: bigint) {
+    return this.runTideforgeSimple(connection => connection.reducers.equipGearInstance({ instanceId }));
+  }
+  async setGearInstanceFavorite(instanceId: bigint, favorite: boolean) {
+    return this.runTideforgeSimple(connection => connection.reducers.setGearInstanceFavorite({ instanceId, favorite }));
+  }
+  async renameGearInstance(instanceId: bigint, name: string): Promise<boolean> {
+    const validation = gearNameValidationMessage(name);
+    if (validation) { this.gearNameError = validation; return false; }
+    if (!this.ready || !this.connection?.isActive || !this.player || !this.identityKey
+      || !this.coreReady || !this.tideforgeCoreReady || this.gearNamesAvailability !== 'ready'
+      || this.gearNamesKey !== this.tideforgeCoreKey || this.gearNamesKey !== `${this.identityKey}:${this.player.playerId}` || this.busy) {
+      this.gearNameError = 'Wait for gear names to finish connecting.';
+      return false;
+    }
+    if (!this.gearInstances.some(row => row.instanceId === instanceId && row.playerId === this.player?.playerId)) {
+      this.gearNameError = 'This gear is no longer available. Refresh and try again.';
+      return false;
+    }
+    const connection = this.connection, generation = this.generation, identity = this.identityKey;
+    const playerId = this.player.playerId, coreKey = this.tideforgeCoreKey, revision = this.gearNamesRevision;
+    const token = Symbol();
+    this.gearRenameDispatch = token; this.busy = true; this.gearNameError = '';
+    const owns = () => this.gearRenameDispatch === token && this.generation === generation
+      && this.connection === connection && this.identityKey === identity && this.player?.playerId === playerId
+      && this.tideforgeCoreKey === coreKey && this.gearNamesKey === coreKey && this.gearNamesRevision === revision;
+    try {
+      await connection.reducers.renameGearInstance({ instanceId, name: normalizeGearName(name) });
+      if (!owns()) return false;
+      if (!connection.isActive || !this.ready || !this.tideforgeCoreReady || this.gearNamesAvailability !== 'ready') {
+        this.gearNameError = 'We could not confirm this name. Reconnect to check before trying again.';
+        return false;
+      }
+      this.refreshGearNames(connection);
+      return true;
+    } catch (error) {
+      if (owns()) this.gearNameError = error instanceof Error && error.name === 'UnknownCallResultError' || !connection.isActive
+        ? 'We could not confirm this name. Reconnect to check before trying again.'
+        : gearRenameErrorMessage(String(error));
+      return false;
+    } finally {
+      if (this.gearRenameDispatch === token) { this.gearRenameDispatch = null; this.busy = false; }
+    }
+  }
+  async setTideforgeGoal(goal: 'ranks' | 'maxima' | 'perfects') {
+    return this.runTideforgeSimple(connection => connection.reducers.setTideforgeGoal({ goal }));
+  }
+  async selectTideforgeSignatures(signatures: { rodSignature?: string; haulSignature?: string; watersSignature?: string }) {
+    return this.runTideforgeSimple(connection => connection.reducers.selectTideforgeSignatures(signatures));
+  }
+  async prepareTideforge(intent: TideforgeIntent): Promise<TideforgeEconomyQuote | null> {
+    if (this.pendingTideforgeCommit) {
+      this.tideforgeError = tideforgeUnconfirmed;
+      return null;
+    }
+    if (!this.ready || !this.connection || !this.player || !this.identityKey || !this.tideforgeCoreReady || this.busy) {
+      this.tideforgeError = 'Wait for Tideforge to finish connecting.';
+      return null;
+    }
+    let normalized: TideforgeIntent, fingerprint: string;
+    try {
+      normalized = canonicalTideforgeIntent(intent);
+      fingerprint = tideforgeFingerprint(normalized);
+    } catch (error) {
+      this.tideforgeError = tideforgeValidationMessage(error instanceof Error ? error.message : '');
+      return null;
+    }
+    const connection = this.connection, generation = this.generation;
+    const identity = this.identityKey, playerId = this.player.playerId, oldNonce = this.tideforgeQuote?.nonce;
+    const token = Symbol();
+    this.tideforgePrepare = token;
+    const current = () => this.generation === generation && this.connection === connection
+      && connection.isActive && this.ready && this.identityKey === identity && this.player?.playerId === playerId
+      && this.tideforgePrepare === token;
+    this.busy = true; this.tideforgeError = ''; this.preparedTideforge = null; this.tideforgeResult = null;
+    try {
+      await connection.reducers.prepareTideforgeAction({ intentJson: JSON.stringify(normalized) });
+      for (let attempt = 0; attempt < 30 && current(); attempt++) {
+        this.refreshTideforge(connection);
+        const quote = this.tideforgeQuote;
+        if (quote && quote.nonce !== oldNonce && matchesTideforgeQuote(quote, {
+          identity, playerId, fingerprint, nowMicros: BigInt(Date.now()) * 1000n,
+        })) {
+          this.preparedTideforge = { quote, identity, playerId, fingerprint };
+          return quote;
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      if (current()) this.tideforgeError = 'The preview could not be verified. Please try again.';
+    } catch (error) {
+      if (current()) this.tideforgeError = this.tideforgeActionError(String(error));
+    } finally {
+      if (this.tideforgePrepare === token) { this.tideforgePrepare = null; this.busy = false; }
+    }
+    return null;
+  }
+
+  private tideforgeActionError(message: string): string {
+    return tideforgeErrorMessage(message);
+  }
+
+  async commitTideforge(quote: TideforgeEconomyQuote): Promise<boolean> {
+    const prepared = this.preparedTideforge;
+    if (!this.ready || !this.connection || !this.tideforgeCoreReady || this.busy) {
+      this.tideforgeError = 'Wait for Tideforge to finish connecting before confirming.';
+      return false;
+    }
+    const guard = prepared && this.identityKey && this.player ? {
+      identity: this.identityKey, playerId: this.player.playerId, fingerprint: prepared.fingerprint,
+      nonce: prepared.quote.nonce, nowMicros: BigInt(Date.now()) * 1000n,
+    } : null;
+    if (this.pendingTideforgeCommit || !prepared || !this.tideforgeQuote || !this.identityKey || !this.player
+      || !guard || !matchesTideforgeQuote(this.tideforgeQuote, guard) || !matchesTideforgeQuote(quote, guard)
+      || quote.previewJson !== this.tideforgeQuote.previewJson || quote.intentJson !== this.tideforgeQuote.intentJson
+      || quote.createdAt.microsSinceUnixEpoch !== this.tideforgeQuote.createdAt.microsSinceUnixEpoch
+      || quote.expiresAt.microsSinceUnixEpoch !== this.tideforgeQuote.expiresAt.microsSinceUnixEpoch
+      || prepared.quote.nonce !== quote.nonce || prepared.identity !== this.identityKey
+      || prepared.playerId !== this.player.playerId) {
+      this.tideforgeError = 'This preview is no longer current. Open a new preview.';
+      return false;
+    }
+    this.pendingTideforgeCommit = prepared;
+    return this.dispatchTideforgeCommit(prepared);
+  }
+
+  async retryTideforgeCommit(): Promise<boolean> {
+    if (!this.pendingTideforgeCommit) return false;
+    return this.dispatchTideforgeCommit(this.pendingTideforgeCommit);
+  }
+
+  private async dispatchTideforgeCommit(pending: PendingTideforgeCommit): Promise<boolean> {
+    const nonce = tideforgeRetryNonce(pending, this.identityKey, this.player?.playerId);
+    if (!this.ready || !this.connection || !this.tideforgeCoreReady || this.busy
+      || nonce === null) {
+      this.tideforgeError = 'Reconnect to retry this same action.';
+      return false;
+    }
+    const connection = this.connection, generation = this.generation, token = Symbol();
+    this.tideforgeDispatch = token; this.busy = true; this.tideforgeError = '';
+    const owns = () => this.tideforgeDispatch === token && sameTideforgeAccount(pending, this.identityKey, this.player?.playerId);
+    const saved = () => sameTideforgeAccount(pending, this.identityKey, this.player?.playerId)
+      && this.tideforgeResult?.nonce === pending.quote.nonce
+      && this.tideforgeResult.playerId === pending.playerId
+      && this.tideforgeResult.identity.toHexString() === pending.identity;
+    try {
+      await connection.reducers.commitTideforgeAction({ nonce });
+      if (saved()) return true;
+      if (!owns() || generation !== this.generation) return false;
+      this.refreshTideforge(connection);
+      if (saved()) return true;
+      if (this.pendingTideforgeCommit) this.tideforgeError = tideforgeConfirmed;
+      return true;
+    } catch (error) {
+      if (saved()) return true;
+      if (!owns()) return false;
+      if (this.pendingTideforgeCommit !== pending) return false;
+      if (tideforgeResultUncertain(error, generation !== this.generation)) {
+        this.tideforgeError = tideforgeUnconfirmed;
+      } else {
+        this.pendingTideforgeCommit = null; this.preparedTideforge = null;
+        this.tideforgeError = this.tideforgeActionError(String(error));
+      }
+      return false;
+    } finally {
+      if (this.tideforgeDispatch === token) { this.tideforgeDispatch = null; this.busy = false; }
+    }
+  }
+
+  equippedGearInstance(kind: TideforgeKind): GearInstance | undefined {
+    if (!this.tideforgeCoreReady || !this.gearLoadout) return undefined;
+    const id = kind === 'rod' ? this.gearLoadout.rodInstanceId
+      : kind === 'boat' ? this.gearLoadout.boatInstanceId : this.gearLoadout.netInstanceId;
+    return this.gearInstances.find(row => row.instanceId === id && row.kind === kind);
+  }
+  equippedGearLabel(kind: TideforgeKind): string | undefined {
+    const instance = this.equippedGearInstance(kind);
+    return instance ? gearLabel(this, instance) : undefined;
+  }
+  gearIsEquipped(instanceId: bigint): boolean {
+    return !!this.gearLoadout && [this.gearLoadout.rodInstanceId, this.gearLoadout.boatInstanceId,
+      this.gearLoadout.netInstanceId].includes(instanceId);
+  }
+  gearIsBooked(instanceId: bigint): boolean {
+    if (!this.tideforgeViewReady) return true;
+    if (this.gearIsEquipped(instanceId) && this.raidAttempts.some(row => row.status === 'deployed' || row.status === 'running')) return true;
+    return this.gearActivitySnapshots.some(row => row.snapshot.instanceId === instanceId && (
+      row.activityKind === 'haul' && this.haulTrips.some(trip => trip.interactionId === row.activityId && trip.status === 'running')
+      || row.activityKind === 'raid' && this.raidAttempts.some(raid => raid.id === row.activityId && ['prepared', 'deployed', 'running'].includes(raid.status))
+    ));
+  }
   async previewUpgrade(rodId: number) { await this.run(connection => connection.reducers.prepareRodUpgrade({ rodId })); }
   async confirmUpgrade(nonce: bigint) { await this.run(connection => connection.reducers.commitRodUpgrade({ nonce })); }
   async previewHaulUpgrade(equipmentId: number) { await this.run(connection => connection.reducers.prepareHaulUpgrade({ equipmentId })); }
   async confirmHaulUpgrade(nonce: bigint) { await this.run(connection => connection.reducers.commitHaulUpgrade({ nonce })); }
   haulStats(equipmentId: number) {
     const base = this.haulEquipment.find(row => row.equipmentId === equipmentId);
-    const level = this.ownedHaulEquipment.find(row => row.equipmentId === equipmentId)?.upgradeLevel ?? 0;
+    const selected = base && (base.kind === 'boat' || base.kind === 'net') ? this.equippedGearInstance(base.kind) : undefined;
+    const level = selected?.definitionId === equipmentId ? selected.qualityLevel
+      : this.ownedHaulEquipment.find(row => row.equipmentId === equipmentId)?.upgradeLevel ?? 0;
     const quality = this.qualities.find(row => row.qualityLevel === level);
     const qualityMultiplier = base?.qualityBonusMultiplier ?? 1;
     return { quality, qualityMultiplier, luckBp: (base?.luckBp ?? 0) + (quality?.luckBp ?? 0) * qualityMultiplier, xpBonusBp: (base?.xpBonusBp ?? 0) + (quality?.xpBonusBp ?? 0) * qualityMultiplier };
@@ -665,9 +1244,13 @@ export class Game {
   rodStats(rodId: number) {
     const rod = this.rods.find(row => row.rodId === rodId);
     const base = this.rodBonuses.find(row => row.rodId === rodId);
-    const level = this.ownedRods.find(row => row.rodId === rodId)?.upgradeLevel ?? 0;
+    const selected = this.equippedGearInstance('rod');
+    const level = selected?.definitionId === rodId ? selected.qualityLevel
+      : this.ownedRods.find(row => row.rodId === rodId)?.upgradeLevel ?? 0;
     const quality = this.qualities.find(row => row.qualityLevel === level);
-    return { quality, power: (rod?.power ?? 0) + (quality?.powerBonus ?? 0), luckBp: (base?.luckBp ?? 0) + (quality?.luckBp ?? 0), xpBonusBp: (base?.xpBonusBp ?? 0) + (quality?.xpBonusBp ?? 0) };
+    const reinforcementLevel = selected?.definitionId === rodId ? selected.reinforcementLevel
+      : this.rodReinforcements.find(row => row.rodId === rodId)?.level ?? 0;
+    return { quality, reinforcementLevel, power: (rod?.power ?? 0) + (quality?.powerBonus ?? 0), luckBp: (base?.luckBp ?? 0) + (quality?.luckBp ?? 0), xpBonusBp: (base?.xpBonusBp ?? 0) + (quality?.xpBonusBp ?? 0) };
   }
   async confirmPurchase(nonce: bigint) { await this.run(connection => connection.reducers.commitShopPurchase({ nonce })); }
   async favorite(fish: OwnedSpecimen) {

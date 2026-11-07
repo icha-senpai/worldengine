@@ -8,8 +8,10 @@
   import { itemSlot } from './raid-items';
   import GameSelect from './GameSelect.svelte';
   import { hasOrdinaryRaidClearForGrade } from './raid-progress';
+  import { gearDefaultLabel, gearNickname, gearTitle } from './tideforge-ui';
   let { game }: { game: Game } = $props();
   const rod = $derived(game.rods.find(row => row.rodId === game.player?.equippedRodId));
+  const equippedRod = $derived(game.equippedGearInstance('rod'));
   const bonuses = $derived(game.rodBonuses.find(row => row.rodId === rod?.rodId));
   const stats = $derived(game.rodStats(rod?.rodId ?? 0));
   const selectedBaits = $derived(equippedBaits(game).map(row => row.bait));
@@ -41,7 +43,11 @@
   const upgradeTarget = $derived(quote ? 'equipmentId' in quote ? game.haulEquipment.find(row => row.equipmentId === quote.equipmentId) : game.rods.find(row => row.rodId === quote.rodId) : undefined);
   const upgradeKind = $derived(upgradeTarget && 'kind' in upgradeTarget ? upgradeTarget.kind : 'rod');
   const expired = $derived(!!quote && quote.expiresAt.microsSinceUnixEpoch <= BigInt(now)*1000n);
-  const reinforcementLevel = (rodId: number) => game.rodReinforcements.find(row => row.rodId === rodId)?.level ?? 0;
+  const reinforcementLevel = (rodId: number) => game.rodStats(rodId).reinforcementLevel;
+  const selectedCopy = (kind: 'rod' | 'boat' | 'net') => {
+    const instance = game.equippedGearInstance(kind);
+    return !!instance && !instance.protectedOriginal;
+  };
   const ordinarySpeciesIds = $derived(new Set(game.species.filter(row => row.countsForOrdinaryCollectionCompletion).map(row => row.speciesId)));
   const reinforcementGrade = (rodId: number) => reinforcementLevel(rodId) > 0
     ? game.raidGrades.find(row => row.grade === reinforcementLevel(rodId) - 1)
@@ -63,7 +69,7 @@
   const canReinforce = (rodId: number) => {
     const next = nextReinforcement(rodId);
     const materials = reinforcementMaterials(rodId);
-    return game.raidsSupported && !!next && reinforcementClear(rodId) && materials.fillets >= next.fillets
+    return !game.equipmentInformationUnavailable && !selectedCopy('rod') && game.raidsSupported && !!next && reinforcementClear(rodId) && materials.fillets >= next.fillets
       && materials.scales >= next.scales && (game.player?.coins ?? 0n) >= next.reinforceCoins;
   };
   const reinforcementName = (rodId: number) => reinforcementGrade(rodId)?.name ?? 'Unreinforced';
@@ -75,7 +81,8 @@
   async function confirmReinforce() {
     if (!reinforcePending || reinforcing || game.busy || !game.ready
       || game.player?.playerId !== reinforcePending.playerId
-      || reinforcementLevel(reinforcePending.rodId) !== reinforcePending.expectedLevel) return;
+      || reinforcementLevel(reinforcePending.rodId) !== reinforcePending.expectedLevel
+      || !canReinforce(reinforcePending.rodId)) return;
     reinforcing = true;
     try {
       if (await game.reinforceRod(reinforcePending.rodId, reinforcePending.expectedLevel)) reinforceDialog.close();
@@ -84,14 +91,15 @@
     }
   }
   $effect(() => {
-    if (reinforcePending && (!game.ready || game.player?.playerId !== reinforcePending.playerId
+    if (reinforcePending && (!game.ready || game.equipmentInformationUnavailable || game.player?.playerId !== reinforcePending.playerId
       || reinforcementLevel(reinforcePending.rodId) !== reinforcePending.expectedLevel)) {
       reinforcePending = null;
       if (reinforceDialog?.open) reinforceDialog.close();
     }
   });
   $effect(() => {
-    if (previewing && (!game.ready || game.player?.playerId !== previewPlayerId)) previewing = false;
+    if (previewing && (!game.ready || game.equipmentInformationUnavailable || game.player?.playerId !== previewPlayerId
+      || (upgradeKind === 'rod' || upgradeKind === 'boat' || upgradeKind === 'net') && selectedCopy(upgradeKind))) previewing = false;
   });
   $effect(() => {
     if (quote && dialog && !dialog.open) { dialog.showModal(); cancelButton?.focus(); }
@@ -109,7 +117,7 @@
   const baitIdInSlot = (slot: number) => slot === 1 ? game.baitLoadout?.baitId ?? 0 : game.baitLoadout?.secondaryBaitId ?? 0;
   async function equipBait(baitId: number, slot: number) { await game.equipBait(baitId, slot); }
   async function previewUpgrade() {
-    if (!rod || !game.player || game.busy || !game.ready) return;
+    if (!rod || !game.player || game.busy || !game.ready || game.equipmentInformationUnavailable || selectedCopy('rod')) return;
     const rodId = rod.rodId;
     previewPlayerId = game.player.playerId;
     previewing = false;
@@ -119,7 +127,8 @@
     now = Date.now();
   }
   async function confirmUpgrade() {
-    if (!quote || expired || confirming || game.busy || !game.ready) return;
+    if (!quote || expired || confirming || game.busy || !game.ready || game.equipmentInformationUnavailable) return;
+    if ((upgradeKind === 'rod' || upgradeKind === 'boat' || upgradeKind === 'net') && selectedCopy(upgradeKind)) return;
     confirming = true;
     try {
       if ('equipmentId' in quote) await game.confirmHaulUpgrade(quote.nonce);
@@ -129,7 +138,8 @@
     finally { confirming = false; }
   }
   async function previewHaulUpgrade(equipmentId: number) {
-    if (!game.player || game.busy || !game.ready) return;
+    const kind = game.haulEquipment.find(row => row.equipmentId === equipmentId)?.kind;
+    if (!game.player || game.busy || !game.ready || game.equipmentInformationUnavailable || (kind === 'boat' || kind === 'net') && selectedCopy(kind)) return;
     previewPlayerId = game.player.playerId;
     previewing = false;
     previewKind = 'haul';
@@ -149,19 +159,29 @@
 </script>
 <div class="gear" role="region" aria-labelledby="gear-title">
   <div class="heading"><h3 id="gear-title">Gear</h3><p>Ready for the next cast.</p></div>
+  {#if game.tideforgeEffectsActive}<p class="note">Base equipment and bait stats only. Tideforge bonuses are not included.</p>{/if}
+  {#if game.equipmentInformationUnavailable}<p class="note" role="status">Equipment details are unavailable. Reconnect before upgrading.</p>{/if}
   <div class="slots">
     <div class="equipment-slots">
       <article class="equipment-slot rod-slot" aria-label="Equipped rod" data-quality={stats.quality?.qualityLevel ?? 0}>
         <div class="art">{#if bonuses}<img src={bonuses.spriteAsset} alt={rod?.name ?? 'Fishing rod'} width="160" height="160" />{:else}<span aria-hidden="true">🎣</span>{/if}</div>
-        <div class="details"><small>EQUIPPED ROD</small><span class="quality">{stats.quality?.name ?? 'Common'}</span>{#if rod}<span class="reinforcement-grade">{reinforcementLevel(rod.rodId) > 0 ? `${reinforcementName(rod.rodId)} reinforcement` : 'Unreinforced'}</span>{/if}<h4>{rod?.name ?? 'Loading your rod…'}</h4>
+        <div class="details"><small>EQUIPPED ROD</small><span class="quality">{stats.quality?.name ?? 'Common'}</span>{#if rod}<span class="reinforcement-grade">{reinforcementLevel(rod.rodId) > 0 ? `${reinforcementName(rod.rodId)} reinforcement` : 'Unreinforced'}</span>{/if}<h4>{equippedRod ? gearTitle(game, equippedRod) : rod?.name ?? 'Loading your rod…'}</h4>
+          {#if equippedRod && gearNickname(game, equippedRod)}<p class="note gear-base-name">{gearDefaultLabel(game, equippedRod)}</p>{/if}
           {#if rod}<dl><div><dt>Power</dt><dd>{stats.power}</dd></div><div><dt>Bonus pull</dt><dd>{stats.power/2}%</dd></div><div><dt>Luck with bait</dt><dd>+{percent(stats.luckBp+baitBonuses.luckBp)}%</dd></div><div><dt>Fishing XP</dt><dd>+{percent(stats.xpBonusBp+baitBonuses.xpBonusBp)}%</dd></div></dl>{/if}
           <label for="gear-rod">Switch rod</label><GameSelect id="gear-rod" label="Switch rod" value={rod?.rodId ?? 0} options={owned.map(option=>({value:option.rodId,label:(game.rodStats(option.rodId).quality?.name??"Common")+" "+option.name,disabled:option.minimumLevel>(game.profile?.level??1)}))} disabled={!game.ready || game.busy || !owned.length} onchange={equip} />
-          {#if next && recipe}<div class="recipe"><p>Next: <strong>{next.name}</strong></p><p class:short={tin < recipe.tinCost}>{tin.toString()} / {recipe.tinCost.toString()} rusted tin</p><p class:short={scrap < recipe.scrapCost}>{scrap.toString()} / {recipe.scrapCost.toString()} scrap</p><p>Power +{next.powerBonus-(stats.quality?.powerBonus ?? 0)} · luck +{percent(next.luckBp-(stats.quality?.luckBp ?? 0))}% · XP +{percent(next.xpBonusBp-(stats.quality?.xpBonusBp ?? 0))}%</p>
+          {#if game.equipmentInformationUnavailable}<button disabled>Upgrade gear</button>
+          {:else if selectedCopy('rod')}<p class="note">Quality and reinforcement upgrades are not available for this item here yet.</p><button disabled>Upgrade gear</button>
+          {:else if next && recipe}<div class="recipe"><p>Next: <strong>{next.name}</strong></p><p class:short={tin < recipe.tinCost}>{tin.toString()} / {recipe.tinCost.toString()} rusted tin</p><p class:short={scrap < recipe.scrapCost}>{scrap.toString()} / {recipe.scrapCost.toString()} scrap</p><p>Power +{next.powerBonus-(stats.quality?.powerBonus ?? 0)} · luck +{percent(next.luckBp-(stats.quality?.luckBp ?? 0))}% · XP +{percent(next.xpBonusBp-(stats.quality?.xpBonusBp ?? 0))}%</p>
           <button disabled={!game.ready || game.busy || tin < recipe.tinCost || scrap < recipe.scrapCost} onclick={previewUpgrade} aria-haspopup="dialog" aria-controls="gear-upgrade-dialog">Preview upgrade to {next.name}</button></div>{:else if stats.quality}<p class="mastered">Prismatic · fully upgraded</p>{/if}
           {#if rod}
             <section class="rod-reinforcement-upgrade" aria-label={`${rod.name} rod reinforcement`} data-rod-id={rod.rodId}>
-              {#if !game.raidsSupported}
-                <p>Rod reinforcement is awaiting the module update.</p>
+              {#if game.equipmentInformationUnavailable}
+                <button disabled>Reinforce rod</button>
+              {:else if selectedCopy('rod')}
+                <p>Quality and reinforcement upgrades are not available for this item here yet.</p>
+                <button disabled>Reinforce rod</button>
+              {:else if !game.raidsSupported}
+                <p>Rod reinforcement is not available here yet.</p>
               {:else}
                 {@const current = reinforcementGrade(rod.rodId)}
                 {@const nextGrade = nextReinforcement(rod.rodId)}
@@ -189,6 +209,7 @@
       </article>
       {#each haulSlots as slot (slot.kind)}
         {@const selected = game.haulEquipment.find(row => row.equipmentId === haulId(slot.kind))}
+        {@const equipped = game.equippedGearInstance(slot.kind)}
         {@const options = game.haulEquipment.filter(row => row.kind === slot.kind && game.ownedHaulEquipment.some(owned => owned.equipmentId === row.equipmentId))}
         {@const haulStats = game.haulStats(selected?.equipmentId ?? 0)}
         {@const trip = game.haulTrips.filter(row => row.kind === slot.kind).sort((a,b) => Number(b.startedAt.microsSinceUnixEpoch - a.startedAt.microsSinceUnixEpoch))[0]}
@@ -196,7 +217,8 @@
         {@const haulRecipe = game.rodRecipes.find(row => row.rodId === selected?.rodId && row.qualityLevel === nextQuality?.qualityLevel)}
         <article class="equipment-slot haul-slot" aria-label={`Equipped ${slot.label}`} data-quality={haulStats.quality?.qualityLevel ?? 0}>
           <div class="art">{#if selected}<img src={selected.spriteAsset} alt={selected.name} width="160" height="160" />{:else}<span aria-hidden="true">—</span>{/if}</div>
-          <div class="details"><small>EQUIPPED {slot.label.toUpperCase()}</small><span class="quality">{haulStats.quality?.name ?? 'Common'}</span><h4>{selected?.name ?? `Loading your ${slot.label}…`}</h4>
+          <div class="details"><small>EQUIPPED {slot.label.toUpperCase()}</small><span class="quality">{haulStats.quality?.name ?? 'Common'}</span><h4>{equipped ? gearTitle(game, equipped) : selected?.name ?? `Loading your ${slot.label}…`}</h4>
+            {#if equipped && gearNickname(game, equipped)}<p class="note gear-base-name">{gearDefaultLabel(game, equipped)}</p>{/if}
             {#if selected}<dl><div><dt>Luck</dt><dd>+{percent(haulStats.luckBp)}%</dd></div><div><dt>Fishing XP</dt><dd>+{percent(haulStats.xpBonusBp)}%</dd></div></dl>{/if}
             <p class="note">No bait required.</p>
             <label for={`gear-${slot.kind}`}>Switch {slot.label}</label>
@@ -206,7 +228,12 @@
             {:else if trip?.completedAt}
               <p class="haul-status">Last haul: {trip.results.length} catches · +{trip.totalXp.toString()} XP · +{trip.totalCoins.toString()} coins. Start another with /fish{slot.kind} in Discord.</p>
             {:else}<p class="haul-status">Use /fish{slot.kind} in Discord · {slot.kind === 'boat' ? '10 minutes, 10' : '4 minutes, 4'} catches.</p>{/if}
-            {#if selected && nextQuality && haulRecipe}
+            {#if game.equipmentInformationUnavailable}
+              <button disabled>Upgrade gear</button>
+            {:else if selectedCopy(slot.kind)}
+              <p class="note">Quality upgrades are not available for this item here yet.</p>
+              <button disabled>Upgrade gear</button>
+            {:else if selected && nextQuality && haulRecipe}
               <div class="recipe"><p>Next: <strong>{nextQuality.name}</strong></p>
                 <p class:short={tin < haulRecipe.tinCost}>{tin.toString()} / {haulRecipe.tinCost.toString()} rusted tin</p>
                 <p class:short={scrap < haulRecipe.scrapCost}>{scrap.toString()} / {haulRecipe.scrapCost.toString()} scrap</p>
@@ -269,7 +296,7 @@
   {/if}
 </dialog>
 <style>
-  .equipment-slots{display:grid;grid-auto-rows:1fr;gap:22px;min-width:0}.haul-slot .note{margin:0 0 14px}.note a{color:var(--success-ink)}
+  .equipment-slots{display:grid;grid-auto-rows:1fr;gap:22px;min-width:0}.haul-slot .note{margin:0 0 14px}.note a{color:var(--success-ink)}.details h4,.gear-base-name{overflow-wrap:anywhere}
   .rod-reinforcement-upgrade{display:grid;gap:8px;width:100%;min-width:0;margin-top:14px;padding:10px;background:var(--panel-inset);border:1px dashed var(--paper-edge);box-sizing:border-box}.rod-reinforcement-upgrade p{font-size:14px;line-height:1.6;margin:0;color:var(--ink-muted)}.rod-reinforcement-upgrade .reinforcement-lock{color:var(--ink)}.rod-reinforcement-upgrade button{max-width:100%;white-space:normal;overflow-wrap:anywhere}.reinforcement-grade{display:inline-block;margin:4px 0 0 10px;padding:3px 7px;border:1px solid var(--paper-edge);font-size:13px;background:var(--panel-inset)}.reinforcement-material-title{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .bait-slots{display:grid;gap:16px;align-content:start;min-width:0}.bait-slots>a{font-size:16px;color:var(--success-ink)}
   .gear{margin-bottom:26px;padding-bottom:24px;border-bottom:1px dashed var(--paper-edge);color:light-dark(var(--wood-dark,#493126),var(--ink))}

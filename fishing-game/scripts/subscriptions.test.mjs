@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { coreQueries, viewQueries } from '../apps/web/src/lib/game/subscriptions.ts';
+import { coreQueries, viewQueries, tideforgeProbeQueries, tideforgeCoreQueries, tideforgeViewQueries } from '../apps/web/src/lib/game/subscriptions.ts';
 assert(!coreQueries.some(query => /my_inventory|my_journal|earned_achievement|public_profile|angler_statistics/.test(query)));
 assert.deepEqual(viewQueries('journal', 12n), ['SELECT * FROM my_journal']);
 assert(viewQueries('quests', 12n).includes('SELECT * FROM my_inventory'));
@@ -21,4 +21,15 @@ assert(raids.includes('SELECT * FROM raid_statistics WHERE player_id = 12'));
 assert(!viewQueries('camp', undefined, 17).some(query => query.includes('raid_badge')));
 assert(viewQueries('anglers', undefined, 17).includes('SELECT * FROM raid_statistics'));
 assert(!viewQueries('camp', undefined, 17).includes('SELECT * FROM raid_statistics'));
+assert(!coreQueries.some(query => /tideforge|my_gear_/.test(query)));
+assert(!viewQueries('camp', 12n, 17).some(query => /tideforge|my_gear_/.test(query)));
+assert(viewQueries('tideforge', 12n, 17).includes('SELECT * FROM my_inventory'));
+assert.deepEqual(tideforgeProbeQueries, ['SELECT * FROM tideforge_economy_state']);
+for (const name of ['my_gear_instances', 'my_gear_loadout', 'my_gear_family_progress', 'my_tideforge_gear',
+  'my_tideforge_loadout', 'my_tideforge_economy_wallet', 'my_tideforge_economy_quote', 'my_tideforge_economy_receipts'])
+  assert(tideforgeCoreQueries.includes(`SELECT * FROM ${name}`));
+for (const name of ['my_tideforge_vault', 'my_tideforge_codex', 'my_tideforge_library',
+  'my_tideforge_specimen_modifiers', 'my_tideforge_fractional_credits', 'my_gear_activity_snapshots'])
+  assert(tideforgeViewQueries.includes(`SELECT * FROM ${name}`));
+assert(![...tideforgeCoreQueries, ...tideforgeViewQueries].some(query => /adapter_|FROM (?!my_)/.test(query)));
 console.log('PASS tab subscriptions, player scopes and legacy recipe compatibility.');

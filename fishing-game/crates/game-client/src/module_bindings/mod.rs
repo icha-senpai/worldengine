@@ -28,6 +28,7 @@ pub mod activate_raids_reducer;
 pub mod activate_rank_maxima_reducer;
 pub mod activate_rod_bonuses_reducer;
 pub mod activate_species_measurements_reducer;
+pub mod activate_tideforge_economy_reducer;
 pub mod activate_tideforge_effects_reducer;
 pub mod activate_trader_reducer;
 pub mod activate_xp_progression_reducer;
@@ -42,6 +43,7 @@ pub mod adapter_collection_table;
 pub mod adapter_daily_receipt_table;
 pub mod adapter_gear_activity_snapshots_table;
 pub mod adapter_gear_family_progress_table;
+pub mod adapter_gear_instance_names_table;
 pub mod adapter_gear_instances_table;
 pub mod adapter_gear_loadout_table;
 pub mod adapter_haul_status_table;
@@ -61,12 +63,19 @@ pub mod adapter_sale_quote_table;
 pub mod adapter_shop_quote_table;
 pub mod adapter_tideforge_activity_receipts_table;
 pub mod adapter_tideforge_activity_snapshots_table;
+pub mod adapter_tideforge_codex_table;
 pub mod adapter_tideforge_daily_uses_table;
+pub mod adapter_tideforge_economy_quote_table;
+pub mod adapter_tideforge_economy_receipts_table;
+pub mod adapter_tideforge_economy_wallet_table;
 pub mod adapter_tideforge_fractional_credits_table;
 pub mod adapter_tideforge_gear_table;
 pub mod adapter_tideforge_library_table;
 pub mod adapter_tideforge_loadout_table;
+pub mod adapter_tideforge_mark_awards_table;
+pub mod adapter_tideforge_raid_mark_bookings_table;
 pub mod adapter_tideforge_specimen_modifiers_table;
+pub mod adapter_tideforge_vault_table;
 pub mod adapter_upgrade_quote_table;
 pub mod admin_audit_type;
 pub mod angler_portrait_table;
@@ -111,6 +120,8 @@ pub mod commit_sale_from_discord_reducer;
 pub mod commit_shop_from_discord_reducer;
 pub mod commit_shop_purchase_quantity_reducer;
 pub mod commit_shop_purchase_reducer;
+pub mod commit_tideforge_action_from_discord_reducer;
+pub mod commit_tideforge_action_reducer;
 pub mod commit_upgrade_from_discord_reducer;
 pub mod community_raid_event_table;
 pub mod community_raid_event_type;
@@ -142,6 +153,7 @@ pub mod gear_activity_snapshot_type;
 pub mod gear_family_progress_type;
 pub mod gear_foundation_state_table;
 pub mod gear_foundation_state_type;
+pub mod gear_instance_name_type;
 pub mod gear_instance_type;
 pub mod gear_loadout_type;
 pub mod gear_snapshot_type;
@@ -173,6 +185,7 @@ pub mod my_collection_table;
 pub mod my_dockside_table;
 pub mod my_gear_activity_snapshots_table;
 pub mod my_gear_family_progress_table;
+pub mod my_gear_instance_names_table;
 pub mod my_gear_instances_table;
 pub mod my_gear_loadout_table;
 pub mod my_haul_equipment_table;
@@ -197,12 +210,19 @@ pub mod my_service_table;
 pub mod my_shop_quote_table;
 pub mod my_tideforge_activity_receipts_table;
 pub mod my_tideforge_activity_snapshots_table;
+pub mod my_tideforge_codex_table;
 pub mod my_tideforge_daily_uses_table;
+pub mod my_tideforge_economy_quote_table;
+pub mod my_tideforge_economy_receipts_table;
+pub mod my_tideforge_economy_wallet_table;
 pub mod my_tideforge_fractional_credits_table;
 pub mod my_tideforge_gear_table;
 pub mod my_tideforge_library_table;
 pub mod my_tideforge_loadout_table;
+pub mod my_tideforge_mark_awards_table;
+pub mod my_tideforge_raid_mark_bookings_table;
 pub mod my_tideforge_specimen_modifiers_table;
+pub mod my_tideforge_vault_table;
 pub mod my_upgrade_quote_table;
 pub mod owned_biome_licence_type;
 pub mod owned_haul_equipment_type;
@@ -223,6 +243,8 @@ pub mod prepare_rod_upgrade_reducer;
 pub mod prepare_sale_from_discord_reducer;
 pub mod prepare_shop_from_discord_reducer;
 pub mod prepare_shop_purchase_reducer;
+pub mod prepare_tideforge_action_from_discord_reducer;
+pub mod prepare_tideforge_action_reducer;
 pub mod prepare_upgrade_from_discord_reducer;
 pub mod public_profile_table;
 pub mod public_profile_type;
@@ -256,6 +278,8 @@ pub mod refine_raid_material_from_discord_reducer;
 pub mod refine_raid_material_reducer;
 pub mod reinforce_rod_from_discord_reducer;
 pub mod reinforce_rod_reducer;
+pub mod rename_gear_instance_from_discord_reducer;
+pub mod rename_gear_instance_reducer;
 pub mod repeat_quest_progress_type;
 pub mod rod_bonuses_table;
 pub mod rod_bonuses_type;
@@ -294,11 +318,20 @@ pub mod start_haul_from_discord_reducer;
 pub mod sync_discord_portrait_reducer;
 pub mod tideforge_activity_receipt_type;
 pub mod tideforge_activity_snapshot_type;
+pub mod tideforge_affix_shard_type;
+pub mod tideforge_codex_type;
 pub mod tideforge_daily_use_type;
+pub mod tideforge_economy_quote_type;
+pub mod tideforge_economy_receipt_type;
+pub mod tideforge_economy_state_table;
+pub mod tideforge_economy_state_type;
+pub mod tideforge_economy_wallet_type;
 pub mod tideforge_fractional_credit_type;
 pub mod tideforge_gear_type;
 pub mod tideforge_library_type;
 pub mod tideforge_loadout_type;
+pub mod tideforge_mark_award_type;
+pub mod tideforge_raid_mark_booking_type;
 pub mod tideforge_specimen_modifiers_type;
 pub mod tideforge_state_table;
 pub mod tideforge_state_type;
@@ -330,6 +363,7 @@ pub use activate_raids_reducer::activate_raids;
 pub use activate_rank_maxima_reducer::activate_rank_maxima;
 pub use activate_rod_bonuses_reducer::activate_rod_bonuses;
 pub use activate_species_measurements_reducer::activate_species_measurements;
+pub use activate_tideforge_economy_reducer::activate_tideforge_economy;
 pub use activate_tideforge_effects_reducer::activate_tideforge_effects;
 pub use activate_trader_reducer::activate_trader;
 pub use activate_xp_progression_reducer::activate_xp_progression;
@@ -344,6 +378,7 @@ pub use adapter_collection_table::*;
 pub use adapter_daily_receipt_table::*;
 pub use adapter_gear_activity_snapshots_table::*;
 pub use adapter_gear_family_progress_table::*;
+pub use adapter_gear_instance_names_table::*;
 pub use adapter_gear_instances_table::*;
 pub use adapter_gear_loadout_table::*;
 pub use adapter_haul_status_table::*;
@@ -363,12 +398,19 @@ pub use adapter_sale_quote_table::*;
 pub use adapter_shop_quote_table::*;
 pub use adapter_tideforge_activity_receipts_table::*;
 pub use adapter_tideforge_activity_snapshots_table::*;
+pub use adapter_tideforge_codex_table::*;
 pub use adapter_tideforge_daily_uses_table::*;
+pub use adapter_tideforge_economy_quote_table::*;
+pub use adapter_tideforge_economy_receipts_table::*;
+pub use adapter_tideforge_economy_wallet_table::*;
 pub use adapter_tideforge_fractional_credits_table::*;
 pub use adapter_tideforge_gear_table::*;
 pub use adapter_tideforge_library_table::*;
 pub use adapter_tideforge_loadout_table::*;
+pub use adapter_tideforge_mark_awards_table::*;
+pub use adapter_tideforge_raid_mark_bookings_table::*;
 pub use adapter_tideforge_specimen_modifiers_table::*;
+pub use adapter_tideforge_vault_table::*;
 pub use adapter_upgrade_quote_table::*;
 pub use admin_audit_type::AdminAudit;
 pub use angler_portrait_table::*;
@@ -413,6 +455,8 @@ pub use commit_sale_from_discord_reducer::commit_sale_from_discord;
 pub use commit_shop_from_discord_reducer::commit_shop_from_discord;
 pub use commit_shop_purchase_quantity_reducer::commit_shop_purchase_quantity;
 pub use commit_shop_purchase_reducer::commit_shop_purchase;
+pub use commit_tideforge_action_from_discord_reducer::commit_tideforge_action_from_discord;
+pub use commit_tideforge_action_reducer::commit_tideforge_action;
 pub use commit_upgrade_from_discord_reducer::commit_upgrade_from_discord;
 pub use community_raid_event_table::*;
 pub use community_raid_event_type::CommunityRaidEvent;
@@ -444,6 +488,7 @@ pub use gear_activity_snapshot_type::GearActivitySnapshot;
 pub use gear_family_progress_type::GearFamilyProgress;
 pub use gear_foundation_state_table::*;
 pub use gear_foundation_state_type::GearFoundationState;
+pub use gear_instance_name_type::GearInstanceName;
 pub use gear_instance_type::GearInstance;
 pub use gear_loadout_type::GearLoadout;
 pub use gear_snapshot_type::GearSnapshot;
@@ -475,6 +520,7 @@ pub use my_collection_table::*;
 pub use my_dockside_table::*;
 pub use my_gear_activity_snapshots_table::*;
 pub use my_gear_family_progress_table::*;
+pub use my_gear_instance_names_table::*;
 pub use my_gear_instances_table::*;
 pub use my_gear_loadout_table::*;
 pub use my_haul_equipment_table::*;
@@ -499,12 +545,19 @@ pub use my_service_table::*;
 pub use my_shop_quote_table::*;
 pub use my_tideforge_activity_receipts_table::*;
 pub use my_tideforge_activity_snapshots_table::*;
+pub use my_tideforge_codex_table::*;
 pub use my_tideforge_daily_uses_table::*;
+pub use my_tideforge_economy_quote_table::*;
+pub use my_tideforge_economy_receipts_table::*;
+pub use my_tideforge_economy_wallet_table::*;
 pub use my_tideforge_fractional_credits_table::*;
 pub use my_tideforge_gear_table::*;
 pub use my_tideforge_library_table::*;
 pub use my_tideforge_loadout_table::*;
+pub use my_tideforge_mark_awards_table::*;
+pub use my_tideforge_raid_mark_bookings_table::*;
 pub use my_tideforge_specimen_modifiers_table::*;
+pub use my_tideforge_vault_table::*;
 pub use my_upgrade_quote_table::*;
 pub use owned_biome_licence_type::OwnedBiomeLicence;
 pub use owned_haul_equipment_type::OwnedHaulEquipment;
@@ -525,6 +578,8 @@ pub use prepare_rod_upgrade_reducer::prepare_rod_upgrade;
 pub use prepare_sale_from_discord_reducer::prepare_sale_from_discord;
 pub use prepare_shop_from_discord_reducer::prepare_shop_from_discord;
 pub use prepare_shop_purchase_reducer::prepare_shop_purchase;
+pub use prepare_tideforge_action_from_discord_reducer::prepare_tideforge_action_from_discord;
+pub use prepare_tideforge_action_reducer::prepare_tideforge_action;
 pub use prepare_upgrade_from_discord_reducer::prepare_upgrade_from_discord;
 pub use public_profile_table::*;
 pub use public_profile_type::PublicProfile;
@@ -558,6 +613,8 @@ pub use refine_raid_material_from_discord_reducer::refine_raid_material_from_dis
 pub use refine_raid_material_reducer::refine_raid_material;
 pub use reinforce_rod_from_discord_reducer::reinforce_rod_from_discord;
 pub use reinforce_rod_reducer::reinforce_rod;
+pub use rename_gear_instance_from_discord_reducer::rename_gear_instance_from_discord;
+pub use rename_gear_instance_reducer::rename_gear_instance;
 pub use repeat_quest_progress_type::RepeatQuestProgress;
 pub use rod_bonuses_table::*;
 pub use rod_bonuses_type::RodBonuses;
@@ -596,11 +653,20 @@ pub use start_haul_from_discord_reducer::start_haul_from_discord;
 pub use sync_discord_portrait_reducer::sync_discord_portrait;
 pub use tideforge_activity_receipt_type::TideforgeActivityReceipt;
 pub use tideforge_activity_snapshot_type::TideforgeActivitySnapshot;
+pub use tideforge_affix_shard_type::TideforgeAffixShard;
+pub use tideforge_codex_type::TideforgeCodex;
 pub use tideforge_daily_use_type::TideforgeDailyUse;
+pub use tideforge_economy_quote_type::TideforgeEconomyQuote;
+pub use tideforge_economy_receipt_type::TideforgeEconomyReceipt;
+pub use tideforge_economy_state_table::*;
+pub use tideforge_economy_state_type::TideforgeEconomyState;
+pub use tideforge_economy_wallet_type::TideforgeEconomyWallet;
 pub use tideforge_fractional_credit_type::TideforgeFractionalCredit;
 pub use tideforge_gear_type::TideforgeGear;
 pub use tideforge_library_type::TideforgeLibrary;
 pub use tideforge_loadout_type::TideforgeLoadout;
+pub use tideforge_mark_award_type::TideforgeMarkAward;
+pub use tideforge_raid_mark_booking_type::TideforgeRaidMarkBooking;
 pub use tideforge_specimen_modifiers_type::TideforgeSpecimenModifiers;
 pub use tideforge_state_table::*;
 pub use tideforge_state_type::TideforgeState;
@@ -641,6 +707,7 @@ pub enum Reducer {
     ActivateRankMaxima,
     ActivateRodBonuses,
     ActivateSpeciesMeasurements,
+    ActivateTideforgeEconomy,
     ActivateTideforgeEffects,
     ActivateTrader {
         grandfather_licences: bool,
@@ -739,6 +806,14 @@ pub enum Reducer {
     CommitShopPurchaseQuantity {
         nonce: u128,
         quantity: u32,
+    },
+    CommitTideforgeAction {
+        nonce: u128,
+    },
+    CommitTideforgeActionFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        nonce: u128,
     },
     CommitUpgradeFromDiscord {
         discord_user_id: u64,
@@ -846,6 +921,14 @@ pub enum Reducer {
     PrepareShopPurchase {
         listing_id: u32,
     },
+    PrepareTideforgeAction {
+        intent_json: String,
+    },
+    PrepareTideforgeActionFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        intent_json: String,
+    },
     PrepareUpgradeFromDiscord {
         discord_user_id: u64,
         interaction_id: u64,
@@ -881,6 +964,16 @@ pub enum Reducer {
         interaction_id: u64,
         rod_id: u32,
         expected_level: u8,
+    },
+    RenameGearInstance {
+        instance_id: u128,
+        name: String,
+    },
+    RenameGearInstanceFromDiscord {
+        discord_user_id: u64,
+        interaction_id: u64,
+        instance_id: u128,
+        name: String,
     },
     SelectDiscordPlayer {
         discord_user_id: u64,
@@ -987,6 +1080,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::ActivateRankMaxima => "activate_rank_maxima",
             Reducer::ActivateRodBonuses => "activate_rod_bonuses",
             Reducer::ActivateSpeciesMeasurements => "activate_species_measurements",
+            Reducer::ActivateTideforgeEconomy => "activate_tideforge_economy",
             Reducer::ActivateTideforgeEffects => "activate_tideforge_effects",
             Reducer::ActivateTrader { .. } => "activate_trader",
             Reducer::ActivateXpProgression => "activate_xp_progression",
@@ -1014,6 +1108,10 @@ impl __sdk::Reducer for Reducer {
             Reducer::CommitShopFromDiscord { .. } => "commit_shop_from_discord",
             Reducer::CommitShopPurchase { .. } => "commit_shop_purchase",
             Reducer::CommitShopPurchaseQuantity { .. } => "commit_shop_purchase_quantity",
+            Reducer::CommitTideforgeAction { .. } => "commit_tideforge_action",
+            Reducer::CommitTideforgeActionFromDiscord { .. } => {
+                "commit_tideforge_action_from_discord"
+            }
             Reducer::CommitUpgradeFromDiscord { .. } => "commit_upgrade_from_discord",
             Reducer::CompleteAccountLink { .. } => "complete_account_link",
             Reducer::ConfigureService { .. } => "configure_service",
@@ -1041,6 +1139,10 @@ impl __sdk::Reducer for Reducer {
             Reducer::PrepareSaleFromDiscord { .. } => "prepare_sale_from_discord",
             Reducer::PrepareShopFromDiscord { .. } => "prepare_shop_from_discord",
             Reducer::PrepareShopPurchase { .. } => "prepare_shop_purchase",
+            Reducer::PrepareTideforgeAction { .. } => "prepare_tideforge_action",
+            Reducer::PrepareTideforgeActionFromDiscord { .. } => {
+                "prepare_tideforge_action_from_discord"
+            }
             Reducer::PrepareUpgradeFromDiscord { .. } => "prepare_upgrade_from_discord",
             Reducer::RebuildPlayerRecords { .. } => "rebuild_player_records",
             Reducer::RecordAchievementRoute { .. } => "record_achievement_route",
@@ -1048,6 +1150,8 @@ impl __sdk::Reducer for Reducer {
             Reducer::RefineRaidMaterialFromDiscord { .. } => "refine_raid_material_from_discord",
             Reducer::ReinforceRod { .. } => "reinforce_rod",
             Reducer::ReinforceRodFromDiscord { .. } => "reinforce_rod_from_discord",
+            Reducer::RenameGearInstance { .. } => "rename_gear_instance",
+            Reducer::RenameGearInstanceFromDiscord { .. } => "rename_gear_instance_from_discord",
             Reducer::SelectDiscordPlayer { .. } => "select_discord_player",
             Reducer::SelectJournal { .. } => "select_journal",
             Reducer::SelectTideforgeSignatures { .. } => "select_tideforge_signatures",
@@ -1116,6 +1220,8 @@ Reducer::ActivateRankMaxima => __sats::bsatn::to_vec(&activate_rank_maxima_reduc
 Reducer::ActivateRodBonuses => __sats::bsatn::to_vec(&activate_rod_bonuses_reducer::ActivateRodBonusesArgs {
                 }),
 Reducer::ActivateSpeciesMeasurements => __sats::bsatn::to_vec(&activate_species_measurements_reducer::ActivateSpeciesMeasurementsArgs {
+                }),
+Reducer::ActivateTideforgeEconomy => __sats::bsatn::to_vec(&activate_tideforge_economy_reducer::ActivateTideforgeEconomyArgs {
                 }),
 Reducer::ActivateTideforgeEffects => __sats::bsatn::to_vec(&activate_tideforge_effects_reducer::ActivateTideforgeEffectsArgs {
                 }),
@@ -1292,6 +1398,20 @@ Reducer::ClaimHaulDelivery{
 }             => __sats::bsatn::to_vec(&commit_shop_purchase_quantity_reducer::CommitShopPurchaseQuantityArgs {
                 nonce: nonce.clone(),
                 quantity: quantity.clone(),
+}),
+            Reducer::CommitTideforgeAction{
+                nonce,
+}             => __sats::bsatn::to_vec(&commit_tideforge_action_reducer::CommitTideforgeActionArgs {
+                nonce: nonce.clone(),
+}),
+            Reducer::CommitTideforgeActionFromDiscord{
+                discord_user_id,
+                interaction_id,
+                nonce,
+}             => __sats::bsatn::to_vec(&commit_tideforge_action_from_discord_reducer::CommitTideforgeActionFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                nonce: nonce.clone(),
 }),
             Reducer::CommitUpgradeFromDiscord{
                 discord_user_id,
@@ -1481,6 +1601,20 @@ Reducer::PrepareCommunityRaid{
 }             => __sats::bsatn::to_vec(&prepare_shop_purchase_reducer::PrepareShopPurchaseArgs {
                 listing_id: listing_id.clone(),
 }),
+            Reducer::PrepareTideforgeAction{
+                intent_json,
+}             => __sats::bsatn::to_vec(&prepare_tideforge_action_reducer::PrepareTideforgeActionArgs {
+                intent_json: intent_json.clone(),
+}),
+            Reducer::PrepareTideforgeActionFromDiscord{
+                discord_user_id,
+                interaction_id,
+                intent_json,
+}             => __sats::bsatn::to_vec(&prepare_tideforge_action_from_discord_reducer::PrepareTideforgeActionFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                intent_json: intent_json.clone(),
+}),
             Reducer::PrepareUpgradeFromDiscord{
                 discord_user_id,
                 interaction_id,
@@ -1545,6 +1679,24 @@ Reducer::PrepareCommunityRaid{
                 interaction_id: interaction_id.clone(),
                 rod_id: rod_id.clone(),
                 expected_level: expected_level.clone(),
+}),
+            Reducer::RenameGearInstance{
+                instance_id,
+                name,
+}             => __sats::bsatn::to_vec(&rename_gear_instance_reducer::RenameGearInstanceArgs {
+                instance_id: instance_id.clone(),
+                name: name.clone(),
+}),
+            Reducer::RenameGearInstanceFromDiscord{
+                discord_user_id,
+                interaction_id,
+                instance_id,
+                name,
+}             => __sats::bsatn::to_vec(&rename_gear_instance_from_discord_reducer::RenameGearInstanceFromDiscordArgs {
+                discord_user_id: discord_user_id.clone(),
+                interaction_id: interaction_id.clone(),
+                instance_id: instance_id.clone(),
+                name: name.clone(),
 }),
             Reducer::SelectDiscordPlayer{
                 discord_user_id,
@@ -1717,6 +1869,7 @@ pub struct DbUpdate {
     adapter_daily_receipt: __sdk::TableUpdate<DailyReceipt>,
     adapter_gear_activity_snapshots: __sdk::TableUpdate<GearActivitySnapshot>,
     adapter_gear_family_progress: __sdk::TableUpdate<GearFamilyProgress>,
+    adapter_gear_instance_names: __sdk::TableUpdate<GearInstanceName>,
     adapter_gear_instances: __sdk::TableUpdate<GearInstance>,
     adapter_gear_loadout: __sdk::TableUpdate<GearLoadout>,
     adapter_haul_status: __sdk::TableUpdate<HaulTrip>,
@@ -1736,12 +1889,19 @@ pub struct DbUpdate {
     adapter_shop_quote: __sdk::TableUpdate<ShopQuote>,
     adapter_tideforge_activity_receipts: __sdk::TableUpdate<TideforgeActivityReceipt>,
     adapter_tideforge_activity_snapshots: __sdk::TableUpdate<TideforgeActivitySnapshot>,
+    adapter_tideforge_codex: __sdk::TableUpdate<TideforgeCodex>,
     adapter_tideforge_daily_uses: __sdk::TableUpdate<TideforgeDailyUse>,
+    adapter_tideforge_economy_quote: __sdk::TableUpdate<TideforgeEconomyQuote>,
+    adapter_tideforge_economy_receipts: __sdk::TableUpdate<TideforgeEconomyReceipt>,
+    adapter_tideforge_economy_wallet: __sdk::TableUpdate<TideforgeEconomyWallet>,
     adapter_tideforge_fractional_credits: __sdk::TableUpdate<TideforgeFractionalCredit>,
     adapter_tideforge_gear: __sdk::TableUpdate<TideforgeGear>,
     adapter_tideforge_library: __sdk::TableUpdate<TideforgeLibrary>,
     adapter_tideforge_loadout: __sdk::TableUpdate<TideforgeLoadout>,
+    adapter_tideforge_mark_awards: __sdk::TableUpdate<TideforgeMarkAward>,
+    adapter_tideforge_raid_mark_bookings: __sdk::TableUpdate<TideforgeRaidMarkBooking>,
     adapter_tideforge_specimen_modifiers: __sdk::TableUpdate<TideforgeSpecimenModifiers>,
+    adapter_tideforge_vault: __sdk::TableUpdate<TideforgeAffixShard>,
     adapter_upgrade_quote: __sdk::TableUpdate<UpgradeQuote>,
     angler_portrait: __sdk::TableUpdate<AnglerPortrait>,
     angler_standing: __sdk::TableUpdate<AnglerStanding>,
@@ -1764,6 +1924,7 @@ pub struct DbUpdate {
     my_dockside: __sdk::TableUpdate<DocksideStatus>,
     my_gear_activity_snapshots: __sdk::TableUpdate<GearActivitySnapshot>,
     my_gear_family_progress: __sdk::TableUpdate<GearFamilyProgress>,
+    my_gear_instance_names: __sdk::TableUpdate<GearInstanceName>,
     my_gear_instances: __sdk::TableUpdate<GearInstance>,
     my_gear_loadout: __sdk::TableUpdate<GearLoadout>,
     my_haul_equipment: __sdk::TableUpdate<OwnedHaulEquipment>,
@@ -1788,12 +1949,19 @@ pub struct DbUpdate {
     my_shop_quote: __sdk::TableUpdate<ShopQuote>,
     my_tideforge_activity_receipts: __sdk::TableUpdate<TideforgeActivityReceipt>,
     my_tideforge_activity_snapshots: __sdk::TableUpdate<TideforgeActivitySnapshot>,
+    my_tideforge_codex: __sdk::TableUpdate<TideforgeCodex>,
     my_tideforge_daily_uses: __sdk::TableUpdate<TideforgeDailyUse>,
+    my_tideforge_economy_quote: __sdk::TableUpdate<TideforgeEconomyQuote>,
+    my_tideforge_economy_receipts: __sdk::TableUpdate<TideforgeEconomyReceipt>,
+    my_tideforge_economy_wallet: __sdk::TableUpdate<TideforgeEconomyWallet>,
     my_tideforge_fractional_credits: __sdk::TableUpdate<TideforgeFractionalCredit>,
     my_tideforge_gear: __sdk::TableUpdate<TideforgeGear>,
     my_tideforge_library: __sdk::TableUpdate<TideforgeLibrary>,
     my_tideforge_loadout: __sdk::TableUpdate<TideforgeLoadout>,
+    my_tideforge_mark_awards: __sdk::TableUpdate<TideforgeMarkAward>,
+    my_tideforge_raid_mark_bookings: __sdk::TableUpdate<TideforgeRaidMarkBooking>,
     my_tideforge_specimen_modifiers: __sdk::TableUpdate<TideforgeSpecimenModifiers>,
+    my_tideforge_vault: __sdk::TableUpdate<TideforgeAffixShard>,
     my_upgrade_quote: __sdk::TableUpdate<UpgradeQuote>,
     perfect_species: __sdk::TableUpdate<PerfectSpecies>,
     public_profile: __sdk::TableUpdate<PublicProfile>,
@@ -1812,6 +1980,7 @@ pub struct DbUpdate {
     species_definition: __sdk::TableUpdate<SpeciesDefinition>,
     species_rank_definition: __sdk::TableUpdate<SpeciesRankDefinition>,
     species_record: __sdk::TableUpdate<SpeciesRecord>,
+    tideforge_economy_state: __sdk::TableUpdate<TideforgeEconomyState>,
     tideforge_state: __sdk::TableUpdate<TideforgeState>,
 }
 
@@ -1863,6 +2032,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 }
                 "adapter_gear_family_progress" => db_update.adapter_gear_family_progress.append(
                     adapter_gear_family_progress_table::parse_table_update(table_update)?,
+                ),
+                "adapter_gear_instance_names" => db_update.adapter_gear_instance_names.append(
+                    adapter_gear_instance_names_table::parse_table_update(table_update)?,
                 ),
                 "adapter_gear_instances" => db_update.adapter_gear_instances.append(
                     adapter_gear_instances_table::parse_table_update(table_update)?,
@@ -1929,9 +2101,27 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                         )?,
                     )
                 }
+                "adapter_tideforge_codex" => db_update.adapter_tideforge_codex.append(
+                    adapter_tideforge_codex_table::parse_table_update(table_update)?,
+                ),
                 "adapter_tideforge_daily_uses" => db_update.adapter_tideforge_daily_uses.append(
                     adapter_tideforge_daily_uses_table::parse_table_update(table_update)?,
                 ),
+                "adapter_tideforge_economy_quote" => {
+                    db_update.adapter_tideforge_economy_quote.append(
+                        adapter_tideforge_economy_quote_table::parse_table_update(table_update)?,
+                    )
+                }
+                "adapter_tideforge_economy_receipts" => {
+                    db_update.adapter_tideforge_economy_receipts.append(
+                        adapter_tideforge_economy_receipts_table::parse_table_update(table_update)?,
+                    )
+                }
+                "adapter_tideforge_economy_wallet" => {
+                    db_update.adapter_tideforge_economy_wallet.append(
+                        adapter_tideforge_economy_wallet_table::parse_table_update(table_update)?,
+                    )
+                }
                 "adapter_tideforge_fractional_credits" => {
                     db_update.adapter_tideforge_fractional_credits.append(
                         adapter_tideforge_fractional_credits_table::parse_table_update(
@@ -1948,6 +2138,16 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "adapter_tideforge_loadout" => db_update.adapter_tideforge_loadout.append(
                     adapter_tideforge_loadout_table::parse_table_update(table_update)?,
                 ),
+                "adapter_tideforge_mark_awards" => db_update.adapter_tideforge_mark_awards.append(
+                    adapter_tideforge_mark_awards_table::parse_table_update(table_update)?,
+                ),
+                "adapter_tideforge_raid_mark_bookings" => {
+                    db_update.adapter_tideforge_raid_mark_bookings.append(
+                        adapter_tideforge_raid_mark_bookings_table::parse_table_update(
+                            table_update,
+                        )?,
+                    )
+                }
                 "adapter_tideforge_specimen_modifiers" => {
                     db_update.adapter_tideforge_specimen_modifiers.append(
                         adapter_tideforge_specimen_modifiers_table::parse_table_update(
@@ -1955,6 +2155,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                         )?,
                     )
                 }
+                "adapter_tideforge_vault" => db_update.adapter_tideforge_vault.append(
+                    adapter_tideforge_vault_table::parse_table_update(table_update)?,
+                ),
                 "adapter_upgrade_quote" => db_update.adapter_upgrade_quote.append(
                     adapter_upgrade_quote_table::parse_table_update(table_update)?,
                 ),
@@ -2020,6 +2223,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 ),
                 "my_gear_family_progress" => db_update.my_gear_family_progress.append(
                     my_gear_family_progress_table::parse_table_update(table_update)?,
+                ),
+                "my_gear_instance_names" => db_update.my_gear_instance_names.append(
+                    my_gear_instance_names_table::parse_table_update(table_update)?,
                 ),
                 "my_gear_instances" => db_update
                     .my_gear_instances
@@ -2097,8 +2303,20 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                         my_tideforge_activity_snapshots_table::parse_table_update(table_update)?,
                     )
                 }
+                "my_tideforge_codex" => db_update
+                    .my_tideforge_codex
+                    .append(my_tideforge_codex_table::parse_table_update(table_update)?),
                 "my_tideforge_daily_uses" => db_update.my_tideforge_daily_uses.append(
                     my_tideforge_daily_uses_table::parse_table_update(table_update)?,
+                ),
+                "my_tideforge_economy_quote" => db_update.my_tideforge_economy_quote.append(
+                    my_tideforge_economy_quote_table::parse_table_update(table_update)?,
+                ),
+                "my_tideforge_economy_receipts" => db_update.my_tideforge_economy_receipts.append(
+                    my_tideforge_economy_receipts_table::parse_table_update(table_update)?,
+                ),
+                "my_tideforge_economy_wallet" => db_update.my_tideforge_economy_wallet.append(
+                    my_tideforge_economy_wallet_table::parse_table_update(table_update)?,
                 ),
                 "my_tideforge_fractional_credits" => {
                     db_update.my_tideforge_fractional_credits.append(
@@ -2114,11 +2332,22 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "my_tideforge_loadout" => db_update.my_tideforge_loadout.append(
                     my_tideforge_loadout_table::parse_table_update(table_update)?,
                 ),
+                "my_tideforge_mark_awards" => db_update.my_tideforge_mark_awards.append(
+                    my_tideforge_mark_awards_table::parse_table_update(table_update)?,
+                ),
+                "my_tideforge_raid_mark_bookings" => {
+                    db_update.my_tideforge_raid_mark_bookings.append(
+                        my_tideforge_raid_mark_bookings_table::parse_table_update(table_update)?,
+                    )
+                }
                 "my_tideforge_specimen_modifiers" => {
                     db_update.my_tideforge_specimen_modifiers.append(
                         my_tideforge_specimen_modifiers_table::parse_table_update(table_update)?,
                     )
                 }
+                "my_tideforge_vault" => db_update
+                    .my_tideforge_vault
+                    .append(my_tideforge_vault_table::parse_table_update(table_update)?),
                 "my_upgrade_quote" => db_update
                     .my_upgrade_quote
                     .append(my_upgrade_quote_table::parse_table_update(table_update)?),
@@ -2173,6 +2402,9 @@ impl TryFrom<__ws::v2::TransactionUpdate> for DbUpdate {
                 "species_record" => db_update
                     .species_record
                     .append(species_record_table::parse_table_update(table_update)?),
+                "tideforge_economy_state" => db_update.tideforge_economy_state.append(
+                    tideforge_economy_state_table::parse_table_update(table_update)?,
+                ),
                 "tideforge_state" => db_update
                     .tideforge_state
                     .append(tideforge_state_table::parse_table_update(table_update)?),
@@ -2325,6 +2557,12 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.species_record = cache
             .apply_diff_to_table::<SpeciesRecord>("species_record", &self.species_record)
             .with_updates_by_pk(|row| &row.key);
+        diff.tideforge_economy_state = cache
+            .apply_diff_to_table::<TideforgeEconomyState>(
+                "tideforge_economy_state",
+                &self.tideforge_economy_state,
+            )
+            .with_updates_by_pk(|row| &row.singleton);
         diff.tideforge_state = cache
             .apply_diff_to_table::<TideforgeState>("tideforge_state", &self.tideforge_state)
             .with_updates_by_pk(|row| &row.singleton);
@@ -2365,6 +2603,10 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.adapter_gear_family_progress = cache.apply_diff_to_table::<GearFamilyProgress>(
             "adapter_gear_family_progress",
             &self.adapter_gear_family_progress,
+        );
+        diff.adapter_gear_instance_names = cache.apply_diff_to_table::<GearInstanceName>(
+            "adapter_gear_instance_names",
+            &self.adapter_gear_instance_names,
         );
         diff.adapter_gear_instances = cache.apply_diff_to_table::<GearInstance>(
             "adapter_gear_instances",
@@ -2420,10 +2662,28 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_tideforge_activity_snapshots",
                 &self.adapter_tideforge_activity_snapshots,
             );
+        diff.adapter_tideforge_codex = cache.apply_diff_to_table::<TideforgeCodex>(
+            "adapter_tideforge_codex",
+            &self.adapter_tideforge_codex,
+        );
         diff.adapter_tideforge_daily_uses = cache.apply_diff_to_table::<TideforgeDailyUse>(
             "adapter_tideforge_daily_uses",
             &self.adapter_tideforge_daily_uses,
         );
+        diff.adapter_tideforge_economy_quote = cache.apply_diff_to_table::<TideforgeEconomyQuote>(
+            "adapter_tideforge_economy_quote",
+            &self.adapter_tideforge_economy_quote,
+        );
+        diff.adapter_tideforge_economy_receipts = cache
+            .apply_diff_to_table::<TideforgeEconomyReceipt>(
+                "adapter_tideforge_economy_receipts",
+                &self.adapter_tideforge_economy_receipts,
+            );
+        diff.adapter_tideforge_economy_wallet = cache
+            .apply_diff_to_table::<TideforgeEconomyWallet>(
+                "adapter_tideforge_economy_wallet",
+                &self.adapter_tideforge_economy_wallet,
+            );
         diff.adapter_tideforge_fractional_credits = cache
             .apply_diff_to_table::<TideforgeFractionalCredit>(
                 "adapter_tideforge_fractional_credits",
@@ -2441,11 +2701,24 @@ impl __sdk::DbUpdate for DbUpdate {
             "adapter_tideforge_loadout",
             &self.adapter_tideforge_loadout,
         );
+        diff.adapter_tideforge_mark_awards = cache.apply_diff_to_table::<TideforgeMarkAward>(
+            "adapter_tideforge_mark_awards",
+            &self.adapter_tideforge_mark_awards,
+        );
+        diff.adapter_tideforge_raid_mark_bookings = cache
+            .apply_diff_to_table::<TideforgeRaidMarkBooking>(
+                "adapter_tideforge_raid_mark_bookings",
+                &self.adapter_tideforge_raid_mark_bookings,
+            );
         diff.adapter_tideforge_specimen_modifiers = cache
             .apply_diff_to_table::<TideforgeSpecimenModifiers>(
                 "adapter_tideforge_specimen_modifiers",
                 &self.adapter_tideforge_specimen_modifiers,
             );
+        diff.adapter_tideforge_vault = cache.apply_diff_to_table::<TideforgeAffixShard>(
+            "adapter_tideforge_vault",
+            &self.adapter_tideforge_vault,
+        );
         diff.adapter_upgrade_quote = cache.apply_diff_to_table::<UpgradeQuote>(
             "adapter_upgrade_quote",
             &self.adapter_upgrade_quote,
@@ -2473,6 +2746,10 @@ impl __sdk::DbUpdate for DbUpdate {
         diff.my_gear_family_progress = cache.apply_diff_to_table::<GearFamilyProgress>(
             "my_gear_family_progress",
             &self.my_gear_family_progress,
+        );
+        diff.my_gear_instance_names = cache.apply_diff_to_table::<GearInstanceName>(
+            "my_gear_instance_names",
+            &self.my_gear_instance_names,
         );
         diff.my_gear_instances =
             cache.apply_diff_to_table::<GearInstance>("my_gear_instances", &self.my_gear_instances);
@@ -2528,9 +2805,23 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_tideforge_activity_snapshots",
                 &self.my_tideforge_activity_snapshots,
             );
+        diff.my_tideforge_codex = cache
+            .apply_diff_to_table::<TideforgeCodex>("my_tideforge_codex", &self.my_tideforge_codex);
         diff.my_tideforge_daily_uses = cache.apply_diff_to_table::<TideforgeDailyUse>(
             "my_tideforge_daily_uses",
             &self.my_tideforge_daily_uses,
+        );
+        diff.my_tideforge_economy_quote = cache.apply_diff_to_table::<TideforgeEconomyQuote>(
+            "my_tideforge_economy_quote",
+            &self.my_tideforge_economy_quote,
+        );
+        diff.my_tideforge_economy_receipts = cache.apply_diff_to_table::<TideforgeEconomyReceipt>(
+            "my_tideforge_economy_receipts",
+            &self.my_tideforge_economy_receipts,
+        );
+        diff.my_tideforge_economy_wallet = cache.apply_diff_to_table::<TideforgeEconomyWallet>(
+            "my_tideforge_economy_wallet",
+            &self.my_tideforge_economy_wallet,
         );
         diff.my_tideforge_fractional_credits = cache
             .apply_diff_to_table::<TideforgeFractionalCredit>(
@@ -2547,11 +2838,24 @@ impl __sdk::DbUpdate for DbUpdate {
             "my_tideforge_loadout",
             &self.my_tideforge_loadout,
         );
+        diff.my_tideforge_mark_awards = cache.apply_diff_to_table::<TideforgeMarkAward>(
+            "my_tideforge_mark_awards",
+            &self.my_tideforge_mark_awards,
+        );
+        diff.my_tideforge_raid_mark_bookings = cache
+            .apply_diff_to_table::<TideforgeRaidMarkBooking>(
+                "my_tideforge_raid_mark_bookings",
+                &self.my_tideforge_raid_mark_bookings,
+            );
         diff.my_tideforge_specimen_modifiers = cache
             .apply_diff_to_table::<TideforgeSpecimenModifiers>(
                 "my_tideforge_specimen_modifiers",
                 &self.my_tideforge_specimen_modifiers,
             );
+        diff.my_tideforge_vault = cache.apply_diff_to_table::<TideforgeAffixShard>(
+            "my_tideforge_vault",
+            &self.my_tideforge_vault,
+        );
         diff.my_upgrade_quote =
             cache.apply_diff_to_table::<UpgradeQuote>("my_upgrade_quote", &self.my_upgrade_quote);
 
@@ -2599,6 +2903,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_gear_family_progress" => db_update
                     .adapter_gear_family_progress
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_gear_instance_names" => db_update
+                    .adapter_gear_instance_names
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_gear_instances" => db_update
                     .adapter_gear_instances
@@ -2657,8 +2964,20 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_tideforge_activity_snapshots" => db_update
                     .adapter_tideforge_activity_snapshots
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_tideforge_codex" => db_update
+                    .adapter_tideforge_codex
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_tideforge_daily_uses" => db_update
                     .adapter_tideforge_daily_uses
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_tideforge_economy_quote" => db_update
+                    .adapter_tideforge_economy_quote
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_tideforge_economy_receipts" => db_update
+                    .adapter_tideforge_economy_receipts
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_tideforge_economy_wallet" => db_update
+                    .adapter_tideforge_economy_wallet
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_tideforge_fractional_credits" => db_update
                     .adapter_tideforge_fractional_credits
@@ -2672,8 +2991,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_tideforge_loadout" => db_update
                     .adapter_tideforge_loadout
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_tideforge_mark_awards" => db_update
+                    .adapter_tideforge_mark_awards
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_tideforge_raid_mark_bookings" => db_update
+                    .adapter_tideforge_raid_mark_bookings
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_tideforge_specimen_modifiers" => db_update
                     .adapter_tideforge_specimen_modifiers
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "adapter_tideforge_vault" => db_update
+                    .adapter_tideforge_vault
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "adapter_upgrade_quote" => db_update
                     .adapter_upgrade_quote
@@ -2740,6 +3068,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_gear_family_progress" => db_update
                     .my_gear_family_progress
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_gear_instance_names" => db_update
+                    .my_gear_instance_names
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_gear_instances" => db_update
                     .my_gear_instances
@@ -2813,8 +3144,20 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_tideforge_activity_snapshots" => db_update
                     .my_tideforge_activity_snapshots
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_tideforge_codex" => db_update
+                    .my_tideforge_codex
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_tideforge_daily_uses" => db_update
                     .my_tideforge_daily_uses
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_tideforge_economy_quote" => db_update
+                    .my_tideforge_economy_quote
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_tideforge_economy_receipts" => db_update
+                    .my_tideforge_economy_receipts
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_tideforge_economy_wallet" => db_update
+                    .my_tideforge_economy_wallet
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_tideforge_fractional_credits" => db_update
                     .my_tideforge_fractional_credits
@@ -2828,8 +3171,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_tideforge_loadout" => db_update
                     .my_tideforge_loadout
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_tideforge_mark_awards" => db_update
+                    .my_tideforge_mark_awards
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_tideforge_raid_mark_bookings" => db_update
+                    .my_tideforge_raid_mark_bookings
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_tideforge_specimen_modifiers" => db_update
                     .my_tideforge_specimen_modifiers
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "my_tideforge_vault" => db_update
+                    .my_tideforge_vault
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "my_upgrade_quote" => db_update
                     .my_upgrade_quote
@@ -2884,6 +3236,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "species_record" => db_update
                     .species_record
+                    .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
+                "tideforge_economy_state" => db_update
+                    .tideforge_economy_state
                     .append(__sdk::parse_row_list_as_inserts(table_rows.rows)?),
                 "tideforge_state" => db_update
                     .tideforge_state
@@ -2940,6 +3295,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_gear_family_progress" => db_update
                     .adapter_gear_family_progress
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_gear_instance_names" => db_update
+                    .adapter_gear_instance_names
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_gear_instances" => db_update
                     .adapter_gear_instances
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -2997,8 +3355,20 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_tideforge_activity_snapshots" => db_update
                     .adapter_tideforge_activity_snapshots
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_tideforge_codex" => db_update
+                    .adapter_tideforge_codex
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_tideforge_daily_uses" => db_update
                     .adapter_tideforge_daily_uses
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_tideforge_economy_quote" => db_update
+                    .adapter_tideforge_economy_quote
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_tideforge_economy_receipts" => db_update
+                    .adapter_tideforge_economy_receipts
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_tideforge_economy_wallet" => db_update
+                    .adapter_tideforge_economy_wallet
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_tideforge_fractional_credits" => db_update
                     .adapter_tideforge_fractional_credits
@@ -3012,8 +3382,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "adapter_tideforge_loadout" => db_update
                     .adapter_tideforge_loadout
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_tideforge_mark_awards" => db_update
+                    .adapter_tideforge_mark_awards
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_tideforge_raid_mark_bookings" => db_update
+                    .adapter_tideforge_raid_mark_bookings
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_tideforge_specimen_modifiers" => db_update
                     .adapter_tideforge_specimen_modifiers
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "adapter_tideforge_vault" => db_update
+                    .adapter_tideforge_vault
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "adapter_upgrade_quote" => db_update
                     .adapter_upgrade_quote
@@ -3080,6 +3459,9 @@ impl __sdk::DbUpdate for DbUpdate {
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_gear_family_progress" => db_update
                     .my_gear_family_progress
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_gear_instance_names" => db_update
+                    .my_gear_instance_names
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_gear_instances" => db_update
                     .my_gear_instances
@@ -3153,8 +3535,20 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_tideforge_activity_snapshots" => db_update
                     .my_tideforge_activity_snapshots
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_tideforge_codex" => db_update
+                    .my_tideforge_codex
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_tideforge_daily_uses" => db_update
                     .my_tideforge_daily_uses
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_tideforge_economy_quote" => db_update
+                    .my_tideforge_economy_quote
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_tideforge_economy_receipts" => db_update
+                    .my_tideforge_economy_receipts
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_tideforge_economy_wallet" => db_update
+                    .my_tideforge_economy_wallet
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_tideforge_fractional_credits" => db_update
                     .my_tideforge_fractional_credits
@@ -3168,8 +3562,17 @@ impl __sdk::DbUpdate for DbUpdate {
                 "my_tideforge_loadout" => db_update
                     .my_tideforge_loadout
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_tideforge_mark_awards" => db_update
+                    .my_tideforge_mark_awards
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_tideforge_raid_mark_bookings" => db_update
+                    .my_tideforge_raid_mark_bookings
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_tideforge_specimen_modifiers" => db_update
                     .my_tideforge_specimen_modifiers
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "my_tideforge_vault" => db_update
+                    .my_tideforge_vault
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "my_upgrade_quote" => db_update
                     .my_upgrade_quote
@@ -3225,6 +3628,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 "species_record" => db_update
                     .species_record
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
+                "tideforge_economy_state" => db_update
+                    .tideforge_economy_state
+                    .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
                 "tideforge_state" => db_update
                     .tideforge_state
                     .append(__sdk::parse_row_list_as_deletes(table_rows.rows)?),
@@ -3256,6 +3662,7 @@ pub struct AppliedDiff<'r> {
     adapter_daily_receipt: __sdk::TableAppliedDiff<'r, DailyReceipt>,
     adapter_gear_activity_snapshots: __sdk::TableAppliedDiff<'r, GearActivitySnapshot>,
     adapter_gear_family_progress: __sdk::TableAppliedDiff<'r, GearFamilyProgress>,
+    adapter_gear_instance_names: __sdk::TableAppliedDiff<'r, GearInstanceName>,
     adapter_gear_instances: __sdk::TableAppliedDiff<'r, GearInstance>,
     adapter_gear_loadout: __sdk::TableAppliedDiff<'r, GearLoadout>,
     adapter_haul_status: __sdk::TableAppliedDiff<'r, HaulTrip>,
@@ -3275,12 +3682,19 @@ pub struct AppliedDiff<'r> {
     adapter_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
     adapter_tideforge_activity_receipts: __sdk::TableAppliedDiff<'r, TideforgeActivityReceipt>,
     adapter_tideforge_activity_snapshots: __sdk::TableAppliedDiff<'r, TideforgeActivitySnapshot>,
+    adapter_tideforge_codex: __sdk::TableAppliedDiff<'r, TideforgeCodex>,
     adapter_tideforge_daily_uses: __sdk::TableAppliedDiff<'r, TideforgeDailyUse>,
+    adapter_tideforge_economy_quote: __sdk::TableAppliedDiff<'r, TideforgeEconomyQuote>,
+    adapter_tideforge_economy_receipts: __sdk::TableAppliedDiff<'r, TideforgeEconomyReceipt>,
+    adapter_tideforge_economy_wallet: __sdk::TableAppliedDiff<'r, TideforgeEconomyWallet>,
     adapter_tideforge_fractional_credits: __sdk::TableAppliedDiff<'r, TideforgeFractionalCredit>,
     adapter_tideforge_gear: __sdk::TableAppliedDiff<'r, TideforgeGear>,
     adapter_tideforge_library: __sdk::TableAppliedDiff<'r, TideforgeLibrary>,
     adapter_tideforge_loadout: __sdk::TableAppliedDiff<'r, TideforgeLoadout>,
+    adapter_tideforge_mark_awards: __sdk::TableAppliedDiff<'r, TideforgeMarkAward>,
+    adapter_tideforge_raid_mark_bookings: __sdk::TableAppliedDiff<'r, TideforgeRaidMarkBooking>,
     adapter_tideforge_specimen_modifiers: __sdk::TableAppliedDiff<'r, TideforgeSpecimenModifiers>,
+    adapter_tideforge_vault: __sdk::TableAppliedDiff<'r, TideforgeAffixShard>,
     adapter_upgrade_quote: __sdk::TableAppliedDiff<'r, UpgradeQuote>,
     angler_portrait: __sdk::TableAppliedDiff<'r, AnglerPortrait>,
     angler_standing: __sdk::TableAppliedDiff<'r, AnglerStanding>,
@@ -3303,6 +3717,7 @@ pub struct AppliedDiff<'r> {
     my_dockside: __sdk::TableAppliedDiff<'r, DocksideStatus>,
     my_gear_activity_snapshots: __sdk::TableAppliedDiff<'r, GearActivitySnapshot>,
     my_gear_family_progress: __sdk::TableAppliedDiff<'r, GearFamilyProgress>,
+    my_gear_instance_names: __sdk::TableAppliedDiff<'r, GearInstanceName>,
     my_gear_instances: __sdk::TableAppliedDiff<'r, GearInstance>,
     my_gear_loadout: __sdk::TableAppliedDiff<'r, GearLoadout>,
     my_haul_equipment: __sdk::TableAppliedDiff<'r, OwnedHaulEquipment>,
@@ -3327,12 +3742,19 @@ pub struct AppliedDiff<'r> {
     my_shop_quote: __sdk::TableAppliedDiff<'r, ShopQuote>,
     my_tideforge_activity_receipts: __sdk::TableAppliedDiff<'r, TideforgeActivityReceipt>,
     my_tideforge_activity_snapshots: __sdk::TableAppliedDiff<'r, TideforgeActivitySnapshot>,
+    my_tideforge_codex: __sdk::TableAppliedDiff<'r, TideforgeCodex>,
     my_tideforge_daily_uses: __sdk::TableAppliedDiff<'r, TideforgeDailyUse>,
+    my_tideforge_economy_quote: __sdk::TableAppliedDiff<'r, TideforgeEconomyQuote>,
+    my_tideforge_economy_receipts: __sdk::TableAppliedDiff<'r, TideforgeEconomyReceipt>,
+    my_tideforge_economy_wallet: __sdk::TableAppliedDiff<'r, TideforgeEconomyWallet>,
     my_tideforge_fractional_credits: __sdk::TableAppliedDiff<'r, TideforgeFractionalCredit>,
     my_tideforge_gear: __sdk::TableAppliedDiff<'r, TideforgeGear>,
     my_tideforge_library: __sdk::TableAppliedDiff<'r, TideforgeLibrary>,
     my_tideforge_loadout: __sdk::TableAppliedDiff<'r, TideforgeLoadout>,
+    my_tideforge_mark_awards: __sdk::TableAppliedDiff<'r, TideforgeMarkAward>,
+    my_tideforge_raid_mark_bookings: __sdk::TableAppliedDiff<'r, TideforgeRaidMarkBooking>,
     my_tideforge_specimen_modifiers: __sdk::TableAppliedDiff<'r, TideforgeSpecimenModifiers>,
+    my_tideforge_vault: __sdk::TableAppliedDiff<'r, TideforgeAffixShard>,
     my_upgrade_quote: __sdk::TableAppliedDiff<'r, UpgradeQuote>,
     perfect_species: __sdk::TableAppliedDiff<'r, PerfectSpecies>,
     public_profile: __sdk::TableAppliedDiff<'r, PublicProfile>,
@@ -3351,6 +3773,7 @@ pub struct AppliedDiff<'r> {
     species_definition: __sdk::TableAppliedDiff<'r, SpeciesDefinition>,
     species_rank_definition: __sdk::TableAppliedDiff<'r, SpeciesRankDefinition>,
     species_record: __sdk::TableAppliedDiff<'r, SpeciesRecord>,
+    tideforge_economy_state: __sdk::TableAppliedDiff<'r, TideforgeEconomyState>,
     tideforge_state: __sdk::TableAppliedDiff<'r, TideforgeState>,
     __unused: std::marker::PhantomData<&'r ()>,
 }
@@ -3428,6 +3851,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<GearFamilyProgress>(
             "adapter_gear_family_progress",
             &self.adapter_gear_family_progress,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<GearInstanceName>(
+            "adapter_gear_instance_names",
+            &self.adapter_gear_instance_names,
             event,
         );
         callbacks.invoke_table_row_callbacks::<GearInstance>(
@@ -3521,9 +3949,29 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.adapter_tideforge_activity_snapshots,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<TideforgeCodex>(
+            "adapter_tideforge_codex",
+            &self.adapter_tideforge_codex,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<TideforgeDailyUse>(
             "adapter_tideforge_daily_uses",
             &self.adapter_tideforge_daily_uses,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeEconomyQuote>(
+            "adapter_tideforge_economy_quote",
+            &self.adapter_tideforge_economy_quote,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeEconomyReceipt>(
+            "adapter_tideforge_economy_receipts",
+            &self.adapter_tideforge_economy_receipts,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeEconomyWallet>(
+            "adapter_tideforge_economy_wallet",
+            &self.adapter_tideforge_economy_wallet,
             event,
         );
         callbacks.invoke_table_row_callbacks::<TideforgeFractionalCredit>(
@@ -3546,9 +3994,24 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.adapter_tideforge_loadout,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<TideforgeMarkAward>(
+            "adapter_tideforge_mark_awards",
+            &self.adapter_tideforge_mark_awards,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeRaidMarkBooking>(
+            "adapter_tideforge_raid_mark_bookings",
+            &self.adapter_tideforge_raid_mark_bookings,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<TideforgeSpecimenModifiers>(
             "adapter_tideforge_specimen_modifiers",
             &self.adapter_tideforge_specimen_modifiers,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeAffixShard>(
+            "adapter_tideforge_vault",
+            &self.adapter_tideforge_vault,
             event,
         );
         callbacks.invoke_table_row_callbacks::<UpgradeQuote>(
@@ -3649,6 +4112,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.my_gear_family_progress,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<GearInstanceName>(
+            "my_gear_instance_names",
+            &self.my_gear_instance_names,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<GearInstance>(
             "my_gear_instances",
             &self.my_gear_instances,
@@ -3745,9 +4213,29 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.my_tideforge_activity_snapshots,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<TideforgeCodex>(
+            "my_tideforge_codex",
+            &self.my_tideforge_codex,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<TideforgeDailyUse>(
             "my_tideforge_daily_uses",
             &self.my_tideforge_daily_uses,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeEconomyQuote>(
+            "my_tideforge_economy_quote",
+            &self.my_tideforge_economy_quote,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeEconomyReceipt>(
+            "my_tideforge_economy_receipts",
+            &self.my_tideforge_economy_receipts,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeEconomyWallet>(
+            "my_tideforge_economy_wallet",
+            &self.my_tideforge_economy_wallet,
             event,
         );
         callbacks.invoke_table_row_callbacks::<TideforgeFractionalCredit>(
@@ -3770,9 +4258,24 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
             &self.my_tideforge_loadout,
             event,
         );
+        callbacks.invoke_table_row_callbacks::<TideforgeMarkAward>(
+            "my_tideforge_mark_awards",
+            &self.my_tideforge_mark_awards,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeRaidMarkBooking>(
+            "my_tideforge_raid_mark_bookings",
+            &self.my_tideforge_raid_mark_bookings,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<TideforgeSpecimenModifiers>(
             "my_tideforge_specimen_modifiers",
             &self.my_tideforge_specimen_modifiers,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeAffixShard>(
+            "my_tideforge_vault",
+            &self.my_tideforge_vault,
             event,
         );
         callbacks.invoke_table_row_callbacks::<UpgradeQuote>(
@@ -3855,6 +4358,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<SpeciesRecord>(
             "species_record",
             &self.species_record,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<TideforgeEconomyState>(
+            "tideforge_economy_state",
+            &self.tideforge_economy_state,
             event,
         );
         callbacks.invoke_table_row_callbacks::<TideforgeState>(
@@ -4535,6 +5043,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_daily_receipt_table::register_table(client_cache);
         adapter_gear_activity_snapshots_table::register_table(client_cache);
         adapter_gear_family_progress_table::register_table(client_cache);
+        adapter_gear_instance_names_table::register_table(client_cache);
         adapter_gear_instances_table::register_table(client_cache);
         adapter_gear_loadout_table::register_table(client_cache);
         adapter_haul_status_table::register_table(client_cache);
@@ -4554,12 +5063,19 @@ impl __sdk::SpacetimeModule for RemoteModule {
         adapter_shop_quote_table::register_table(client_cache);
         adapter_tideforge_activity_receipts_table::register_table(client_cache);
         adapter_tideforge_activity_snapshots_table::register_table(client_cache);
+        adapter_tideforge_codex_table::register_table(client_cache);
         adapter_tideforge_daily_uses_table::register_table(client_cache);
+        adapter_tideforge_economy_quote_table::register_table(client_cache);
+        adapter_tideforge_economy_receipts_table::register_table(client_cache);
+        adapter_tideforge_economy_wallet_table::register_table(client_cache);
         adapter_tideforge_fractional_credits_table::register_table(client_cache);
         adapter_tideforge_gear_table::register_table(client_cache);
         adapter_tideforge_library_table::register_table(client_cache);
         adapter_tideforge_loadout_table::register_table(client_cache);
+        adapter_tideforge_mark_awards_table::register_table(client_cache);
+        adapter_tideforge_raid_mark_bookings_table::register_table(client_cache);
         adapter_tideforge_specimen_modifiers_table::register_table(client_cache);
+        adapter_tideforge_vault_table::register_table(client_cache);
         adapter_upgrade_quote_table::register_table(client_cache);
         angler_portrait_table::register_table(client_cache);
         angler_standing_table::register_table(client_cache);
@@ -4582,6 +5098,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_dockside_table::register_table(client_cache);
         my_gear_activity_snapshots_table::register_table(client_cache);
         my_gear_family_progress_table::register_table(client_cache);
+        my_gear_instance_names_table::register_table(client_cache);
         my_gear_instances_table::register_table(client_cache);
         my_gear_loadout_table::register_table(client_cache);
         my_haul_equipment_table::register_table(client_cache);
@@ -4606,12 +5123,19 @@ impl __sdk::SpacetimeModule for RemoteModule {
         my_shop_quote_table::register_table(client_cache);
         my_tideforge_activity_receipts_table::register_table(client_cache);
         my_tideforge_activity_snapshots_table::register_table(client_cache);
+        my_tideforge_codex_table::register_table(client_cache);
         my_tideforge_daily_uses_table::register_table(client_cache);
+        my_tideforge_economy_quote_table::register_table(client_cache);
+        my_tideforge_economy_receipts_table::register_table(client_cache);
+        my_tideforge_economy_wallet_table::register_table(client_cache);
         my_tideforge_fractional_credits_table::register_table(client_cache);
         my_tideforge_gear_table::register_table(client_cache);
         my_tideforge_library_table::register_table(client_cache);
         my_tideforge_loadout_table::register_table(client_cache);
+        my_tideforge_mark_awards_table::register_table(client_cache);
+        my_tideforge_raid_mark_bookings_table::register_table(client_cache);
         my_tideforge_specimen_modifiers_table::register_table(client_cache);
+        my_tideforge_vault_table::register_table(client_cache);
         my_upgrade_quote_table::register_table(client_cache);
         perfect_species_table::register_table(client_cache);
         public_profile_table::register_table(client_cache);
@@ -4630,6 +5154,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         species_definition_table::register_table(client_cache);
         species_rank_definition_table::register_table(client_cache);
         species_record_table::register_table(client_cache);
+        tideforge_economy_state_table::register_table(client_cache);
         tideforge_state_table::register_table(client_cache);
     }
     const ALL_TABLE_NAMES: &'static [&'static str] = &[
@@ -4646,6 +5171,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_daily_receipt",
         "adapter_gear_activity_snapshots",
         "adapter_gear_family_progress",
+        "adapter_gear_instance_names",
         "adapter_gear_instances",
         "adapter_gear_loadout",
         "adapter_haul_status",
@@ -4665,12 +5191,19 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "adapter_shop_quote",
         "adapter_tideforge_activity_receipts",
         "adapter_tideforge_activity_snapshots",
+        "adapter_tideforge_codex",
         "adapter_tideforge_daily_uses",
+        "adapter_tideforge_economy_quote",
+        "adapter_tideforge_economy_receipts",
+        "adapter_tideforge_economy_wallet",
         "adapter_tideforge_fractional_credits",
         "adapter_tideforge_gear",
         "adapter_tideforge_library",
         "adapter_tideforge_loadout",
+        "adapter_tideforge_mark_awards",
+        "adapter_tideforge_raid_mark_bookings",
         "adapter_tideforge_specimen_modifiers",
+        "adapter_tideforge_vault",
         "adapter_upgrade_quote",
         "angler_portrait",
         "angler_standing",
@@ -4693,6 +5226,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_dockside",
         "my_gear_activity_snapshots",
         "my_gear_family_progress",
+        "my_gear_instance_names",
         "my_gear_instances",
         "my_gear_loadout",
         "my_haul_equipment",
@@ -4717,12 +5251,19 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "my_shop_quote",
         "my_tideforge_activity_receipts",
         "my_tideforge_activity_snapshots",
+        "my_tideforge_codex",
         "my_tideforge_daily_uses",
+        "my_tideforge_economy_quote",
+        "my_tideforge_economy_receipts",
+        "my_tideforge_economy_wallet",
         "my_tideforge_fractional_credits",
         "my_tideforge_gear",
         "my_tideforge_library",
         "my_tideforge_loadout",
+        "my_tideforge_mark_awards",
+        "my_tideforge_raid_mark_bookings",
         "my_tideforge_specimen_modifiers",
+        "my_tideforge_vault",
         "my_upgrade_quote",
         "perfect_species",
         "public_profile",
@@ -4741,6 +5282,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         "species_definition",
         "species_rank_definition",
         "species_record",
+        "tideforge_economy_state",
         "tideforge_state",
     ];
 }

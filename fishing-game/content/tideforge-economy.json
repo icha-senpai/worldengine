@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "status": "candidate-local-only",
+  "requiredEffectsVersion": 1,
+  "quoteLifetimeSeconds": 120,
+  "quoteCooldownSeconds": 1,
+  "maximumFishBatch": 50,
+  "maximumConversionBatches": 1000,
+  "receiptRetentionDays": 8,
+  "maximumPruneRows": 1000,
+  "families": [
+    { "familyId": 2, "coins": 500, "marks": 1 },
+    { "familyId": 3, "coins": 15000, "marks": 15 },
+    { "familyId": 4, "coins": 16000, "marks": 16 },
+    { "familyId": 5, "coins": 33000, "marks": 33 },
+    { "familyId": 6, "coins": 74000, "marks": 74 },
+    { "familyId": 7, "coins": 130000, "marks": 130 }
+  ],
+  "acquisition": {
+    "affixSelection": "uniform-remaining-legal",
+    "maximumConditionalAffixes": 2,
+    "secondaryBiomeSelection": "player-selected-non-primary-defined-biome",
+    "requiresOwnedOriginal": true,
+    "qualityLevel": 0,
+    "reinforcementLevel": 0,
+    "finishMinimumBp": 0,
+    "finishMaximumBp": 10000,
+    "camp": {
+      "affixCount": 1,
+      "tiers": [
+        { "tier": 1, "weight": 70 },
+        { "tier": 2, "weight": 25 },
+        { "tier": 3, "weight": 5 }
+      ],
+      "signatureChanceBp": 500
+    },
+    "wandering": {
+      "affixCount": 4,
+      "tiers": [
+        { "tier": 8, "weight": 70 },
+        { "tier": 9, "weight": 25 },
+        { "tier": 10, "weight": 5 }
+      ],
+      "signatureChanceBp": 2500,
+      "utcStartDayOfMonth": 1,
+      "durationDays": 4
+    }
+  },
+  "forge": {
+    "shardsPerAddition": 1,
+    "shardsPerChange": 1,
+    "newAffixFinishBp": 0,
+    "refinementStepBp": 2000,
+    "refinementFullCostCoins": 1250,
+    "requiresDiscoveredType": true,
+    "requiresDestinationGradeClear": true,
+    "tiers": [
+      { "tier": 1, "grade": 0, "fillets": 15, "scales": 10 },
+      { "tier": 2, "grade": 1, "fillets": 27, "scales": 18 },
+      { "tier": 3, "grade": 2, "fillets": 36, "scales": 24 },
+      { "tier": 4, "grade": 3, "fillets": 44, "scales": 30 },
+      { "tier": 5, "grade": 4, "fillets": 60, "scales": 40 },
+      { "tier": 6, "grade": 5, "fillets": 72, "scales": 48 },
+      { "tier": 7, "grade": 6, "fillets": 96, "scales": 63 },
+      { "tier": 8, "grade": 7, "fillets": 130, "scales": 85 },
+      { "tier": 9, "grade": 8, "fillets": 156, "scales": 102 },
+      { "tier": 10, "grade": 9, "fillets": 180, "scales": 120 }
+    ]
+  },
+  "recovery": {
+    "shardsPerAffix": 1,
+    "refundCoins": false,
+    "refundMaterials": false,
+    "rejectKnownSignatureExtraction": true
+  },
+  "processing": {
+    "filletsSlot": 800,
+    "scalesSlot": 801,
+    "filletsByRank": [6, 9, 12, 15, 18, 21, 24, 27, 30, 33],
+    "scalesByRank": [4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
+    "normalToFInput": 10,
+    "normalToFOutput": 1,
+    "normalToFCoinCost": 0,
+    "refiningInput": 20,
+    "refiningOutput": 18,
+    "refiningCoinCost": 1,
+    "protectTrophiesByDefault": true,
+    "excludeBonusSpecies": true
+  },
+  "marks": {
+    "ordinaryRaidByGrade": [1, 2, 3, 4, 5, 6, 8, 10, 12, 14],
+    "communityRaid": 0,
+    "specialRaid": 0,
+    "newAchievement": 1,
+    "backfill": false,
+    "requireRaidBookingAfterActivation": true
+  }
+}

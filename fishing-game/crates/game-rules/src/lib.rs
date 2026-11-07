@@ -13,6 +13,7 @@ pub mod rods;
 pub mod sampling;
 pub mod trophy;
 pub mod tideforge;
+pub mod tideforge_economy;
 
 #[cfg(test)]
 mod world_tests;

@@ -1,5 +1,242 @@
 # Implementation Verification
 
+## Production Copy To Private Dev
+
+Boss approved replacing current dev progress with a production copy. The first
+live archive was refused because the source commit log changed during transfer.
+A separately approved Fishbound-only production pause produced a closed export;
+the pause was 3.74 seconds and all four services were restored. No production
+code, module, activation or data reset was performed.
+
+The 240,107,520-byte closed archive has SHA-256
+`18764a3a33d20780f5dd007b2276e71ea89fb97ad09738ed8e64dcf56a2b9c61`;
+all 94 extracted files matched its frozen manifest. The staged before-state
+recorded 10 players, 61 legacy originals, 190 kept fish for icha_, no active
+hauls or raids, and 82 retained legacy tables. The exact Stage 3 artifact
+`1d37339dc4c7a6a0f585f8c21a0c6fac260132154868bf014b52dd73c6b4eee6`
+was reapplied on temporary loopback 3128 with `--delete-data=never`. Publish
+and activation preserved all 82 retained tables, original quality and
+reinforcement, and saved rod, boat and net selections. Repeated activation
+preserved all 104 tables exactly.
+
+The first cutover stopped before file operations when an already-exited
+process disappeared during validation. A verified stopped-state resume
+replaced only the target replica, without another production restart. The
+restored main database on 3127 then matched the final staging baseline across
+all 104 tables; the four existing proof database identities were preserved.
+Main control-db, configuration, local JWT keys and tokens were preserved, and
+the local bot remains disabled. Production and dev share the historical
+database identity, so host and path checks were required.
+
+The real private-dev browser smoke passed eight checks on the copied data:
+identity guard, SDK WebSocket and existing dev login, all seven Tideforge
+panels, protected originals and processing inventory. The frozen count was
+190 kept fish; 12 fish labels were rendered, without assuming every item
+appears in the DOM. Trophy permission remained unchecked. A real Tide Rod /
+Meadow Pond camp-copy preview showed 33,000 coins and was cancelled without
+confirmation. The same session passed mobile navigation and Processing at
+375×812 without horizontal overflow. No console/page errors or blocked
+external requests were recorded. Because the smoke replaces the browser link,
+an existing private-dev browser may need to use **Use icha_** again.
+
+The post-smoke investment guard passed for 95 protected tables, including
+player coins and XP, gear, all 190 kept specimens, collections, records,
+materials, ledger and economy receipts. Five explicitly excluded metadata
+tables cover authentication links, nonces, quotes and wallets. There was one
+unconsumed quote and one zero-Mark wallet with `next_sequence` 1 and a
+nonce-only revision.
+
+The strict 99-table post-open comparison did **not** pass: only old rows were
+removed, with no additions or changed rows in those tables. The removals were
+5 `cast_equipment_receipt`, 19 `cast_pull`, 5 `command_receipt` and 4
+`haul_request` rows. The existing 60-second history maintenance prunes
+seven-day-old receipts and pulls; these removals are not attributed to the
+smoke. The exact 104-table migration comparison above was taken before
+reopening and remains a separate passing proof.
+
+Evidence is `.local/prod-refresh/browser/` (`results.json`, `browser.log`,
+`console.log`, `desktop-gear.png`, `preview-cost.png` and
+`mobile-processing.png`), together with
+`.local/prod-refresh/main-restore-preservation.json`,
+`preview-investment-preservation.json`, `source-cleanup.json` and
+`local-cleanup.json` in the same parent directory. After source identity and
+service checks, the two temporary production export files were removed; all
+four services were active. After local archive, port and lock checks, both
+transfer archives and the inactive staging directory were removed. The proof
+evidence remains. This was a one-time copy, not an ongoing sync. No production
+feature deployment, commit or push occurred.
+
+## Tideforge Private Dev Activation (Historical)
+
+This is the initial private-dev rollout snapshot, superseded by the production
+copy above; its table, player and inventory counts are not current.
+Boss authorized private-dev activation after the website checkpoint.
+At that time, `https://fishbound.test/#tideforge` used the real `fishbound-dev-local`
+database on loopback 3127, identity
+`0xc2002230cb292d622fb9716c64c8c73f84b1934e4eb6e6db546fb271ab32e488`.
+The existing private Vite server on 5174 was reused. No service restart,
+production operation, public-site publication, commit or push occurred;
+the local Discord bot remains disabled.
+
+The exact Stage 3 proof artifact, SHA256
+`1d37339dc4c7a6a0f585f8c21a0c6fac260132154868bf014b52dd73c6b4eee6`,
+was published by explicit dev identity with `--delete-data=never`. The stale
+`.runtime/module` artifact was not used. Fingerprints of all 81 retained
+non-maintenance tables match before/after publication and activation.
+The scheduled `maintenance_job` is explicitly excluded. All 30 originals
+retain ownership, quality and reinforcement; eight player loadouts retain
+their selected rods and owned boat/net instances. There were no running hauls
+or prepared/deployed/running raids at this rollout.
+
+Foundation, effects, economy and catalog version 1 are active. Initial wallets,
+Codex and Mark awards remain empty: no historical economy backfill. Repeating
+all three activation reducers changes neither the 81 retained tables nor the
+23 added tables. These are migration-window checks, not an assertion that an
+open gameplay database stays immutable afterwards.
+
+The real private-site smoke verifies the exact database identity, live SDK
+WebSocket, existing dev login and all seven panels. The account's empty
+Processing state matches a direct owner query; no test catches were created.
+A real River Rod / Meadow Pond camp-copy quote displays 500 coins and is
+cancelled without confirmation. Before-quote screenshots and the subsequent
+owner read show the same coin balance and XP for that smoke window.
+The smoke script never confirms, casts, equips, favorites or consumes items.
+Its dev-login check replaces the browser link, so an existing dev browser may
+need to use **Use icha_** again.
+
+The later whole-player snapshot no longer matches the pre-rollout snapshot;
+later committed economy records and additional gear are present. That strict
+post-reopen comparison is not reported as passing, nor are those later writes
+attributed to the smoke. The clean publication/activation/idempotency proofs
+remain separate. Browser evidence retains the pre-existing SvelteKit
+`history_api_conflict` warning and one navigation `ERR_ABORTED`; no external
+origin was attempted in the final run.
+
+The read-only guard is `scripts/tideforge-dev-preservation.mjs`. Evidence is
+`.local/tideforge-dev-preservation.json`,
+`.local/tideforge-dev-publish-verification.json`,
+`.local/tideforge-dev-activation.json`, `.local/tideforge-dev-idempotency.json`,
+`.local/tideforge-dev-publish.log` and `.local/tideforge-dev-preview-observation.json`.
+The real browser script is `tests/tideforge-dev-browser.mjs`, with results,
+logs, `desktop-gear.png` and `preview-cost.png` under
+`.local/tideforge-dev-browser/`. No new database or backup was created.
+Balance values are active dev candidates only, not approved production tuning.
+Committed player-economy browser acceptance remains outside this preview-only
+check, as do copy quality/reinforcement controls and production deployment.
+
+## Tideforge Website (Local)
+
+This records the earlier source-only gate; the later authorized dev rollout
+and connected-site smoke are recorded above.
+
+The source-only website adds a Tideforge main tab with Gear, Forge, Processing,
+Trader, Vault, Codex and Reliquary sections, using the existing site theme,
+controls and tooltips. It does not publish or activate the feature.
+
+The earlier `npm run check` passed with zero errors and warnings, and
+`npm run test:subscriptions` passed. The final focused Node suite passes
+25 tests, and the final `npm run build` passes: its largest client chunk is
+348.32 kB, below 500 kB; the lazy Tideforge chunk is 57.02 kB
+(16.93 kB gzip). The check and subscription gate were not rerun for the final
+one-line guard and description changes.
+
+Coverage includes known-active gear-core failure followed by a failed probe
+retry while legacy servers remain usable; authoritative receipts beating lost
+replies; same-action retry; owner form reset; processing selection refresh
+after 50 fish; and selected-copy base stats. It also covers signature wording,
+fully refined and maximum-tier Forge guards, and quote expiry.
+
+The 14-case **FRONTEND FIXTURE ONLY** browser suite uses actual website
+components with fixed mocked rows and receipts, not a live SDK or economy. It
+passes at 1440×900 and 375×812 in both themes, including quote expiry, mobile
+touch tooltips, keyboard navigation, confirmations and account isolation.
+There were no console/page errors or blocked external requests. The isolated
+loopback fixture was restarted after its original process had exited; no
+Fishbound service was restarted.
+
+Evidence is `.local/tideforge-ui-proof/results.json` and `console.log` in the
+same directory, plus `desktop-gear.png`, `desktop-forge-dark.png`,
+`mobile-processing.png` and `mobile-nav-dark.png`. Logs are
+`.local/tideforge-ui-final-check.log`, `.local/tideforge-ui-final-subscriptions.log`,
+`.local/tideforge-ui-final-tests.log`, `.local/tideforge-ui-final-build.log`
+and `.local/tideforge-ui-browser.log`.
+
+The existing [Stage 3 backend proof](#tideforge-gear-economy-backend-stage-3-local)
+remains unchanged; no native rerun was needed. The connected private-dev preview
+is now checked above; committed economy browser acceptance and production
+affordability and balance review remain open. Copy
+quality and reinforcement upgrades have no new UI: the legacy reducers target
+protected originals, while copies have their own state and affix controls.
+No development or production database changes, game-service restarts,
+public-site publication, activation, commit or push occurred.
+
+## Tideforge Gear Economy Backend (Stage 3, Local)
+
+The candidate-local backend and its separate owner activation follow the
+[Stage 3 contract](tideforge/build-contract-v0.1.md#10-stage-3-local-economy-implementation-contract).
+The final gates all exit 0: `npm run bindings` builds WASM and generates the
+official TypeScript and Rust contracts. `npm run content:validate`,
+`npm run check`, `npm run build`, `npm run rust:check`, `npm run rust:test`,
+and `npm run test:module` pass. Script/Svelte checks report zero errors and warnings; the
+shared rules report 72 tests passed, including six pure economy tests, and the
+native module reports 101 passed, including 32 economy tests. Compiler, linker
+and Perl diagnostic review is clean. Managed targets are removed, including
+3.0 GiB from the native target.
+
+The first native run exposed fixture lifetime-counter and RNG-transaction
+errors; the fixtures were corrected without weakening assertions. Native
+coverage includes acquired affixed gear of all three kinds, chosen-water
+legality without a licence grant, the connected purchase, Codex, dismantle,
+shard, Forge add/upgrade/refine progression, changes, recovery and signatures.
+It also covers fractional and nonzero processing, hostile states, active-gear
+protections, higher-tier refining, raids and Marks, including a synthetic frozen
+booking payout of 17.
+
+The passing isolated WASM preservation proof uses candidate SHA256
+`1d37339dc4c7a6a0f585f8c21a0c6fac260132154868bf014b52dd73c6b4eee6`
+and the frozen Stage 2 baseline SHA256
+`0359c31fc3e8c9b480468f730f8cfecf071a6aabc4143c9a19ff828bdf8b0dec`.
+All 96 retained tables remain unchanged through publication and all eight new
+economy tables start empty. Owner activation preserves existing records, is
+idempotent, and does not backfill Marks or Codex. Old/new saved-cast replay,
+atomic disabled-action failure, denied nonowner activation, historical
+achievement backfill without Marks and a new achievement paying exactly once
+pass. Processing a legacy ordinary specimen pays the pinned yields and carry
+exactly once without changing coins, XP, lifetime, collection or records.
+Selected-adapter and unlinked privacy and raw-table denial pass.
+
+The Stage 2-booked and Stage 3-booked nets both settle naturally with four pulls
+and immutable effects and replay. Settled hauls are `ready`, with
+`completed_at` set, awaiting delivery. The first proof attempt encountered a
+harness-only unsupported multi-statement SQL query before Stage 3 publication
+or fingerprint capture. After correction to bounded single-statement queries,
+the same baseline fixture was explicitly resumed, preserving old receipts and
+the active booking; no second database was allocated, reset or overwritten.
+
+The sole fixture was `fishbound-proof-tideforge-economy-1794035439293`, identity
+`0xc200b332383f7a38a073b8ab0187789d68435d66d20a7d6ae8f936e5552fd36f`.
+After Boss approved deletion, it was deleted through SpaceTimeDB and confirmed
+absent by name and identity (HTTP 404); development's identity was unchanged.
+The proof uses vanilla starters and synthetic accounts, not rich production
+gear, an affordability forecast, every economy path in WASM or a browser UI
+test. The [local website controls](#tideforge-website-local) are now implemented;
+the connected browser/player loop and production affordability and live balance
+review remain follow-up.
+
+Retained proof evidence: `.local/tideforge-stage3-evidence.json`,
+`.local/tideforge-stage3-runtime.json`, `.local/tideforge-stage3-proof-exit-code.txt`,
+`.local/tideforge-stage3-proof.log`, and
+`.local/tideforge-stage3-proof/baseline.wasm`. Gate logs are
+`.local/tideforge-stage3-final-bindings.log`,
+`.local/tideforge-stage3-final-content.log`,
+`.local/tideforge-stage3-final-check.log`,
+`.local/tideforge-stage3-final-build.log`,
+`.local/tideforge-stage3-final-rust-check.log`,
+`.local/tideforge-stage3-final-rust-test.log`, and
+`.local/tideforge-stage3-final-native-1.log`.
+No development or production publication or activation, service restart,
+public-site publication or actual Discord delivery occurred.
+
 ## Tideforge Effects And Mastery (Local)
 
 Stage 2 passes 69 native module tests and 66 shared-rule tests, including

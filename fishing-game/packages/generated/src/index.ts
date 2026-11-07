@@ -48,6 +48,7 @@ import ActivateRaidsReducer from "./activate_raids_reducer";
 import ActivateRankMaximaReducer from "./activate_rank_maxima_reducer";
 import ActivateRodBonusesReducer from "./activate_rod_bonuses_reducer";
 import ActivateSpeciesMeasurementsReducer from "./activate_species_measurements_reducer";
+import ActivateTideforgeEconomyReducer from "./activate_tideforge_economy_reducer";
 import ActivateTideforgeEffectsReducer from "./activate_tideforge_effects_reducer";
 import ActivateTraderReducer from "./activate_trader_reducer";
 import ActivateXpProgressionReducer from "./activate_xp_progression_reducer";
@@ -75,6 +76,8 @@ import CommitSaleFromDiscordReducer from "./commit_sale_from_discord_reducer";
 import CommitShopFromDiscordReducer from "./commit_shop_from_discord_reducer";
 import CommitShopPurchaseReducer from "./commit_shop_purchase_reducer";
 import CommitShopPurchaseQuantityReducer from "./commit_shop_purchase_quantity_reducer";
+import CommitTideforgeActionReducer from "./commit_tideforge_action_reducer";
+import CommitTideforgeActionFromDiscordReducer from "./commit_tideforge_action_from_discord_reducer";
 import CommitUpgradeFromDiscordReducer from "./commit_upgrade_from_discord_reducer";
 import CompleteAccountLinkReducer from "./complete_account_link_reducer";
 import ConfigureServiceReducer from "./configure_service_reducer";
@@ -100,6 +103,8 @@ import PrepareRodUpgradeReducer from "./prepare_rod_upgrade_reducer";
 import PrepareSaleFromDiscordReducer from "./prepare_sale_from_discord_reducer";
 import PrepareShopFromDiscordReducer from "./prepare_shop_from_discord_reducer";
 import PrepareShopPurchaseReducer from "./prepare_shop_purchase_reducer";
+import PrepareTideforgeActionReducer from "./prepare_tideforge_action_reducer";
+import PrepareTideforgeActionFromDiscordReducer from "./prepare_tideforge_action_from_discord_reducer";
 import PrepareUpgradeFromDiscordReducer from "./prepare_upgrade_from_discord_reducer";
 import RebuildPlayerRecordsReducer from "./rebuild_player_records_reducer";
 import RecordAchievementRouteReducer from "./record_achievement_route_reducer";
@@ -107,6 +112,8 @@ import RefineRaidMaterialReducer from "./refine_raid_material_reducer";
 import RefineRaidMaterialFromDiscordReducer from "./refine_raid_material_from_discord_reducer";
 import ReinforceRodReducer from "./reinforce_rod_reducer";
 import ReinforceRodFromDiscordReducer from "./reinforce_rod_from_discord_reducer";
+import RenameGearInstanceReducer from "./rename_gear_instance_reducer";
+import RenameGearInstanceFromDiscordReducer from "./rename_gear_instance_from_discord_reducer";
 import SelectDiscordPlayerReducer from "./select_discord_player_reducer";
 import SelectJournalReducer from "./select_journal_reducer";
 import SelectTideforgeSignaturesReducer from "./select_tideforge_signatures_reducer";
@@ -141,6 +148,7 @@ import AdapterCollectionFocusRow from "./adapter_collection_focus_table";
 import AdapterDailyReceiptRow from "./adapter_daily_receipt_table";
 import AdapterGearActivitySnapshotsRow from "./adapter_gear_activity_snapshots_table";
 import AdapterGearFamilyProgressRow from "./adapter_gear_family_progress_table";
+import AdapterGearInstanceNamesRow from "./adapter_gear_instance_names_table";
 import AdapterGearInstancesRow from "./adapter_gear_instances_table";
 import AdapterGearLoadoutRow from "./adapter_gear_loadout_table";
 import AdapterHaulStatusRow from "./adapter_haul_status_table";
@@ -160,12 +168,19 @@ import AdapterSaleQuoteRow from "./adapter_sale_quote_table";
 import AdapterShopQuoteRow from "./adapter_shop_quote_table";
 import AdapterTideforgeActivityReceiptsRow from "./adapter_tideforge_activity_receipts_table";
 import AdapterTideforgeActivitySnapshotsRow from "./adapter_tideforge_activity_snapshots_table";
+import AdapterTideforgeCodexRow from "./adapter_tideforge_codex_table";
 import AdapterTideforgeDailyUsesRow from "./adapter_tideforge_daily_uses_table";
+import AdapterTideforgeEconomyQuoteRow from "./adapter_tideforge_economy_quote_table";
+import AdapterTideforgeEconomyReceiptsRow from "./adapter_tideforge_economy_receipts_table";
+import AdapterTideforgeEconomyWalletRow from "./adapter_tideforge_economy_wallet_table";
 import AdapterTideforgeFractionalCreditsRow from "./adapter_tideforge_fractional_credits_table";
 import AdapterTideforgeGearRow from "./adapter_tideforge_gear_table";
 import AdapterTideforgeLibraryRow from "./adapter_tideforge_library_table";
 import AdapterTideforgeLoadoutRow from "./adapter_tideforge_loadout_table";
+import AdapterTideforgeMarkAwardsRow from "./adapter_tideforge_mark_awards_table";
+import AdapterTideforgeRaidMarkBookingsRow from "./adapter_tideforge_raid_mark_bookings_table";
 import AdapterTideforgeSpecimenModifiersRow from "./adapter_tideforge_specimen_modifiers_table";
+import AdapterTideforgeVaultRow from "./adapter_tideforge_vault_table";
 import AdapterUpgradeQuoteRow from "./adapter_upgrade_quote_table";
 import AnglerPortraitRow from "./angler_portrait_table";
 import AnglerStandingRow from "./angler_standing_table";
@@ -188,6 +203,7 @@ import MyCollectionFocusRow from "./my_collection_focus_table";
 import MyDocksideRow from "./my_dockside_table";
 import MyGearActivitySnapshotsRow from "./my_gear_activity_snapshots_table";
 import MyGearFamilyProgressRow from "./my_gear_family_progress_table";
+import MyGearInstanceNamesRow from "./my_gear_instance_names_table";
 import MyGearInstancesRow from "./my_gear_instances_table";
 import MyGearLoadoutRow from "./my_gear_loadout_table";
 import MyHaulEquipmentRow from "./my_haul_equipment_table";
@@ -212,12 +228,19 @@ import MyServiceRow from "./my_service_table";
 import MyShopQuoteRow from "./my_shop_quote_table";
 import MyTideforgeActivityReceiptsRow from "./my_tideforge_activity_receipts_table";
 import MyTideforgeActivitySnapshotsRow from "./my_tideforge_activity_snapshots_table";
+import MyTideforgeCodexRow from "./my_tideforge_codex_table";
 import MyTideforgeDailyUsesRow from "./my_tideforge_daily_uses_table";
+import MyTideforgeEconomyQuoteRow from "./my_tideforge_economy_quote_table";
+import MyTideforgeEconomyReceiptsRow from "./my_tideforge_economy_receipts_table";
+import MyTideforgeEconomyWalletRow from "./my_tideforge_economy_wallet_table";
 import MyTideforgeFractionalCreditsRow from "./my_tideforge_fractional_credits_table";
 import MyTideforgeGearRow from "./my_tideforge_gear_table";
 import MyTideforgeLibraryRow from "./my_tideforge_library_table";
 import MyTideforgeLoadoutRow from "./my_tideforge_loadout_table";
+import MyTideforgeMarkAwardsRow from "./my_tideforge_mark_awards_table";
+import MyTideforgeRaidMarkBookingsRow from "./my_tideforge_raid_mark_bookings_table";
 import MyTideforgeSpecimenModifiersRow from "./my_tideforge_specimen_modifiers_table";
+import MyTideforgeVaultRow from "./my_tideforge_vault_table";
 import MyUpgradeQuoteRow from "./my_upgrade_quote_table";
 import PerfectSpeciesRow from "./perfect_species_table";
 import PublicProfileRow from "./public_profile_table";
@@ -236,6 +259,7 @@ import ShopListingRow from "./shop_listing_table";
 import SpeciesDefinitionRow from "./species_definition_table";
 import SpeciesRankDefinitionRow from "./species_rank_definition_table";
 import SpeciesRecordRow from "./species_record_table";
+import TideforgeEconomyStateRow from "./tideforge_economy_state_table";
 import TideforgeStateRow from "./tideforge_state_table";
 
 /** Type-only namespace exports for generated type groups. */
@@ -613,6 +637,17 @@ const tablesSchema = __schema({
       { name: 'species_record_key_key', constraint: 'unique', columns: ['key'] },
     ],
   }, SpeciesRecordRow),
+  tideforgeEconomyState: __table({
+    name: 'tideforge_economy_state',
+    indexes: [
+      { accessor: 'singleton', name: 'tideforge_economy_state_singleton_idx_btree', algorithm: 'btree', columns: [
+        'singleton',
+      ] },
+    ],
+    constraints: [
+      { name: 'tideforge_economy_state_singleton_key', constraint: 'unique', columns: ['singleton'] },
+    ],
+  }, TideforgeEconomyStateRow),
   tideforgeState: __table({
     name: 'tideforge_state',
     indexes: [
@@ -701,6 +736,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterGearFamilyProgressRow),
+  adapterGearInstanceNames: __table({
+    name: 'adapter_gear_instance_names',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterGearInstanceNamesRow),
   adapterGearInstances: __table({
     name: 'adapter_gear_instances',
     indexes: [
@@ -834,6 +876,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterTideforgeActivitySnapshotsRow),
+  adapterTideforgeCodex: __table({
+    name: 'adapter_tideforge_codex',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterTideforgeCodexRow),
   adapterTideforgeDailyUses: __table({
     name: 'adapter_tideforge_daily_uses',
     indexes: [
@@ -841,6 +890,27 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterTideforgeDailyUsesRow),
+  adapterTideforgeEconomyQuote: __table({
+    name: 'adapter_tideforge_economy_quote',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterTideforgeEconomyQuoteRow),
+  adapterTideforgeEconomyReceipts: __table({
+    name: 'adapter_tideforge_economy_receipts',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterTideforgeEconomyReceiptsRow),
+  adapterTideforgeEconomyWallet: __table({
+    name: 'adapter_tideforge_economy_wallet',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterTideforgeEconomyWalletRow),
   adapterTideforgeFractionalCredits: __table({
     name: 'adapter_tideforge_fractional_credits',
     indexes: [
@@ -869,6 +939,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterTideforgeLoadoutRow),
+  adapterTideforgeMarkAwards: __table({
+    name: 'adapter_tideforge_mark_awards',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterTideforgeMarkAwardsRow),
+  adapterTideforgeRaidMarkBookings: __table({
+    name: 'adapter_tideforge_raid_mark_bookings',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterTideforgeRaidMarkBookingsRow),
   adapterTideforgeSpecimenModifiers: __table({
     name: 'adapter_tideforge_specimen_modifiers',
     indexes: [
@@ -876,6 +960,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdapterTideforgeSpecimenModifiersRow),
+  adapterTideforgeVault: __table({
+    name: 'adapter_tideforge_vault',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AdapterTideforgeVaultRow),
   adapterUpgradeQuote: __table({
     name: 'adapter_upgrade_quote',
     indexes: [
@@ -946,6 +1037,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyGearFamilyProgressRow),
+  myGearInstanceNames: __table({
+    name: 'my_gear_instance_names',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyGearInstanceNamesRow),
   myGearInstances: __table({
     name: 'my_gear_instances',
     indexes: [
@@ -1114,6 +1212,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyTideforgeActivitySnapshotsRow),
+  myTideforgeCodex: __table({
+    name: 'my_tideforge_codex',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyTideforgeCodexRow),
   myTideforgeDailyUses: __table({
     name: 'my_tideforge_daily_uses',
     indexes: [
@@ -1121,6 +1226,27 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyTideforgeDailyUsesRow),
+  myTideforgeEconomyQuote: __table({
+    name: 'my_tideforge_economy_quote',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyTideforgeEconomyQuoteRow),
+  myTideforgeEconomyReceipts: __table({
+    name: 'my_tideforge_economy_receipts',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyTideforgeEconomyReceiptsRow),
+  myTideforgeEconomyWallet: __table({
+    name: 'my_tideforge_economy_wallet',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyTideforgeEconomyWalletRow),
   myTideforgeFractionalCredits: __table({
     name: 'my_tideforge_fractional_credits',
     indexes: [
@@ -1149,6 +1275,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyTideforgeLoadoutRow),
+  myTideforgeMarkAwards: __table({
+    name: 'my_tideforge_mark_awards',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyTideforgeMarkAwardsRow),
+  myTideforgeRaidMarkBookings: __table({
+    name: 'my_tideforge_raid_mark_bookings',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyTideforgeRaidMarkBookingsRow),
   myTideforgeSpecimenModifiers: __table({
     name: 'my_tideforge_specimen_modifiers',
     indexes: [
@@ -1156,6 +1296,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyTideforgeSpecimenModifiersRow),
+  myTideforgeVault: __table({
+    name: 'my_tideforge_vault',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyTideforgeVaultRow),
   myUpgradeQuote: __table({
     name: 'my_upgrade_quote',
     indexes: [
@@ -1181,6 +1328,7 @@ const reducersSchema = __reducers(
   __reducerSchema("activate_rank_maxima", ActivateRankMaximaReducer),
   __reducerSchema("activate_rod_bonuses", ActivateRodBonusesReducer),
   __reducerSchema("activate_species_measurements", ActivateSpeciesMeasurementsReducer),
+  __reducerSchema("activate_tideforge_economy", ActivateTideforgeEconomyReducer),
   __reducerSchema("activate_tideforge_effects", ActivateTideforgeEffectsReducer),
   __reducerSchema("activate_trader", ActivateTraderReducer),
   __reducerSchema("activate_xp_progression", ActivateXpProgressionReducer),
@@ -1208,6 +1356,8 @@ const reducersSchema = __reducers(
   __reducerSchema("commit_shop_from_discord", CommitShopFromDiscordReducer),
   __reducerSchema("commit_shop_purchase", CommitShopPurchaseReducer),
   __reducerSchema("commit_shop_purchase_quantity", CommitShopPurchaseQuantityReducer),
+  __reducerSchema("commit_tideforge_action", CommitTideforgeActionReducer),
+  __reducerSchema("commit_tideforge_action_from_discord", CommitTideforgeActionFromDiscordReducer),
   __reducerSchema("commit_upgrade_from_discord", CommitUpgradeFromDiscordReducer),
   __reducerSchema("complete_account_link", CompleteAccountLinkReducer),
   __reducerSchema("configure_service", ConfigureServiceReducer),
@@ -1233,6 +1383,8 @@ const reducersSchema = __reducers(
   __reducerSchema("prepare_sale_from_discord", PrepareSaleFromDiscordReducer),
   __reducerSchema("prepare_shop_from_discord", PrepareShopFromDiscordReducer),
   __reducerSchema("prepare_shop_purchase", PrepareShopPurchaseReducer),
+  __reducerSchema("prepare_tideforge_action", PrepareTideforgeActionReducer),
+  __reducerSchema("prepare_tideforge_action_from_discord", PrepareTideforgeActionFromDiscordReducer),
   __reducerSchema("prepare_upgrade_from_discord", PrepareUpgradeFromDiscordReducer),
   __reducerSchema("rebuild_player_records", RebuildPlayerRecordsReducer),
   __reducerSchema("record_achievement_route", RecordAchievementRouteReducer),
@@ -1240,6 +1392,8 @@ const reducersSchema = __reducers(
   __reducerSchema("refine_raid_material_from_discord", RefineRaidMaterialFromDiscordReducer),
   __reducerSchema("reinforce_rod", ReinforceRodReducer),
   __reducerSchema("reinforce_rod_from_discord", ReinforceRodFromDiscordReducer),
+  __reducerSchema("rename_gear_instance", RenameGearInstanceReducer),
+  __reducerSchema("rename_gear_instance_from_discord", RenameGearInstanceFromDiscordReducer),
   __reducerSchema("select_discord_player", SelectDiscordPlayerReducer),
   __reducerSchema("select_journal", SelectJournalReducer),
   __reducerSchema("select_tideforge_signatures", SelectTideforgeSignaturesReducer),
@@ -1327,6 +1481,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "species_rank_definition": Omit<typeof tablesSchema.schemaType.tables["speciesRankDefinition"], "accessorName"> & { readonly accessorName: "species_rank_definition" };
     /** @deprecated Use `speciesRecord` instead. This alias will be removed in the next major version. */
     readonly "species_record": Omit<typeof tablesSchema.schemaType.tables["speciesRecord"], "accessorName"> & { readonly accessorName: "species_record" };
+    /** @deprecated Use `tideforgeEconomyState` instead. This alias will be removed in the next major version. */
+    readonly "tideforge_economy_state": Omit<typeof tablesSchema.schemaType.tables["tideforgeEconomyState"], "accessorName"> & { readonly accessorName: "tideforge_economy_state" };
     /** @deprecated Use `tideforgeState` instead. This alias will be removed in the next major version. */
     readonly "tideforge_state": Omit<typeof tablesSchema.schemaType.tables["tideforgeState"], "accessorName"> & { readonly accessorName: "tideforge_state" };
     /** @deprecated Use `adapterAchievementDeliveries` instead. This alias will be removed in the next major version. */
@@ -1351,6 +1507,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "adapter_gear_activity_snapshots": Omit<typeof tablesSchema.schemaType.tables["adapterGearActivitySnapshots"], "accessorName"> & { readonly accessorName: "adapter_gear_activity_snapshots" };
     /** @deprecated Use `adapterGearFamilyProgress` instead. This alias will be removed in the next major version. */
     readonly "adapter_gear_family_progress": Omit<typeof tablesSchema.schemaType.tables["adapterGearFamilyProgress"], "accessorName"> & { readonly accessorName: "adapter_gear_family_progress" };
+    /** @deprecated Use `adapterGearInstanceNames` instead. This alias will be removed in the next major version. */
+    readonly "adapter_gear_instance_names": Omit<typeof tablesSchema.schemaType.tables["adapterGearInstanceNames"], "accessorName"> & { readonly accessorName: "adapter_gear_instance_names" };
     /** @deprecated Use `adapterGearInstances` instead. This alias will be removed in the next major version. */
     readonly "adapter_gear_instances": Omit<typeof tablesSchema.schemaType.tables["adapterGearInstances"], "accessorName"> & { readonly accessorName: "adapter_gear_instances" };
     /** @deprecated Use `adapterGearLoadout` instead. This alias will be removed in the next major version. */
@@ -1389,8 +1547,16 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "adapter_tideforge_activity_receipts": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeActivityReceipts"], "accessorName"> & { readonly accessorName: "adapter_tideforge_activity_receipts" };
     /** @deprecated Use `adapterTideforgeActivitySnapshots` instead. This alias will be removed in the next major version. */
     readonly "adapter_tideforge_activity_snapshots": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeActivitySnapshots"], "accessorName"> & { readonly accessorName: "adapter_tideforge_activity_snapshots" };
+    /** @deprecated Use `adapterTideforgeCodex` instead. This alias will be removed in the next major version. */
+    readonly "adapter_tideforge_codex": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeCodex"], "accessorName"> & { readonly accessorName: "adapter_tideforge_codex" };
     /** @deprecated Use `adapterTideforgeDailyUses` instead. This alias will be removed in the next major version. */
     readonly "adapter_tideforge_daily_uses": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeDailyUses"], "accessorName"> & { readonly accessorName: "adapter_tideforge_daily_uses" };
+    /** @deprecated Use `adapterTideforgeEconomyQuote` instead. This alias will be removed in the next major version. */
+    readonly "adapter_tideforge_economy_quote": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeEconomyQuote"], "accessorName"> & { readonly accessorName: "adapter_tideforge_economy_quote" };
+    /** @deprecated Use `adapterTideforgeEconomyReceipts` instead. This alias will be removed in the next major version. */
+    readonly "adapter_tideforge_economy_receipts": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeEconomyReceipts"], "accessorName"> & { readonly accessorName: "adapter_tideforge_economy_receipts" };
+    /** @deprecated Use `adapterTideforgeEconomyWallet` instead. This alias will be removed in the next major version. */
+    readonly "adapter_tideforge_economy_wallet": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeEconomyWallet"], "accessorName"> & { readonly accessorName: "adapter_tideforge_economy_wallet" };
     /** @deprecated Use `adapterTideforgeFractionalCredits` instead. This alias will be removed in the next major version. */
     readonly "adapter_tideforge_fractional_credits": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeFractionalCredits"], "accessorName"> & { readonly accessorName: "adapter_tideforge_fractional_credits" };
     /** @deprecated Use `adapterTideforgeGear` instead. This alias will be removed in the next major version. */
@@ -1399,8 +1565,14 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "adapter_tideforge_library": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeLibrary"], "accessorName"> & { readonly accessorName: "adapter_tideforge_library" };
     /** @deprecated Use `adapterTideforgeLoadout` instead. This alias will be removed in the next major version. */
     readonly "adapter_tideforge_loadout": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeLoadout"], "accessorName"> & { readonly accessorName: "adapter_tideforge_loadout" };
+    /** @deprecated Use `adapterTideforgeMarkAwards` instead. This alias will be removed in the next major version. */
+    readonly "adapter_tideforge_mark_awards": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeMarkAwards"], "accessorName"> & { readonly accessorName: "adapter_tideforge_mark_awards" };
+    /** @deprecated Use `adapterTideforgeRaidMarkBookings` instead. This alias will be removed in the next major version. */
+    readonly "adapter_tideforge_raid_mark_bookings": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeRaidMarkBookings"], "accessorName"> & { readonly accessorName: "adapter_tideforge_raid_mark_bookings" };
     /** @deprecated Use `adapterTideforgeSpecimenModifiers` instead. This alias will be removed in the next major version. */
     readonly "adapter_tideforge_specimen_modifiers": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeSpecimenModifiers"], "accessorName"> & { readonly accessorName: "adapter_tideforge_specimen_modifiers" };
+    /** @deprecated Use `adapterTideforgeVault` instead. This alias will be removed in the next major version. */
+    readonly "adapter_tideforge_vault": Omit<typeof tablesSchema.schemaType.tables["adapterTideforgeVault"], "accessorName"> & { readonly accessorName: "adapter_tideforge_vault" };
     /** @deprecated Use `adapterUpgradeQuote` instead. This alias will be removed in the next major version. */
     readonly "adapter_upgrade_quote": Omit<typeof tablesSchema.schemaType.tables["adapterUpgradeQuote"], "accessorName"> & { readonly accessorName: "adapter_upgrade_quote" };
     /** @deprecated Use `myAchievementProgress` instead. This alias will be removed in the next major version. */
@@ -1421,6 +1593,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_gear_activity_snapshots": Omit<typeof tablesSchema.schemaType.tables["myGearActivitySnapshots"], "accessorName"> & { readonly accessorName: "my_gear_activity_snapshots" };
     /** @deprecated Use `myGearFamilyProgress` instead. This alias will be removed in the next major version. */
     readonly "my_gear_family_progress": Omit<typeof tablesSchema.schemaType.tables["myGearFamilyProgress"], "accessorName"> & { readonly accessorName: "my_gear_family_progress" };
+    /** @deprecated Use `myGearInstanceNames` instead. This alias will be removed in the next major version. */
+    readonly "my_gear_instance_names": Omit<typeof tablesSchema.schemaType.tables["myGearInstanceNames"], "accessorName"> & { readonly accessorName: "my_gear_instance_names" };
     /** @deprecated Use `myGearInstances` instead. This alias will be removed in the next major version. */
     readonly "my_gear_instances": Omit<typeof tablesSchema.schemaType.tables["myGearInstances"], "accessorName"> & { readonly accessorName: "my_gear_instances" };
     /** @deprecated Use `myGearLoadout` instead. This alias will be removed in the next major version. */
@@ -1469,8 +1643,16 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_tideforge_activity_receipts": Omit<typeof tablesSchema.schemaType.tables["myTideforgeActivityReceipts"], "accessorName"> & { readonly accessorName: "my_tideforge_activity_receipts" };
     /** @deprecated Use `myTideforgeActivitySnapshots` instead. This alias will be removed in the next major version. */
     readonly "my_tideforge_activity_snapshots": Omit<typeof tablesSchema.schemaType.tables["myTideforgeActivitySnapshots"], "accessorName"> & { readonly accessorName: "my_tideforge_activity_snapshots" };
+    /** @deprecated Use `myTideforgeCodex` instead. This alias will be removed in the next major version. */
+    readonly "my_tideforge_codex": Omit<typeof tablesSchema.schemaType.tables["myTideforgeCodex"], "accessorName"> & { readonly accessorName: "my_tideforge_codex" };
     /** @deprecated Use `myTideforgeDailyUses` instead. This alias will be removed in the next major version. */
     readonly "my_tideforge_daily_uses": Omit<typeof tablesSchema.schemaType.tables["myTideforgeDailyUses"], "accessorName"> & { readonly accessorName: "my_tideforge_daily_uses" };
+    /** @deprecated Use `myTideforgeEconomyQuote` instead. This alias will be removed in the next major version. */
+    readonly "my_tideforge_economy_quote": Omit<typeof tablesSchema.schemaType.tables["myTideforgeEconomyQuote"], "accessorName"> & { readonly accessorName: "my_tideforge_economy_quote" };
+    /** @deprecated Use `myTideforgeEconomyReceipts` instead. This alias will be removed in the next major version. */
+    readonly "my_tideforge_economy_receipts": Omit<typeof tablesSchema.schemaType.tables["myTideforgeEconomyReceipts"], "accessorName"> & { readonly accessorName: "my_tideforge_economy_receipts" };
+    /** @deprecated Use `myTideforgeEconomyWallet` instead. This alias will be removed in the next major version. */
+    readonly "my_tideforge_economy_wallet": Omit<typeof tablesSchema.schemaType.tables["myTideforgeEconomyWallet"], "accessorName"> & { readonly accessorName: "my_tideforge_economy_wallet" };
     /** @deprecated Use `myTideforgeFractionalCredits` instead. This alias will be removed in the next major version. */
     readonly "my_tideforge_fractional_credits": Omit<typeof tablesSchema.schemaType.tables["myTideforgeFractionalCredits"], "accessorName"> & { readonly accessorName: "my_tideforge_fractional_credits" };
     /** @deprecated Use `myTideforgeGear` instead. This alias will be removed in the next major version. */
@@ -1479,8 +1661,14 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "my_tideforge_library": Omit<typeof tablesSchema.schemaType.tables["myTideforgeLibrary"], "accessorName"> & { readonly accessorName: "my_tideforge_library" };
     /** @deprecated Use `myTideforgeLoadout` instead. This alias will be removed in the next major version. */
     readonly "my_tideforge_loadout": Omit<typeof tablesSchema.schemaType.tables["myTideforgeLoadout"], "accessorName"> & { readonly accessorName: "my_tideforge_loadout" };
+    /** @deprecated Use `myTideforgeMarkAwards` instead. This alias will be removed in the next major version. */
+    readonly "my_tideforge_mark_awards": Omit<typeof tablesSchema.schemaType.tables["myTideforgeMarkAwards"], "accessorName"> & { readonly accessorName: "my_tideforge_mark_awards" };
+    /** @deprecated Use `myTideforgeRaidMarkBookings` instead. This alias will be removed in the next major version. */
+    readonly "my_tideforge_raid_mark_bookings": Omit<typeof tablesSchema.schemaType.tables["myTideforgeRaidMarkBookings"], "accessorName"> & { readonly accessorName: "my_tideforge_raid_mark_bookings" };
     /** @deprecated Use `myTideforgeSpecimenModifiers` instead. This alias will be removed in the next major version. */
     readonly "my_tideforge_specimen_modifiers": Omit<typeof tablesSchema.schemaType.tables["myTideforgeSpecimenModifiers"], "accessorName"> & { readonly accessorName: "my_tideforge_specimen_modifiers" };
+    /** @deprecated Use `myTideforgeVault` instead. This alias will be removed in the next major version. */
+    readonly "my_tideforge_vault": Omit<typeof tablesSchema.schemaType.tables["myTideforgeVault"], "accessorName"> & { readonly accessorName: "my_tideforge_vault" };
     /** @deprecated Use `myUpgradeQuote` instead. This alias will be removed in the next major version. */
     readonly "my_upgrade_quote": Omit<typeof tablesSchema.schemaType.tables["myUpgradeQuote"], "accessorName"> & { readonly accessorName: "my_upgrade_quote" };
   };
@@ -1532,6 +1720,7 @@ const tableAccessorAliases = {
   "species_definition": "speciesDefinition",
   "species_rank_definition": "speciesRankDefinition",
   "species_record": "speciesRecord",
+  "tideforge_economy_state": "tideforgeEconomyState",
   "tideforge_state": "tideforgeState",
   "adapter_achievement_deliveries": "adapterAchievementDeliveries",
   "adapter_achievement_progress": "adapterAchievementProgress",
@@ -1544,6 +1733,7 @@ const tableAccessorAliases = {
   "adapter_daily_receipt": "adapterDailyReceipt",
   "adapter_gear_activity_snapshots": "adapterGearActivitySnapshots",
   "adapter_gear_family_progress": "adapterGearFamilyProgress",
+  "adapter_gear_instance_names": "adapterGearInstanceNames",
   "adapter_gear_instances": "adapterGearInstances",
   "adapter_gear_loadout": "adapterGearLoadout",
   "adapter_haul_status": "adapterHaulStatus",
@@ -1563,12 +1753,19 @@ const tableAccessorAliases = {
   "adapter_shop_quote": "adapterShopQuote",
   "adapter_tideforge_activity_receipts": "adapterTideforgeActivityReceipts",
   "adapter_tideforge_activity_snapshots": "adapterTideforgeActivitySnapshots",
+  "adapter_tideforge_codex": "adapterTideforgeCodex",
   "adapter_tideforge_daily_uses": "adapterTideforgeDailyUses",
+  "adapter_tideforge_economy_quote": "adapterTideforgeEconomyQuote",
+  "adapter_tideforge_economy_receipts": "adapterTideforgeEconomyReceipts",
+  "adapter_tideforge_economy_wallet": "adapterTideforgeEconomyWallet",
   "adapter_tideforge_fractional_credits": "adapterTideforgeFractionalCredits",
   "adapter_tideforge_gear": "adapterTideforgeGear",
   "adapter_tideforge_library": "adapterTideforgeLibrary",
   "adapter_tideforge_loadout": "adapterTideforgeLoadout",
+  "adapter_tideforge_mark_awards": "adapterTideforgeMarkAwards",
+  "adapter_tideforge_raid_mark_bookings": "adapterTideforgeRaidMarkBookings",
   "adapter_tideforge_specimen_modifiers": "adapterTideforgeSpecimenModifiers",
+  "adapter_tideforge_vault": "adapterTideforgeVault",
   "adapter_upgrade_quote": "adapterUpgradeQuote",
   "my_achievement_progress": "myAchievementProgress",
   "my_action": "myAction",
@@ -1579,6 +1776,7 @@ const tableAccessorAliases = {
   "my_dockside": "myDockside",
   "my_gear_activity_snapshots": "myGearActivitySnapshots",
   "my_gear_family_progress": "myGearFamilyProgress",
+  "my_gear_instance_names": "myGearInstanceNames",
   "my_gear_instances": "myGearInstances",
   "my_gear_loadout": "myGearLoadout",
   "my_haul_equipment": "myHaulEquipment",
@@ -1603,12 +1801,19 @@ const tableAccessorAliases = {
   "my_shop_quote": "myShopQuote",
   "my_tideforge_activity_receipts": "myTideforgeActivityReceipts",
   "my_tideforge_activity_snapshots": "myTideforgeActivitySnapshots",
+  "my_tideforge_codex": "myTideforgeCodex",
   "my_tideforge_daily_uses": "myTideforgeDailyUses",
+  "my_tideforge_economy_quote": "myTideforgeEconomyQuote",
+  "my_tideforge_economy_receipts": "myTideforgeEconomyReceipts",
+  "my_tideforge_economy_wallet": "myTideforgeEconomyWallet",
   "my_tideforge_fractional_credits": "myTideforgeFractionalCredits",
   "my_tideforge_gear": "myTideforgeGear",
   "my_tideforge_library": "myTideforgeLibrary",
   "my_tideforge_loadout": "myTideforgeLoadout",
+  "my_tideforge_mark_awards": "myTideforgeMarkAwards",
+  "my_tideforge_raid_mark_bookings": "myTideforgeRaidMarkBookings",
   "my_tideforge_specimen_modifiers": "myTideforgeSpecimenModifiers",
+  "my_tideforge_vault": "myTideforgeVault",
   "my_upgrade_quote": "myUpgradeQuote",
 } as const;
 
@@ -1692,6 +1897,8 @@ export type DbView = __DbViewBase & {
   readonly "species_rank_definition": __DbViewBase["speciesRankDefinition"];
   /** @deprecated Use `speciesRecord` instead. This alias will be removed in the next major version. */
   readonly "species_record": __DbViewBase["speciesRecord"];
+  /** @deprecated Use `tideforgeEconomyState` instead. This alias will be removed in the next major version. */
+  readonly "tideforge_economy_state": __DbViewBase["tideforgeEconomyState"];
   /** @deprecated Use `tideforgeState` instead. This alias will be removed in the next major version. */
   readonly "tideforge_state": __DbViewBase["tideforgeState"];
   /** @deprecated Use `adapterAchievementDeliveries` instead. This alias will be removed in the next major version. */
@@ -1716,6 +1923,8 @@ export type DbView = __DbViewBase & {
   readonly "adapter_gear_activity_snapshots": __DbViewBase["adapterGearActivitySnapshots"];
   /** @deprecated Use `adapterGearFamilyProgress` instead. This alias will be removed in the next major version. */
   readonly "adapter_gear_family_progress": __DbViewBase["adapterGearFamilyProgress"];
+  /** @deprecated Use `adapterGearInstanceNames` instead. This alias will be removed in the next major version. */
+  readonly "adapter_gear_instance_names": __DbViewBase["adapterGearInstanceNames"];
   /** @deprecated Use `adapterGearInstances` instead. This alias will be removed in the next major version. */
   readonly "adapter_gear_instances": __DbViewBase["adapterGearInstances"];
   /** @deprecated Use `adapterGearLoadout` instead. This alias will be removed in the next major version. */
@@ -1754,8 +1963,16 @@ export type DbView = __DbViewBase & {
   readonly "adapter_tideforge_activity_receipts": __DbViewBase["adapterTideforgeActivityReceipts"];
   /** @deprecated Use `adapterTideforgeActivitySnapshots` instead. This alias will be removed in the next major version. */
   readonly "adapter_tideforge_activity_snapshots": __DbViewBase["adapterTideforgeActivitySnapshots"];
+  /** @deprecated Use `adapterTideforgeCodex` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_codex": __DbViewBase["adapterTideforgeCodex"];
   /** @deprecated Use `adapterTideforgeDailyUses` instead. This alias will be removed in the next major version. */
   readonly "adapter_tideforge_daily_uses": __DbViewBase["adapterTideforgeDailyUses"];
+  /** @deprecated Use `adapterTideforgeEconomyQuote` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_economy_quote": __DbViewBase["adapterTideforgeEconomyQuote"];
+  /** @deprecated Use `adapterTideforgeEconomyReceipts` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_economy_receipts": __DbViewBase["adapterTideforgeEconomyReceipts"];
+  /** @deprecated Use `adapterTideforgeEconomyWallet` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_economy_wallet": __DbViewBase["adapterTideforgeEconomyWallet"];
   /** @deprecated Use `adapterTideforgeFractionalCredits` instead. This alias will be removed in the next major version. */
   readonly "adapter_tideforge_fractional_credits": __DbViewBase["adapterTideforgeFractionalCredits"];
   /** @deprecated Use `adapterTideforgeGear` instead. This alias will be removed in the next major version. */
@@ -1764,8 +1981,14 @@ export type DbView = __DbViewBase & {
   readonly "adapter_tideforge_library": __DbViewBase["adapterTideforgeLibrary"];
   /** @deprecated Use `adapterTideforgeLoadout` instead. This alias will be removed in the next major version. */
   readonly "adapter_tideforge_loadout": __DbViewBase["adapterTideforgeLoadout"];
+  /** @deprecated Use `adapterTideforgeMarkAwards` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_mark_awards": __DbViewBase["adapterTideforgeMarkAwards"];
+  /** @deprecated Use `adapterTideforgeRaidMarkBookings` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_raid_mark_bookings": __DbViewBase["adapterTideforgeRaidMarkBookings"];
   /** @deprecated Use `adapterTideforgeSpecimenModifiers` instead. This alias will be removed in the next major version. */
   readonly "adapter_tideforge_specimen_modifiers": __DbViewBase["adapterTideforgeSpecimenModifiers"];
+  /** @deprecated Use `adapterTideforgeVault` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_vault": __DbViewBase["adapterTideforgeVault"];
   /** @deprecated Use `adapterUpgradeQuote` instead. This alias will be removed in the next major version. */
   readonly "adapter_upgrade_quote": __DbViewBase["adapterUpgradeQuote"];
   /** @deprecated Use `myAchievementProgress` instead. This alias will be removed in the next major version. */
@@ -1786,6 +2009,8 @@ export type DbView = __DbViewBase & {
   readonly "my_gear_activity_snapshots": __DbViewBase["myGearActivitySnapshots"];
   /** @deprecated Use `myGearFamilyProgress` instead. This alias will be removed in the next major version. */
   readonly "my_gear_family_progress": __DbViewBase["myGearFamilyProgress"];
+  /** @deprecated Use `myGearInstanceNames` instead. This alias will be removed in the next major version. */
+  readonly "my_gear_instance_names": __DbViewBase["myGearInstanceNames"];
   /** @deprecated Use `myGearInstances` instead. This alias will be removed in the next major version. */
   readonly "my_gear_instances": __DbViewBase["myGearInstances"];
   /** @deprecated Use `myGearLoadout` instead. This alias will be removed in the next major version. */
@@ -1834,8 +2059,16 @@ export type DbView = __DbViewBase & {
   readonly "my_tideforge_activity_receipts": __DbViewBase["myTideforgeActivityReceipts"];
   /** @deprecated Use `myTideforgeActivitySnapshots` instead. This alias will be removed in the next major version. */
   readonly "my_tideforge_activity_snapshots": __DbViewBase["myTideforgeActivitySnapshots"];
+  /** @deprecated Use `myTideforgeCodex` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_codex": __DbViewBase["myTideforgeCodex"];
   /** @deprecated Use `myTideforgeDailyUses` instead. This alias will be removed in the next major version. */
   readonly "my_tideforge_daily_uses": __DbViewBase["myTideforgeDailyUses"];
+  /** @deprecated Use `myTideforgeEconomyQuote` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_economy_quote": __DbViewBase["myTideforgeEconomyQuote"];
+  /** @deprecated Use `myTideforgeEconomyReceipts` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_economy_receipts": __DbViewBase["myTideforgeEconomyReceipts"];
+  /** @deprecated Use `myTideforgeEconomyWallet` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_economy_wallet": __DbViewBase["myTideforgeEconomyWallet"];
   /** @deprecated Use `myTideforgeFractionalCredits` instead. This alias will be removed in the next major version. */
   readonly "my_tideforge_fractional_credits": __DbViewBase["myTideforgeFractionalCredits"];
   /** @deprecated Use `myTideforgeGear` instead. This alias will be removed in the next major version. */
@@ -1844,8 +2077,14 @@ export type DbView = __DbViewBase & {
   readonly "my_tideforge_library": __DbViewBase["myTideforgeLibrary"];
   /** @deprecated Use `myTideforgeLoadout` instead. This alias will be removed in the next major version. */
   readonly "my_tideforge_loadout": __DbViewBase["myTideforgeLoadout"];
+  /** @deprecated Use `myTideforgeMarkAwards` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_mark_awards": __DbViewBase["myTideforgeMarkAwards"];
+  /** @deprecated Use `myTideforgeRaidMarkBookings` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_raid_mark_bookings": __DbViewBase["myTideforgeRaidMarkBookings"];
   /** @deprecated Use `myTideforgeSpecimenModifiers` instead. This alias will be removed in the next major version. */
   readonly "my_tideforge_specimen_modifiers": __DbViewBase["myTideforgeSpecimenModifiers"];
+  /** @deprecated Use `myTideforgeVault` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_vault": __DbViewBase["myTideforgeVault"];
   /** @deprecated Use `myUpgradeQuote` instead. This alias will be removed in the next major version. */
   readonly "my_upgrade_quote": __DbViewBase["myUpgradeQuote"];
 };
@@ -1914,6 +2153,8 @@ export type Tables = __TablesBase & {
   readonly "species_rank_definition": __TablesBase["speciesRankDefinition"];
   /** @deprecated Use `speciesRecord` instead. This alias will be removed in the next major version. */
   readonly "species_record": __TablesBase["speciesRecord"];
+  /** @deprecated Use `tideforgeEconomyState` instead. This alias will be removed in the next major version. */
+  readonly "tideforge_economy_state": __TablesBase["tideforgeEconomyState"];
   /** @deprecated Use `tideforgeState` instead. This alias will be removed in the next major version. */
   readonly "tideforge_state": __TablesBase["tideforgeState"];
   /** @deprecated Use `adapterAchievementDeliveries` instead. This alias will be removed in the next major version. */
@@ -1938,6 +2179,8 @@ export type Tables = __TablesBase & {
   readonly "adapter_gear_activity_snapshots": __TablesBase["adapterGearActivitySnapshots"];
   /** @deprecated Use `adapterGearFamilyProgress` instead. This alias will be removed in the next major version. */
   readonly "adapter_gear_family_progress": __TablesBase["adapterGearFamilyProgress"];
+  /** @deprecated Use `adapterGearInstanceNames` instead. This alias will be removed in the next major version. */
+  readonly "adapter_gear_instance_names": __TablesBase["adapterGearInstanceNames"];
   /** @deprecated Use `adapterGearInstances` instead. This alias will be removed in the next major version. */
   readonly "adapter_gear_instances": __TablesBase["adapterGearInstances"];
   /** @deprecated Use `adapterGearLoadout` instead. This alias will be removed in the next major version. */
@@ -1976,8 +2219,16 @@ export type Tables = __TablesBase & {
   readonly "adapter_tideforge_activity_receipts": __TablesBase["adapterTideforgeActivityReceipts"];
   /** @deprecated Use `adapterTideforgeActivitySnapshots` instead. This alias will be removed in the next major version. */
   readonly "adapter_tideforge_activity_snapshots": __TablesBase["adapterTideforgeActivitySnapshots"];
+  /** @deprecated Use `adapterTideforgeCodex` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_codex": __TablesBase["adapterTideforgeCodex"];
   /** @deprecated Use `adapterTideforgeDailyUses` instead. This alias will be removed in the next major version. */
   readonly "adapter_tideforge_daily_uses": __TablesBase["adapterTideforgeDailyUses"];
+  /** @deprecated Use `adapterTideforgeEconomyQuote` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_economy_quote": __TablesBase["adapterTideforgeEconomyQuote"];
+  /** @deprecated Use `adapterTideforgeEconomyReceipts` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_economy_receipts": __TablesBase["adapterTideforgeEconomyReceipts"];
+  /** @deprecated Use `adapterTideforgeEconomyWallet` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_economy_wallet": __TablesBase["adapterTideforgeEconomyWallet"];
   /** @deprecated Use `adapterTideforgeFractionalCredits` instead. This alias will be removed in the next major version. */
   readonly "adapter_tideforge_fractional_credits": __TablesBase["adapterTideforgeFractionalCredits"];
   /** @deprecated Use `adapterTideforgeGear` instead. This alias will be removed in the next major version. */
@@ -1986,8 +2237,14 @@ export type Tables = __TablesBase & {
   readonly "adapter_tideforge_library": __TablesBase["adapterTideforgeLibrary"];
   /** @deprecated Use `adapterTideforgeLoadout` instead. This alias will be removed in the next major version. */
   readonly "adapter_tideforge_loadout": __TablesBase["adapterTideforgeLoadout"];
+  /** @deprecated Use `adapterTideforgeMarkAwards` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_mark_awards": __TablesBase["adapterTideforgeMarkAwards"];
+  /** @deprecated Use `adapterTideforgeRaidMarkBookings` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_raid_mark_bookings": __TablesBase["adapterTideforgeRaidMarkBookings"];
   /** @deprecated Use `adapterTideforgeSpecimenModifiers` instead. This alias will be removed in the next major version. */
   readonly "adapter_tideforge_specimen_modifiers": __TablesBase["adapterTideforgeSpecimenModifiers"];
+  /** @deprecated Use `adapterTideforgeVault` instead. This alias will be removed in the next major version. */
+  readonly "adapter_tideforge_vault": __TablesBase["adapterTideforgeVault"];
   /** @deprecated Use `adapterUpgradeQuote` instead. This alias will be removed in the next major version. */
   readonly "adapter_upgrade_quote": __TablesBase["adapterUpgradeQuote"];
   /** @deprecated Use `myAchievementProgress` instead. This alias will be removed in the next major version. */
@@ -2008,6 +2265,8 @@ export type Tables = __TablesBase & {
   readonly "my_gear_activity_snapshots": __TablesBase["myGearActivitySnapshots"];
   /** @deprecated Use `myGearFamilyProgress` instead. This alias will be removed in the next major version. */
   readonly "my_gear_family_progress": __TablesBase["myGearFamilyProgress"];
+  /** @deprecated Use `myGearInstanceNames` instead. This alias will be removed in the next major version. */
+  readonly "my_gear_instance_names": __TablesBase["myGearInstanceNames"];
   /** @deprecated Use `myGearInstances` instead. This alias will be removed in the next major version. */
   readonly "my_gear_instances": __TablesBase["myGearInstances"];
   /** @deprecated Use `myGearLoadout` instead. This alias will be removed in the next major version. */
@@ -2056,8 +2315,16 @@ export type Tables = __TablesBase & {
   readonly "my_tideforge_activity_receipts": __TablesBase["myTideforgeActivityReceipts"];
   /** @deprecated Use `myTideforgeActivitySnapshots` instead. This alias will be removed in the next major version. */
   readonly "my_tideforge_activity_snapshots": __TablesBase["myTideforgeActivitySnapshots"];
+  /** @deprecated Use `myTideforgeCodex` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_codex": __TablesBase["myTideforgeCodex"];
   /** @deprecated Use `myTideforgeDailyUses` instead. This alias will be removed in the next major version. */
   readonly "my_tideforge_daily_uses": __TablesBase["myTideforgeDailyUses"];
+  /** @deprecated Use `myTideforgeEconomyQuote` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_economy_quote": __TablesBase["myTideforgeEconomyQuote"];
+  /** @deprecated Use `myTideforgeEconomyReceipts` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_economy_receipts": __TablesBase["myTideforgeEconomyReceipts"];
+  /** @deprecated Use `myTideforgeEconomyWallet` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_economy_wallet": __TablesBase["myTideforgeEconomyWallet"];
   /** @deprecated Use `myTideforgeFractionalCredits` instead. This alias will be removed in the next major version. */
   readonly "my_tideforge_fractional_credits": __TablesBase["myTideforgeFractionalCredits"];
   /** @deprecated Use `myTideforgeGear` instead. This alias will be removed in the next major version. */
@@ -2066,8 +2333,14 @@ export type Tables = __TablesBase & {
   readonly "my_tideforge_library": __TablesBase["myTideforgeLibrary"];
   /** @deprecated Use `myTideforgeLoadout` instead. This alias will be removed in the next major version. */
   readonly "my_tideforge_loadout": __TablesBase["myTideforgeLoadout"];
+  /** @deprecated Use `myTideforgeMarkAwards` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_mark_awards": __TablesBase["myTideforgeMarkAwards"];
+  /** @deprecated Use `myTideforgeRaidMarkBookings` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_raid_mark_bookings": __TablesBase["myTideforgeRaidMarkBookings"];
   /** @deprecated Use `myTideforgeSpecimenModifiers` instead. This alias will be removed in the next major version. */
   readonly "my_tideforge_specimen_modifiers": __TablesBase["myTideforgeSpecimenModifiers"];
+  /** @deprecated Use `myTideforgeVault` instead. This alias will be removed in the next major version. */
+  readonly "my_tideforge_vault": __TablesBase["myTideforgeVault"];
   /** @deprecated Use `myUpgradeQuote` instead. This alias will be removed in the next major version. */
   readonly "my_upgrade_quote": __TablesBase["myUpgradeQuote"];
 };
