@@ -179,6 +179,7 @@ export class Game {
   get raidActionUnconfirmed() { return this.actionUnconfirmed; }
   get authenticatedIdentity() { return this.identityKey; }
   get tideforgeIdentity() { return this.identityKey; }
+  get tideforgeDetailsReady() { return this.tideforgeViewReady; }
   get equipmentInformationUnavailable() {
     return this.tideforgeAvailability === 'loading' || this.tideforgeKnownActive && !this.tideforgeCoreReady;
   }
@@ -341,7 +342,7 @@ export class Game {
 
   private syncTideforgeView() {
     const connection = this.connection;
-    if (this.selectedView !== 'tideforge' || !connection || !this.tideforgeCoreReady || !this.player) {
+    if (!['tideforge', 'trader'].includes(this.selectedView) || !connection || !this.tideforgeCoreReady || !this.player) {
       const view = this.tideforgeView;
       this.tideforgeView = null; this.tideforgeViewReady = false; this.tideforgeViewRevision++;
       view?.unsubscribe();
@@ -355,7 +356,7 @@ export class Game {
     this.tideforgeView = connection.subscriptionBuilder().onApplied(() => {
       if (generation !== this.generation || revision !== this.tideforgeViewRevision
         || connection !== this.connection || this.player?.playerId !== playerId
-        || this.identityKey !== identity || this.tideforgeCoreKey !== coreKey || this.selectedView !== 'tideforge') return;
+        || this.identityKey !== identity || this.tideforgeCoreKey !== coreKey || !['tideforge', 'trader'].includes(this.selectedView)) return;
       this.tideforgeViewReady = true; this.tideforgeLoading = false; this.tideforgeDetailsUnavailable = false;
       this.refreshTideforge(connection);
     }).onError(() => {
@@ -952,7 +953,7 @@ export class Game {
           return false;
         }
         this.actionUnconfirmed = true;
-        this.error = 'The connection dropped before this action was confirmed. Retry the same action; it will reuse its request ID.';
+        this.error = 'The connection dropped before confirmation. Check the same raid action again safely; do not start a different action.';
         return false;
       }
       this.pendingRaidIntent = null;

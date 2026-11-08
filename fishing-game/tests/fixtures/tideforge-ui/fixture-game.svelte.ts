@@ -25,6 +25,9 @@ export class Game extends RealGame {
   unknownPreview = false;
   renameFailure: '' | 'invalid' | 'unknown' = '';
   holdNextRename = false;
+  failNextEquip = false;
+  holdNextUpgrade = false;
+  private releaseUpgrade: (() => void) | null = null;
   private releaseRename: (() => void) | null = null;
   private serverNames: typeof this.gearInstanceNames = [];
   private savedFish: typeof this.inventory | null = null;
@@ -124,6 +127,74 @@ export class Game extends RealGame {
     this.tideforgeGear = [...this.tideforgeGear, ...[102n, 103n, 104n, 105n].map(instanceId => ({
       playerId: 9n, instanceId, affixesJson: '[]', nativeSignature: undefined,
     }))] as typeof this.tideforgeGear;
+  }
+  showTackleGear() {
+    this.enableHaulNames();
+    this.gearLoadout = { ...this.gearLoadout!, rodInstanceId: 100n };
+    this.rods = this.rods.map(row => row.rodId === 7 ? { ...row, minimumLevel: 99 } : row);
+    this.gearInstances = this.gearInstances.map(row => row.instanceId === 100n ? { ...row, reinforcementLevel: 0 } : row);
+    const boat = this.gearInstances.find(row => row.instanceId === 102n)!;
+    const net = this.gearInstances.find(row => row.instanceId === 103n)!;
+    this.gearInstances = [...this.gearInstances,
+      { ...boat, instanceId: 9007199254740993n, qualityLevel: 1, protectedOriginal: false },
+      { ...net, instanceId: 9007199254740995n, qualityLevel: 2, protectedOriginal: false },
+      { ...this.gearInstances[0], instanceId: 107n, definitionId: 7, familyId: 7, protectedOriginal: false },
+    ];
+    this.serverNames = [
+      { playerId: 9n, instanceId: 101n, name: 'Rod Buddy' },
+      { playerId: 9n, instanceId: 9007199254740993n, name: 'Boat Buddy' },
+      { playerId: 9n, instanceId: 9007199254740995n, name: 'Net Buddy' },
+    ];
+    this.replayGearNames();
+    this.items = [
+      { key: 1n, item: 'rusted_tin', quantity: 100n }, { key: 2n, item: 'scrap', quantity: 100n },
+      { key: 1000n, item: 'raid_fillets_f', quantity: 100n }, { key: 1100n, item: 'raid_scales_f', quantity: 100n },
+    ] as typeof this.items;
+    this.raidBadges = [{ playerId: 9n, speciesId: model.speciesId, clearedGrades: 1 }] as typeof this.raidBadges;
+  }
+  async equipGearInstance(instanceId: bigint): Promise<boolean> {
+    this.calls.push({ action: 'equip', instanceId: instanceId.toString() });
+    if (this.failNextEquip) { this.failNextEquip = false; this.tideforgeError = 'This gear is busy on a trip.'; return false; }
+    const item = this.gearInstances.find(row => row.playerId === this.player?.playerId && row.instanceId === instanceId);
+    if (!item || !this.gearLoadout || !this.player) return false;
+    if (item.kind === 'rod') {
+      this.gearLoadout = { ...this.gearLoadout, rodInstanceId: instanceId };
+      this.player = { ...this.player, equippedRodId: item.definitionId };
+    } else if (item.kind === 'boat' || item.kind === 'net') {
+      this.gearLoadout = { ...this.gearLoadout, [item.kind === 'boat' ? 'boatInstanceId' : 'netInstanceId']: instanceId };
+      if (this.haulLoadout) this.haulLoadout = { ...this.haulLoadout, [item.kind === 'boat' ? 'boatId' : 'netId']: item.definitionId };
+    }
+    return true;
+  }
+  async changeLoadout(_biomeId?: number, rodId?: number) {
+    this.calls.push({ action: 'legacyRod', instanceId: String(rodId) });
+    if (this.player && rodId !== undefined) this.player = { ...this.player, equippedRodId: rodId };
+  }
+  async equipHaulEquipment(equipmentId: number) {
+    this.calls.push({ action: 'legacyHaul', instanceId: String(equipmentId) });
+    const equipment = this.haulEquipment.find(row => row.equipmentId === equipmentId);
+    if (equipment && this.haulLoadout) this.haulLoadout = { ...this.haulLoadout,
+      [equipment.kind === 'boat' ? 'boatId' : 'netId']: equipmentId };
+  }
+  async previewUpgrade(rodId: number) {
+    this.calls.push({ action: 'previewUpgrade' });
+    if (this.holdNextUpgrade) {
+      this.holdNextUpgrade = false; this.busy = true;
+      await new Promise<void>(resolve => { this.releaseUpgrade = resolve; });
+      this.busy = false;
+    }
+    const now = this.serverNowMicros ?? 0n;
+    this.upgradeQuote = { rodId, fromQuality: this.rodStats(rodId).quality?.qualityLevel ?? 0,
+      tinCost: 1n, scrapCost: 1n, nonce: 77n, consumed: false,
+      expiresAt: { microsSinceUnixEpoch: now + 120000000n } } as typeof this.upgradeQuote;
+  }
+  releaseHeldUpgrade() { this.releaseUpgrade?.(); this.releaseUpgrade = null; }
+  async previewHaulUpgrade(equipmentId: number) {
+    this.calls.push({ action: 'previewHaulUpgrade' });
+    const now = this.serverNowMicros ?? 0n;
+    this.haulUpgradeQuote = { equipmentId, rodId: this.haulEquipment.find(row => row.equipmentId === equipmentId)?.rodId ?? 0,
+      fromQuality: this.haulStats(equipmentId).quality?.qualityLevel ?? 0, tinCost: 1n, scrapCost: 1n,
+      nonce: 78n, consumed: false, expiresAt: { microsSinceUnixEpoch: now + 120000000n } } as typeof this.haulUpgradeQuote;
   }
   async renameGearInstance(instanceId: bigint, name: string): Promise<boolean> {
     const validation = gearNameValidationMessage(name);

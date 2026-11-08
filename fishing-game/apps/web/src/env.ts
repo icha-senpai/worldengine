@@ -15,4 +15,5 @@ export const variables = defineEnvVars({
   PUBLIC_SPACETIMEDB_URI: { public: true, schema: publicUrl },
   PUBLIC_SPACETIMEDB_DATABASE: { public: true, schema: (value: string | undefined) => value ?? '' },
   PUBLIC_ACCOUNT_LINK_URL: { public: true, schema: publicUrl },
+  PUBLIC_DISCORD_PLAY_URL: { public: true, schema: (value: string | undefined) => value ?? '' },
 });

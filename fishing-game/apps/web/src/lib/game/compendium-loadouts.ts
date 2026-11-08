@@ -7,11 +7,12 @@ import { baselineLoadout, type CollectionFocus, type RateLoadout } from './compe
 import type { BaitDefinition, BaitLoadout, BaitStack, GameConfig, Player, QualityDefinition, RodDefinition } from '@fishing-game/generated/types';
 
 type EquippedRateState = {
-  collection?: { speciesId: number; count: bigint; rankCounts: bigint[] }[];
-  focusPreferences?: { biomeId: number; enabled: boolean }[];
+  collection?: { playerId?: bigint; speciesId: number; count: bigint; rankCounts: bigint[] }[];
+  focusPreferences?: { playerId?: bigint; biomeId: number; enabled: boolean }[];
   rodReinforcements?: { rodId: number; level: number }[];
+  equipmentInformationUnavailable?: boolean;
   ready: boolean;
-  player: Pick<Player, 'equippedRodId'> | null;
+  player: Pick<Player, 'equippedRodId'> & Partial<Pick<Player, 'playerId'>> | null;
   rods: Pick<RodDefinition, 'rodId' | 'name'>[];
   baits: Pick<BaitDefinition, 'baitId' | 'name' | 'luckBp' | 'sizeRolls'>[];
   baitLoadout: (Pick<BaitLoadout, 'baitId'> & Partial<Pick<BaitLoadout, 'secondaryBaitId'>>) | null;
@@ -38,14 +39,16 @@ export const bestPerfectLoadout: RateLoadout = {
 
 export function collectionFocusContext(game?: EquippedRateState): CollectionFocus | undefined {
   if (!game?.ready || !game.player || (game.config?.version ?? 0) < 13) return undefined;
-  const discovered = new Set(game.collection?.filter(row => row.count > 0n).map(row => row.speciesId));
-  const biomeIds = game.focusPreferences?.filter(row => row.enabled && catalog.species.filter(fish => fish.biomeId === row.biomeId && fish.countsForOrdinaryCollectionCompletion).every(fish => discovered.has(fish.speciesId))).map(row => row.biomeId) ?? [];
-  const rankMasks = Object.fromEntries(game.collection?.map(row => [row.speciesId, row.rankCounts.reduce((mask, count, rank) => count > 0n ? mask | (1 << rank) : mask, 0)]) ?? []);
+  const own = <T extends { playerId?: bigint }>(row: T) => game.player?.playerId === undefined || row.playerId === game.player.playerId;
+  const collection = game.collection?.filter(row => own(row) && row.count > 0n) ?? [];
+  const discovered = new Set(collection.map(row => row.speciesId));
+  const biomeIds = game.focusPreferences?.filter(row => own(row) && row.enabled && catalog.species.filter(fish => fish.biomeId === row.biomeId && fish.countsForOrdinaryCollectionCompletion).every(fish => discovered.has(fish.speciesId))).map(row => row.biomeId) ?? [];
+  const rankMasks = Object.fromEntries(collection.map(row => [row.speciesId, (row.rankCounts ?? []).reduce((mask, count, rank) => count > 0n ? mask | (1 << rank) : mask, 0)]));
   return { biomeIds, rankMasks };
 }
 
 export function equippedLoadout(game?: EquippedRateState): RateLoadout | null {
-  if (!game?.ready || !game.player) return null;
+  if (!game?.ready || !game.player || game.equipmentInformationUnavailable) return null;
   const rod = game.rods.find(row => row.rodId === game.player!.equippedRodId);
   const stats = game.rodStats(game.player.equippedRodId);
   if (!rod || !stats.quality) return null;

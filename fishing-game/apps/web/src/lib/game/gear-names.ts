@@ -15,6 +15,6 @@ export function gearNameValidationMessage(name: string): string {
 export function gearRenameErrorMessage(message: string): string {
   if (message.includes('GEAR_NAME_TOO_LONG')) return 'Names can be up to 32 characters.';
   if (message.includes('GEAR_NAME_INVALID')) return 'Names cannot contain control or direction-changing characters.';
-  if (message.includes('GEAR_INSTANCE_UNAVAILABLE')) return 'This gear is no longer available. Refresh and try again.';
+  if (message.includes('GEAR_INSTANCE_UNAVAILABLE')) return 'This gear is no longer available. Review your gear list and try again.';
   return 'This name could not be saved. Please try again.';
 }

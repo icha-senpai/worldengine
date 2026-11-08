@@ -2,6 +2,15 @@ import type { CommunityRaidEvent, OwnedSpecimen, RaidAttempt, SpeciesDefinition 
 
 const ranks = ['F', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'UR', 'UUR'];
 
+export function raidActiveStatusLabel(status: string): string {
+  switch (status) {
+    case 'prepared': return 'Prepared';
+    case 'deployed': return 'Launch scheduled';
+    case 'running': return 'Underway';
+    default: return 'Status unavailable';
+  }
+}
+
 export function formatRaidDuration(seconds: number): string {
   let remaining = Number.isFinite(seconds) ? Math.max(0, Math.trunc(seconds)) : 0;
   const parts: string[] = [];

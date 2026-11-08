@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import raids from '../content/raids.json' with { type: 'json' };
 import { processingProtectionLabel, tideforgeActionLabel, tideforgeErrorMessage, tideforgeMaterialLabel, tideforgeValidationMessage } from '../apps/web/src/lib/game/tideforge-copy.ts';
@@ -27,11 +28,32 @@ test('action and material labels are closed and match every known grade', () => 
 test('errors and validation have safe known and unknown messages', () => {
   for (const [code, expected] of [
     ['TIDEFORGE_GEAR_PROTECTED', /protected/i], ['GEAR_LOCKED', /fishing trip or raid/],
-    ['INSUFFICIENT_MATERIALS', /materials and shards/], ['TIDEFORGE_AFFIX_SLOT_LOCKED', /mastery/],
+    ['INSUFFICIENT_MATERIALS', /required material grades.*balances in Materials/], ['TIDEFORGE_AFFIX_SLOT_LOCKED', /mastery/],
   ]) assert.match(tideforgeErrorMessage(code), expected);
   assert.equal(tideforgeErrorMessage('TIDEFORGE_SECRET_CODE <hostile_unknown>'), 'This action could not be completed. Check your gear and materials, then try again.');
   assert.equal(tideforgeValidationMessage('Choose a water.'), 'Choose a water.');
   assert.equal(tideforgeValidationMessage('hostile_unknown_field'), 'Review your selection and try again.');
+});
+
+test('trader, materials and shard errors use actionable safe language', () => {
+  const trader = tideforgeErrorMessage('TIDEFORGE_WANDERING_CLOSED');
+  assert.equal(trader, 'The wandering trader is away. Check Trader for the next visit in your local time.');
+  assert.doesNotMatch(trader, /monthly|refresh|TIDEFORGE_/i);
+  const materials = 'You do not have enough materials for this action. Review the required material grades and your balances in Materials.';
+  assert.equal(tideforgeErrorMessage('RAID_MATERIALS_REQUIRED'), materials);
+  assert.equal(tideforgeErrorMessage('INSUFFICIENT_MATERIALS'), materials);
+  assert.equal(tideforgeErrorMessage('TIDEFORGE_SHARDS_REQUIRED'), 'You need more shards for this affix. Dismantle eligible gear with that affix, then review your Materials.');
+  assert.equal(tideforgeErrorMessage('TIDEFORGE_SHARD_OVERFLOW'), 'This action could not be completed. Check your gear and materials, then try again.');
+});
+
+test('retry and unknown raid guidance avoid refresh and internal request terminology', async () => {
+  const tideforge = await readFile(new URL('../apps/web/src/lib/game/Tideforge.svelte', import.meta.url), 'utf8');
+  const game = await readFile(new URL('../apps/web/src/lib/game/game.svelte.ts', import.meta.url), 'utf8');
+  assert.match(tideforge, /Tideforge could not load\. Retry Tideforge to reconnect this section; your saved gear is unchanged\./);
+  assert.match(tideforge, /This preview could not be read safely\. Open a new preview; do not confirm this one\./);
+  assert.doesNotMatch(tideforge, /Refresh the page/);
+  assert.match(game, /The connection dropped before confirmation\. Check the same raid action again safely; do not start a different action\./);
+  assert.doesNotMatch(game, /reuse its request ID/);
 });
 
 test('numbered gear and catches are stable across cache order and isolated models', () => {

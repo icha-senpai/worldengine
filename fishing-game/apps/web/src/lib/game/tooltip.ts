@@ -183,6 +183,18 @@ export function tooltip(node: HTMLElement, initialMessage?: string) {
     scheduleHide();
   }
 
+  function onScroll() {
+    // Focus can scroll an anchor into view after opening its tooltip.
+    if (focused && visible && document.activeElement === node) {
+      const rect = node.getBoundingClientRect();
+      if (rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth) {
+        position();
+        return;
+      }
+    }
+    hide();
+  }
+
   function onKeydown(event: KeyboardEvent) {
     if (event.key !== 'Escape' || !visible) return;
     event.preventDefault();
@@ -200,7 +212,7 @@ export function tooltip(node: HTMLElement, initialMessage?: string) {
   node.addEventListener('focus', onFocus);
   node.addEventListener('blur', onBlur);
   document.addEventListener('keydown', onKeydown, true);
-  window.addEventListener('scroll', hide, true);
+  window.addEventListener('scroll', onScroll, true);
   window.addEventListener('resize', position);
   updateDescription();
   if (typeof ResizeObserver !== 'undefined') {
@@ -231,7 +243,7 @@ export function tooltip(node: HTMLElement, initialMessage?: string) {
       node.removeEventListener('focus', onFocus);
       node.removeEventListener('blur', onBlur);
       document.removeEventListener('keydown', onKeydown, true);
-      window.removeEventListener('scroll', hide, true);
+      window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', position);
       if (node.getAttribute('aria-description') === (originalDescription ? `${originalDescription} ${message}` : message)) {
         if (originalDescription === null) node.removeAttribute('aria-description');

@@ -101,7 +101,8 @@ try {
       });
       await page.route('**/api/time', async route => { await gate; try { await route.continue(); } catch {} });
       await page.goto(`${base}/#tideforge`, { waitUntil: 'domcontentloaded' });
-      await page.locator('#tideforge-tab-trader').click();
+      await page.getByRole('button', { name: 'Visit shop', exact: true }).click();
+      await page.locator('#shop-tab-additional').click();
       await choose(page, 'Gear model', 'River Rod');
       await choose(page, 'Secondary water', 'Whispering River');
       const trigger = page.getByRole('button', { name: 'Preview gear purchase' });
@@ -151,7 +152,7 @@ try {
         page.on('framenavigated', frame => { if (frame === page.mainFrame()) navigations++; });
         const originalUrl = page.url();
         await page.getByRole('textbox', { name: 'Other section input' }).fill('kept draft');
-        await page.getByRole('alert').getByText('Could not load this section.').waitFor({ state: 'visible' });
+        await page.getByRole('alert').getByRole('heading', { name: 'We hit a snag loading this section.' }).waitFor({ state: 'visible' });
         assert.equal(await page.getByRole('button', { name: 'Reload page' }).count(), 0);
         await page.getByRole('button', { name: 'Retry section' }).evaluate(button => { button.click(); button.click(); });
         if (failures === 2) {

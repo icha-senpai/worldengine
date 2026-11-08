@@ -4,6 +4,7 @@
 - `rank-cards/`: original F, D, C, B, A, S, SS, SSS, UR, UUR cards.
 - `items/`: generated transparent pixel-art rusted tin and scrap inventory icons.
 - `achievements/`: generated transparent pixel-art achievement medals, keyed by stable badge ID.
+- `fonts/`: self-hosted Silkscreen and Nunito error-page fonts; their SIL Open Font License notices are included in this directory.
 - `manifest.json`: keys, public URLs, PNG dimensions, bytes, SHA-256 hashes.
 
 Images are extracted without resizing, recompressing, or changing transparency.

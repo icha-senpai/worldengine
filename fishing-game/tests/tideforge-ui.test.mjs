@@ -4,17 +4,41 @@ import { test } from 'node:test';
 import catalog from '../content/species.json' with { type: 'json' };
 import { rankSpreads } from '../apps/web/src/lib/game/compendium.ts';
 import { specimenProcessingProtection } from '../apps/web/src/lib/game/tideforge-processing.ts';
-import { affixDescription, affixSlotState, affixValues, canConsume, forgeAffixChoices, forgeWaterChangeAllowed, gearSprite, rolls, signatureDescription, toggleProcessingSelection, waterOptions } from '../apps/web/src/lib/game/tideforge-ui.ts';
+import { affixDescription, affixSlotState, affixValues, canConsume, forgeAffixChoices, forgeWaterChangeAllowed, gearSprite, orderGearForDisplay, rolls, signatureDescription, toggleProcessingSelection, waterOptions } from '../apps/web/src/lib/game/tideforge-ui.ts';
 
-test('Tackle Box mounts only Gear / Bait, Mats and Fish', async () => {
+test('gear display prioritizes equipped, then favorites, stably without changing source', () => {
+  const items = [
+    { instanceId: 1n, kind: 'net', favorite: false },
+    { instanceId: 2n, kind: 'boat', favorite: true },
+    { instanceId: 9007199254740993n, kind: 'rod', favorite: true },
+    { instanceId: 4n, kind: 'rod', favorite: false },
+    { instanceId: 5n, kind: 'net', favorite: true },
+    { instanceId: 6n, kind: 'boat', favorite: false },
+    { instanceId: 7n, kind: 'net', favorite: false },
+  ];
+  const original = [...items];
+  items.forEach(Object.freeze);
+  Object.freeze(items);
+  const equipped = new Set([9007199254740993n, 6n]);
+  const sorted = orderGearForDisplay({ gearIsEquipped: id => equipped.has(id) }, items);
+  assert.notEqual(sorted, items);
+  assert.deepEqual(sorted.map(item => item.instanceId), [9007199254740993n, 6n, 2n, 5n, 1n, 4n, 7n]);
+  assert.deepEqual(items, original);
+  assert(sorted.every(item => original.includes(item)));
+});
+
+test('Tackle Box keeps fish and links to the canonical Gear and Materials views', async () => {
   const dashboard = await readFile(new URL('../apps/web/src/lib/game/Dashboard.svelte', import.meta.url), 'utf8');
+  const tideforgeGear = await readFile(new URL('../apps/web/src/lib/game/TideforgeGear.svelte', import.meta.url), 'utf8');
+  const records = await readFile(new URL('../apps/web/src/lib/game/TideforgeRecords.svelte', import.meta.url), 'utf8');
   assert.doesNotMatch(dashboard, /RaidWorkshop|tackle-(?:tab|panel)-workshop|id:\s*'workshop'|tackleView\s*===\s*'workshop'/);
-  for (const [id, label] of [['gear', 'Gear / Bait'], ['materials', 'Mats'], ['fish', 'Fish']]) {
-    assert(dashboard.includes(`{ id: '${id}', label: '${label}' }`));
-    assert(dashboard.includes(`id="tackle-panel-${id}"`));
-  }
-  assert.match(dashboard, /import\('\.\/Gear\.svelte'\)/);
-  assert.match(dashboard, /<TackleBoxItems items=\{game\.items\}/);
+  assert.match(dashboard, /openRoute\('tideforge', 'gear'\)/);
+  assert.match(dashboard, /openRoute\('tideforge', 'materials'\)/);
+  assert.match(dashboard, /<PageTurner bind:page=\{inventoryPage\} total=\{game\.inventory\.length\} pageSize=\{inventoryPageSize\}/);
+  assert.doesNotMatch(dashboard, /<TackleBoxItems|import\('\.\/Gear\.svelte'\)/);
+  assert.match(tideforgeGear, /<details class="loadout"><summary>Equipped gear, upgrades &amp; bait<\/summary>/);
+  assert.match(tideforgeGear, /<Gear \{game\} \{active\} \/>/);
+  assert.match(records, /<Materials \{game\} \{onNavigate\} \/>/);
 });
 
 test('gear art uses the correct catalog and equipment kind with safe fallbacks', () => {
@@ -43,8 +67,23 @@ test('gear art uses the correct catalog and equipment kind with safe fallbacks',
   assert.equal(gearSprite({}, { kind: 'net', definitionId: 201 }), null);
 });
 
+test('processing shares 50-fish pages and shows artwork without catch numbering', async () => {
+  const processing = await readFile(new URL('../apps/web/src/lib/game/TideforgeProcessing.svelte', import.meta.url), 'utf8');
+  const tideforge = await readFile(new URL('../apps/web/src/lib/game/Tideforge.svelte', import.meta.url), 'utf8');
+  assert.match(processing, /const pageSize = 50/);
+  assert.match(processing, /const currentPageFish = \$derived\(game\.inventory\.slice\(\(page - 1\) \* pageSize, page \* pageSize\)\)/);
+  assert.match(processing, /for \(const fish of currentPageFish\)/);
+  assert.match(processing, /#each currentPageFish as fish/);
+  assert.match(processing, /<PageTurner[^>]*\{pageSize\}/);
+  assert.match(processing, /<img src=\{species\?\.spriteAsset \|\| '\/fish\/minnow\.png'\} alt=""[^>]*loading="lazy"/);
+  assert.match(processing, /onerror=\{event =>/);
+  assert.doesNotMatch(processing, /catchLabel/);
+  assert.doesNotMatch(tideforge, /catchLabel/);
+  assert.match(tideforge, /formatLength\(specimen\.lengthMm\).*formatWeight\(specimen\.weightG\)/);
+});
+
 test('Tideforge help uses the shared info button', async () => {
-  for (const [name, count] of [['Tideforge', 1], ['TideforgeGear', 4], ['TideforgeForge', 2], ['TideforgeTrader', 1]]) {
+  for (const [name, count] of [['Tideforge', 2], ['TideforgeGear', 4], ['TideforgeForge', 3], ['TideforgeProcessing', 1], ['TideforgeTrader', 1]]) {
     const component = await readFile(new URL(`../apps/web/src/lib/game/${name}.svelte`, import.meta.url), 'utf8');
     assert.doesNotMatch(component, /ⓘ/);
     assert.match(component, /import InfoButton from '\.\/InfoButton\.svelte'/);

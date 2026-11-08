@@ -129,6 +129,14 @@ Do not add fixture/reset commands or blanket player-table exceptions. Commit
 regenerated client bindings with module changes; mismatched contracts stop before
 publication and generated source is returned to its original Git state.
 
+Fishbound activates its legacy catalogs first, then gear instances, Tideforge
+effects, Tideforge economy and the live calendar, in that order. The release
+preservation rules permit scheduled calendar metadata to change and the
+`gear_family_progress.curve_version` backfill from the foundation to the effects
+version. Player ownership, mastery XP, wallets, saved gear, catches, signatures
+and receipts remain protected. Repeated activation must leave those records
+unchanged; exercise the same hook sequence in an isolated upgrade proof.
+
 The lower-level `node deploy/linux/publish.mjs space|fishbound [--build-only]`
 commands remain available for focused maintenance. They only publish websites.
 

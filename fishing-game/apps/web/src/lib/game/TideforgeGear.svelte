@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import type { Game } from './game.svelte';
   import type { GearInstance } from '@fishing-game/generated/types';
   import type { TideforgeIntent } from './tideforge-intents';
-  import { affixes, affixDescription, affixName, affixSlotState, affixValues, canConsume, familyMastery, gearDefaultLabel, gearLabel, gearName, gearNickname, gearSprite, gearTitle, gearProtectionMessage, rolls, signatureDescription, signatureName } from './tideforge-ui';
+  import { affixes, affixDescription, affixName, affixSlotState, affixValues, canConsume, familyMastery, gearDefaultLabel, gearLabel, gearName, gearNickname, gearSprite, gearTitle, gearProtectionMessage, orderGearForDisplay, rolls, signatureDescription, signatureName } from './tideforge-ui';
   import { gearNameValidationMessage, normalizeGearName } from './gear-names';
   import { masteryHelp, strengthHelp } from './tideforge-copy';
   import raidPolicy from '../../../../../content/raids.json';
@@ -11,9 +11,10 @@
   import SearchInput from './SearchInput.svelte';
   import PageTurner from './PageTurner.svelte';
   import InfoButton from './InfoButton.svelte';
+  import Gear from './Gear.svelte';
   import { tooltip } from './tooltip';
-  let { game, onchange, onpreview }: {
-    game: Game; onchange: () => void; onpreview: (intent: TideforgeIntent) => void;
+  let { game, active = true, onchange, onpreview }: {
+    game: Game; active?: boolean; onchange: () => void; onpreview: (intent: TideforgeIntent) => void;
   } = $props();
   let query = $state('');
   let kind = $state('');
@@ -23,9 +24,9 @@
   let saving = $state(false);
   let renameInput = $state<HTMLInputElement>();
   let opener: HTMLButtonElement | undefined;
-  const filtered = $derived(game.gearInstances.filter(item =>
+  const filtered = $derived(orderGearForDisplay(game, game.gearInstances.filter(item =>
     (!kind || item.kind === kind) && (gearName(game, item).toLowerCase().includes(query.trim().toLowerCase())
-      || gearNickname(game, item).toLowerCase().includes(query.trim().toLowerCase()))));
+      || gearNickname(game, item).toLowerCase().includes(query.trim().toLowerCase())))));
   const goalOptions = [
     { value: 'ranks', label: 'Ranks' }, { value: 'maxima', label: 'Rank maxima' }, { value: 'perfects', label: 'Perfects' },
   ] as const;
@@ -56,6 +57,7 @@
     editor = null; draft = ''; saving = false; opener = undefined; game.gearNameError = '';
     if (restoreFocus) void tick().then(() => button?.focus());
   }
+  $effect(() => { if (!active && editor) untrack(() => closeRename(false)); });
   function renameKeydown(event: KeyboardEvent) {
     if (event.key === 'Escape' && !saving) { event.preventDefault(); closeRename(true); }
   }
@@ -72,6 +74,11 @@
 </script>
 
 <div class="tideforge-gear">
+  <p>Open your equipped loadout to switch gear, upgrade, reinforce or choose bait.</p>
+  <details class="loadout"><summary>Equipped gear, upgrades &amp; bait</summary>
+    <Gear {game} {active} />
+  </details>
+  {#if game.tideforgeAvailability === 'active' && !game.tideforgeLoading}
   {#if game.gearNamesAvailability === 'unavailable'}
     <p role="status">Gear names are unavailable on this server. Your gear still works. <button type="button" class="tideforge-action secondary" onclick={() => game.retryGearNames()}>Retry names</button></p>
   {/if}
@@ -135,8 +142,9 @@
     {/each}
   </div>
   <PageTurner bind:page total={filtered.length} pageSize={12} label="Tideforge gear pages" />
+  {/if}
 </div>
 
 <style>
-  .tideforge-gear{display:grid;gap:18px;min-width:0}.filters,.actions{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.filters label{display:grid;gap:6px;min-width:150px}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{padding:16px;border:2px solid var(--paper-edge);background:var(--panel-inset);min-width:0;overflow-wrap:anywhere}.gear-art{display:flex;align-items:center;justify-content:center;min-width:0;height:132px;box-sizing:border-box;margin-bottom:12px;border:1px solid var(--paper-edge);background:var(--paper)}.gear-art img{width:112px;height:112px;max-width:100%;object-fit:contain;image-rendering:pixelated}.card h3{font-family:var(--font-game);margin:0}.card p{margin:8px 0}.card ul{padding-left:20px}.card li{margin:7px 0}.card small,.gear-base-name{display:block;color:var(--ink-muted)}.actions button{max-width:100%;white-space:normal}.rename-form{display:grid;gap:8px;min-width:0;margin-top:14px}.rename-form label{display:grid;gap:6px;min-width:0}.rename-form input{width:100%;min-width:0;box-sizing:border-box}.rename-form p{margin:0}.rename-error{color:var(--error-ink,var(--ink))}@media(max-width:1199px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:699px){.cards{grid-template-columns:repeat(1,minmax(0,1fr))}}@media(pointer:coarse){.rename-form input,.tideforge-gear button{min-height:44px}}
+  .tideforge-gear{display:grid;gap:18px;min-width:0}.loadout{padding:14px;border:2px solid var(--paper-edge);background:var(--paper-light);min-width:0}.loadout summary{font-family:var(--font-game);font-size:20px;cursor:pointer}.filters,.actions{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.filters label{display:grid;gap:6px;min-width:150px}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{padding:16px;border:2px solid var(--paper-edge);background:var(--panel-inset);min-width:0;overflow-wrap:anywhere}.gear-art{display:flex;align-items:center;justify-content:center;min-width:0;height:132px;box-sizing:border-box;margin-bottom:12px;border:1px solid var(--paper-edge);background:var(--paper)}.gear-art img{width:112px;height:112px;max-width:100%;object-fit:contain;image-rendering:pixelated}.card h3{font-family:var(--font-game);margin:0}.card p{margin:8px 0}.card ul{padding-left:20px}.card li{margin:7px 0}.card small,.gear-base-name{display:block;color:var(--ink-muted)}.actions button{max-width:100%;white-space:normal}.rename-form{display:grid;gap:8px;min-width:0;margin-top:14px}.rename-form label{display:grid;gap:6px;min-width:0}.rename-form input{width:100%;min-width:0;box-sizing:border-box}.rename-form p{margin:0}.rename-error{color:var(--error-ink,var(--ink))}@media(max-width:1199px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:699px){.cards{grid-template-columns:repeat(1,minmax(0,1fr))}}@media(pointer:coarse){.rename-form input,.tideforge-gear button{min-height:44px}}
 </style>

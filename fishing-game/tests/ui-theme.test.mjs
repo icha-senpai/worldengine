@@ -136,7 +136,7 @@ test('shared keyboard focus selectors and ThemeToggle focus ring remain intact',
   assert.match(componentSources['SectionTabs.svelte'], /\.section-tabs\{[^}]*--control-focus:var\(--site-focus\)/);
   assert.match(componentSources['SectionTabs.svelte'], /\.section-tabs button:focus-visible\{outline:3px solid var\(--control-focus\);outline-offset:2px\}/);
   assert.match(componentSources['Dashboard.svelte'], /nav,\.camp-tabs,footer,\.dev-login\{--control-focus:var\(--site-focus\)\}/);
-  assert.match(componentSources['Dashboard.svelte'], /\.book-link:focus-visible,.view-panel:focus-visible\{outline-color:var\(--site-focus\)\}/);
+  assert.match(componentSources['Dashboard.svelte'], /\.book-link:focus-visible,\.discord-action:focus-visible,\.progress-details>summary:focus-visible,\.view-panel:focus-visible\{outline:3px solid var\(--site-focus\);outline-offset:2px\}/);
   assert.doesNotMatch(componentSources['Dashboard.svelte'].match(/\.camp-banner\{[^}]*\}/)?.[0] ?? '', /--control-focus/);
 });
 
@@ -229,7 +229,7 @@ test('audited component chrome uses semantic surfaces, status colors and focus c
   assert.match(styleRule('Dashboard.svelte', '.connection.live>span'), /background:var\(--site-success\)/);
   assert.match(styleRule('Dashboard.svelte', '.biome-grid article::before'), /border-bottom:2px solid var\(--paper-edge\)/);
   assert.match(dashboard, /nav,\.camp-tabs,footer,\.dev-login\{--control-focus:var\(--site-focus\)\}/);
-  assert.match(dashboard, /\.book-link:focus-visible,.view-panel:focus-visible\{outline-color:var\(--site-focus\)\}/);
+  assert.match(dashboard, /\.book-link:focus-visible,\.discord-action:focus-visible,\.progress-details>summary:focus-visible,\.view-panel:focus-visible\{outline:3px solid var\(--site-focus\);outline-offset:2px\}/);
   assert.doesNotMatch(dashboard.match(/\.camp-banner\{[^}]*\}/)?.[0] ?? '', /--control-focus/);
 
   assert.doesNotMatch(componentSources['RaidBoard.svelte'], /var\(--danger-ink\s*,/);

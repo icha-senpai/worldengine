@@ -9,10 +9,26 @@
   import { tooltip } from './tooltip';
   import PageTurner from './PageTurner.svelte';
   import FishDetails from './FishDetails.svelte';
+  import CollectionProgress from './CollectionProgress.svelte';
+  import SectionTabs from './SectionTabs.svelte';
+  import InfoButton from './InfoButton.svelte';
+  import { matchesBookFilters } from './fish-book-ui';
   import { baselineLoadout, castChance, formatOdds, formatPercent, perfectCatchOdds } from './compendium';
   import { bestPerfectLoadout, collectionFocusContext, equippedLoadout } from './compendium-loadouts';
   import type { Game } from './game.svelte';
-  let { active = true, game } = $props<{ active?: boolean; game?: Game }>();
+  type BookView = 'collection' | 'field-guide';
+  let { active = true, game, requestedView, onViewChange, collectionPageSize = 12 } = $props<{
+    active?: boolean; game?: Game; requestedView?: BookView; onViewChange?: (view: BookView) => void; collectionPageSize?: number;
+  }>();
+  const tabs: { id: BookView; label: string }[] = [
+    { id: 'collection', label: 'My collection' }, { id: 'field-guide', label: 'Field guide / odds' },
+  ];
+  let fallbackView = $state<BookView>('field-guide');
+  const view = $derived(requestedView ?? fallbackView);
+  function selectView(next: BookView) {
+    if (next === view) return;
+    if (onViewChange) onViewChange(next); else fallbackView = next;
+  }
   const pageSize = 24;
   const tiers = ['F', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'UR', 'UUR'];
   let query = $state('');
@@ -21,46 +37,70 @@
   let page = $state(1);
   let rateMode = $state<'baseline' | 'equipped' | 'best'>('baseline');
   const equipped = $derived(equippedLoadout(game));
+  const equippedReason = $derived(!game?.player ? 'Link your Discord account to see your equipped loadout.'
+    : !game.ready ? 'Wait for the connection and equipment to finish loading.'
+      : game.equipmentInformationUnavailable ? 'Equipment details are unavailable. Retry Tideforge to load your equipped stats.'
+        : !equipped ? 'Your equipped rod details are unavailable. Review your gear in Tideforge.' : '');
   const loadout = $derived(rateMode === 'best' ? { ...bestPerfectLoadout, focus: collectionFocusContext(game) } : rateMode === 'equipped' && equipped ? equipped : baselineLoadout);
   $effect(() => { if (rateMode === 'equipped' && !equipped) rateMode = 'baseline'; });
   const focusBiomeId = $derived(biome || game?.player?.selectedBiomeId || 1);
   const focusBiome = $derived(world.biomes.find(row => row.biomeId === focusBiomeId)!);
   const focusSpecies = $derived(catalog.species.filter(row => row.biomeId === focusBiomeId && row.countsForOrdinaryCollectionCompletion));
-  const focusDiscovered = $derived(focusSpecies.filter(fish => game?.collection.some((row: { speciesId: number; count: bigint }) => row.speciesId === fish.speciesId && row.count > 0n)).length);
-  const focusEnabled = $derived(game?.focusPreferences.some((row: { biomeId: number; enabled: boolean }) => row.biomeId === focusBiomeId && row.enabled) ?? false);
-  const focusAvailable = $derived(!!game?.ready && !!game.player && (game.config?.version ?? 0) >= 13);
+  const focusDiscovered = $derived(focusSpecies.filter(fish => game?.collection.some((row: { playerId: bigint; speciesId: number; count: bigint }) => row.playerId === game?.player?.playerId && row.speciesId === fish.speciesId && row.count > 0n)).length);
+  const focusEnabled = $derived(game?.focusPreferences.some((row: { playerId: bigint; biomeId: number; enabled: boolean }) => row.playerId === game?.player?.playerId && row.biomeId === focusBiomeId && row.enabled) ?? false);
   const focusLicensed = $derived(focusBiomeId === 1 || !!game?.licences.some((row: { biomeId: number }) => row.biomeId === focusBiomeId));
   const focusUnlocked = $derived(focusDiscovered === focusSpecies.length && focusLicensed);
-  const reinforcementLevel = $derived(loadout.reinforcementLevel ?? 0);
+  const reinforcementLevel = $derived(game?.equipmentInformationUnavailable ? undefined : equipped?.reinforcementLevel);
   const reinforcementGrade = $derived(reinforcementLevel
     ? raidRules.grades[reinforcementLevel - 1]?.name ?? 'reinforced'
     : 'unreinforced');
   const focusChanceBp = $derived(reinforcementLevel
     ? raidRules.grades[reinforcementLevel - 1]?.focusChanceBp ?? gameRules.collectionFocusBp
     : gameRules.collectionFocusBp);
+  const focusReason = $derived(!game?.player ? 'Link Discord to track your collection and unlock this mode.'
+    : !game.ready ? 'Wait for your collection to finish loading.'
+      : (game.config?.version ?? 0) < 13 ? 'Collection Focus is awaiting the game update.'
+        : game.busy ? 'Wait for the current action to finish.'
+          : !focusLicensed && !focusEnabled ? 'Purchase this biome’s licence to use Collection Focus.'
+            : !focusUnlocked && !focusEnabled ? `${focusDiscovered} / ${focusSpecies.length} ordinary species discovered. Discover them all in this biome to unlock.` : '');
   let selected = $state<typeof catalog.species[number] | null>(null);
-  $effect(() => { if (!active) selected = null; });
+  $effect(() => { active; view; game?.tideforgeIdentity; game?.player?.playerId; selected = null; });
+  function selectFish(speciesId: number) { selected = catalog.species.find(row => row.speciesId === speciesId) ?? null; }
   const species = $derived(catalog.species.map(entry => ({ ...entry, perfect: perfectCatchOdds(entry, loadout), asset: manifest.fish.find(asset => asset.key === entry.spriteKey)! })));
-  const fish = $derived(species.filter(entry => (!biome || entry.biomeId === biome) && (!rarity || entry.allowedRarities.includes(rarity)) && (entry.name.toLowerCase().includes(query.trim().toLowerCase()) || entry.key.includes(query.trim().toLowerCase().replaceAll(' ', '-')))));
+  const fish = $derived(species.filter(entry => matchesBookFilters(entry, query, biome, rarity)));
 </script>
 
 <section aria-labelledby="compendium-heading">
-  <h2 id="compendium-heading">The fish book <span>{species.length} species</span></h2>
+  <h2 id="compendium-heading">The Fish Book <span>{species.length} species</span></h2>
+  <SectionTabs {tabs} value={view} prefix="fish-book" label="Fish Book sections" onselect={selectView} />
   <div class="filters">
     <div class="search"><label for="catalog-search">Find a fish</label><SearchInput id="catalog-search" label="Find a fish" placeholder="Carp, koi, trout…" value={query} oninput={value => {query = value; page = 1;}} /></div>
     <div><label for="catalog-biome">Biome</label><GameSelect id="catalog-biome" label="Biome" value={biome} options={[{value:0,label:"All waters"},...world.biomes.map(b=>({value:b.biomeId,label:b.name}))]} onchange={value => {biome = value; page = 1;}} /></div>
-    <div><label for="catalog-rank">Rank</label><GameSelect id="catalog-rank" label="Rank" value={rarity} options={[{value:"",label:"All ranks"},...tiers.map(tier=>({value:tier,label:tier}))]} onchange={value => {rarity = value; page = 1;}} /></div>
+    <div><div class="filter-heading"><label for="catalog-rank">Rank</label><InfoButton label="About fish ranks" message="Rank requires both length and weight thresholds. Descriptive size is not rank. A rank maximum is one fish at both endpoints for that rank; a perfect fish reaches both UUR endpoints." /></div><GameSelect id="catalog-rank" label="Rank" value={rarity} options={[{value:"",label:"All ranks"},...tiers.map(tier=>({value:tier,label:tier}))]} onchange={value => {rarity = value; page = 1;}} /></div>
+  </div>
+  <div role="tabpanel" id="fish-book-panel-collection" aria-labelledby="fish-book-tab-collection" tabindex="0" hidden={view !== 'collection'}>
+  {#if view === 'collection'}
+    {#if !game?.player}<p>Link Discord from Camp to track your collection.</p><a href="#camp">Open Camp</a>
+    {:else if !game.ready}<p role="status">Loading your collection…</p>
+    {:else}
+      <div class="collection-focus">
+        <label for="collection-focus-toggle"><input id="collection-focus-toggle" type="checkbox" checked={focusEnabled} disabled={!!focusReason} aria-describedby={focusReason ? 'focus-reason' : undefined} onchange={event => { if (!focusReason) game.setCollectionFocus(focusBiomeId, event.currentTarget.checked); }} /> Collection Focus · {focusBiome.name}</label>
+        <p id="focus-reason">{focusReason || `${focusEnabled ? 'On' : 'Off'} · All ${focusSpecies.length} ordinary species discovered.`}</p>
+        {#if reinforcementLevel === undefined}<p>Loading your equipped rod’s Focus chance…</p>
+        {:else}<p>{reinforcementGrade} rod Focus chance: {focusChanceBp / 100}% for missing-rank rerolls when enabled in a mastered biome.</p>{/if}
+        <p>Reinforced endpoint bonus rolls apply only to a selected ordinary UUR fish after all ten ranks of that species are recorded; special species are excluded. Known ranks can lose odds. Free to toggle; applies to Discord casts. Fihs and the Sock retain their normal odds.</p>
+      </div>
+      <CollectionProgress {game} {query} {biome} {rarity} pageSize={collectionPageSize} onselect={selectFish} />
+    {/if}
+  {/if}
+  </div>
+  <div role="tabpanel" id="fish-book-panel-field-guide" aria-labelledby="fish-book-tab-field-guide" tabindex="0" hidden={view !== 'field-guide'}>
+  {#if view === 'field-guide'}
     <fieldset class="rate-presets"><legend>Catch rates</legend><div>
       <button aria-pressed={rateMode === 'baseline'} onclick={() => rateMode = 'baseline'}>Baseline</button>
-      <button aria-pressed={rateMode === 'equipped'} disabled={!equipped} use:tooltip={!equipped ? 'Link your Discord account to see your equipped loadout.' : undefined} onclick={() => rateMode = 'equipped'}>{game?.tideforgeAvailability === 'active' ? 'Equipped base gear' : 'Equipped'}</button>
+      <button aria-pressed={rateMode === 'equipped'} disabled={!!equippedReason} aria-describedby={equippedReason ? 'equipped-rate-reason' : undefined} use:tooltip={equippedReason || undefined} onclick={() => rateMode = 'equipped'}>{game?.tideforgeAvailability === 'active' ? 'Equipped base gear' : 'Equipped'}</button>
       <button aria-pressed={rateMode === 'best'} onclick={() => rateMode = 'best'}>{game?.tideforgeAvailability === 'active' ? 'Best base gear' : 'Best for perfects'}</button>
-    </div>{#if !equipped}<small>Link your Discord account to compare your equipped loadout.</small>{/if}</fieldset>
-  </div>
-  <div class="collection-focus">
-    <label for="collection-focus-toggle"><input id="collection-focus-toggle" type="checkbox" checked={focusEnabled} disabled={!focusAvailable || (!focusUnlocked && !focusEnabled) || game?.busy} onchange={event => game?.setCollectionFocus(focusBiomeId, event.currentTarget.checked)} /> Collection Focus · {focusBiome.name}</label>
-    <p>{#if !game?.player}Link Discord to track your collection and unlock this mode.{:else if !focusAvailable}Collection Focus is awaiting the game update.{:else if !focusLicensed}Purchase this biome’s licence to use Collection Focus.{:else if !focusUnlocked}{focusDiscovered} / {focusSpecies.length} ordinary species discovered. Discover them all in this biome to unlock.{:else}{focusEnabled ? 'On' : 'Off'} · All {focusSpecies.length} ordinary species discovered.{/if}</p>
-    <p>{reinforcementGrade} rod Focus chance: {focusChanceBp / 100}% for missing-rank rerolls when enabled in a mastered biome. Reinforced endpoint bonus rolls apply only to a selected ordinary UUR fish after all ten ranks of that species are recorded; special species are excluded. Known ranks can lose odds. Free to toggle; applies to Discord casts. Fihs and the Sock retain their normal odds.</p>
-  </div>
+    </div>{#if equippedReason}<small id="equipped-rate-reason">{equippedReason}{#if game?.player && game.ready} <a href="#tideforge/gear">Review gear</a>{/if}</small>{/if}</fieldset>
   <p class="loadout" aria-live="polite"><strong>{loadout.name}{rateMode === 'best' ? ' · UUR-reinforced' : ''}</strong><span>+{formatPercent(loadout.luckBp / 100)} luck · {formatPercent(loadout.power / 2)} bonus pull · {loadout.sizeRolls} size {loadout.sizeRolls === 1 ? 'attempt' : 'attempts'}</span></p>
   <p class="count">{fish.length} matching fish. Rates are per accepted cast in each fish's biome{rarity ? ' at the selected rank' : ', across all eligible ranks'}, using the loadout above.{rateMode === 'best' ? game?.tideforgeAvailability === 'active' ? ' Uses the strongest base gear and two Trophy Chums, whether or not you own them.' : ' Uses the strongest gear and two Trophy Chums, whether or not you own them.' : ''}</p>
   {#if game?.tideforgeAvailability === 'active' && rateMode !== 'baseline'}<p class="count">Base-gear estimate only. All Tideforge bonuses are excluded.</p>{/if}
@@ -77,6 +117,8 @@
     {#if !fish.length}<p class="count">No fish match these filters.</p>{/if}
   </div>
   <PageTurner bind:page total={fish.length} {pageSize} label="Compendium pages" />
+  {/if}
+  </div>
 </section>
 <FishDetails bind:fish={selected} {loadout} asset={selected ? manifest.fish.find(asset => asset.key === selected!.spriteKey)!.url : ''} />
 
@@ -99,7 +141,7 @@
   section{position:relative;padding:36px;background:var(--panel-texture),var(--paper);color:var(--ink);border:3px solid var(--wood-dark);box-shadow:inset 0 0 0 2px var(--panel-highlight),0 6px 0 var(--wood-dark)}
   section::before{content:'';position:absolute;left:12px;top:12px;bottom:12px;border-left:2px dashed var(--paper-edge);pointer-events:none}
   h2{font-family:var(--font-game);font-size:36px;font-weight:500;margin:0 0 22px;line-height:1.25}h2 span{font-family:var(--font-body);font-size:16px;color:var(--ink-muted);font-weight:400;margin-left:12px;white-space:nowrap}
-  .filters{display:flex;gap:16px;flex-wrap:wrap;padding:16px;background:var(--panel-inset);border:1px solid var(--paper-edge);box-shadow:inset 0 0 0 2px var(--panel-highlight)}.filters>div{display:flex;flex-direction:column;gap:6px;min-width:0}.filters .search{flex:1;min-width:180px}
+  .filters{display:flex;gap:16px;flex-wrap:wrap;padding:16px;background:var(--panel-inset);border:1px solid var(--paper-edge);box-shadow:inset 0 0 0 2px var(--panel-highlight)}.filters>div{display:flex;flex-direction:column;gap:6px;min-width:0}.filters .search{flex:1;min-width:180px}.filter-heading{display:flex;align-items:center;gap:4px}
   label{font-size:16px;font-weight:700;color:var(--ink)}input{width:100%;min-width:0}
   .count{font-size:16px;color:var(--ink);margin:18px 0 22px}
   .fish{display:grid;grid-template-columns:repeat(auto-fill,minmax(244px,1fr));gap:20px}

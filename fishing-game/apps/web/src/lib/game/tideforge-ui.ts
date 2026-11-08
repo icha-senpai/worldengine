@@ -6,6 +6,11 @@ import { masteryLevel, rolledAffixValue, unlockedAffixSlots, type AffixRoll } fr
 export const affixes = catalog.affixes;
 export const signatures = catalog.signatures;
 
+export function orderGearForDisplay(game: Pick<Game, 'gearIsEquipped'>, items: readonly GearInstance[]): GearInstance[] {
+  const priority = (item: GearInstance) => game.gearIsEquipped(item.instanceId) ? 0 : item.favorite ? 1 : 2;
+  return [...items].sort((a, b) => priority(a) - priority(b));
+}
+
 export function gearName(game: Game, item: GearInstance): string {
   return item.kind === 'rod' ? game.rods.find(row => row.rodId === item.definitionId)?.name ?? 'Rod'
     : item.kind === 'boat' || item.kind === 'net'
@@ -128,7 +133,7 @@ export function rolls(game: Game, item: GearInstance): AffixRoll[] | null {
 }
 
 export function familyMastery(game: Game, item: GearInstance) {
-  const xp = game.gearFamilies.find(row => row.kind === item.kind && row.familyId === item.familyId)?.masteryXp ?? 0n;
+  const xp = game.gearFamilies.find(row => row.playerId === item.playerId && row.kind === item.kind && row.familyId === item.familyId)?.masteryXp ?? 0n;
   return { xp, level: masteryLevel(xp), slots: unlockedAffixSlots(xp) };
 }
 

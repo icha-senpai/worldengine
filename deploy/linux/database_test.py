@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 import unittest
 from database import capture_table, verify_table
 
@@ -30,6 +32,24 @@ class Preservation(unittest.TestCase):
         verify_table(before, data(['owner', 'level', 'xp'], [['boss', 4, 100]]), 'profile')
         with self.assertRaises(RuntimeError):
             verify_table(before, data(['owner', 'level', 'xp'], [['boss', 4, 99]]), 'profile')
+
+    def test_tideforge_curve_upgrade_retains_owner_family_and_exact_mastery_xp(self):
+        release = json.loads(Path(__file__).with_name('release.json').read_text())
+        fish = next(module for module in release['modules'] if module['key'] == 'fishModule')
+        columns = ['key', 'player_id', 'kind', 'family_id', 'mastery_xp', 'curve_version']
+        original = ['9:rod:2', 9, 'rod', 2, 9007199254740993, 0]
+        before = capture_table(data(columns, [original]),
+                               fish['mutableColumns']['gear_family_progress'])
+        upgraded = original[:-1] + [1]
+        verify_table(before, data(columns, [upgraded]), 'gear_family_progress')
+        for position, changed in [(0, 'other'), (1, 10), (2, 'boat'),
+                                  (3, 3), (4, 9007199254740992)]:
+            corrupt = upgraded.copy()
+            corrupt[position] = changed
+            with self.assertRaises(RuntimeError):
+                verify_table(before, data(columns, [corrupt]), 'gear_family_progress')
+        with self.assertRaises(RuntimeError):
+            verify_table(before, data(columns, []), 'gear_family_progress')
 
 
 if __name__ == '__main__':

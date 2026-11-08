@@ -57,8 +57,8 @@ pub struct AcquisitionOffer {
     pub affix_count: usize,
     pub tiers: Vec<TierWeight>,
     pub signature_chance_bp: u32,
-    pub utc_start_day_of_month: Option<u8>,
-    pub duration_days: Option<u8>,
+    pub utc_start_hours: Option<Vec<u8>>,
+    pub duration_hours: Option<u8>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -150,10 +150,10 @@ pub fn validate(c: &Catalog) -> Result<(), &'static str> {
         || c.acquisition.reinforcement_level != 0
         || c.acquisition.finish_minimum_bp != 0 || c.acquisition.finish_maximum_bp != 10_000
         || c.acquisition.camp.affix_count != 1 || c.acquisition.wandering.affix_count != 4
-        || c.acquisition.wandering.utc_start_day_of_month != Some(1)
-        || c.acquisition.wandering.duration_days != Some(4)
-        || c.acquisition.camp.utc_start_day_of_month.is_some()
-        || c.acquisition.camp.duration_days.is_some()
+        || c.acquisition.wandering.utc_start_hours.as_deref() != Some(&[0, 6, 12, 18][..])
+        || c.acquisition.wandering.duration_hours != Some(2)
+        || c.acquisition.camp.utc_start_hours.is_some()
+        || c.acquisition.camp.duration_hours.is_some()
         || !c.forge.requires_discovered_type || !c.forge.requires_destination_grade_clear
         || c.forge.shards_per_addition != 1 || c.forge.shards_per_change != 1
         || c.forge.new_affix_finish_bp != 0 || c.forge.refinement_step_bp == 0
@@ -408,21 +408,20 @@ pub fn wandering_close(micros: i64) -> Result<Option<i64>, &'static str> {
         return Err("TIDEFORGE_TIME_INVALID");
     }
     let c = &catalog()?.acquisition.wandering;
-    let day = micros / crate::daily::DAY_MICROS;
-    let z = day + 719_468;
-    let doe = z % 146_097;
-    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let day_of_month = doy - (153 * mp + 2) / 5 + 1;
-    let start = i64::from(c.utc_start_day_of_month.ok_or("TIDEFORGE_ECONOMY_CATALOG_INVALID")?);
-    let duration = i64::from(c.duration_days.ok_or("TIDEFORGE_ECONOMY_CATALOG_INVALID")?);
-    if day_of_month < start || day_of_month >= start + duration {
-        return Ok(None);
+    let starts = c.utc_start_hours.as_deref().ok_or("TIDEFORGE_ECONOMY_CATALOG_INVALID")?;
+    let hour_micros = 3_600_000_000i64;
+    let duration = i64::from(c.duration_hours.ok_or("TIDEFORGE_ECONOMY_CATALOG_INVALID")?) * hour_micros;
+    let day_start = micros - micros % crate::daily::DAY_MICROS;
+    for &hour in starts {
+        let offset = i64::from(hour) * hour_micros;
+        let elapsed = micros - day_start;
+        if elapsed >= offset && elapsed < offset + duration {
+            let close = day_start.checked_add(offset).and_then(|start| start.checked_add(duration))
+                .ok_or("TIDEFORGE_TIME_INVALID")?;
+            return Ok(Some(close));
+        }
     }
-    let close = day.checked_sub(day_of_month - start).and_then(|v| v.checked_add(duration))
-        .and_then(|v| v.checked_mul(crate::daily::DAY_MICROS)).ok_or("TIDEFORGE_TIME_INVALID")?;
-    Ok(Some(close))
+    Ok(None)
 }
 
 #[cfg(test)]
@@ -454,15 +453,42 @@ mod tests {
     }
 
     #[test]
-    fn wandering_window_is_utc_calendar_month_and_year_aware() {
-        let november = 1_793_491_200_000_000i64;
-        let january = 1_798_761_600_000_000i64;
-        let four_days = 4 * crate::daily::DAY_MICROS;
-        assert_eq!(wandering_close(november).unwrap(), Some(november + four_days));
-        assert_eq!(wandering_close(november + four_days - 1).unwrap(), Some(november + four_days));
-        assert_eq!(wandering_close(november + four_days).unwrap(), None);
-        assert_eq!(wandering_close(january).unwrap(), Some(january + four_days));
+    fn wandering_visits_four_times_every_utc_day_with_exclusive_closing_boundaries() {
+        let hour = 3_600_000_000i64;
+        for day in [0, 1, 6, 30, 31, 365, 20_764, 20_818] {
+            let midnight = day * crate::daily::DAY_MICROS;
+            for start_hour in [0, 6, 12, 18] {
+                let start = midnight + start_hour * hour;
+                let close = start + 2 * hour;
+                if start > 0 {
+                    assert_eq!(wandering_close(start - 1).unwrap(), None);
+                }
+                assert_eq!(wandering_close(start).unwrap(), Some(close));
+                assert_eq!(wandering_close(start + hour).unwrap(), Some(close));
+                assert_eq!(wandering_close(close - 1).unwrap(), Some(close));
+                assert_eq!(wandering_close(close).unwrap(), None);
+                assert_eq!(wandering_close(close + hour).unwrap(), None);
+            }
+            assert_eq!(wandering_close(midnight + crate::daily::DAY_MICROS - 1).unwrap(), None);
+        }
         assert!(wandering_close(-1).is_err());
+    }
+
+    #[test]
+    fn wandering_schedule_validation_rejects_other_windows_and_legacy_monthly_fields() {
+        for (field, value) in [
+            ("utcStartHours", serde_json::json!([0, 6, 12])),
+            ("utcStartHours", serde_json::json!([0, 6, 12, 24])),
+            ("utcStartHours", serde_json::json!([0, 0, 12, 18])),
+            ("durationHours", serde_json::json!(3)),
+        ] {
+            let mut json: serde_json::Value = serde_json::from_str(CATALOG_JSON).unwrap();
+            json["acquisition"]["wandering"][field] = value;
+            assert!(validate(&serde_json::from_value(json).unwrap()).is_err());
+        }
+        let mut json: serde_json::Value = serde_json::from_str(CATALOG_JSON).unwrap();
+        json["acquisition"]["wandering"]["utcStartDayOfMonth"] = serde_json::json!(1);
+        assert!(serde_json::from_value::<Catalog>(json).is_err());
     }
 
     #[test]

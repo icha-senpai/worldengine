@@ -19,7 +19,7 @@ test('normalization and validation match the server Unicode and byte boundaries'
   }
   assert.match(gearRenameErrorMessage('GEAR_NAME_TOO_LONG'), /32 characters/);
   assert.match(gearRenameErrorMessage('GEAR_NAME_INVALID'), /cannot contain/);
-  assert.match(gearRenameErrorMessage('GEAR_INSTANCE_UNAVAILABLE'), /no longer available/);
+  assert.equal(gearRenameErrorMessage('GEAR_INSTANCE_UNAVAILABLE'), 'This gear is no longer available. Review your gear list and try again.');
   assert.equal(gearRenameErrorMessage('UNKNOWN_SECRET'), 'This name could not be saved. Please try again.');
 });
 

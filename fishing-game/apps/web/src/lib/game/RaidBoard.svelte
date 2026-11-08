@@ -11,8 +11,9 @@
   import { ServerClock } from './server-clock';
   import policy from '../../../../../content/raids.json';
   import SectionTabs from './SectionTabs.svelte';
+  import InfoButton from './InfoButton.svelte';
   import { clearedGradeCount, gradeCleared, gradeSelectable, nextSelectableGrade } from './raid-progress';
-  import { raidResultSummary } from './raid-result';
+  import { raidActiveStatusLabel, raidResultSummary } from './raid-result';
 
   type RaidMode = 'raids' | 'community';
   type RaidSection = 'active' | 'personal' | 'special';
@@ -195,8 +196,9 @@
 
 <section class="raid-board" aria-label="Raid expeditions">
   <header class="board-head">
-    <div><p class="eyebrow">BOAT EXPEDITIONS</p><h2>{mode === 'community' ? 'Community Expeditions' : 'Raids'}</h2>
+    <div><p class="eyebrow">BOAT EXPEDITIONS</p><h2>{mode === 'community' ? 'Community Expeditions' : 'Raids'} <InfoButton label="About raid stages" message="Prepare checks the expedition but does not reserve the boat. Deploy spends Expedition Chum and books the boat. Withdraw before launch ends without materials; supplies are not refunded after deployment. While underway, personal raids receive eligible partial materials. Claim settles a due or completed result; checking the same saved result does not grant a second reward." /></h2>
       <p>{mode === 'community' ? 'Join the shared expedition calendar; signup prepares an attempt, but deployment commits your boat and supplies.' : 'Preparing does not reserve your boat. Deploy explicitly before the countdown or the attempt is missed. Supplies are spent only on deployment.'}</p>
+      <p>Prepare → Deploy → Underway → Claim. You can withdraw before launch or while underway.</p>
     </div>
     <p class="supply"><span class="supply-art" aria-hidden="true"><RaidArt kind="supply" size={40} /></span><small>EXPEDITION CHUM</small><strong>{supplies.toString()}</strong></p>
   </header>
@@ -222,7 +224,7 @@
             {#if fish}<div class="raid-fish-art"><img src={fish.spriteAsset} alt={fish.name} loading="lazy" /></div>{/if}
             <div class="attempt-copy"><p class="eyebrow">{attempt.kind === 'community' ? 'COMMUNITY EXPEDITION' : attempt.kind === 'special' ? 'SPECIAL ENCOUNTER' : `${gradeName(attempt.grade ?? 0)} RAID`}</p>
               <h4>{fish?.name ?? (attempt.kind === 'community' ? game.communityRaids.find(row => row.eventId === attempt.eventId)?.name ?? 'Community expedition' : 'Raid target')}</h4>
-              <p>Status: <strong>{attempt.status}</strong> · Boat pinned: {attempt.boatName}</p>
+              <p>Status: <strong>{raidActiveStatusLabel(attempt.status)}</strong> · {attempt.status === 'prepared' ? 'Selected boat' : 'Booked boat'}: {attempt.boatName}</p>
               <p>Starts {localDate(attempt.startsAt)}; ends {localDate(attempt.endsAt)}.</p>
               {#if attempt.status === 'prepared'}<p>Deployment window closes in {remaining(attempt.deploymentDeadline)}. This prepared attempt does not reserve your boat.</p>{/if}
               {#if attempt.status === 'deployed'}<p>Launch in {remaining(attempt.startsAt)}. Your boat is reserved.</p>{/if}
@@ -251,7 +253,7 @@
 
     {#if terminalAttempts.length}
       <details class="raid-history">
-        <summary><span>Terminal raid history · {terminalAttempts.length}</span><svg class="history-chevron" viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5" /></svg></summary>
+        <summary><span>Past expeditions · {terminalAttempts.length}</span><svg class="history-chevron" viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5" /></svg></summary>
         <div class="history-list">
           {#each terminalPage as attempt (attempt.id)}
             {@const result = raidResultSummary(attempt, game.species, game.communityRaids, game.inventory)}
@@ -265,7 +267,7 @@
             </article>
           {/each}
         </div>
-        <PageTurner bind:page={historyPage} total={terminalAttempts.length} pageSize={10} label="Terminal raid history pages" />
+        <PageTurner bind:page={historyPage} total={terminalAttempts.length} pageSize={10} label="Past expeditions pages" />
       </details>
     {/if}
     </div>

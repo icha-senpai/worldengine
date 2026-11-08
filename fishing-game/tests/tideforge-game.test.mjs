@@ -40,6 +40,57 @@ test('private feature data and pending state clear on unlink/account reset', () 
   assert.equal(game.gearNameError, '');
 });
 
+test('Shop and Tideforge share optional subscriptions and retain details across navigation', () => {
+  const game = new Game(), subscriptions = [];
+  const rows = { myTideforgeVault: [{ playerId: 9n, affixId: 'fortune', count: 5n }] };
+  const connection = {
+    isActive: true,
+    db: new Proxy({}, { get: (_target, name) => ({ iter: () => rows[name] ?? [] }) }),
+    subscriptionBuilder() {
+      const entry = {};
+      const builder = {
+        onApplied(callback) { entry.applied = callback; return builder; },
+        onError(callback) { entry.error = callback; return builder; },
+        subscribe(queries) { entry.queries = queries; subscriptions.push(entry); return { unsubscribe() { entry.unsubscribed = true; } }; },
+      };
+      return builder;
+    },
+  };
+  game.connection = connection; game.coreReady = true; game.tideforgeCoreReady = true; game.player = { playerId: 9n };
+  game.identityKey = '0xabc'; game.tideforgeCoreKey = 'owner'; game.selectedView = 'trader';
+  game.syncTideforgeView();
+  const view = subscriptions[0];
+  assert.deepEqual(view.queries, tideforgeViewQueries);
+  game.selectedView = 'tideforge';
+  game.syncTideforgeView();
+  assert.equal(subscriptions.length, 1);
+  assert.equal(view.unsubscribed, undefined);
+  view.applied();
+  assert.equal(game.tideforgeViewReady, true);
+  assert.equal(game.tideforgeVault[0].count, 5n);
+  game.selectedView = 'trader';
+  game.syncTideforgeView();
+  assert.equal(subscriptions.length, 1);
+  assert.equal(game.tideforgeVault[0].count, 5n);
+  for (const name of ['trader', 'tideforge']) {
+    assert(viewQueries(name, 9n, 17).includes('SELECT * FROM my_inventory'));
+    assert(viewQueries(name, 9n, 17).includes('SELECT * FROM rod_upgrade_recipe'));
+  }
+  game.selectedView = 'camp';
+  game.syncTideforgeView();
+  assert.equal(view.unsubscribed, true);
+  assert.deepEqual(game.tideforgeVault, []);
+  game.selectedView = 'tideforge';
+  game.syncTideforgeView();
+  const next = subscriptions[1];
+  game.selectedView = 'trader';
+  game.syncTideforgeView();
+  assert.equal(subscriptions.length, 2);
+  next.applied();
+  assert.equal(game.tideforgeViewReady, true);
+  assert.equal(game.tideforgeVault[0].count, 5n);
+});
+
 test('missing optional table fails only Tideforge and supports retry', () => {
   const game = new Game();
   let errorCallback;
@@ -472,7 +523,7 @@ for (const disconnected of [false, true]) {
 
 test('selected copy stats and compendium use its own quality and reinforcement', () => {
   const game = new Game();
-  game.ready = true; game.tideforgeCoreReady = true; game.player = { playerId: 9n, equippedRodId: 2 };
+  game.ready = true; game.tideforgeAvailability = 'active'; game.tideforgeCoreReady = true; game.player = { playerId: 9n, equippedRodId: 2 };
   game.rods = [{ rodId: 2, name: 'River Rod', power: 10 }, { rodId: 3, name: 'Lake Rod', power: 15 }];
   game.rodBonuses = [{ rodId: 2, luckBp: 100, xpBonusBp: 100 }, { rodId: 3, luckBp: 200, xpBonusBp: 200 }];
   game.qualities = [{ qualityLevel: 0, name: 'Common', powerBonus: 0, luckBp: 0, xpBonusBp: 0 },

@@ -8,6 +8,32 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, resolve } from 'node:path';
 
 const baseline = Object.fromEntries(Object.keys(groups).map(key => [key, 'old']));
+const release = JSON.parse(await readFile(new URL('./release.json', import.meta.url), 'utf8'));
+const fishRelease = release.modules.find(module => module.key === 'fishModule');
+
+test('Fishbound activates gear, effects, economy and calendar after legacy catalogs', () => {
+  assert.deepEqual(fishRelease.hooks.slice(-5), [
+    ['activate_raids'], ['activate_gear_foundation'], ['activate_tideforge_effects'],
+    ['activate_tideforge_economy'], ['activate_live_calendar'],
+  ]);
+  assert.equal(new Set(fishRelease.hooks.map(([name]) => name)).size, fishRelease.hooks.length);
+});
+
+test('Fishbound migration exceptions never bypass player or Tideforge ownership and rewards', () => {
+  assert.ok(fishRelease.mutableTables.includes('calendar_job'));
+  assert.deepEqual(fishRelease.mutableColumns.gear_family_progress, ['curve_version']);
+  for (const table of [
+    'player', 'owned_rod', 'owned_haul_equipment', 'owned_specimen', 'item_stack',
+    'gear_instance', 'gear_loadout', 'gear_family_progress', 'gear_instance_name',
+    'gear_activity_snapshot', 'tideforge_gear', 'tideforge_loadout',
+    'tideforge_economy_wallet', 'tideforge_affix_shard', 'tideforge_codex', 'tideforge_library',
+    'tideforge_economy_receipt', 'tideforge_mark_award',
+  ]) {
+    assert.ok(!fishRelease.mutableTables.includes(table), `${table} must retain row protection`);
+    assert.deepEqual(fishRelease.mutableColumns[table] ?? [], table === 'gear_family_progress' ? ['curve_version'] : []);
+  }
+});
+
 test('a website-only update does not publish databases or rebuild native programs', () => {
   const plan = deploymentPlan({ ...baseline, spaceWeb: 'new' }, baseline);
   assert.deepEqual(Object.keys(plan).filter(key => plan[key]), ['spaceWeb']);

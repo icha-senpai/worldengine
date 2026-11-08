@@ -133,11 +133,11 @@ try {
   stage = 'real Tideforge gear';
   await page.locator('#tab-tideforge').click();
   await page.getByRole('tablist', { name: 'Tideforge sections' }).waitFor({ state: 'visible', timeout: 30000 });
-  for (const id of ['gear', 'forge', 'processing', 'trader', 'vault', 'codex', 'reliquary']) {
+  for (const id of ['gear', 'forge', 'processing', 'vault', 'codex', 'reliquary']) {
     assert.equal(await page.locator(`#tideforge-tab-${id}`).isVisible(), true, `Missing ${id} tab.`);
   }
   assert.equal(await page.getByText('Tideforge is not active on this server yet.').isVisible(), false);
-    assert.equal(await page.getByText('Tideforge is unavailable. Refresh the page or try again later.').isVisible(), false);
+    assert.equal(await page.getByText('Tideforge could not load. Retry Tideforge to reconnect this section; your saved gear is unchanged.').isVisible(), false);
   const errorPanel = page.locator('.tideforge [role="alert"]');
   if (await errorPanel.count() && await errorPanel.first().isVisible()) {
     fail(`Tideforge reported an error: ${safeMessage(await errorPanel.first().innerText())}`);
@@ -151,14 +151,13 @@ try {
   assert.match(originalText, /reinforcement|Unreinforced/i);
   await page.locator('#tideforge-tab-gear').scrollIntoViewIfNeeded();
   await page.screenshot({ path: fileURLToPath(new URL('desktop-gear.png', output)) });
-  record('seven tabs and real protected-original gear');
+  record('six workshop tabs and real protected-original gear');
 
   stage = 'real section panels';
   const markers = {
     forge: ['combobox', 'Forge gear'],
     processing: ['checkbox', 'Include rank maxima and perfect catches'],
-    trader: ['heading', 'Camp copies'],
-    vault: ['heading', 'Fillets & scales'],
+    vault: ['heading', 'Materials'],
     codex: ['searchbox', 'Find affix'],
     reliquary: ['heading', 'Extract a signature'],
   };
@@ -190,10 +189,18 @@ try {
       }
     }
   }
-  record('Forge, Processing, Trader, Vault, Codex and Reliquary panels');
+  record('Forge, Processing, Materials, Codex and Reliquary panels');
 
   stage = 'camp-copy preview';
-  await page.locator('#tideforge-tab-trader').click();
+  await page.getByRole('button', { name: 'Visit shop', exact: true }).click();
+  for (const id of ['camp', 'additional', 'wandering']) {
+    assert.equal(await page.locator(`#shop-tab-${id}`).isVisible(), true, `Missing ${id} shop tab.`);
+  }
+  await page.locator('#shop-tab-additional').click();
+  await page.locator('#shop-panel-additional').getByRole('heading', { name: 'Camp outfitter', exact: true }).waitFor({ state: 'visible' });
+  await page.locator('#shop-tab-wandering').click();
+  await page.locator('#shop-panel-wandering').getByRole('heading', { name: 'Wandering trader', exact: true }).waitFor({ state: 'visible' });
+  await page.locator('#shop-tab-additional').click();
   async function chooseFirst(label) {
     await page.getByRole('combobox', { name: label, exact: true }).click();
     const options = page.getByRole('listbox', { name: label, exact: true }).getByRole('option');

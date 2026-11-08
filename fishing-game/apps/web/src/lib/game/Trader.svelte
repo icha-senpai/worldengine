@@ -114,8 +114,8 @@
     try {
       if (await game.purchase(row.listingId, quantity)) {
         bought = raidSupply(row) ? `${row.name}: ${quantity} ${quantity === 1 ? 'crate' : 'crates'} · ${quantityUnits(row, quantity)} units added for boat raids.`
-          : row.kind === 'bait' ? `${row.name}: ${quantity} ${quantity === 1 ? 'pack' : 'packs'} · ${packUses(row) * BigInt(quantity)} uses added. Equip bait in your Tackle box.`
-          : row.name + (row.kind === 'rod' || haulGear(row) ? ' is yours! Equip it in your Tackle box.' : ' is yours! Your World map has updated.');
+          : row.kind === 'bait' ? `${row.name}: ${quantity} ${quantity === 1 ? 'pack' : 'packs'} · ${packUses(row) * BigInt(quantity)} uses added. Equip bait in Tideforge.`
+          : row.name + (row.kind === 'rod' || haulGear(row) ? ' is yours! Equip it in Tideforge.' : ' is yours! Your World map has updated.');
         return true;
       }
       return false;
@@ -126,7 +126,7 @@
 <section class="trader" aria-labelledby="trader-title">
   <header><div><p class="eyebrow">THE CAMP TRADER</p><h2 id="trader-title">A new stretch of water awaits.</h2><p>“A good rod, a proper licence… and a little luck. What'll it be, angler?”</p></div><div class="pouch"><small>YOUR COIN POUCH</small><strong>{game.player?.coins.toString() ?? '—'}</strong></div></header>
   <div class="shelves" aria-label="Trader shelves"><button aria-pressed={shelf === 'licence'} onclick={() => { shelf = 'licence'; page = 1; }}>▤ Biome licences</button><button aria-pressed={shelf === 'rod'} onclick={() => { shelf = 'rod'; page = 1; }}>🎣 Fishing rods</button><button aria-pressed={shelf === 'boat'} onclick={() => { shelf = 'boat'; page = 1; }}>🚣 Boats</button><button aria-pressed={shelf === 'net'} onclick={() => { shelf = 'net'; page = 1; }}>🕸 Nets</button><button aria-pressed={shelf === 'bait'} onclick={() => { shelf = 'bait'; page = 1; }}>🪱 Bait</button><button aria-pressed={shelf === 'raid_supply'} onclick={() => { shelf = 'raid_supply'; page = 1; }}>⚓ Raid Supplies</button></div>
-  <p class="note">Licences are permanent. Buy each water's licence, then travel on the World map with any owned rod. Boats and nets are permanent gear; equip them in your Tackle box. Neither uses bait. Bait comes in packs of 10 uses for rod fishing. Meadow Pond and your Twig Rod, Boat and Net are free.</p>
+  <p class="note">Licences are permanent. Buy each water's licence, then travel on the World map with any owned rod. Boats and nets are permanent gear; equip them in Tideforge. Neither uses bait. Bait comes in packs of 10 uses for rod fishing. Meadow Pond and your Twig Rod, Boat and Net are free.</p>
   {#if shelf === 'raid_supply'}<p class="note">Expedition Chum is a raid supply only; it never enters your fishing bait loadout.</p>{/if}
   {#if !game.player}<p class="note">Link your Discord account from Camp to shop with your fishing coins.</p>{/if}
   {#if bought}<p class="success" role="status">✓ {bought}</p>{/if}

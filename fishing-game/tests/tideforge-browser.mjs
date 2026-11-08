@@ -1,22 +1,32 @@
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const modulePath = process.env.FISHBOUND_PLAYWRIGHT_MODULE;
 if (!modulePath) throw new Error('FISHBOUND_PLAYWRIGHT_MODULE is required');
 const { chromium } = await import(pathToFileURL(modulePath).href);
 const base = 'http://127.0.0.1:5182';
-const output = new URL('../.local/tideforge-language/', import.meta.url);
-const renameOutput = new URL('../.local/gear-renaming/', import.meta.url);
-const layoutOutput = new URL('../.local/tideforge-gear-layout/', import.meta.url);
-const basicArtOutput = new URL('../.local/tideforge-basic-art/', import.meta.url);
-const retireOutput = new URL('../.local/retire-raid-workshop/', import.meta.url);
+const artifactRoot = process.env.FISHBOUND_TIDEFORGE_ARTIFACT_ROOT
+  ? pathToFileURL(resolve(process.env.FISHBOUND_TIDEFORGE_ARTIFACT_ROOT) + sep) : null;
+const artifactDirectory = name => artifactRoot ? new URL(`${name}/`, artifactRoot) : new URL(`../.local/${name}/`, import.meta.url);
+const output = artifactDirectory('tideforge-language');
+const renameOutput = artifactDirectory('gear-renaming');
+const layoutOutput = artifactDirectory('tideforge-gear-layout');
+const basicArtOutput = artifactDirectory('tideforge-basic-art');
+const retireOutput = artifactDirectory('retire-raid-workshop');
+const processingOutput = artifactDirectory('tideforge-processing-ui');
+const tackleOutput = artifactDirectory('tackle-gear-ui');
+const orderOutput = artifactDirectory('tideforge-gear-order');
 const outputSuffix = process.env.FISHBOUND_TIDEFORGE_RESULT_SUFFIX ?? '';
 await mkdir(output, { recursive: true });
 await mkdir(renameOutput, { recursive: true });
 await mkdir(layoutOutput, { recursive: true });
 await mkdir(basicArtOutput, { recursive: true });
 await mkdir(retireOutput, { recursive: true });
+await mkdir(processingOutput, { recursive: true });
+await mkdir(tackleOutput, { recursive: true });
+await mkdir(orderOutput, { recursive: true });
 const results = [], diagnostics = [], blocked = [];
 const browser = await chromium.launch({ headless: true, executablePath: 'C:\\Users\\footb\\AppData\\Local\\ms-playwright\\chromium-1228\\chrome-win64\\chrome.exe' });
 async function context(viewport) {
@@ -43,6 +53,19 @@ async function choose(page, label, option) {
   await page.getByRole('listbox', { name: label, exact: true }).getByRole('option', { name: option, exact: true }).click();
 }
 async function tab(page, id) {
+  if (id === 'trader') {
+    if (!await page.locator('#shop-tab-additional').isVisible()) await page.getByRole('button', { name: 'Visit shop', exact: true }).click();
+    await page.locator('#shop-tab-additional').click();
+    await page.locator('#shop-panel-additional').waitFor({ state: 'visible' });
+    return;
+  }
+  if (!await page.locator(`#tideforge-tab-${id}`).isVisible()) {
+    if (await page.locator('#tab-tideforge').isVisible()) await page.locator('#tab-tideforge').click();
+    else {
+      await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+      await page.locator('#mobile-navigation').getByRole('button', { name: 'Tideforge', exact: true }).click();
+    }
+  }
   await page.locator(`#tideforge-tab-${id}`).click();
   await page.locator(`#tideforge-panel-${id}`).waitFor({ state: 'visible' });
 }
@@ -131,7 +154,11 @@ try {
     await tab(page, 'gear');
   });
   await check('unknown labels and actual error translation stay player-safe', async () => {
-    await page.evaluate(() => window.tideforgeFixture.showUnknownLanguage());
+    await page.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.showUnknownLanguage();
+      game.tideforgeVault = game.tideforgeVault.map(row => ({ ...row, playerId: game.player.playerId }));
+    });
     await page.getByText('Unknown affix').first().waitFor({ state: 'visible' });
     await page.getByText('Unknown signature').first().waitFor({ state: 'visible' });
     await page.getByRole('alert').getByText('This action could not be completed. Check your gear and materials, then try again.').waitFor({ state: 'visible' });
@@ -188,12 +215,23 @@ try {
     assert.equal(await fish.nth(2).locator('input').isDisabled(), true);
     assert.equal(await fish.nth(3).locator('input').isDisabled(), true);
     assert.equal(await fish.nth(4).locator('input').isDisabled(), true);
+    await page.getByRole('checkbox', { name: 'Include rank maxima and perfect catches' }).check();
+    assert.equal(await fish.nth(4).locator('input').isDisabled(), false);
+    assert.equal(await fish.nth(1).locator('input').isDisabled(), true);
+    assert.equal(await fish.nth(3).locator('input').isDisabled(), true);
+    await page.getByRole('checkbox', { name: 'Include rank maxima and perfect catches' }).uncheck();
     await page.evaluate(() => window.tideforgeFixture.clearFishProtections());
-    assert.match(await page.locator('#tideforge-panel-processing .fish label').first().innerText(), /Catch 1.*Ready to fillet/s);
+    const speciesName = await page.evaluate(() => window.tideforgeFixture.species[0].name);
+    const firstFish = await page.locator('#tideforge-panel-processing .fish label').first().innerText();
+    assert(firstFish.includes(speciesName));
+    assert.match(firstFish, /Ready to fillet/);
+    assert.doesNotMatch(firstFish, /\bCatch\s+\d+|#\d+/);
     await page.locator('#tideforge-panel-processing .fish input').first().check();
     await page.getByRole('button', { name: 'Preview processing' }).click();
     await dialog.waitFor({ state: 'visible' });
-    assert.match(await dialog.innerText(), /Catch 1/);
+    assert((await dialog.innerText()).includes(speciesName));
+    assert.match(await dialog.innerText(), /\bF\b.*\d+\.\d+ in.*oz/s);
+    assert.doesNotMatch(await dialog.innerText(), /\bCatch\s+\d+|#\d+/);
     assert.match(await dialog.innerText(), /Basic fillets/);
     assert.match(await dialog.innerText(), /Sale value you give up/);
     await assertPlayerLanguage(dialog);
@@ -204,9 +242,10 @@ try {
   await check('desktop navigation, retained search, Tackle Box, keyboard tabs', async () => {
     await page.getByRole('searchbox', { name: 'Find Tideforge gear' }).fill('River');
     await page.locator('#tab-inventory').click();
-    await page.getByRole('region', { name: 'Gear' }).waitFor({ state: 'visible' });
+    await page.getByRole('button', { name: 'Select all', exact: true }).waitFor({ state: 'visible' });
+    await page.getByRole('button', { name: 'Manage gear & bait', exact: true }).click();
+    await page.getByText('Equipped gear, upgrades & bait', { exact: true }).click();
     assert.match(await page.getByRole('region', { name: 'Gear' }).innerText(), /Base equipment and bait stats/);
-    await page.locator('#tab-tideforge').click();
     assert.equal(await page.getByRole('searchbox', { name: 'Find Tideforge gear' }).inputValue(), 'River');
     await page.locator('#tideforge-tab-gear').focus();
     await page.keyboard.press('ArrowRight');
@@ -220,17 +259,58 @@ try {
     await captureInfo(page, goalHelp, 'info-desktop-focus.png');
     await noOverflow(page);
   });
+  await check('focused help survives auto-scroll but closes offscreen and after Escape or hover scroll', async () => {
+    const goalHelp = page.getByRole('button', { name: 'About collection goals' });
+    const tooltip = page.getByRole('tooltip');
+    const isOutsideViewport = () => goalHelp.evaluate(el => {
+      const rect = el.getBoundingClientRect();
+      return rect.bottom <= 0 || rect.top >= window.innerHeight || rect.right <= 0 || rect.left >= window.innerWidth;
+    });
+
+    await goalHelp.evaluate(el => el.blur());
+    await page.mouse.move(0, 0);
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(150);
+    assert.equal(await isOutsideViewport(), true, 'focus starts with the anchor outside the viewport');
+    await goalHelp.focus();
+    await page.waitForTimeout(150);
+    assert.equal(await goalHelp.evaluate(el => document.activeElement === el), true);
+    await tooltip.waitFor({ state: 'visible' });
+
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(150);
+    assert.equal(await isOutsideViewport(), true, 'scroll moves the focused anchor outside the viewport');
+    await tooltip.waitFor({ state: 'hidden' });
+
+    await goalHelp.evaluate(el => el.blur());
+    await goalHelp.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(150);
+    await goalHelp.focus();
+    await tooltip.waitFor({ state: 'visible' });
+    await goalHelp.press('Escape');
+    await tooltip.waitFor({ state: 'hidden' });
+    await page.evaluate(() => window.dispatchEvent(new Event('scroll')));
+    assert.equal(await tooltip.isVisible(), false);
+
+    await goalHelp.evaluate(el => el.blur());
+    await page.mouse.move(0, 0);
+    await goalHelp.hover();
+    await tooltip.waitFor({ state: 'visible' });
+    await page.evaluate(() => window.dispatchEvent(new Event('scroll')));
+    await tooltip.waitFor({ state: 'hidden' });
+  });
   if (!outputSuffix) await page.screenshot({ path: new URL('desktop-gear.png', output).pathname.slice(1) });
-  await check('all seven Tideforge sections', async () => {
-    for (const id of ['gear', 'forge', 'processing', 'trader', 'vault', 'codex', 'reliquary']) {
+  await check('all Tideforge sections and both gear shop offers', async () => {
+    for (const id of ['gear', 'forge', 'processing', 'vault', 'codex', 'reliquary']) {
       await tab(page, id);
       await assertPlayerLanguage(page.locator(`#tideforge-panel-${id}`));
-      if (id === 'trader') {
-        const trader = page.locator('#tideforge-panel-trader');
-        await assertInfoButtons(trader);
-        assert.equal(await trader.getByRole('button', { name: 'About secondary water', exact: true }).count(), 1);
-      }
     }
+    await tab(page, 'trader');
+    const trader = page.locator('#shop-panel-additional');
+    await assertPlayerLanguage(trader); await assertInfoButtons(trader);
+    assert.equal(await trader.getByRole('button', { name: 'About secondary water', exact: true }).count(), 1);
+    await page.locator('#shop-tab-wandering').click();
+    await assertPlayerLanguage(page.locator('#shop-panel-wandering'));
   });
   await page.getByRole('button', { name: 'Dark mode' }).click();
   await tab(page, 'forge');
@@ -329,10 +409,7 @@ try {
   });
   await check('fifty selected fish clear after receipt and another batch can be selected', async () => {
     await tab(page, 'processing');
-    for (let index = 0; index < 5; index++) {
-      await page.getByRole('button', { name: 'Select eligible on this page' }).click();
-      if (index < 4) await page.getByRole('navigation', { name: 'Processing fish pages' }).getByRole('button', { name: 'Next page' }).click();
-    }
+    await page.getByRole('button', { name: 'Select eligible on this page' }).click();
     await page.getByText('50/50 selected.', { exact: false }).waitFor({ state: 'visible' });
     await page.getByRole('button', { name: 'Preview processing' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
@@ -351,7 +428,7 @@ try {
     await page.getByRole('button', { name: 'Preview gear purchase' }).click();
     await page.evaluate(() => window.tideforgeFixture.changeOwner());
     await page.evaluate(() => window.tideforgeFixture.releasePreview());
-    await page.locator('#tideforge-tab-gear').waitFor({ state: 'visible' });
+    await page.locator('#shop-tab-additional').waitFor({ state: 'visible' });
     assert.equal(await page.getByRole('dialog').isVisible(), false);
     await tab(page, 'processing');
     assert.equal(await page.getByRole('checkbox', { name: 'Include rank maxima and perfect catches' }).isChecked(), false);
@@ -361,9 +438,11 @@ try {
   });
   await check('known-active core failure protects originals; absent legacy feature remains usable', async () => {
     await page.evaluate(() => window.tideforgeFixture.setGearUnavailable(true));
-    await page.locator('#tab-inventory').click();
+    await tab(page, 'gear');
+    const loadout = page.getByText('Equipped gear, upgrades & bait', { exact: true });
+    if (await loadout.locator('..').getAttribute('open') === null) await loadout.click();
     await page.getByText('Equipment details are unavailable. Reconnect before upgrading.').waitFor({ state: 'visible' });
-    assert.equal(await page.getByRole('button', { name: 'Upgrade gear' }).first().isDisabled(), true);
+    assert.equal(await page.getByRole('button', { name: 'Upgrade', exact: true }).first().isDisabled(), true);
     await page.evaluate(() => window.tideforgeFixture.setGearUnavailable(false));
     assert.equal(await page.getByText('Equipment details are unavailable. Reconnect before upgrading.').count(), 0);
     await page.evaluate(() => window.tideforgeFixture.setGearReady());
@@ -373,7 +452,7 @@ try {
     await page.evaluate(() => window.tideforgeFixture.setAvailability('inactive'));
     await page.getByText('Tideforge is not active on this server yet.').waitFor({ state: 'visible' });
     await page.evaluate(() => window.tideforgeFixture.setAvailability('unavailable'));
-    await page.getByText('Tideforge is unavailable. Refresh the page or try again later.').waitFor({ state: 'visible' });
+    await page.getByText('Tideforge could not load. Retry Tideforge to reconnect this section; your saved gear is unchanged.').waitFor({ state: 'visible' });
     await assertPlayerLanguage(page.locator('.tideforge'));
     await page.getByRole('button', { name: 'Retry Tideforge' }).click();
     await page.locator('#tideforge-tab-gear').waitFor({ state: 'visible' });
@@ -384,7 +463,7 @@ try {
   const named = namedDesktop.page;
   await named.goto(`${base}/#tideforge`, { waitUntil: 'networkidle' });
   await named.locator('#tideforge-tab-gear').waitFor({ state: 'visible' });
-  const secondCard = named.locator('#tideforge-panel-gear .card').nth(1);
+  const secondCard = named.locator('#tideforge-panel-gear .card').filter({ hasText: 'River Rod · Item 2' });
   await check('rename is confirmed, searchable, replayable and cancel restores focus', async () => {
     const opener = secondCard.getByRole('button', { name: 'Rename' });
     await opener.click();
@@ -443,14 +522,14 @@ try {
       await fixture.renameGearInstance(102n, 'Boat Friend');
       await fixture.renameGearInstance(103n, 'Net Friend');
     });
-    await named.locator('#tab-inventory').click();
+    await tab(named, 'gear');
+    await named.getByText('Equipped gear, upgrades & bait', { exact: true }).click();
     const rod = named.locator('article[aria-label="Equipped rod"]');
     await rod.getByRole('heading', { name: 'Old Faithful' }).waitFor({ state: 'visible' });
     assert.match(await rod.innerText(), /River Rod · Item 2/);
     assert.match(await named.locator('article[aria-label="Equipped boat"]').innerText(), /Boat Friend.*River Boat/s);
     assert.match(await named.locator('article[aria-label="Equipped net"]').innerText(), /Net Friend.*Twig Net/s);
     await rod.screenshot({ path: new URL('desktop-equipped-name.png', renameOutput).pathname.slice(1) });
-    await named.locator('#tab-tideforge').click();
     await tab(named, 'gear');
   });
   await check('rename failures retain drafts, defaults clear, and text remains literal', async () => {
@@ -507,32 +586,32 @@ try {
   const tackleDesktop = await context({ width: 1440, height: 1400 });
   const tacklePage = tackleDesktop.page;
   await tacklePage.goto(`${base}/#inventory`, { waitUntil: 'networkidle' });
-  await check('Tackle Box retains three sections and refining lives in Processing', async () => {
-    const gear = tacklePage.getByRole('region', { name: 'Gear', exact: true });
-    await gear.waitFor({ state: 'visible' });
+  await check('Tackle Box keeps fish and links to canonical gear, materials and Processing', async () => {
+    await tacklePage.evaluate(() => {
+      const game = window.tideforgeFixture, playerId = game.player.playerId;
+      const ordinary = game.species.find(row => row.countsForOrdinaryCollectionCompletion);
+      game.items = [{ key: (playerId << 32n) + 1000n, playerId, item: 'raid_fillets_f', quantity: 20n }];
+      game.raidBadges = [{ playerId, speciesId: ordinary.speciesId, clearedGrades: 2 }];
+    });
     const snapshot = () => tacklePage.evaluate(() => JSON.stringify({
       gear: window.tideforgeFixture.gearInstances, items: window.tideforgeFixture.items,
     }, (_key, value) => typeof value === 'bigint' ? value.toString() : value));
     const before = await snapshot();
-    const tabs = tacklePage.getByRole('tablist', { name: 'Tackle box sections' });
-    assert.deepEqual(await tabs.getByRole('tab').allTextContents(), ['Gear / Bait', 'Mats', 'Fish']);
+    assert.equal(await tacklePage.getByRole('tablist', { name: 'Tackle box sections' }).count(), 0);
     assert.equal(await tacklePage.getByRole('tab', { name: 'Raid Workshop' }).count(), 0);
     assert.equal(await tacklePage.getByRole('heading', { name: 'Raid Workshop' }).count(), 0);
     assert.equal(await tacklePage.locator('#tackle-panel-workshop').count(), 0);
+    await tacklePage.getByRole('button', { name: 'Select all', exact: true }).waitFor({ state: 'visible' });
+    await tacklePage.getByRole('button', { name: /Preview sale/ }).waitFor({ state: 'visible' });
+    await tacklePage.getByRole('button', { name: 'Manage gear & bait', exact: true }).click();
+    await tacklePage.getByText('Equipped gear, upgrades & bait', { exact: true }).click();
+    const gear = tacklePage.getByRole('region', { name: 'Gear', exact: true });
     const reinforcement = gear.getByRole('region', { name: 'River Rod rod reinforcement' });
-    await reinforcement.getByRole('button', { name: 'Reinforce rod' }).waitFor({ state: 'visible' });
+    await reinforcement.getByRole('button', { name: 'Reinforce', exact: true }).waitFor({ state: 'visible' });
     await tacklePage.screenshot({ path: new URL('tackle.png', retireOutput).pathname.slice(1) });
-    await tabs.getByRole('tab', { name: 'Mats', exact: true }).click();
-    await tacklePage.getByRole('region', { name: 'Junk and materials' }).waitFor({ state: 'visible' });
-    const fish = tabs.getByRole('tab', { name: 'Fish', exact: true });
-    await fish.click();
-    await tacklePage.locator('#tackle-panel-fish').getByRole('button', { name: 'Select all', exact: true }).waitFor({ state: 'visible' });
-    await tacklePage.locator('#tackle-panel-fish').getByRole('button', { name: /Preview sale/ }).waitFor({ state: 'visible' });
-    await fish.focus(); await fish.press('ArrowRight');
-    assert.equal(await tabs.getByRole('tab', { name: 'Gear / Bait', exact: true }).getAttribute('aria-selected'), 'true');
-    assert.equal(await tabs.getByRole('tab', { name: 'Gear / Bait', exact: true }).evaluate(node => document.activeElement === node), true);
-    await gear.waitFor({ state: 'visible' });
-    await tacklePage.locator('#tab-tideforge').click();
+    await tacklePage.locator('#tab-inventory').click();
+    await tacklePage.getByRole('button', { name: 'Open materials', exact: true }).click();
+    await tacklePage.getByRole('region', { name: 'Materials', exact: true }).waitFor({ state: 'visible' });
     await tab(tacklePage, 'processing');
     await choose(tacklePage, 'Processing action', 'Refine materials');
     await tacklePage.getByRole('combobox', { name: 'From grade', exact: true }).waitFor({ state: 'visible' });
@@ -549,25 +628,203 @@ try {
   });
   await tackleDesktop.ctx.close();
 
+  const tackleGearDesktop = await context({ width: 1440, height: 1100 });
+  const tackleGearPage = tackleGearDesktop.page;
+  await tackleGearPage.goto(`${base}/#tideforge/gear`, { waitUntil: 'networkidle' });
+  await tackleGearPage.getByText('Equipped gear, upgrades & bait', { exact: true }).click();
+  await tackleGearPage.getByRole('region', { name: 'Gear', exact: true }).waitFor({ state: 'visible' });
+  await tackleGearPage.evaluate(() => window.tideforgeFixture.showTackleGear());
+  await check('Tackle Box equips named instances and retains accessible action explanations', async () => {
+    const gear = tackleGearPage.getByRole('region', { name: 'Gear', exact: true });
+    const rod = gear.getByRole('article', { name: 'Equipped rod' });
+    const boat = gear.getByRole('article', { name: 'Equipped boat' });
+    const net = gear.getByRole('article', { name: 'Equipped net' });
+    const upgrade = rod.getByRole('button', { name: 'Upgrade', exact: true });
+    const reinforce = rod.getByRole('button', { name: 'Reinforce', exact: true });
+    const originalRodPower = await rod.locator('dl dd').first().innerText();
+    const originalBoatLuck = await boat.locator('dl dd').first().innerText();
+    const originalNetLuck = await net.locator('dl dd').first().innerText();
+    assert.equal(await gear.getByRole('button', { name: 'Upgrade', exact: true }).count(), 3);
+    assert.equal(await gear.getByRole('button', { name: 'Reinforce', exact: true }).count(), 1);
+    assert.doesNotMatch(await rod.innerText(), /Next:|rusted tin|scrap|Collection Focus|bonus rolls/i);
+    await upgrade.scrollIntoViewIfNeeded();
+    await tackleGearPage.waitForTimeout(150);
+    await upgrade.hover();
+    const tooltip = tackleGearPage.getByRole('tooltip');
+    await tooltip.waitFor({ state: 'visible' });
+    assert.match(await tooltip.innerText(), /Next quality: Epic.*Rusted tin: 100 \/ 1.*Scrap: 100 \/ 1.*Power/s);
+    await tackleGearPage.mouse.move(0, 0);
+    await reinforce.scrollIntoViewIfNeeded();
+    await tackleGearPage.waitForTimeout(150);
+    await reinforce.focus();
+    await tooltip.waitFor({ state: 'visible' });
+    assert.match(await tooltip.innerText(), /separate from quality.*mastered biome.*ordinary UUR.*F fillets: 100 \/ 60.*F scales: 100 \/ 40.*Coins: 50000 \/ 50/s);
+    await reinforce.press('Escape');
+    await tooltip.waitFor({ state: 'hidden' });
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.items = game.items.map(row => row.item === 'rusted_tin' ? { ...row, quantity: 0n } : row);
+      game.raidBadges = [];
+    });
+    const insufficient = rod.getByRole('group', { name: 'Upgrade details' });
+    await insufficient.focus();
+    await tooltip.waitFor({ state: 'visible' });
+    assert.match(await tooltip.innerText(), /Rusted tin: 0 \/ 1/);
+    await insufficient.press('Escape');
+    const locked = rod.getByRole('group', { name: 'Reinforce details' });
+    await locked.focus();
+    await tooltip.waitFor({ state: 'visible' });
+    assert.match(await tooltip.innerText(), /Clear F on an ordinary raid boss first/);
+    await locked.press('Escape');
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.items = game.items.map(row => row.item === 'rusted_tin' ? { ...row, quantity: 100n } : row);
+      game.raidBadges = [{ playerId: 9n, speciesId: game.species[0].speciesId, clearedGrades: 1 }];
+    });
+    await noOverflow(tackleGearPage);
+    await rod.screenshot({ path: new URL('desktop.png', tackleOutput).pathname.slice(1) });
+
+    await upgrade.click();
+    let dialog = tackleGearPage.getByRole('dialog');
+    await dialog.getByRole('heading', { name: 'Confirm rod upgrade' }).waitFor({ state: 'visible' });
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 101n };
+    });
+    await dialog.waitFor({ state: 'hidden' });
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 100n };
+    });
+    await tackleGearPage.evaluate(() => { window.tideforgeFixture.holdNextUpgrade = true; });
+    await upgrade.click();
+    await tackleGearPage.waitForFunction(() => window.tideforgeFixture.busy);
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 101n };
+    });
+    await rod.getByRole('heading', { name: 'Rod Buddy', exact: true }).waitFor({ state: 'visible' });
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 100n };
+    });
+    await rod.getByRole('heading', { name: 'River Rod · Item 1', exact: true }).waitFor({ state: 'visible' });
+    await tackleGearPage.evaluate(() => window.tideforgeFixture.releaseHeldUpgrade());
+    await tackleGearPage.waitForFunction(() => !window.tideforgeFixture.busy);
+    await tackleGearPage.waitForTimeout(100);
+    assert.equal(await tackleGearPage.getByRole('dialog').isVisible(), false);
+    await reinforce.click();
+    dialog = tackleGearPage.getByRole('dialog');
+    await dialog.getByRole('heading', { name: 'Confirm per-rod reinforcement' }).waitFor({ state: 'visible' });
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 101n };
+    });
+    await dialog.waitFor({ state: 'hidden' });
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 100n };
+    });
+    await boat.getByRole('button', { name: 'Upgrade', exact: true }).click();
+    dialog = tackleGearPage.getByRole('dialog');
+    await dialog.getByRole('heading', { name: 'Confirm boat upgrade' }).waitFor({ state: 'visible' });
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, boatInstanceId: 9007199254740993n };
+    });
+    await dialog.waitFor({ state: 'hidden' });
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, boatInstanceId: 102n };
+    });
+
+    await tackleGearPage.getByRole('combobox', { name: 'Switch rod' }).click();
+    const rodOptions = tackleGearPage.getByRole('listbox', { name: 'Switch rod' });
+    assert.equal(await rodOptions.getByRole('option', { name: /Abyssal Rod · Level 99 required/ }).getAttribute('aria-disabled'), 'true');
+    await rodOptions.getByRole('option', { name: 'Common Rod Buddy · River Rod · Item 2', exact: true }).click();
+    await rod.getByRole('heading', { name: 'Rod Buddy', exact: true }).waitFor({ state: 'visible' });
+    assert.match(await rod.locator('.quality').innerText(), /Common/);
+    assert.notEqual(await rod.locator('dl dd').first().innerText(), originalRodPower);
+    assert.match(await tackleGearPage.getByRole('combobox', { name: 'Switch rod' }).innerText(), /Rod Buddy · River Rod · Item 2/);
+    assert.equal(await upgrade.isDisabled(), true);
+    assert.equal(await reinforce.isDisabled(), true);
+    const disabledHelp = rod.getByRole('group', { name: 'Upgrade details' });
+    await disabledHelp.focus();
+    await tooltip.waitFor({ state: 'visible' });
+    assert.match(await tooltip.innerText(), /not available for this copy/);
+    await disabledHelp.press('Escape');
+    await tooltip.waitFor({ state: 'hidden' });
+    await tackleGearPage.evaluate(() => window.tideforgeFixture.renameGearInstance(101n, 'Fresh Rod'));
+    assert.match(await tackleGearPage.getByRole('combobox', { name: 'Switch rod' }).innerText(), /Fresh Rod/);
+
+    await tackleGearPage.evaluate(() => { window.tideforgeFixture.failNextEquip = true; });
+    await choose(tackleGearPage, 'Switch boat', 'Uncommon Boat Buddy · River Boat · Item 2');
+    await gear.getByRole('alert').getByText('This gear is busy on a trip.').waitFor({ state: 'visible' });
+    await choose(tackleGearPage, 'Switch boat', 'Uncommon Boat Buddy · River Boat · Item 2');
+    await boat.getByRole('heading', { name: 'Boat Buddy', exact: true }).waitFor({ state: 'visible' });
+    assert.match(await boat.locator('.quality').innerText(), /Uncommon/);
+    assert.notEqual(await boat.locator('dl dd').first().innerText(), originalBoatLuck);
+    assert.match(await tackleGearPage.getByRole('combobox', { name: 'Switch boat' }).innerText(), /Boat Buddy · River Boat · Item 2/);
+    assert.equal(await boat.getByRole('button', { name: 'Upgrade', exact: true }).isDisabled(), true);
+    await choose(tackleGearPage, 'Switch net', 'Rare Net Buddy · Twig Net · Item 2');
+    await net.getByRole('heading', { name: 'Net Buddy', exact: true }).waitFor({ state: 'visible' });
+    assert.match(await net.locator('.quality').innerText(), /Rare/);
+    assert.notEqual(await net.locator('dl dd').first().innerText(), originalNetLuck);
+    assert.match(await tackleGearPage.getByRole('combobox', { name: 'Switch net' }).innerText(), /Net Buddy · Twig Net · Item 2/);
+    assert.equal(await net.getByRole('button', { name: 'Upgrade', exact: true }).isDisabled(), true);
+    assert.deepEqual(await tackleGearPage.evaluate(() => window.tideforgeFixture.calls.filter(row => row.action === 'equip').map(row => row.instanceId)),
+      ['101', '9007199254740993', '9007199254740993', '9007199254740995']);
+    assert.equal(await tackleGearPage.evaluate(() => window.tideforgeFixture.calls.some(row => /commit|reinforce/i.test(row.action))), false);
+
+    await tackleGearPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = null;
+      game.ownedRods = [...game.ownedRods, { rodId: 3, upgradeLevel: 0 }];
+    });
+    await choose(tackleGearPage, 'Switch rod', 'Common Marsh Rod');
+    await rod.getByRole('heading', { name: 'Marsh Rod', exact: true }).waitFor({ state: 'visible' });
+    assert.equal(await tackleGearPage.evaluate(() => window.tideforgeFixture.calls.at(-1).action), 'legacyRod');
+  });
+  await tackleGearDesktop.ctx.close();
+
+  const tackleGearMobile = await context({ width: 375, height: 812 });
+  const tackleMobilePage = tackleGearMobile.page;
+  await tackleMobilePage.goto(`${base}/#tideforge/gear`, { waitUntil: 'networkidle' });
+  await tackleMobilePage.getByText('Equipped gear, upgrades & bait', { exact: true }).click();
+  await tackleMobilePage.getByRole('region', { name: 'Gear', exact: true }).waitFor({ state: 'visible' });
+  await tackleMobilePage.evaluate(() => window.tideforgeFixture.showTackleGear());
+  await check('disabled Tackle Box action explanations are available by touch', async () => {
+    await choose(tackleMobilePage, 'Switch rod', 'Common Rod Buddy · River Rod · Item 2');
+    const rod = tackleMobilePage.getByRole('article', { name: 'Equipped rod' });
+    const help = rod.getByRole('group', { name: 'Upgrade details' });
+    await help.tap();
+    const tooltip = tackleMobilePage.getByRole('tooltip');
+    await tooltip.waitFor({ state: 'visible' });
+    assert.match(await tooltip.innerText(), /not available for this copy/);
+    await noOverflow(tackleMobilePage);
+    await rod.screenshot({ path: new URL('mobile.png', tackleOutput).pathname.slice(1) });
+  });
+  await tackleGearMobile.ctx.close();
+
   const vaultDesktop = await context({ width: 1440, height: 1600 });
   const vaultPage = vaultDesktop.page;
   await vaultPage.goto(`${base}/#tideforge`, { waitUntil: 'networkidle' });
   await vaultPage.locator('#tideforge-tab-gear').waitFor({ state: 'visible' });
   await vaultPage.evaluate(() => {
     window.tideforgeFixture.items = [
-      { key: 800n, quantity: 11n }, { key: 801n, quantity: 22n },
-      { key: 1000n, quantity: 33n }, { key: 1100n, quantity: 44n },
+      { key: 800n, playerId: 9n, quantity: 11n }, { key: 801n, playerId: 9n, quantity: 22n },
+      { key: 1000n, playerId: 9n, quantity: 33n }, { key: 1100n, playerId: 9n, quantity: 44n },
     ];
   });
   await check('Basic materials reuse F-grade art while quantities remain separate', async () => {
     await tab(vaultPage, 'vault');
-    const rows = vaultPage.locator('#tideforge-panel-vault .rows').first();
+    const rows = vaultPage.locator('#tideforge-panel-vault');
     for (const [basicLabel, basicQuantity, gradeLabel, gradeQuantity, expected] of [
       ['Basic fillets', '11', 'F-grade fillets', '33', '/raid-materials/fillets-f.png'],
       ['Basic scales', '22', 'F-grade scales', '44', '/raid-materials/scales-f.png'],
     ]) {
-      const basic = rows.locator('p').filter({ hasText: new RegExp(`^\\s*${basicLabel}\\s+${basicQuantity}\\s*$`) });
-      const graded = rows.locator('p').filter({ hasText: new RegExp(`^\\s*${gradeLabel}\\s+${gradeQuantity}\\s*$`) });
+      const basic = rows.locator('.rows p').filter({ has: vaultPage.getByText(basicLabel, { exact: true }) });
+      const graded = rows.locator('.rows p').filter({ has: vaultPage.getByText(gradeLabel, { exact: true }) });
       assert.equal(await basic.count(), 1);
       assert.equal(await graded.count(), 1);
       assert.equal(await basic.locator('strong').innerText(), basicQuantity);
@@ -582,6 +839,139 @@ try {
   });
   await vaultDesktop.ctx.close();
 
+  const processingDesktop = await context({ width: 1440, height: 900 });
+  const processingPage = processingDesktop.page;
+  await processingPage.goto(`${base}/#tideforge`, { waitUntil: 'networkidle' });
+  await processingPage.locator('#tideforge-tab-gear').waitFor({ state: 'visible' });
+  await check('processing pages keep selection aligned and fish artwork safe', async () => {
+    await tab(processingPage, 'processing');
+    const panel = processingPage.locator('#tideforge-panel-processing');
+    const cards = panel.locator('.fish label');
+    const pages = processingPage.getByRole('navigation', { name: 'Processing fish pages' });
+    assert.equal(await cards.count(), 50);
+    assert.match(await pages.innerText(), /Page 1 of 2/);
+    const expectedSprite = await processingPage.evaluate(() => window.tideforgeFixture.species[0].spriteAsset);
+    const image = cards.first().locator('img');
+    assert.equal(await image.getAttribute('src'), expectedSprite);
+    assert.equal(await image.getAttribute('alt'), '');
+    await image.scrollIntoViewIfNeeded();
+    assert(await image.evaluate(async node => { await node.decode(); return node.naturalWidth > 0; }));
+    await noOverflow(processingPage);
+    await processingPage.screenshot({ path: new URL('desktop.png', processingOutput).pathname.slice(1) });
+    await pages.getByRole('button', { name: 'Next page' }).click();
+    assert.equal(await cards.count(), 12);
+    await panel.getByRole('button', { name: 'Select eligible on this page' }).click();
+    await panel.getByText('12/50 selected.', { exact: false }).waitFor({ state: 'visible' });
+    await pages.getByRole('button', { name: 'Previous page' }).click();
+    await panel.getByRole('button', { name: 'Select eligible on this page' }).click();
+    await panel.getByText('50/50 selected.', { exact: false }).waitFor({ state: 'visible' });
+    assert.equal(await panel.getByRole('button', { name: 'Select eligible on this page' }).isDisabled(), true);
+    assert.equal(await cards.locator('input:not(:checked)').first().isDisabled(), true);
+    assert.doesNotMatch(await panel.locator('.fish').innerText(), /\bCatch\s+\d+|#\d+/);
+    await panel.getByRole('button', { name: 'Preview processing' }).click();
+    const dialog = processingPage.getByRole('dialog');
+    await dialog.waitFor({ state: 'visible' });
+    assert.doesNotMatch(await dialog.innerText(), /\bCatch\s+\d+|#\d+/);
+    const intent = await processingPage.evaluate(() => window.tideforgeFixture.calls.findLast(row => row.action === 'prepare').intent);
+    assert.deepEqual(intent.catch_ids, [...Array.from({ length: 12 }, (_, index) => String(index + 51)), ...Array.from({ length: 38 }, (_, index) => String(index + 1))]);
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await panel.getByRole('button', { name: 'Clear selection' }).click();
+    await panel.getByText('0/50 selected.', { exact: false }).waitFor({ state: 'visible' });
+    assert.equal(await processingPage.evaluate(() => window.tideforgeFixture.calls.filter(row => row.action === 'commit').length), 0);
+    await processingPage.route('**/fish/processing-broken-fixture.png', route => route.fulfill({ status: 200, contentType: 'image/png', body: 'not an image' }));
+    await processingPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.species = [...game.species, { ...game.species[0], speciesId: 9997, spriteAsset: '' },
+        { ...game.species[0], speciesId: 9996, spriteAsset: '/fish/processing-broken-fixture.png' }];
+      game.inventory = game.inventory.map((fish, index) => index < 3 ? { ...fish, speciesId: [9998, 9997, 9996][index] } : fish);
+    });
+    await processingPage.waitForFunction(() => [...document.querySelectorAll('#tideforge-panel-processing .fish img')].slice(0, 3)
+      .every(image => image.getAttribute('src') === '/fish/minnow.png' && image.complete && image.naturalWidth > 0));
+    assert.match(await cards.first().innerText(), /Unknown fish/);
+    assert.equal(await cards.first().locator('input').isDisabled(), true);
+  });
+  await processingDesktop.ctx.close();
+
+  const orderDesktop = await context({ width: 1440, height: 1200 });
+  const orderPage = orderDesktop.page;
+  await orderPage.goto(`${base}/#tideforge`, { waitUntil: 'networkidle' });
+  await orderPage.locator('#tideforge-tab-gear').waitFor({ state: 'visible' });
+  await check('gear ordering stays live across pages, searches and kinds', async () => {
+    await orderPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.showGearGrid();
+      const original = game.gearInstances;
+      const extra = Array.from({ length: 12 }, (_, index) => ({
+        ...original[4], instanceId: 1000n + BigInt(index), favorite: false
+      }));
+      game.gearInstances = [...extra, original[0], original[5], { ...original[4], favorite: true },
+        { ...original[1], favorite: true }, original[2], original[3]];
+      const names = [
+        [100n, 'Original Rod'], [101n, 'Equipped Favorite Rod'], [102n, 'Equipped Boat'],
+        [103n, 'Equipped Net'], [104n, 'Favorite Rod'], [105n, 'Normal Rod'],
+        ...extra.map((item, index) => [item.instanceId, `Regular ${String(index + 1).padStart(2, '0')}`])
+      ];
+      game.gearInstanceNames = names.map(([instanceId, name]) => ({ playerId: 9n, instanceId, name }));
+    });
+    const panel = orderPage.locator('#tideforge-panel-gear');
+    const cards = panel.locator('.card');
+    const pages = orderPage.getByRole('navigation', { name: 'Tideforge gear pages' });
+    const headings = () => cards.locator('h3').allTextContents();
+    await cards.getByRole('heading', { name: 'Equipped Favorite Rod', exact: true }).waitFor({ state: 'visible' });
+    assert.match(await pages.innerText(), /Page 1 of 2/);
+    assert.deepEqual(await headings(), ['Equipped Favorite Rod', 'Equipped Boat', 'Equipped Net', 'Favorite Rod',
+      ...Array.from({ length: 8 }, (_, index) => `Regular ${String(index + 1).padStart(2, '0')}`)]);
+    assert.match(await cards.nth(0).innerText(), /Equipped · Favorite/);
+    assert.match(await cards.nth(1).innerText(), /Equipped/);
+    assert.match(await cards.nth(2).innerText(), /Equipped/);
+    assert.match(await cards.nth(3).innerText(), /Favorite/);
+    assert.doesNotMatch(await cards.nth(3).innerText(), /Equipped/);
+    await panel.locator('.cards').screenshot({ path: new URL('desktop.png', orderOutput).pathname.slice(1) });
+    const url = orderPage.url();
+    await orderPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 100n };
+      game.gearInstances = game.gearInstances.map(item => item.instanceId === 103n ? { ...item, favorite: true }
+        : item.instanceId === 104n ? { ...item, favorite: false } : item);
+    });
+    await cards.first().getByRole('heading', { name: 'Original Rod', exact: true }).waitFor({ state: 'visible' });
+    assert.deepEqual((await headings()).slice(0, 4), ['Original Rod', 'Equipped Boat', 'Equipped Net', 'Equipped Favorite Rod']);
+    assert.match(await cards.nth(2).innerText(), /Equipped · Favorite/);
+    assert.doesNotMatch(await cards.nth(3).innerText(), /Equipped · Favorite/);
+    await pages.getByRole('button', { name: 'Next page' }).click();
+    assert.match(await pages.innerText(), /Page 2 of 2/);
+    await orderPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearInstances = game.gearInstances.map(item => item.instanceId === 1000n ? { ...item, favorite: true } : item);
+    });
+    await orderPage.waitForTimeout(50);
+    assert.match(await pages.innerText(), /Page 2 of 2/);
+    await pages.getByRole('button', { name: 'Previous page' }).click();
+    assert.deepEqual((await headings()).slice(0, 5), ['Original Rod', 'Equipped Boat', 'Equipped Net', 'Regular 01', 'Equipped Favorite Rod']);
+
+    const search = orderPage.getByRole('searchbox', { name: 'Find Tideforge gear' });
+    await choose(orderPage, 'Gear kind', 'Rods');
+    await search.fill('regular');
+    assert.equal(await cards.count(), 12);
+    assert.equal((await headings())[0], 'Regular 01');
+    await orderPage.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearInstances = game.gearInstances.map(item => item.instanceId === 1005n ? { ...item, favorite: true } : item);
+    });
+    await cards.nth(1).getByRole('heading', { name: 'Regular 06', exact: true }).waitFor({ state: 'visible' });
+    assert.equal(await search.inputValue(), 'regular');
+    assert.match(await orderPage.getByRole('combobox', { name: 'Gear kind' }).innerText(), /Rods/);
+    await choose(orderPage, 'Gear kind', 'Boats');
+    assert.equal(await cards.count(), 0);
+    await search.fill('');
+    assert.deepEqual(await headings(), ['Equipped Boat']);
+    await choose(orderPage, 'Gear kind', 'Rods');
+    await search.fill('favorite');
+    assert.deepEqual(await headings(), ['Equipped Favorite Rod', 'Favorite Rod']);
+    assert.equal(orderPage.url(), url);
+  });
+  await orderDesktop.ctx.close();
+
   const layoutDesktop = await context({ width: 1440, height: 900 });
   const layout = layoutDesktop.page;
   await layout.goto(`${base}/#tideforge`, { waitUntil: 'networkidle' });
@@ -592,8 +982,8 @@ try {
     await cards.nth(5).waitFor({ state: 'visible' });
     assert.equal(await cards.count(), 6);
     const expected = [
-      ['/rods/river.png', 'River Rod'], ['/rods/river.png', 'River Rod'],
-      ['/boats/river.png', 'River Boat'], ['/nets/twig.png', 'Twig Net'],
+      ['/rods/river.png', 'River Rod'], ['/boats/river.png', 'River Boat'],
+      ['/nets/twig.png', 'Twig Net'], ['/rods/river.png', 'River Rod'],
       ['/rods/marsh.png', 'Marsh Rod'], ['/rods/moonwood.png', 'Moonwood Rod'],
     ];
     for (const [index, [src, alt]] of expected.entries()) {
@@ -634,8 +1024,9 @@ try {
     const positions = await cards.evaluateAll(nodes => nodes.slice(0, 2).map(node => node.getBoundingClientRect().y));
     assert(positions[1] > positions[0]);
     const first = cards.first();
+    assert.match(await first.innerText(), /Equipped/);
     await first.getByRole('button', { name: 'Rename' }).click();
-    await first.getByRole('textbox', { name: 'Name for River Rod · Item 1' }).fill('X'.repeat(32));
+    await first.getByRole('textbox', { name: 'Name for River Rod · Item 2' }).fill('X'.repeat(32));
     await first.getByRole('button', { name: 'Save name' }).click();
     await first.getByRole('heading', { name: 'X'.repeat(32), exact: true }).waitFor({ state: 'visible' });
     await first.getByRole('button', { name: 'Rename' }).click();
@@ -662,18 +1053,29 @@ try {
     await small.getByRole('tooltip').waitFor({ state: 'hidden' });
   });
   await check('mobile tabs, hash navigation, light and dark layout', async () => {
-    for (const id of ['gear', 'forge', 'processing', 'trader', 'vault', 'codex', 'reliquary']) {
+    for (const id of ['gear', 'forge', 'processing', 'vault', 'codex', 'reliquary']) {
       await tab(small, id); await noOverflow(small); await assertPlayerLanguage(small.locator(`#tideforge-panel-${id}`));
     }
+    await tab(small, 'trader'); await noOverflow(small); await assertPlayerLanguage(small.locator('#shop-panel-additional'));
+    await small.locator('#shop-tab-wandering').click(); await noOverflow(small); await assertPlayerLanguage(small.locator('#shop-panel-wandering'));
     await tab(small, 'processing');
+    const firstFish = small.locator('#tideforge-panel-processing .fish label').first();
+    await firstFish.scrollIntoViewIfNeeded();
+    assert(await firstFish.locator('img').evaluate(async node => { await node.decode(); return node.naturalWidth > 0; }));
+    await firstFish.locator('input').check();
+    await noOverflow(small);
+    await small.screenshot({ path: new URL('mobile.png', processingOutput).pathname.slice(1) });
+    await firstFish.locator('input').uncheck();
     await small.getByRole('button', { name: 'Select eligible on this page' }).click();
     await noOverflow(small);
     await small.locator('#tideforge-panel-processing').scrollIntoViewIfNeeded();
     if (!outputSuffix) await small.screenshot({ path: new URL('mobile-processing.png', output).pathname.slice(1) });
     await small.getByRole('button', { name: 'Dark mode' }).click();
-    for (const id of ['gear', 'forge', 'processing', 'trader', 'vault', 'codex', 'reliquary']) {
+    for (const id of ['gear', 'forge', 'processing', 'vault', 'codex', 'reliquary']) {
       await tab(small, id); await noOverflow(small);
     }
+    await tab(small, 'trader'); await noOverflow(small);
+    await small.locator('#shop-tab-wandering').click(); await noOverflow(small);
     await tab(small, 'processing');
     await small.getByRole('button', { name: 'Open navigation' }).click();
     await noOverflow(small);
@@ -682,7 +1084,7 @@ try {
     await small.getByRole('button', { name: 'Open navigation' }).click();
     await small.locator('#mobile-navigation').getByRole('button', { name: 'Tideforge' }).click();
     assert.equal(new URL(small.url()).hash, '#tideforge');
-    await small.locator('#tideforge-panel-processing').waitFor({ state: 'visible' });
+    await small.locator('#tideforge-panel-gear').waitFor({ state: 'visible' });
     await noOverflow(small);
   });
   await check('mobile long names and editing fit light and dark themes', async () => {
@@ -691,7 +1093,7 @@ try {
     await theme.click();
     assert.equal(await theme.getAttribute('aria-pressed'), 'false');
     await tab(small, 'gear');
-    const card = small.locator('#tideforge-panel-gear .card').nth(1);
+    const card = small.locator('#tideforge-panel-gear .card').filter({ hasText: 'River Rod · Item 2' });
     await card.getByRole('button', { name: 'Rename' }).click();
     let input = card.getByRole('textbox', { name: 'Name for River Rod · Item 2' });
     await input.fill('X'.repeat(32));

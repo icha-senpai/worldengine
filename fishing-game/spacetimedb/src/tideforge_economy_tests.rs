@@ -533,18 +533,48 @@ fn quote_rejects_spoof_expiry_stale_revision_and_corrupt_intents_atomically() {
 }
 
 #[test]
-fn wandering_closes_at_the_fifth_and_does_not_consume_on_boundary() {
-    let test = setup();
-    let id = player(&test, 107, "first");
-    activate(&test);
-    fixtures(&test, id);
-    let close = 1_793_491_200_000_000 + 4 * game_rules::daily::DAY_MICROS;
-    test.clock.set(Timestamp::from_micros_since_unix_epoch(close - 500_000));
-    let nonce = prepare(&test, "first", id, json!({"action": "wandering_gamble", "kind": "rod", "definition_id": 2, "secondary_biome_id": 1})).unwrap();
-    test.clock.set(Timestamp::from_micros_since_unix_epoch(close));
-    let marks = test.db.tideforge_economy_wallet().player_id().find(id).unwrap().marks;
-    assert!(commit(&test, "first", nonce).is_err());
-    assert_eq!(test.db.tideforge_economy_wallet().player_id().find(id).unwrap().marks, marks);
+fn wandering_daily_windows_preserve_state_at_boundaries() {
+    const HOUR: i64 = 3_600_000_000;
+    let midnight = 1_793_491_200_000_000 + 6 * game_rules::daily::DAY_MICROS;
+    for hour in [0, 6, 12, 18] {
+        let test = setup();
+        let id = player(&test, 107, "first");
+        activate(&test);
+        fixtures(&test, id);
+        let start = midnight + hour * HOUR;
+        let close = start + 2 * HOUR;
+        let state = || (
+            test.db.tideforge_economy_wallet().player_id().find(id).unwrap().marks,
+            test.db.player().player_id().find(id).unwrap().coins,
+            test.db.gear_instance().count(),
+            test.db.tideforge_economy_receipt().count(),
+        );
+        let intent = || json!({"action": "wandering_gamble", "kind": "rod", "definition_id": 2, "secondary_biome_id": 1});
+        let before = state();
+        test.clock.set(Timestamp::from_micros_since_unix_epoch(start - 1));
+        assert!(prepare(&test, "first", id, intent()).is_err());
+        assert_eq!(state(), before);
+        test.clock.set(Timestamp::from_micros_since_unix_epoch(start));
+        let nonce = prepare(&test, "first", id, intent()).unwrap();
+        commit(&test, "first", nonce).unwrap();
+        let after = state();
+        assert_eq!(after, (before.0 - 1, before.1, before.2 + 1, before.3 + 1));
+        test.clock.set(Timestamp::from_micros_since_unix_epoch(close - 500_000));
+        let nonce = prepare(&test, "first", id, intent()).unwrap();
+        let identity = Identity::from_claims("test", "first");
+        let quote = test.db.tideforge_economy_quote().key().find(format!("{identity}:{id}")).unwrap();
+        assert_eq!(quote.expires_at.to_micros_since_unix_epoch(), close);
+        test.clock.set(Timestamp::from_micros_since_unix_epoch(close));
+        assert!(commit(&test, "first", nonce).is_err());
+        assert_eq!(state(), after);
+        assert!(prepare(&test, "first", id, intent()).is_err());
+        assert_eq!(state(), after);
+        test.clock.set(Timestamp::from_micros_since_unix_epoch(close + HOUR));
+        assert!(prepare(&test, "first", id, intent()).is_err());
+        assert_eq!(state(), after);
+        assert!(prepare(&test, "first", id, json!({"action": "camp_copy", "kind": "rod", "definition_id": 2, "secondary_biome_id": 1})).is_ok());
+        assert_eq!(state(), after);
+    }
 }
 
 #[test]

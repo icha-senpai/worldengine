@@ -10,11 +10,11 @@
   const badge = $derived(game.raidBadges.find(row =>
     row.playerId === game.player?.playerId && row.speciesId === speciesId));
   const attempt = $derived(game.raidAttempts.find(row =>
-    row.speciesId === speciesId && ['prepared', 'deployed', 'running'].includes(row.status)));
+    row.playerId === game.player?.playerId && row.speciesId === speciesId && ['prepared', 'deployed', 'running'].includes(row.status)));
   const species = $derived(game.species.find(row => row.speciesId === speciesId));
   const special = $derived(!!species && !species.countsForOrdinaryCollectionCompletion);
   const clearCount = $derived(clearedGradeCount(badge?.clearedGrades));
-  const discovered = $derived((game.collection.find(row => row.speciesId === speciesId)?.count ?? 0n) > 0n);
+  const discovered = $derived((game.collection.find(row => row.playerId === game.player?.playerId && row.speciesId === speciesId)?.count ?? 0n) > 0n);
   const specialCleared = $derived((badge?.specialCompletions ?? 0n) > 0n);
   const specialState = $derived(attempt ? 'active' : specialCleared ? 'cleared' : discovered ? 'available' : 'locked');
   const activeDeadline = (row: NonNullable<typeof attempt>) =>

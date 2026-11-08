@@ -54,11 +54,10 @@ Accepted source split:
 |---|---|---|
 | Original family acquisition | Existing original-item progression and coin catalog | Protected vanilla original; earlier preservation decision remains. |
 | Camp trader additional copies | Coins | Additional gear with low-tier affixes. |
-| Monthly wandering trader | Dredge Marks | Eligible additional gear with very high-tier affixes, not an overwrite of owned gear. |
+| Wandering trader | Dredge Marks | Eligible additional gear with very high-tier affixes, not an overwrite of owned gear. |
 
-The monthly wandering trader is the high-tier Mark-gambling route. Exact
-stock-versus-roll interaction, family selection, availability window and any
-other trader services still require a contract.
+The wandering trader is the high-tier Mark-gambling route. The current
+acquisition and availability contract is specified in section 10.
 
 "Low-tier" and "very high-tier" are accepted distinctions, not finalized T1-T3
 or T8-T10 ranges. Exact affix counts, tier/value weights and signature chances
@@ -624,7 +623,7 @@ runtime integration/playtesting, not a production switch.
    effects are implemented in section 9. Additional-copy purchase eligibility
    belongs to the acquisition stage.
 2. **Trader/reward contract:** affix ranges/counts, signature occurrence, stock
-   versus rolling, monthly window, eligible families, new-copy starting quality
+   versus rolling, daily visit windows, eligible families, new-copy starting quality
    and reinforcement, per-grade/achievement Mark awards.
 3. **Effect contract:** candidate semantics/grids now have a locally verified
    effect engine and isolated runtime integration. Final balance, acquisition
@@ -792,10 +791,11 @@ activation. An absent economy state preserves all legacy behavior.
   Starter copies are not sold. Family prices apply equally to rod/boat/net.
 - Camp copies use coins and roll one affix at T1/T2/T3 with weights 70/25/5.
   Wandering gambling uses Marks and rolls four at T8/T9/T10 with weights 70/25/5.
-- The wandering trader is available on UTC calendar days 1-4 each month,
-  including the first midnight and excluding the fifth. No purchase quota or
-  stock-reroll fee is added. Quotes expire at the earlier of 120 seconds and
-  the trader closing. Kind/family selection remains explicit.
+- The wandering trader arrives at 00:00, 06:00, 12:00 and 18:00 UTC every day,
+  with each visit lasting two hours including its start and excluding its end.
+  The website displays visit times in the player's local timezone. No purchase
+  quota or stock-reroll fee is added. Quotes expire at the earlier of 120 seconds
+  and the trader closing. Kind/family selection remains explicit.
 - Roll compatible distinct affix IDs uniformly from the remaining legal IDs at
   each draw, retaining the existing maximum of two biome-conditional affixes
   including dormant ones. Acquisition requires the player's explicit

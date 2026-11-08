@@ -62,10 +62,11 @@ export function tideforgeValidationMessage(message: string): string {
 
 export function tideforgeErrorMessage(message: string): string {
   if (message.includes('UnknownCallResultError')) return 'The connection dropped before confirmation. Reconnect and review the saved state.';
-  if (message.includes('TIDEFORGE_WANDERING_CLOSED')) return 'The Wandering trader is away. See its monthly schedule.';
+  if (message.includes('TIDEFORGE_WANDERING_CLOSED')) return 'The wandering trader is away. Check Trader for the next visit in your local time.';
   if (message.includes('TIDEFORGE_MARKS_REQUIRED')) return 'You need more Dredge Marks for this action.';
   if (message.includes('INSUFFICIENT_COINS')) return 'You need more coins for this action.';
-  if (message.includes('INSUFFICIENT_MATERIALS') || message.includes('RAID_MATERIALS_REQUIRED') || message.includes('TIDEFORGE_SHARD')) return 'You need the required materials and shards.';
+  if (message.includes('INSUFFICIENT_MATERIALS') || message.includes('RAID_MATERIALS_REQUIRED')) return 'You do not have enough materials for this action. Review the required material grades and your balances in Materials.';
+  if (message.includes('TIDEFORGE_SHARDS_REQUIRED')) return 'You need more shards for this affix. Dismantle eligible gear with that affix, then review your Materials.';
   if (message.includes('RAID_GRADE_NOT_CLEARED')) return 'Clear the required raid grade first.';
   if (message.includes('ACTION_EXPIRED')) return 'This preview expired. Open a new preview.';
   if (message.includes('QUOTE_CHANGED')) return 'This preview changed. Open a new preview.';

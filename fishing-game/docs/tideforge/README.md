@@ -104,8 +104,9 @@ original stays protected; copies inherit family mastery, not another item's
 quality or reinforcement.
 
 The Camp trader sells coin-bought additional gear with low-tier affixes. A
-wandering trader visits once per month and offers gear with very-high-tier
-affixes. Exact tier ranges and acquisition details remain open. Dismantling an
+wandering trader visits four times daily for two hours and offers gear with
+very-high-tier affixes. Visit times are displayed in the player's local timezone;
+the [build contract](build-contract-v0.1.md) records acquisition details. Dismantling an
 eligible item recovers matching Vault resources for all its affixes; extracting
 its signature into the Reliquary is the mutually exclusive alternative.
 

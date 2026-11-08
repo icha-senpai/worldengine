@@ -5,6 +5,7 @@
   import { formatLength, formatWeight } from './measurements';
   import GameSelect from './GameSelect.svelte';
   import SearchInput from './SearchInput.svelte';
+  import InfoButton from './InfoButton.svelte';
 
   interface RecordBookData {
     species: SpeciesDefinition[];
@@ -111,7 +112,8 @@
 {/snippet}
 
 <section class="records-board" aria-labelledby="records-heading">
-  <header class="board-heading"><div><p class="eyebrow">A CATCH WORTH BRAGGING ABOUT</p><h2 id="records-heading">The bragging board</h2><p>Big catches. Patient anglers. A little camp rivalry.</p></div><span class="wood-stamp">ALL WATERS<br /><b>ALL TIME</b></span></header>
+  <header class="board-heading"><div><p class="eyebrow">A CATCH WORTH BRAGGING ABOUT</p><h2 id="records-heading">The bragging board <InfoButton label="About global records" message="Global records compare all anglers. Your personal collection and rank maxima are in Fish Book." /></h2><p>Big catches. Patient anglers. A little camp rivalry.</p></div><span class="wood-stamp">ALL WATERS<br /><b>ALL TIME</b></span></header>
+  <p>Global records compare all anglers. Your personal collection and rank maxima are in <a href="#compendium/collection">Fish Book</a>.</p>
   <div class="book-tabs" role="tablist" aria-label="Records views">
     <button id="records-tab-fish" role="tab" aria-selected={view === 'fish'} aria-controls="fish-records-panel" tabindex={view === 'fish' ? 0 : -1} onclick={() => switchTab('fish')} onkeydown={tabKey}>Fish Records</button>
     <button id="records-tab-anglers" role="tab" aria-selected={view === 'anglers'} aria-controls="angler-records-panel" tabindex={view === 'anglers' ? 0 : -1} onclick={() => switchTab('anglers')} onkeydown={tabKey}>Angler Leaderboards</button>

@@ -69,7 +69,7 @@ function validateTideforgeEconomy(economy, effects, worldCatalog) {
   assert.equal(acquisition.finishMaximumBp, 10_000);
   const offer = (value, allowed, wandering) => {
     shape(value, ['affixCount', 'tiers', 'signatureChanceBp'],
-      wandering ? ['utcStartDayOfMonth', 'durationDays'] : []);
+      wandering ? ['utcStartHours', 'durationHours'] : []);
     positive(value.affixCount, 'affix count');
     nonnegative(value.signatureChanceBp, 'signature chance');
     assert(value.signatureChanceBp <= 10_000);
@@ -86,9 +86,8 @@ function validateTideforgeEconomy(economy, effects, worldCatalog) {
     assert.deepEqual([...tiers].sort((a, b) => a - b), allowed);
     assert.equal(total, 100);
     if (wandering) {
-      positive(value.utcStartDayOfMonth, 'wandering start day');
-      positive(value.durationDays, 'wandering duration');
-      assert(value.utcStartDayOfMonth + value.durationDays <= 32);
+      assert.deepEqual(value.utcStartHours, [0, 6, 12, 18], 'Wandering visits start every six hours UTC');
+      assert.equal(value.durationHours, 2, 'Wandering visits last two hours');
     }
   };
   offer(acquisition.camp, [1, 2, 3], false);

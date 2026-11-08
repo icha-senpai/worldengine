@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>%sveltekit.status% · Fishbound</title>
+    <link rel="icon" type="image/png" href="/fish/koi.png" />
+    <link rel="stylesheet" href="/site-errors.css" />
+  </head>
+  <body class="site-error-document">
+    <main class="site-error-page">
+      <div class="site-error-shell">
+        <header class="site-error-header">
+          <a class="site-error-brand" href="/#camp"><img src="/fish/koi.png" width="46" height="36" alt="" />Fishbound</a>
+          <span class="site-error-header-note">A quiet bend in the water</span>
+        </header>
+        <section class="site-error-card" aria-labelledby="site-error-heading">
+          <div class="site-error-copy">
+            <p class="site-error-kicker">HTTP %sveltekit.status%</p>
+            <h1 id="site-error-heading">We've hit a snag.</h1>
+            <p class="site-error-description">Something interrupted this page before it could load. Head back to Camp, or try the Fish Book.</p>
+            <div class="site-error-actions">
+              <a class="site-error-action site-error-action-primary" href="/#camp">Back to Camp</a>
+              <a class="site-error-action" href="/catalog">Open Fish Book</a>
+            </div>
+          </div>
+          <div class="site-error-water" aria-hidden="true"><span class="site-error-ripple"></span><img src="/fish/koi.png" alt="" width="160" height="160" /></div>
+        </section>
+        <footer class="site-error-footer">Fishbound · Find your way back</footer>
+      </div>
+    </main>
+  </body>
+</html>

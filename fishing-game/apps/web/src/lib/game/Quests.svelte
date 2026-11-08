@@ -9,12 +9,12 @@
   let { game }: { game: Game } = $props();
   type QuestSection = 'raids' | 'community' | 'dailies' | 'quests';
   const questTabs: { id: QuestSection; label: string }[] = [
-    { id: 'raids', label: 'Raids' },
-    { id: 'community', label: 'Community Expeditions' },
+    { id: 'quests', label: 'Quests' },
     { id: 'dailies', label: 'Dailies' },
-    { id: 'quests', label: 'Quests' }
+    { id: 'raids', label: 'Raids' },
+    { id: 'community', label: 'Community Expeditions' }
   ];
-  let questSection = $state<QuestSection>('raids');
+  let questSection = $state<QuestSection>('quests');
   const raidMode = $derived(questSection === 'community' ? 'community' : 'raids');
   function openActiveRaid() { questSection = 'raids'; }
   let choices = $state<Record<number, number>>({});

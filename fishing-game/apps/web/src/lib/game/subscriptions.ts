@@ -25,9 +25,9 @@ export function viewQueries(view: string, playerId?: bigint, version = 0): strin
   const tables: Record<string, string[]> = {
     camp: ['my_recent_catches'],
     quests: ['quest_definition', 'quest_calendar', 'my_quests', 'my_dockside', 'my_inventory', 'achievement_definition'],
-    inventory: ['my_inventory'], tideforge: ['my_inventory'], journal: ['my_journal'],
+    inventory: ['my_inventory'], tideforge: version >= 9 ? ['my_inventory', 'rod_upgrade_recipe'] : ['my_inventory'], journal: ['my_journal'],
     collection: ['my_collection_focus'], compendium: ['my_collection_focus'],
-    trader: version >= 9 ? ['rod_upgrade_recipe'] : [],
+    trader: version >= 9 ? ['my_inventory', 'rod_upgrade_recipe'] : ['my_inventory'],
     records: ['species_record', 'angler_standing', 'angler_statistics', 'legendary_find'],
     anglers: ['public_profile', 'angler_portrait', 'angler_standing', 'angler_statistics', 'species_record',
       'achievement_definition', 'earned_achievement', 'perfect_species', 'rank_maximum', 'angler_title'],

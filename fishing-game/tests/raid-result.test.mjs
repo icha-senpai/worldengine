@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { formatRaidDuration, raidResultSummary } from '../apps/web/src/lib/game/raid-result.ts';
+import { formatRaidDuration, raidActiveStatusLabel, raidResultSummary } from '../apps/web/src/lib/game/raid-result.ts';
+
+test('active raid status labels have a safe fallback', () => {
+  assert.equal(raidActiveStatusLabel('prepared'), 'Prepared');
+  assert.equal(raidActiveStatusLabel('deployed'), 'Launch scheduled');
+  assert.equal(raidActiveStatusLabel('running'), 'Underway');
+  assert.equal(raidActiveStatusLabel('unknown_internal'), 'Status unavailable');
+});
 
 const at = n => Object.freeze({ microsSinceUnixEpoch: BigInt(n) * 1000000n });
 const fish = Object.freeze({ speciesId: 1, name: 'Minnow', spriteAsset: '/fish/koi.png' });

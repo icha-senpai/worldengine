@@ -3,6 +3,7 @@
   import { baselineLoadout, castChance, formatOdds, formatPercent, rankSpreads, perfectCatchOdds } from './compendium';
   import { formatLength, formatWeight } from './measurements';
   import world from '../../../../../content/world.json';
+  import InfoButton from './InfoButton.svelte';
   let { fish = $bindable(null), asset = '', loadout = baselineLoadout } = $props<{fish?: CatalogFish | null; asset?: string; loadout?: RateLoadout}>();
   let dialog: HTMLDialogElement;
   const bands = $derived(fish ? rankSpreads(fish, loadout) : []);
@@ -48,7 +49,7 @@
         </div>
       </section>
       <section aria-labelledby="rank-ranges-title">
-        <h3 id="rank-ranges-title">What you can pull at each rank</h3>
+        <h3 id="rank-ranges-title">What you can pull at each rank <InfoButton label="About rank measurements" message="Rank requires both length and weight thresholds. Descriptive size is not rank. A rank maximum is one fish at both endpoints for that rank; a perfect fish reaches both UUR endpoints." /></h3>
         <p class="explain">Length is drawn within the rank’s size band. Weight grows with the cube of length, with roughly ±12% variation and the rank’s minimum weight applied. Longer fish tend to be heavier; the ranges below aren’t independent rolls.</p>
         <div class="rank-ranges">
           {#each bands as band (band.rarity)}
