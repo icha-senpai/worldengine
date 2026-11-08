@@ -34,21 +34,21 @@ pub fn components(kind: &str) -> Vec<serenity::CreateActionRow> {
     ])]
 }
 
-pub fn status(trip: &HaulTrip) -> Result<String, String> {
+pub fn status(trip: &HaulTrip, gear_label: &str) -> Result<String, String> {
     let (_, count) = game_rules::hauls::settings(&trip.kind)?;
     Ok(if trip.status == "running" {
         let emoji = if trip.kind == "boat" { "🚣" } else { "🕸" };
         format!(
             "{emoji} **{}** is underway in **{}**!\n{} catch opportunities · ready <t:{}:R>.\nYour results will arrive in the channel where it started. You can keep using /fish. No bait required.",
-            trip.equipment_name,
+            crate::gear_labels::markdown(gear_label),
             trip.biome.name,
             count,
             trip.due_at.to_micros_since_unix_epoch() / 1_000_000
         )
     } else {
         format!(
-            "Your {} haul is complete: {} catches, +{} XP and +{} coins. Results are saved in your Tackle box and Journal.",
-            trip.kind,
+            "Your **{}** haul is complete: {} catches, +{} XP and +{} coins. Results are saved in your Tackle box and Journal.",
+            crate::gear_labels::markdown(gear_label),
             trip.results.len(),
             trip.total_xp,
             trip.total_coins

@@ -73,6 +73,49 @@ async function noOverflow(page) {
   const size = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
   assert(size.scroll <= size.width + 1, `horizontal overflow: ${JSON.stringify(size)}`);
 }
+async function installModalTrace(page) {
+  await page.evaluate(() => {
+    window.modalTrace = [];
+    document.addEventListener('focusin', event => {
+      const target = event.target;
+      if (target instanceof HTMLElement && target.closest('dialog[open]')) {
+        window.modalTrace.push({ type: 'focus', id: target.id, label: target.getAttribute('aria-label') ?? target.textContent?.trim() });
+      }
+    }, true);
+    document.addEventListener('beforetoggle', event => {
+      const target = event.target;
+      if (target instanceof HTMLElement && target.getAttribute('role') === 'tooltip'
+          && target.closest('dialog[open]') && event.newState === 'open') {
+        window.modalTrace.push({ type: 'tooltip-open', label: target.textContent });
+      }
+    }, true);
+  });
+}
+async function assertModalInitiallySafe(page) {
+  const dialog = page.getByRole('dialog');
+  await dialog.waitFor({ state: 'visible' });
+  const title = dialog.locator('#tideforge-confirm-title');
+  assert.equal(await title.evaluate(node => document.activeElement === node), true);
+  await assertInsideDialog(title);
+  assert.equal(await dialog.evaluate(node => node.scrollTop), 0);
+  const trace = await page.evaluate(() => window.modalTrace);
+  console.log('MODAL_INITIAL_FOCUS', JSON.stringify({ viewport: page.viewportSize(), trace }));
+  assert.equal(trace.find(event => event.type === 'focus')?.id, 'tideforge-confirm-title', JSON.stringify(trace));
+  assert(!trace.some(event => event.type === 'tooltip-open' || event.label === 'About affix strength'), JSON.stringify(trace));
+  assert.equal(await page.getByRole('tooltip').count(), 0);
+  return dialog;
+}
+async function assertInsideDialog(locator) {
+  const geometry = await locator.evaluate(node => {
+    const target = node.getBoundingClientRect();
+    const dialog = node.closest('dialog').getBoundingClientRect();
+    return { target: target.toJSON(), dialog: dialog.toJSON(), width: window.innerWidth, height: window.innerHeight };
+  });
+  const { target, dialog, width, height } = geometry;
+  assert(target.width > 0 && target.height > 0 && target.top >= Math.max(0, dialog.top)
+    && target.bottom <= Math.min(height, dialog.bottom) && target.left >= Math.max(0, dialog.left)
+    && target.right <= Math.min(width, dialog.right), JSON.stringify(geometry));
+}
 async function assertInfoButtons(locator, minSize = 32) {
   await locator.page().mouse.move(0, 0);
   const buttons = await locator.locator('.info-button:visible').evaluateAll(nodes => nodes.map(node => {
@@ -169,6 +212,77 @@ try {
     await page.evaluate(() => window.tideforgeFixture.clearUnknownLanguage());
     await tab(page, 'gear');
   });
+  await check('desktop removal dialogs start on the heading without a tooltip flash', async () => {
+    await installModalTrace(page);
+    const original = await page.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 100n };
+      const old = game.tideforgeGear.find(row => row.instanceId === 101n).affixesJson;
+      game.tideforgeGear = game.tideforgeGear.map(row => row.instanceId === 101n ? {
+        ...row, affixesJson: JSON.stringify(['fortune', 'scholar', 'old_salt', 'coinwright'].map((id, slot) => ({
+          slot, id, tier: [1, 4, 8, 10][slot], finishBp: 5000, secondaryBiomeId: null,
+        }))),
+      } : row);
+      return old;
+    });
+    const card = page.locator('#tideforge-panel-gear .card').filter({ has: page.getByRole('heading', { name: 'River Rod · Item 2', exact: true }) });
+    const dismantle = card.getByRole('button', { name: 'Dismantle' });
+    const outside = page.getByRole('button', { name: 'About collection goals' });
+    await outside.focus();
+    await page.getByRole('tooltip').waitFor({ state: 'visible' });
+    await dismantle.focus();
+    await dismantle.press('Enter');
+    let dialog = await assertModalInitiallySafe(page);
+    await assertInsideDialog(dialog.getByText('River Rod · Item 2', { exact: true }));
+    await assertInsideDialog(dialog.getByText('This item will be permanently removed.', { exact: true }));
+    await page.screenshot({ path: new URL('modal-desktop-heading.png', output).pathname.slice(1), animations: 'disabled' });
+    await dialog.locator('#tideforge-confirm-title').press('Enter');
+    assert.equal(await dialog.isVisible(), true);
+    assert.equal(await page.evaluate(() => window.tideforgeFixture.calls.filter(row => row.action === 'commit').length), 0);
+    for (const label of ['1 Fortune shards', '2 Scholar shards', '3 Old Salt shards', '3 Coinwright shards']) {
+      await dialog.getByText(label, { exact: true }).waitFor({ state: 'visible' });
+    }
+    const help = dialog.getByRole('button', { name: 'About affix strength' });
+    await help.focus();
+    await page.getByRole('tooltip').waitFor({ state: 'visible' });
+    await page.screenshot({ path: new URL('modal-desktop-help.png', output).pathname.slice(1), animations: 'disabled' });
+    await help.press('Escape');
+    await page.getByRole('tooltip').waitFor({ state: 'hidden' });
+    assert.equal(await dialog.isVisible(), true);
+    await dialog.getByRole('button', { name: 'Cancel' }).focus();
+    await help.focus();
+    await page.getByRole('tooltip').waitFor({ state: 'visible' });
+    await dialog.getByRole('button', { name: 'Cancel' }).click();
+    await dialog.waitFor({ state: 'hidden' });
+    assert.equal(await page.getByRole('tooltip').count(), 0);
+
+    await page.evaluate(() => { window.modalTrace = []; });
+    await dismantle.click();
+    dialog = await assertModalInitiallySafe(page);
+    await dialog.getByRole('button', { name: 'About affix strength' }).hover();
+    await page.getByRole('tooltip').waitFor({ state: 'visible' });
+    await dialog.evaluate(node => node.close());
+    await dialog.waitFor({ state: 'hidden' });
+    await page.getByRole('tooltip').waitFor({ state: 'hidden' });
+    assert.equal(await page.evaluate(() => window.tideforgeFixture.calls.filter(row => row.action === 'commit').length), 0);
+    await page.evaluate(affixesJson => {
+      const game = window.tideforgeFixture;
+      game.tideforgeGear = game.tideforgeGear.map(row => row.instanceId === 101n ? { ...row, affixesJson } : row);
+      game.tideforgeLibrary = [];
+    }, original);
+    await tab(page, 'reliquary');
+    await choose(page, 'Gear to extract from', 'River Rod · Item 2 · Echoed Line');
+    await page.evaluate(() => { window.modalTrace = []; });
+    await page.getByRole('button', { name: 'Preview extraction' }).click();
+    dialog = await assertModalInitiallySafe(page);
+    await dialog.getByRole('button', { name: 'Cancel' }).click();
+    await page.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 101n };
+      game.tideforgeLibrary = [{ playerId: 9n, signatureId: 'echoed_line' }];
+    });
+    await tab(page, 'gear');
+  });
   await check('removal and fish previews use clear targets and safe resource names', async () => {
     await page.evaluate(() => {
       window.tideforgeFixture.gearLoadout = { ...window.tideforgeFixture.gearLoadout, rodInstanceId: 100n };
@@ -182,7 +296,7 @@ try {
     assert.equal(await dialog.getByRole('button', { name: 'About affix strength', exact: true }).count(), 1);
     assert.match(await dialog.innerText(), /River Rod · Item 2/);
     assert.match(await dialog.innerText(), /This item will be permanently removed/);
-    assert.match(await dialog.innerText(), /Past upgrade costs are not refunded/);
+    assert.match(await dialog.innerText(), /Coins and materials spent are not refunded/);
     assert.match(await dialog.innerText(), /Unknown affix/);
     assert.match(await dialog.innerText(), /Unknown signature/);
     assert.match(await dialog.innerText(), /Unknown water/);
@@ -338,7 +452,7 @@ try {
     await assertPlayerLanguage(dialog);
     assert.match(text, /River Rod/); assert.match(text, /Whispering River/);
     assert.match(text, /Costs/); assert.match(text, /500 coins/); assert.match(text, /Receive/);
-    assert.equal(await dialog.getByRole('button', { name: 'Cancel' }).evaluate(el => document.activeElement === el), true);
+    assert.equal(await dialog.locator('#tideforge-confirm-title').evaluate(el => document.activeElement === el), true);
     await dialog.getByRole('button', { name: 'Cancel' }).click();
     await dialog.waitFor({ state: 'hidden' });
     assert.equal(await trigger.evaluate(el => document.activeElement === el), true);
@@ -1041,6 +1155,42 @@ try {
   const small = mobile.page;
   await small.goto(`${base}/#tideforge`, { waitUntil: 'networkidle' });
   await small.locator('#tideforge-tab-gear').waitFor({ state: 'visible' });
+  await check('mobile dismantle opens on the heading without a tooltip flash', async () => {
+    await installModalTrace(small);
+    await small.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 100n };
+    });
+    const outside = small.getByRole('button', { name: 'About collection goals' });
+    await outside.tap();
+    await small.getByRole('tooltip').waitFor({ state: 'visible' });
+    const card = small.locator('#tideforge-panel-gear .card').filter({ has: small.getByRole('heading', { name: 'River Rod · Item 2', exact: true }) });
+    await card.getByRole('button', { name: 'Dismantle' }).tap();
+    const dialog = await assertModalInitiallySafe(small);
+    await assertInsideDialog(dialog.getByText('River Rod · Item 2', { exact: true }));
+    await assertInsideDialog(dialog.getByText('This item will be permanently removed.', { exact: true }));
+    await small.screenshot({ path: new URL('modal-mobile-heading.png', output).pathname.slice(1), animations: 'disabled' });
+    await dialog.locator('#tideforge-confirm-title').press('Enter');
+    assert.equal(await dialog.isVisible(), true);
+    assert.equal(await small.evaluate(() => window.tideforgeFixture.calls.filter(row => row.action === 'commit').length), 0);
+    const help = dialog.getByRole('button', { name: 'About affix strength' });
+    await help.tap();
+    await small.getByRole('tooltip').waitFor({ state: 'visible' });
+    await small.screenshot({ path: new URL('modal-mobile-help.png', output).pathname.slice(1), animations: 'disabled' });
+    await small.keyboard.press('Escape');
+    await small.getByRole('tooltip').waitFor({ state: 'hidden' });
+    assert.equal(await dialog.isVisible(), true);
+    await help.tap();
+    await small.getByRole('tooltip').waitFor({ state: 'visible' });
+    await dialog.getByRole('button', { name: 'Cancel' }).tap();
+    await dialog.waitFor({ state: 'hidden' });
+    await small.getByRole('tooltip').waitFor({ state: 'hidden' });
+    assert.equal(await small.evaluate(() => window.tideforgeFixture.calls.filter(row => row.action === 'commit').length), 0);
+    await small.evaluate(() => {
+      const game = window.tideforgeFixture;
+      game.gearLoadout = { ...game.gearLoadout, rodInstanceId: 101n };
+    });
+  });
   await check('mobile touch opens shared tooltip and Escape closes it', async () => {
     const anchor = small.getByRole('button', { name: 'About collection goals' });
     const coarse = await small.evaluate(() => matchMedia('(pointer: coarse)').matches);
@@ -1113,6 +1263,135 @@ try {
     await noOverflow(small);
   });
   await mobile.ctx.close();
+
+  const notices = await context({ width: 1440, height: 900 });
+  const noticePage = notices.page;
+  await noticePage.goto(`${base}/#tideforge`, { waitUntil: 'networkidle' });
+  await noticePage.locator('#tideforge-tab-gear').waitFor({ state: 'visible' });
+  await noticePage.clock.install();
+  await check('success notices use fresh unengaged time without changing receipts or retry state', async () => {
+    await tab(noticePage, 'trader');
+    await choose(noticePage, 'Gear model', 'River Rod');
+    await choose(noticePage, 'Secondary water', 'Whispering River');
+    const commit = async () => {
+      await noticePage.getByRole('button', { name: 'Preview gear purchase' }).click();
+      await noticePage.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
+      await noticePage.getByText('Gear acquired', { exact: true }).waitFor({ state: 'visible' });
+      await noticePage.mouse.move(0, 0);
+    };
+    await commit();
+    const first = await noticePage.evaluate(() => window.tideforgeFixture.tideforgeResult.nonce.toString());
+    await noticePage.clock.fastForward(4000);
+    await commit();
+    const second = await noticePage.evaluate(() => window.tideforgeFixture.tideforgeResult.nonce.toString());
+    assert.notEqual(first, second);
+    await noticePage.clock.fastForward(2000);
+    const banner = noticePage.locator('.notice[role=status]').filter({ hasText: 'Gear acquired' });
+    assert.equal(await banner.isVisible(), true);
+    await banner.screenshot({ path: new URL('notice-desktop.png', output).pathname.slice(1) });
+    await banner.hover();
+    await noticePage.clock.fastForward(8000);
+    assert.equal(await banner.isVisible(), true);
+    await banner.getByRole('button', { name: 'Dismiss notification' }).focus();
+    await noticePage.mouse.move(0, 0);
+    await noticePage.clock.fastForward(8000);
+    assert.equal(await banner.isVisible(), true);
+    await banner.getByRole('button', { name: 'Dismiss notification' }).evaluate(node => node.blur());
+    await noticePage.clock.fastForward(5999);
+    assert.equal(await banner.isVisible(), true);
+    await noticePage.clock.fastForward(1);
+    await banner.waitFor({ state: 'hidden' });
+    assert.equal(await noticePage.evaluate(() => window.tideforgeFixture.tideforgeResult.nonce.toString()), second);
+    await tab(noticePage, 'gear');
+    await tab(noticePage, 'trader');
+    assert.equal(await noticePage.getByText('Gear acquired', { exact: true }).count(), 0);
+    await choose(noticePage, 'Gear model', 'River Rod');
+    await choose(noticePage, 'Secondary water', 'Whispering River');
+    await commit();
+    const calls = await noticePage.evaluate(() => window.tideforgeFixture.calls.length);
+    await banner.getByRole('button', { name: 'Dismiss notification' }).focus();
+    await banner.getByRole('button', { name: 'Dismiss notification' }).press('Enter');
+    await banner.waitFor({ state: 'hidden' });
+    assert.equal(await noticePage.evaluate(() => window.tideforgeFixture.calls.length), calls);
+    assert.notEqual(await noticePage.evaluate(() => window.tideforgeFixture.tideforgeResult), null);
+
+    await noticePage.evaluate(() => { window.tideforgeFixture.unknownNext = true; });
+    await noticePage.getByRole('button', { name: 'Preview gear purchase' }).click();
+    await noticePage.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
+    await noticePage.getByRole('button', { name: 'Check last action' }).waitFor({ state: 'visible' });
+    await noticePage.evaluate(() => { window.tideforgeFixture.error = 'Fixture global error'; window.tideforgeFixture.tideforgeError = 'Fixture Tideforge error'; });
+    await noticePage.clock.fastForward(7000);
+    assert.equal(await noticePage.getByRole('button', { name: 'Check last action' }).isVisible(), true);
+    assert.equal(await noticePage.getByRole('alert').filter({ hasText: 'Fixture global error' }).getByRole('button', { name: 'Dismiss notification' }).count(), 0);
+    assert.equal(await noticePage.getByRole('alert').filter({ hasText: 'Fixture Tideforge error' }).getByRole('button', { name: 'Dismiss notification' }).count(), 0);
+    await noticePage.getByRole('button', { name: 'Check last action' }).click();
+    await noticePage.getByText('Gear acquired', { exact: true }).waitFor({ state: 'visible' });
+    const afterRetry = await noticePage.evaluate(() => window.tideforgeFixture.calls.length);
+    await noticePage.getByRole('alert').filter({ hasText: 'Fixture global error' }).getByRole('button', { name: 'Dismiss notification' }).click();
+    await noticePage.getByRole('alert').filter({ hasText: 'Fixture Tideforge error' }).getByRole('button', { name: 'Dismiss notification' }).click();
+    assert.equal(await noticePage.evaluate(() => window.tideforgeFixture.calls.length), afterRetry);
+    assert.equal(await noticePage.evaluate(() => window.tideforgeFixture.pendingTideforgeCommit), null);
+  });
+  await check('processing confirmation expires while its receipt remains saved', async () => {
+    await tab(noticePage, 'processing');
+    await noticePage.getByRole('button', { name: 'Select eligible on this page' }).click();
+    await noticePage.getByRole('button', { name: 'Preview processing' }).click();
+    await noticePage.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
+    const banner = noticePage.locator('.notice[role=status]').filter({ hasText: 'Action confirmed' });
+    await banner.waitFor({ state: 'visible' });
+    await noticePage.mouse.move(0, 0);
+    const nonce = await noticePage.evaluate(() => window.tideforgeFixture.tideforgeResult.nonce.toString());
+    await noticePage.clock.fastForward(6000);
+    await banner.waitFor({ state: 'hidden' });
+    assert.equal(await noticePage.evaluate(() => window.tideforgeFixture.tideforgeResult.nonce.toString()), nonce);
+  });
+  await check('raid success expires across board remount and persistent warnings do not', async () => {
+    await noticePage.locator('#tab-quests').click();
+    await noticePage.locator('#quest-tab-raids').click();
+    await noticePage.evaluate(() => window.tideforgeFixture.setRaidActionMessage('Fixture raid success', 501n));
+    const success = noticePage.getByText('Fixture raid success', { exact: false });
+    await success.waitFor({ state: 'visible' });
+    await noticePage.clock.fastForward(6000);
+    await success.waitFor({ state: 'hidden' });
+    await noticePage.locator('#quest-tab-dailies').click();
+    await noticePage.locator('#quest-tab-raids').click();
+    assert.equal(await success.count(), 0);
+    await noticePage.evaluate(() => window.tideforgeFixture.setRaidActionMessage('Fixture raid success', 501n));
+    assert.equal(await success.count(), 0);
+    await noticePage.evaluate(() => window.tideforgeFixture.setRaidActionMessage('Fixture raid success', 502n));
+    await success.waitFor({ state: 'visible' });
+    await success.getByRole('button', { name: 'Dismiss notification' }).focus();
+    await noticePage.clock.fastForward(8000);
+    assert.equal(await success.isVisible(), true);
+    await noticePage.locator('#quest-tab-dailies').click();
+    await noticePage.clock.fastForward(6000);
+    await noticePage.locator('#quest-tab-raids').click();
+    assert.equal(await success.count(), 0);
+    await noticePage.evaluate(() => window.tideforgeFixture.setRaidActionMessage('Fixture identity warning'));
+    await noticePage.clock.fastForward(12000);
+    assert.equal(await noticePage.getByText('Fixture identity warning').isVisible(), true);
+  });
+  await notices.ctx.close();
+
+  const noticeMobile = await context({ width: 375, height: 812 });
+  const noticeSmall = noticeMobile.page;
+  await noticeSmall.goto(`${base}/#tideforge`, { waitUntil: 'networkidle' });
+  await noticeSmall.locator('#tideforge-tab-gear').waitFor({ state: 'visible' });
+  await check('mobile touch dismisses a success without changing its saved receipt', async () => {
+    await noticeSmall.evaluate(async () => {
+      const game = window.tideforgeFixture;
+      const quote = await game.prepareTideforge({ action: 'camp_copy', kind: 'rod', definition_id: 2, secondary_biome_id: 1 });
+      await game.commitTideforge(quote);
+    });
+    const banner = noticeSmall.locator('.notice[role=status]').filter({ hasText: 'Gear acquired' });
+    await banner.waitFor({ state: 'visible' });
+    await banner.screenshot({ path: new URL('notice-mobile.png', output).pathname.slice(1) });
+    const before = await noticeSmall.evaluate(() => ({ nonce: window.tideforgeFixture.tideforgeResult.nonce.toString(), calls: window.tideforgeFixture.calls.length }));
+    await banner.getByRole('button', { name: 'Dismiss notification' }).tap();
+    await banner.waitFor({ state: 'hidden' });
+    assert.deepEqual(await noticeSmall.evaluate(() => ({ nonce: window.tideforgeFixture.tideforgeResult.nonce.toString(), calls: window.tideforgeFixture.calls.length })), before);
+  });
+  await noticeMobile.ctx.close();
   assert.deepEqual(blocked, [], 'fixture attempted an external request');
   assert.deepEqual(diagnostics, [], 'browser console or page errors');
 } catch (error) {

@@ -9,6 +9,7 @@ import catalog from '../../../content/species.json';
 import raids from '../../../content/raids.json';
 import haulEquipment from '../../../content/haul-equipment.json';
 import questCatalog from '../../../content/quests.json';
+import economy from '../../../content/tideforge-economy.json';
 
 const model = catalog.species.find(row => row.countsForOrdinaryCollectionCompletion)!;
 const identity = (value: string) => ({ toHexString: () => value });
@@ -84,7 +85,7 @@ export class Game extends RealGame {
   }
 
   start() { this.startServerClock(); }
-  stop() { this.stopServerClock(); }
+  stop() { super.stop(); }
   setView() {}
   retryTideforge() { this.tideforgeAvailability = 'active'; }
   retryGearNames() { this.gearNamesAvailability = 'ready'; this.replayGearNames(); }
@@ -278,12 +279,14 @@ export class Game extends RealGame {
       rodInstanceId: this.gearLoadout.rodInstanceId + 1000n };
     this.inventory = this.inventory.map(row => ({ ...row, playerId: 10n, catchId: row.catchId + 1000n }));
     this.pendingTideforgeCommit = null; this.tideforgeResult = null;
+    this.tideforgeNotice.reset(); this.raidNotice.reset();
     this.gearInstanceNames = []; this.gearNameError = ''; this.busy = false;
   }
   async prepareTideforge(intent: TideforgeIntent): Promise<any> {
     const nowMicros = this.serverNowMicros;
     if (nowMicros === null) { this.tideforgeError = 'Syncing server time…'; return null; }
     this.tideforgeError = '';
+    this.tideforgeResult = null; this.tideforgeNotice.dismiss();
     this.calls.push({ action: 'prepare', intent });
     if (this.delayNext) { this.delayNext = false; await new Promise<void>(resolve => { this.release = resolve; }); }
     let preview: Record<string, unknown>;
@@ -294,10 +297,19 @@ export class Game extends RealGame {
       preview = { action: intent.action, allow_trophies: intent.allow_trophies, saved_sale_coins_forgone: 200,
         fish: intent.catch_ids.map(catch_id => ({ catch_id, species_id: model.speciesId, rarity: 'F' })), materials: [credits] };
     } else if ('instance_id' in intent) {
-      preview = { action: intent.action, gear_before: gear(intent.instance_id),
-        gear_after: intent.action === 'dismantle' || intent.action === 'extract_signature' ? null : gear(intent.instance_id),
+      const stored = this.tideforgeGear.find(row => row.instanceId.toString() === intent.instance_id);
+      const before = stored ? { instance_id: intent.instance_id, affixes: JSON.parse(stored.affixesJson),
+        native_signature: stored.nativeSignature ?? null } : gear(intent.instance_id);
+      const shards = intent.action === 'dismantle' ? before.affixes.map((affix: typeof roll) => {
+        const prior = Number(this.tideforgeVault.find(row => row.affixId === affix.id)?.count ?? 0n);
+        const produced = economy.recovery.shardsByTier[affix.tier - 1];
+        return { affix_id: affix.id, before: prior, consumed: 0, produced, after: prior + produced };
+      }) : [];
+      preview = { action: intent.action, gear_before: before,
+        gear_after: intent.action === 'dismantle' || intent.action === 'extract_signature' ? null : before,
         learned_signature: intent.action === 'extract_signature' ? 'echoed_line' : null,
-        coins_before: 50000, coins_cost: 500, coins_after: 49500, materials: [], shards: [] };
+        coins_before: 50000, coins_cost: intent.action === 'dismantle' ? 0 : 500,
+        coins_after: intent.action === 'dismantle' ? 50000 : 49500, materials: [], shards };
     } else {
       preview = { action: intent.action, coins_before: 50000, coins_cost: 0, coins_after: 50000, materials: [credits] };
     }
@@ -350,8 +362,8 @@ export class Game extends RealGame {
         ? { instance_id: '101', affixes: [{ ...roll, id: 'mystery_internal_affix' }], native_signature: 'mystery_internal_signature' }
         : gear('101');
     }
-    this.tideforgeResult = { identity: identity(this.tideforgeIdentity!), playerId: this.player!.playerId,
-      nonce: quote.nonce, summaryJson: JSON.stringify(summary) } as typeof this.tideforgeResult;
+    this.recordTideforgeResult({ identity: identity(this.tideforgeIdentity!), playerId: this.player!.playerId,
+      nonce: quote.nonce, summaryJson: JSON.stringify(summary) } as NonNullable<typeof this.tideforgeResult>);
     this.pendingTideforgeCommit = null;
   }
 }

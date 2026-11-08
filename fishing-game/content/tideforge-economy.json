@@ -68,7 +68,7 @@
     ]
   },
   "recovery": {
-    "shardsPerAffix": 1,
+    "shardsByTier": [1, 1, 1, 2, 2, 2, 2, 3, 3, 3],
     "refundCoins": false,
     "refundMaterials": false,
     "rejectKnownSignatureExtraction": true

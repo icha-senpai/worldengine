@@ -244,7 +244,9 @@
     {/each}
   </div>
 
-  {#if game.error}<p class="notice error" role="alert">{game.error}</p>{/if}
+  {#if game.error}<p class="notice error" role="alert">{game.error}
+    {#if game.canDismissError}<button class="secondary notice-dismiss" aria-label="Dismiss notification" onclick={() => { if (game.canDismissError) game.error = ''; }}>Dismiss</button>{/if}
+  </p>{/if}
   {#if game.reconnecting}<p class="notice" role="status">Reconnecting… Your last synced progress is still shown. Actions are paused until live data returns.</p>{/if}
   {#if game.sectionLoading && !game.reconnecting}<p class="notice" role="status">Loading this view…</p>{/if}
   {#if !game.ready && !game.reconnecting && !game.sectionLoading && env.PUBLIC_SPACETIMEDB_DATABASE}<button class="secondary" onclick={() => game.reconnect()}>Reconnect</button>{/if}
@@ -365,6 +367,7 @@
   .getting-started,.next-steps ul{padding-left:22px;line-height:1.7}.next-steps h3{font-size:24px}.next-steps li{margin:6px 0}.inline-action{border:0;padding:0;background:transparent;box-shadow:none;color:var(--ink);font:inherit;text-decoration:underline;text-underline-offset:3px}.inline-action:hover:not(:disabled){background:transparent}
   .dev-login{margin-top:20px;font-size:14px;line-height:1.6;color:var(--site-text)}.dev-login-button{font-size:16px;padding:6px 12px}.dev-login-error{display:block;color:var(--site-text);margin-top:6px}
   .notice{padding:16px;border:3px solid var(--paper-edge);background:var(--panel-inset);color:var(--ink);font-size:17px}.notice.error{border-color:var(--danger-ink);color:var(--danger-ink)}
+  .notice button.notice-dismiss{font-size:14px;padding:4px 8px;margin-left:12px}
   .stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;padding:0;background:var(--wood);color:var(--site-text);box-shadow:inset 0 0 0 2px var(--panel-highlight),0 5px 0 var(--site-base)}.stats::before,.stats::after{display:none}
   .progress-details>summary{display:none}
   .stats .timer-value{font-size:clamp(18px,1.5vw,32px)}.stats .coin-value{font-size:clamp(18px,2.2vw,30px)}

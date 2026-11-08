@@ -737,9 +737,89 @@ fn recovery_protects_original_favorite_and_equipped_and_returns_all_dormant_shar
     assert_eq!(test.db.gear_instance_name().instance_id().find(original).unwrap().name, "Sibling");
     assert_eq!(test.db.player().player_id().find(id).unwrap().coins, coins);
     for affix in ["fortune", "scholar", "old_salt", "coinwright"] {
-        assert_eq!(test.db.tideforge_affix_shard().key().find(format!("{id}:{affix}")).unwrap().count, 1);
+        assert_eq!(test.db.tideforge_affix_shard().key().find(format!("{id}:{affix}")).unwrap().count, 3);
     }
     assert_eq!(test.db.tideforge_codex().count(), 0);
+}
+
+#[test]
+fn dismantle_mixed_tiers_preserves_progress_and_rejects_old_preview() {
+    let test = setup();
+    let id = player(&test, 151, "first");
+    activate(&test);
+    fixtures(&test, id);
+    grade_materials(&test, id, 0..1, 31);
+    let fish_id = fish(&test, id, ordinary_species(&test), false, false, None);
+    let names = ["fortune", "scholar", "old_salt", "coinwright"];
+    for name in names {
+        discover_and_shard(&test, id, name, 10);
+    }
+    set_mastery(&test, id, 50);
+    let family = gear_instances::family_key(id, "rod", 2).unwrap();
+    let mastery = test.db.gear_family_progress().key().find(family).unwrap().mastery_xp;
+    let original = gear_instances::original_id(id, "rod", 2).unwrap();
+    let coins = test.db.player().player_id().find(id).unwrap().coins;
+    let material_key = (u128::from(id) << 32) | u128::from(game_rules::raids::material(0, 0).unwrap().0);
+    let material = test.db.item_stack().key().find(material_key).unwrap().quantity;
+    let quote_key = format!("{}:{id}", Identity::from_claims("test", "first"));
+    let mut totals = [10u64; 4];
+    for (ordinal, tiers, expected) in [
+        (1, [1, 3, 4, 7], [1, 1, 2, 2]),
+        (2, [7, 8, 9, 10], [2, 3, 3, 3]),
+    ] {
+        let rolls = names.iter().zip(tiers).enumerate().map(|(slot, (name, tier))| AffixRoll {
+            slot: slot as u8, id: (*name).into(), tier, finish_bp: 2000, secondary_biome_id: None,
+        }).collect();
+        let copy = add_copy(&test, id, ordinal, rolls, None);
+        let nonce = prepare(&test, "first", id, json!({
+            "action":"dismantle", "instance_id":copy.to_string()
+        })).unwrap();
+        let quote = test.db.tideforge_economy_quote().key().find(&quote_key).unwrap();
+        let preview: serde_json::Value = serde_json::from_str(&quote.preview_json).unwrap();
+        let shards = preview["shards"].as_array().unwrap();
+        assert_eq!(shards.len(), 4);
+        for index in 0..4 {
+            assert_eq!(shards[index]["affix_id"], names[index]);
+            assert_eq!(shards[index]["before"], totals[index]);
+            assert_eq!(shards[index]["produced"], expected[index]);
+            totals[index] += expected[index];
+            assert_eq!(shards[index]["after"], totals[index]);
+        }
+        commit(&test, "first", nonce).unwrap();
+        commit(&test, "first", nonce).unwrap();
+        assert!(test.db.gear_instance().instance_id().find(copy).is_none());
+        for index in 0..4 {
+            assert_eq!(test.db.tideforge_affix_shard().key().find(format!("{id}:{}", names[index])).unwrap().count, totals[index]);
+        }
+        tick(&test);
+    }
+    let copy = add_copy(&test, id, 3, vec![AffixRoll {
+        slot: 0, id: "fortune".into(), tier: 8, finish_bp: 2000, secondary_biome_id: None,
+    }], None);
+    let nonce = prepare(&test, "first", id, json!({
+        "action":"dismantle", "instance_id":copy.to_string()
+    })).unwrap();
+    test.with_reducer_tx(TestAuth::internal(), |ctx| {
+        let mut quote = ctx.db.tideforge_economy_quote().key().find(&quote_key).unwrap();
+        let mut preview: serde_json::Value = serde_json::from_str(&quote.preview_json).unwrap();
+        preview["shards"][0]["produced"] = json!(1);
+        preview["shards"][0]["after"] = json!(totals[0] + 1);
+        quote.preview_json = preview.to_string();
+        ctx.db.tideforge_economy_quote().key().update(quote);
+        Ok::<_, String>(())
+    }).unwrap();
+    assert_eq!(commit(&test, "first", nonce).unwrap_err(), "QUOTE_CHANGED");
+    assert!(test.db.gear_instance().instance_id().find(copy).is_some());
+    assert_eq!(test.db.tideforge_affix_shard().key().find(format!("{id}:fortune")).unwrap().count, totals[0]);
+    assert_eq!(test.db.player().player_id().find(id).unwrap().coins, coins);
+    assert_eq!(test.db.item_stack().key().find(material_key).unwrap().quantity, material);
+    assert!(test.db.owned_specimen().catch_id().find(fish_id).is_some());
+    assert!(test.db.gear_instance().instance_id().find(original).is_some());
+    assert_eq!(test.db.gear_family_progress().key().find(family).unwrap().mastery_xp, mastery);
+    for name in names {
+        let entry = test.db.tideforge_codex().key().find(format!("{id}:{name}")).unwrap();
+        assert_eq!((entry.highest_tier, entry.best_finish_bp, entry.natural_count), (1, 500, 1));
+    }
 }
 
 #[test]

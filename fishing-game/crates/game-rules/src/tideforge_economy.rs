@@ -93,7 +93,7 @@ pub struct ForgeTier {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Recovery {
-    pub shards_per_affix: u64,
+    pub shards_by_tier: [u64; 10],
     pub refund_coins: bool,
     pub refund_materials: bool,
     pub reject_known_signature_extraction: bool,
@@ -158,7 +158,7 @@ pub fn validate(c: &Catalog) -> Result<(), &'static str> {
         || c.forge.shards_per_addition != 1 || c.forge.shards_per_change != 1
         || c.forge.new_affix_finish_bp != 0 || c.forge.refinement_step_bp == 0
         || 10_000 % c.forge.refinement_step_bp != 0
-        || c.recovery.shards_per_affix != 1 || c.recovery.refund_coins
+        || c.recovery.shards_by_tier != [1, 1, 1, 2, 2, 2, 2, 3, 3, 3] || c.recovery.refund_coins
         || c.recovery.refund_materials || !c.recovery.reject_known_signature_extraction
         || c.processing.fillets_slot != tideforge::NORMAL_FILLETS_SLOT
         || c.processing.scales_slot != tideforge::NORMAL_SCALES_SLOT
@@ -208,6 +208,13 @@ pub fn validate(c: &Catalog) -> Result<(), &'static str> {
         }
     }
     Ok(())
+}
+
+pub fn dismantle_shards(tier: u8) -> Result<u64, &'static str> {
+    if !(1..=10).contains(&tier) {
+        return Err("TIDEFORGE_TIER_INVALID");
+    }
+    Ok(catalog()?.recovery.shards_by_tier[usize::from(tier - 1)])
 }
 
 pub fn family_price(family_id: u32) -> Result<&'static Family, &'static str> {
@@ -430,6 +437,15 @@ mod tests {
     use rand::{rngs::StdRng, SeedableRng};
 
     #[test]
+    fn dismantle_shards_follow_current_tier() {
+        for (tier, expected) in (1..=10).zip([1, 1, 1, 2, 2, 2, 2, 3, 3, 3]) {
+            assert_eq!(dismantle_shards(tier), Ok(expected));
+        }
+        assert_eq!(dismantle_shards(0), Err("TIDEFORGE_TIER_INVALID"));
+        assert_eq!(dismantle_shards(11), Err("TIDEFORGE_TIER_INVALID"));
+    }
+
+    #[test]
     fn authored_catalog_validates_and_family_prices_are_shared() {
         let c = catalog().unwrap();
         assert_eq!((c.version, c.status.as_str()), (1, "candidate-local-only"));
@@ -443,6 +459,7 @@ mod tests {
         for (section, field, value) in [
             ("acquisition", "affixSelection", serde_json::json!("uniform-unconstrained")),
             ("forge", "shardsPerAddition", serde_json::json!(0)),
+            ("recovery", "shardsByTier", serde_json::json!([1, 1, 1, 2, 2, 2, 2, 3, 3, 4])),
             ("processing", "filletsSlot", serde_json::json!(801)),
         ] {
             let mut json: serde_json::Value = serde_json::from_str(CATALOG_JSON).unwrap();

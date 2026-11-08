@@ -10,6 +10,7 @@ import { tideforgeConfirmed, tideforgeErrorMessage, tideforgeUnconfirmed, tidefo
 import { gearNameValidationMessage, gearRenameErrorMessage, normalizeGearName } from './gear-names';
 import { gearLabel } from './tideforge-ui';
 import { observeServerClock, ServerClock } from './server-clock';
+import { createNoticeTimer } from './notice-timer';
 export type JournalQuery = { page: number; pageSize: number; sort: string; descending: boolean; search: string; biomeId: number; rarity: string; outcome: string };
 import type { ActionNonce, AnglerPortrait, AnglerStatistics, AnglerStanding, LegendaryFind, BiomeDefinition, RodDefinition, RarityDefinition, GameConfig, ItemStack, LinkChallenge, OwnedSpecimen, Player, PlayerSpeciesProgress, PublicProfile, RecentCatch, SpeciesDefinition, SpeciesRecord, ShopListing, ShopQuote, OwnedRod, OwnedBiomeLicence, RodBonuses, RaidActionReceipt, RaidAttempt, RaidBadge, RaidGradeDefinition, RaidStatistics, CommunityRaidEvent, RodReinforcement } from '@fishing-game/generated/types';
 import type { GearInstance, GearInstanceName, GearLoadout, GearFamilyProgress, GearActivitySnapshot, TideforgeGear, TideforgeLoadout, TideforgeEconomyWallet, TideforgeEconomyQuote, TideforgeEconomyReceipt, TideforgeAffixShard, TideforgeCodex, TideforgeLibrary, TideforgeSpecimenModifiers, TideforgeFractionalCredit } from '@fishing-game/generated/types';
@@ -41,6 +42,8 @@ export class Game {
   tideforgeError = $state('');
   pendingTideforgeCommit = $state.raw<PendingTideforgeCommit | null>(null);
   tideforgeResult = $state.raw<TideforgeEconomyReceipt | null>(null);
+  tideforgeNoticeVisible = $state(false);
+  tideforgeNotice = createNoticeTimer(visible => { this.tideforgeNoticeVisible = visible; });
   haulEquipment = $state.raw<import('@fishing-game/generated/types').HaulEquipmentDefinition[]>([]);
   ownedHaulEquipment = $state.raw<import('@fishing-game/generated/types').OwnedHaulEquipment[]>([]);
   haulTrips = $state.raw<import('@fishing-game/generated/types').HaulTrip[]>([]);
@@ -55,6 +58,9 @@ export class Game {
   raidStatistics = $state.raw<RaidStatistics[]>([]);
   pendingRaidIntent = $state.raw<PendingRaidIntent | null>(null);
   raidActionMessage = $state('');
+  raidActionMessageIsSuccess = $state(false);
+  raidNoticeVisible = $state(false);
+  raidNotice = createNoticeTimer(visible => { this.raidNoticeVisible = visible; });
   questDefinitions = $state.raw<import('@fishing-game/generated/types').QuestDefinition[]>([]);
   quests = $state.raw<import('@fishing-game/generated/types').QuestStatus[]>([]);
   questCalendar = $state.raw<import('@fishing-game/generated/types').QuestCalendar | null>(null);
@@ -79,7 +85,10 @@ export class Game {
   status = $state('Not connected');
   ready = $state(false);
   reconnecting = $state(false);
-  error = $state('');
+  private errorValue = $state('');
+  private errorIsAccountWarning = $state(false);
+  get error() { return this.errorValue; }
+  set error(value: string) { this.errorValue = value; this.errorIsAccountWarning = false; }
   busy = $state(false);
   lastSync = $state<Date | null>(null);
   player = $state.raw<Player | null>(null);
@@ -177,6 +186,22 @@ export class Game {
   }
   get raidsSupported() { return (this.config?.version ?? 0) >= 17; }
   get raidActionUnconfirmed() { return this.actionUnconfirmed; }
+  get canDismissError() {
+    return this.ready && !this.reconnecting && !this.sectionLoading && !this.tideforgeLoading
+      && this.serverNowMs !== null && !this.errorIsAccountWarning && !this.actionUnconfirmed
+      && !this.pendingRaidIntent && !this.pendingTideforgeCommit;
+  }
+  private setAccountWarning(message: string) { this.error = message; this.errorIsAccountWarning = true; }
+  recordTideforgeResult(receipt: TideforgeEconomyReceipt) {
+    this.tideforgeResult = receipt;
+    this.tideforgeNotice.show(`${receipt.identity.toHexString()}:${receipt.playerId}:${receipt.nonce}`);
+  }
+  setRaidActionMessage(message: string, requestId?: bigint) {
+    this.raidActionMessage = message;
+    this.raidActionMessageIsSuccess = requestId !== undefined;
+    if (requestId !== undefined) this.raidNotice.show(`${this.identityKey}:${this.player?.playerId}:${requestId}`);
+    else this.raidNotice.dismiss();
+  }
   get authenticatedIdentity() { return this.identityKey; }
   get tideforgeIdentity() { return this.identityKey; }
   get tideforgeDetailsReady() { return this.tideforgeViewReady; }
@@ -461,7 +486,7 @@ export class Game {
     const receipt = pending && this.tideforgeReceipts.find(row => row.nonce === pending.quote.nonce
       && row.playerId === pending.playerId && row.identity.toHexString() === pending.identity);
     if (receipt) {
-      this.tideforgeResult = receipt;
+      this.recordTideforgeResult(receipt);
       this.pendingTideforgeCommit = null;
       this.preparedTideforge = null;
       this.tideforgeError = '';
@@ -481,7 +506,8 @@ export class Game {
     this.player = null; this.profile = null; this.inventory = []; this.collection = [];
     this.raidGrades = []; this.communityRaids = []; this.raidAttempts = []; this.raidActions = [];
     this.rodReinforcements = []; this.raidBadges = []; this.raidStatistics = [];
-    this.pendingRaidIntent = null; this.raidActionMessage = '';
+    this.pendingRaidIntent = null; this.setRaidActionMessage('');
+    this.raidNotice.reset(); this.tideforgeNotice.reset();
     this.actionUnconfirmed = false;
     this.recent = []; this.items = []; this.challenge = null; this.action = null; this.shopQuote = null; this.ownedRods = []; this.licences = [];
     this.journal = null; this.journalLastQuery = ''; this.journalPending = null; this.journalError = '';
@@ -510,6 +536,7 @@ export class Game {
     const previousPlayer = this.player?.playerId;
     this.player = [...connection.db.myPlayer.iter()][0] ?? null;
     if (previousPlayer !== undefined && previousPlayer !== this.player?.playerId) {
+      this.tideforgeNotice.reset(); this.raidNotice.reset();
       this.clearTideforgeRows(); this.pendingTideforgeCommit = null; this.preparedTideforge = null;
       this.tideforgeResult = null;
       if (this.tideforgeDispatch || this.tideforgePrepare) this.busy = false;
@@ -517,6 +544,7 @@ export class Game {
     }
     if (this.pendingTideforgeCommit
       && !sameTideforgeAccount(this.pendingTideforgeCommit, this.identityKey, this.player?.playerId)) {
+      this.tideforgeNotice.reset();
       this.pendingTideforgeCommit = null; this.preparedTideforge = null; this.tideforgeResult = null;
       if (this.tideforgeDispatch || this.tideforgePrepare) this.busy = false;
       this.tideforgeDispatch = null; this.tideforgePrepare = null;
@@ -525,8 +553,8 @@ export class Game {
       this.invalidateRaidDispatch();
       this.pendingRaidIntent = null;
       this.actionUnconfirmed = false;
-      this.raidActionMessage = 'A pending raid action belonged to a different linked angler and was discarded. Review the current account.';
-      this.error = 'Your linked angler changed. Review the current account before continuing.';
+      this.setRaidActionMessage('A pending raid action belonged to a different linked angler and was discarded. Review the current account.');
+      this.setAccountWarning('Your linked angler changed. Review the current account before continuing.');
     }
     this.profile = [...connection.db.myProfile.iter()][0] ?? null;
     this.inventory = [...connection.db.myInventory.iter()].sort((a, b) => a.catchId > b.catchId ? -1 : 1);
@@ -585,7 +613,7 @@ export class Game {
         this.pendingRaidIntent = null;
         this.actionUnconfirmed = false;
         this.error = '';
-        this.raidActionMessage = confirmed.result;
+        this.setRaidActionMessage(confirmed.result, confirmed.requestId);
       }
     }
     this.syncSection();
@@ -702,7 +730,7 @@ export class Game {
         const identityKey = identity.toHexString();
         if (this.identityKey && this.identityKey !== identityKey) {
           this.clearPrivate();
-          this.raidActionMessage = 'The authenticated identity changed; any pending raid intent was discarded.';
+          this.setRaidActionMessage('The authenticated identity changed; any pending raid intent was discarded.');
         }
         this.identityKey = identityKey;
         connectedOnce = true;
@@ -725,7 +753,7 @@ export class Game {
         const identityKey = identity.toHexString();
         if (this.identityKey && this.identityKey !== identityKey) {
           this.clearPrivate();
-          this.raidActionMessage = 'The authenticated identity changed; any pending raid intent was discarded.';
+          this.setRaidActionMessage('The authenticated identity changed; any pending raid intent was discarded.');
         }
         this.identityKey = identityKey;
         this.sessionToken = newToken;
@@ -901,7 +929,7 @@ export class Game {
     if (pending && pending.playerId !== playerId) {
       this.pendingRaidIntent = null;
       this.actionUnconfirmed = false;
-      this.error = 'Your linked angler changed. Review the current account before starting another raid action.';
+      this.setAccountWarning('Your linked angler changed. Review the current account before starting another raid action.');
       return false;
     }
     if (!canRetryRaidIntent(pending, fingerprint, playerId)) {
@@ -916,7 +944,7 @@ export class Game {
     this.pendingRaidIntent = intent;
     this.busy = true;
     this.error = '';
-    this.raidActionMessage = '';
+    this.setRaidActionMessage('');
     this.actionUnconfirmed = false;
     try {
       await dispatch(this.connection, intent.requestId);
@@ -927,11 +955,11 @@ export class Game {
       if (confirmed) {
         this.pendingRaidIntent = null;
         this.actionUnconfirmed = false;
-        this.raidActionMessage = confirmed.result;
+        this.setRaidActionMessage(confirmed.result, confirmed.requestId);
       } else {
         this.pendingRaidIntent = null;
         this.actionUnconfirmed = false;
-        this.raidActionMessage = 'Raid action confirmed. Syncing its saved receipt.';
+        this.setRaidActionMessage('Raid action confirmed. Syncing its saved receipt.');
       }
       return true;
     } catch (error) {
@@ -942,14 +970,14 @@ export class Game {
           this.pendingRaidIntent = null;
           this.actionUnconfirmed = false;
           this.error = '';
-          this.raidActionMessage = confirmed.result;
+          this.setRaidActionMessage(confirmed.result, confirmed.requestId);
           return true;
         }
         const currentPending = this.pendingRaidIntent;
         if (!currentPending || currentPending.requestId !== intent.requestId
           || currentPending.playerId !== intent.playerId) {
           this.actionUnconfirmed = false;
-          this.error = 'The linked angler changed while this action was pending. Review the current account before continuing.';
+          this.setAccountWarning('The linked angler changed while this action was pending. Review the current account before continuing.');
           return false;
         }
         this.actionUnconfirmed = true;
@@ -1138,7 +1166,7 @@ export class Game {
     const current = () => this.generation === generation && this.connection === connection
       && connection.isActive && this.ready && this.identityKey === identity && this.player?.playerId === playerId
       && this.tideforgePrepare === token;
-    this.busy = true; this.tideforgeError = ''; this.preparedTideforge = null; this.tideforgeResult = null;
+    this.busy = true; this.tideforgeError = ''; this.preparedTideforge = null; this.tideforgeResult = null; this.tideforgeNotice.dismiss();
     try {
       await connection.reducers.prepareTideforgeAction({ intentJson: JSON.stringify(normalized) });
       for (let attempt = 0; attempt < 30 && current(); attempt++) {

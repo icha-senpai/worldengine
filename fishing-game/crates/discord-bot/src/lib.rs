@@ -1,6 +1,7 @@
 pub mod achievement_notifications;
 pub mod catch_art;
 pub mod fish_again;
+pub mod gear_labels;
 pub mod haul_again;
 pub mod haul_notifications;
 pub mod measurements;

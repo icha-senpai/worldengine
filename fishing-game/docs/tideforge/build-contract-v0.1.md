@@ -73,9 +73,9 @@ Never grant both outcomes from one item. Protected originals and favorites
 retain their safeguards. No direct shard sale or new automatic shard reward
 source is authorized here.
 
-The [first Forge cost model](forge-cost-model-v0.1.md) proposes one type-specific
-shard per affix and one shard to add/change an effect; those quantities remain
-proposals. Shard sourcing is now settled independently of those recovery counts.
+The [first Forge cost model](forge-cost-model-v0.1.md) uses one type-specific
+shard to add/change an effect. Dismantling recovers 1, 2, or 3 matching shards
+per affix at current tiers 1–3, 4–7, or 8–10 respectively.
 
 ## 4. Dredge Mark Pricing And Sources
 
@@ -837,8 +837,9 @@ activation. An absent economy state preserves all legacy behavior.
   cannot sell refinement. Price is the difference between cumulative
   `ceil(1250 * finish / 10000)` coin prices; tiny already-rounded finishing
   fractions may be free, but cannot exceed finish 10000 or create resources.
-- Dismantling returns one shard for every present affix, including dormant
-  ones, with no material/coin refund. Signature extraction instead consumes
+- Dismantling returns matching shards for every present affix, including dormant
+  ones: 1 at tiers 1–3, 2 at tiers 4–7, and 3 at tiers 8–10, with no
+  material/coin refund. Signature extraction instead consumes
   the eligible item to unlock its permanent Reliquary power. Reject an already
   known power rather than silently consuming the item for nothing. Never pay
   both recovery routes. Retain Codex/mastery/library history.

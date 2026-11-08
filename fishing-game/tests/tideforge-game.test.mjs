@@ -27,6 +27,138 @@ const resolved = compiled.replace(/(from\s+['"])([^'"]+)(['"])/g, (_match, prefi
 });
 const { Game } = await import(`data:text/javascript;base64,${Buffer.from(resolved).toString('base64')}`);
 
+test('notice expiry preserves receipts and pending state, and replay does not revive', t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const game = new Game();
+  const receipt = { identity: { toHexString: () => 'owner' }, playerId: 9n, nonce: 10n, summaryJson: '{}' };
+  const pending = { quote: { nonce: 11n }, playerId: 9n, identity: 'owner', fingerprint: 'pending' };
+  game.pendingTideforgeCommit = pending;
+  game.recordTideforgeResult(receipt);
+  assert.equal(game.tideforgeNoticeVisible, true);
+  t.mock.timers.tick(6000);
+  assert.equal(game.tideforgeNoticeVisible, false);
+  assert.equal(game.tideforgeResult, receipt);
+  assert.equal(game.pendingTideforgeCommit, pending);
+  game.recordTideforgeResult(receipt);
+  assert.equal(game.tideforgeNoticeVisible, false);
+  game.recordTideforgeResult({ ...receipt, nonce: 11n });
+  assert.equal(game.tideforgeNoticeVisible, true);
+  game.tideforgeNotice.dismiss();
+  game.recordTideforgeResult({ ...receipt, nonce: 11n });
+  assert.equal(game.tideforgeNoticeVisible, false);
+  game.recordTideforgeResult({ ...receipt, playerId: 10n, nonce: 11n });
+  assert.equal(game.tideforgeNoticeVisible, true);
+  t.mock.timers.tick(5000);
+  game.recordTideforgeResult({ ...receipt, identity: { toHexString: () => 'other' }, playerId: 10n, nonce: 11n });
+  t.mock.timers.tick(1000);
+  assert.equal(game.tideforgeNoticeVisible, true);
+  t.mock.timers.tick(5000);
+  assert.equal(game.tideforgeNoticeVisible, false);
+  game.clearPrivate();
+  assert.equal(game.tideforgeNoticeVisible, false);
+  game.recordTideforgeResult(receipt);
+  assert.equal(game.tideforgeNoticeVisible, true);
+  game.stop();
+  assert.equal(game.tideforgeNoticeVisible, false);
+});
+
+test('expired success still acknowledges the saved receipt when the commit reply is lost', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const game = new Game(), calls = [], rows = [];
+  let rejectReply;
+  const pending = { identity: 'owner', playerId: 9n, quote: { nonce: 12n }, fingerprint: 'same' };
+  game.identityKey = 'owner'; game.player = { playerId: 9n }; game.ready = true; game.coreReady = true; game.tideforgeCoreReady = true;
+  game.pendingTideforgeCommit = pending;
+  game.connection = {
+    isActive: true,
+    db: new Proxy({}, { get: (_target, name) => ({ iter: () => name === 'myTideforgeEconomyReceipts' ? rows : [] }) }),
+    reducers: { commitTideforgeAction: ({ nonce }) => {
+      calls.push(nonce);
+      return new Promise((_resolve, reject) => { rejectReply = reject; });
+    } },
+  };
+  const dispatch = game.dispatchTideforgeCommit(pending);
+  const receipt = { identity: { toHexString: () => 'owner' }, playerId: 9n, nonce: 12n, summaryJson: '{}' };
+  rows.push(receipt);
+  game.refreshTideforge(game.connection);
+  assert.equal(game.pendingTideforgeCommit, null);
+  assert.equal(game.tideforgeNoticeVisible, true);
+  t.mock.timers.tick(6000);
+  assert.equal(game.tideforgeNoticeVisible, false);
+  assert.equal(game.tideforgeResult, receipt);
+  rejectReply(Object.assign(new Error('lost reply'), { name: 'UnknownCallResultError' }));
+  assert.equal(await dispatch, true);
+  assert.equal(game.tideforgeResult, receipt);
+  assert.deepEqual(calls, [12n]);
+});
+
+test('raid success keys use request identity and warnings remain persistent', t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const game = new Game();
+  game.identityKey = 'owner'; game.player = { playerId: 9n };
+  game.setRaidActionMessage('Done', 1n);
+  assert.equal(game.raidActionMessageIsSuccess, true);
+  t.mock.timers.tick(5999);
+  game.setRaidActionMessage('Done', 1n);
+  t.mock.timers.tick(1);
+  assert.equal(game.raidNoticeVisible, false);
+  game.setRaidActionMessage('Done', 1n);
+  assert.equal(game.raidNoticeVisible, false);
+  game.setRaidActionMessage('Done', 2n);
+  assert.equal(game.raidNoticeVisible, true);
+  t.mock.timers.tick(5999);
+  assert.equal(game.raidNoticeVisible, true);
+  game.setRaidActionMessage('The authenticated identity changed.');
+  assert.equal(game.raidActionMessageIsSuccess, false);
+  assert.equal(game.raidNoticeVisible, false);
+  t.mock.timers.tick(12000);
+  assert.equal(game.raidActionMessage, 'The authenticated identity changed.');
+  game.setRaidActionMessage('Done', 3n);
+  game.clearPrivate();
+  assert.equal(game.raidNoticeVisible, false);
+  assert.equal(game.raidActionMessage, '');
+  game.player = { playerId: 9n };
+  game.setRaidActionMessage('Done', 3n);
+  assert.equal(game.raidNoticeVisible, true);
+  game.stop();
+  assert.equal(game.raidNoticeVisible, false);
+});
+
+test('account change clears notice timers and retains its identity warning', t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const game = new Game();
+  let calls = 0;
+  let selectedPlayerId = 10n;
+  game.identityKey = 'owner'; game.player = { playerId: 9n }; game.coreReady = true; game.ready = true;
+  const now = performance.now(); game.serverClock.synchronize(Date.now(), now, now);
+  game.connection = {
+    isActive: false,
+    db: new Proxy({}, { get: (_target, name) => ({ iter: () => name === 'myPlayer' ? [{ playerId: selectedPlayerId }] : [] }) }),
+    reducers: new Proxy({}, { get: () => () => { calls++; } }),
+    disconnect() {},
+  };
+  game.recordTideforgeResult({ identity: { toHexString: () => 'owner' }, playerId: 9n, nonce: 1n, summaryJson: '{}' });
+  game.setRaidActionMessage('Done', 7n);
+  game.pendingRaidIntent = { playerId: 9n, requestId: 7n, fingerprint: 'pending' };
+  game.refresh();
+  assert.equal(game.tideforgeNoticeVisible, false);
+  assert.equal(game.raidNoticeVisible, false);
+  assert.equal(game.raidActionMessageIsSuccess, false);
+  assert.match(game.raidActionMessage, /different linked angler/);
+  assert.equal(game.canDismissError, false);
+  t.mock.timers.tick(12000);
+  assert.match(game.raidActionMessage, /different linked angler/);
+  game.error = 'Ordinary error';
+  assert.equal(game.canDismissError, true);
+  game.setRaidActionMessage('Persistent warning');
+  selectedPlayerId = 11n;
+  game.refresh();
+  assert.equal(game.raidActionMessage, 'Persistent warning');
+  assert.equal(game.raidActionMessageIsSuccess, false);
+  assert.equal(calls, 0);
+  game.stop();
+});
+
 test('private feature data and pending state clear on unlink/account reset', () => {
   const game = new Game();
   for (const name of ['gearInstances', 'gearInstanceNames', 'gearFamilies', 'tideforgeGear', 'tideforgeReceipts', 'tideforgeVault',

@@ -774,7 +774,7 @@ fn plan_gear(ctx: &ReducerContext, player_id: u64, intent: &Intent) -> Result<Pl
         }
         Intent::Dismantle { .. } => {
             for roll in &before {
-                shards.push(shard_change(ctx, player_id, &roll.id, 0, catalog.recovery.shards_per_affix)?);
+                shards.push(shard_change(ctx, player_id, &roll.id, 0, rules::dismantle_shards(roll.tier).map_err(str::to_owned)?)?);
             }
             "dismantle"
         }

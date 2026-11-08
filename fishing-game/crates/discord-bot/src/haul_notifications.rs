@@ -53,7 +53,8 @@ pub fn start(game: Arc<Client>, http: Arc<serenity::Http>, website: String) {
                         ),
                     })
                     .collect();
-                let message = haul_message(&trip, &lines, &website);
+                let gear_label = crate::gear_labels::haul_label(&game, &trip).await;
+                let message = haul_message(&trip, &gear_label, &lines, &website);
                 match serenity::ChannelId::new(trip.channel_id)
                     .send_message(&http, message)
                     .await
@@ -73,7 +74,7 @@ pub fn start(game: Arc<Client>, http: Arc<serenity::Http>, website: String) {
     });
 }
 
-pub fn haul_message(trip: &HaulTrip, lines: &[String], website: &str) -> serenity::CreateMessage {
+pub fn haul_message(trip: &HaulTrip, gear_label: &str, lines: &[String], website: &str) -> serenity::CreateMessage {
     serenity::CreateMessage::new()
         .allowed_mentions(
             serenity::CreateAllowedMentions::new()
@@ -95,7 +96,7 @@ pub fn haul_message(trip: &HaulTrip, lines: &[String], website: &str) -> serenit
             serenity::CreateEmbed::new()
                 .title(format!(
                     "{} · {} catches",
-                    trip.equipment_name,
+                    crate::gear_labels::plain(gear_label),
                     trip.results.len()
                 ))
                 .description(lines.join("\n"))
@@ -189,12 +190,12 @@ mod tests {
         };
         let lines = vec!["Rusted tin ×1 · +2 XP".into(); 10];
         let first =
-            serde_json::to_value(haul_message(&trip, &lines, "https://fishbound.ichaa.dev/"))
+            serde_json::to_value(haul_message(&trip, "Twig Boat", &lines, "https://fishbound.ichaa.dev/"))
                 .unwrap();
         trip.lease_nonce = 22;
         trip.attempts = 2;
         let retry =
-            serde_json::to_value(haul_message(&trip, &lines, "https://fishbound.ichaa.dev/"))
+            serde_json::to_value(haul_message(&trip, "Twig Boat", &lines, "https://fishbound.ichaa.dev/"))
                 .unwrap();
         assert_eq!(first, retry);
         assert_eq!(first["embeds"][0]["title"], "Twig Boat · 10 catches");
@@ -217,7 +218,7 @@ mod tests {
             crate::haul_again::BOAT_ID
         );
         trip.kind = "net".into();
-        let net = serde_json::to_value(haul_message(&trip, &lines, "https://fishbound.ichaa.dev/"))
+        let net = serde_json::to_value(haul_message(&trip, "Twig Boat", &lines, "https://fishbound.ichaa.dev/"))
             .unwrap();
         assert_eq!(
             net["components"][0]["components"][0]["custom_id"],
@@ -225,10 +226,10 @@ mod tests {
         );
         assert_eq!(first["nonce"], "hffffffffffffffff");
         trip.status = "running".into();
-        let net_status = crate::haul_again::status(&trip).unwrap();
+        let net_status = crate::haul_again::status(&trip, "Twig Boat").unwrap();
         assert!(net_status.contains("4 catch opportunities"));
         trip.kind = "boat".into();
-        let boat_status = crate::haul_again::status(&trip).unwrap();
+        let boat_status = crate::haul_again::status(&trip, "Twig Boat").unwrap();
         assert!(boat_status.contains("10 catch opportunities"));
         assert!(boat_status.contains("You can keep using /fish"));
         assert_eq!(

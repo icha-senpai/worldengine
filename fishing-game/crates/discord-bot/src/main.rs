@@ -247,7 +247,10 @@ async fn start_haul(ctx: Context<'_>, kind: &str) -> Result<(), Error> {
         )
         .await
     {
-        Ok(trip) => reply(ctx, discord_bot::haul_again::status(&trip)?).await,
+        Ok(trip) => {
+            let label = discord_bot::gear_labels::haul_label(&ctx.data().game, &trip).await;
+            reply(ctx, discord_bot::haul_again::status(&trip, &label)?).await
+        },
         Err(error) => {
             tracing::warn!(%error, kind, "Haul request rejected");
             reply(ctx, rejection(&error)).await
@@ -391,19 +394,8 @@ async fn catch_reply(
         if receipts.len() == 1 { "" } else { "s" },
         receipt.xp_granted
     );
-    let rod_name = result
-        .rods
-        .iter()
-        .find(|rod| rod.rod_id == receipt.rod_id)
-        .map_or("Rod", |rod| rod.name.as_str());
-    summary.push_str(&format!("\n**{}**", rod_name));
+    summary.push_str(&format!("\n{}", discord_bot::gear_labels::cast_rod_summary(result, receipt)));
     if let Some(equipment) = &result.cast_equipment {
-        let quality_name = result
-            .qualities
-            .iter()
-            .find(|quality| quality.quality_level == equipment.quality_level)
-            .map_or("Unknown quality", |quality| quality.name.as_str());
-        summary.push_str(&format!(" · **{}**", quality_name));
         for (slot, id, uses, item, quantity) in [
             (
                 1,
@@ -601,11 +593,12 @@ async fn haul_again(
     data.achievement_notifications
         .remember_player(user_id, Some(trip.player_id))
         .await;
+    let label = discord_bot::gear_labels::haul_label(&data.game, &trip).await;
     interaction
         .create_followup(
             ctx,
             serenity::CreateInteractionResponseFollowup::new()
-                .content(discord_bot::haul_again::status(&trip)?)
+                .content(discord_bot::haul_again::status(&trip, &label)?)
                 .ephemeral(true)
                 .allowed_mentions(serenity::CreateAllowedMentions::new()),
         )
@@ -924,45 +917,49 @@ async fn rod(
     acknowledge(ctx, false).await?;
     let result = snapshot(ctx, false).await?;
     let id = rod_id.unwrap_or(result.player.equipped_rod_id);
-    let Some(owned) = result.owned_rods.iter().find(|row| row.rod_id == id) else {
+    let instance = discord_bot::gear_labels::selected_rod(&result, id);
+    let owned = result.owned_rods.iter().find(|row| row.player_id == result.player.player_id && row.rod_id == id);
+    if instance.is_none() && owned.is_none() {
         return reply(
             ctx,
             "You can only show off rods you own. Find your rods and their IDs in the website Tackle Box.",
         )
         .await;
-    };
+    }
     let definition = result
         .rods
         .iter()
         .find(|row| row.rod_id == id)
         .ok_or("Missing rod")?;
-    let (quality, power, luck, xp) = rod_stats(&result, id);
-    let reinforcement_level = result
+    let quality_level = instance.map(|row| row.quality_level).or_else(|| owned.map(|row| row.upgrade_level)).unwrap_or(0);
+    let (_, power, luck, xp) = rod_stats(&result, id, quality_level);
+    let legacy_reinforcement = result
         .rod_reinforcements
         .iter()
-        .find(|row| row.rod_id == id)
+        .find(|row| row.player_id == result.player.player_id && row.rod_id == id)
         .map_or(0, |row| row.level);
-    let reinforcement = reinforcement_level
-        .checked_sub(1)
-        .and_then(|grade| result.raid_grades.iter().find(|row| row.grade == grade))
-        .map_or_else(|| "Unreinforced".into(), |grade| format!("{}-reinforced", grade.name));
-    let focus = reinforcement_level
+    let reinforcement_level = instance.map_or(legacy_reinforcement, |row| row.reinforcement_level);
+    let heading = discord_bot::gear_labels::rod_heading(&result, &definition.name, instance, quality_level, reinforcement_level);
+    let focus = if reinforcement_level == 0 {
+        "Unreinforced rods keep the base missing-rank Collection Focus behavior and have no reinforcement endpoint bonus rolls.".into()
+    } else { reinforcement_level
         .checked_sub(1)
         .and_then(|grade| result.raid_grades.iter().find(|row| row.grade == grade))
         .map_or_else(
-            || "Unreinforced rods keep the base missing-rank Collection Focus behavior and have no reinforcement endpoint bonus rolls.".into(),
+            || "Reinforcement details are unavailable.".into(),
             |grade| format!(
                 "This rod provides {}% missing-rank Focus chance when Focus is enabled for a mastered biome. Its {} authored UUR endpoint bonus rolls apply only to an ordinary fish currently at UUR after all ten ranks of that species are recorded. Special species are excluded.",
                 grade.focus_chance_bp / 100,
                 grade.perfect_bonus_rolls,
             ),
-        );
+        )
+    };
     let description = format!(
-        "**{} {} {}**\n{} · shown by **{}**\n\n**{} power** · **{:.1}%** bonus-pull chance\n**+{:.1}% luck** · **+{:.1}% catch XP**\n\n**Collection Focus** · {}",
-        quality,
-        reinforcement,
-        definition.name,
-        if id == result.player.equipped_rod_id {
+        "{}\nModel: {} · {} · shown by **{}**\n\nBase gear stats: **{} power** · **{:.1}%** bonus-pull chance\n**+{:.1}% luck** · **+{:.1}% catch XP**\n\n**Collection Focus** · {}",
+        heading,
+        discord_bot::gear_labels::markdown(&definition.name),
+        if instance.is_some_and(|row| result.gear_loadout.as_ref().is_some_and(|loadout| loadout.player_id == result.player.player_id && loadout.rod_instance_id == row.instance_id))
+            || instance.is_none() && id == result.player.equipped_rod_id {
             "Equipped"
         } else {
             "Owned"
@@ -975,7 +972,7 @@ async fn rod(
         focus,
     );
     let color = ROD_QUALITY_COLORS
-        .get(usize::from(owned.upgrade_level))
+        .get(usize::from(quality_level))
         .copied()
         .unwrap_or(ROD_QUALITY_COLORS[0]);
     let embed = serenity::CreateEmbed::new()
@@ -997,11 +994,11 @@ async fn rod(
         match ctx
             .data()
             .catch_art
-            .render_rod(key, owned.upgrade_level)
+            .render_rod(key, quality_level)
             .await
         {
             Ok(png) => {
-                let filename = format!("rod-{id}-quality-{}.png", owned.upgrade_level);
+                let filename = format!("rod-{id}-quality-{quality_level}.png");
                 response = response
                     .embed(embed.image(format!("attachment://{filename}")))
                     .attachment(serenity::CreateAttachment::bytes(png, filename));
@@ -1023,17 +1020,12 @@ async fn rod(
     }
 }
 
-fn rod_stats(result: &Snapshot, rod_id: u32) -> (&str, u32, u32, u32) {
+fn rod_stats(result: &Snapshot, rod_id: u32, level: u8) -> (&str, u32, u32, u32) {
     let rod = result
         .rods
         .iter()
         .find(|row| row.rod_id == rod_id)
         .expect("valid rod");
-    let level = result
-        .owned_rods
-        .iter()
-        .find(|row| row.rod_id == rod_id)
-        .map_or(0, |row| row.upgrade_level);
     let quality = result
         .qualities
         .iter()

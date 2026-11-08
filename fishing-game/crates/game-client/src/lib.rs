@@ -103,6 +103,10 @@ pub struct Snapshot {
     pub items: Vec<ItemStack>,
     pub cast_pulls: Vec<CastPull>,
     pub cast_equipment: Option<CastEquipmentReceipt>,
+    pub gear_instances: Vec<GearInstance>,
+    pub gear_instance_names: Vec<GearInstanceName>,
+    pub gear_loadout: Option<GearLoadout>,
+    pub gear_activity_snapshots: Vec<GearActivitySnapshot>,
     pub player: Player,
     pub inventory: Vec<OwnedSpecimen>,
     pub collection: Vec<PlayerSpeciesProgress>,
@@ -218,6 +222,8 @@ impl Client {
                         "SELECT * FROM adapter_rods", "SELECT * FROM adapter_licences", "SELECT * FROM adapter_shop_quote", "SELECT * FROM shop_listing", "SELECT * FROM adapter_collection", "SELECT * FROM species_definition", "SELECT * FROM biome_definition", "SELECT * FROM rod_bonuses", "SELECT * FROM rod_definition", "SELECT * FROM game_config"]);
                     queries.extend(["SELECT * FROM adapter_raid_attempts", "SELECT * FROM adapter_raid_actions", "SELECT * FROM adapter_rod_reinforcements",
                         "SELECT * FROM raid_grade_definition", "SELECT * FROM community_raid_event", "SELECT * FROM raid_badge", "SELECT * FROM raid_statistics"]);
+                    queries.extend(["SELECT * FROM adapter_gear_instances", "SELECT * FROM adapter_gear_instance_names",
+                        "SELECT * FROM adapter_gear_loadout", "SELECT * FROM adapter_gear_activity_snapshots"]);
                 }
                 conn.subscription_builder().on_applied(move |ctx| {
                     let authorized = ctx.db.my_service().iter().any(|service| service.active && service.role == role);
@@ -1213,7 +1219,32 @@ impl Client {
             focus_preferences: connection.db.adapter_collection_focus().iter().collect(),
             items: connection.db.adapter_items().iter().collect(),
             cast_pulls: connection.db.adapter_cast_pulls().iter().collect(),
-            cast_equipment: connection.db.adapter_cast_equipment().iter().next(),
+            cast_equipment: connection.db.adapter_cast_equipment().iter().find(|row| {
+                row.player_id == selected_player_id && row.interaction_id == interaction_id
+            }),
+            gear_instances: connection
+                .db
+                .adapter_gear_instances()
+                .iter()
+                .filter(|row| row.player_id == selected_player_id)
+                .collect(),
+            gear_instance_names: connection
+                .db
+                .adapter_gear_instance_names()
+                .iter()
+                .filter(|row| row.player_id == selected_player_id)
+                .collect(),
+            gear_loadout: connection
+                .db
+                .adapter_gear_loadout()
+                .iter()
+                .find(|row| row.player_id == selected_player_id),
+            gear_activity_snapshots: connection
+                .db
+                .adapter_gear_activity_snapshots()
+                .iter()
+                .filter(|row| row.player_id == selected_player_id)
+                .collect(),
             player,
             receipt,
             inventory: connection.db.adapter_inventory().iter().collect(),

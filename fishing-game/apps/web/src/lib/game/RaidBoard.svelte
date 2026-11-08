@@ -8,6 +8,7 @@
   import GameSelect from './GameSelect.svelte';
   import SearchInput from './SearchInput.svelte';
   import { tooltip } from './tooltip';
+  import { holdNotice } from './notice-timer';
   import { ServerClock } from './server-clock';
   import policy from '../../../../../content/raids.json';
   import SectionTabs from './SectionTabs.svelte';
@@ -207,7 +208,13 @@
     <p class="notice" role="status">Raids are awaiting the module update. Your current game connection remains available.</p>
   {:else}
     {#if game.error}<p class="notice error" role="alert">{game.error}</p>{/if}
-    {#if game.raidActionMessage}<p class="notice" role="status">{game.raidActionMessage}</p>{/if}
+    {#if game.raidActionMessage && (!game.raidActionMessageIsSuccess || game.raidNoticeVisible)}
+      {#if game.raidActionMessageIsSuccess}
+        <div class="notice" role="status" use:holdNotice={game.raidNotice}>{game.raidActionMessage}
+          <button class="secondary notice-dismiss" aria-label="Dismiss notification" onclick={() => game.raidNotice.dismiss()}>Dismiss</button>
+        </div>
+      {:else}<p class="notice" role="status">{game.raidActionMessage}</p>{/if}
+    {/if}
     {#if game.pendingRaidIntent}<p class="notice" role="status">{game.raidActionUnconfirmed ? 'A raid action is awaiting confirmation. Retry that same action after reconnecting.' : 'The raid action was acknowledged; syncing its saved receipt.'} A different raid action is locked until this intent is resolved.</p>{/if}
     {#if !timeAvailable}<p class="notice" role="status">{timeMessage} Signup, deployment, and due-claim actions remain disabled until time synchronizes.</p>{/if}
 
@@ -367,6 +374,7 @@
   .attempt-actions,.grade-actions,.pages{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.grade-actions{justify-content:flex-end;max-width:460px}.raid-board button{font-family:var(--font-game);font-size:15px;padding:8px 11px;background:var(--selected-background);color:var(--selected-ink);border:1px solid var(--paper-edge)}.raid-board button.secondary{background:var(--paper-light);color:var(--ink)}.raid-board button:disabled{opacity:.5}.raid-board button.cleared{outline:2px solid var(--success-ink)}
   .target-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:700px;min-width:0}.target-filters .filter-field{display:grid;gap:5px;min-width:0}.target-filters :global(.game-search),.target-filters :global(.game-select){width:100%;max-width:100%;min-width:0;box-sizing:border-box}.target-copy h4{overflow-wrap:anywhere}
   .pages{justify-content:center}.pages span{font-size:14px}.notice,.empty{padding:12px;background:var(--panel-inset);border:1px solid var(--paper-edge);line-height:1.6}.notice.error,.error{color:var(--danger-ink)}dialog{width:min(520px,calc(100% - 24px));padding:22px;background:var(--paper-light);color:var(--ink);border:3px solid var(--paper-edge)}dialog::backdrop{background:var(--dialog-backdrop)}
+  .raid-board button.notice-dismiss{font-size:14px;padding:4px 8px;margin-left:12px}
   @media(max-width:700px){.board-head{flex-direction:column}.attempt-card,.raid-target,.special-card,.community-card{grid-template-columns:1fr}.attempt-card.with-fish,.raid-target.with-fish,.special-card.with-fish{grid-template-columns:64px minmax(0,1fr)}.attempt-card.with-fish .attempt-actions,.raid-target.with-fish .grade-actions,.special-card.with-fish>button{grid-column:1 / -1}.raid-fish-art{width:64px;height:64px}.grade-actions{justify-content:flex-start}.target-filters{grid-template-columns:minmax(0,1fr)}.raid-board{padding:14px}.supply{grid-template-columns:auto minmax(0,1fr);width:100%}.supply strong{text-align:right}.history-card{grid-template-columns:1fr}.history-card.with-fish{grid-template-columns:56px minmax(0,1fr)}.history-card.with-fish button{grid-column:1 / -1}.history-card button{width:100%}}
   @media(max-width:700px){.attempt-card.with-fish,.raid-target.with-fish,.special-card.with-fish{row-gap:8px;column-gap:18px}.attempt-copy,.target-copy{display:contents}.attempt-copy>.eyebrow,.attempt-copy>h4,.target-copy>.eyebrow,.target-copy>h4{grid-column:2}.attempt-copy>p:not(.eyebrow),.target-copy>p:not(.eyebrow){grid-column:1 / -1}.attempt-card.with-fish>.raid-fish-art,.raid-target.with-fish>.raid-fish-art,.special-card.with-fish>.raid-fish-art{grid-row:1 / span 2;align-self:start}}
   .withdraw-dialog{width:min(640px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:28px;border:4px solid var(--wood-dark,#3c2d21);background:var(--paper,#f3e7c4);color:var(--ink,#354239);box-shadow:inset 0 0 0 3px var(--panel-highlight),0 12px 0 color-mix(in srgb,var(--wood-dark) 50%,transparent);overflow:auto;overscroll-behavior:contain;box-sizing:border-box}

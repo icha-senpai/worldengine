@@ -3,6 +3,10 @@ import { positionFloatingMenu } from './custom-control-logic';
 let nextTooltipId = 0;
 let activeTooltipClose: (() => void) | null = null;
 
+export function dismissActiveTooltip(): void {
+  activeTooltipClose?.();
+}
+
 export function tooltip(node: HTMLElement, initialMessage?: string) {
   let message = initialMessage ?? '';
   let tooltipElement: HTMLDivElement | null = null;

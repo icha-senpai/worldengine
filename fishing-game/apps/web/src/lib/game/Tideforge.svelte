@@ -8,6 +8,8 @@
   import { affixName, gearLabel, gearName, signatureName } from './tideforge-ui';
   import { formatLength, formatWeight } from './measurements';
   import { strengthHelp, tideforgeActionLabel, tideforgeConfirmed, tideforgeMaterialLabel, tideforgeUnconfirmed } from './tideforge-copy';
+  import { dismissActiveTooltip } from './tooltip';
+  import { holdNotice } from './notice-timer';
   import InfoButton from './InfoButton.svelte';
   import SectionTabs from './SectionTabs.svelte';
   import TideforgeGear from './TideforgeGear.svelte';
@@ -40,7 +42,6 @@
   let revision = 0;
   let quoteRevision = -1;
   let dialog: HTMLDialogElement;
-  let cancelButton = $state<HTMLButtonElement>();
   let confirming = $state(false);
   let previousPlayer = $state<bigint | undefined>();
   let previousIdentity = $state<string | undefined>();
@@ -52,7 +53,7 @@
       : ` · ${game.biomes.find(row => row.biomeId === roll.secondaryBiomeId)?.name ?? 'Unknown water'}`;
     return `${affixName(roll.id)} · T${roll.tier} · Strength ${roll.finishBp / 100}%${water}`;
   }
-  function invalidate() { revision++; quote = null; }
+  function invalidate() { if (quote) dismissActiveTooltip(); revision++; quote = null; }
   function select(value: Section) {
     if (section === value) return;
     invalidate();
@@ -108,8 +109,11 @@
     previousIdentity = identity;
   });
   $effect(() => {
-    if (quote && dialog && !dialog.open) { dialog.showModal(); cancelButton?.focus(); }
-    else if (!quote && dialog?.open) dialog.close();
+    if (quote && dialog && !dialog.open) {
+      dismissActiveTooltip(); dialog.showModal();
+      dialog.querySelector<HTMLElement>('#tideforge-confirm-title')?.focus({ preventScroll: true });
+    }
+    else if (!quote && dialog?.open) { dismissActiveTooltip(); dialog.close(); }
   });
   $effect(() => {
     if (!quote) return;
@@ -138,10 +142,13 @@
       <div class="notice" role="status"><p>{game.tideforgeError === tideforgeConfirmed ? tideforgeConfirmed : tideforgeUnconfirmed}</p>
         <button class="tideforge-action" disabled={!game.ready || game.busy} onclick={() => game.retryTideforgeCommit()}>Check last action</button></div>
     {/if}
-    {#if game.tideforgeError && game.tideforgeError !== tideforgeConfirmed}<p class="notice" role="alert">{game.tideforgeError}</p>{/if}
+    {#if game.tideforgeError && game.tideforgeError !== tideforgeConfirmed}<p class="notice" role="alert">{game.tideforgeError}
+      {#if game.canDismissError}<button class="tideforge-action secondary notice-dismiss" aria-label="Dismiss notification" onclick={() => { if (game.canDismissError) game.tideforgeError = ''; }}>Dismiss</button>{/if}
+    </p>{/if}
     {#if game.tideforgeDetailsUnavailable && section !== 'vault'}<button class="tideforge-action secondary" onclick={() => game.retryTideforgeDetails()}>Retry details</button>{/if}
-    {#if result}
-      <div class="notice" role="status"><strong>{result.gear ? 'Gear acquired' : 'Action confirmed'}</strong>
+    {#if result && game.tideforgeNoticeVisible}
+      <div class="notice" role="status" use:holdNotice={game.tideforgeNotice}><strong>{result.gear ? 'Gear acquired' : 'Action confirmed'}</strong>
+        <button class="tideforge-action secondary notice-dismiss" aria-label="Dismiss notification" onclick={() => game.tideforgeNotice.dismiss()}>Dismiss</button>
         {#if result.gear}
         <p>{result.gear.affixes.map(roll => `${affixName(roll.id)} T${roll.tier} (Strength ${roll.finishBp / 100}%)`).join(' · ') || 'No affixes'}</p>
         {#if result.gear.native_signature}<p>Item signature: {signatureName(result.gear.native_signature)}</p>{/if}
@@ -185,9 +192,10 @@
       {/if}
     {/if}
   {/if}
-  <dialog bind:this={dialog} aria-labelledby="tideforge-confirm-title" onclose={() => quote = null} oncancel={dismiss} onpointerdown={backdrop}>
+  <dialog bind:this={dialog} aria-labelledby="tideforge-confirm-title" onclose={() => { dismissActiveTooltip(); quote = null; }} oncancel={dismiss} onpointerdown={backdrop}>
     {#if quote && preview}
-      <h2 id="tideforge-confirm-title">Confirm {tideforgeActionLabel(preview.action)}</h2>
+      <!-- svelte-ignore a11y_autofocus (The heading provides a safe initial focus and context for long dialogs.) -->
+      <h2 id="tideforge-confirm-title" tabindex="-1" autofocus>Confirm {tideforgeActionLabel(preview.action)}</h2>
       {#if preview.kind && preview.definition_id}
         {@const target = game.gearInstances.find(row => row.protectedOriginal && row.kind === preview.kind && row.definitionId === preview.definition_id)}
         <p>Receive <strong>{target ? gearName(game, target) : 'Selected gear'}</strong>.</p>
@@ -197,7 +205,7 @@
         <p>{target ? gearLabel(game, target) : 'Selected gear'}</p>
         <p>{preview.gear_after === null ? 'This item will be permanently removed.' : 'Affixes before:'}</p>
         <InfoButton label="About affix strength" message={strengthHelp} />
-        {#if preview.action === 'dismantle'}<p>Past upgrade costs are not refunded.</p>{/if}
+        {#if preview.action === 'dismantle'}<p>Each affix returns shards based on its current tier: 1 for tiers 1–3, 2 for tiers 4–7, and 3 for tiers 8–10. Coins and materials spent are not refunded.</p>{/if}
         {#if preview.gear_before.native_signature}
           <p>Item signature: {signatureName(preview.gear_before.native_signature)}{preview.action === 'dismantle' ? ' · lost when dismantled' : ''}</p>
         {/if}
@@ -224,7 +232,9 @@
       {#if !preview.gear_after && !preview.kind && !preview.learned_signature && !(preview.materials ?? []).some(row => row.produced) && !(preview.shards ?? []).some(row => row.produced)}<p>No items returned.</p>{/if}
       {#if game.serverNowMs === null}<p role="status">Syncing server time…</p>{:else if expired}<p role="alert">This preview expired. Open a new preview.</p>{/if}
       {#if game.tideforgeError}<p role="alert">{game.tideforgeError}</p>{/if}
-      <div class="dialog-actions"><button class="tideforge-action secondary" bind:this={cancelButton} disabled={confirming} onclick={() => dismiss()}>Cancel</button><button class="tideforge-action" disabled={confirming || game.busy || !game.ready || expired} onclick={confirm}>{confirming ? 'Confirming…' : 'Confirm'}</button></div>
+      <div class="dialog-actions">
+        <button class="tideforge-action secondary" disabled={confirming} onclick={() => dismiss()}>Cancel</button><button class="tideforge-action" disabled={confirming || game.busy || !game.ready || expired} onclick={confirm}>{confirming ? 'Confirming…' : 'Confirm'}</button>
+      </div>
     {/if}
   </dialog>
 </section>
@@ -232,6 +242,7 @@
   .tideforge{min-width:0;margin-top:28px;padding:32px;color:var(--ink);background:var(--panel-texture),var(--paper);border:3px solid var(--wood-dark);box-shadow:inset 0 0 0 2px var(--panel-highlight),0 6px 0 var(--wood-dark);font-family:var(--font-body);box-sizing:border-box}
   .tideforge header{display:flex;align-items:end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}.tideforge header h2{font-family:var(--font-game);font-size:36px;font-weight:500;line-height:1.2;margin:0}.tideforge header p{margin:4px 0}.wallet,.notice{padding:10px 14px;background:var(--panel-inset);border:1px solid var(--paper-edge)}.notice{margin:0 0 14px}.notice p{margin:6px 0}
   .shop-shortcut{margin-bottom:18px}
+  .tideforge .notice-dismiss{font-size:14px;padding:4px 8px;margin-left:12px}
   .tideforge :global(.tideforge-action){border:2px solid var(--wood-dark);padding:9px 14px;background:var(--gold);color:var(--button-ink);box-shadow:inset 0 0 0 2px var(--panel-highlight),0 3px 0 var(--wood-dark);font-family:var(--font-game);font-size:19px;line-height:1.3;cursor:pointer}
   .tideforge :global(.tideforge-action.secondary){color:var(--ink);background:var(--panel-inset);border-color:var(--paper-edge)}.tideforge :global(.tideforge-action:hover:not(:disabled)){background:var(--button-hover)}.tideforge :global(.tideforge-action.secondary:hover:not(:disabled)){background:var(--paper-light)}.tideforge :global(.tideforge-action:disabled){opacity:.55;cursor:default;box-shadow:none}
   .tideforge :global(.tideforge-action:focus-visible){outline:3px solid var(--site-focus);outline-offset:2px}

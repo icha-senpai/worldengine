@@ -115,8 +115,8 @@ function validateTideforgeEconomy(economy, effects, worldCatalog) {
     positive(row.scales, 'forge scales');
   });
   const recovery = economy.recovery;
-  shape(recovery, ['shardsPerAffix', 'refundCoins', 'refundMaterials', 'rejectKnownSignatureExtraction']);
-  positive(recovery.shardsPerAffix, 'recovered shards');
+  shape(recovery, ['shardsByTier', 'refundCoins', 'refundMaterials', 'rejectKnownSignatureExtraction']);
+  assert.deepEqual(recovery.shardsByTier, [1, 1, 1, 2, 2, 2, 2, 3, 3, 3]);
   assert.equal(recovery.refundCoins, false);
   assert.equal(recovery.refundMaterials, false);
   assert.equal(recovery.rejectKnownSignatureExtraction, true);
