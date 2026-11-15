@@ -2,8 +2,8 @@ import { isDeepStrictEqual } from "node:util";
 
 // Refresh bundled guides only when production still has that exact baseline.
 // Custom edits and drafts are copied unchanged into the release world.
-export function refreshReleaseGuides(
-  state: Record<string, any>,
+export function refreshReleaseGuides<T extends Record<string, any>>(
+  state: T,
   baseline: any[],
   current: any[],
 ) {
