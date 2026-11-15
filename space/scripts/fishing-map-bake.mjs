@@ -23,9 +23,14 @@ await mkdir(root, { recursive: true });
 const pinned = new URL("manifest.json", staging);
 let manifest;
 try {
+  if (process.argv.includes("--refresh")) throw Error("Refresh requested");
   manifest = JSON.parse(await readFile(pinned, "utf8"));
 } catch {
-  manifest = await (await fetch(`${host}/manifest.json`)).json();
+  const response = await fetch(`${host}/manifest.json`, {
+    signal: AbortSignal.timeout(30000),
+  });
+  if (!response.ok) throw Error(`Source manifest: HTTP ${response.status}`);
+  manifest = await response.json();
   await writeFile(pinned, JSON.stringify(manifest));
 }
 if (

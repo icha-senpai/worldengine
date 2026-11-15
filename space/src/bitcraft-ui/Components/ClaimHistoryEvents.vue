@@ -50,7 +50,8 @@ defineEmits(["inspect"]);
         <p
           v-if="e.detail.waystones !== undefined && e.detail.waystones !== null"
         >
-          Waystones: {{ e.detail.waystones }} · Banks: {{ e.detail.banks }}
+          Waystones: {{ e.detail.waystones }} · Banks/stashes:
+          {{ e.detail.banks }}
         </p>
         <template v-if="e.kind === 'ownership_changed'"
           ><p>

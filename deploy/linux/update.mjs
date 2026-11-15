@@ -9,6 +9,7 @@ import { parseEnv } from 'node:util';
 import { buildWebsite, publishWebsite } from './publish.mjs';
 import { deploymentPlan, groups, includeDependencies, publishArguments, sourceFingerprint } from './update-plan.mjs';
 import { checkedBindings } from './bindings.mjs';
+import { withBitcraftTarget } from './bitcraft-target.mjs';
 
 const scripts = dirname(fileURLToPath(import.meta.url));
 const root = process.env.DATAVERSE_CHECKOUT || resolve(scripts, '../..');
@@ -84,7 +85,7 @@ async function originHealthy(host) {
     request.on('timeout', () => request.destroy(new Error('Origin health timeout.')));
   });
 }
-async function checkServices() {
+async function checkServices(bitcraftDatabase) {
   for (const name of allServices) await retry(name, () => {
     try { execFileSync('systemctl', ['--user', 'is-active', '--quiet', name + '.service'], { env: serviceEnv }); return true; } catch { return false; }
   });
@@ -94,7 +95,7 @@ async function checkServices() {
   await retry('Collector authentication', async () => {
     const current = Number(execFileSync('systemctl', ['--user', 'show', 'dataverse-space-collector.service', '-p', 'MainPID', '--value'], { env: serviceEnv, encoding: 'utf8' }));
     const ready = await json(resolve(root, 'space/.runtime/services/collector.ready.json'));
-    return current > 0 && ready.pid === current && ready.database === 'space-bitcraft-tools';
+    return current > 0 && ready.pid === current && ready.database === bitcraftDatabase;
   });
   await access(resolve(root, 'fishing-game/.runtime/bin/discord-bot'));
   await access('/var/www/dataverse/bitcraft/index.html');
@@ -119,7 +120,8 @@ async function main() {
   if (args.some(arg => !['--no-pull', '--plan', '--force'].includes(arg))) throw new Error('Unknown update option.');
   await mkdir(stateDirectory, { recursive: true, mode: 0o700 });
   await regular(stateDirectory);
-  const release = await json(resolve(scripts, 'release.json'));
+  const release = withBitcraftTarget(await json(resolve(scripts, 'release.json')),
+    await json(resolve(root, 'space/.runtime/bitcraft-main.json'), null));
   const cli = `/stdb/bin/${release.spacetimeVersion}/spacetimedb-cli`;
   const config = resolve(homedir(), '.config/spacetime-production/cli.toml');
   await access(config);
@@ -148,6 +150,12 @@ async function main() {
   // Refuse to silently target another database; detect code changed outside this updater.
   for (const module of release.modules) {
     const info = await databaseInfo(module);
+    if (module.archived) {
+      const expected = previous.programs?.[module.key] ?? previous.programs?.bitcraft;
+      if (expected && expected !== info.initial_program)
+        throw new Error('Archived BitCraft world was modified outside the managed updater.');
+      continue;
+    }
     if (previous.programs?.[module.key] && previous.programs[module.key] !== info.initial_program) plan[module.key] = true;
     if (pending?.modules.includes(module.key)) plan[module.key] = true;
   }
@@ -175,7 +183,7 @@ async function main() {
   }
   if (plan.native) await run('npm', ['run', 'rust:build'], fish, fishBuildEnv);
   if (plan.fishWeb) await buildWebsite('fishbound', root);
-  const modules = release.modules.filter(module => plan[module.key]);
+  const modules = release.modules.filter(module => !module.archived && plan[module.key]);
   let applying = false;
   try {
     if (changed.length) {
@@ -219,7 +227,7 @@ async function main() {
       if (plan.fishWeb) await publishWebsite('fishbound', root);
     }
     services('start', allServices);
-    await checkServices();
+    await checkServices(release.modules.find(module => module.key === 'bitcraft').database);
     if (applying) {
       await regular(maintenance);
       await unlink(maintenance);

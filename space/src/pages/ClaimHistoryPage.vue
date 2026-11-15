@@ -510,7 +510,7 @@ onBeforeUnmount(() => {
   <main class="claims-page">
     <BitcraftPageHeader
       title="Tracked Claims"
-      description="T4+ claims with both a waystone and a bank. Check supplies and open a claim’s history."
+      description="T4+ claims with a waystone and a bank or local stash. Check supplies and open a claim’s history."
     >
       <template #actions>
         <div class="heading-actions">
@@ -801,7 +801,7 @@ onBeforeUnmount(() => {
             ><strong>{{ timestamp(currentClaim.estimatedExpiresAt) }}</strong>
           </div>
           <p>
-            Waystones: {{ currentClaim.waystones }} · Banks:
+            Waystones: {{ currentClaim.waystones }} · Banks/stashes:
             {{ currentClaim.banks }} · Tiles:
             {{ number(currentClaim.tileCount) }} · Treasury:
             {{ number(currentClaim.treasury) }} HEX · Coordinates:

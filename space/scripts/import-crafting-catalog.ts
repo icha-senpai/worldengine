@@ -21,6 +21,7 @@ interface StackInput {
 }
 interface RecipeInput {
   id: number;
+  primaryRoute?: boolean;
   recipeName?: string;
   name?: string;
   craftingStation?: string;
@@ -207,6 +208,7 @@ export function importCraftingCatalog(input: ImportInputs): CraftingCatalog {
           source,
           name,
           ...classify(name, source, ingredients, target),
+          ...(raw.primaryRoute ? { preference: "primary" as const } : {}),
           station: raw.buildingName ?? raw.craftingStation ?? null,
           skill:
             raw.skillName ?? raw.levelRequirements?.[0]?.skill?.name ?? null,
@@ -267,8 +269,9 @@ export function importCraftingCatalog(input: ImportInputs): CraftingCatalog {
           id: `${source.source}:${id}:${targetKey}:bundle:${bundle.id}`,
           targetKey,
           name,
-          preference:
-            target.category === "Wood Log" && source.preference === "normal"
+          preference: source.ingredients.some((s) => s.key === targetKey)
+            ? "secondary"
+            : target.category === "Wood Log" && source.preference === "normal"
               ? "primary"
               : source.preference,
           outputQuantity: round(source.outputQuantity * quantity),

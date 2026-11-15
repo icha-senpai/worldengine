@@ -1,4 +1,5 @@
 <script setup>
+import { CURRENT_REGIONS } from "../../bitcraft/src/relay-trading";
 import BitcraftPageHeader from "./Components/BitcraftPageHeader.vue";
 import { route } from "/src/bitcraft-ui/navigation";
 import { computed, reactive, ref, watch } from "vue";
@@ -105,7 +106,7 @@ watch(
         <SelectInput v-model="form.region" class="w-full" @change="submit()">
           <option value="">All regions</option>
           <option v-for="region in regionOptions" :key="region" :value="region">
-            Region {{ region }}
+            {{ CURRENT_REGIONS[region] ?? `Region ${region}` }} (R{{ region }})
           </option>
         </SelectInput>
       </label>
@@ -233,7 +234,10 @@ watch(
               <td>
                 <strong class="block break-words">{{ craft.claim }}</strong
                 ><span class="text-xs text-muted"
-                  >Region {{ craft.region }} / {{ craft.owner }}</span
+                  >{{
+                    CURRENT_REGIONS[craft.region] ?? `Region ${craft.region}`
+                  }}
+                  (R{{ craft.region }}) / {{ craft.owner }}</span
                 >
               </td>
               <td>

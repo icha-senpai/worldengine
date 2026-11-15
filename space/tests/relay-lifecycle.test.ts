@@ -6,8 +6,10 @@ vi.mock("ws", async () => {
   class Socket extends EventEmitter {
     pongs = true;
     options: any;
-    constructor(_url: string, _protocol: string, options: any) {
+    url: string;
+    constructor(url: string, _protocol: string, options: any) {
       super();
+      this.url = url;
       this.options = options;
       mocks.sockets.push(this);
     }
@@ -49,9 +51,9 @@ function schemaType(type: any): any {
   if (type.Array) return { Array: schemaType(type.Array) };
   return type;
 }
-async function relay() {
+async function relay(provider: "bitconnect" | "bitsync" = "bitconnect") {
   vi.useFakeTimers();
-  const definition = pinned.bitconnect.player_username_state;
+  const definition = pinned[provider].player_username_state;
   vi.stubGlobal(
     "fetch",
     vi.fn(async () => ({
@@ -71,7 +73,7 @@ async function relay() {
   const failed = vi.fn(),
     changed = vi.fn();
   const subscription = new RelaySubscription(
-    "bitconnect",
+    provider,
     8,
     ["SELECT * FROM player_username_state"],
     changed,
@@ -103,6 +105,19 @@ afterEach(() => {
   mocks.sockets.length = 0;
   vi.unstubAllGlobals();
   vi.useRealTimers();
+});
+
+test("BitCraftSync schema and subscription use the new mirror database", async () => {
+  const { socket, subscription } = await relay("bitsync");
+  expect(fetch).toHaveBeenCalledWith(
+    "https://relay.bitcraftsync.app:3008/v1/database/idc-8/schema?version=9",
+    expect.any(Object),
+  );
+  expect(socket.url).toBe(
+    "wss://relay.bitcraftsync.app:3008/v1/database/idc-8/subscribe?compression=None",
+  );
+  initial(socket, [["1", "Player"]]);
+  expect(subscription.ready).toBe(true);
 });
 test("a missing regional database reports its HTTP status without publishing an empty snapshot", async () => {
   vi.useFakeTimers();

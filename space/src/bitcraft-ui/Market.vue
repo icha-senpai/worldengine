@@ -580,7 +580,7 @@ onBeforeUnmount(() => {
         :description="
           isBarter
             ? 'Browse barter stalls and find item exchanges.'
-            : 'Find items, compare prices, and inspect market orders.'
+            : 'Compare regional market orders. Buy or sell at any marketplace in the same region; cross-region transport is still required.'
         "
       >
         <template #actions>

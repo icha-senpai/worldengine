@@ -12,6 +12,11 @@ export const snapshotTables = [
   "skill_desc",
   "tool_type_desc",
   "building_type_desc",
+  "secondary_knowledge_desc",
+  "placeable_desc",
+  "placeable_placement_desc",
+  "placeable_interaction_desc",
+  "placeable_growth_desc",
 ];
 
 // Import the readable cereal/cs public definitions directly, without Laravel or
@@ -104,7 +109,21 @@ export function buildSnapshot(tables, source) {
         detail[field].push(recipe);
     }
   };
+  const developerKnowledge = new Set(
+    tables.secondary_knowledge_desc
+      .filter((row) => row.name === "The Art of Cheating")
+      .map((row) => row.id),
+  );
+  const excludedRecipes = [];
   for (const row of tables.crafting_recipe_desc) {
+    if (row.required_knowledges?.some((id) => developerKnowledge.has(id))) {
+      excludedRecipes.push({
+        kind: "crafting",
+        id: row.id,
+        reason: "Developer-only knowledge",
+      });
+      continue;
+    }
     const outputs = row.crafted_item_stacks.map(stack);
     const inputs = row.consumed_item_stacks.map(stack);
     add(
@@ -116,6 +135,10 @@ export function buildSnapshot(tables, source) {
         skillName:
           skills.get(row.level_requirements[0]?.skill_id)?.name ?? null,
         timeRequirement: row.time_requirement,
+        actionsRequired: row.actions_required,
+        experiencePerProgress: row.experience_per_progress,
+        levelRequirements: row.level_requirements,
+        toolRequirements: row.tool_requirements,
         outputQuantity: outputs[0]?.quantity ?? 1,
         craftedItems: outputs,
         consumedItems: inputs,
@@ -127,6 +150,65 @@ export function buildSnapshot(tables, source) {
       },
       "craftingRecipes",
     );
+  }
+  // Farming moved from passive recipes to a deterministic placeable lifecycle.
+  // Keep the full seed/fertilizer/water cost, rather than a free harvest route.
+  const placeables = index("placeable_desc");
+  for (const placement of tables.placeable_placement_desc) {
+    let target = placeables.get(placement.placed_placeable_id);
+    if (target?.tag !== "Farmed Crop") continue;
+    const inputs = [stack(placement.input_item)];
+    const seen = new Set();
+    while (target && !seen.has(target.id)) {
+      seen.add(target.id);
+      const interactions = tables.placeable_interaction_desc.filter(
+        (row) => row.placeable_id === target.id,
+      );
+      const harvest = interactions.find((row) => row.verb_phrase === "Harvest");
+      if (harvest) {
+        const outputs = harvest.on_destroy_yield.map(stack);
+        add(
+          {
+            id: -placement.id,
+            recipeName: "Plant, fertilize, water and harvest {0}",
+            primaryRoute: true,
+            craftingStation: "Fertile Ground",
+            skillName: "Farming",
+            // Harvest actions depend on the player's tool; do not invent a duration.
+            timeRequirement: null,
+            outputQuantity: outputs[0]?.quantity ?? 1,
+            craftedItems: outputs,
+            consumedItems: inputs,
+            consumedItemStacks: inputs.map((s) => ({
+              item_id: s.id,
+              item_type: s.kind,
+              quantity: s.quantity,
+            })),
+          },
+          "craftingRecipes",
+        );
+        break;
+      }
+      const growth = tables.placeable_growth_desc.find(
+        (row) => row.placeable_id === target.id,
+      );
+      const step = interactions.length === 1 ? interactions[0] : null;
+      const outcomes = growth?.outcomes_v2 ?? step?.on_destroy_outcomes;
+      if (outcomes?.length !== 1 || outcomes[0].probability !== 1)
+        throw Error(`Unreviewed farming lifecycle for ${target.name}`);
+      if (step) inputs.push(...step.consumed_item_stacks.map(stack));
+      target = placeables.get(outcomes[0].placeable_id);
+      if (!target) throw Error("Missing farming lifecycle target");
+    }
+    if (
+      target &&
+      seen.has(target.id) &&
+      !tables.placeable_interaction_desc.some(
+        (row) =>
+          row.placeable_id === target.id && row.verb_phrase === "Harvest",
+      )
+    )
+      throw Error(`Cyclic farming lifecycle for ${target.name}`);
   }
   const entries = [];
   for (const row of tables.extraction_recipe_desc) {
@@ -144,6 +226,14 @@ export function buildSnapshot(tables, source) {
     const target =
       resource(row.resource_id) ??
       (cargo ? { ...cargo, maxHealth: null } : null);
+    if (!target) {
+      excludedRecipes.push({
+        kind: "extraction",
+        id: row.id,
+        reason: "No resource or cargo target",
+      });
+      continue;
+    }
     const requirement = row.level_requirements[0];
     const skillId =
       requirement?.skill_id ?? row.experience_per_progress[0]?.skill_id;
@@ -205,6 +295,7 @@ export function buildSnapshot(tables, source) {
   return {
     generatedAt: source.generatedAt,
     source,
+    excludedRecipes,
     items,
     details,
     skills: tables.skill_desc

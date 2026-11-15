@@ -593,7 +593,7 @@ export function readClaimHistory(
     retentionDays: HISTORY_DAYS,
     eventLimit: HISTORY_EVENT_LIMIT,
     minimumTier: HISTORY_MIN_TIER,
-    trackingRule: "T4+ with a waystone and a bank",
+    trackingRule: "T4+ with a waystone and a bank or local stash",
     trackedClaims: trackedStates.length,
     retainedEvents: Number(ctx.db.claimHistoryEvent.count()),
     coverage: claimRecordingCoverage(ctx),
@@ -852,7 +852,7 @@ export function readTrackedClaims(
     pages,
     coverage,
     estimatedAt: String(ctx.timestamp.microsSinceUnixEpoch),
-    trackingRule: "T4+ with a waystone and a bank",
+    trackingRule: "T4+ with a waystone and a bank or local stash",
   });
 }
 

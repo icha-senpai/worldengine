@@ -53,6 +53,36 @@ const formatDate = (value) => new Date(value).toLocaleDateString();
       <p v-if="guide.summary" class="mb-6 break-words text-lg text-muted-2">
         {{ guide.summary }}
       </p>
+      <aside
+        v-if="
+          Number(guide.id) === 16 &&
+          Date.parse(guide.updated_at) < Date.parse('2026-11-10T16:09:27Z')
+        "
+        class="ui-panel mb-6 space-y-3 p-4"
+        aria-label="November 10 claim rules"
+      >
+        <strong>November 10 claim rules</strong>
+        <p>
+          The placement limits, upkeep examples and research table below predate
+          this release. Tile upkeep now uses progressive brackets. Stability is
+          max(1, exp(5.5 × (5.65 − average claimed neighbours per tile)));
+          building maintenance is added afterwards. Claims received 10% more
+          tiles. Use Claim History for current supply estimates.
+        </p>
+        <p>
+          Settlement Research replaces Codexes for advancement. Homesteads and
+          Townships have different unlocks; choosing Homestead cannot be
+          reversed without restarting the claim. Banks and marketplaces are
+          regional.
+        </p>
+        <a
+          href="https://bitcraftonline.com/news/patch-notes-starfell-reawakened"
+          class="underline"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Read the November 10 patch notes</a
+        >
+      </aside>
       <GuideContent :content="guide.content" />
     </article>
   </AuthenticatedLayout>

@@ -1,33 +1,49 @@
-import { subscribeMapDirect } from "./fishing-map-relay-core";
-// Large terrain snapshots are decoded away from the browser's interaction thread.
-export function subscribeMap(region, queries, callbacks) {
-  if (typeof Worker === "undefined")
-    return subscribeMapDirect(region, queries, callbacks);
-  const worker = new Worker(
-    new URL("./fishing-map-relay.worker.js", import.meta.url),
-    { type: "module" },
-  );
-  let stopped = false;
-  worker.onmessage = ({ data }) => {
-    if (stopped) return;
-    if (data.type === "rows") callbacks.rows(data.changes, data.initial);
-    else if (data.type === "status")
-      callbacks.status?.(data.value, data.message);
-  };
-  worker.onerror = () => {
-    if (!stopped)
-      callbacks.status?.(
-        "reconnecting",
-        "Map worker failed. Reload to reconnect.",
+import { connectBitcraft } from "../bitcraft";
+
+// The collector owns the regional sockets. Stopping invalidates unfinished reads.
+export function subscribeMap(region, callbacks) {
+  let stopped = false,
+    timer,
+    updatedAt;
+  callbacks.status?.("connecting");
+  async function refresh() {
+    try {
+      const conn = await connectBitcraft();
+      if (stopped) return;
+      const snapshot = JSON.parse(
+        await conn.procedures.readFishLocations({ regionId: Number(region) }),
       );
-  };
-  worker.postMessage({ type: "start", region, queries });
-  const stop = () => {
+      if (stopped) return;
+      if (snapshot.data && snapshot.updatedAt !== updatedAt) {
+        const changes = snapshot.data.flatMap((row) => [
+          {
+            table: "resource_state",
+            action: "inserts",
+            row: { entity_id: row.entityId, resource_id: row.resourceId },
+          },
+          {
+            table: "location_state",
+            action: "inserts",
+            row: { entity_id: row.entityId, x: row.x, z: row.z, dimension: 1 },
+          },
+        ]);
+        callbacks.rows(changes, true, snapshot.updatedAt);
+        updatedAt = snapshot.updatedAt;
+      }
+      callbacks.status?.(
+        snapshot.delayed ? "reconnecting" : "live",
+        snapshot.error ?? undefined,
+      );
+    } catch (error) {
+      if (!stopped)
+        callbacks.status?.("reconnecting", error.message || String(error));
+    } finally {
+      if (!stopped) timer = setTimeout(refresh, 5000);
+    }
+  }
+  void refresh();
+  return () => {
     stopped = true;
-    worker.terminate();
+    clearTimeout(timer);
   };
-  stop.replace = (next) => {
-    if (!stopped) worker.postMessage({ type: "queries", queries: next });
-  };
-  return stop;
 }

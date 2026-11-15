@@ -38,10 +38,25 @@ def verify_table(before, after, table):
         raise RuntimeError(table + ': existing retained records changed or disappeared')
 
 
+def module_target(release, key, target=None):
+    module = next(x for x in release['modules'] if x['key'] == key)
+    if key != 'bitcraft' or target is None:
+        return module
+    if (target.get('database') != 'space-bitcraft-release' or
+        target.get('source') != module['database'] or target.get('world') != 'release' or
+        not re.fullmatch(r'[a-f0-9]{64}', target.get('identity', ''))):
+        raise RuntimeError('Invalid verified BitCraft release target')
+    return {**module, 'database': target['database'], 'identity': target['identity']}
+
+
 def main():
     mode, key, output = sys.argv[1:]
     release = json.loads((Path(__file__).parent / 'release.json').read_text())
-    module = next(x for x in release['modules'] if x['key'] == key)
+    target_path = Path(__file__).resolve().parents[2] / 'space/.runtime/bitcraft-main.json'
+    if target_path.is_symlink():
+        raise RuntimeError('Linked BitCraft target refused')
+    target = json.loads(target_path.read_text()) if target_path.exists() else None
+    module = module_target(release, key, target)
     credentials = Path.home() / '.config/spacetime-production/cli.toml'
     token = tomllib.loads(credentials.read_text())['spacetimedb_token']
     base = f"http://127.0.0.1:{module['port']}/v1/database/{module['database']}"

@@ -10,7 +10,7 @@ import { installCollectorConsole } from "./collector-log";
 import { pruneSchedule } from "./collector-scheduler";
 import { CollectorCycle } from "./bitcraft-collector-cycle";
 import { CollectorDiagnostics } from "./collector-diagnostics";
-import { spacetimeCli } from "./spacetime-config";
+import { spacetimeCli, bitcraftDatabase } from "./spacetime-config";
 import {
   mkdir,
   readFile,
@@ -35,7 +35,7 @@ const databaseArg = process.argv.indexOf("--database");
 const database =
   (databaseArg >= 0 ? process.argv[databaseArg + 1] : undefined) ||
   process.env.BITCRAFT_COLLECTOR_DATABASE ||
-  "space-bitcraft-tools";
+  bitcraftDatabase;
 if (
   databaseArg >= 0 &&
   (!process.argv[databaseArg + 1] ||
@@ -45,12 +45,13 @@ if (
 if (!/^[a-zA-Z0-9-]{1,80}$/.test(database))
   throw new Error("Invalid collector database.");
 const storageOnly = process.argv.includes("--storage-only");
-const serviceName =
-  database === "space-bitcraft-tools"
-    ? "collector"
-    : database === "space-bitcraft-checks"
-      ? "collector-test"
-      : `collector-${database}`;
+const serviceName = ["space-bitcraft-tools", "space-bitcraft-release"].includes(
+  database,
+)
+  ? "collector"
+  : database === "space-bitcraft-checks"
+    ? "collector-test"
+    : `collector-${database}`;
 const diagnostics = new CollectorDiagnostics(database);
 installCollectorConsole(diagnostics.directory);
 async function markReady(epoch: string) {
@@ -107,7 +108,9 @@ type Request = {
   options: string;
   key?: string;
 };
-const seeds: Request[] = ["regions", "empires", "levels"].map((resource) => ({
+const seeds: Request[] = (
+  database === "space-bitcraft-release" ? [] : ["regions", "empires", "levels"]
+).map((resource) => ({
   resource,
   entityId: "",
   query: "",
@@ -546,7 +549,14 @@ while (!stopping) {
     );
     console.log(`BitCraft collector ready for ${database}.`);
     if (!once && process.env.BITCRAFT_NATIVE_RELAYS !== "0") {
-      native = new NativeRelayCollector(conn, epoch, due, diagnostics, cycle);
+      native = new NativeRelayCollector(
+        conn,
+        epoch,
+        due,
+        diagnostics,
+        cycle,
+        database === "space-bitcraft-release" ? "bitsync" : "bitconnect",
+      );
       void native
         .start()
         .catch((error) =>

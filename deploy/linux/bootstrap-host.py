@@ -127,7 +127,7 @@ def main():
     run(*certificate)
     bitcraft = """    root /var/www/dataverse/bitcraft;
     index index.html;
-    location ~ ^/v1/database/(space-bitcraft-tools|space-evergather)/subscribe$ {
+    location ~ ^/v1/database/(space-bitcraft-tools|space-bitcraft-release|space-evergather)/subscribe$ {
         access_log off;
 """ + proxy(3100, True) + """    }
     location = /v1/identity/websocket-token {

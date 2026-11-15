@@ -46,7 +46,9 @@ import IngestClaimSuppliesReducer from "./ingest_claim_supplies_reducer";
 import IngestCollectionReducer from "./ingest_collection_reducer";
 import IngestMarketBookReducer from "./ingest_market_book_reducer";
 import IngestMarketDirectoryReducer from "./ingest_market_directory_reducer";
+import IngestOpenCraftsReducer from "./ingest_open_crafts_reducer";
 import IngestRelayTradingReducer from "./ingest_relay_trading_reducer";
+import IngestWorldDirectoryReducer from "./ingest_world_directory_reducer";
 import MarketRefreshFailureReducer from "./market_refresh_failure_reducer";
 import MigrateGuidesReducer from "./migrate_guides_reducer";
 import PrepareClaimRevisionsReducer from "./prepare_claim_revisions_reducer";
@@ -70,8 +72,11 @@ import * as PublicCatalogProcedure from "./public_catalog_procedure";
 import * as ReadBossBoardProcedure from "./read_boss_board_procedure";
 import * as ReadBossDefeatProcedure from "./read_boss_defeat_procedure";
 import * as ReadClaimHistoryProcedure from "./read_claim_history_procedure";
+import * as ReadEmpireDirectoryProcedure from "./read_empire_directory_procedure";
+import * as ReadFishLocationsProcedure from "./read_fish_locations_procedure";
 import * as ReadMarketProcedure from "./read_market_procedure";
 import * as ReadMarketBookProcedure from "./read_market_book_procedure";
+import * as ReadOpenCraftsProcedure from "./read_open_crafts_procedure";
 import * as ReadRelayBarterProcedure from "./read_relay_barter_procedure";
 import * as ReadStarredClaimsProcedure from "./read_starred_claims_procedure";
 import * as ReadTrackedClaimHistoryProcedure from "./read_tracked_claim_history_procedure";
@@ -289,7 +294,9 @@ const reducersSchema = __reducers(
   __reducerSchema("ingest_collection", IngestCollectionReducer),
   __reducerSchema("ingest_market_book", IngestMarketBookReducer),
   __reducerSchema("ingest_market_directory", IngestMarketDirectoryReducer),
+  __reducerSchema("ingest_open_crafts", IngestOpenCraftsReducer),
   __reducerSchema("ingest_relay_trading", IngestRelayTradingReducer),
+  __reducerSchema("ingest_world_directory", IngestWorldDirectoryReducer),
   __reducerSchema("market_refresh_failure", MarketRefreshFailureReducer),
   __reducerSchema("migrate_guides", MigrateGuidesReducer),
   __reducerSchema("prepare_claim_revisions", PrepareClaimRevisionsReducer),
@@ -315,8 +322,11 @@ const proceduresSchema = __procedures(
   __procedureSchema("read_boss_board", ReadBossBoardProcedure.params, ReadBossBoardProcedure.returnType),
   __procedureSchema("read_boss_defeat", ReadBossDefeatProcedure.params, ReadBossDefeatProcedure.returnType),
   __procedureSchema("read_claim_history", ReadClaimHistoryProcedure.params, ReadClaimHistoryProcedure.returnType),
+  __procedureSchema("read_empire_directory", ReadEmpireDirectoryProcedure.params, ReadEmpireDirectoryProcedure.returnType),
+  __procedureSchema("read_fish_locations", ReadFishLocationsProcedure.params, ReadFishLocationsProcedure.returnType),
   __procedureSchema("read_market", ReadMarketProcedure.params, ReadMarketProcedure.returnType),
   __procedureSchema("read_market_book", ReadMarketBookProcedure.params, ReadMarketBookProcedure.returnType),
+  __procedureSchema("read_open_crafts", ReadOpenCraftsProcedure.params, ReadOpenCraftsProcedure.returnType),
   __procedureSchema("read_relay_barter", ReadRelayBarterProcedure.params, ReadRelayBarterProcedure.returnType),
   __procedureSchema("read_starred_claims", ReadStarredClaimsProcedure.params, ReadStarredClaimsProcedure.returnType),
   __procedureSchema("read_tracked_claim_history", ReadTrackedClaimHistoryProcedure.params, ReadTrackedClaimHistoryProcedure.returnType),

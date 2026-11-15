@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { providerConfig } from "../bitcraft/src/providers";
+import { bitcraftDatabase } from "./spacetime-config";
 const file = process.argv[2];
 if (!file)
   throw new Error("Usage: npm run bitcraft:providers -- PRIVATE_CONFIG_JSON");
@@ -19,7 +20,7 @@ for (const [name, value] of Object.entries(configs)) {
       cli,
       [
         "call",
-        "space-bitcraft-tools",
+        bitcraftDatabase,
         "configure_provider",
         JSON.stringify(name),
         JSON.stringify(JSON.stringify(config)),

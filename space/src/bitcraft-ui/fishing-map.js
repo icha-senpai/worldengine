@@ -1,31 +1,11 @@
+import { CURRENT_REGIONS } from "../../bitcraft/src/relay-trading";
+
 // Locations use small offset hexes; terrain uses large offset hexes (3x).
-export const REGIONS = [
-  [7, "Virexal"],
-  [8, "Solmere"],
-  [9, "Marowik"],
-  [12, "Elyndor"],
-  [13, "Hexalis"],
-  [14, "Lumethis"],
-  [17, "Draxen"],
-  [18, "Oryxen"],
-  [19, "Zephra"],
-];
-export const SPECIES = [
-  ["Briny Linus", 1110002, 1110003],
-  ["Muddy Oncor", 2110002, 2110003],
-  ["Greenhorn Gorbu", 3110002, 3110003],
-  ["Azure Centro", 4110002, 4110003],
-  ["Rocky Aulono", 5110002, 5110003],
-  ["Vibrant Janus", 6110002, 6110003],
-  ["Mossy Amia", 5045122, 826362353],
-  ["Murky Oxy", 2390533, 509854054],
-  ["Abyssal Gladius", 1812221896, 1141184831],
-  ["Divine Selachii", 424796674, 1006230316],
-].flatMap(([name, ordinary, chummed], index) => [
-  { name, tier: index + 1, id: ordinary, chummed: false },
-  { name, tier: index + 1, id: chummed, chummed: true },
+export const REGIONS = Object.entries(CURRENT_REGIONS).map(([id, name]) => [
+  Number(id),
+  name,
 ]);
-export const SCHOOL_BY_ID = new Map(SPECIES.map((s) => [s.id, s]));
+export { SPECIES, SCHOOL_BY_ID } from "../../bitcraft/src/fishing";
 export const WORLD_SIZE = 38400;
 export const HEX_SCALE = Math.sqrt(3) / 2;
 const round = (n) => Math.sign(n) * Math.floor(Math.abs(n) + 0.5);

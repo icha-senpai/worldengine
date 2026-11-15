@@ -12,6 +12,10 @@ describe("Saved fishing camera", () => {
     saveMapView(9, view, storage);
     expect(readMapView(9, storage)).toEqual(view);
     expect(readMapView(8, storage)).toBeNull();
+    expect(readMapView("release:9", storage)).toBeNull();
+    saveMapView("release:9", { ...view, zoom: 1 }, storage);
+    expect(readMapView("release:9", storage).zoom).toBe(1);
+    expect(readMapView(9, storage)).toEqual(view);
     saveMapView(9, { ...view, zoom: 10 }, storage);
     expect(readMapView(9, storage)).toBeNull();
     storage.setItem("space.fishing-view.9", "{");

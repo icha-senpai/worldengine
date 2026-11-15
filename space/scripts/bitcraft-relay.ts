@@ -1,5 +1,6 @@
 import WebSocket from "ws";
 import pinned from "./relay-wire-contract.json";
+import { fishQueries } from "../bitcraft/src/fishing";
 export type RelayRow = Record<string, any>;
 export type RelayTables = Map<string, Map<string, RelayRow>>;
 export type RelayChange = { table: string; row: RelayRow };
@@ -16,12 +17,18 @@ export const TRADING_TABLES = [
   "claim_local_state",
   "player_username_state",
 ];
-export function tradingQueries() {
-  return TRADING_TABLES.map((table) =>
-    ["building_state", "building_nickname_state"].includes(table)
-      ? `SELECT ${table}.* FROM ${table} JOIN barter_stall_state ON ${table}.entity_id = barter_stall_state.entity_id`
-      : `SELECT * FROM ${table}`,
-  );
+export function tradingQueries(
+  provider: "bitconnect" | "bitsync" = "bitconnect",
+) {
+  return [
+    ...TRADING_TABLES.map((table) =>
+      table === "building_nickname_state"
+        ? `SELECT ${table}.* FROM ${table} JOIN barter_stall_state ON ${table}.entity_id = barter_stall_state.entity_id`
+        : `SELECT * FROM ${table}`,
+    ),
+    "SELECT * FROM progressive_action_state",
+    ...(provider === "bitsync" ? fishQueries() : []),
+  ];
 }
 // The wire parser must preserve large JSON integers before Number loses precision.
 export function parseRelayJson(text: string): any {
@@ -209,14 +216,20 @@ export class RelaySubscription {
       this.provider === "bitconnect"
         ? "https://relay.bitjita.com"
         : `https://relay.bitcraftsync.app:${3000 + this.region}`;
+    const database =
+      this.provider === "bitconnect"
+        ? `bitcraft-live-${this.region}`
+        : this.region === 0
+          ? "idc-global"
+          : `idc-${this.region}`;
     try {
       const response = await fetch(
-        `${host}/v1/database/bitcraft-live-${this.region}/schema?version=9`,
+        `${host}/v1/database/${database}/schema?version=9`,
         { signal: AbortSignal.any([abort.signal, AbortSignal.timeout(15000)]) },
       );
       if (!response.ok)
         throw Error(
-          `Relay schema unavailable (HTTP ${response.status}; bitcraft-live-${this.region}).`,
+          `Relay schema unavailable (HTTP ${response.status}; ${database}).`,
         );
       const schema = await response.json();
       const names = [
@@ -237,7 +250,7 @@ export class RelaySubscription {
           );
       if (this.stopped || generation !== this.generation) return;
       const ws = (this.socket = new WebSocket(
-        `${host.replace(/^http/, "ws")}/v1/database/bitcraft-live-${this.region}/subscribe?compression=None`,
+        `${host.replace(/^http/, "ws")}/v1/database/${database}/subscribe?compression=None`,
         "v1.json.spacetimedb",
         {
           maxPayload: 64_000_000,

@@ -1,166 +1,100 @@
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { subscribeMap } from "../src/bitcraft-ui/fishing-map-relay";
-
+const calls = vi.hoisted(() => ({ read: vi.fn() }));
+vi.mock("../src/bitcraft", () => ({
+  connectBitcraft: async () => ({
+    procedures: { readFishLocations: calls.read },
+  }),
+}));
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.resetAllMocks();
+});
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
-describe("Read-only fishing map subscription", () => {
-  it("decodes lossless snapshots and changes, skips empty transactions and closes cleanly", async () => {
-    vi.useFakeTimers();
-    const names = ["resource_state", "location_state", "terrain_chunk_state"];
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => ({
-        ok: true,
-        json: async () => ({
-          tables: names.map((name, i) => ({ name, product_type_ref: i })),
-          typespace: {
-            types: names.map(() => ({
-              Product: {
-                elements: ["entity_id", "x"].map((name) => ({
-                  name: { some: name },
-                })),
-              },
-            })),
-          },
-        }),
-      })),
-    );
-    const sockets = [];
-    class Socket {
-      constructor() {
-        sockets.push(this);
-      }
-      send = vi.fn();
-      close = vi.fn();
-      emit(message) {
-        this.onmessage({ data: JSON.stringify(message) });
-      }
-    }
-    vi.stubGlobal("WebSocket", Socket);
+const school = {
+  entityId: "1297036692719788627",
+  resourceId: 1110002,
+  x: 100,
+  z: 200,
+};
+const snapshot = (data, updatedAt = "2026-11-15T00:00:00Z", delayed = false) =>
+  JSON.stringify({
+    data,
+    updatedAt,
+    delayed,
+    error: delayed ? "Refresh delayed" : null,
+  });
+describe("Collected fishing map", () => {
+  it("reads the local collector without a relay socket or HTTP request", async () => {
+    const fetch = vi.fn(),
+      socket = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    vi.stubGlobal("WebSocket", socket);
+    calls.read.mockResolvedValue(snapshot([school]));
     const rows = vi.fn(),
       status = vi.fn();
-    const stop = subscribeMap(8, ["SELECT * FROM location_state"], {
-      rows,
-      status,
-    });
+    const stop = subscribeMap(12, { rows, status });
     await vi.advanceTimersByTimeAsync(0);
-    const socket = sockets[0];
-    socket.emit({ IdentityToken: {} });
-    expect(
-      JSON.parse(socket.send.mock.calls[0][0]).Subscribe.query_strings,
-    ).toEqual(["SELECT * FROM location_state"]);
-    const changes = (inserts) => ({
-      tables: [{ table_name: "location_state", updates: [{ inserts }] }],
-    });
-    socket.emit({
-      InitialSubscription: {
-        database_update: changes(["[1297036692719788627,20768]"]),
-      },
-    });
-    expect(rows).toHaveBeenLastCalledWith(
+    expect(calls.read).toHaveBeenCalledWith({ regionId: 12 });
+    expect(rows).toHaveBeenCalledWith(
       [
+        {
+          table: "resource_state",
+          action: "inserts",
+          row: { entity_id: school.entityId, resource_id: 1110002 },
+        },
         {
           table: "location_state",
           action: "inserts",
-          row: { entity_id: "1297036692719788627", x: 20768 },
+          row: { entity_id: school.entityId, x: 100, z: 200, dimension: 1 },
         },
       ],
       true,
+      "2026-11-15T00:00:00Z",
     );
-    socket.emit({
-      TransactionUpdate: { status: { Committed: { tables: [] } } },
-    });
-    expect(rows).toHaveBeenCalledTimes(1);
-    socket.emit({
-      TransactionUpdateLight: {
-        database_update: changes([
-          '{"entity_id":1297036692719788628,"x":20769}',
-        ]),
-      },
-    });
-    expect(rows.mock.calls[1][0][0].row.entity_id).toBe("1297036692719788628");
-    socket.emit({
-      TransactionUpdate: {
-        status: {
-          Committed: {
-            tables: [
-              {
-                table_name: "location_state",
-                updates: [{ deletes: ["[1297036692719788627,20768]"] }],
-              },
-            ],
-          },
-        },
-      },
-    });
-    expect(rows.mock.calls[2][0][0].action).toBe("deletes");
-    socket.readyState = 1;
-    stop.replace([
-      "SELECT * FROM terrain_chunk_state WHERE chunk_index = 119217",
-    ]);
-    expect(sockets).toHaveLength(1);
-    expect(
-      JSON.parse(socket.send.mock.calls.at(-1)[0]).Subscribe.request_id,
-    ).toBe(2);
-    socket.emit({
-      InitialSubscription: {
-        request_id: 1,
-        database_update: changes(["[2,123]"]),
-      },
-    });
-    expect(rows).toHaveBeenCalledTimes(3);
-    socket.emit({
-      InitialSubscription: {
-        request_id: 2,
-        database_update: changes(["[3,456]"]),
-      },
-    });
-    expect(rows).toHaveBeenCalledTimes(4);
-    stop.replace([]);
-    expect(
-      JSON.parse(socket.send.mock.calls.at(-1)[0]).Subscribe.query_strings,
-    ).toEqual([]);
+    expect(status).toHaveBeenLastCalledWith("live", undefined);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(socket).not.toHaveBeenCalled();
     stop();
-    expect(socket.close).toHaveBeenCalledOnce();
-    await vi.advanceTimersByTimeAsync(30000);
-    expect(sockets).toHaveLength(1);
-    expect(status).toHaveBeenCalledWith("live");
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(calls.read).toHaveBeenCalledTimes(1);
   });
-  it("runs decoding in a worker and stops accepting messages after termination", () => {
-    const workers = [];
-    class WorkerStub {
-      constructor() {
-        workers.push(this);
-      }
-      postMessage = vi.fn();
-      terminate = vi.fn();
-    }
-    vi.stubGlobal("Worker", WorkerStub);
+  it("replaces changed snapshots, retains markers during failures, and recovers", async () => {
+    calls.read.mockResolvedValue(snapshot([school]));
     const rows = vi.fn(),
       status = vi.fn();
-    const stop = subscribeMap(9, ["SELECT * FROM location_state"], {
-      rows,
-      status,
-    });
-    expect(workers).toHaveLength(1);
-    const worker = workers[0];
-    expect(worker.postMessage).toHaveBeenCalledWith({
-      type: "start",
-      region: 9,
-      queries: ["SELECT * FROM location_state"],
-    });
-    stop.replace([]);
-    expect(worker.postMessage).toHaveBeenLastCalledWith({
-      type: "queries",
-      queries: [],
-    });
-    worker.onmessage({ data: { type: "rows", changes: [], initial: true } });
-    expect(rows).toHaveBeenCalledOnce();
+    const stop = subscribeMap(7, { rows, status });
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(rows).toHaveBeenCalledTimes(1);
+    calls.read.mockResolvedValueOnce(snapshot(null, null, true));
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(rows).toHaveBeenCalledTimes(1);
+    expect(status).toHaveBeenLastCalledWith("reconnecting", "Refresh delayed");
+    calls.read.mockRejectedValueOnce(Error("Disconnected"));
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(rows).toHaveBeenCalledTimes(1);
+    calls.read.mockResolvedValue(snapshot([], "2026-11-15T00:01:00Z"));
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(rows).toHaveBeenLastCalledWith([], true, "2026-11-15T00:01:00Z");
+    expect(status).toHaveBeenLastCalledWith("live", undefined);
     stop();
-    expect(worker.terminate).toHaveBeenCalledOnce();
-    worker.onmessage({ data: { type: "rows", changes: [], initial: false } });
-    expect(rows).toHaveBeenCalledOnce();
+  });
+  it("ignores an unfinished read after changing region or unmounting", async () => {
+    let resolve;
+    calls.read.mockReturnValue(new Promise((r) => (resolve = r)));
+    const rows = vi.fn(),
+      status = vi.fn();
+    const stop = subscribeMap(19, { rows, status });
+    await vi.advanceTimersByTimeAsync(0);
+    stop();
+    resolve(snapshot([school]));
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(rows).not.toHaveBeenCalled();
+    expect(status).toHaveBeenCalledTimes(1);
+    expect(calls.read).toHaveBeenCalledTimes(1);
   });
 });

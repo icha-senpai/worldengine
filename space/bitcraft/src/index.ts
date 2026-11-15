@@ -60,6 +60,7 @@ import {
 } from "./regions";
 import publishedContent from "./content/guides.json";
 import { catalogResponse } from "./catalog";
+import { validateWorldDirectory } from "./world-directories";
 import { validateWidget } from "./widgets";
 import { validateGuide } from "./guides";
 import {
@@ -1276,9 +1277,11 @@ export const relayHeartbeat = db.reducer(
     requireWrites(ctx);
     requireMarketCollector(ctx);
     if (
-      !/^(trading:\d+|claims:\d+|player:\d{1,24})$/.test(args.key) ||
+      !/^(trading:\d+|claims:\d+|player:\d{1,24}|empires:0)$/.test(args.key) ||
       !["bitconnect", "bitsync"].includes(args.provider) ||
-      !CURRENT_REGIONS[args.regionId] ||
+      (args.key === "empires:0"
+        ? args.regionId !== 0 || args.provider !== "bitsync"
+        : !CURRENT_REGIONS[args.regionId]) ||
       args.epoch.length > 80 ||
       args.error.length > 240
     )
@@ -1543,6 +1546,186 @@ export const ingestRelayTrading = db.reducer(
     });
     ctx.db.relayStatus.key.update({ ...status, observedAt: args.observedAt });
   },
+);
+export const ingestWorldDirectory = db.reducer(
+  {
+    kind: t.string(),
+    regionId: t.u32(),
+    epoch: t.string(),
+    payload: t.string(),
+    observedAt: t.u64(),
+  },
+  (ctx, args) => {
+    requireWrites(ctx);
+    requireMarketCollector(ctx);
+    const key = `directory:${args.kind}:${args.regionId}`;
+    const status = ctx.db.relayStatus.key.find(
+      args.kind === "empires" ? "empires:0" : `trading:${args.regionId}`,
+    );
+    if (
+      !status?.ready ||
+      status.epoch !== args.epoch ||
+      status.provider !== "bitsync" ||
+      status.heartbeatAt + 60000000n < ctx.timestamp.microsSinceUnixEpoch ||
+      args.payload.length > 4000000 ||
+      !args.observedAt ||
+      args.observedAt > ctx.timestamp.microsSinceUnixEpoch + 5000000n
+    )
+      throw new SenderError("Invalid directory generation.");
+    const data = validateWorldDirectory(
+      args.kind,
+      args.regionId,
+      JSON.parse(args.payload),
+    );
+    const previous = ctx.db.snapshot.key.find(key);
+    if (previous && previous.updatedAt > args.observedAt)
+      throw new SenderError("Directory snapshot is out of order.");
+    const row = {
+      key,
+      payload: JSON.stringify({ epoch: args.epoch, data }),
+      updatedAt: args.observedAt,
+      expiresAt: args.observedAt + 90000000n,
+      retryAt: 0n,
+      refreshingUntil: 0n,
+      error: "",
+    };
+    if (previous) ctx.db.snapshot.key.update(row);
+    else ctx.db.snapshot.insert(row);
+  },
+);
+function worldDirectory(ctx: Ctx, kind: string, region: number, now: bigint) {
+  const snapshot = ctx.db.snapshot.key.find(`directory:${kind}:${region}`);
+  const status = ctx.db.relayStatus.key.find(
+    kind === "empires" ? "empires:0" : `trading:${region}`,
+  );
+  const saved = snapshot ? JSON.parse(snapshot.payload) : null;
+  const delayed =
+    !snapshot ||
+    !status?.ready ||
+    status.provider !== "bitsync" ||
+    Boolean(status.error) ||
+    status.epoch !== saved?.epoch ||
+    status.heartbeatAt + 60000000n < now ||
+    snapshot.expiresAt < now;
+  return JSON.stringify({
+    data: saved?.data ?? null,
+    updatedAt: snapshot
+      ? new Date(Number(snapshot.updatedAt / 1000n)).toISOString()
+      : null,
+    delayed,
+    error: delayed
+      ? "The collector is refreshing this directory. Please retry shortly."
+      : null,
+  });
+}
+export const readEmpireDirectory = db.procedure({}, t.string(), (ctx) =>
+  ctx.withTx((tx) =>
+    worldDirectory(tx, "empires", 0, ctx.timestamp.microsSinceUnixEpoch),
+  ),
+);
+export const readFishLocations = db.procedure(
+  { regionId: t.u32() },
+  t.string(),
+  (ctx, args) => {
+    if (!CURRENT_REGIONS[args.regionId])
+      throw new SenderError("Choose a current region.");
+    return ctx.withTx((tx) =>
+      worldDirectory(
+        tx,
+        "fish",
+        args.regionId,
+        ctx.timestamp.microsSinceUnixEpoch,
+      ),
+    );
+  },
+);
+export const ingestOpenCrafts = db.reducer(
+  {
+    regionId: t.u32(),
+    epoch: t.string(),
+    payload: t.string(),
+    observedAt: t.u64(),
+  },
+  (ctx, args) => {
+    requireWrites(ctx);
+    requireMarketCollector(ctx);
+    const status = ctx.db.relayStatus.key.find(`trading:${args.regionId}`);
+    if (
+      !CURRENT_REGIONS[args.regionId] ||
+      !status?.ready ||
+      status.epoch !== args.epoch ||
+      status.heartbeatAt + 70000000n < ctx.timestamp.microsSinceUnixEpoch ||
+      args.payload.length > 2000000 ||
+      !args.observedAt ||
+      args.observedAt > ctx.timestamp.microsSinceUnixEpoch + 5000000n
+    )
+      throw new SenderError("Invalid open crafts generation.");
+    const rows = JSON.parse(args.payload);
+    if (
+      !Array.isArray(rows) ||
+      rows.length > 10000 ||
+      rows.some(
+        (row) =>
+          row.regionId !== args.regionId ||
+          !/^\d{1,24}$/.test(row.entityId) ||
+          !Number.isFinite(row.lockExpiresAt) ||
+          !Number.isFinite(row.totalActionsRequired) ||
+          row.totalActionsRequired <= 0 ||
+          !Number.isFinite(row.progress) ||
+          row.progress < 0 ||
+          row.progress >= row.totalActionsRequired,
+      )
+    )
+      throw new SenderError("Invalid open crafts snapshot.");
+    const key = `open-crafts:${args.regionId}`;
+    const previous = ctx.db.snapshot.key.find(key);
+    if (previous && previous.updatedAt > args.observedAt)
+      throw new SenderError("Open crafts snapshot is out of order.");
+    const row = {
+      key,
+      payload: JSON.stringify({ epoch: args.epoch, craftResults: rows }),
+      updatedAt: args.observedAt,
+      expiresAt: args.observedAt + 90000000n,
+      retryAt: 0n,
+      refreshingUntil: 0n,
+      error: "",
+    };
+    if (previous) ctx.db.snapshot.key.update(row);
+    else ctx.db.snapshot.insert(row);
+  },
+);
+export const readOpenCrafts = db.procedure({}, t.string(), (ctx) =>
+  ctx.withTx((tx) => {
+    const craftResults = [];
+    let updatedAt = ctx.timestamp.microsSinceUnixEpoch;
+    for (const region of Object.keys(CURRENT_REGIONS)) {
+      const status = tx.db.relayStatus.key.find(`trading:${region}`);
+      const snapshot = tx.db.snapshot.key.find(`open-crafts:${region}`);
+      if (
+        !status?.ready ||
+        !snapshot ||
+        status.error ||
+        status.heartbeatAt + 60000000n < ctx.timestamp.microsSinceUnixEpoch ||
+        snapshot.expiresAt < ctx.timestamp.microsSinceUnixEpoch
+      )
+        return JSON.stringify({
+          error:
+            "Open crafts are waiting for the regional collector. Please retry shortly.",
+        });
+      const data = JSON.parse(snapshot.payload);
+      if (data.epoch !== status.epoch)
+        return JSON.stringify({
+          error:
+            "Open crafts are refreshing after a relay reconnect. Please retry shortly.",
+        });
+      craftResults.push(...data.craftResults);
+      if (snapshot.updatedAt < updatedAt) updatedAt = snapshot.updatedAt;
+    }
+    return JSON.stringify({
+      craftResults,
+      updatedAt: new Date(Number(updatedAt / 1000n)).toISOString(),
+    });
+  }),
 );
 export const readRelayBarter = db.procedure({}, t.string(), (ctx) =>
   ctx.withTx((tx) => {
@@ -1892,6 +2075,12 @@ export const requestMarketRefresh = db.reducer(
 export const marketCollectionWork = db.procedure({}, t.string(), (ctx) =>
   ctx.withTx((tx) => {
     requireMarketCollector(tx);
+    // A release-world database uses its native relay exclusively. Scheduling
+    // disabled old-world API work would manufacture stale-market errors.
+    if (!settings(tx, "bitjita").enabled) {
+      if (currentMarketStatus(tx).error) saveMarketStatus(tx, { error: "" });
+      return "[]";
+    }
     // Rebuild retained summaries from old snapshots without waiting for upstream refresh.
     const retiredItems = new Set<string>();
     for (const regionId of RETIRED_REGION_IDS)
@@ -2020,7 +2209,12 @@ export const readMarket = db.procedure(
       const rawRegions = JSON.parse(
         tx.db.marketMeta.key.find("regions")?.payload || '{"regions":[]}',
       );
-      const regionData = rawRegions.data ?? rawRegions;
+      const regionData = !settings(tx, "bitjita").enabled
+        ? Object.keys(CURRENT_REGIONS).map((id) => ({
+            id,
+            name: CURRENT_REGIONS[Number(id)],
+          }))
+        : (rawRegions.data ?? rawRegions);
       const regions = (
         Array.isArray(regionData) ? regionData : (regionData.regions ?? [])
       )

@@ -93,8 +93,12 @@ function hasRecipes(row: Row) {
   return crafting.hasRecipes(key(row) as ItemKey);
 }
 const targets = catalogItems.filter(hasRecipes);
+const craftRecipes = new Map<string, Row>();
+for (const detail of Object.values(content.details))
+  for (const row of detail.craftingRecipes ?? [])
+    craftRecipes.set(String(row.id), row);
 export function catalogResponse(kind: string, id: string, q: string) {
-  if (q.length > 120 || id.length > 80)
+  if (q.length > 120 || id.length > (kind === "craft-recipes" ? 4000 : 80))
     throw new Error("Invalid catalog lookup.");
   const needle = q.trim().toLowerCase();
   if (kind === "item-info") return itemMap.get(id) ?? null;
@@ -113,6 +117,17 @@ export function catalogResponse(kind: string, id: string, q: string) {
       published_at,
       updated_at,
     }));
+  if (kind === "craft-recipes") {
+    if (!/^\d{1,24}(,\d{1,24})*$/.test(id) || id.split(",").length > 128)
+      throw new Error("Choose valid recipe IDs.");
+    const ids = new Set(id.split(",")),
+      found: Record<string, Row> = {};
+    for (const id of ids) {
+      const row = craftRecipes.get(id);
+      if (row) found[id] = row;
+    }
+    return found;
+  }
   if (kind === "recipe-times") {
     if (!/^\d+(,\d+)*$/.test(id)) throw new Error("Choose valid recipe IDs.");
     const ids = new Set(id.split(",")),

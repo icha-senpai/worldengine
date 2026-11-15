@@ -11,7 +11,10 @@ import {
   HISTORY_EVENT_LIMIT,
   type ClaimState,
 } from "../bitcraft/src/claim-history";
-import { ClaimHistoryProjection } from "../scripts/claim-history-projection";
+import {
+  ClaimHistoryProjection,
+  CLAIM_STRUCTURE_NAMES,
+} from "../scripts/claim-history-projection";
 import {
   calculateClaimUpkeep,
   claimSupplyEstimate,
@@ -151,14 +154,14 @@ describe("claim history evidence", () => {
         costs,
         params,
       ),
-    ).toBeCloseTo(12.5125);
+    ).toBeCloseTo(10.0125);
     expect(
       calculateClaimUpkeep(
-        { num_tiles: 1000, num_tile_neighbors: 4000, building_maintenance: 2 },
+        { num_tiles: 1000, num_tile_neighbors: 5600, building_maintenance: 2 },
         costs,
         params,
       ),
-    ).toBe(1002);
+    ).toBeCloseTo(10 * Math.exp(0.275) + 2);
     expect(
       calculateClaimUpkeep(
         { num_tiles: 1000, num_tile_neighbors: 6000, building_maintenance: 2 },
@@ -167,6 +170,28 @@ describe("claim history evidence", () => {
       ),
     ).toBe(24);
     expect(calculateClaimUpkeep({}, costs, params)).toBeNull();
+    // Brackets are marginal, order independent, and start on the named tile.
+    expect(
+      calculateClaimUpkeep(
+        { num_tiles: 1001, num_tile_neighbors: 6006, building_maintenance: 0 },
+        [...costs].reverse(),
+        { building_decay_tick_millis: 3_600_000 },
+      ),
+    ).toBeCloseTo(10.0125);
+    expect(
+      calculateClaimUpkeep(
+        { num_tiles: 1, num_tile_neighbors: 6, building_maintenance: 0 },
+        [{ tile_count: 2, cost_per_tile: 0.5 }],
+        params,
+      ),
+    ).toBeCloseTo(0.1);
+    expect(
+      calculateClaimUpkeep(
+        { num_tiles: 1, num_tile_neighbors: 6, building_maintenance: 0 },
+        [{ tile_count: 1, cost_per_tile: -1 }],
+        params,
+      ),
+    ).toBeNull();
     expect(
       calculateClaimUpkeep(
         { num_tiles: 1, num_tile_neighbors: 6, building_maintenance: 0 },
@@ -552,15 +577,24 @@ describe("claim history evidence", () => {
       ],
       [
         "building_desc",
-        rows([
-          { id: 205715693, name: "Waystone" },
-          { id: 985246037, name: "Town Bank" },
-          { id: 1615467546, name: "Ancient Bank" },
-        ]),
+        rows(CLAIM_STRUCTURE_NAMES.map(([id, name]) => ({ id, name }))),
       ],
     ]);
     const p = new ClaimHistoryProjection();
     expect(p.apply(true, tables, [])[0].after!.tier).toBe(6);
+    // New player-built waystones and regional banks must qualify, alongside
+    // grandfathered waystones and converted local stashes.
+    for (const waystone of [205715693, 911652136, 2025734892]) {
+      for (const bank of [985246037, 1615467546, 1545054810]) {
+        tables.get("building_state")!.get("50").building_description_id =
+          waystone;
+        tables.get("building_state")!.get("51").building_description_id = bank;
+        expect(p.apply(true, tables, [])[0].after).toMatchObject({
+          waystones: 1,
+          banks: 1,
+        });
+      }
+    }
     const local = tables.get("claim_local_state")!;
     local.set("10", { entity_id: "10", supplies: 50 });
     expect(

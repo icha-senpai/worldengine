@@ -136,6 +136,14 @@ export function connectBitcraft(): Promise<DbConnection> {
   let token = sessionToken;
   try {
     token ??= localStorage.getItem(identityKey) || undefined;
+    if (
+      !token &&
+      import.meta.env.VITE_BITCRAFT_DATABASE === "space-bitcraft-release"
+    )
+      token =
+        localStorage.getItem(
+          `space.bitcraft.identity:${import.meta.env.VITE_SPACETIMEDB_HOST || "local"}:space-bitcraft-tools`,
+        ) || undefined;
   } catch {
     /* Retain the current session when storage is unavailable. */
   }

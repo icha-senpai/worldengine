@@ -7,6 +7,10 @@ $ErrorActionPreference = 'Stop'
 $project = Split-Path $PSScriptRoot -Parent
 $logs = Join-Path $project '.runtime\services'
 $database = if ($Target -eq 'Test') { 'space-bitcraft-checks' } else { 'space-bitcraft-tools' }
+if ($Target -eq 'Main' -and (Test-Path -LiteralPath (Join-Path $project '.runtime\bitcraft-main.json'))) {
+    $database = (Get-Content -LiteralPath (Join-Path $project '.runtime\bitcraft-main.json') -Raw | ConvertFrom-Json).database
+    if ($database -notin @('space-bitcraft-tools', 'space-bitcraft-release')) { throw 'Unsupported main database.' }
+}
 $serviceName = if ($Target -eq 'Test') { 'collector-test' } else { 'collector' }
 $pidFile = Join-Path $logs "$serviceName.pid"
 $readyFile = Join-Path $logs "$serviceName.ready.json"
@@ -65,7 +69,7 @@ function Get-Collector {
          $process.CommandLine -notmatch '--storage-only(?:\s|$)')) {
         throw "PID $collectorId is not the test storage guard. Leaving it alone."
     }
-    if ($Target -eq 'Main' -and $process.CommandLine -match '--database\s+(?!space-bitcraft-tools(?:\s|$))') {
+    if ($Target -eq 'Main' -and $process.CommandLine -notmatch "--database\s+$database(?:\s|$)") {
         throw "PID $collectorId is a worker for another database. Leaving it alone."
     }
     $process

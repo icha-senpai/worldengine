@@ -1,4 +1,6 @@
+import { relayEmpireFilter } from "../worldDirectories";
 import { connectBitcraft } from "../../bitcraft";
+import { CURRENT_REGIONS } from "../../../bitcraft/src/relay-trading";
 import { live, providerPolicy, mapLimited } from "./client";
 import {
   isRetiredRegion,
@@ -11,7 +13,15 @@ import {
   stallClaims,
 } from "../market";
 async function regionsAndFilters(filters) {
-  const response = await live("regions");
+  const response =
+    import.meta.env.VITE_BITCRAFT_DATABASE === "space-bitcraft-release"
+      ? {
+          data: Object.keys(CURRENT_REGIONS).map((id) => ({
+            id,
+            name: CURRENT_REGIONS[Number(id)],
+          })),
+        }
+      : await live("regions");
   const regions = (
     Array.isArray(response.data) ? response.data : (response.data.regions ?? [])
   )
@@ -22,7 +32,10 @@ async function regionsAndFilters(filters) {
     .map((row) => ({
       ...row,
       id: String(row.id ?? row.regionId),
-      name: row.name ?? row.regionName,
+      name:
+        CURRENT_REGIONS[Number(row.id ?? row.regionId)] ??
+        row.name ??
+        row.regionName,
     }));
   const match = regions.find(
     (row) =>
@@ -131,6 +144,8 @@ const storedDate = (micros) =>
 async function resolveMarketEmpire(filters) {
   if (!(filters.empire || filters.empireEntityId)) return [];
   if (Array.isArray(filters.claimIds) && filters.empireEntityId) return [];
+  if (import.meta.env.VITE_BITCRAFT_DATABASE === "space-bitcraft-release")
+    return relayEmpireFilter(filters);
   // Explicit empire filters need membership metadata; orders still come from storage.
   const empires =
     filters.empire && !/^\d+$/.test(filters.empire)

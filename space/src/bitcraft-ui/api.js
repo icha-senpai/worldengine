@@ -1,9 +1,11 @@
+import { relayOpenCrafts } from "./worldDirectories";
 // Compatibility facade: pages keep their existing imports and response shapes.
 import { connectBitcraft } from "../bitcraft";
 import { pageState, route } from "./navigation";
 import { live, catalog } from "./data/client";
 import {
   lookupPlayer,
+  searchPlayers,
   trackerInventory,
   enrichTrackerItems,
   trackerSnapshot,
@@ -202,6 +204,40 @@ export async function pageProps(
   }
   if (tool === "open-crafts") {
     try {
+      if (import.meta.env.VITE_BITCRAFT_DATABASE === "space-bitcraft-release") {
+        let player = null,
+          playerError = null;
+        if (pageState.props.bitcraft.player) {
+          try {
+            player = await lookupPlayer(
+              pageState.props.bitcraft.player.entityId,
+            );
+          } catch (error) {
+            playerError = error.message;
+          }
+        }
+        if (!player)
+          for (const flag of ["levelUps", "meetsLevel", "mine"])
+            filters[flag] = false;
+        const [response, skills, curve] = await Promise.all([
+          relayOpenCrafts(player?.entityId),
+          catalog("skills"),
+          live("levels"),
+        ]);
+        return {
+          filters,
+          ...filterCrafts(
+            openCraftRows(response.data, player, curve.data, skills),
+            filters,
+            player,
+          ),
+          refresh: response.refresh,
+          error: response.error,
+          playerError,
+          playerRefresh: {},
+        };
+      }
+
       let [response, skills] = await Promise.all([
         live("crafts"),
         catalog("skills"),
@@ -440,8 +476,7 @@ export async function bitcraftFetch(input, options = {}) {
     let data;
     if (url.pathname === "/bitcraft/players/search")
       data = {
-        players:
-          (await live("players", "", filters.q ?? "")).data.players ?? [],
+        players: await searchPlayers(filters.q ?? ""),
       };
     else if (url.pathname === "/bitcraft/market/order-book")
       data = await orderBook(filters, { history: filters.history !== "0" });

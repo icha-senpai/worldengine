@@ -1,6 +1,7 @@
 // Rebuild the small overview from public terrain data. Runtime depth is always relay data.
 // Node built-ins keep this asset task independent of image editors and native packages.
-import { writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { gunzipSync, deflateSync } from "node:zlib";
 
 const host = "https://mapdata.bitjita.com/v1";
@@ -108,7 +109,23 @@ const png = Buffer.concat([
 ]);
 const directory = new URL("../public/bitcraft-map/", import.meta.url);
 await mkdir(directory, { recursive: true });
+// Bind the overview to the same terrain snapshot and give browsers an immutable URL.
+const pointer = new URL("detail/manifest.json", directory);
+const baked = JSON.parse(await readFile(pointer, "utf8"));
+if (baked.generatedAt !== manifest.generatedAt)
+  throw Error(
+    "Overview and detailed terrain snapshots differ; refresh terrain first.",
+  );
+const overviewImage = `world.${createHash("sha256").update(png).digest("hex").slice(0, 12)}.png`;
+await writeFile(new URL(overviewImage, directory), png);
 await writeFile(new URL("world.png", directory), png);
+baked.overviewImage = overviewImage;
+const payload = JSON.stringify(baked, null, 2) + "\n";
+await writeFile(
+  new URL(`detail/${baked.version}/manifest.json`, directory),
+  payload,
+);
+await writeFile(pointer, payload);
 await writeFile(
   new URL("overview.json", directory),
   JSON.stringify(
@@ -117,7 +134,7 @@ await writeFile(
       generatedAt: manifest.generatedAt,
       worldTiles: manifest.worldTiles,
       level,
-      note: "Overview uses downsampled terrain and an original palette. Exact depths come from live relay terrain.",
+      note: "Overview uses downsampled terrain and an original palette. Exact depths use this terrain snapshot; fish schools come from the live release relay.",
     },
     null,
     2,

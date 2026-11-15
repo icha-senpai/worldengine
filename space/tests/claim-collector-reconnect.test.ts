@@ -9,7 +9,10 @@ import db, * as module from "../bitcraft/src/index";
 import { CollectorCycle } from "../scripts/bitcraft-collector-cycle";
 import { ClaimHistoryCollector } from "../scripts/bitcraft-claim-history-collector";
 import { RelaySubscription } from "../scripts/bitcraft-relay";
-import { CLAIM_TABLES } from "../scripts/claim-history-projection";
+import {
+  CLAIM_TABLES,
+  CLAIM_STRUCTURE_NAMES,
+} from "../scripts/claim-history-projection";
 
 const recorders: ClaimHistoryCollector[] = [];
 afterEach(() => {
@@ -34,11 +37,7 @@ test("a worker reconnect cannot reuse retained claim event IDs after a relay rec
       this.generation++;
       this.ready = true;
       for (const name of CLAIM_TABLES) this.tables.set(name, new Map());
-      for (const [id, name] of [
-        [205715693, "Waystone"],
-        [985246037, "Town Bank"],
-        [1615467546, "Ancient Bank"],
-      ] as const)
+      for (const [id, name] of CLAIM_STRUCTURE_NAMES)
         this.tables.get("building_desc")!.set(String(id), { id, name });
       // An empty real upstream snapshot still creates a coverage event. Only the
       // network is mocked: packet sequencing and transactional reducers are real.

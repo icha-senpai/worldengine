@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { filtersFor } from "../src/bitcraft-ui/data/filters";
 
 const page = vi.hoisted(() => ({ props: { bitcraft: { player: null } } }));
-vi.mock("../src/bitcraft-ui/navigation", () => ({ pageState: page }));
+vi.mock("../src/bitcraft-ui/navigation", () => ({
+  pageState: page,
+  playerIdStorageKey: "space.bitcraft.player.release",
+}));
 
 beforeEach(() => {
   page.props.bitcraft.player = null;

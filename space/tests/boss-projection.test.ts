@@ -47,6 +47,14 @@ describe("confirmed boss death projection", () => {
     "distractedElderScrofa",
     "distractedTundraOx",
     "distractedDesertTerrorbird",
+    "starseekerBaseT1",
+    "starseekerLightT1",
+    "immortalBaseT1",
+    "immortalHeavyT1",
+    "immortalBaseT2",
+    "immortalHeavyT2",
+    "sentinelStarseekerSkirmisher",
+    "sentinelStarseekerCaptain",
   ])("ignores %s while recording a boss in the same transaction", (tag) => {
     const p = setup();
     const defeats = p.apply([

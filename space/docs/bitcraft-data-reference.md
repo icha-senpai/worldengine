@@ -509,3 +509,21 @@ Provider behavior was checked against these primary sources on October 7 2026. S
 - **S11 Current implementation:** `scripts/bitcraft-collector.ts`, `bitcraft/src/collection.ts`, `bitcraft/src/collection-schema.ts`, `bitcraft/src/market-store.ts`, `bitcraft/src/index.ts`, `src/bitcraft-ui/api.js`, and `README.md`. Native relay collection, shared API enrichment, storage bounds, watched scopes, durable market reads, and UI flows. Also see `scripts/bitcraft-relay.ts`, `scripts/bitcraft-relay-collector.ts`, `bitcraft/src/relay-trading.ts` and `src/bitcraft-ui/xpSession.js`.
 
 **Maintenance:** Keep this source file alongside the code. When a card ships, change its status, record the supported scope and validation, and rebuild the PDF. A research probe should not change a feature's status to Current.
+
+
+## Release-world tool connections (14 November 2026)
+
+XP and Hunting XP use a local level-threshold curve derived from the 1.0
+server's f32 formula, capped at the current profession maximum of 110. They
+no longer need the disabled legacy player API to obtain level definitions.
+Player selection, inventory and passive-craft tracking use the release relay.
+Relay failures remain visible instead of falling through to another world's API.
+
+Open Crafts reads bounded, read-only snapshots from the nine `idc-N` mirrors.
+It lists unfinished work whose owner lock has expired, plus locked work owned
+by the selected player. Recipe effort, XP and tool/level requirements come from
+the same pinned reference catalog. Empire market filters read `empire_state`
+and `empire_settlement_state` from `idc-global`. Snapshots are shared within a
+tab for 60 seconds, handshakes are spaced, and transport retries are bounded.
+A region failure rejects the directory request rather than declaring a partial
+world snapshot complete. Saved application data and XP history are unchanged.

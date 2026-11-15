@@ -20,6 +20,7 @@ import {
   spacetimeConfig,
   spacetimeData,
   spacetimeServer,
+  bitcraftDatabase,
 } from "./spacetime-config";
 
 export function storageLimits(env: NodeJS.ProcessEnv = process.env) {
@@ -188,7 +189,7 @@ export async function trimCollectorLogs(serviceName = "collector") {
   const diagnosticDirectory = resolve(
     ".runtime/diagnostics",
     serviceName === "collector"
-      ? "space-bitcraft-tools"
+      ? bitcraftDatabase
       : serviceName === "collector-test"
         ? "space-bitcraft-checks"
         : serviceName.replace(/^collector-/, ""),

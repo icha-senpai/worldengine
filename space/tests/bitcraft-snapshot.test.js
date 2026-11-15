@@ -2,12 +2,53 @@ import { describe, it, expect } from "vitest";
 import { buildSnapshot } from "../scripts/import-bitcraft-snapshot.mjs";
 import catalog from "../bitcraft/src/content/catalog.json";
 import routes from "../bitcraft/src/content/crafting-catalog.json";
+import {
+  estimateGathering,
+  gatheringDefaults,
+} from "../src/bitcraft-ui/gatheringEstimates";
 
 describe("public BitCraft snapshot", () => {
+  it("uses the 1.0 Hexite yields in tool-rate estimates", () => {
+    const settings = {
+      ...gatheringDefaults,
+      power: 10,
+      minutes: 30,
+      gatheringSpeed: 0,
+      skillSpeed: 0,
+    };
+    const meteor = catalog.entries.find((entry) => entry.id === 778616801);
+    const reservoir = catalog.entries.find((entry) => entry.id === 836384891);
+    expect(
+      estimateGathering(meteor, settings).outputs.find(
+        (output) => output.id === 828972621,
+      ).expected,
+    ).toBe(1500);
+    expect(
+      estimateGathering(reservoir, settings).outputs.find(
+        (output) => output.id === 828972621,
+      ).expected,
+    ).toBe(3000);
+    const stumps = catalog.entries.filter((entry) =>
+      /Chop .*Hexite Infused Stump$/.test(entry.name),
+    );
+    expect(stumps).toHaveLength(10);
+    expect(
+      stumps.every((entry) =>
+        entry.outputs.some(
+          (output) => output.id === 828972621 && output.probability > 0,
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      catalog.entries
+        .find((entry) => entry.id === 57)
+        .outputs.some((output) => output.name === "Cooling Energy"),
+    ).toBe(false);
+  });
   it("keeps current release provenance and exposes new hunting recipes", () => {
-    expect(catalog.generatedAt).toBe("2026-10-22T16:47:05Z");
+    expect(catalog.generatedAt).toBe("2026-11-14T08:43:41Z");
     expect(catalog.source.commit).toBe(
-      "e92453d5c29fb4c165ee126615b08f55c8959c8d",
+      "1470a29be23d770e3db99e9cf65a88ca57a6ef09",
     );
     const lures = catalog.items.filter((item) =>
       /Animal Lure$/.test(item.name),
@@ -23,6 +64,60 @@ describe("public BitCraft snapshot", () => {
       catalog.entries.every((entry) => entry.skill.name && entry.resource),
     ).toBe(true);
     expect(routes.omissions).toEqual([]);
+    expect(catalog.excludedRecipes).toContainEqual({
+      kind: "extraction",
+      id: 1673714271,
+      reason: "No resource or cargo target",
+    });
+  });
+  it("plans the new refined materials and field farming without disabled passive recipes", () => {
+    const refined = catalog.details["item:1679904254"].craftingRecipes.find(
+      (r) => r.id === 221709075,
+    );
+    expect(refined.consumedItemStacks).toEqual([
+      { item_id: 5050001, item_type: "item", quantity: 13 },
+      { item_id: 68565112, item_type: "item", quantity: 3 },
+    ]);
+    expect(
+      catalog.items.filter((i) => /Settlement Research$/.test(i.name)),
+    ).toHaveLength(10);
+    expect(
+      catalog.details["item:1100006"].craftingRecipes.some(
+        (r) => r.id === 110002,
+      ),
+    ).toBe(false);
+    const farm = catalog.details["item:1220020"].craftingRecipes.find(
+      (r) => r.id === -1365317533,
+    );
+    expect(farm).toMatchObject({
+      craftingStation: "Fertile Ground",
+      timeRequirement: null,
+      outputQuantity: 5,
+    });
+    expect(farm.consumedItemStacks).toEqual([
+      { item_id: 1100005, item_type: "item", quantity: 5 },
+      { item_id: 1100001, item_type: "item", quantity: 3 },
+      { item_id: 11007, item_type: "item", quantity: 1 },
+    ]);
+    expect(
+      routes.recipes["item:1220020"].some(
+        (r) => r.id === "crafting:-1365317533:item:1220020",
+      ),
+    ).toBe(true);
+    expect(routes.recipes["item:1220020"][0]).toMatchObject({
+      id: "crafting:-1365317533:item:1220020",
+      preference: "primary",
+    });
+    expect(
+      routes.recipes["item:1100005"][0].ingredients.some(
+        (s) => s.key === "item:1100005",
+      ),
+    ).toBe(false);
+    expect(
+      routes.recipes["item:1100005"].find(
+        (r) => r.id === "crafting:-1365317533:item:1100005:bundle:1220020",
+      ).preference,
+    ).toBe("secondary");
   });
   it("preserves readable-schema cargo, station, skill and probabilistic extraction contracts", () => {
     const stack = { item_id: 2, item_type: "Cargo", quantity: 3 };
@@ -45,6 +140,11 @@ describe("public BitCraft snapshot", () => {
         tool_type_desc: [{ id: 1, name: "Knife" }],
         building_type_desc: [{ id: 3, name: "Station" }],
         resource_desc: [{ id: 9, name: "Resource", max_health: 50 }],
+        secondary_knowledge_desc: [{ id: 12345, name: "The Art of Cheating" }],
+        placeable_desc: [{ id: 1, tag: "Other" }],
+        placeable_placement_desc: [{ id: 1, placed_placeable_id: 1 }],
+        placeable_interaction_desc: [{ id: 1, placeable_id: 1 }],
+        placeable_growth_desc: [{ id: 1, placeable_id: 1 }],
         extraction_recipe_desc: [extraction],
         crafting_recipe_desc: [
           {

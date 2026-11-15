@@ -3,6 +3,7 @@ import {
   parseRelayJson,
   decodeRelayRow,
   RelaySubscription,
+  tradingQueries,
 } from "../scripts/bitcraft-relay";
 import {
   assembleRelayTrading,
@@ -13,6 +14,15 @@ import { catalogResponse } from "../bitcraft/src/catalog";
 import { barterRows } from "../src/bitcraft-ui/market";
 const table = (rows: any[]) =>
   new Map(rows.map((r) => [r.entity_id ?? r.building_entity_id, r]));
+it("shares complete building metadata with crafts without overlapping join deletions", () => {
+  const queries = tradingQueries();
+  expect(
+    queries.filter((q) =>
+      /^SELECT (?:\*|building_state\.\*) FROM building_state/.test(q),
+    ),
+  ).toEqual(["SELECT * FROM building_state"]);
+  expect(queries).toContain("SELECT * FROM progressive_action_state");
+});
 function fixture() {
   return new Map([
     [

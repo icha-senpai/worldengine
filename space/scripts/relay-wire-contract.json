@@ -875,6 +875,46 @@
                           "elements": []
                         }
                       }
+                    },
+                    {
+                      "name": "Homestead",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "OneWayWaystones",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "DestinationWaystones",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "StarterTech",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "RegionalBank",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
                     }
                   ]
                 }
@@ -1001,6 +1041,43 @@
                 "Array": {
                   "I32": []
                 }
+              }
+            },
+            {
+              "name": "cannot_be_researched",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "blocking_claim_techs",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "Array": {
+                          "I32": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "not_shown_in_ui",
+              "type": {
+                "Bool": []
               }
             }
           ]
@@ -1220,6 +1297,14 @@
                               },
                               {
                                 "name": "WalkableResource",
+                                "type": {
+                                  "Product": {
+                                    "elements": []
+                                  }
+                                }
+                              },
+                              {
+                                "name": "Platform",
                                 "type": {
                                   "Product": {
                                     "elements": []
@@ -2154,6 +2239,36 @@
             },
             {
               "name": "traveler_task_reroll_credit_cost",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "min_distance_to_neutral_claims",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "claim_totem_spacing",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_watchtower_upkeep_per_chunk",
+              "type": {
+                "F64": []
+              }
+            },
+            {
+              "name": "empire_watchtower_upkeep_per_total_chunks",
+              "type": {
+                "F64": []
+              }
+            },
+            {
+              "name": "empire_siege_delay_ticks",
               "type": {
                 "I32": []
               }
@@ -3691,6 +3806,46 @@
                           "elements": []
                         }
                       }
+                    },
+                    {
+                      "name": "homestead",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "oneWayWaystones",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "destinationWaystones",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "starterTech",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "regionalBank",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
                     }
                   ]
                 }
@@ -3817,6 +3972,43 @@
                 "Array": {
                   "I32": []
                 }
+              }
+            },
+            {
+              "name": "cannot_be_researched",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "blocking_claim_techs",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "some",
+                      "type": {
+                        "Array": {
+                          "I32": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "none",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "not_shown_in_ui",
+              "type": {
+                "Bool": []
               }
             }
           ]
@@ -4981,6 +5173,42 @@
               "type": {
                 "I32": []
               }
+            },
+            {
+              "name": "min_distance_to_neutral_claims",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "claim_totem_spacing",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "empire_watchtower_upkeep_per_chunk",
+              "type": {
+                "F64": []
+              }
+            },
+            {
+              "name": "empire_watchtower_upkeep_per_total_chunks",
+              "type": {
+                "F64": []
+              }
+            },
+            {
+              "name": "empire_siege_delay_ticks",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "floating_platform_region_edge_margin_chunks",
+              "type": {
+                "I32": []
+              }
             }
           ]
         }
@@ -5628,6 +5856,255 @@
                         "Product": {
                           "elements": []
                         }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "resource_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "resource_id",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "direction_index",
+              "type": {
+                "I32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "location_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "chunk_index",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "x",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "z",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "dimension",
+              "type": {
+                "U32": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "empire_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "capital_building_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "name",
+              "type": {
+                "String": []
+              }
+            },
+            {
+              "name": "shard_treasury",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "nobility_threshold",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "num_claims",
+              "type": {
+                "I32": []
+              }
+            },
+            {
+              "name": "location",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "x",
+                      "type": {
+                        "I32": []
+                      }
+                    },
+                    {
+                      "name": "z",
+                      "type": {
+                        "I32": []
+                      }
+                    },
+                    {
+                      "name": "dimension",
+                      "type": {
+                        "U32": []
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "empire_currency_treasury",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "owner_type",
+              "type": {
+                "Sum": {
+                  "variants": [
+                    {
+                      "name": "player",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    },
+                    {
+                      "name": "npc",
+                      "type": {
+                        "Product": {
+                          "elements": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "empire_settlement_state": {
+      "key": [
+        0
+      ],
+      "type": {
+        "Product": {
+          "elements": [
+            {
+              "name": "building_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "claim_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "empire_entity_id",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "chunk_index",
+              "type": {
+                "U64": []
+              }
+            },
+            {
+              "name": "can_house_empire_storehouse",
+              "type": {
+                "Bool": []
+              }
+            },
+            {
+              "name": "members_donations",
+              "type": {
+                "U32": []
+              }
+            },
+            {
+              "name": "location",
+              "type": {
+                "Product": {
+                  "elements": [
+                    {
+                      "name": "x",
+                      "type": {
+                        "I32": []
+                      }
+                    },
+                    {
+                      "name": "z",
+                      "type": {
+                        "I32": []
+                      }
+                    },
+                    {
+                      "name": "dimension",
+                      "type": {
+                        "U32": []
                       }
                     }
                   ]

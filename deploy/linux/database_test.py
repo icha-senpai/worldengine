@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 import unittest
-from database import capture_table, verify_table
+from database import capture_table, verify_table, module_target
 
 
 def data(columns, rows):
@@ -9,6 +9,20 @@ def data(columns, rows):
 
 
 class Preservation(unittest.TestCase):
+    def test_proof_and_publisher_use_the_same_verified_release_database(self):
+        release = {'modules': [{'key': 'bitcraft', 'database': 'space-bitcraft-tools', 'identity': 'old'},
+                               {'key': 'evergather', 'database': 'space-evergather'}]}
+        target = {'database': 'space-bitcraft-release', 'source': 'space-bitcraft-tools',
+                  'world': 'release', 'identity': 'a' * 64}
+        selected = module_target(release, 'bitcraft', target)
+        self.assertEqual(selected['database'], 'space-bitcraft-release')
+        self.assertEqual(selected['identity'], target['identity'])
+        self.assertEqual(release['modules'][0]['database'], 'space-bitcraft-tools')
+        self.assertEqual(module_target(release, 'evergather', target)['database'], 'space-evergather')
+        for invalid in [{'database': 'other'}, {'identity': 'bad'}, {'source': 'other'}]:
+            with self.assertRaises(RuntimeError):
+                module_target(release, 'bitcraft', {**target, **invalid})
+
     def test_additive_defaults_and_new_rows_preserve_original_ownership_and_xp(self):
         old = data(['owner', 'xp'], [['boss', 18446744073709551615]])
         before = capture_table(old)

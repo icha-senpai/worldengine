@@ -171,9 +171,10 @@ export class BossRelay {
     const generation = ++this.generation;
     this.abort = new AbortController();
     const host = `https://relay.bitcraftsync.app:${3000 + this.region}`;
+    const database = `idc-${this.region}`;
     try {
       const response = await fetch(
-        `${host}/v1/database/bitcraft-live-${this.region}/schema?version=9`,
+        `${host}/v1/database/${database}/schema?version=9`,
         {
           signal: AbortSignal.any([
             this.abort.signal,
@@ -205,7 +206,7 @@ export class BossRelay {
         (config) => new DbConnectionImpl<any>(config),
       )
         .withUri(host.replace(/^http/, "ws"))
-        .withDatabaseName(`bitcraft-live-${this.region}`)
+        .withDatabaseName(database)
         .withCompression("none")
         .withWSFn(async (args) => new BossSocket(args.url, args.nameOrAddress))
         .onConnect((conn: any) => {

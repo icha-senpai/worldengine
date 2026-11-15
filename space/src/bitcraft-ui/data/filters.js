@@ -1,10 +1,10 @@
-import { pageState } from "../navigation";
+import { pageState, playerIdStorageKey } from "../navigation";
 export function filtersFor(tool, query, setup) {
   const defaults = {
     source: "default",
     character:
       pageState.props.bitcraft.player?.entityId ||
-      localStorage.getItem("space.bitcraft.player") ||
+      localStorage.getItem(playerIdStorageKey) ||
       "",
     skill: "all",
     title: {

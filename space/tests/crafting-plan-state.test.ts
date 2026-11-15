@@ -7,6 +7,7 @@ import {
 } from "../src/bitcraft-ui/craftingPlanState";
 import legacy from "../src/bitcraft-ui/craftingLegacyRoutes.json";
 import generated from "../bitcraft/src/content/crafting-catalog.json";
+import snapshot from "../bitcraft/src/content/catalog.json";
 import type { RecipeNode } from "../bitcraft/src/crafting/catalog";
 
 const route = (id: string, preference = "normal") =>
@@ -72,12 +73,28 @@ describe("saved crafting plan identity", () => {
       expansion: { a: true },
     });
   });
-  it("maps every captured legacy choice to an existing route on the same target", () => {
+  it("retains legacy route identities except explicitly retired upstream recipes", () => {
     const recipes = generated.recipes as Record<string, { id: string }[]>;
+    const retired = new Set(
+      snapshot.excludedRecipes.map((r) => `${r.kind}:${r.id}`),
+    );
+    // November 10 reuses these recipe IDs for different output items. An old
+    // target must fall back locally rather than following the ID to a new item.
+    const retargeted = new Set([
+      "crafting:507011:item:5070004",
+      "crafting:105009:item:1050001",
+      "crafting:205009:item:2050001",
+      "crafting:209001:item:2090002",
+    ]);
     for (const group of Object.values(legacy)) {
       const ids = new Set(recipes[group.targetKey]?.map((r) => r.id));
       for (const id of group.routeIds)
-        expect(ids.has(id!), group.targetKey).toBe(true);
+        expect(
+          ids.has(id!) ||
+            retired.has(id!.split(":").slice(0, 2).join(":")) ||
+            retargeted.has(id!),
+          group.targetKey,
+        ).toBe(true);
     }
   });
   it("falls back safely when a saved route disappears or state is malformed", () => {

@@ -8,6 +8,11 @@ import {
   CURRENT_REGIONS,
 } from "../bitcraft/src/relay-trading";
 import { catalogResponse } from "../bitcraft/src/catalog";
+import { projectOpenCrafts } from "../bitcraft/src/open-crafts";
+import {
+  projectFishLocations,
+  projectEmpireDirectory,
+} from "../bitcraft/src/world-directories";
 import { collectionKey } from "../bitcraft/src/collection";
 import type { DbConnection } from "../src/bindings/bitcraft";
 import type { CollectorDiagnostics } from "./collector-diagnostics";
@@ -24,6 +29,12 @@ type Scope = {
   playerId?: string;
   trading?: ReturnType<typeof tradingDelta>["next"];
   tradingGeneration?: string;
+  crafts?: string;
+  craftsAt?: number;
+  craftsGeneration?: string;
+  directory?: string;
+  directoryAt?: number;
+  directoryGeneration?: string;
 };
 export class NativeRelayCollector {
   private history?: ClaimHistoryCollector;
@@ -39,6 +50,7 @@ export class NativeRelayCollector {
     private due: Map<string, number>,
     private diagnostics?: CollectorDiagnostics,
     private cycle = new CollectorCycle(),
+    private tradingProvider: "bitconnect" | "bitsync" = "bitconnect",
   ) {}
   private generation(scope: Scope) {
     return `${this.epoch}-native-${scope.relay.generation}`;
@@ -143,15 +155,22 @@ export class NativeRelayCollector {
       if (this.stopped) break;
       const scope = this.add(
         `trading:${region}`,
-        "bitconnect",
+        this.tradingProvider,
         region,
-        tradingQueries(),
+        tradingQueries(this.tradingProvider),
       );
       await scope.relay.start();
       if (!this.stopped) await this.history.start(region);
       if (!this.stopped) await this.bosses.start(region);
       // Stagger connection handshakes; each scope still waits for a complete Applied.
       await new Promise((r) => setTimeout(r, 350));
+    }
+    if (!this.stopped && this.tradingProvider === "bitsync") {
+      const scope = this.add("empires:0", "bitsync", 0, [
+        "SELECT * FROM empire_state",
+        "SELECT * FROM empire_settlement_state",
+      ]);
+      await scope.relay.start();
     }
   }
   private async player(id: string) {
@@ -278,7 +297,7 @@ export class NativeRelayCollector {
       const due =
         scope.relay.ready &&
         ((scope.dirty && Date.now() - scope.published >= 3000) ||
-          Boolean(scope.playerId && Date.now() - scope.published >= 10000));
+          Date.now() - scope.published >= (scope.playerId ? 10000 : 30000));
       if (due || Date.now() - scope.heartbeat >= 15000) {
         scope.pending = true;
         try {
@@ -288,7 +307,9 @@ export class NativeRelayCollector {
             const revision = scope.revision,
               generation = this.generation(scope),
               observedAt = BigInt(Date.now()) * 1000n;
-            if (scope.playerId) {
+            if (scope.key === "empires:0") {
+              await this.publishDirectory(scope, generation, observedAt);
+            } else if (scope.playerId) {
               const id = scope.playerId,
                 experience = scope.relay.tables
                   .get("experience_state")
@@ -357,6 +378,58 @@ export class NativeRelayCollector {
                 scope.trading = delta.next;
                 scope.tradingGeneration = generation;
               }
+              const tables = Object.fromEntries(
+                [...scope.relay.tables].map(([name, rows]) => [
+                  name,
+                  [...rows.values()],
+                ]),
+              );
+              const ids = [
+                ...new Set(
+                  (tables.progressive_action_state ?? [])
+                    .filter((row) => !row.preparation)
+                    .map((row) => String(row.recipe_id)),
+                ),
+              ];
+              const recipes = {};
+              for (let i = 0; i < ids.length; i += 128)
+                Object.assign(
+                  recipes,
+                  catalogResponse(
+                    "craft-recipes",
+                    ids.slice(i, i + 128).join(","),
+                    "",
+                  ),
+                );
+              const crafts = JSON.stringify(
+                projectOpenCrafts(
+                  tables,
+                  scope.relay.region,
+                  recipes,
+                  "",
+                  Date.now(),
+                  true,
+                ),
+              );
+              if (
+                crafts !== scope.crafts ||
+                scope.craftsGeneration !== generation ||
+                Date.now() - (scope.craftsAt ?? 0) >= 30000
+              ) {
+                await this.cycle.wait(() =>
+                  this.conn.reducers.ingestOpenCrafts({
+                    regionId: scope.relay.region,
+                    epoch: generation,
+                    payload: crafts,
+                    observedAt,
+                  }),
+                );
+                scope.crafts = crafts;
+                scope.craftsGeneration = generation;
+                scope.craftsAt = Date.now();
+              }
+              if (scope.relay.provider === "bitsync")
+                await this.publishDirectory(scope, generation, observedAt);
             }
             scope.published = Date.now();
             scope.dirty = scope.revision !== revision;
@@ -381,6 +454,39 @@ export class NativeRelayCollector {
         }
       }
     }
+  }
+  private async publishDirectory(
+    scope: Scope,
+    generation: string,
+    observedAt: bigint,
+  ) {
+    const tables = Object.fromEntries(
+      [...scope.relay.tables].map(([name, rows]) => [name, [...rows.values()]]),
+    );
+    const kind = scope.key === "empires:0" ? "empires" : "fish";
+    const payload = JSON.stringify(
+      kind === "empires"
+        ? projectEmpireDirectory(tables)
+        : projectFishLocations(tables),
+    );
+    if (
+      payload === scope.directory &&
+      scope.directoryGeneration === generation &&
+      Date.now() - (scope.directoryAt ?? 0) < 30000
+    )
+      return;
+    await this.cycle.wait(() =>
+      this.conn.reducers.ingestWorldDirectory({
+        kind,
+        regionId: scope.relay.region,
+        epoch: generation,
+        payload,
+        observedAt,
+      }),
+    );
+    scope.directory = payload;
+    scope.directoryGeneration = generation;
+    scope.directoryAt = Date.now();
   }
   owns(resource: string, id: string) {
     const scope = this.scopes.get(`player:${id}`);

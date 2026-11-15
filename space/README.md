@@ -266,6 +266,8 @@ Browser checks walked all 15 sections, verified a real Craft button updated live
 
 ## BitCraft storage budget
 
+For the release world, the native collector shares its nine regional connections across trading, open crafts and fish-school locations. A single global connection collects empire names and settlement membership. These directories use bounded, rebuildable snapshots in the existing cache; they do not add persisted tables. Changed snapshots publish at the collector's three-second cadence, with a thirty-second refresh for unchanged data. The fishing map reads the selected region from the app database every five seconds, retains markers during interruptions, and reports delayed refreshes. Empire filters also read the app database. Neither feature opens browser connections to external relays. Release-world API seeds for the old regions/empires/levels endpoints remain disabled; region names and XP thresholds come from current reference data.
+
 SpacetimeDB remains the only database. The collector now publishes changed regional item books and barter stalls, removes cancelled rows, and skips unchanged market projections. A disk monitor triggers a verified storage rebuild around 2 GB within a 3 GB BitCraft budget. Short write leases pause updates if monitoring stops; guides, widget ownership/settings, administrator grants, provider configuration and bounded XP history survive maintenance. Rebuildable market and API data reload afterward. See [the storage and recovery guide](docs/bitcraft-storage.md) for scope, thresholds, commands and the difference between this monitored budget and an OS-enforced hard quota.
 
 

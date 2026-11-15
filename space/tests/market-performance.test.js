@@ -23,6 +23,7 @@ import { sortTradingRows } from "../src/bitcraft-ui/market";
 describe("stored market browsing", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("VITE_BITCRAFT_DATABASE", "space-bitcraft-tools");
     vi.stubGlobal("location", { origin: "https://space.test" });
     requestMarketRefresh.mockResolvedValue(undefined);
     readMarket.mockImplementation(async ({ filters: json }) => {
@@ -77,7 +78,10 @@ describe("stored market browsing", () => {
       }),
     );
   });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
   it.each(["", "Solmere"])(
     "browses all matching items in %s entirely from stored data",
     async (region) => {

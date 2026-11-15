@@ -52,6 +52,31 @@ function setup(start = 1_800_000_000_000_000n) {
 }
 
 describe("collection procedures with mocked upstream HTTP", () => {
+  it("does not schedule old-world market requests when that provider is disabled", () => {
+    const { test, tx, owner } = setup();
+    tx((ctx) => {
+      module.configureProvider(ctx, {
+        name: "bitjita",
+        config: '{"enabled":false}',
+      });
+      module.marketRefreshFailure(ctx, {
+        resource: "market",
+        id: "",
+        retryAt: 0n,
+      });
+    });
+    expect(test.db.marketStatus.key.find("market")?.error).toBeTruthy();
+    expect(
+      JSON.parse(
+        module.marketCollectionWork(
+          test.procedureContextBuilder(owner).build(),
+          {},
+        ),
+      ),
+    ).toEqual([]);
+    expect(test.db.marketStatus.key.find("market")?.error).toBe("");
+    expect(test.db.marketMeta.count()).toBe(0n);
+  });
   it("keeps calendar records while enforcing the shared 6000-row sample budget", () => {
     const { test, tx } = setup();
     const key = "relaySkills|player/20/skills";

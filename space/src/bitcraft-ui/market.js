@@ -1,3 +1,4 @@
+import { CURRENT_REGIONS } from "../../bitcraft/src/relay-trading";
 import { isVisibleRegionRecord } from "../../bitcraft/src/regions";
 export const unwrap = (value) => value?.data ?? value ?? {};
 export const number = (value) =>
@@ -64,6 +65,7 @@ export function normalizeOrderBook(raw, filters = {}) {
       .map((row) => ({
         ...row,
         entityId: String(row.entityId ?? row.id ?? ""),
+        regionName: CURRENT_REGIONS[row.regionId] ?? row.regionName,
         side,
         price: row.priceThreshold ?? row.price,
         quantity: Number(row.quantity ?? 0),
@@ -140,7 +142,7 @@ export function stallClaims(stalls, fallback = []) {
         `stall-claim:${encodeURIComponent(stall.claimName)}`,
       name: stall.claimName,
       regionId: stall.regionId,
-      regionName: stall.regionName,
+      regionName: CURRENT_REGIONS[stall.regionId] ?? stall.regionName,
       locationX: stall.locationX,
       locationZ: stall.locationZ,
       tradeBuildingCount: 0,
@@ -163,7 +165,10 @@ export function barterRows(raw, filters = {}) {
       entityId: String(stall.entityId ?? ""),
       claimEntityId: String(stall.claimEntityId ?? stall.claim?.entityId ?? ""),
       claimName: stall.claimName ?? stall.claim?.name,
-      regionName: stall.regionName ?? stall.claim?.regionName,
+      regionName:
+        CURRENT_REGIONS[stall.regionId ?? stall.claim?.regionId] ??
+        stall.regionName ??
+        stall.claim?.regionName,
       orders: stall.orders ?? [],
     }));
   const rows = [];
@@ -259,7 +264,7 @@ export function barterRows(raw, filters = {}) {
             claimEntityId: stall.claimEntityId || null,
             claimName: stall.claimName,
             regionId: stall.regionId,
-            regionName: stall.regionName,
+            regionName: CURRENT_REGIONS[stall.regionId] ?? stall.regionName,
             ownerUsername: stall.ownerName,
           });
         }

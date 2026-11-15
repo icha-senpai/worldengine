@@ -1,10 +1,11 @@
 // Read-only checks against the managed local app; player requests establish a normal watch.
 import assert from "node:assert/strict";
 import { DbConnection } from "../src/bindings/bitcraft";
+import { bitcraftDatabase } from "./spacetime-config";
 const conn = await new Promise<DbConnection>((resolve, reject) =>
   DbConnection.builder()
     .withUri("ws://127.0.0.1:3100")
-    .withDatabaseName("space-bitcraft-tools")
+    .withDatabaseName(bitcraftDatabase)
     .onConnect((c) => resolve(c))
     .onConnectError((_c, e) => reject(e))
     .build(),

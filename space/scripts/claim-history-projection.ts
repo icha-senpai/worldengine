@@ -24,11 +24,20 @@ export const CLAIM_TABLES = [
 ];
 
 export const CLAIM_STRUCTURE_IDS = {
-  waystone: 205715693,
-  banks: [985246037, 1615467546],
+  waystones: [205715693, 911652136, 2025734892],
+  // Existing town banks became settlement stashes. Retain their eligibility.
+  banks: [985246037, 1615467546, 1545054810],
 };
+export const CLAIM_STRUCTURE_NAMES = [
+  [205715693, "Legacy Waystone"],
+  [911652136, "Departure Waystone"],
+  [2025734892, "Destination Waystone"],
+  [985246037, "Settlement Stash"],
+  [1615467546, "Bank"],
+  [1545054810, "Regional Bank"],
+] as const;
 export function claimHistoryQueries() {
-  const ids = [CLAIM_STRUCTURE_IDS.waystone, ...CLAIM_STRUCTURE_IDS.banks];
+  const ids = [...CLAIM_STRUCTURE_IDS.waystones, ...CLAIM_STRUCTURE_IDS.banks];
   return CLAIM_TABLES.map((table) => {
     if (table === "parameters_desc")
       return "SELECT * FROM parameters_desc WHERE version = 0";
@@ -147,9 +156,10 @@ export class ClaimHistoryProjection {
       tier: tech ? Math.max(1, ...tiers) : null,
       x: location?.x ?? null,
       z: location?.z ?? null,
-      waystones: buildings.filter(
-        (b) =>
-          Number(b.building_description_id) === CLAIM_STRUCTURE_IDS.waystone,
+      waystones: buildings.filter((b) =>
+        CLAIM_STRUCTURE_IDS.waystones.includes(
+          Number(b.building_description_id),
+        ),
       ).length,
       banks: buildings.filter((b) =>
         CLAIM_STRUCTURE_IDS.banks.includes(Number(b.building_description_id)),
@@ -186,11 +196,7 @@ export class ClaimHistoryProjection {
         this.member(m);
       for (const b of tables.get("building_state")!.values()) this.building(b);
       const descriptions = tables.get("building_desc")!;
-      for (const [id, name] of [
-        [205715693, "Waystone"],
-        [985246037, "Town Bank"],
-        [1615467546, "Ancient Bank"],
-      ] as const) {
+      for (const [id, name] of CLAIM_STRUCTURE_NAMES) {
         if (descriptions.get(String(id))?.name !== name)
           throw Error(
             "Claim structure definitions changed; review the tracking rule.",

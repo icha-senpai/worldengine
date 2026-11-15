@@ -1,3 +1,4 @@
+import { experienceLevels } from "../experienceLevels";
 import { collectionResult } from "./result";
 import {
   connectBitcraft,
@@ -42,6 +43,8 @@ export async function catalog(kind, id = "", q = "") {
   return catalogs.get(key);
 }
 export async function live(resource, id = "", q = "", page = 1, options = {}) {
+  if (resource === "levels")
+    return { data: experienceLevels, error: null, refresh: { delayed: false } };
   // UI pagination changes which rows we show, not the upstream response.
   options = Object.fromEntries(
     Object.entries(options).filter(

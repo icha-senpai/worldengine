@@ -1,9 +1,16 @@
 import { ownerCall } from "./bitcraft-storage";
 import { isTrackedClaim } from "../bitcraft/src/claim-history";
+import { bitcraftDatabase } from "./spacetime-config";
 const database =
   process.argv.slice(2).find((arg) => !arg.startsWith("--")) ??
-  "space-bitcraft-tools";
-if (!["space-bitcraft-tools", "space-bitcraft-checks"].includes(database))
+  bitcraftDatabase;
+if (
+  ![
+    "space-bitcraft-tools",
+    "space-bitcraft-release",
+    "space-bitcraft-checks",
+  ].includes(database)
+)
   throw Error("Choose the managed main or test database.");
 const data = JSON.parse(
   (await ownerCall(database, "read_claim_history", [

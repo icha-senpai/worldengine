@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
+import { bitcraftDatabase } from "./spacetime-config";
 const identity = process.argv[2];
 if (!identity || !/^[a-f0-9]{64}$/i.test(identity))
   throw new Error(
@@ -15,7 +16,7 @@ execFileSync(
   cli,
   [
     "call",
-    "space-bitcraft-tools",
+    bitcraftDatabase,
     "grant_guide_administrator",
     JSON.stringify(identity),
     JSON.stringify(

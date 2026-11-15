@@ -18,32 +18,45 @@ export function calculateClaimUpkeep(
   const tiles = Number(local?.num_tiles),
     neighbors = Number(local?.num_tile_neighbors),
     maintenance = Number(local?.building_maintenance);
-  const m = Number(parameters?.claim_stability_param_m),
-    b = Number(parameters?.claim_stability_param_b),
-    tick = Number(parameters?.building_decay_tick_millis);
+  const tick = Number(parameters?.building_decay_tick_millis);
   if (
     !local ||
     !parameters ||
     !tileCosts.length ||
-    ![tiles, neighbors, maintenance, m, b, tick].every(Number.isFinite) ||
+    ![tiles, neighbors, maintenance, tick].every(Number.isFinite) ||
     tiles <= 0 ||
     neighbors < 0 ||
     maintenance < 0 ||
     tick <= 0
   )
     return null;
+  if (
+    tileCosts.some(
+      (row) =>
+        !Number.isInteger(row.tile_count) ||
+        !Number.isFinite(row.cost_per_tile) ||
+        row.cost_per_tile < 0,
+    )
+  )
+    return null;
   let cost = 0.1,
-    threshold = 0;
-  for (const row of tileCosts) {
-    if (row.tile_count <= tiles && row.tile_count > threshold) {
-      threshold = row.tile_count;
-      cost = Number(row.cost_per_tile);
-    }
+    start = 1,
+    tileMaintenance = 0;
+  for (const row of [...tileCosts].sort(
+    (a, b) => a.tile_count - b.tile_count,
+  )) {
+    const next = Math.max(1, row.tile_count);
+    if (next > tiles) break;
+    tileMaintenance += (next - start) * cost;
+    start = next;
+    cost = row.cost_per_tile;
   }
+  tileMaintenance += (tiles - start + 1) * cost;
+  // November 10 server logic hardcodes these values; the old m/b parameters
+  // remain in static data but no longer control stability.
+  const multiplier = Math.max(1, Math.exp(5.5 * (5.65 - neighbors / tiles)));
   const upkeep =
-    ((tiles * cost * Math.max(1, (m * neighbors) / tiles + b) + maintenance) *
-      3_600_000) /
-    tick;
+    ((tileMaintenance * multiplier + maintenance) * 3_600_000) / tick;
   return Number.isFinite(upkeep) && upkeep >= 0 ? upkeep : null;
 }
 

@@ -6,7 +6,13 @@ import {
 } from "./diagnostic-archives";
 import { trimCollectorLogs } from "./bitcraft-storage";
 const database = process.argv[2];
-if (!["space-bitcraft-tools", "space-bitcraft-checks"].includes(database ?? ""))
+if (
+  ![
+    "space-bitcraft-tools",
+    "space-bitcraft-release",
+    "space-bitcraft-checks",
+  ].includes(database ?? "")
+)
   throw Error("Invalid collector archive target.");
 const directory = resolve(".runtime/diagnostics", database!);
 await mkdir(directory, { recursive: true });
@@ -18,5 +24,5 @@ for (const name of await readdir(directory)) {
 }
 await pruneDiagnosticArchives(directory);
 await trimCollectorLogs(
-  database === "space-bitcraft-tools" ? "collector" : "collector-test",
+  database === "space-bitcraft-checks" ? "collector-test" : "collector",
 );

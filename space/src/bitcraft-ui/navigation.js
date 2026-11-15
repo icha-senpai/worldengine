@@ -1,14 +1,18 @@
 import { defineComponent, h, nextTick, reactive } from "vue";
 let appRouter;
+const playerWorldSuffix =
+  import.meta.env.VITE_BITCRAFT_DATABASE === "space-bitcraft-release"
+    ? ".release"
+    : "";
+export const playerIdStorageKey = `space.bitcraft.player${playerWorldSuffix}`;
+const selectedPlayerStorageKey = `space.bitcraft.selectedPlayer${playerWorldSuffix}`;
 export function configureNavigation(router) {
   appRouter = router;
 }
 
 function readPlayer() {
   try {
-    return JSON.parse(
-      localStorage.getItem("space.bitcraft.selectedPlayer") || "null",
-    );
+    return JSON.parse(localStorage.getItem(selectedPlayerStorageKey) || "null");
   } catch {
     return null;
   }
@@ -31,13 +35,10 @@ export const usePage = () => pageState;
 export function savePlayer(player) {
   pageState.props.bitcraft.player = player;
   try {
-    localStorage.setItem(
-      "space.bitcraft.selectedPlayer",
-      JSON.stringify(player),
-    );
+    localStorage.setItem(selectedPlayerStorageKey, JSON.stringify(player));
     if (player)
-      localStorage.setItem("space.bitcraft.player", String(player.entityId));
-    else localStorage.removeItem("space.bitcraft.player");
+      localStorage.setItem(playerIdStorageKey, String(player.entityId));
+    else localStorage.removeItem(playerIdStorageKey);
   } catch {
     /* Selection still works without storage. */
   }

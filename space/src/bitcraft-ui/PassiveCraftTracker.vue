@@ -145,6 +145,7 @@
 </template>
 
 <script setup>
+import { CURRENT_REGIONS } from "../../bitcraft/src/relay-trading";
 import { useTrackerRefresh } from "./trackerRefresh";
 import { createTrackerSetup } from "./trackerSetup";
 import EmojiInput from "./shared/EmojiInput.vue";
@@ -334,8 +335,8 @@ const claimName = (group) =>
   group?.claim?.name ||
   (group?.claimEntityId ? `Claim ${group.claimEntityId}` : "Unknown claim");
 const regionLabel = (group) => {
-  const regionName = group?.claim?.regionName;
   const regionNumber = group?.claim?.region;
+  const regionName = CURRENT_REGIONS[regionNumber] ?? group?.claim?.regionName;
 
   if (regionName && regionNumber) {
     return `${regionName} (R${regionNumber})`;

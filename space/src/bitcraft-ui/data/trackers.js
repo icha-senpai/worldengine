@@ -14,6 +14,15 @@ import {
   mergeInventories,
   inventoryQuantities,
 } from "../relay";
+const releaseWorld =
+  import.meta.env.VITE_BITCRAFT_DATABASE === "space-bitcraft-release";
+export async function searchPlayers(query) {
+  if (releaseWorld) {
+    const response = await live("relayPlayers", "", query);
+    return response.data.map(relayPlayer);
+  }
+  return (await live("players", "", query)).data.players ?? [];
+}
 async function lookupPlayerResponse(character) {
   if (!character) return null;
   try {
@@ -23,7 +32,7 @@ async function lookupPlayerResponse(character) {
         "relaySkills",
         playerResponse.data.player.entityId,
       );
-      if (!skills.refresh.delayed)
+      if (!skills.refresh.delayed || releaseWorld)
         return {
           ...skills,
           data: {
@@ -31,7 +40,9 @@ async function lookupPlayerResponse(character) {
           },
         };
     }
-  } catch {
+    if (releaseWorld) return null;
+  } catch (error) {
+    if (releaseWorld) throw error;
     /* Use the searchable player API during relay recovery. */
   }
   if (/^\d+$/.test(character)) return await live("player", character);
@@ -133,7 +144,8 @@ export async function trackerInventory(player, filters = {}) {
         ...response,
         data: await enrichTrackerItems(relayInventory(response.data)),
       };
-  } catch {
+  } catch (error) {
+    if (releaseWorld) throw error;
     /* Continue with the player APIs. */
   }
   if (!base) {
@@ -230,6 +242,7 @@ async function trackerPassive(player) {
   } catch (error) {
     failure = error;
   }
+  if (releaseWorld) throw failure;
   try {
     const response = await live("passive", player.entityId);
     return { ...response, data: await enrichTrackerItems(response.data) };

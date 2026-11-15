@@ -1,14 +1,14 @@
 import { marketBook } from "./market-store";
 export const CURRENT_REGIONS: Record<number, string> = {
-  7: "Virexal",
-  8: "Solmere",
-  9: "Marowik",
-  12: "Elyndor",
+  7: "Talora",
+  8: "Ossura",
+  9: "Serek",
+  12: "Dalen",
   13: "Hexalis",
-  14: "Lumethis",
-  17: "Draxen",
-  18: "Oryxen",
-  19: "Zephra",
+  14: "Evara",
+  17: "Morven",
+  18: "Keldan",
+  19: "Veska",
 };
 type Row = Record<string, any>;
 type Tables = Map<string, Map<string, Row>>;
@@ -85,9 +85,8 @@ export function assembleRelayTrading(
     stalls = new Map<string, Row>();
   const stack = (item: Row) => {
     // Cargo stacks can be embedded in *_items as well as the legacy ID arrays.
-    const kind = Object.prototype.hasOwnProperty.call(
-      item.item_type ?? {},
-      "Cargo",
+    const kind = Object.keys(item.item_type ?? {}).some(
+      (key) => key.toLowerCase() === "cargo",
     )
       ? "cargo"
       : "item";

@@ -2,7 +2,11 @@ import { sealPublishedModule } from "./bitcraft-storage";
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { spacetimeCli, spacetimeServer } from "./spacetime-config";
+import {
+  spacetimeCli,
+  spacetimeServer,
+  bitcraftDatabase,
+} from "./spacetime-config";
 
 const cli = spacetimeCli;
 const server = spacetimeServer;
@@ -14,7 +18,7 @@ const modules = [
   },
   {
     path: "bitcraft",
-    database: "space-bitcraft-tools",
+    database: bitcraftDatabase,
     bindings: "src/bindings/bitcraft",
   },
 ];
@@ -132,7 +136,7 @@ switch (task) {
     ]);
     run([
       "call",
-      "space-bitcraft-tools",
+      bitcraftDatabase,
       "migrate_guides",
       "--server",
       server,

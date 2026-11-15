@@ -2,7 +2,7 @@
     {
         "id": 19,
         "title": "Empires, Watchtowers & Sieges",
-        "summary": "Founding an empire, Hexite Capsules, watchtowers and sieges.",
+        "summary": "BitCraft 1.0 empire founding, Hexite Capsules, watchtower upkeep, siege timing, ranks and empire resources.",
         "category": "Settlement & Empire",
         "content": {
             "type": "doc",
@@ -51,7 +51,7 @@
                                             ]
                                         },
                                         {
-                                            "text": " (tier-2 tech, 20,000 supplies). Claim owner pays ",
+                                            "text": " (tier-3 Township tech, 20,000 supplies). Claim owner pays ",
                                             "type": "text"
                                         },
                                         {
@@ -81,8 +81,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Other claims with the tech can join. Any player can join as Citizen. The Emperor can't leave.",
-                                            "type": "text"
+                                            "type": "text",
+                                            "text": "Other township claims with Empire Infrastructure can join. Homesteads cannot access empires. Any player who is not blocked by that empire can join as Citizen. The Emperor can't leave."
                                         }
                                     ]
                                 }
@@ -311,142 +311,25 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Upkeep ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "every hour",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " = round up 0.1 \u00d7 (log2(your active towers) + 0.2 \u00d7 chunks to capital + ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "1",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " if one of your claims is in the same connected territory patch, else ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "16",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": "). Chunk distance = east-west + north-south.",
-                                            "type": "text"
+                                            "text": "Hourly upkeep for a player-owned tower = ceil(A \u00d7 0.1 \u00d7 (1 + 0.0000000375 \u00d7 D\u00b2)), where A is the number of territory chunks assigned to that tower and D is the total number of chunks currently controlled by its empire. Round up only the final result. Capital distance, tower count and nearby aligned settlements are no longer inputs. NPC towers keep their separate fixed upkeep."
                                         }
                                     ]
-                                },
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
                                 {
-                                    "type": "bulletList",
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
                                     "content": [
                                         {
-                                            "type": "listItem",
-                                            "content": [
-                                                {
-                                                    "type": "paragraph",
-                                                    "attrs": {
-                                                        "textAlign": null
-                                                    },
-                                                    "content": [
-                                                        {
-                                                            "text": "4 towers, 5 chunks out, claim in patch: 0.1\u00d7(2+1+1) = 0.4 \u2192 ",
-                                                            "type": "text"
-                                                        },
-                                                        {
-                                                            "text": "1/h",
-                                                            "type": "text",
-                                                            "marks": [
-                                                                {
-                                                                    "type": "bold"
-                                                                }
-                                                            ]
-                                                        },
-                                                        {
-                                                            "text": " \u2192 full tower lasts ~416 days",
-                                                            "type": "text"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "type": "listItem",
-                                            "content": [
-                                                {
-                                                    "type": "paragraph",
-                                                    "attrs": {
-                                                        "textAlign": null
-                                                    },
-                                                    "content": [
-                                                        {
-                                                            "text": "Same, no claim: 0.1\u00d7(2+1+16) = 1.9 \u2192 ",
-                                                            "type": "text"
-                                                        },
-                                                        {
-                                                            "text": "2/h",
-                                                            "type": "text",
-                                                            "marks": [
-                                                                {
-                                                                    "type": "bold"
-                                                                }
-                                                            ]
-                                                        },
-                                                        {
-                                                            "text": " \u2192 ~208 days",
-                                                            "type": "text"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "type": "listItem",
-                                            "content": [
-                                                {
-                                                    "type": "paragraph",
-                                                    "attrs": {
-                                                        "textAlign": null
-                                                    },
-                                                    "content": [
-                                                        {
-                                                            "text": "16 towers, 15 chunks, no claim: 0.1\u00d7(4+3+16) = 2.3 \u2192 ",
-                                                            "type": "text"
-                                                        },
-                                                        {
-                                                            "text": "3/h",
-                                                            "type": "text",
-                                                            "marks": [
-                                                                {
-                                                                    "type": "bold"
-                                                                }
-                                                            ]
-                                                        },
-                                                        {
-                                                            "text": " \u2192 ~139 days",
-                                                            "type": "text"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                            "type": "text",
+                                            "text": "Examples for a tower assigned 100 chunks: at 1,000 total empire chunks, ceil(10 \u00d7 1.0375) = 11 energy/h, so a full 10,000-energy tower lasts about 37.9 days without resupply. At 10,000 total empire chunks, ceil(10 \u00d7 4.75) = 48/h, or about 8.7 days. These examples assume territory and upkeep stay unchanged."
                                         }
                                     ]
                                 }
@@ -571,30 +454,25 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Every 10 min",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
+                                            "text": "Grace period: after the siege engine starts the siege, neither side pays siege drain for the first 8 hours (48 ten-minute periods). The tower is already under siege during this time: normal upkeep is paused and direct tower resupply is blocked; use siege reinforcement to add energy to a side."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
                                         {
-                                            "text": " (:00, :10, :20\u2026) ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "both sides pay the same cost",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ": 0.75 \u00d7 full 10-min periods since start, rounded (0, 1, 2, 2, 3, 4, 5\u2026).",
-                                            "type": "text"
+                                            "text": "Drain: on the global ten-minute ticks (:00, :10, :20\u2026), the cost per side is 10 \u00d7 (floor(elapsed seconds / 600) \u2212 48 + 1), once 48 full periods have elapsed. Successive paid ticks cost 10, 20, 30, 40\u2026 energy per side. The first paid tick occurs 8 hours to just under 8 hours 10 minutes after starting, depending on tick alignment."
                                         }
                                     ]
                                 }
@@ -730,8 +608,8 @@
                     },
                     "content": [
                         {
-                            "text": "Time in   Cost/tick   Paid per side\n1 h       4           12\n4 h       17          210\n8 h       35          852\n12 h      53          1,926\n24 h      107         7,740\n~27 h     ~122        ~10,000",
-                            "type": "text"
+                            "type": "text",
+                            "text": "Drain tick   Cost this tick   Total paid per side\n1            10               10\n7            70               280\n13           130              910\n25           250              3,250\n43           430              9,460\n45           450              10,350"
                         }
                     ]
                 },
@@ -742,21 +620,8 @@
                     },
                     "content": [
                         {
-                            "text": "Total \u2248 13.5 \u00d7 hours\u00b2, so more supplies always wins; it's just a question of time. Full 10,000 tower, no defenders: dry ~27 h in; attacker needs 10,046 = ",
-                            "type": "text"
-                        },
-                        {
-                            "text": "11 capsules",
                             "type": "text",
-                            "marks": [
-                                {
-                                    "type": "bold"
-                                }
-                            ]
-                        },
-                        {
-                            "text": " (10 loses). 2,000-energy tower: ~12 h, 3 capsules.",
-                            "type": "text"
+                            "text": "After n paid ticks, each side has been charged 5 \u00d7 n \u00d7 (n + 1) energy. An undefended 10,000-energy tower cannot pay tick 45: capture occurs about 15 h 20\u201330 min after siege start, and the attacker needs 10,350 energy available over the siege, or 11 capsules total. Ten capsules also fail on that tick, so the defender wins the tie. A 2,000-energy tower fails on tick 20, about 11 h 10\u201320 min from start, requiring 2,100 attacking energy, or 3 capsules. These examples assume no defender reinforcements, sufficient timely attacker reinforcement, and uninterrupted ten-minute server ticks. Zero-energy towers still use instant capture instead of the eight-hour siege delay."
                         }
                     ]
                 },
@@ -823,6 +688,23 @@
                                         {
                                             "text": " \u2192 auto Citizen\u2192Noble, kept even if the threshold rises. Shard donations are disabled.",
                                             "type": "text"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Blocklists: members with Manage Blocklist permission can block or unblock players. Blocking a lower-ranked current member removes them from the empire; blocked players cannot rejoin. Only the Emperor has this permission by default. Officers have Harvest Empire Resources permission by default, while Nobles and Citizens do not; the Emperor can adjust these permissions."
                                         }
                                     ]
                                 }
@@ -921,10 +803,136 @@
                     ]
                 },
                 {
+                    "type": "heading",
+                    "attrs": {
+                        "level": 2,
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Empire resources in 1.0"
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Hexite Reservoirs replace Hexite Deposits as a major Hexite Energy source in the fresh world. They are public events, not empire-exclusive resources: everyone present can harvest when the reservoir is ready. Their cycle is about 23 hours, with at least one reservoir per region and staggered regional timing."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Maker trees are empire resources found in certain biomes. Their location makes the watchtowers controlling that territory more valuable. Resource-harvesting access follows the empire rank permissions."
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
                     "type": "paragraph",
                     "attrs": {
                         "textAlign": null
-                    }
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Checked for BitCraft 1.0 on 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "BitCraftToolBox game data (14 November)",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -1336,13 +1344,8 @@
                     },
                     "content": [
                         {
-                            "text": "Claim market",
                             "type": "text",
-                            "marks": [
-                                {
-                                    "type": "bold"
-                                }
-                            ]
+                            "text": "Regional markets & banks"
                         }
                     ]
                 },
@@ -1359,34 +1362,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Every claim with a market has its ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "own order book",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ". Orders placed at one claim only trade with that claim. Use it within ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "2 tiles",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " of the market building.",
-                                            "type": "text"
+                                            "text": "Markets share one regional order book. A listing placed at a marketplace can match orders from other marketplaces in the same region. Trade still stays inside that region; moving goods between regions requires transport or waystones."
                                         }
                                     ]
                                 }
@@ -1402,21 +1379,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Items and coins can come from your inventory or from nearby storage. Only ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "full-durability",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " items can be sold.",
-                                            "type": "text"
+                                            "text": "Regional marketplaces and regional banks require Tier 7 Township research, apart from existing ruined-town facilities. Homesteads do not unlock these facilities. Settlement Stashes are local storage; regional banks share their contents throughout the region."
                                         }
                                     ]
                                 }
@@ -1432,43 +1396,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Selling:",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " your items first fill the ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "highest buy orders",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " at ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "their",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "italic"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " price, with the oldest order first when prices tie. Anything left over is posted as your sell order.",
-                                            "type": "text"
+                                            "text": "Use a marketplace to place, manage and collect regional orders. Items and coins can come from your inventory or eligible nearby storage. Only full-durability items can be sold."
                                         }
                                     ]
                                 }
@@ -1484,30 +1413,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Buying:",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " you pay price \u00d7 quantity up front. You take the ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "cheapest sell orders",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " first, and anything you saved is refunded. The rest waits as a buy order.",
-                                            "type": "text"
+                                            "text": "Sell orders fill the highest-priced buy orders first; buy orders fill the cheapest sell orders first. At the same price, older orders take priority. Unfilled quantities remain as open orders."
                                         }
                                     ]
                                 }
@@ -1523,8 +1430,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "E.g. buy 100 at 10 each (1,000 paid) when 60 are for sale at 4: you get 60 for 240, 360 comes back, and a buy order for 40 at 10 stays open.",
-                                            "type": "text"
+                                            "type": "text",
+                                            "text": "Buying reserves price \u00d7 quantity up front. For example, buy 100 at 10 each when 60 are available at 4: 240 pays for those items, 360 is refunded, and 400 remains reserved for the open order of 40 at 10."
                                         }
                                     ]
                                 }
@@ -1540,21 +1447,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Filled orders become pickups (items or coins) that you ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "collect at the same claim's market",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ", from within 5 tiles. Cancel or edit an order at that market too.",
-                                            "type": "text"
+                                            "text": "Collect completed orders and manage your open orders through a marketplace in that region. The marketplace and bank networks are separate: shared bank storage does not remove marketplace collection or transport requirements."
                                         }
                                     ]
                                 }
@@ -1649,7 +1543,81 @@
                     "type": "paragraph",
                     "attrs": {
                         "textAlign": null
-                    }
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -2161,21 +2129,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Full list at every camp, ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "unlimited stock",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ", no fees, buy in bulk. Within 5 tiles, out of combat. Some need a skill level.",
-                                            "type": "text"
+                                            "text": "Traveler shops have unlimited stock for their offered trades. Interact within 5 tiles, out of combat. Offers may require a skill level or knowledge, and some disappear after you acquire their associated unlock; not every character sees the same list."
                                         }
                                     ]
                                 }
@@ -2191,8 +2146,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Brico sells House Deeds 2-7 (2,500-30,000 coins + a Codex). Rumbagh swaps 1 coin \u21c4 100 Brico Bucks both ways.",
-                                            "type": "text"
+                                            "type": "text",
+                                            "text": "Brico sells Player House Deeds 2\u20137. Deed 2 costs 2,500 Hex Coin + 1 Beginner\u2019s Settlement Research; Deeds 3/4/5 cost 5,000/7,500/10,000 coins + 1 Novice\u2019s Settlement Research each; Deeds 6/7 cost 20,000/30,000 coins + 1 Essential Settlement Research each. Knowledge and progression conditions determine which upgrade offers are visible. Rumbagh swaps 1 coin \u21c4 100 Brico Bucks both ways."
                                         }
                                     ]
                                 }
@@ -2436,6 +2391,86 @@
                             "type": "text"
                         }
                     ]
+                },
+                {
+                    "type": "paragraph",
+                    "attrs": {
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -2461,13 +2496,8 @@
                     },
                     "content": [
                         {
-                            "text": "Placing",
                             "type": "text",
-                            "marks": [
-                                {
-                                    "type": "bold"
-                                }
-                            ]
+                            "text": "Placing"
                         }
                     ]
                 },
@@ -2484,34 +2514,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "A Settlement Totem is built instantly from 1 Settlement Foundation Kit. It claims a radius of 16 (",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "817 tiles",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ") and starts with ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "5,000 supplies",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ".",
-                                            "type": "text"
+                                            "text": "A Settlement Totem uses a Settlement Foundation Kit. Its starting radius is 20 small tiles: 1,261 claimed tiles. Starting supplies are 5,000."
                                         }
                                     ]
                                 }
@@ -2527,34 +2531,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Needs ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "no other totem within 100 tiles",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " and ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "no claimed land within 24",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " (the 16 radius + an 8-tile gap). No part can touch Safe Meadows.",
-                                            "type": "text"
+                                            "text": "Settlement totems must be at least 150 small tiles apart. The footprint must also clear existing claims and avoid Safe Meadows. These are separate checks: satisfying totem spacing alone does not make a location valid."
                                         }
                                     ]
                                 }
@@ -2570,21 +2548,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Owners and co-owners expand ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "one tile at a time",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ". Each tile must touch your claim and have no other claim within 8 tiles. Adding tiles is free; they only raise upkeep.",
-                                            "type": "text"
+                                            "text": "Township expansion adds connected tiles and checks clearance from other claimed land. Current buffers are 16 small tiles to player claims and 8 to neutral claims. Homesteads cannot expand or reshape their claim."
                                         }
                                     ]
                                 }
@@ -2600,13 +2565,8 @@
                     },
                     "content": [
                         {
-                            "text": "Upkeep (hourly)",
                             "type": "text",
-                            "marks": [
-                                {
-                                    "type": "bold"
-                                }
-                            ]
+                            "text": "Upkeep (hourly)"
                         }
                     ]
                 },
@@ -2623,34 +2583,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Upkeep = tiles \u00d7 bracket rate \u00d7 shape penalty, rounded to a whole number. The rate applies to ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "every",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " tile, so bracket edges are cliffs: 1,000 tiles = 10/h, ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "1,001 = 13/h",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ". 4,000 = 100/h, 4,001 = 120/h.",
-                                            "type": "text"
+                                            "text": "Tile upkeep uses progressive brackets: each rate applies only to tiles inside its bracket. The 1,001st tile adds 0.0125/h; it does not reprice the first thousand. Examples before the shape penalty: 1,000 tiles = 10/h; 1,001 = 10.0125/h; 4,000 = 67.5/h."
                                         }
                                     ]
                                 }
@@ -2666,17 +2600,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Shape penalty",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " = 1300 \u2212 300 \u00d7 (average claimed neighbours per tile, out of 6), minimum \u00d71. Any average of 4.34 or more costs \u00d71. The starting hex is 5.76.",
-                                            "type": "text"
+                                            "text": "Shape multiplier = max(1, exp(5.5 \u00d7 (5.65 \u2212 average claimed neighbours per tile))). Neighbours are counted out of six. An average of at least 5.65 has multiplier 1. An average of 5.0 gives about \u00d735.7, so holes and narrow extensions can be very expensive."
                                         }
                                     ]
                                 }
@@ -2692,81 +2617,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Thin claims pay a lot. A claim 2 tiles wide all the way along averages ~4, which means ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "\u00d7100",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ". The starting hex plus a 1,183-tile one-wide road (2,000 tiles) averages 3.54, which means \u00d7239 and ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "~6,000/h",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " instead of 25.",
-                                            "type": "text"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "type": "listItem",
-                            "content": [
-                                {
-                                    "type": "paragraph",
-                                    "attrs": {
-                                        "textAlign": null
-                                    },
-                                    "content": [
-                                        {
-                                            "text": "Buildings cost no upkeep.",
-                                            "type": "text"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "type": "listItem",
-                            "content": [
-                                {
-                                    "type": "paragraph",
-                                    "attrs": {
-                                        "textAlign": null
-                                    },
-                                    "content": [
-                                        {
-                                            "text": "Example: the starting claim pays 8/h, so 5,000 supplies last ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "625 h \u2248 26 days",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ".",
-                                            "type": "text"
+                                            "text": "Estimated hourly upkeep = progressive tile cost \u00d7 shape multiplier + building maintenance. The table shows tile cost before stability penalties, building costs and tick rounding. For a compact starting claim at multiplier 1, tile cost is 13.2625/h; 5,000 supplies represent about 15.7 days at an unchanged rate."
                                         }
                                     ]
                                 }
@@ -2781,8 +2633,8 @@
                     },
                     "content": [
                         {
-                            "text": "Tiles          Per tile  Upkeep at top\n1-1,000        0.01      10/h\n1,001-2,000    0.0125    25/h\n2,001-3,000    0.02      60/h\n3,001-4,000    0.025     100/h\n4,001-6,000    0.03      180/h\n6,001-8,000    0.035     280/h\n8,001-10,000   0.04      400/h\n10,001-13,000  0.05      650/h\n13,001-16,000  0.06      960/h\n16,001+        0.07      1,400/h at 20k",
-                            "type": "text"
+                            "type": "text",
+                            "text": "Tiles in this bracket   Marginal rate   Total at bracket top\n1\u20131,000   0.01   10/h\n1,001\u20132,000   0.0125   22.5/h\n2,001\u20133,000   0.02   42.5/h\n3,001\u20134,000   0.025   67.5/h\n4,001\u20136,000   0.03   127.5/h\n6,001\u20138,000   0.035   197.5/h\n8,001\u201310,000   0.04   277.5/h\n10,001\u201313,000   0.05   427.5/h\n13,001\u201316,000   0.06   607.5/h\n16,001\u201322,000   0.07   1027.5/h"
                         }
                     ]
                 },
@@ -2794,13 +2646,8 @@
                     },
                     "content": [
                         {
-                            "text": "At 0 supplies",
                             "type": "text",
-                            "marks": [
-                                {
-                                    "type": "bold"
-                                }
-                            ]
+                            "text": "At 0 supplies"
                         }
                     ]
                 },
@@ -2817,34 +2664,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "With supplies, buildings on the claim heal ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "1 HP/h",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ". At 0, they ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "lose 1 HP/h",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " and are destroyed at 0 HP. Unclaimed buildings also lose 1 HP/h. The totem never decays.",
-                                            "type": "text"
+                                            "text": "Supplied claim buildings heal during upkeep ticks. Buildings without supplies lose health on hourly decay ticks and are destroyed at zero HP; the totem is protected from normal decay. A 120-HP building takes five days of one-HP hourly decay if it starts at full health. Check the actual building\u2019s maximum and current HP before estimating its survival time."
                                         }
                                     ]
                                 }
@@ -2860,30 +2681,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Time until destroyed: most stations, chests and houses (120 HP) = ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "5 days",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ". Walls and gates (336) = 14 d. Fences = 7 d. Wicker furniture = 3 d. ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "Mining, Foraging and Hunting stations (3 HP) = 3 hours.",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
+                                            "text": "At zero supplies, a player near the totem can take ownership. While supplied, takeover thresholds are based on upkeep: co-owner 72 hours, officer 48 hours, member 24 hours. Recalculate the required supplies from the current upkeep; old fixed starting-claim thresholds do not apply."
                                         }
                                     ]
                                 }
@@ -2899,94 +2698,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Repair with a Mallet: 10 HP per 2-second swing, no materials. A 120 HP station takes 12 swings, about 24 s.",
-                                            "type": "text"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "type": "listItem",
-                            "content": [
-                                {
-                                    "type": "paragraph",
-                                    "attrs": {
-                                        "textAlign": null
-                                    },
-                                    "content": [
-                                        {
-                                            "text": "At 0, ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "anyone",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " within 3 tiles of the totem can take ownership.",
-                                            "type": "text"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "type": "listItem",
-                            "content": [
-                                {
-                                    "type": "paragraph",
-                                    "attrs": {
-                                        "textAlign": null
-                                    },
-                                    "content": [
-                                        {
-                                            "text": "While supplied, a co-owner can take over once supplies are below ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "72 h",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " of upkeep, an officer below ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "48 h",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ", and a member below ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "24 h",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ". Starting claim: 576 / 384 / 192 supplies.",
-                                            "type": "text"
+                                            "text": "Supply forecasts assume unchanged upkeep. Expanding a claim, changing its stability or adding supplies changes the forecast. A passed estimate alone does not prove that a claim has actually decayed."
                                         }
                                     ]
                                 }
@@ -3002,13 +2715,8 @@
                     },
                     "content": [
                         {
-                            "text": "Tiers & research",
                             "type": "text",
-                            "marks": [
-                                {
-                                    "type": "bold"
-                                }
-                            ]
+                            "text": "Homesteads & Townships"
                         }
                     ]
                 },
@@ -3025,21 +2733,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Owner and co-owners only, within 2 tiles of the totem. Every claim tech finishes ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "instantly",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ".",
-                                            "type": "text"
+                                            "text": "Choose the progression path before investing in research. Homesteads advance more cheaply and have access to profession stations, but cannot expand or reshape their land, mint settlement coins, or unlock empires, regional banks, marketplaces or destination waystones."
                                         }
                                     ]
                                 }
@@ -3055,17 +2750,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Protection threshold:",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " research can't take supplies below X hours of upkeep. The default is 72 h; the owner can set 0-2,400. E.g. 4,000 tiles at 100/h keeps 7,200 back, so Tier 5 (3,000) needs 10,200 in the claim.",
-                                            "type": "text"
+                                            "text": "The Homestead choice cannot be converted back into a Township on the same claim. Restart the claim if you want the other path. Homesteads still depend on Settlement Research made through township progression, alongside Homestead Notes and Hexite Energy."
                                         }
                                     ]
                                 }
@@ -3081,21 +2767,25 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Tile, member and supply limits are ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "separate",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
+                                            "text": "Townships support larger communal settlements. Their tier research grants larger tile allowances and supply capacities, and unlocks the corresponding building/crafting tier. Member-capacity research is separate."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
                                         {
-                                            "text": " research unlocks at each tier (tiles 2k-16k, members 1k-10k, max supplies 4k-20k supplies).",
-                                            "type": "text"
+                                            "type": "text",
+                                            "text": "The Township table below lists the tier research\u2019s supply cost, Hexite Energy cost, number of previous-tier Settlement Research items, and resulting tile/supply limits. Other feature and capacity research has its own prerequisites and costs. Hex Coin is no longer the currency input for these tier researches."
                                         }
                                     ]
                                 }
@@ -3110,20 +2800,8 @@
                     },
                     "content": [
                         {
-                            "text": "Tier  Upgrade            Tiles   Members Max sup  Full*\n1     (start)            1,000   50      12,000   50 d\n2     10                 2,000   75      30,000   50 d\n3     1,500 + 1 Novice   3,000   100     50,000   35 d\n4     2,250 + 3 Essent.  4,000   125     85,000   35 d\n5     3,000 + 3 Profic.  6,000   150     115,000  27 d\n6     3,750 + 5 Advanc.  8,000   175     150,000  22 d\n7     4,500 + 5 Compr.   10,000  200     180,000  19 d\n8     5,250 + 7 Ornate   13,000  225     220,000  14 d\n9     6,000 + 7 Pristine 16,000  250     260,000  11 d\n10    6,750 + 9 Magnif.  20,000  275     310,000  9 d",
-                            "type": "text"
-                        }
-                    ]
-                },
-                {
-                    "type": "paragraph",
-                    "attrs": {
-                        "textAlign": null
-                    },
-                    "content": [
-                        {
-                            "text": "Upgrades cost supplies plus that many Codexes. *How long full supplies last at maximum tiles.",
-                            "type": "text"
+                            "type": "text",
+                            "text": "Township tier   Supplies spent   Hexite Energy   Settlement Research   Max tiles   Max supplies\nT3   4,500   2,250   10   3,300   54,000\nT4   6,750   3,375   25   4,400   86,000\nT5   9,000   4,500   40   6,600   160,000\nT6   11,250   5,625   70   8,800   248,000\nT7   13,500   6,750   105   11,000   354,000\nT8   15,750   7,875   150   14,300   546,000\nT9   18,000   9,000   215   17,600   777,000\nT10   20,250   10,125   315   22,000   1,110,000"
                         }
                     ]
                 },
@@ -3135,13 +2813,60 @@
                     },
                     "content": [
                         {
-                            "text": "Adding supplies",
                             "type": "text",
-                            "marks": [
+                            "text": "Research & supply reserve"
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
                                 {
-                                    "type": "bold"
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "The owner and co-owners research at the totem. Supply protection prevents research spending from taking the claim below its configured upkeep reserve; the default is 72 hours. You need both the research\u2019s supplies and the protected reserve, plus its item inputs."
+                                        }
+                                    ]
                                 }
                             ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "For example, a stable 4,000-tile claim with no building maintenance has a base rate of 67.5/h. A 72-hour planning reserve is about 4,860 supplies; add the particular research\u2019s supply cost and allow for the game\u2019s tick rounding. Recalculate if stability changes."
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "heading",
+                    "attrs": {
+                        "level": 2,
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Adding supplies"
                         }
                     ]
                 },
@@ -3227,7 +2952,81 @@
                     "type": "paragraph",
                     "attrs": {
                         "textAlign": null
-                    }
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -3478,6 +3277,18 @@
                                     ]
                                 }
                             ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "attrs": {
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Floating platforms cannot be terraformed. Terrain raised by a floating platform still counts as water for adjacent digging checks; an ocean platform does not let you raise the seabed as if it were natural land."
                         }
                     ]
                 },
@@ -3747,7 +3558,81 @@
                     "type": "paragraph",
                     "attrs": {
                         "textAlign": null
-                    }
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -5052,30 +4937,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Cost = large tiles \u00d7 0.0025 \u00d7 (1 + 14 \u00d7 filled pockets \u00f7 total pockets), rounded up.",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " A full bag costs ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "15\u00d7",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ". A pocket counts as filled even with 1 item in it.",
-                                            "type": "text"
+                                            "text": "Same-region waystone travel no longer adds an inventory surcharge. Cross-region travel retains the inventory multiplier: large-tile distance \u00d7 0.0025 \u00d7 (1 + 14 \u00d7 filled pockets \u00f7 total pockets), rounded up. A full bag multiplies that cross-region distance cost by 15; a pocket counts as filled even with one item."
                                         }
                                     ]
                                 }
@@ -5279,6 +5142,18 @@
                     ]
                 },
                 {
+                    "type": "paragraph",
+                    "attrs": {
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Cross-region waystone examples only: the table below uses small-tile distances (three small tiles per large tile). Same-region travel does not use these inventory multipliers."
+                        }
+                    ]
+                },
+                {
                     "type": "codeBlock",
                     "attrs": {
                         "language": null
@@ -5473,7 +5348,81 @@
                     "type": "paragraph",
                     "attrs": {
                         "textAlign": null
-                    }
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -6873,6 +6822,155 @@
                     "attrs": {
                         "textAlign": null
                     }
+                },
+                {
+                    "type": "heading",
+                    "attrs": {
+                        "level": 2,
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Dungeons in 1.0"
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Dungeon collapse time is now 2 minutes and respawn time is 5 minutes. Leave promptly when collapse begins; the new timing replaces longer pre-1.0 schedules."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Sentinel Dungeon is now Starseeker Armory; Araknir Dungeon is now Araknir Den. The 1.0 release also adds a Tier 2 dungeon with new enemies and Starfell lore."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Dungeon names and entry progression changed, so follow the current quest and compendium requirements rather than relying on old entrance names."
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "attrs": {
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -8835,8 +8933,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Flat crit chance is stored as a fraction (0.05) and shown here as 5%. Reading it as percentage points is my assumption; it isn't confirmed in game.",
-                                            "type": "text"
+                                            "type": "text",
+                                            "text": "Flat crit-chance bonuses use fractions: 0.05 represents +5 percentage points. Crit multiplier is a separate stat: +0.15 changes a 1.5\u00d7 multiplier to 1.65\u00d7."
                                         }
                                     ]
                                 }
@@ -8883,6 +8981,189 @@
                     "attrs": {
                         "textAlign": null
                     }
+                },
+                {
+                    "type": "heading",
+                    "attrs": {
+                        "level": 2,
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "More profession equipment"
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Scholar instruments: Crude Archeologist\u2019s Brush (Scholar 3) gives +1 Scholar power; Calcic Brush (18) +2; Argent Brush (28) +2 power and +0.15 crit multiplier; Auric Brush (55) +3 power and a 10% on-hit chance of +5 Scholar power for 5 seconds."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Smithing: Miniature Anvil is a Smithing Charm requiring Smithing 5, with +1 Smithing power."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Leatherworking: Braided Leatherworker\u2019s Keepsake requires level 18 and gives +1 power and +5% crit chance. Lucky Tanning Fluid requires level 39 and has a 4% on-hit chance of +25% Leatherworking crit chance and +0.25 crit multiplier for 10 seconds. Both use the Leatherworking Charm slot."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Tailoring: Finely Woven Ribbon is a Tailoring Charm requiring level 43. It gives +2% Tailoring speed and has a 4% on-hit chance of +5 Tailoring power for 10 seconds."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Choose equipment for the skill and slot shown on the item. Two items assigned to the same charm or instrument slot are alternatives, even if their bonuses would otherwise complement each other."
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "attrs": {
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -11846,82 +12127,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Cooking Station",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " (active): each dish is an effort bar you fill by swinging. Effort goes from ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "20",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " (T1) to ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "75",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " (T10). XP per point goes from ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "1.6 to 3.04",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ", so about ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "32 XP",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " for a T1 dish and ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "228 XP",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " for a T10.",
-                                            "type": "text"
+                                            "text": "Cooking Station (active): each dish is an effort bar you fill by swinging. Effort goes from 20 (T1) to 75 (T10). Cooking XP per progress is now 1.92 at T1 and 3.648 at T10, reflecting the 20% increase. A 20-effort T1 dish has 38.4 base recipe XP; a 75-effort T10 dish has 273.6. Actual awarded totals also depend on per-action rounding and your bonuses."
                                         }
                                     ]
                                 }
@@ -11937,30 +12144,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Oven",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " (passive): bread and pies bake on a ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "5-minute",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " timer with no XP and no stamina. The usual passive-craft limits per player apply.",
-                                            "type": "text"
+                                            "text": "Oven (passive): bread and pies bake on a 5-minute timer with no XP and no stamina. New ovens support 50 passive crafts per player and 1,000 total; older buildings can retain their earlier configuration. Finished, uncollected crafts still occupy capacity."
                                         }
                                     ]
                                 }
@@ -12036,56 +12221,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Deluxe",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " dishes take the finished dish plus one more of each of its parts and ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "1 Salt",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ". E.g. Deluxe Fish and Bulbs = Fish and Bulbs + Roasted Fish + Mashed Bulbs + Salt. That ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "doubles the buff",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " (8.2-10%), doubles the time to ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "60 min",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ", and raises satiation to 75.",
-                                            "type": "text"
+                                            "text": "Deluxe dishes take the finished dish plus one more of each of its parts and 1 Salt. E.g. For compound dishes, check the current quantities rather than assuming one of each component: Plain Fish and Bulbs itself takes 2 Plain Roasted Fish and 1 Plain Mashed Bulbs. Deluxe recipes have their own ingredient counts. That doubles the buff (8.2-10%), doubles the time to 60 min, and raises satiation to 75."
                                         }
                                     ]
                                 }
@@ -12405,7 +12542,81 @@
                     "type": "paragraph",
                     "attrs": {
                         "textAlign": null
-                    }
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -13490,6 +13701,109 @@
                     },
                     "content": [
                         {
+                            "type": "text",
+                            "text": "Field crops in 1.0"
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Prepare fertile paving, then plant the matching seeds directly from your inventory. The field system uses crop placeables rather than passive workstation farming slots. Fertile ground can be used by other players too; do not assume that paving a field reserves it for you."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "After planting, apply fertilizer of the required tier, then water the crop. Watering returns the empty bucket. The growth timer starts after the crop has reached its growing stage; a planted or fertilized-but-unwatered crop is not yet growing."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Example: a Basic Embergrain or Basic Wispweave plot uses 5 matching seeds, 3 Basic Fertilizer, and 1 Water Bucket. Its growing stage lasts 5 minutes. Fertilizing gives 200 Farming XP and watering gives 100; harvesting adds its own progress XP."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Harvest the grown crop directly in the field. Do not carry over the former passive-crop slot limits, batch timers or second processing step to this system. The new plots represent denser crop production on each tile."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Tropical rice, fertile trees, potted trees and coconut palms still have their own placeable interactions. Their rules below are separate from the new field-crop sequence."
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "heading",
+                    "attrs": {
+                        "level": 2,
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
                             "text": "Rice (Farming, tropical biomes)",
                             "type": "text",
                             "marks": [
@@ -13771,47 +14085,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Every hit on a wild tree has a chance, scaled by the damage you deal, to drop a private ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "Fertile Tree Seed",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " 1-3 tiles away. That comes to about ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "3 per fully chopped tree",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ". The seed vanishes after ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "30 s",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " unless you gather it.",
-                                            "type": "text"
+                                            "text": "Every hit on a wild tree has a chance, scaled by the damage you deal, to drop a private Fertile Tree Seed 1-3 tiles away. The expected number depends on that tree\u2019s health and the per-hit spawn cap. For example, a 3,000-HP Young Oak with a 0.2%-per-damage seed roll gives about 6 seed attempts over a full chop when individual hits do not reach the chance cap. The seed vanishes after 30 s unless you gather it."
                                         }
                                     ]
                                 }
@@ -14030,21 +14305,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Pot = 1 tree seed + ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "2 Fertilizer + 3 Water Buckets",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " + Forester's Pot. This is the only place fertilizer and water are used.",
-                                            "type": "text"
+                                            "text": "Pot = 1 tree seed + 2 Fertilizer + 3 Water Buckets + Forester's Pot. Fertilizer and water are also used by the field crops described above."
                                         }
                                     ]
                                 }
@@ -14611,7 +14873,81 @@
                     "type": "paragraph",
                     "attrs": {
                         "textAlign": null
-                    }
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -15332,21 +15668,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "The old ~18% figure is wrong. The data is a flat ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "12 vs 88",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " weighted pick.",
-                                            "type": "text"
+                                            "text": "The current weighted outcome is 12 for a Mud Hole versus 88 for no hole."
                                         }
                                     ]
                                 }
@@ -16197,6 +16520,155 @@
                     "attrs": {
                         "textAlign": null
                     }
+                },
+                {
+                    "type": "heading",
+                    "attrs": {
+                        "level": 2,
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Reading yields after the resource-health update"
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Resource HP and extraction rates must be read together. A longer-lived node does not mean that a pre-1.0 per-node yield estimate remains correct. For a finite resource, expected extraction output is usable HP \u00d7 probability \u00d7 quantity, followed by any separate destruction reward and nested item-list roll."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Current examples: a Young Oak has 3,000 HP, while an Ancient Oak has 1,400,000 HP. Their total chopping time differs greatly even with the same axe. A normal Ferralith Vein has 3,000 HP and a 1% per-damage extraction chance for its cargo, plus a separate cargo reward on destruction."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Mud Mound still uses a 12% Mud Hole destruction outcome; that is independent of its 12% per-damage clay-output roll. Do not multiply the cave probability by the number of swings."
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "attrs": {
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -16405,34 +16877,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Each point of damage rolls each drop once, and the last hit is capped at the node's remaining HP. So a node gives ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "HP \u00d7 drop chance",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " whatever tool you use; a better tool only gets it faster. Every normal ore vein, T1-T10, averages ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "~10 ore chunks",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": ".",
-                                            "type": "text"
+                                            "text": "Each point of damage rolls each drop once, and the last hit is capped at the node's remaining HP. So a node gives HP \u00d7 drop chance whatever tool you use; a better tool only gets it faster. Per-node yields vary with the node\u2019s current HP, extraction probability, output-list contents and destruction rewards. Large, medium and small veins must be budgeted separately."
                                         }
                                     ]
                                 }
@@ -16542,8 +16988,8 @@
                     },
                     "content": [
                         {
-                            "text": "Tier  Node lvl  Min pickaxe      Power   Stamina  Vein HP  XP/pt\n1     1         Flint            8       0.75     1000     1.25\n2     20        Ferralith        12      0.89     1190     1.375\n3     30        Pyrelite (L20)   13-16   1.03     1370     1.5\n5     50        Elenvar (L40)    16-25   1.28     1710     1.75\n7     70        Rathium (L60)    20-35   1.52     2035     2.0\n10    100       Umbracite (L90)  29-44   1.86     2485     2.375",
-                            "type": "text"
+                            "type": "text",
+                            "text": "Normal vein             HP   Stamina/action   XP/progress\nFerralith Vein        3,000     0.75     1.25\nPyrelite Vein         5,500     0.89    1.375\nEmarium Vein         10,000     1.03      1.5\nLuminite Vein        35,000     1.28     1.75\nRathium Vein         70,000     1.41    1.875\nUmbracite Vein      450,000     1.75     2.25"
                         }
                     ]
                 },
@@ -16554,28 +17000,8 @@
                     },
                     "content": [
                         {
-                            "text": "Power = Common to best rarity (+3 per step). Stamina per swing, of 100; regen 0.25/s.",
-                            "type": "text"
-                        },
-                        {
-                            "type": "hardBreak"
-                        },
-                        {
-                            "text": "E.g. Mining 50, Rare Elenvar Pickaxe (22 + 5 = 27) on a Luminite Vein: 1710 \u00f7 27 = ",
-                            "type": "text"
-                        },
-                        {
-                            "text": "64 swings",
                             "type": "text",
-                            "marks": [
-                                {
-                                    "type": "bold"
-                                }
-                            ]
-                        },
-                        {
-                            "text": ", ~100s, 82 stamina, ~3,040 XP, ~10 chunks. Add an Argent Ring: a crit hits round(27 \u00d7 1.69) = 46, the average swing is 32.7 damage, so ~53 swings (18% faster), still ~10 chunks, but only ~2,550 XP from the node.",
-                            "type": "text"
+                            "text": "Example with no speed, crit or XP bonuses: Luminite Vein has 35,000 HP, 1.75 Mining XP/progress, 1.28 stamina/action and a 1.6-second base action time. At 27 damage/action it takes ceil(35,000 \u00f7 27) = 1,297 swings: about 34.6 minutes of uninterrupted swing time and 1,660 stamina spent before regeneration. Recipe XP before per-action rounding is 61,250. Crits change damage and depletion time; they do not multiply the non-critical XP award."
                         }
                     ]
                 },
@@ -16657,21 +17083,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "XP works like gathering. Crafted in a claim building, every 400-500 XP also mints ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "1 Hex Coin",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " into that claim's treasury.",
-                                            "type": "text"
+                                            "text": "XP works like gathering. Townships can mint claim coins from qualifying crafting XP according to their researched minting rate. Homesteads do not mint settlement coins."
                                         }
                                     ]
                                 }
@@ -16820,34 +17233,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Crafts per player per building: ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "10",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " (T1-2), 15, 20 \u2026 ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "50",
-                                            "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " (T10). The building runs 10\u00d7 that at once and queues the rest. Uncollected finished crafts still count toward your limit.",
-                                            "type": "text"
+                                            "text": "Capacity is building-specific: check the workstation\u2019s limits rather than applying one universal tier table. New ovens support 50 crafts per player and 1,000 total; existing ovens can retain older limits. Uncollected finished crafts still count toward capacity."
                                         }
                                     ]
                                 }
@@ -17011,6 +17398,138 @@
                         {
                             "text": ".",
                             "type": "text"
+                        }
+                    ]
+                },
+                {
+                    "type": "heading",
+                    "attrs": {
+                        "level": 2,
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Other 1.0 XP changes"
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Cooking actions grant 20% more XP and Construction actions received a 40% increase. Check the actual recipe: the current terraforming parameter is still 1 XP per progress, so do not apply a blanket extra multiplier to every activity in the skill."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attrs": {
+                                        "textAlign": null
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Gathering forestry seeds and food stashes now grants more Forestry XP, with larger increases at higher tiers. Include those pickups when comparing progression routes instead of measuring only swings at the original tree."
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "attrs": {
+                        "textAlign": null
+                    },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Updated for BitCraft 1.0, checked 14 November 2026. Sources: "
+                        },
+                        {
+                            "type": "text",
+                            "text": "current ToolBox game data",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 server rules",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://github.com/clockworklabs/BitCraftPublic/tree/85c972d8d9433560fb51a906424b74b7958ddf99",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "November 10 changes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/patch-notes-starfell-reawakened",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "text": " \u00b7 "
+                        },
+                        {
+                            "type": "text",
+                            "text": "1.0 patch notes",
+                            "marks": [
+                                {
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": "https://bitcraftonline.com/news/bitcraft-online-1-0-patch-notes",
+                                        "target": "_blank",
+                                        "rel": "noopener noreferrer"
+                                    }
+                                }
+                            ]
                         }
                     ]
                 }

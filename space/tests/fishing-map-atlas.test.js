@@ -15,6 +15,7 @@ import {
 } from "../src/bitcraft-ui/fishing-map-static";
 import {
   HEX_SCALE,
+  REGIONS,
   smallCell,
   spawnRing,
 } from "../src/bitcraft-ui/fishing-map";
@@ -72,16 +73,16 @@ describe("Permanent regional map assets", () => {
       }
     expect(compared).toBeGreaterThan(60000);
   });
-  it("covers all nine playable regions and four adjoining ocean sections without duplicate tiles", async () => {
+  it("covers all nine release regions without old-world ocean sections or duplicate tiles", async () => {
     const m = JSON.parse(
       await readFile(
         new URL("../public/bitcraft-map/detail/manifest.json", import.meta.url),
       ),
     );
     expect(m.levels.map((l) => l.present.length)).toEqual([
-      1300, 325, 94, 28, 11, 4,
+      900, 225, 64, 16, 9, 4,
     ]);
-    expect(m.regions).toHaveLength(13);
+    expect(m.regions.map((r) => [r.id, r.name])).toEqual(REGIONS);
     expect(m.regions.every((r) => r.tileCount === 100)).toBe(true);
     expect(m.maxDepth).toBeLessThan(255);
     const tiles = new Set();
@@ -98,7 +99,7 @@ describe("Permanent regional map assets", () => {
         tiles.add(`${x}:${z}`);
       }
     }
-    expect(tiles.size).toBe(1300);
+    expect(tiles.size).toBe(900);
     expect(regionInfo(8).bounds[2]).toBe(regionInfo(9).bounds[0]);
     expect(regionInfo(9).bounds[3]).toBe(regionInfo(14).bounds[1]);
   });

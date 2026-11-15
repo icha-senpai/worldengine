@@ -31,11 +31,11 @@ export function eventSummary(e) {
     return `${d.before.toLocaleString()} → ${d.after.toLocaleString()} supplies.`;
   if (e.kind.startsWith("coverage_")) return d.message;
   if (e.kind === "tracking_started")
-    return `Tracking began: T${d.tier}, ${d.waystones} waystone(s), ${d.banks} bank(s). Owner: ${d.ownerName}.`;
+    return `Tracking began: T${d.tier}, ${d.waystones} waystone(s), ${d.banks} bank(s)/stash(es). Owner: ${d.ownerName}.`;
   if (e.kind === "tracking_stopped")
     return d.reason === "tier_unknown"
       ? `Tracking paused because the tier is unavailable. Last known tier: T${d.previousTier}.`
-      : `Tracking stopped: ${d.tier !== null ? `T${d.tier}` : "tier unknown"}, ${d.waystones ?? 0} waystone(s), ${d.banks ?? 0} bank(s). The claim no longer meets all three requirements.`;
+      : `Tracking stopped: ${d.tier !== null ? `T${d.tier}` : "tier unknown"}, ${d.waystones ?? 0} waystone(s), ${d.banks ?? 0} bank(s)/stash(es). The claim no longer meets all three requirements.`;
   if (e.kind === "claim_updated") {
     const changes = [];
     if (d.previousName !== d.claimName)
@@ -55,7 +55,7 @@ export function eventSummary(e) {
       d.previousBanks !== null &&
       d.previousBanks !== d.banks
     )
-      changes.push(`Banks ${d.previousBanks} → ${d.banks}`);
+      changes.push(`Banks/stashes ${d.previousBanks} → ${d.banks}`);
     if (d.previousX !== d.x || d.previousZ !== d.z)
       changes.push("Location changed");
     if (d.previousTotemId !== d.totemId) changes.push("Totem changed");

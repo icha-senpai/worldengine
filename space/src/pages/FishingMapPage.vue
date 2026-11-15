@@ -31,6 +31,10 @@ import { createStaticTerrain } from "../bitcraft-ui/fishing-map-static";
 import { AtlasCanvasLayer } from "../bitcraft-ui/fishing-map-atlas-layer";
 
 const route = useRoute();
+const viewRegion = () =>
+  import.meta.env.VITE_BITCRAFT_DATABASE === "space-bitcraft-release"
+    ? `release:${region.value}`
+    : region.value;
 const region = ref(
   REGIONS.some(([id]) => id === Number(route.query.region))
     ? Number(route.query.region)
@@ -189,12 +193,8 @@ function startRegion() {
   drawMarkers();
   queueDraw();
   const centered = restoreView();
-  const queries = SPECIES.flatMap((s) => [
-    `SELECT resource_state.* FROM resource_state WHERE resource_id = ${s.id}`,
-    `SELECT location_state.* FROM location_state JOIN resource_state ON location_state.entity_id = resource_state.entity_id WHERE resource_state.resource_id = ${s.id}`,
-  ]);
-  stopFish = subscribeMap(region.value, queries, {
-    rows(changes, initial) {
+  stopFish = subscribeMap(region.value, {
+    rows(changes, initial, observedAt) {
       if (current !== generation) return;
       if (initial) {
         resources.clear();
@@ -219,7 +219,7 @@ function startRegion() {
           schoolTimer = null;
           rebuildSchools();
         }, 300);
-      updated.value = new Date().toLocaleTimeString();
+      updated.value = new Date(observedAt).toLocaleTimeString();
     },
     status(value, message) {
       if (current === generation) {
@@ -248,7 +248,7 @@ function restoreView() {
     map.setView(point(x, z), 2);
     return true;
   }
-  const view = readMapView(region.value);
+  const view = readMapView(viewRegion());
   if (!view) return false;
   map.setView([view.y, view.x], view.zoom);
   return true;
@@ -282,7 +282,7 @@ async function loadTerrain() {
   const request = ++terrainRequest,
     current = generation;
   const center = map.getCenter();
-  saveMapView(region.value, {
+  saveMapView(viewRegion(), {
     x: center.lng,
     y: center.lat,
     zoom: map.getZoom(),
@@ -651,7 +651,14 @@ onBeforeUnmount(() => {
           href="https://bitjita.com/map"
           target="_blank"
           rel="noopener noreferrer"
-          >Map data: BitJita</a
+          >Terrain: BitJita</a
+        >
+        ·
+        <a
+          href="https://relay.bitcraftsync.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Fish: BitCraftSync</a
         ></span
       >
     </footer>

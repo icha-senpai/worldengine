@@ -1,3 +1,4 @@
+import { CURRENT_REGIONS } from "../../bitcraft/src/relay-trading";
 export function relayPlayer(raw) {
   if (!raw) return null;
   return {
@@ -80,7 +81,9 @@ export function relayCrafts(raw, claims = {}, passive = true) {
           claimEntityId: String(row.claim_entity_id ?? ""),
           claimName: row.claim_name ?? claim.name,
           regionId: claim.region ?? claim.region_id,
-          regionName: claim.region_name,
+          regionName:
+            CURRENT_REGIONS[claim.region ?? claim.region_id] ??
+            claim.region_name,
           claimLocationX: claim.location_x,
           claimLocationZ: claim.location_z,
         };

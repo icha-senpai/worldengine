@@ -540,6 +540,70 @@
                         "elements": []
                       }
                     }
+                  },
+                  {
+                    "name": "starseekerBaseT1",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "starseekerLightT1",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "immortalBaseT1",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "immortalHeavyT1",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "immortalBaseT2",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "immortalHeavyT2",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "sentinelStarseekerSkirmisher",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
+                  },
+                  {
+                    "name": "sentinelStarseekerCaptain",
+                    "type": {
+                      "Product": {
+                        "elements": []
+                      }
+                    }
                   }
                 ]
               }
