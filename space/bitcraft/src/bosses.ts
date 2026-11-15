@@ -6,6 +6,7 @@ export const BOSSES: Record<
   32: { name: "Feral Sentinel", tier: 3, wire: "sentinel" },
   36: { name: "Giant Skitch", tier: 1, wire: "crabDungeonCrabBoss" },
   40: { name: "Araknir Nest", tier: 7, wire: "spiderDungeonSpiderNest" },
+  59: { name: "Immortal Watcher", tier: 2, wire: "immortalHeavyT2" },
 };
 export const BOSS_DETAIL_DAYS = 30;
 export const BOSS_DETAIL_LIMIT = 20_000;

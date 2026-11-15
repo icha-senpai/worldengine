@@ -2,7 +2,9 @@
 
 The public page is `/bitcraft/bosses`. The managed main BitCraft collector records continuously while the app's services are running, independently of browser tabs. The storage-only test worker does not open duplicate world subscriptions.
 
-Tracked definitions are Feral Sentinel (32, T3 dungeon), Giant Skitch (36, T1 dungeon), and Araknir Nest (40, T7 dungeon). Dungeon trash types are excluded. Generic creature `tier: 1` values are not used to decide dungeon tier.
+Tracked definitions are Feral Sentinel (32, T3 dungeon), Giant Skitch (36, T1 dungeon), Immortal Watcher (59, T2 Abandoned Immortal Outpost), and Araknir Nest (40, T7 dungeon). Dungeon trash types are excluded. Generic creature `tier: 1` values are not used to decide dungeon tier.
+
+The T2 definition was verified against the release relay on November 15, 2026: building 853770752 is the Abandoned Immortal Outpost; its interior 85926629 contains collapse-trigger enemy spawn 1206414961 (Immortal Watcher T2). That spawn references AI parameters 1163117858, whose enemy type is `immortalHeavyT2`, matching enemy definition 59. The ordinary same-name `immortalHeavyT1` and the `immortalBaseT2` guardians remain excluded. The existing pinned combat enum already exposes this type, so no relay contract or persisted schema change is needed. Recording starts after the updated collector and module are running; past deaths cannot be reconstructed from the relay.
 
 ## What counts
 

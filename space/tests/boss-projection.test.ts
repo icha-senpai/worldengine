@@ -52,7 +52,6 @@ describe("confirmed boss death projection", () => {
     "immortalBaseT1",
     "immortalHeavyT1",
     "immortalBaseT2",
-    "immortalHeavyT2",
     "sentinelStarseekerSkirmisher",
     "sentinelStarseekerCaptain",
   ])("ignores %s while recording a boss in the same transaction", (tag) => {
@@ -66,6 +65,40 @@ describe("confirmed boss death projection", () => {
     expect(defeats).toHaveLength(1);
     expect(defeats[0].enemyType).toBe(32);
     expect(defeats[0].enemyId).toBe("100");
+  });
+  it("records the T2 Immortal Watcher, excluding its same-name T1 mob and guardians", () => {
+    const p = setup();
+    const result = p.apply([
+      change("enemy_state", boss(200n, "immortalHeavyT2")),
+      change("enemy_state", boss(201n, "immortalHeavyT1")),
+      change("enemy_state", boss(202n, "immortalBaseT2")),
+      change("contribution_state", credit(10n, 75, 200n)),
+      change("contribution_state", credit(20n, 25, 200n)),
+      change("health_state", dead(1800000001, 200n)),
+      change("health_state", dead(1800000001, 201n)),
+      change("health_state", dead(1800000001, 202n)),
+      change("attack_event", {
+        attacker_entity_id: 10n,
+        defender_entity_id: 200n,
+        damage: 100,
+        is_dodge: false,
+      }),
+    ]);
+    expect(result).toEqual([
+      {
+        enemyId: "200",
+        enemyType: 59,
+        diedAt: "1800000001",
+        killerId: "10",
+        participants: [
+          { id: "10", name: "Krutch", contribution: 75 },
+          { id: "20", name: "Other player", contribution: 25 },
+        ],
+      },
+    ]);
+    expect(p.apply([change("health_state", dead(1800000001, 200n))])).toEqual(
+      [],
+    );
   });
   it("captures cumulative contributors and a final attack in the death transaction, excluding trash", () => {
     const p = setup();

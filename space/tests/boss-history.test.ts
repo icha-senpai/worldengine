@@ -52,6 +52,23 @@ function setup() {
   return { test, owner, defeat, ingest, board };
 }
 describe("boss recording in the native database", () => {
+  it("adds T2 scores and filters without changing existing boss totals", () => {
+    const { ingest, defeat, board } = setup();
+    ingest([defeat()]);
+    ingest([defeat("200", 59)]);
+    ingest([defeat("200", 59)]);
+    expect(board().totals.defeats).toBe("2");
+    expect(board(32).totals.defeats).toBe("1");
+    expect(board(59).totals.defeats).toBe("1");
+    expect(
+      board(59).rows.map((r: any) => [r.name, r.defeats, r.finalBlows]),
+    ).toEqual([
+      ["Krutch", "1", "1"],
+      ["Helper", "1", "0"],
+    ]);
+    expect(() => ingest([defeat("300", 58)])).toThrow("Invalid boss defeat");
+    expect(board().totals.defeats).toBe("2");
+  });
   it("deduplicates deaths, credits all participants and only the observed final blow", () => {
     const { test, ingest, defeat, board } = setup();
     const first = defeat();
