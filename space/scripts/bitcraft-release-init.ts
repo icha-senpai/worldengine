@@ -104,10 +104,25 @@ const restored = parseRelayJson(
 );
 if (canonicalState(restored) !== canonicalState(state))
   throw Error("Release application-state verification failed.");
-if (
+// Public clients can renew old-world watches while the collector is stopped.
+// Compare application records exactly; these volatile feeds stay in the archive.
+const applicationState = (value: Record<string, any>) =>
   canonicalState(
+    Object.fromEntries(
+      Object.entries(value).filter(
+        ([key]) =>
+          ![
+            "collection_sample",
+            "collection_watch",
+            "collection_feed",
+          ].includes(key),
+      ),
+    ),
+  );
+if (
+  applicationState(
     parseRelayJson(await ownerCall(source, "export_app_state", [])),
-  ) !== canonicalState(before)
+  ) !== applicationState(before)
 )
   throw Error("Existing-world application state changed during provisioning.");
 const info = (await fetch(`${spacetimeServer}/v1/database/${target}`).then(
